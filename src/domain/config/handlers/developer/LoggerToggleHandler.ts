@@ -1,8 +1,8 @@
 import { AbstractHandlerClass } from "architecture/patterns";
-import { log } from "core";
-import { SettingsHandlerInfo } from "core/config/model/SettingsTabModel";
+import { SettingsHandlerInfo } from "domain/config/model/SettingsTabModel";
 import { Setting } from "obsidian";
 import { LoggerLevelHandler } from "./LoggerLevelHandler";
+import { log } from "architecture";
 
 export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = 'Enable logger';

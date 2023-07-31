@@ -6,7 +6,7 @@ type ZettelFlowOptionMetadata={
 type ZettelFlowOption={
     label:string,
     relPath:string,
-    metadata:Record<string, ZettelFlowOptionMetadata>
+    frontmatter:Record<string, ZettelFlowOptionMetadata>
 }
 
 export interface ZettelFlowSettings{

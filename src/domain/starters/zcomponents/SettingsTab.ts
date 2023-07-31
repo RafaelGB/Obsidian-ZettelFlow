@@ -1,10 +1,9 @@
 import { PluginComponent } from "architecture";
-import { log } from "core";
-import { ZettelFlowSettingsTab } from "core/config/modals/ZettelFlowSettingsTab";
+import { log } from "architecture";
+import { ZettelFlowSettingsTab } from "domain/config/modals/ZettelFlowSettingsTab";
 import ZettlelFlow from "main";
-import { Plugin } from "obsidian";
 export class SettingsTab extends PluginComponent{
-    constructor(private plugin:Plugin){
+    constructor(private plugin:ZettlelFlow){
         super(plugin);
     }
 

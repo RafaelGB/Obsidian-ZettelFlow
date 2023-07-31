@@ -1,6 +1,6 @@
+import { log } from "architecture";
 import { AbstractHandlerClass } from "architecture/patterns";
-import { log } from "core";
-import { SettingsHandlerInfo } from "core/config/model/SettingsTabModel";
+import { SettingsHandlerInfo } from "domain/config/model/SettingsTabModel";
 import { Setting } from "obsidian";
 
 export class LoggerLevelHandler extends AbstractHandlerClass<SettingsHandlerInfo> {

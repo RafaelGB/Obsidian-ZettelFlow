@@ -1,4 +1,5 @@
 import { PluginComponent } from "architecture";
+import { log } from "core";
 import {addIcon,Notice,Plugin} from "obsidian";
 
 export class RibbonIcon extends PluginComponent{
@@ -15,5 +16,7 @@ export class RibbonIcon extends PluginComponent{
 			// Called when the user clicks the icon.
 			new Notice('This is a notice!');
 		});
+        
+        log.info('RibbonIcon loaded');
     }
 }

@@ -1,18 +1,29 @@
 import { Plugin} from 'obsidian';
-import { loadPluginComponents, log } from 'core';
-// Remember to rename these classes and interfaces!
-
+import { DEFAULT_SETTINGS, ZettelFlowSettings, loadPluginComponents, log } from 'core';
 
 export default class ZettlelFlow extends Plugin {
+	public settings: ZettelFlowSettings;
 	async onload() {
+		await this.loadSettings();
 		// TODO - Use setting to manage log level
 		log.setDebugMode(true);
 		log.setLevelInfo('INFO');
-		log.info('loading plugin');
 		loadPluginComponents(this);
 	}
 
 	onunload() {
 
 	}
+
+	async loadSettings() {
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
+	}
+	
+	async saveSettings() {
+		await this.saveData(this.settings);
+	  }
 }

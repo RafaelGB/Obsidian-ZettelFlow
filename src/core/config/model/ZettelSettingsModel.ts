@@ -11,6 +11,7 @@ type ZettelFlowOption={
 
 export interface ZettelFlowSettings{
     loggerEnabled:boolean,
+    logLevel:string,
     baseDir:string,
     options:Record<string, ZettelFlowOption>
 }

@@ -1,13 +1,10 @@
 import { Plugin} from 'obsidian';
-import { DEFAULT_SETTINGS, ZettelFlowSettings, loadPluginComponents, log } from 'core';
+import { DEFAULT_SETTINGS, ZettelFlowSettings, loadPluginComponents, loadServicesThatRequireSettings, log } from 'core';
 
 export default class ZettlelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
-		// TODO - Use setting to manage log level
-		log.setDebugMode(true);
-		log.setLevelInfo('INFO');
 		loadPluginComponents(this);
 	}
 
@@ -21,8 +18,9 @@ export default class ZettlelFlow extends Plugin {
 			DEFAULT_SETTINGS,
 			await this.loadData()
 		);
+		loadServicesThatRequireSettings(this.settings);
 	}
-	
+
 	async saveSettings() {
 		await this.saveData(this.settings);
 	  }

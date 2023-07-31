@@ -1,11 +1,16 @@
-import { AbstractHandler, AbstractHandlerClass } from "architecture/patterns";
+import { AbstractHandlerClass } from "architecture/patterns";
 import { log } from "core";
 import { SettingsHandlerInfo } from "core/config/model/SettingsTabModel";
 import { Setting } from "obsidian";
+import { LoggerLevelHandler } from "./LoggerLevelHandler";
 
 export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
-    name = 'logger-toggle';
-    description = 'Toggle logger';
+    name = 'Enable logger';
+    description = 'Enable or disable logger';
+    constructor(){
+        super();
+        this.manageNextHandler();
+    }
     handle(info: SettingsHandlerInfo): SettingsHandlerInfo {
         const logger_togle_promise = async (value: boolean): Promise<void> => {
             // update service value
@@ -14,6 +19,8 @@ export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInf
             info.plugin.settings.loggerEnabled = value;
             // save setting
             await info.plugin.saveSettings();
+            // refresh section
+            info.section?.refresh(info);
         }
 
         new Setting(info.containerEl)
@@ -25,7 +32,10 @@ export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInf
                 .onChange(logger_togle_promise)
         );
         
-        
-        return info;
+        return this.goNext(info);
+    }
+
+    manageNextHandler(){
+        this.nextHandler = new LoggerLevelHandler();
     }
 }

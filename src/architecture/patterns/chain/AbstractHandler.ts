@@ -1,5 +1,5 @@
 export interface AbstractHandler<T> {
-    setNext(handler: AbstractHandler<T>): void;
+    manageNextHandler(): void;
     handle(response: T): T;
 }
 
@@ -16,7 +16,7 @@ export abstract class AbstractHandlerClass<T> implements AbstractHandler<T> {
         return response;
     }
 
-    public setNext(handler: AbstractHandler<T>): void {
+    public manageNextHandler(): void {
         this.nextHandler = undefined;
     }
 

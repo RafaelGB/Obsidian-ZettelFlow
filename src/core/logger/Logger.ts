@@ -52,7 +52,7 @@ class Log implements LogInterface {
     }
 
     public setLevelInfo(value: string) {
-        this.levelInfo = LevelInfoRecord[value.toLowerCase()];
+        this.levelInfo = LevelInfoRecord[value];
         this.configureLogger();
 
     }

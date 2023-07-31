@@ -16,7 +16,7 @@ export abstract class AbstractChain<T> {
 
     public run(abstractInfo: T): T {
         // Obtain the group of handlers
-        const mainHandler = this.starter();
+        const mainHandler = this.starter;
 
         // If there is no handler, return the original info
         if (!mainHandler) {
@@ -29,5 +29,6 @@ export abstract class AbstractChain<T> {
         // Customize the info after the chain
         return this.after(abstractInfo);
     }
-    protected abstract starter(): AbstractHandler<T>;
+    protected abstract starter: AbstractHandler<T>;
+    public abstract refresh(abstractInfo: T):void;
 }

@@ -1,22 +1,30 @@
 import { App, Modal } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
-import { buildSelectorMenu } from "../SelectorMenu";
-import { t } from "architecture/lang";
-export class SelectorMenuModal  extends Modal {
+import { buildSelectorMenu } from "../NoteBuilder/SelectorMenu";
+import ZettlelFlow from "main";
+import { NoteBuilderType } from "components/NoteBuilder/model/NoteBuilderModel";
+export class SelectorMenuModal extends Modal {
     private root :Root;
-
-    constructor(app: App) {
+    
+    constructor(app: App, private plugin:ZettlelFlow) {
         super(app);
     }
     onOpen(): void {
-        this.contentEl.createEl('h2', {text: t('selector_menu_title')});
-        this.root = createRoot(this.contentEl);
-        const selectorMenu = buildSelectorMenu();
+        const child=this.contentEl.createDiv();
+        this.root = createRoot(child);
+        const selectorMenu = buildSelectorMenu(this.getNoteBuilderType());
         this.root.render(selectorMenu);
     }
 
     onClose(): void {
         this.root.unmount();
+    }
+
+    private getNoteBuilderType(): NoteBuilderType {
+        return {
+            plugin: this.plugin,
+            modal: this
+        }
     }
 
 }

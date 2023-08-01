@@ -1,4 +1,5 @@
 export const CSS_PREFIX = 'zettelkasten-flow';
+
 export function c(className: string): string {
     const wrappedClasses: string[] = [];
     className.split(' ').forEach((cls) => {

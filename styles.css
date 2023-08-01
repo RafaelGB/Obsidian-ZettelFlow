@@ -15,3 +15,25 @@
     border: 1px solid transparent;
     border-radius: 0.25rem;
 }
+
+/*****************
+*   SELECTOR MENU
+******************/
+.zettelkasten-flow__header{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.zettelkasten-flow__header p{
+    text-align: center;
+    size: var(--h2-size);
+    font-weight: var(--h2-weight);
+    color: var(--h2-color);
+}
+
+.zettelkasten-flow__section{
+    margin-bottom: 1rem;
+}

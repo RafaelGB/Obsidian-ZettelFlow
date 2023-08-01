@@ -19,6 +19,6 @@ export class RibbonIcon extends PluginComponent{
     }
     private ribbonIconCallback = (evt: MouseEvent) => {
         // Open an empty modal
-        new SelectorMenuModal(this.plugin.app).open();
+        new SelectorMenuModal(this.plugin.app,this.plugin).open();
     }
 }

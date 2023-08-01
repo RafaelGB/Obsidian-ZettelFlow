@@ -3,10 +3,11 @@ import { SettingsHandlerInfo } from "config/model/SettingsTabModel";
 import { Setting } from "obsidian";
 import { LoggerLevelHandler } from "./LoggerLevelHandler";
 import { log } from "architecture";
+import { t } from "architecture/lang";
 
 export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
-    name = 'Enable logger';
-    description = 'Enable or disable logger';
+    name = t('logger_toggle_title');
+    description = t('logger_toggle_description');
     constructor(){
         super();
         this.manageNextHandler();

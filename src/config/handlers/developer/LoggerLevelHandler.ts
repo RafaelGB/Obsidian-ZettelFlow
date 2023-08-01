@@ -1,11 +1,12 @@
 import { log } from "architecture";
+import { t } from "architecture/lang";
 import { AbstractHandlerClass } from "architecture/patterns";
 import { SettingsHandlerInfo } from "config/model/SettingsTabModel";
 import { Setting } from "obsidian";
 
 export class LoggerLevelHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
-    name= 'Logger level';
-    description = 'Set logger level';
+    name= t('logger_level_title');
+    description = t('logger_level_description');
     public static LOG_OPTIONS_RECORD: Record<string, string> = {
         trace: 'trace',
         debug: 'debug',

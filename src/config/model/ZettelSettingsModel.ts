@@ -1,4 +1,4 @@
-import { DEFAULT_OPTIONS, ZettelFlowOption } from "../../zettelcaster/model/ZettelcasterOptionsModel";
+import { DEFAULT_OPTIONS, ZettelFlowOption } from "zettelcaster";
 
 export interface ZettelFlowSettings{
     loggerEnabled:boolean,

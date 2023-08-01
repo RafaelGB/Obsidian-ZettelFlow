@@ -1,9 +1,11 @@
-import { ZettelFlowSettings } from "domain/config/model/ZettelSettingsModel";
+// External imports
+import { ZettelFlowSettings } from "config";
+import { log } from "architecture";
+import ZettlelFlow from "main";
+// Internal imports
 import { ZComponentsManager } from "../services/ZComponentsManager";
 import { RibbonIcon } from "../zcomponents/RibbonIcon";
 import { SettingsTab } from "../zcomponents/SettingsTab";
-import { log } from "architecture";
-import ZettlelFlow from "main";
 /**
  * Load all components of the plugin with the ZComponent interface
  * @param plugin 

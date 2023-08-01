@@ -1,7 +1,6 @@
-import { buildSelectorMenu } from "components/SelectorMenu";
 import { App, Modal } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
-
+import { buildSelectorMenu } from "../SelectorMenu";
 export class SelectorMenuModal  extends Modal {
     private root :Root;
 

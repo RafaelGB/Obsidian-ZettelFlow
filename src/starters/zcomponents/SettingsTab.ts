@@ -1,6 +1,6 @@
 import { PluginComponent } from "architecture";
 import { log } from "architecture";
-import { ZettelFlowSettingsTab } from "../../config/modals/ZettelFlowSettingsTab";
+import { ZettelFlowSettingsTab } from "config";
 import ZettlelFlow from "main";
 export class SettingsTab extends PluginComponent{
     constructor(private plugin:ZettlelFlow){

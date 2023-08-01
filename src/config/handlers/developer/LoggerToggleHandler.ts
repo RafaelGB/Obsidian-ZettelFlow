@@ -1,5 +1,5 @@
 import { AbstractHandlerClass } from "architecture/patterns";
-import { SettingsHandlerInfo } from "domain/config/model/SettingsTabModel";
+import { SettingsHandlerInfo } from "config/model/SettingsTabModel";
 import { Setting } from "obsidian";
 import { LoggerLevelHandler } from "./LoggerLevelHandler";
 import { log } from "architecture";

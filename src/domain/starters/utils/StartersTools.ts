@@ -1,7 +1,7 @@
 import { ZComponentsManager } from "../services/ZComponentsManager";
 import { RibbonIcon } from "../zcomponents/RibbonIcon";
 import { SettingsTab } from "../zcomponents/SettingsTab";
-import { ZettelFlowSettings } from "domain/config/model/ZettelSettingsModel";
+import { ZettelFlowSettings } from "domain/config";
 import { log } from "architecture";
 import ZettlelFlow from "main";
 /**

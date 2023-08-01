@@ -1,13 +1,4 @@
-type ZettelFlowOptionMetadata={
-    input:string, // TODO: investigate enums with typescript 5
-    optional:boolean,
-}
-
-type ZettelFlowOption={
-    label:string,
-    relPath:string,
-    frontmatter:Record<string, ZettelFlowOptionMetadata>
-}
+import { DEFAULT_OPTIONS, ZettelFlowOption } from "domain/zettelcaster"
 
 export interface ZettelFlowSettings{
     loggerEnabled:boolean,
@@ -19,6 +10,5 @@ export interface ZettelFlowSettings{
 export const DEFAULT_SETTINGS:Partial<ZettelFlowSettings>={
     loggerEnabled:false,
     baseDir:"/",
-    options:{
-    }
+    options: DEFAULT_OPTIONS
 }

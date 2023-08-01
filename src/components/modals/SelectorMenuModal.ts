@@ -1,4 +1,4 @@
-import { buildSelectorMenu } from "components";
+import { buildSelectorMenu } from "components/SelectorMenu";
 import { App, Modal } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 

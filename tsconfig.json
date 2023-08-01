@@ -1,28 +1,26 @@
 {
-    "compilerOptions": {
-      "jsx": "react",
-      "baseUrl": "src",
-      "inlineSourceMap": true,
-      "inlineSources": true,
-      "module": "ESNext",
-      "target": "ES6",
-      "allowJs": true,
-      "noImplicitAny": true,
-      "moduleResolution": "node",
-      "importHelpers": true,
-      "isolatedModules": true,
-      "strictNullChecks": true,
-      "allowSyntheticDefaultImports": true,
-      "lib": [
-        "DOM",
-        "ES5",
-        "ES6",
-        "ES7"
-      ]
-    },
-    "include": [
-        "src/**/*.ts", 
-        "src/**/*.tsx"
-    ],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "baseUrl": "src",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "module": "ESNext",
+    "target": "es2018",
+    "allowJs": false,
+    "jsx": "react",
+    "jsxFactory": "React.createElement",
+    "jsxFragmentFactory": "React.Fragment",
+    "noImplicitAny": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "lib": ["dom", "es5", "scripthost", "es2018", "DOM.Iterable"],
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["lib/**/*"]
+}

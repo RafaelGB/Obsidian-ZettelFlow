@@ -1,5 +1,5 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'domain/config';
-import { loadPluginComponents, loadServicesThatRequireSettings } from 'domain/starters';
+import { DEFAULT_SETTINGS, ZettelFlowSettings } from './domain/config/model/ZettelSettingsModel';
+import { loadPluginComponents, loadServicesThatRequireSettings } from './domain/starters/utils/StartersTools';
 import { Plugin} from 'obsidian';
 
 export default class ZettlelFlow extends Plugin {

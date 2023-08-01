@@ -1,6 +1,6 @@
 import { PluginComponent } from "architecture";
 import { log } from "architecture";
-import { SelectorMenuModal } from "components";
+import { SelectorMenuModal } from "components/modals/SelectorMenuModal";
 import ZettlelFlow from "main";
 import {addIcon} from "obsidian";
 

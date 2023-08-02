@@ -6,7 +6,7 @@ export function Section(sectionType: SectionType) {
     const { element} = sectionType;
     return (
         <div className={c("section")}>
-        {element}
+            {element}
         </div>
     );
 }

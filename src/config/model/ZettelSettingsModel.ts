@@ -4,11 +4,11 @@ export interface ZettelFlowSettings{
     loggerEnabled:boolean,
     logLevel:string,
     baseDir:string,
-    options:Record<string, ZettelFlowOption>
+    rootSection:Record<string, ZettelFlowOption>
 }
 
 export const DEFAULT_SETTINGS:Partial<ZettelFlowSettings>={
     loggerEnabled:false,
     baseDir:"/",
-    options: DEFAULT_OPTIONS
+    rootSection: DEFAULT_OPTIONS
 }

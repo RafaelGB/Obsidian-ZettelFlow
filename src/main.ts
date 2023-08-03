@@ -1,6 +1,6 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'domain/config';
-import { loadPluginComponents, loadServicesThatRequireSettings } from 'domain/starters';
-import { Plugin} from 'obsidian';
+import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
+import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
+import { Plugin } from 'obsidian';
 
 export default class ZettlelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
@@ -9,7 +9,7 @@ export default class ZettlelFlow extends Plugin {
 		loadPluginComponents(this);
 	}
 
-	onunload() {}
+	onunload() { }
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -22,5 +22,5 @@ export default class ZettlelFlow extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	  }
+	}
 }

@@ -1,7 +1,10 @@
-import { AbstractChain, AbstractHandler } from "architecture/patterns";
+// External imports
+import { AbstractChain } from "architecture/patterns";
+import { c } from "architecture";
+// Internal imports
 import { SettingsHandlerInfo } from "../model/SettingsTabModel";
 import { LoggerToggleHandler } from "./developer/LoggerToggleHandler";
-import { c } from "architecture";
+
 
 export class Developer extends AbstractChain<SettingsHandlerInfo> {
     private sectionContainer: HTMLElement;

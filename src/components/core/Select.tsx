@@ -1,35 +1,47 @@
-import React from "react";
+import React, { MouseEventHandler } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 
 export function Select(selectType: SelectType) {
-  const { options } = selectType;
-  
+  const { options, callback } = selectType;
+  const [selected, setSelected] = React.useState<string>("");
+
+  const internalCallback: MouseEventHandler<HTMLOptionElement> = async (
+    event
+  ) => {
+    // Obtain the selected option from the event target via value attribute
+    event.preventDefault();
+    const selectedOption = event.currentTarget.value;
+    setSelected(selectedOption);
+    callback(selectedOption);
+  };
+
   return (
     <>
-    {options.map((option,index) => (
-      <OptionElement key={option.key} label={option.label} index={index} />
-    ))}
+      {options.map((option, index) => (
+        <OptionElement
+          option={option}
+          index={index}
+          callback={internalCallback}
+          isSelected={selected === option.key}
+        />
+      ))}
     </>
   );
 }
 
 function OptionElement(optionElementType: OptionElementType) {
-  const { key,label, index } = optionElementType;
-  const [selected, setSelected] = React.useState(false);
+  const { option, index, isSelected, callback } = optionElementType;
 
-  const callback = () => {
-    setSelected(!selected);
-  };
-  
   return (
-    <option 
-      value={key} 
-      className={selected?c("option","selected"):c("option")} 
-      selected={selected} 
+    <option
+      value={option.key}
+      className={isSelected ? c("option", "selected") : c("option")}
+      selected={isSelected}
       onClick={callback}
+      key={`option-${option.key}-${index}`}
     >
-      {label}
+      {option.label}
     </option>
   );
 }

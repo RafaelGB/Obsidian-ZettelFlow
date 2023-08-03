@@ -8,6 +8,9 @@ import {
   SectionType,
 } from "components/core";
 import { zettelFlowOptionRecord2Options } from "components/core";
+import { t } from "architecture/lang";
+import { Builder, FinalNoteType } from "notes";
+import { log } from "architecture";
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
   return <NoteBuilder {...noteBuilderType} />;
@@ -24,9 +27,14 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 }
 
 function Component(noteBuilderType: NoteBuilderType) {
-  const { settings } = noteBuilderType.plugin;
+  const { plugin, modal } = noteBuilderType;
+  const { settings } = plugin;
+  const [finalNoteState, setFinalNote] = useState<FinalNoteType>({
+    title: "pruebas",
+    targetFolder: "/",
+  });
   const [headerState, setHeader] = useState<HeaderType>({
-    title: "My first header",
+    title: t("flow_selector_placeholder"),
   });
 
   const [sectionState, setSection] = useState<SectionType>({
@@ -36,7 +44,16 @@ function Component(noteBuilderType: NoteBuilderType) {
       <Select
         options={zettelFlowOptionRecord2Options(settings.rootSection)}
         callback={(selected) => {
-          const section = settings.rootSection[selected];
+          const selectedSection = settings.rootSection[selected];
+          if (selectedSection.children) {
+            // TODO: setHeader and setSection
+            // TODO: manage history
+          } else {
+            finalNoteState.targetFolder;
+            // TODO: end the flow and create the new note with all the information
+            Builder.init(finalNoteState).build();
+            modal.close();
+          }
         }}
       />
     ),

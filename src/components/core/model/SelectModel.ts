@@ -1,15 +1,18 @@
-export type SelectType ={
+import { MouseEventHandler } from "react";
+
+export type SelectType = {
     options: Option[];
     callback: (value: string) => void;
+}
+
+export type OptionElementType = {
+    option: Option;
+    isSelected: boolean;
+    index: number;
+    callback: MouseEventHandler<HTMLOptionElement>
 }
 
 export type Option = {
     key: string;
     label: string;
-}
-
-export type OptionElementType = {
-    key: string;
-    label: string;
-    index: number;
 }

@@ -4,13 +4,13 @@ import { buildSelectorMenu } from "../NoteBuilder/SelectorMenu";
 import ZettlelFlow from "main";
 import { NoteBuilderType } from "components/NoteBuilder/model/NoteBuilderModel";
 export class SelectorMenuModal extends Modal {
-    private root :Root;
-    
-    constructor(app: App, private plugin:ZettlelFlow) {
+    private root: Root;
+
+    constructor(app: App, private plugin: ZettlelFlow) {
         super(app);
     }
     onOpen(): void {
-        const child=this.contentEl.createDiv();
+        const child = this.contentEl.createDiv();
         this.root = createRoot(child);
         const selectorMenu = buildSelectorMenu(this.getNoteBuilderType());
         this.root.render(selectorMenu);

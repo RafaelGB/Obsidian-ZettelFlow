@@ -6,7 +6,7 @@ export type ZettelFlowOptionMetadata = {
 
 export type ZettelFlowOption = {
     label: string,
-    relPath: string,
+    targetFolder: string,
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
     children?: ZettelFlowSection
 }
@@ -40,7 +40,7 @@ export interface PromptElement extends SectionElement {
 export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
     fleeting: {
         label: 'Fleeting note',
-        relPath: '/zettelFlow/fleeting',
+        targetFolder: '/zettelFlow/fleeting',
         frontmatter: {
             Type: {
                 input: 'tag',

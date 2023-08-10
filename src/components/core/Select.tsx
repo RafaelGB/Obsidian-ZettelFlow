@@ -24,6 +24,7 @@ export function Select(selectType: SelectType) {
           index={index}
           callback={internalCallback}
           isSelected={selected === option.key}
+          key={`option-${option.key}-${index}`}
         />
       ))}
     </>

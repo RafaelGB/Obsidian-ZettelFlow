@@ -9,6 +9,5 @@ export function zettelFlowOptionRecord2Options(record: Record<string, ZettelFlow
             key: key
         })
     });
-    console.log(options);
     return options;
 }

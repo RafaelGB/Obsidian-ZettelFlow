@@ -7,3 +7,6 @@ export { HeaderType } from './model/HeaderModel'
 
 export { Section } from './Section'
 export { SectionType } from './model/SectionModel'
+
+export { Input } from './Input'
+export { InputType } from './model/InputModel'

@@ -9,7 +9,7 @@ export type OptionElementType = {
     option: Option;
     isSelected: boolean;
     index: number;
-    callback: MouseEventHandler<HTMLOptionElement>
+    callback: MouseEventHandler<HTMLDivElement>
 }
 
 export type Option = {

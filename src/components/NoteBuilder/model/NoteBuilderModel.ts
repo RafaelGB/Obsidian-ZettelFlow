@@ -6,11 +6,10 @@ import { StoreApi, UseBoundStore } from "zustand";
 export type NoteBuilderType = {
     plugin: ZettlelFlow;
     modal: Modal;
-    store?: NoteBuilderStore;
 }
 
 export type NoteBuilderProps = {
-    noteBuilderStore: NoteBuilderStore;
+    store: NoteBuilderStore;
 } & NoteBuilderType;
 
 export type NoteBuilderState = {

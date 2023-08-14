@@ -1,12 +1,3 @@
-/*****************
-*   VARIABLES
-******************
-
-.zettelkasten-flow__variables{
-    
-}
-/
-
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {
   background-color: var(--background-modifier-error);
@@ -84,7 +75,7 @@
 }
 
 .zettelkasten-flow__input-group input:focus,
-.zettelkasten-flow__input-group input :valid {
+.zettelkasten-flow__input-group input:valid {
   outline: none;
   border: 1.5px solid var(--text-accent);
 }

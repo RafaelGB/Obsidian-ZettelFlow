@@ -1,20 +1,26 @@
 import React from "react";
-import { InputType } from "./model/InputModel";
 import { c } from "architecture";
+import { t } from "architecture/lang";
+import { NoteBuilderProps } from "components/NoteBuilder";
 
-export function Input(inputType: InputType) {
-  const { value, placeholder, type, onChange } = inputType;
+export function Input(noteBuilderType: NoteBuilderProps) {
+  const { store } = noteBuilderType;
+  const actions = store((store) => store.actions);
+  const titleValue = store((store) => store.title);
   return (
     <>
       <input
-        value={value}
-        type={type}
-        name="text"
+        value={titleValue}
+        type="text"
+        name="title"
         autoComplete="off"
-        onChange={onChange}
+        onChange={(event) => {
+          const value = event.target.value;
+          actions.setTitle(value);
+        }}
         required={true}
       />
-      <label className={c("input-label")}>{placeholder}</label>
+      <label className={c("input-label")}>{t("note_title_placeholder")}</label>
     </>
   );
 }

@@ -6,8 +6,9 @@ import {
   NoteBuilderType,
 } from "../model/NoteBuilderModel";
 import { Select, zettelFlowOptionRecord2Options } from "components/core";
-import { Builder, FinalNoteType } from "notes";
+import { Builder } from "notes";
 import { t } from "architecture/lang";
+import { TypeService } from "architecture/typing";
 
 export function useNoteBuilderStore(
   noteBuilderType: NoteBuilderType
@@ -16,7 +17,7 @@ export function useNoteBuilderStore(
   const { settings } = plugin;
   return create<NoteBuilderState>((set, get) => ({
     title: "",
-    targetFolder: "",
+    targetFolder: "/",
     section: {
       color: "",
       position: 0,
@@ -26,19 +27,24 @@ export function useNoteBuilderStore(
           options={zettelFlowOptionRecord2Options(settings.rootSection)}
           callback={(selected) => {
             const selectedSection = settings.rootSection[selected];
-            set({ targetFolder: selectedSection.targetFolder });
-            if (selectedSection.children) {
+
+            const builder = Builder.init({
+              title: get().title,
+              targetFolder: get().targetFolder,
+            });
+            builder.addFrontMatter(selectedSection.frontmatter);
+
+            if (!TypeService.isEmpty(selectedSection.children)) {
               // TODO: setHeader and setSection
               // TODO: manage history
             } else {
               // TODO: end the flow and create the new note with all the information
-              const finalNoteState: FinalNoteType = {
-                title: get().title,
-                targetFolder: get().targetFolder,
-              };
-              Builder.init(finalNoteState).build();
+
+              builder.build();
               modal.close();
             }
+            // Refresh the state
+            set({ targetFolder: selectedSection.targetFolder });
           }}
         />
       ),

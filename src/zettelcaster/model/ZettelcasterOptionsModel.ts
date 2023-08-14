@@ -1,30 +1,27 @@
-export type ZettelFlowOptionMetadata = {
-    input: string, // TODO: investigate enums with typescript 5
-    message: string,
-    optional?: boolean,
-}
+export type ZettelFlowOptionMetadata = string | string[] | number | number[];
 
 export type ZettelFlowOption = {
     label: string,
     targetFolder: string,
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
-    children?: ZettelFlowSection
+    children: Record<string, ZettelFlowSection>
 }
 
 export type ZettelFlowSection = {
     element: SectionElement,
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
-    info?: SectionInfo,
-    children?: ZettelFlowSection
+    info: SectionInfo,
+    children: Record<string, ZettelFlowSection>,
+    optional?: boolean,
 }
 
 export type SectionInfo = {
-    level: number,
     title: string
 }
 
 export interface SectionElement {
     type: string,
+    placeholder?: string,
 }
 
 export interface SelectorElement extends SectionElement {
@@ -42,10 +39,48 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
         label: 'Fleeting note',
         targetFolder: '/zettelFlow/fleeting',
         frontmatter: {
-            Type: {
-                input: 'tag',
-                message: '#zettelcaster/fleeting'
+            tags: 'zettelkasten/fleeting'
+        },
+        children: {
+            meeting: {
+                element: {
+                    type: 'selector',
+                },
+                info: {
+                    title: 'Work meeting'
+                },
+                frontmatter: {
+                    tags: 'meeting'
+                },
+                children: {}
+            },
+            idea: {
+                element: {
+                    type: 'prompt',
+                    placeholder: 'What is the idea?'
+                },
+                info: {
+                    title: 'Idea'
+                },
+                frontmatter: {
+                    tags: 'idea'
+                },
+                children: {}
             }
         }
+    },
+    literature: {
+        label: 'Literature note',
+        targetFolder: '/zettelFlow/literature',
+        frontmatter: {
+            tags: 'zettelkasten/literature'
+        },
+        children: {}
+    },
+    permanent: {
+        label: 'Permanent note',
+        targetFolder: '/zettelFlow/permanent',
+        frontmatter: {},
+        children: {}
     }
 }

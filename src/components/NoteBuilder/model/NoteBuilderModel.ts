@@ -2,7 +2,7 @@ import { HeaderType, SectionType } from "components/core";
 import ZettlelFlow from "main";
 import { BuilderRoot } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
-import { ZettelFlowElement } from "zettelcaster";
+import { ZettelFlowElement } from "zettelkasten";
 import { StoreApi, UseBoundStore } from "zustand";
 
 export type NoteBuilderType = {

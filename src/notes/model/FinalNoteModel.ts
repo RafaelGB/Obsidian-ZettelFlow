@@ -1,4 +1,4 @@
-import { ZettelFlowOptionMetadata } from "zettelcaster";
+import { ZettelFlowOptionMetadata } from "zettelkasten";
 
 export type FinalNoteType = {
     title: string;

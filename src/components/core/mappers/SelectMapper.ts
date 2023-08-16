@@ -1,4 +1,4 @@
-import { ZettelFlowOption, ZettelFlowElement } from "zettelcaster";
+import { ZettelFlowOption, ZettelFlowElement } from "zettelkasten";
 import { Option } from "components/core";
 
 export class SelectMapper {

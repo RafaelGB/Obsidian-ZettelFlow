@@ -2,7 +2,7 @@ import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
 import { FrontMatterService, FileService } from "notes";
-import { ZettelFlowOptionMetadata } from "zettelcaster";
+import { ZettelFlowOptionMetadata } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {

@@ -1,59 +1,36 @@
 import React from "react";
 import { create } from "zustand";
-import {
-  NoteBuilderState,
-  NoteBuilderStore,
-  NoteBuilderType,
-} from "../model/NoteBuilderModel";
-import { Select, zettelFlowOptionRecord2Options } from "components/core";
-import { Builder } from "notes";
+import { NoteBuilderState, NoteBuilderStore } from "../model/NoteBuilderModel";
+import { HeaderType } from "components/core";
 import { t } from "architecture/lang";
-import { TypeService } from "architecture/typing";
 
-export function useNoteBuilderStore(
-  noteBuilderType: NoteBuilderType
-): NoteBuilderStore {
-  const { plugin, modal } = noteBuilderType;
-  const { settings } = plugin;
+export function useNoteBuilderStore(): NoteBuilderStore {
   return create<NoteBuilderState>((set, get) => ({
     title: "",
     targetFolder: "/",
+    templates: [],
     section: {
       color: "",
       position: 0,
-      element: (
-        <Select
-          key="select-root-section"
-          options={zettelFlowOptionRecord2Options(settings.rootSection)}
-          callback={(selected) => {
-            const selectedSection = settings.rootSection[selected];
-
-            const builder = Builder.init({
-              title: get().title,
-              targetFolder: get().targetFolder,
-            });
-            builder.addFrontMatter(selectedSection.frontmatter);
-
-            if (!TypeService.isEmpty(selectedSection.children)) {
-              // TODO: setHeader and setSection
-              // TODO: manage history
-            } else {
-              // TODO: end the flow and create the new note with all the information
-
-              builder.build();
-              modal.close();
-            }
-            // Refresh the state
-            set({ targetFolder: selectedSection.targetFolder });
-          }}
-        />
-      ),
+      element: <></>,
     },
     header: {
       title: t("flow_selector_placeholder"),
     },
     actions: {
       setTitle: (title: string) => set({ title }),
+      setTargetFolder: (targetFolder: string) => set({ targetFolder }),
+      setHeader: (header: Partial<HeaderType>) =>
+        set({ header: { ...get().header, ...header } }),
+      setSectionElement: (element: JSX.Element) => {
+        set({
+          section: {
+            ...get().section,
+            element: element,
+            position: get().section.position + 1,
+          },
+        });
+      },
     },
   }));
 }

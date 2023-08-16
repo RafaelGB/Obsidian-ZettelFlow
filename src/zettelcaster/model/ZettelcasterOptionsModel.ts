@@ -4,15 +4,18 @@ export type ZettelFlowOption = {
     label: string,
     targetFolder: string,
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
-    children: Record<string, ZettelFlowSection>
+    children: Record<string, ZettelFlowElement>,
+    childrenHeader: string
 }
 
-export type ZettelFlowSection = {
+export type ZettelFlowElement = {
+    label: string,
     element: SectionElement,
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
-    info: SectionInfo,
-    children: Record<string, ZettelFlowSection>,
+    children: Record<string, ZettelFlowElement>,
+    childrenHeader?: string,
     optional?: boolean,
+    templatePath?: string
 }
 
 export type SectionInfo = {
@@ -26,7 +29,7 @@ export interface SectionElement {
 
 export interface SelectorElement extends SectionElement {
     type: 'selector',
-    options: Record<string, ZettelFlowSection>
+    options: Record<string, ZettelFlowElement>
 }
 
 export interface PromptElement extends SectionElement {
@@ -37,7 +40,7 @@ export interface PromptElement extends SectionElement {
 export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
     fleeting: {
         label: 'Fleeting note',
-        targetFolder: '/zettelFlow/fleeting',
+        targetFolder: '/zettelFlow/fleeting/',
         frontmatter: {
             tags: 'zettelkasten/fleeting'
         },
@@ -46,9 +49,7 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
                 element: {
                     type: 'selector',
                 },
-                info: {
-                    title: 'Work meeting'
-                },
+                label: 'Work meeting',
                 frontmatter: {
                     tags: 'meeting'
                 },
@@ -59,28 +60,29 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
                     type: 'prompt',
                     placeholder: 'What is the idea?'
                 },
-                info: {
-                    title: 'Idea'
-                },
+                label: 'Idea',
                 frontmatter: {
                     tags: 'idea'
                 },
                 children: {}
             }
-        }
+        },
+        childrenHeader: 'What kind of fleeting note is this?'
     },
     literature: {
         label: 'Literature note',
-        targetFolder: '/zettelFlow/literature',
+        targetFolder: '/zettelFlow/literature/',
         frontmatter: {
             tags: 'zettelkasten/literature'
         },
-        children: {}
+        children: {},
+        childrenHeader: ''
     },
     permanent: {
         label: 'Permanent note',
-        targetFolder: '/zettelFlow/permanent',
+        targetFolder: '/zettelFlow/permanent/',
         frontmatter: {},
-        children: {}
+        children: {},
+        childrenHeader: ''
     }
 }

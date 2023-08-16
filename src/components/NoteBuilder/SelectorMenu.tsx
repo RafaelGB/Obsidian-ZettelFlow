@@ -9,7 +9,7 @@ export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
 }
 
 function NoteBuilder(noteBuilderType: NoteBuilderType) {
-  const noteBuilderStore = useNoteBuilderStore(noteBuilderType);
+  const noteBuilderStore = useNoteBuilderStore();
   return (
     <StrictMode>
       <div>

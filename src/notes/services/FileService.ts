@@ -1,10 +1,11 @@
-import { ObsidianApi } from "architecture";
+import { ObsidianApi, log } from "architecture";
 import { TFile } from "obsidian";
 
 class FileServiceManager {
     private static instance: FileServiceManager;
 
     public async createFile(path: string, content: string, openAfter = true): Promise<TFile> {
+        log.debug(`-> createFile: path: ${path}`);
         const folder = path.substring(0, path.lastIndexOf("/"));
         if (!await ObsidianApi.vault().adapter.exists(folder)) {
             await ObsidianApi.vault().createFolder(folder);
@@ -14,6 +15,7 @@ class FileServiceManager {
         if (openAfter) {
             await ObsidianApi.workspace().openLinkText(file.path, "");
         }
+        log.debug(`<- createFile`);
         return file;
     }
 

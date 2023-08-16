@@ -85,5 +85,5 @@
   transform: translateY(-50%) scale(0.8);
   background-color: var(--background-primary);
   padding: 0 0.2em;
-  color: var(--background-secondary);
+  color: var(--text-normal);
 }

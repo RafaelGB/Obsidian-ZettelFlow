@@ -2,7 +2,7 @@ import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
 import { FrontMatterService, FileService } from "notes";
-import { ZettelFlowOptionMetadata } from "zettelkasten";
+import { ZettelFlowBase, ZettelFlowOptionMetadata } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {
@@ -20,7 +20,7 @@ export const callbackRootBuilder =
   ) =>
   (selected: string) => {
     const { actions, title } = state;
-    const { plugin, modal } = info;
+    const { plugin } = info;
     const { settings } = plugin;
     const selectedSection = settings.rootSection[selected];
 
@@ -28,56 +28,50 @@ export const callbackRootBuilder =
       title: title,
       targetFolder: selectedSection.targetFolder,
     });
-    builder.addFrontMatter(selectedSection.frontmatter);
-
-    if (TypeService.recordIsEmpty(selectedSection.children)) {
-      builder.build();
-      modal.close();
-
-      // TODO: manage history
-    } else {
-      const childrenHeader = selectedSection.childrenHeader;
-
-      actions.setHeader({
-        title: childrenHeader,
-      });
-      actions.setSectionElement(
-        <ElementBuilder
-          {...info}
-          childen={selectedSection.children}
-          builder={builder}
-          key={`${selected}-children-${childrenHeader}`}
-        />
-      );
-      actions.setTargetFolder(selectedSection.targetFolder);
-    }
+    nextElement(state, builder, selectedSection, info);
+    actions.setTargetFolder(selectedSection.targetFolder);
   };
 
 export const callbackElementBuilder =
   (state: Pick<NoteBuilderState, "actions">, info: ElementBuilderProps) =>
   (selected: string) => {
-    const { actions } = state;
-    const { childen, modal, builder } = info;
+    const { childen, builder } = info;
     const selectedElement = childen[selected];
-    builder.addFrontMatter(selectedElement.frontmatter);
-    if (TypeService.recordIsEmpty(selectedElement.children)) {
-      builder.build();
-      modal.close();
-    } else {
-      const childrenHeader = selectedElement.childrenHeader;
-      actions.setHeader({
-        title: childrenHeader,
-      });
-      actions.setSectionElement(
-        <ElementBuilder
-          {...info}
-          childen={selectedElement.children}
-          builder={builder}
-          key={`${selected}-children-${childrenHeader}`}
-        />
-      );
-    }
+    nextElement(state, builder, selectedElement, info);
   };
+
+function nextElement(
+  state: Pick<NoteBuilderState, "actions">,
+  builder: BuilderRoot,
+  selectedOption: ZettelFlowBase,
+  info: NoteBuilderProps
+) {
+  const { actions } = state;
+  const { modal } = info;
+  builder.addFrontMatter(selectedOption.frontmatter);
+
+  if (TypeService.exists(selectedOption.template)) {
+    builder.addTemplate(selectedOption.template);
+  }
+
+  if (TypeService.recordIsEmpty(selectedOption.children)) {
+    builder.build();
+    modal.close();
+  } else {
+    const childrenHeader = selectedOption.childrenHeader;
+    actions.setHeader({
+      title: childrenHeader,
+    });
+    actions.setSectionElement(
+      <ElementBuilder
+        {...info}
+        childen={selectedOption.children}
+        builder={builder}
+        key={`children-${childrenHeader}`}
+      />
+    );
+  }
+}
 
 export class Builder {
   public static init(finalNote: FinalNoteType): BuilderRoot {
@@ -101,11 +95,16 @@ export class BuilderRoot {
     }
   }
 
-  public build(): void {
+  public addTemplate(templatePath: string): BuilderRoot {
+    this.info.templates.push(templatePath);
+    return this;
+  }
+
+  public async build(): Promise<void> {
     // TODO: check if the folder exists and create it if not
 
     // TODO: create a note
-    const content = "Hola mundo";
+    const content = await this.buildContent();
     const path = this.info.targetFolder + this.info.title + ".md";
     FileService.createFile(path, content)
       .then((file) => {
@@ -139,5 +138,17 @@ export class BuilderRoot {
       return this;
     }
     return this;
+  }
+
+  private async buildContent() {
+    let content = "";
+    for (const template of this.info.templates) {
+      const templateFile = await FileService.getFile(template);
+      if (TypeService.exists(templateFile)) {
+        const templateContent = await FileService.getContent(templateFile);
+        content = content.concat("\n").concat(templateContent);
+      }
+    }
+    return content;
   }
 }

@@ -1,22 +1,20 @@
 export type ZettelFlowOptionMetadata = string | string[] | number | number[];
 
-export type ZettelFlowOption = {
+export type ZettelFlowBase = {
     label: string,
-    targetFolder: string,
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
     children: Record<string, ZettelFlowElement>,
-    childrenHeader: string
+    childrenHeader: string,
+    template?: string
 }
+export type ZettelFlowOption = {
+    targetFolder: string,
+} & ZettelFlowBase
 
 export type ZettelFlowElement = {
-    label: string,
     element: SectionElement,
-    frontmatter: Record<string, ZettelFlowOptionMetadata>,
-    children: Record<string, ZettelFlowElement>,
-    childrenHeader?: string,
     optional?: boolean,
-    templatePath?: string
-}
+} & ZettelFlowBase
 
 export type SectionInfo = {
     title: string
@@ -53,7 +51,9 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
                 frontmatter: {
                     tags: 'meeting'
                 },
-                children: {}
+                children: {},
+                childrenHeader: '',
+                template: '🗂 Recursos comunes/📂 Plantillas/📁 Unicaja/Template Daily Unicaja.md'
             },
             idea: {
                 element: {
@@ -64,7 +64,8 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
                 frontmatter: {
                     tags: 'idea'
                 },
-                children: {}
+                children: {},
+                childrenHeader: ''
             }
         },
         childrenHeader: 'What kind of fleeting note is this?'

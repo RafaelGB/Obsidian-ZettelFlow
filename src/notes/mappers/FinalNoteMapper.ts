@@ -4,6 +4,7 @@ export function finalNoteType2FinalNoteInfo(finalNoteType: FinalNoteType): Final
     return {
         ...finalNoteType,
         tags: [],
+        templates: [],
         frontmatter: {}
     };
 }

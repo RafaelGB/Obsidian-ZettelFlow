@@ -8,4 +8,5 @@ export type FinalNoteType = {
 export type FinalNoteInfo = {
     tags: string[];
     frontmatter: Record<string, ZettelFlowOptionMetadata>;
+    templates: string[];
 } & FinalNoteType;

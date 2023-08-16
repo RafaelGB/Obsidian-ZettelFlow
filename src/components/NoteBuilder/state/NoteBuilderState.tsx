@@ -8,7 +8,6 @@ export function useNoteBuilderStore(): NoteBuilderStore {
   return create<NoteBuilderState>((set, get) => ({
     title: "",
     targetFolder: "/",
-    templates: [],
     section: {
       color: "",
       position: 0,

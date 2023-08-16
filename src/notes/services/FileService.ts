@@ -1,11 +1,9 @@
-import { ObsidianApi, log } from "architecture";
-import { TFile } from "obsidian";
+import { ObsidianApi } from "architecture";
+import { TFile, normalizePath } from "obsidian";
 
-class FileServiceManager {
-    private static instance: FileServiceManager;
+export class FileService {
 
-    public async createFile(path: string, content: string, openAfter = true): Promise<TFile> {
-        log.debug(`-> createFile: path: ${path}`);
+    public static async createFile(path: string, content: string, openAfter = true): Promise<TFile> {
         const folder = path.substring(0, path.lastIndexOf("/"));
         if (!await ObsidianApi.vault().adapter.exists(folder)) {
             await ObsidianApi.vault().createFolder(folder);
@@ -15,17 +13,30 @@ class FileServiceManager {
         if (openAfter) {
             await ObsidianApi.workspace().openLinkText(file.path, "");
         }
-        log.debug(`<- createFile`);
         return file;
     }
 
-    public static getInstance(): FileServiceManager {
-        if (!FileServiceManager.instance) {
-            FileServiceManager.instance = new FileServiceManager();
+    public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {
+        file_str = normalizePath(file_str);
+
+        const file = ObsidianApi.vault().getAbstractFileByPath(file_str);
+        if (!file && restrict) {
+            throw new Error(`File "${file_str}" doesn't exist`);
         }
-        return FileServiceManager.instance;
+
+        if (!(file instanceof TFile)) {
+            if (restrict) {
+                throw new Error(`${file_str} is a folder, not a file`);
+            } else {
+                return null;
+            }
+        }
+
+        return file;
+    }
+
+    public static async getContent(file: TFile): Promise<string> {
+        return await ObsidianApi.vault().read(file);
     }
 }
-
-export const FileService = FileServiceManager.getInstance();
 

@@ -22,7 +22,6 @@ export type ElementBuilderProps = {
 export type NoteBuilderState = {
     title: string;
     targetFolder: string;
-    templates: string[];
     section: SectionType;
     header: HeaderType;
     actions: {

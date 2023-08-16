@@ -1,61 +1,89 @@
-/*****************
-*   VARIABLES
-******************
-
-.zettelkasten-flow__variables{
-    
-}
-/
-
 /* This section warning the user with red tones */
-.zettelkasten-flow__settings-developer-section{
-    background-color: var(--background-modifier-error);
-    padding: 0.75rem 1.25rem;
-    margin-bottom: 1rem;
-    border: 1px solid transparent;
-    border-radius: 0.25rem;
+.zettelkasten-flow__settings-developer-section {
+  background-color: var(--background-modifier-error);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
 }
 
 /*****************
 *   SELECTOR MENU
 ******************/
-.zettelkasten-flow__header{
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1rem;
+.zettelkasten-flow__header {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-.zettelkasten-flow__header p{
-    text-align: center;
-    size: var(--h2-size);
-    font-weight: var(--h2-weight);
-    color: var(--h2-color);
+.zettelkasten-flow__header p {
+  text-align: center;
+  size: var(--h2-size);
+  font-weight: var(--h2-weight);
+  color: var(--h2-color);
 }
 
-.zettelkasten-flow__section{
-    margin-bottom: 1rem;
+.zettelkasten-flow__section {
+  margin-bottom: 1rem;
 }
 
-.zettelkasten-flow__option{
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: center;
-    padding: 0.75rem 1.25rem;
-    margin-bottom: 1rem;
-    border: 1px solid transparent;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.125rem 0.25rem var(--color-accent);
-    transition: all 0.2s ease-in-out;
+.zettelkasten-flow__option {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.125rem 0.25rem var(--color-accent);
+  transition: all 0.2s ease-in-out;
 }
 
-.zettelkasten-flow__option:hover{
-    border: 1px solid var(--input-shadow-hover);
-    box-shadow: 0 0.5rem 1rem var(--color-accent);
+.zettelkasten-flow__option:hover {
+  border: 1px solid var(--input-shadow-hover);
+  box-shadow: 0 0.5rem 1rem var(--color-accent);
 }
 
-.zettelkasten-flow__selected{
-    background-color: var(--background-modifier-success);
+.zettelkasten-flow__selected {
+  background-color: var(--background-modifier-success);
+}
+
+.zettelkasten-flow__input-group {
+  position: relative;
+}
+
+.zettelkasten-flow__input-group input {
+  border: solid 1.5px var(--background-secondary);
+  border-radius: 1rem;
+  background: none;
+  padding: 1rem;
+  font-size: 1rem;
+  color: var(--text-normal);
+  transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zettelkasten-flow__input-label {
+  position: absolute;
+  left: 15px;
+  color: var(--text-accent);
+  pointer-events: none;
+  transform: translateY(0.4rem);
+  transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zettelkasten-flow__input-group input:focus,
+.zettelkasten-flow__input-group input:valid {
+  outline: none;
+  border: 1.5px solid var(--text-accent);
+}
+
+.zettelkasten-flow__input-group input:focus ~ .zettelkasten-flow__input-label,
+.zettelkasten-flow__input-group input:valid ~ .zettelkasten-flow__input-label {
+  transform: translateY(-50%) scale(0.8);
+  background-color: var(--background-primary);
+  padding: 0 0.2em;
+  color: var(--text-normal);
 }

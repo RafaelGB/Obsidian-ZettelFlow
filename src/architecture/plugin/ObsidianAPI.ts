@@ -1,4 +1,4 @@
-import { App, Vault, Workspace } from "obsidian";
+import { App, FileManager, Vault, Workspace } from "obsidian";
 
 export class ObsidianAPIService {
     private static instance: ObsidianAPIService;
@@ -13,6 +13,10 @@ export class ObsidianAPIService {
 
     public workspace(): Workspace {
         return this.app.workspace;
+    }
+
+    public fileManager(): FileManager {
+        return this.app.fileManager;
     }
 
     public static getInstance(): ObsidianAPIService {

@@ -1,12 +1,15 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
-import { Plugin } from 'obsidian';
+import { ItemView, Plugin } from 'obsidian';
+import { CanvasService } from 'architecture/plugin';
+import { CanvasView } from 'obsidian/canvas';
 
 export default class ZettlelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
 		loadPluginComponents(this);
+		this.registerEvents();
 	}
 
 	onunload() { }
@@ -22,5 +25,15 @@ export default class ZettlelFlow extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	registerEvents() {
+		this.registerEvent(this.app.workspace.on('file-open', async (file) => {
+			const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
+			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
+				const canvasTree = CanvasService.getCanvasFileTree((canvasView as CanvasView).canvas);
+				console.log("settings tree", canvasTree);
+			}
+		}));
 	}
 }

@@ -10,9 +10,7 @@ export class Sections extends AbstractChain<SettingsHandlerInfo> {
     private parentContainer: HTMLElement;
     protected starter = new CanvasFileSelectorHandler();
     protected before(info: SettingsHandlerInfo): SettingsHandlerInfo {
-        Object.assign(info, {
-            section: this,
-        });
+        info.section = this;
         this.parentContainer = info.containerEl;
         this.sectionContainer = info.containerEl.createDiv();
         info.containerEl = this.sectionContainer;

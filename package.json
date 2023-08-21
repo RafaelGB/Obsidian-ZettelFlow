@@ -15,6 +15,7 @@
 	"author": "RafaelGB",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/cron": "^2.4.0",
 		"@types/node": "20.5.1",
 		"@types/react": "18.2.20",
 		"@types/react-dom": "18.2.7",
@@ -22,16 +23,17 @@
 		"@typescript-eslint/parser": "6.4.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.19.2",
+		"eslint": "8.47.0",
+		"jest": "29.6.3",
 		"obsidian": "1.4.0",
+		"ts-jest": "29.1.1",
 		"tslib": "2.6.2",
 		"typescript": "5.1.6",
-		"eslint": "8.47.0",
-		"jest": "29.6.2",
-		"ts-jest": "29.1.1",
 		"zustand": "4.4.1"
 	},
 	"dependencies": {
 		"@popperjs/core": "2.11.8",
+		"cron": "2.4.1",
 		"react": "18.2.0",
 		"react-dom": "18.2.0"
 	}

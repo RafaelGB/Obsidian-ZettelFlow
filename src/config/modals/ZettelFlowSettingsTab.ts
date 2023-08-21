@@ -21,6 +21,7 @@ class SettingsManager {
         handlerInfo = developer.run(handlerInfo);
         handlerInfo = sections.run(handlerInfo);
     }
+
 }
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {

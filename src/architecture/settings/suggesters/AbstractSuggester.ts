@@ -1,5 +1,3 @@
-// Credits go to Liam's Periodic Notes Plugin: https://github.com/liamcain/obsidian-periodic-notes
-
 import { ISuggestOwner, Scope } from "obsidian";
 import { createPopper, Instance as PopperInstance } from "@popperjs/core";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
@@ -72,7 +70,6 @@ class Suggest<T> {
     setSuggestions(values: T[]) {
         this.containerEl.empty();
         const suggestionEls: HTMLDivElement[] = [];
-        console.log("setSuggestions", values);
         values.forEach((value) => {
             const suggestionEl = this.containerEl.createDiv("suggestion-item");
             this.owner.renderSuggestion(value, suggestionEl);
@@ -188,7 +185,6 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
     }
 
     close(): void {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ObsidianApi.keymap().popScope(this.scope);
 
         this.suggest.setSuggestions([]);

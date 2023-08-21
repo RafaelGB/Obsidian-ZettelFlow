@@ -1,8 +1,7 @@
 import { TAbstractFile, TFile } from "obsidian";
 import { TextInputSuggest } from "./AbstractSuggester";
 import { ObsidianApi } from "architecture";
-import { FileService } from "architecture/plugin";
-import { FILE_EXTENSIONS } from "architecture/plugin/services/FileService";
+import { FileService, FILE_EXTENSIONS } from "architecture/plugin";
 
 export class FileSuggest extends TextInputSuggest<TFile> {
     private extensions = FILE_EXTENSIONS.BASIC;

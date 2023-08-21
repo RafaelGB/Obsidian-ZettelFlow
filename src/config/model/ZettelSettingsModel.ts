@@ -4,6 +4,7 @@ export interface ZettelFlowSettings {
     loggerEnabled: boolean,
     logLevel: string,
     baseDir: string,
+    canvasFilePath: string,
     rootSection: Record<string, ZettelFlowOption>
 }
 

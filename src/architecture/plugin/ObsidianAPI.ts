@@ -1,4 +1,4 @@
-import { App, FileManager, Vault, Workspace } from "obsidian";
+import { App, FileManager, Keymap, Vault, Workspace } from "obsidian";
 
 export class ObsidianAPIService {
     private static instance: ObsidianAPIService;
@@ -17,6 +17,10 @@ export class ObsidianAPIService {
 
     public fileManager(): FileManager {
         return this.app.fileManager;
+    }
+
+    public keymap(): Keymap {
+        return this.app.keymap;
     }
 
     public static getInstance(): ObsidianAPIService {

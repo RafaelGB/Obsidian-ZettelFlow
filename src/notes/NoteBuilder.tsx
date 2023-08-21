@@ -1,7 +1,7 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { FrontMatterService, FileService } from "notes";
+import { FrontMatterService } from "notes";
 import { ZettelFlowBase, ZettelFlowOptionMetadata } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
@@ -12,6 +12,7 @@ import {
 } from "components/NoteBuilder";
 import React from "react";
 import { ElementBuilderProps } from "components/NoteBuilder/model/NoteBuilderModel";
+import { FileService } from "architecture/plugin";
 
 export const callbackRootBuilder =
   (

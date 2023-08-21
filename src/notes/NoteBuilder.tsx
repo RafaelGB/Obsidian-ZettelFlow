@@ -51,10 +51,6 @@ function nextElement(
   const { modal } = info;
   builder.addFrontMatter(selectedOption.frontmatter);
 
-  if (TypeService.exists(selectedOption.template)) {
-    builder.addTemplate(selectedOption.template);
-  }
-
   if (TypeService.recordIsEmpty(selectedOption.children)) {
     builder.build();
     modal.close();
@@ -94,11 +90,6 @@ export class BuilderRoot {
       // Merge the rest of the frontmatter
       this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
     }
-  }
-
-  public addTemplate(templatePath: string): BuilderRoot {
-    this.info.templates.push(templatePath);
-    return this;
   }
 
   public async build(): Promise<void> {
@@ -143,13 +134,6 @@ export class BuilderRoot {
 
   private async buildContent() {
     let content = "";
-    for (const template of this.info.templates) {
-      const templateFile = await FileService.getFile(template);
-      if (TypeService.exists(templateFile)) {
-        const templateContent = await FileService.getContent(templateFile);
-        content = content.concat("\n").concat(templateContent);
-      }
-    }
     return content;
   }
 }

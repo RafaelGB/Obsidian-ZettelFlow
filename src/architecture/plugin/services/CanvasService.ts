@@ -1,4 +1,3 @@
-import { ObsidianApi, c } from "architecture";
 import { TFile } from "obsidian";
 import { CanvasDataInfo, CanvasEdgeDataInfo } from "obsidian/canvas";
 import { FrontmatterService } from "./FrontmatterService";

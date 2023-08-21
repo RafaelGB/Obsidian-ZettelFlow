@@ -5,8 +5,8 @@ export type ZettelFlowBase = {
     frontmatter: Record<string, ZettelFlowOptionMetadata>,
     children: Record<string, ZettelFlowElement>,
     childrenHeader: string,
-    template?: string
 }
+
 export type ZettelFlowOption = {
     targetFolder: string,
 } & ZettelFlowBase
@@ -53,7 +53,6 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
                 },
                 children: {},
                 childrenHeader: '',
-                template: '🗂 Recursos comunes/📂 Plantillas/📁 Unicaja/Template Daily Unicaja.md'
             },
             idea: {
                 element: {
@@ -76,13 +75,6 @@ export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
         frontmatter: {
             tags: 'zettelkasten/literature'
         },
-        children: {},
-        childrenHeader: ''
-    },
-    permanent: {
-        label: 'Permanent note',
-        targetFolder: '/zettelFlow/permanent/',
-        frontmatter: {},
         children: {},
         childrenHeader: ''
     }

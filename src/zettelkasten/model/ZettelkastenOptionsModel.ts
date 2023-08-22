@@ -31,46 +31,4 @@ export interface PromptElement extends SectionElement {
 }
 
 export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
-    fleeting: {
-        label: 'Fleeting note',
-        targetFolder: '/zettelFlow/fleeting/',
-        frontmatter: {
-            tags: 'zettelkasten/fleeting'
-        },
-        children: {
-            meeting: {
-                element: {
-                    type: 'selector',
-                },
-                label: 'Work meeting',
-                frontmatter: {
-                    tags: 'meeting'
-                },
-                children: {},
-                childrenHeader: '',
-            },
-            idea: {
-                element: {
-                    type: 'prompt',
-                    placeholder: 'What is the idea?'
-                },
-                label: 'Idea',
-                frontmatter: {
-                    tags: 'idea'
-                },
-                children: {},
-                childrenHeader: ''
-            }
-        },
-        childrenHeader: 'What kind of fleeting note is this?'
-    },
-    literature: {
-        label: 'Literature note',
-        targetFolder: '/zettelFlow/literature/',
-        frontmatter: {
-            tags: 'zettelkasten/literature'
-        },
-        children: {},
-        childrenHeader: ''
-    }
 }

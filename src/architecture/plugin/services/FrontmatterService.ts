@@ -1,13 +1,16 @@
-import { ObsidianApi } from "architecture";
+import { ObsidianApi, log } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
+import { FinalNoteInfo } from "notes/model/FinalNoteModel";
+
 export class FrontmatterService {
+    public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
     private metadata: CachedMetadata;
     public static instance(file: TFile) {
         return new FrontmatterService(file);
     }
 
-    constructor(file: TFile) {
+    constructor(private file: TFile) {
         const metadataAux = ObsidianApi.metadataCache().getFileCache(file);
         if (!metadataAux) {
             this.metadata = {
@@ -41,8 +44,9 @@ export class FrontmatterService {
     }
 
     public getZettelFlowSettings() {
-        return this.getProperty("zettelFlowSettings");
+        return this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY);
     }
+
     public getFrontmatter() {
         const frontmatter = this.metadata.frontmatter;
         if (!frontmatter) {
@@ -51,6 +55,18 @@ export class FrontmatterService {
         // return all properties except zettelFlowSettings
         const { zettelFlowSettings, ...rest } = frontmatter;
         return rest;
+    }
+
+    public async processFrontMatter(info: FinalNoteInfo) {
+        await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
+            if (info.tags.length > 0) {
+                frontmatter.tags = info.tags;
+            }
+            frontmatter = {
+                ...frontmatter,
+                ...info.frontmatter
+            };
+        });
     }
 
     private getAnidatedProperty(property: string): Literal {

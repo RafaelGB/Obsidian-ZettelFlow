@@ -1,10 +1,10 @@
-import React, { MouseEventHandler } from "react";
+import React, { MouseEventHandler, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 
 export function Select(selectType: SelectType) {
   const { options, callback } = selectType;
-  const [selected, setSelected] = React.useState<string>("");
+  const [selected, setSelected] = useState<string>("");
 
   const internalCallback: MouseEventHandler<HTMLDivElement> = async (event) => {
     // Obtain the selected option from the event target via value attribute

@@ -1,7 +1,6 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { FrontMatterService } from "notes";
 import { ZettelFlowBase } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
@@ -12,7 +11,7 @@ import {
 } from "components/NoteBuilder";
 import React from "react";
 import { ElementBuilderProps } from "components/NoteBuilder/model/NoteBuilderModel";
-import { FileService, Literal } from "architecture/plugin";
+import { FileService, FrontmatterService, Literal } from "architecture/plugin";
 
 export const callbackRootBuilder =
   (
@@ -20,37 +19,39 @@ export const callbackRootBuilder =
     info: NoteBuilderProps
   ) =>
   (selected: string) => {
-    const { actions, title } = state;
+    const { actions } = state;
     const { plugin } = info;
     const { settings } = plugin;
     const selectedSection = settings.rootSection[selected];
-
     const builder = Builder.init({
-      title: title,
       targetFolder: selectedSection.targetFolder,
-    });
+    }).setTitle(state.title);
     nextElement(state, builder, selectedSection, info);
     actions.setTargetFolder(selectedSection.targetFolder);
   };
 
 export const callbackElementBuilder =
-  (state: Pick<NoteBuilderState, "actions">, info: ElementBuilderProps) =>
+  (
+    state: Pick<NoteBuilderState, "actions" | "title">,
+    info: ElementBuilderProps
+  ) =>
   (selected: string) => {
     const { childen, builder } = info;
     const selectedElement = childen[selected];
+    console.log("selectedElement", selectedElement);
     nextElement(state, builder, selectedElement, info);
   };
 
 function nextElement(
-  state: Pick<NoteBuilderState, "actions">,
+  state: Pick<NoteBuilderState, "actions" | "title">,
   builder: BuilderRoot,
   selectedOption: ZettelFlowBase,
   info: NoteBuilderProps
 ) {
-  const { actions } = state;
+  const { actions, title } = state;
   const { modal } = info;
   builder.addFrontMatter(selectedOption.frontmatter);
-
+  builder.setTitle(title);
   if (TypeService.recordIsEmpty(selectedOption.children)) {
     builder.build();
     modal.close();
@@ -59,6 +60,7 @@ function nextElement(
     actions.setHeader({
       title: childrenHeader,
     });
+
     actions.setSectionElement(
       <ElementBuilder
         {...info}
@@ -79,6 +81,10 @@ export class Builder {
 
 export class BuilderRoot {
   constructor(private info: FinalNoteInfo) {}
+  public setTitle(title: string): BuilderRoot {
+    this.info.title = title;
+    return this;
+  }
 
   public addFrontMatter(frontmatter: Record<string, Literal>) {
     if (frontmatter) {
@@ -100,7 +106,8 @@ export class BuilderRoot {
     const path = this.info.targetFolder + this.info.title + ".md";
     FileService.createFile(path, content)
       .then((file) => {
-        FrontMatterService.processFrontMatter(file, this.info)
+        FrontmatterService.instance(file)
+          .processFrontMatter(this.info)
           .then(() => {
             new Notice("Note created");
           })
@@ -116,6 +123,7 @@ export class BuilderRoot {
   }
 
   private addTags(tag: Literal): BuilderRoot {
+    console.log("tag", tag);
     if (!tag) return this;
     // Check if tag satisfies string
     if (TypeService.isString(tag)) {
@@ -123,9 +131,9 @@ export class BuilderRoot {
       return this;
     }
 
-    if (TypeService.isArray(tag, String)) {
+    if (TypeService.isArray<string>(tag, "string")) {
       tag.forEach((t) => {
-        this.info.tags.push(t.toString());
+        this.info.tags.push(t);
       });
       return this;
     }

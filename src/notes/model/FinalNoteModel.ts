@@ -1,4 +1,4 @@
-import { ZettelFlowOptionMetadata } from "zettelkasten";
+import { Literal } from "architecture/plugin";
 
 export type FinalNoteType = {
     title: string;
@@ -7,5 +7,5 @@ export type FinalNoteType = {
 
 export type FinalNoteInfo = {
     tags: string[];
-    frontmatter: Record<string, ZettelFlowOptionMetadata>;
+    frontmatter: Record<string, Literal>;
 } & FinalNoteType;

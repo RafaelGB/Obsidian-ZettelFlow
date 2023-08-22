@@ -1,17 +1,13 @@
 import { TFile } from "obsidian";
 import { CanvasDataInfo, CanvasEdgeDataInfo } from "obsidian/canvas";
 import { FrontmatterService } from "./FrontmatterService";
-export type CanvasFileTree = {
-    file: TFile;
-    children: CanvasFileTree[];
-}
+import { CanvasFileTree } from "../model/CanvasModel";
 
 export class CanvasService {
     public static getCanvasFileTree(data: CanvasDataInfo): CanvasFileTree[] {
         const nodeFiles = Array.from(data.nodes.values()).filter(node => node.file);
         const edges = Array.from(data.edges.values()).filter(edge => edge.from.node.file && edge.to.node.file);
-        const rootFiles = nodeFiles.filter(node => FrontmatterService.containsProperty(node.file, "root", true));
-
+        const rootFiles = nodeFiles.filter(node => FrontmatterService.instance(node.file).equals("zettelFlowSettings.root", true));
         const canvasFileTree: CanvasFileTree[] = [];
 
         for (const node of rootFiles) {

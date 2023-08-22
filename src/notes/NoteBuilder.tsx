@@ -2,7 +2,7 @@ import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
 import { FrontMatterService } from "notes";
-import { ZettelFlowBase, ZettelFlowOptionMetadata } from "zettelkasten";
+import { ZettelFlowBase } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {
@@ -12,7 +12,7 @@ import {
 } from "components/NoteBuilder";
 import React from "react";
 import { ElementBuilderProps } from "components/NoteBuilder/model/NoteBuilderModel";
-import { FileService } from "architecture/plugin";
+import { FileService, Literal } from "architecture/plugin";
 
 export const callbackRootBuilder =
   (
@@ -80,7 +80,7 @@ export class Builder {
 export class BuilderRoot {
   constructor(private info: FinalNoteInfo) {}
 
-  public addFrontMatter(frontmatter: Record<string, ZettelFlowOptionMetadata>) {
+  public addFrontMatter(frontmatter: Record<string, Literal>) {
     if (frontmatter) {
       // Check if there are tags
       if (frontmatter.tags) {
@@ -115,7 +115,7 @@ export class BuilderRoot {
       });
   }
 
-  private addTags(tag: ZettelFlowOptionMetadata): BuilderRoot {
+  private addTags(tag: Literal): BuilderRoot {
     if (!tag) return this;
     // Check if tag satisfies string
     if (TypeService.isString(tag)) {
@@ -125,7 +125,7 @@ export class BuilderRoot {
 
     if (TypeService.isArray(tag, String)) {
       tag.forEach((t) => {
-        this.info.tags.push(t);
+        this.info.tags.push(t.toString());
       });
       return this;
     }

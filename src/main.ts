@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
+import { DEFAULT_SETTINGS, ZettelFlowSettings, canvasFileTreeArray2rootSection } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { ItemView, Plugin } from 'obsidian';
 import { CanvasService } from 'architecture/plugin';
@@ -32,7 +32,8 @@ export default class ZettlelFlow extends Plugin {
 			const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
 			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
 				const canvasTree = CanvasService.getCanvasFileTree((canvasView as CanvasView).canvas);
-				console.log("settings tree", canvasTree);
+				this.settings.rootSection = canvasFileTreeArray2rootSection(canvasTree);
+				await this.saveSettings();
 			}
 		}));
 	}

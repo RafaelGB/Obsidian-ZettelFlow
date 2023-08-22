@@ -1,1 +1,1 @@
-export type Literal = string | number | boolean | null | undefined;
+export type Literal = string | number | boolean | Array<Literal> | object | unknown | null | undefined;

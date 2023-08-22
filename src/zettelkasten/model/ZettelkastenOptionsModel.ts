@@ -1,8 +1,8 @@
-export type ZettelFlowOptionMetadata = string | string[] | number | number[];
+import { Literal } from "architecture/plugin";
 
 export type ZettelFlowBase = {
     label: string,
-    frontmatter: Record<string, ZettelFlowOptionMetadata>,
+    frontmatter: Record<string, Literal>,
     children: Record<string, ZettelFlowElement>,
     childrenHeader: string,
 }
@@ -23,11 +23,6 @@ export type SectionInfo = {
 export interface SectionElement {
     type: string,
     placeholder?: string,
-}
-
-export interface SelectorElement extends SectionElement {
-    type: 'selector',
-    options: Record<string, ZettelFlowElement>
 }
 
 export interface PromptElement extends SectionElement {

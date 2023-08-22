@@ -19,6 +19,10 @@ export class TypeService {
         return value && typeof value === "object" && value.constructor === Array && value.every((item: any) => item instanceof className);
     }
 
+    public static isObject(value: any): value is Record<string, unknown> {
+        return value && typeof value === "object" && value.constructor === Object;
+    }
+
     public static recordIsEmpty(value: RecordToCheck): value is null | undefined {
         return value == null || !(Object.keys(value) || value).length;
     }

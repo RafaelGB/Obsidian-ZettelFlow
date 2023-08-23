@@ -15,7 +15,6 @@
 	"author": "RafaelGB",
 	"license": "MIT",
 	"devDependencies": {
-		"@types/cron": "2.4.0",
 		"@types/node": "20.5.3",
 		"@types/react": "18.2.21",
 		"@types/react-dom": "18.2.7",

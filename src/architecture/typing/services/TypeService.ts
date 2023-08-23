@@ -1,5 +1,3 @@
-import { Constructor } from "obsidian";
-
 type RecordToCheck = Record<string, unknown> | null | undefined;
 
 export class TypeService {

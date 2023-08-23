@@ -37,6 +37,7 @@ class Suggest<T> {
                 this.setSelectedItem(this.selectedItem - 1, true);
                 return false;
             }
+            return true;
         });
 
         scope.register([], "ArrowDown", (event) => {
@@ -44,6 +45,7 @@ class Suggest<T> {
                 this.setSelectedItem(this.selectedItem + 1, true);
                 return false;
             }
+            return true;
         });
 
         scope.register([], "Enter", (event) => {
@@ -51,6 +53,7 @@ class Suggest<T> {
                 this.useSelectedItem(event);
                 return false;
             }
+            return true;
         });
     }
 

@@ -4,7 +4,6 @@ import { c } from "architecture";
 
 export function Header(props: NoteBuilderProps) {
   const { store } = props;
-  const actions = store((store) => store.actions);
   const header = store((store) => store.header);
   const { title, lastSection, nextSection } = header;
   return (

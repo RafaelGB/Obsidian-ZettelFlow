@@ -21,8 +21,8 @@ jobs:
       - name: Build
         id: build
         run: |
-          yarn
-          yarn run release
+          npm install
+          npm run release
       # Create the release on github
       - name: Create Release
         id: create_release

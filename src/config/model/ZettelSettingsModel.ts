@@ -4,7 +4,8 @@ export interface ZettelFlowSettings {
     loggerEnabled: boolean,
     logLevel: string,
     baseDir: string,
-    rootSection: Record<string, ZettelFlowOption>
+    canvasFilePath: string,
+    rootSection: Record<string, ZettelFlowOption>,
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {

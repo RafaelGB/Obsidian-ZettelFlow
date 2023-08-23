@@ -15,8 +15,12 @@ export class TypeService {
         return typeof value === "number" && isFinite(value);
     }
 
-    public static isArray<T>(value: any, className: Constructor<T>): value is T[] {
-        return value && typeof value === "object" && value.constructor === Array && value.every((item: any) => item instanceof className);
+    public static isArray<T>(value: any, typeOf: string): value is Array<T> {
+        return value && typeof value === "object" && value.constructor === Array && value.every((item: any) => typeof item === typeOf);
+    }
+
+    public static isObject(value: any): value is Record<string, unknown> {
+        return value && typeof value === "object" && value.constructor === Object;
     }
 
     public static recordIsEmpty(value: RecordToCheck): value is null | undefined {

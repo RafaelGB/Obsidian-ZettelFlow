@@ -17,7 +17,7 @@ export function useNoteBuilderStore(): NoteBuilderStore {
       title: t("flow_selector_placeholder"),
     },
     actions: {
-      setTitle: (title: string) => set({ title }),
+      setTitle: (title: string) => set({ title: title }),
       setTargetFolder: (targetFolder: string) => set({ targetFolder }),
       setHeader: (header: Partial<HeaderType>) =>
         set({ header: { ...get().header, ...header } }),

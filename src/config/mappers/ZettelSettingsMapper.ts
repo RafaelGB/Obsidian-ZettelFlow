@@ -19,10 +19,8 @@ export function canvasFileTreeArray2rootSection(tree: CanvasFileTree[]): Record<
             metaInfo.targetFolder = TypeService.isString(targetFolder) ? targetFolder : metaInfo.targetFolder;
             metaInfo.childrenHeader = TypeService.isString(childrenHeader) ? childrenHeader : metaInfo.childrenHeader;
         }
-        const frontmatter = service.getFrontmatter();
         rootSection[file.path] = {
             ...metaInfo,
-            frontmatter: TypeService.isObject(frontmatter) ? frontmatter : {},
             children: canvasFileTreeArray2Children(children)
         }
     });
@@ -38,7 +36,7 @@ function canvasFileTreeArray2Children(tree: CanvasFileTree[]): Record<string, Ze
         const metaInfo = {
             label: file.basename,
             element: {
-                type: "selector"
+                type: ""
             },
             childrenHeader: "",
         }
@@ -48,10 +46,8 @@ function canvasFileTreeArray2Children(tree: CanvasFileTree[]): Record<string, Ze
             metaInfo.element.type = TypeService.isString(type) ? type : metaInfo.element.type;
             metaInfo.childrenHeader = TypeService.isString(childrenHeader) ? childrenHeader : metaInfo.childrenHeader;
         }
-        const frontmatter = service.getFrontmatter();
         record[file.path] = {
             ...metaInfo,
-            frontmatter: TypeService.isObject(frontmatter) ? frontmatter : {},
             children: canvasFileTreeArray2Children(children)
         }
     });

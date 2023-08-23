@@ -2,7 +2,6 @@ import { Literal } from "architecture/plugin";
 
 export type ZettelFlowBase = {
     label: string,
-    frontmatter: Record<string, Literal>,
     children: Record<string, ZettelFlowElement>,
     childrenHeader: string,
 }

@@ -5,13 +5,14 @@ import { ZettelFlowBase } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {
-  ElementBuilder,
+  ActionSelector,
   NoteBuilderProps,
   NoteBuilderState,
 } from "components/NoteBuilder";
 import React from "react";
 import { ElementBuilderProps } from "components/NoteBuilder/model/NoteBuilderModel";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
+import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 
 export const callbackRootBuilder =
   (
@@ -41,7 +42,6 @@ export const callbackElementBuilder =
     const { childen, builder } = info;
     const selectedElement = childen[selected];
     builder.addPath(selected);
-    console.log("selectedElement", selected);
     nextElement(state, builder, selectedElement, info);
   };
 
@@ -57,6 +57,23 @@ function nextElement(
   if (TypeService.recordIsEmpty(selectedOption.children)) {
     builder.build();
     modal.close();
+  } else if (TypeService.recordHasOneKey(selectedOption.children)) {
+    const [key, action] = Object.entries(selectedOption.children)[0];
+    if (!action.element.type) {
+      builder.addPath(key);
+      builder.build();
+      modal.close();
+    } else {
+      actions.setSectionElement(
+        <ActionSelector
+          {...info}
+          action={action}
+          builder={builder}
+          key={`selector-action-${key}`}
+        />
+      );
+    }
+    return;
   } else {
     const childrenHeader = selectedOption.childrenHeader;
     actions.setHeader({
@@ -64,11 +81,11 @@ function nextElement(
     });
 
     actions.setSectionElement(
-      <ElementBuilder
+      <ElementSelector
         {...info}
         childen={selectedOption.children}
         builder={builder}
-        key={`children-${childrenHeader}`}
+        key={`selector-children-${childrenHeader}`}
       />
     );
   }
@@ -159,7 +176,5 @@ export class BuilderRoot {
 
       this.addContent(await service.getContent());
     }
-    console.log("frontmatter", this.info.frontmatter);
-    console.log("content", this.info.content);
   }
 }

@@ -5,6 +5,8 @@ export function finalNoteType2FinalNoteInfo(finalNoteType: FinalNoteType): Final
         ...finalNoteType,
         title: "",
         tags: [],
-        frontmatter: {}
+        frontmatter: {},
+        paths: [],
+        content: "",
     };
 }

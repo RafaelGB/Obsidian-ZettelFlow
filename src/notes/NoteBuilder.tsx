@@ -25,7 +25,9 @@ export const callbackRootBuilder =
     const selectedSection = settings.rootSection[selected];
     const builder = Builder.init({
       targetFolder: selectedSection.targetFolder,
-    }).setTitle(state.title);
+    })
+      .setTitle(state.title)
+      .addPath(selected);
     nextElement(state, builder, selectedSection, info);
     actions.setTargetFolder(selectedSection.targetFolder);
   };
@@ -38,7 +40,8 @@ export const callbackElementBuilder =
   (selected: string) => {
     const { childen, builder } = info;
     const selectedElement = childen[selected];
-    console.log("selectedElement", selectedElement);
+    builder.addPath(selected);
+    console.log("selectedElement", selected);
     nextElement(state, builder, selectedElement, info);
   };
 
@@ -50,7 +53,6 @@ function nextElement(
 ) {
   const { actions, title } = state;
   const { modal } = info;
-  builder.addFrontMatter(selectedOption.frontmatter);
   builder.setTitle(title);
   if (TypeService.recordIsEmpty(selectedOption.children)) {
     builder.build();
@@ -86,6 +88,11 @@ export class BuilderRoot {
     return this;
   }
 
+  public addPath(path: string): BuilderRoot {
+    this.info.paths.push(path);
+    return this;
+  }
+
   public addFrontMatter(frontmatter: Record<string, Literal>) {
     if (frontmatter) {
       // Check if there are tags
@@ -99,12 +106,9 @@ export class BuilderRoot {
   }
 
   public async build(): Promise<void> {
-    // TODO: check if the folder exists and create it if not
-
-    // TODO: create a note
-    const content = await this.buildContent();
+    await this.buildNote();
     const path = this.info.targetFolder + this.info.title + ".md";
-    FileService.createFile(path, content)
+    FileService.createFile(path, this.info.content)
       .then((file) => {
         FrontmatterService.instance(file)
           .processFrontMatter(this.info)
@@ -123,7 +127,6 @@ export class BuilderRoot {
   }
 
   private addTags(tag: Literal): BuilderRoot {
-    console.log("tag", tag);
     if (!tag) return this;
     // Check if tag satisfies string
     if (TypeService.isString(tag)) {
@@ -140,8 +143,23 @@ export class BuilderRoot {
     return this;
   }
 
-  private async buildContent() {
-    let content = "";
-    return content;
+  private async addContent(content: string) {
+    this.info.content = this.info.content.concat(content);
+  }
+
+  private async buildNote() {
+    for (const path of this.info.paths) {
+      const file = await FileService.getFile(path);
+      if (!file) continue;
+      const service = FrontmatterService.instance(file);
+      const frontmatter = service.getFrontmatter();
+      if (TypeService.isObject(frontmatter)) {
+        this.addFrontMatter(frontmatter);
+      }
+
+      this.addContent(await service.getContent());
+    }
+    console.log("frontmatter", this.info.frontmatter);
+    console.log("content", this.info.content);
   }
 }

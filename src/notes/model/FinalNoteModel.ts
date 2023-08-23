@@ -8,4 +8,6 @@ export type FinalNoteInfo = {
     title: string;
     tags: string[];
     frontmatter: Record<string, Literal>;
+    paths: string[];
+    content: string;
 } & FinalNoteType;

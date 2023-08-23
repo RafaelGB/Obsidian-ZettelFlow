@@ -1,4 +1,4 @@
-import { ObsidianApi, log } from "architecture";
+import { ObsidianApi } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { FinalNoteInfo } from "notes/model/FinalNoteModel";
@@ -57,15 +57,24 @@ export class FrontmatterService {
         return rest;
     }
 
+    public async getContent() {
+        const rawContent = await ObsidianApi.vault().read(this.file);
+        let end = this.metadata.frontmatterPosition?.end?.line;
+        const content = rawContent.split("\n").slice(end ? end + 1 : 0).join("\n")
+        if (!content) {
+            return "";
+        }
+        return content.concat("\n");
+    }
+
     public async processFrontMatter(info: FinalNoteInfo) {
         await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
             if (info.tags.length > 0) {
                 frontmatter.tags = info.tags;
             }
-            frontmatter = {
-                ...frontmatter,
-                ...info.frontmatter
-            };
+            Object.entries(info.frontmatter).forEach(([key, value]) => {
+                frontmatter[key] = value;
+            });
         });
     }
 

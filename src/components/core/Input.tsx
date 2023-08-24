@@ -3,10 +3,10 @@ import { c } from "architecture";
 import { InputType } from "./model/InputModel";
 
 export function Input(info: InputType) {
-  const { placeholder, value, onChange, onKeyDown } = info;
+  const { placeholder, className = [], value, onChange, onKeyDown } = info;
   const [valueState, setValueState] = React.useState<string>(value || "");
   return (
-    <>
+    <div className={c("input-group", ...className)}>
       <input
         value={valueState}
         type="text"
@@ -27,6 +27,6 @@ export function Input(info: InputType) {
         required={true}
       />
       <label className={c("input-label")}>{placeholder}</label>
-    </>
+    </div>
   );
 }

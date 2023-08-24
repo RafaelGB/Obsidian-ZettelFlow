@@ -7,6 +7,7 @@ export function finalNoteType2FinalNoteInfo(finalNoteType: FinalNoteType): Final
         tags: [],
         frontmatter: {},
         paths: [],
+        elements: [],
         content: "",
     };
 }

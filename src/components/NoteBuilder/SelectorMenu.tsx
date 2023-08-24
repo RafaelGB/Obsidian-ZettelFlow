@@ -25,14 +25,12 @@ function Component(noteBuilderType: NoteBuilderProps) {
   const actions = store((store) => store.actions);
   return (
     <>
-      <div className={c("input-group")}>
-        <Input
-          placeholder={t("note_title_placeholder")}
-          onChange={(value) => {
-            actions.setTitle(value);
-          }}
-        />
-      </div>
+      <Input
+        placeholder={t("note_title_placeholder")}
+        onChange={(value) => {
+          actions.setTitle(value);
+        }}
+      />
       <Header {...noteBuilderType} />
       <Section {...noteBuilderType} />
     </>

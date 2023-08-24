@@ -22,6 +22,7 @@ export function ActionSelector(info: ActionBuilderProps) {
     case "prompt":
       return (
         <Input
+          className={["display-grid"]}
           placeholder={
             TypeService.isString(action.element.placeholder)
               ? action.element.placeholder

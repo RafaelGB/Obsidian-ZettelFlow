@@ -1,7 +1,7 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
-import { log } from "architecture";
+import { c, log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { ZettelFlowBase } from "zettelkasten";
+import { SectionElement, ZettelFlowBase } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {
@@ -53,9 +53,10 @@ export const callbackActionBuilder =
     state: Pick<NoteBuilderState, "actions" | "title">,
     info: ActionBuilderProps
   ) =>
-  (callbackResult: string) => {
+  (callbackResult: Literal) => {
     const { action, builder } = info;
     // TODO: manage result
+    builder.addElement(action.element, callbackResult);
     nextElement(state, builder, action, info);
   };
 
@@ -73,7 +74,7 @@ function nextElement(
     modal.close();
   } else if (TypeService.recordHasOneKey(selectedOption.children)) {
     const [key, action] = Object.entries(selectedOption.children)[0];
-    if (!action.element.type) {
+    if (!action.element.type || action.element.type === "bridge") {
       builder.addPath(key);
       builder.build();
       modal.close();
@@ -135,6 +136,12 @@ export class BuilderRoot {
       this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
     }
   }
+  public addElement(element: SectionElement, callbackResult: unknown) {
+    this.info.elements.push({
+      ...element,
+      result: callbackResult,
+    });
+  }
 
   public async build(): Promise<void> {
     await this.buildNote();
@@ -187,8 +194,25 @@ export class BuilderRoot {
       if (TypeService.isObject(frontmatter)) {
         this.addFrontMatter(frontmatter);
       }
-
+      this.manageElements();
       this.addContent(await service.getContent());
+    }
+  }
+
+  private async manageElements() {
+    for (const element of this.info.elements) {
+      switch (element.type) {
+        case "prompt": {
+          this.addPrompt(element);
+        }
+      }
+    }
+  }
+
+  private addPrompt(element: SectionElement) {
+    const { result, key } = element;
+    if (TypeService.isString(key)) {
+      this.addFrontMatter({ [key]: result });
     }
   }
 }

@@ -1,6 +1,7 @@
 export type InputType = {
-    value?: string,
     placeholder: string,
+    className?: string[],
+    value?: string,
     onChange?: (value: string) => void
     onKeyDown?: (key: string, currentValue: string) => void
 }

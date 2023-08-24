@@ -1,12 +1,18 @@
-import { ZettelFlowOptionMetadata } from "zettelkasten";
+import { Literal } from "architecture/plugin";
+import { SectionElement } from "zettelkasten";
 
 export type FinalNoteType = {
-    title: string;
     targetFolder: string;
 }
+export type FinalElement = {
+    result: Literal;
+} & SectionElement;
 
 export type FinalNoteInfo = {
+    title: string;
     tags: string[];
-    frontmatter: Record<string, ZettelFlowOptionMetadata>;
-    templates: string[];
+    frontmatter: Record<string, Literal>;
+    paths: string[];
+    elements: FinalElement[];
+    content: string;
 } & FinalNoteType;

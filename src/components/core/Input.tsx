@@ -1,26 +1,32 @@
 import React from "react";
 import { c } from "architecture";
-import { t } from "architecture/lang";
-import { NoteBuilderProps } from "components/NoteBuilder";
+import { InputType } from "./model/InputModel";
 
-export function Input(noteBuilderType: NoteBuilderProps) {
-  const { store } = noteBuilderType;
-  const actions = store((store) => store.actions);
-  const titleValue = store((store) => store.title);
+export function Input(info: InputType) {
+  const { placeholder, className = [], value, onChange, onKeyDown } = info;
+  const [valueState, setValueState] = React.useState<string>(value || "");
   return (
-    <>
+    <div className={c("input-group", ...className)}>
       <input
-        value={titleValue}
+        value={valueState}
         type="text"
         name="title"
         autoComplete="off"
         onChange={(event) => {
           const value = event.target.value;
-          actions.setTitle(value);
+          setValueState(value);
+          if (onChange) {
+            onChange(value);
+          }
+        }}
+        onKeyDown={(event) => {
+          if (onKeyDown) {
+            onKeyDown(event.key, valueState);
+          }
         }}
         required={true}
       />
-      <label className={c("input-label")}>{t("note_title_placeholder")}</label>
-    </>
+      <label className={c("input-label")}>{placeholder}</label>
+    </div>
   );
 }

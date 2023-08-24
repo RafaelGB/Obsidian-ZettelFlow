@@ -15,6 +15,7 @@ export abstract class AbstractChain<T> {
     }
 
     public run(abstractInfo: T): T {
+        abstractInfo = { ...abstractInfo };
         // Obtain the group of handlers
         const mainHandler = this.starter;
 
@@ -30,5 +31,5 @@ export abstract class AbstractChain<T> {
         return this.after(abstractInfo);
     }
     protected abstract starter: AbstractHandler<T>;
-    public abstract refresh(abstractInfo: T):void;
+    public abstract refresh(abstractInfo: T): void;
 }

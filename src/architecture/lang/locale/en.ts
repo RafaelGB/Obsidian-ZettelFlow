@@ -5,4 +5,7 @@ export default {
     logger_level_title: 'Logger level',
     logger_level_description: 'Set logger level',
     note_title_placeholder: 'Note title',
+    canvas_file_selector_title: 'Canvas file',
+    canvas_file_selector_description: 'Select the canvas file wich contains the zettelkasten flow',
+    canvas_file_selector_placeholder: 'Select a canvas file',
 };

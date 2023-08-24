@@ -7,6 +7,7 @@ export function ElementSelector(info: ElementBuilderProps) {
   const { store, childen } = info;
 
   const actions = store((state) => state.actions);
+  const title = store((state) => state.title);
   return (
     <Select
       key="select-element-section"
@@ -14,6 +15,7 @@ export function ElementSelector(info: ElementBuilderProps) {
       callback={callbackElementBuilder(
         {
           actions,
+          title,
         },
         info
       )}

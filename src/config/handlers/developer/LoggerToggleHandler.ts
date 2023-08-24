@@ -8,7 +8,7 @@ import { t } from "architecture/lang";
 export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('logger_toggle_title');
     description = t('logger_toggle_description');
-    constructor(){
+    constructor() {
         super();
         this.manageNextHandler();
     }
@@ -25,18 +25,18 @@ export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInf
         }
 
         new Setting(info.containerEl)
-        .setName(this.name)
-        .setDesc(this.description)
-        .addToggle(toggle =>
-            toggle
-                .setValue(info.plugin.settings.loggerEnabled)
-                .onChange(logger_togle_promise)
-        );
-        
+            .setName(this.name)
+            .setDesc(this.description)
+            .addToggle(toggle =>
+                toggle
+                    .setValue(info.plugin.settings.loggerEnabled)
+                    .onChange(logger_togle_promise)
+            );
+
         return this.goNext(info);
     }
 
-    manageNextHandler(){
+    manageNextHandler() {
         this.nextHandler = new LoggerLevelHandler();
     }
 }

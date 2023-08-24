@@ -1,8 +1,7 @@
-import { ChangeEventHandler } from "react";
-
 export type InputType = {
-    value?: string,
     placeholder: string,
-    type: "text",
-    onChange: ChangeEventHandler<HTMLInputElement>
+    className?: string[],
+    value?: string,
+    onChange?: (value: string) => void
+    onKeyDown?: (key: string, currentValue: string) => void
 }

@@ -6,6 +6,12 @@
   border: 1px solid transparent;
   border-radius: 0.25rem;
 }
+/*****************
+*   BASIC STYLES
+******************/
+.zettelkasten-flow__display-grid {
+  display: grid;
+}
 
 /*****************
 *   SELECTOR MENU

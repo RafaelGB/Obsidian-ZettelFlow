@@ -1,5 +1,7 @@
 export type HeaderType = {
     title: string;
-    lastSection?: string;
-    nextSection?: string;
+    lastSectionPlaceholder?: string;
+    nextSectionPlaceholder?: string;
+    previousSections: string[];
+    nextSections: string[];
 }

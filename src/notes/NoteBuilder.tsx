@@ -116,7 +116,9 @@ export class Builder {
 export class BuilderRoot {
   constructor(private info: FinalNoteInfo) {}
   public setTitle(title: string): BuilderRoot {
-    this.info.title = title;
+    if (title) {
+      this.info.title = title;
+    }
     return this;
   }
 

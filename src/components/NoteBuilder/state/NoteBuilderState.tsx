@@ -1,7 +1,6 @@
 import React from "react";
 import { create } from "zustand";
 import { NoteBuilderState, NoteBuilderStore } from "../model/NoteBuilderModel";
-import { HeaderType } from "components/core";
 import { t } from "architecture/lang";
 
 export function useNoteBuilderStore(): NoteBuilderStore {
@@ -15,21 +14,25 @@ export function useNoteBuilderStore(): NoteBuilderStore {
     },
     header: {
       title: t("flow_selector_placeholder"),
+      previousSections: [],
+      nextSections: [],
     },
     actions: {
-      setTitle: (title: string) => set({ title: title }),
-      setTargetFolder: (targetFolder: string) => set({ targetFolder }),
-      setHeader: (header: Partial<HeaderType>) =>
-        set({ header: { ...get().header, ...header } }),
-      setSectionElement: (element: JSX.Element) => {
+      setTitle: (title) => set({ title: title }),
+      setTargetFolder: (targetFolder) => set({ targetFolder }),
+      setHeader: (header) => set({ header: { ...get().header, ...header } }),
+      setSectionElement: (element, extra) => {
         set({
           section: {
             ...get().section,
+            ...extra,
             element: element,
             position: get().section.position + 1,
           },
         });
       },
+      goPrevious: () => {},
+      goNext: () => {},
     },
   }));
 }

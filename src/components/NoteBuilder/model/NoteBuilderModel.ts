@@ -33,7 +33,9 @@ export type NoteBuilderState = {
         setTitle: (title: string) => void;
         setTargetFolder: (folder: string) => void;
         setHeader: (header: Partial<HeaderType>) => void;
-        setSectionElement: (element: JSX.Element) => void;
+        setSectionElement: (element: JSX.Element, extra?: Partial<Omit<SectionType, "element" | "position">>) => void;
+        goPrevious: () => void;
+        goNext: () => void;
     }
 }
 

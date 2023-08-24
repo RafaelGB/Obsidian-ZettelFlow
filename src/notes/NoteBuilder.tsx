@@ -10,7 +10,10 @@ import {
   NoteBuilderState,
 } from "components/NoteBuilder";
 import React from "react";
-import { ElementBuilderProps } from "components/NoteBuilder/model/NoteBuilderModel";
+import {
+  ElementBuilderProps,
+  ActionBuilderProps,
+} from "components/NoteBuilder/model/NoteBuilderModel";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
 import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 
@@ -43,6 +46,17 @@ export const callbackElementBuilder =
     const selectedElement = childen[selected];
     builder.addPath(selected);
     nextElement(state, builder, selectedElement, info);
+  };
+
+export const callbackActionBuilder =
+  (
+    state: Pick<NoteBuilderState, "actions" | "title">,
+    info: ActionBuilderProps
+  ) =>
+  (callbackResult: string) => {
+    const { action, builder } = info;
+    // TODO: manage result
+    nextElement(state, builder, action, info);
   };
 
 function nextElement(

@@ -1,6 +1,6 @@
 import { CanvasFileTree, FrontmatterService } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
-import { ZettelFlowElement, ZettelFlowOption } from "zettelkasten";
+import { SectionElement, ZettelFlowElement, ZettelFlowOption, ZettelkastenTypeService } from "zettelkasten";
 
 export function canvasFileTreeArray2rootSection(tree: CanvasFileTree[]): Record<string, ZettelFlowOption> {
     const rootSection: Record<string, ZettelFlowOption> = {};
@@ -33,23 +33,36 @@ function canvasFileTreeArray2Children(tree: CanvasFileTree[]): Record<string, Ze
         const { file, children } = node;
         const service = FrontmatterService.instance(file);
         const pluginSettings = service.getZettelFlowSettings();
-        const metaInfo = {
+        const baseInfo: Omit<ZettelFlowElement, "element"> = {
             label: file.basename,
-            element: {
-                type: ""
-            },
+            children: canvasFileTreeArray2Children(children),
             childrenHeader: "",
         }
         if (TypeService.isObject(pluginSettings)) {
-            const { label, type, childrenHeader } = pluginSettings;
-            metaInfo.label = TypeService.isString(label) ? label : metaInfo.label;
-            metaInfo.element.type = TypeService.isString(type) ? type : metaInfo.element.type;
-            metaInfo.childrenHeader = TypeService.isString(childrenHeader) ? childrenHeader : metaInfo.childrenHeader;
+            const { label, childrenHeader, element } = pluginSettings;
+            const elementInfo: ZettelFlowElement = {
+                ...baseInfo,
+                label: TypeService.isString(label) ? label : baseInfo.label,
+                element: manageSectionElement(element),
+                childrenHeader: TypeService.isString(childrenHeader) ? childrenHeader : baseInfo.childrenHeader
+            }
+            record[file.path] = elementInfo;
+        } else {
+            record[file.path] = {
+                ...baseInfo,
+                element: manageSectionElement("")
+            }
         }
-        record[file.path] = {
-            ...metaInfo,
-            children: canvasFileTreeArray2Children(children)
-        }
+
     });
     return record;
+}
+
+function manageSectionElement(potentialElement: unknown): SectionElement {
+    if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
+        return {
+            type: "bridge"
+        }
+    }
+    return potentialElement;
 }

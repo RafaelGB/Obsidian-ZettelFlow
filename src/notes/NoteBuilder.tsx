@@ -1,17 +1,21 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
-import { log } from "architecture";
+import { c, log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { ZettelFlowBase } from "zettelkasten";
+import { SectionElement, ZettelFlowBase } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {
-  ElementBuilder,
+  ActionSelector,
   NoteBuilderProps,
   NoteBuilderState,
 } from "components/NoteBuilder";
 import React from "react";
-import { ElementBuilderProps } from "components/NoteBuilder/model/NoteBuilderModel";
+import {
+  ElementBuilderProps,
+  ActionBuilderProps,
+} from "components/NoteBuilder/model/NoteBuilderModel";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
+import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 
 export const callbackRootBuilder =
   (
@@ -41,8 +45,19 @@ export const callbackElementBuilder =
     const { childen, builder } = info;
     const selectedElement = childen[selected];
     builder.addPath(selected);
-    console.log("selectedElement", selected);
     nextElement(state, builder, selectedElement, info);
+  };
+
+export const callbackActionBuilder =
+  (
+    state: Pick<NoteBuilderState, "actions" | "title">,
+    info: ActionBuilderProps
+  ) =>
+  (callbackResult: Literal) => {
+    const { action, builder } = info;
+    // TODO: manage result
+    builder.addElement(action.element, callbackResult);
+    nextElement(state, builder, action, info);
   };
 
 function nextElement(
@@ -57,6 +72,23 @@ function nextElement(
   if (TypeService.recordIsEmpty(selectedOption.children)) {
     builder.build();
     modal.close();
+  } else if (TypeService.recordHasOneKey(selectedOption.children)) {
+    const [key, action] = Object.entries(selectedOption.children)[0];
+    if (!action.element.type || action.element.type === "bridge") {
+      builder.addPath(key);
+      builder.build();
+      modal.close();
+    } else {
+      actions.setSectionElement(
+        <ActionSelector
+          {...info}
+          action={action}
+          builder={builder}
+          key={`selector-action-${key}`}
+        />
+      );
+    }
+    return;
   } else {
     const childrenHeader = selectedOption.childrenHeader;
     actions.setHeader({
@@ -64,11 +96,11 @@ function nextElement(
     });
 
     actions.setSectionElement(
-      <ElementBuilder
+      <ElementSelector
         {...info}
         childen={selectedOption.children}
         builder={builder}
-        key={`children-${childrenHeader}`}
+        key={`selector-children-${childrenHeader}`}
       />
     );
   }
@@ -103,6 +135,12 @@ export class BuilderRoot {
       // Merge the rest of the frontmatter
       this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
     }
+  }
+  public addElement(element: SectionElement, callbackResult: unknown) {
+    this.info.elements.push({
+      ...element,
+      result: callbackResult,
+    });
   }
 
   public async build(): Promise<void> {
@@ -156,10 +194,25 @@ export class BuilderRoot {
       if (TypeService.isObject(frontmatter)) {
         this.addFrontMatter(frontmatter);
       }
-
+      this.manageElements();
       this.addContent(await service.getContent());
     }
-    console.log("frontmatter", this.info.frontmatter);
-    console.log("content", this.info.content);
+  }
+
+  private async manageElements() {
+    for (const element of this.info.elements) {
+      switch (element.type) {
+        case "prompt": {
+          this.addPrompt(element);
+        }
+      }
+    }
+  }
+
+  private addPrompt(element: SectionElement) {
+    const { result, key } = element;
+    if (TypeService.isString(key)) {
+      this.addFrontMatter({ [key]: result });
+    }
   }
 }

@@ -16,7 +16,12 @@ export type NoteBuilderProps = {
 
 export type ElementBuilderProps = {
     childen: Record<string, ZettelFlowElement>,
-    builder: BuilderRoot
+    builder: BuilderRoot;
+} & NoteBuilderProps;
+
+export type ActionBuilderProps = {
+    action: ZettelFlowElement;
+    builder: BuilderRoot;
 } & NoteBuilderProps;
 
 export type NoteBuilderState = {

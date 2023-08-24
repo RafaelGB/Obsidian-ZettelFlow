@@ -1,6 +1,6 @@
 {
-	"id": "ZettelFlow",
-	"name": "ZettelFlow",
+	"id": "ZettelFlow-dev",
+	"name": "ZettelFlow-dev",
 	"version": "0.0.1",
 	"minAppVersion": "1.3.5",
 	"description": "ZettelFlow is a plugin for Obsidian that helps you to create and manage your notes in a Zettelkasten way.",

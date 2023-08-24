@@ -12,7 +12,7 @@ export type FinalNoteInfo = {
     title: string;
     tags: string[];
     frontmatter: Record<string, Literal>;
-    paths: string[];
-    elements: FinalElement[];
+    paths: Map<number, string>;
+    elements: Map<number, FinalElement>;
     content: string;
 } & FinalNoteType;

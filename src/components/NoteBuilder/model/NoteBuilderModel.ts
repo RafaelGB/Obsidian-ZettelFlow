@@ -21,15 +21,20 @@ export type ElementBuilderProps = {
 
 export type ActionBuilderProps = {
     action: ZettelFlowElement;
+    path: string;
     builder: BuilderRoot;
 } & NoteBuilderProps;
 
 export type NoteBuilderState = {
     title: string;
     targetFolder: string;
+    previousSections: SectionType[];
+    nextSections: SectionType[];
     section: SectionType;
+    position: number;
     header: HeaderType;
     actions: {
+        incrementPosition(): void;
         setTitle: (title: string) => void;
         setTargetFolder: (folder: string) => void;
         setHeader: (header: Partial<HeaderType>) => void;

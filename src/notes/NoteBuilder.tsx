@@ -31,7 +31,7 @@ export const callbackRootBuilder =
       targetFolder: selectedSection.targetFolder,
     })
       .setTitle(state.title)
-      .addPath(selected);
+      .addPath(selected, 0);
     nextElement(state, builder, selectedSection, info);
     actions.setTargetFolder(selectedSection.targetFolder);
   };
@@ -39,50 +39,76 @@ export const callbackRootBuilder =
 export const callbackElementBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ElementBuilderProps
+    info: ElementBuilderProps,
+    pos: number
   ) =>
   (selected: string) => {
     const { childen, builder } = info;
+    log.debug("Selected: " + selected);
     const selectedElement = childen[selected];
-    builder.addPath(selected);
+    builder.addPath(selected, pos);
     nextElement(state, builder, selectedElement, info);
   };
 
 export const callbackActionBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ActionBuilderProps
+    info: ActionBuilderProps,
+    pos: number
   ) =>
   (callbackResult: Literal) => {
     const { action, builder } = info;
-    // TODO: manage result
-    builder.addElement(action.element, callbackResult);
+    builder.addElement(action.element, callbackResult, pos);
     nextElement(state, builder, action, info);
   };
+
+export function previousElement(
+  state: Pick<NoteBuilderState, "actions">,
+  builder: BuilderRoot,
+  previousOption: ZettelFlowBase,
+  info: NoteBuilderProps,
+  pos: number
+) {}
+
+function nextBridge(
+  state: Pick<NoteBuilderState, "actions" | "title">,
+  builder: BuilderRoot,
+  path: string,
+  nextOption: ZettelFlowBase,
+  info: NoteBuilderProps,
+  pos: number
+) {
+  const { actions } = state;
+  // TODO: increase pos at store
+  actions.incrementPosition();
+  builder.addPath(path, pos);
+  // TODO: add path
+  nextElement(state, builder, nextOption, info, pos + 1);
+}
 
 function nextElement(
   state: Pick<NoteBuilderState, "actions" | "title">,
   builder: BuilderRoot,
-  selectedOption: ZettelFlowBase,
-  info: NoteBuilderProps
+  nextOption: ZettelFlowBase,
+  info: NoteBuilderProps,
+  pos = 0
 ) {
   const { actions, title } = state;
   const { modal } = info;
   builder.setTitle(title);
-  if (TypeService.recordIsEmpty(selectedOption.children)) {
+  if (TypeService.recordIsEmpty(nextOption.children)) {
     builder.build();
     modal.close();
-  } else if (TypeService.recordHasOneKey(selectedOption.children)) {
-    const [key, action] = Object.entries(selectedOption.children)[0];
+  } else if (TypeService.recordHasOneKey(nextOption.children)) {
+    const [key, action] = Object.entries(nextOption.children)[0];
     if (!action.element.type || action.element.type === "bridge") {
-      builder.addPath(key);
-      builder.build();
-      modal.close();
+      nextBridge(state, builder, key, action, info, pos);
     } else {
       actions.setSectionElement(
         <ActionSelector
           {...info}
           action={action}
+          path={key}
           builder={builder}
           key={`selector-action-${key}`}
         />
@@ -90,7 +116,7 @@ function nextElement(
     }
     return;
   } else {
-    const childrenHeader = selectedOption.childrenHeader;
+    const childrenHeader = nextOption.childrenHeader;
     actions.setHeader({
       title: childrenHeader,
     });
@@ -98,7 +124,7 @@ function nextElement(
     actions.setSectionElement(
       <ElementSelector
         {...info}
-        childen={selectedOption.children}
+        childen={nextOption.children}
         builder={builder}
         key={`selector-children-${childrenHeader}`}
       />
@@ -121,9 +147,14 @@ export class BuilderRoot {
     }
     return this;
   }
+  public undoInfoFor(pos: number): BuilderRoot {
+    this.info.paths.delete(pos);
+    this.info.elements.delete(pos);
+    return this;
+  }
 
-  public addPath(path: string): BuilderRoot {
-    this.info.paths.push(path);
+  public addPath(path: string, pos: number): BuilderRoot {
+    this.info.paths.set(pos, path);
     return this;
   }
 
@@ -138,8 +169,13 @@ export class BuilderRoot {
       this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
     }
   }
-  public addElement(element: SectionElement, callbackResult: unknown) {
-    this.info.elements.push({
+
+  public addElement(
+    element: SectionElement,
+    callbackResult: unknown,
+    pos: number
+  ) {
+    this.info.elements.set(pos, {
       ...element,
       result: callbackResult,
     });
@@ -188,7 +224,7 @@ export class BuilderRoot {
   }
 
   private async buildNote() {
-    for (const path of this.info.paths) {
+    for (const [, path] of this.info.paths) {
       const file = await FileService.getFile(path);
       if (!file) continue;
       const service = FrontmatterService.instance(file);
@@ -202,7 +238,7 @@ export class BuilderRoot {
   }
 
   private async manageElements() {
-    for (const element of this.info.elements) {
+    for (const [, element] of this.info.elements) {
       switch (element.type) {
         case "prompt": {
           this.addPrompt(element);

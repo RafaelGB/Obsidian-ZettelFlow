@@ -1,5 +1,5 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
-import { c, log } from "architecture";
+import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
 import { SectionElement, ZettelFlowBase } from "zettelkasten";
 import { TypeService } from "architecture/typing";

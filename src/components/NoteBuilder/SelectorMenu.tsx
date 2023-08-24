@@ -1,7 +1,6 @@
 import React, { StrictMode } from "react";
 import { NoteBuilderProps, NoteBuilderType } from "./model/NoteBuilderModel";
 import { Header, Section, Input } from "components/core";
-import { c } from "architecture";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { t } from "architecture/lang";
 

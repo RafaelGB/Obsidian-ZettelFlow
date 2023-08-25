@@ -25,11 +25,15 @@ export type ActionBuilderProps = {
     builder: BuilderRoot;
 } & NoteBuilderProps;
 
+export type SavedSection = {
+    section: SectionType;
+    header: HeaderType;
+}
 export type NoteBuilderState = {
     title: string;
     targetFolder: string;
-    previousSections: SectionType[];
-    nextSections: SectionType[];
+    previousSections: Map<number, SavedSection>;
+    nextSections: Map<number, SavedSection>;
     section: SectionType;
     position: number;
     header: HeaderType;

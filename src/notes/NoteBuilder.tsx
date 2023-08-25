@@ -58,20 +58,6 @@ export const callbackActionBuilder =
     nextElement(state, builder, action, path, info, pos);
   };
 
-/*function nextBridge(
-  state: Pick<NoteBuilderState, "actions" | "title">,
-  builder: BuilderRoot,
-  path: string,
-  nextOption: ZettelFlowBase,
-  info: NoteBuilderProps,
-  pos: number
-) {
-  const { actions } = state;
-  builder.addPath(path, pos);
-  actions.addBridge();
-  nextElement(state, builder, nextOption, info, pos + 1);
-}*/
-
 function nextElement(
   state: Pick<NoteBuilderState, "actions" | "title">,
   builder: BuilderRoot,
@@ -85,6 +71,9 @@ function nextElement(
   if (nextOption.element.type !== "bridge" && !nextOption.element.triggered) {
     // Is an action
     nextOption.element.triggered = true;
+    actions.setHeader({
+      title: nextOption.element.label || `${nextOption.element.type} action`,
+    });
     actions.setSectionElement(
       <ActionSelector
         {...info}
@@ -118,6 +107,7 @@ function nextElement(
     const [key, action] = Object.entries(nextOption.children)[0];
     nextElement(state, builder, action, key, info, actions.incrementPosition());
   } else {
+    // TODO: control empty title
     builder.setTitle(title);
     // Build and close modal
     builder.build();

@@ -9,23 +9,22 @@ export function useNoteBuilderStore(): NoteBuilderStore {
     title: "",
     targetFolder: "/",
     position: 0,
-    previousPlaceholder: "",
-    previousSections: [],
-    nextPlaceholder: "",
-    nextSections: [],
+    previousSections: new Map(),
+    nextSections: new Map(),
     section: {
       color: "",
       element: <></>,
     },
     header: {
       title: t("flow_selector_placeholder"),
-      previousSections: [],
-      nextSections: [],
     },
     actions: {
       setTitle: (title) => set({ title: title }),
       setTargetFolder: (targetFolder) => set({ targetFolder }),
-      setHeader: (header) => set({ header: { ...get().header, ...header } }),
+      setHeader: (partial) => {
+        const { header } = get();
+        set({ header: { ...header, ...partial } });
+      },
       addBridge: () => set({ position: get().position + 1 }),
       incrementPosition: () => {
         const { position } = get();
@@ -33,14 +32,16 @@ export function useNoteBuilderStore(): NoteBuilderStore {
         return position + 1;
       },
       setSectionElement: (element, extra) => {
-        const { previousSections, section, position } = get();
+        const { previousSections, section, position, header } = get();
         const elementSection: SectionType = {
           ...section,
           ...extra,
           element: element,
         };
-
-        previousSections.push(elementSection);
+        previousSections.set(position, {
+          header: header,
+          section: section,
+        });
         set({
           position: position + 1,
           section: elementSection,
@@ -48,35 +49,39 @@ export function useNoteBuilderStore(): NoteBuilderStore {
         });
       },
       goPrevious: () => {
-        const { previousSections, nextSections, position } = get();
-        const currentSection = previousSections.pop();
-        if (!currentSection) return;
-        nextSections.push(currentSection);
-        let previousSection = previousSections.pop();
-        if (!previousSection) {
-          previousSection = {
-            color: "",
-            element: <></>,
-          };
-        }
-
+        const { previousSections, nextSections, position, section, header } =
+          get();
+        const previousSection = previousSections.get(position - 1);
+        nextSections.set(position, {
+          header: header,
+          section: section,
+        });
+        previousSections.delete(position);
         set({
           position: position - 1,
           previousSections: previousSections,
           nextSections: nextSections,
-          section: previousSection,
+          section: previousSection?.section || { color: "", element: <></> },
+          header: previousSection?.header || {
+            title: t("flow_selector_placeholder"),
+          },
         });
       },
       goNext: () => {
-        const { previousSections, nextSections, position } = get();
-        const nextSection = nextSections.pop();
+        const { previousSections, nextSections, position, section, header } =
+          get();
+        const nextSection = nextSections.get(position + 1);
         if (!nextSection) return;
-        previousSections.push(nextSection);
+        previousSections.set(position, {
+          header: header,
+          section: section,
+        });
         set({
           position: position + 1,
           nextSections: nextSections,
           previousSections: previousSections,
-          section: nextSection,
+          section: nextSection.section,
+          header: nextSection.header,
         });
       },
     },

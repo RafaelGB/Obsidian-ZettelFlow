@@ -21,6 +21,7 @@ export type SectionInfo = {
 export type TypeOption = 'bridge' | 'prompt';
 export interface SectionElement {
     type: TypeOption,
+    label?: string,
     triggered?: boolean,
     [key: string]: Literal,
 }

@@ -38,10 +38,12 @@ export function useNoteBuilderStore(): NoteBuilderStore {
           ...extra,
           element: element,
         };
-        previousSections.set(position, {
-          header: header,
-          section: section,
-        });
+        if (section.element.key) {
+          previousSections.set(position, {
+            header: header,
+            section: section,
+          });
+        }
         set({
           position: position + 1,
           section: elementSection,
@@ -52,11 +54,13 @@ export function useNoteBuilderStore(): NoteBuilderStore {
         const { previousSections, nextSections, position, section, header } =
           get();
         const previousSection = previousSections.get(position - 1);
+        console.log(JSON.stringify(header));
         nextSections.set(position, {
           header: header,
           section: section,
         });
         previousSections.delete(position);
+        nextSections.delete(position + 1);
         set({
           position: position - 1,
           previousSections: previousSections,
@@ -70,6 +74,7 @@ export function useNoteBuilderStore(): NoteBuilderStore {
       goNext: () => {
         const { previousSections, nextSections, position, section, header } =
           get();
+        if (nextSections.size === 0) return;
         const nextSection = nextSections.get(position + 1);
         if (!nextSection) return;
         previousSections.set(position, {

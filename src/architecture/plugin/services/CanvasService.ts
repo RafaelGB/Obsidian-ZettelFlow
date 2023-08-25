@@ -1,7 +1,8 @@
-import { TFile } from "obsidian";
+import { HexString, TFile } from "obsidian";
 import { CanvasDataInfo, CanvasEdgeDataInfo } from "obsidian/canvas";
 import { FrontmatterService } from "./FrontmatterService";
 import { CanvasFileTree } from "../model/CanvasModel";
+import { RGB2String, hex2RGB } from "architecture";
 
 export class CanvasService {
     public static getCanvasFileTree(data: CanvasDataInfo): CanvasFileTree[] {
@@ -11,10 +12,9 @@ export class CanvasService {
         const canvasFileTree: CanvasFileTree[] = [];
 
         for (const node of rootFiles) {
-            console.log(node.color);
             canvasFileTree.push({
                 file: node.file,
-                color: node.color,
+                color: getCanvasColor(node.color),
                 children: CanvasService.getCanvasFileTreeRecursive(node.file, edges)
             });
         }
@@ -28,14 +28,21 @@ export class CanvasService {
         for (const edge of childrenEdges) {
             const to = edge.to.node.file;
             if (to) {
-                console.log(edge.to.node.color);
                 children.push({
                     file: to,
-                    color: edge.to.node.color,
+                    color: getCanvasColor(edge.to.node.color),
                     children: CanvasService.getCanvasFileTreeRecursive(to, edges)
                 });
             }
         }
         return children;
     }
+}
+
+function getCanvasColor(color: HexString) {
+    return !color
+        ? "var(--embed-background)"
+        : color.length === 1
+            ? `var(--canvas-color-${color})`
+            : RGB2String(hex2RGB(color.substring(1)))
 }

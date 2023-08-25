@@ -1,7 +1,7 @@
-import { HexString, TFile } from "obsidian";
+import { TFile } from "obsidian";
 
 export type CanvasFileTree = {
     file: TFile;
-    color: HexString;
+    color: string;
     children: CanvasFileTree[];
 }

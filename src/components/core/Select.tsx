@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useState } from "react";
+import React, { CSSProperties, MouseEventHandler, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 
@@ -31,15 +31,10 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
-  const styleMemo = React.useMemo(() => {
-    if (option.color?.length === 1) {
-      return {
-        "--canvas-color": `var(--canvas-color-${option.color})`,
-      } as React.CSSProperties;
-    }
+  const styleMemo = React.useMemo<CSSProperties>(() => {
     return {
-      backgroundColor: option.color,
-    };
+      "--canvas-color": option.color,
+    } as CSSProperties;
   }, []);
   return (
     <div

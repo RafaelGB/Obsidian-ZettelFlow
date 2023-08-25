@@ -26,37 +26,45 @@ export function useNoteBuilderStore(): NoteBuilderStore {
       setTitle: (title) => set({ title: title }),
       setTargetFolder: (targetFolder) => set({ targetFolder }),
       setHeader: (header) => set({ header: { ...get().header, ...header } }),
-      incrementPosition: () => set({ position: get().position + 1 }),
+      addBridge: () => set({ position: get().position + 1 }),
+      incrementPosition: () => {
+        const { position } = get();
+        set({ position: position + 1 });
+        return position + 1;
+      },
       setSectionElement: (element, extra) => {
+        const { previousSections, section, position } = get();
         const elementSection: SectionType = {
-          ...get().section,
+          ...section,
           ...extra,
           element: element,
         };
-        const { previousSections } = get();
+
         previousSections.push(elementSection);
         set({
-          position: get().position + 1,
+          position: position + 1,
           section: elementSection,
           previousSections: previousSections,
         });
       },
       goPrevious: () => {
         const { previousSections, nextSections, position } = get();
-        const previousSection = previousSections.pop();
-        if (!previousSection) return;
-        nextSections.push(previousSection);
+        const currentSection = previousSections.pop();
+        if (!currentSection) return;
+        nextSections.push(currentSection);
+        let previousSection = previousSections.pop();
+        if (!previousSection) {
+          previousSection = {
+            color: "",
+            element: <></>,
+          };
+        }
+
         set({
           position: position - 1,
           previousSections: previousSections,
           nextSections: nextSections,
-          section:
-            previousSections.length === 0
-              ? {
-                  color: "",
-                  element: <></>,
-                }
-              : previousSection,
+          section: previousSection,
         });
       },
       goNext: () => {

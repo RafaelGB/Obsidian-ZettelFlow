@@ -4,6 +4,7 @@ export type ZettelFlowBase = {
     label: string,
     children: Record<string, ZettelFlowElement>,
     childrenHeader: string,
+    element: SectionElement
 }
 
 export type ZettelFlowOption = {
@@ -11,7 +12,6 @@ export type ZettelFlowOption = {
 } & ZettelFlowBase
 
 export type ZettelFlowElement = {
-    element: SectionElement,
     optional?: boolean,
 } & ZettelFlowBase
 
@@ -21,6 +21,7 @@ export type SectionInfo = {
 export type TypeOption = 'bridge' | 'prompt';
 export interface SectionElement {
     type: TypeOption,
+    triggered?: boolean,
     [key: string]: Literal,
 }
 

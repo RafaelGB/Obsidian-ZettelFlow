@@ -34,7 +34,8 @@ export type NoteBuilderState = {
     position: number;
     header: HeaderType;
     actions: {
-        incrementPosition(): void;
+        incrementPosition(): number;
+        addBridge(): void;
         setTitle: (title: string) => void;
         setTargetFolder: (folder: string) => void;
         setHeader: (header: Partial<HeaderType>) => void;

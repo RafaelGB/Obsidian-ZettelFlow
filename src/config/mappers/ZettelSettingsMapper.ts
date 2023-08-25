@@ -8,16 +8,20 @@ export function canvasFileTreeArray2rootSection(tree: CanvasFileTree[]): Record<
         const { file, children } = node;
         const service = FrontmatterService.instance(file);
         const pluginSettings = service.getZettelFlowSettings();
-        const metaInfo = {
+        const metaInfo: Omit<ZettelFlowOption, "children"> = {
             label: file.basename,
             targetFolder: "/",
             childrenHeader: "",
+            element: {
+                type: "bridge",
+            }
         }
         if (TypeService.isObject(pluginSettings)) {
-            const { label, targetFolder, childrenHeader } = pluginSettings;
+            const { label, targetFolder, childrenHeader, element } = pluginSettings;
             metaInfo.label = TypeService.isString(label) ? label : metaInfo.label;
             metaInfo.targetFolder = TypeService.isString(targetFolder) ? targetFolder : metaInfo.targetFolder;
             metaInfo.childrenHeader = TypeService.isString(childrenHeader) ? childrenHeader : metaInfo.childrenHeader;
+            metaInfo.element = manageSectionElement(element);
         }
         rootSection[file.path] = {
             ...metaInfo,

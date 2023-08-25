@@ -54,7 +54,6 @@ export function useNoteBuilderStore(): NoteBuilderStore {
         const { previousSections, nextSections, position, section, header } =
           get();
         const previousSection = previousSections.get(position - 1);
-        console.log(JSON.stringify(header));
         nextSections.set(position, {
           header: header,
           section: section,

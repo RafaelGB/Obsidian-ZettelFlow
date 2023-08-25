@@ -31,13 +31,23 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
-
+  const styleMemo = React.useMemo(() => {
+    if (option.color?.length === 1) {
+      return {
+        "--canvas-color": `var(--canvas-color-${option.color})`,
+      } as React.CSSProperties;
+    }
+    return {
+      backgroundColor: option.color,
+    };
+  }, []);
   return (
     <div
       title={option.key}
       className={isSelected ? c("option", "selected") : c("option")}
       onClick={callback}
       key={`option-${option.key}-${index}`}
+      style={styleMemo}
     >
       {option.label}
     </div>

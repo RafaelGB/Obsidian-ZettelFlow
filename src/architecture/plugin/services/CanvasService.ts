@@ -11,8 +11,10 @@ export class CanvasService {
         const canvasFileTree: CanvasFileTree[] = [];
 
         for (const node of rootFiles) {
+            console.log(node.color);
             canvasFileTree.push({
                 file: node.file,
+                color: node.color,
                 children: CanvasService.getCanvasFileTreeRecursive(node.file, edges)
             });
         }
@@ -26,8 +28,10 @@ export class CanvasService {
         for (const edge of childrenEdges) {
             const to = edge.to.node.file;
             if (to) {
+                console.log(edge.to.node.color);
                 children.push({
                     file: to,
+                    color: edge.to.node.color,
                     children: CanvasService.getCanvasFileTreeRecursive(to, edges)
                 });
             }

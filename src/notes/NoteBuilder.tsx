@@ -71,9 +71,6 @@ function nextElement(
   if (nextOption.element.type !== "bridge" && !nextOption.element.triggered) {
     // Is an action
     nextOption.element.triggered = true;
-    actions.setHeader({
-      title: nextOption.element.label || `${nextOption.element.type} action`,
-    });
     actions.setSectionElement(
       <ActionSelector
         {...info}
@@ -83,6 +80,9 @@ function nextElement(
         key={`selector-action-${currentPath}`}
       />
     );
+    actions.setHeader({
+      title: nextOption.element.label || `${nextOption.element.type} action`,
+    });
     return;
   }
   builder.addPath(currentPath, pos);
@@ -90,10 +90,6 @@ function nextElement(
   if (TypeService.recordHasMultipleKeys(nextOption.children)) {
     // Element Selector
     const childrenHeader = nextOption.childrenHeader;
-    actions.setHeader({
-      title: childrenHeader,
-    });
-
     actions.setSectionElement(
       <ElementSelector
         {...info}
@@ -102,6 +98,9 @@ function nextElement(
         key={`selector-children-${childrenHeader}`}
       />
     );
+    actions.setHeader({
+      title: childrenHeader,
+    });
   } else if (TypeService.recordHasOneKey(nextOption.children)) {
     // Recursive call to nextElement with the only child
     const [key, action] = Object.entries(nextOption.children)[0];

@@ -1,4 +1,5 @@
 import { Literal } from "architecture/plugin"
+import { HexString } from "obsidian"
 
 export type ZettelFlowBase = {
     label: string,
@@ -21,6 +22,7 @@ export type SectionInfo = {
 export type TypeOption = 'bridge' | 'prompt';
 export interface SectionElement {
     type: TypeOption,
+    color: HexString,
     label?: string,
     triggered?: boolean,
     [key: string]: Literal,

@@ -7,7 +7,8 @@ export class SelectMapper {
         Object.entries(record).forEach(([key, value]) => {
             options.push({
                 label: value.label,
-                key: key
+                key: key,
+                color: value.element.color
             })
         });
         return options;
@@ -18,7 +19,8 @@ export class SelectMapper {
         Object.entries(record).forEach(([key, value]) => {
             options.push({
                 label: value.label,
-                key: key
+                key: key,
+                color: value.element.color
             })
         });
         return options;

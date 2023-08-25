@@ -32,4 +32,11 @@ export class TypeService {
         return false;
     }
 
+    public static recordHasMultipleKeys(value: RecordToCheck): boolean {
+        if (TypeService.exists(value)) {
+            return Object.keys(value).length > 1;
+        }
+        return false;
+    }
+
 }

@@ -5,14 +5,29 @@ import { c } from "architecture";
 export function Header(props: NoteBuilderProps) {
   const { store } = props;
   const header = store((store) => store.header);
-  const { title, lastSection, nextSection } = header;
+  const actions = store((store) => store.actions);
+  const disablePrevious = store((store) => store.position === 0);
+  const disableNext = store((store) => store.nextSections.size === 0);
+  const { title } = header;
   return (
     <div className={c("header")}>
-      <button placeholder={lastSection} disabled={lastSection === undefined}>
+      <button
+        placeholder={"Go to previous section"}
+        disabled={disablePrevious}
+        onClick={() => {
+          actions.goPrevious();
+        }}
+      >
         {"<"}
       </button>
       <p>{title}</p>
-      <button placeholder={nextSection} disabled={nextSection === undefined}>
+      <button
+        placeholder={"Go to next section"}
+        disabled={disableNext}
+        onClick={() => {
+          actions.goNext();
+        }}
+      >
         {">"}
       </button>
     </div>

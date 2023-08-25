@@ -6,16 +6,14 @@ export function Header(props: NoteBuilderProps) {
   const { store } = props;
   const header = store((store) => store.header);
   const actions = store((store) => store.actions);
-  const disablePrevious = store(
-    (store) => store.section.element.key === undefined
-  );
+  const disablePrevious = store((store) => store.position === 0);
   const disableNext = store((store) => store.nextSections.size === 0);
   const { title } = header;
   return (
     <div className={c("header")}>
       <button
         placeholder={"Go to previous section"}
-        hidden={disablePrevious}
+        disabled={disablePrevious}
         onClick={() => {
           actions.goPrevious();
         }}
@@ -25,7 +23,7 @@ export function Header(props: NoteBuilderProps) {
       <p>{title}</p>
       <button
         placeholder={"Go to next section"}
-        hidden={disableNext}
+        disabled={disableNext}
         onClick={() => {
           actions.goNext();
         }}

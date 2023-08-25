@@ -38,7 +38,7 @@ export function useNoteBuilderStore(): NoteBuilderStore {
           ...extra,
           element: element,
         };
-        if (section.element.key) {
+        if (position > 0) {
           previousSections.set(position, {
             header: header,
             section: section,
@@ -58,7 +58,7 @@ export function useNoteBuilderStore(): NoteBuilderStore {
           header: header,
           section: section,
         });
-        previousSections.delete(position);
+        previousSections.delete(position - 1);
         nextSections.delete(position + 1);
         set({
           position: position - 1,
@@ -76,6 +76,7 @@ export function useNoteBuilderStore(): NoteBuilderStore {
         if (nextSections.size === 0) return;
         const nextSection = nextSections.get(position + 1);
         if (!nextSection) return;
+        nextSections.delete(position + 1);
         previousSections.set(position, {
           header: header,
           section: section,

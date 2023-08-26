@@ -85,9 +85,9 @@ function nextElement(
     });
     return;
   }
-  builder.addPath(currentPath, pos);
   delete nextOption.element.triggered;
   if (TypeService.recordHasMultipleKeys(nextOption.children)) {
+    builder.addPath(currentPath, pos);
     // Element Selector
     const childrenHeader = nextOption.childrenHeader;
     actions.setSectionElement(
@@ -102,15 +102,21 @@ function nextElement(
       title: childrenHeader,
     });
   } else if (TypeService.recordHasOneKey(nextOption.children)) {
+    builder.addPath(currentPath, pos);
     // Recursive call to nextElement with the only child
     const [key, action] = Object.entries(nextOption.children)[0];
     nextElement(state, builder, action, key, info, actions.incrementPosition());
   } else {
-    // TODO: control empty title
-    builder.setTitle(title);
-    // Build and close modal
-    builder.build();
-    modal.close();
+    if (title) {
+      builder.addPath(currentPath, pos);
+      builder.setTitle(title);
+      // Build and close modal
+      builder.build();
+      modal.close();
+    } else {
+      actions.setInvalidTitle(true);
+      new Notice("Title cannot be empty");
+    }
   }
 }
 

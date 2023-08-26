@@ -31,6 +31,7 @@ export type SavedSection = {
 }
 export type NoteBuilderState = {
     title: string;
+    invalidTitle: boolean;
     targetFolder: string;
     previousSections: Map<number, SavedSection>;
     nextSections: Map<number, SavedSection>;
@@ -41,6 +42,7 @@ export type NoteBuilderState = {
         incrementPosition(): number;
         addBridge(): void;
         setTitle: (title: string) => void;
+        setInvalidTitle: (invalid: boolean) => void;
         setTargetFolder: (folder: string) => void;
         setHeader: (header: Partial<HeaderType>) => void;
         setSectionElement: (element: JSX.Element, extra?: Partial<Omit<SectionType, "element" | "position">>) => void;

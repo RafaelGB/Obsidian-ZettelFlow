@@ -22,13 +22,16 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 function Component(noteBuilderType: NoteBuilderProps) {
   const { store } = noteBuilderType;
   const actions = store((store) => store.actions);
+  const invalidTitle = store((store) => store.invalidTitle);
   return (
     <>
       <Input
         placeholder={t("note_title_placeholder")}
         onChange={(value) => {
           actions.setTitle(value);
+          actions.setInvalidTitle(false);
         }}
+        className={invalidTitle ? ["invalid"] : []}
       />
       <Header {...noteBuilderType} />
       <Section {...noteBuilderType} />

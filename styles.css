@@ -13,6 +13,14 @@
   display: grid;
 }
 
+.zettelkasten-flow__invalid input {
+  border: 1px solid var(--background-modifier-error) !important;
+  box-shadow: 0.125rem 0.25rem var(--background-modifier-error);
+}
+
+.zettelkasten-flow__invalid label {
+  color: var(--background-modifier-error) !important;
+}
 /*****************
 *   SELECTOR MENU
 ******************/
@@ -65,7 +73,8 @@
 }
 
 .zettelkasten-flow__selected {
-  background-color: var(--background-modifier-success);
+  border-color: var(--background-modifier-success);
+  box-shadow: 0 0.125rem 0.25rem var(--background-modifier-success);
 }
 
 .zettelkasten-flow__input-group {

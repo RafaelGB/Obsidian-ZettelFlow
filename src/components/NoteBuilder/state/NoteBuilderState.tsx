@@ -11,6 +11,7 @@ export function useNoteBuilderStore(): NoteBuilderStore {
     position: 0,
     previousSections: new Map(),
     nextSections: new Map(),
+    invalidTitle: false,
     section: {
       color: "",
       element: <></>,
@@ -20,6 +21,12 @@ export function useNoteBuilderStore(): NoteBuilderStore {
     },
     actions: {
       setTitle: (title) => set({ title: title }),
+      setInvalidTitle: (invalidTitle) => {
+        const { invalidTitle: currentInvalidTitle } = get();
+        if (currentInvalidTitle !== invalidTitle) {
+          set({ invalidTitle: invalidTitle });
+        }
+      },
       setTargetFolder: (targetFolder) => set({ targetFolder }),
       setHeader: (partial) => {
         const { header } = get();

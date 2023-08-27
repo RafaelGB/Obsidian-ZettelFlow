@@ -8,10 +8,7 @@ import { t } from "architecture/lang";
 export class LoggerToggleHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('logger_toggle_title');
     description = t('logger_toggle_description');
-    constructor() {
-        super();
-        this.manageNextHandler();
-    }
+
     handle(info: SettingsHandlerInfo): SettingsHandlerInfo {
         const logger_togle_promise = async (value: boolean): Promise<void> => {
             // update service value

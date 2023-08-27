@@ -3,12 +3,12 @@ import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
-import { StepBuilderMapper } from "../mappers/StepBuilderMapper";
+import { StepBuilderMapper } from "zettelkasten";
 import { ObsidianApi } from "architecture";
 
 
 export class StepBuilderModal extends Modal {
-    private info: StepBuilderInfo;
+    info: StepBuilderInfo;
     constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
         super(app);
         this.info = this.getBaseInfo();
@@ -16,7 +16,12 @@ export class StepBuilderModal extends Modal {
 
     onOpen(): void {
         this.info.contentEl.createEl("h2", { text: t("step_builder_title") });
-        this.info = new StepTitleHandler().handle(this.info);
+        new StepTitleHandler().handle(this);
+    }
+
+    refresh(): void {
+        this.info.contentEl.empty();
+        this.onOpen();
     }
 
     async onClose(): Promise<void> {

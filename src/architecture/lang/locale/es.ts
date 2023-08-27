@@ -1,5 +1,8 @@
 export default {
+    type_option_bridge: 'Pasarela',
+    type_option_prompt: 'Prompt',
     menu_pane_create_new_step: 'Crear nuevo paso del ZettelFlow',
+    menu_pane_edit_step: 'Editar paso del ZettelFlow',
     selector_menu_title: 'Menu Zettelcaster',
     logger_toggle_title: 'Activar logger',
     logger_toggle_description: 'Activar o desactivar logger',

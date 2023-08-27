@@ -4,7 +4,7 @@ import { SectionElement, ZettelFlowElement } from "./ZettelkastenOptionsModel";
 export type StepBuilderInfo = {
     contentEl: HTMLElement,
     isRoot: boolean;
-    element: Omit<SectionElement, 'color'>;
+    element: SectionElement;
     filename?: string;
     folder?: TFolder;
     menu?: Menu,

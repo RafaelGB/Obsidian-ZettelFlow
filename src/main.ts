@@ -1,11 +1,11 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings, canvasFileTreeArray2rootSection } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
-import { ItemView, Plugin, TFolder } from 'obsidian';
-import { CanvasService } from 'architecture/plugin';
+import { ItemView, Plugin, TFile, TFolder } from 'obsidian';
+import { CanvasService, FrontmatterService } from 'architecture/plugin';
 import { CanvasView } from 'obsidian/canvas';
 import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
-import { StepBuilderModal } from 'zettelkasten';
+import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
 
 export default class ZettlelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
@@ -56,6 +56,24 @@ export default class ZettlelFlow extends Plugin {
 							});
 					}
 					);
+				} else if (file instanceof TFile) {
+					const zettleFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
+					const mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
+					if (zettleFlowSettings) {
+						menu.addItem((item) => {
+							item
+								.setTitle(t("menu_pane_edit_step"))
+								.setIcon(RibbonIcon.ID)
+								.onClick(() => {
+									new StepBuilderModal(this.app, {
+										folder: file.parent || undefined,
+										filename: file.basename,
+										menu,
+										...mappedInfo
+									}).open();
+								});
+						});
+					}
 				}
 			}));
 	}

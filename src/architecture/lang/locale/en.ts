@@ -1,4 +1,5 @@
 export default {
+    menu_pane_create_new_step: 'Create new step',
     flow_selector_placeholder: 'Select a flow',
     logger_toggle_title: 'Enable logger',
     logger_toggle_description: 'Enable or disable logger',
@@ -8,4 +9,9 @@ export default {
     canvas_file_selector_title: 'Canvas file',
     canvas_file_selector_description: 'Select the canvas file wich contains the zettelkasten flow',
     canvas_file_selector_placeholder: 'Select a canvas file',
+    step_builder_title: 'ZettelFlow Step Builder',
+    step_builder_root_toggle_title: 'Root toggle',
+    step_builder_root_toggle_description: 'This toggle will set the current element as the root element.',
+    step_builder_step_title: 'Step title',
+    step_builder_step_title_description: 'This is the title of the step note.',
 };

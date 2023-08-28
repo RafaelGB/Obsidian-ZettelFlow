@@ -15,8 +15,8 @@ export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderMo
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });
             new Setting(contentEl)
-                .setName("Metadata Key")
-                .setDesc("The key of the metadata to add to the frontmatter")
+                .setName(t("step_builder_element_type_prompt_key_title"))
+                .setDesc(t("step_builder_element_type_prompt_key_description"))
                 .addText(text => {
                     text
                         .setValue(key || ``)
@@ -26,8 +26,8 @@ export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderMo
                 });
 
             new Setting(contentEl)
-                .setName("Label of prompt")
-                .setDesc("The label will be the title of your prompt")
+                .setName(t("step_builder_element_type_prompt_label_title"))
+                .setDesc(t("step_builder_element_type_prompt_label_description"))
                 .addText(text => {
                     text
                         .setValue(label || ``)
@@ -37,8 +37,8 @@ export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderMo
                 });
 
             new Setting(contentEl)
-                .setName("Placeholder of prompt")
-                .setDesc("Helper text to display in the prompt")
+                .setName(t("step_builder_element_type_prompt_placeholder_title"))
+                .setDesc(t("step_builder_element_type_prompt_placeholder_description"))
                 .addTextArea(text => {
                     text
                         .setValue(placeholder || ``)

@@ -23,4 +23,10 @@ export default {
     step_builder_target_folder_description: 'Choose the target folder for the step note.',
     step_builder_element_type_prompt_title: 'Element type prompt options',
     step_builder_element_type_prompt_description: 'Choose the options for the prompt element.',
+    step_builder_element_type_prompt_key_title: 'Key of prompt',
+    step_builder_element_type_prompt_key_description: 'The metatada key of the frontmatter asigned to the prompt',
+    step_builder_element_type_prompt_label_title: 'Label of prompt',
+    step_builder_element_type_prompt_label_description: 'The label will be the title of your prompt',
+    step_builder_element_type_prompt_placeholder_title: 'Placeholder of prompt',
+    step_builder_element_type_prompt_placeholder_description: 'Helper text to display in the prompt',
 };

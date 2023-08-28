@@ -16,4 +16,12 @@ export default {
     step_builder_root_toggle_description: 'Establece el elemento actual como el elemento raíz.',
     step_builder_target_folder_title: 'Carpeta destino',
     step_builder_target_folder_description: 'Elige la carpeta destino para la nota del paso.',
+    step_builder_element_type_prompt_title: 'Opciones del elemento prompt',
+    step_builder_element_type_prompt_description: 'Elige las opciones para el elemento prompt.',
+    step_builder_element_type_prompt_key_title: 'Clave del prompt',
+    step_builder_element_type_prompt_key_description: 'La clave para los metadatos del frontmatter asignada al prompt',
+    step_builder_element_type_prompt_label_title: 'Etiqueta del prompt',
+    step_builder_element_type_prompt_label_description: 'La etiqueta será el título de tu prompt',
+    step_builder_element_type_prompt_placeholder_title: 'Placeholder del prompt',
+    step_builder_element_type_prompt_placeholder_description: 'Texto de ayuda para mostrar en el prompt',
 };

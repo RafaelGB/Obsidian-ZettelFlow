@@ -5,11 +5,7 @@ export class StepBuilderMapper {
         const { element, label, childrenHeader } = info;
         return {
             root: info.isRoot,
-            element: {
-                type: "bridge",
-                color: "",
-                ...element,
-            },
+            element,
             label,
             childrenHeader
         }

@@ -23,7 +23,7 @@ export type TypeOption = 'bridge' | 'prompt';
 
 export interface SectionElement {
     type: TypeOption,
-    color: HexString,
+    color?: HexString,
     label?: string,
     triggered?: boolean,
     [key: string]: Literal,

@@ -8,7 +8,7 @@ export class SelectMapper {
             options.push({
                 label: value.label,
                 key: key,
-                color: value.element.color
+                color: value.element.color || ""
             })
         });
         return options;
@@ -20,7 +20,7 @@ export class SelectMapper {
             options.push({
                 label: value.label,
                 key: key,
-                color: value.element.color
+                color: value.element.color || ""
             })
         });
         return options;

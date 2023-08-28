@@ -1,14 +1,15 @@
 import ZettlelFlow from "main";
 import { PluginSettingTab } from "obsidian";
 import { SettingsHandlerInfo } from "../model/SettingsTabModel";
-import developer from "../handlers/Developer";
-import sections from "../handlers/Sections";
+import developer from "./handlers/Developer";
+import sections from "./handlers/Sections";
 
 class SettingsManager {
     plugin: ZettlelFlow;
     constructor(plugin: ZettlelFlow) {
         this.plugin = plugin;
     }
+
     constructUI(containerEl: HTMLElement, heading: string) {
         const handlerInfo: SettingsHandlerInfo = {
             containerEl: containerEl,

@@ -3,5 +3,5 @@ tags: []
 zettelFlowSettings:
   root: true
   label: 'Literature note'
-  targetFolder: '/zettelFlow/literature/'
+  targetFolder: '/zettelFlow/literature'
 ---

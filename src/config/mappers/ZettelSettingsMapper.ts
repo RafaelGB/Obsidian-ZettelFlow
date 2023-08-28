@@ -71,5 +71,8 @@ function manageSectionElement(potentialElement: unknown, color: HexString): Sect
             color: color
         }
     }
-    return potentialElement;
+    return {
+        ...potentialElement,
+        color: color
+    }
 }

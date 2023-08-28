@@ -5,6 +5,7 @@ export type StepBuilderInfo = {
     contentEl: HTMLElement,
     isRoot: boolean;
     element: SectionElement;
+    targetFolder?: string;
     filename?: string;
     folder?: TFolder;
     menu?: Menu,

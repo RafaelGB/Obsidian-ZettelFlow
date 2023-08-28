@@ -2,6 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal, TypeOption } from "zettelkasten";
+import { ElementTypePromptHandler } from "./ElementTypePromptHandler";
 
 export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_element_type_selector_title');
@@ -25,5 +26,9 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
             }
             );
         return this.goNext(modal);
+    }
+
+    public manageNextHandler(): void {
+        this.nextHandler = new ElementTypePromptHandler()
     }
 }

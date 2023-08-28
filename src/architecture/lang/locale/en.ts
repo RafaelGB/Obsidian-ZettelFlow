@@ -19,4 +19,8 @@ export default {
     step_builder_step_title_description: 'This is the title of the step note.',
     step_builder_element_type_selector_title: 'Element type selector',
     step_builder_element_type_selector_description: 'Choose the type of action you want to perform.',
+    step_builder_target_folder_title: 'Target folder',
+    step_builder_target_folder_description: 'Choose the target folder for the step note.',
+    step_builder_element_type_prompt_title: 'Element type prompt options',
+    step_builder_element_type_prompt_description: 'Choose the options for the prompt element.',
 };

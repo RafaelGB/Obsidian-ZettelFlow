@@ -2,7 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
-import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
+import { TargetFolderSuggesterHandler } from "./TargetFolderSuggesterHandler";
 
 export class RootToggleHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_root_toggle_title');
@@ -12,6 +12,7 @@ export class RootToggleHandler extends AbstractHandlerClass<StepBuilderModal>  {
         const { isRoot, contentEl } = info;
         const onChangePromise = (value: boolean) => {
             info.isRoot = value;
+            modal.refresh();
         };
         new Setting(contentEl)
             .setName(this.name)
@@ -25,6 +26,6 @@ export class RootToggleHandler extends AbstractHandlerClass<StepBuilderModal>  {
     }
 
     public manageNextHandler() {
-        this.nextHandler = new ElementTypeSelectorHandler();
+        this.nextHandler = new TargetFolderSuggesterHandler();
     }
 }

@@ -29,5 +29,11 @@ export interface SectionElement {
     [key: string]: Literal,
 }
 
+export interface PromptElement extends SectionElement {
+    key: string,
+    label: string,
+    placeholder: string,
+}
+
 export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
 }

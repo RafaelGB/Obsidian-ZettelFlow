@@ -52,7 +52,9 @@ export default class ZettlelFlow extends Plugin {
 								new StepBuilderModal(this.app, {
 									folder: file,
 									menu
-								}).open();
+								})
+									.setMode("create")
+									.open();
 							});
 					}
 					);
@@ -70,7 +72,9 @@ export default class ZettlelFlow extends Plugin {
 										filename: file.basename,
 										menu,
 										...mappedInfo
-									}).open();
+									})
+										.setMode("edit")
+										.open();
 								});
 						});
 					}

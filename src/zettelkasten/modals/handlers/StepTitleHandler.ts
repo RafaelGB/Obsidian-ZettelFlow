@@ -8,7 +8,7 @@ export class StepTitleHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_step_title');
     description = t('step_builder_step_title_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
-        const { info } = modal;
+        const { info, mode } = modal;
         const { contentEl, filename } = info;
         const onChangePromise = (value: string) => {
             info.filename = value;
@@ -17,10 +17,10 @@ export class StepTitleHandler extends AbstractHandlerClass<StepBuilderModal>  {
             .setName(this.name)
             .setDesc(this.description)
             .addText(text => {
-
                 text
                     .setValue(filename || ``)
                     .onChange(onChangePromise)
+                    .setDisabled(mode === "edit");
             });
         return this.goNext(modal);
     }

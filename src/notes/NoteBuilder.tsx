@@ -167,7 +167,13 @@ export class BuilderRoot {
 
   public async build(): Promise<void> {
     await this.buildNote();
-    const path = this.info.targetFolder + this.info.title + ".md";
+    const normalizedFolder = this.info.targetFolder.endsWith("/")
+      ? this.info.targetFolder.substring(0, this.info.targetFolder.length - 1)
+      : this.info.targetFolder;
+    const path = normalizedFolder
+      .concat("/")
+      .concat(this.info.title)
+      .concat(".md");
     FileService.createFile(path, this.info.content)
       .then((file) => {
         FrontmatterService.instance(file)

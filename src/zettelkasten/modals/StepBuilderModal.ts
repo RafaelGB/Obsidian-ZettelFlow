@@ -9,13 +9,24 @@ import { ObsidianApi } from "architecture";
 
 export class StepBuilderModal extends Modal {
     info: StepBuilderInfo;
+    mode = "edit";
     constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
         super(app);
         this.info = this.getBaseInfo();
     }
 
+    setMode(mode: "edit" | "create"): StepBuilderModal {
+        this.mode = mode;
+        return this;
+    }
+
     onOpen(): void {
-        this.info.contentEl.createEl("h2", { text: t("step_builder_title") });
+        const span = activeDocument.createElement("span", {});
+        span.setText(` (${this.mode})`);
+        // Header with title and subtitle with the mode
+        this.info.contentEl.createEl("h2", { text: t("step_builder_title") })
+            // Separator
+            .appendChild(span);
         new StepTitleHandler().handle(this);
     }
 

@@ -14,4 +14,6 @@ export default {
     step_builder_title: 'Constructor de pasos del ZettelFlow',
     step_builder_root_toggle_title: 'Inicio de flujo',
     step_builder_root_toggle_description: 'Establece el elemento actual como el elemento raíz.',
+    step_builder_target_folder_title: 'Carpeta destino',
+    step_builder_target_folder_description: 'Elige la carpeta destino para la nota del paso.',
 };

@@ -1,5 +1,5 @@
 # Obsidian-ZettleFlow
-[![GitHub release (latest SemVer)](https://github.com/RafaelGB/Obsidian-ZettlelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettlelFlow/releases/latest)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettlelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettlelFlow/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettlelFlow/total?style=for-the-badge)]()
 
 - [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)

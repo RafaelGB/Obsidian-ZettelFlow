@@ -21,19 +21,33 @@ export type ElementBuilderProps = {
 
 export type ActionBuilderProps = {
     action: ZettelFlowElement;
+    path: string;
     builder: BuilderRoot;
 } & NoteBuilderProps;
 
-export type NoteBuilderState = {
-    title: string;
-    targetFolder: string;
+export type SavedSection = {
     section: SectionType;
     header: HeaderType;
+}
+export type NoteBuilderState = {
+    title: string;
+    invalidTitle: boolean;
+    targetFolder: string;
+    previousSections: Map<number, SavedSection>;
+    nextSections: Map<number, SavedSection>;
+    section: SectionType;
+    position: number;
+    header: HeaderType;
     actions: {
+        incrementPosition(): number;
+        addBridge(): void;
         setTitle: (title: string) => void;
+        setInvalidTitle: (invalid: boolean) => void;
         setTargetFolder: (folder: string) => void;
         setHeader: (header: Partial<HeaderType>) => void;
-        setSectionElement: (element: JSX.Element) => void;
+        setSectionElement: (element: JSX.Element, extra?: Partial<Omit<SectionType, "element" | "position">>) => void;
+        goPrevious: () => void;
+        goNext: () => void;
     }
 }
 

@@ -29,80 +29,94 @@ export const callbackRootBuilder =
     const selectedSection = settings.rootSection[selected];
     const builder = Builder.init({
       targetFolder: selectedSection.targetFolder,
-    })
-      .setTitle(state.title)
-      .addPath(selected);
-    nextElement(state, builder, selectedSection, info);
+    }).setTitle(state.title);
+    nextElement(state, builder, selectedSection, selected, info, 0);
     actions.setTargetFolder(selectedSection.targetFolder);
   };
 
 export const callbackElementBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ElementBuilderProps
+    info: ElementBuilderProps,
+    pos: number
   ) =>
   (selected: string) => {
     const { childen, builder } = info;
     const selectedElement = childen[selected];
-    builder.addPath(selected);
-    nextElement(state, builder, selectedElement, info);
+    nextElement(state, builder, selectedElement, selected, info, pos);
   };
 
 export const callbackActionBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ActionBuilderProps
+    info: ActionBuilderProps,
+    pos: number
   ) =>
   (callbackResult: Literal) => {
-    const { action, builder } = info;
-    // TODO: manage result
-    builder.addElement(action.element, callbackResult);
-    nextElement(state, builder, action, info);
+    const { action, path, builder } = info;
+    builder.addElement(action.element, callbackResult, pos);
+    nextElement(state, builder, action, path, info, pos);
   };
 
 function nextElement(
   state: Pick<NoteBuilderState, "actions" | "title">,
   builder: BuilderRoot,
-  selectedOption: ZettelFlowBase,
-  info: NoteBuilderProps
+  nextOption: ZettelFlowBase,
+  currentPath: string,
+  info: NoteBuilderProps,
+  pos: number
 ) {
   const { actions, title } = state;
   const { modal } = info;
-  builder.setTitle(title);
-  if (TypeService.recordIsEmpty(selectedOption.children)) {
-    builder.build();
-    modal.close();
-  } else if (TypeService.recordHasOneKey(selectedOption.children)) {
-    const [key, action] = Object.entries(selectedOption.children)[0];
-    if (!action.element.type || action.element.type === "bridge") {
-      builder.addPath(key);
-      builder.build();
-      modal.close();
-    } else {
-      actions.setSectionElement(
-        <ActionSelector
-          {...info}
-          action={action}
-          builder={builder}
-          key={`selector-action-${key}`}
-        />
-      );
-    }
-    return;
-  } else {
-    const childrenHeader = selectedOption.childrenHeader;
+  if (nextOption.element.type !== "bridge" && !nextOption.element.triggered) {
+    // Is an action
+    nextOption.element.triggered = true;
+    actions.setSectionElement(
+      <ActionSelector
+        {...info}
+        action={nextOption}
+        path={currentPath}
+        builder={builder}
+        key={`selector-action-${currentPath}`}
+      />
+    );
     actions.setHeader({
-      title: childrenHeader,
+      title: nextOption.element.label || `${nextOption.element.type} action`,
     });
-
+    return;
+  }
+  delete nextOption.element.triggered;
+  if (TypeService.recordHasMultipleKeys(nextOption.children)) {
+    builder.addPath(currentPath, pos);
+    // Element Selector
+    const childrenHeader = nextOption.childrenHeader;
     actions.setSectionElement(
       <ElementSelector
         {...info}
-        childen={selectedOption.children}
+        childen={nextOption.children}
         builder={builder}
         key={`selector-children-${childrenHeader}`}
       />
     );
+    actions.setHeader({
+      title: childrenHeader,
+    });
+  } else if (TypeService.recordHasOneKey(nextOption.children)) {
+    builder.addPath(currentPath, pos);
+    // Recursive call to nextElement with the only child
+    const [key, action] = Object.entries(nextOption.children)[0];
+    nextElement(state, builder, action, key, info, actions.incrementPosition());
+  } else {
+    if (title) {
+      builder.addPath(currentPath, pos);
+      builder.setTitle(title);
+      // Build and close modal
+      builder.build();
+      modal.close();
+    } else {
+      actions.setInvalidTitle(true);
+      new Notice("Title cannot be empty");
+    }
   }
 }
 
@@ -116,12 +130,15 @@ export class Builder {
 export class BuilderRoot {
   constructor(private info: FinalNoteInfo) {}
   public setTitle(title: string): BuilderRoot {
-    this.info.title = title;
+    if (title) {
+      this.info.title = title;
+    }
     return this;
   }
 
-  public addPath(path: string): BuilderRoot {
-    this.info.paths.push(path);
+  public addPath(path: string, pos: number): BuilderRoot {
+    log.trace(`Builder: adding path ${path} at position ${pos}`);
+    this.info.paths.set(pos, path);
     return this;
   }
 
@@ -136,8 +153,13 @@ export class BuilderRoot {
       this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
     }
   }
-  public addElement(element: SectionElement, callbackResult: unknown) {
-    this.info.elements.push({
+
+  public addElement(
+    element: SectionElement,
+    callbackResult: unknown,
+    pos: number
+  ) {
+    this.info.elements.set(pos, {
       ...element,
       result: callbackResult,
     });
@@ -145,7 +167,13 @@ export class BuilderRoot {
 
   public async build(): Promise<void> {
     await this.buildNote();
-    const path = this.info.targetFolder + this.info.title + ".md";
+    const normalizedFolder = this.info.targetFolder.endsWith("/")
+      ? this.info.targetFolder.substring(0, this.info.targetFolder.length - 1)
+      : this.info.targetFolder;
+    const path = normalizedFolder
+      .concat("/")
+      .concat(this.info.title)
+      .concat(".md");
     FileService.createFile(path, this.info.content)
       .then((file) => {
         FrontmatterService.instance(file)
@@ -186,7 +214,9 @@ export class BuilderRoot {
   }
 
   private async buildNote() {
-    for (const path of this.info.paths) {
+    log.debug(`Builder: ${this.info.paths.size} paths to process`);
+    for (const [, path] of this.info.paths) {
+      log.trace(`Builder: processing path ${path}`);
       const file = await FileService.getFile(path);
       if (!file) continue;
       const service = FrontmatterService.instance(file);
@@ -194,13 +224,15 @@ export class BuilderRoot {
       if (TypeService.isObject(frontmatter)) {
         this.addFrontMatter(frontmatter);
       }
-      this.manageElements();
       this.addContent(await service.getContent());
     }
+    await this.manageElements();
   }
 
   private async manageElements() {
-    for (const element of this.info.elements) {
+    log.debug(`Builder: ${this.info.elements.size} elements to process`);
+    for (const [, element] of this.info.elements) {
+      log.trace(`Builder: processing element ${element.type}`);
       switch (element.type) {
         case "prompt": {
           this.addPrompt(element);

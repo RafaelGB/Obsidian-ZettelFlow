@@ -2,6 +2,7 @@ import { ObsidianApi } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { FinalNoteInfo } from "notes/model/FinalNoteModel";
+import { StepSettings } from "zettelkasten";
 
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
@@ -43,8 +44,8 @@ export class FrontmatterService {
         return this.metadata;
     }
 
-    public getZettelFlowSettings() {
-        return this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY);
+    public getZettelFlowSettings(): StepSettings {
+        return this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY) as StepSettings;
     }
 
     public getFrontmatter() {

@@ -5,8 +5,11 @@ export interface AbstractHandler<T> {
 
 export abstract class AbstractHandlerClass<T> implements AbstractHandler<T> {
     abstract name: string;
-    abstract description: string; 
+    abstract description: string;
     protected nextHandler: AbstractHandler<T> | undefined;
+    constructor() {
+        this.manageNextHandler();
+    }
 
     public goNext(response: T): T {
         // Check next handler

@@ -1,4 +1,4 @@
-import { FinalNoteInfo, FinalNoteType } from "notes/model/FinalNoteModel";
+import { FinalElement, FinalNoteInfo, FinalNoteType } from "notes/model/FinalNoteModel";
 
 export function finalNoteType2FinalNoteInfo(finalNoteType: FinalNoteType): FinalNoteInfo {
     return {
@@ -6,8 +6,8 @@ export function finalNoteType2FinalNoteInfo(finalNoteType: FinalNoteType): Final
         title: "",
         tags: [],
         frontmatter: {},
-        paths: [],
-        elements: [],
+        paths: new Map<number, string>(),
+        elements: new Map<number, FinalElement>(),
         content: "",
     };
 }

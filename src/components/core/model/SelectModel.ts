@@ -1,3 +1,4 @@
+import { HexString } from "obsidian";
 import { MouseEventHandler } from "react";
 
 export type SelectType = {
@@ -15,4 +16,5 @@ export type OptionElementType = {
 export type Option = {
     key: string;
     label: string;
+    color: HexString;
 }

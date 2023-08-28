@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useState } from "react";
+import React, { CSSProperties, MouseEventHandler, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 
@@ -31,13 +31,18 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
-
+  const styleMemo = React.useMemo<CSSProperties>(() => {
+    return {
+      "--canvas-color": option.color,
+    } as CSSProperties;
+  }, []);
   return (
     <div
       title={option.key}
       className={isSelected ? c("option", "selected") : c("option")}
       onClick={callback}
       key={`option-${option.key}-${index}`}
+      style={styleMemo}
     >
       {option.label}
     </div>

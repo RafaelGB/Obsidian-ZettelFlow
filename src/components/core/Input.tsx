@@ -3,7 +3,14 @@ import { c } from "architecture";
 import { InputType } from "./model/InputModel";
 
 export function Input(info: InputType) {
-  const { placeholder, className = [], value, onChange, onKeyDown } = info;
+  const {
+    placeholder,
+    className = [],
+    value,
+    required = false,
+    onChange,
+    onKeyDown,
+  } = info;
   const [valueState, setValueState] = React.useState<string>(value || "");
   return (
     <div className={c("input-group", ...className)}>
@@ -11,6 +18,7 @@ export function Input(info: InputType) {
         value={valueState}
         type="text"
         name="title"
+        required={required}
         autoComplete="off"
         onChange={(event) => {
           const value = event.target.value;
@@ -24,7 +32,6 @@ export function Input(info: InputType) {
             onKeyDown(event.key, valueState);
           }
         }}
-        required={true}
       />
       <label className={c("input-label")}>{placeholder}</label>
     </div>

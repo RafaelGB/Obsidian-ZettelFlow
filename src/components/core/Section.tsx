@@ -8,7 +8,13 @@ export function Section(props: NoteBuilderProps) {
   const { element } = section;
   if (element.key) {
     return (
-      <div className={c("section")} key={`section-${element.key}`}>
+      <div
+        className={c("section")}
+        key={`section-${element.key}`}
+        style={{
+          borderColor: section.color,
+        }}
+      >
         {element}
       </div>
     );

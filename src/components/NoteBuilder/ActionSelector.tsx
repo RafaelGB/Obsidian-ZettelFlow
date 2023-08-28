@@ -9,13 +9,15 @@ export function ActionSelector(info: ActionBuilderProps) {
 
   const actions = store((state) => state.actions);
   const title = store((state) => state.title);
+  const pos = store((state) => state.position);
   const callbackMemo = useMemo(() => {
     return callbackActionBuilder(
       {
         actions: actions,
         title: title,
       },
-      info
+      info,
+      pos
     );
   }, [title]);
   switch (action.element.type) {

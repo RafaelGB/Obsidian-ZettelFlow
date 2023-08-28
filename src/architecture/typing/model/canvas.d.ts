@@ -1,4 +1,4 @@
-import { ItemView, TFile } from "obsidian";
+import { HexString, ItemView, TFile } from "obsidian";
 import "obsidian/canvas";
 
 declare module "obsidian/canvas" {
@@ -12,7 +12,7 @@ declare module "obsidian/canvas" {
     }
 
     interface CanvasNode {
-
+        color: HexString
     }
 
     interface CanvasFileNode extends CanvasNode {
@@ -33,5 +33,6 @@ declare module "obsidian/canvas" {
     }
     interface CanvasNodeInfo {
         file: TFile;
+        color: HexString;
     }
 }

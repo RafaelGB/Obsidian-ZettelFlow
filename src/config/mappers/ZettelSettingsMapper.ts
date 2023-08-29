@@ -1,15 +1,62 @@
-import { CanvasFileTree, FrontmatterService } from "architecture/plugin";
+import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
+import { WorkflowStep } from "config";
 import { HexString } from "obsidian";
-import { SectionElement, ZettelFlowElement, ZettelFlowOption, ZettelkastenTypeService } from "zettelkasten";
+import { SectionElement, ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
 
-export function canvasFileTreeArray2rootSection(tree: CanvasFileTree[]): Record<string, ZettelFlowOption> {
-    const rootSection: Record<string, ZettelFlowOption> = {};
-    tree.forEach((node) => {
-        const { file, children, color } = node;
+export class ZettelSettingsMapper {
+    private sectionMap: Map<string, ZettelFlowElement>;
+    public static instance(nodes: ZettelNodeSource[]) {
+        return new ZettelSettingsMapper(nodes);
+    }
+    private constructor(private nodes: ZettelNodeSource[]) {
+        this.sectionMap = new Map();
+    }
+
+    public marshall() {
+        const workflow: WorkflowStep[] = [];
+        this.nodes.forEach((node) => {
+            workflow.push(this.manageWorkflow(node));
+        });
+        const sectionMap = this.sectionMap;
+        return { sectionMap, workflow };
+    }
+
+    private manageWorkflow(node: ZettelNodeSource): WorkflowStep {
+        const { id, children } = node;
+        this.saveSection(node);
+        return {
+            id,
+            children: this.manageChildren(children)
+        }
+    }
+    private manageChildren(childrenParent: ZettelNode[]): WorkflowStep[] {
+        const workflow: WorkflowStep[] = [];
+        childrenParent.forEach((node) => {
+            const { id } = node;
+            if (this.sectionMap.has(id)) {
+                workflow.push({
+                    id,
+                    isRecursive: true
+                });
+            } else {
+                const source = node as ZettelNodeSource;
+                this.saveSection(source);
+                workflow.push({
+                    id,
+                    children: this.manageChildren(source.children)
+                });
+            }
+        });
+        return workflow;
+    }
+
+    private saveSection(section: ZettelNodeSource) {
+        const { id, file, color } = section;
         const service = FrontmatterService.instance(file);
         const pluginSettings = service.getZettelFlowSettings();
-        const metaInfo: Omit<ZettelFlowOption, "children"> = {
+        const defaultInfo: ZettelFlowElement = {
+            path: file.path,
             label: file.basename,
             targetFolder: "/",
             childrenHeader: "",
@@ -20,59 +67,30 @@ export function canvasFileTreeArray2rootSection(tree: CanvasFileTree[]): Record<
         }
         if (TypeService.isObject(pluginSettings)) {
             const { label, targetFolder, childrenHeader, element } = pluginSettings;
-            metaInfo.label = TypeService.isString(label) ? label : metaInfo.label;
-            metaInfo.targetFolder = TypeService.isString(targetFolder) ? targetFolder : metaInfo.targetFolder;
-            metaInfo.childrenHeader = TypeService.isString(childrenHeader) ? childrenHeader : metaInfo.childrenHeader;
-            metaInfo.element = manageSectionElement(element, color);
-        }
-        rootSection[file.path] = {
-            ...metaInfo,
-            children: canvasFileTreeArray2Children(children)
-        }
-    });
-    return rootSection;
-}
-
-function canvasFileTreeArray2Children(tree: CanvasFileTree[]): Record<string, ZettelFlowElement> {
-    const record: Record<string, ZettelFlowElement> = {};
-    tree.forEach((node) => {
-        const { file, children, color } = node;
-        const service = FrontmatterService.instance(file);
-        const pluginSettings = service.getZettelFlowSettings();
-        const baseInfo: Omit<ZettelFlowElement, "element"> = {
-            label: file.basename,
-            children: canvasFileTreeArray2Children(children),
-            childrenHeader: "",
-        }
-        if (TypeService.isObject(pluginSettings)) {
-            const { label, childrenHeader, element } = pluginSettings;
-            const elementInfo: ZettelFlowElement = {
-                ...baseInfo,
-                label: TypeService.isString(label) ? label : baseInfo.label,
-                element: manageSectionElement(element, color),
-                childrenHeader: TypeService.isString(childrenHeader) ? childrenHeader : baseInfo.childrenHeader
+            if (TypeService.isString(label)) {
+                defaultInfo.label = label;
             }
-            record[file.path] = elementInfo;
-        } else {
-            record[file.path] = {
-                ...baseInfo,
-                element: manageSectionElement("", color)
+            if (TypeService.isString(targetFolder)) {
+                defaultInfo.targetFolder = targetFolder;
+            }
+            if (TypeService.isString(childrenHeader)) {
+                defaultInfo.childrenHeader = childrenHeader;
+            }
+            defaultInfo.element = this.manageSectionElement(element, color);
+        }
+        this.sectionMap.set(id, defaultInfo);
+    }
+
+    private manageSectionElement(potentialElement: unknown, color: HexString | undefined): SectionElement {
+        if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
+            return {
+                type: "bridge",
+                color: color
             }
         }
-
-    });
-    return record;
-}
-
-function manageSectionElement(potentialElement: unknown, color: HexString): SectionElement {
-    if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
         return {
-            type: "bridge",
+            ...potentialElement,
             color: color
         }
-    }
-    return {
-        ...potentialElement,
-        color: color
     }
 }

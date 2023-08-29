@@ -23,10 +23,17 @@ export function RootSelector(info: NoteBuilderProps) {
   return (
     <Select
       key="select-root-section"
-      options={SelectMapper.zettelFlowOptionRecord2Options(
-        settings.rootSection
+      options={SelectMapper.zettelFlowElementRecord2Options(
+        settings.workflow,
+        settings.nodes
       )}
-      callback={callbackMemo}
+      callback={(selected) => {
+        const selectedStep = settings.workflow.find(
+          (step) => step.id === selected
+        );
+        if (!selectedStep) throw new Error("Selected step not found");
+        callbackMemo(selectedStep);
+      }}
     />
   );
 }

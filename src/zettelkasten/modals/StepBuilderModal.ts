@@ -65,6 +65,7 @@ export class StepBuilderModal extends Modal {
             },
             label: ``,
             childrenHeader: ``,
+            path: ``,
             ...this.partialInfo
         }
     }

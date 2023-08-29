@@ -1,4 +1,5 @@
 import { HeaderType, SectionType } from "components/core";
+import { WorkflowStep } from "config";
 import ZettlelFlow from "main";
 import { BuilderRoot } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
@@ -15,13 +16,13 @@ export type NoteBuilderProps = {
 } & NoteBuilderType;
 
 export type ElementBuilderProps = {
-    childen: Record<string, ZettelFlowElement>,
+    childen: WorkflowStep[],
     builder: BuilderRoot;
 } & NoteBuilderProps;
 
 export type ActionBuilderProps = {
     action: ZettelFlowElement;
-    path: string;
+    actionStep: WorkflowStep;
     builder: BuilderRoot;
 } & NoteBuilderProps;
 
@@ -43,7 +44,7 @@ export type NoteBuilderState = {
         addBridge(): void;
         setTitle: (title: string) => void;
         setInvalidTitle: (invalid: boolean) => void;
-        setTargetFolder: (folder: string) => void;
+        setTargetFolder: (folder: string | undefined) => void;
         setHeader: (header: Partial<HeaderType>) => void;
         setSectionElement: (element: JSX.Element, extra?: Partial<Omit<SectionType, "element" | "position">>) => void;
         goPrevious: () => void;

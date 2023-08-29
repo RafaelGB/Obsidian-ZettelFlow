@@ -1,20 +1,14 @@
 import { Literal } from "architecture/plugin"
 import { HexString } from "obsidian"
 
-export type ZettelFlowBase = {
-    label: string,
-    children: Record<string, ZettelFlowElement>,
-    childrenHeader: string,
-    element: SectionElement
-}
-
-export type ZettelFlowOption = {
-    targetFolder: string,
-} & ZettelFlowBase
-
 export type ZettelFlowElement = {
+    path: string,
+    label: string,
+    childrenHeader: string,
+    element: SectionElement,
+    targetFolder?: string,
     optional?: boolean,
-} & ZettelFlowBase
+}
 
 export type SectionInfo = {
     title: string
@@ -33,7 +27,4 @@ export interface PromptElement extends SectionElement {
     key: string,
     label: string,
     placeholder: string,
-}
-
-export const DEFAULT_OPTIONS: Record<string, ZettelFlowOption> = {
 }

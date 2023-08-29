@@ -1,7 +1,7 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { SectionElement, ZettelFlowBase } from "zettelkasten";
+import { SectionElement } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import {
@@ -16,21 +16,24 @@ import {
 } from "components/NoteBuilder/model/NoteBuilderModel";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
 import { ElementSelector } from "components/NoteBuilder/ElementSelector";
+import { WorkflowStep } from "config";
 
 export const callbackRootBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
     info: NoteBuilderProps
   ) =>
-  (selected: string) => {
-    const { actions } = state;
+  (selected: WorkflowStep) => {
+    const { actions, title } = state;
     const { plugin } = info;
     const { settings } = plugin;
-    const selectedSection = settings.rootSection[selected];
+    const { nodes } = settings;
+    const { id } = selected;
+    const selectedSection = nodes[id];
     const builder = Builder.init({
-      targetFolder: selectedSection.targetFolder,
-    }).setTitle(state.title);
-    nextElement(state, builder, selectedSection, selected, info, 0);
+      targetFolder: selectedSection.targetFolder || "/",
+    }).setTitle(title);
+    nextElement(state, builder, selected, info, 0);
     actions.setTargetFolder(selectedSection.targetFolder);
   };
 
@@ -40,10 +43,9 @@ export const callbackElementBuilder =
     info: ElementBuilderProps,
     pos: number
   ) =>
-  (selected: string) => {
-    const { childen, builder } = info;
-    const selectedElement = childen[selected];
-    nextElement(state, builder, selectedElement, selected, info, pos);
+  (selected: WorkflowStep) => {
+    const { builder } = info;
+    nextElement(state, builder, selected, info, pos);
   };
 
 export const callbackActionBuilder =
@@ -53,47 +55,54 @@ export const callbackActionBuilder =
     pos: number
   ) =>
   (callbackResult: Literal) => {
-    const { action, path, builder } = info;
+    const { action, builder, actionStep } = info;
     builder.addElement(action.element, callbackResult, pos);
-    nextElement(state, builder, action, path, info, pos);
+    nextElement(state, builder, actionStep, info, pos);
   };
 
 function nextElement(
   state: Pick<NoteBuilderState, "actions" | "title">,
   builder: BuilderRoot,
-  nextOption: ZettelFlowBase,
-  currentPath: string,
+  selected: WorkflowStep,
   info: NoteBuilderProps,
   pos: number
 ) {
   const { actions, title } = state;
-  const { modal } = info;
-  if (nextOption.element.type !== "bridge" && !nextOption.element.triggered) {
+  const { modal, plugin } = info;
+  const { settings } = plugin;
+  const { id, children } = selected;
+  const selectedElement = settings.nodes[id];
+  if (
+    selectedElement.element.type !== "bridge" &&
+    !selectedElement.element.triggered
+  ) {
     // Is an action
-    nextOption.element.triggered = true;
+    selectedElement.element.triggered = true;
     actions.setSectionElement(
       <ActionSelector
         {...info}
-        action={nextOption}
-        path={currentPath}
+        action={selectedElement}
+        actionStep={selected}
         builder={builder}
-        key={`selector-action-${currentPath}`}
+        key={`selector-action-${selectedElement.path}`}
       />
     );
     actions.setHeader({
-      title: nextOption.element.label || `${nextOption.element.type} action`,
+      title:
+        selectedElement.element.label ||
+        `${selectedElement.element.type} action`,
     });
     return;
   }
-  delete nextOption.element.triggered;
-  if (TypeService.recordHasMultipleKeys(nextOption.children)) {
-    builder.addPath(currentPath, pos);
+  delete selectedElement.element.triggered;
+  if (children && children.length > 1) {
+    builder.addPath(selectedElement.path, pos);
     // Element Selector
-    const childrenHeader = nextOption.childrenHeader;
+    const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
       <ElementSelector
         {...info}
-        childen={nextOption.children}
+        childen={children}
         builder={builder}
         key={`selector-children-${childrenHeader}`}
       />
@@ -101,14 +110,12 @@ function nextElement(
     actions.setHeader({
       title: childrenHeader,
     });
-  } else if (TypeService.recordHasOneKey(nextOption.children)) {
-    builder.addPath(currentPath, pos);
-    // Recursive call to nextElement with the only child
-    const [key, action] = Object.entries(nextOption.children)[0];
-    nextElement(state, builder, action, key, info, actions.incrementPosition());
+  } else if (children && children.length === 1) {
+    builder.addPath(selectedElement.path, pos);
+    nextElement(state, builder, children[0], info, actions.incrementPosition());
   } else {
     if (title) {
-      builder.addPath(currentPath, pos);
+      builder.addPath(selectedElement.path, pos);
       builder.setTitle(title);
       // Build and close modal
       builder.build();

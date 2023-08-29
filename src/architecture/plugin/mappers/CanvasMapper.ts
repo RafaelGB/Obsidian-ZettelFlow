@@ -22,15 +22,15 @@ export class CanvasMapper {
                 id,
                 file,
                 color: this.getCanvasColor(color),
-                children: this.getCanvasFileTreeRecursive(file, filteredEdges, [id])
+                children: this.getCanvasFileTreeRecursive(id, filteredEdges, [id])
             });
         }
         return rootNodes;
     }
 
-    private getCanvasFileTreeRecursive(from: TFile, edges: CanvasEdgeDataInfo[], previousNodes: string[]): ZettelNode[] {
+    private getCanvasFileTreeRecursive(from: string, edges: CanvasEdgeDataInfo[], previousNodes: string[]): ZettelNode[] {
         const nodes: ZettelNode[] = [];
-        const childrenEdges = edges.filter(edge => edge.from.node.file?.path === from.path);
+        const childrenEdges = edges.filter(edge => edge.from.node.id === from);
         for (const edge of childrenEdges) {
             const { id, color, file } = edge.to.node;
             if (previousNodes.includes(id)) {
@@ -43,7 +43,7 @@ export class CanvasMapper {
                     id,
                     file,
                     color: this.getCanvasColor(color),
-                    children: this.getCanvasFileTreeRecursive(file, edges, [...previousNodes, id])
+                    children: this.getCanvasFileTreeRecursive(id, edges, [...previousNodes, id])
                 });
 
             }

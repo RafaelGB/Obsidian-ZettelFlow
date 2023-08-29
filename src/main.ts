@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
+import { DEFAULT_SETTINGS, WorkflowStep, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { ItemView, Plugin, TFile, TFolder } from 'obsidian';
 import { CanvasMapper, FrontmatterService } from 'architecture/plugin';
@@ -36,7 +36,6 @@ export default class ZettlelFlow extends Plugin {
 			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
 				const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
 				const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-				console.log(sectionMap, workflow);
 				const recordNodes: Record<string, ZettelFlowElement> = {};
 				sectionMap.forEach((node, key) => {
 					recordNodes[key] = node;

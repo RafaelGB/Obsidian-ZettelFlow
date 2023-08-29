@@ -59,6 +59,19 @@ export const callbackActionBuilder =
     builder.addElement(action.element, callbackResult, pos);
     nextElement(state, builder, actionStep, info, pos);
   };
+function findIdInWorkflow(
+  toFind: string,
+  workflow: WorkflowStep[]
+): WorkflowStep | undefined {
+  for (const step of workflow) {
+    if (step.id === toFind) return step;
+    if (step.children) {
+      const found = findIdInWorkflow(toFind, step.children);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
 
 function nextElement(
   state: Pick<NoteBuilderState, "actions" | "title">,
@@ -70,6 +83,10 @@ function nextElement(
   const { actions, title } = state;
   const { modal, plugin } = info;
   const { settings } = plugin;
+  const { isRecursive } = selected;
+  if (isRecursive) {
+    selected = findIdInWorkflow(selected.id, settings.workflow) || selected;
+  }
   const { id, children } = selected;
   const selectedElement = settings.nodes[id];
   if (

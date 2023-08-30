@@ -53,13 +53,13 @@ export class BuilderRoot {
 
   public async build(): Promise<void> {
     await this.buildNote();
-    const normalizedFolder = this.info.targetFolder.endsWith("/")
+    const normalizedFolder = this.info.targetFolder.endsWith(FileService.PATH_SEPARATOR)
       ? this.info.targetFolder.substring(0, this.info.targetFolder.length - 1)
       : this.info.targetFolder;
     const path = normalizedFolder
-      .concat("/")
+      .concat(FileService.PATH_SEPARATOR)
       .concat(this.info.title)
-      .concat(".md");
+      .concat(FileService.MARKDOWN_EXTENSION);
     FileService.createFile(path, this.info.content)
       .then((file) => {
         FrontmatterService.instance(file)

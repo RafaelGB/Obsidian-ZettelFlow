@@ -8,12 +8,11 @@ import React from "react";
 import {
   ElementBuilderProps,
   ActionBuilderProps,
-} from "components/NoteBuilder/model/NoteBuilderModel";
-import { Literal } from "architecture/plugin";
+} from "../model/NoteBuilderModel";
+import { FileService, Literal } from "architecture/plugin";
 import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 import { WorkflowStep } from "config";
-import { Builder } from "notes";
-import { BuilderRoot } from "notes/NoteBuilder";
+import { Builder, BuilderRoot } from "notes";
 
 export const callbackRootBuilder =
   (
@@ -28,7 +27,7 @@ export const callbackRootBuilder =
     const { id } = selected;
     const selectedSection = nodes[id];
     const builder = Builder.init({
-      targetFolder: selectedSection.targetFolder || "/",
+      targetFolder: selectedSection.targetFolder || FileService.PATH_SEPARATOR,
     }).setTitle(title);
     nextElement(state, builder, selected, info, 0);
     actions.setTargetFolder(selectedSection.targetFolder);

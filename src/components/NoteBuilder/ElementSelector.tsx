@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { ElementBuilderProps } from "./model/NoteBuilderModel";
 import { Select, SelectMapper } from "components/core";
-import { callbackElementBuilder } from "notes/NoteBuilder";
+import { callbackElementBuilder } from "./callbacks/CallbackNote";
 
 export function ElementSelector(info: ElementBuilderProps) {
   const { store, childen, plugin } = info;

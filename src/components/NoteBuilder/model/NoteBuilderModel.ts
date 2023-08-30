@@ -13,17 +13,17 @@ export type NoteBuilderType = {
 
 export type NoteBuilderProps = {
     store: NoteBuilderStore;
+    builder: BuilderRoot;
 } & NoteBuilderType;
 
 export type ElementBuilderProps = {
     childen: WorkflowStep[],
-    builder: BuilderRoot;
+
 } & NoteBuilderProps;
 
 export type ActionBuilderProps = {
     action: ZettelFlowElement;
     actionStep: WorkflowStep;
-    builder: BuilderRoot;
 } & NoteBuilderProps;
 
 export type SavedSection = {

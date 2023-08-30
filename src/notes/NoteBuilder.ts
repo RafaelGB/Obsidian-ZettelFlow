@@ -24,6 +24,16 @@ export class BuilderRoot {
 
   public addPath(path: string, pos: number): BuilderRoot {
     log.trace(`Builder: adding path ${path} at position ${pos}`);
+    // Check if there are paths above the current position
+    const pathsAbove = Array.from(this.info.paths.keys()).filter(
+      (p) => p > pos
+    );
+    // If there are paths above, shift them
+    pathsAbove.forEach((p) => {
+      this.info.paths.delete(p);
+      this.info.elements.delete(p);
+    });
+
     this.info.paths.set(pos, path);
     return this;
   }
@@ -78,18 +88,27 @@ export class BuilderRoot {
       });
   }
 
+  public setTargetFolder(targetFolder: string | undefined) {
+    if (targetFolder) {
+      this.info.targetFolder = targetFolder;
+    }
+    return this;
+  }
+
   private addTags(tag: Literal): BuilderRoot {
     if (!tag) return this;
     // Check if tag satisfies string
-    if (TypeService.isString(tag)) {
+    if (TypeService.isString(tag) && !this.info.tags.contains(tag)) {
       this.info.tags.push(tag);
       return this;
     }
 
     if (TypeService.isArray<string>(tag, "string")) {
-      tag.forEach((t) => {
-        this.info.tags.push(t);
-      });
+      tag
+        .filter((t) => !this.info.tags.contains(t))
+        .forEach((t) => {
+          this.info.tags.push(t);
+        });
       return this;
     }
     return this;

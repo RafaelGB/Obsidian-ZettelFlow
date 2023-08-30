@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, WorkflowStep, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
+import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { ItemView, Plugin, TFile, TFolder } from 'obsidian';
 import { CanvasMapper, FrontmatterService } from 'architecture/plugin';

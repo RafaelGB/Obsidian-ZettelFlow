@@ -1,4 +1,4 @@
-import { HexString, TFile } from "obsidian";
+import { HexString } from "obsidian";
 import { CanvasDataInfo, CanvasEdgeDataInfo } from "obsidian/canvas";
 import { FrontmatterService } from "../services/FrontmatterService";
 import { RGB2String, hex2RGB } from "architecture";

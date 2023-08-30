@@ -4,6 +4,7 @@ import { MouseEventHandler } from "react";
 export type SelectType = {
     options: Option[];
     callback: (value: string) => void;
+    className?: string[];
 }
 
 export type OptionElementType = {

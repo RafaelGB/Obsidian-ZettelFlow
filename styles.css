@@ -52,6 +52,11 @@
   margin-bottom: 1rem;
 }
 
+.zettelkasten-flow__select-group input {
+  margin-bottom: 0.5rem;
+  display: none;
+}
+
 .zettelkasten-flow__option {
   background-color: rgba(var(--canvas-color), 0.25);
   border-color: rgba(var(--canvas-color), 0.5);

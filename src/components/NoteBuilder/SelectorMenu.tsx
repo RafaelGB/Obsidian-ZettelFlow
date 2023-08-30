@@ -3,6 +3,8 @@ import { NoteBuilderProps, NoteBuilderType } from "./model/NoteBuilderModel";
 import { Header, Section, Input } from "components/core";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { t } from "architecture/lang";
+import { Builder } from "notes";
+import { FileService } from "architecture/plugin";
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
   return <NoteBuilder {...noteBuilderType} />;
@@ -13,7 +15,13 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
   return (
     <StrictMode>
       <div>
-        <Component {...noteBuilderType} store={noteBuilderStore} />
+        <Component
+          {...noteBuilderType}
+          store={noteBuilderStore}
+          builder={Builder.init({
+            targetFolder: FileService.PATH_SEPARATOR,
+          })}
+        />
       </div>
     </StrictMode>
   );

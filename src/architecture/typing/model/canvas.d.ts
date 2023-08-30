@@ -11,12 +11,7 @@ declare module "obsidian/canvas" {
         edges: Map<number, CanvasEdgeDataInfo>;
     }
 
-    interface CanvasNode {
-        color: HexString
-    }
-
-    interface CanvasFileNode extends CanvasNode {
-        file: TFile;
+    interface CanvasFileNode extends CanvasNodeInfo {
     }
 
     abstract class CanvasView extends ItemView {
@@ -34,5 +29,6 @@ declare module "obsidian/canvas" {
     interface CanvasNodeInfo {
         file: TFile;
         color: HexString;
+        id: string;
     }
 }

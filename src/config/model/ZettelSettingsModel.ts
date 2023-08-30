@@ -1,15 +1,21 @@
-import { DEFAULT_OPTIONS, ZettelFlowOption } from "zettelkasten";
+import { ZettelFlowElement } from "zettelkasten";
+export type WorkflowStep = {
+    id: string,
+    isRecursive?: boolean,
+    children?: WorkflowStep[],
+}
 
 export interface ZettelFlowSettings {
     loggerEnabled: boolean,
     logLevel: string,
     baseDir: string,
     canvasFilePath: string,
-    rootSection: Record<string, ZettelFlowOption>,
+    nodes: Record<string, ZettelFlowElement>,
+    workflow: WorkflowStep[]
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false,
     baseDir: "/",
-    rootSection: DEFAULT_OPTIONS
+    nodes: {}
 }

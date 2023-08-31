@@ -1,4 +1,7 @@
 export default {
+    notice_canvas_not_set: 'Archivo canvas no establecido',
+    command_open_workflow: 'Abrir flujo de trabajo',
+    command_settings_open_canvas: 'Abrir canvas',
     type_option_bridge: 'Pasarela',
     type_option_prompt: 'Prompt',
     menu_pane_create_new_step: 'Crear nuevo paso del ZettelFlow',

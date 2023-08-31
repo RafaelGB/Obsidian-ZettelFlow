@@ -1,4 +1,4 @@
-import { ObsidianAPIService, PluginComponent } from "architecture";
+import { ObsidianAPIService, PluginComponent, log } from "architecture";
 import ZettlelFlow from "main";
 
 export class PluginApi extends PluginComponent {
@@ -8,5 +8,6 @@ export class PluginApi extends PluginComponent {
 
     onLoad(): void {
         ObsidianAPIService.init(this.plugin.app);
+        log.info('PluginApi loaded');
     }
 }

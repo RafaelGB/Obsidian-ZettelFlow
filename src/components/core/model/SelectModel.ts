@@ -1,5 +1,4 @@
 import { HexString } from "obsidian";
-import { MouseEventHandler } from "react";
 
 export type SelectType = {
     options: Option[];
@@ -11,7 +10,7 @@ export type OptionElementType = {
     option: Option;
     isSelected: boolean;
     index: number;
-    callback: MouseEventHandler<HTMLDivElement>
+    callback: (value: string) => void;
 }
 
 export type Option = {

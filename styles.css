@@ -54,6 +54,7 @@
 
 .zettelkasten-flow__select-group input {
   margin-bottom: 0.5rem;
+  border-radius: 0.25rem;
   display: none;
 }
 
@@ -88,7 +89,7 @@
 
 .zettelkasten-flow__input-group input {
   border: solid 1.5px var(--background-secondary);
-  border-radius: 1rem;
+  border-radius: 0.25rem;
   background: none;
   padding: 1rem;
   font-size: 1rem;

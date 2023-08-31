@@ -11,7 +11,7 @@ export function Input(info: InputType) {
     onChange,
     onKeyDown,
   } = info;
-  const [valueState, setValueState] = React.useState<string>(value || "");
+  const [valueState, setValueState] = React.useState<string | undefined>(value);
   return (
     <div className={c("input-group", ...className)}>
       <input
@@ -29,7 +29,7 @@ export function Input(info: InputType) {
         }}
         onKeyDown={(event) => {
           if (onKeyDown) {
-            onKeyDown(event.key, valueState);
+            onKeyDown(event.key, valueState || "");
           }
         }}
       />

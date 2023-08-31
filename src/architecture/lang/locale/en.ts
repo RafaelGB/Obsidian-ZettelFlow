@@ -1,4 +1,7 @@
 export default {
+    notice_canvas_not_set: 'Canvas file not set',
+    command_open_workflow: 'Open workflow',
+    command_settings_open_canvas: 'Open canvas',
     type_option_bridge: 'Bridge',
     type_option_prompt: 'Prompt',
     menu_pane_create_new_step: 'Create new step',

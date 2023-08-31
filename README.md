@@ -14,7 +14,7 @@ Welcome to the Obsidian-ZettlelFlow - your essential solution for optimizing you
 ## Introducing the Obsidian-ZettlelFlow
 Our plugin elevates the Zettelkasten experience by using visual canvas directly within Obsidian. This canvas serves as a blueprint for constructing a personalized workflow that streamlines the creation of new notes. As you design your canvas, you're effectively designing the structure and metadata of each note you'll generate.
 
-![](https://github.com/RafaelGB/Obsidian-ZettlelFlow/docs/resources/readme-intro.gif)
+![](docs/resources/readme-intro.gif)
 
 ### Workflow Crafting: The Core Process
 - **Select Your Canvas**: Choose the canvas note that aligns with your note-taking style and preferences. This canvas defines the attributes and specifics of your notes-to-be.

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { ActionBuilderProps } from "./model/NoteBuilderModel";
-import { Input } from "components/core";
+import { Calendar, Input } from "components/core";
 import { TypeService } from "architecture/typing";
 import { callbackActionBuilder } from "./callbacks/CallbackNote";
 
@@ -36,6 +36,17 @@ export function ActionSelector(info: ActionBuilderProps) {
             }
           }}
           key={"prompt-action"}
+        />
+      );
+    case "calendar":
+      return (
+        <Calendar
+          onKeyDown={(key, value) => {
+            if (key === "Enter") {
+              // TODO: Add extra info to calendar action
+              //callbackMemo(value);
+            }
+          }}
         />
       );
     case "bridge":

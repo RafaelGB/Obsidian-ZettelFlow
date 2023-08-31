@@ -1,14 +1,15 @@
 {
 	"nodes":[
-		{"id":"252b15ff230b2494","type":"file","file":"WorkFlow Test/Fleeting Notes.md","x":-846,"y":-656,"width":400,"height":400,"color":"5"},
-		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":80,"y":-1056,"width":400,"height":400},
-		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":80,"y":-456,"width":400,"height":400},
-		{"id":"6b11e0b6e922cf04","type":"file","file":"WorkFlow Test/Task Note.md","x":-846,"y":1440,"width":400,"height":400,"color":"4"},
-		{"id":"55ab3500ffc103be","type":"file","file":"WorkFlow Test/Literature Notes.md","x":-846,"y":480,"width":400,"height":400,"color":"6"},
-		{"id":"7a107cbb84288fe3","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":0,"y":1697,"width":400,"height":143},
-		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":0,"y":1363,"width":400,"height":155},
-		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":760,"y":-316,"width":400,"height":116},
-		{"id":"10867abe858c36f6","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":-200,"y":609,"width":400,"height":143}
+		{"id":"252b15ff230b2494","type":"file","file":"WorkFlow Test/Fleeting Notes.md","x":-846,"y":-456,"width":400,"height":136,"color":"5"},
+		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":80,"y":-760,"width":400,"height":104},
+		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":80,"y":-172,"width":400,"height":116},
+		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":760,"y":-172,"width":400,"height":116},
+		{"id":"55ab3500ffc103be","type":"file","file":"WorkFlow Test/Literature Notes.md","x":-846,"y":240,"width":400,"height":159,"color":"6"},
+		{"id":"10867abe858c36f6","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":-200,"y":248,"width":400,"height":143},
+		{"id":"6b11e0b6e922cf04","type":"file","file":"WorkFlow Test/Task Note.md","x":-846,"y":977,"width":400,"height":143,"color":"4"},
+		{"id":"7a107cbb84288fe3","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":0,"y":977,"width":360,"height":72},
+		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":-446,"y":1200,"width":400,"height":80,"color":"5"},
+		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":0,"y":800,"width":360,"height":80}
 	],
 	"edges":[
 		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},
@@ -16,6 +17,8 @@
 		{"id":"99fd8d08337840c9","fromNode":"55ab3500ffc103be","fromSide":"right","toNode":"10867abe858c36f6","toSide":"left"},
 		{"id":"7131fee0aa09c09d","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"7a107cbb84288fe3","toSide":"left"},
 		{"id":"98f65cfbc362e4fb","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"1b8d3ad0e40560e0","toSide":"left"},
-		{"id":"4127ac62f080687f","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"cb2d607758354109","toSide":"left"}
+		{"id":"4127ac62f080687f","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"cb2d607758354109","toSide":"left"},
+		{"id":"a30160d1d4a719ca","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"250d329e0bb7265b","toSide":"top"},
+		{"id":"c1d7b4ac2b1ac75c","fromNode":"250d329e0bb7265b","fromSide":"left","toNode":"6b11e0b6e922cf04","toSide":"bottom"}
 	]
 }

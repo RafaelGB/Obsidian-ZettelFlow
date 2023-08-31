@@ -13,7 +13,7 @@ export type ZettelFlowElement = {
 export type SectionInfo = {
     title: string
 }
-export type TypeOption = 'bridge' | 'prompt';
+export type TypeOption = 'bridge' | 'prompt' | 'calendar';
 
 export interface SectionElement {
     type: TypeOption,

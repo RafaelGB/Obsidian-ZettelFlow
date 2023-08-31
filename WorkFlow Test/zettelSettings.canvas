@@ -1,18 +1,21 @@
 {
 	"nodes":[
-		{"type":"file","file":"🗂 Recursos comunes/📂 Plantillas/📁 Unicaja/Template Daily Unicaja.md","id":"ed8ab1af6cf18f2e","x":994,"y":-620,"width":897,"height":730},
-		{"type":"file","file":"🗂 Recursos comunes/🖇️ ZettelFlow Settings/Idea Note.md","id":"36b6223f61c1cf60","x":247,"y":43,"width":176,"height":67},
-		{"type":"file","file":"🗂 Recursos comunes/🖇️ ZettelFlow Settings/Fleeting Notes.md","id":"3d8f7676e5160263","x":-94,"y":136,"width":199,"height":78,"color":"5"},
-		{"type":"file","file":"🗂 Recursos comunes/🖇️ ZettelFlow Settings/Enterprise 1 Project.md","id":"ef82c3195c44b545","x":543,"y":292,"width":189,"height":86},
-		{"type":"file","file":"🗂 Recursos comunes/🖇️ ZettelFlow Settings/Enterprise 2 Project.md","id":"a3549e0e89726471","x":543,"y":136,"width":189,"height":97},
-		{"type":"file","file":"🗂 Recursos comunes/🖇️ ZettelFlow Settings/Meeting Note.md","id":"6f2ea0a58a9e049a","x":247,"y":214,"width":176,"height":78},
-		{"type":"file","file":"🗂 Recursos comunes/🖇️ ZettelFlow Settings/Literature Notes.md","id":"c94205f017816c07","x":-94,"y":555,"width":199,"height":78,"color":"5"}
+		{"id":"252b15ff230b2494","type":"file","file":"WorkFlow Test/Fleeting Notes.md","x":-846,"y":-656,"width":400,"height":400,"color":"5"},
+		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":80,"y":-1056,"width":400,"height":400},
+		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":80,"y":-456,"width":400,"height":400},
+		{"id":"6b11e0b6e922cf04","type":"file","file":"WorkFlow Test/Task Note.md","x":-846,"y":1440,"width":400,"height":400,"color":"4"},
+		{"id":"55ab3500ffc103be","type":"file","file":"WorkFlow Test/Literature Notes.md","x":-846,"y":480,"width":400,"height":400,"color":"6"},
+		{"id":"7a107cbb84288fe3","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":0,"y":1697,"width":400,"height":143},
+		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":0,"y":1363,"width":400,"height":155},
+		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":760,"y":-316,"width":400,"height":116},
+		{"id":"10867abe858c36f6","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":-200,"y":609,"width":400,"height":143}
 	],
 	"edges":[
-		{"id":"d03059e90b2e39b4","fromNode":"3d8f7676e5160263","fromSide":"right","toNode":"36b6223f61c1cf60","toSide":"left"},
-		{"id":"276736e2cbdcbb53","fromNode":"3d8f7676e5160263","fromSide":"right","toNode":"6f2ea0a58a9e049a","toSide":"left"},
-		{"id":"c3ceebac0100e465","fromNode":"6f2ea0a58a9e049a","fromSide":"right","toNode":"a3549e0e89726471","toSide":"left"},
-		{"id":"c3e7f57d8e6e67f9","fromNode":"6f2ea0a58a9e049a","fromSide":"right","toNode":"ef82c3195c44b545","toSide":"left"},
-		{"id":"8951595cbbd3ceb5","fromNode":"a3549e0e89726471","fromSide":"right","toNode":"ed8ab1af6cf18f2e","toSide":"left"}
+		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},
+		{"id":"af1a44768c9d82e8","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"2ce47a8f818e4dc3","toSide":"left"},
+		{"id":"99fd8d08337840c9","fromNode":"55ab3500ffc103be","fromSide":"right","toNode":"10867abe858c36f6","toSide":"left"},
+		{"id":"7131fee0aa09c09d","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"7a107cbb84288fe3","toSide":"left"},
+		{"id":"98f65cfbc362e4fb","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"1b8d3ad0e40560e0","toSide":"left"},
+		{"id":"4127ac62f080687f","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"cb2d607758354109","toSide":"left"}
 	]
 }

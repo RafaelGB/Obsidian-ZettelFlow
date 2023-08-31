@@ -1,11 +1,11 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings, canvasFileTreeArray2rootSection } from 'config';
+import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { ItemView, Plugin, TFile, TFolder } from 'obsidian';
-import { CanvasService, FrontmatterService } from 'architecture/plugin';
+import { CanvasMapper, FrontmatterService } from 'architecture/plugin';
 import { CanvasView } from 'obsidian/canvas';
 import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
-import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
+import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
 
 export default class ZettlelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
@@ -34,8 +34,14 @@ export default class ZettlelFlow extends Plugin {
 		this.registerEvent(this.app.workspace.on('file-open', async (file) => {
 			const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
 			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
-				const canvasTree = CanvasService.getCanvasFileTree((canvasView as CanvasView).canvas);
-				this.settings.rootSection = canvasFileTreeArray2rootSection(canvasTree);
+				const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
+				const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
+				const recordNodes: Record<string, ZettelFlowElement> = {};
+				sectionMap.forEach((node, key) => {
+					recordNodes[key] = node;
+				});
+				this.settings.nodes = recordNodes;
+				this.settings.workflow = workflow;
 				await this.saveSettings();
 			}
 		}));
@@ -60,8 +66,8 @@ export default class ZettlelFlow extends Plugin {
 					);
 				} else if (file instanceof TFile) {
 					const zettleFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
-					const mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
 					if (zettleFlowSettings) {
+						const mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
 						menu.addItem((item) => {
 							item
 								.setTitle(t("menu_pane_edit_step"))

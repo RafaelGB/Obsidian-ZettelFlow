@@ -27,7 +27,11 @@ export function useNoteBuilderStore(): NoteBuilderStore {
           set({ invalidTitle: invalidTitle });
         }
       },
-      setTargetFolder: (targetFolder) => set({ targetFolder }),
+      setTargetFolder: (targetFolder) => {
+        if (targetFolder) {
+          set({ targetFolder });
+        }
+      },
       setHeader: (partial) => {
         const { header } = get();
         set({ header: { ...header, ...partial } });

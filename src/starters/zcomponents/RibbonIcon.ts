@@ -1,5 +1,6 @@
 import { PluginComponent } from "architecture";
 import { log } from "architecture";
+import { t } from "architecture/lang";
 import { SelectorMenuModal } from "components";
 import ZettlelFlow from "main";
 import { addIcon } from "obsidian";
@@ -15,10 +16,16 @@ export class RibbonIcon extends PluginComponent {
     onLoad(): void {
         addIcon(RibbonIcon.ID, this.svgContent);
         this.plugin.addRibbonIcon(RibbonIcon.ID, this.ribbonTitle, this.ribbonIconCallback);
+        this.plugin.addCommand({
+            id: 'zettelflow-open-workflow',
+            name: t('command_open_workflow'),
+            checkCallback: (checking) => {
+                this.ribbonIconCallback();
+            },
+        });
         log.info('RibbonIcon loaded');
     }
-    private ribbonIconCallback = (evt: MouseEvent) => {
-        // Open an empty modal
+    private ribbonIconCallback = () => {
         new SelectorMenuModal(this.plugin.app, this.plugin).open();
     }
 }

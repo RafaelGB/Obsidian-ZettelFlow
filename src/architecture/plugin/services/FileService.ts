@@ -6,6 +6,8 @@ export const FILE_EXTENSIONS = Object.freeze({
 });
 
 export class FileService {
+    public static PATH_SEPARATOR = "/";
+    public static MARKDOWN_EXTENSION = ".md";
     public static async createFile(path: string, content: string, openAfter = true): Promise<TFile> {
         const folder = path.substring(0, path.lastIndexOf("/"));
         if (!await ObsidianApi.vault().adapter.exists(folder)) {

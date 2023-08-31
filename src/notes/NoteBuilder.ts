@@ -1,124 +1,10 @@
 import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { SectionElement, ZettelFlowBase } from "zettelkasten";
+import { SectionElement } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
-import {
-  ActionSelector,
-  NoteBuilderProps,
-  NoteBuilderState,
-} from "components/NoteBuilder";
-import React from "react";
-import {
-  ElementBuilderProps,
-  ActionBuilderProps,
-} from "components/NoteBuilder/model/NoteBuilderModel";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
-import { ElementSelector } from "components/NoteBuilder/ElementSelector";
-
-export const callbackRootBuilder =
-  (
-    state: Pick<NoteBuilderState, "actions" | "title">,
-    info: NoteBuilderProps
-  ) =>
-  (selected: string) => {
-    const { actions } = state;
-    const { plugin } = info;
-    const { settings } = plugin;
-    const selectedSection = settings.rootSection[selected];
-    const builder = Builder.init({
-      targetFolder: selectedSection.targetFolder,
-    }).setTitle(state.title);
-    nextElement(state, builder, selectedSection, selected, info, 0);
-    actions.setTargetFolder(selectedSection.targetFolder);
-  };
-
-export const callbackElementBuilder =
-  (
-    state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ElementBuilderProps,
-    pos: number
-  ) =>
-  (selected: string) => {
-    const { childen, builder } = info;
-    const selectedElement = childen[selected];
-    nextElement(state, builder, selectedElement, selected, info, pos);
-  };
-
-export const callbackActionBuilder =
-  (
-    state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ActionBuilderProps,
-    pos: number
-  ) =>
-  (callbackResult: Literal) => {
-    const { action, path, builder } = info;
-    builder.addElement(action.element, callbackResult, pos);
-    nextElement(state, builder, action, path, info, pos);
-  };
-
-function nextElement(
-  state: Pick<NoteBuilderState, "actions" | "title">,
-  builder: BuilderRoot,
-  nextOption: ZettelFlowBase,
-  currentPath: string,
-  info: NoteBuilderProps,
-  pos: number
-) {
-  const { actions, title } = state;
-  const { modal } = info;
-  if (nextOption.element.type !== "bridge" && !nextOption.element.triggered) {
-    // Is an action
-    nextOption.element.triggered = true;
-    actions.setSectionElement(
-      <ActionSelector
-        {...info}
-        action={nextOption}
-        path={currentPath}
-        builder={builder}
-        key={`selector-action-${currentPath}`}
-      />
-    );
-    actions.setHeader({
-      title: nextOption.element.label || `${nextOption.element.type} action`,
-    });
-    return;
-  }
-  delete nextOption.element.triggered;
-  if (TypeService.recordHasMultipleKeys(nextOption.children)) {
-    builder.addPath(currentPath, pos);
-    // Element Selector
-    const childrenHeader = nextOption.childrenHeader;
-    actions.setSectionElement(
-      <ElementSelector
-        {...info}
-        childen={nextOption.children}
-        builder={builder}
-        key={`selector-children-${childrenHeader}`}
-      />
-    );
-    actions.setHeader({
-      title: childrenHeader,
-    });
-  } else if (TypeService.recordHasOneKey(nextOption.children)) {
-    builder.addPath(currentPath, pos);
-    // Recursive call to nextElement with the only child
-    const [key, action] = Object.entries(nextOption.children)[0];
-    nextElement(state, builder, action, key, info, actions.incrementPosition());
-  } else {
-    if (title) {
-      builder.addPath(currentPath, pos);
-      builder.setTitle(title);
-      // Build and close modal
-      builder.build();
-      modal.close();
-    } else {
-      actions.setInvalidTitle(true);
-      new Notice("Title cannot be empty");
-    }
-  }
-}
 
 export class Builder {
   public static init(finalNote: FinalNoteType): BuilderRoot {
@@ -128,7 +14,7 @@ export class Builder {
 }
 
 export class BuilderRoot {
-  constructor(private info: FinalNoteInfo) {}
+  constructor(private info: FinalNoteInfo) { }
   public setTitle(title: string): BuilderRoot {
     if (title) {
       this.info.title = title;
@@ -138,6 +24,16 @@ export class BuilderRoot {
 
   public addPath(path: string, pos: number): BuilderRoot {
     log.trace(`Builder: adding path ${path} at position ${pos}`);
+    // Check if there are paths above the current position
+    const pathsAbove = Array.from(this.info.paths.keys()).filter(
+      (p) => p > pos
+    );
+    // If there are paths above, shift them
+    pathsAbove.forEach((p) => {
+      this.info.paths.delete(p);
+      this.info.elements.delete(p);
+    });
+
     this.info.paths.set(pos, path);
     return this;
   }
@@ -167,13 +63,13 @@ export class BuilderRoot {
 
   public async build(): Promise<void> {
     await this.buildNote();
-    const normalizedFolder = this.info.targetFolder.endsWith("/")
+    const normalizedFolder = this.info.targetFolder.endsWith(FileService.PATH_SEPARATOR)
       ? this.info.targetFolder.substring(0, this.info.targetFolder.length - 1)
       : this.info.targetFolder;
     const path = normalizedFolder
-      .concat("/")
+      .concat(FileService.PATH_SEPARATOR)
       .concat(this.info.title)
-      .concat(".md");
+      .concat(FileService.MARKDOWN_EXTENSION);
     FileService.createFile(path, this.info.content)
       .then((file) => {
         FrontmatterService.instance(file)
@@ -192,18 +88,27 @@ export class BuilderRoot {
       });
   }
 
+  public setTargetFolder(targetFolder: string | undefined) {
+    if (targetFolder) {
+      this.info.targetFolder = targetFolder;
+    }
+    return this;
+  }
+
   private addTags(tag: Literal): BuilderRoot {
     if (!tag) return this;
     // Check if tag satisfies string
-    if (TypeService.isString(tag)) {
+    if (TypeService.isString(tag) && !this.info.tags.contains(tag)) {
       this.info.tags.push(tag);
       return this;
     }
 
     if (TypeService.isArray<string>(tag, "string")) {
-      tag.forEach((t) => {
-        this.info.tags.push(t);
-      });
+      tag
+        .filter((t) => !this.info.tags.contains(t))
+        .forEach((t) => {
+          this.info.tags.push(t);
+        });
       return this;
     }
     return this;

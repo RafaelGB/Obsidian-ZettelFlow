@@ -9,10 +9,9 @@ import {
   ElementBuilderProps,
   ActionBuilderProps,
 } from "../model/NoteBuilderModel";
-import { FileService, Literal } from "architecture/plugin";
+import { Literal } from "architecture/plugin";
 import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 import { WorkflowStep } from "config";
-import { Builder, BuilderRoot } from "notes";
 
 export const callbackRootBuilder =
   (

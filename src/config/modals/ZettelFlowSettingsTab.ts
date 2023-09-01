@@ -10,8 +10,7 @@ class SettingsManager {
         this.plugin = plugin;
     }
 
-    constructUI(containerEl: HTMLElement, heading: string) {
-        containerEl.createEl('h2', { text: heading });
+    constructUI(containerEl: HTMLElement) {
         const handlerInfo: SettingsHandlerInfo = {
             containerEl: containerEl,
             plugin: this.plugin,
@@ -38,7 +37,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     display() {
         const { containerEl } = this;
         containerEl.empty();
-        this.manager.constructUI(containerEl, 'ZettlelFlow Settings');
+        this.manager.constructUI(containerEl);
     }
 
 }

@@ -127,3 +127,8 @@
   padding: 0 0.2em;
   color: var(--text-normal);
 }
+
+.zettelkasten-flow__welcome-tutorial li {
+  /* space between list items */
+  padding-bottom: 0.35rem;
+}

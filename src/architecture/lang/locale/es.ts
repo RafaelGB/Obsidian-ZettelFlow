@@ -4,6 +4,7 @@ export default {
     command_settings_open_canvas: 'Abrir canvas',
     type_option_bridge: 'Pasarela',
     type_option_prompt: 'Prompt',
+    type_option_calendar: 'Calendario',
     menu_pane_create_new_step: 'Crear nuevo paso del ZettelFlow',
     menu_pane_edit_step: 'Editar paso del ZettelFlow',
     selector_menu_title: 'Menu Zettelcaster',
@@ -27,4 +28,10 @@ export default {
     step_builder_element_type_prompt_label_description: 'La etiqueta será el título de tu prompt',
     step_builder_element_type_prompt_placeholder_title: 'Placeholder del prompt',
     step_builder_element_type_prompt_placeholder_description: 'Texto de ayuda para mostrar en el prompt',
+    step_builder_element_type_calendar_title: 'Opciones del elemento calendario',
+    step_builder_element_type_calendar_description: 'Elige las opciones para el elemento calendario...',
+    step_builder_element_type_calendar_key_title: 'Clave del calendario',
+    step_builder_element_type_calendar_key_description: 'La clave para los metadatos del frontmatter asignada al calendario',
+    step_builder_element_type_calendar_label_title: 'Etiqueta del calendario',
+    step_builder_element_type_calendar_label_description: 'La etiqueta será el título de tu calendario',
 };

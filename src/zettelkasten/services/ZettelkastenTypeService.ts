@@ -2,7 +2,7 @@ import { SectionElement, TypeOption } from "zettelkasten";
 
 export class ZettelkastenTypeService {
     public static isSectionType(value: any): value is TypeOption {
-        return value && typeof value === "string" && (value === "bridge" || value === "prompt");
+        return value && typeof value === "string" && (value === "bridge" || value === "prompt" || value === "calendar");
     }
 
     public static isSectionElement(value: any): value is SectionElement {

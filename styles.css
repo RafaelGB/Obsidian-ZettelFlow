@@ -83,6 +83,14 @@
   box-shadow: 0 0.125rem 0.25rem var(--background-modifier-success);
 }
 
+.zettelkasten-flow__calendar-group {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .zettelkasten-flow__input-group {
   position: relative;
 }

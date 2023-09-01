@@ -142,6 +142,9 @@ export class BuilderRoot {
         case "prompt": {
           this.addPrompt(element);
         }
+        case "calendar": {
+          this.addCalendar(element);
+        }
       }
     }
   }
@@ -149,6 +152,13 @@ export class BuilderRoot {
   private addPrompt(element: SectionElement) {
     const { result, key } = element;
     if (TypeService.isString(key)) {
+      this.addFrontMatter({ [key]: result });
+    }
+  }
+
+  private addCalendar(element: SectionElement) {
+    const { result, key } = element;
+    if (TypeService.isString(key) && TypeService.isDate(result)) {
       this.addFrontMatter({ [key]: result });
     }
   }

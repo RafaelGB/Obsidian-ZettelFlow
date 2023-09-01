@@ -19,8 +19,8 @@ class SettingsManager {
     }
 
     private constructBody(handlerInfo: SettingsHandlerInfo): void {
-        handlerInfo = developer.run(handlerInfo);
         handlerInfo = sections.run(handlerInfo);
+        handlerInfo = developer.run(handlerInfo);
     }
 
 }

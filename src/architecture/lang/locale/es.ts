@@ -1,4 +1,11 @@
 export default {
+    welcome_tutorial_open_settings: 'Abrir configuración de ZettelFlow',
+    welcome_tutorial_welcome_msg: 'Bienvenida/o a ZettelFlow',
+    welcome_tutorial_open_canvas: 'Abrir canvas',
+    welcome_tutorial_canvas_not_set: 'Archivo canvas no establecido: crea o selecciona un archivo canvas',
+    welcome_tutorial_add_steps: 'Añade pasos a tu canvas y enlázalos como desees. Un paso es una nota de tu vault con una configuración especial de frontmatter',
+    welcome_tutorial_steps_guide: 'Para usar una nota como paso puedes hacer click derecho sobre ella y seleccionar "Transformar en paso" o hacer click derecho sobre una carpeta y crear una nueva',
+    welcome_tutorial_steps_examples: 'Puedes encontrar algunos ejemplos en el repositorio del plugin',
     calendar_component_confirm: 'Confirmar',
     notice_canvas_not_set: 'Archivo canvas no establecido',
     command_open_workflow: 'Abrir flujo de trabajo',

@@ -1,15 +1,17 @@
 import React from "react";
 import { NoteBuilderProps } from "./model/NoteBuilderModel";
 import { FileService } from "architecture/plugin";
+import { c } from "architecture";
+import { t } from "architecture/lang";
 
 export function WelcomeTutorial(noteBuilderType: NoteBuilderProps) {
   const { plugin, modal } = noteBuilderType;
   const { settings } = plugin;
   const { canvasFilePath } = settings;
   return (
-    <div>
-      <h1>Welcome to the Note Builder</h1>
-      <span>Configure your canvas</span>
+    <div className={c("welcome-tutorial")}>
+      <h1>{t("welcome_tutorial_welcome_msg")}</h1>
+      <span>Steps to configure your workflow</span>
       <ol type="1">
         <li>
           <button
@@ -18,7 +20,7 @@ export function WelcomeTutorial(noteBuilderType: NoteBuilderProps) {
               plugin.app.setting.openTabById("zettelflow");
             }}
           >
-            Open plugin settings
+            {t("welcome_tutorial_open_settings")}
           </button>
         </li>
         {canvasFilePath ? (
@@ -29,25 +31,22 @@ export function WelcomeTutorial(noteBuilderType: NoteBuilderProps) {
                 modal.close();
               }}
             >
-              Open canvas file
+              {t("welcome_tutorial_open_canvas")}
             </button>
           </li>
         ) : (
-          <p>Create/Select a Canvas file for your workflow</p>
+          <p>{t("welcome_tutorial_canvas_not_set")}</p>
         )}
         <li>
-          <p>Add Steps to your Canvas and link them together as you wish</p>
+          <p>{t("welcome_tutorial_add_steps")}</p>
         </li>
         <li>
-          <p>
-            Steps can be added by dragging and dropping notes from your vault
-          </p>
+          <p>{t("welcome_tutorial_steps_guide")}</p>
         </li>
         <li>
-          <p>
-            To make a note as a step with can right click on it and select
-            "Transform to Step" or right click on a folder and create a new one
-          </p>
+          <a href="https://github.com/RafaelGB/Obsidian-ZettlelFlow/tree/main/WorkFlow%20Test">
+            {t("welcome_tutorial_steps_examples")}
+          </a>
         </li>
       </ol>
     </div>

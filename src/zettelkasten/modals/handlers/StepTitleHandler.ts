@@ -9,7 +9,7 @@ export class StepTitleHandler extends AbstractHandlerClass<StepBuilderModal>  {
     description = t('step_builder_step_title_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info, mode } = modal;
-        const { contentEl, filename, label } = info;
+        const { contentEl, filename } = info;
         const onChangePromise = (value: string) => {
             info.filename = value;
         };

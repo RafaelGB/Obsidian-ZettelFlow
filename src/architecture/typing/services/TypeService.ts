@@ -1,5 +1,3 @@
-import { t } from "architecture/lang";
-
 type RecordToCheck = Record<string, unknown> | null | undefined;
 
 export class TypeService {

@@ -8,6 +8,7 @@ export default {
     type_option_calendar: 'Calendar',
     menu_pane_create_new_step: 'Create new step',
     menu_pane_edit_step: 'Edit step',
+    menu_pane_transform_note_into_step: 'Transform note into step',
     flow_selector_placeholder: 'Select a flow',
     logger_toggle_title: 'Enable logger',
     logger_toggle_description: 'Enable or disable logger',

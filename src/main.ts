@@ -66,24 +66,27 @@ export default class ZettlelFlow extends Plugin {
 					);
 				} else if (file instanceof TFile) {
 					const zettleFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
+					let mappedInfo = {};
+					let title = t("menu_pane_transform_note_into_step");
 					if (zettleFlowSettings) {
-						const mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
-						menu.addItem((item) => {
-							item
-								.setTitle(t("menu_pane_edit_step"))
-								.setIcon(RibbonIcon.ID)
-								.onClick(() => {
-									new StepBuilderModal(this.app, {
-										folder: file.parent || undefined,
-										filename: file.basename,
-										menu,
-										...mappedInfo
-									})
-										.setMode("edit")
-										.open();
-								});
-						});
+						mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
+						title = t("menu_pane_edit_step");
 					}
+					menu.addItem((item) => {
+						item
+							.setTitle(title)
+							.setIcon(RibbonIcon.ID)
+							.onClick(() => {
+								new StepBuilderModal(this.app, {
+									folder: file.parent || undefined,
+									filename: file.basename,
+									menu,
+									...mappedInfo
+								})
+									.setMode("edit")
+									.open();
+							});
+					});
 				}
 			}));
 	}

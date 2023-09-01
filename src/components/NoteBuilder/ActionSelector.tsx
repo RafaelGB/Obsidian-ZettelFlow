@@ -41,11 +41,8 @@ export function ActionSelector(info: ActionBuilderProps) {
     case "calendar":
       return (
         <Calendar
-          onKeyDown={(key, value) => {
-            if (key === "Enter") {
-              // TODO: Add extra info to calendar action
-              //callbackMemo(value);
-            }
+          onConfirm={(value) => {
+            callbackMemo(value);
           }}
         />
       );

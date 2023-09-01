@@ -1,4 +1,5 @@
 export default {
+    calendar_component_confirm: 'Confirm',
     notice_canvas_not_set: 'Canvas file not set',
     command_open_workflow: 'Open workflow',
     command_settings_open_canvas: 'Open canvas',
@@ -21,6 +22,8 @@ export default {
     step_builder_root_toggle_description: 'This toggle will set the current element as the root element.',
     step_builder_step_title: 'Step title',
     step_builder_step_title_description: 'This is the title of the step note.',
+    step_builder_section_label_title: 'Section label',
+    step_builder_section_label_description: 'This is the label of the section that will be displayed as option in the menu.',
     step_builder_element_type_selector_title: 'Element type selector',
     step_builder_element_type_selector_description: 'Choose the type of action you want to perform.',
     step_builder_target_folder_title: 'Target folder',

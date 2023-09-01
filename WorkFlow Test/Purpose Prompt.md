@@ -1,6 +1,6 @@
 ---
 zettelFlowSettings:
-  label: Purpose
+  label: Add purpose
   element:
     type: prompt
     placeholder: write the purpose of your note here...

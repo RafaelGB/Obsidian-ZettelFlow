@@ -1,3 +1,5 @@
+import { t } from "architecture/lang";
+
 type RecordToCheck = Record<string, unknown> | null | undefined;
 
 export class TypeService {
@@ -15,6 +17,17 @@ export class TypeService {
 
     public static isArray<T>(value: any, typeOf: string): value is Array<T> {
         return value && typeof value === "object" && value.constructor === Array && value.every((item: any) => typeof item === typeOf);
+    }
+
+    public static isDate(value: any): value is Date {
+        const isDate = value instanceof Date;
+        if (isDate) {
+            return true;
+        }
+        if (TypeService.isString(value)) {
+            return !isNaN(Date.parse(value));
+        }
+        return false;
     }
 
     public static isObject(value: any): value is Record<string, unknown> {

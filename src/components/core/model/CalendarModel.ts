@@ -1,3 +1,4 @@
 export type CalendarType = {
-    onKeyDown: (key: string, currentValue: string) => void
+    onConfirm: (date: string) => void,
+    className?: string[],
 }

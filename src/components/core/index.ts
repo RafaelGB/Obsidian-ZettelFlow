@@ -10,3 +10,6 @@ export { SectionType } from './model/SectionModel'
 
 export { Input } from './Input'
 export { InputType } from './model/InputModel'
+
+export { Calendar } from './Calendar'
+export { CalendarType } from './model/CalendarModel'

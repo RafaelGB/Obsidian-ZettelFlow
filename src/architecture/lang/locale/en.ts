@@ -4,6 +4,7 @@ export default {
     command_settings_open_canvas: 'Open canvas',
     type_option_bridge: 'Bridge',
     type_option_prompt: 'Prompt',
+    type_option_calendar: 'Calendar',
     menu_pane_create_new_step: 'Create new step',
     menu_pane_edit_step: 'Edit step',
     flow_selector_placeholder: 'Select a flow',
@@ -32,4 +33,10 @@ export default {
     step_builder_element_type_prompt_label_description: 'The label will be the title of your prompt',
     step_builder_element_type_prompt_placeholder_title: 'Placeholder of prompt',
     step_builder_element_type_prompt_placeholder_description: 'Helper text to display in the prompt',
+    step_builder_element_type_calendar_title: 'Element type calendar options',
+    step_builder_element_type_calendar_description: 'Choose the options for the calendar element.',
+    step_builder_element_type_calendar_key_title: 'Key of calendar',
+    step_builder_element_type_calendar_key_description: 'The metatada key of the frontmatter asigned to the calendar',
+    step_builder_element_type_calendar_label_title: 'Label of calendar',
+    step_builder_element_type_calendar_label_description: 'The label will be the title of your calendar',
 };

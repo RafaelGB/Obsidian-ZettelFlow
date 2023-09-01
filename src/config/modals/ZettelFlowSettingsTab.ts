@@ -11,6 +11,7 @@ class SettingsManager {
     }
 
     constructUI(containerEl: HTMLElement, heading: string) {
+        containerEl.createEl('h2', { text: heading });
         const handlerInfo: SettingsHandlerInfo = {
             containerEl: containerEl,
             plugin: this.plugin,

@@ -17,7 +17,7 @@ export class RibbonIcon extends PluginComponent {
         addIcon(RibbonIcon.ID, this.svgContent);
         this.plugin.addRibbonIcon(RibbonIcon.ID, this.ribbonTitle, this.ribbonIconCallback);
         this.plugin.addCommand({
-            id: 'zettelflow-open-workflow',
+            id: 'open-workflow',
             name: t('command_open_workflow'),
             checkCallback: (checking) => {
                 this.ribbonIconCallback();

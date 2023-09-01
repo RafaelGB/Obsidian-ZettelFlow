@@ -3,7 +3,7 @@ import { CalendarType } from "./model/CalendarModel";
 
 export function Calendar(info: CalendarType) {
   const { onKeyDown } = info;
-  const [valueState, setValueState] = React.useState<string | undefined>();
+  const [valueState, setValueState] = React.useState<string>("");
   return (
     <input
       value={valueState}

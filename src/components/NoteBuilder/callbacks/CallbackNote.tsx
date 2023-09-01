@@ -81,7 +81,6 @@ function nextElement(
   }
   const { id, children } = selected;
   const selectedElement = settings.nodes[id];
-  console.log(selectedElement);
   if (
     selectedElement.element.type !== "bridge" &&
     !selectedElement.element.triggered

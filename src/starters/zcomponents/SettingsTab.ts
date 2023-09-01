@@ -12,7 +12,7 @@ export class SettingsTab extends PluginComponent {
     onLoad(): void {
         this.plugin.addSettingTab(new ZettelFlowSettingsTab(this.plugin as ZettlelFlow));
         this.plugin.addCommand({
-            id: 'zettelflow-open-canvas',
+            id: 'open-canvas',
             name: t('command_settings_open_canvas'),
             checkCallback: (checking) => {
                 if (this.plugin.settings.canvasFilePath) {

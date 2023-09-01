@@ -19,9 +19,9 @@ export class RibbonIcon extends PluginComponent {
         this.plugin.addCommand({
             id: 'open-workflow',
             name: t('command_open_workflow'),
-            checkCallback: (checking) => {
+            callback: () => {
                 this.ribbonIconCallback();
-            },
+            }
         });
         log.info('RibbonIcon loaded');
     }

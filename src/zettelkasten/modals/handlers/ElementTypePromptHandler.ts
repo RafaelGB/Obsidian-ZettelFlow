@@ -2,6 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { PromptElement, StepBuilderModal } from "zettelkasten";
+import { ElementTypeCalendarHandler } from "./ElementTypeCalendarHandler";
 
 export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_element_type_prompt_title');
@@ -49,5 +50,9 @@ export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderMo
         }
 
         return this.goNext(modal);
+    }
+
+    public manageNextHandler(): void {
+        this.nextHandler = new ElementTypeCalendarHandler();
     }
 }

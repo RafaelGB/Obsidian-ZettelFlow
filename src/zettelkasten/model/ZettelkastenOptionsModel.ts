@@ -28,3 +28,8 @@ export interface PromptElement extends SectionElement {
     label: string,
     placeholder: string,
 }
+
+export interface CalendarElement extends SectionElement {
+    key: string,
+    label: string,
+}

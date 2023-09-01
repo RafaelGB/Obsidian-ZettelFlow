@@ -18,6 +18,7 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
             .addDropdown(dropdown => {
                 dropdown.addOption('bridge', t('type_option_bridge'))
                     .addOption('prompt', t('type_option_prompt'))
+                    .addOption('calendar', t('type_option_calendar'))
                     .setValue(type)
                     .onChange(async (value) => {
                         element.type = value as TypeOption;

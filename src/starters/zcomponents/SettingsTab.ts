@@ -14,7 +14,7 @@ export class SettingsTab extends PluginComponent {
         this.plugin.addCommand({
             id: 'open-canvas',
             name: t('command_settings_open_canvas'),
-            checkCallback: (checking) => {
+            callback: () => {
                 if (this.plugin.settings.canvasFilePath) {
                     ObsidianApi.workspace().openLinkText(this.plugin.settings.canvasFilePath, "");
                 } else {

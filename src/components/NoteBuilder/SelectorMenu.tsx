@@ -5,6 +5,7 @@ import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { t } from "architecture/lang";
 import { Builder } from "notes";
 import { FileService } from "architecture/plugin";
+import { WelcomeTutorial } from "./WelcomeTutorial";
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
   return <NoteBuilder {...noteBuilderType} />;
@@ -28,10 +29,11 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 }
 
 function Component(noteBuilderType: NoteBuilderProps) {
-  const { store } = noteBuilderType;
+  const { store, plugin } = noteBuilderType;
+  const { settings } = plugin;
   const actions = store((store) => store.actions);
   const invalidTitle = store((store) => store.invalidTitle);
-  return (
+  return settings.workflow?.length > 0 ? (
     <>
       <Input
         placeholder={t("note_title_placeholder")}
@@ -44,5 +46,7 @@ function Component(noteBuilderType: NoteBuilderProps) {
       <Header {...noteBuilderType} />
       <Section {...noteBuilderType} />
     </>
+  ) : (
+    <WelcomeTutorial {...noteBuilderType} />
   );
 }

@@ -16,9 +16,13 @@ export class FileService {
 
         const file = await ObsidianApi.vault().create(path, content);
         if (openAfter) {
-            await ObsidianApi.workspace().openLinkText(file.path, "");
+            await FileService.openFile(path);
         }
         return file;
+    }
+
+    public static async openFile(path: string): Promise<void> {
+        await ObsidianApi.workspace().openLinkText(path, "");
     }
 
     public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {

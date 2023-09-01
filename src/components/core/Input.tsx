@@ -11,7 +11,9 @@ export function Input(info: InputType) {
     onChange,
     onKeyDown,
   } = info;
-  const [valueState, setValueState] = React.useState<string | undefined>(value);
+  const [valueState, setValueState] = React.useState<string | undefined>(
+    value || ""
+  );
   return (
     <div className={c("input-group", ...className)}>
       <input

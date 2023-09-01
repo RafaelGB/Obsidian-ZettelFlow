@@ -1,4 +1,5 @@
 export default {
+    calendar_component_confirm: 'Confirm',
     notice_canvas_not_set: 'Canvas file not set',
     command_open_workflow: 'Open workflow',
     command_settings_open_canvas: 'Open canvas',

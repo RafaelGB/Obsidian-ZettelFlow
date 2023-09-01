@@ -1,22 +1,38 @@
 import React from "react";
 import { CalendarType } from "./model/CalendarModel";
+import { c } from "architecture";
+import { t } from "architecture/lang";
+import { TypeService } from "architecture/typing";
 
 export function Calendar(info: CalendarType) {
-  const { onKeyDown } = info;
+  const { onConfirm, className = [] } = info;
   const [valueState, setValueState] = React.useState<string>("");
+  const [inputValid, setInputValid] = React.useState<boolean>(true);
   return (
-    <input
-      value={valueState}
-      type="date"
-      name="calendar"
-      className="metadata-input metadata-input-text mod-date"
-      max={"9999-12-31"}
-      onChange={(event) => {
-        setValueState(event.target.value);
-      }}
-      onKeyDown={(event) => {
-        onKeyDown(event.key, valueState || "");
-      }}
-    />
+    <div
+      className={c("calendar-group", inputValid ? "" : "invalid", ...className)}
+    >
+      <input
+        value={valueState}
+        type="date"
+        name="calendar"
+        max={"9999-12-31"}
+        onChange={(event) => {
+          setValueState(event.target.value);
+          setInputValid(true);
+        }}
+      />
+      <button
+        onClick={() => {
+          if (TypeService.isDate(valueState)) {
+            onConfirm(valueState);
+          } else {
+            setInputValid(false);
+          }
+        }}
+      >
+        {t("calendar_component_confirm")}
+      </button>
+    </div>
   );
 }

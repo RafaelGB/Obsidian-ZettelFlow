@@ -1,9 +1,10 @@
 import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
+import { Platform } from "obsidian";
 
 export function Select(selectType: SelectType) {
-  const { options, callback, className = [] } = selectType;
+  const { options, callback, className = [], autofocus = false } = selectType;
   const [selected, setSelected] = useState<string>("");
   const [arrowIndex, setArrowIndex] = useState<number>(-1);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -16,46 +17,17 @@ export function Select(selectType: SelectType) {
   const groupRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    groupRef.current?.focus();
-  }, []);
+    if (!autofocus) return;
+    if (Platform.isMobile && searchRef.current) {
+      searchRef.current.style.display = "block";
+      searchRef.current.focus();
+    } else if (groupRef.current) {
+      groupRef.current.focus();
+    }
+  }, [autofocus]);
 
   return (
-    <div
-      tabIndex={-1}
-      ref={groupRef}
-      className={c("select-group", ...className)}
-      onClick={() => {
-        groupRef.current?.focus();
-      }}
-      onKeyDown={(event) => {
-        // Ignore special keys like tab, shift, etc. except arrow up and down
-        if (
-          event.key.length > 1 &&
-          event.key !== "ArrowDown" &&
-          event.key !== "ArrowUp"
-        ) {
-          return;
-        }
-        // Control arrow up and down
-        if (event.key === "ArrowDown") {
-          if (arrowIndex < optionsState.length - 1) {
-            setSelected(optionsState[arrowIndex + 1].key);
-            setArrowIndex(arrowIndex + 1);
-          }
-        } else if (event.key === "ArrowUp") {
-          if (arrowIndex > 0) {
-            setSelected(optionsState[arrowIndex - 1].key);
-            setArrowIndex(arrowIndex - 1);
-          }
-        } else if (
-          searchRef.current &&
-          searchRef.current.style.display !== "block"
-        ) {
-          searchRef.current.style.display = "block";
-          searchRef.current.focus();
-        }
-      }}
-    >
+    <div className={c("select-group", ...className)}>
       <input
         type="text"
         ref={searchRef}
@@ -72,15 +44,51 @@ export function Select(selectType: SelectType) {
         }}
         onBlur={() => groupRef.current?.focus()}
       />
-      {optionsState.map((option, index) => (
-        <OptionElement
-          option={option}
-          index={index}
-          callback={internalCallback}
-          isSelected={selected === option.key}
-          key={`option-${option.key}-${index}`}
-        />
-      ))}
+      <div
+        tabIndex={-1}
+        ref={groupRef}
+        onClick={() => {
+          groupRef.current?.focus();
+        }}
+        onKeyDown={(event) => {
+          // Ignore special keys like tab, shift, etc. except arrow up and down
+          if (
+            event.key.length > 1 &&
+            event.key !== "ArrowDown" &&
+            event.key !== "ArrowUp"
+          ) {
+            return;
+          }
+          // Control arrow up and down
+          if (event.key === "ArrowDown") {
+            if (arrowIndex < optionsState.length - 1) {
+              setSelected(optionsState[arrowIndex + 1].key);
+              setArrowIndex(arrowIndex + 1);
+            }
+          } else if (event.key === "ArrowUp") {
+            if (arrowIndex > 0) {
+              setSelected(optionsState[arrowIndex - 1].key);
+              setArrowIndex(arrowIndex - 1);
+            }
+          } else if (
+            searchRef.current &&
+            searchRef.current.style.display !== "block"
+          ) {
+            searchRef.current.style.display = "block";
+            searchRef.current.focus();
+          }
+        }}
+      >
+        {optionsState.map((option, index) => (
+          <OptionElement
+            option={option}
+            index={index}
+            callback={internalCallback}
+            isSelected={selected === option.key}
+            key={`option-${option.key}-${index}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

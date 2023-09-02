@@ -42,6 +42,7 @@ function Component(noteBuilderType: NoteBuilderProps) {
           actions.setInvalidTitle(false);
         }}
         className={invalidTitle ? ["invalid"] : []}
+        required={true}
       />
       <Header {...noteBuilderType} />
       <Section {...noteBuilderType} />

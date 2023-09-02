@@ -31,6 +31,7 @@ export function ElementSelector(info: ElementBuilderProps) {
         if (!selectedStep) throw new Error("Selected step not found");
         callbackMemo(selectedStep);
       }}
+      autofocus={true}
     />
   );
 }

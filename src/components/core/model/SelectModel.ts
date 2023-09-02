@@ -4,6 +4,7 @@ export type SelectType = {
     options: Option[];
     callback: (value: string) => void;
     className?: string[];
+    autofocus?: boolean;
 }
 
 export type OptionElementType = {

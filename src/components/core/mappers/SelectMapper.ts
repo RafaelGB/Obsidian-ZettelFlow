@@ -10,7 +10,9 @@ export class SelectMapper {
             options.push({
                 label: node.label,
                 key: value.id,
-                color: node.element.color || ""
+                color: node.element.color || "",
+                isLeaf: value.children?.length === 0,
+                elementType: node.element.type
             })
         });
         return options;

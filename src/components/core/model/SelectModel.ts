@@ -18,4 +18,6 @@ export type Option = {
     key: string;
     label: string;
     color: HexString;
+    isLeaf: boolean;
+    elementType: string;
 }

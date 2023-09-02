@@ -2,6 +2,7 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 import { Platform } from "obsidian";
+import { LeafIcon, PromptIcon } from "components/icons";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;
@@ -95,6 +96,7 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
+  const { isLeaf, elementType, key, label } = option;
   const optionRef = useRef<HTMLDivElement>(null);
   const styleMemo = React.useMemo<CSSProperties>(() => {
     return {
@@ -112,22 +114,33 @@ function OptionElement(optionElementType: OptionElementType) {
     <div
       ref={optionRef}
       tabIndex={index}
-      title={option.key} // TODO: improve title to show next option info
+      title={key} // TODO: improve title to show next option info
       className={isSelected ? c("option", "selected") : c("option")}
       onClick={(mouseEvent) => {
         mouseEvent.stopPropagation();
-        callback(option.key);
+        callback(key);
       }}
       onKeyDown={(event) => {
         if (event.key === "Enter") {
-          callback(option.key);
+          callback(key);
         }
       }}
       autoFocus={isSelected}
       key={`option-${index}`}
       style={styleMemo}
     >
-      {option.label}
+      {label}
+      <ActionIcon type={elementType} />
+      {isLeaf ? <LeafIcon /> : null}
     </div>
   );
+}
+function ActionIcon(info: { type: string }) {
+  const { type } = info;
+  switch (type) {
+    case "prompt":
+      return <PromptIcon />;
+    default:
+      return null;
+  }
 }

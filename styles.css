@@ -106,12 +106,13 @@
 }
 
 .zettelkasten-flow__input-label {
-  position: absolute;
-  left: 15px;
   color: var(--text-accent);
   pointer-events: none;
   transform: translateY(0.4rem);
   transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  left: 15px;
+  top: 0;
 }
 
 .zettelkasten-flow__input-group input:focus,

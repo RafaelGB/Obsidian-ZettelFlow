@@ -34,6 +34,7 @@ export function RootSelector(info: NoteBuilderProps) {
         if (!selectedStep) throw new Error("Selected step not found");
         callbackMemo(selectedStep);
       }}
+      autofocus={true}
     />
   );
 }

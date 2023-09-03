@@ -12,7 +12,6 @@ export type NoteBuilderType = {
 }
 
 export type NoteBuilderProps = {
-    store: NoteBuilderStore;
     builder: BuilderRoot;
 } & NoteBuilderType;
 
@@ -51,5 +50,3 @@ export type NoteBuilderState = {
         goNext: () => void;
     }
 }
-
-export type NoteBuilderStore = UseBoundStore<StoreApi<NoteBuilderState>>;

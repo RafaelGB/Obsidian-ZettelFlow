@@ -1,10 +1,10 @@
 import React from "react";
 import { c } from "architecture";
 import { NoteBuilderProps, RootSelector } from "components/NoteBuilder";
+import { useNoteBuilderStore } from "components/NoteBuilder/state/NoteBuilderState";
 
 export function Section(props: NoteBuilderProps) {
-  const { store } = props;
-  const section = store((store) => store.section);
+  const section = useNoteBuilderStore((store) => store.section);
   const { element } = section;
   if (element.key) {
     return (

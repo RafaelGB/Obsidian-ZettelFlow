@@ -12,13 +12,11 @@ export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
 }
 
 function NoteBuilder(noteBuilderType: NoteBuilderType) {
-  const noteBuilderStore = useNoteBuilderStore();
   return (
     <StrictMode>
       <div>
         <Component
           {...noteBuilderType}
-          store={noteBuilderStore}
           builder={Builder.init({
             targetFolder: FileService.PATH_SEPARATOR,
           })}
@@ -29,10 +27,10 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 }
 
 function Component(noteBuilderType: NoteBuilderProps) {
-  const { store, plugin } = noteBuilderType;
+  const { plugin } = noteBuilderType;
   const { settings } = plugin;
-  const actions = store((store) => store.actions);
-  const invalidTitle = store((store) => store.invalidTitle);
+  const actions = useNoteBuilderStore((store) => store.actions);
+  const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
   return settings.workflow?.length > 0 ? (
     <>
       <Input
@@ -44,7 +42,7 @@ function Component(noteBuilderType: NoteBuilderProps) {
         className={invalidTitle ? ["invalid"] : []}
         required={true}
       />
-      <Header {...noteBuilderType} />
+      <Header />
       <Section {...noteBuilderType} />
     </>
   ) : (

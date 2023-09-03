@@ -3,6 +3,7 @@ import { HeaderType, SectionType } from "components/core";
 import { WorkflowStep } from "config";
 import ZettlelFlow from "main";
 import { BuilderRoot } from "notes/NoteBuilder";
+import { FinalElement } from "notes/model/FinalNoteModel";
 import { Modal } from "obsidian";
 import { SectionElement, ZettelFlowElement } from "zettelkasten";
 
@@ -24,11 +25,12 @@ export type ActionBuilderProps = {
 export type SavedSection = {
     section: SectionType;
     header: HeaderType;
+    path: string;
+    element?: FinalElement;
 }
 export type NoteBuilderState = {
     title: string;
     invalidTitle: boolean;
-    targetFolder: string;
     previousSections: Map<number, SavedSection>;
     nextSections: Map<number, SavedSection>;
     section: SectionType;
@@ -42,12 +44,11 @@ export type NoteBuilderState = {
         setInvalidTitle: (invalid: boolean) => void;
         setTargetFolder: (folder: string | undefined) => void;
         setHeader: (header: Partial<HeaderType>) => void;
-        setSectionElement: (element: JSX.Element, extra?: Partial<Omit<SectionType, "element" | "position">>) => void;
+        setSectionElement: (element: JSX.Element) => void;
         goPrevious: () => void;
         goNext: () => void;
         build: () => Promise<void>;
         addPath: (path: string) => void;
         addElement: (element: SectionElement, callbackResult: Literal) => void;
-
     }
 }

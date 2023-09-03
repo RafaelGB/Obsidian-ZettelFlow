@@ -35,7 +35,9 @@ export default class ZettlelFlow extends Plugin {
 			const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
 			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
 				const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
+				if (canvasTree.length === 0) return;
 				const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
+				if (workflow.length === 0) return;
 				const recordNodes: Record<string, ZettelFlowElement> = {};
 				sectionMap.forEach((node, key) => {
 					recordNodes[key] = node;
@@ -43,6 +45,7 @@ export default class ZettlelFlow extends Plugin {
 				this.settings.nodes = recordNodes;
 				this.settings.workflow = workflow;
 				await this.saveSettings();
+				new Notice("ZettelFlow configuration Saved automatically!");
 			}
 		}));
 

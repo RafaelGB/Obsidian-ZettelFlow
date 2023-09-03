@@ -1,4 +1,4 @@
-import { FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
+import { FinalElement, FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
 import { SectionElement } from "zettelkasten";
@@ -21,21 +21,26 @@ export class BuilderRoot {
     }
     return this;
   }
+  public removePositionInfo(position: number): BuilderRoot {
+    this.info.paths.delete(position);
+    this.info.elements.delete(position);
+    return this;
+  }
 
   public addPath(path: string, pos: number): BuilderRoot {
     log.trace(`Builder: adding path ${path} at position ${pos}`);
-    // Check if there are paths above the current position
-    const pathsAbove = Array.from(this.info.paths.keys()).filter(
-      (p) => p > pos
-    );
-    // If there are paths above, shift them
-    pathsAbove.forEach((p) => {
-      this.info.paths.delete(p);
-      this.info.elements.delete(p);
-    });
-
-    this.info.paths.set(pos, path);
+    if (path) {
+      this.info.paths.set(pos, path);
+    }
     return this;
+  }
+
+  public getPath(pos: number): string {
+    const path = this.info.paths.get(pos);
+    if (!path) {
+      return "";
+    }
+    return path;
   }
 
   public addFrontMatter(frontmatter: Record<string, Literal>) {
@@ -62,7 +67,19 @@ export class BuilderRoot {
     return this;
   }
 
+  public addFinalElement(element: FinalElement | undefined, pos: number) {
+    if (element) {
+      this.info.elements.set(pos, element);
+    }
+    return this;
+  }
+
+  public getElement(pos: number): FinalElement | undefined {
+    return this.info.elements.get(pos);
+  }
+
   public async build(): Promise<void> {
+    log.trace(`Builder: building note ${this.info.title} in folder ${this.info.targetFolder}. paths: ${this.info.paths}, elements: ${this.info.elements}`)
     await this.buildNote();
     const normalizedFolder = this.info.targetFolder.endsWith(FileService.PATH_SEPARATOR)
       ? this.info.targetFolder.substring(0, this.info.targetFolder.length - 1)

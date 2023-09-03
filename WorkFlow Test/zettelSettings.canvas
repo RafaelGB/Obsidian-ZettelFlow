@@ -5,11 +5,11 @@
 		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":80,"y":-172,"width":400,"height":116},
 		{"id":"55ab3500ffc103be","type":"file","file":"WorkFlow Test/Literature Notes.md","x":-846,"y":240,"width":400,"height":159,"color":"6"},
 		{"id":"6b11e0b6e922cf04","type":"file","file":"WorkFlow Test/Task Note.md","x":-846,"y":977,"width":400,"height":143,"color":"4"},
-		{"id":"7a107cbb84288fe3","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":0,"y":977,"width":360,"height":72,"color":"5"},
-		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":-446,"y":1200,"width":400,"height":80,"color":"5"},
-		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":0,"y":800,"width":360,"height":80},
 		{"id":"10867abe858c36f6","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":-200,"y":284,"width":400,"height":72,"color":"5"},
-		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":720,"y":-143,"width":400,"height":58,"color":"5"}
+		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":0,"y":836,"width":360,"height":80},
+		{"id":"7a107cbb84288fe3","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":0,"y":1013,"width":360,"height":72,"color":"5"},
+		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":-446,"y":1236,"width":400,"height":80,"color":"5"},
+		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt.md","x":640,"y":-157,"width":400,"height":87,"color":"5"}
 	],
 	"edges":[
 		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},

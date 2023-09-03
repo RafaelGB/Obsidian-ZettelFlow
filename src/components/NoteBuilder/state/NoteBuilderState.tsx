@@ -5,10 +5,9 @@ import { t } from "architecture/lang";
 import { SectionType } from "components/core";
 import { Builder } from "notes";
 import { FileService } from "architecture/plugin";
-
-export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
+import { log } from "architecture";
+const initialState: Omit<NoteBuilderState, "actions"> = {
   title: "",
-  targetFolder: "/",
   position: 0,
   previousSections: new Map(),
   nextSections: new Map(),
@@ -23,6 +22,10 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   builder: Builder.init({
     targetFolder: FileService.PATH_SEPARATOR,
   }),
+};
+
+export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
+  ...initialState,
   actions: {
     setTitle: (title) =>
       set((state) => ({
@@ -35,79 +38,104 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         set({ invalidTitle: invalidTitle });
       }
     },
-    setTargetFolder: (targetFolder) => {
-      if (targetFolder) {
-        const { builder } = get();
-        builder.setTargetFolder(targetFolder);
-        set({ targetFolder, builder });
-      }
-    },
-    setHeader: (partial) => {
-      const { header } = get();
-      set({ header: { ...header, ...partial } });
-    },
+    setTargetFolder: (targetFolder) =>
+      set((state) => ({
+        builder: state.builder.setTargetFolder(targetFolder),
+      })),
+    setHeader: (partial) =>
+      set((state) => ({
+        header: { ...state.header, ...partial },
+      })),
     addBridge: () => set({ position: get().position + 1 }),
     incrementPosition: () => {
       const { position } = get();
       set({ position: position + 1 });
       return position + 1;
     },
-    setSectionElement: (element, extra) => {
-      const { previousSections, section, position, header } = get();
+    setSectionElement: (element) => {
+      const { previousSections, section, position, header, builder } = get();
       const elementSection: SectionType = {
         ...section,
-        ...extra,
         element: element,
       };
       if (position > 0) {
         previousSections.set(position, {
           header: header,
           section: section,
+          path: builder.getPath(position - 1),
+          element: builder.getElement(position - 1),
         });
       }
       set({
         position: position + 1,
         section: elementSection,
         previousSections: previousSections,
+        nextSections: new Map(),
       });
+      log.trace(`section set from ${position} to ${position + 1}`);
     },
     goPrevious: () => {
-      const { previousSections, nextSections, position, section, header } =
-        get();
-      const previousSection = previousSections.get(position - 1);
+      const {
+        previousSections,
+        nextSections,
+        position,
+        section,
+        header,
+        builder,
+      } = get();
+      const previousPosition = position - 1;
+      log.trace(`goPrevious from ${position} to ${previousPosition}`);
+
+      const previousSection = previousSections.get(previousPosition);
       nextSections.set(position, {
         header: header,
         section: section,
+        path: builder.getPath(previousPosition),
+        element: builder.getElement(previousPosition),
       });
-      previousSections.delete(position - 1);
+      previousSections.delete(previousPosition);
       nextSections.delete(position + 1);
       set({
-        position: position - 1,
+        position: previousPosition,
         previousSections: previousSections,
         nextSections: nextSections,
         section: previousSection?.section || { color: "", element: <></> },
         header: previousSection?.header || {
           title: t("flow_selector_placeholder"),
         },
+        builder: builder.removePositionInfo(position),
       });
     },
     goNext: () => {
-      const { previousSections, nextSections, position, section, header } =
-        get();
+      const {
+        previousSections,
+        nextSections,
+        position,
+        section,
+        header,
+        builder,
+      } = get();
       if (nextSections.size === 0) return;
-      const nextSection = nextSections.get(position + 1);
+      const nextPosition = position + 1;
+      const nextSection = nextSections.get(nextPosition);
       if (!nextSection) return;
-      nextSections.delete(position + 1);
+      log.trace(`goNext from ${position} to ${nextPosition}`);
+      nextSections.delete(nextPosition);
       previousSections.set(position, {
         header: header,
         section: section,
+        path: nextSection.path,
+        element: nextSection.element,
       });
       set({
-        position: position + 1,
+        position: nextPosition,
         nextSections: nextSections,
         previousSections: previousSections,
         section: nextSection.section,
         header: nextSection.header,
+        builder: builder
+          .addPath(nextSection.path, position)
+          .addFinalElement(nextSection.element, position),
       });
     },
     addPath: (path) =>
@@ -120,6 +148,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       })),
     build: async () => {
       const { builder } = get();
+      set({ ...initialState });
       await builder.build();
     },
   },

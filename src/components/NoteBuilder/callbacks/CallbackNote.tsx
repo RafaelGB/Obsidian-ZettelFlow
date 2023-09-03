@@ -34,18 +34,6 @@ export const callbackElementBuilder =
     info: ElementBuilderProps
   ) =>
   (selected: WorkflowStep) => {
-    const { isRecursive } = selected;
-    if (isRecursive) {
-      const recursiveStep = findIdInWorkflow(
-        selected.id,
-        info.plugin.settings.workflow
-      );
-      if (!recursiveStep) {
-        log.error(`Recursive step not found: ${selected.id}`);
-        throw new Error("Recursive step not found");
-      }
-      selected = recursiveStep;
-    }
     nextElement(state, selected, info);
   };
 
@@ -66,6 +54,18 @@ function nextElement(
   selected: WorkflowStep,
   info: NoteBuilderType
 ) {
+  const { isRecursive } = selected;
+  if (isRecursive) {
+    const recursiveStep = findIdInWorkflow(
+      selected.id,
+      info.plugin.settings.workflow
+    );
+    if (!recursiveStep) {
+      log.error(`Recursive step not found: ${selected.id}`);
+      throw new Error("Recursive step not found");
+    }
+    selected = recursiveStep;
+  }
   const { plugin } = info;
   const { settings } = plugin;
 

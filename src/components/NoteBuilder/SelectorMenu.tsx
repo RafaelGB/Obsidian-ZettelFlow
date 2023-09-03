@@ -1,4 +1,4 @@
-import React, { StrictMode } from "react";
+import React, { StrictMode, useEffect } from "react";
 import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { Header, Section, Input } from "components/core";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
@@ -24,6 +24,13 @@ function Component(noteBuilderType: NoteBuilderType) {
   const { settings } = plugin;
   const actions = useNoteBuilderStore((store) => store.actions);
   const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
+  useEffect(() => {
+    return () => {
+      // Control global state resetting when the component is unmounted
+      actions.reset();
+    };
+  }, []);
+
   return settings.workflow?.length > 0 ? (
     <>
       <Input

@@ -43,4 +43,8 @@ export default {
     step_builder_element_type_calendar_key_description: 'La clave para los metadatos del frontmatter asignada al calendario',
     step_builder_element_type_calendar_label_title: 'Etiqueta del calendario',
     step_builder_element_type_calendar_label_description: 'La etiqueta será el título de tu calendario',
+    step_builder_element_type_zone_title: 'Opciones de la zona del elemento',
+    step_builder_element_type_zone_description: 'Elige dónde quieres colocar el elemento.',
+    step_builder_element_type_zone_frontmatter: 'Frontmatter',
+    step_builder_element_type_zone_body: 'Cuerpo',
 };

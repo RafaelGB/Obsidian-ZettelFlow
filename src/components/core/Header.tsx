@@ -1,13 +1,14 @@
 import React from "react";
-import { NoteBuilderProps } from "components/NoteBuilder";
 import { c } from "architecture";
+import { useNoteBuilderStore } from "components/NoteBuilder/state/NoteBuilderState";
 
-export function Header(props: NoteBuilderProps) {
-  const { store } = props;
-  const header = store((store) => store.header);
-  const actions = store((store) => store.actions);
-  const disablePrevious = store((store) => store.position === 0);
-  const disableNext = store((store) => store.nextSections.size === 0);
+export function Header() {
+  const header = useNoteBuilderStore((store) => store.header);
+  const actions = useNoteBuilderStore((store) => store.actions);
+  const disablePrevious = useNoteBuilderStore((store) => store.position === 0);
+  const disableNext = useNoteBuilderStore(
+    (store) => store.nextSections.size === 0
+  );
   const { title } = header;
   return (
     <div className={c("header")}>

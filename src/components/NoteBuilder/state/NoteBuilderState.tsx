@@ -3,6 +3,8 @@ import { create } from "zustand";
 import { NoteBuilderState } from "../model/NoteBuilderModel";
 import { t } from "architecture/lang";
 import { SectionType } from "components/core";
+import { Builder } from "notes";
+import { FileService } from "architecture/plugin";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
@@ -18,8 +20,15 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   header: {
     title: t("flow_selector_placeholder"),
   },
+  builder: Builder.init({
+    targetFolder: FileService.PATH_SEPARATOR,
+  }),
   actions: {
-    setTitle: (title) => set({ title: title }),
+    setTitle: (title) =>
+      set((state) => ({
+        title: title,
+        builder: state.builder.setTitle(title),
+      })),
     setInvalidTitle: (invalidTitle) => {
       const { invalidTitle: currentInvalidTitle } = get();
       if (currentInvalidTitle !== invalidTitle) {
@@ -28,7 +37,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     },
     setTargetFolder: (targetFolder) => {
       if (targetFolder) {
-        set({ targetFolder });
+        const { builder } = get();
+        builder.setTargetFolder(targetFolder);
+        set({ targetFolder, builder });
       }
     },
     setHeader: (partial) => {
@@ -98,6 +109,18 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         section: nextSection.section,
         header: nextSection.header,
       });
+    },
+    addPath: (path) =>
+      set((state) => ({
+        builder: state.builder.addPath(path, state.position),
+      })),
+    addElement: (element, result) =>
+      set((state) => ({
+        builder: state.builder.addElement(element, result, state.position),
+      })),
+    build: async () => {
+      const { builder } = get();
+      await builder.build();
     },
   },
 }));

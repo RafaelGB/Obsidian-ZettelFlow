@@ -59,6 +59,7 @@ export class BuilderRoot {
       ...element,
       result: callbackResult,
     });
+    return this;
   }
 
   public async build(): Promise<void> {

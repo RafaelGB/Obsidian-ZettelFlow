@@ -1,7 +1,7 @@
 import { Notice } from "obsidian";
 import {
   ActionSelector,
-  NoteBuilderProps,
+  NoteBuilderType,
   NoteBuilderState,
 } from "components/NoteBuilder";
 import React from "react";
@@ -16,27 +16,22 @@ import { log } from "architecture";
 import { ZettelFlowElement } from "zettelkasten";
 
 export const callbackRootBuilder =
-  (
-    state: Pick<NoteBuilderState, "actions" | "title">,
-    info: NoteBuilderProps
-  ) =>
+  (state: Pick<NoteBuilderState, "actions" | "title">, info: NoteBuilderType) =>
   (selected: WorkflowStep) => {
     const { actions } = state;
-    const { plugin, builder } = info;
+    const { plugin } = info;
     const { settings } = plugin;
     const { nodes } = settings;
     const { id } = selected;
     const selectedSection = nodes[id];
-    builder.setTargetFolder(selectedSection.targetFolder);
-    nextElement(state, selected, info, 0);
     actions.setTargetFolder(selectedSection.targetFolder);
+    nextElement(state, selected, info);
   };
 
 export const callbackElementBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ElementBuilderProps,
-    pos: number
+    info: ElementBuilderProps
   ) =>
   (selected: WorkflowStep) => {
     const { isRecursive } = selected;
@@ -51,26 +46,25 @@ export const callbackElementBuilder =
       }
       selected = recursiveStep;
     }
-    nextElement(state, selected, info, pos);
+    nextElement(state, selected, info);
   };
 
 export const callbackActionBuilder =
   (
     state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ActionBuilderProps,
-    pos: number
+    info: ActionBuilderProps
   ) =>
   (callbackResult: Literal) => {
-    const { action, builder, actionStep } = info;
-    builder.addElement(action.element, callbackResult, pos);
-    nextElement(state, actionStep, info, pos);
+    const { action, actionStep } = info;
+    const { actions } = state;
+    actions.addElement(action.element, callbackResult);
+    nextElement(state, actionStep, info);
   };
 
 function nextElement(
   state: Pick<NoteBuilderState, "actions" | "title">,
   selected: WorkflowStep,
-  info: NoteBuilderProps,
-  pos: number
+  info: NoteBuilderType
 ) {
   const { plugin } = info;
   const { settings } = plugin;
@@ -83,7 +77,7 @@ function nextElement(
   ) {
     manageAction(selectedElement, selected, state, info);
   } else {
-    manageElement(selectedElement, selected, state, info, pos);
+    manageElement(selectedElement, selected, state, info);
   }
 }
 
@@ -91,7 +85,7 @@ function manageAction(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
   state: Pick<NoteBuilderState, "actions" | "title">,
-  info: NoteBuilderProps
+  info: NoteBuilderType
 ) {
   const { actions } = state;
   selectedElement.element.triggered = true;
@@ -113,15 +107,14 @@ function manageElement(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
   state: Pick<NoteBuilderState, "actions" | "title">,
-  info: NoteBuilderProps,
-  pos: number
+  info: NoteBuilderType
 ) {
   const { actions, title } = state;
-  const { modal, builder } = info;
+  const { modal } = info;
   const { children } = selected;
   delete selectedElement.element.triggered;
   if (children && children.length > 1) {
-    builder.addPath(selectedElement.path, pos);
+    actions.addPath(selectedElement.path);
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
@@ -135,14 +128,14 @@ function manageElement(
       title: childrenHeader,
     });
   } else if (children && children.length === 1) {
-    builder.addPath(selectedElement.path, pos);
-    nextElement(state, children[0], info, actions.incrementPosition());
+    actions.addPath(selectedElement.path);
+    actions.incrementPosition();
+    nextElement(state, children[0], info);
   } else {
     if (title) {
-      builder.addPath(selectedElement.path, pos);
-      builder.setTitle(title);
+      actions.addPath(selectedElement.path);
       // Build and close modal
-      builder.build();
+      actions.build();
       modal.close();
     } else {
       actions.setInvalidTitle(true);

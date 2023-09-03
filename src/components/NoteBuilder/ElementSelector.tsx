@@ -9,15 +9,13 @@ export function ElementSelector(info: ElementBuilderProps) {
   const { settings } = plugin;
   const actions = useNoteBuilderStore((state) => state.actions);
   const title = useNoteBuilderStore((state) => state.title);
-  const pos = useNoteBuilderStore((state) => state.position);
   const callbackMemo = useMemo(() => {
     return callbackElementBuilder(
       {
         actions,
         title,
       },
-      info,
-      pos
+      info
     );
   }, [title]);
   return (

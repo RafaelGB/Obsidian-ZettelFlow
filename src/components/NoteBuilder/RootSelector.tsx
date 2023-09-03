@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import { Select, SelectMapper } from "components/core";
-import { NoteBuilderProps } from "./model/NoteBuilderModel";
+import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { callbackRootBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 
-export function RootSelector(info: NoteBuilderProps) {
+export function RootSelector(info: NoteBuilderType) {
   const { plugin } = info;
   const { settings } = plugin;
 

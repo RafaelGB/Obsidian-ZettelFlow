@@ -1,10 +1,8 @@
 import React, { StrictMode } from "react";
-import { NoteBuilderProps, NoteBuilderType } from "./model/NoteBuilderModel";
+import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { Header, Section, Input } from "components/core";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { t } from "architecture/lang";
-import { Builder } from "notes";
-import { FileService } from "architecture/plugin";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
@@ -15,18 +13,13 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
   return (
     <StrictMode>
       <div>
-        <Component
-          {...noteBuilderType}
-          builder={Builder.init({
-            targetFolder: FileService.PATH_SEPARATOR,
-          })}
-        />
+        <Component {...noteBuilderType} />
       </div>
     </StrictMode>
   );
 }
 
-function Component(noteBuilderType: NoteBuilderProps) {
+function Component(noteBuilderType: NoteBuilderType) {
   const { plugin } = noteBuilderType;
   const { settings } = plugin;
   const actions = useNoteBuilderStore((store) => store.actions);

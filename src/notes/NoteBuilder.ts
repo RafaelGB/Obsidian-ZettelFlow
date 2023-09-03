@@ -1,7 +1,7 @@
 import { FinalElement, FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
 import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
-import { SectionElement } from "zettelkasten";
+import { AditionBaseElement, CalendarElement, PromptElement, SectionElement } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
@@ -41,18 +41,6 @@ export class BuilderRoot {
       return "";
     }
     return path;
-  }
-
-  public addFrontMatter(frontmatter: Record<string, Literal>) {
-    if (frontmatter) {
-      // Check if there are tags
-      if (frontmatter.tags) {
-        this.addTags(frontmatter.tags);
-        delete frontmatter.tags;
-      }
-      // Merge the rest of the frontmatter
-      this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
-    }
   }
 
   public addElement(
@@ -132,7 +120,7 @@ export class BuilderRoot {
     return this;
   }
 
-  private async addContent(content: string) {
+  private addContent(content: string) {
     this.info.content = this.info.content.concat(content);
   }
 
@@ -168,16 +156,53 @@ export class BuilderRoot {
   }
 
   private addPrompt(element: SectionElement) {
-    const { result, key } = element;
+    const { key } = element as PromptElement;
     if (TypeService.isString(key)) {
-      this.addFrontMatter({ [key]: result });
+      this.addElementInfo(element);
     }
   }
 
   private addCalendar(element: SectionElement) {
-    const { result, key } = element;
+    const { result, key } = element as CalendarElement;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
       this.addFrontMatter({ [key]: result });
     }
+  }
+
+  private addElementInfo(element: SectionElement) {
+    const { result, key, zone } = element as AditionBaseElement;
+    if (zone === 'frontmatter') {
+      this.addFrontMatter({ [key]: result });
+    } else if (zone === 'body') {
+      this.modifyContent(key, result as string);
+    } else {
+      log.error(`Builder: unknown zone ${zone}`);
+    }
+  }
+
+  private addFrontMatter(frontmatter: Record<string, Literal>) {
+    if (frontmatter) {
+      // Check if there are tags
+      if (frontmatter.tags) {
+        this.addTags(frontmatter.tags);
+        delete frontmatter.tags;
+      }
+      // Merge the rest of the frontmatter
+      this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
+    }
+  }
+  /**
+   * Substitutes at the content the key for the result (all of them)
+   * 
+   * Expected format in the content: {{key}}
+   * @param key 
+   * @param result 
+   */
+  private modifyContent(key: string, result: string) {
+    // Regular expression to find all the matches of {{key}} in the content and replace them with the result
+    this.info.content = this.info.content.replace(
+      new RegExp(`{{${key}}}`, "g"),
+      result
+    );
   }
 }

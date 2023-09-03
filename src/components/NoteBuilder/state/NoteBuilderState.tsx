@@ -2,10 +2,11 @@ import React from "react";
 import { create } from "zustand";
 import { NoteBuilderState } from "../model/NoteBuilderModel";
 import { t } from "architecture/lang";
-import { SectionType } from "components/core";
 import { Builder } from "notes";
 import { FileService } from "architecture/plugin";
-import { log } from "architecture";
+import goPreviousAction from "./actions/goPreviousAction";
+import goNextAction from "./actions/goNextAction";
+import setSelectionElementAction from "./actions/setSelectionElementAction";
 const initialState: Omit<NoteBuilderState, "actions"> = {
   title: "",
   position: 0,
@@ -27,6 +28,9 @@ const initialState: Omit<NoteBuilderState, "actions"> = {
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   ...initialState,
   actions: {
+    /*
+     * DIRECT ACTIONS
+     */
     setTitle: (title) =>
       set((state) => ({
         title: title,
@@ -52,92 +56,6 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set({ position: position + 1 });
       return position + 1;
     },
-    setSectionElement: (element) => {
-      const { previousSections, section, position, header, builder } = get();
-      const elementSection: SectionType = {
-        ...section,
-        element: element,
-      };
-      if (position > 0) {
-        previousSections.set(position, {
-          header: header,
-          section: section,
-          path: builder.getPath(position - 1),
-          element: builder.getElement(position - 1),
-        });
-      }
-      set({
-        position: position + 1,
-        section: elementSection,
-        previousSections: previousSections,
-        nextSections: new Map(),
-      });
-      log.trace(`section set from ${position} to ${position + 1}`);
-    },
-    goPrevious: () => {
-      const {
-        previousSections,
-        nextSections,
-        position,
-        section,
-        header,
-        builder,
-      } = get();
-      const previousPosition = position - 1;
-      log.trace(`goPrevious from ${position} to ${previousPosition}`);
-
-      const previousSection = previousSections.get(previousPosition);
-      nextSections.set(position, {
-        header: header,
-        section: section,
-        path: builder.getPath(previousPosition),
-        element: builder.getElement(previousPosition),
-      });
-      previousSections.delete(previousPosition);
-      nextSections.delete(position + 1);
-      set({
-        position: previousPosition,
-        previousSections: previousSections,
-        nextSections: nextSections,
-        section: previousSection?.section || { color: "", element: <></> },
-        header: previousSection?.header || {
-          title: t("flow_selector_placeholder"),
-        },
-        builder: builder.removePositionInfo(position),
-      });
-    },
-    goNext: () => {
-      const {
-        previousSections,
-        nextSections,
-        position,
-        section,
-        header,
-        builder,
-      } = get();
-      if (nextSections.size === 0) return;
-      const nextPosition = position + 1;
-      const nextSection = nextSections.get(nextPosition);
-      if (!nextSection) return;
-      log.trace(`goNext from ${position} to ${nextPosition}`);
-      nextSections.delete(nextPosition);
-      previousSections.set(position, {
-        header: header,
-        section: section,
-        path: nextSection.path,
-        element: nextSection.element,
-      });
-      set({
-        position: nextPosition,
-        nextSections: nextSections,
-        previousSections: previousSections,
-        section: nextSection.section,
-        header: nextSection.header,
-        builder: builder
-          .addPath(nextSection.path, position)
-          .addFinalElement(nextSection.element, position),
-      });
-    },
     addPath: (path) =>
       set((state) => ({
         builder: state.builder.addPath(path, state.position),
@@ -148,8 +66,14 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       })),
     build: async () => {
       const { builder } = get();
-      set({ ...initialState });
       await builder.build();
     },
+    reset: () => set({ ...initialState }),
+    /*
+     * COMPLEX ACTIONS
+     */
+    setSectionElement: setSelectionElementAction(set, get),
+    goPrevious: goPreviousAction(set, get),
+    goNext: goNextAction(set, get),
   },
 }));

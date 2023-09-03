@@ -131,16 +131,16 @@ function manageElement(
     actions.addPath(selectedElement.path);
     actions.incrementPosition();
     nextElement(state, children[0], info);
-  } else {
-    if (title) {
-      actions.addPath(selectedElement.path);
-      // Build and close modal
-      actions.build();
+  } else if (title) {
+    actions.addPath(selectedElement.path);
+    // Build and close modal
+    actions.build().then(() => {
+      actions.reset();
       modal.close();
-    } else {
-      actions.setInvalidTitle(true);
-      new Notice("Title cannot be empty");
-    }
+    });
+  } else {
+    actions.setInvalidTitle(true);
+    new Notice("Title cannot be empty");
   }
 }
 

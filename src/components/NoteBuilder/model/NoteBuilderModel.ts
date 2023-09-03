@@ -50,5 +50,10 @@ export type NoteBuilderState = {
         build: () => Promise<void>;
         addPath: (path: string) => void;
         addElement: (element: SectionElement, callbackResult: Literal) => void;
+        reset: () => void;
     }
 }
+
+export type StoreNoteBuilderModifier = (
+    partial: NoteBuilderState | Partial<NoteBuilderState>
+) => void;

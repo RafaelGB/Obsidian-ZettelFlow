@@ -45,7 +45,6 @@ export default class ZettlelFlow extends Plugin {
 				this.settings.nodes = recordNodes;
 				this.settings.workflow = workflow;
 				await this.saveSettings();
-				new Notice("ZettelFlow configuration Saved automatically!");
 			}
 		}));
 

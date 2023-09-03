@@ -12,9 +12,22 @@ export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderMo
         const { element, contentEl } = info;
         const { type } = element;
         if (type === 'prompt') {
-            const { key, label, placeholder } = element as PromptElement;
+            const { key, label, zone, placeholder } = element as PromptElement;
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });
+            new Setting(contentEl)
+                .setName(t("step_builder_element_type_zone_title"))
+                .setDesc(t("step_builder_element_type_zone_description"))
+                .addDropdown(dropdown => {
+                    dropdown
+                        .addOption('frontmatter', t('step_builder_element_type_zone_frontmatter'))
+                        .addOption('body', t('step_builder_element_type_zone_body'))
+                        .setValue(zone !== undefined ? zone : 'frontmatter')
+                        .onChange(async (value) => {
+                            element.zone = value;
+                        });
+                });
+
             new Setting(contentEl)
                 .setName(t("step_builder_element_type_prompt_key_title"))
                 .setDesc(t("step_builder_element_type_prompt_key_description"))

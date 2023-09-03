@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
-import { ItemView, Plugin, TFile, TFolder } from 'obsidian';
+import { ItemView, Notice, Plugin, TFile, TFolder } from 'obsidian';
 import { CanvasMapper, FrontmatterService } from 'architecture/plugin';
 import { CanvasView } from 'obsidian/canvas';
 import { t } from 'architecture/lang';
@@ -35,7 +35,9 @@ export default class ZettlelFlow extends Plugin {
 			const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
 			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
 				const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
+				if (canvasTree.length === 0) return;
 				const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
+				if (workflow.length === 0) return;
 				const recordNodes: Record<string, ZettelFlowElement> = {};
 				sectionMap.forEach((node, key) => {
 					recordNodes[key] = node;
@@ -65,28 +67,52 @@ export default class ZettlelFlow extends Plugin {
 					}
 					);
 				} else if (file instanceof TFile) {
-					const zettleFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
-					let mappedInfo = {};
-					let title = t("menu_pane_transform_note_into_step");
-					if (zettleFlowSettings) {
-						mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
-						title = t("menu_pane_edit_step");
-					}
-					menu.addItem((item) => {
-						item
-							.setTitle(title)
-							.setIcon(RibbonIcon.ID)
-							.onClick(() => {
-								new StepBuilderModal(this.app, {
-									folder: file.parent || undefined,
-									filename: file.basename,
-									menu,
-									...mappedInfo
-								})
-									.setMode("edit")
-									.open();
+					if (file.extension === "md") {
+						const zettleFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
+						let mappedInfo = {};
+						let title = t("menu_pane_transform_note_into_step");
+						if (zettleFlowSettings) {
+							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
+							title = t("menu_pane_edit_step");
+						}
+						menu.addItem((item) => {
+							item
+								.setTitle(title)
+								.setIcon(RibbonIcon.ID)
+								.onClick(() => {
+									new StepBuilderModal(this.app, {
+										folder: file.parent || undefined,
+										filename: file.basename,
+										menu,
+										...mappedInfo
+									})
+										.setMode("edit")
+										.open();
+								});
+						});
+					} else if (file.extension === "canvas" && file.path === this.settings.canvasFilePath) {
+						const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
+						if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
+							menu.addItem((item) => {
+								item
+									.setTitle("Save zettelFlow configuration")
+									.setIcon(RibbonIcon.ID)
+									.onClick(async () => {
+										const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
+										const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
+										const recordNodes: Record<string, ZettelFlowElement> = {};
+										sectionMap.forEach((node, key) => {
+											recordNodes[key] = node;
+										});
+										this.settings.nodes = recordNodes;
+										this.settings.workflow = workflow;
+										await this.saveSettings();
+										new Notice("ZettelFlow configuration Saved!");
+									});
 							});
-					});
+
+						}
+					}
 				}
 			}));
 	}

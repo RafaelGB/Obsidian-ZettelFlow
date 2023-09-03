@@ -4,6 +4,7 @@ export type SelectType = {
     options: Option[];
     callback: (value: string) => void;
     className?: string[];
+    autofocus?: boolean;
 }
 
 export type OptionElementType = {
@@ -17,4 +18,6 @@ export type Option = {
     key: string;
     label: string;
     color: HexString;
+    isLeaf: boolean;
+    elementType: string;
 }

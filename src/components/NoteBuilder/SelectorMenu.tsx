@@ -1,10 +1,8 @@
-import React, { StrictMode } from "react";
-import { NoteBuilderProps, NoteBuilderType } from "./model/NoteBuilderModel";
+import React, { StrictMode, useEffect } from "react";
+import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { Header, Section, Input } from "components/core";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { t } from "architecture/lang";
-import { Builder } from "notes";
-import { FileService } from "architecture/plugin";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
@@ -12,27 +10,27 @@ export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
 }
 
 function NoteBuilder(noteBuilderType: NoteBuilderType) {
-  const noteBuilderStore = useNoteBuilderStore();
   return (
     <StrictMode>
       <div>
-        <Component
-          {...noteBuilderType}
-          store={noteBuilderStore}
-          builder={Builder.init({
-            targetFolder: FileService.PATH_SEPARATOR,
-          })}
-        />
+        <Component {...noteBuilderType} />
       </div>
     </StrictMode>
   );
 }
 
-function Component(noteBuilderType: NoteBuilderProps) {
-  const { store, plugin } = noteBuilderType;
+function Component(noteBuilderType: NoteBuilderType) {
+  const { plugin } = noteBuilderType;
   const { settings } = plugin;
-  const actions = store((store) => store.actions);
-  const invalidTitle = store((store) => store.invalidTitle);
+  const actions = useNoteBuilderStore((store) => store.actions);
+  const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
+  useEffect(() => {
+    return () => {
+      // Control global state resetting when the component is unmounted
+      actions.reset();
+    };
+  }, []);
+
   return settings.workflow?.length > 0 ? (
     <>
       <Input
@@ -42,8 +40,9 @@ function Component(noteBuilderType: NoteBuilderProps) {
           actions.setInvalidTitle(false);
         }}
         className={invalidTitle ? ["invalid"] : []}
+        required={true}
       />
-      <Header {...noteBuilderType} />
+      <Header />
       <Section {...noteBuilderType} />
     </>
   ) : (

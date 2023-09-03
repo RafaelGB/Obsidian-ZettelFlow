@@ -11,9 +11,23 @@ export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilder
         const { element, contentEl } = info;
         const { type } = element;
         if (type === 'calendar') {
-            const { key, label } = element as CalendarElement;
+            const { key, label, zone } = element as CalendarElement;
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });
+
+            new Setting(contentEl)
+                .setName(t("step_builder_element_type_zone_title"))
+                .setDesc(t("step_builder_element_type_zone_description"))
+                .addDropdown(dropdown => {
+                    dropdown
+                        .addOption('frontmatter', t('step_builder_element_type_zone_frontmatter'))
+                        .addOption('body', t('step_builder_element_type_zone_body'))
+                        .setValue(zone || 'frontmatter')
+                        .onChange(async (value) => {
+                            element.zone = value;
+                        });
+                });
+
             new Setting(contentEl)
                 .setName(t("step_builder_element_type_calendar_key_title"))
                 .setDesc(t("step_builder_element_type_calendar_key_description"))

@@ -14,22 +14,22 @@ export type SectionInfo = {
     title: string
 }
 export type TypeOption = 'bridge' | 'prompt' | 'calendar';
-
-export interface SectionElement {
+export type ZoneOption = 'frontmatter' | 'body';
+export type SectionElement = {
     type: TypeOption,
     color?: HexString,
     label?: string,
     triggered?: boolean,
     [key: string]: Literal,
 }
-
-export interface PromptElement extends SectionElement {
+export type AditionBaseElement = {
     key: string,
     label: string,
+    zone: ZoneOption,
+} & SectionElement;
+
+export type PromptElement = {
     placeholder: string,
-}
+} & AditionBaseElement;
 
-export interface CalendarElement extends SectionElement {
-    key: string,
-    label: string,
-}
+export type CalendarElement = AditionBaseElement;

@@ -11,9 +11,7 @@ export function Input(info: InputType) {
     onChange,
     onKeyDown,
   } = info;
-  const [valueState, setValueState] = React.useState<string | undefined>(
-    value || ""
-  );
+  const [valueState, setValueState] = React.useState<string>(value || "");
   return (
     <div className={c("input-group", ...className)}>
       <input
@@ -22,6 +20,7 @@ export function Input(info: InputType) {
         name="title"
         required={required}
         autoComplete="off"
+        inputMode="text"
         onChange={(event) => {
           const value = event.target.value;
           setValueState(value);

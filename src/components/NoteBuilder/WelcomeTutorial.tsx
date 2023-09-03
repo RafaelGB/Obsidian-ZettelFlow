@@ -1,10 +1,10 @@
 import React from "react";
-import { NoteBuilderProps } from "./model/NoteBuilderModel";
+import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { FileService } from "architecture/plugin";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 
-export function WelcomeTutorial(noteBuilderType: NoteBuilderProps) {
+export function WelcomeTutorial(noteBuilderType: NoteBuilderType) {
   const { plugin, modal } = noteBuilderType;
   const { settings } = plugin;
   const { canvasFilePath } = settings;

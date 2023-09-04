@@ -50,6 +50,7 @@ export type NoteBuilderState = {
         build: () => Promise<void>;
         manageElementInfo: (selectedElement: ZettelFlowElement) => void;
         addElement: (element: SectionElement, callbackResult: Literal) => void;
+        setPatternPrefix: (prefix: string) => void;
         reset: () => void;
     }
 }

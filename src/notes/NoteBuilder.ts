@@ -5,6 +5,7 @@ import { AditionBaseElement, CalendarElement, PromptElement, SectionElement } fr
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
 import { FileService, FrontmatterService, Literal } from "architecture/plugin";
+import moment from "moment";
 
 export class Builder {
   public static init(finalNote: FinalNoteType): BuilderRoot {
@@ -74,7 +75,7 @@ export class BuilderRoot {
       : this.info.targetFolder;
     const path = normalizedFolder
       .concat(FileService.PATH_SEPARATOR)
-      .concat(this.info.title)
+      .concat(this.buildFilename())
       .concat(FileService.MARKDOWN_EXTENSION);
     FileService.createFile(path, this.info.content)
       .then((file) => {
@@ -94,9 +95,25 @@ export class BuilderRoot {
       });
   }
 
+  private buildFilename(): string {
+    return this.info.uniquePrefixPattern ?
+      moment()
+        .format(this.info.uniquePrefixPattern)
+        .concat(" - ")
+        .concat(this.info.title) :
+      this.info.title
+  }
+
   public setTargetFolder(targetFolder: string | undefined) {
     if (targetFolder) {
       this.info.targetFolder = targetFolder;
+    }
+    return this;
+  }
+
+  public setUniquePrefixPattern(pattern: string | undefined) {
+    if (pattern) {
+      this.info.uniquePrefixPattern = pattern;
     }
     return this;
   }

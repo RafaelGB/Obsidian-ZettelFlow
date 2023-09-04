@@ -15,4 +15,5 @@ export type FinalNoteInfo = {
     paths: Map<number, string>;
     elements: Map<number, FinalElement>;
     content: string;
+    uniquePrefixPattern?: string;
 } & FinalNoteType;

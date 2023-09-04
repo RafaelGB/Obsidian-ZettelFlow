@@ -58,7 +58,6 @@ export class ZettelSettingsMapper {
         const defaultInfo: ZettelFlowElement = {
             path: file.path,
             label: file.basename,
-            targetFolder: "/",
             childrenHeader: "",
             element: {
                 type: "bridge",

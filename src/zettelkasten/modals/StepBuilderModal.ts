@@ -37,7 +37,7 @@ export class StepBuilderModal extends Modal {
 
     async onClose(): Promise<void> {
         if (!this.info.folder || !this.info.filename) return;
-        const path = this.info.folder.path.concat("/").concat(this.info.filename).concat(".md");
+        const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename).concat(".md");
         let file = await FileService.getFile(path, false);
         const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
         if (!file) {

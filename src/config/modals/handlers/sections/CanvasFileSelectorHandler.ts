@@ -4,6 +4,7 @@ import { FILE_EXTENSIONS, FileService } from "architecture/plugin/services/FileS
 import { FileSuggest } from "architecture/settings";
 import { SettingsHandlerInfo } from "config/model/SettingsTabModel";
 import { Setting } from "obsidian";
+import { UniquePrefixToggleHandler } from "./UniquePrefixToggleHandler";
 
 export class CanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('canvas_file_selector_title');
@@ -31,5 +32,9 @@ export class CanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHand
                     .onChange(source_form_promise);
             });
         return this.goNext(info);
+    }
+
+    manageNextHandler() {
+        this.nextHandler = new UniquePrefixToggleHandler();
     }
 }

@@ -18,6 +18,11 @@ import { ZettelFlowElement } from "zettelkasten";
 export const callbackRootBuilder =
   (state: Pick<NoteBuilderState, "actions" | "title">, info: NoteBuilderType) =>
   (selected: WorkflowStep) => {
+    const { actions } = state;
+    const { uniquePrefix, uniquePrefixEnabled } = info.plugin.settings;
+    if (uniquePrefixEnabled) {
+      actions.setPatternPrefix(uniquePrefix);
+    }
     nextElement(state, selected, info);
   };
 

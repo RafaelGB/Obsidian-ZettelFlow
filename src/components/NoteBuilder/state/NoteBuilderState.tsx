@@ -74,6 +74,10 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       await builder.build();
     },
     reset: () => set({ ...initialState }),
+    setPatternPrefix: (patternPrefix) =>
+      set((state) => ({
+        builder: state.builder.setUniquePrefixPattern(patternPrefix),
+      })),
     /*
      * COMPLEX ACTIONS
      */

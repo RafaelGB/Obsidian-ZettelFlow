@@ -56,10 +56,15 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set({ position: position + 1 });
       return position + 1;
     },
-    addPath: (path) =>
-      set((state) => ({
-        builder: state.builder.addPath(path, state.position),
-      })),
+    manageElementInfo: (element) =>
+      set((state) => {
+        const { builder } = state;
+        builder.addPath(element.path, state.position);
+        builder.setTargetFolder(element.targetFolder);
+        return {
+          builder,
+        };
+      }),
     addElement: (element, result) =>
       set((state) => ({
         builder: state.builder.addElement(element, result, state.position),

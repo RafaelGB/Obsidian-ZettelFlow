@@ -1,3 +1,4 @@
+import { FileService } from "architecture/plugin";
 import { ZettelFlowElement } from "zettelkasten";
 export type WorkflowStep = {
     id: string,
@@ -16,6 +17,6 @@ export interface ZettelFlowSettings {
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false,
-    baseDir: "/",
+    baseDir: FileService.PATH_SEPARATOR,
     nodes: {}
 }

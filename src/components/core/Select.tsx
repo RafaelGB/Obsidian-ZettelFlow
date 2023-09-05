@@ -3,6 +3,7 @@ import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 import { Platform } from "obsidian";
 import { LeafIcon, PromptIcon } from "components/icons";
+import { BridgeIcon } from "components/icons/BridgeIcon";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;
@@ -130,8 +131,7 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       {label}
-      <ActionIcon type={elementType} />
-      {isLeaf ? <LeafIcon /> : null}
+      {isLeaf ? <LeafIcon /> : <ActionIcon type={elementType} />}
     </div>
   );
 }
@@ -141,6 +141,6 @@ function ActionIcon(info: { type: string }) {
     case "prompt":
       return <PromptIcon />;
     default:
-      return null;
+      return <BridgeIcon />;
   }
 }

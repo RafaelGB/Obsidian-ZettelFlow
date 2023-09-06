@@ -9,7 +9,7 @@ export class StepSectionLabelHandler extends AbstractHandlerClass<StepBuilderMod
     description = t('step_builder_section_label_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
-        const { contentEl, filename, label } = info;
+        const { contentEl, label } = info;
         const onChangePromise = (value: string) => {
             info.label = value;
         };
@@ -18,7 +18,7 @@ export class StepSectionLabelHandler extends AbstractHandlerClass<StepBuilderMod
             .setDesc(this.description)
             .addText(text => {
                 text
-                    .setValue(label || filename || ``)
+                    .setValue(label)
                     .onChange(onChangePromise)
             });
 

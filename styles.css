@@ -28,6 +28,11 @@
 .zettelkasten-flow__icon {
   margin-left: 0.5rem;
 }
+
+.zettelkasten-flow__icon * {
+  fill: var(--text-normal);
+}
+
 .zettelkasten-flow__header {
   display: flex;
   flex-wrap: nowrap;

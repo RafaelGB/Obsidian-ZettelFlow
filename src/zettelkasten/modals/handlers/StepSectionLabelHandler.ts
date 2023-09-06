@@ -20,6 +20,7 @@ export class StepSectionLabelHandler extends AbstractHandlerClass<StepBuilderMod
                 text
                     .setValue(label)
                     .onChange(onChangePromise)
+                    .setPlaceholder(t('step_builder_section_label_placeholder'));
             });
 
         return this.goNext(modal);

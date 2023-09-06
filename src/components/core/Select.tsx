@@ -135,7 +135,7 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       {label}
-      {<ActionIcon type={elementType} />}
+      {<ActionIcon type={elementType} isLeaf={isLeaf} />}
     </div>
   );
 }

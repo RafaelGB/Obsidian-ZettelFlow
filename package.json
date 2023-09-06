@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-zettlelflow",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "A plugin for Obsidian that allows you to create and manage notes in a Zettlekasten-like way.",
 	"main": "main.js",
 	"scripts": {

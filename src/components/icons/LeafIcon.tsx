@@ -1,22 +1,11 @@
-import { c } from "architecture";
 import React from "react";
+import SvgBase from "./SvgBase";
 
 export function LeafIcon() {
   return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      strokeWidth="1.5"
-      stroke="currentColor"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={c("icon")}
-    >
+    <SvgBase key="leaf-icon">
       <g
-        transform="translate(0.000000,24.000000) scale(0.100000,-0.100000)"
-        fill="#000000"
+        transform="translate(0.000000,24.000000) scale(0.100,-0.100)"
         stroke="none"
       >
         <path
@@ -26,6 +15,6 @@ export function LeafIcon() {
 -1 -27 -7 -44 -15z"
         />
       </g>
-    </svg>
+    </SvgBase>
   );
 }

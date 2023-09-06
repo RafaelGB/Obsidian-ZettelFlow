@@ -19,12 +19,10 @@ export const callbackRootBuilder =
   (state: Pick<NoteBuilderState, "actions" | "title">, info: NoteBuilderType) =>
   (selected: WorkflowStep) => {
     const { actions } = state;
-    const { plugin } = info;
-    const { settings } = plugin;
-    const { nodes } = settings;
-    const { id } = selected;
-    const selectedSection = nodes[id];
-    actions.setTargetFolder(selectedSection.targetFolder);
+    const { uniquePrefix, uniquePrefixEnabled } = info.plugin.settings;
+    if (uniquePrefixEnabled) {
+      actions.setPatternPrefix(uniquePrefix);
+    }
     nextElement(state, selected, info);
   };
 
@@ -114,7 +112,7 @@ function manageElement(
   const { children } = selected;
   delete selectedElement.element.triggered;
   if (children && children.length > 1) {
-    actions.addPath(selectedElement.path);
+    actions.manageElementInfo(selectedElement);
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
@@ -128,11 +126,11 @@ function manageElement(
       title: childrenHeader,
     });
   } else if (children && children.length === 1) {
-    actions.addPath(selectedElement.path);
+    actions.manageElementInfo(selectedElement);
     actions.incrementPosition();
     nextElement(state, children[0], info);
   } else if (title) {
-    actions.addPath(selectedElement.path);
+    actions.manageElementInfo(selectedElement);
     // Build and close modal
     actions.build().then(() => {
       actions.reset();

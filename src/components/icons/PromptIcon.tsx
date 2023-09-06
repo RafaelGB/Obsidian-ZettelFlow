@@ -1,22 +1,11 @@
-import { c } from "architecture";
 import React from "react";
+import SvgBase from "./SvgBase";
 
 export function PromptIcon() {
   return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      strokeWidth="1.5"
-      stroke="currentColor"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={c("icon")}
-    >
+    <SvgBase key="prompt-icon">
       <g
         transform="translate(0.000000,24.000000) scale(0.05,-0.05)"
-        fill="#000000"
         stroke="none"
       >
         <path
@@ -37,6 +26,6 @@ export function PromptIcon() {
 -15 -7 -15 -15z"
         />
       </g>
-    </svg>
+    </SvgBase>
   );
 }

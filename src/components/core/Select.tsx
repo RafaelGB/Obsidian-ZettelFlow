@@ -2,7 +2,12 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 import { Platform } from "obsidian";
-import { LeafIcon, PromptIcon } from "components/icons";
+import {
+  LeafIcon,
+  PromptIcon,
+  BridgeIcon,
+  CalendarIcon,
+} from "components/icons";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;
@@ -130,17 +135,19 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       {label}
-      <ActionIcon type={elementType} />
-      {isLeaf ? <LeafIcon /> : null}
+      {<ActionIcon type={elementType} isLeaf={isLeaf} />}
     </div>
   );
 }
-function ActionIcon(info: { type: string }) {
-  const { type } = info;
+
+function ActionIcon(info: { type: string; isLeaf?: boolean }) {
+  const { type, isLeaf } = info;
   switch (type) {
     case "prompt":
       return <PromptIcon />;
+    case "calendar":
+      return <CalendarIcon />;
     default:
-      return null;
+      return isLeaf ? <LeafIcon /> : <BridgeIcon />;
   }
 }

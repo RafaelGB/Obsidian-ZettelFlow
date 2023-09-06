@@ -9,7 +9,7 @@ export class FileService {
     public static PATH_SEPARATOR = "/";
     public static MARKDOWN_EXTENSION = ".md";
     public static async createFile(path: string, content: string, openAfter = true): Promise<TFile> {
-        const folder = path.substring(0, path.lastIndexOf("/"));
+        const folder = path.substring(0, path.lastIndexOf(FileService.PATH_SEPARATOR));
         if (!await ObsidianApi.vault().adapter.exists(folder)) {
             await ObsidianApi.vault().createFolder(folder);
         }
@@ -53,7 +53,7 @@ export class FileService {
 
         let folder = ObsidianApi.vault().getAbstractFileByPath(folder_str);
         if (!folder) {
-            folder = FileService.getFolder(folder_str.split("/").slice(0, -1).join("/"));
+            folder = FileService.getFolder(folder_str.split(FileService.PATH_SEPARATOR).slice(0, -1).join(FileService.PATH_SEPARATOR));
         }
         if (!(folder instanceof TFolder)) {
             throw new Error(`${folder_str} is a file, not a folder`);
@@ -70,7 +70,7 @@ export class FileService {
             folder = FileService.getFolder(folder_str);
         } catch (err) {
             // Split the string into '/' and remove the last element
-            folder = FileService.getFolder(folder_str.split("/").slice(0, -1).join("/"));
+            folder = FileService.getFolder(folder_str.split(FileService.PATH_SEPARATOR).slice(0, -1).join(FileService.PATH_SEPARATOR));
         }
         let files: Array<TFile> = [];
         Vault.recurseChildren(folder, (file: TAbstractFile) => {

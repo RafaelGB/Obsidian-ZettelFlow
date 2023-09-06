@@ -48,8 +48,9 @@ export type NoteBuilderState = {
         goPrevious: () => void;
         goNext: () => void;
         build: () => Promise<void>;
-        addPath: (path: string) => void;
+        manageElementInfo: (selectedElement: ZettelFlowElement) => void;
         addElement: (element: SectionElement, callbackResult: Literal) => void;
+        setPatternPrefix: (prefix: string) => void;
         reset: () => void;
     }
 }

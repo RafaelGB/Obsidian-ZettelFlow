@@ -1,8 +1,8 @@
 import { ObsidianApi } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
-import { FinalNoteInfo } from "notes/model/FinalNoteModel";
 import { StepSettings } from "zettelkasten";
+import { ContentDTO } from "notes/model/ContentDTO";
 
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
@@ -68,12 +68,12 @@ export class FrontmatterService {
         return content.concat("\n");
     }
 
-    public async processFrontMatter(info: FinalNoteInfo) {
+    public async processFrontMatter(content: ContentDTO) {
         await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
-            if (info.tags.length > 0) {
-                frontmatter.tags = info.tags;
+            if (content.hasTags()) {
+                frontmatter.tags = content.getTags();
             }
-            Object.entries(info.frontmatter).forEach(([key, value]) => {
+            Object.entries(content.getFrontmatter()).forEach(([key, value]) => {
                 frontmatter[key] = value;
             });
         });

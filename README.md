@@ -25,3 +25,10 @@ Our plugin elevates the Zettelkasten experience by using visual canvas directly 
 
 ### Embark on Enhanced Note-Taking Efficiency
 The Obsidian-ZettlelFlow revolutionizes the Zettelkasten approach by using the native canvas interface. This interface grants you the power to configure note properties, templates, and more, while expediting the note creation process. Experience the synergy of visual design and knowledge organization as you optimize your Zettelkasten workflow through this innovative plugin. Begin your journey towards a more efficient and structured note-taking experience today.
+
+## Support
+If you enjoy ZettelFlow, consider [buy me a coffee](https://www.buymeacoffee.com/5tsytn22v9Z) or [sponsor me](https://github.com/sponsors/RafaelGB) to support my work. Thank you!
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge)](https://github.com/sponsors/RafaelGB)
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/5tsytn22v9Z)

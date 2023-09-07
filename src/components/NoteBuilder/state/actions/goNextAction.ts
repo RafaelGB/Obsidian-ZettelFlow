@@ -23,15 +23,15 @@ const goNextAction =
             path: nextSection.path,
             element: nextSection.element,
         });
+        builder.info.addPath(nextSection.path, position)
+            .addFinalElement(nextSection.element, position);
         set({
             position: nextPosition,
             nextSections: nextSections,
             previousSections: previousSections,
             section: nextSection.section,
             header: nextSection.header,
-            builder: builder
-                .addPath(nextSection.path, position)
-                .addFinalElement(nextSection.element, position),
+            builder,
         });
     };
 

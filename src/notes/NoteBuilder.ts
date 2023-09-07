@@ -79,9 +79,11 @@ export class NoteBuilder {
       switch (element.type) {
         case "prompt": {
           this.addPrompt(element);
+          break;
         }
         case "calendar": {
           this.addCalendar(element);
+          break;
         }
       }
     }

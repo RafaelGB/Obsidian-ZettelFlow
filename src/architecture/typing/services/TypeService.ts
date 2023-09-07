@@ -5,7 +5,7 @@ export class TypeService {
         return value != null && value !== undefined;
     }
 
-    public static isString(value: any): value is string {
+    public static isString(value: unknown): value is string {
         return typeof value === "string" || value instanceof String;
     }
 

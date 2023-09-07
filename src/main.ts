@@ -50,7 +50,7 @@ export default class ZettlelFlow extends Plugin {
 
 
 		this.registerEvent(
-			this.app.workspace.on('file-menu', (menu, file, source, leaf) => {
+			this.app.workspace.on('file-menu', (menu, file) => {
 				if (file instanceof TFolder) {
 					menu.addItem((item) => {
 						item

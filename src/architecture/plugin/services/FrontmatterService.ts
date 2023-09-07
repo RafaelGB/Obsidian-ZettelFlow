@@ -60,7 +60,7 @@ export class FrontmatterService {
 
     public async getContent() {
         const rawContent = await ObsidianApi.vault().read(this.file);
-        let end = this.metadata.frontmatterPosition?.end?.line;
+        const end = this.metadata.frontmatterPosition?.end?.line;
         const content = rawContent.split("\n").slice(end ? end + 1 : 0).join("\n")
         if (!content) {
             return "";

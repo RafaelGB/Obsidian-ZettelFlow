@@ -22,29 +22,19 @@ export class NoteBuilder {
     this.content = new ContentDTO();
   }
 
-  public async build(): Promise<void> {
+  public async build(): Promise<string> {
     log.trace(`Builder: building note ${this.info.getTitle()} in folder ${this.info.getTargetFolder()}. paths: ${this.info.getPaths()}, elements: ${this.info.getElements()}`)
     await this.buildNote();
     const path = this.info.getTargetFolder()
       .concat(FileService.PATH_SEPARATOR)
       .concat(this.buildFilename())
       .concat(FileService.MARKDOWN_EXTENSION);
-    FileService.createFile(path, this.content.get())
-      .then((file) => {
-        FrontmatterService.instance(file)
-          .processFrontMatter(this.content)
-          .then(() => {
-            new Notice("Note created");
-          })
-          .catch((error) => {
-            log.error("Error while processing frontmatter: " + error);
-            new Notice("Error while processing frontmatter: " + error);
-          });
-      })
-      .catch((error) => {
-        log.error("Error while creating a file: " + error);
-        new Notice("Error while creating a file: " + error);
-      });
+    const generatedFile = await FileService.createFile(path, this.content.get(), false);
+
+    await FrontmatterService
+      .instance(generatedFile)
+      .processFrontMatter(this.content);
+    return generatedFile.path;
   }
 
   private buildFilename(): string {
@@ -99,18 +89,26 @@ export class NoteBuilder {
   private addCalendar(element: SectionElement) {
     const { result, key } = element as CalendarElement;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
-      this.content.addFrontMatter({ [key]: result });
+      this.addElementInfo(element);
     }
   }
 
   private addElementInfo(element: SectionElement) {
     const { result, key, zone } = element as AditionBaseElement;
-    if (zone === 'frontmatter') {
-      this.content.addFrontMatter({ [key]: result });
-    } else if (zone === 'body') {
-      this.content.modify(key, result as string);
-    } else {
-      log.error(`Builder: unknown zone ${zone}`);
+    switch (zone) {
+      case "frontmatter": {
+        this.content.addFrontMatter({ [key]: result });
+        break;
+      }
+      case "body": {
+        this.content.modify(key, result as string);
+        break;
+      }
+      default: {
+        new Notice(`Builder: unknown zone ${zone} for key ${key}. Frontmatter will be applied by default`);
+        this.content.addFrontMatter({ [key]: result });
+        break;
+      }
     }
   }
 }

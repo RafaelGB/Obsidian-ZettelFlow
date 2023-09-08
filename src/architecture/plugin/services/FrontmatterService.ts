@@ -1,8 +1,9 @@
-import { ObsidianApi } from "architecture";
-import { CachedMetadata, TFile } from "obsidian";
+import { ObsidianApi, log } from "architecture";
+import { CachedMetadata, Notice, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
 import { ContentDTO } from "notes/model/ContentDTO";
+import { t } from "architecture/lang";
 
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
@@ -76,6 +77,10 @@ export class FrontmatterService {
             Object.entries(content.getFrontmatter()).forEach(([key, value]) => {
                 frontmatter[key] = value;
             });
+        }).catch((error) => {
+            const message = `Error while processing frontmatter: ${error}`;
+            log.error(message);
+            throw new Error(message);
         });
     }
 

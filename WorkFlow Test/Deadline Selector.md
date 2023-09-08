@@ -6,4 +6,5 @@ zettelFlowSettings:
     placeholder: add a deadline to your note...
     key: date
     label: Deadline
+    zone: frontmatter
 ---

@@ -1,0 +1,10 @@
+site_name: ZettelFlow
+repo_url: https://github.com/RafaelGB/Obsidian-ZettlelFlow
+edit_uri: edit/master/docs/
+theme:
+  name: material
+  logo: resources/obsidian.png
+  icon:
+    repo: fontawesome/brands/github-alt
+plugins:
+  - search

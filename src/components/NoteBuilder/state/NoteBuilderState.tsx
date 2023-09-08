@@ -6,7 +6,8 @@ import { Builder } from "notes";
 import goPreviousAction from "./actions/goPreviousAction";
 import goNextAction from "./actions/goNextAction";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
-const initialState: Omit<NoteBuilderState, "actions"> = {
+
+export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
   position: 0,
   previousSections: new Map(),
@@ -20,10 +21,6 @@ const initialState: Omit<NoteBuilderState, "actions"> = {
     title: t("flow_selector_placeholder"),
   },
   builder: Builder.default(),
-};
-
-export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
-  ...initialState,
   actions: {
     /*
      * DIRECT ACTIONS
@@ -83,7 +80,23 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       const { builder } = get();
       await builder.build();
     },
-    reset: () => set({ ...initialState }),
+    reset: () => {
+      set({
+        title: "",
+        position: 0,
+        previousSections: new Map(),
+        nextSections: new Map(),
+        invalidTitle: false,
+        section: {
+          color: "",
+          element: <></>,
+        },
+        header: {
+          title: t("flow_selector_placeholder"),
+        },
+        builder: Builder.default(),
+      });
+    },
     setPatternPrefix: (pattern) =>
       set((state) => {
         const { builder } = state;

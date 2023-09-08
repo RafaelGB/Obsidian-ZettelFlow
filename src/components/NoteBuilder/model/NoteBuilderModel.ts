@@ -2,8 +2,8 @@ import { Literal } from "architecture/plugin";
 import { HeaderType, SectionType } from "components/core";
 import { WorkflowStep } from "config";
 import ZettlelFlow from "main";
-import { BuilderRoot } from "notes/NoteBuilder";
-import { FinalElement } from "notes/model/FinalNoteModel";
+import { FinalElement } from "notes";
+import { NoteBuilder } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
 import { SectionElement, ZettelFlowElement } from "zettelkasten";
 
@@ -36,7 +36,7 @@ export type NoteBuilderState = {
     section: SectionType;
     position: number;
     header: HeaderType;
-    builder: BuilderRoot;
+    builder: NoteBuilder;
     actions: {
         incrementPosition(): number;
         addBridge(): void;

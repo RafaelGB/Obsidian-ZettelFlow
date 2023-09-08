@@ -1,2 +1,3 @@
-export { Builder, BuilderRoot } from './NoteBuilder';
-export { FinalNoteType } from './model/FinalNoteModel';
+export { Builder, NoteBuilder } from './NoteBuilder';
+
+export { FinalElement } from './model/FinalNoteModel';

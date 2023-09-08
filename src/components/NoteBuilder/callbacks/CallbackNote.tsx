@@ -132,10 +132,18 @@ function manageElement(
   } else if (title) {
     actions.manageElementInfo(selectedElement);
     // Build and close modal
-    actions.build().then(() => {
-      actions.reset();
-      modal.close();
-    });
+    actions
+      .build()
+      .then(() => {
+        actions.reset();
+      })
+      .catch((error) => {
+        log.error(error);
+        new Notice("Error building note. See console for details.");
+      })
+      .finally(() => {
+        modal.close();
+      });
   } else {
     actions.setInvalidTitle(true);
     new Notice("Title cannot be empty");

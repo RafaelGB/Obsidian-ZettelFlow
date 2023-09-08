@@ -18,16 +18,19 @@ const goPreviousAction =
     } = get();
     const previousPosition = position - 1;
     log.trace(`goPrevious from ${position} to ${previousPosition}`);
-
+    // On Builder
+    builder.info.deletePos(position);
+    // On UI State
     const previousSection = previousSections.get(previousPosition);
     nextSections.set(position, {
       header: header,
       section: section,
-      path: builder.getPath(previousPosition),
-      element: builder.getElement(previousPosition),
+      path: builder.info.getPath(previousPosition),
+      element: builder.info.getElement(previousPosition),
     });
     previousSections.delete(previousPosition);
     nextSections.delete(position + 1);
+
     set({
       position: previousPosition,
       previousSections: previousSections,
@@ -39,7 +42,7 @@ const goPreviousAction =
       header: previousSection?.header || {
         title: t("flow_selector_placeholder"),
       },
-      builder: builder.removePositionInfo(position),
+      builder,
     });
   };
 

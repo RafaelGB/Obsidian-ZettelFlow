@@ -8,3 +8,4 @@ zettelFlowSettings:
     label: Purpose of your note
     zone: body
 ---
+# {{purpose}}

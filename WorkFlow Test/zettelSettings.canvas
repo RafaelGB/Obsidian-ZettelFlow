@@ -1,24 +1,26 @@
 {
 	"nodes":[
-		{"id":"252b15ff230b2494","type":"file","file":"WorkFlow Test/Fleeting Notes.md","x":-846,"y":-456,"width":400,"height":136,"color":"5"},
-		{"id":"55ab3500ffc103be","type":"file","file":"WorkFlow Test/Literature Notes.md","x":-846,"y":240,"width":400,"height":159,"color":"6"},
 		{"id":"724d44fd232322a4","type":"file","file":"WorkFlow Test/Purpose Prompt - frontmatter.md","x":-171,"y":283,"width":502,"height":73},
-		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":0,"y":600,"width":360,"height":80},
-		{"id":"6b11e0b6e922cf04","type":"file","file":"WorkFlow Test/Task Note.md","x":-846,"y":741,"width":400,"height":143,"color":"4"},
-		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":-446,"y":1000,"width":400,"height":80,"color":"5"},
-		{"id":"f619ee090d4d346a","type":"file","file":"WorkFlow Test/Purpose Prompt - frontmatter.md","x":-46,"y":776,"width":491,"height":73},
-		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":80,"y":-640,"width":400,"height":104},
-		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":80,"y":-280,"width":400,"height":132},
-		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt - body.md","x":560,"y":-257,"width":400,"height":87,"color":"5"}
+		{"id":"3a62b712887a4f16","type":"file","file":"WorkFlow Test/Empty Leaf.md","x":56,"y":-124,"width":249,"height":60},
+		{"id":"cb2d607758354109","type":"file","file":"WorkFlow Test/Purpose Prompt - body.md","x":-520,"y":-320,"width":400,"height":87,"color":"5"},
+		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":-520,"y":960,"width":400,"height":80,"color":"5"},
+		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":-55,"y":600,"width":360,"height":80},
+		{"id":"f619ee090d4d346a","type":"file","file":"WorkFlow Test/Purpose Prompt - frontmatter.md","x":-65,"y":776,"width":491,"height":73},
+		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":-846,"y":-130,"width":400,"height":66,"color":"3"},
+		{"id":"55ab3500ffc103be","type":"file","file":"WorkFlow Test/Literature Notes.md","x":-846,"y":276,"width":400,"height":80,"color":"6"},
+		{"id":"6b11e0b6e922cf04","type":"file","file":"WorkFlow Test/Task Note.md","x":-846,"y":776,"width":400,"height":72,"color":"4"},
+		{"id":"252b15ff230b2494","type":"file","file":"WorkFlow Test/Fleeting Notes.md","x":-846,"y":-622,"width":400,"height":68,"color":"5"},
+		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":-69,"y":-606,"width":400,"height":52}
 	],
 	"edges":[
 		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},
-		{"id":"af1a44768c9d82e8","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"2ce47a8f818e4dc3","toSide":"left"},
 		{"id":"98f65cfbc362e4fb","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"1b8d3ad0e40560e0","toSide":"left"},
-		{"id":"4127ac62f080687f","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"cb2d607758354109","toSide":"left"},
+		{"id":"4127ac62f080687f","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"cb2d607758354109","toSide":"bottom"},
 		{"id":"a30160d1d4a719ca","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"250d329e0bb7265b","toSide":"top"},
 		{"id":"c1d7b4ac2b1ac75c","fromNode":"250d329e0bb7265b","fromSide":"left","toNode":"6b11e0b6e922cf04","toSide":"bottom"},
 		{"id":"58fe76fee71b38bf","fromNode":"55ab3500ffc103be","fromSide":"right","toNode":"724d44fd232322a4","toSide":"left"},
-		{"id":"f6ba96fa796f2b3f","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"f619ee090d4d346a","toSide":"left"}
+		{"id":"f6ba96fa796f2b3f","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"f619ee090d4d346a","toSide":"left"},
+		{"id":"85e44a918ef6c088","fromNode":"cb2d607758354109","fromSide":"left","toNode":"2ce47a8f818e4dc3","toSide":"top"},
+		{"id":"28c46ae49fce2efc","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"3a62b712887a4f16","toSide":"left"}
 	]
 }

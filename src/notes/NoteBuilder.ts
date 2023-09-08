@@ -1,86 +1,38 @@
-import { FinalElement, FinalNoteInfo, FinalNoteType } from "./model/FinalNoteModel";
 import { log } from "architecture";
-import { finalNoteType2FinalNoteInfo } from "./mappers/FinalNoteMapper";
 import { AditionBaseElement, CalendarElement, PromptElement, SectionElement } from "zettelkasten";
 import { TypeService } from "architecture/typing";
 import { Notice } from "obsidian";
-import { FileService, FrontmatterService, Literal } from "architecture/plugin";
+import { FileService, FrontmatterService } from "architecture/plugin";
 import moment from "moment";
+import { NoteDTO } from "./model/NoteDTO";
+import { ContentDTO } from "./model/ContentDTO";
 
 export class Builder {
-  public static init(finalNote: FinalNoteType): BuilderRoot {
-    const info = finalNoteType2FinalNoteInfo(finalNote);
-    return new BuilderRoot(info);
+  public static default(): NoteBuilder {
+    return new NoteBuilder();
   }
+
 }
 
-export class BuilderRoot {
-  constructor(private info: FinalNoteInfo) { }
-  public setTitle(title: string): BuilderRoot {
-    if (title) {
-      this.info.title = title;
-    }
-    return this;
-  }
-  public removePositionInfo(position: number): BuilderRoot {
-    this.info.paths.delete(position);
-    this.info.elements.delete(position);
-    return this;
-  }
-
-  public addPath(path: string, pos: number): BuilderRoot {
-    log.trace(`Builder: adding path ${path} at position ${pos}`);
-    if (path) {
-      this.info.paths.set(pos, path);
-    }
-    return this;
-  }
-
-  public getPath(pos: number): string {
-    const path = this.info.paths.get(pos);
-    if (!path) {
-      return "";
-    }
-    return path;
-  }
-
-  public addElement(
-    element: SectionElement,
-    callbackResult: unknown,
-    pos: number
-  ) {
-    this.info.elements.set(pos, {
-      ...element,
-      result: callbackResult,
-    });
-    return this;
-  }
-
-  public addFinalElement(element: FinalElement | undefined, pos: number) {
-    if (element) {
-      this.info.elements.set(pos, element);
-    }
-    return this;
-  }
-
-  public getElement(pos: number): FinalElement | undefined {
-    return this.info.elements.get(pos);
+export class NoteBuilder {
+  public info;
+  private content;
+  constructor() {
+    this.info = new NoteDTO();
+    this.content = new ContentDTO();
   }
 
   public async build(): Promise<void> {
-    log.trace(`Builder: building note ${this.info.title} in folder ${this.info.targetFolder}. paths: ${this.info.paths}, elements: ${this.info.elements}`)
+    log.trace(`Builder: building note ${this.info.getTitle()} in folder ${this.info.getTargetFolder()}. paths: ${this.info.getPaths()}, elements: ${this.info.getElements()}`)
     await this.buildNote();
-    const normalizedFolder = this.info.targetFolder.endsWith(FileService.PATH_SEPARATOR)
-      ? this.info.targetFolder.substring(0, this.info.targetFolder.length - 1)
-      : this.info.targetFolder;
-    const path = normalizedFolder
+    const path = this.info.getTargetFolder()
       .concat(FileService.PATH_SEPARATOR)
       .concat(this.buildFilename())
       .concat(FileService.MARKDOWN_EXTENSION);
-    FileService.createFile(path, this.info.content)
+    FileService.createFile(path, this.content.get())
       .then((file) => {
         FrontmatterService.instance(file)
-          .processFrontMatter(this.info)
+          .processFrontMatter(this.content)
           .then(() => {
             new Notice("Note created");
           })
@@ -96,77 +48,42 @@ export class BuilderRoot {
   }
 
   private buildFilename(): string {
-    return this.info.uniquePrefixPattern ?
+    return this.info.hasPattern() ?
       moment()
-        .format(this.info.uniquePrefixPattern)
+        .format(this.info.getPattern())
         .concat(" - ")
-        .concat(this.info.title) :
-      this.info.title
-  }
-
-  public setTargetFolder(targetFolder: string | undefined) {
-    if (targetFolder) {
-      this.info.targetFolder = targetFolder;
-    }
-    return this;
-  }
-
-  public setUniquePrefixPattern(pattern: string | undefined) {
-    if (pattern) {
-      this.info.uniquePrefixPattern = pattern;
-    }
-    return this;
-  }
-
-  private addTags(tag: Literal): BuilderRoot {
-    if (!tag) return this;
-    // Check if tag satisfies string
-    if (TypeService.isString(tag) && !this.info.tags.contains(tag)) {
-      this.info.tags.push(tag);
-      return this;
-    }
-
-    if (TypeService.isArray<string>(tag, "string")) {
-      tag
-        .filter((t) => !this.info.tags.contains(t))
-        .forEach((t) => {
-          this.info.tags.push(t);
-        });
-      return this;
-    }
-    return this;
-  }
-
-  private addContent(content: string) {
-    this.info.content = this.info.content.concat(content);
+        .concat(this.info.getTitle()) :
+      this.info.getTitle()
   }
 
   private async buildNote() {
-    log.debug(`Builder: ${this.info.paths.size} paths to process`);
-    for (const [, path] of this.info.paths) {
+    log.debug(`Builder: ${this.info.getPaths().size} paths to process`);
+    for (const [, path] of this.info.getPaths()) {
       log.trace(`Builder: processing path ${path}`);
       const file = await FileService.getFile(path);
       if (!file) continue;
       const service = FrontmatterService.instance(file);
       const frontmatter = service.getFrontmatter();
       if (TypeService.isObject(frontmatter)) {
-        this.addFrontMatter(frontmatter);
+        this.content.addFrontMatter(frontmatter);
       }
-      this.addContent(await service.getContent());
+      this.content.add(await service.getContent());
     }
     await this.manageElements();
   }
 
   private async manageElements() {
-    log.debug(`Builder: ${this.info.elements.size} elements to process`);
-    for (const [, element] of this.info.elements) {
+    log.debug(`Builder: ${this.info.getElements().size} elements to process`);
+    for (const [, element] of this.info.getElements()) {
       log.trace(`Builder: processing element ${element.type}`);
       switch (element.type) {
         case "prompt": {
           this.addPrompt(element);
+          break;
         }
         case "calendar": {
           this.addCalendar(element);
+          break;
         }
       }
     }
@@ -182,44 +99,18 @@ export class BuilderRoot {
   private addCalendar(element: SectionElement) {
     const { result, key } = element as CalendarElement;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
-      this.addFrontMatter({ [key]: result });
+      this.content.addFrontMatter({ [key]: result });
     }
   }
 
   private addElementInfo(element: SectionElement) {
     const { result, key, zone } = element as AditionBaseElement;
     if (zone === 'frontmatter') {
-      this.addFrontMatter({ [key]: result });
+      this.content.addFrontMatter({ [key]: result });
     } else if (zone === 'body') {
-      this.modifyContent(key, result as string);
+      this.content.modify(key, result as string);
     } else {
       log.error(`Builder: unknown zone ${zone}`);
     }
-  }
-
-  private addFrontMatter(frontmatter: Record<string, Literal>) {
-    if (frontmatter) {
-      // Check if there are tags
-      if (frontmatter.tags) {
-        this.addTags(frontmatter.tags);
-        delete frontmatter.tags;
-      }
-      // Merge the rest of the frontmatter
-      this.info.frontmatter = { ...this.info.frontmatter, ...frontmatter };
-    }
-  }
-  /**
-   * Substitutes at the content the key for the result (all of them)
-   * 
-   * Expected format in the content: {{key}}
-   * @param key 
-   * @param result 
-   */
-  private modifyContent(key: string, result: string) {
-    // Regular expression to find all the matches of {{key}} in the content and replace them with the result
-    this.info.content = this.info.content.replace(
-      new RegExp(`{{${key}}}`, "g"),
-      result
-    );
   }
 }

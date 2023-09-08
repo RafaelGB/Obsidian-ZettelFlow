@@ -45,8 +45,6 @@ export function ActionSelector(info: ActionBuilderProps) {
           }}
         />
       );
-    case "bridge":
-    // Do nothing - default behavior
     default:
       return (
         <div key={"not-supported-action"}>

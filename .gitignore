@@ -130,3 +130,7 @@ dist
 
 # Macintosh trash
 *.DS_Store
+
+# MkDocs documentation
+/site
+venv

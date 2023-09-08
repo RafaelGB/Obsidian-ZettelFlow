@@ -58,7 +58,12 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set({ position: position + 1 });
       return position + 1;
     },
-    manageElementInfo: (element) =>
+    manageElementInfo: (element, isRecursive) => {
+      if (isRecursive) {
+        // If the element comes from a recursive call, we don't want to add it to the path again
+        return;
+      }
+
       set((state) => {
         const { builder } = state;
         builder.info
@@ -67,7 +72,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         return {
           builder,
         };
-      }),
+      });
+    },
     addElement: (element, result) =>
       set((state) => {
         const { builder } = state;
@@ -78,7 +84,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       }),
     build: async () => {
       const { builder } = get();
-      await builder.build();
+      return await builder.build();
     },
     reset: () => {
       set({

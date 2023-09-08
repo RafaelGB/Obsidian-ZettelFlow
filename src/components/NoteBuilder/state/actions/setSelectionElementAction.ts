@@ -3,13 +3,13 @@ import { NoteBuilderState, StoreNoteBuilderModifier } from "components/NoteBuild
 import { SectionType } from "components/core";
 
 const setSelectionElementAction =
-    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element) => {
+    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, isRecursive?: boolean) => {
         const { previousSections, section, position, header, builder } = get();
         const elementSection: SectionType = {
             ...section,
             element: element,
         };
-        if (position > 0) {
+        if (position > 0 && !isRecursive) {
             previousSections.set(position, {
                 header: header,
                 section: section,

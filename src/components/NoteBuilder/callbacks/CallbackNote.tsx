@@ -9,7 +9,7 @@ import {
   ElementBuilderProps,
   ActionBuilderProps,
 } from "../model/NoteBuilderModel";
-import { Literal } from "architecture/plugin";
+import { FileService, Literal } from "architecture/plugin";
 import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 import { WorkflowStep } from "config";
 import { log } from "architecture";
@@ -109,10 +109,10 @@ function manageElement(
 ) {
   const { actions, title } = state;
   const { modal } = info;
-  const { children } = selected;
+  const { children, isRecursive } = selected;
   delete selectedElement.element.triggered;
   if (children && children.length > 1) {
-    actions.manageElementInfo(selectedElement);
+    actions.manageElementInfo(selectedElement, isRecursive);
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
@@ -126,23 +126,21 @@ function manageElement(
       title: childrenHeader,
     });
   } else if (children && children.length === 1) {
-    actions.manageElementInfo(selectedElement);
+    actions.manageElementInfo(selectedElement, isRecursive);
     actions.incrementPosition();
     nextElement(state, children[0], info);
   } else if (title) {
-    actions.manageElementInfo(selectedElement);
+    actions.manageElementInfo(selectedElement, isRecursive);
     // Build and close modal
     actions
       .build()
-      .then(() => {
-        actions.reset();
+      .then(async (path) => {
+        modal.close();
+        FileService.openFile(path);
       })
       .catch((error) => {
         log.error(error);
         new Notice("Error building note. See console for details.");
-      })
-      .finally(() => {
-        modal.close();
       });
   } else {
     actions.setInvalidTitle(true);

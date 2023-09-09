@@ -4,11 +4,10 @@ import { SectionElement, ZettelFlowElement } from "./ZettelkastenOptionsModel";
 export type StepBuilderInfo = {
     contentEl: HTMLElement,
     isRoot: boolean;
-    targetFolder?: string;
     filename?: string;
     folder?: TFolder;
     menu?: Menu,
-} & Omit<ZettelFlowElement, 'children'>;
+} & ZettelFlowElement;
 
 export type StepSettings = {
     root: boolean

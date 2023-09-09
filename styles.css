@@ -23,6 +23,21 @@
 }
 
 /*****************
+*   NAVBAR
+******************/
+.zettelkasten-flow__navbar {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.zettelkasten-flow__navbar_icons {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: right;
+  margin-right: 1rem;
+}
+/*****************
 *   SELECTOR MENU
 ******************/
 .zettelkasten-flow__icon {

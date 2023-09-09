@@ -13,3 +13,5 @@ export { InputType } from './model/InputModel'
 
 export { Calendar } from './Calendar'
 export { CalendarType } from './model/CalendarModel'
+
+export { NavBar } from './NavBar'

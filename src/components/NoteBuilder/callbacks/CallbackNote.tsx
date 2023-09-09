@@ -62,13 +62,14 @@ function nextElement(
       log.error(`Recursive step not found: ${selected.id}`);
       throw new Error("Recursive step not found");
     }
-    selected = recursiveStep;
+    selected = { ...recursiveStep, isRecursive };
   }
   const { plugin } = info;
   const { settings } = plugin;
-
   const { id } = selected;
   const selectedElement = settings.nodes[id];
+  // console.log("nextElement", selectedElement.element.type);
+
   if (
     selectedElement.element.type !== "bridge" &&
     !selectedElement.element.triggered
@@ -94,7 +95,7 @@ function manageAction(
       actionStep={selected}
       key={`selector-action-${selectedElement.path}`}
     />,
-    false
+    true
   );
   actions.setHeader({
     title:
@@ -112,8 +113,8 @@ function manageElement(
   const { modal } = info;
   const { children, isRecursive } = selected;
   delete selectedElement.element.triggered;
+  actions.manageElementInfo(selectedElement, isRecursive);
   if (children && children.length > 1) {
-    actions.manageElementInfo(selectedElement, isRecursive);
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
@@ -122,17 +123,15 @@ function manageElement(
         childen={children}
         key={`selector-children-${childrenHeader}`}
       />,
-      !isRecursive
+      isRecursive
     );
     actions.setHeader({
       title: childrenHeader,
     });
   } else if (children && children.length === 1) {
-    actions.manageElementInfo(selectedElement, isRecursive);
     actions.incrementPosition();
     nextElement(state, children[0], info);
   } else if (title) {
-    actions.manageElementInfo(selectedElement, isRecursive);
     // Build and close modal
     actions
       .build()

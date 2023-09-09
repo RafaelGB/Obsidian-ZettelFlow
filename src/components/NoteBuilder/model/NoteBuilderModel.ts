@@ -33,8 +33,6 @@ export type NoteBuilderState = {
     invalidTitle: boolean;
     previousSections: Map<number, SavedSection>;
     previousArray: number[];
-    nextSections: Map<number, SavedSection>;
-    nextArray: number[];
     section: SectionType;
     position: number;
     header: HeaderType;
@@ -46,9 +44,8 @@ export type NoteBuilderState = {
         setInvalidTitle: (invalid: boolean) => void;
         setTargetFolder: (folder: string | undefined) => void;
         setHeader: (header: Partial<HeaderType>) => void;
-        setSectionElement: (element: JSX.Element, savePrevious?: boolean) => void;
+        setSectionElement: (element: JSX.Element, isRecursive?: boolean) => void;
         goPrevious: () => void;
-        goNext: () => void;
         build: () => Promise<string>;
         manageElementInfo: (selectedElement: ZettelFlowElement, isRecursive?: boolean) => void;
         addElement: (element: SectionElement, callbackResult: Literal) => void;

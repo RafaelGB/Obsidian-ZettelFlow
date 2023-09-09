@@ -10,7 +10,7 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
         const { element, contentEl } = info;
-        const { type } = element;
+        const { type = "bridge" } = element;
 
         new Setting(contentEl)
             .setName(this.name)

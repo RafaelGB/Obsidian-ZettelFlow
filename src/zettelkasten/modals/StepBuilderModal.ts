@@ -57,16 +57,26 @@ export class StepBuilderModal extends Modal {
     }
 
     private getBaseInfo(): StepBuilderInfo {
-        return {
-            contentEl: this.contentEl,
-            isRoot: false,
-            element: {
-                type: `bridge`
-            },
-            label: ``,
-            childrenHeader: ``,
-            path: ``,
-            ...this.partialInfo
+        if (this.partialInfo === undefined) {
+            return {
+                contentEl: this.contentEl,
+                isRoot: false,
+                element: {
+                    type: `bridge`
+                },
+                label: ``,
+                childrenHeader: ``,
+                path: ``
+            }
+        } else {
+            return {
+                contentEl: this.contentEl,
+                isRoot: this.partialInfo.isRoot === undefined ? false : this.partialInfo.isRoot,
+                element: this.partialInfo.element === undefined ? { type: `bridge` } : this.partialInfo.element,
+                label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,
+                childrenHeader: this.partialInfo.childrenHeader === undefined ? `` : this.partialInfo.childrenHeader,
+                path: this.partialInfo.path === undefined ? `` : this.partialInfo.path,
+            }
         }
     }
 }

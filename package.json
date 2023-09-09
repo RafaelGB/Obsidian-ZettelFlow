@@ -15,14 +15,14 @@
 	"author": "RafaelGB",
 	"license": "MIT",
 	"devDependencies": {
-		"@types/node": "20.5.9",
+		"@types/node": "20.6.0",
 		"@types/react": "18.2.21",
 		"@types/react-dom": "18.2.7",
 		"@typescript-eslint/eslint-plugin": "6.6.0",
 		"@typescript-eslint/parser": "6.6.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.19.2",
-		"eslint": "8.48.0",
+		"eslint": "8.49.0",
 		"eslint-plugin-react": "7.33.2",
 		"jest": "29.6.4",
 		"obsidian": "1.4.4",
@@ -32,6 +32,7 @@
 		"zustand": "4.4.1"
 	},
 	"dependencies": {
+		"@material-tailwind/react": "2.1.1",
 		"@popperjs/core": "2.11.8",
 		"react": "18.2.0",
 		"react-dom": "18.2.0"

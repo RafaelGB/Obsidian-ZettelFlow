@@ -3,25 +3,28 @@ import { NoteBuilderState, StoreNoteBuilderModifier } from "components/NoteBuild
 import { SectionType } from "components/core";
 
 const setSelectionElementAction =
-    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, isRecursive?: boolean) => {
-        const { previousSections, section, position, header, builder } = get();
+    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, savePrevious = true) => {
+        const { previousSections, previousArray, section, position, header, builder } = get();
         const elementSection: SectionType = {
             ...section,
             element: element,
         };
-        if (position > 0 && !isRecursive) {
+        if (savePrevious) {
+            previousArray.push(position);
             previousSections.set(position, {
                 header: header,
                 section: section,
-                path: builder.info.getPath(position - 1),
-                element: builder.info.getElement(position - 1),
+                path: builder.info.getPath(position),
+                element: builder.info.getElement(position),
             });
         }
+
         set({
             position: position + 1,
             section: elementSection,
             previousSections: previousSections,
             nextSections: new Map(),
+            nextArray: [],
         });
         log.trace(`section set from ${position} to ${position + 1}`);
     };

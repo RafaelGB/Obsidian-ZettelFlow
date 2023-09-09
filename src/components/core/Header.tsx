@@ -5,10 +5,18 @@ import { useNoteBuilderStore } from "components/NoteBuilder/state/NoteBuilderSta
 export function Header() {
   const header = useNoteBuilderStore((store) => store.header);
   const actions = useNoteBuilderStore((store) => store.actions);
-  const disablePrevious = useNoteBuilderStore((store) => store.position === 0);
-  const disableNext = useNoteBuilderStore(
-    (store) => store.nextSections.size === 0
+  const disablePrevious = useNoteBuilderStore(
+    (store) => store.previousArray.length === 0
   );
+  const disableNext = useNoteBuilderStore(
+    (store) => store.nextArray.length === 0
+  );
+  const [savedPaths, savedElements, position] = useNoteBuilderStore((store) => [
+    store.builder.info.getPaths().size,
+    store.builder.info.getElements().size,
+    store.position,
+  ]);
+
   const { title } = header;
   return (
     <div className={c("header")}>
@@ -22,6 +30,7 @@ export function Header() {
         {"<"}
       </button>
       <p>{title}</p>
+      <span>{`pos: ${position} - paths: ${savedPaths} - actions: ${savedElements}`}</span>
       <button
         placeholder={"Go to next section"}
         disabled={disableNext}

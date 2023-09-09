@@ -5,18 +5,27 @@ const goNextAction =
     (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => () => {
         const {
             previousSections,
+            previousArray,
             nextSections,
+            nextArray,
             position,
             section,
             header,
             builder,
         } = get();
-        if (nextSections.size === 0) return;
-        const nextPosition = position + 1;
+        const nextPosition = nextArray.pop();
+        if (!nextPosition) {
+            log.error("nextPosition is undefined");
+            return;
+        }
         const nextSection = nextSections.get(nextPosition);
-        if (!nextSection) return;
+        if (!nextSection) {
+            log.error("nextSection is undefined");
+            return;
+        }
         log.trace(`goNext from ${position} to ${nextPosition}`);
         nextSections.delete(nextPosition);
+        previousArray.push(position);
         previousSections.set(position, {
             header: header,
             section: section,
@@ -25,6 +34,7 @@ const goNextAction =
         });
         builder.info.addPath(nextSection.path, position)
             .addFinalElement(nextSection.element, position);
+
         set({
             position: nextPosition,
             nextSections: nextSections,

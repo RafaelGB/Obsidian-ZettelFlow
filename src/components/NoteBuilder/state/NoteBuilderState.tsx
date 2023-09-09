@@ -11,7 +11,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
   position: 0,
   previousSections: new Map(),
+  previousArray: [],
   nextSections: new Map(),
+  nextArray: [],
   invalidTitle: false,
   section: {
     color: "",
@@ -91,7 +93,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         title: "",
         position: 0,
         previousSections: new Map(),
+        previousArray: [],
         nextSections: new Map(),
+        nextArray: [],
         invalidTitle: false,
         section: {
           color: "",

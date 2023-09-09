@@ -93,7 +93,8 @@ function manageAction(
       action={selectedElement}
       actionStep={selected}
       key={`selector-action-${selectedElement.path}`}
-    />
+    />,
+    false
   );
   actions.setHeader({
     title:
@@ -120,7 +121,8 @@ function manageElement(
         {...info}
         childen={children}
         key={`selector-children-${childrenHeader}`}
-      />
+      />,
+      !isRecursive
     );
     actions.setHeader({
       title: childrenHeader,

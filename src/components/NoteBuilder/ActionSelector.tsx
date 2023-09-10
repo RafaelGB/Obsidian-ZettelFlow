@@ -10,11 +10,15 @@ export function ActionSelector(info: ActionBuilderProps) {
 
   const actions = useNoteBuilderStore((state) => state.actions);
   const title = useNoteBuilderStore((state) => state.title);
+  const actionWasTriggered = useNoteBuilderStore(
+    (state) => state.actionWasTriggered
+  );
   const callbackMemo = useMemo(() => {
     return callbackActionBuilder(
       {
-        actions: actions,
-        title: title,
+        actions,
+        title,
+        actionWasTriggered,
       },
       info
     );

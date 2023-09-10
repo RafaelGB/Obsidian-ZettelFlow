@@ -9,11 +9,15 @@ export function ElementSelector(info: ElementBuilderProps) {
   const { settings } = plugin;
   const actions = useNoteBuilderStore((state) => state.actions);
   const title = useNoteBuilderStore((state) => state.title);
+  const actionWasTriggered = useNoteBuilderStore(
+    (state) => state.actionWasTriggered
+  );
   const callbackMemo = useMemo(() => {
     return callbackElementBuilder(
       {
         actions,
         title,
+        actionWasTriggered,
       },
       info
     );

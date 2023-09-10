@@ -15,8 +15,13 @@ import { WorkflowStep } from "config";
 import { log } from "architecture";
 import { ZettelFlowElement } from "zettelkasten";
 
+type CallbackPickedState = Pick<
+  NoteBuilderState,
+  "actions" | "title" | "actionWasTriggered"
+>;
+
 export const callbackRootBuilder =
-  (state: Pick<NoteBuilderState, "actions" | "title">, info: NoteBuilderType) =>
+  (state: CallbackPickedState, info: NoteBuilderType) =>
   (selected: WorkflowStep) => {
     const { actions } = state;
     const { uniquePrefix, uniquePrefixEnabled } = info.plugin.settings;
@@ -27,19 +32,13 @@ export const callbackRootBuilder =
   };
 
 export const callbackElementBuilder =
-  (
-    state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ElementBuilderProps
-  ) =>
+  (state: CallbackPickedState, info: ElementBuilderProps) =>
   (selected: WorkflowStep) => {
     nextElement(state, selected, info);
   };
 
 export const callbackActionBuilder =
-  (
-    state: Pick<NoteBuilderState, "actions" | "title">,
-    info: ActionBuilderProps
-  ) =>
+  (state: CallbackPickedState, info: ActionBuilderProps) =>
   (callbackResult: Literal) => {
     const { action, actionStep } = info;
     const { actions } = state;
@@ -48,7 +47,7 @@ export const callbackActionBuilder =
   };
 
 function nextElement(
-  state: Pick<NoteBuilderState, "actions" | "title">,
+  state: CallbackPickedState,
   selected: WorkflowStep,
   info: NoteBuilderType
 ) {
@@ -64,16 +63,12 @@ function nextElement(
     }
     selected = { ...recursiveStep, isRecursive };
   }
+  const { actionWasTriggered } = state;
   const { plugin } = info;
   const { settings } = plugin;
   const { id } = selected;
   const selectedElement = settings.nodes[id];
-  // console.log("nextElement", selectedElement.element.type);
-
-  if (
-    selectedElement.element.type !== "bridge" &&
-    !selectedElement.element.triggered
-  ) {
+  if (selectedElement.element.type !== "bridge" && !actionWasTriggered) {
     manageAction(selectedElement, selected, state, info);
   } else {
     manageElement(selectedElement, selected, state, info);
@@ -83,11 +78,11 @@ function nextElement(
 function manageAction(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
-  state: Pick<NoteBuilderState, "actions" | "title">,
+  state: CallbackPickedState,
   info: NoteBuilderType
 ) {
   const { actions } = state;
-  selectedElement.element.triggered = true;
+  actions.setActionWasTriggered(true);
   actions.setSectionElement(
     <ActionSelector
       {...info}
@@ -106,13 +101,12 @@ function manageAction(
 function manageElement(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
-  state: Pick<NoteBuilderState, "actions" | "title">,
+  state: CallbackPickedState,
   info: NoteBuilderType
 ) {
   const { actions, title } = state;
   const { modal } = info;
   const { children, isRecursive } = selected;
-  delete selectedElement.element.triggered;
   actions.manageElementInfo(selectedElement, isRecursive);
   if (children && children.length > 1) {
     // Element Selector

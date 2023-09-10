@@ -10,12 +10,16 @@ export function RootSelector(info: NoteBuilderType) {
 
   const title = useNoteBuilderStore((state) => state.title);
   const actions = useNoteBuilderStore((state) => state.actions);
+  const actionWasTriggered = useNoteBuilderStore(
+    (state) => state.actionWasTriggered
+  );
   const callbackMemo = useMemo(
     () =>
       callbackRootBuilder(
         {
           title,
           actions,
+          actionWasTriggered,
         },
         info
       ),

@@ -20,6 +20,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     title: t("flow_selector_placeholder"),
   },
   builder: Builder.default(),
+  actionWasTriggered: false,
   actions: {
     /*
      * DIRECT ACTIONS
@@ -59,21 +60,25 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       return position + 1;
     },
     manageElementInfo: (element, isRecursive) => {
-      console.log("manageElementInfo", isRecursive);
       if (isRecursive) {
         // If the element comes from a recursive call, we don't want to add it to the path again
-        return;
+        set(() => {
+          return {
+            actionWasTriggered: false,
+          };
+        });
+      } else {
+        set((state) => {
+          const { builder, position } = state;
+          builder.info
+            .addPath(element.path, position)
+            .setTargetFolder(element.targetFolder);
+          return {
+            builder,
+            actionWasTriggered: false,
+          };
+        });
       }
-
-      set((state) => {
-        const { builder } = state;
-        builder.info
-          .addPath(element.path, state.position)
-          .setTargetFolder(element.targetFolder);
-        return {
-          builder,
-        };
-      });
     },
     addElement: (element, result) =>
       set((state) => {
@@ -101,6 +106,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         header: {
           title: t("flow_selector_placeholder"),
         },
+        actionWasTriggered: false,
         builder: Builder.default(),
       });
     },
@@ -112,6 +118,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           builder,
         };
       }),
+    setActionWasTriggered: (actionWasTriggered) => {
+      set({ actionWasTriggered });
+    },
     /*
      * COMPLEX ACTIONS
      */

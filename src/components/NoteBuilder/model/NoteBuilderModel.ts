@@ -37,6 +37,7 @@ export type NoteBuilderState = {
     position: number;
     header: HeaderType;
     builder: NoteBuilder;
+    actionWasTriggered: boolean;
     actions: {
         incrementPosition(): number;
         addBridge(): void;
@@ -51,6 +52,7 @@ export type NoteBuilderState = {
         addElement: (element: SectionElement, callbackResult: Literal) => void;
         setPatternPrefix: (prefix: string) => void;
         reset: () => void;
+        setActionWasTriggered: (triggered: boolean) => void;
     }
 }
 

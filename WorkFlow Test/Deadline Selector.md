@@ -4,7 +4,7 @@ zettelFlowSettings:
   element:
     type: calendar
     placeholder: add a deadline to your note...
-    key: date
+    key: deadline
     label: Deadline
     zone: frontmatter
   root: false

@@ -23,6 +23,21 @@
 }
 
 /*****************
+*   NAVBAR
+******************/
+.zettelkasten-flow__navbar {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.zettelkasten-flow__navbar_icons {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: right;
+  margin-right: 1rem;
+}
+/*****************
 *   SELECTOR MENU
 ******************/
 .zettelkasten-flow__icon {
@@ -104,7 +119,8 @@
   position: relative;
 }
 
-.zettelkasten-flow__input-group input {
+.zettelkasten-flow__input-group input,
+textarea {
   border: solid 1.5px var(--background-secondary);
   border-radius: 0.25rem;
   background: none;

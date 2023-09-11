@@ -1,4 +1,4 @@
-import { ObsidianApi } from "architecture";
+import { ObsidianApi, log } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
@@ -76,6 +76,10 @@ export class FrontmatterService {
             Object.entries(content.getFrontmatter()).forEach(([key, value]) => {
                 frontmatter[key] = value;
             });
+        }).catch((error) => {
+            const message = `Error while processing frontmatter: ${error}`;
+            log.error(message);
+            throw new Error(message);
         });
     }
 

@@ -2,8 +2,8 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
-import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
 import { FolderSuggest } from "architecture/settings";
+import { OptionalToggleHandler } from "./OptionalToggleHandler";
 
 export class TargetFolderSuggesterHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_target_folder_title');
@@ -33,6 +33,6 @@ export class TargetFolderSuggesterHandler extends AbstractHandlerClass<StepBuild
     }
 
     public manageNextHandler() {
-        this.nextHandler = new ElementTypeSelectorHandler();
+        this.nextHandler = new OptionalToggleHandler();
     }
 }

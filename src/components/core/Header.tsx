@@ -5,10 +5,10 @@ import { useNoteBuilderStore } from "components/NoteBuilder/state/NoteBuilderSta
 export function Header() {
   const header = useNoteBuilderStore((store) => store.header);
   const actions = useNoteBuilderStore((store) => store.actions);
-  const disablePrevious = useNoteBuilderStore((store) => store.position === 0);
-  const disableNext = useNoteBuilderStore(
-    (store) => store.nextSections.size === 0
+  const disablePrevious = useNoteBuilderStore(
+    (store) => store.previousArray.length === 0
   );
+
   const { title } = header;
   return (
     <div className={c("header")}>
@@ -22,15 +22,6 @@ export function Header() {
         {"<"}
       </button>
       <p>{title}</p>
-      <button
-        placeholder={"Go to next section"}
-        disabled={disableNext}
-        onClick={() => {
-          actions.goNext();
-        }}
-      >
-        {">"}
-      </button>
     </div>
   );
 }

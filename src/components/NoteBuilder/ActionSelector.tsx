@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { ActionBuilderProps } from "./model/NoteBuilderModel";
-import { Calendar, Input } from "components/core";
+import { Calendar, TextArea } from "components/core";
 import { TypeService } from "architecture/typing";
 import { callbackActionBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
@@ -9,20 +9,20 @@ export function ActionSelector(info: ActionBuilderProps) {
   const { action } = info;
 
   const actions = useNoteBuilderStore((state) => state.actions);
-  const title = useNoteBuilderStore((state) => state.title);
+  const data = useNoteBuilderStore((state) => state.data);
   const callbackMemo = useMemo(() => {
     return callbackActionBuilder(
       {
-        actions: actions,
-        title: title,
+        actions,
+        data,
       },
       info
     );
-  }, [title]);
+  }, []);
   switch (action.element.type) {
     case "prompt":
       return (
-        <Input
+        <TextArea
           className={["display-grid"]}
           placeholder={
             TypeService.isString(action.element.placeholder)

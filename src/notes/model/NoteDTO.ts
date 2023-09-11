@@ -64,26 +64,29 @@ export class NoteDTO {
         return this.paths;
     }
 
-    public getPath(pos: number): string {
-        const path = this.paths.get(pos);
-        if (!path) {
-            log.error(`No path found at position ${pos}`);
-            throw new Error(`No path found at position ${pos}`);
-        }
-        return path;
+    public getPath(pos: number): string | undefined {
+        return this.paths.get(pos);
     }
 
     public addPath(path: string, pos: number): NoteDTO {
-        log.trace(`Builder: adding path ${path} at position ${pos}`);
         if (path && pos >= 0) {
+            log.trace(`Builder: adding path ${path} at position ${pos}`);
             this.paths.set(pos, path);
         }
         return this;
     }
 
     public deletePos(pos: number): NoteDTO {
-        this.paths.delete(pos);
-        this.elements.delete(pos);
+        this.paths.forEach((path, position) => {
+            if (position >= pos) {
+                this.paths.delete(position);
+            }
+        });
+        this.elements.forEach((element, position) => {
+            if (position >= pos) {
+                this.elements.delete(position);
+            }
+        });
         return this;
     }
 

@@ -8,16 +8,16 @@ export function ElementSelector(info: ElementBuilderProps) {
   const { childen, plugin } = info;
   const { settings } = plugin;
   const actions = useNoteBuilderStore((state) => state.actions);
-  const title = useNoteBuilderStore((state) => state.title);
+  const data = useNoteBuilderStore((state) => state.data);
   const callbackMemo = useMemo(() => {
     return callbackElementBuilder(
       {
         actions,
-        title,
+        data,
       },
       info
     );
-  }, [title]);
+  }, []);
   return (
     <Select
       key="select-element-section"

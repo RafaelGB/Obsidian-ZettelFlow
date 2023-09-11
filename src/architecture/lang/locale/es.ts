@@ -1,4 +1,5 @@
 export default {
+    navbar_skip_step: 'Saltar paso',
     welcome_tutorial_open_settings: 'Abrir configuración de ZettelFlow',
     welcome_tutorial_welcome_msg: 'Bienvenida/o a ZettelFlow',
     welcome_tutorial_open_canvas: 'Abrir canvas',
@@ -34,6 +35,8 @@ export default {
     step_builder_root_toggle_description: 'Establece el elemento actual como el elemento raíz.',
     step_builder_step_title: 'Nombre del fichero',
     step_builder_step_title_description: 'Este es el nombre del fichero de la nota del paso.',
+    step_builder_optional_toggle_title: 'Opcional',
+    step_builder_optional_toggle_description: 'Establece el elemento actual como opcional.',
     step_builder_section_label_title: 'Etiqueta del paso',
     step_builder_section_label_description: 'Esta es la etiqueta de la sección que se mostrará como opción en el menú.',
     step_builder_section_label_placeholder: 'Nombre de fichero por defecto...',

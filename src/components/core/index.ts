@@ -9,6 +9,7 @@ export { Section } from './Section'
 export { SectionType } from './model/SectionModel'
 
 export { Input } from './Input'
+export { TextArea } from './TextArea'
 export { InputType } from './model/InputModel'
 
 export { Calendar } from './Calendar'

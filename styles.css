@@ -119,7 +119,8 @@
   position: relative;
 }
 
-.zettelkasten-flow__input-group input {
+.zettelkasten-flow__input-group input,
+textarea {
   border: solid 1.5px var(--background-secondary);
   border-radius: 0.25rem;
   background: none;

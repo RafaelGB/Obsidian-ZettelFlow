@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { ActionBuilderProps } from "./model/NoteBuilderModel";
-import { Calendar, Input } from "components/core";
+import { Calendar, Input, TextArea } from "components/core";
 import { TypeService } from "architecture/typing";
 import { callbackActionBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
@@ -26,7 +26,7 @@ export function ActionSelector(info: ActionBuilderProps) {
   switch (action.element.type) {
     case "prompt":
       return (
-        <Input
+        <TextArea
           className={["display-grid"]}
           placeholder={
             TypeService.isString(action.element.placeholder)

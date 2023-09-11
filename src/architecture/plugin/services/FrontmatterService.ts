@@ -1,9 +1,8 @@
 import { ObsidianApi, log } from "architecture";
-import { CachedMetadata, Notice, TFile } from "obsidian";
+import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
 import { ContentDTO } from "notes/model/ContentDTO";
-import { t } from "architecture/lang";
 
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";

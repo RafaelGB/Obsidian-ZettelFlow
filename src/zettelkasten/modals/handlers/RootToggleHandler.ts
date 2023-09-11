@@ -11,6 +11,10 @@ export class RootToggleHandler extends AbstractHandlerClass<StepBuilderModal>  {
         const { info } = modal;
         const { isRoot, contentEl } = info;
         const onChangePromise = (value: boolean) => {
+            if (value) {
+                // If it is root, apply extra logic
+                info.optional = false;
+            }
             info.isRoot = value;
             modal.refresh();
         };

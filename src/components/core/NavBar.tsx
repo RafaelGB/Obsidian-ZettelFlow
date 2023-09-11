@@ -3,13 +3,12 @@ import React from "react";
 import { Input } from "./Input";
 import { useNoteBuilderStore } from "components/NoteBuilder";
 import { c } from "architecture";
-import { Badge } from "@material-tailwind/react";
 import { ActionIcon, TemplateIcon } from "components/icons";
+import { Badge } from "./Badge";
 
 export function NavBar() {
   const actions = useNoteBuilderStore((store) => store.actions);
   const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
-  const [iconIsHovered, setIconIsHovered] = React.useState(false);
   const [savedPaths, savedElements] = useNoteBuilderStore((store) => [
     store.builder.info.getPaths(),
     store.builder.info.getElements(),
@@ -26,18 +25,9 @@ export function NavBar() {
         className={invalidTitle ? ["invalid"] : []}
         required={true}
       />
-      <div className={c("navbar_icons")} onMouseOver={(e) => {}}>
+      <div className={c("navbar_icons")}>
         <Badge content={savedPaths.size} children={<TemplateIcon />} />
         <Badge content={savedElements.size} children={<ActionIcon />} />
-        {/** Display the name of the saved files until now */}
-        {iconIsHovered && (
-          <p>
-            {Object.values(savedPaths).reduce(
-              (acc, path) => acc + " " + path,
-              ""
-            )}
-          </p>
-        )}
       </div>
     </div>
   );

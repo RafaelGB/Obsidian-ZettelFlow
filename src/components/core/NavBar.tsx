@@ -9,6 +9,7 @@ import { Badge } from "./Badge";
 export function NavBar() {
   const actions = useNoteBuilderStore((store) => store.actions);
   const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
+  const enableSkip = useNoteBuilderStore((store) => store.enableSkip);
   const [savedPaths, savedElements] = useNoteBuilderStore((store) => [
     store.builder.info.getPaths(),
     store.builder.info.getElements(),
@@ -25,6 +26,15 @@ export function NavBar() {
         className={invalidTitle ? ["invalid"] : []}
         required={true}
       />
+      {enableSkip && (
+        <button
+          className={c("navbar_skip_button")}
+          onClick={() => console.log("skip")}
+        >
+          {t("navbar_skip_step")}
+        </button>
+      )}
+
       <div className={c("navbar_icons")}>
         <Badge content={savedPaths.size} children={<TemplateIcon />} />
         <Badge content={savedElements.size} children={<ActionIcon />} />

@@ -14,5 +14,6 @@ export type StepSettings = {
     element: SectionElement;
     label?: string
     targetFolder?: string
-    childrenHeader?: string
+    childrenHeader?: string,
+    optional?: boolean,
 }

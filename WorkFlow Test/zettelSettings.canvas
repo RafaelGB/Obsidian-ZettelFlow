@@ -10,7 +10,8 @@
 		{"id":"2ce47a8f818e4dc3","type":"file","file":"WorkFlow Test/Meeting Note.md","x":-846,"y":-50,"width":400,"height":66,"color":"3"},
 		{"id":"3a62b712887a4f16","type":"file","file":"WorkFlow Test/Empty Leaf.md","x":56,"y":-44,"width":249,"height":60},
 		{"id":"252b15ff230b2494","type":"file","file":"WorkFlow Test/Fleeting Notes.md","x":-846,"y":-560,"width":400,"height":68,"color":"5"},
-		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":-275,"y":-552,"width":400,"height":52}
+		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":-275,"y":-552,"width":400,"height":52},
+		{"id":"186895de32b7d2a2","type":"file","file":"WorkFlow Test/Purpose Prompt - frontmatter.md","x":240,"y":-562,"width":502,"height":73}
 	],
 	"edges":[
 		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},
@@ -21,6 +22,7 @@
 		{"id":"58fe76fee71b38bf","fromNode":"55ab3500ffc103be","fromSide":"right","toNode":"724d44fd232322a4","toSide":"left"},
 		{"id":"f6ba96fa796f2b3f","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"f619ee090d4d346a","toSide":"left"},
 		{"id":"85e44a918ef6c088","fromNode":"cb2d607758354109","fromSide":"left","toNode":"2ce47a8f818e4dc3","toSide":"top"},
-		{"id":"28c46ae49fce2efc","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"3a62b712887a4f16","toSide":"left"}
+		{"id":"28c46ae49fce2efc","fromNode":"2ce47a8f818e4dc3","fromSide":"right","toNode":"3a62b712887a4f16","toSide":"left"},
+		{"id":"68307d47b78fcf80","fromNode":"905fabf82d23102c","fromSide":"right","toNode":"186895de32b7d2a2","toSide":"left"}
 	]
 }

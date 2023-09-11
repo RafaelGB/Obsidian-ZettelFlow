@@ -28,12 +28,18 @@ export type SavedSection = {
     path: string;
     element?: FinalElement;
 }
+export type SectionElementOptions = {
+    savePrevious?: boolean;
+    isOptional?: boolean;
+}
+
 export type NoteBuilderState = {
     title: string;
     invalidTitle: boolean;
     previousSections: Map<number, SavedSection>;
     previousArray: number[];
     section: SectionType;
+    enableSkip: boolean;
     position: number;
     header: HeaderType;
     builder: NoteBuilder;
@@ -45,7 +51,7 @@ export type NoteBuilderState = {
         setInvalidTitle: (invalid: boolean) => void;
         setTargetFolder: (folder: string | undefined) => void;
         setHeader: (header: Partial<HeaderType>) => void;
-        setSectionElement: (element: JSX.Element, isRecursive?: boolean) => void;
+        setSectionElement: (element: JSX.Element, config?: Partial<SectionElementOptions>) => void;
         goPrevious: () => void;
         build: () => Promise<string>;
         manageElementInfo: (selectedElement: ZettelFlowElement, isRecursive?: boolean) => void;
@@ -53,6 +59,7 @@ export type NoteBuilderState = {
         setPatternPrefix: (prefix: string) => void;
         reset: () => void;
         setActionWasTriggered: (triggered: boolean) => void;
+        setEnableSkip: (enable: boolean) => void;
     }
 }
 

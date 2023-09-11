@@ -21,6 +21,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   },
   builder: Builder.default(),
   actionWasTriggered: false,
+  enableSkip: false,
   actions: {
     /*
      * DIRECT ACTIONS
@@ -120,6 +121,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       }),
     setActionWasTriggered: (actionWasTriggered) => {
       set({ actionWasTriggered });
+    },
+    setEnableSkip: (enableSkip) => {
+      set({ enableSkip });
     },
     /*
      * COMPLEX ACTIONS

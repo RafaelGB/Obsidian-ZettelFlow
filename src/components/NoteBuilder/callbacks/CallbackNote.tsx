@@ -90,7 +90,7 @@ function manageAction(
       actionStep={selected}
       key={`selector-action-${selectedElement.path}`}
     />,
-    true
+    { isOptional: selectedElement.optional, savePrevious: false }
   );
   actions.setHeader({
     title:
@@ -117,7 +117,10 @@ function manageElement(
         childen={children}
         key={`selector-children-${childrenHeader}`}
       />,
-      isRecursive
+      {
+        isOptional: selectedElement.optional,
+        savePrevious: !isRecursive,
+      }
     );
     actions.setHeader({
       title: childrenHeader,

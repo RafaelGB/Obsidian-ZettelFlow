@@ -1,4 +1,5 @@
 export default {
+    navbar_skip_step: 'Skip step',
     welcome_tutorial_open_settings: 'Open settings of ZettelFlow',
     welcome_tutorial_welcome_msg: 'Welcome to ZettelFlow',
     welcome_tutorial_open_canvas: 'Open canvas',

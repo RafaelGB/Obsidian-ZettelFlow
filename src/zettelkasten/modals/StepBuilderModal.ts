@@ -1,10 +1,10 @@
-import { App, Modal, TFile } from "obsidian";
+import { App, Modal, Notice, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
-import { ObsidianApi } from "architecture";
+import { ObsidianApi, log } from "architecture";
 
 
 export class StepBuilderModal extends Modal {
@@ -35,9 +35,17 @@ export class StepBuilderModal extends Modal {
         this.onOpen();
     }
 
-    async onClose(): Promise<void> {
+    onClose(): void {
+        console.log("Closing StepBuilderModal");
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename).concat(".md");
+        this.saveFile(path).catch((error) => {
+            log.error(error);
+            new Notice(`Error saving file ${path}, check console for more info`);
+        });
+    }
+
+    private async saveFile(path: string): Promise<void> {
         let file = await FileService.getFile(path, false);
         const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
         if (!file) {
@@ -71,6 +79,7 @@ export class StepBuilderModal extends Modal {
         } else {
             return {
                 contentEl: this.contentEl,
+                ...this.partialInfo,
                 isRoot: this.partialInfo.isRoot === undefined ? false : this.partialInfo.isRoot,
                 element: this.partialInfo.element === undefined ? { type: `bridge` } : this.partialInfo.element,
                 label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,

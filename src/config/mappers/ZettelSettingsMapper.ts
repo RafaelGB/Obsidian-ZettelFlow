@@ -65,16 +65,23 @@ export class ZettelSettingsMapper {
             }
         }
         if (TypeService.isObject(pluginSettings)) {
-            const { label, targetFolder, childrenHeader, element } = pluginSettings;
+            const { label, targetFolder, childrenHeader, element, optional } = pluginSettings;
             if (TypeService.isString(label)) {
                 defaultInfo.label = label;
             }
+
             if (TypeService.isString(targetFolder)) {
                 defaultInfo.targetFolder = targetFolder;
             }
+
             if (TypeService.isString(childrenHeader)) {
                 defaultInfo.childrenHeader = childrenHeader;
             }
+
+            if (TypeService.isBoolean(optional)) {
+                defaultInfo.optional = optional;
+            }
+
             defaultInfo.element = this.manageSectionElement(element, color);
         }
         this.sectionMap.set(id, defaultInfo);

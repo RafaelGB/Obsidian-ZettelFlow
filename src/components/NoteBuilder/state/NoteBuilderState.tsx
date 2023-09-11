@@ -5,6 +5,7 @@ import { t } from "architecture/lang";
 import { Builder } from "notes";
 import goPreviousAction from "./actions/goPreviousAction";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
+import infoStep from "./actions/infoState";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
@@ -109,6 +110,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         },
         actionWasTriggered: false,
         builder: Builder.default(),
+        currentStep: undefined,
       });
     },
     setPatternPrefix: (pattern) =>
@@ -125,10 +127,14 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setEnableSkip: (enableSkip) => {
       set({ enableSkip });
     },
+    setCurrentStep: (currentStep) => {
+      set({ currentStep });
+    },
     /*
      * COMPLEX ACTIONS
      */
     setSectionElement: setSelectionElementAction(set, get),
     goPrevious: goPreviousAction(set, get),
   },
+  data: infoStep(set, get),
 }));

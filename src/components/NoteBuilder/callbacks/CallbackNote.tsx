@@ -1,24 +1,16 @@
 import { Notice } from "obsidian";
-import {
-  ActionSelector,
-  NoteBuilderType,
-  NoteBuilderState,
-} from "components/NoteBuilder";
+import { ActionSelector, NoteBuilderType } from "components/NoteBuilder";
 import React from "react";
 import {
   ElementBuilderProps,
   ActionBuilderProps,
+  CallbackPickedState,
 } from "../model/NoteBuilderModel";
 import { FileService, Literal } from "architecture/plugin";
 import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 import { WorkflowStep } from "config";
 import { log } from "architecture";
 import { ZettelFlowElement } from "zettelkasten";
-
-type CallbackPickedState = Pick<
-  NoteBuilderState,
-  "actions" | "title" | "actionWasTriggered"
->;
 
 export const callbackRootBuilder =
   (state: CallbackPickedState, info: NoteBuilderType) =>
@@ -63,12 +55,12 @@ function nextElement(
     }
     selected = { ...recursiveStep, isRecursive };
   }
-  const { actionWasTriggered } = state;
+  const { data } = state;
   const { plugin } = info;
   const { settings } = plugin;
   const { id } = selected;
   const selectedElement = settings.nodes[id];
-  if (selectedElement.element.type !== "bridge" && !actionWasTriggered) {
+  if (selectedElement.element.type !== "bridge" && !data.wasActionTriggered()) {
     manageAction(selectedElement, selected, state, info);
   } else {
     manageElement(selectedElement, selected, state, info);
@@ -104,7 +96,7 @@ function manageElement(
   state: CallbackPickedState,
   info: NoteBuilderType
 ) {
-  const { actions, title } = state;
+  const { actions, data } = state;
   const { modal } = info;
   const { children, isRecursive } = selected;
   actions.manageElementInfo(selectedElement, isRecursive);
@@ -128,7 +120,7 @@ function manageElement(
   } else if (children && children.length === 1) {
     actions.incrementPosition();
     nextElement(state, children[0], info);
-  } else if (title) {
+  } else if (data.getTitle()) {
     // Build and close modal
     actions
       .build()

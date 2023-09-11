@@ -6,7 +6,7 @@ zettelFlowSettings:
     placeholder: write the purpose of your note here...
     key: purpose
     label: Purpose of your note
-    zone: body
+    zone: frontmatter
   root: false
   childrenHeader: ""
   optional: true

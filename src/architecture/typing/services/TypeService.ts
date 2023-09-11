@@ -9,8 +9,12 @@ export class TypeService {
         return typeof value === "string" || value instanceof String;
     }
 
-    public static isNumber(value: any): value is number {
+    public static isNumber(value: unknown): value is number {
         return typeof value === "number" && isFinite(value);
+    }
+
+    public static isBoolean(value: unknown): value is boolean {
+        return typeof value === "boolean";
     }
 
     public static isArray<T>(value: any, typeOf: string): value is Array<T> {

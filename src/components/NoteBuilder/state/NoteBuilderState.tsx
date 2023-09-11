@@ -4,14 +4,14 @@ import { NoteBuilderState } from "../model/NoteBuilderModel";
 import { t } from "architecture/lang";
 import { Builder } from "notes";
 import goPreviousAction from "./actions/goPreviousAction";
-import goNextAction from "./actions/goNextAction";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
+import infoStep from "./actions/infoState";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
   position: 0,
   previousSections: new Map(),
-  nextSections: new Map(),
+  previousArray: [],
   invalidTitle: false,
   section: {
     color: "",
@@ -21,6 +21,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     title: t("flow_selector_placeholder"),
   },
   builder: Builder.default(),
+  actionWasTriggered: false,
+  enableSkip: false,
   actions: {
     /*
      * DIRECT ACTIONS
@@ -35,9 +37,10 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         };
       }),
     setInvalidTitle: (invalidTitle) => {
-      const { invalidTitle: currentInvalidTitle } = get();
+      const { invalidTitle: currentInvalidTitle, builder, position } = get();
       if (currentInvalidTitle !== invalidTitle) {
-        set({ invalidTitle: invalidTitle });
+        builder.info.deletePos(position);
+        set({ invalidTitle, builder });
       }
     },
     setTargetFolder: (targetFolder) =>
@@ -58,21 +61,25 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set({ position: position + 1 });
       return position + 1;
     },
-    manageElementInfo: (element, isRecursive) => {
-      if (isRecursive) {
-        // If the element comes from a recursive call, we don't want to add it to the path again
-        return;
+    manageElementInfo: (element, skipAddToBuilder) => {
+      if (skipAddToBuilder) {
+        set(() => {
+          return {
+            actionWasTriggered: false,
+          };
+        });
+      } else {
+        set((state) => {
+          const { builder, position } = state;
+          builder.info
+            .addPath(element.path, position)
+            .setTargetFolder(element.targetFolder);
+          return {
+            builder,
+            actionWasTriggered: false,
+          };
+        });
       }
-
-      set((state) => {
-        const { builder } = state;
-        builder.info
-          .addPath(element.path, state.position)
-          .setTargetFolder(element.targetFolder);
-        return {
-          builder,
-        };
-      });
     },
     addElement: (element, result) =>
       set((state) => {
@@ -91,7 +98,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         title: "",
         position: 0,
         previousSections: new Map(),
-        nextSections: new Map(),
+        previousArray: [],
         invalidTitle: false,
         section: {
           color: "",
@@ -100,7 +107,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         header: {
           title: t("flow_selector_placeholder"),
         },
+        actionWasTriggered: false,
         builder: Builder.default(),
+        currentStep: undefined,
       });
     },
     setPatternPrefix: (pattern) =>
@@ -111,11 +120,20 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           builder,
         };
       }),
+    setActionWasTriggered: (actionWasTriggered) => {
+      set({ actionWasTriggered });
+    },
+    setEnableSkip: (enableSkip) => {
+      set({ enableSkip });
+    },
+    setCurrentStep: (currentStep) => {
+      set({ currentStep });
+    },
     /*
      * COMPLEX ACTIONS
      */
     setSectionElement: setSelectionElementAction(set, get),
     goPrevious: goPreviousAction(set, get),
-    goNext: goNextAction(set, get),
   },
+  data: infoStep(set, get),
 }));

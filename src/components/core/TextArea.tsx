@@ -2,7 +2,7 @@ import React from "react";
 import { c } from "architecture";
 import { InputType } from "./model/InputModel";
 
-export function Input(info: InputType) {
+export function TextArea(info: InputType) {
   const {
     placeholder,
     className = [],
@@ -14,11 +14,11 @@ export function Input(info: InputType) {
   const [valueState, setValueState] = React.useState<string>(value || "");
   return (
     <div className={c("input-group", ...className)}>
-      <input
+      <textarea
         value={valueState}
-        type="text"
         required={required}
         autoComplete="off"
+        placeholder={placeholder}
         inputMode="text"
         onChange={(event) => {
           const value = event.target.value;
@@ -33,7 +33,6 @@ export function Input(info: InputType) {
           }
         }}
       />
-      <label className={c("input-label")}>{placeholder}</label>
     </div>
   );
 }

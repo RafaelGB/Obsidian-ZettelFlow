@@ -16,7 +16,7 @@ export class StepSectionLabelHandler extends AbstractHandlerClass<StepBuilderMod
         new Setting(contentEl)
             .setName(this.name)
             .setDesc(this.description)
-            .addText(text => {
+            .addTextArea(text => {
                 text
                     .setValue(label)
                     .onChange(onChangePromise)

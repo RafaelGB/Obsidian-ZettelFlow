@@ -22,6 +22,7 @@ export type SectionElement = {
     triggered?: boolean,
     [key: string]: Literal,
 }
+
 export type AditionBaseElement = {
     key: string,
     label: string,

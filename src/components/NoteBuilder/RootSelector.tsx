@@ -8,18 +8,18 @@ export function RootSelector(info: NoteBuilderType) {
   const { plugin } = info;
   const { settings } = plugin;
 
-  const title = useNoteBuilderStore((state) => state.title);
   const actions = useNoteBuilderStore((state) => state.actions);
+  const data = useNoteBuilderStore((state) => state.data);
   const callbackMemo = useMemo(
     () =>
       callbackRootBuilder(
         {
-          title,
           actions,
+          data,
         },
         info
       ),
-    [title, actions, info]
+    []
   );
   return (
     <Select

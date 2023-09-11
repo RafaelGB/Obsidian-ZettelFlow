@@ -31,7 +31,7 @@ function Component(noteBuilderType: NoteBuilderType) {
 
   return settings.workflow?.length > 0 ? (
     <>
-      <NavBar />
+      <NavBar {...noteBuilderType} />
       <Header />
       <Section {...noteBuilderType} />
     </>

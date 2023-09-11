@@ -35,6 +35,7 @@ export type SectionElementOptions = {
 export type NoteBuilderStateInfo = {
     wasActionTriggered: () => boolean;
     getTitle: () => string;
+    getCurrentStep: () => WorkflowStep | undefined;
 }
 
 export type NoteBuilderStateActions = {
@@ -47,7 +48,7 @@ export type NoteBuilderStateActions = {
     setSectionElement: (element: JSX.Element, config?: Partial<SectionElementOptions>) => void;
     goPrevious: () => void;
     build: () => Promise<string>;
-    manageElementInfo: (selectedElement: ZettelFlowElement, isRecursive?: boolean) => void;
+    manageElementInfo: (selectedElement: ZettelFlowElement, skipAddToBuilder?: boolean) => void;
     addElement: (element: SectionElement, callbackResult: Literal) => void;
     setPatternPrefix: (prefix: string) => void;
     reset: () => void;

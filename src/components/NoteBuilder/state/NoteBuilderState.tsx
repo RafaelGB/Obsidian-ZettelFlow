@@ -61,9 +61,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set({ position: position + 1 });
       return position + 1;
     },
-    manageElementInfo: (element, isRecursive) => {
-      if (isRecursive) {
-        // If the element comes from a recursive call, we don't want to add it to the path again
+    manageElementInfo: (element, skipAddToBuilder) => {
+      if (skipAddToBuilder) {
         set(() => {
           return {
             actionWasTriggered: false,

@@ -36,7 +36,6 @@ export class StepBuilderModal extends Modal {
     }
 
     onClose(): void {
-        console.log("Closing StepBuilderModal");
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename).concat(".md");
         this.saveFile(path).catch((error) => {

@@ -1,13 +1,18 @@
 import { t } from "architecture/lang";
 import React from "react";
 import { Input } from "./Input";
-import { useNoteBuilderStore } from "components/NoteBuilder";
+import {
+  NoteBuilderType,
+  callbackSkipNote,
+  useNoteBuilderStore,
+} from "components/NoteBuilder";
 import { c } from "architecture";
 import { ActionIcon, TemplateIcon } from "components/icons";
 import { Badge } from "./Badge";
 
-export function NavBar() {
+export function NavBar(props: NoteBuilderType) {
   const actions = useNoteBuilderStore((store) => store.actions);
+  const data = useNoteBuilderStore((store) => store.data);
   const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
   const enableSkip = useNoteBuilderStore((store) => store.enableSkip);
   const [savedPaths, savedElements] = useNoteBuilderStore((store) => [
@@ -29,7 +34,7 @@ export function NavBar() {
       {enableSkip && (
         <button
           className={c("navbar_skip_button")}
-          onClick={() => console.log("skip")}
+          onClick={callbackSkipNote({ actions, data }, props)}
         >
           {t("navbar_skip_step")}
         </button>

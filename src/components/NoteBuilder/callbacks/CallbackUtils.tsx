@@ -1,44 +1,17 @@
-import { Notice } from "obsidian";
-import { ActionSelector, NoteBuilderType } from "components/NoteBuilder";
-import React from "react";
-import {
-  ElementBuilderProps,
-  ActionBuilderProps,
-  CallbackPickedState,
-} from "../model/NoteBuilderModel";
-import { FileService, Literal } from "architecture/plugin";
-import { ElementSelector } from "components/NoteBuilder/ElementSelector";
 import { WorkflowStep } from "config";
-import { log } from "architecture";
 import { ZettelFlowElement } from "zettelkasten";
+import {
+  CallbackPickedState,
+  NoteBuilderType,
+} from "../model/NoteBuilderModel";
+import { ActionSelector } from "../ActionSelector";
+import React from "react";
+import { ElementSelector } from "../ElementSelector";
+import { Notice } from "obsidian";
+import { log } from "architecture";
+import { FileService } from "architecture/plugin";
 
-export const callbackRootBuilder =
-  (state: CallbackPickedState, info: NoteBuilderType) =>
-  (selected: WorkflowStep) => {
-    const { actions } = state;
-    const { uniquePrefix, uniquePrefixEnabled } = info.plugin.settings;
-    if (uniquePrefixEnabled) {
-      actions.setPatternPrefix(uniquePrefix);
-    }
-    nextElement(state, selected, info);
-  };
-
-export const callbackElementBuilder =
-  (state: CallbackPickedState, info: ElementBuilderProps) =>
-  (selected: WorkflowStep) => {
-    nextElement(state, selected, info);
-  };
-
-export const callbackActionBuilder =
-  (state: CallbackPickedState, info: ActionBuilderProps) =>
-  (callbackResult: Literal) => {
-    const { action, actionStep } = info;
-    const { actions } = state;
-    actions.addElement(action.element, callbackResult);
-    nextElement(state, actionStep, info);
-  };
-
-function nextElement(
+export function nextElement(
   state: CallbackPickedState,
   selected: WorkflowStep,
   info: NoteBuilderType
@@ -55,11 +28,12 @@ function nextElement(
     }
     selected = { ...recursiveStep, isRecursive };
   }
-  const { data } = state;
+  const { data, actions } = state;
   const { plugin } = info;
   const { settings } = plugin;
   const { id } = selected;
   const selectedElement = settings.nodes[id];
+  actions.setCurrentStep(selected);
   if (selectedElement.element.type !== "bridge" && !data.wasActionTriggered()) {
     manageAction(selectedElement, selected, state, info);
   } else {
@@ -67,7 +41,7 @@ function nextElement(
   }
 }
 
-function manageAction(
+export function manageAction(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
   state: CallbackPickedState,
@@ -90,7 +64,7 @@ function manageAction(
   });
 }
 
-function manageElement(
+export function manageElement(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
   state: CallbackPickedState,
@@ -138,7 +112,7 @@ function manageElement(
   }
 }
 
-function findIdInWorkflow(
+export function findIdInWorkflow(
   toFind: string,
   workflow: WorkflowStep[]
 ): WorkflowStep | undefined {

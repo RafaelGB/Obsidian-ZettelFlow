@@ -56,7 +56,7 @@ export function manageAction(
       actionStep={selected}
       key={`selector-action-${selectedElement.path}`}
     />,
-    { isOptional: selectedElement.optional, savePrevious: false }
+    { isOptional: selectedElement.optional, savePrevious: true }
   );
   actions.setHeader({
     title:
@@ -71,7 +71,8 @@ export function manageElement(
   info: NoteBuilderType
 ) {
   const { actions, data } = state;
-  const { modal } = info;
+  const { modal, plugin } = info;
+  const { settings } = plugin;
   const { children, isRecursive } = selected;
   actions.manageElementInfo(selectedElement, isRecursive);
   if (children && children.length > 1) {
@@ -92,8 +93,11 @@ export function manageElement(
       title: childrenHeader,
     });
   } else if (children && children.length === 1) {
-    actions.incrementPosition();
-    nextElement(state, children[0], info);
+    const nextStep = children[0];
+    if (settings.nodes[nextStep.id].element.type === "bridge") {
+      actions.incrementPosition();
+    }
+    nextElement(state, nextStep, info);
   } else if (data.getTitle()) {
     // Build and close modal
     actions

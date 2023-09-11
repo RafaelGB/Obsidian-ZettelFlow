@@ -25,7 +25,7 @@ export type ActionBuilderProps = {
 export type SavedSection = {
     section: SectionType;
     header: HeaderType;
-    path: string;
+    path?: string;
     element?: FinalElement;
 }
 export type SectionElementOptions = {

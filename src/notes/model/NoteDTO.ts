@@ -64,13 +64,8 @@ export class NoteDTO {
         return this.paths;
     }
 
-    public getPath(pos: number): string {
-        const path = this.paths.get(pos);
-        if (!path) {
-            log.error(`No path found at position ${pos}`);
-            throw new Error(`No path found at position ${pos}`);
-        }
-        return path;
+    public getPath(pos: number): string | undefined {
+        return this.paths.get(pos);
     }
 
     public addPath(path: string, pos: number): NoteDTO {

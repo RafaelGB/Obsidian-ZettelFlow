@@ -24,14 +24,14 @@ const setSelectionElementAction =
                 element: builder.info.getElement(position),
             });
         }
-
+        log.trace(`section set from ${position} to ${position + 1}`);
         set({
             position: position + 1,
             section: elementSection,
             previousSections: previousSections,
             enableSkip: isOptional,
         });
-        log.trace(`section set from ${position} to ${position + 1}`);
+
     };
 
 export default setSelectionElementAction;

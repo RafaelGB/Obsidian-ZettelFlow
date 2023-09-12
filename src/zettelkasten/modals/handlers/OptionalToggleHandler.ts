@@ -2,7 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
-import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
+import { ActionSelectorHandler } from "./ActionSelectorHandler";
 
 export class OptionalToggleHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_optional_toggle_title');
@@ -30,6 +30,6 @@ export class OptionalToggleHandler extends AbstractHandlerClass<StepBuilderModal
     }
 
     public manageNextHandler() {
-        this.nextHandler = new ElementTypeSelectorHandler();
+        this.nextHandler = new ActionSelectorHandler();
     }
 }

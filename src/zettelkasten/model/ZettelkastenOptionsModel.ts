@@ -13,7 +13,7 @@ export type ZettelFlowElement = {
 export type SectionInfo = {
     title: string
 }
-export type TypeOption = 'bridge' | 'prompt' | 'calendar';
+export type TypeOption = 'bridge' | 'prompt' | 'calendar' | 'selector';
 export type ZoneOption = 'frontmatter' | 'body';
 export type SectionElement = {
     type: TypeOption,
@@ -34,3 +34,7 @@ export type PromptElement = {
 } & AditionBaseElement;
 
 export type CalendarElement = AditionBaseElement;
+
+export type SelectorElement = {
+    options: Record<string, string>,
+} & AditionBaseElement;

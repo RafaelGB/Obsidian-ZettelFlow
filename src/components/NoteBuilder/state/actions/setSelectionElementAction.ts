@@ -20,7 +20,6 @@ const setSelectionElementAction =
             previousSections.set(position, {
                 header: header,
                 section: section,
-                path: builder.info.getPath(position),
                 element: builder.info.getElement(position),
             });
         }

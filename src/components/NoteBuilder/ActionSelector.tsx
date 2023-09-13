@@ -1,12 +1,13 @@
 import React, { useMemo } from "react";
 import { ActionBuilderProps } from "./model/NoteBuilderModel";
-import { Calendar, TextArea } from "components/core";
+import { Calendar, Dropdown, TextArea } from "components/core";
 import { TypeService } from "architecture/typing";
 import { callbackActionBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
+import { SelectorElement } from "zettelkasten";
 
-export function ActionSelector(info: ActionBuilderProps) {
-  const { action } = info;
+export function ActionSelector(actionProps: ActionBuilderProps) {
+  const { action } = actionProps;
 
   const actions = useNoteBuilderStore((state) => state.actions);
   const data = useNoteBuilderStore((state) => state.data);
@@ -16,7 +17,7 @@ export function ActionSelector(info: ActionBuilderProps) {
         actions,
         data,
       },
-      info
+      actionProps
     );
   }, []);
   switch (action.element.type) {
@@ -40,6 +41,17 @@ export function ActionSelector(info: ActionBuilderProps) {
     case "calendar":
       return (
         <Calendar
+          onConfirm={(value) => {
+            callbackMemo(value);
+          }}
+        />
+      );
+    case "selector":
+      const selectorElement = action.element as SelectorElement;
+      return (
+        <Dropdown
+          options={selectorElement.options}
+          defaultValue={Object.keys(selectorElement.options)[0]}
           onConfirm={(value) => {
             callbackMemo(value);
           }}

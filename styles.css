@@ -22,6 +22,14 @@
   color: var(--background-modifier-error) !important;
 }
 
+.zettelkasten-flow__group {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 0.5rem;
+}
 /*****************
 *   NAVBAR
 ******************/
@@ -107,14 +115,19 @@
   box-shadow: 0 0.125rem 0.25rem var(--background-modifier-success);
 }
 
-.zettelkasten-flow__calendar-group {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 1rem;
-}
+/*****************
+*   CALENDAR
+* .zettelkasten-flow__calendar-group
+******************/
 
+/*****************
+*   DROPDOWN
+* .zettelkasten-flow__dropdown-group
+******************/
+
+/*****************
+*   INPUT - TEXTAREA
+******************/
 .zettelkasten-flow__input-group {
   position: relative;
 }

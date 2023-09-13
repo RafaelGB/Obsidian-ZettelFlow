@@ -8,6 +8,6 @@ zettelFlowSettings:
       Option2: Option 2
     key: keyofselector
     label: select a value
-  label: ""
+  label: lab of selector
   childrenHeader: ""
 ---

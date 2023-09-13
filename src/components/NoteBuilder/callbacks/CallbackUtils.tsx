@@ -56,7 +56,7 @@ export function manageAction(
       actionStep={selected}
       key={`selector-action-${selectedElement.path}`}
     />,
-    { isOptional: selectedElement.optional, savePrevious: true }
+    { isOptional: selectedElement.optional, savePrevious: true, isAction: true }
   );
   actions.setHeader({
     title:
@@ -87,6 +87,7 @@ export function manageElement(
       {
         isOptional: selectedElement.optional,
         savePrevious: !isRecursive,
+        isAction: false,
       }
     );
     actions.setHeader({
@@ -94,8 +95,9 @@ export function manageElement(
     });
   } else if (children && children.length === 1) {
     const nextStep = children[0];
-    if (settings.nodes[nextStep.id].element.type === "bridge") {
-      actions.incrementPosition();
+    const uniqueChild = settings.nodes[nextStep.id];
+    if (uniqueChild.element.type === "bridge") {
+      actions.addBridge(uniqueChild);
     }
     nextElement(state, nextStep, info);
   } else if (data.getTitle()) {
@@ -112,7 +114,6 @@ export function manageElement(
       });
   } else {
     actions.setInvalidTitle(true);
-    new Notice("Title cannot be empty");
   }
 }
 

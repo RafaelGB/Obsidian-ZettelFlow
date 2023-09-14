@@ -67,7 +67,7 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
                             .setIcon("trash")
                             .setTooltip("Delete this option")
                             .onClick(async () => {
-                                delete (info.element as SelectorElement).options[key];
+                                delete (info.element as SelectorElement).options[optionKey];
                                 modal.refresh();
                             });
                     });

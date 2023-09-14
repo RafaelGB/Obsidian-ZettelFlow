@@ -74,7 +74,6 @@ export function manageElement(
   const { settings } = plugin;
   const { children, isRecursive } = selected;
   actions.manageElementInfo(selectedElement, isRecursive);
-  console.log("manageElement");
   if (children && children.length > 1) {
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;

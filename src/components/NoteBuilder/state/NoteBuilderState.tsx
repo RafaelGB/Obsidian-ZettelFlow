@@ -42,7 +42,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       if (invalidTitle) {
         new Notice("Title cannot be empty");
         builder.info.deletePos(position);
-        set({ invalidTitle, builder });
+        set({ invalidTitle, builder, actionWasTriggered: true });
       } else {
         set({ invalidTitle });
       }
@@ -65,7 +65,6 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         const next = position + 1;
         return {
           position: next,
-          actionWasTriggered: false,
         };
       }),
     manageElementInfo: (element, skipAddToBuilder) => {
@@ -87,6 +86,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         builder.info.addElement(element, result, state.position);
         return {
           builder,
+          actionWasTriggered: true,
         };
       }),
     build: async () => {

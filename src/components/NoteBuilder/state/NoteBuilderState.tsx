@@ -6,6 +6,7 @@ import { Builder } from "notes";
 import goPreviousAction from "./actions/goPreviousAction";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
 import infoStep from "./actions/infoState";
+import { Notice } from "obsidian";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
@@ -37,10 +38,13 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         };
       }),
     setInvalidTitle: (invalidTitle) => {
-      const { invalidTitle: currentInvalidTitle, builder, position } = get();
-      if (currentInvalidTitle !== invalidTitle) {
+      const { builder, position } = get();
+      if (invalidTitle) {
+        new Notice("Title cannot be empty");
         builder.info.deletePos(position);
         set({ invalidTitle, builder });
+      } else {
+        set({ invalidTitle });
       }
     },
     setTargetFolder: (targetFolder) =>
@@ -55,20 +59,17 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set((state) => ({
         header: { ...state.header, ...partial },
       })),
-    addBridge: () => set({ position: get().position + 1 }),
-    incrementPosition: () => {
-      const { position } = get();
-      set({ position: position + 1 });
-      return position + 1;
-    },
+    addBridge: () =>
+      set((state) => {
+        const { position } = state;
+        const next = position + 1;
+        return {
+          position: next,
+          actionWasTriggered: false,
+        };
+      }),
     manageElementInfo: (element, skipAddToBuilder) => {
-      if (skipAddToBuilder) {
-        set(() => {
-          return {
-            actionWasTriggered: false,
-          };
-        });
-      } else {
+      if (!skipAddToBuilder) {
         set((state) => {
           const { builder, position } = state;
           builder.info
@@ -76,7 +77,6 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
             .setTargetFolder(element.targetFolder);
           return {
             builder,
-            actionWasTriggered: false,
           };
         });
       }
@@ -135,5 +135,5 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setSectionElement: setSelectionElementAction(set, get),
     goPrevious: goPreviousAction(set, get),
   },
-  data: infoStep(set, get),
+  data: infoStep(get),
 }));

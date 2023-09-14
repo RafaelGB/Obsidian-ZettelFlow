@@ -67,31 +67,32 @@ export class NoteBuilder {
     for (const [, element] of this.info.getElements()) {
       log.trace(`Builder: processing element ${element.type}`);
       switch (element.type) {
-        case "prompt": {
-          this.addPrompt(element);
+        case "selector" || "prompt": {
+          this.addString(element);
           break;
         }
         case "calendar": {
-          this.addCalendar(element);
+          this.addDate(element);
           break;
         }
       }
     }
   }
 
-  private addPrompt(element: SectionElement) {
+  private addString(element: SectionElement) {
     const { key } = element as PromptElement;
     if (TypeService.isString(key)) {
       this.addElementInfo(element);
     }
   }
 
-  private addCalendar(element: SectionElement) {
+  private addDate(element: SectionElement) {
     const { result, key } = element as CalendarElement;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
       this.addElementInfo(element);
     }
   }
+
 
   private addElementInfo(element: SectionElement) {
     const { result, key, zone } = element as AditionBaseElement;

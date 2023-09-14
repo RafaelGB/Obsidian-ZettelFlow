@@ -32,6 +32,7 @@ const goPreviousAction =
         title: t("flow_selector_placeholder"),
       },
       builder,
+      actionWasTriggered: !previousSection?.isAction,
     });
   };
 

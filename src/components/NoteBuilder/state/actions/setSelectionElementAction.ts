@@ -7,10 +7,11 @@ const setSelectionElementAction =
     (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions = {
         savePrevious: true,
         isOptional: false,
+        isAction: false,
     }) => {
         log.trace(`setSelectionElementAction - config: ${JSON.stringify(config)}`);
-        const { previousSections, previousArray, section, position, header, builder } = get();
-        const { savePrevious, isOptional } = config;
+        const { previousSections, previousArray, section, position, header, builder, actionWasTriggered } = get();
+        const { savePrevious, isOptional, isAction = false } = config;
         const elementSection: SectionType = {
             ...section,
             element: element,
@@ -18,10 +19,10 @@ const setSelectionElementAction =
         if (savePrevious) {
             previousArray.push(position);
             previousSections.set(position, {
-                header: header,
-                section: section,
-                path: builder.info.getPath(position),
+                header,
+                section,
                 element: builder.info.getElement(position),
+                isAction: actionWasTriggered,
             });
         }
         log.trace(`section set from ${position} to ${position + 1}`);
@@ -30,6 +31,7 @@ const setSelectionElementAction =
             section: elementSection,
             previousSections: previousSections,
             enableSkip: isOptional,
+            actionWasTriggered: isAction,
         });
 
     };

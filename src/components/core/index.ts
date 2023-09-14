@@ -19,3 +19,6 @@ export { NavBar } from './NavBar'
 
 export { Badge } from './Badge'
 export { BadgeModel } from './model/BadgeModel'
+
+export { Dropdown } from './Dropdown'
+export { DropdownType } from './model/DropdownModel'

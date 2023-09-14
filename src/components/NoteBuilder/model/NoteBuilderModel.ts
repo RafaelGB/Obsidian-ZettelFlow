@@ -25,12 +25,13 @@ export type ActionBuilderProps = {
 export type SavedSection = {
     section: SectionType;
     header: HeaderType;
-    path?: string;
+    isAction: boolean;
     element?: FinalElement;
 }
 export type SectionElementOptions = {
     savePrevious?: boolean;
     isOptional?: boolean;
+    isAction?: boolean;
 }
 export type NoteBuilderStateInfo = {
     wasActionTriggered: () => boolean;
@@ -39,8 +40,7 @@ export type NoteBuilderStateInfo = {
 }
 
 export type NoteBuilderStateActions = {
-    incrementPosition(): number;
-    addBridge(): void;
+    addBridge: (uniqueChild: ZettelFlowElement) => void;
     setTitle: (title: string) => void;
     setInvalidTitle: (invalid: boolean) => void;
     setTargetFolder: (folder: string | undefined) => void;

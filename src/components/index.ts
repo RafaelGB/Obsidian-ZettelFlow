@@ -1,1 +1,1 @@
-export {SelectorMenuModal} from './modals/SelectorMenuModal'
+export { SelectorMenuModal } from '../zettelkasten/modals/SelectorMenuModal'

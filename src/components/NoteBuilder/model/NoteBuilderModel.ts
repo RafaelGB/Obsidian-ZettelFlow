@@ -22,6 +22,10 @@ export type ActionBuilderProps = {
     actionStep: WorkflowStep;
 } & NoteBuilderType;
 
+export type WrappedActionBuilderProps = {
+    callback: (value: unknown) => void;
+} & ActionBuilderProps;
+
 export type SavedSection = {
     section: SectionType;
     header: HeaderType;
@@ -31,7 +35,6 @@ export type SavedSection = {
 export type SectionElementOptions = {
     savePrevious?: boolean;
     isOptional?: boolean;
-    isAction?: boolean;
 }
 export type NoteBuilderStateInfo = {
     wasActionTriggered: () => boolean;

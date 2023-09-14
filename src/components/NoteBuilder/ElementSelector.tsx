@@ -9,6 +9,7 @@ export function ElementSelector(info: ElementBuilderProps) {
   const { settings } = plugin;
   const actions = useNoteBuilderStore((state) => state.actions);
   const data = useNoteBuilderStore((state) => state.data);
+  const position = useNoteBuilderStore((state) => state.position);
   const callbackMemo = useMemo(() => {
     return callbackElementBuilder(
       {
@@ -20,7 +21,7 @@ export function ElementSelector(info: ElementBuilderProps) {
   }, []);
   return (
     <Select
-      key="select-element-section"
+      key={`selector-element-${position}`}
       options={SelectMapper.zettelFlowElementRecord2Options(
         childen,
         settings.nodes

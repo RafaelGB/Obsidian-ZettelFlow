@@ -7,11 +7,10 @@ const setSelectionElementAction =
     (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions = {
         savePrevious: true,
         isOptional: false,
-        isAction: false,
     }) => {
         log.trace(`setSelectionElementAction - config: ${JSON.stringify(config)}`);
         const { previousSections, previousArray, section, position, header, builder, actionWasTriggered } = get();
-        const { savePrevious, isOptional, isAction = false } = config;
+        const { savePrevious, isOptional } = config;
         const elementSection: SectionType = {
             ...section,
             element: element,
@@ -31,7 +30,7 @@ const setSelectionElementAction =
             section: elementSection,
             previousSections: previousSections,
             enableSkip: isOptional,
-            actionWasTriggered: isAction,
+            actionWasTriggered: false,
         });
 
     };

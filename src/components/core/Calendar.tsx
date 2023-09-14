@@ -9,9 +9,7 @@ export function Calendar(info: CalendarType) {
   const [valueState, setValueState] = React.useState<string>("");
   const [inputValid, setInputValid] = React.useState<boolean>(true);
   return (
-    <div
-      className={c("calendar-group", inputValid ? "" : "invalid", ...className)}
-    >
+    <div className={c("group", inputValid ? "" : "invalid", ...className)}>
       <input
         value={valueState}
         type="date"
@@ -31,7 +29,7 @@ export function Calendar(info: CalendarType) {
           }
         }}
       >
-        {t("calendar_component_confirm")}
+        {t("component_confirm")}
       </button>
     </div>
   );

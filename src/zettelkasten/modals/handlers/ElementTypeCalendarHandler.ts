@@ -2,6 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { CalendarElement, StepBuilderModal } from "zettelkasten";
+import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
 
 export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_element_type_calendar_title');
@@ -11,26 +12,13 @@ export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilder
         const { element, contentEl } = info;
         const { type } = element;
         if (type === 'calendar') {
-            const { key, label, zone } = element as CalendarElement;
+            const { key, label } = element as CalendarElement;
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });
 
             new Setting(contentEl)
-                .setName(t("step_builder_element_type_zone_title"))
-                .setDesc(t("step_builder_element_type_zone_description"))
-                .addDropdown(dropdown => {
-                    dropdown
-                        .addOption('frontmatter', t('step_builder_element_type_zone_frontmatter'))
-                        .addOption('body', t('step_builder_element_type_zone_body'))
-                        .setValue(zone || 'frontmatter')
-                        .onChange(async (value) => {
-                            element.zone = value;
-                        });
-                });
-
-            new Setting(contentEl)
-                .setName(t("step_builder_element_type_calendar_key_title"))
-                .setDesc(t("step_builder_element_type_calendar_key_description"))
+                .setName(t("step_builder_element_type_key_title"))
+                .setDesc(t("step_builder_element_type_key_description"))
                 .addText(text => {
                     text
                         .setValue(key || ``)
@@ -52,5 +40,8 @@ export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilder
         }
 
         return this.goNext(modal);
+    }
+    public manageNextHandler(): void {
+        this.nextHandler = new ElementTypeSelectorHandler()
     }
 }

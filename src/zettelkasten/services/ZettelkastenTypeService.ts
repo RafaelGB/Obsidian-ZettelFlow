@@ -1,8 +1,9 @@
 import { SectionElement, TypeOption } from "zettelkasten";
 
 export class ZettelkastenTypeService {
+    public static OPTION_TYPES: string[] = ["bridge", "prompt", "calendar", "selector"];
     public static isSectionType(value: string): value is TypeOption {
-        return (value === "bridge" || value === "prompt" || value === "calendar");
+        return ZettelkastenTypeService.OPTION_TYPES.includes(value);
     }
 
     public static isSectionElement(value: any): value is SectionElement {

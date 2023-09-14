@@ -1,13 +1,12 @@
-import { NoteBuilderState, StoreNoteBuilderModifier } from "components/NoteBuilder";
+import { NoteBuilderState } from "components/NoteBuilder";
 
 const infoStep =
-    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => {
+    (get: () => NoteBuilderState) => {
         return {
             wasActionTriggered: () => get().actionWasTriggered,
             getTitle: () => get().title,
-            getCurrentStep: () => get().currentStep,
+            getCurrentStep: () => get().currentStep
         }
-
     };
 
 export default infoStep;

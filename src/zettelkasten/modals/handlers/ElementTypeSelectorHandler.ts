@@ -39,21 +39,28 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
 
             // Add Label of the options
             Object.entries(options).forEach(([key, value]) => {
-                new Setting(contentEl)
+                let optionKey = key;
+                let optionValue = value;
+                const optionSetting = new Setting(contentEl)
                     .setName(`frontmatter.${key}`)
-                    .setDesc(`alias: ${value}`)
+                    .setDesc(`alias: ${value}`);
+                optionSetting
                     .addText(text => {
                         text
-                            .setValue(key || ``)
-                            .onChange(async (value) => {
-                                delete options[key];
-                                options[key] = value;
+                            .setValue(optionKey || ``)
+                            .onChange(async (newKey) => {
+                                optionSetting.setName(`frontmatter.${newKey}`);
+                                options[newKey] = optionValue;
+                                delete options[optionKey];
+                                optionKey = newKey;
                             });
                     }).addText(text => {
                         text
-                            .setValue(value || ``)
-                            .onChange(async (value) => {
-                                options[key] = value;
+                            .setValue(optionValue || ``)
+                            .onChange(async (newValue) => {
+                                options[optionKey] = newValue;
+                                optionSetting.setDesc(`alias: ${newValue}`);
+                                optionValue = newValue;
                             });
                     }).addButton(button => {
                         button

@@ -48,7 +48,6 @@ export function manageAction(
   info: NoteBuilderType
 ) {
   const { actions } = state;
-  actions.setActionWasTriggered(true);
   actions.setSectionElement(
     <ActionSelector
       {...info}
@@ -56,7 +55,7 @@ export function manageAction(
       actionStep={selected}
       key={`selector-action-${selectedElement.path}`}
     />,
-    { isOptional: selectedElement.optional, savePrevious: true, isAction: true }
+    { isOptional: selectedElement.optional, savePrevious: true }
   );
   actions.setHeader({
     title:
@@ -87,7 +86,6 @@ export function manageElement(
       {
         isOptional: selectedElement.optional,
         savePrevious: !isRecursive,
-        isAction: false,
       }
     );
     actions.setHeader({
@@ -96,6 +94,7 @@ export function manageElement(
   } else if (children && children.length === 1) {
     const nextStep = children[0];
     const uniqueChild = settings.nodes[nextStep.id];
+    actions.setActionWasTriggered(false);
     if (uniqueChild.element.type === "bridge") {
       actions.addBridge(uniqueChild);
     }

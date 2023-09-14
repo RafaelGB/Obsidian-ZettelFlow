@@ -11,9 +11,9 @@
 		{"id":"f619ee090d4d346a","type":"file","file":"WorkFlow Test/Purpose Prompt - frontmatter.md","x":-335,"y":564,"width":491,"height":73},
 		{"id":"724d44fd232322a4","type":"file","file":"WorkFlow Test/Purpose Prompt - frontmatter.md","x":-321,"y":280,"width":502,"height":73},
 		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":505,"y":440,"width":360,"height":80},
-		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":768,"y":920,"width":400,"height":80,"color":"5"},
-		{"id":"b4ac152580a0b8d1","type":"file","file":"WorkFlow Test/Priority selector - frontmatter.md","x":1040,"y":680,"width":472,"height":96},
-		{"id":"57b48aa679a3803d","type":"file","file":"WorkFlow Test/Work task.md","x":554,"y":696,"width":263,"height":65}
+		{"id":"57b48aa679a3803d","type":"file","file":"WorkFlow Test/Work task.md","x":554,"y":696,"width":263,"height":65},
+		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":760,"y":840,"width":400,"height":80,"color":"5"},
+		{"id":"b4ac152580a0b8d1","type":"file","file":"WorkFlow Test/Priority selector - frontmatter.md","x":1080,"y":681,"width":472,"height":96}
 	],
 	"edges":[
 		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},

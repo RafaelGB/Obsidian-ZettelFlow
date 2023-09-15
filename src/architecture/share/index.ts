@@ -1,0 +1,1 @@
+export { generateInstanceId } from './utils/Generator';

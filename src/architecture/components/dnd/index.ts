@@ -1,5 +1,7 @@
-export { Hitbox, Entity, DragOverlayProps } from './model/archDnDModel';
+export { Axis } from './model/CoreDnDModel';
 
 export { Sortable } from './Sortable';
-export { DragOverlay } from './DragOverlay';
 export { DndScope } from './DnDScope';
+export { Droppable } from './Droppable';
+
+export { AbstractDndManager } from './managers/DnDManager';

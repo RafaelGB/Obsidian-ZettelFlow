@@ -30,6 +30,22 @@
   margin-bottom: 1rem;
   gap: 0.5rem;
 }
+
+.zettelkasten-flow__input_group {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  > div {
+    margin-right: 10px;
+  }
+}
+
+.kanban-plugin__input_item {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
 /*****************
 *   NAVBAR
 ******************/

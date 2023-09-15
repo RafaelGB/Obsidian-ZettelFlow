@@ -2,6 +2,7 @@ import { c } from "architecture";
 import React from "react";
 import { OptionItemProps } from "./model/OptionItemModel";
 import { Droppable } from "architecture/components/dnd";
+import { Icon } from "architecture/components/icon";
 
 export function OptionItem(props: OptionItemProps) {
   const { frontmatter, label, index } = props;
@@ -9,9 +10,9 @@ export function OptionItem(props: OptionItemProps) {
   const [frontmatterValue, setFrontmatterValue] = React.useState(frontmatter);
   const [labelValue, setLabelValue] = React.useState(label);
   const body = (
-    <div className={c("setting-input-wrapper")}>
+    <div className={c("input_group")}>
       <div>
-        <div className={c("setting-item-label")}>Frontmatter value</div>
+        <div className={c("input_item")}>Frontmatter value</div>
         <input
           type="text"
           value={frontmatterValue}
@@ -19,7 +20,7 @@ export function OptionItem(props: OptionItemProps) {
         />
       </div>
       <div>
-        <div className={c("setting-item-label")}>Label value</div>
+        <div className={c("input_item")}>Label value</div>
         <input
           type="text"
           value={labelValue}
@@ -29,5 +30,25 @@ export function OptionItem(props: OptionItemProps) {
     </div>
   );
 
-  return <Droppable index={index}>{body}</Droppable>;
+  return (
+    <>
+      <Droppable index={index}>{body}</Droppable>
+      <div className={c("setting-button-wrapper")}>
+        <div
+          className="clickable-icon"
+          onClick={() => console.log("delete")}
+          aria-label="Delete"
+        >
+          <Icon name="lucide-trash-2" />
+        </div>
+        <div
+          className="mobile-option-setting-drag-icon clickable-icon"
+          aria-label="Drag to rearrange"
+          ref={() => console.log("drag")}
+        >
+          <Icon name="lucide-grip-horizontal" />
+        </div>
+      </div>
+    </>
+  );
 }

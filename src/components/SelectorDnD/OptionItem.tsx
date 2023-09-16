@@ -31,9 +31,9 @@ export function OptionItem(props: OptionItemProps) {
   );
 
   return (
-    <>
+    <div className={c("settings-item")}>
       <Droppable index={index}>{body}</Droppable>
-      <div className={c("setting-button-wrapper")}>
+      <div className={c("setting-button-group")}>
         <div
           className="clickable-icon"
           onClick={() => console.log("delete")}
@@ -49,6 +49,6 @@ export function OptionItem(props: OptionItemProps) {
           <Icon name="lucide-grip-horizontal" />
         </div>
       </div>
-    </>
+    </div>
   );
 }

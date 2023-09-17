@@ -4,6 +4,10 @@ import { AbstractDndManager } from "../managers/DnDManager";
 
 export const useDnDManager = create<DnDManagerState>((set, get) => ({
     scopes: new Map(),
+    getScope: (managerId: string) => {
+        const { scopes } = get();
+        return scopes.get(managerId);
+    },
     scopeActions: {
         addScope: (uniqueId: string, manager: AbstractDndManager) => {
             const { scopes } = get();
@@ -24,4 +28,5 @@ export const useDnDManager = create<DnDManagerState>((set, get) => ({
             return true;
         }
     }
+
 }));

@@ -8,7 +8,6 @@ export function DndScope(props: PropsWithChildren<ScopeProps>) {
    * STATE
    */
   const scopeActions = useDnDManager((state) => state.scopeActions);
-
   /**
    * EFFECTS
    */

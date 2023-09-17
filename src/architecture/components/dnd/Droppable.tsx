@@ -6,9 +6,5 @@ export function Droppable(props: PropsWithChildren<DraggableProps>) {
   const { children, index } = props;
   const elementRef = useRef<HTMLDivElement>(null);
 
-  return (
-    <div ref={elementRef} draggable>
-      {children}
-    </div>
-  );
+  return <div ref={elementRef}>{children}</div>;
 }

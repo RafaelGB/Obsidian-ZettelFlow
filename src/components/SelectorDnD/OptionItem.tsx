@@ -1,14 +1,19 @@
 import { c } from "architecture";
-import React from "react";
+import React, { useRef, useState } from "react";
 import { OptionItemProps } from "./model/OptionItemModel";
-import { Droppable } from "architecture/components/dnd";
+import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { Icon } from "architecture/components/icon";
+import { SELECTOR_DND_ID } from "./utils/Identifiers";
 
 export function OptionItem(props: OptionItemProps) {
   const { frontmatter, label, index } = props;
+  const measureRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
 
-  const [frontmatterValue, setFrontmatterValue] = React.useState(frontmatter);
-  const [labelValue, setLabelValue] = React.useState(label);
+  useDragHandle(SELECTOR_DND_ID, measureRef, dragHandleRef);
+
+  const [frontmatterValue, setFrontmatterValue] = useState(frontmatter);
+  const [labelValue, setLabelValue] = useState(label);
   const body = (
     <div className={c("input_group")}>
       <div>
@@ -31,8 +36,10 @@ export function OptionItem(props: OptionItemProps) {
   );
 
   return (
-    <div className={c("settings-item")}>
-      <Droppable index={index}>{body}</Droppable>
+    <div className={c("settings-item")} ref={measureRef}>
+      <Droppable index={index} measureRef={measureRef}>
+        {body}
+      </Droppable>
       <div className={c("setting-button-group")}>
         <div
           className="clickable-icon"
@@ -44,7 +51,7 @@ export function OptionItem(props: OptionItemProps) {
         <div
           className="mobile-option-setting-drag-icon clickable-icon"
           aria-label="Drag to rearrange"
-          ref={() => console.log("drag")}
+          ref={dragHandleRef}
         >
           <Icon name="lucide-grip-horizontal" />
         </div>

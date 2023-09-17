@@ -7,4 +7,5 @@ export interface ScopeActions {
 export interface DnDManagerState {
     scopes: Map<string, AbstractDndManager>;
     scopeActions: ScopeActions;
+    getScope: (uniqueId: string) => AbstractDndManager | undefined;
 }

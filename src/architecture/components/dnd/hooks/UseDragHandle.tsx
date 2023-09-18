@@ -1,6 +1,5 @@
 import { RefObject, useEffect } from "react";
 import { useDnDManager } from "../state/DnDState";
-import { log } from "architecture";
 
 export function useDragHandle(
   managerId: string,
@@ -30,10 +29,11 @@ export function useDragHandle(
     };
     handle.addEventListener("pointerdown", onPointerDown);
     handle.addEventListener("touchstart", swallowTouchEvent);
-
+    manager.addListeners(droppable);
     return () => {
       handle.removeEventListener("pointerdown", onPointerDown);
       handle.removeEventListener("touchstart", swallowTouchEvent);
+      manager.removeListeners(droppable);
     };
   }, [droppableElement, handleElement, manager]);
 }

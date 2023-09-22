@@ -1,11 +1,11 @@
 import { c } from "architecture";
-import { Coordinates } from "../model/CoreDnDModel";
+import { Coordinates, Entity } from "../model/CoreDnDModel";
 import { StylesTool } from "../utils/StylesTool";
-import { on } from "events";
+import { EntityBuilder, findClosestElement } from "../utils/EntityTool";
 
 export abstract class AbstractDndManager {
     isDragging = false;
-    // Ephimerals
+    dragEntity: Entity;
     initialEvent: PointerEvent;
     dragOrigin: Coordinates;
     dragPosition: Coordinates;
@@ -29,6 +29,11 @@ export abstract class AbstractDndManager {
         draggable.classList.remove(c('droppable'));
         this.dragOrigin = { x: pageX, y: pageY };
         this.dragPosition = { x: pageX, y: pageY };
+        this.dragEntity = EntityBuilder
+            .init()
+            .setX(pageX)
+            .setY(pageY)
+            .build();
         // Obtain coordinates of the dragged element
         // this.draggedElement.getBoundingClientRect();
         const onMove = (moveEvent: PointerEvent) => {
@@ -39,24 +44,37 @@ export abstract class AbstractDndManager {
                 console.warn('move event called without dragging');
                 return;
             }
-            const { pageX, pageY } = moveEvent;
+            const { pageX, pageY, clientX, clientY } = moveEvent;
             this.dragPosition = { x: pageX, y: pageY };
-            //this.calculateDragIntersect();
+            // Apply styles to the dragged element
             const styleToApply = StylesTool.getDragOverlayStyles(
                 this.dragPosition,
-                this.dragOrigin,
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]
+                this.dragOrigin
             );
             draggable.setCssStyles(styleToApply);
-            console.log("move");
+            // Find the closest droppable element
+            const closestDroppable = findClosestElement(clientX, clientY, `.${c('droppable')}`);
+            if (!closestDroppable) {
+                return;
+            }
+            const { top, bottom } = closestDroppable.getBoundingClientRect();
+            // Check if the dragged element is under the droppable element
+            const isUnder = clientY > top && clientY < bottom;
+            if (isUnder) {
+                // Check is the pointer is nearest to the top or bottom
+                const isNearTop = Math.abs(top - clientY) < Math.abs(bottom - clientY);
+                // Move the droppable element to the top or bottom with a transition
+                const transition = '0.175s ease-in-out';
+                const transform = `translateY(${isNearTop ? '-100%' : '100%'})`;
+                closestDroppable.setCssStyles({ transform, transition });
+            }
         }
         const onEnd = (endEvent: PointerEvent) => {
             view.removeEventListener('pointermove', onMove);
             view.removeEventListener('pointerup', onEnd);
             view.removeEventListener('pointercancel', onEnd);
             this.isDragging = false;
-            console.log("end");
+            draggable.setCssStyles({ transform: 'translate3d(0px, 0px, 0px)', transition: '0.1s ease-in-out' });
         }
 
         view.addEventListener('pointermove', onMove);

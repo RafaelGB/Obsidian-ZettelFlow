@@ -1,5 +1,6 @@
 import { RefObject, useEffect } from "react";
 import { useDnDManager } from "../state/DnDState";
+import { c } from "architecture";
 
 export function useDragHandle(
   managerId: string,
@@ -17,6 +18,8 @@ export function useDragHandle(
     if (!droppable || !handle) {
       return;
     }
+
+    droppable.classList.add(c("droppable"));
     const onPointerDown = async (e: PointerEvent) => {
       if (!isPointerEventValid(e)) {
         return;

@@ -36,24 +36,24 @@ export function OptionItem(props: OptionItemProps) {
   );
 
   return (
-    <div className={c("settings-item")} ref={measureRef}>
-      <Droppable index={index} measureRef={measureRef}>
-        {body}
-      </Droppable>
-      <div className={c("setting-button-group")}>
-        <div
-          className="clickable-icon"
-          onClick={() => console.log("delete")}
-          aria-label="Delete"
-        >
-          <Icon name="lucide-trash-2" />
-        </div>
-        <div
-          className="mobile-option-setting-drag-icon clickable-icon"
-          aria-label="Drag to rearrange"
-          ref={dragHandleRef}
-        >
-          <Icon name="lucide-grip-horizontal" />
+    <div ref={measureRef}>
+      <div className={c("settings-item")}>
+        <Droppable index={index}>{body}</Droppable>
+        <div className={c("setting-button-group")}>
+          <div
+            className="clickable-icon"
+            onClick={() => console.log("delete")}
+            aria-label="Delete"
+          >
+            <Icon name="lucide-trash-2" />
+          </div>
+          <div
+            className="mobile-option-setting-drag-icon clickable-icon"
+            aria-label="Drag to rearrange"
+            ref={dragHandleRef}
+          >
+            <Icon name="lucide-grip-horizontal" />
+          </div>
         </div>
       </div>
     </div>

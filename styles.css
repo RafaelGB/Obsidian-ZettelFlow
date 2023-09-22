@@ -236,71 +236,7 @@ textarea {
   }
 }
 
-@keyframes goUp {
-  0% {
-    transform: translateY(0);
-  }
-  10% {
-    transform: translateY(-10%);
-  }
-  25% {
-    transform: translateY(-25%);
-  }
-  35% {
-    transform: translateY(-35%);
-  }
-  50% {
-    transform: translateY(-50%);
-  }
-  65% {
-    transform: translateY(-65%);
-  }
-  75% {
-    transform: translateY(-75%);
-  }
-  90% {
-    transform: translateY(-90%);
-  }
-  100% {
-    transform: translateY(-100%);
-  }
-}
-
-@keyframes goDown {
-  0% {
-    transform: translateY(0);
-  }
-  10% {
-    transform: translateY(10%);
-  }
-  25% {
-    transform: translateY(25%);
-  }
-  35% {
-    transform: translateY(35%);
-  }
-  50% {
-    transform: translateY(50%);
-  }
-  65% {
-    transform: translateY(65%);
-  }
-  75% {
-    transform: translateY(75%);
-  }
-  90% {
-    transform: translateY(90%);
-  }
-  100% {
-    transform: translateY(100%);
-  }
-}
-
-.zettelkasten-flow__drag-over {
-  animation: flashFrames 0.25s linear;
-}
-
 /** Just show the draggeable item */
 .zettelkasten-flow__dragging {
-  opacity: 0.5;
+  z-index: 9999;
 }

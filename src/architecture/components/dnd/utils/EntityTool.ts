@@ -44,7 +44,6 @@ export function findClosestElement(x: number, y: number, className: string): HTM
     const elements = document.querySelectorAll(className);
     let closestElement: unknown = null;
     let closestDistance = Infinity;
-
     elements
         .forEach((element) => {
             if (!(element instanceof HTMLDivElement)) {

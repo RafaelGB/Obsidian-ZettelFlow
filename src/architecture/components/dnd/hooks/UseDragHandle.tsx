@@ -32,11 +32,9 @@ export function useDragHandle(
     };
     handle.addEventListener("pointerdown", onPointerDown);
     handle.addEventListener("touchstart", swallowTouchEvent);
-    manager.addListeners(droppable);
     return () => {
       handle.removeEventListener("pointerdown", onPointerDown);
       handle.removeEventListener("touchstart", swallowTouchEvent);
-      manager.removeListeners(droppable);
     };
   }, [droppableElement, handleElement, manager]);
 }

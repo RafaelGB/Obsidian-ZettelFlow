@@ -4,18 +4,13 @@ import { StylesTool } from "../utils/StylesTool";
 import { EntityBuilder, findClosestElement } from "../utils/EntityTool";
 
 export abstract class AbstractDndManager {
+    minDistance = 40;
     isDragging = false;
     dragEntity: Entity;
     initialEvent: PointerEvent;
     dragOrigin: Coordinates;
     dragPosition: Coordinates;
-
-    public addListeners(droppable: HTMLDivElement) {
-    }
-
-    public removeListeners(droppable: HTMLDivElement) {
-
-    }
+    currentDroppable: HTMLDivElement;
 
     async dragStart(startEvent: PointerEvent, draggable: HTMLDivElement) {
         const { view, pageX, pageY } = startEvent;
@@ -63,15 +58,22 @@ export abstract class AbstractDndManager {
             if (isUnder) {
                 // Check is the pointer is nearest to the top or bottom
                 const distance = Math.abs(top - clientY) - Math.abs(bottom - clientY);
-                if (Math.abs(distance) < 30) {
-                    const isNearTop = distance < 0;
+                if (Math.abs(distance) < this.minDistance) {
+                    const moveToBottom = distance < 0;
                     // Move the droppable element to the top or bottom with a transition
                     const transition = '0.175s ease-in-out';
                     // Add a margin to the closest droppable element to make space for the dragged element
                     // The margin size should be equal to the height of the dragged element
-                    const margin = isNearTop ? `${draggable.offsetHeight}px 0 0 0` : `0 0 ${draggable.offsetHeight}px 0`;
+                    const margin = moveToBottom ? `${draggable.offsetHeight}px 0 0 0` : `0 0 ${draggable.offsetHeight}px 0`;
                     closestDroppable.setCssStyles({ margin, transition });
+                    closestDroppable.dataset.dragOver = 'true';
+                    closestDroppable.dataset.moveDirection = moveToBottom ? 'bottom' : 'top';
+                    this.currentDroppable = closestDroppable;
                 }
+            } else {
+                this.currentDroppable?.setCssStyles({ margin: '0' });
+                this.currentDroppable?.removeAttribute('dragOver');
+                this.currentDroppable?.removeAttribute('moveDirection');
             }
         }
         const onEnd = (endEvent: PointerEvent) => {

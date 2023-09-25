@@ -5,7 +5,8 @@ import { c } from "architecture";
 export function useDragHandle(
   managerId: string,
   droppableElement: RefObject<HTMLDivElement | null>,
-  handleElement: RefObject<HTMLDivElement | null>
+  handleElement: RefObject<HTMLDivElement | null>,
+  index: number
 ) {
   const manager = useDnDManager((state) => state.getScope(managerId));
   useEffect(() => {
@@ -20,6 +21,7 @@ export function useDragHandle(
     }
 
     droppable.classList.add(c("droppable"));
+    droppable.dataset.index = index.toString();
     const onPointerDown = async (e: PointerEvent) => {
       if (!isPointerEventValid(e)) {
         return;

@@ -18,7 +18,7 @@ export function DndScope(props: PropsWithChildren<ScopeProps>) {
       // Remove scope from zustand
       scopeActions.removeScope(id);
     };
-  }, [id]);
+  }, [id, manager]);
 
   return children;
 }

@@ -1,7 +1,6 @@
 import { AbstractHandlerClass } from "architecture/patterns";
-import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { SelectorElement, StepBuilderModal } from "zettelkasten";
+import { StepBuilderModal } from "zettelkasten";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { SelectorDnD } from "components/SelectorDnD";

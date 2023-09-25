@@ -10,7 +10,7 @@ export function OptionItem(props: OptionItemProps) {
   const measureRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
 
-  useDragHandle(SELECTOR_DND_ID, measureRef, dragHandleRef);
+  useDragHandle(SELECTOR_DND_ID, measureRef, dragHandleRef, index);
 
   const [frontmatterValue, setFrontmatterValue] = useState(frontmatter);
   const [labelValue, setLabelValue] = useState(label);

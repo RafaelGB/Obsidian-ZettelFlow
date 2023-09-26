@@ -1,4 +1,4 @@
-import { c } from "architecture";
+import { c, log } from "architecture";
 import { Coordinates, Dimensions, Entity } from "../model/CoreDnDModel";
 import { StylesTool } from "../utils/StylesTool";
 import { EntityBuilder, findClosestElement } from "../utils/EntityTool";
@@ -13,6 +13,7 @@ export abstract class AbstractDndManager {
     dragPosition: Coordinates;
     dragIndex: number;
     dropIndex: number;
+    elementCache: Map<number, HTMLDivElement> = new Map();
 
     async dragStart(startEvent: PointerEvent, draggable: HTMLDivElement) {
         const { view, pageX, pageY } = startEvent;
@@ -24,7 +25,8 @@ export abstract class AbstractDndManager {
         draggable.classList.add(c('dragging'));
         draggable.classList.remove(c('droppable'));
         draggable.style.zIndex = '99999';
-        this.dragIndex = this.dropIndex = parseInt(draggable.dataset.index || '0');
+        this.dragIndex = parseInt(draggable.dataset.index || '0');
+        this.dropIndex = parseInt(draggable.dataset.index || '0');
         this.dragOrigin = { x: pageX, y: pageY };
         this.dragPosition = { x: pageX, y: pageY };
         this.dragEntity = EntityBuilder
@@ -37,7 +39,7 @@ export abstract class AbstractDndManager {
                 view.removeEventListener('pointermove', onMove);
                 view.removeEventListener('pointerup', onEnd);
                 view.removeEventListener('pointercancel', onEnd);
-                console.warn('move event called without dragging');
+                log.warn('move event called without dragging');
                 return;
             }
             const { pageX, pageY, clientX, clientY } = moveEvent;
@@ -62,7 +64,6 @@ export abstract class AbstractDndManager {
             const isOnStart = draggableTop > top && draggableBottom < bottom;
 
             if (isOnStart) {
-                console.log('isOnStart');
                 StylesTool.resetElement(closestDroppable, '0.175s ease-in-out');
                 return;
             }
@@ -73,16 +74,14 @@ export abstract class AbstractDndManager {
                 // Check is the pointer is nearest to the top or bottom
                 const distance = Math.abs(top - clientY) - Math.abs(bottom - clientY);
                 if (Math.abs(distance) < this.minDistance) {
+                    const currentIndex = parseInt(closestDroppable.dataset.index || '0');
                     // Check if the droppable element is already moved
-                    if (closestDroppable.dataset.moved === 'true') {
+                    if (this.elementCache.has(currentIndex)) {
                         StylesTool.resetElement(closestDroppable, '0.175s ease-in-out');
-                        closestDroppable.dataset.moved = 'false';
-                        this.triggerAnimationFlag();
+                        this.elementCache.delete(currentIndex);
                     } else {
-                        const currentIndex = parseInt(closestDroppable.dataset.index || '0');
-                        const draggableIndex = parseInt(draggable.dataset.index || '0');
-                        const moveToBottom = currentIndex < draggableIndex;
-                        closestDroppable.dataset.moved = 'true';
+
+                        const moveToBottom = currentIndex < this.dragIndex;
                         //const canMoveUp = draggableTop < top;
 
                         // Move the droppable element to the top or bottom with a transition
@@ -92,6 +91,7 @@ export abstract class AbstractDndManager {
                         const dimensions: Dimensions = draggable.getBoundingClientRect();
                         dimensions.height = moveToBottom ? dimensions.height : -dimensions.height;
                         StylesTool.shiftElement(closestDroppable, dimensions, transition);
+                        this.elementCache.set(currentIndex, closestDroppable);
                         this.dropIndex = currentIndex;
                         this.triggerAnimationFlag();
                     }
@@ -106,7 +106,8 @@ export abstract class AbstractDndManager {
             draggable.classList.remove(c('dragging'));
             draggable.classList.add(c('droppable'));
             draggable.style.removeProperty('z-index');
-            draggable.setCssStyles({ transform: 'translate3d(0px, 0px, 0px)', transition: '0.1s ease-in-out' });
+            StylesTool.resetElement(draggable, '0.1s ease-in-out');
+            this.clearMovedDroppables();
             this.onDrop();
         }
 
@@ -119,7 +120,23 @@ export abstract class AbstractDndManager {
         // Remove animation after the transition is finished
         setTimeout(() => {
             this.isAnimating = false;
-        }, 175);
+        }, 125);
+    }
+
+    private clearMovedDroppables() {
+        const resetedIndexes: number[] = [];
+        // Reset and remove the droppables below the dragged element index and the last droppable index
+        // Iterate over the droppables in the cache
+        this.elementCache.forEach((droppable, key) => {
+            // Reset the droppable element
+            StylesTool.resetElement(droppable, '0.125s ease-in-out');
+            resetedIndexes.push(key);
+
+        });
+        resetedIndexes.forEach((index) => {
+            this.elementCache.delete(index);
+        });
+        this.triggerAnimationFlag();
     }
 
     abstract onDrop(): void;

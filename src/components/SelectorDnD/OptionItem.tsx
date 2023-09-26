@@ -6,7 +6,13 @@ import { Icon } from "architecture/components/icon";
 import { SELECTOR_DND_ID } from "./utils/Identifiers";
 
 export function OptionItem(props: OptionItemProps) {
-  const { frontmatter, label, index } = props;
+  const {
+    frontmatter,
+    label,
+    index,
+    deleteOptionCallback,
+    updateOptionInfoCallback,
+  } = props;
   const measureRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
 
@@ -21,7 +27,10 @@ export function OptionItem(props: OptionItemProps) {
         <input
           type="text"
           value={frontmatterValue}
-          onChange={(e) => setFrontmatterValue(e.target.value)}
+          onChange={(e) => {
+            setFrontmatterValue(e.target.value);
+            updateOptionInfoCallback(index, e.target.value, labelValue);
+          }}
         />
       </div>
       <div>
@@ -29,7 +38,10 @@ export function OptionItem(props: OptionItemProps) {
         <input
           type="text"
           value={labelValue}
-          onChange={(e) => setLabelValue(e.target.value)}
+          onChange={(e) => {
+            setLabelValue(e.target.value);
+            updateOptionInfoCallback(index, frontmatterValue, e.target.value);
+          }}
         />
       </div>
     </div>
@@ -42,7 +54,7 @@ export function OptionItem(props: OptionItemProps) {
         <div className={c("setting-button-group")}>
           <div
             className="clickable-icon"
-            onClick={() => console.log("delete")}
+            onClick={() => deleteOptionCallback(index)}
             aria-label="Delete"
           >
             <Icon name="lucide-trash-2" />

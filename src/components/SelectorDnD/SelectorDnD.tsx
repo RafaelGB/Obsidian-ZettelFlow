@@ -13,21 +13,55 @@ export function SelectorDnD(props: SelectorDnDProps) {
     Object.entries(options)
   );
 
-  const updateOptionsCallback = useCallback(
-    (indexSwap1: number, indexSwap2: number) => {
+  const updateOptions = (origin: number, dropped: number) => {
+    const newOptionsState = [...optionsState];
+    let originEntry = newOptionsState[origin];
+    let auxEntry = newOptionsState[dropped];
+    newOptionsState[dropped] = originEntry;
+    // Once we swap the first element, sort the array between the origin and the dropped
+    // element to keep the order
+    if (origin < dropped) {
+      dropped--;
+      while (origin <= dropped) {
+        const aux = newOptionsState[dropped];
+        newOptionsState[dropped] = auxEntry;
+        auxEntry = aux;
+        dropped--;
+      }
+    } else {
+      dropped++;
+      while (origin >= dropped) {
+        const aux = newOptionsState[dropped];
+        newOptionsState[dropped] = auxEntry;
+        auxEntry = aux;
+        dropped++;
+      }
+    }
+    setOptionsState(newOptionsState);
+    info.element.options = Object.fromEntries(newOptionsState);
+  };
+
+  const deleteOptionCallback = useCallback(
+    (index: number) => {
       const newOptionsState = [...optionsState];
-      const [key1, value1] = newOptionsState[indexSwap1];
-      const [key2, value2] = newOptionsState[indexSwap2];
-      newOptionsState[indexSwap1] = [key2, value2];
-      newOptionsState[indexSwap2] = [key1, value1];
+      newOptionsState.splice(index, 1);
       setOptionsState(newOptionsState);
       info.element.options = Object.fromEntries(newOptionsState);
     },
     [optionsState]
   );
 
+  const updateOptionInfoCallback = useCallback(
+    (index: number, frontmatter: string, label: string) => {
+      const newOptionsState = [...optionsState];
+      newOptionsState[index] = [frontmatter, label];
+      info.element.options = Object.fromEntries(newOptionsState);
+    },
+    [optionsState]
+  );
+
   const managerMemo = useMemo(() => {
-    return SelectorDnDManager.init(updateOptionsCallback);
+    return SelectorDnDManager.init(updateOptions);
   }, [optionsState]);
 
   return (
@@ -43,6 +77,8 @@ export function SelectorDnD(props: SelectorDnDProps) {
                 frontmatter={key}
                 label={value}
                 index={index}
+                deleteOptionCallback={deleteOptionCallback}
+                updateOptionInfoCallback={updateOptionInfoCallback}
               />
             );
           })}

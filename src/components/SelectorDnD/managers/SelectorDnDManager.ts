@@ -10,9 +10,9 @@ export class SelectorDnDManager extends AbstractDndManager {
     }
     public onDrop(): void {
         if (this.dragIndex === this.dropIndex) {
-            log.debug(`SelectorDnDManager.onDrop: ${this.dragIndex} === ${this.dropIndex}`);
+            log.trace(`SelectorDnDManager.onDrop: ${this.dragIndex} === ${this.dropIndex}`);
         } else {
-            log.debug(`SelectorDnDManager.onDrop: ${this.dragIndex} !== ${this.dropIndex}`);
+            log.trace(`SelectorDnDManager.onDrop: ${this.dragIndex} !== ${this.dropIndex}`);
             this.callback(this.dragIndex, this.dropIndex);
         }
     }

@@ -82,11 +82,11 @@ function CalendarWrapper(props: WrappedActionBuilderProps) {
 
 function SelectorWrapper(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
-  const selectorElement = action.element as SelectorElement;
+  const { options, defaultOption } = action.element as SelectorElement;
   return (
     <Dropdown
-      options={selectorElement.options}
-      defaultValue={Object.keys(selectorElement.options)[0]}
+      options={options}
+      defaultValue={defaultOption || Object.keys(options)[0]}
       onConfirm={(value) => {
         callback(value);
       }}

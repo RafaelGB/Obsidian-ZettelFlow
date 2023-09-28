@@ -14,6 +14,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
   const [optionsState, setOptionsState] = useState(Object.entries(options));
 
   const updateOptions = (origin: number, dropped: number) => {
+    console.log("updateOptions", origin, dropped);
     const newOptionsState = [...optionsState];
     let originEntry = newOptionsState[origin];
     let auxEntry = newOptionsState[dropped];

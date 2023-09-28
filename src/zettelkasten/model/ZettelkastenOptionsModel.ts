@@ -37,5 +37,5 @@ export type CalendarElement = AditionBaseElement;
 
 export type SelectorElement = {
     options: Record<string, string>,
-    defaultOption: string,
+    defaultOption?: string,
 } & AditionBaseElement;

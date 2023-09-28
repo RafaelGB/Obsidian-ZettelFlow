@@ -214,6 +214,22 @@ textarea {
   margin-left: 12px;
 }
 
+.zettelkasten-flow__settings-toggle-group > div {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.zettelkasten-flow__settings-toggle-group .checkbox-container {
+  margin-right: 10px;
+}
+
+.zettelkasten-flow__settings-toggle-group
+  .zettelkasten-flow__setting-item-label {
+  margin-bottom: 0;
+}
+
 /*****************
 *   DRAG AND DROP
 ******************/

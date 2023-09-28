@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { SelectorDnDProps } from "./model/DnDSelectorStateModel";
 import { t } from "architecture/lang";
 import { DndScope, Sortable } from "architecture/components/dnd";
@@ -6,12 +6,12 @@ import { SelectorElement } from "zettelkasten";
 import { OptionItem } from "./OptionItem";
 import { SELECTOR_DND_ID } from "./utils/Identifiers";
 import { SelectorDnDManager } from "./managers/SelectorDnDManager";
+import { Icon } from "architecture/components/icon";
 export function SelectorDnD(props: SelectorDnDProps) {
   const { info } = props;
-  const { options = {} } = info.element as SelectorElement;
-  const [optionsState, setOptionsState] = React.useState(
-    Object.entries(options)
-  );
+  const { options = {}, defaultOption } = info.element as SelectorElement;
+  const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
+  const [optionsState, setOptionsState] = useState(Object.entries(options));
 
   const updateOptions = (origin: number, dropped: number) => {
     const newOptionsState = [...optionsState];
@@ -51,14 +51,15 @@ export function SelectorDnD(props: SelectorDnDProps) {
     [optionsState]
   );
 
-  const updateOptionInfoCallback = useCallback(
-    (index: number, frontmatter: string, label: string) => {
-      const newOptionsState = [...optionsState];
-      newOptionsState[index] = [frontmatter, label];
-      info.element.options = Object.fromEntries(newOptionsState);
-    },
-    [optionsState]
-  );
+  const updateOptionInfoCallback = (
+    index: number,
+    frontmatter: string,
+    label: string
+  ) => {
+    const newOptionsState = [...optionsState];
+    newOptionsState[index] = [frontmatter, label];
+    info.element.options = Object.fromEntries(newOptionsState);
+  };
 
   const managerMemo = useMemo(() => {
     return SelectorDnDManager.init(updateOptions);
@@ -68,6 +69,22 @@ export function SelectorDnD(props: SelectorDnDProps) {
     <div>
       <h3>{t("step_builder_element_type_selector_title")}</h3>
       <p>{t("step_builder_element_type_selector_description")}</p>
+      <div
+        className="clickable-icon"
+        onClick={() => {
+          const newOptionsState = [...optionsState];
+          // add at the start
+          newOptionsState.unshift([
+            `newOption${newOptionsState.length}`,
+            `newOption ${newOptionsState.length}`,
+          ]);
+          setOptionsState(newOptionsState);
+          info.element.options = Object.fromEntries(newOptionsState);
+        }}
+        aria-label="Add option"
+      >
+        <Icon name="lucide-plus" />
+      </div>
       <DndScope id={SELECTOR_DND_ID} manager={managerMemo}>
         <Sortable axis="vertical">
           {optionsState.map(([key, value], index) => {
@@ -75,10 +92,15 @@ export function SelectorDnD(props: SelectorDnDProps) {
               <OptionItem
                 key={`option-${index}-${key}`}
                 frontmatter={key}
+                isDefault={defaultOptionState === key}
                 label={value}
                 index={index}
                 deleteOptionCallback={deleteOptionCallback}
                 updateOptionInfoCallback={updateOptionInfoCallback}
+                changeDefaultCallback={(defaultOption) => {
+                  setDefaultOptionState(defaultOption);
+                  info.element.defaultOption = defaultOption;
+                }}
               />
             );
           })}

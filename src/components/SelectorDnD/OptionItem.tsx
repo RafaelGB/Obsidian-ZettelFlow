@@ -10,8 +10,10 @@ export function OptionItem(props: OptionItemProps) {
     frontmatter,
     label,
     index,
+    isDefault,
     deleteOptionCallback,
     updateOptionInfoCallback,
+    changeDefaultCallback,
   } = props;
   const measureRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,18 @@ export function OptionItem(props: OptionItemProps) {
             updateOptionInfoCallback(index, frontmatterValue, e.target.value);
           }}
         />
+      </div>
+      <div className={c("settings-toggle-group")}>
+        <div>
+          <div
+            className={`checkbox-container${isDefault ? " is-enabled" : ""}`}
+            onClick={() => {
+              changeDefaultCallback(frontmatter);
+            }}
+            aria-label={"Set as default"}
+          />
+          <div className={c("setting-item-label")}>{"Set as default"}</div>
+        </div>
       </div>
     </div>
   );

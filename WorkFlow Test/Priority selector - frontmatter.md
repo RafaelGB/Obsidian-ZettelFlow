@@ -4,8 +4,8 @@ zettelFlowSettings:
   element:
     type: selector
     options:
-      P1: Max level of priority
       P2: Urgently
+      P1: Max level of priority
       P3: Moderate
       P4: Minor
       P5: Trivial

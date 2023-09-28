@@ -1,16 +1,22 @@
 import { AbstractHandlerClass } from "architecture/patterns";
-import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { SelectorElement, StepBuilderModal } from "zettelkasten";
+import { StepBuilderModal } from "zettelkasten";
+import { createRoot } from "react-dom/client";
+import React from "react";
+import { SelectorDnD } from "components/SelectorDnD";
 
-export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
-    name = t('step_builder_element_type_selector_title');
-    description = t('step_builder_element_type_selector_description');
-    handle(modal: StepBuilderModal): StepBuilderModal {
-        const { info } = modal;
-        const { element, contentEl } = info;
-        const { type = "bridge" } = element;
-        if (type === 'selector') {
+export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilderModal> {
+  name = t("step_builder_element_type_selector_title");
+  description = t("step_builder_element_type_selector_description");
+  handle(modal: StepBuilderModal): StepBuilderModal {
+    const { info } = modal;
+    const { element, contentEl } = info;
+    const { type = "bridge" } = element;
+    if (type === "selector") {
+      const elementSelectorChild = contentEl.createDiv();
+      const root = createRoot(elementSelectorChild);
+      root.render(<SelectorDnD info={info} />);
+      /*
             const { key, label, options = {} } = element as SelectorElement;
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });
@@ -88,7 +94,8 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
                             modal.refresh();
                         });
                 });
-        }
-        return this.goNext(modal);
+            */
     }
+    return this.goNext(modal);
+  }
 }

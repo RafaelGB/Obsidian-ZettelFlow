@@ -12,6 +12,7 @@ zettelFlowSettings:
     key: priority
     label: Priority of the task
     zone: frontmatter
+    defaultOption: P3
   label: Select a priority level
   childrenHeader: ""
 ---

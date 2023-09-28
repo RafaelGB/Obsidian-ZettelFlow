@@ -30,6 +30,22 @@
   margin-bottom: 1rem;
   gap: 0.5rem;
 }
+
+.zettelkasten-flow__input_group {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.zettelkasten-flow__input_group > div {
+  margin-right: 10px;
+}
+
+.kanban-plugin__input_item {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
 /*****************
 *   NAVBAR
 ******************/
@@ -170,4 +186,77 @@ textarea {
 .zettelkasten-flow__welcome-tutorial li {
   /* space between list items */
   padding-bottom: 0.35rem;
+}
+/*****************
+*   SETTINGS
+******************/
+.zettelkasten-flow__settings-item {
+  border-top: 1px solid var(--background-modifier-border);
+  background-color: var(--background-secondary);
+  width: 100%;
+  font-size: 16px;
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  color: var(--text-muted);
+  justify-content: space-between;
+}
+
+.zettelkasten-flow__setting-button-group {
+  display: flex;
+  justify-content: flex-end;
+  flex-grow: 1;
+  flex-shrink: 0;
+  max-width: 25px;
+}
+
+.zettelkasten-flow__setting-button-group > div {
+  margin-left: 12px;
+}
+
+.zettelkasten-flow__settings-toggle-group > div {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.zettelkasten-flow__settings-toggle-group .checkbox-container {
+  margin-right: 10px;
+}
+
+.zettelkasten-flow__settings-toggle-group
+  .zettelkasten-flow__setting-item-label {
+  margin-bottom: 0;
+}
+
+/*****************
+*   DRAG AND DROP
+******************/
+/** Flash animation when dragging over a dropzone */
+@keyframes flashFrames {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  75% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/** Just show the draggeable item */
+.zettelkasten-flow__dragging {
+  z-index: 9999;
+  border: 2px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  background-color: var(--background-secondary);
+  box-shadow: 0 0.125rem 0.25rem var(--background-modifier-border);
 }

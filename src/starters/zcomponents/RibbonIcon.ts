@@ -1,9 +1,9 @@
 import { PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
-import { SelectorMenuModal } from "components";
 import ZettlelFlow from "main";
 import { addIcon } from "obsidian";
+import { SelectorMenuModal } from "zettelkasten";
 
 export class RibbonIcon extends PluginComponent {
     public static ID = 'zettelflow-ribbon-icon';

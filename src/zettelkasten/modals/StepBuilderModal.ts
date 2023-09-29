@@ -10,6 +10,7 @@ import { ObsidianApi, log } from "architecture";
 export class StepBuilderModal extends Modal {
     info: StepBuilderInfo;
     mode = "edit";
+    chain = new StepTitleHandler();
     constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
         super(app);
         this.info = this.getBaseInfo();
@@ -27,7 +28,7 @@ export class StepBuilderModal extends Modal {
         this.info.contentEl.createEl("h2", { text: t("step_builder_title") })
             // Separator
             .appendChild(span);
-        new StepTitleHandler().handle(this);
+        this.chain.handle(this);
     }
 
     refresh(): void {
@@ -42,6 +43,7 @@ export class StepBuilderModal extends Modal {
             log.error(error);
             new Notice(`Error saving file ${path}, check console for more info`);
         });
+        this.chain.postAction();
     }
 
     private async saveFile(path: string): Promise<void> {

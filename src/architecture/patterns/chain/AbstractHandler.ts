@@ -1,6 +1,7 @@
 export interface AbstractHandler<T> {
     manageNextHandler(): void;
     handle(response: T): T;
+    postAction(): void;
 }
 
 export abstract class AbstractHandlerClass<T> implements AbstractHandler<T> {
@@ -21,6 +22,17 @@ export abstract class AbstractHandlerClass<T> implements AbstractHandler<T> {
 
     public manageNextHandler(): void {
         this.nextHandler = undefined;
+    }
+
+    public nextPostAction(): void {
+        if (this.nextHandler) {
+            this.nextHandler.postAction();
+
+        }
+    }
+
+    postAction(): void {
+        this.nextPostAction();
     }
 
     abstract handle(settingHandlerResponse: T): T;

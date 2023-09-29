@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { SelectorDnDProps } from "./model/DnDSelectorStateModel";
 import { t } from "architecture/lang";
 import { DndScope, Sortable } from "architecture/components/dnd";
@@ -12,9 +12,12 @@ export function SelectorDnD(props: SelectorDnDProps) {
   const { options = {}, defaultOption } = info.element as SelectorElement;
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
   const [optionsState, setOptionsState] = useState(Object.entries(options));
-
+  useEffect(() => {
+    return () => {
+      info.element.options = Object.fromEntries(optionsState);
+    };
+  }, [optionsState]);
   const updateOptions = (origin: number, dropped: number) => {
-    console.log("updateOptions", origin, dropped);
     const newOptionsState = [...optionsState];
     let originEntry = newOptionsState[origin];
     let auxEntry = newOptionsState[dropped];
@@ -39,7 +42,6 @@ export function SelectorDnD(props: SelectorDnDProps) {
       }
     }
     setOptionsState(newOptionsState);
-    info.element.options = Object.fromEntries(newOptionsState);
   };
 
   const deleteOptionCallback = useCallback(

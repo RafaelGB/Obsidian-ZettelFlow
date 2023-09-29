@@ -113,7 +113,7 @@ export abstract class AbstractDndManager {
             draggable.classList.add(c('droppable'));
             draggable.style.removeProperty('z-index');
             StylesTool.resetElement(draggable, '0.1s ease-in-out');
-            this.clearMovedDroppables();
+            this.clearAllDroppables();
             this.onDrop();
         }
 
@@ -128,18 +128,14 @@ export abstract class AbstractDndManager {
         }, 100);
     }
 
-    private clearMovedDroppables() {
-        const resetedIndexes: number[] = [];
-        // Reset and remove the droppables below the dragged element index and the last droppable index
-        // Iterate over the droppables in the cache
-        this.elementCache.forEach((droppable, key) => {
-            // Reset the droppable element
-            StylesTool.resetElement(droppable, '0.125s ease-in-out');
-            resetedIndexes.push(key);
-
-        });
-        resetedIndexes.forEach((index) => {
-            this.elementCache.delete(index);
+    private clearAllDroppables() {
+        console.log('clearing all droppables');
+        const droppables = document.querySelectorAll(`.${c("droppable")}`);
+        droppables.forEach((droppable) => {
+            if (!(droppable instanceof HTMLDivElement)) {
+                return;
+            }
+            StylesTool.resetElement(droppable, '0.075s ease-in-out');
         });
     }
 

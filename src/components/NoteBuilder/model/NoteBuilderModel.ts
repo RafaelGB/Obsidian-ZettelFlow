@@ -1,14 +1,14 @@
 import { Literal } from "architecture/plugin";
 import { HeaderType, SectionType } from "components/core";
 import { WorkflowStep } from "config";
-import ZettlelFlow from "main";
+import ZettelFlow from "main";
 import { FinalElement } from "notes";
 import { NoteBuilder } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
 import { SectionElement, ZettelFlowElement } from "zettelkasten";
 
 export type NoteBuilderType = {
-    plugin: ZettlelFlow;
+    plugin: ZettelFlow;
     modal: Modal;
 }
 

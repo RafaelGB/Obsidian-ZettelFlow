@@ -44,7 +44,7 @@ export function WelcomeTutorial(noteBuilderType: NoteBuilderType) {
           <p>{t("welcome_tutorial_steps_guide")}</p>
         </li>
         <li>
-          <a href="https://github.com/RafaelGB/Obsidian-ZettlelFlow/tree/main/WorkFlow%20Test">
+          <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/WorkFlow%20Test">
             {t("welcome_tutorial_steps_examples")}
           </a>
         </li>

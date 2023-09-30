@@ -1,9 +1,9 @@
 # Obsidian-ZettelFlow
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettlelFlow/releases/latest)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)]()
 
 - [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)
-- [Examples](https://github.com/RafaelGB/Obsidian-ZettlelFlow/tree/main/WorkFlow%20Test)
+- [Examples](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/WorkFlow%20Test)
 
 ## Introduction: Designing Your Zettelkasten Workflow with the Obsidian-ZettelFlow
 Welcome to the Obsidian-ZettelFlow - your essential solution for optimizing your Zettelkasten method within the [Obsidian app](https://obsidian.md/). This innovative plugin empowers you to effortlessly configure a customized workflow, enabling the seamless creation of new notes while specifying properties, templates, and storage locations through the native canvas interface.

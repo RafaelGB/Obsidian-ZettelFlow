@@ -3,6 +3,7 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal, TypeOption } from "zettelkasten";
 import { ElementTypePromptHandler } from "./ElementTypePromptHandler";
+import { actionsStore } from "architecture/api/store/ActionsStore";
 
 export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_action_selector_title');
@@ -16,10 +17,11 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
             .setName(this.name)
             .setDesc(this.description)
             .addDropdown(dropdown => {
-                dropdown.addOption('bridge', t('type_option_bridge'))
-                    .addOption('prompt', t('type_option_prompt'))
-                    .addOption('calendar', t('type_option_calendar'))
-                    .addOption('selector', t('type_option_selector'))
+                dropdown.addOption('bridge', t('type_option_bridge'));
+                actionsStore.getActionsKeys().forEach(key => {
+                    dropdown.addOption(key, actionsStore.getAction(key).getLabel());
+                });
+                dropdown
                     .setValue(type)
                     .onChange(async (value) => {
                         element.type = value as TypeOption;
@@ -47,6 +49,7 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
     }
 
     public manageNextHandler(): void {
+        const keys = actionsStore.getActionsKeys()
         this.nextHandler = new ElementTypePromptHandler()
     }
 }

@@ -6,16 +6,22 @@ import { CanvasView } from 'obsidian/canvas';
 import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
+import { actionsStore } from 'architecture/api/store/ActionsStore';
+import { CalendarAction, PromptAction, SelectorAction } from 'actions';
 
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
 		loadPluginComponents(this);
+		this.registerActions();
 		this.registerEvents();
+
 	}
 
-	onunload() { }
+	onunload() {
+		actionsStore.unregisterAll();
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -28,6 +34,12 @@ export default class ZettelFlow extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	registerActions() {
+		actionsStore.registerAction("prompt", new PromptAction());
+		actionsStore.registerAction("selector", new SelectorAction());
+		actionsStore.registerAction("calendar", new CalendarAction());
 	}
 
 	registerEvents() {

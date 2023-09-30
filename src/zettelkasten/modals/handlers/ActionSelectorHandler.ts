@@ -2,7 +2,6 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal, TypeOption } from "zettelkasten";
-import { ElementTypePromptHandler } from "./ElementTypePromptHandler";
 import { actionsStore } from "architecture/api/store/ActionsStore";
 
 export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
@@ -49,7 +48,6 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
     }
 
     public manageNextHandler(): void {
-        const keys = actionsStore.getActionsKeys()
-        this.nextHandler = new ElementTypePromptHandler()
+        this.nextHandler = actionsStore.getInitialChain();
     }
 }

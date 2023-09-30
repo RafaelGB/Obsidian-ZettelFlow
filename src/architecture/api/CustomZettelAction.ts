@@ -1,12 +1,12 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { FinalElement } from "notes";
+import { ContentDTO, FinalElement } from "notes";
 import { StepBuilderModal } from "zettelkasten";
 
 export abstract class CustomZettelAction {
+    abstract stepHandler: AbstractHandlerClass<StepBuilderModal>;
     abstract component(props: WrappedActionBuilderProps): JSX.Element;
-    abstract action(element: FinalElement): Promise<void>;
+    abstract execute(element: FinalElement, content: ContentDTO): Promise<void>;
     abstract getIcon(): string;
     abstract getLabel(): string;
-    abstract stepHandler(): AbstractHandlerClass<StepBuilderModal>;
 }

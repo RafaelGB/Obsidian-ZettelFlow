@@ -1,5 +1,7 @@
 import { Literal } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
+import { FinalElement } from "./FinalNoteModel";
+import { log } from "architecture";
 
 export class ContentDTO {
     private tags: string[] = [];
@@ -74,6 +76,28 @@ export class ContentDTO {
             }
             // Merge the rest of the frontmatter
             this.frontmatter = { ...this.frontmatter, ...frontmatter };
+        }
+    }
+
+    public addElement(element: FinalElement) {
+
+        const { result, key, zone } = element;
+        if (!key || typeof key !== "string") {
+            log.error(`adding element with invalid key: ${key}`);
+            return;
+        }
+        switch (zone) {
+            case "frontmatter": {
+                this.addFrontMatter({ [key]: result });
+                break;
+            }
+            case "body": {
+                this.modify(key, result as string);
+                break;
+            }
+            default: {
+                // Do nothing
+            }
         }
     }
 }

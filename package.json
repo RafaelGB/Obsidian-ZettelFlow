@@ -1,7 +1,7 @@
 {
   "name": "zettelflow",
   "version": "0.2.0",
-  "description": "A plugin for Obsidian that allows you to create and manage notes in a Zettlekasten-like way.",
+  "description": "A plugin for Obsidian that allows you to create and manage notes in a ZettelFlow-like way.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

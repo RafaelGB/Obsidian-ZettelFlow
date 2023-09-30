@@ -7,7 +7,7 @@ import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
 
-export default class ZettlelFlow extends Plugin {
+export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
@@ -68,11 +68,11 @@ export default class ZettlelFlow extends Plugin {
 					);
 				} else if (file instanceof TFile) {
 					if (file.extension === "md") {
-						const zettleFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
+						const zettelFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
 						let mappedInfo = {};
 						let title = t("menu_pane_transform_note_into_step");
-						if (zettleFlowSettings) {
-							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettleFlowSettings);
+						if (zettelFlowSettings) {
+							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
 							title = t("menu_pane_edit_step");
 						}
 						menu.addItem((item) => {

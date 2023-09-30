@@ -1,17 +1,17 @@
-# Obsidian-ZettlelFlow
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettlelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettlelFlow/releases/latest)
-[![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettlelFlow/total?style=for-the-badge)]()
+# Obsidian-ZettelFlow
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettlelFlow/releases/latest)
+[![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)]()
 
 - [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)
 - [Examples](https://github.com/RafaelGB/Obsidian-ZettlelFlow/tree/main/WorkFlow%20Test)
 
-## Introduction: Designing Your Zettelkasten Workflow with the Obsidian-ZettlelFlow
-Welcome to the Obsidian-ZettlelFlow - your essential solution for optimizing your Zettelkasten method within the [Obsidian app](https://obsidian.md/). This innovative plugin empowers you to effortlessly configure a customized workflow, enabling the seamless creation of new notes while specifying properties, templates, and storage locations through the native canvas interface.
+## Introduction: Designing Your Zettelkasten Workflow with the Obsidian-ZettelFlow
+Welcome to the Obsidian-ZettelFlow - your essential solution for optimizing your Zettelkasten method within the [Obsidian app](https://obsidian.md/). This innovative plugin empowers you to effortlessly configure a customized workflow, enabling the seamless creation of new notes while specifying properties, templates, and storage locations through the native canvas interface.
 
 ## Navigating the Zettelkasten Approach: A Concise Overview
-[Zettlekasten](https://zettelkasten.de/), originally conceptualized by sociologist Niklas Luhmann, is a sophisticated technique for note-taking and knowledge organization. The method centers on the idea that insights are best captured as individual "Zettels," which are interconnected to form a dynamic network of ideas. This network encourages a deeper understanding and enhances creativity.
+[Zettelkasten](https://zettelkasten.de/), originally conceptualized by sociologist Niklas Luhmann, is a sophisticated technique for note-taking and knowledge organization. The method centers on the idea that insights are best captured as individual "Zettels," which are interconnected to form a dynamic network of ideas. This network encourages a deeper understanding and enhances creativity.
 
-## Introducing the Obsidian-ZettlelFlow
+## Introducing the Obsidian-ZettelFlow
 Our plugin elevates the Zettelkasten experience by using visual canvas directly within Obsidian. This canvas serves as a blueprint for constructing a personalized workflow that streamlines the creation of new notes. As you design your canvas, you're effectively designing the structure and metadata of each note you'll generate.
 
 ![](docs/resources/readme-intro.gif)
@@ -24,7 +24,7 @@ Our plugin elevates the Zettelkasten experience by using visual canvas directly 
 - **Effortless Note-Taking**: With a well-structured canvas, you're equipped to create notes with consistent attributes effortlessly. No more repetitive setups; it's all about instant productivity.
 
 ### Embark on Enhanced Note-Taking Efficiency
-The Obsidian-ZettlelFlow revolutionizes the Zettelkasten approach by using the native canvas interface. This interface grants you the power to configure note properties, templates, and more, while expediting the note creation process. Experience the synergy of visual design and knowledge organization as you optimize your Zettelkasten workflow through this innovative plugin. Begin your journey towards a more efficient and structured note-taking experience today.
+The Obsidian-ZettelFlow revolutionizes the Zettelkasten approach by using the native canvas interface. This interface grants you the power to configure note properties, templates, and more, while expediting the note creation process. Experience the synergy of visual design and knowledge organization as you optimize your Zettelkasten workflow through this innovative plugin. Begin your journey towards a more efficient and structured note-taking experience today.
 
 ## Support
 If you enjoy ZettelFlow, consider [buy me a coffee](https://www.buymeacoffee.com/5tsytn22v9Z) or [sponsor me](https://github.com/sponsors/RafaelGB) to support my work. Thank you!

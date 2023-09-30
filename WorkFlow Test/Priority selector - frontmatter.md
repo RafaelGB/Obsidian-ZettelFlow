@@ -5,8 +5,8 @@ zettelFlowSettings:
     type: selector
     options:
       P1: Max level of priority
-      P2: Urgently
       P3: Moderate
+      P2: Urgently
       P4: Minor
       P5: Trivial
     key: priority

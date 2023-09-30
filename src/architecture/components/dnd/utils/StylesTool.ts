@@ -12,23 +12,26 @@ export class StylesTool {
             transition: transition,
         };
     }
+    public static dimensionsOf(element: HTMLElement): Dimensions {
+        const transform = element.style.getPropertyValue('transform');
+        if (!transform) {
+            return { width: 0, height: 0 };
+        }
+        const [_, height] = transform.split(',');
+        return { width: 0, height: parseInt(height) };
+    }
 
     public static shiftElement(element: HTMLElement, dimensions: Dimensions, transition = 'none') {
         // Check if the element was already moved. If so and the height is the same, do nothing
-        const currentTransform = element.style.getPropertyValue('transform');
-        if (currentTransform) {
-            const currentHeight = parseInt(currentTransform.split(',')[1].trim());
-            if (currentHeight !== 0) {
-                if ((currentHeight > 0) !== (dimensions.height > 0)) {
-                    this.resetElement(element, transition);
-                }
-                return;
-            }
-        }
-        const shift = `translate3d(0, ${dimensions.height}px, 0)`;
+        const currentElementDimension = this.dimensionsOf(element);
+        if (currentElementDimension.height != 0 && (currentElementDimension.height > 0) !== (dimensions.height > 0)) {
+            this.resetElement(element, transition);
+        } else {
+            const shift = `translate3d(0, ${dimensions.height}px, 0)`;
 
-        this.setStyle(element, 'transition', transition);
-        this.setStyle(element, 'transform', shift);
+            this.setStyle(element, 'transition', transition);
+            this.setStyle(element, 'transform', shift);
+        }
     }
 
     public static resetElement(element: HTMLElement, transition = 'none') {

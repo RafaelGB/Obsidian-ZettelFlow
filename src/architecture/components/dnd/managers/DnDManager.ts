@@ -84,23 +84,17 @@ export abstract class AbstractDndManager {
                 const distance = Math.abs(top - clientY) - Math.abs(bottom - clientY);
                 if (Math.abs(distance) < this.minDistance) {
                     // Check if the droppable element is already moved
-                    if (this.elementCache.has(currentIndex)) {
-                        StylesTool.resetElement(closestDroppable, '0.175s ease-in-out');
-                        this.elementCache.delete(currentIndex);
-                    } else {
-                        const moveToBottom = currentIndex < this.dropIndex;
-
-                        // Move the droppable element to the top or bottom with a transition
-                        const transition = '0.175s ease-in-out';
-                        // Add a margin to the closest droppable element to make space for the dragged element
-                        // The margin size should be equal to the height of the dragged element
-                        const dimensions: Dimensions = draggable.getBoundingClientRect();
-                        dimensions.height = moveToBottom ? dimensions.height : -dimensions.height;
-                        StylesTool.shiftElement(closestDroppable, dimensions, transition);
-                        this.elementCache.set(currentIndex, closestDroppable);
-                        this.dropIndex = currentIndex;
-                        this.removeCachedElementTimeout(currentIndex);
-                    }
+                    const moveToBottom = distance > 0;
+                    // Move the droppable element to the top or bottom with a transition
+                    const transition = '0.175s ease-in-out';
+                    // Add a margin to the closest droppable element to make space for the dragged element
+                    // The margin size should be equal to the height of the dragged element
+                    const dimensions: Dimensions = draggable.getBoundingClientRect();
+                    dimensions.height = moveToBottom ? dimensions.height : -dimensions.height;
+                    StylesTool.shiftElement(closestDroppable, dimensions, transition);
+                    this.elementCache.set(currentIndex, closestDroppable);
+                    this.dropIndex = currentIndex;
+                    this.removeCachedElementTimeout(currentIndex);
                 }
             }
         }
@@ -125,11 +119,10 @@ export abstract class AbstractDndManager {
     private removeCachedElementTimeout(index: number) {
         setTimeout(() => {
             this.elementCache.delete(index);
-        }, 100);
+        }, 175);
     }
 
     private clearAllDroppables() {
-        console.log('clearing all droppables');
         const droppables = document.querySelectorAll(`.${c("droppable")}`);
         droppables.forEach((droppable) => {
             if (!(droppable instanceof HTMLDivElement)) {

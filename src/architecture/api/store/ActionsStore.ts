@@ -61,6 +61,12 @@ class ActionsStore {
         return this.getAction(this.initialChain).stepHandler;
     }
 
+    public getIconOf(key: string): string {
+        if (key === "bridge") {
+            return "zettelflow-bridge-icon";
+        }
+        return this.getAction(key).getIcon();
+    }
     public static getInstance(): ActionsStore {
         if (!ActionsStore.instance) {
             ActionsStore.instance = new ActionsStore();

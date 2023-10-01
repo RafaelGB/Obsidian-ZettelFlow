@@ -2,6 +2,7 @@ import { c, log } from "architecture";
 import { Coordinates, Dimensions, Entity } from "../model/CoreDnDModel";
 import { StylesTool } from "../utils/StylesTool";
 import { EntityBuilder, findClosestElement } from "../utils/EntityTool";
+import { Platform } from "obsidian";
 
 export abstract class AbstractDndManager {
     minDistance = 40;
@@ -39,6 +40,7 @@ export abstract class AbstractDndManager {
             .setY(pageY)
             .build();
         const onMove = (moveEvent: PointerEvent) => {
+            moveEvent.preventDefault();
             if (!this.isDragging) {
                 view.removeEventListener('pointermove', onMove);
                 view.removeEventListener('pointerup', onEnd);
@@ -98,10 +100,17 @@ export abstract class AbstractDndManager {
                 }
             }
         }
-        const onEnd = (endEvent: PointerEvent) => {
+
+        const onEnd = (endEvent: Event) => {
+            endEvent.preventDefault();
             view.removeEventListener('pointermove', onMove);
-            view.removeEventListener('pointerup', onEnd);
-            view.removeEventListener('pointercancel', onEnd);
+            if (Platform.isMobile) {
+                view.removeEventListener('touchend', onEnd);
+                view.removeEventListener('touchcancel', onEnd);
+            } else {
+                view.removeEventListener('pointerup', onEnd);
+                view.removeEventListener('pointercancel', onEnd);
+            }
             this.isDragging = false;
             draggable.classList.remove(c('dragging'));
             draggable.classList.add(c('droppable'));
@@ -112,14 +121,19 @@ export abstract class AbstractDndManager {
         }
 
         view.addEventListener('pointermove', onMove);
-        view.addEventListener('pointerup', onEnd);
-        view.addEventListener('pointercancel', onEnd);
+        if (Platform.isMobile) {
+            view.addEventListener('touchend', onEnd);
+            view.addEventListener('touchcancel', onEnd);
+        } else {
+            view.addEventListener('pointerup', onEnd);
+            view.addEventListener('pointercancel', onEnd);
+        }
     }
 
     private removeCachedElementTimeout(index: number) {
         setTimeout(() => {
             this.elementCache.delete(index);
-        }, 175);
+        }, 150);
     }
 
     private clearAllDroppables() {

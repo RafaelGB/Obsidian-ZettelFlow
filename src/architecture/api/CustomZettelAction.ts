@@ -4,6 +4,7 @@ import { StepBuilderModal } from "zettelkasten";
 import { ExecuteInfo } from "./model/CustomZettelActionTypes";
 
 export abstract class CustomZettelAction {
+    abstract id: string;
     abstract stepHandler: AbstractHandlerClass<StepBuilderModal>;
     abstract component(props: WrappedActionBuilderProps): JSX.Element;
     abstract execute(info: ExecuteInfo): Promise<void>;

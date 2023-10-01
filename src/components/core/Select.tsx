@@ -2,12 +2,8 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./model/SelectModel";
 import { c } from "architecture";
 import { Platform } from "obsidian";
-import {
-  LeafIcon,
-  PromptIcon,
-  BridgeIcon,
-  CalendarIcon,
-} from "components/icons";
+import { LeafIcon, BridgeIcon } from "components/icons";
+import { Icon } from "architecture/components/icon";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;
@@ -144,9 +140,9 @@ function ActionIcon(info: { type: string; isLeaf?: boolean }) {
   const { type, isLeaf } = info;
   switch (type) {
     case "prompt":
-      return <PromptIcon />;
+      return <Icon name="zettelflow-prompt-icon" />;
     case "calendar":
-      return <CalendarIcon />;
+      return <Icon name="zettelflow-calendar-icon" />;
     default:
       return isLeaf ? <LeafIcon /> : <BridgeIcon />;
   }

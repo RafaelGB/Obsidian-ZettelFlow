@@ -12,7 +12,8 @@ class ActionsStore {
         this.actions = new Map();
     }
 
-    public registerAction(key: string, action: CustomZettelAction): void {
+    public registerAction(action: CustomZettelAction): void {
+        const key = action.id;
         if (this.actions.has(key)) {
             log.error(`Action ${key} already registered. Overriding`);
         }

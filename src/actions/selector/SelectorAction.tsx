@@ -7,6 +7,7 @@ import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 
 export class SelectorAction extends CustomZettelAction {
+  id = "selector";
   stepHandler = new ElementTypeSelectorHandler();
   component(props: WrappedActionBuilderProps) {
     return <SelectorWrapper {...props} />;

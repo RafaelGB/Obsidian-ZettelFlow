@@ -37,9 +37,9 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	registerActions() {
-		actionsStore.registerAction("prompt", new PromptAction());
-		actionsStore.registerAction("selector", new SelectorAction());
-		actionsStore.registerAction("calendar", new CalendarAction());
+		actionsStore.registerAction(new PromptAction());
+		actionsStore.registerAction(new SelectorAction());
+		actionsStore.registerAction(new CalendarAction());
 	}
 
 	registerEvents() {

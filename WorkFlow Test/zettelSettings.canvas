@@ -13,7 +13,8 @@
 		{"id":"1b8d3ad0e40560e0","type":"file","file":"WorkFlow Test/Multimedia learning.md","x":505,"y":440,"width":360,"height":80},
 		{"id":"57b48aa679a3803d","type":"file","file":"WorkFlow Test/Work task.md","x":554,"y":696,"width":263,"height":65},
 		{"id":"250d329e0bb7265b","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":760,"y":840,"width":400,"height":80,"color":"5"},
-		{"id":"b4ac152580a0b8d1","type":"file","file":"WorkFlow Test/Priority selector - frontmatter.md","x":1220,"y":679,"width":472,"height":100}
+		{"id":"b4ac152580a0b8d1","type":"file","file":"WorkFlow Test/Priority selector - frontmatter.md","x":1220,"y":679,"width":472,"height":100},
+		{"id":"6bec8e34eeeb5504","type":"file","file":"WorkFlow Test/Deadline Selector.md","x":-344,"y":774,"width":400,"height":132,"color":"5"}
 	],
 	"edges":[
 		{"id":"ed67b18f9c6ec709","fromNode":"252b15ff230b2494","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},
@@ -27,6 +28,7 @@
 		{"id":"3643abdd0914e947","fromNode":"f619ee090d4d346a","fromSide":"right","toNode":"57b48aa679a3803d","toSide":"left"},
 		{"id":"79ba62f869029096","fromNode":"57b48aa679a3803d","fromSide":"right","toNode":"250d329e0bb7265b","toSide":"top"},
 		{"id":"ffeec1562bcf4eb0","fromNode":"250d329e0bb7265b","fromSide":"left","toNode":"57b48aa679a3803d","toSide":"bottom"},
-		{"id":"c7a4ecd6e4476eca","fromNode":"57b48aa679a3803d","fromSide":"right","toNode":"b4ac152580a0b8d1","toSide":"left"}
+		{"id":"c7a4ecd6e4476eca","fromNode":"57b48aa679a3803d","fromSide":"right","toNode":"b4ac152580a0b8d1","toSide":"left"},
+		{"id":"e0b007a13d110b8a","fromNode":"6b11e0b6e922cf04","fromSide":"right","toNode":"6bec8e34eeeb5504","toSide":"left"}
 	]
 }

@@ -23,11 +23,12 @@ export class NoteBuilder {
 
   public async build(): Promise<string> {
     log.trace(`Builder: building note ${this.info.getTitle()} in folder ${this.info.getTargetFolder()}. paths: ${this.info.getPaths()}, elements: ${this.info.getElements()}`)
-    await this.buildNote();
+
     const path = this.info.getTargetFolder()
       .concat(FileService.PATH_SEPARATOR)
       .concat(this.buildFilename())
       .concat(FileService.MARKDOWN_EXTENSION);
+    await this.buildNote(path);
     const generatedFile = await FileService.createFile(path, this.content.get(), false);
 
     await FrontmatterService
@@ -45,7 +46,7 @@ export class NoteBuilder {
       this.info.getTitle()
   }
 
-  private async buildNote() {
+  private async buildNote(path: string) {
     log.debug(`Builder: ${this.info.getPaths().size} paths to process`);
     for (const [, path] of this.info.getPaths()) {
       log.trace(`Builder: processing path ${path}`);
@@ -58,16 +59,16 @@ export class NoteBuilder {
       }
       this.content.add(await service.getContent());
     }
-    await this.manageElements();
+    await this.manageElements(path);
   }
 
-  private async manageElements() {
+  private async manageElements(path: string) {
     log.debug(`Builder: ${this.info.getElements().size} elements to process`);
     for (const [, element] of this.info.getElements()) {
       log.trace(`Builder: processing element ${element.type}`);
       await actionsStore
         .getAction(element.type)
-        .execute(element, this.content);
+        .execute({ element, content: this.content, path });
     }
   }
 }

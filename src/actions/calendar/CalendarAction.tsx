@@ -1,8 +1,7 @@
-import { CustomZettelAction } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { CalendarWrapper } from "./CalendarComponent";
 import React from "react";
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { ContentDTO, FinalElement } from "notes";
 import { ElementTypeCalendarHandler } from "./ElementTypeCalendarHandler";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
@@ -13,7 +12,8 @@ export class CalendarAction extends CustomZettelAction {
     return <CalendarWrapper {...props} />;
   }
 
-  async execute(element: FinalElement, content: ContentDTO) {
+  async execute(info: ExecuteInfo) {
+    const { content, element } = info;
     const { result, key } = element;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
       content.addElement(element);

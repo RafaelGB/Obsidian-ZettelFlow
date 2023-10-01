@@ -1,6 +1,5 @@
-import { CustomZettelAction } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { ContentDTO, FinalElement } from "notes";
 import React from "react";
 import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
 import { SelectorWrapper } from "./SelectorComponent";
@@ -13,7 +12,8 @@ export class SelectorAction extends CustomZettelAction {
     return <SelectorWrapper {...props} />;
   }
 
-  async execute(element: FinalElement, content: ContentDTO) {
+  async execute(info: ExecuteInfo) {
+    const { content, element } = info;
     const { key } = element;
     if (TypeService.isString(key)) {
       content.addElement(element);

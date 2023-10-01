@@ -1,6 +1,5 @@
-import { CustomZettelAction } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { ContentDTO, FinalElement } from "notes";
 import React from "react";
 import { ElementTypePromptHandler } from "./ElementTypePromptHandler";
 import { PromptWrapper } from "./PromptComponent";
@@ -13,7 +12,8 @@ export class PromptAction extends CustomZettelAction {
     return <PromptWrapper {...props} />;
   }
 
-  async execute(element: FinalElement, content: ContentDTO) {
+  async execute(info: ExecuteInfo) {
+    const { content, element } = info;
     const { key } = element;
     if (TypeService.isString(key)) {
       content.addElement(element);

@@ -10,7 +10,6 @@ export class Builder {
   public static default(): NoteBuilder {
     return new NoteBuilder();
   }
-
 }
 
 export class NoteBuilder {
@@ -68,7 +67,7 @@ export class NoteBuilder {
       log.trace(`Builder: processing element ${element.type}`);
       await actionsStore
         .getAction(element.type)
-        .execute({ element, content: this.content, path });
+        .execute({ element, content: this.content, path, note: this.info });
     }
   }
 }

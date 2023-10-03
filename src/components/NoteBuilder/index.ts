@@ -1,4 +1,4 @@
-export { NoteBuilderType, NoteBuilderState, StoreNoteBuilderModifier } from "./model/NoteBuilderModel";
+export { NoteBuilderType, NoteBuilderState, StoreNoteBuilderModifier, WrappedActionBuilderProps } from "./model/NoteBuilderModel";
 
 export { RootSelector } from "./RootSelector";
 export { ActionSelector } from "./ActionSelector";

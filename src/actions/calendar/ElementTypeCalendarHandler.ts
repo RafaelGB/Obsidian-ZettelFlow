@@ -2,7 +2,6 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { CalendarElement, StepBuilderModal } from "zettelkasten";
-import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
 
 export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_element_type_calendar_title');
@@ -40,8 +39,5 @@ export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilder
         }
 
         return this.goNext(modal);
-    }
-    public manageNextHandler(): void {
-        this.nextHandler = new ElementTypeSelectorHandler()
     }
 }

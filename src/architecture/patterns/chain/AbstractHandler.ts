@@ -11,6 +11,9 @@ export abstract class AbstractHandlerClass<T> implements AbstractHandler<T> {
     constructor() {
         this.manageNextHandler();
     }
+    public getNenxtHandler(): AbstractHandler<T> | undefined {
+        return this.nextHandler;
+    }
 
     public goNext(response: T): T {
         // Check next handler
@@ -20,8 +23,10 @@ export abstract class AbstractHandlerClass<T> implements AbstractHandler<T> {
         return response;
     }
 
-    public manageNextHandler(): void {
-        this.nextHandler = undefined;
+    public manageNextHandler(): void { }
+
+    public setNextHandler(nextHandler: AbstractHandler<T>): void {
+        this.nextHandler = nextHandler;
     }
 
     public nextPostAction(): void {

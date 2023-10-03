@@ -1,6 +1,5 @@
 import { RefObject, useEffect } from "react";
 import { useDnDManager } from "../state/DnDState";
-import { c } from "architecture";
 
 export function useDragHandle(
   managerId: string,
@@ -19,9 +18,6 @@ export function useDragHandle(
     if (!droppable || !handle) {
       return;
     }
-
-    droppable.classList.add(c("droppable"));
-    droppable.dataset.index = index.toString();
     const onPointerDown = async (e: PointerEvent) => {
       if (!isPointerEventValid(e)) {
         return;
@@ -29,6 +25,7 @@ export function useDragHandle(
       await manager.dragStart(e, droppable);
     };
 
+    manager.registerDroppable(droppable, index);
     const swallowTouchEvent = (e: TouchEvent) => {
       e.stopPropagation();
     };

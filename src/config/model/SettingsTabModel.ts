@@ -1,8 +1,8 @@
 import { AbstractChain } from "architecture/patterns"
-import ZettlelFlow from "main"
+import ZettelFlow from "main"
 
 export type SettingsHandlerInfo = {
     containerEl: HTMLElement,
-    plugin: ZettlelFlow,
+    plugin: ZettelFlow,
     section?: AbstractChain<SettingsHandlerInfo>
 }

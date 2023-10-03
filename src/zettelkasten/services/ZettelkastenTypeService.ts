@@ -1,9 +1,11 @@
+import { actionsStore } from "architecture/api";
 import { SectionElement, TypeOption } from "zettelkasten";
 
 export class ZettelkastenTypeService {
-    public static OPTION_TYPES: string[] = ["bridge", "prompt", "calendar", "selector"];
     public static isSectionType(value: string): value is TypeOption {
-        return ZettelkastenTypeService.OPTION_TYPES.includes(value);
+        const actionKeys = actionsStore.getActionsKeys();
+        actionKeys.push("bridge")
+        return actionKeys.includes(value);
     }
 
     public static isSectionElement(value: any): value is SectionElement {

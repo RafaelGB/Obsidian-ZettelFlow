@@ -1,12 +1,12 @@
-import ZettlelFlow from "main";
+import ZettelFlow from "main";
 import { PluginSettingTab } from "obsidian";
 import { SettingsHandlerInfo } from "../model/SettingsTabModel";
 import developer from "./handlers/Developer";
 import sections from "./handlers/Sections";
 
 class SettingsManager {
-    plugin: ZettlelFlow;
-    constructor(plugin: ZettlelFlow) {
+    plugin: ZettelFlow;
+    constructor(plugin: ZettelFlow) {
         this.plugin = plugin;
     }
 
@@ -26,9 +26,9 @@ class SettingsManager {
 }
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
-    plugin: ZettlelFlow;
+    plugin: ZettelFlow;
     manager: SettingsManager;
-    constructor(plugin: ZettlelFlow) {
+    constructor(plugin: ZettelFlow) {
         super(plugin.app, plugin);
         this.plugin = plugin;
         this.manager = new SettingsManager(plugin);

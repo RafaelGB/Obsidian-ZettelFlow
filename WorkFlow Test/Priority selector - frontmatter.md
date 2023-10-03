@@ -7,8 +7,8 @@ zettelFlowSettings:
       P1: Max level of priority
       P2: Urgently
       P3: Moderate
-      P5: Trivial
       P4: Minor
+      P5: Trivial
     key: priority
     label: Priority of the task
     zone: frontmatter

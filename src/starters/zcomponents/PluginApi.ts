@@ -1,8 +1,8 @@
 import { ObsidianAPIService, PluginComponent, log } from "architecture";
-import ZettlelFlow from "main";
+import ZettelFlow from "main";
 
 export class PluginApi extends PluginComponent {
-    constructor(private plugin: ZettlelFlow) {
+    constructor(private plugin: ZettelFlow) {
         super(plugin);
     }
 

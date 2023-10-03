@@ -259,6 +259,9 @@ textarea {
   border-radius: 0.25rem;
   background-color: var(--background-secondary);
   box-shadow: 0 0.125rem 0.25rem var(--background-modifier-border);
+}
+
+.zettelkasten-flow__sortable {
+  /* Support for mobile Drag & Drop */
   touch-action: none;
-  overflow: scroll;
 }

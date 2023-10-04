@@ -1,8 +1,5 @@
 
 # Obsidian-ZettelFlow
-> This plugin is a BETA. Use [BRAT](https://github.com/TfTHacker/obsidian42-brat) to install it
-
-
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)]()
 

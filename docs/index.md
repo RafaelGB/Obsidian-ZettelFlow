@@ -1,4 +1,6 @@
 # Welcome to ZettelFlow
+> **Note:** This Documentation is still a work in progress. If you have any questions, please feel free to open a issue or disccusion.
+
 ZettelFlow is a dynamic template engine based on Zettelkasten method. It is designed to minimize the friction between your thoughts and the final output. It is a tool that helps you to write and organize your thoughts.
 
 ## How to start

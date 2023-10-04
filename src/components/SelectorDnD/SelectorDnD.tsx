@@ -59,9 +59,9 @@ export function SelectorDnD(props: SelectorDnDProps) {
     frontmatter: string,
     label: string
   ) => {
-    const newOptionsState = [...optionsState];
-    newOptionsState[index] = [frontmatter, label];
-    info.element.options = Object.fromEntries(newOptionsState);
+    optionsState[index] = [frontmatter, label];
+    setOptionsState(optionsState);
+    info.element.options = Object.fromEntries(optionsState);
   };
 
   const managerMemo = useMemo(() => {

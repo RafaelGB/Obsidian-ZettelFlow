@@ -3,6 +3,7 @@
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)]()
 
+- [Documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/)
 - [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)
 - [Examples](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/WorkFlow%20Test)
 

@@ -3,6 +3,7 @@ import { TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 export const FILE_EXTENSIONS = Object.freeze({
     BASIC: ["md", "canvas"],
     ONLY_CANVAS: ["canvas"],
+    ONLY_MD: ["md"],
 });
 
 export class FileService {

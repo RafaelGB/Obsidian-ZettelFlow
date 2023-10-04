@@ -1,7 +1,7 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { StepBuilderModal, TypeOption } from "zettelkasten";
+import { StepBuilderModal } from "zettelkasten";
 import { actionsStore } from "architecture/api/store/ActionsStore";
 
 export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
@@ -23,7 +23,7 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
                 dropdown
                     .setValue(type)
                     .onChange(async (value) => {
-                        element.type = value as TypeOption;
+                        element.type = value;
                         modal.refresh();
                     });
             }

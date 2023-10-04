@@ -95,7 +95,7 @@ export function manageElement(
     const nextStep = children[0];
     const uniqueChild = settings.nodes[nextStep.id];
     actions.setActionWasTriggered(false);
-    if (uniqueChild.element.type === "bridge") {
+    if (uniqueChild.element.isBackground) {
       actions.addBridge(uniqueChild);
     }
     nextElement(state, nextStep, info);

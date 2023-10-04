@@ -12,6 +12,7 @@ export class ElementTypeCalendarHandler extends AbstractHandlerClass<StepBuilder
         const { type } = element;
         if (type === 'calendar') {
             const { key, label } = element as CalendarElement;
+            element.isAction = true;
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });
 

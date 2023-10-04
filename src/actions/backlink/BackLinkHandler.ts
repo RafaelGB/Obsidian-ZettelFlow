@@ -1,19 +1,17 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { FILE_EXTENSIONS, FileService } from "architecture/plugin";
-import { FileSuggest } from "architecture/settings";
+import { FileSuggest, HeadingSuggest } from "architecture/settings";
 import { Setting } from "obsidian";
-import { SectionElement, StepBuilderModal } from "zettelkasten";
-type BacklinkElement = {
-    hasDefault: boolean,
-    defaultFile?: string,
-} & SectionElement;
+import { StepBuilderModal } from "zettelkasten";
+import { BacklinkElement } from "./model/BackLinkTypes";
+
 export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
     name = "Backlink";
-    description = "Backlink";
+    description = "Insert backlink to note";
     handle(settingHandlerResponse: StepBuilderModal): StepBuilderModal {
         const { info } = settingHandlerResponse;
         const { element, contentEl } = info
-        const { type, hasDefault, defaultFile = "" } = element as BacklinkElement;
+        const { type, hasDefault, defaultFile = "", defaultHeading = "" } = element as BacklinkElement;
         if (type === "backlink") {
             contentEl.createEl("h3", { text: this.name });
             contentEl.createEl("p", { text: this.description });
@@ -25,6 +23,7 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                         .setValue(hasDefault)
                         .onChange(async (value) => {
                             element.hasDefault = value;
+                            element.isAction = !value;
                             settingHandlerResponse.refresh();
                         })
                 });
@@ -43,9 +42,28 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                             .setValue(defaultFile)
                             .onChange(async (value) => {
                                 element.defaultFile = value;
+                                settingHandlerResponse.refresh();
                             });
                     });
             }
+            if (defaultFile) {
+                new Setting(contentEl)
+                    .setName("Heading")
+                    .setDesc("Heading to insert backlink")
+                    .addSearch((cb) => {
+                        new HeadingSuggest(
+                            cb.inputEl,
+                            defaultFile,
+                        );
+
+                        cb.setPlaceholder("Heading...")
+                            .setValue(defaultHeading)
+                            .onChange(async (value) => {
+                                element.defaultHeading = value;
+                            });
+                    });
+            }
+
         }
         return this.goNext(settingHandlerResponse);
     }

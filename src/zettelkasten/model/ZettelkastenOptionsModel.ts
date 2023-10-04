@@ -16,7 +16,7 @@ export type SectionInfo = {
 export type ZoneOption = 'frontmatter' | 'body';
 export type SectionElement = {
     type: string,
-    isBackground: boolean,
+    isAction?: boolean,
     color?: HexString,
     label?: string,
     triggered?: boolean,

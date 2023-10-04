@@ -14,6 +14,7 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
     const { element, contentEl } = info;
     const { type = "bridge" } = element;
     if (type === "selector") {
+      element.isAction = true;
       const elementSelectorChild = contentEl.createDiv();
       this.root = createRoot(elementSelectorChild);
       this.root.render(<SelectorDnD info={info} />);
@@ -23,7 +24,7 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
 
   public postAction(): void {
     // Unmount react component
-    this.root.unmount();
+    this.root?.unmount();
     this.nextPostAction();
   }
 }

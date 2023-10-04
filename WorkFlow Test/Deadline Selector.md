@@ -7,6 +7,7 @@ zettelFlowSettings:
     key: deadline
     label: Deadline
     zone: frontmatter
+    isAction: true
   root: false
   childrenHeader: ""
   optional: true

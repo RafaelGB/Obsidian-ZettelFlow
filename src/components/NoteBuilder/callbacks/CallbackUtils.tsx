@@ -48,19 +48,26 @@ export function manageAction(
   info: NoteBuilderType
 ) {
   const { actions } = state;
-  actions.setSectionElement(
-    <ActionSelector
-      {...info}
-      action={selectedElement}
-      actionStep={selected}
-      key={`selector-action-${selectedElement.path}`}
-    />,
-    { isOptional: selectedElement.optional, savePrevious: true }
-  );
-  actions.setHeader({
-    title:
-      selectedElement.element.label || `${selectedElement.element.type} action`,
-  });
+  if (selectedElement.element.isAction) {
+    actions.setSectionElement(
+      <ActionSelector
+        {...info}
+        action={selectedElement}
+        actionStep={selected}
+        key={`selector-action-${selectedElement.path}`}
+      />,
+      { isOptional: selectedElement.optional, savePrevious: true }
+    );
+    actions.setHeader({
+      title:
+        selectedElement.element.label ||
+        `${selectedElement.element.type} action`,
+    });
+  } else {
+    // Background element
+    actions.addBackgroundElement(selectedElement.element);
+    nextElement(state, selected, info);
+  }
 }
 
 export function manageElement(

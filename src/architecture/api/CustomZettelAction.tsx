@@ -11,13 +11,8 @@ interface ICustomZettelAction {
   execute(info: ExecuteInfo): Promise<void>;
   getIcon(): string;
   getLabel(): string;
-  isBackground(): boolean;
 }
 export abstract class CustomZettelAction implements ICustomZettelAction {
-  public isBackground() {
-    return false;
-  }
-
   public component(props: WrappedActionBuilderProps): JSX.Element {
     return <></>;
   }

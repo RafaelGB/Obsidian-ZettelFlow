@@ -1,3 +1,4 @@
+import { t } from "architecture/lang";
 import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";
@@ -94,6 +95,11 @@ export class ZettelSettingsMapper {
                 color: color
             }
         }
+
+        if (potentialElement.isAction === undefined) {
+            potentialElement.isAction = true;
+        }
+
         return {
             ...potentialElement,
             color: color

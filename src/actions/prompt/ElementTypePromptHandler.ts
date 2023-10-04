@@ -11,6 +11,7 @@ export class ElementTypePromptHandler extends AbstractHandlerClass<StepBuilderMo
         const { element, contentEl } = info;
         const { type } = element;
         if (type === 'prompt') {
+            element.isAction = true;
             const { key, label, placeholder } = element as PromptElement;
             contentEl.createEl('h3', { text: this.name });
             contentEl.createEl('p', { text: this.description });

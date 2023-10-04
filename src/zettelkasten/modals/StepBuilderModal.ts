@@ -72,7 +72,7 @@ export class StepBuilderModal extends Modal {
                 isRoot: false,
                 element: {
                     type: `bridge`,
-                    isBackground: true
+                    isAction: false
                 },
                 label: ``,
                 childrenHeader: ``,
@@ -83,7 +83,7 @@ export class StepBuilderModal extends Modal {
                 contentEl: this.contentEl,
                 ...this.partialInfo,
                 isRoot: this.partialInfo.isRoot === undefined ? false : this.partialInfo.isRoot,
-                element: this.partialInfo.element === undefined ? { type: `bridge`, isBackground: true } : this.partialInfo.element,
+                element: this.partialInfo.element === undefined ? { type: `bridge`, isAction: false } : this.partialInfo.element,
                 label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,
                 childrenHeader: this.partialInfo.childrenHeader === undefined ? `` : this.partialInfo.childrenHeader,
                 path: this.partialInfo.path === undefined ? `` : this.partialInfo.path,

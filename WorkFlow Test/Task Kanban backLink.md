@@ -3,9 +3,10 @@ zettelFlowSettings:
   root: false
   element:
     type: backlink
-    isBackground: true
     hasDefault: true
-    defaultFile: WorkFlow Test/Task Kanban backLink.md
+    defaultFile: WorkFlow Test/kanban/Backlinks Kanban.md
+    isAction: false
+    defaultHeading: List 1
   label: Kanban backLink
   childrenHeader: ""
 ---

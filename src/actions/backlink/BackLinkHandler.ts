@@ -1,7 +1,7 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { FILE_EXTENSIONS, FileService } from "architecture/plugin";
 import { FileSuggest, HeadingSuggest } from "architecture/settings";
-import { Setting } from "obsidian";
+import { HeadingCache, Setting } from "obsidian";
 import { StepBuilderModal } from "zettelkasten";
 import { BacklinkElement } from "./model/BackLinkTypes";
 
@@ -11,7 +11,7 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
     handle(settingHandlerResponse: StepBuilderModal): StepBuilderModal {
         const { info } = settingHandlerResponse;
         const { element, contentEl } = info
-        const { type, hasDefault, defaultFile = "", defaultHeading = "" } = element as BacklinkElement;
+        const { type, hasDefault, defaultFile = "", defaultHeading } = element as BacklinkElement;
         if (type === "backlink") {
             contentEl.createEl("h3", { text: this.name });
             contentEl.createEl("p", { text: this.description });
@@ -57,9 +57,10 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                         );
 
                         cb.setPlaceholder("Heading...")
-                            .setValue(defaultHeading)
+                            .setValue(defaultHeading?.heading || "")
                             .onChange(async (value) => {
-                                element.defaultHeading = value;
+                                const heading: HeadingCache = JSON.parse(value);
+                                element.defaultHeading = heading;
                             });
                     });
             }

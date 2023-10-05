@@ -1,6 +1,5 @@
-import { HeadingCache, TAbstractFile, TFile } from "obsidian";
+import { HeadingCache, TFile } from "obsidian";
 import { TextInputSuggest } from "./AbstractSuggester";
-import { ObsidianApi } from "architecture";
 import { FileService, FrontmatterService } from "architecture/plugin";
 
 export class HeadingSuggest extends TextInputSuggest<HeadingCache> {
@@ -41,7 +40,7 @@ export class HeadingSuggest extends TextInputSuggest<HeadingCache> {
     }
 
     selectSuggestion(hc: HeadingCache): void {
-        this.inputEl.value = hc.heading;
+        this.inputEl.value = JSON.stringify(hc);
         this.inputEl.trigger("input");
         this.close();
     }

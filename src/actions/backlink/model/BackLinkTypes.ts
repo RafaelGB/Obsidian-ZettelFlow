@@ -1,7 +1,8 @@
-import { SectionElement } from "zettelkasten";
+import { FinalElement } from "notes";
+import { HeadingCache } from "obsidian";
 
 export type BacklinkElement = {
     hasDefault: boolean,
     defaultFile?: string,
-    defaultHeading?: string,
-} & SectionElement;
+    defaultHeading?: HeadingCache,
+} & FinalElement;

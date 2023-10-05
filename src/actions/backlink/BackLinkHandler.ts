@@ -4,10 +4,11 @@ import { FileSuggest, HeadingSuggest } from "architecture/settings";
 import { HeadingCache, Setting } from "obsidian";
 import { StepBuilderModal } from "zettelkasten";
 import { BacklinkElement } from "./model/BackLinkTypes";
+import { t } from "architecture/lang";
 
 export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
-    name = "Backlink";
-    description = "Insert backlink to note";
+    name = t('step_builder_element_type_backlink_title');
+    description = t('step_builder_element_type_backlink_description');
     handle(settingHandlerResponse: StepBuilderModal): StepBuilderModal {
         const { info } = settingHandlerResponse;
         const { element, contentEl } = info
@@ -23,7 +24,7 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                         .setValue(hasDefault)
                         .onChange(async (value) => {
                             element.hasDefault = value;
-                            element.isAction = !value;
+                            element.hasUI = !value;
                             settingHandlerResponse.refresh();
                         })
                 });

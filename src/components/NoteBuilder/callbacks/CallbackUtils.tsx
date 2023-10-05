@@ -48,7 +48,7 @@ export function manageAction(
   info: NoteBuilderType
 ) {
   const { actions } = state;
-  if (selectedElement.element.isAction) {
+  if (selectedElement.element.hasUI) {
     actions.setSectionElement(
       <ActionSelector
         {...info}

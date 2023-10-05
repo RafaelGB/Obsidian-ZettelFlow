@@ -18,6 +18,7 @@ zettelFlowSettings:
           line: 6
           col: 9
           offset: 41
+    hasUI: false
   label: Kanban backLink
   childrenHeader: ""
 ---

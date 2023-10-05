@@ -96,8 +96,8 @@ export class ZettelSettingsMapper {
             }
         }
 
-        if (potentialElement.isAction === undefined) {
-            potentialElement.isAction = true;
+        if (potentialElement.hasUI === undefined) {
+            potentialElement.hasUI = true;
         }
 
         return {

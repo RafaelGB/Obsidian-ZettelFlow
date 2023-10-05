@@ -62,6 +62,8 @@ export default {
     step_builder_element_type_calendar_key_description: 'The metatada key of the frontmatter asigned to the calendar',
     step_builder_element_type_calendar_label_title: 'Label of calendar',
     step_builder_element_type_calendar_label_description: 'The label will be the title of your calendar',
+    step_builder_element_type_backlink_title: 'Element type backlink options',
+    step_builder_element_type_backlink_description: 'Action to insert backlink of the new note in the target note',
     step_builder_element_type_zone_title: 'Element type zone options',
     step_builder_element_type_zone_description: 'Choose where you want to place the element.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',

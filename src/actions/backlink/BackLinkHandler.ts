@@ -34,15 +34,15 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
 
             if (hasDefault) {
                 new Setting(contentEl)
-                    .setName("Target file")
-                    .setDesc("Note to insert backlink")
+                    .setName(t('step_builder_element_type_backlink_search_file_title'))
+                    .setDesc(t('step_builder_element_type_backlink_search_file_description'))
                     .addSearch((cb) => {
                         new FileSuggest(
                             cb.inputEl,
                             FileService.PATH_SEPARATOR,
                         ).setExtensions(FILE_EXTENSIONS.ONLY_MD);
 
-                        cb.setPlaceholder("Default file")
+                        cb.setPlaceholder(t('step_builder_element_type_backlink_search_file_placeholder'))
                             .setValue(defaultFile)
                             .onChange(async (value) => {
                                 element.defaultFile = value;
@@ -57,15 +57,14 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
 
                 if (defaultFile) {
                     new Setting(contentEl)
-                        .setName("Heading")
-                        .setDesc("Heading to insert backlink")
+                        .setName(t('step_builder_element_type_backlink_search_file_heading_title'))
+                        .setDesc(t('step_builder_element_type_backlink_search_file_heading_description'))
                         .addSearch((cb) => {
                             new HeadingSuggest(
                                 cb.inputEl,
                                 defaultFile,
                             );
-
-                            cb.setPlaceholder("Heading...")
+                            cb.setPlaceholder(t('step_builder_element_type_backlink_search_file_heading_placeholder'))
                                 .setValue(defaultHeading?.heading || "")
                                 .onChange(async () => {
                                     if (cb.inputEl.dataset.heading) {

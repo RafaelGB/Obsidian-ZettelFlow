@@ -22,10 +22,10 @@ export class NoteBuilder {
 
   public async build(): Promise<string> {
     log.trace(`Builder: building note ${this.info.getTitle()} in folder ${this.info.getTargetFolder()}. paths: ${this.info.getPaths()}, elements: ${this.info.getElements()}`)
-
+    this.info.setTitle(this.buildFilename());
     const path = this.info.getTargetFolder()
       .concat(FileService.PATH_SEPARATOR)
-      .concat(this.buildFilename())
+      .concat(this.info.getTitle())
       .concat(FileService.MARKDOWN_EXTENSION);
     await this.buildNote(path);
     const generatedFile = await FileService.createFile(path, this.content.get(), false);

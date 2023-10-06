@@ -25,7 +25,7 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                         .onChange(async (value) => {
                             element.hasDefault = value;
                             if (value) {
-                                element.hasUI = !value;
+                                element.hasUI = false;
                                 element.defaultHeading = {};
                             }
                             settingHandlerResponse.refresh();

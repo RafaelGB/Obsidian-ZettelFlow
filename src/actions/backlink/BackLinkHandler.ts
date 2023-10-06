@@ -46,8 +46,13 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                             .setValue(defaultFile)
                             .onChange(async (value) => {
                                 element.defaultFile = value;
-                                settingHandlerResponse.refresh();
                             });
+                        cb.inputEl.onblur = () => {
+                            if (!cb.inputEl.value) {
+                                element.defaultFile = "";
+                            }
+                            settingHandlerResponse.refresh();
+                        }
                     });
 
                 if (defaultFile) {

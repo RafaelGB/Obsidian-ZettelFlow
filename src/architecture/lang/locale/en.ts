@@ -66,6 +66,8 @@ export default {
     step_builder_element_type_backlink_description: 'Action to insert backlink of the new note in the target note',
     step_builder_element_type_backlink_trigger_default_title: 'Enable default file',
     step_builder_element_type_backlink_trigger_default_description: 'Enable or disable default file. If enabled. the UI will be disabled and the default file will be used.',
+    step_builder_element_type_backlink_insert_pattern_title: 'Insert pattern',
+    step_builder_element_type_backlink_insert_pattern_description: 'Preview: ',
     step_builder_element_type_backlink_search_file_title: 'Default file',
     step_builder_element_type_backlink_search_file_description: 'Search for the default file where you want to insert the backlink',
     step_builder_element_type_backlink_search_file_placeholder: 'Search for a file...',

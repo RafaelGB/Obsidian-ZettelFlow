@@ -4,7 +4,7 @@ kanban-plugin: basic
 
 ---
 
-## List 1
+## Link 1
 
 
 

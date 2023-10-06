@@ -12,10 +12,24 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
     handle(settingHandlerResponse: StepBuilderModal): StepBuilderModal {
         const { info } = settingHandlerResponse;
         const { element, contentEl } = info
-        const { type, hasDefault, defaultFile = "", defaultHeading } = element as BacklinkElement;
+        const { type, hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = element as BacklinkElement;
         if (type === "backlink") {
             contentEl.createEl("h3", { text: this.name });
             contentEl.createEl("p", { text: this.description });
+            const patternElement = new Setting(contentEl)
+                .setName(t('step_builder_element_type_backlink_insert_pattern_title'))
+                .setDesc(t('step_builder_element_type_backlink_insert_pattern_description').concat(insertPattern.replace("{{wikilink}}", "[[note link]]")))
+            patternElement.addText((text) => {
+                text
+                    .setPlaceholder('{{wikilink}}')
+                    .setValue(insertPattern)
+                    .onChange(async (value) => {
+                        element.insertPattern = value;
+                        patternElement
+                            .descEl
+                            .setText(t('step_builder_element_type_backlink_insert_pattern_description').concat(value.replace("{{wikilink}}", "[[note link]]")));
+                    });
+            });
             new Setting(contentEl)
                 .setName(t('step_builder_element_type_backlink_trigger_default_title'))
                 .setDesc(t('step_builder_element_type_backlink_trigger_default_description'))

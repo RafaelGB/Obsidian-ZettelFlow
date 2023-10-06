@@ -65,6 +65,8 @@ export default {
     step_builder_element_type_backlink_description: 'Añade un backlink a tu paso.',
     step_builder_element_type_backlink_trigger_default_title: 'Activar fichero por defecto',
     step_builder_element_type_backlink_trigger_default_description: 'Activa o desactiva el fichero por defecto para tu backlink. Si está activado, la UI se desactivará para usar el fichero por defecto.',
+    step_builder_element_type_backlink_insert_pattern_title: 'Patrón de inserción del backlink',
+    step_builder_element_type_backlink_insert_pattern_description: 'Previsualización: ',
     step_builder_element_type_backlink_search_file_title: 'Buscar fichero',
     step_builder_element_type_backlink_search_file_description: 'Busca el fichero en el que quieres insertar el backlink',
     step_builder_element_type_backlink_search_file_placeholder: 'Selecciona un fichero...',

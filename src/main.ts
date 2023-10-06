@@ -45,20 +45,7 @@ export default class ZettelFlow extends Plugin {
 
 	registerEvents() {
 		this.registerEvent(this.app.workspace.on('file-open', async (file) => {
-			const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
-			if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
-				const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
-				if (canvasTree.length === 0) return;
-				const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-				if (workflow.length === 0) return;
-				const recordNodes: Record<string, ZettelFlowElement> = {};
-				sectionMap.forEach((node, key) => {
-					recordNodes[key] = node;
-				});
-				this.settings.nodes = recordNodes;
-				this.settings.workflow = workflow;
-				await this.saveSettings();
-			}
+			this.saveWorkflow(file);
 		}));
 
 
@@ -111,15 +98,7 @@ export default class ZettelFlow extends Plugin {
 									.setTitle("Save zettelFlow configuration")
 									.setIcon(RibbonIcon.ID)
 									.onClick(async () => {
-										const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
-										const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-										const recordNodes: Record<string, ZettelFlowElement> = {};
-										sectionMap.forEach((node, key) => {
-											recordNodes[key] = node;
-										});
-										this.settings.nodes = recordNodes;
-										this.settings.workflow = workflow;
-										await this.saveSettings();
+										this.saveWorkflow(file);
 										new Notice("ZettelFlow configuration Saved!");
 									});
 							});
@@ -128,5 +107,22 @@ export default class ZettelFlow extends Plugin {
 					}
 				}
 			}));
+	}
+
+	private async saveWorkflow(file: TFile | null) {
+		const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
+		if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
+			const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
+			if (canvasTree.length === 0) return;
+			const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
+			if (workflow.length === 0) return;
+			const recordNodes: Record<string, ZettelFlowElement> = {};
+			sectionMap.forEach((node, key) => {
+				recordNodes[key] = node;
+			});
+			this.settings.nodes = recordNodes;
+			this.settings.workflow = workflow;
+			await this.saveSettings();
+		}
 	}
 }

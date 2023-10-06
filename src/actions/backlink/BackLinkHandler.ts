@@ -11,7 +11,7 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
     description = t('step_builder_element_type_backlink_description');
     handle(settingHandlerResponse: StepBuilderModal): StepBuilderModal {
         const { info } = settingHandlerResponse;
-        const { element, contentEl } = info
+        const { element, contentEl, optional } = info
         const { type, hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = element as BacklinkElement;
         if (type === "backlink") {
             contentEl.createEl("h3", { text: this.name });
@@ -39,7 +39,9 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                         .onChange(async (value) => {
                             element.hasDefault = value;
                             if (value) {
-                                element.hasUI = false;
+                                element.hasUI = optional === true;
+                            } else {
+                                element.defaultFile = "";
                                 element.defaultHeading = {};
                             }
                             settingHandlerResponse.refresh();
@@ -63,7 +65,7 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                             });
                         cb.inputEl.onblur = () => {
                             if (!cb.inputEl.value) {
-                                element.defaultFile = "";
+                                element.defaultHeading = {};
                             }
                             settingHandlerResponse.refresh();
                         }

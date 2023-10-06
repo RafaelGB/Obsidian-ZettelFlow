@@ -7,6 +7,8 @@ zettelFlowSettings:
     defaultFile: WorkFlow Test/kanban/Backlinks Kanban.md
     isAction: false
     defaultHeading:
+      heading: Link 1
+      level: 2
       position:
         start:
           line: 6
@@ -16,10 +18,10 @@ zettelFlowSettings:
           line: 6
           col: 9
           offset: 41
-      heading: Link 1
-      level: 2
-    hasUI: false
+    hasUI: true
     insertPattern: "- [ ] {{wikilink}}"
   label: Kanban backLink
   childrenHeader: ""
+  targetFolder: WorkFlow Test/kanban
+  optional: true
 ---

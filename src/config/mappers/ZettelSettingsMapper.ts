@@ -34,6 +34,7 @@ export class ZettelSettingsMapper {
         const workflow: WorkflowStep[] = [];
         childrenParent.forEach((node) => {
             const { id } = node;
+            // TODO check if recursive just with parents
             if (this.sectionMap.has(id)) {
                 workflow.push({
                     id,

@@ -17,14 +17,17 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
             contentEl.createEl("h3", { text: this.name });
             contentEl.createEl("p", { text: this.description });
             new Setting(contentEl)
-                .setName("Target folder")
-                .setDesc("Note to insert backlink")
+                .setName(t('step_builder_element_type_backlink_trigger_default_title'))
+                .setDesc(t('step_builder_element_type_backlink_trigger_default_description'))
                 .addToggle((toggle) => {
                     toggle
                         .setValue(hasDefault)
                         .onChange(async (value) => {
                             element.hasDefault = value;
-                            element.hasUI = !value;
+                            if (value) {
+                                element.hasUI = !value;
+                                element.defaultHeading = {};
+                            }
                             settingHandlerResponse.refresh();
                         })
                 });
@@ -46,24 +49,27 @@ export class BackLinkHandler extends AbstractHandlerClass<StepBuilderModal> {
                                 settingHandlerResponse.refresh();
                             });
                     });
-            }
-            if (defaultFile) {
-                new Setting(contentEl)
-                    .setName("Heading")
-                    .setDesc("Heading to insert backlink")
-                    .addSearch((cb) => {
-                        new HeadingSuggest(
-                            cb.inputEl,
-                            defaultFile,
-                        );
 
-                        cb.setPlaceholder("Heading...")
-                            .setValue(defaultHeading?.heading || "")
-                            .onChange(async (value) => {
-                                const heading: HeadingCache = JSON.parse(value);
-                                element.defaultHeading = heading;
-                            });
-                    });
+                if (defaultFile) {
+                    new Setting(contentEl)
+                        .setName("Heading")
+                        .setDesc("Heading to insert backlink")
+                        .addSearch((cb) => {
+                            new HeadingSuggest(
+                                cb.inputEl,
+                                defaultFile,
+                            );
+
+                            cb.setPlaceholder("Heading...")
+                                .setValue(defaultHeading?.heading || "")
+                                .onChange(async () => {
+                                    if (cb.inputEl.dataset.heading) {
+                                        const heading: HeadingCache = JSON.parse(cb.inputEl.dataset.heading);
+                                        element.defaultHeading = heading;
+                                    }
+                                });
+                        });
+                }
             }
 
         }

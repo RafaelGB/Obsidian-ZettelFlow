@@ -40,7 +40,8 @@ export class HeadingSuggest extends TextInputSuggest<HeadingCache> {
     }
 
     selectSuggestion(hc: HeadingCache): void {
-        this.inputEl.value = JSON.stringify(hc);
+        this.inputEl.dataset.heading = JSON.stringify(hc);
+        this.inputEl.value = hc.heading;
         this.inputEl.trigger("input");
         this.close();
     }

@@ -1,4 +1,3 @@
-import { t } from "architecture/lang";
 import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";

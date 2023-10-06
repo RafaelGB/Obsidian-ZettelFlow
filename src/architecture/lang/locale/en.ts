@@ -64,6 +64,8 @@ export default {
     step_builder_element_type_calendar_label_description: 'The label will be the title of your calendar',
     step_builder_element_type_backlink_title: 'Element type backlink options',
     step_builder_element_type_backlink_description: 'Action to insert backlink of the new note in the target note',
+    step_builder_element_type_backlink_trigger_default_title: 'Enable default file',
+    step_builder_element_type_backlink_trigger_default_description: 'Enable or disable default file. If enabled. the UI will be disabled and the default file will be used.',
     step_builder_element_type_zone_title: 'Element type zone options',
     step_builder_element_type_zone_description: 'Choose where you want to place the element.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',

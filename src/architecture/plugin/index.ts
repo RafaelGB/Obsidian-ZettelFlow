@@ -5,3 +5,5 @@ export { CanvasMapper } from './mappers/CanvasMapper';
 export { FrontmatterService } from './services/FrontmatterService';
 export { Literal } from './model/FrontmatterModel';
 export { ZettelNode, ZettelNodeSource } from './model/CanvasModel';
+
+export { MarkdownService } from './services/Markdown';

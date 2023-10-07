@@ -14,7 +14,7 @@ The plugin offers a ribon Icon to open the note builder UI. (*You can also confi
 
 The UI will show you the steps you can select to generate a new note.
 
-When you complete all the steps, the plugin will generate a new note with the content of the template files.
+When you complete all the steps, the plugin will generate a new note with the content of the template files and merge their properties.
 
 ## How it works
 With your `.canvas` file, the plugin creates a workflow that will be used to generate new notes. The workflow is a directed graph where the nodes are the template files and the edges are the steps. The plugin will use the workflow to generate the UI.
@@ -22,11 +22,18 @@ With your `.canvas` file, the plugin creates a workflow that will be used to gen
 ## Step configuration
 The initial step will be a selection of all the nodes marked as `root`.
 
+### Basic configuration
+- **Root toggle**: If the step is a root, it will be shown as the first step in the UI.
+- **Target folder search**: The folder where the new note will be created (the note builder will use the last step with this property informed).
+- **Optional toggle**: If the step is an action, a Skip button will be shown in the UI when this option is enabled.
+- **Action selector**: By default all steps are `Bridge`. If you want to add an action, you can select it from the list of options.
+
 ### Step types
 They will be shown as a list of options to select from. The options are:
 
 - **Bridge**: By default, all new steps are `Bridge`. No action is triggered, just read the content and the properties of the file to build the final note.
-- **[Prompt](./steps/PromptStep.md)**
-- **[Selector](./steps/SelectorStep.md)**
-- **[Calendar](./steps/CalendarStep.md)**
+- **[Prompt](./steps/PromptStep.md)**: A simple input field to add a custom value to the built-in note template.
+- **[Selector](./steps/SelectorStep.md)**: A list of options to select from. The options are the values of the property defined in the file.
+- **[Calendar](./steps/CalendarStep.md)**: A calendar to select a date. The date will be added to the note as a property.
+- **[Backlink](./steps/BacklinkStep.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.
 

@@ -91,7 +91,7 @@ export function manageElement(
         key={`selector-children-${childrenHeader}`}
       />,
       {
-        isOptional: selectedElement.optional,
+        isOptional: false,
         savePrevious: !isRecursive,
       }
     );

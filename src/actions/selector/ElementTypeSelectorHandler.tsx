@@ -11,13 +11,10 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
   root: Root;
   handle(modal: StepBuilderModal): StepBuilderModal {
     const { info } = modal;
-    const { element, contentEl } = info;
-    const { type = "bridge" } = element;
-    if (type === "selector") {
-      const elementSelectorChild = contentEl.createDiv();
-      this.root = createRoot(elementSelectorChild);
-      this.root.render(<SelectorDnD info={info} />);
-    }
+    const { contentEl } = info;
+    const elementSelectorChild = contentEl.createDiv();
+    this.root = createRoot(elementSelectorChild);
+    this.root.render(<SelectorDnD info={info} />);
     return this.goNext(modal);
   }
 

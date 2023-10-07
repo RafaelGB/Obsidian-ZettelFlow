@@ -25,16 +25,18 @@ export class ZettelSettingsMapper {
     private manageWorkflow(node: ZettelNodeSource): WorkflowStep {
         const { id, children } = node;
         this.saveSection(node);
+        const validationMap = [id];
+
         return {
             id,
-            children: this.manageChildren(children)
+            children: this.manageChildren(children, validationMap)
         }
     }
-    private manageChildren(childrenParent: ZettelNode[]): WorkflowStep[] {
+    private manageChildren(childrenParent: ZettelNode[], validationList: string[]): WorkflowStep[] {
         const workflow: WorkflowStep[] = [];
         childrenParent.forEach((node) => {
             const { id } = node;
-            if (this.sectionMap.has(id)) {
+            if (validationList.contains(id)) {
                 workflow.push({
                     id,
                     isRecursive: true
@@ -42,9 +44,11 @@ export class ZettelSettingsMapper {
             } else {
                 const source = node as ZettelNodeSource;
                 this.saveSection(source);
+                validationList.push(id);
                 workflow.push({
                     id,
-                    children: this.manageChildren(source.children)
+                    // Validation list is passed by deep copy to avoid global changes of other branches
+                    children: this.manageChildren(source.children, [...validationList])
                 });
             }
         });
@@ -53,6 +57,7 @@ export class ZettelSettingsMapper {
 
     private saveSection(section: ZettelNodeSource) {
         const { id, file, color } = section;
+        if (this.sectionMap.has(id)) return;
         const service = FrontmatterService.instance(file);
         const pluginSettings = service.getZettelFlowSettings();
         const defaultInfo: ZettelFlowElement = {
@@ -94,6 +99,11 @@ export class ZettelSettingsMapper {
                 color: color
             }
         }
+
+        if (potentialElement.hasUI === undefined) {
+            potentialElement.hasUI = true;
+        }
+
         return {
             ...potentialElement,
             color: color

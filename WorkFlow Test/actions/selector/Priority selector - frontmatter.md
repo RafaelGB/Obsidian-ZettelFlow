@@ -13,6 +13,7 @@ zettelFlowSettings:
     label: Priority of the task
     zone: frontmatter
     defaultOption: P3
+    isAction: true
   label: Select a priority level
   childrenHeader: ""
 ---

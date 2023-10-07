@@ -42,6 +42,14 @@ export class NoteDTO {
         return this.elements.get(pos);
     }
 
+    public addBackgroundElement(element: SectionElement, pos: number): NoteDTO {
+        this.elements.set(pos, {
+            ...element,
+            result: null,
+        });
+        return this;
+    }
+
     public addElement(
         element: SectionElement,
         callbackResult: unknown,

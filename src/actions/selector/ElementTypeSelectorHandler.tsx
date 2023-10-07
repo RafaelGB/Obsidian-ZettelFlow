@@ -23,7 +23,7 @@ export class ElementTypeSelectorHandler extends AbstractHandlerClass<StepBuilder
 
   public postAction(): void {
     // Unmount react component
-    this.root.unmount();
+    this.root?.unmount();
     this.nextPostAction();
   }
 }

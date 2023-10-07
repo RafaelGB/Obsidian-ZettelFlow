@@ -89,6 +89,15 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           actionWasTriggered: true,
         };
       }),
+    addBackgroundElement: (element) =>
+      set((state) => {
+        const { builder } = state;
+        builder.info.addBackgroundElement(element, state.position);
+        return {
+          builder,
+          actionWasTriggered: true,
+        };
+      }),
     build: async () => {
       const { builder } = get();
       return await builder.build();

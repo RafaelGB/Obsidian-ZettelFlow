@@ -8,6 +8,7 @@ import { Literal } from "architecture/plugin";
 import { WorkflowStep } from "config";
 import { manageElement, nextElement } from "./CallbackUtils";
 import { Notice } from "obsidian";
+import { log } from "architecture";
 
 export const callbackRootBuilder =
   (state: CallbackPickedState, info: NoteBuilderType) =>
@@ -47,5 +48,6 @@ export const callbackSkipNote = (state: CallbackPickedState, info: NoteBuilderTy
   const element = plugin.settings.nodes[currentStep.id];
   // To avoid save info of the skipped note
   currentStep.isRecursive = true;
+  log.info("Skip note callback", { currentStep, element });
   manageElement(element, currentStep, state, info);
 }

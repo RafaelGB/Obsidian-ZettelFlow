@@ -13,10 +13,10 @@ export type ZettelFlowElement = {
 export type SectionInfo = {
     title: string
 }
-export type TypeOption = 'bridge' | 'prompt' | 'calendar' | 'selector';
 export type ZoneOption = 'frontmatter' | 'body';
 export type SectionElement = {
-    type: TypeOption,
+    type: string,
+    hasUI?: boolean,
     color?: HexString,
     label?: string,
     triggered?: boolean,

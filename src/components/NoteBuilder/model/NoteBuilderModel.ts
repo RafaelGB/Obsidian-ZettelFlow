@@ -53,6 +53,7 @@ export type NoteBuilderStateActions = {
     build: () => Promise<string>;
     manageElementInfo: (selectedElement: ZettelFlowElement, skipAddToBuilder?: boolean) => void;
     addElement: (element: SectionElement, callbackResult: Literal) => void;
+    addBackgroundElement: (element: SectionElement) => void;
     setPatternPrefix: (prefix: string) => void;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;

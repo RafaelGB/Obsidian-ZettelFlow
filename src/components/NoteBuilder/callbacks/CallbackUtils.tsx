@@ -48,19 +48,26 @@ export function manageAction(
   info: NoteBuilderType
 ) {
   const { actions } = state;
-  actions.setSectionElement(
-    <ActionSelector
-      {...info}
-      action={selectedElement}
-      actionStep={selected}
-      key={`selector-action-${selectedElement.path}`}
-    />,
-    { isOptional: selectedElement.optional, savePrevious: true }
-  );
-  actions.setHeader({
-    title:
-      selectedElement.element.label || `${selectedElement.element.type} action`,
-  });
+  if (selectedElement.element.hasUI) {
+    actions.setSectionElement(
+      <ActionSelector
+        {...info}
+        action={selectedElement}
+        actionStep={selected}
+        key={`selector-action-${selectedElement.path}`}
+      />,
+      { isOptional: selectedElement.optional, savePrevious: true }
+    );
+    actions.setHeader({
+      title:
+        selectedElement.element.label ||
+        `${selectedElement.element.type} action`,
+    });
+  } else {
+    // Background element
+    actions.addBackgroundElement(selectedElement.element);
+    nextElement(state, selected, info);
+  }
 }
 
 export function manageElement(
@@ -84,7 +91,7 @@ export function manageElement(
         key={`selector-children-${childrenHeader}`}
       />,
       {
-        isOptional: selectedElement.optional,
+        isOptional: false,
         savePrevious: !isRecursive,
       }
     );
@@ -95,7 +102,7 @@ export function manageElement(
     const nextStep = children[0];
     const uniqueChild = settings.nodes[nextStep.id];
     actions.setActionWasTriggered(false);
-    if (uniqueChild.element.type === "bridge") {
+    if (uniqueChild.element.isBackground) {
       actions.addBridge(uniqueChild);
     }
     nextElement(state, nextStep, info);

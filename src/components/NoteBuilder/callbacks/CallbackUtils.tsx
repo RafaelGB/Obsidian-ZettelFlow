@@ -65,6 +65,7 @@ export function manageAction(
     });
   } else {
     // Background element
+    log.debug(`Action as background element: ${selectedElement.path}`);
     actions.addBackgroundElement(selectedElement.element);
     nextElement(state, selected, info);
   }

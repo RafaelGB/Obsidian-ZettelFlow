@@ -22,9 +22,16 @@ export class CalendarAction extends CustomZettelAction {
 
   async execute(info: ExecuteInfo) {
     const { content, element } = info;
-    const { result, key } = element;
+    const { result, key, zone } = element;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
-      content.addElement(element);
+      switch (zone) {
+        case "body":
+          content.modify(key, result.toISOString());
+          break;
+        case "frontmatter":
+        default:
+          content.addFrontMatter({ [key]: result });
+      }
     }
   }
 

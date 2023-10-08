@@ -37,6 +37,8 @@ export default {
     step_builder_root_toggle_description: 'This toggle will set the current element as the root element.',
     step_builder_step_title: 'Step title',
     step_builder_step_title_description: 'This is the title of the step note.',
+    step_builder_children_header_title: 'Children header',
+    step_builder_children_header_description: 'If the step has children, this header will be displayed in the note as explanation of the options.',
     step_builder_optional_toggle_title: 'Optional toggle',
     step_builder_optional_toggle_description: 'This toggle will set the current element as optional.',
     step_builder_section_label_title: 'Section label',

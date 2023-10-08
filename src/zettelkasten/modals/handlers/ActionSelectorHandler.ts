@@ -11,7 +11,7 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
         const { info } = modal;
         const { element, contentEl } = info;
         const { type = "bridge" } = element;
-
+        this.setActionHandler(type);
         new Setting(contentEl)
             .setName(this.name)
             .setDesc(this.description)
@@ -24,6 +24,7 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
                     .setValue(type)
                     .onChange(async (value) => {
                         element.type = value;
+                        this.setActionHandler(type);
                         modal.refresh();
                     });
             }
@@ -47,7 +48,11 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
         return this.goNext(modal);
     }
 
-    public manageNextHandler(): void {
-        this.nextHandler = actionsStore.getInitialChain();
+    private setActionHandler(actionId: string): void {
+        if (actionId === 'bridge') {
+            this.nextHandler = undefined;
+        } else {
+            this.nextHandler = actionsStore.getAction(actionId).stepHandler;
+        }
     }
 }

@@ -7,6 +7,7 @@ zettelFlowSettings:
   element:
     type: bridge
     color: ""
+    hasUI: true
 tags:
   - task
 done: false

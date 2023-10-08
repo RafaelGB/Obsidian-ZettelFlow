@@ -1,14 +1,8 @@
 {
 	"nodes":[
-		{"id":"57b48aa679a3803d","type":"file","file":"WorkFlow Test/Work task.md","x":554,"y":696,"width":263,"height":65},
 		{"id":"16c915c7a25378eb","type":"file","file":"WorkFlow Test/root/Literature Notes.md","x":-1000,"y":265,"width":400,"height":88,"color":"3"},
 		{"id":"128d447220b1e04b","type":"file","file":"WorkFlow Test/actions/prompt/Purpose Prompt - frontmatter.md","x":-413,"y":268,"width":400,"height":82},
 		{"id":"6f8c1e8e4db48802","type":"file","file":"WorkFlow Test/root/Task Note.md","x":-1000,"y":554,"width":400,"height":93,"color":"5"},
-		{"id":"090c07076fcae57d","type":"file","file":"WorkFlow Test/actions/backlink/Task Kanban backLink.md","x":-80,"y":840,"width":400,"height":66},
-		{"id":"01e0bfcb96a5943c","type":"file","file":"WorkFlow Test/actions/prompt/Multimedia learning.md","x":539,"y":454,"width":400,"height":66},
-		{"id":"a047c1c31c4a663c","type":"file","file":"WorkFlow Test/actions/backlink/Task Kanban backLink.md","x":1741,"y":463,"width":400,"height":57},
-		{"id":"5191f25722a6d7b0","type":"file","file":"WorkFlow Test/actions/calendar/Deadline Selector.md","x":739,"y":840,"width":400,"height":70},
-		{"id":"10fa582bb8a0d6ea","type":"file","file":"WorkFlow Test/actions/selector/Priority selector - frontmatter.md","x":1224,"y":684,"width":400,"height":77},
 		{"id":"abf3e213616b46a6","type":"file","file":"WorkFlow Test/root/Meeting Note.md","x":-999,"y":4,"width":400,"height":90,"color":"6"},
 		{"id":"8c82b7abd6cf87b6","type":"file","file":"WorkFlow Test/actions/prompt/Add section h1 - body.md","x":-720,"y":-120,"width":400,"height":85},
 		{"id":"3a62b712887a4f16","type":"file","file":"WorkFlow Test/Empty Leaf.md","x":-337,"y":19,"width":249,"height":60},
@@ -16,7 +10,11 @@
 		{"id":"59fcfd179cd2455c","type":"file","file":"WorkFlow Test/root/Fleeting Notes.md","x":-1000,"y":-313,"width":400,"height":81,"color":"1"},
 		{"id":"3a191bd28ace9174","type":"file","file":"WorkFlow Test/actions/prompt/Purpose Prompt - frontmatter.md","x":131,"y":-320,"width":400,"height":95},
 		{"id":"7e53160d1a01dc0f","type":"file","file":"WorkFlow Test/actions/prompt/Purpose Prompt - frontmatter.md","x":-413,"y":560,"width":400,"height":82},
-		{"id":"9502604c70aab8fb","x":-429,"y":-640,"width":400,"height":80,"type":"file","file":"zettelFlow/Pruebas.md"}
+		{"id":"01e0bfcb96a5943c","type":"file","file":"WorkFlow Test/actions/prompt/Multimedia learning.md","x":560,"y":560,"width":400,"height":66,"color":"3"},
+		{"id":"57b48aa679a3803d","type":"file","file":"WorkFlow Test/Work task.md","x":575,"y":802,"width":263,"height":65,"color":"2"},
+		{"id":"10fa582bb8a0d6ea","type":"file","file":"WorkFlow Test/actions/selector/Priority selector - frontmatter.md","x":1245,"y":790,"width":400,"height":77},
+		{"id":"a047c1c31c4a663c","type":"file","file":"WorkFlow Test/actions/backlink/Task Kanban backLink.md","x":1762,"y":569,"width":400,"height":57,"color":"6"},
+		{"id":"5191f25722a6d7b0","type":"file","file":"WorkFlow Test/actions/calendar/Deadline Selector.md","x":838,"y":960,"width":360,"height":94}
 	],
 	"edges":[
 		{"id":"31586cccc0d2f2aa","fromNode":"59fcfd179cd2455c","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},
@@ -26,7 +24,6 @@
 		{"id":"96584593544d6059","fromNode":"905fabf82d23102c","fromSide":"right","toNode":"3a191bd28ace9174","toSide":"left"},
 		{"id":"23ec07e64a84601a","fromNode":"16c915c7a25378eb","fromSide":"right","toNode":"128d447220b1e04b","toSide":"left"},
 		{"id":"b62337dfef7bcabb","fromNode":"6f8c1e8e4db48802","fromSide":"right","toNode":"7e53160d1a01dc0f","toSide":"left"},
-		{"id":"d170b3608766a5f2","fromNode":"7e53160d1a01dc0f","fromSide":"bottom","toNode":"090c07076fcae57d","toSide":"top"},
 		{"id":"9e471c5a193ba98b","fromNode":"7e53160d1a01dc0f","fromSide":"right","toNode":"57b48aa679a3803d","toSide":"left"},
 		{"id":"a8c36ed8cde2c9fb","fromNode":"7e53160d1a01dc0f","fromSide":"right","toNode":"01e0bfcb96a5943c","toSide":"left"},
 		{"id":"313ce26b2cb724d6","fromNode":"01e0bfcb96a5943c","fromSide":"right","toNode":"a047c1c31c4a663c","toSide":"left"},
@@ -34,6 +31,6 @@
 		{"id":"655902d31c326d3e","fromNode":"5191f25722a6d7b0","fromSide":"top","toNode":"57b48aa679a3803d","toSide":"right"},
 		{"id":"257e2dbb86d8818c","fromNode":"57b48aa679a3803d","fromSide":"right","toNode":"10fa582bb8a0d6ea","toSide":"left"},
 		{"id":"30e6a0b02a5332cf","fromNode":"10fa582bb8a0d6ea","fromSide":"right","toNode":"a047c1c31c4a663c","toSide":"bottom"},
-		{"id":"dd40f09a64cb2d97","fromNode":"59fcfd179cd2455c","fromSide":"right","toNode":"9502604c70aab8fb","toSide":"left"}
+		{"id":"1645f92540e695c6","fromNode":"7e53160d1a01dc0f","fromSide":"top","toNode":"a047c1c31c4a663c","toSide":"top"}
 	]
 }

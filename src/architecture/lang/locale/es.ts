@@ -36,6 +36,8 @@ export default {
     step_builder_root_toggle_description: 'Establece el elemento actual como el elemento raíz.',
     step_builder_step_title: 'Nombre del fichero',
     step_builder_step_title_description: 'Este es el nombre del fichero de la nota del paso.',
+    step_builder_children_header_title: 'Encabezado de las posibles opciones',
+    step_builder_children_header_description: 'Si el paso tiene opciones, este encabezado se mostrará en la nota como explicación de estas',
     step_builder_optional_toggle_title: 'Opcional',
     step_builder_optional_toggle_description: 'Establece el elemento actual como opcional.',
     step_builder_section_label_title: 'Etiqueta del paso',

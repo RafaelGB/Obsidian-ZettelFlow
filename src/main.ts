@@ -8,7 +8,6 @@ import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction } from 'actions';
-
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {

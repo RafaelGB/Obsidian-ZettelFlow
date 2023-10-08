@@ -3,6 +3,7 @@ import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
 import { ContentDTO } from "notes/model/ContentDTO";
+import { ObsidianConfig } from "./ObsidianConfig";
 
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
@@ -69,12 +70,13 @@ export class FrontmatterService {
     }
 
     public async processFrontMatter(content: ContentDTO) {
+        const typeMap = await ObsidianConfig.getTypes();
         await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
             if (content.hasTags()) {
                 frontmatter.tags = content.getTags();
             }
             Object.entries(content.getFrontmatter()).forEach(([key, value]) => {
-                frontmatter[key] = value;
+                frontmatter[key] = ObsidianConfig.parseType(value, typeMap[key]);
             });
         }).catch((error) => {
             const message = `Error while processing frontmatter: ${error}`;

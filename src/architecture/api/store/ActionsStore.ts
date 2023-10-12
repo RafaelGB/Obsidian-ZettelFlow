@@ -1,13 +1,9 @@
 import { log } from "architecture";
 import { CustomZettelAction } from "../CustomZettelAction";
-import { AbstractHandlerClass } from "architecture/patterns";
-import { StepBuilderModal } from "zettelkasten";
 
 class ActionsStore {
     private static instance: ActionsStore;
     private actions: Map<string, CustomZettelAction>;
-    private initialChain: string;
-    private lastRegistered: string;
     private constructor() {
         this.actions = new Map();
     }
@@ -18,13 +14,7 @@ class ActionsStore {
             log.error(`Action ${key} already registered. Overriding`);
         }
 
-        if (!this.initialChain) {
-            this.initialChain = key;
-        } else {
-            this.addNextHandlerOn(this.lastRegistered, action.stepHandler);
-        }
         this.actions.set(key, action);
-        this.lastRegistered = key;
     }
 
     public unregisterAction(key: string): void {
@@ -32,12 +22,6 @@ class ActionsStore {
             log.error(`Action ${key} not found`);
         }
         this.actions.delete(key);
-    }
-
-    private addNextHandlerOn(key: string, handler: AbstractHandlerClass<StepBuilderModal>): void {
-        const action = this.getAction(key);
-        action.stepHandler.setNextHandler(handler);
-        this.actions.set(key, action);
     }
 
     public getAction(name: string): CustomZettelAction {
@@ -55,10 +39,6 @@ class ActionsStore {
 
     public getActionsKeys(): string[] {
         return Array.from(this.actions.keys());
-    }
-
-    public getInitialChain(): AbstractHandlerClass<StepBuilderModal> {
-        return this.getAction(this.initialChain).stepHandler;
     }
 
     public getIconOf(key: string): string {

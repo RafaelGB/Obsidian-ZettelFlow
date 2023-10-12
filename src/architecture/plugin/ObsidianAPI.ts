@@ -27,6 +27,10 @@ export class ObsidianAPIService {
         return this.app.metadataCache;
     }
 
+    public executeCommandById(id: string) {
+        this.app.commands.executeCommandById(id);
+    }
+
     public static getInstance(): ObsidianAPIService {
         if (!ObsidianAPIService.instance) {
             ObsidianAPIService.instance = new ObsidianAPIService();

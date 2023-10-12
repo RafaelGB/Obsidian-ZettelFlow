@@ -7,6 +7,7 @@ zettelFlowSettings:
     key: purpose
     label: Purpose of your note
     zone: frontmatter
+    hasUI: true
   root: false
   childrenHeader: ""
   optional: true

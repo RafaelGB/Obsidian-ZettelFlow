@@ -11,7 +11,7 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
         const { info } = modal;
         const { element, contentEl } = info;
         const { type = "bridge" } = element;
-
+        this.setActionHandler(type);
         new Setting(contentEl)
             .setName(this.name)
             .setDesc(this.description)
@@ -24,30 +24,19 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
                     .setValue(type)
                     .onChange(async (value) => {
                         element.type = value;
+                        this.setActionHandler(type);
                         modal.refresh();
                     });
             }
             );
-        if (type !== 'bridge') {
-            const { zone } = element;
-            new Setting(contentEl)
-                .setName(t("step_builder_element_type_zone_title"))
-                .setDesc(t("step_builder_element_type_zone_description"))
-                .addDropdown(dropdown => {
-                    dropdown
-                        .addOption('frontmatter', t('step_builder_element_type_zone_frontmatter'))
-                        .addOption('body', t('step_builder_element_type_zone_body'))
-                        .setValue(zone !== undefined ? zone as string : 'frontmatter')
-                        .onChange(async (value) => {
-                            element.zone = value;
-                        });
-                });
-        }
-
         return this.goNext(modal);
     }
 
-    public manageNextHandler(): void {
-        this.nextHandler = actionsStore.getInitialChain();
+    private setActionHandler(actionId: string): void {
+        if (actionId === 'bridge') {
+            this.nextHandler = undefined;
+        } else {
+            this.nextHandler = actionsStore.getAction(actionId).stepHandler;
+        }
     }
 }

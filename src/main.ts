@@ -8,7 +8,6 @@ import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction } from 'actions';
-
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
@@ -74,7 +73,18 @@ export default class ZettelFlow extends Plugin {
 						if (zettelFlowSettings) {
 							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
 							title = t("menu_pane_edit_step");
+							// Remove step configuration
+							menu.addItem((item) => {
+								item
+									.setTitle(t("menu_pane_remove_step_configuration"))
+									.setIcon(RibbonIcon.ID)
+									.onClick(async () => {
+										await FrontmatterService.instance(file).removeStepSettings();
+										new Notice("Step configuration removed!");
+									});
+							});
 						}
+						// Transform note into step
 						menu.addItem((item) => {
 							item
 								.setTitle(title)

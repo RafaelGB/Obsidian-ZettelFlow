@@ -1,6 +1,6 @@
 {
   "name": "zettelflow",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A plugin for Obsidian that allows you to create and manage notes in a ZettelFlow-like way.",
   "main": "main.js",
   "scripts": {
@@ -15,14 +15,14 @@
   "author": "RafaelGB",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "20.8.2",
+    "@types/node": "20.8.3",
     "@types/react": "18.2.25",
     "@types/react-dom": "18.2.10",
     "@typescript-eslint/eslint-plugin": "6.7.4",
     "@typescript-eslint/parser": "6.7.4",
     "builtin-modules": "3.3.0",
     "esbuild": "0.19.4",
-    "eslint": "8.50.0",
+    "eslint": "8.51.0",
     "eslint-plugin-react": "7.33.2",
     "jest": "29.7.0",
     "obsidian": "1.4.11",

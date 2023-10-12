@@ -2,5 +2,5 @@
 zettelFlowSettings:
   childrenHeader: Choose a project
   root: true
-dailyLink: '[[2023-10-07]]'
+dailyLink: '[[<% tp.date.now("YYYY-MM-DD", 0) %>]]'
 ---

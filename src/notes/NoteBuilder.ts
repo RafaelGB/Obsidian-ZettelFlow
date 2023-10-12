@@ -1,4 +1,4 @@
-import { log } from "architecture";
+import { ObsidianApi, log } from "architecture";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService } from "architecture/plugin";
 import moment from "moment";
@@ -59,6 +59,7 @@ export class NoteBuilder {
       this.content.add(await service.getContent());
     }
     await this.manageElements(path);
+    await this.postProcess();
   }
 
   private async manageElements(path: string) {
@@ -69,5 +70,11 @@ export class NoteBuilder {
         .getAction(element.type)
         .execute({ element, content: this.content, path, note: this.info });
     }
+  }
+
+  private async postProcess() {
+    setTimeout(() => {
+      ObsidianApi.executeCommandById('templater-obsidian:replace-in-file-templater');
+    }, 1000);
   }
 }

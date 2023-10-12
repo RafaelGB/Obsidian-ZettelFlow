@@ -23,9 +23,16 @@ export class SelectorAction extends CustomZettelAction {
 
   async execute(info: ExecuteInfo) {
     const { content, element } = info;
-    const { key } = element;
-    if (TypeService.isString(key)) {
-      content.addElement(element);
+    const { key, zone, result } = element;
+    if (TypeService.isString(key) && TypeService.isString(result)) {
+      switch (zone) {
+        case "body":
+          content.modify(key, result);
+          break;
+        case "frontmatter":
+        default:
+          content.addFrontMatter({ [key]: result });
+      }
     }
   }
 

@@ -7,5 +7,8 @@ declare module "obsidian" {
     }
     interface App {
         setting: setting;
+        commands: {
+            executeCommandById: (id: string) => void;
+        }
     }
 }

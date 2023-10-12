@@ -85,6 +85,12 @@ export class FrontmatterService {
         });
     }
 
+    public async removeStepSettings() {
+        await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
+            delete frontmatter[FrontmatterService.FRONTMATTER_SETTINGS_KEY];
+        });
+    }
+
     private getAnidatedProperty(property: string): Literal {
         let valueToCheck = { ...this.metadata.frontmatter };
         const anidatedProperty = property.split(".");

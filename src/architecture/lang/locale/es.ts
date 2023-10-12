@@ -18,6 +18,7 @@ export default {
     menu_pane_create_new_step: 'Crear nuevo paso del ZettelFlow',
     menu_pane_edit_step: 'Editar paso del ZettelFlow',
     menu_pane_transform_note_into_step: 'Transformar nota en paso del ZettelFlow',
+    menu_pane_remove_step_configuration: 'Eliminar configuración de ZettelFlow',
     selector_menu_title: 'Menu Zettelcaster',
     logger_toggle_title: 'Activar logger',
     logger_toggle_description: 'Activar o desactivar logger',

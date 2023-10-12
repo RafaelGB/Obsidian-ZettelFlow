@@ -14,6 +14,7 @@ zettelFlowSettings:
     zone: frontmatter
     defaultOption: P3
     isAction: true
+    hasUI: true
   label: Select a priority level
   childrenHeader: ""
 ---

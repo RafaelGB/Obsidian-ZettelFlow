@@ -64,6 +64,8 @@ export default {
     step_builder_element_type_calendar_label_description: 'La etiqueta será el título de tu calendario',
     step_builder_element_type_selector_title: 'Acción de selector',
     step_builder_element_type_selector_description: 'Añade opciones a tu paso que se mostrarán en el menú de la acción.',
+    step_builder_element_type_selector_label_title: 'Etiqueta del selector',
+    step_builder_element_type_selector_label_description: 'La etiqueta será el título de tu selector',
     step_builder_element_type_backlink_title: 'Acción de backlink',
     step_builder_element_type_backlink_description: 'Añade un backlink a tu paso.',
     step_builder_element_type_backlink_trigger_default_title: 'Activar fichero por defecto',

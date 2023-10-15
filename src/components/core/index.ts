@@ -22,3 +22,6 @@ export { BadgeModel } from './model/BadgeModel'
 
 export { Dropdown } from './Dropdown'
 export { DropdownType } from './model/DropdownModel'
+
+export { Search } from "./Search";
+export { SearchType } from "./model/SearchModel"

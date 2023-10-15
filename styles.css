@@ -7,8 +7,32 @@
   border-radius: 0.25rem;
 }
 /*****************
+*   ANIMATIONS
+******************/
+@keyframes fadeIn {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.6;
+  }
+}
+/*****************
 *   BASIC STYLES
 ******************/
+.zettelkasten-flow__visible-overflow {
+  overflow: visible;
+}
+
 .zettelkasten-flow__display-grid {
   display: grid;
 }
@@ -41,11 +65,12 @@
   margin-right: 10px;
 }
 
-.kanban-plugin__input_item {
+.zettelkasten-flow__input_item {
   font-size: 12px;
   font-weight: bold;
   margin-bottom: 5px;
 }
+
 /*****************
 *   NAVBAR
 ******************/
@@ -187,6 +212,47 @@ textarea {
   /* space between list items */
   padding-bottom: 0.35rem;
 }
+/*****************
+*   SEARCH
+******************/
+.zettelkasten-flow__search-results {
+  position: absolute;
+  z-index: 9999;
+  background-color: var(--background-secondary);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px; /* rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* soft shadow */
+  max-height: 200px;
+  overflow-y: auto;
+  transition: all 0.3s ease; /* smooth transition animation */
+  animation: fadeIn 0.3s ease forwards; /* fade in animation */
+}
+.zettelkasten-flow__search-hidden {
+  animation: fadeOut 0.3s ease forwards; /* fade out animation */
+}
+
+.zettelkasten-flow__search-selected {
+  background-color: var(--background-modifier-success);
+  transition: background-color 0.3s ease; /* smooth transition animation on background-color */
+}
+
+.zettelkasten-flow__search-results li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.zettelkasten-flow__search-results li:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__search-results li:focus {
+  outline: none;
+  background-color: var(--background-modifier-focus);
+}
+
 /*****************
 *   SETTINGS
 ******************/

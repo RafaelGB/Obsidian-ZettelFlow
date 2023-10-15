@@ -1,1 +1,0 @@
-export { useOnClickAway } from './useOnClickAway';

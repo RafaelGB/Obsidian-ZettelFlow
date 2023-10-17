@@ -222,9 +222,9 @@ textarea {
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid #ccc;
+  border: 1px solid var(--background-modifier-border);
   border-radius: 4px; /* rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* soft shadow */
+  box-shadow: 0 2px 5px var(--background-modifier-border); /* drop shadow */
   max-height: 200px;
   overflow-y: auto;
   transition: all 0.3s ease; /* smooth transition animation */
@@ -235,7 +235,7 @@ textarea {
 }
 
 .zettelkasten-flow__search-selected {
-  background-color: var(--background-modifier-success);
+  background-color: var(--color-accent);
   transition: background-color 0.3s ease; /* smooth transition animation on background-color */
 }
 

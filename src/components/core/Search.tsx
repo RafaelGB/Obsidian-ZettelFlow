@@ -2,13 +2,17 @@ import { c } from "architecture";
 import React, { useState } from "react";
 import { useRef } from "react";
 import { SearchType } from "./model/SearchModel";
-import { useOnClickAway, useVisibleModalOverflow } from "architecture/hooks";
+import {
+  useOnClickAway,
+  useScrollToSelected,
+  useVisibleModalOverflow,
+} from "architecture/hooks";
 
 export function Search(props: SearchType) {
   const { onChange, options, placeholder } = props;
   // Refs
   const ref = useRef<HTMLDivElement>(null);
-
+  const listRef = useRef<HTMLUListElement>(null);
   // States
   const [value, setValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");
@@ -20,8 +24,8 @@ export function Search(props: SearchType) {
   useOnClickAway(ref, () => {
     setVisibleOptions(false);
   });
-  useVisibleModalOverflow();
-
+  useVisibleModalOverflow([selectedValue]);
+  useScrollToSelected(listRef, selectedIndex);
   // Render
   return (
     <div ref={ref}>
@@ -30,18 +34,19 @@ export function Search(props: SearchType) {
         value={value}
         onChange={(e) => {
           const value = e.target.value;
-          setValue(value);
           if (!value) {
             setSelectedValue("");
             setFilteredOptions(options);
             onChange("");
-          } else {
-            setFilteredOptions(
-              options.filter((f) =>
-                f.toLowerCase().includes(e.target.value.toLowerCase())
-              )
-            );
           }
+          if (!visibleOptions) {
+            setVisibleOptions(true);
+            setSelectedIndex(0);
+          }
+          setValue(value);
+          setFilteredOptions(
+            options.filter((f) => f.toLowerCase().includes(value.toLowerCase()))
+          );
         }}
         onFocus={() => {
           setVisibleOptions(true);
@@ -62,6 +67,7 @@ export function Search(props: SearchType) {
               break;
             }
             case "Enter": {
+              e.preventDefault();
               const value = filteredOptions[selectedIndex];
               setValue(value);
               setSelectedValue(value);
@@ -74,7 +80,7 @@ export function Search(props: SearchType) {
         placeholder={placeholder}
       />
       {visibleOptions && (
-        <ul className={c("search-results")}>
+        <ul className={c("search-results")} ref={listRef}>
           {filteredOptions.map((f, index) => (
             <li
               tabIndex={index}

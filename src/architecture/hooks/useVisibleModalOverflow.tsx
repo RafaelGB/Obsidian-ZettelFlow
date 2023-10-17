@@ -1,7 +1,7 @@
 import { c } from "architecture/styles/helper";
 import { useEffect } from "react";
 
-export function useVisibleModalOverflow() {
+export function useVisibleModalOverflow(stateArrayToTrigger: unknown[] = []) {
   useEffect(() => {
     const modal = document.querySelector(".modal");
     if (modal) {
@@ -12,5 +12,5 @@ export function useVisibleModalOverflow() {
         modal.classList.remove(c("visible-overflow"));
       }
     };
-  }, []);
+  }, stateArrayToTrigger);
 }

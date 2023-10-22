@@ -1,7 +1,11 @@
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BacklinkElement } from "./model/BackLinkTypes";
-import { MarkdownService } from "architecture/plugin";
+import {
+  FileService,
+  FrontmatterService,
+  MarkdownService,
+} from "architecture/plugin";
 import { Component } from "obsidian";
 import { ObsidianApi, c } from "architecture";
 import { Search } from "components/core";
@@ -16,35 +20,48 @@ export function BacklinkWrapper(props: WrappedActionBuilderProps) {
 
 function Backlink(props: WrappedActionBuilderProps) {
   const { callback } = props;
+  // States
+  const [finalFileValue, setFinalFileValue] = useState<string>("");
+  const [finalHeadingValue, setFinalHeadingValue] = useState<string>("");
+  const [enableHeading, setEnableHeading] = useState<boolean>(false);
+  const [headingMemo, setHeadingMemo] = useState<Record<string, string>>({});
+  // Memo
   const fileMemo = useMemo(() => {
     return ObsidianApi.vault()
       .getMarkdownFiles()
-      .map((f) => f.basename);
+      .reduce((acc: Record<string, string>, file) => {
+        acc[file.path] = file.basename;
+        return acc;
+      }, {});
   }, []);
-  const [finalFileValue, setFinalFileValue] = useState<string>("");
-  const [finalHeadingValue, setFinalHeadingValue] = useState<string>("");
-
-  const [enableHeading, setEnableHeading] = useState<boolean>(false);
-
-  const headingMemo = useMemo(() => {
+  // Functions
+  const headingCalculationLambda = async () => {
     if (finalFileValue) {
-      return [];
+      const file = await FileService.getFile(finalFileValue);
+      if (!file) {
+        return {};
+      }
+      const headings = FrontmatterService.instance(file).get().headings;
+      if (!headings) {
+        return {};
+      }
+      return headings.reduce((acc: Record<string, string>, heading) => {
+        acc[heading.heading] = heading.heading;
+        return acc;
+      }, {});
     } else {
-      return [];
+      return {};
     }
-  }, [finalFileValue]);
-
+  };
+  // Render
   return (
     <div className={c("backlink")}>
       <Search
         options={fileMemo}
-        onChange={(value) => {
-          setFinalFileValue(value);
-          if (value) {
-            setEnableHeading(true);
-          } else {
-            setEnableHeading(false);
-          }
+        onChange={async (value) => {
+          //setFinalFileValue(value);
+          //setEnableHeading(value !== "");
+          //setHeadingMemo(await headingCalculationLambda());
         }}
         placeholder="Select a file"
       />

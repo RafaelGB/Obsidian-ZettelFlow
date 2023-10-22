@@ -17,7 +17,8 @@ export function Search(props: SearchType) {
   const [value, setValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [filteredOptions, setFilteredOptions] = useState<string[]>(options);
+  const [filteredOptions, setFilteredOptions] =
+    useState<Record<string, string>>(options);
   const [visibleOptions, setVisibleOptions] = useState<boolean>(false);
 
   // Hooks
@@ -26,6 +27,7 @@ export function Search(props: SearchType) {
   });
   useVisibleModalOverflow([selectedValue]);
   useScrollToSelected(listRef, selectedIndex);
+
   // Render
   return (
     <div ref={ref}>
@@ -44,9 +46,7 @@ export function Search(props: SearchType) {
             setSelectedIndex(0);
           }
           setValue(value);
-          setFilteredOptions(
-            options.filter((f) => f.toLowerCase().includes(value.toLowerCase()))
-          );
+          setFilteredOptions(filterRecordByKey(options, value));
         }}
         onFocus={() => {
           setVisibleOptions(true);
@@ -62,7 +62,7 @@ export function Search(props: SearchType) {
             case "ArrowDown": {
               e.preventDefault();
               setSelectedIndex((prevIndex) =>
-                Math.min(filteredOptions.length - 1, prevIndex + 1)
+                Math.min(Object.keys(filteredOptions).length - 1, prevIndex + 1)
               );
               break;
             }
@@ -71,7 +71,7 @@ export function Search(props: SearchType) {
               const value = filteredOptions[selectedIndex];
               setValue(value);
               setSelectedValue(value);
-              setVisibleOptions(false);
+              setFilteredOptions(filterRecordByKey(options, value));
               onChange(value);
               break;
             }
@@ -81,18 +81,14 @@ export function Search(props: SearchType) {
       />
       {visibleOptions && (
         <ul className={c("search-results")} ref={listRef}>
-          {filteredOptions.map((f, index) => (
+          {Object.entries(filteredOptions).map(([key, f], index) => (
             <li
               tabIndex={index}
               onClick={() => {
                 setValue(f);
                 setSelectedValue(f);
-                setFilteredOptions(
-                  options.filter((internalF) =>
-                    internalF.toLowerCase().includes(f.toLowerCase())
-                  )
-                );
-                onChange(f);
+                setFilteredOptions(filterRecordByKey(options, f));
+                onChange(key);
               }}
               key={`file-${f}`}
               className={
@@ -108,4 +104,18 @@ export function Search(props: SearchType) {
       )}
     </div>
   );
+}
+
+function filterRecordByKey(record: Record<string, string>, filterer: string) {
+  const filteredRecord = Object.entries(record)
+    // Filter by value the record
+    .filter(([_, value]) =>
+      value.toLowerCase().includes(filterer.toLowerCase())
+    )
+    // Map again to a record
+    .reduce((acc: Record<string, string>, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {});
+  return filteredRecord;
 }

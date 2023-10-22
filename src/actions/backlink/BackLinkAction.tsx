@@ -5,9 +5,11 @@ import {
   BacklinkElement,
 } from "./model/BackLinkTypes";
 import { EditService, FileService } from "architecture/plugin";
-import { WrappedActionBuilderProps } from "components/NoteBuilder";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 import { BacklinkWrapper } from "./BackComponent";
 import React from "react";
+import { HeadingCache } from "obsidian";
+import { NoteDTO } from "notes";
 export class BackLinkAction extends CustomZettelAction {
   id = "backlink";
   stepHandler = new BackLinkHandler();
@@ -24,10 +26,12 @@ export class BackLinkAction extends CustomZettelAction {
     }
   }
 
-  private dynamicConstructor(info: ExecuteInfo) {
+  private async dynamicConstructor(info: ExecuteInfo) {
     const { element, note } = info;
     const { file, heading } = element.result as BacklinkComponentResult;
-    console.log(file, heading);
+    const { insertPattern = "{{wikilink}}" } = element as BacklinkElement;
+
+    await this.insertHeading(insertPattern, file, heading, note);
   }
 
   private async defaultConstructor(info: ExecuteInfo) {
@@ -39,17 +43,26 @@ export class BackLinkAction extends CustomZettelAction {
     } = element as BacklinkElement;
     // Insert
 
+    await this.insertHeading(insertPattern, defaultFile, defaultHeading, note);
+  }
+
+  private async insertHeading(
+    insertPattern: string,
+    file: string | undefined,
+    heading: HeadingCache | undefined,
+    note: NoteDTO
+  ) {
     const mdLink = `\n${insertPattern.replace(
       "{{wikilink}}",
       `[[${note.getTitle()}]]`
     )}\n`;
 
-    if (defaultFile && defaultHeading) {
-      const targetFile = await FileService.getFile(defaultFile);
+    if (file && heading) {
+      const targetFile = await FileService.getFile(file);
       if (targetFile) {
         await EditService.instance(targetFile)
           .setContent(await FileService.getContent(targetFile))
-          .insertBacklink(mdLink, defaultHeading)
+          .insertBacklink(mdLink, heading)
           .save();
       }
     }

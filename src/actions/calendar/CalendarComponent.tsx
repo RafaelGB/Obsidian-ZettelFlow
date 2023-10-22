@@ -1,5 +1,5 @@
-import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { Calendar } from "components/core";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { Calendar } from "components/calendar";
 import React from "react";
 
 export function CalendarWrapper(props: WrappedActionBuilderProps) {

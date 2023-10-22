@@ -1,8 +1,10 @@
 import React, { StrictMode, useEffect } from "react";
 import { NoteBuilderType } from "./model/NoteBuilderModel";
-import { Header, Section, NavBar } from "components/core";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
+import { Section } from "components/section";
+import { Header } from "components/header";
+import { NavBar } from "components/navbar";
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
   return <NoteBuilder {...noteBuilderType} />;

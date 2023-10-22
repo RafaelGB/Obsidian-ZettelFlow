@@ -1,4 +1,4 @@
-import { WrappedActionBuilderProps } from "components/NoteBuilder";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BacklinkElement } from "./model/BackLinkTypes";
 import {

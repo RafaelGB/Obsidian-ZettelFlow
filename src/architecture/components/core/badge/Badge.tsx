@@ -1,7 +1,7 @@
 import React from "react";
-import { BadgeModel } from "./model/BadgeModel";
+import { BadgeType } from "./typing";
 
-export function Badge(props: BadgeModel) {
+export function Badge(props: BadgeType) {
   const { children, content } = props;
   return (
     <div className="badge">

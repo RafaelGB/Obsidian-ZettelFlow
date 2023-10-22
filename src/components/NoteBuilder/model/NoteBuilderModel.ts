@@ -1,5 +1,6 @@
 import { Literal } from "architecture/plugin";
-import { HeaderType, SectionType } from "components/core";
+import { HeaderType } from "components/header";
+import { SectionType } from "components/section";
 import { WorkflowStep } from "config";
 import ZettelFlow from "main";
 import { FinalElement } from "notes";

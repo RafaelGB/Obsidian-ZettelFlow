@@ -3,10 +3,11 @@ import { create } from "zustand";
 import { NoteBuilderState } from "../model/NoteBuilderModel";
 import { t } from "architecture/lang";
 import { Builder } from "notes";
-import goPreviousAction from "./actions/goPreviousAction";
-import setSelectionElementAction from "./actions/setSelectionElementAction";
-import infoStep from "./actions/infoState";
+
 import { Notice } from "obsidian";
+import setSelectionElementAction from "./actions/setSelectionElementAction";
+import goPreviousAction from "./actions/goPreviousAction";
+import infoStep from "./actions/infoState";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",

@@ -5,11 +5,10 @@ import {
   NoteBuilderType,
   callbackSkipNote,
   useNoteBuilderStore,
-} from "components/NoteBuilder";
+} from "components/noteBuilder";
 import { c } from "architecture";
 import { ActionIcon, TemplateIcon } from "components/icons";
-import { Badge } from "./Badge";
-import { Input } from "architecture/components/core";
+import { Badge, Input } from "architecture/components/core";
 
 export function NavBar(props: NoteBuilderType) {
   const actions = useNoteBuilderStore((store) => store.actions);

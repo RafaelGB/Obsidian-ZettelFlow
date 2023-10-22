@@ -1,6 +1,6 @@
 import React from "react";
 import { c } from "architecture";
-import { InputType } from "../../architecture/components/core/input/typing";
+import { InputType } from "./typing";
 
 export function TextArea(info: InputType) {
   const {

@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-export type BadgeModel = {
+export type BadgeType = {
     content: ReactNode,
     children: ReactNode,
 }

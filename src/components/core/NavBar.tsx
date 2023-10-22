@@ -1,6 +1,6 @@
 import { t } from "architecture/lang";
 import React from "react";
-import { Input } from "./Input";
+
 import {
   NoteBuilderType,
   callbackSkipNote,
@@ -9,6 +9,7 @@ import {
 import { c } from "architecture";
 import { ActionIcon, TemplateIcon } from "components/icons";
 import { Badge } from "./Badge";
+import { Input } from "architecture/components/core";
 
 export function NavBar(props: NoteBuilderType) {
   const actions = useNoteBuilderStore((store) => store.actions);

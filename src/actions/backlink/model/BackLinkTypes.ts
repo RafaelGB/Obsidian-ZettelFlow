@@ -7,3 +7,8 @@ export type BacklinkElement = {
     defaultFile?: string,
     defaultHeading?: HeadingCache,
 } & FinalElement;
+
+export type BacklinkComponentResult = {
+    file: string,
+    heading: HeadingCache
+}

@@ -1,6 +1,9 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { BackLinkHandler } from "./BackLinkHandler";
-import { BacklinkElement } from "./model/BackLinkTypes";
+import {
+  BacklinkComponentResult,
+  BacklinkElement,
+} from "./model/BackLinkTypes";
 import { EditService, FileService } from "architecture/plugin";
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
 import { BacklinkWrapper } from "./BackComponent";
@@ -14,8 +17,21 @@ export class BackLinkAction extends CustomZettelAction {
   }
 
   async execute(info: ExecuteInfo) {
-    const { element, note } = info;
+    if (info.element.result) {
+      await this.dynamicConstructor(info);
+    } else {
+      await this.defaultConstructor(info);
+    }
+  }
 
+  private dynamicConstructor(info: ExecuteInfo) {
+    const { element, note } = info;
+    const { file, heading } = element.result as BacklinkComponentResult;
+    console.log(file, heading);
+  }
+
+  private async defaultConstructor(info: ExecuteInfo) {
+    const { element, note } = info;
     const {
       defaultFile,
       insertPattern = "{{wikilink}}",

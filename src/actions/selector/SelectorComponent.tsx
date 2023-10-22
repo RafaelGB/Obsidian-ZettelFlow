@@ -1,5 +1,5 @@
+import { Dropdown } from "architecture/components/core";
 import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { Dropdown } from "components/core";
 import React from "react";
 import { SelectorElement } from "zettelkasten";
 

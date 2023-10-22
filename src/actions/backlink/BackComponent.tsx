@@ -6,9 +6,9 @@ import {
   FrontmatterService,
   MarkdownService,
 } from "architecture/plugin";
-import { Component } from "obsidian";
+import { Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
-import { Search } from "components/core";
+import { Search } from "architecture/components/core";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
   const { defaultFile } = props.action.element as BacklinkElement;
@@ -21,23 +21,26 @@ export function BacklinkWrapper(props: WrappedActionBuilderProps) {
 function Backlink(props: WrappedActionBuilderProps) {
   const { callback } = props;
   // States
-  const [finalFileValue, setFinalFileValue] = useState<string>("");
-  const [finalHeadingValue, setFinalHeadingValue] = useState<string>("");
+  const [finalFileValue, setFinalFileValue] = useState<string | null>("");
+  const [finalHeadingValue, setFinalHeadingValue] =
+    useState<HeadingCache | null>();
   const [enableHeading, setEnableHeading] = useState<boolean>(false);
-  const [headingMemo, setHeadingMemo] = useState<Record<string, string>>({});
+  const [headingMemo, setHeadingMemo] = useState<Record<string, HeadingCache>>(
+    {}
+  );
   // Memo
   const fileMemo = useMemo(() => {
     return ObsidianApi.vault()
       .getMarkdownFiles()
       .reduce((acc: Record<string, string>, file) => {
-        acc[file.path] = file.basename;
+        acc[file.basename] = file.path;
         return acc;
       }, {});
   }, []);
   // Functions
-  const headingCalculationLambda = async () => {
-    if (finalFileValue) {
-      const file = await FileService.getFile(finalFileValue);
+  const obtainHeadersOfFinalFile = async (pathToSearch: string | null) => {
+    if (pathToSearch) {
+      const file = await FileService.getFile(pathToSearch);
       if (!file) {
         return {};
       }
@@ -45,8 +48,8 @@ function Backlink(props: WrappedActionBuilderProps) {
       if (!headings) {
         return {};
       }
-      return headings.reduce((acc: Record<string, string>, heading) => {
-        acc[heading.heading] = heading.heading;
+      return headings.reduce((acc: Record<string, HeadingCache>, heading) => {
+        acc[heading.heading] = heading;
         return acc;
       }, {});
     } else {
@@ -59,9 +62,10 @@ function Backlink(props: WrappedActionBuilderProps) {
       <Search
         options={fileMemo}
         onChange={async (value) => {
-          //setFinalFileValue(value);
-          //setEnableHeading(value !== "");
-          //setHeadingMemo(await headingCalculationLambda());
+          setFinalFileValue(value);
+          setEnableHeading(value !== "");
+          const availableHeaders = await obtainHeadersOfFinalFile(value);
+          setHeadingMemo(availableHeaders);
         }}
         placeholder="Select a file"
       />

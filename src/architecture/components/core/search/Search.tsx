@@ -1,14 +1,14 @@
 import { c } from "architecture";
 import React, { useState } from "react";
 import { useRef } from "react";
-import { SearchType } from "./model/SearchModel";
+import { SearchType } from "./typing";
 import {
   useOnClickAway,
   useScrollToSelected,
   useVisibleModalOverflow,
 } from "architecture/hooks";
 
-export function Search(props: SearchType) {
+export function Search<T>(props: SearchType<T>) {
   const { onChange, options, placeholder } = props;
   // Refs
   const ref = useRef<HTMLDivElement>(null);
@@ -18,12 +18,14 @@ export function Search(props: SearchType) {
   const [selectedValue, setSelectedValue] = useState<string>("");
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [filteredOptions, setFilteredOptions] =
-    useState<Record<string, string>>(options);
+    useState<Record<string, T>>(options);
   const [visibleOptions, setVisibleOptions] = useState<boolean>(false);
 
   // Hooks
   useOnClickAway(ref, () => {
     setVisibleOptions(false);
+    setValue(selectedValue);
+    setSelectedIndex(0);
   });
   useVisibleModalOverflow([selectedValue]);
   useScrollToSelected(listRef, selectedIndex);
@@ -39,7 +41,7 @@ export function Search(props: SearchType) {
           if (!value) {
             setSelectedValue("");
             setFilteredOptions(options);
-            onChange("");
+            onChange(null);
           }
           if (!visibleOptions) {
             setVisibleOptions(true);
@@ -51,6 +53,7 @@ export function Search(props: SearchType) {
         onFocus={() => {
           setVisibleOptions(true);
           setValue(selectedValue);
+          setSelectedIndex(0);
         }}
         onKeyDown={(e) => {
           switch (e.key) {
@@ -68,11 +71,16 @@ export function Search(props: SearchType) {
             }
             case "Enter": {
               e.preventDefault();
-              const value = filteredOptions[selectedIndex];
-              setValue(value);
-              setSelectedValue(value);
-              setFilteredOptions(filterRecordByKey(options, value));
+              const [key, value] = getEntryByIndex(
+                filteredOptions,
+                selectedIndex
+              );
+              setValue(key);
+              setSelectedValue(key);
+              setFilteredOptions(filterRecordByKey(options, key));
               onChange(value);
+              ref.current?.querySelector("input")?.blur();
+              setVisibleOptions(false);
               break;
             }
           }
@@ -81,23 +89,26 @@ export function Search(props: SearchType) {
       />
       {visibleOptions && (
         <ul className={c("search-results")} ref={listRef}>
-          {Object.entries(filteredOptions).map(([key, f], index) => (
+          {Object.entries(filteredOptions).map(([key, value], index) => (
             <li
               tabIndex={index}
               onClick={() => {
-                setValue(f);
-                setSelectedValue(f);
-                setFilteredOptions(filterRecordByKey(options, f));
-                onChange(key);
+                setValue(key);
+                setSelectedValue(key);
+                setFilteredOptions(filterRecordByKey(options, key));
+                onChange(value);
+                // blur of input
+                ref.current?.querySelector("input")?.blur();
+                setVisibleOptions(false);
               }}
-              key={`file-${f}`}
+              key={`option-${index}-${key}`}
               className={
                 index === selectedIndex
                   ? c("search-selected")
                   : c("search-hidden")
               }
             >
-              {f}
+              {key}
             </li>
           ))}
         </ul>
@@ -105,15 +116,19 @@ export function Search(props: SearchType) {
     </div>
   );
 }
+function getEntryByIndex<T>(
+  record: Record<string, T>,
+  index: number
+): [string, T] {
+  return Object.entries(record)[index];
+}
 
-function filterRecordByKey(record: Record<string, string>, filterer: string) {
+function filterRecordByKey<T>(record: Record<string, T>, filterer: string) {
   const filteredRecord = Object.entries(record)
     // Filter by value the record
-    .filter(([_, value]) =>
-      value.toLowerCase().includes(filterer.toLowerCase())
-    )
+    .filter(([key, _]) => key.toLowerCase().includes(filterer.toLowerCase()))
     // Map again to a record
-    .reduce((acc: Record<string, string>, [key, value]) => {
+    .reduce((acc: Record<string, T>, [key, value]) => {
       acc[key] = value;
       return acc;
     }, {});

@@ -1,6 +1,6 @@
 import React from "react";
 import { c } from "architecture";
-import { InputType } from "./model/InputModel";
+import { InputType } from "./typing";
 
 export function Input(info: InputType) {
   const {

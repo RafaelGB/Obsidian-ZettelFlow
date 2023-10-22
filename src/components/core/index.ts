@@ -8,9 +8,8 @@ export { HeaderType } from './model/HeaderModel'
 export { Section } from './Section'
 export { SectionType } from './model/SectionModel'
 
-export { Input } from './Input'
+
 export { TextArea } from './TextArea'
-export { InputType } from './model/InputModel'
 
 export { Calendar } from './Calendar'
 export { CalendarType } from './model/CalendarModel'
@@ -19,9 +18,3 @@ export { NavBar } from './NavBar'
 
 export { Badge } from './Badge'
 export { BadgeModel } from './model/BadgeModel'
-
-export { Dropdown } from './Dropdown'
-export { DropdownType } from './model/DropdownModel'
-
-export { Search } from "./Search";
-export { SearchType } from "./model/SearchModel"

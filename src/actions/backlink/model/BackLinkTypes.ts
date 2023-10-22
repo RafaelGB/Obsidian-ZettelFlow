@@ -10,5 +10,6 @@ export type BacklinkElement = {
 
 export type BacklinkComponentResult = {
     file: string,
-    heading: HeadingCache
+    heading: HeadingCache,
+    regex: string
 }

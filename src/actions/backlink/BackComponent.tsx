@@ -9,6 +9,7 @@ import {
 import { Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
 import { Search } from "architecture/components/core";
+import { t } from "architecture/lang";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
   const { defaultFile } = props.action.element as BacklinkElement;
@@ -24,6 +25,9 @@ function Backlink(props: WrappedActionBuilderProps) {
   const [finalFileValue, setFinalFileValue] = useState<string | null>("");
   const [finalHeadingValue, setFinalHeadingValue] =
     useState<HeadingCache | null>();
+  const [finalRegexValue, setFinalRegexValue] =
+    useState<string>("{{wikilink}}");
+
   const [enableHeading, setEnableHeading] = useState<boolean>(false);
   const [headingMemo, setHeadingMemo] = useState<Record<string, HeadingCache>>(
     {}
@@ -37,6 +41,28 @@ function Backlink(props: WrappedActionBuilderProps) {
         return acc;
       }, {});
   }, []);
+
+  const previewMemo = useMemo(() => {
+    if (!finalFileValue) {
+      return "";
+    }
+    const basenameWithExtension = finalFileValue.split("/").pop();
+    if (!basenameWithExtension) {
+      return "";
+    }
+    // Remove extension
+    const basename = basenameWithExtension.substring(
+      0,
+      basenameWithExtension.lastIndexOf(".")
+    );
+
+    const mdLink = `\n${finalRegexValue.replace(
+      "{{wikilink}}",
+      `[[name of your note]]`
+    )}\n`;
+    return `${mdLink} on file ${basename} with heading ${finalHeadingValue?.heading}`;
+  }, [finalFileValue, finalHeadingValue, finalRegexValue]);
+
   // Functions
   const obtainHeadersOfFinalFile = async (pathToSearch: string | null) => {
     if (pathToSearch) {
@@ -59,35 +85,56 @@ function Backlink(props: WrappedActionBuilderProps) {
   // Render
   return (
     <div className={c("backlink")}>
-      <Search
-        options={fileMemo}
-        onChange={async (value) => {
-          setFinalFileValue(value);
-          setEnableHeading(value !== "");
-          const availableHeaders = await obtainHeadersOfFinalFile(value);
-          setHeadingMemo(availableHeaders);
-        }}
-        placeholder="Select a file"
-      />
-      {enableHeading && (
+      <div className={c("backlink-left")}>
         <Search
-          options={headingMemo}
-          onChange={(value) => {
-            setFinalHeadingValue(value);
+          options={fileMemo}
+          onChange={async (value) => {
+            setFinalFileValue(value);
+            setEnableHeading(value !== "");
+            const availableHeaders = await obtainHeadersOfFinalFile(value);
+            setHeadingMemo(availableHeaders);
           }}
-          placeholder="Select a heading"
+          placeholder="Select a file"
         />
-      )}
-      <button
-        onClick={() => {
-          callback({
-            file: finalFileValue,
-            heading: finalHeadingValue,
-          });
-        }}
-      >
-        Confirm
-      </button>
+        {enableHeading && (
+          <Search
+            options={headingMemo}
+            onChange={(value) => {
+              setFinalHeadingValue(value);
+            }}
+            placeholder="Select a heading"
+          />
+        )}
+        <button
+          onClick={() => {
+            callback({
+              file: finalFileValue,
+              heading: finalHeadingValue,
+              regex: finalRegexValue,
+            });
+          }}
+        >
+          {t("component_confirm")}
+        </button>
+      </div>
+      <div className={c("backlink-right")}>
+        <div>
+          <label htmlFor="regex-input">Regex:</label>
+          <input
+            id="regex-input"
+            type="text"
+            value={finalRegexValue}
+            onChange={(e) => {
+              setFinalRegexValue(e.target.value);
+            }}
+            placeholder="Enter regex"
+          />
+        </div>
+        <div>
+          <label>Preview:</label>
+          <div>{previewMemo}</div>
+        </div>
+      </div>
     </div>
   );
 }

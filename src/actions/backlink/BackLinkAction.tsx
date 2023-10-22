@@ -28,10 +28,9 @@ export class BackLinkAction extends CustomZettelAction {
 
   private async dynamicConstructor(info: ExecuteInfo) {
     const { element, note } = info;
-    const { file, heading } = element.result as BacklinkComponentResult;
-    const { insertPattern = "{{wikilink}}" } = element as BacklinkElement;
+    const { file, heading, regex } = element.result as BacklinkComponentResult;
 
-    await this.insertHeading(insertPattern, file, heading, note);
+    await this.insertHeading(regex, file, heading, note);
   }
 
   private async defaultConstructor(info: ExecuteInfo) {

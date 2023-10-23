@@ -20,7 +20,9 @@ export function BacklinkWrapper(props: WrappedActionBuilderProps) {
 }
 
 function Backlink(props: WrappedActionBuilderProps) {
-  const { callback } = props;
+  const { callback, plugin } = props;
+  // Refs
+  const previewRef = useRef<HTMLDivElement>(null);
   // States
   const [finalFileValue, setFinalFileValue] = useState<string | null>("");
   const [finalHeadingValue, setFinalHeadingValue] =
@@ -42,13 +44,15 @@ function Backlink(props: WrappedActionBuilderProps) {
       }, {});
   }, []);
 
-  const previewMemo = useMemo(() => {
-    if (!finalFileValue) {
-      return "";
+  // Effects
+  useEffect(() => {
+    if (!previewRef.current || !finalFileValue || !finalHeadingValue) {
+      return;
     }
+
     const basenameWithExtension = finalFileValue.split("/").pop();
     if (!basenameWithExtension) {
-      return "";
+      return;
     }
     // Remove extension
     const basename = basenameWithExtension.substring(
@@ -60,9 +64,17 @@ function Backlink(props: WrappedActionBuilderProps) {
       "{{wikilink}}",
       `[[name of your note]]`
     )}\n`;
-    return `${mdLink} on file ${basename} with heading ${finalHeadingValue?.heading}`;
+    const content = `**${basename}**\n${"#".repeat(finalHeadingValue.level)} ${
+      finalHeadingValue.heading
+    }\n${mdLink}`;
+    //const content = `${mdLink} on file ${basename} with heading ${finalHeadingValue?.heading}`;
+    const comp = new Component();
+    MarkdownService.render(plugin.app, content, previewRef.current, "/", comp);
+    comp.load();
+    return () => {
+      comp.unload();
+    };
   }, [finalFileValue, finalHeadingValue, finalRegexValue]);
-
   // Functions
   const obtainHeadersOfFinalFile = async (pathToSearch: string | null) => {
     if (pathToSearch) {
@@ -130,10 +142,7 @@ function Backlink(props: WrappedActionBuilderProps) {
             placeholder="Enter regex"
           />
         </div>
-        <div>
-          <label>Preview:</label>
-          <div>{previewMemo}</div>
-        </div>
+        <div className={c("preview")} ref={previewRef} />
       </div>
     </div>
   );

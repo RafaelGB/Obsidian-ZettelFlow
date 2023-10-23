@@ -174,7 +174,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-right: 1rem;
+}
+.zettelkasten-flow__backlink-left > div {
+  margin-bottom: 1rem;
 }
 
 .zettelkasten-flow__backlink-right {
@@ -184,16 +186,11 @@
 }
 
 .zettelkasten-flow__backlink-right > div {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.zettelkasten-flow__backlink-right label {
-  margin-right: 0.5rem;
-}
-
-.zettelkasten-flow__backlink-right input {
-  margin-right: 0.5rem;
-  padding: 0.5rem;
+.zettelkasten-flow__preview {
+  padding: 0.2rem;
   border: 1px solid var(--background-modifier-border);
   border-radius: 0.25rem;
 }

@@ -12,7 +12,6 @@
 		{"id":"57b48aa679a3803d","type":"file","file":"WorkFlow Test/Work task.md","x":575,"y":802,"width":263,"height":65,"color":"2"},
 		{"id":"10fa582bb8a0d6ea","type":"file","file":"WorkFlow Test/actions/selector/Priority selector - frontmatter.md","x":1245,"y":790,"width":400,"height":77},
 		{"id":"5191f25722a6d7b0","type":"file","file":"WorkFlow Test/actions/calendar/Deadline Selector.md","x":838,"y":960,"width":360,"height":94},
-		{"id":"425d710283e428a8","type":"file","file":"WorkFlow Test/actions/backlink/Dynamic backlink.md","x":-412,"y":-560,"width":400,"height":80},
 		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/Idea Note.md","x":-413,"y":-306,"width":400,"height":74},
 		{"id":"3a191bd28ace9174","type":"file","file":"WorkFlow Test/actions/prompt/Purpose Prompt - frontmatter.md","x":307,"y":-313,"width":400,"height":95},
 		{"id":"a047c1c31c4a663c","type":"file","file":"WorkFlow Test/actions/backlink/Task Kanban backLink (default).md","x":1760,"y":548,"width":400,"height":78,"color":"6"}
@@ -32,7 +31,6 @@
 		{"id":"655902d31c326d3e","fromNode":"5191f25722a6d7b0","fromSide":"top","toNode":"57b48aa679a3803d","toSide":"right"},
 		{"id":"257e2dbb86d8818c","fromNode":"57b48aa679a3803d","fromSide":"right","toNode":"10fa582bb8a0d6ea","toSide":"left"},
 		{"id":"30e6a0b02a5332cf","fromNode":"10fa582bb8a0d6ea","fromSide":"right","toNode":"a047c1c31c4a663c","toSide":"bottom"},
-		{"id":"1645f92540e695c6","fromNode":"7e53160d1a01dc0f","fromSide":"top","toNode":"a047c1c31c4a663c","toSide":"top"},
-		{"id":"496718683098c3f8","fromNode":"59fcfd179cd2455c","fromSide":"right","toNode":"425d710283e428a8","toSide":"left"}
+		{"id":"1645f92540e695c6","fromNode":"7e53160d1a01dc0f","fromSide":"top","toNode":"a047c1c31c4a663c","toSide":"top"}
 	]
 }

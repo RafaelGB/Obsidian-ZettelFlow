@@ -183,7 +183,7 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
       <div ref={mdRef} />
       <button
         onClick={() => {
-          props.callback(true);
+          props.callback(null);
         }}
       >
         Continue

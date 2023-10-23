@@ -10,6 +10,7 @@ import { BacklinkWrapper } from "./BackComponent";
 import React from "react";
 import { HeadingCache } from "obsidian";
 import { NoteDTO } from "notes";
+import { log } from "architecture";
 export class BackLinkAction extends CustomZettelAction {
   id = "backlink";
   stepHandler = new BackLinkHandler();
@@ -41,7 +42,6 @@ export class BackLinkAction extends CustomZettelAction {
       defaultHeading,
     } = element as BacklinkElement;
     // Insert
-
     await this.insertHeading(insertPattern, defaultFile, defaultHeading, note);
   }
 
@@ -51,6 +51,16 @@ export class BackLinkAction extends CustomZettelAction {
     heading: HeadingCache | undefined,
     note: NoteDTO
   ) {
+    if (!file) {
+      log.error(`Target file is undefined for ${note.getTitle()}`);
+      return;
+    }
+
+    if (!heading) {
+      log.error(`Target heading is undefined for ${note.getTitle()}`);
+      return;
+    }
+
     const mdLink = `\n${insertPattern.replace(
       "{{wikilink}}",
       `[[${note.getTitle()}]]`

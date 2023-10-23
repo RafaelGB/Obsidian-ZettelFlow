@@ -1,4 +1,3 @@
-import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BacklinkElement } from "./model/BackLinkTypes";
 import {
@@ -10,6 +9,7 @@ import { App, Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
 import { Input, Search } from "architecture/components/core";
 import { t } from "architecture/lang";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
   const { defaultFile } = props.action.element as BacklinkElement;

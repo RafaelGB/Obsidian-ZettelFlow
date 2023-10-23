@@ -17,7 +17,7 @@ export class StylesTool {
         if (!transform) {
             return { width: 0, height: 0 };
         }
-        const [_, height] = transform.split(',');
+        const [, height] = transform.split(',');
         return { width: 0, height: parseInt(height) };
     }
 

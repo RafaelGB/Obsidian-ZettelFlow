@@ -55,7 +55,7 @@ export class FrontmatterService {
             return {};
         }
         // return all properties except zettelFlowSettings
-        const { zettelFlowSettings, ...rest } = frontmatter;
+        const { ...rest } = frontmatter;
         return rest;
     }
 

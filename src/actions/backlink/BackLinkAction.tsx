@@ -5,12 +5,12 @@ import {
   BacklinkElement,
 } from "./model/BackLinkTypes";
 import { EditService, FileService } from "architecture/plugin";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
 import { BacklinkWrapper } from "./BackComponent";
 import React from "react";
 import { HeadingCache } from "obsidian";
 import { NoteDTO } from "notes";
 import { log } from "architecture";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   id = "backlink";
   stepHandler = new BackLinkHandler();

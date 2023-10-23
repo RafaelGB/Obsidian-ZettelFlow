@@ -126,7 +126,7 @@ function getEntryByIndex<T>(
 function filterRecordByKey<T>(record: Record<string, T>, filterer: string) {
   const filteredRecord = Object.entries(record)
     // Filter by value the record
-    .filter(([key, _]) => key.toLowerCase().includes(filterer.toLowerCase()))
+    .filter(([key]) => key.toLowerCase().includes(filterer.toLowerCase()))
     // Map again to a record
     .reduce((acc: Record<string, T>, [key, value]) => {
       acc[key] = value;

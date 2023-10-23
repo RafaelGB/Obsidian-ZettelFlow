@@ -1,7 +1,7 @@
 import React from "react";
 import { c } from "architecture";
-import { NoteBuilderType, RootSelector } from "components/NoteBuilder";
-import { useNoteBuilderStore } from "components/NoteBuilder/state/NoteBuilderState";
+import { NoteBuilderType, RootSelector } from "components/noteBuilder";
+import { useNoteBuilderStore } from "components/noteBuilder/state/NoteBuilderState";
 
 export function Section(props: NoteBuilderType) {
   const section = useNoteBuilderStore((store) => store.section);

@@ -1,7 +1,7 @@
 import { App, Modal } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import ZettelFlow from "main";
-import { buildSelectorMenu, NoteBuilderType } from "components/NoteBuilder";
+import { buildSelectorMenu, NoteBuilderType } from "components/noteBuilder";
 export class SelectorMenuModal extends Modal {
     private root: Root;
 

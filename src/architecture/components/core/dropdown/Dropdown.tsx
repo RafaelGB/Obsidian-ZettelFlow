@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DropdownType } from "./model/DropdownModel";
+import { DropdownType } from "./typing";
 import { c } from "architecture";
 import { TypeService } from "architecture/typing";
 import { t } from "architecture/lang";

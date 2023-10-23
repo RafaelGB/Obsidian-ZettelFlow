@@ -1,4 +1,4 @@
-import { NoteBuilderState } from "components/NoteBuilder";
+import { NoteBuilderState } from "components/noteBuilder";
 
 const infoStep =
     (get: () => NoteBuilderState) => {

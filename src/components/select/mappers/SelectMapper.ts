@@ -1,6 +1,6 @@
 import { ZettelFlowElement } from "zettelkasten";
-import { Option } from "components/core";
 import { WorkflowStep } from "config";
+import { Option } from "components/select";
 
 export class SelectMapper {
     public static zettelFlowElementRecord2Options(steps: WorkflowStep[], nodes: Record<string, ZettelFlowElement>): Option[] {

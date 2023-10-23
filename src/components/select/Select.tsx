@@ -1,5 +1,5 @@
 import React, { CSSProperties, useEffect, useRef, useState } from "react";
-import { OptionElementType, SelectType } from "./model/SelectModel";
+import { OptionElementType, SelectType } from "./typing";
 import { c } from "architecture";
 import { Platform } from "obsidian";
 import { LeafIcon } from "components/icons";

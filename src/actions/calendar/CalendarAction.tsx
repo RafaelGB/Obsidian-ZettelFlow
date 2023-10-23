@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { CalendarWrapper } from "./CalendarComponent";
 import React from "react";
-import { WrappedActionBuilderProps } from "components/NoteBuilder";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 import { ElementTypeCalendarHandler } from "./ElementTypeCalendarHandler";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";

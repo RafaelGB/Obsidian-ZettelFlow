@@ -1,5 +1,5 @@
 import { AbstractHandlerClass } from "architecture/patterns";
-import { WrappedActionBuilderProps } from "components/NoteBuilder";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 import { StepBuilderModal } from "zettelkasten";
 import { ExecuteInfo } from "./model/CustomZettelActionTypes";
 import React from "react";

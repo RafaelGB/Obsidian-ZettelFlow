@@ -1,5 +1,5 @@
 import React from "react";
-import { CalendarType } from "./model/CalendarModel";
+import { CalendarType } from "./typing";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";

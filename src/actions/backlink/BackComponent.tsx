@@ -6,7 +6,7 @@ import {
   FrontmatterService,
   MarkdownService,
 } from "architecture/plugin";
-import { Component, HeadingCache } from "obsidian";
+import { App, Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
 import { Search } from "architecture/components/core";
 import { t } from "architecture/lang";
@@ -60,16 +60,13 @@ function Backlink(props: WrappedActionBuilderProps) {
       basenameWithExtension.lastIndexOf(".")
     );
 
-    const mdLink = `\n${finalRegexValue.replace(
-      "{{wikilink}}",
-      `[[name of your note]]`
-    )}\n`;
-    const content = `**${basename}**\n${"#".repeat(finalHeadingValue.level)} ${
-      finalHeadingValue.heading
-    }\n${mdLink}`;
-    //const content = `${mdLink} on file ${basename} with heading ${finalHeadingValue?.heading}`;
-    const comp = new Component();
-    MarkdownService.render(plugin.app, content, previewRef.current, "/", comp);
+    const comp = buildPreviewMd(
+      plugin.app,
+      previewRef.current,
+      basename,
+      finalHeadingValue,
+      finalRegexValue
+    );
     comp.load();
     return () => {
       comp.unload();
@@ -156,10 +153,11 @@ function Backlink(props: WrappedActionBuilderProps) {
 function PreviewMessage(props: WrappedActionBuilderProps) {
   const { action, plugin } = props;
 
-  const { defaultFile, defaultHeading } = action.element as BacklinkElement;
+  const { defaultFile, defaultHeading, insertPattern } =
+    action.element as BacklinkElement;
   const mdRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!mdRef.current || !defaultFile) {
+    if (!mdRef.current || !defaultFile || !defaultHeading) {
       return;
     }
     const basenameWithExtension = defaultFile.split("/").pop();
@@ -172,14 +170,14 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
       basenameWithExtension.lastIndexOf(".")
     );
 
-    const comp = new Component();
-    MarkdownService.render(
+    const comp = buildPreviewMd(
       plugin.app,
-      `Accepts to insert backlink on [[${basename}#${defaultHeading?.heading}]]`,
       mdRef.current,
-      "/",
-      comp
+      basename,
+      defaultHeading,
+      insertPattern
     );
+
     comp.load();
     return () => {
       comp.unload();
@@ -197,4 +195,23 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
       </button>
     </>
   );
+}
+
+function buildPreviewMd(
+  app: App,
+  htmlElement: HTMLElement,
+  basename: string,
+  heading: HeadingCache,
+  regex: string
+): Component {
+  const mdLink = `\n${regex.replace(
+    "{{wikilink}}",
+    `[[name of your note]]`
+  )}\n`;
+  const content = `**${basename}**\n${"#".repeat(heading.level)} ${
+    heading.heading
+  }\n${mdLink}`;
+  const comp = new Component();
+  MarkdownService.render(app, content, htmlElement, "/", comp);
+  return comp;
 }

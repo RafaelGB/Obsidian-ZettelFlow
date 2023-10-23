@@ -1,7 +1,7 @@
 import { log } from "architecture";
-import { NoteBuilderState, StoreNoteBuilderModifier } from "components/NoteBuilder";
-import { SectionElementOptions } from "components/NoteBuilder/model/NoteBuilderModel";
-import { SectionType } from "components/core";
+import { NoteBuilderState, StoreNoteBuilderModifier } from "components/noteBuilder";
+import { SectionElementOptions } from "components/noteBuilder/model/NoteBuilderModel";
+import { SectionType } from "components/section";
 
 const setSelectionElementAction =
     (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions = {

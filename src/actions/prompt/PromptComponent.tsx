@@ -1,6 +1,6 @@
+import { TextArea } from "architecture/components/core";
 import { TypeService } from "architecture/typing";
-import { WrappedActionBuilderProps } from "components/NoteBuilder";
-import { TextArea } from "components/core";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React from "react";
 
 export function PromptWrapper(props: WrappedActionBuilderProps) {

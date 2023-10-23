@@ -10,4 +10,10 @@ Insert the backlink of the built-in note template into the note you have configu
 ![gif](../resources/actions/backlink/Backlink-tutorial.gif)
 
 ## Component
-> Not avaliable yet.
+The component is disabled by default. To enable it, you must set the `Enable default backlink` option to `false`.
+
+When you select the target file, the input of heading will be enabled with the possible headings of the file.
+
+The pattern will be `{{wikilink}}` by default. Once the file and heading are selected, a preview markdown will be shown with the pattern applied.
+
+![gif](../resources/actions/backlink/Backlink-component.gif)

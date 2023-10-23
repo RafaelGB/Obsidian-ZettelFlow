@@ -7,8 +7,32 @@
   border-radius: 0.25rem;
 }
 /*****************
+*   ANIMATIONS
+******************/
+@keyframes fadeIn {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.6;
+  }
+}
+/*****************
 *   BASIC STYLES
 ******************/
+.zettelkasten-flow__visible-overflow {
+  overflow: visible;
+}
+
 .zettelkasten-flow__display-grid {
   display: grid;
 }
@@ -41,11 +65,12 @@
   margin-right: 10px;
 }
 
-.kanban-plugin__input_item {
+.zettelkasten-flow__input_item {
   font-size: 12px;
   font-weight: bold;
   margin-bottom: 5px;
 }
+
 /*****************
 *   NAVBAR
 ******************/
@@ -135,7 +160,40 @@
 *   CALENDAR
 * .zettelkasten-flow__calendar-group
 ******************/
+/*****************
+*   BACKLINK
+******************/
+.zettelkasten-flow__backlink {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 0.5rem;
+}
 
+.zettelkasten-flow__backlink-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.zettelkasten-flow__backlink-left > div {
+  margin-bottom: 1rem;
+}
+
+.zettelkasten-flow__backlink-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.zettelkasten-flow__backlink-right > div {
+  margin-bottom: 1rem;
+}
+
+.zettelkasten-flow__preview {
+  padding: 0.2rem;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+}
 /*****************
 *   DROPDOWN
 * .zettelkasten-flow__dropdown-group
@@ -187,6 +245,47 @@ textarea {
   /* space between list items */
   padding-bottom: 0.35rem;
 }
+/*****************
+*   SEARCH
+******************/
+.zettelkasten-flow__search-results {
+  position: absolute;
+  z-index: 9999;
+  background-color: var(--background-secondary);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px; /* rounded corners */
+  box-shadow: 0 2px 5px var(--background-modifier-border); /* drop shadow */
+  max-height: 200px;
+  overflow-y: auto;
+  transition: all 0.3s ease; /* smooth transition animation */
+  animation: fadeIn 0.3s ease forwards; /* fade in animation */
+}
+.zettelkasten-flow__search-hidden {
+  animation: fadeOut 0.3s ease forwards; /* fade out animation */
+}
+
+.zettelkasten-flow__search-selected {
+  background-color: var(--color-accent);
+  transition: background-color 0.3s ease; /* smooth transition animation on background-color */
+}
+
+.zettelkasten-flow__search-results li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.zettelkasten-flow__search-results li:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__search-results li:focus {
+  outline: none;
+  background-color: var(--background-modifier-focus);
+}
+
 /*****************
 *   SETTINGS
 ******************/

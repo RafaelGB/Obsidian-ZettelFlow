@@ -20,7 +20,7 @@ class SettingsManager {
 
     private constructBody(handlerInfo: SettingsHandlerInfo): void {
         handlerInfo = sections.run(handlerInfo);
-        handlerInfo = developer.run(handlerInfo);
+        developer.run(handlerInfo);
     }
 
 }

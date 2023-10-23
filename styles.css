@@ -173,7 +173,7 @@
 .zettelkasten-flow__backlink-left {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
 }
 .zettelkasten-flow__backlink-left > div {
   margin-bottom: 1rem;

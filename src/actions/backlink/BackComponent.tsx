@@ -8,7 +8,7 @@ import {
 } from "architecture/plugin";
 import { App, Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
-import { Search } from "architecture/components/core";
+import { Input, Search } from "architecture/components/core";
 import { t } from "architecture/lang";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
@@ -127,18 +127,13 @@ function Backlink(props: WrappedActionBuilderProps) {
         </button>
       </div>
       <div className={c("backlink-right")}>
-        <div>
-          <label htmlFor="regex-input">Regex:</label>
-          <input
-            id="regex-input"
-            type="text"
-            value={finalRegexValue}
-            onChange={(e) => {
-              setFinalRegexValue(e.target.value);
-            }}
-            placeholder="Enter regex"
-          />
-        </div>
+        <Input
+          value={finalRegexValue}
+          placeholder="Regex"
+          onChange={(value) => {
+            setFinalRegexValue(value);
+          }}
+        />
         <div className={c("preview")} ref={previewRef} />
       </div>
     </div>

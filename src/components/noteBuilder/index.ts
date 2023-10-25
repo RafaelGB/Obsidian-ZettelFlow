@@ -6,6 +6,6 @@ export { ActionSelector } from "./ActionSelector";
 export { useNoteBuilderStore } from "./state/NoteBuilderState";
 
 export { buildSelectorMenu } from "./SelectorMenu";
-export { callbackSkipNote } from "./callbacks/CallbackNote";
+export { callbackSkipNote, callbackBuildActualState } from "./callbacks/CallbackNote";
 
 export { SectionElementOptions } from "./model/NoteBuilderModel";

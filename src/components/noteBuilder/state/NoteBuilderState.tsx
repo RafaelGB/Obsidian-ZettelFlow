@@ -118,6 +118,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           title: t("flow_selector_placeholder"),
         },
         actionWasTriggered: false,
+        enableSkip: false,
         builder: Builder.default(),
         currentStep: undefined,
       });

@@ -51,3 +51,20 @@ export const callbackSkipNote = (state: CallbackPickedState, info: NoteBuilderTy
   log.info("Skip note callback", { currentStep, element });
   manageElement(element, currentStep, state, info);
 }
+
+export const callbackBuildActualState = (state: CallbackPickedState, info: NoteBuilderType) => () => {
+  const { data } = state;
+  const { plugin } = info;
+  const currentStep = data.getCurrentStep();
+
+  if (!currentStep) {
+    const message = "Current step is undefined after build actual state callback";
+    new Notice(message);
+    return;
+  }
+  // Force to finish the note here to avoid save info of the current step
+  currentStep.children = [];
+  const element = plugin.settings.nodes[currentStep.id];
+  log.info("Build actual state callback", { currentStep, element });
+  manageElement(element, currentStep, state, info);
+}

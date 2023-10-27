@@ -64,9 +64,9 @@ export class ZettelSettingsMapper {
             path: file.path,
             label: file.basename,
             childrenHeader: "",
+            color: color,
             element: {
-                type: "bridge",
-                color: color
+                type: "bridge"
             }
         }
         if (TypeService.isObject(pluginSettings)) {
@@ -87,16 +87,15 @@ export class ZettelSettingsMapper {
                 defaultInfo.optional = optional;
             }
 
-            defaultInfo.element = this.manageSectionElement(element, color);
+            defaultInfo.element = this.manageSectionElement(element);
         }
         this.sectionMap.set(id, defaultInfo);
     }
 
-    private manageSectionElement(potentialElement: unknown, color: HexString | undefined): SectionElement {
+    private manageSectionElement(potentialElement: unknown): SectionElement {
         if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
             return {
-                type: "bridge",
-                color: color
+                type: "bridge"
             }
         }
 
@@ -104,9 +103,6 @@ export class ZettelSettingsMapper {
             potentialElement.hasUI = true;
         }
 
-        return {
-            ...potentialElement,
-            color: color
-        }
+        return potentialElement;
     }
 }

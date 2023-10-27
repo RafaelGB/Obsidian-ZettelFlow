@@ -6,6 +6,7 @@ export type ZettelFlowElement = {
     label: string,
     childrenHeader: string,
     element: SectionElement,
+    color?: HexString,
     targetFolder?: string,
     optional?: boolean,
 }
@@ -14,14 +15,20 @@ export type SectionInfo = {
     title: string
 }
 export type ZoneOption = 'frontmatter' | 'body';
+
+export type Action = {
+    type: string,
+    hasUI?: boolean,
+    [key: string]: Literal
+}
 export type SectionElement = {
     type: string,
     hasUI?: boolean,
-    color?: HexString,
     label?: string,
-    triggered?: boolean,
+    actions?: Action[],
     [key: string]: Literal,
 }
+
 
 export type AditionBaseElement = {
     key: string,

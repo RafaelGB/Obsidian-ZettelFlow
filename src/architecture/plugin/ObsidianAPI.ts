@@ -31,6 +31,10 @@ export class ObsidianAPIService {
         this.app.commands.executeCommandById(id);
     }
 
+    public getPluginApp(): App {
+        return this.app;
+    }
+
     public static getInstance(): ObsidianAPIService {
         if (!ObsidianAPIService.instance) {
             ObsidianAPIService.instance = new ObsidianAPIService();

@@ -2,7 +2,7 @@ import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { CalendarWrapper } from "./CalendarComponent";
 import React from "react";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
-import { ElementTypeCalendarHandler } from "./ElementTypeCalendarHandler";
+import { calendarSettings } from "./ElementTypeCalendarHandler";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { addIcon } from "obsidian";
@@ -39,7 +39,7 @@ export class CalendarAction extends CustomZettelAction {
     return `zettelflow-${this.id}-icon`;
   }
 
-  stepHandler = new ElementTypeCalendarHandler();
+  settings = calendarSettings;
 
   getLabel() {
     return t("type_option_calendar");

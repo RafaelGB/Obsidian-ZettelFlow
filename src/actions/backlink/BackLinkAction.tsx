@@ -1,5 +1,5 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { BackLinkHandler } from "./BackLinkHandler";
+import { backlinkSettings } from "./BackLinkHandler";
 import {
   BacklinkComponentResult,
   BacklinkElement,
@@ -13,7 +13,7 @@ import { log } from "architecture";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   id = "backlink";
-  stepHandler = new BackLinkHandler();
+  settings = backlinkSettings;
 
   public component(props: WrappedActionBuilderProps) {
     return <BacklinkWrapper {...props} />;

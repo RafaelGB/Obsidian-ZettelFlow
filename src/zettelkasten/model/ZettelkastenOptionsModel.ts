@@ -1,3 +1,4 @@
+import { Action } from "architecture/api"
 import { Literal } from "architecture/plugin"
 import { HexString } from "obsidian"
 
@@ -5,7 +6,8 @@ export type ZettelFlowElement = {
     path: string,
     label: string,
     childrenHeader: string,
-    element: SectionElement,
+    element?: SectionElement,
+    actions: Action[],
     color?: HexString,
     targetFolder?: string,
     optional?: boolean,
@@ -16,16 +18,10 @@ export type SectionInfo = {
 }
 export type ZoneOption = 'frontmatter' | 'body';
 
-export type Action = {
-    type: string,
-    hasUI?: boolean,
-    [key: string]: Literal
-}
 export type SectionElement = {
     type: string,
     hasUI?: boolean,
     label?: string,
-    actions?: Action[],
     [key: string]: Literal,
 }
 

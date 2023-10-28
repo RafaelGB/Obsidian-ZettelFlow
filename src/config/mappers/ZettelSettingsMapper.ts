@@ -1,7 +1,7 @@
+import { Action } from "architecture/api";
 import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";
-import { HexString } from "obsidian";
 import { SectionElement, ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
 
 export class ZettelSettingsMapper {
@@ -65,12 +65,14 @@ export class ZettelSettingsMapper {
             label: file.basename,
             childrenHeader: "",
             color: color,
+            actions: [],
+            // TODO Remove element once all the elements are migrated to actions
             element: {
                 type: "bridge"
             }
         }
         if (TypeService.isObject(pluginSettings)) {
-            const { label, targetFolder, childrenHeader, element, optional } = pluginSettings;
+            const { label, targetFolder, childrenHeader, element, actions, optional } = pluginSettings;
             if (TypeService.isString(label)) {
                 defaultInfo.label = label;
             }
@@ -88,10 +90,17 @@ export class ZettelSettingsMapper {
             }
 
             defaultInfo.element = this.manageSectionElement(element);
+            defaultInfo.actions = this.manageActions(actions);
         }
         this.sectionMap.set(id, defaultInfo);
     }
 
+    private manageActions(actions: Action[]): Action[] {
+        if (!actions) return [];
+
+        // TODO validate actions
+        return actions;
+    }
     private manageSectionElement(potentialElement: unknown): SectionElement {
         if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
             return {

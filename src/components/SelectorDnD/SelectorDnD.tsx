@@ -8,13 +8,14 @@ import { SELECTOR_DND_ID } from "./utils/Identifiers";
 import { SelectorDnDManager } from "./managers/SelectorDnDManager";
 import { Icon } from "architecture/components/icon";
 export function SelectorDnD(props: SelectorDnDProps) {
-  const { info } = props;
-  const { options = {}, defaultOption } = info.element as SelectorElement;
+  const { action, root } = props;
+  const { options = {}, defaultOption } = action as SelectorElement;
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
   const [optionsState, setOptionsState] = useState(Object.entries(options));
   useEffect(() => {
     return () => {
-      info.element.options = Object.fromEntries(optionsState);
+      action.options = Object.fromEntries(optionsState);
+      root.unmount();
     };
   }, [optionsState]);
   const updateOptions = (origin: number, dropped: number) => {
@@ -49,7 +50,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
       const newOptionsState = [...optionsState];
       newOptionsState.splice(index, 1);
       setOptionsState(newOptionsState);
-      info.element.options = Object.fromEntries(newOptionsState);
+      action.options = Object.fromEntries(newOptionsState);
     },
     [optionsState]
   );
@@ -61,7 +62,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
   ) => {
     optionsState[index] = [frontmatter, label];
     setOptionsState(optionsState);
-    info.element.options = Object.fromEntries(optionsState);
+    action.options = Object.fromEntries(optionsState);
   };
 
   const managerMemo = useMemo(() => {
@@ -82,7 +83,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
             `newOption ${newOptionsState.length}`,
           ]);
           setOptionsState(newOptionsState);
-          info.element.options = Object.fromEntries(newOptionsState);
+          action.options = Object.fromEntries(newOptionsState);
         }}
         aria-label="Add option"
       >
@@ -102,7 +103,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
                 updateOptionInfoCallback={updateOptionInfoCallback}
                 changeDefaultCallback={(defaultOption) => {
                   setDefaultOptionState(defaultOption);
-                  info.element.defaultOption = defaultOption;
+                  action.defaultOption = defaultOption;
                 }}
               />
             );

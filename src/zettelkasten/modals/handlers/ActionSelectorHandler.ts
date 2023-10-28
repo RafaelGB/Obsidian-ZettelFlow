@@ -3,40 +3,57 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
 import { actionsStore } from "architecture/api/store/ActionsStore";
+import { Action } from "architecture/api";
 
 export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_action_selector_title');
     description = t('step_builder_action_selector_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
-        const { element, contentEl } = info;
-        const { type = "bridge" } = element;
-        this.setActionHandler(type);
+        const { element, contentEl, actions = [] } = info;
+        let potentialActionType: string;
+        // LEGACY COMPATIBILITY START
+        if (element) {
+            actions.push(element);
+            delete info.element;
+        }
+        // LEGACY COMPATIBILITY END
+        actions.forEach(a => {
+            const action = actionsStore.getAction(a.type);
+            action.settings(modal, a);
+        });
+
+        // Add new actions
         new Setting(contentEl)
             .setName(this.name)
             .setDesc(this.description)
             .addDropdown(dropdown => {
-                dropdown.addOption('bridge', t('type_option_bridge'));
                 actionsStore.getActionsKeys().forEach(key => {
                     dropdown.addOption(key, actionsStore.getAction(key).getLabel());
                 });
                 dropdown
-                    .setValue(type)
                     .onChange(async (value) => {
-                        element.type = value;
-                        this.setActionHandler(type);
+                        potentialActionType = value;
+
+                    });
+            })
+            .addButton(button => {
+                button
+                    .setButtonText("Add action")
+                    .setIcon("plus")
+                    .setTooltip("Add action")
+                    .onClick(async () => {
+                        actions.push({
+                            type: potentialActionType,
+                        });
+
                         modal.refresh();
                     });
-            }
-            );
+            });
+        this.configureActionHandlers(actions);
         return this.goNext(modal);
     }
-
-    private setActionHandler(actionId: string): void {
-        if (actionId === 'bridge') {
-            this.nextHandler = undefined;
-        } else {
-            this.nextHandler = actionsStore.getAction(actionId).stepHandler;
-        }
+    private configureActionHandlers(actions: Action[]) {
+        // attach the fist action handler to this one and the rest in order
     }
 }

@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React from "react";
-import { ElementTypeSelectorHandler } from "./ElementTypeSelectorHandler";
+import { elementTypeSelectorSettings } from "./ElementTypeSelectorHandler";
 import { SelectorWrapper } from "./SelectorComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
@@ -9,7 +9,7 @@ import { addIcon } from "obsidian";
 
 export class SelectorAction extends CustomZettelAction {
   id = "selector";
-  stepHandler = new ElementTypeSelectorHandler();
+  settings = elementTypeSelectorSettings;
   constructor() {
     super();
     addIcon(

@@ -1,5 +1,6 @@
 import { Menu, TFolder } from "obsidian";
 import { SectionElement, ZettelFlowElement } from "./ZettelkastenOptionsModel";
+import { Action } from "architecture/api";
 
 export type StepBuilderInfo = {
     contentEl: HTMLElement,
@@ -11,6 +12,7 @@ export type StepBuilderInfo = {
 
 export type StepSettings = {
     root: boolean
+    actions: Action[],
     element: SectionElement;
     label?: string
     targetFolder?: string

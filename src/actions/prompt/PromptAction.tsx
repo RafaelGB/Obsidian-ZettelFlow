@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React from "react";
-import { ElementTypePromptHandler } from "./ElementTypePromptHandler";
+import { promptSettings } from "./ElementTypePromptHandler";
 import { PromptWrapper } from "./PromptComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
@@ -9,7 +9,7 @@ import { addIcon } from "obsidian";
 
 export class PromptAction extends CustomZettelAction {
   id = "prompt";
-  stepHandler = new ElementTypePromptHandler();
+  settings = promptSettings;
   constructor() {
     super();
     addIcon(

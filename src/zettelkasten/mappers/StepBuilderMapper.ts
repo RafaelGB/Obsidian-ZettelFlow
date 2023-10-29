@@ -2,10 +2,10 @@ import { StepBuilderInfo, StepSettings } from "zettelkasten";
 
 export class StepBuilderMapper {
     public static StepBuilderInfo2StepSettings(info: StepBuilderInfo): StepSettings {
-        const { element, label, childrenHeader, targetFolder, isRoot, optional } = info;
+        const { label, childrenHeader, targetFolder, isRoot, optional, actions } = info;
         return {
             root: isRoot,
-            element,
+            actions,
             label,
             childrenHeader,
             targetFolder,

@@ -2,7 +2,7 @@ import { Action } from "architecture/api";
 import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";
-import { SectionElement, ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
+import { ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
 
 export class ZettelSettingsMapper {
     private sectionMap: Map<string, ZettelFlowElement>;
@@ -59,20 +59,16 @@ export class ZettelSettingsMapper {
         const { id, file, color } = section;
         if (this.sectionMap.has(id)) return;
         const service = FrontmatterService.instance(file);
-        const pluginSettings = service.getZettelFlowSettings();
+        const step = service.getZettelFlowSettings();
         const defaultInfo: ZettelFlowElement = {
             path: file.path,
             label: file.basename,
             childrenHeader: "",
             color: color,
             actions: [],
-            // TODO Remove element once all the elements are migrated to actions
-            element: {
-                type: "bridge"
-            }
-        }
-        if (TypeService.isObject(pluginSettings)) {
-            const { label, targetFolder, childrenHeader, element, actions, optional } = pluginSettings;
+        };
+        if (TypeService.isObject(step)) {
+            const { label, targetFolder, childrenHeader, element, actions = [], optional } = step;
             if (TypeService.isString(label)) {
                 defaultInfo.label = label;
             }
@@ -88,8 +84,11 @@ export class ZettelSettingsMapper {
             if (TypeService.isBoolean(optional)) {
                 defaultInfo.optional = optional;
             }
-
-            defaultInfo.element = this.manageSectionElement(element);
+            // LEGACY COMPATIBILITY START
+            if (element && element.type !== "bridge") {
+                actions.push(element);
+            }
+            // LEGACY COMPATIBILITY END
             defaultInfo.actions = this.manageActions(actions);
         }
         this.sectionMap.set(id, defaultInfo);
@@ -98,20 +97,21 @@ export class ZettelSettingsMapper {
     private manageActions(actions: Action[]): Action[] {
         if (!actions) return [];
 
-        // TODO validate actions
-        return actions;
+        return actions.map((action) => {
+            return this.manageAction(action);
+        });
     }
-    private manageSectionElement(potentialElement: unknown): SectionElement {
-        if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
+    private manageAction(potentialAction: unknown): Action {
+        if (!ZettelkastenTypeService.isSectionElement(potentialAction)) {
             return {
                 type: "bridge"
             }
         }
 
-        if (potentialElement.hasUI === undefined) {
-            potentialElement.hasUI = true;
+        if (potentialAction.hasUI === undefined) {
+            potentialAction.hasUI = true;
         }
 
-        return potentialElement;
+        return potentialAction;
     }
 }

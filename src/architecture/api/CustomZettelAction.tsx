@@ -6,6 +6,7 @@ import { Literal } from "architecture/plugin";
 
 export type Action = {
   type: string;
+  header?: string;
   hasUI?: boolean;
   [key: string]: Literal;
 };

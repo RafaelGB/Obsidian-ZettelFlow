@@ -2,7 +2,7 @@ import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { CalendarWrapper } from "./CalendarComponent";
 import React from "react";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
-import { calendarSettings } from "./ElementTypeCalendarHandler";
+import { calendarSettings } from "./CalendarSettings";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { addIcon } from "obsidian";

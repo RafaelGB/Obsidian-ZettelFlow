@@ -48,6 +48,7 @@ export class StepBuilderModal extends Modal {
 
     private async saveFile(path: string): Promise<void> {
         let file = await FileService.getFile(path, false);
+        console.log("saveFile");
         const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
         if (!file) {
             // Create file
@@ -70,10 +71,7 @@ export class StepBuilderModal extends Modal {
             return {
                 contentEl: this.contentEl,
                 isRoot: false,
-                element: {
-                    type: `bridge`,
-                    isAction: false
-                },
+                actions: [],
                 label: ``,
                 childrenHeader: ``,
                 path: ``
@@ -87,6 +85,7 @@ export class StepBuilderModal extends Modal {
                 label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,
                 childrenHeader: this.partialInfo.childrenHeader === undefined ? `` : this.partialInfo.childrenHeader,
                 path: this.partialInfo.path === undefined ? `` : this.partialInfo.path,
+                actions: this.partialInfo.actions === undefined ? [] : this.partialInfo.actions,
             }
         }
     }

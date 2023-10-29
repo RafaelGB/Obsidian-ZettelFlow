@@ -1,5 +1,5 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { backlinkSettings } from "./BackLinkHandler";
+import { backlinkSettings } from "./BackLinkSettings";
 import {
   BacklinkComponentResult,
   BacklinkElement,

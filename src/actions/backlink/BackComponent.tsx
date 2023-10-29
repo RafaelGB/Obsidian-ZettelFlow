@@ -12,7 +12,7 @@ import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
-  const { defaultFile } = props.action.element as BacklinkElement;
+  const { defaultFile } = props.action as BacklinkElement;
   if (defaultFile) {
     return <PreviewMessage {...props} />;
   }

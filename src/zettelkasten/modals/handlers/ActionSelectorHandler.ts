@@ -3,22 +3,21 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
 import { actionsStore } from "architecture/api/store/ActionsStore";
-import { Action } from "architecture/api";
 
 export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_action_selector_title');
     description = t('step_builder_action_selector_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
-        const { element, contentEl, actions = [] } = info;
+        const { element, contentEl } = info;
         let potentialActionType: string;
         // LEGACY COMPATIBILITY START
-        if (element) {
-            actions.push(element);
+        if (element && element.type !== "bridge") {
+            info.actions = [element];
             delete info.element;
         }
         // LEGACY COMPATIBILITY END
-        actions.forEach(a => {
+        info.actions.forEach(a => {
             const action = actionsStore.getAction(a.type);
             action.settings(modal, a);
         });
@@ -43,17 +42,13 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
                     .setIcon("plus")
                     .setTooltip("Add action")
                     .onClick(async () => {
-                        actions.push({
+                        info.actions.push({
                             type: potentialActionType,
                         });
 
                         modal.refresh();
                     });
             });
-        this.configureActionHandlers(actions);
         return this.goNext(modal);
-    }
-    private configureActionHandlers(actions: Action[]) {
-        // attach the fist action handler to this one and the rest in order
     }
 }

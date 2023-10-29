@@ -13,7 +13,9 @@ export type StepBuilderInfo = {
 export type StepSettings = {
     root: boolean
     actions: Action[],
-    element: SectionElement;
+    // LEGAGY SUPPORT START
+    element?: SectionElement;
+    // LEGAGY SUPPORT END
     label?: string
     targetFolder?: string
     childrenHeader?: string,

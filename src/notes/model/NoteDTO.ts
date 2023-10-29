@@ -1,12 +1,13 @@
 import { FinalElement } from "./FinalNoteModel";
 import { log } from "architecture";
+import { Action } from "architecture/api";
 import { FileService } from "architecture/plugin";
 import { SectionElement } from "zettelkasten";
 
 export class NoteDTO {
     private title = "";
     private paths = new Map<number, string>();
-    private elements = new Map<number, FinalElement>();
+    private savedActions = new Map<number, FinalElement>();
     private uniquePrefixPattern = "";
     private targetFolder = "";
 
@@ -35,16 +36,16 @@ export class NoteDTO {
     }
 
     public getElements(): Map<number, FinalElement> {
-        return this.elements;
+        return this.savedActions;
     }
 
     public getElement(pos: number): FinalElement | undefined {
-        return this.elements.get(pos);
+        return this.savedActions.get(pos);
     }
 
-    public addBackgroundElement(element: SectionElement, pos: number): NoteDTO {
-        this.elements.set(pos, {
-            ...element,
+    public addBackgroundAction(action: Action, pos: number): NoteDTO {
+        this.savedActions.set(pos, {
+            ...action,
             result: null,
         });
         return this;
@@ -55,7 +56,7 @@ export class NoteDTO {
         callbackResult: unknown,
         pos: number
     ): NoteDTO {
-        this.elements.set(pos, {
+        this.savedActions.set(pos, {
             ...element,
             result: callbackResult,
         });
@@ -64,7 +65,7 @@ export class NoteDTO {
 
     public addFinalElement(element: FinalElement | undefined, pos: number) {
         if (element) {
-            this.elements.set(pos, element);
+            this.savedActions.set(pos, element);
         }
         return this;
     }
@@ -90,9 +91,9 @@ export class NoteDTO {
                 this.paths.delete(position);
             }
         });
-        this.elements.forEach((element, position) => {
+        this.savedActions.forEach((element, position) => {
             if (position >= pos) {
-                this.elements.delete(position);
+                this.savedActions.delete(position);
             }
         });
         return this;

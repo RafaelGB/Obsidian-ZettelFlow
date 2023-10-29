@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React from "react";
-import { promptSettings } from "./ElementTypePromptHandler";
+import { promptSettings } from "./PromptSettings";
 import { PromptWrapper } from "./PromptComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";

@@ -6,6 +6,7 @@ zettelFlowSettings:
   element:
     type: bridge
   childrenHeader: ""
+  actions: []
 tags:
   - zettelkasten/literature
 ---

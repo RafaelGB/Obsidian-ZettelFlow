@@ -12,7 +12,7 @@ export class SelectMapper {
                 key: value.id,
                 color: node.color || "",
                 isLeaf: value.children?.length === 0,
-                elementType: node.element.type
+                actionTypes: node.actions.map((action) => action.type),
             })
         });
         return options;

@@ -9,6 +9,9 @@ import { addIcon } from "obsidian";
 
 export class PromptAction extends CustomZettelAction {
   id = "prompt";
+  defaultAction = {
+    type: this.id,
+  };
   settings = promptSettings;
   constructor() {
     super();

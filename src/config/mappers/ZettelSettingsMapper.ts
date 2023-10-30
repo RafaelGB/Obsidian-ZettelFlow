@@ -2,6 +2,7 @@ import { Action } from "architecture/api";
 import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";
+import { Notice } from "obsidian";
 import { ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
 
 export class ZettelSettingsMapper {
@@ -85,7 +86,7 @@ export class ZettelSettingsMapper {
                 defaultInfo.optional = optional;
             }
             // LEGACY COMPATIBILITY START
-            if (element && element.type !== "bridge") {
+            if (actions.length === 0 && element && element.type !== "bridge") {
                 actions.push(element);
             }
             // LEGACY COMPATIBILITY END
@@ -103,10 +104,10 @@ export class ZettelSettingsMapper {
     }
     private manageAction(potentialAction: unknown): Action {
         if (!ZettelkastenTypeService.isSectionElement(potentialAction)) {
-            return {
-                type: "bridge"
-            }
+            new Notice(`Invalid action found: ${JSON.stringify(potentialAction)}`);
+            throw new Error("Invalid action found");
         }
+
 
         if (potentialAction.hasUI === undefined) {
             potentialAction.hasUI = true;

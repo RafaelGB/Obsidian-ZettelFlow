@@ -13,6 +13,9 @@ import { log } from "architecture";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   id = "backlink";
+  defaultAction = {
+    type: this.id,
+  };
   settings = backlinkSettings;
 
   public component(props: WrappedActionBuilderProps) {

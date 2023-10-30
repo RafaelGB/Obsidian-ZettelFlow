@@ -57,7 +57,7 @@ export function manageAction(
         action={action}
         actionStep={selected}
         position={position}
-        key={`selector-action-${selectedElement.path}`}
+        key={`selector-action-${selectedElement.path}-${position}`}
       />,
       { isOptional: selectedElement.optional, savePrevious: true }
     );

@@ -9,6 +9,11 @@ import { addIcon } from "obsidian";
 
 export class CalendarAction extends CustomZettelAction {
   id = "calendar";
+  defaultAction = {
+    type: this.id,
+  };
+  settings = calendarSettings;
+
   constructor() {
     super();
     addIcon(
@@ -38,8 +43,6 @@ export class CalendarAction extends CustomZettelAction {
   getIcon() {
     return `zettelflow-${this.id}-icon`;
   }
-
-  settings = calendarSettings;
 
   getLabel() {
     return t("type_option_calendar");

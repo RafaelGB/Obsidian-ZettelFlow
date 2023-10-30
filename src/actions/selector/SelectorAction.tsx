@@ -9,6 +9,9 @@ import { addIcon } from "obsidian";
 
 export class SelectorAction extends CustomZettelAction {
   id = "selector";
+  defaultAction = {
+    type: this.id,
+  };
   settings = elementTypeSelectorSettings;
   constructor() {
     super();

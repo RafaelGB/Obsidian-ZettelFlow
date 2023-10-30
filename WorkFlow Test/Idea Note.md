@@ -2,6 +2,7 @@
 zettelFlowSettings:
   root: false
   actions: []
-  label: ""
+  label: new idea
   childrenHeader: ""
+  targetFolder: zettelFlow/fleeting/ideas
 ---

@@ -10,10 +10,13 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
         const { element, contentEl } = info;
-        let potentialActionType: string;
+        const possibleActions = actionsStore.getActionsKeys();
+        let potentialActionType = possibleActions[0];
         // LEGACY COMPATIBILITY START
         if (element && element.type !== "bridge") {
             info.actions = [element];
+            delete info.element;
+        } else if (element && element.type === "bridge") {
             delete info.element;
         }
         // LEGACY COMPATIBILITY END
@@ -27,7 +30,7 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
             .setName(this.name)
             .setDesc(this.description)
             .addDropdown(dropdown => {
-                actionsStore.getActionsKeys().forEach(key => {
+                possibleActions.forEach(key => {
                     dropdown.addOption(key, actionsStore.getAction(key).getLabel());
                 });
                 dropdown
@@ -41,11 +44,9 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
                     .setButtonText("Add action")
                     .setIcon("plus")
                     .setTooltip("Add action")
-                    .onClick(async () => {
-                        info.actions.push({
-                            type: potentialActionType,
-                        });
-
+                    .onClick(() => {
+                        const defaultInfo = actionsStore.getDefaultActionInfo(potentialActionType);
+                        info.actions.push(defaultInfo);
                         modal.refresh();
                     });
             });

@@ -4,7 +4,7 @@ import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
 import { actionsStore } from "architecture/api/store/ActionsStore";
 
-export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal>  {
+export class ActionManagementHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_action_selector_title');
     description = t('step_builder_action_selector_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
@@ -13,12 +13,15 @@ export class ActionSelectorHandler extends AbstractHandlerClass<StepBuilderModal
         const possibleActions = actionsStore.getActionsKeys();
         let potentialActionType = possibleActions[0];
         // LEGACY COMPATIBILITY START
-        if (element && element.type !== "bridge") {
-            info.actions = [element];
-            delete info.element;
-        } else if (element && element.type === "bridge") {
-            delete info.element;
+        if (!info.actions && element) {
+            if (element.type !== "bridge") {
+                info.actions = [element];
+                delete info.element;
+            } else {
+                delete info.element;
+            }
         }
+        console.log(info.actions);
         // LEGACY COMPATIBILITY END
         info.actions.forEach(a => {
             const action = actionsStore.getAction(a.type);

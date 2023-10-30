@@ -14,6 +14,7 @@ export class StepBuilderModal extends Modal {
     constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
         super(app);
         this.info = this.getBaseInfo();
+
     }
 
     setMode(mode: "edit" | "create"): StepBuilderModal {
@@ -48,7 +49,6 @@ export class StepBuilderModal extends Modal {
 
     private async saveFile(path: string): Promise<void> {
         let file = await FileService.getFile(path, false);
-        console.log("saveFile");
         const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
         if (!file) {
             // Create file

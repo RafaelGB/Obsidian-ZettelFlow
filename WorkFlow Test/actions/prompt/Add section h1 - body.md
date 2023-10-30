@@ -15,6 +15,5 @@ zettelFlowSettings:
       key: section
       label: Section H1
       zone: body
-      hasUI: true
 ---
 # {{section}}

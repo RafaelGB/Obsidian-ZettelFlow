@@ -35,7 +35,6 @@ export const callbackActionBuilder =
       const { actions } = state;
       actions.addElement(action, callbackResult);
       const selectedElement = settings.nodes[actionStep.id];
-      console.log(`actions length: ${selectedElement.actions.length} position: ${position}`);
       if (selectedElement.actions.length > position + 1) {
         manageAction(selectedElement, actionStep, state, info, position + 1);
       } else {

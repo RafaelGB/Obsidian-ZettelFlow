@@ -2,9 +2,9 @@ import { t } from "architecture/lang";
 import { SelectorElement, StepBuilderModal } from "zettelkasten";
 import { createRoot } from "react-dom/client";
 import React from "react";
-import { SelectorDnD } from "components/SelectorDnD";
 import { Setting } from "obsidian";
 import { Action } from "architecture/api";
+import { SelectorDnD } from "./components/selectordnd/SelectorDnD";
 
 export function elementTypeSelectorSettings(
   modal: StepBuilderModal,

@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { SelectorDnDProps } from "./model/DnDSelectorStateModel";
 import { t } from "architecture/lang";
 import { DndScope, Sortable } from "architecture/components/dnd";
 import { SelectorElement } from "zettelkasten";
-import { OptionItem } from "./OptionItem";
-import { SELECTOR_DND_ID } from "./utils/Identifiers";
-import { SelectorDnDManager } from "./managers/SelectorDnDManager";
 import { Icon } from "architecture/components/icon";
+import { SelectorDnDProps } from "./model/DnDSelectorStateModel";
+import { SelectorDnDManager } from "./managers/SelectorDnDManager";
+import { SELECTOR_DND_ID } from "./utils/Identifiers";
+import { OptionItem } from "./OptionItem";
 export function SelectorDnD(props: SelectorDnDProps) {
   const { action, root } = props;
   const { options = {}, defaultOption } = action as SelectorElement;

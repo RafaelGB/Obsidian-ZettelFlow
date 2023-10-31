@@ -23,6 +23,8 @@ export class ActionManagementHandler extends AbstractHandlerClass<StepBuilderMod
         }
         console.log(info.actions);
         // LEGACY COMPATIBILITY END
+
+
         info.actions.forEach(a => {
             const action = actionsStore.getAction(a.type);
             action.settings(modal, a);

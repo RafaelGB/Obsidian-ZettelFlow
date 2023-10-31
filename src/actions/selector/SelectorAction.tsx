@@ -2,7 +2,7 @@ import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 import React from "react";
 import { elementTypeSelectorSettings } from "./ElementTypeSelectorHandler";
-import { SelectorWrapper } from "./SelectorComponent";
+import { SelectorWrapper } from "./components/SelectorComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { addIcon } from "obsidian";

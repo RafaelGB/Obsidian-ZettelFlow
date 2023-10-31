@@ -429,12 +429,6 @@ textarea {
   opacity: 1;
 }
 
-.zettelkasten-flow__accordion-removed {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-}
-
 .zettelkasten-flow__accordion-header {
   display: flex;
   justify-content: space-between;

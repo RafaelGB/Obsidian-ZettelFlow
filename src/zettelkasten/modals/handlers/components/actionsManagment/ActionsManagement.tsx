@@ -18,33 +18,33 @@ export function ActionsManagement(props: ActionsManagementProps) {
     });
     return record;
   }, []);
-
-  // template info.actions map
-  const actionsComponent = actions.map((action, index) => {
-    return (
-      <ActionAccordion
-        key={`action-${index}`}
-        modal={modal}
-        action={action}
-        onRemove={() => {
-          info.actions = actions.splice(index, 1);
-          setActions(info.actions);
-        }}
-      />
-    );
-  });
-
   return (
     <>
-      {actionsComponent}
+      {actions.map((action, index) => {
+        return (
+          <ActionAccordion
+            key={`action-${index}-${action.type}`}
+            modal={modal}
+            action={action}
+            onRemove={() => {
+              const deepCopy = actions.slice();
+              info.actions = deepCopy.splice(index, 1);
+              setActions(deepCopy);
+            }}
+          />
+        );
+      })}
       <div className={c("actions-management-add")}>
         <Dropdown
+          key={`dropdown-${info.actions.length}`}
           options={actionsMemo}
           confirmNode={<Icon name="plus" />}
           confirmTooltip="Add new action"
           onConfirm={(value) => {
-            info.actions.push(actionsStore.getDefaultActionInfo(value));
-            setActions(info.actions);
+            const deepCopy = actions.slice();
+            deepCopy.push(actionsStore.getDefaultActionInfo(value));
+            setActions(deepCopy);
+            info.actions = deepCopy;
           }}
         />
       </div>

@@ -35,6 +35,10 @@ export function Dropdown(props: DropdownType) {
         onClick={() => {
           if (TypeService.isString(value)) {
             onConfirm(value);
+          } else {
+            const value = Object.keys(options)[0];
+            setValue(value);
+            onConfirm(value);
           }
         }}
         onKeyDown={(event) => {

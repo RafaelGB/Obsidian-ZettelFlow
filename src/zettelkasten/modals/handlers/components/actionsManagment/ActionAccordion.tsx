@@ -7,9 +7,8 @@ import { actionsStore } from "architecture/api";
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove } = props;
   const [accordionOpen, setAccordionOpen] = useState(false);
-  const [isRemoved, setIsRemoved] = useState(false);
   return (
-    <div className={isRemoved ? c("accordion-removed") : c("accordion")}>
+    <div className={c("accordion")}>
       <div className={c("accordion-header")}>
         <div className={c("accordion-header-info")}>
           <label>{action.type}</label>
@@ -23,10 +22,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
           </button>
           <button
             onClick={() => {
-              setIsRemoved(true);
-              setTimeout(() => {
-                onRemove();
-              }, 300);
+              onRemove();
             }}
           >
             <Icon name="cross" />

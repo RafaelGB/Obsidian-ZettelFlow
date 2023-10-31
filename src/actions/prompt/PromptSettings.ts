@@ -1,11 +1,9 @@
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { PromptElement, StepBuilderModal } from "zettelkasten";
-import { Action } from "architecture/api";
+import { PromptElement } from "zettelkasten";
+import { ActionSetting } from "architecture/api";
 
-export function promptSettings(modal: StepBuilderModal, action: Action) {
-    const { info } = modal;
-    const { contentEl } = info;
+export const promptSettings: ActionSetting = (contentEl, _, action) => {
     const { key, label, placeholder, zone } = action as PromptElement;
     const name = t('step_builder_element_type_prompt_title');
     const description = t('step_builder_element_type_prompt_description');

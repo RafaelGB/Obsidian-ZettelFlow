@@ -1,20 +1,24 @@
 import { t } from "architecture/lang";
-import { SelectorElement, StepBuilderModal } from "zettelkasten";
+import { SelectorElement } from "zettelkasten";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { Setting } from "obsidian";
-import { Action } from "architecture/api";
+import { ActionSetting } from "architecture/api";
 import { SelectorDnD } from "./components/selectordnd/SelectorDnD";
 
-export function elementTypeSelectorSettings(
-  modal: StepBuilderModal,
-  action: Action
-) {
-  const { info } = modal;
-  const { contentEl } = info;
+export const elementTypeSelectorSettings: ActionSetting = (
+  contentEl,
+  _,
+  action
+) => {
   const { zone, key, label } = action as SelectorElement;
-  const name = t("step_builder_element_type_selector_title");
-  const description = t("step_builder_element_type_selector_description");
+  contentEl.createEl("h3", {
+    text: t("step_builder_element_type_selector_title"),
+  });
+  contentEl.createEl("p", {
+    text: t("step_builder_element_type_selector_description"),
+  });
+
   new Setting(contentEl)
     .setName(t("step_builder_element_type_zone_title"))
     .setDesc(t("step_builder_element_type_zone_description"))
@@ -49,7 +53,6 @@ export function elementTypeSelectorSettings(
       });
     });
 
-  const elementSelectorChild = contentEl.createDiv();
-  const root = createRoot(elementSelectorChild);
+  const root = createRoot(contentEl.createDiv());
   root.render(<SelectorDnD action={action} root={root} />);
-}
+};

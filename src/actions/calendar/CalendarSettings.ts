@@ -1,11 +1,9 @@
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { CalendarElement, StepBuilderModal } from "zettelkasten";
-import { Action } from "architecture/api";
+import { CalendarElement } from "zettelkasten";
+import { ActionSetting } from "architecture/api";
 
-export function calendarSettings(modal: StepBuilderModal, action: Action) {
-    const { info } = modal;
-    const { contentEl } = info;
+export const calendarSettings: ActionSetting = (contentEl, _, action) => {
     const { key, label, zone } = action as CalendarElement;
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');

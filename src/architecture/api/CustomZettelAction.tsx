@@ -11,7 +11,11 @@ export type Action = {
   [key: string]: Literal;
 };
 
-export type ActionSetting = (props: StepBuilderModal, action: Action) => void;
+export type ActionSetting = (
+  contentEl: HTMLElement,
+  props: StepBuilderModal,
+  action: Action
+) => void;
 
 interface ICustomZettelAction {
   id: string;

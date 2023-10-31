@@ -1,15 +1,14 @@
 import { FILE_EXTENSIONS, FileService } from "architecture/plugin";
 import { FileSuggest, HeadingSuggest } from "architecture/settings";
 import { HeadingCache, Setting } from "obsidian";
-import { StepBuilderModal } from "zettelkasten";
 import { BacklinkElement } from "./model/BackLinkTypes";
 import { t } from "architecture/lang";
-import { Action } from "architecture/api";
+import { ActionSetting } from "architecture/api";
 
-export function backlinkSettings(settingHandlerResponse: StepBuilderModal, action: Action) {
+export const backlinkSettings: ActionSetting = (contentEl, settingHandlerResponse, action) => {
 
     const { info } = settingHandlerResponse;
-    const { contentEl, optional } = info
+    const { optional } = info
     const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');

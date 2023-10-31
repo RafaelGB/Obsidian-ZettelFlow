@@ -407,13 +407,32 @@ textarea {
   /* Support for mobile Drag & Drop */
   touch-action: none;
 }
+/********************
+*   ACTION MANAGEMENT
+*********************/
+.zettelkasten-flow__actions-management-add {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+}
 /*****************
 *   ACCORDION
 ******************/
 .zettelkasten-flow__accordion {
   border: 1px solid var(--background-secondary);
   border-radius: 4px;
-  margin-bottom: 10px; /* Espacio entre acordeones */
+  margin-bottom: 10px;
+  transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out;
+  opacity: 1;
+}
+
+.zettelkasten-flow__accordion-removed {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
 .zettelkasten-flow__accordion-header {

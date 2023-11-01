@@ -5,6 +5,7 @@ import { Dropdown } from "architecture/components/core";
 import { actionsStore } from "architecture/api";
 import { Icon } from "architecture/components/icon";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 
 export function ActionsManagement(props: ActionsManagementProps) {
   const { modal } = props;
@@ -20,6 +21,7 @@ export function ActionsManagement(props: ActionsManagementProps) {
   }, []);
   return (
     <>
+      <h3>{t("step_builder_actions_management_title")}</h3>
       {actions.map((action, index) => {
         return (
           <ActionAccordion
@@ -39,7 +41,9 @@ export function ActionsManagement(props: ActionsManagementProps) {
           key={`dropdown-${info.actions.length}`}
           options={actionsMemo}
           confirmNode={<Icon name="plus" />}
-          confirmTooltip="Add new action"
+          confirmTooltip={t(
+            "step_builder_actions_management_add_action_tooltip"
+          )}
           onConfirm={(value) => {
             const deepCopy = actions.slice();
             deepCopy.push(actionsStore.getDefaultActionInfo(value));

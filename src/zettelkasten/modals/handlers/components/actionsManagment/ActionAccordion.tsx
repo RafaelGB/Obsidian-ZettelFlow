@@ -7,6 +7,9 @@ import { actionsStore } from "architecture/api";
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove } = props;
   const [accordionOpen, setAccordionOpen] = useState(false);
+
+  const bodyRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className={c("accordion")}>
       <div className={c("accordion-header")}>
@@ -29,11 +32,14 @@ export function ActionAccordion(props: ActionAccordionProps) {
           </button>
         </div>
       </div>
-      {accordionOpen && (
-        <div className={c("accordion-body")}>
+      {
+        <div
+          ref={bodyRef}
+          className={`${c("accordion-body")} ${accordionOpen ? "open" : ""}`}
+        >
           <AccordionBody {...props} />
         </div>
-      )}
+      }
     </div>
   );
 }

@@ -2,9 +2,9 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./typing";
 import { c } from "architecture";
 import { Platform } from "obsidian";
-import { LeafIcon } from "components/icons";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
+import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;
@@ -148,7 +148,7 @@ function OptionElement(optionElementType: OptionElementType) {
 function ActionIcon(info: { type: string; isLeaf?: boolean }) {
   const { type, isLeaf } = info;
   return isLeaf ? (
-    <LeafIcon />
+    <Icon name={RibbonIcon.LEAF} />
   ) : (
     <Icon name={`${actionsStore.getIconOf(type)}`} />
   );

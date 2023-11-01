@@ -149,7 +149,7 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
   const { action, plugin } = props;
 
   const { defaultFile, defaultHeading, insertPattern } =
-    action.element as BacklinkElement;
+    action as BacklinkElement;
   const mdRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!mdRef.current || !defaultFile || !defaultHeading) {

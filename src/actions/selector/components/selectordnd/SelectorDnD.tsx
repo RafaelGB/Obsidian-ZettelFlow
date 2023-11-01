@@ -20,7 +20,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
   }, [optionsState]);
   const updateOptions = (origin: number, dropped: number) => {
     const newOptionsState = [...optionsState];
-    let originEntry = newOptionsState[origin];
+    const originEntry = newOptionsState[origin];
     let auxEntry = newOptionsState[dropped];
     newOptionsState[dropped] = originEntry;
     // Once we swap the first element, sort the array between the origin and the dropped

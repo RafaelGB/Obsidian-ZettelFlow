@@ -462,7 +462,7 @@ textarea {
 .zettelkasten-flow__accordion-body {
   max-height: 0;
   overflow: hidden;
-  transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-in-out;
+  transition: max-height 0.4s ease-out, opacity 0.2s ease-out;
   opacity: 0;
 }
 

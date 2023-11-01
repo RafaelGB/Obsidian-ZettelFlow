@@ -1,7 +1,6 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
-import { actionsStore } from "architecture/api/store/ActionsStore";
 import { Root, createRoot } from "react-dom/client";
 import { ActionsManagement } from "./components/actionsManagment/ActionsManagement";
 import React from "react";

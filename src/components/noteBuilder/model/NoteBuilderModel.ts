@@ -7,7 +7,7 @@ import ZettelFlow from "main";
 import { FinalElement } from "notes";
 import { NoteBuilder } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
-import { SectionElement, ZettelFlowElement } from "zettelkasten";
+import { ZettelFlowElement } from "zettelkasten";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;

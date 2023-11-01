@@ -17,11 +17,11 @@ export class TypeService {
         return typeof value === "boolean";
     }
 
-    public static isArray<T>(value: any, typeOf: string): value is Array<T> {
-        return value && typeof value === "object" && value.constructor === Array && value.every((item: any) => typeof item === typeOf);
+    public static isArray<T>(value: object, typeOf: string): value is Array<T> {
+        return value && typeof value === "object" && value.constructor === Array && (value as Array<T>).every((item: any) => typeof item === typeOf);
     }
 
-    public static isDate(value: any): value is Date {
+    public static isDate(value: unknown): value is Date {
         const isDate = value instanceof Date;
         if (isDate) {
             return true;
@@ -32,7 +32,7 @@ export class TypeService {
         return false;
     }
 
-    public static isObject(value: any): value is Record<string, unknown> {
+    public static isObject(value: object): value is Record<string, unknown> {
         return value && typeof value === "object" && value.constructor === Object;
     }
 

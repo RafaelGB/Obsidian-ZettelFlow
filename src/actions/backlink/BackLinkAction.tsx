@@ -5,7 +5,7 @@ import {
   BacklinkElement,
 } from "./model/BackLinkTypes";
 import { EditService, FileService } from "architecture/plugin";
-import { BacklinkWrapper } from "./BackComponent";
+import { BacklinkWrapper } from "./BackLinkComponent";
 import React from "react";
 import { HeadingCache } from "obsidian";
 import { NoteDTO } from "notes";

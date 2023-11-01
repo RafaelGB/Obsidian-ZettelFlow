@@ -133,8 +133,12 @@ function OptionElement(optionElementType: OptionElementType) {
     >
       {label}
       <div className={c("icon-group")}>
-        {actionTypes.map((elementType) => (
-          <ActionIcon type={elementType} isLeaf={isLeaf} />
+        {actionTypes.map((elementType, index) => (
+          <ActionIcon
+            type={elementType}
+            isLeaf={isLeaf}
+            key={`icon-${index}`}
+          />
         ))}
       </div>
     </div>

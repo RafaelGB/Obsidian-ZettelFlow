@@ -34,8 +34,8 @@ export function nextElement(
   const { id } = selected;
   const selectedElement = settings.nodes[id];
   actions.setCurrentStep(selected);
-  if (selectedElement.element.type !== "bridge" && !data.wasActionTriggered()) {
-    manageAction(selectedElement, selected, state, info);
+  if (selectedElement.actions.length > 0 && !data.wasActionTriggered()) {
+    manageAction(selectedElement, selected, state, info, 0);
   } else {
     manageElement(selectedElement, selected, state, info);
   }
@@ -45,28 +45,29 @@ export function manageAction(
   selectedElement: ZettelFlowElement,
   selected: WorkflowStep,
   state: CallbackPickedState,
-  info: NoteBuilderType
+  info: NoteBuilderType,
+  position: number
 ) {
   const { actions } = state;
-  if (selectedElement.element.hasUI) {
+  const action = selectedElement.actions[position];
+  if (action.hasUI) {
     actions.setSectionElement(
       <ActionSelector
         {...info}
-        action={selectedElement}
+        action={action}
         actionStep={selected}
-        key={`selector-action-${selectedElement.path}`}
+        position={position}
+        key={`selector-action-${selectedElement.path}-${position}`}
       />,
       { isOptional: selectedElement.optional, savePrevious: true }
     );
     actions.setHeader({
-      title:
-        selectedElement.element.label ||
-        `${selectedElement.element.type} action`,
+      title: action.header || `${action.type} action`,
     });
   } else {
     // Background element
     log.debug(`Action as background element: ${selectedElement.path}`);
-    actions.addBackgroundElement(selectedElement.element);
+    actions.addBackgroundAction(action);
     nextElement(state, selected, info);
   }
 }
@@ -78,8 +79,7 @@ export function manageElement(
   info: NoteBuilderType
 ) {
   const { actions, data } = state;
-  const { modal, plugin } = info;
-  const { settings } = plugin;
+  const { modal } = info;
   const { children, isRecursive } = selected;
   actions.manageElementInfo(selectedElement, isRecursive);
   if (children && children.length > 1) {
@@ -100,13 +100,8 @@ export function manageElement(
       title: childrenHeader,
     });
   } else if (children && children.length === 1) {
-    const nextStep = children[0];
-    const uniqueChild = settings.nodes[nextStep.id];
     actions.setActionWasTriggered(false);
-    if (uniqueChild.element.isBackground) {
-      actions.addBridge(uniqueChild);
-    }
-    nextElement(state, nextStep, info);
+    nextElement(state, children[0], info);
   } else if (data.getTitle()) {
     // Build and close modal
     actions

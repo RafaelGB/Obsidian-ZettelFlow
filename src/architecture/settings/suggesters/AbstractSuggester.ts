@@ -150,8 +150,7 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 
         if (suggestions.length > 0) {
             this.suggest.setSuggestions(suggestions);
-            // TODO: Deprecated way to call dom events
-            this.open((<any>app).dom.appContainerEl, this.inputEl);
+            this.open(ObsidianApi.getPluginApp().dom.appContainerEl, this.inputEl);
         } else {
             this.close();
         }

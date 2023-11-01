@@ -12,7 +12,7 @@ import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
-  const { defaultFile } = props.action.element as BacklinkElement;
+  const { defaultFile } = props.action as BacklinkElement;
   if (defaultFile) {
     return <PreviewMessage {...props} />;
   }
@@ -149,7 +149,7 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
   const { action, plugin } = props;
 
   const { defaultFile, defaultHeading, insertPattern } =
-    action.element as BacklinkElement;
+    action as BacklinkElement;
   const mdRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!mdRef.current || !defaultFile || !defaultHeading) {

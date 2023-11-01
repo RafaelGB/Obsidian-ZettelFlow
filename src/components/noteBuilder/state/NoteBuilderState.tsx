@@ -90,10 +90,10 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           actionWasTriggered: true,
         };
       }),
-    addBackgroundElement: (element) =>
+    addBackgroundAction: (action) =>
       set((state) => {
         const { builder } = state;
-        builder.info.addBackgroundElement(element, state.position);
+        builder.info.addBackgroundAction(action, state.position);
         return {
           builder,
           actionWasTriggered: true,

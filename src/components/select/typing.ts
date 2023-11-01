@@ -19,5 +19,5 @@ export type Option = {
     label: string;
     color: HexString;
     isLeaf: boolean;
-    elementType: string;
+    actionTypes: string[];
 }

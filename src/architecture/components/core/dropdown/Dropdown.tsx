@@ -5,7 +5,14 @@ import { TypeService } from "architecture/typing";
 import { t } from "architecture/lang";
 
 export function Dropdown(props: DropdownType) {
-  const { options, defaultValue, onConfirm = () => {}, className = [] } = props;
+  const {
+    options,
+    defaultValue,
+    onConfirm = () => {},
+    className = [],
+    confirmNode = t("component_confirm"),
+    confirmTooltip,
+  } = props;
   const [value, setValue] = useState(defaultValue);
   return (
     <div className={c("group", ...className)}>
@@ -24,8 +31,13 @@ export function Dropdown(props: DropdownType) {
         })}
       </select>
       <button
+        title={confirmTooltip}
         onClick={() => {
           if (TypeService.isString(value)) {
+            onConfirm(value);
+          } else {
+            const value = Object.keys(options)[0];
+            setValue(value);
             onConfirm(value);
           }
         }}
@@ -37,7 +49,7 @@ export function Dropdown(props: DropdownType) {
           }
         }}
       >
-        {t("component_confirm")}
+        {confirmNode}
       </button>
     </div>
   );

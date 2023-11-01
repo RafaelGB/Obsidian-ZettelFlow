@@ -10,5 +10,9 @@ declare module "obsidian" {
         commands: {
             executeCommandById: (id: string) => void;
         }
+        // Out of official API
+        dom: {
+            appContainerEl: HTMLElement;
+        }
     }
 }

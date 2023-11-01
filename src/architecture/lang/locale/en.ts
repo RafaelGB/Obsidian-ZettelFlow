@@ -84,4 +84,6 @@ export default {
     step_builder_element_type_zone_description: 'Choose where you want to place the element.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',
     step_builder_element_type_zone_body: 'Body',
+    step_builder_actions_management_title: 'Actions management',
+    step_builder_actions_management_add_action_tooltip: 'Add action',
 };

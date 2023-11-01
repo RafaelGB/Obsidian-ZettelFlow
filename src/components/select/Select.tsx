@@ -98,7 +98,7 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
-  const { isLeaf, elementType, key, label } = option;
+  const { isLeaf, actionTypes, key, label } = option;
   const optionRef = useRef<HTMLDivElement>(null);
   const styleMemo = React.useMemo<CSSProperties>(() => {
     return {
@@ -132,7 +132,15 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       {label}
-      {<ActionIcon type={elementType} isLeaf={isLeaf} />}
+      <div className={c("icon-group")}>
+        {actionTypes.map((elementType, index) => (
+          <ActionIcon
+            type={elementType}
+            isLeaf={isLeaf}
+            key={`icon-${index}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

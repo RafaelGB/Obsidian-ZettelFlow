@@ -5,7 +5,7 @@ import { SelectorElement } from "zettelkasten";
 
 export function SelectorWrapper(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
-  const { options, defaultOption } = action.element as SelectorElement;
+  const { options, defaultOption } = action as SelectorElement;
   return (
     <Dropdown
       options={options}

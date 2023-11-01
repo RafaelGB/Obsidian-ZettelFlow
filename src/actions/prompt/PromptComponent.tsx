@@ -9,9 +9,7 @@ export function PromptWrapper(props: WrappedActionBuilderProps) {
     <TextArea
       className={["display-grid"]}
       placeholder={
-        TypeService.isString(action.element.placeholder)
-          ? action.element.placeholder
-          : ""
+        TypeService.isString(action.placeholder) ? action.placeholder : ""
       }
       onKeyDown={(key, value) => {
         if (key === "Enter") {

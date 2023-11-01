@@ -6,7 +6,7 @@ import {
 } from "../model/NoteBuilderModel";
 import { Literal } from "architecture/plugin";
 import { WorkflowStep } from "config";
-import { manageElement, nextElement } from "./CallbackUtils";
+import { manageAction, manageElement, nextElement } from "./CallbackUtils";
 import { Notice } from "obsidian";
 import { log } from "architecture";
 
@@ -30,10 +30,16 @@ export const callbackElementBuilder =
 export const callbackActionBuilder =
   (state: CallbackPickedState, info: ActionBuilderProps) =>
     (callbackResult: Literal) => {
-      const { action, actionStep } = info;
+      const { action, actionStep, plugin, position } = info;
+      const { settings } = plugin;
       const { actions } = state;
-      actions.addElement(action.element, callbackResult);
-      nextElement(state, actionStep, info);
+      actions.addElement(action, callbackResult);
+      const selectedElement = settings.nodes[actionStep.id];
+      if (selectedElement.actions.length > position + 1) {
+        manageAction(selectedElement, actionStep, state, info, position + 1);
+      } else {
+        manageElement(selectedElement, actionStep, state, info);
+      }
     };
 
 export const callbackSkipNote = (state: CallbackPickedState, info: NoteBuilderType) => () => {

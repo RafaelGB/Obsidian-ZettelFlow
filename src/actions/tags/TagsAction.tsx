@@ -1,5 +1,4 @@
 import {
-  Action,
   ActionSetting,
   CustomZettelAction,
   ExecuteInfo,

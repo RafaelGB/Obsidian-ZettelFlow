@@ -3,6 +3,7 @@ import { ActionAccordionProps } from "./typing";
 import { c } from "architecture";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
+import { Input } from "architecture/components/core";
 
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove } = props;
@@ -16,6 +17,15 @@ export function ActionAccordion(props: ActionAccordionProps) {
         <div className={c("accordion-header-info")}>
           <label>{action.type}</label>
           <Icon name={actionsStore.getIconOf(action.type)} />
+          <Input
+            value={action.description}
+            placeholder="Action description"
+            onChange={(inputValue) => {
+              action.description = inputValue;
+            }}
+            required={true}
+            disablePlaceHolderLabel={true}
+          />
         </div>
         <div className={c("accordion-header-actions")}>
           <button onClick={() => setAccordionOpen(!accordionOpen)}>

@@ -444,6 +444,10 @@ textarea {
   align-items: center;
 }
 
+.zettelkasten-flow__accordion-header-info .zettelkasten-flow__input-group {
+  margin-left: 10px;
+}
+
 .zettelkasten-flow__accordion-header-info label {
   margin-right: 10px;
 }

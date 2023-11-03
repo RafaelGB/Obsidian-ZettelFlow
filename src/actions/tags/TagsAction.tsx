@@ -1,22 +1,32 @@
-import {
-  ActionSetting,
-  CustomZettelAction,
-  ExecuteInfo,
-} from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { TagsWrapper } from "./TagsComponent";
+import React from "react";
+import { t } from "architecture/lang";
+import { tagsSettings } from "./TagsSettings";
 
 export class TagsAction extends CustomZettelAction {
+  private static ICON = "price-tag-glyph:";
   id = "tags";
   defaultAction = {
     type: this.id,
   };
-  settings: ActionSetting;
-  execute(info: ExecuteInfo): Promise<void> {
-    throw new Error("Method not implemented.");
+  settings = tagsSettings;
+
+  component(props: WrappedActionBuilderProps) {
+    return <TagsWrapper {...props} />;
   }
+
+  async execute(info: ExecuteInfo) {
+    const { content, element } = info;
+    const { result } = element;
+    content.addTags(result as string[]);
+  }
+
   getIcon(): string {
-    throw new Error("Method not implemented.");
+    return TagsAction.ICON;
   }
   getLabel(): string {
-    throw new Error("Method not implemented.");
+    return t("type_option_tags");
   }
 }

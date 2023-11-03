@@ -4,7 +4,6 @@ import { c } from "architecture";
 import { Platform } from "obsidian";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
-import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;

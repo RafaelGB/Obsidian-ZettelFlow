@@ -14,8 +14,8 @@
 		{"id":"8c82b7abd6cf87b6","type":"file","file":"WorkFlow Test/actions/prompt/Add section h1 - body.md","x":347,"y":-294,"width":507,"height":80},
 		{"id":"0fa3ad4f6c59ec01","type":"file","file":"WorkFlow Test/actions/multi/Social event (multi action).md","x":-159,"y":-560,"width":561,"height":80,"color":"4"},
 		{"id":"905fabf82d23102c","type":"file","file":"WorkFlow Test/bridges/Idea Note.md","x":-159,"y":-9,"width":400,"height":74,"color":"2"},
-		{"id":"3a191bd28ace9174","type":"file","file":"WorkFlow Test/actions/prompt/Purpose Prompt - frontmatter.md","x":534,"y":-90,"width":453,"height":81},
-		{"id":"f7c2b6af9c582d33","x":534,"y":120,"width":453,"height":80,"type":"file","file":"WorkFlow Test/actions/tags/configurable tags.md"}
+		{"id":"3a191bd28ace9174","type":"file","file":"WorkFlow Test/actions/prompt/Purpose Prompt - frontmatter.md","x":534,"y":-90,"width":453,"height":81,"color":"#e19393"},
+		{"id":"f7c2b6af9c582d33","type":"file","file":"WorkFlow Test/actions/tags/configurable tags.md","x":534,"y":120,"width":453,"height":80,"color":"#bfa7ec"}
 	],
 	"edges":[
 		{"id":"31586cccc0d2f2aa","fromNode":"59fcfd179cd2455c","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left"},

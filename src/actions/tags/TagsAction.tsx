@@ -6,7 +6,7 @@ import { t } from "architecture/lang";
 import { tagsSettings } from "./TagsSettings";
 
 export class TagsAction extends CustomZettelAction {
-  private static ICON = "price-tag-glyph:";
+  private static ICON = "price-tag-glyph";
   id = "tags";
   defaultAction = {
     type: this.id,

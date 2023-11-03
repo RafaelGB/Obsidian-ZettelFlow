@@ -132,24 +132,16 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       {label}
-      <div className={c("icon-group")}>
+      <div className={isLeaf ? c("icon-group", "is-leaf") : c("icon-group")}>
         {actionTypes.map((elementType, index) => (
-          <ActionIcon
-            type={elementType}
-            isLeaf={isLeaf}
-            key={`icon-${index}`}
-          />
+          <ActionIcon type={elementType} key={`icon-${index}`} />
         ))}
       </div>
     </div>
   );
 }
 
-function ActionIcon(info: { type: string; isLeaf?: boolean }) {
-  const { type, isLeaf } = info;
-  return isLeaf ? (
-    <Icon name={RibbonIcon.LEAF} />
-  ) : (
-    <Icon name={`${actionsStore.getIconOf(type)}`} />
-  );
+function ActionIcon(info: { type: string }) {
+  const { type } = info;
+  return <Icon name={`${actionsStore.getIconOf(type)}`} />;
 }

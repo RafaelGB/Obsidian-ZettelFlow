@@ -27,6 +27,8 @@ export function SelectableSearch(props: SelectableSearchType) {
   /* Actions */
   const handleClearAll = () => {
     setInitialSelectionsState([]);
+    setFilteredOptions(options);
+    setSearchState("");
     onChange([]);
   };
 
@@ -49,62 +51,71 @@ export function SelectableSearch(props: SelectableSearchType) {
                   (selectedOption) => selectedOption !== option
                 );
                 setInitialSelectionsState(newSelectedOptions);
-                setFilteredOptions([...filteredOptions, option]);
+                // filter the neSelectedOptions from the original options
+                setFilteredOptions(
+                  options.filter((op) => !newSelectedOptions.contains(op))
+                );
                 onChange(newSelectedOptions);
               }}
-            />
+            >
+              <Icon name="cross" />
+            </button>
           </div>
         ))}
-      </div>
-      <input
-        type="search"
-        ref={inputRef}
-        value={searchState}
-        onChange={handleSearchChange}
-        onKeyDown={(e) => {
-          switch (e.key) {
-            case "ArrowUp": {
-              e.preventDefault();
-              setSelectedIndex((prevIndex) => Math.max(0, prevIndex - 1));
-              break;
-            }
-            case "ArrowDown": {
-              e.preventDefault();
-              setSelectedIndex((prevIndex) =>
-                Math.min(Object.keys(filteredOptions).length - 1, prevIndex + 1)
-              );
-              break;
-            }
-            case "Enter": {
-              e.preventDefault();
-              const valueFromCurrentIndex = filteredOptions[selectedIndex];
-              const newSelectedOptions = [
-                ...initialSelectionsState,
-                valueFromCurrentIndex,
-              ];
+        <input
+          type="search"
+          ref={inputRef}
+          value={searchState}
+          onChange={handleSearchChange}
+          onKeyDown={(e) => {
+            switch (e.key) {
+              case "ArrowUp": {
+                e.preventDefault();
+                setSelectedIndex((prevIndex) => Math.max(0, prevIndex - 1));
+                break;
+              }
+              case "ArrowDown": {
+                e.preventDefault();
+                setSelectedIndex((prevIndex) =>
+                  Math.min(
+                    Object.keys(filteredOptions).length - 1,
+                    prevIndex + 1
+                  )
+                );
+                break;
+              }
+              case "Enter": {
+                e.preventDefault();
+                const valueFromCurrentIndex = filteredOptions[selectedIndex];
+                const newSelectedOptions = [
+                  ...initialSelectionsState,
+                  valueFromCurrentIndex,
+                ];
 
-              setInitialSelectionsState(newSelectedOptions);
-              setFilteredOptions(
-                filteredOptions.filter(
-                  (option) => option !== valueFromCurrentIndex
-                )
-              );
-              setVisibleOptions(false);
-              break;
+                setInitialSelectionsState(newSelectedOptions);
+                setFilteredOptions(
+                  options.filter((op) => !newSelectedOptions.contains(op))
+                );
+                setVisibleOptions(false);
+                break;
+              }
             }
-          }
-        }}
-        placeholder={placeholder}
-        onFocus={() => {
-          setVisibleOptions(true);
-          setSelectedIndex(0);
-        }}
-      />
-      <button onClick={handleClearAll}>
-        <Icon name="cross" />
-      </button>
+          }}
+          placeholder={placeholder}
+          onFocus={() => {
+            setVisibleOptions(true);
+            setSelectedIndex(0);
+          }}
+        />
+        <button onClick={handleClearAll}>
+          <Icon name="cross" />
+        </button>
+      </div>
       {visibleOptions && (
-        <ul className={c("search-results")} ref={listRef}>
+        <ul
+          className={c("search-results", "selectable-search-results")}
+          ref={listRef}
+        >
           {filteredOptions.map((option, index) => (
             <li
               key={`${option}-${index}`}
@@ -114,7 +125,12 @@ export function SelectableSearch(props: SelectableSearchType) {
                   : c("search-hidden")
               }
               onClick={() => {
+                setFilteredOptions(
+                  filteredOptions.filter((op) => op !== option)
+                );
+
                 const newSelectedOptions = [...initialSelectionsState, option];
+
                 setInitialSelectionsState(newSelectedOptions);
                 onChange(newSelectedOptions);
                 setSearchState("");

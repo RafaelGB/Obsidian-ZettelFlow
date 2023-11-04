@@ -479,3 +479,48 @@ textarea {
   opacity: 1;
   padding: 10px 15px;
 }
+/********************
+*   SELECTABLE SEARCH
+*********************/
+.zettelkasten-flow__selectable-search {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.zettelkasten-flow__selectable-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__selectable-pill-group > button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.zettelkasten-flow__selectable-pill {
+  display: flex;
+  align-items: center;
+  background-color: var(--background-secondary);
+  padding: 0.1em;
+  margin: 0.15em;
+  font-size: 11px;
+}
+
+.zettelkasten-flow__selectable-pill > button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 5px;
+  max-height: 1.2rem;
+  max-width: 1.2rem;
+}
+
+.zettelkasten-flow__selectable-search-results {
+  position: relative;
+}

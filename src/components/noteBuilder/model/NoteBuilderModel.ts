@@ -1,3 +1,4 @@
+import { Action } from "architecture/api";
 import { Literal } from "architecture/plugin";
 import { HeaderType } from "components/header";
 import { SectionType } from "components/section";
@@ -6,7 +7,7 @@ import ZettelFlow from "main";
 import { FinalElement } from "notes";
 import { NoteBuilder } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
-import { SectionElement, ZettelFlowElement } from "zettelkasten";
+import { ZettelFlowElement } from "zettelkasten";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;
@@ -19,7 +20,8 @@ export type ElementBuilderProps = {
 } & NoteBuilderType;
 
 export type ActionBuilderProps = {
-    action: ZettelFlowElement;
+    action: Action;
+    position: number;
     actionStep: WorkflowStep;
 } & NoteBuilderType;
 
@@ -53,8 +55,8 @@ export type NoteBuilderStateActions = {
     goPrevious: () => void;
     build: () => Promise<string>;
     manageElementInfo: (selectedElement: ZettelFlowElement, skipAddToBuilder?: boolean) => void;
-    addElement: (element: SectionElement, callbackResult: Literal) => void;
-    addBackgroundElement: (element: SectionElement) => void;
+    addElement: (element: Action, callbackResult: Literal) => void;
+    addBackgroundAction: (action: Action) => void;
     setPatternPrefix: (prefix: string) => void;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;

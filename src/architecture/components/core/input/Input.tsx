@@ -10,6 +10,7 @@ export function Input(info: InputType) {
     required = false,
     onChange,
     onKeyDown,
+    disablePlaceHolderLabel = false,
   } = info;
   const [valueState, setValueState] = React.useState<string>(value || "");
   return (
@@ -33,7 +34,9 @@ export function Input(info: InputType) {
           }
         }}
       />
-      <label className={c("input-label")}>{placeholder}</label>
+      {!disablePlaceHolderLabel && (
+        <label className={c("input-label")}>{placeholder}</label>
+      )}
     </div>
   );
 }

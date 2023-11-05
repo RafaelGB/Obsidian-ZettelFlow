@@ -26,14 +26,24 @@ The initial step will be a selection of all the nodes marked as `root`.
 - **Root toggle**: If the step is a root, it will be shown as the first step in the UI.
 - **Target folder search**: The folder where the new note will be created (the note builder will use the last step with this property informed).
 - **Optional toggle**: If the step is an action, a Skip button will be shown in the UI when this option is enabled.
-- **Action selector**: By default all steps are `Bridge`. If you want to add an action, you can select it from the list of options.
 
-### Step types
+### Actions
+By default the steps starts with no actions. If you want to add one, there is a dropdown menu to select the action type and a button to add it.
+
+A step can have multiple actions, making the configuration more flexible. The order is not important fot the final note, but it will be the order shown in the UI of the note builder.
+
+#### action properties
+There are basic properties that all the actions have:
+- **type**: The action type.
+- **description**: The description of the action. It will be shown in the UI of the note builder and in the action step configuration.
+
+Depending on the action type, there are other properties that can be configured. See the action type documentation for more information.
+
+#### action types
 They will be shown as a list of options to select from. The options are:
 
-- **Bridge**: By default, all new steps are `Bridge`. No action is triggered, just read the content and the properties of the file to build the final note.
 - **[Prompt](./steps/PromptStep.md)**: A simple input field to add a custom value to the built-in note template.
 - **[Selector](./steps/SelectorStep.md)**: A list of options to select from. The options are the values of the property defined in the file.
 - **[Calendar](./steps/CalendarStep.md)**: A calendar to select a date. The date will be added to the note as a property.
 - **[Backlink](./steps/BacklinkStep.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.
-
+- **[Tags](./steps/TagsStep.md)**: Add tags to the built-in note template as property.

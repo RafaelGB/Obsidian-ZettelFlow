@@ -1,5 +1,5 @@
 import { log } from "architecture";
-import { CustomZettelAction } from "../CustomZettelAction";
+import { Action, CustomZettelAction } from "../CustomZettelAction";
 
 class ActionsStore {
     private static instance: ActionsStore;
@@ -31,6 +31,15 @@ class ActionsStore {
             throw new Error(`Action ${name} not found`);
         }
         return action;
+    }
+
+    public getDefaultActionInfo(name: string): Action {
+        const action = this.actions.get(name);
+        if (!action) {
+            log.error(`Action ${name} not found`);
+            throw new Error(`Action ${name} not found`);
+        }
+        return action.defaultAction;
     }
 
     public unregisterAll(): void {

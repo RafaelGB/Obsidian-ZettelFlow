@@ -1,5 +1,6 @@
 export default {
     navbar_skip_step: 'Skip step',
+    navbar_abort_flow: 'Build note with only the steps completed so far',
     welcome_tutorial_open_settings: 'Open settings of ZettelFlow',
     welcome_tutorial_welcome_msg: 'Welcome to ZettelFlow',
     welcome_tutorial_open_canvas: 'Open canvas',
@@ -15,6 +16,7 @@ export default {
     type_option_prompt: 'Prompt',
     type_option_calendar: 'Calendar',
     type_option_selector: 'Selector',
+    type_option_tags: 'Tags',
     menu_pane_create_new_step: 'Create new step',
     menu_pane_edit_step: 'Edit step',
     menu_pane_transform_note_into_step: 'Transform note into step',
@@ -83,4 +85,7 @@ export default {
     step_builder_element_type_zone_description: 'Choose where you want to place the element.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',
     step_builder_element_type_zone_body: 'Body',
+    step_builder_element_type_tags_description: 'This action will display a tags selector to add tags to the built-in note.',
+    step_builder_actions_management_title: 'Actions management',
+    step_builder_actions_management_add_action_tooltip: 'Add action',
 };

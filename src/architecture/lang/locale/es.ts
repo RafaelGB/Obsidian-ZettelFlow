@@ -1,5 +1,6 @@
 export default {
     navbar_skip_step: 'Saltar paso',
+    navbar_abort_flow: 'Construir nota con solo los pasos completados hasta ahora',
     welcome_tutorial_open_settings: 'Abrir configuración de ZettelFlow',
     welcome_tutorial_welcome_msg: 'Bienvenida/o a ZettelFlow',
     welcome_tutorial_open_canvas: 'Abrir canvas',
@@ -15,6 +16,7 @@ export default {
     type_option_prompt: 'Prompt',
     type_option_calendar: 'Calendario',
     type_option_selector: 'Selector',
+    type_option_tags: 'Etiquetas',
     menu_pane_create_new_step: 'Crear nuevo paso del ZettelFlow',
     menu_pane_edit_step: 'Editar paso del ZettelFlow',
     menu_pane_transform_note_into_step: 'Transformar nota en paso del ZettelFlow',
@@ -82,4 +84,7 @@ export default {
     step_builder_element_type_zone_description: 'Elige dónde quieres colocar el elemento.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',
     step_builder_element_type_zone_body: 'Cuerpo',
+    step_builder_element_type_tags_description: 'Esta acción añadirá las etiquetas que elijas a la nota en construcción.',
+    step_builder_actions_management_title: 'Gestión de acciones',
+    step_builder_actions_management_add_action_tooltip: 'Añadir acción',
 };

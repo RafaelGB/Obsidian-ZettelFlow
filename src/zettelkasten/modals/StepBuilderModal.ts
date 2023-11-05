@@ -14,6 +14,7 @@ export class StepBuilderModal extends Modal {
     constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
         super(app);
         this.info = this.getBaseInfo();
+
     }
 
     setMode(mode: "edit" | "create"): StepBuilderModal {
@@ -70,10 +71,7 @@ export class StepBuilderModal extends Modal {
             return {
                 contentEl: this.contentEl,
                 isRoot: false,
-                element: {
-                    type: `bridge`,
-                    isAction: false
-                },
+                actions: [],
                 label: ``,
                 childrenHeader: ``,
                 path: ``
@@ -87,6 +85,7 @@ export class StepBuilderModal extends Modal {
                 label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,
                 childrenHeader: this.partialInfo.childrenHeader === undefined ? `` : this.partialInfo.childrenHeader,
                 path: this.partialInfo.path === undefined ? `` : this.partialInfo.path,
+                actions: this.partialInfo.actions === undefined ? [] : this.partialInfo.actions,
             }
         }
     }

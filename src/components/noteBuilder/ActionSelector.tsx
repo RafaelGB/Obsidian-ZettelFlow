@@ -20,12 +20,10 @@ export function ActionSelector(actionProps: ActionBuilderProps) {
     );
   }, []);
 
-  const element = actionsStore.getAction(action.element.type).component;
+  const element = actionsStore.getAction(action.type).component;
   if (!element) {
     return (
-      <div key={"not-supported-action"}>
-        Error: {action.element.type} not supported
-      </div>
+      <div key={"not-supported-action"}>Error: {action.type} not supported</div>
     );
   }
 

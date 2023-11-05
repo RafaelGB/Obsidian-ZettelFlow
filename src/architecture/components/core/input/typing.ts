@@ -1,5 +1,6 @@
 export type InputType = {
     placeholder: string,
+    disablePlaceHolderLabel?: boolean
     className?: string[],
     value?: string,
     required?: boolean,

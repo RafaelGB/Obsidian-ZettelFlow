@@ -2,7 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { StepBuilderModal } from "zettelkasten";
-import { ActionSelectorHandler } from "./ActionSelectorHandler";
+import { ActionManagementHandler } from "./ActionManagementHandler";
 
 export class ChildrenHeaderHandler extends AbstractHandlerClass<StepBuilderModal>  {
     name = t('step_builder_children_header_title');
@@ -27,7 +27,7 @@ export class ChildrenHeaderHandler extends AbstractHandlerClass<StepBuilderModal
         return this.goNext(modal);
     }
     public manageNextHandler(): void {
-        this.nextHandler = new ActionSelectorHandler();
+        this.nextHandler = new ActionManagementHandler();
     }
 
 }

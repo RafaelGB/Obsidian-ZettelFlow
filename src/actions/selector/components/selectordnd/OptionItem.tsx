@@ -1,8 +1,8 @@
 import { c } from "architecture";
 import React, { useRef, useState } from "react";
-import { OptionItemProps } from "./model/OptionItemModel";
 import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { Icon } from "architecture/components/icon";
+import { OptionItemProps } from "./model/OptionItemModel";
 import { SELECTOR_DND_ID } from "./utils/Identifiers";
 
 export function OptionItem(props: OptionItemProps) {

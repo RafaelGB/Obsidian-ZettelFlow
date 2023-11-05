@@ -7,4 +7,5 @@ zettelFlowSettings:
     hasUI: true
   label: Task about work
   childrenHeader: Wich information do you want to add?
+  actions: []
 ---

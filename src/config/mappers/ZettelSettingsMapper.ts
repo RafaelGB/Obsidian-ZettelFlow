@@ -1,8 +1,9 @@
+import { Action } from "architecture/api";
 import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";
-import { HexString } from "obsidian";
-import { SectionElement, ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
+import { Notice } from "obsidian";
+import { ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
 
 export class ZettelSettingsMapper {
     private sectionMap: Map<string, ZettelFlowElement>;
@@ -59,18 +60,16 @@ export class ZettelSettingsMapper {
         const { id, file, color } = section;
         if (this.sectionMap.has(id)) return;
         const service = FrontmatterService.instance(file);
-        const pluginSettings = service.getZettelFlowSettings();
+        const step = service.getZettelFlowSettings();
         const defaultInfo: ZettelFlowElement = {
             path: file.path,
             label: file.basename,
             childrenHeader: "",
-            element: {
-                type: "bridge",
-                color: color
-            }
-        }
-        if (TypeService.isObject(pluginSettings)) {
-            const { label, targetFolder, childrenHeader, element, optional } = pluginSettings;
+            color: color,
+            actions: [],
+        };
+        if (TypeService.isObject(step)) {
+            const { label, targetFolder, childrenHeader, element, actions = [], optional } = step;
             if (TypeService.isString(label)) {
                 defaultInfo.label = label;
             }
@@ -86,27 +85,34 @@ export class ZettelSettingsMapper {
             if (TypeService.isBoolean(optional)) {
                 defaultInfo.optional = optional;
             }
-
-            defaultInfo.element = this.manageSectionElement(element, color);
+            // LEGACY COMPATIBILITY START
+            if (actions.length === 0 && element && element.type !== "bridge") {
+                actions.push(element);
+            }
+            // LEGACY COMPATIBILITY END
+            defaultInfo.actions = this.manageActions(actions);
         }
         this.sectionMap.set(id, defaultInfo);
     }
 
-    private manageSectionElement(potentialElement: unknown, color: HexString | undefined): SectionElement {
-        if (!ZettelkastenTypeService.isSectionElement(potentialElement)) {
-            return {
-                type: "bridge",
-                color: color
-            }
+    private manageActions(actions: Action[]): Action[] {
+        if (!actions) return [];
+
+        return actions.map((action) => {
+            return this.manageAction(action);
+        });
+    }
+    private manageAction(potentialAction: unknown): Action {
+        if (!ZettelkastenTypeService.isSectionElement(potentialAction)) {
+            new Notice(`Invalid action found: ${JSON.stringify(potentialAction)}`);
+            throw new Error("Invalid action found");
         }
 
-        if (potentialElement.hasUI === undefined) {
-            potentialElement.hasUI = true;
+
+        if (potentialAction.hasUI === undefined) {
+            potentialAction.hasUI = true;
         }
 
-        return {
-            ...potentialElement,
-            color: color
-        }
+        return potentialAction;
     }
 }

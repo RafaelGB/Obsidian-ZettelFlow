@@ -1,19 +1,23 @@
-import { CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { BackLinkHandler } from "./BackLinkHandler";
+import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { backlinkSettings } from "./BackLinkSettings";
 import {
   BacklinkComponentResult,
   BacklinkElement,
 } from "./model/BackLinkTypes";
 import { EditService, FileService } from "architecture/plugin";
-import { BacklinkWrapper } from "./BackComponent";
+import { BacklinkWrapper } from "./BackLinkComponent";
 import React from "react";
 import { HeadingCache } from "obsidian";
 import { NoteDTO } from "notes";
 import { log } from "architecture";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
+  private static ICON = "links-coming-in";
   id = "backlink";
-  stepHandler = new BackLinkHandler();
+  defaultAction: Action = {
+    type: this.id,
+  };
+  settings = backlinkSettings;
 
   public component(props: WrappedActionBuilderProps) {
     return <BacklinkWrapper {...props} />;
@@ -78,7 +82,7 @@ export class BackLinkAction extends CustomZettelAction {
   }
 
   getIcon() {
-    return "links-coming-in";
+    return BackLinkAction.ICON;
   }
   getLabel() {
     return "Backlinks";

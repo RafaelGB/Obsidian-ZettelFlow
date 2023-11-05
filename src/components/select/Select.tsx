@@ -2,7 +2,6 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./typing";
 import { c } from "architecture";
 import { Platform } from "obsidian";
-import { LeafIcon } from "components/icons";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
 
@@ -98,7 +97,7 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
-  const { isLeaf, elementType, key, label } = option;
+  const { isLeaf, actionTypes, key, label } = option;
   const optionRef = useRef<HTMLDivElement>(null);
   const styleMemo = React.useMemo<CSSProperties>(() => {
     return {
@@ -131,17 +130,17 @@ function OptionElement(optionElementType: OptionElementType) {
       key={`option-${index}`}
       style={styleMemo}
     >
-      {label}
-      {<ActionIcon type={elementType} isLeaf={isLeaf} />}
+      <label>{label}</label>
+      <div className={isLeaf ? c("icon-group", "is-leaf") : c("icon-group")}>
+        {actionTypes.map((elementType, index) => (
+          <ActionIcon type={elementType} key={`icon-${index}`} />
+        ))}
+      </div>
     </div>
   );
 }
 
-function ActionIcon(info: { type: string; isLeaf?: boolean }) {
-  const { type, isLeaf } = info;
-  return isLeaf ? (
-    <LeafIcon />
-  ) : (
-    <Icon name={`${actionsStore.getIconOf(type)}`} />
-  );
+function ActionIcon(info: { type: string }) {
+  const { type } = info;
+  return <Icon name={`${actionsStore.getIconOf(type)}`} />;
 }

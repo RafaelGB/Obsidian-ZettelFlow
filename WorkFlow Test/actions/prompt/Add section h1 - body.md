@@ -15,5 +15,6 @@ zettelFlowSettings:
       key: section
       label: Section H1
       zone: body
+      description: Add an H1 section
 ---
 # {{section}}

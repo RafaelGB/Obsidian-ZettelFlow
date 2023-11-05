@@ -15,11 +15,11 @@
   "author": "RafaelGB",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "20.8.9",
-    "@types/react": "18.2.32",
+    "@types/node": "20.8.10",
+    "@types/react": "18.2.33",
     "@types/react-dom": "18.2.14",
-    "@typescript-eslint/eslint-plugin": "6.9.0",
-    "@typescript-eslint/parser": "6.9.0",
+    "@typescript-eslint/eslint-plugin": "6.9.1",
+    "@typescript-eslint/parser": "6.9.1",
     "builtin-modules": "3.3.0",
     "esbuild": "0.19.5",
     "eslint": "8.52.0",
@@ -29,7 +29,7 @@
     "ts-jest": "29.1.1",
     "tslib": "2.6.2",
     "typescript": "5.2.2",
-    "zustand": "4.4.4"
+    "zustand": "4.4.5"
   },
   "dependencies": {
     "@popperjs/core": "2.11.8",

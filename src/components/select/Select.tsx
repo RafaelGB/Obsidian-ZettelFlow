@@ -2,7 +2,6 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./typing";
 import { c } from "architecture";
 import { Platform } from "obsidian";
-import { LeafIcon } from "components/icons";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
 
@@ -132,24 +131,16 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       {label}
-      <div className={c("icon-group")}>
+      <div className={isLeaf ? c("icon-group", "is-leaf") : c("icon-group")}>
         {actionTypes.map((elementType, index) => (
-          <ActionIcon
-            type={elementType}
-            isLeaf={isLeaf}
-            key={`icon-${index}`}
-          />
+          <ActionIcon type={elementType} key={`icon-${index}`} />
         ))}
       </div>
     </div>
   );
 }
 
-function ActionIcon(info: { type: string; isLeaf?: boolean }) {
-  const { type, isLeaf } = info;
-  return isLeaf ? (
-    <LeafIcon />
-  ) : (
-    <Icon name={`${actionsStore.getIconOf(type)}`} />
-  );
+function ActionIcon(info: { type: string }) {
+  const { type } = info;
+  return <Icon name={`${actionsStore.getIconOf(type)}`} />;
 }

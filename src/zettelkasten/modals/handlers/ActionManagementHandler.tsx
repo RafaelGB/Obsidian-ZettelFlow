@@ -12,53 +12,19 @@ export class ActionManagementHandler extends AbstractHandlerClass<StepBuilderMod
   handle(modal: StepBuilderModal): StepBuilderModal {
     const { info } = modal;
     const { element, contentEl } = info;
-    //const possibleActions = actionsStore.getActionsKeys();
-    //let potentialActionType = possibleActions[0];
     // LEGACY COMPATIBILITY START
-    if (!info.actions && element) {
+    if (element) {
       if (element.type !== "bridge") {
         info.actions = [element];
-        delete info.element;
-      } else {
-        delete info.element;
       }
+      delete info.element;
     }
     // LEGACY COMPATIBILITY END
-    /*
-    info.actions.forEach((a) => {
-      const action = actionsStore.getAction(a.type);
-      action.settings(modal, a);
-    });
-
-    // Add new actions
-    new Setting(contentEl)
-      .setName(this.name)
-      .setDesc(this.description)
-      .addDropdown((dropdown) => {
-        possibleActions.forEach((key) => {
-          dropdown.addOption(key, actionsStore.getAction(key).getLabel());
-        });
-        dropdown.onChange(async (value) => {
-          potentialActionType = value;
-        });
-      })
-      .addButton((button) => {
-        button
-          .setButtonText("Add action")
-          .setIcon("plus")
-          .setTooltip("Add action")
-          .onClick(() => {
-            const defaultInfo =
-              actionsStore.getDefaultActionInfo(potentialActionType);
-            info.actions.push(defaultInfo);
-            modal.refresh();
-          });
-      });
-*/
     this.root = createRoot(contentEl.createDiv());
     this.root.render(<ActionsManagement modal={modal} />);
     return this.goNext(modal);
   }
+
   postAction(): void {
     this.root.unmount();
     this.nextPostAction();

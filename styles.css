@@ -29,6 +29,10 @@
 /*****************
 *   BASIC STYLES
 ******************/
+.zettelkasten-flow__is-leaf .zettelkasten-flow__icon * {
+  fill: var(--background-modifier-success);
+}
+
 .zettelkasten-flow__visible-overflow {
   overflow: visible;
 }
@@ -132,10 +136,6 @@
 /*****************
 *   SELECTOR MENU
 ******************/
-.zettelkasten-flow__icon {
-  margin-left: 0.5rem;
-}
-
 .zettelkasten-flow__icon * {
   fill: var(--text-normal);
 }
@@ -199,10 +199,6 @@
   box-shadow: 0 0.125rem 0.25rem var(--background-modifier-success);
 }
 
-/*****************
-*   CALENDAR
-* .zettelkasten-flow__calendar-group
-******************/
 /*****************
 *   BACKLINK
 ******************/
@@ -444,6 +440,10 @@ textarea {
   align-items: center;
 }
 
+.zettelkasten-flow__accordion-header-info .zettelkasten-flow__input-group {
+  margin-left: 10px;
+}
+
 .zettelkasten-flow__accordion-header-info label {
   margin-right: 10px;
 }
@@ -470,4 +470,81 @@ textarea {
   max-height: 500em;
   opacity: 1;
   padding: 10px 15px;
+}
+
+/********************
+*   SELECTABLE SEARCH
+*********************/
+.zettelkasten-flow__selectable-search {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.zettelkasten-flow__selectable-search-header {
+  display: inline-flex;
+}
+
+.zettelkasten-flow__selectable-search-header > button {
+  border-radius: 0%;
+  height: auto;
+}
+
+.zettelkasten-flow__selectable-search-header > button:hover {
+  color: var(--background-modifier-error);
+}
+
+.zettelkasten-flow__selectable-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__selectable-pill-group > input {
+  border-radius: 0%;
+  background-color: transparent;
+  border: 0;
+  width: 10%;
+}
+
+.zettelkasten-flow__selectable-pill-group > input:focus {
+  outline: none;
+  width: fit-content;
+}
+
+.zettelkasten-flow__selectable-pill {
+  padding: 0.1em 0.2em;
+  margin: 0.15em;
+  background-color: var(--color-accent);
+  border: 2px solid var(--background-modifier-focus);
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zettelkasten-flow__selectable-pill:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__selectable-pill button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 5px;
+  max-height: 1.2rem;
+  max-width: 1.2rem;
+  border-radius: 50%;
+  background-color: var(--background-modifier-box-shadow);
+}
+
+.zettelkasten-flow__selectable-pill > button:hover {
+  color: var(--background-modifier-error);
+}
+
+.zettelkasten-flow__selectable-search-results {
+  position: relative;
 }

@@ -62,7 +62,7 @@ export function manageAction(
       { isOptional: selectedElement.optional, savePrevious: true }
     );
     actions.setHeader({
-      title: action.header || `${action.type} action`,
+      title: action.description || `${action.type} action`,
     });
   } else {
     // Background element

@@ -15,4 +15,12 @@ declare module "obsidian" {
             appContainerEl: HTMLElement;
         }
     }
+    interface MetadataCache {
+        /**
+         * Obtain the tags of all the vault with their count.
+         * 
+         * WARNING! not exposed by Obsidian, may break in future.
+         */
+        getTags(): Record<string, number>;
+    }
 }

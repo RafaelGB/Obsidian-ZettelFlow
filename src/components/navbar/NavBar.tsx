@@ -8,9 +8,9 @@ import {
   useNoteBuilderStore,
 } from "components/noteBuilder";
 import { c } from "architecture";
-import { ActionIcon, TemplateIcon } from "components/icons";
 import { Badge, Input } from "architecture/components/core";
 import { Icon } from "architecture/components/icon";
+import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 
 export function NavBar(props: NoteBuilderType) {
   const actions = useNoteBuilderStore((store) => store.actions);
@@ -54,8 +54,14 @@ export function NavBar(props: NoteBuilderType) {
         )}
       </div>
       <div className={c("navbar_icons")}>
-        <Badge content={savedPaths.size} children={<TemplateIcon />} />
-        <Badge content={savedElements.size} children={<ActionIcon />} />
+        <Badge
+          content={savedPaths.size}
+          children={<Icon name={RibbonIcon.TEMPLATE} />}
+        />
+        <Badge
+          content={savedElements.size}
+          children={<Icon name={RibbonIcon.ACTION} />}
+        />
       </div>
     </div>
   );

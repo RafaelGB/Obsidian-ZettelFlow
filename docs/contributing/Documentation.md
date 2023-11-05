@@ -11,3 +11,6 @@ We use [MkDocs](https://www.mkdocs.org/) to generate our documentation. MkDocs i
 * `mkdocs serve` - Start the live-reloading docs server.
 * `mkdocs build` - Build the documentation site.
 * `mkdocs -h` - Print help message and exit.
+
+## Deploy
+Once the documentation is ready, you can create a pull request to the `develop` branch. Once the PR is merged, the documentation will be automatically deployed to [GitHub Pages](https://rafaelgb.github.io/Obsidian-ZettelFlow/) by a GitHub Action when the `develop` branch is merged to `main`.

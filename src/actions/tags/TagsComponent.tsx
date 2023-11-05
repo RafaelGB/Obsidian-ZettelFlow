@@ -1,4 +1,4 @@
-import { ObsidianApi } from "architecture";
+import { ObsidianApi, c } from "architecture";
 import { SelectableSearch } from "architecture/components/core";
 import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
@@ -19,7 +19,7 @@ export function TagsWrapper(props: WrappedActionBuilderProps) {
   }, []);
 
   return (
-    <div>
+    <div className={c("tags")}>
       <SelectableSearch
         options={tagsMemo}
         initialSelections={selectedTags}

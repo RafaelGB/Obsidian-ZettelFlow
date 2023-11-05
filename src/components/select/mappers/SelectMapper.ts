@@ -10,6 +10,7 @@ export class SelectMapper {
             options.push({
                 label: node.label,
                 key: value.id,
+                tooltip: node.tooltip,
                 color: node.color || "",
                 isLeaf: value.children?.length === 0,
                 actionTypes: node.actions.map((action) => action.type),

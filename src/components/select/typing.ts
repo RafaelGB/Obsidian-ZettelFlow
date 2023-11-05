@@ -20,4 +20,5 @@ export type Option = {
     color: HexString;
     isLeaf: boolean;
     actionTypes: string[];
+    tooltip?: string;
 }

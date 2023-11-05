@@ -57,7 +57,7 @@ export class ZettelSettingsMapper {
     }
 
     private saveSection(section: ZettelNodeSource) {
-        const { id, file, color } = section;
+        const { id, file, color, tooltip } = section;
         if (this.sectionMap.has(id)) return;
         const service = FrontmatterService.instance(file);
         const step = service.getZettelFlowSettings();
@@ -66,6 +66,7 @@ export class ZettelSettingsMapper {
             label: file.basename,
             childrenHeader: "",
             color: color,
+            tooltip: tooltip,
             actions: [],
         };
         if (TypeService.isObject(step)) {

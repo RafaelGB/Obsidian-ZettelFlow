@@ -6,6 +6,7 @@ export type ZettelFlowElement = {
     path: string,
     label: string,
     childrenHeader: string,
+    tooltip?: string,
     element?: SectionElement,
     actions: Action[],
     color?: HexString,

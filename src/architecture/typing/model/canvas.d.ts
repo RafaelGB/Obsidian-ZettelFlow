@@ -21,6 +21,8 @@ declare module "obsidian/canvas" {
     interface CanvasEdgeDataInfo {
         from: CanvasNode;
         to: CanvasNode;
+        label: string;
+        id: string;
     }
 
     interface CanvasNode {

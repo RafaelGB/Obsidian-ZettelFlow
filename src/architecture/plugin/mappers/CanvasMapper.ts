@@ -42,6 +42,7 @@ export class CanvasMapper {
                 nodes.push({
                     id,
                     file,
+                    tooltip: edge.label,
                     color: this.getCanvasColor(color),
                     children: this.getCanvasFileTreeRecursive(id, edges, [...previousNodes, id])
                 });

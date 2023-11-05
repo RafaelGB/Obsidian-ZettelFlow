@@ -130,7 +130,7 @@ function OptionElement(optionElementType: OptionElementType) {
       key={`option-${index}`}
       style={styleMemo}
     >
-      {label}
+      <label>{label}</label>
       <div className={isLeaf ? c("icon-group", "is-leaf") : c("icon-group")}>
         {actionTypes.map((elementType, index) => (
           <ActionIcon type={elementType} key={`icon-${index}`} />

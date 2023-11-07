@@ -8,6 +8,7 @@ import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction, TagsAction } from 'actions';
+import { log } from 'architecture';
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
@@ -131,9 +132,15 @@ export default class ZettelFlow extends Plugin {
 		const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
 		if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
 			const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
-			if (canvasTree.length === 0) return;
+			if (canvasTree.length === 0) {
+				log.warn("Canvas is empty, skipping save");
+				return;
+			}
 			const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-			if (workflow.length === 0) return;
+			if (workflow.length === 0) {
+				log.warn("Workflow is empty, skipping save");
+				return;
+			}
 			const recordNodes: Record<string, ZettelFlowElement> = {};
 			sectionMap.forEach((node, key) => {
 				recordNodes[key] = node;

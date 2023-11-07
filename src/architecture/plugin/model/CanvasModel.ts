@@ -1,15 +1,13 @@
-import { TFile } from "obsidian";
-
 export type ZettelNode = {
     id: string;
     tooltip?: string;
-    file?: TFile;
+    file?: string;
     color?: string;
     children?: ZettelNode[];
 }
 
 export type ZettelNodeSource = {
-    file: TFile;
+    file: string;
     color: string;
     children: ZettelNode[];
 } & ZettelNode

@@ -118,6 +118,13 @@ export default class ZettelFlow extends Plugin {
 					}
 				}
 			}));
+
+		this.registerEvent(
+			this.app.workspace.on("canvas:node-menu", (menu, node) => {
+				console.log(menu, node);
+			})
+		);
+
 	}
 
 	private async saveWorkflow(file: TFile | null) {

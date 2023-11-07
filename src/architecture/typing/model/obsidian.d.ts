@@ -15,6 +15,9 @@ declare module "obsidian" {
             appContainerEl: HTMLElement;
         }
     }
+    interface Workspace {
+        on(name: "canvas:node-menu", callback: (menu: Menu, node: any) => void): EventRef;
+    }
     interface MetadataCache {
         /**
          * Obtain the tags of all the vault with their count.

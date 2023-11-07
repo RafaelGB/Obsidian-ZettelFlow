@@ -1,8 +1,8 @@
-import { HexString } from "obsidian";
-import { CanvasDataInfo, CanvasEdgeDataInfo } from "obsidian/canvas";
-import { FrontmatterService } from "../services/FrontmatterService";
+import { HexString, TFile } from "obsidian";
+import { CanvasDataInfo, CanvasEdgeDataInfo, CanvasFileData, CanvasTextData } from "obsidian/canvas";
+import { FrontmatterService } from "../../services/FrontmatterService";
 import { RGB2String, hex2RGB } from "architecture";
-import { ZettelNode, ZettelNodeSource } from "../model/CanvasModel";
+import { ZettelNode, ZettelNodeSource } from "../../model/CanvasModel";
 
 export class CanvasMapper {
     public static instance(data: CanvasDataInfo) {
@@ -10,10 +10,33 @@ export class CanvasMapper {
     }
     constructor(private data: CanvasDataInfo) { }
     public getCanvasFileTree(): ZettelNodeSource[] {
+        const rootNodes: ZettelNodeSource[] = [];
+        rootNodes.push(...this.getCanvasFileNodes());
+        return rootNodes;
+    }
+
+    private getCanvasFileNodes(): ZettelNodeSource[] {
         const { nodes, edges } = this.data;
-        const nodeFiles = Array.from(nodes.values()).filter(node => node.file);
+        const arrayNodes = Array.from(nodes.values());
+        const nodeFiles: CanvasFileData[] = arrayNodes
+            .filter(node => node.file)
+            .map(node => {
+                node.type = "file";
+                return node as CanvasFileData
+            });
+
+        const textNodes = arrayNodes.filter(node => typeof node.text === "string").map(node => {
+            node.type = "text";
+            return node as CanvasTextData
+        });
+        console.log(textNodes);
+
         const filteredEdges = Array.from(edges.values()).filter(edge => edge.from.node.file && edge.to.node.file);
-        const rootFiles = nodeFiles.filter(node => FrontmatterService.instance(node.file).equals("zettelFlowSettings.root", true));
+        const rootFiles = nodeFiles.filter(async node => {
+            if (!node.file)
+                return false;
+            return FrontmatterService.instance(node.file as unknown as TFile).equals("zettelFlowSettings.root", true);
+        });
         const rootNodes: ZettelNodeSource[] = [];
 
         for (const node of rootFiles) {
@@ -51,7 +74,10 @@ export class CanvasMapper {
         }
         return nodes;
     }
-    private getCanvasColor(color: HexString) {
+
+
+
+    private getCanvasColor(color: HexString | undefined) {
         return !color
             ? "var(--embed-background)"
             : color.length === 1

@@ -33,13 +33,9 @@ export const callbackActionBuilder =
       const { action, actionStep, plugin, position } = info;
       const { settings } = plugin;
       const { actions } = state;
-      actions.addElement(action, callbackResult);
+      actions.addAction(action, callbackResult);
       const selectedElement = settings.nodes[actionStep.id];
-      if (selectedElement.actions.length > position + 1) {
-        manageAction(selectedElement, actionStep, state, info, position + 1);
-      } else {
-        manageElement(selectedElement, actionStep, state, info);
-      }
+      manageAction(selectedElement, actionStep, state, info, position + 1);
     };
 
 export const callbackSkipNote = (state: CallbackPickedState, info: NoteBuilderType) => () => {

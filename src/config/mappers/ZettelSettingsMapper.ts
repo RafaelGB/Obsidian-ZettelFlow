@@ -15,7 +15,6 @@ export class ZettelSettingsMapper {
     }
 
     public marshall() {
-        console.log(this.nodes);
         const workflow: WorkflowStep[] = [];
         this.nodes.forEach((node) => {
             workflow.push(this.manageWorkflow(node));
@@ -60,10 +59,11 @@ export class ZettelSettingsMapper {
     private saveSection(section: ZettelNode) {
         const { id, file, text, type, color, tooltip } = section;
         if (this.sectionMap.has(id)) return;
-        if (!file) return;
+        if (!file && !text) return;
 
         const defaultInfo: ZettelFlowElement = {
             type: type,
+            label: "",
             childrenHeader: "",
             color: color,
             tooltip: tooltip,

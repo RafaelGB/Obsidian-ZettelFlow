@@ -51,13 +51,14 @@ export class NoteDTO {
         return this;
     }
 
-    public addElement(
-        element: SectionElement,
+    public addAction(
+        action: Action,
         callbackResult: unknown,
         pos: number
     ): NoteDTO {
+        log.debug(`Builder: adding action ${action.label} at position ${pos}`);
         this.savedActions.set(pos, {
-            ...element,
+            ...action,
             result: callbackResult,
         });
         return this;
@@ -77,7 +78,7 @@ export class NoteDTO {
         return this.paths.get(pos);
     }
 
-    public addPath(path: string, pos: number): NoteDTO {
+    public addPath(path: string | undefined, pos: number): NoteDTO {
         if (path && pos >= 0) {
             log.trace(`Builder: adding path ${path} at position ${pos}`);
             this.paths.set(pos, path);

@@ -8,6 +8,7 @@ import { Notice } from "obsidian";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
 import goPreviousAction from "./actions/goPreviousAction";
 import infoStep from "./actions/infoState";
+import { log } from "architecture";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
@@ -69,22 +70,25 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         };
       }),
     manageElementInfo: (element, skipAddToBuilder) => {
-      if (!skipAddToBuilder) {
-        set((state) => {
-          const { builder, position } = state;
-          builder.info
-            .addPath(element.path, position)
-            .setTargetFolder(element.targetFolder);
-          return {
-            builder,
-          };
-        });
-      }
+      set((state) => {
+        const { builder, position } = state;
+        if (skipAddToBuilder) {
+          log.debug(`Skipping manageElementInfo for element: ${element.label}`);
+          return { builder };
+        }
+        builder.info
+          .addPath(element.path, position)
+          .setTargetFolder(element.targetFolder);
+
+        return {
+          builder,
+        };
+      });
     },
-    addElement: (element, result) =>
+    addAction: (element, result) =>
       set((state) => {
         const { builder } = state;
-        builder.info.addElement(element, result, state.position);
+        builder.info.addAction(element, result, state.position);
         return {
           builder,
           actionWasTriggered: true,
@@ -92,11 +96,13 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       }),
     addBackgroundAction: (action) =>
       set((state) => {
-        const { builder } = state;
-        builder.info.addBackgroundAction(action, state.position);
+        const { builder, position } = state;
+        const next = position + 1;
+        builder.info.addBackgroundAction(action, next);
         return {
           builder,
           actionWasTriggered: true,
+          position: next,
         };
       }),
     build: async () => {

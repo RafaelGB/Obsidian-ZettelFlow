@@ -11,8 +11,7 @@
 		{"id":"6f8c1e8e4db48802","type":"file","file":"WorkFlow Test/root/Task Note.md","x":-999,"y":1067,"width":400,"height":93,"color":"5"},
 		{"id":"ab4d5a15cffc7de3","type":"file","file":"WorkFlow Test/actions/multi/Task required info.md","x":-409,"y":1000,"width":450,"height":228},
 		{"id":"01e0bfcb96a5943c","type":"file","file":"WorkFlow Test/actions/prompt/Multimedia learning.md","x":-412,"y":1387,"width":400,"height":66,"color":"3"},
-		{"id":"960af2a74561054c","type":"text","text":"{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"description\":\"sdsdsd\",\"key\":\"aaa\",\"label\":\"sss\"}],\"label\":\"aaa\",\"childrenHeader\":\"asdsd\"}","x":-275,"y":259,"width":316,"height":86},
-		{"id":"46a5e54f5a9db71a","type":"text","text":"{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"placeholder\":\"write the purpose of your note here...\",\"key\":\"purpose\",\"label\":\"Purpose of your note\",\"zone\":\"frontmatter\",\"hasUI\":true,\"description\":\"Purpose of the note\"}],\"label\":\"Embed info\",\"childrenHeader\":\"\",\"optional\":true}","x":-267,"y":433,"width":308,"height":80,"color":"#bc7171"}
+		{"id":"46a5e54f5a9db71a","type":"text","text":"{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"placeholder\":\"write the purpose of your note here...\",\"key\":\"purpose\",\"label\":\"Purpose of your note\",\"zone\":\"frontmatter\",\"hasUI\":true,\"description\":\"Purpose of the note\"}],\"label\":\"Embed info\",\"childrenHeader\":\"\",\"optional\":true}","x":-267,"y":353,"width":308,"height":80,"color":"#bc7171"}
 	],
 	"edges":[
 		{"id":"31586cccc0d2f2aa","fromNode":"59fcfd179cd2455c","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left","label":"Tooltip of idea"},
@@ -23,7 +22,6 @@
 		{"id":"65b458f983a6d07f","fromNode":"905fabf82d23102c","fromSide":"right","toNode":"f7c2b6af9c582d33","toSide":"left"},
 		{"id":"d96f233538271aca","fromNode":"16c915c7a25378eb","fromSide":"right","toNode":"46a5e54f5a9db71a","toSide":"left","label":"Embed action"},
 		{"id":"3e1a4dfa97c00a40","fromNode":"6f8c1e8e4db48802","fromSide":"right","toNode":"ab4d5a15cffc7de3","toSide":"left"},
-		{"id":"f1e9bb38378a3784","fromNode":"6f8c1e8e4db48802","fromSide":"right","toNode":"01e0bfcb96a5943c","toSide":"left"},
-		{"id":"125e5c118ef80581","fromNode":"16c915c7a25378eb","fromSide":"right","toNode":"960af2a74561054c","toSide":"left"}
+		{"id":"f1e9bb38378a3784","fromNode":"6f8c1e8e4db48802","fromSide":"right","toNode":"01e0bfcb96a5943c","toSide":"left"}
 	]
 }

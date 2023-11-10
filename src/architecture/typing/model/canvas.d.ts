@@ -1,4 +1,4 @@
-import { HexString, ItemView, TFile } from "obsidian";
+import { ItemView } from "obsidian";
 import "obsidian/canvas";
 
 declare module "obsidian/canvas" {

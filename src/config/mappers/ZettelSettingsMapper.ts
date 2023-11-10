@@ -62,7 +62,7 @@ export class ZettelSettingsMapper {
         if (!file && !text) return;
 
         const defaultInfo: ZettelFlowElement = {
-            type: type,
+            type,
             label: "",
             childrenHeader: "",
             color: color,

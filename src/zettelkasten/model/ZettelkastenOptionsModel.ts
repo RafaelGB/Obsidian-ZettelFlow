@@ -1,9 +1,9 @@
 import { Action } from "architecture/api"
-import { Literal } from "architecture/plugin"
+import { Literal, ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
 
 export type ZettelFlowElement = {
-    type: string,
+    type: ZettelNodeType,
     childrenHeader: string,
     label: string,
     tooltip?: string,

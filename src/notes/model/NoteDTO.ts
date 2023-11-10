@@ -2,7 +2,6 @@ import { FinalElement } from "./FinalNoteModel";
 import { log } from "architecture";
 import { Action } from "architecture/api";
 import { FileService } from "architecture/plugin";
-import { SectionElement } from "zettelkasten";
 
 export class NoteDTO {
     private title = "";

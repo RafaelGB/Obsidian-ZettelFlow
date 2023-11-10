@@ -1,8 +1,9 @@
 import { TFile } from "obsidian";
 
+export type ZettelNodeType = "text" | "file" | "link" | "group";
 export type ZettelNode = {
     id: string;
-    type: "text" | "file" | "link" | "group"
+    type: ZettelNodeType
     tooltip?: string;
     color?: string;
     children?: ZettelNode[];

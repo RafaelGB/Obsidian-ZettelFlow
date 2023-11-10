@@ -69,6 +69,7 @@ export class StepBuilderModal extends Modal {
     private getBaseInfo(): StepBuilderInfo {
         if (this.partialInfo === undefined) {
             return {
+                type: `file`,
                 contentEl: this.contentEl,
                 isRoot: false,
                 actions: [],
@@ -80,6 +81,7 @@ export class StepBuilderModal extends Modal {
             return {
                 contentEl: this.contentEl,
                 ...this.partialInfo,
+                type: this.partialInfo.type === undefined ? `file` : this.partialInfo.type,
                 isRoot: this.partialInfo.isRoot === undefined ? false : this.partialInfo.isRoot,
                 element: this.partialInfo.element === undefined ? { type: `bridge`, isAction: false } : this.partialInfo.element,
                 label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,

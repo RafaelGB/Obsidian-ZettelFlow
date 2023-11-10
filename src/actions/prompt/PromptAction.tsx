@@ -6,6 +6,7 @@ import { PromptWrapper } from "./PromptComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { addIcon } from "obsidian";
+import { log } from "architecture";
 
 export class PromptAction extends CustomZettelAction {
   private static ICON = "zettelflow-prompt-icon";
@@ -26,16 +27,17 @@ export class PromptAction extends CustomZettelAction {
   }
 
   async execute(info: ExecuteInfo) {
-    const { content, element } = info;
+    const { element } = info;
     const { key, zone, result } = element;
+    log.debug(`Prompt action: ${key} ${zone} ${result}`);
     if (TypeService.isString(key) && TypeService.isString(result)) {
       switch (zone) {
         case "body":
-          content.modify(key, result);
+          info.content.modify(key, result);
           break;
         case "frontmatter":
         default:
-          content.addFrontMatter({ [key]: result });
+          info.content.addFrontMatter({ [key]: result });
       }
     }
   }

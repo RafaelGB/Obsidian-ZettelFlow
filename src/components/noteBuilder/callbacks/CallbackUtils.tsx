@@ -50,7 +50,10 @@ export function manageAction(
 ) {
   const { actions } = state;
   const action = selectedElement.actions[position];
-  if (action.hasUI) {
+  if (selectedElement.actions.length <= position) {
+    log.debug(`No more actions for element: "${selectedElement.label}"`);
+    nextElement(state, selected, info);
+  } else if (action.hasUI) {
     actions.setSectionElement(
       <ActionSelector
         {...info}
@@ -66,9 +69,9 @@ export function manageAction(
     });
   } else {
     // Background element
-    log.debug(`Action as background element: ${selectedElement.path}`);
+    log.debug(`Action is a background element: "${action.description}"`);
     actions.addBackgroundAction(action);
-    nextElement(state, selected, info);
+    manageAction(selectedElement, selected, state, info, position + 1);
   }
 }
 

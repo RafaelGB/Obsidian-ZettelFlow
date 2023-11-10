@@ -1,16 +1,21 @@
 import { Action } from "architecture/api"
-import { Literal } from "architecture/plugin"
+import { Literal, ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
 
 export type ZettelFlowElement = {
-    path: string,
-    label: string,
+    type: ZettelNodeType,
     childrenHeader: string,
+    label: string,
+    tooltip?: string,
     element?: SectionElement,
     actions: Action[],
     color?: HexString,
     targetFolder?: string,
     optional?: boolean,
+    // EXCLUSIVE FOR FILE
+    path?: string,
+    // EXCLUSIVE FOR EMBED NODE
+    yaml?: string,
 }
 
 export type SectionInfo = {

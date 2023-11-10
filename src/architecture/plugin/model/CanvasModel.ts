@@ -1,14 +1,14 @@
 import { TFile } from "obsidian";
 
+export type ZettelNodeType = "text" | "file" | "link" | "group";
 export type ZettelNode = {
     id: string;
-    file?: TFile;
+    type: ZettelNodeType
+    tooltip?: string;
     color?: string;
     children?: ZettelNode[];
+    // EXCLUSIVE TO FILE
+    file?: TFile;
+    // EXCLUSIVE TO TEXT
+    text?: string;
 }
-
-export type ZettelNodeSource = {
-    file: TFile;
-    color: string;
-    children: ZettelNode[];
-} & ZettelNode

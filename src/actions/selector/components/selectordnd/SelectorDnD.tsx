@@ -15,9 +15,15 @@ export function SelectorDnD(props: SelectorDnDProps) {
   useEffect(() => {
     return () => {
       action.options = Object.fromEntries(optionsState);
-      root.unmount();
     };
   }, [optionsState]);
+
+  useEffect(() => {
+    return () => {
+      root.unmount();
+    };
+  }, []);
+
   const updateOptions = (origin: number, dropped: number) => {
     const newOptionsState = [...optionsState];
     const originEntry = newOptionsState[origin];

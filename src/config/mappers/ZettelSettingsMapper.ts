@@ -1,16 +1,16 @@
 import { Action } from "architecture/api";
-import { FrontmatterService, ZettelNode, ZettelNodeSource } from "architecture/plugin";
+import { FrontmatterService, YamlService, ZettelNode } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 import { WorkflowStep } from "config";
 import { Notice } from "obsidian";
-import { ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
+import { StepSettings, ZettelFlowElement, ZettelkastenTypeService } from "zettelkasten";
 
 export class ZettelSettingsMapper {
     private sectionMap: Map<string, ZettelFlowElement>;
-    public static instance(nodes: ZettelNodeSource[]) {
+    public static instance(nodes: ZettelNode[]) {
         return new ZettelSettingsMapper(nodes);
     }
-    private constructor(private nodes: ZettelNodeSource[]) {
+    private constructor(private nodes: ZettelNode[]) {
         this.sectionMap = new Map();
     }
 
@@ -23,8 +23,8 @@ export class ZettelSettingsMapper {
         return { sectionMap, workflow };
     }
 
-    private manageWorkflow(node: ZettelNodeSource): WorkflowStep {
-        const { id, children } = node;
+    private manageWorkflow(node: ZettelNode): WorkflowStep {
+        const { id, children = [] } = node;
         this.saveSection(node);
         const validationMap = [id];
 
@@ -43,31 +43,49 @@ export class ZettelSettingsMapper {
                     isRecursive: true
                 });
             } else {
-                const source = node as ZettelNodeSource;
-                this.saveSection(source);
+                const { children = [] } = node;
+                this.saveSection(node);
                 validationList.push(id);
                 workflow.push({
                     id,
                     // Validation list is passed by deep copy to avoid global changes of other branches
-                    children: this.manageChildren(source.children, [...validationList])
+                    children: this.manageChildren(children, [...validationList])
                 });
             }
         });
         return workflow;
     }
 
-    private saveSection(section: ZettelNodeSource) {
-        const { id, file, color } = section;
+    private saveSection(section: ZettelNode) {
+        const { id, file, text, type, color, tooltip } = section;
         if (this.sectionMap.has(id)) return;
-        const service = FrontmatterService.instance(file);
-        const step = service.getZettelFlowSettings();
+        if (!file && !text) return;
+
         const defaultInfo: ZettelFlowElement = {
-            path: file.path,
-            label: file.basename,
+            type,
+            label: "",
             childrenHeader: "",
             color: color,
+            tooltip: tooltip,
             actions: [],
         };
+        let step: StepSettings;
+        if (file) {
+            const service = FrontmatterService.instance(file);
+            defaultInfo.path = file.path;
+            defaultInfo.label = file.basename;
+            step = service.getZettelFlowSettings();
+        }
+        else if (text) {
+            defaultInfo.yaml = text;
+            const service = YamlService.instance(text);
+            step = service.getZettelFlowSettings();
+            defaultInfo.yaml = text;
+            defaultInfo.label = step.label || "Untitled";
+        }
+        else {
+            return;
+        }
         if (TypeService.isObject(step)) {
             const { label, targetFolder, childrenHeader, element, actions = [], optional } = step;
             if (TypeService.isString(label)) {

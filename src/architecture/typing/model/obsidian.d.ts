@@ -1,5 +1,5 @@
 import "obsidian";
-
+import { AllCanvasNodeData } from "obsidian/canvas";
 declare module "obsidian" {
     interface setting {
         open: () => void;
@@ -14,6 +14,9 @@ declare module "obsidian" {
         dom: {
             appContainerEl: HTMLElement;
         }
+    }
+    interface Workspace {
+        on(name: "canvas:node-menu", callback: (menu: Menu, node: AllCanvasNodeData) => void): EventRef;
     }
     interface MetadataCache {
         /**

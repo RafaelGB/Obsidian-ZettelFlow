@@ -1,4 +1,5 @@
 export default {
+    canvas_node_menu_edit_embed: 'Edit embed node: Add or remove actions',
     navbar_skip_step: 'Skip step',
     navbar_abort_flow: 'Build note with only the steps completed so far',
     welcome_tutorial_open_settings: 'Open settings of ZettelFlow',

@@ -97,7 +97,7 @@ export function Select(selectType: SelectType) {
 
 function OptionElement(optionElementType: OptionElementType) {
   const { option, index, isSelected, callback } = optionElementType;
-  const { isLeaf, actionTypes, key, label } = option;
+  const { isLeaf, actionTypes, key, label, tooltip } = option;
   const optionRef = useRef<HTMLDivElement>(null);
   const styleMemo = React.useMemo<CSSProperties>(() => {
     return {
@@ -115,7 +115,7 @@ function OptionElement(optionElementType: OptionElementType) {
     <div
       ref={optionRef}
       tabIndex={index}
-      title={key} // TODO: improve title to show next option info
+      title={tooltip}
       className={isSelected ? c("option", "selected") : c("option")}
       onClick={(mouseEvent) => {
         mouseEvent.stopPropagation();

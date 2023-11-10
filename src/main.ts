@@ -1,13 +1,14 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { ItemView, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { CanvasMapper, FrontmatterService } from 'architecture/plugin';
+import { CanvasMapper, FrontmatterService, YamlService } from 'architecture/plugin';
 import { CanvasView } from 'obsidian/canvas';
 import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction, TagsAction } from 'actions';
+import { log } from 'architecture';
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
@@ -118,15 +119,51 @@ export default class ZettelFlow extends Plugin {
 					}
 				}
 			}));
+
+		this.registerEvent(
+			this.app.workspace.on("canvas:node-menu", (menu, node) => {
+				// Check if canvas is the zettelFlow canvas and if the node is embedded
+				const file = this.app.workspace.getActiveFile();
+				if (file?.path === this.settings.canvasFilePath && typeof node.text === "string") {
+					menu.addItem((item) => {
+						item
+							.setTitle(t("canvas_node_menu_edit_embed"))
+							.setIcon(RibbonIcon.ID)
+							.setSection('pane')
+							.onClick(() => {
+								const stepSettings = YamlService.instance(node.text).getZettelFlowSettings();
+								new StepBuilderModal(this.app, {
+									folder: file.parent || undefined,
+									filename: file.basename,
+									type: "text",
+									menu,
+									...stepSettings
+								})
+									.setMode("embed")
+									.setNodeId(node.id)
+									.open();
+							})
+					});
+				}
+
+			})
+		);
+
 	}
 
 	private async saveWorkflow(file: TFile | null) {
 		const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
 		if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
 			const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
-			if (canvasTree.length === 0) return;
+			if (canvasTree.length === 0) {
+				log.warn("Canvas is empty, skipping save");
+				return;
+			}
 			const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-			if (workflow.length === 0) return;
+			if (workflow.length === 0) {
+				log.warn("Workflow is empty, skipping save");
+				return;
+			}
 			const recordNodes: Record<string, ZettelFlowElement> = {};
 			sectionMap.forEach((node, key) => {
 				recordNodes[key] = node;

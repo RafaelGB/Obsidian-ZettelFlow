@@ -1,17 +1,10 @@
-import { HexString, ItemView, TFile } from "obsidian";
+import { ItemView } from "obsidian";
 import "obsidian/canvas";
 
 declare module "obsidian/canvas" {
-    type AllCanvasNode = CanvasFileNode;
-
-
-
     interface CanvasDataInfo {
-        nodes: Map<number, AllCanvasNode>;
+        nodes: Map<number, AllCanvasNodeData>;
         edges: Map<number, CanvasEdgeDataInfo>;
-    }
-
-    interface CanvasFileNode extends CanvasNodeInfo {
     }
 
     abstract class CanvasView extends ItemView {
@@ -21,14 +14,11 @@ declare module "obsidian/canvas" {
     interface CanvasEdgeDataInfo {
         from: CanvasNode;
         to: CanvasNode;
+        label: string;
+        id: string;
     }
 
     interface CanvasNode {
-        node: CanvasNodeInfo;
-    }
-    interface CanvasNodeInfo {
-        file: TFile;
-        color: HexString;
-        id: string;
+        node: AllCanvasNodeData;
     }
 }

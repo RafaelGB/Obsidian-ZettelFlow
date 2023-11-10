@@ -2,7 +2,7 @@ import { App, Modal, Notice, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
-import { FileService } from "architecture/plugin";
+import { CanvasService, FileService } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { ObsidianApi, log } from "architecture";
 
@@ -17,8 +17,13 @@ export class StepBuilderModal extends Modal {
 
     }
 
-    setMode(mode: "edit" | "create"): StepBuilderModal {
+    setMode(mode: "edit" | "create" | "embed"): StepBuilderModal {
         this.mode = mode;
+        return this;
+    }
+
+    setNodeId(nodeId: string): StepBuilderModal {
+        this.info.nodeId = nodeId;
         return this;
     }
 
@@ -39,12 +44,40 @@ export class StepBuilderModal extends Modal {
 
     onClose(): void {
         if (!this.info.folder || !this.info.filename) return;
-        const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename).concat(".md");
-        this.saveFile(path).catch((error) => {
-            log.error(error);
-            new Notice(`Error saving file ${path}, check console for more info`);
-        });
-        this.chain.postAction();
+        const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
+        switch (this.mode) {
+            case "edit" || "create":
+                this.saveFile(path.concat(".md")).catch((error) => {
+                    log.error(error);
+                    new Notice(`Error saving file ${path}, check console for more info`);
+                });
+                this.chain.postAction();
+                break
+            case "embed":
+                this.saveEmbed(path.concat(".canvas")).catch((error) => {
+                    log.error(error);
+                    new Notice(`Error saving embed on ${path}, check console for more info`);
+                }
+                );
+                this.chain.postAction();
+                break;
+        }
+    }
+
+    private async saveEmbed(path: string): Promise<void> {
+        if (this.info.nodeId) {
+            const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
+            const file = await FileService.getFile(path, false);
+            if (!file) {
+                throw new Error(`File ${path} not found`);
+            }
+            const content = await ObsidianApi.vault().cachedRead(file);
+            CanvasService.instance(file, content)
+                .editEmbedNodeText(this.info.nodeId, JSON.stringify(stepSettings))
+                .save();
+        } else {
+            log.error(`Node id not found on embed mode`);
+        }
     }
 
     private async saveFile(path: string): Promise<void> {

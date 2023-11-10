@@ -8,6 +8,7 @@ export type StepBuilderInfo = {
     filename?: string;
     folder?: TFolder;
     menu?: Menu,
+    nodeId?: string,
 } & ZettelFlowElement;
 
 export type StepSettings = {

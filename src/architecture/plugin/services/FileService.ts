@@ -46,7 +46,7 @@ export class FileService {
     }
 
     public static async getContent(file: TFile): Promise<string> {
-        return await ObsidianApi.vault().read(file);
+        return await ObsidianApi.vault().cachedRead(file);
     }
 
     public static getFolder(folder_str: string): TFolder {

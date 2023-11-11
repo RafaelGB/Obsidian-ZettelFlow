@@ -17,6 +17,7 @@ export class CanvasService {
     }
 
     editEmbedNodeText(nodeId: string, text: string) {
+
         const node = this.canvas.nodes.find(node => node.id === nodeId);
         if (!node) {
             throw new Error(`Node ${nodeId} not found`);

@@ -29,7 +29,7 @@ export function ElementSelector(info: ElementBuilderProps) {
       callback={(selected) => {
         const selectedStep = childen.find((step) => step.id === selected);
         if (!selectedStep) throw new Error("Selected step not found");
-        callbackMemo(selectedStep);
+        callbackMemo(selectedStep.id);
       }}
       autofocus={true}
     />

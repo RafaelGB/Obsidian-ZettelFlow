@@ -1,8 +1,10 @@
 import { ObsidianApi, log } from "architecture";
-import { Flow, Flows } from "./typing";
-import { CanvasData } from "obsidian/canvas";
+import { Flow, FlowNode, Flows } from "./typing";
+import { AllCanvasNodeData, CanvasData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";
 import { Notice, TFile } from "obsidian";
+import { YamlService } from "../services/YamlService";
+import { FrontmatterService } from "../services/FrontmatterService";
 
 export class FlowsImpl implements Flows {
     private flows: Map<string, Flow>;
@@ -45,7 +47,43 @@ export class FlowsImpl implements Flows {
 }
 
 export class FlowImpl implements Flow {
-    constructor(public data: CanvasData, private file: TFile) { }
+    private nodes: Map<string, AllCanvasNodeData>;
+    constructor(public data: CanvasData, private file: TFile) {
+        this.nodes = data.nodes.reduce((map, obj) => {
+            map.set(obj.id, obj);
+            return map;
+        }, new Map<string, AllCanvasNodeData>());
+    }
+
+    get = async (nodeId: string) => {
+        const node = this.nodes.get(nodeId);
+        if (!node) {
+            throw new Error(`Node ${nodeId} not found`);
+        }
+        switch (node.type) {
+            case "text":
+                const textNode = YamlService.instance(node.text);
+                return {
+                    ...textNode.getZettelFlowSettings(),
+                    id: nodeId,
+                    color: node.color
+                }
+            case "file":
+                const file = await FileService.getFile(node.file);
+                if (!file) {
+                    throw new Error(`File ${node.file} not found`);
+                }
+                const fileNode = FrontmatterService.instance(file);
+                return {
+                    ...fileNode.getZettelFlowSettings(),
+                    id: nodeId,
+                    color: node.color
+                }
+            default:
+                throw new Error(`Node ${nodeId} not supported`);
+        }
+    }
+
     editNode = async (nodeId: string, text: string) => {
         const node = this.data.nodes.find(node => node.id === nodeId);
         if (!node) {
@@ -55,11 +93,83 @@ export class FlowImpl implements Flow {
         await this.save();
     }
 
-    childrensOf = (nodeId: string) => {
-        throw new Error("Method not implemented.");
+    childrensOf = async (nodeId: string) => {
+        const { edges } = this.data;
+        const childrenKeys = edges.filter(edge => edge.fromNode === nodeId).map(edge => edge.toNode);
+        return this.nodesFrom(childrenKeys);
     }
-    parentsOf = (nodeId: string) => {
-        throw new Error("Method not implemented.");
+
+    parentsOf = async (nodeId: string) => {
+        const { edges } = this.data;
+        const parentKeys = edges.filter(edge => edge.toNode === nodeId).map(edge => edge.fromNode);
+        return this.nodesFrom(parentKeys);
+    }
+
+    rootNodes = async () => {
+        // Map nodes to check if they are root
+        const rootNodes: FlowNode[] = [];
+        const { nodes } = this.data;
+        nodes.forEach(async node => {
+            switch (node.type) {
+                case "text":
+                    const textNode = YamlService.instance(node.text);
+                    if (textNode.isRoot()) {
+                        const flowNode = textNode.getZettelFlowSettings();
+                        rootNodes.push({
+                            ...flowNode,
+                            id: node.id,
+                            color: node.color
+                        });
+                    }
+                    break;
+                case "file":
+                    const file = await FileService.getFile(node.file);
+                    if (!file) {
+                        throw new Error(`File ${node.file} not found`);
+                    }
+                    const fileNode = FrontmatterService.instance(file);
+                    if (fileNode.equals("zettelFlowSettings.root", true)) {
+                        const flowNode = fileNode.getZettelFlowSettings();
+                        rootNodes.push({
+                            ...flowNode,
+                            id: node.id,
+                            color: node.color
+                        });
+                    }
+            }
+        });
+        return rootNodes;
+    }
+
+    private nodesFrom(keys: string[]): FlowNode[] {
+        const flowNodes: FlowNode[] = [];
+        keys.forEach(async key => {
+            const node = this.nodes.get(key);
+            if (node) {
+                switch (node.type) {
+                    case "text":
+                        const textNode = YamlService.instance(node.text);
+                        flowNodes.push({
+                            ...textNode.getZettelFlowSettings(),
+                            id: node.id,
+                            color: node.color
+                        });
+                        break;
+                    case "file":
+                        const file = await FileService.getFile(node.file);
+                        if (file) {
+                            const fileNode = FrontmatterService.instance(file);
+                            flowNodes.push({
+                                ...fileNode.getZettelFlowSettings(),
+                                id: node.id,
+                                color: node.color
+                            });
+                        }
+                        break;
+                }
+            }
+        });
+        return flowNodes;
     }
 
     private async save() {

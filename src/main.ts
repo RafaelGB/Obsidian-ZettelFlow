@@ -9,6 +9,7 @@ import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelka
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction, TagsAction } from 'actions';
 import { log } from 'architecture';
+import { canvas } from 'architecture/plugin/canvas';
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
@@ -46,7 +47,9 @@ export default class ZettelFlow extends Plugin {
 
 	registerEvents() {
 		this.registerEvent(this.app.workspace.on('file-open', async (file) => {
-			this.saveWorkflow(file);
+			if (file && file.path === this.settings.canvasFilePath) {
+				await canvas.flows.add(file.path);
+			}
 		}));
 
 

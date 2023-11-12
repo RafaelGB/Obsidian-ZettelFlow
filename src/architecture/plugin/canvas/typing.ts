@@ -1,5 +1,5 @@
-import { TFile } from "obsidian"
 import { CanvasData } from "obsidian/canvas"
+import { Literal } from "../model/FrontmatterModel"
 
 export interface Canvas {
     flows: Flows
@@ -15,19 +15,30 @@ export interface Flows {
 export interface Flow {
     data: CanvasData
     editNode: (nodeId: string, text: string) => Promise<void>
-    childrensOf: (nodeId: string) => FlowNode[]
-    parentsOf: (nodeId: string) => FlowNode[]
+    get: (nodeId: string) => Promise<FlowNode>
+    childrensOf: (nodeId: string) => Promise<FlowNode[]>
+    parentsOf: (nodeId: string) => Promise<FlowNode[]>
+    rootNodes: () => Promise<FlowNode[]>
 }
 
 export type ZettelNodeType = "text" | "file" | "link" | "group";
 
 export type FlowNode = {
-    id: string;
-    type: ZettelNodeType
-    tooltip?: string;
-    color?: string;
-    // EXCLUSIVE TO FILE
-    file?: TFile;
-    // EXCLUSIVE TO TEXT
-    text?: string;
+    id: string
+    root: boolean
+    actions: Action[],
+    label?: string
+    targetFolder?: string
+    childrenHeader?: string,
+    optional?: boolean,
+    color?: string,
+    // EXCLUSIVE FILE NODES
+    path?: string,
 }
+
+export type Action = {
+    type: string;
+    description?: string;
+    hasUI?: boolean;
+    [key: string]: Literal;
+};

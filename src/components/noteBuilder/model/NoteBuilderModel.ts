@@ -1,8 +1,8 @@
 import { Action } from "architecture/api";
 import { Literal } from "architecture/plugin";
+import { Flow, FlowNode } from "architecture/plugin/canvas";
 import { HeaderType } from "components/header";
 import { SectionType } from "components/section";
-import { WorkflowStep } from "config";
 import ZettelFlow from "main";
 import { FinalElement } from "notes";
 import { NoteBuilder } from "notes/NoteBuilder";
@@ -12,17 +12,17 @@ import { ZettelFlowElement } from "zettelkasten";
 export type NoteBuilderType = {
     plugin: ZettelFlow;
     modal: Modal;
+    flow: Flow
 }
 
 export type ElementBuilderProps = {
-    childen: WorkflowStep[],
-
+    childen: FlowNode[],
 } & NoteBuilderType;
 
 export type ActionBuilderProps = {
     action: Action;
+    node: FlowNode;
     position: number;
-    actionStep: WorkflowStep;
 } & NoteBuilderType;
 
 export type WrappedActionBuilderProps = {
@@ -42,7 +42,7 @@ export type SectionElementOptions = {
 export type NoteBuilderStateInfo = {
     wasActionTriggered: () => boolean;
     getTitle: () => string;
-    getCurrentStep: () => WorkflowStep | undefined;
+    getCurrentNode: () => FlowNode | undefined;
 }
 
 export type NoteBuilderStateActions = {
@@ -54,14 +54,14 @@ export type NoteBuilderStateActions = {
     setSectionElement: (element: JSX.Element, config?: Partial<SectionElementOptions>) => void;
     goPrevious: () => void;
     build: () => Promise<string>;
-    manageElementInfo: (selectedElement: ZettelFlowElement, skipAddToBuilder?: boolean) => void;
+    manageNodeInfo: (selectedNode: FlowNode, skipAddToBuilder?: boolean) => void;
     addAction: (element: Action, callbackResult: Literal) => void;
     addBackgroundAction: (action: Action) => void;
     setPatternPrefix: (prefix: string) => void;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;
     setEnableSkip: (enable: boolean) => void;
-    setCurrentStep: (step: WorkflowStep) => void;
+    setCurrentNode: (node: FlowNode) => void;
 }
 
 export type NoteBuilderState = {
@@ -74,7 +74,7 @@ export type NoteBuilderState = {
     position: number;
     header: HeaderType;
     builder: NoteBuilder;
-    currentStep?: WorkflowStep;
+    currentNode?: FlowNode;
     actionWasTriggered: boolean;
     actions: NoteBuilderStateActions;
     data: NoteBuilderStateInfo;

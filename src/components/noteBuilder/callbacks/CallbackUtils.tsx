@@ -1,5 +1,4 @@
 import { WorkflowStep } from "config";
-import { ZettelFlowElement } from "zettelkasten";
 import {
   CallbackPickedState,
   NoteBuilderType,
@@ -10,40 +9,27 @@ import { ElementSelector } from "../ElementSelector";
 import { Notice } from "obsidian";
 import { log } from "architecture";
 import { FileService } from "architecture/plugin";
+import { FlowNode } from "architecture/plugin/canvas";
 
-export function nextElement(
+export async function nextElement(
   state: CallbackPickedState,
-  selected: WorkflowStep,
+  selected: string,
   info: NoteBuilderType
 ) {
-  const { isRecursive } = selected;
-  if (isRecursive) {
-    const recursiveStep = findIdInWorkflow(
-      selected.id,
-      info.plugin.settings.workflow
-    );
-    if (!recursiveStep) {
-      log.error(`Recursive step not found: ${selected.id}`);
-      throw new Error("Recursive step not found");
-    }
-    selected = { ...recursiveStep, isRecursive };
-  }
   const { data, actions } = state;
-  const { plugin } = info;
-  const { settings } = plugin;
-  const { id } = selected;
-  const selectedElement = settings.nodes[id];
-  actions.setCurrentStep(selected);
-  if (selectedElement.actions.length > 0 && !data.wasActionTriggered()) {
-    manageAction(selectedElement, selected, state, info, 0);
+  const { flow } = info;
+
+  const selectedNode = await flow.get(selected);
+  actions.setCurrentNode(selectedNode);
+  if (selectedNode.actions.length > 0 && !data.wasActionTriggered()) {
+    manageAction(selectedNode, state, info, 0);
   } else {
-    manageElement(selectedElement, selected, state, info);
+    manageElement(selectedNode, state, info);
   }
 }
 
 export function manageAction(
-  selectedElement: ZettelFlowElement,
-  selected: WorkflowStep,
+  selectedElement: FlowNode,
   state: CallbackPickedState,
   info: NoteBuilderType,
   position: number
@@ -52,15 +38,15 @@ export function manageAction(
   const action = selectedElement.actions[position];
   if (selectedElement.actions.length <= position) {
     log.debug(`No more actions for element: "${selectedElement.label}"`);
-    nextElement(state, selected, info);
+    nextElement(state, selectedElement.id, info);
   } else if (action.hasUI) {
     actions.setSectionElement(
       <ActionSelector
         {...info}
         action={action}
-        actionStep={selected}
+        node={selectedElement}
         position={position}
-        key={`selector-action-${selectedElement.path}-${position}`}
+        key={`selector-action-${selectedElement.id}-${position}`}
       />,
       { isOptional: selectedElement.optional, savePrevious: true }
     );
@@ -71,40 +57,38 @@ export function manageAction(
     // Background element
     log.debug(`Action is a background element: "${action.description}"`);
     actions.addBackgroundAction(action);
-    manageAction(selectedElement, selected, state, info, position + 1);
+    manageAction(selectedElement, state, info, position + 1);
   }
 }
 
-export function manageElement(
-  selectedElement: ZettelFlowElement,
-  selected: WorkflowStep,
+export async function manageElement(
+  selectedElement: FlowNode,
   state: CallbackPickedState,
   info: NoteBuilderType
 ) {
   const { actions, data } = state;
-  const { modal } = info;
-  const { children, isRecursive } = selected;
-  actions.manageElementInfo(selectedElement, isRecursive);
-  if (children && children.length > 1) {
+  const { modal, flow } = info;
+  const childrens = await flow.childrensOf(selectedElement.id);
+  actions.manageNodeInfo(selectedElement);
+  if (childrens.length > 1) {
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
       <ElementSelector
         {...info}
-        childen={children}
+        childen={childrens}
         key={`selector-children-${childrenHeader}`}
       />,
       {
         isOptional: false,
-        savePrevious: !isRecursive,
       }
     );
     actions.setHeader({
       title: childrenHeader,
     });
-  } else if (children && children.length === 1) {
+  } else if (childrens.length === 1) {
     actions.setActionWasTriggered(false);
-    nextElement(state, children[0], info);
+    nextElement(state, childrens[0].id, info);
   } else if (data.getTitle()) {
     // Build and close modal
     actions

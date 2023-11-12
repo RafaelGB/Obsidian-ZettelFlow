@@ -14,10 +14,9 @@ export class StepBuilderMapper {
     }
 
     public static StepSettings2PartialStepBuilderInfo(settings: StepSettings): Partial<Omit<StepBuilderInfo, "containerEl">> {
-        const { root, element, label, childrenHeader, targetFolder, optional, actions } = settings;
+        const { root, label, childrenHeader, targetFolder, optional, actions } = settings;
         return {
             isRoot: root,
-            element,
             label,
             childrenHeader,
             targetFolder,

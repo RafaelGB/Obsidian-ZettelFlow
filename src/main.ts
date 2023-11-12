@@ -1,14 +1,12 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
+import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
-import { ItemView, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { CanvasMapper, FrontmatterService, YamlService } from 'architecture/plugin';
-import { CanvasView } from 'obsidian/canvas';
+import { Notice, Plugin, TFile, TFolder } from 'obsidian';
+import { FrontmatterService, YamlService } from 'architecture/plugin';
 import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
-import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
+import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction, TagsAction } from 'actions';
-import { log } from 'architecture';
 import { canvas } from 'architecture/plugin/canvas';
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
@@ -106,19 +104,15 @@ export default class ZettelFlow extends Plugin {
 								});
 						});
 					} else if (file.extension === "canvas" && file.path === this.settings.canvasFilePath) {
-						const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
-						if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
-							menu.addItem((item) => {
-								item
-									.setTitle("Save zettelFlow configuration")
-									.setIcon(RibbonIcon.ID)
-									.onClick(async () => {
-										this.saveWorkflow(file);
-										new Notice("ZettelFlow configuration Saved!");
-									});
-							});
-
-						}
+						menu.addItem((item) => {
+							item
+								.setTitle("Save zettelFlow configuration")
+								.setIcon(RibbonIcon.ID)
+								.onClick(async () => {
+									await canvas.flows.add(file.path);
+									new Notice("ZettelFlow configuration Saved!");
+								});
+						});
 					}
 				}
 			}));
@@ -152,28 +146,5 @@ export default class ZettelFlow extends Plugin {
 			})
 		);
 
-	}
-
-	private async saveWorkflow(file: TFile | null) {
-		const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
-		if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
-			const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
-			if (canvasTree.length === 0) {
-				log.warn("Canvas is empty, skipping save");
-				return;
-			}
-			const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-			if (workflow.length === 0) {
-				log.warn("Workflow is empty, skipping save");
-				return;
-			}
-			const recordNodes: Record<string, ZettelFlowElement> = {};
-			sectionMap.forEach((node, key) => {
-				recordNodes[key] = node;
-			});
-			this.settings.nodes = recordNodes;
-			this.settings.workflow = workflow;
-			await this.saveSettings();
-		}
 	}
 }

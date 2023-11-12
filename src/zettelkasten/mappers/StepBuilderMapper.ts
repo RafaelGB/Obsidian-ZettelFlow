@@ -2,9 +2,9 @@ import { StepBuilderInfo, StepSettings } from "zettelkasten";
 
 export class StepBuilderMapper {
     public static StepBuilderInfo2StepSettings(info: StepBuilderInfo): StepSettings {
-        const { label, childrenHeader, targetFolder, isRoot, optional, actions } = info;
+        const { label, childrenHeader, targetFolder, root, optional, actions } = info;
         return {
-            root: isRoot,
+            root,
             actions,
             label,
             childrenHeader,
@@ -16,7 +16,7 @@ export class StepBuilderMapper {
     public static StepSettings2PartialStepBuilderInfo(settings: StepSettings): Partial<Omit<StepBuilderInfo, "containerEl">> {
         const { root, label, childrenHeader, targetFolder, optional, actions } = settings;
         return {
-            isRoot: root,
+            root,
             label,
             childrenHeader,
             targetFolder,

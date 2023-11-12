@@ -11,15 +11,7 @@ export class ActionManagementHandler extends AbstractHandlerClass<StepBuilderMod
   root: Root;
   handle(modal: StepBuilderModal): StepBuilderModal {
     const { info } = modal;
-    const { element, contentEl } = info;
-    // LEGACY COMPATIBILITY START
-    if (element) {
-      if (element.type !== "bridge") {
-        info.actions = [element];
-      }
-      delete info.element;
-    }
-    // LEGACY COMPATIBILITY END
+    const { contentEl } = info;
     this.root = createRoot(contentEl.createDiv());
     this.root.render(<ActionsManagement modal={modal} />);
     return this.goNext(modal);

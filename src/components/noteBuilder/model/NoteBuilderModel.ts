@@ -7,7 +7,6 @@ import ZettelFlow from "main";
 import { FinalElement } from "notes";
 import { NoteBuilder } from "notes/NoteBuilder";
 import { Modal } from "obsidian";
-import { ZettelFlowElement } from "zettelkasten";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;
@@ -46,7 +45,7 @@ export type NoteBuilderStateInfo = {
 }
 
 export type NoteBuilderStateActions = {
-    addBridge: (uniqueChild: ZettelFlowElement) => void;
+    addBridge: (uniqueChild: FlowNode) => void;
     setTitle: (title: string) => void;
     setInvalidTitle: (invalid: boolean) => void;
     setTargetFolder: (folder: string | undefined) => void;

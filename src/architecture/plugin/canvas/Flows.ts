@@ -83,7 +83,7 @@ export class FlowImpl implements Flow {
         }
     }
 
-    editNode = async (nodeId: string, text: string) => {
+    editTextNode = async (nodeId: string, text: string) => {
         const node = this.data.nodes.find(node => node.id === nodeId);
         if (!node) {
             throw new Error(`Node ${nodeId} not found`);
@@ -157,7 +157,7 @@ export class FlowImpl implements Flow {
 
     private async save() {
         await ObsidianApi.vault()
-            .modify(this.file, JSON.stringify(this.data))
+            .modify(this.file, JSON.stringify(this.data, null, 2))
             .catch(error => {
                 const errorString = `Error saving canvas on ${this.file.path}: ${error}`;
                 log.error(errorString);
@@ -168,6 +168,7 @@ export class FlowImpl implements Flow {
     private populateNode(data: CanvasTextData | CanvasFileData, node: StepSettings, tooltip?: string): FlowNode {
         return {
             ...node,
+            type: data.type,
             color: getCanvasColor(data.color),
             id: data.id,
             path: data.type === "file" ? data.file : undefined,

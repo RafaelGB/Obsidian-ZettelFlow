@@ -15,7 +15,7 @@ export interface Flows {
 
 export interface Flow {
     data: CanvasData
-    editNode: (nodeId: string, text: string) => Promise<void>
+    editTextNode: (nodeId: string, text: string) => Promise<void>
     get: (nodeId: string) => Promise<FlowNode>
     childrensOf: (nodeId: string) => Promise<FlowNode[]>
     parentsOf: (nodeId: string) => Promise<FlowNode[]>
@@ -26,6 +26,7 @@ export type ZettelNodeType = "text" | "file" | "link" | "group";
 
 export type FlowNode = {
     id: string
+    type: ZettelNodeType,
     color: string,
     tooltip?: string,
     // EXCLUSIVE FILE NODES

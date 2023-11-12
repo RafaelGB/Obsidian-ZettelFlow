@@ -1,5 +1,5 @@
 import { FileService } from "architecture/plugin";
-import { ZettelFlowElement } from "zettelkasten";
+import { FlowNode } from "architecture/plugin/canvas";
 export type WorkflowStep = {
     id: string,
     isRecursive?: boolean,
@@ -13,7 +13,7 @@ export interface ZettelFlowSettings {
     uniquePrefix: string,
     baseDir: string,
     canvasFilePath: string,
-    nodes: Record<string, ZettelFlowElement>,
+    nodes: Record<string, FlowNode>,
     workflow: WorkflowStep[]
 }
 

@@ -1,10 +1,12 @@
 import { ObsidianApi, log } from "architecture";
 import { Flow, FlowNode, Flows } from "./typing";
-import { AllCanvasNodeData, CanvasData } from "obsidian/canvas";
+import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasTextData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";
 import { Notice, TFile } from "obsidian";
 import { YamlService } from "../services/YamlService";
 import { FrontmatterService } from "../services/FrontmatterService";
+import { StepSettings } from "zettelkasten";
+import { getCanvasColor } from "./shared/Color";
 
 export class FlowsImpl implements Flows {
     private flows: Map<string, Flow>;
@@ -63,22 +65,14 @@ export class FlowImpl implements Flow {
         switch (node.type) {
             case "text":
                 const textNode = YamlService.instance(node.text);
-                return {
-                    ...textNode.getZettelFlowSettings(),
-                    id: nodeId,
-                    color: node.color
-                }
+                return this.populateNode(node, textNode.getZettelFlowSettings());
             case "file":
                 const file = await FileService.getFile(node.file);
                 if (!file) {
                     throw new Error(`File ${node.file} not found`);
                 }
                 const fileNode = FrontmatterService.instance(file);
-                return {
-                    ...fileNode.getZettelFlowSettings(),
-                    id: nodeId,
-                    color: node.color
-                }
+                return this.populateNode(node, fileNode.getZettelFlowSettings());
             default:
                 throw new Error(`Node ${nodeId} not supported`);
         }
@@ -115,11 +109,7 @@ export class FlowImpl implements Flow {
                     const textNode = YamlService.instance(node.text);
                     if (textNode.isRoot()) {
                         const flowNode = textNode.getZettelFlowSettings();
-                        rootNodes.push({
-                            ...flowNode,
-                            id: node.id,
-                            color: node.color
-                        });
+                        rootNodes.push(this.populateNode(node, flowNode));
                     }
                     break;
                 case "file":
@@ -130,11 +120,7 @@ export class FlowImpl implements Flow {
                     const fileNode = FrontmatterService.instance(file);
                     if (fileNode.equals("zettelFlowSettings.root", true)) {
                         const flowNode = fileNode.getZettelFlowSettings();
-                        rootNodes.push({
-                            ...flowNode,
-                            id: node.id,
-                            color: node.color
-                        });
+                        rootNodes.push(this.populateNode(node, flowNode));
                     }
             }
         });
@@ -149,21 +135,13 @@ export class FlowImpl implements Flow {
                 switch (node.type) {
                     case "text":
                         const textNode = YamlService.instance(node.text);
-                        flowNodes.push({
-                            ...textNode.getZettelFlowSettings(),
-                            id: node.id,
-                            color: node.color
-                        });
+                        flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings()));
                         break;
                     case "file":
                         const file = await FileService.getFile(node.file);
                         if (file) {
                             const fileNode = FrontmatterService.instance(file);
-                            flowNodes.push({
-                                ...fileNode.getZettelFlowSettings(),
-                                id: node.id,
-                                color: node.color
-                            });
+                            flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings()));
                         }
                         break;
                 }
@@ -180,5 +158,13 @@ export class FlowImpl implements Flow {
                 log.error(errorString);
                 new Notice(errorString);
             });
+    }
+
+    private populateNode(data: CanvasTextData | CanvasFileData, node: StepSettings): FlowNode {
+        return {
+            ...node,
+            color: getCanvasColor(data.color),
+            id: data.id,
+        }
     }
 }

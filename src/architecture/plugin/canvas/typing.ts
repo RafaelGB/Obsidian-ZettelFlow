@@ -1,5 +1,6 @@
 import { CanvasData } from "obsidian/canvas"
 import { Literal } from "../model/FrontmatterModel"
+import { StepSettings } from "zettelkasten"
 
 export interface Canvas {
     flows: Flows
@@ -25,16 +26,10 @@ export type ZettelNodeType = "text" | "file" | "link" | "group";
 
 export type FlowNode = {
     id: string
-    root: boolean
-    actions: Action[],
-    label?: string
-    targetFolder?: string
-    childrenHeader?: string,
-    optional?: boolean,
     color?: string,
     // EXCLUSIVE FILE NODES
     path?: string,
-}
+} & StepSettings;
 
 export type Action = {
     type: string;

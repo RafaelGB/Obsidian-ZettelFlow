@@ -26,7 +26,8 @@ export type ZettelNodeType = "text" | "file" | "link" | "group";
 
 export type FlowNode = {
     id: string
-    color?: string,
+    color: string,
+    tooltip?: string,
     // EXCLUSIVE FILE NODES
     path?: string,
 } & StepSettings;

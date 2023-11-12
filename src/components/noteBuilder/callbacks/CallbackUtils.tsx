@@ -64,12 +64,17 @@ export function manageAction(
 export async function manageElement(
   selectedElement: FlowNode,
   state: CallbackPickedState,
-  info: NoteBuilderType
+  info: NoteBuilderType,
+  skipChildrens = false
 ) {
   const { actions, data } = state;
-  const { modal, flow } = info;
-  const childrens = await flow.childrensOf(selectedElement.id);
   actions.manageNodeInfo(selectedElement);
+
+  const { modal, flow } = info;
+  const childrens = skipChildrens
+    ? []
+    : await flow.childrensOf(selectedElement.id);
+
   if (childrens.length > 1) {
     // Element Selector
     const childrenHeader = selectedElement.childrenHeader;

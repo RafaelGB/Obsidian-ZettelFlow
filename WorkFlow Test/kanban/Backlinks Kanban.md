@@ -5,8 +5,6 @@ kanban-plugin: basic
 ---
 
 ## Link 1
-- [ ] [[20231112013547 - ss]]
-
 
 
 

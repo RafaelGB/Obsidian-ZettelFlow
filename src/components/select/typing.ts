@@ -18,7 +18,6 @@ export type OptionType = {
     key: string;
     label: string;
     color: HexString;
-    isLeaf: boolean;
     actionTypes: string[];
     tooltip?: string;
 }

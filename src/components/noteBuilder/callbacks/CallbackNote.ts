@@ -43,8 +43,9 @@ export const callbackSkipNote = (state: CallbackPickedState, info: NoteBuilderTy
     new Notice(message);
     return;
   }
-
+  delete currentNode.path;
   log.info(`Skip note callback for node ${currentNode.id}`);
+
   manageElement(currentNode, state, info);
 }
 
@@ -58,5 +59,5 @@ export const callbackBuildActualState = (state: CallbackPickedState, info: NoteB
     return;
   }
   log.info(`Build actual state callback for node ${currentNode.id}`);
-  manageElement(currentNode, state, info);
+  manageElement(currentNode, state, info, true);
 }

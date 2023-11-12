@@ -8,6 +8,11 @@ import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
 import { getCanvasColor } from "./shared/Color";
 
+type EdgeInfo = {
+    key: string;
+    tooltip: string | undefined
+}
+
 export class FlowsImpl implements Flows {
     private flows: Map<string, Flow>;
 
@@ -89,13 +94,13 @@ export class FlowImpl implements Flow {
 
     childrensOf = async (nodeId: string) => {
         const { edges } = this.data;
-        const childrenKeys = edges.filter(edge => edge.fromNode === nodeId).map(edge => edge.toNode);
+        const childrenKeys: EdgeInfo[] = edges.filter(edge => edge.fromNode === nodeId).map(edge => ({ key: edge.toNode, tooltip: edge.label }));
         return this.nodesFrom(childrenKeys);
     }
 
     parentsOf = async (nodeId: string) => {
         const { edges } = this.data;
-        const parentKeys = edges.filter(edge => edge.toNode === nodeId).map(edge => edge.fromNode);
+        const parentKeys = edges.filter(edge => edge.toNode === nodeId).map(edge => ({ key: edge.fromNode, tooltip: edge.label }));
         return this.nodesFrom(parentKeys);
     }
 
@@ -127,21 +132,21 @@ export class FlowImpl implements Flow {
         return rootNodes;
     }
 
-    private nodesFrom(keys: string[]): FlowNode[] {
+    private nodesFrom(edgeInfo: EdgeInfo[]): FlowNode[] {
         const flowNodes: FlowNode[] = [];
-        keys.forEach(async key => {
-            const node = this.nodes.get(key);
+        edgeInfo.forEach(async edge => {
+            const node = this.nodes.get(edge.key);
             if (node) {
                 switch (node.type) {
                     case "text":
                         const textNode = YamlService.instance(node.text);
-                        flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings()));
+                        flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings(), edge.tooltip));
                         break;
                     case "file":
                         const file = await FileService.getFile(node.file);
                         if (file) {
                             const fileNode = FrontmatterService.instance(file);
-                            flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings()));
+                            flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge.tooltip));
                         }
                         break;
                 }
@@ -160,11 +165,13 @@ export class FlowImpl implements Flow {
             });
     }
 
-    private populateNode(data: CanvasTextData | CanvasFileData, node: StepSettings): FlowNode {
+    private populateNode(data: CanvasTextData | CanvasFileData, node: StepSettings, tooltip?: string): FlowNode {
         return {
             ...node,
             color: getCanvasColor(data.color),
             id: data.id,
+            path: data.type === "file" ? data.file : undefined,
+            tooltip
         }
     }
 }

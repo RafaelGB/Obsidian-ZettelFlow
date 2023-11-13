@@ -4,6 +4,7 @@ import { StepSettings } from "zettelkasten"
 
 export interface Canvas {
     flows: Flows
+    clipboard: CanvasClipboard
 }
 
 export interface Flows {
@@ -20,9 +21,6 @@ export interface Flow {
     childrensOf: (nodeId: string) => Promise<FlowNode[]>
     parentsOf: (nodeId: string) => Promise<FlowNode[]>
     rootNodes: () => Promise<FlowNode[]>
-    // Clipboard
-    copy: (nodeId: string) => Promise<void>
-    paste: (nodeId: string) => Promise<void>
 }
 
 export type ZettelNodeType = "text" | "file" | "link" | "group";
@@ -42,3 +40,9 @@ export type Action = {
     hasUI?: boolean;
     [key: string]: Literal;
 };
+
+export interface CanvasClipboard {
+    save: (settings: StepSettings) => void
+    get: () => StepSettings | undefined
+    clear: () => void
+}

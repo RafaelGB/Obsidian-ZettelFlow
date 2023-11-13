@@ -69,8 +69,8 @@ export default class ZettelFlow extends Plugin {
 						if (zettelFlowSettings) {
 							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
 							title = t("menu_pane_edit_step");
-							// Remove step configuration
 							menu.addItem((item) => {
+								// Remove step configuration
 								item
 									.setTitle(t("menu_pane_remove_step_configuration"))
 									.setIcon(RibbonIcon.ID)
@@ -78,24 +78,49 @@ export default class ZettelFlow extends Plugin {
 										await FrontmatterService.instance(file).removeStepSettings();
 										new Notice("Step configuration removed!");
 									});
+							}).addItem((item) => {
+								// Copy step configuration to canvas clipboard
+								item
+									.setTitle(t("menu_pane_copy_step_configuration"))
+									.setIcon(RibbonIcon.ID)
+									.onClick(async () => {
+										canvas.clipboard.save(zettelFlowSettings);
+										new Notice("Step configuration copied!");
+									});
+							});
+						} else {
+							// Transform note into step
+							menu.addItem((item) => {
+								item
+									.setTitle(title)
+									.setIcon(RibbonIcon.ID)
+									.onClick(() => {
+										new StepBuilderModal(this.app, {
+											folder: file.parent || undefined,
+											filename: file.basename,
+											menu,
+											...mappedInfo
+										})
+											.setMode("edit")
+											.open();
+									});
 							});
 						}
-						// Transform note into step
-						menu.addItem((item) => {
-							item
-								.setTitle(title)
-								.setIcon(RibbonIcon.ID)
-								.onClick(() => {
-									new StepBuilderModal(this.app, {
-										folder: file.parent || undefined,
-										filename: file.basename,
-										menu,
-										...mappedInfo
-									})
-										.setMode("edit")
-										.open();
-								});
-						});
+						const clipboardSettings = canvas.clipboard.get();
+						if (clipboardSettings) {
+							menu.addItem((item) => {
+								// Paste step configuration from canvas clipboard
+								item
+									.setTitle(t("menu_pane_paste_step_configuration"))
+									.setIcon(RibbonIcon.ID)
+									.onClick(async () => {
+										await FrontmatterService.instance(file).setZettelFlowSettings(clipboardSettings);
+										new Notice("Step configuration pasted!");
+									});
+								// Clear canvas clipboard cache
+								canvas.flows.delete(this.settings.canvasFilePath);
+							});
+						}
 					} else if (file.extension === "canvas") {
 						// Invalidate stored canvas (if was loaded before)
 						canvas.flows.delete(file.path);
@@ -109,6 +134,7 @@ export default class ZettelFlow extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				if (file?.path === this.settings.canvasFilePath && typeof node.text === "string") {
 					menu.addItem((item) => {
+						// Edit embed
 						item
 							.setTitle(t("canvas_node_menu_edit_embed"))
 							.setIcon(RibbonIcon.ID)
@@ -126,9 +152,35 @@ export default class ZettelFlow extends Plugin {
 									.setNodeId(node.id)
 									.open();
 							})
+					}).addItem((item) => {
+						// Copy embed to canvas clipboard
+						item
+							.setTitle(t("menu_pane_copy_step_configuration"))
+							.setIcon(RibbonIcon.ID)
+							.setSection('pane')
+							.onClick(async () => {
+								canvas.clipboard.save(YamlService.instance(node.text).getZettelFlowSettings());
+								new Notice("Embed copied!");
+							})
 					});
-				}
 
+					const clipboardSettings = canvas.clipboard.get();
+					if (clipboardSettings) {
+						menu.addItem((item) => {
+							// Paste embed from canvas clipboard
+							item
+								.setTitle(t("menu_pane_paste_step_configuration"))
+								.setIcon(RibbonIcon.ID)
+								.setSection('pane')
+								.onClick(async () => {
+									const flow = await canvas.flows.update(file.path);
+									flow.editTextNode(node.id, JSON.stringify(clipboardSettings, null, 2));
+									new Notice("Embed pasted!");
+								})
+
+						});
+					}
+				}
 			})
 		);
 

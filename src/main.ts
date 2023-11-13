@@ -44,13 +44,6 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	registerEvents() {
-		this.registerEvent(this.app.workspace.on('file-open', async (file) => {
-			if (file && file.path === this.settings.canvasFilePath) {
-				await canvas.flows.add(file.path);
-			}
-		}));
-
-
 		this.registerEvent(
 			this.app.workspace.on('file-menu', (menu, file) => {
 				if (file instanceof TFolder) {
@@ -103,16 +96,9 @@ export default class ZettelFlow extends Plugin {
 										.open();
 								});
 						});
-					} else if (file.extension === "canvas" && file.path === this.settings.canvasFilePath) {
-						menu.addItem((item) => {
-							item
-								.setTitle("Save zettelFlow configuration")
-								.setIcon(RibbonIcon.ID)
-								.onClick(async () => {
-									await canvas.flows.add(file.path);
-									new Notice("ZettelFlow configuration Saved!");
-								});
-						});
+					} else if (file.extension === "canvas") {
+						// Invalidate stored canvas (if was loaded before)
+						canvas.flows.delete(file.path);
 					}
 				}
 			}));

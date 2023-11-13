@@ -41,11 +41,13 @@ export class FlowsImpl implements Flows {
         return flow;
     }
 
-    update = async (id: string) => {
-        if (this.flows.has(id)) {
-            return this.add(id);
+    update = async (canvasPath: string) => {
+        const flow = this.flows.get(canvasPath);
+        if (!flow) {
+            log.info(`Flow ${canvasPath} not found, loading...`);
+            return await this.add(canvasPath);
         }
-        throw new Error(`Flow ${id} not found`);
+        return flow;
     }
 
     delete = (id: string) => {
@@ -61,6 +63,7 @@ export class FlowImpl implements Flow {
             return map;
         }, new Map<string, AllCanvasNodeData>());
     }
+
 
     get = async (nodeId: string) => {
         const node = this.nodes.get(nodeId);
@@ -130,6 +133,14 @@ export class FlowImpl implements Flow {
             }
         });
         return rootNodes;
+    }
+
+    copy = async (nodeId: string) => {
+
+    }
+
+    paste = async (nodeId: string) => {
+
     }
 
     private nodesFrom(edgeInfo: EdgeInfo[]): FlowNode[] {

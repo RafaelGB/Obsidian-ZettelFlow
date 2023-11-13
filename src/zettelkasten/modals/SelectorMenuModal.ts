@@ -12,7 +12,6 @@ export class SelectorMenuModal extends Modal {
     onOpen(): void {
         const child = this.contentEl.createDiv();
         this.root = createRoot(child);
-        console.log("SelectorMenuModal onOpen");
         const selectorMenu = buildSelectorMenu(this.getNoteBuilderType());
         this.root.render(selectorMenu);
     }

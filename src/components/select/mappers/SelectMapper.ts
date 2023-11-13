@@ -1,18 +1,15 @@
-import { ZettelFlowElement } from "zettelkasten";
-import { WorkflowStep } from "config";
-import { Option } from "components/select";
+import { OptionType } from "components/select";
+import { FlowNode } from "architecture/plugin/canvas/typing";
 
 export class SelectMapper {
-    public static zettelFlowElementRecord2Options(steps: WorkflowStep[], nodes: Record<string, ZettelFlowElement>): Option[] {
-        const options: Option[] = [];
-        steps.forEach((value) => {
-            const node = nodes[value.id];
+    public static flowNodes2Options(nodes: FlowNode[]): OptionType[] {
+        const options: OptionType[] = [];
+        nodes.forEach((node) => {
             options.push({
-                label: node.label,
-                key: value.id,
+                label: node.label || "",
+                key: node.id,
                 tooltip: node.tooltip,
-                color: node.color || "",
-                isLeaf: value.children?.length === 0,
+                color: node.color,
                 actionTypes: node.actions.map((action) => action.type),
             })
         });

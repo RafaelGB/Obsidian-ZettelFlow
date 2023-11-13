@@ -5,7 +5,7 @@ const infoStep =
         return {
             wasActionTriggered: () => get().actionWasTriggered,
             getTitle: () => get().title,
-            getCurrentStep: () => get().currentStep
+            getCurrentNode: () => get().currentNode
         }
     };
 

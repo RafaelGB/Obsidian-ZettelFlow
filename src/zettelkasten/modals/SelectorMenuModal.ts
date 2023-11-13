@@ -2,6 +2,7 @@ import { App, Modal } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import ZettelFlow from "main";
 import { buildSelectorMenu, NoteBuilderType } from "components/noteBuilder";
+import { canvas } from "architecture/plugin/canvas";
 export class SelectorMenuModal extends Modal {
     private root: Root;
 
@@ -21,6 +22,8 @@ export class SelectorMenuModal extends Modal {
 
     private getNoteBuilderType(): NoteBuilderType {
         return {
+            // TODO: just 1 flow for now
+            flow: canvas.flows.get(this.plugin.settings.canvasFilePath),
             plugin: this.plugin,
             modal: this
         }

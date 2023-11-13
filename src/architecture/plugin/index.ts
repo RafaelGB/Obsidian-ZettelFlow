@@ -1,8 +1,6 @@
 export { FileService, FILE_EXTENSIONS } from './services/FileService';
 export { YamlService } from './services/YamlService';
 export { EditService } from './services/EditService';
-export { CanvasService } from './services/CanvasService';
-export { CanvasMapper } from './canvas/mappers/CanvasMapper';
 
 export { FrontmatterService } from './services/FrontmatterService';
 export { Literal } from './model/FrontmatterModel';

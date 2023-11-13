@@ -69,16 +69,16 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           position: next,
         };
       }),
-    manageElementInfo: (element, skipAddToBuilder) => {
+    manageNodeInfo: (node, skipAddToBuilder) => {
       set((state) => {
         const { builder, position } = state;
         if (skipAddToBuilder) {
-          log.debug(`Skipping manageElementInfo for element: ${element.label}`);
+          log.debug(`Skipping manageElementInfo for element: ${node.label}`);
           return { builder };
         }
         builder.info
-          .addPath(element.path, position)
-          .setTargetFolder(element.targetFolder);
+          .addPath(node.path, position)
+          .setTargetFolder(node.targetFolder);
 
         return {
           builder,
@@ -126,7 +126,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         actionWasTriggered: false,
         enableSkip: false,
         builder: Builder.default(),
-        currentStep: undefined,
+        currentNode: undefined,
       });
     },
     setPatternPrefix: (pattern) =>
@@ -143,8 +143,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setEnableSkip: (enableSkip) => {
       set({ enableSkip });
     },
-    setCurrentStep: (currentStep) => {
-      set({ currentStep });
+    setCurrentNode: (currentNode) => {
+      set({ currentNode });
     },
     /*
      * COMPLEX ACTIONS

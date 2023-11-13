@@ -87,7 +87,7 @@ export class ZettelSettingsMapper {
             return;
         }
         if (TypeService.isObject(step)) {
-            const { label, targetFolder, childrenHeader, element, actions = [], optional } = step;
+            const { label, targetFolder, childrenHeader, actions = [], optional } = step;
             if (TypeService.isString(label)) {
                 defaultInfo.label = label;
             }
@@ -103,11 +103,7 @@ export class ZettelSettingsMapper {
             if (TypeService.isBoolean(optional)) {
                 defaultInfo.optional = optional;
             }
-            // LEGACY COMPATIBILITY START
-            if (actions.length === 0 && element && element.type !== "bridge") {
-                actions.push(element);
-            }
-            // LEGACY COMPATIBILITY END
+
             defaultInfo.actions = this.manageActions(actions);
         }
         this.sectionMap.set(id, defaultInfo);

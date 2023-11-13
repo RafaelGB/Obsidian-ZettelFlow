@@ -22,6 +22,8 @@ export default {
     menu_pane_edit_step: 'Edit step',
     menu_pane_transform_note_into_step: 'Transform note into step',
     menu_pane_remove_step_configuration: 'Remove step configuration',
+    menu_pane_copy_step_configuration: 'Copy to clipboard (step configuration)',
+    menu_pane_paste_step_configuration: 'Paste from clipboard (step configuration)',
     flow_selector_placeholder: 'Select a flow',
     logger_toggle_title: 'Enable logger',
     logger_toggle_description: 'Enable or disable logger',

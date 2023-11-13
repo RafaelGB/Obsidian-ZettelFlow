@@ -49,6 +49,12 @@ export class FrontmatterService {
         return this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY) as StepSettings;
     }
 
+    public async setZettelFlowSettings(settings: StepSettings) {
+        await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
+            frontmatter[FrontmatterService.FRONTMATTER_SETTINGS_KEY] = settings;
+        });
+    }
+
     public getFrontmatter() {
         const frontmatter = this.metadata.frontmatter;
         if (!frontmatter) {

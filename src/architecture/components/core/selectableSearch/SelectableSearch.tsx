@@ -5,7 +5,8 @@ import { Icon } from "architecture/components/icon";
 import { useOnClickAway } from "architecture/hooks";
 
 export function SelectableSearch(props: SelectableSearchType) {
-  const { options, initialSelections, onChange, placeholder } = props;
+  const { options, initialSelections, onChange, placeholder, enableCreate } =
+    props;
   const [filteredOptions, setFilteredOptions] = useState(options);
 
   /* Current selected options*/
@@ -94,16 +95,31 @@ export function SelectableSearch(props: SelectableSearchType) {
                 }
                 case "Enter": {
                   e.preventDefault();
-                  const valueFromCurrentIndex = filteredOptions[selectedIndex];
-                  const newSelectedOptions = [
-                    ...initialSelectionsState,
-                    valueFromCurrentIndex,
-                  ];
+                  if (enableCreate) {
+                    const newSelectedOptions = [
+                      ...initialSelectionsState,
+                      searchState,
+                    ];
+                    setInitialSelectionsState(newSelectedOptions);
+                    setFilteredOptions(
+                      options.filter((op) => !newSelectedOptions.contains(op))
+                    );
+                    setSearchState("");
+                    onChange(newSelectedOptions);
+                  } else {
+                    const valueFromCurrentIndex =
+                      filteredOptions[selectedIndex];
+                    const newSelectedOptions = [
+                      ...initialSelectionsState,
+                      valueFromCurrentIndex,
+                    ];
+                    setInitialSelectionsState(newSelectedOptions);
+                    setFilteredOptions(
+                      options.filter((op) => !newSelectedOptions.contains(op))
+                    );
+                    onChange(newSelectedOptions);
+                  }
 
-                  setInitialSelectionsState(newSelectedOptions);
-                  setFilteredOptions(
-                    options.filter((op) => !newSelectedOptions.contains(op))
-                  );
                   setVisibleOptions(false);
                   break;
                 }

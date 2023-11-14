@@ -141,7 +141,6 @@ export default class ZettelFlow extends Plugin {
 							.setSection('pane')
 							.onClick(async () => {
 								const stepSettings = YamlService.instance(node.text).getZettelFlowSettings();
-								await canvas.flows.update(file.path);
 								new StepBuilderModal(this.app, {
 									folder: file.parent || undefined,
 									filename: file.basename,

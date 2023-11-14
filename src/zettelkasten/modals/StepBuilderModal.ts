@@ -68,6 +68,7 @@ export class StepBuilderModal extends Modal {
     private async saveEmbed(path: string): Promise<void> {
         if (this.info.nodeId) {
             const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
+            await canvas.flows.update(path);
             await canvas.flows
                 .get(path)
                 .editTextNode(this.info.nodeId, JSON.stringify(stepSettings, null, 2));

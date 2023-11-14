@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { callbackRootBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
-import { OptionType, Select, SelectMapper } from "components/select";
+import {
+  OptionType,
+  Select,
+  SelectMapper,
+} from "application/components/select";
 
 export function RootSelector(info: NoteBuilderType) {
   const { flow } = info;

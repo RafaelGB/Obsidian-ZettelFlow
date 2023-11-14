@@ -1,4 +1,4 @@
-import { OptionType } from "components/select";
+import { OptionType } from "application/components/select";
 import { FlowNode } from "architecture/plugin/canvas/typing";
 
 export class SelectMapper {

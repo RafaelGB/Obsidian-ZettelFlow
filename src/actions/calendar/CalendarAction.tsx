@@ -10,7 +10,7 @@ import { addIcon } from "obsidian";
 export class CalendarAction extends CustomZettelAction {
   private static ICON = "zettelflow-calendar-icon";
   id = "calendar";
-  defaultAction: Partial<Action> = {
+  defaultAction: Action = {
     type: this.id,
     hasUI: true,
   };

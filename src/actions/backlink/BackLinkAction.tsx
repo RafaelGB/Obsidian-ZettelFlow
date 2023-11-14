@@ -14,7 +14,7 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";
-  defaultAction: Partial<Action> = {
+  defaultAction: Action = {
     type: this.id,
     hasUI: true,
   };

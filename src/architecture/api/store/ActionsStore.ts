@@ -34,7 +34,7 @@ class ActionsStore {
         return action;
     }
 
-    public getDefaultActionInfo(name: string): Partial<Action> {
+    public getDefaultActionInfo(name: string): Action {
         const action = this.actions.get(name);
         if (!action) {
             log.error(`Action ${name} not found`);

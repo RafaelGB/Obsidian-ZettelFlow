@@ -1,5 +1,5 @@
 import { Literal } from "architecture/plugin";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
 import { StepBuilderModal } from "zettelkasten";
 

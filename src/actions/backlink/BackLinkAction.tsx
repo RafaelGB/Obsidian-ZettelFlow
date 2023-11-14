@@ -10,7 +10,7 @@ import React from "react";
 import { HeadingCache } from "obsidian";
 import { NoteDTO } from "application/notes";
 import { log } from "architecture";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";

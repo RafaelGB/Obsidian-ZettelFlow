@@ -1,4 +1,4 @@
-import { NoteBuilderType } from "components/noteBuilder";
+import { NoteBuilderType } from "application/components/noteBuilder";
 import {
   ElementBuilderProps,
   ActionBuilderProps,

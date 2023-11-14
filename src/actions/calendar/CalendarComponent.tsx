@@ -1,4 +1,4 @@
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { Calendar } from "components/calendar";
 import React from "react";
 

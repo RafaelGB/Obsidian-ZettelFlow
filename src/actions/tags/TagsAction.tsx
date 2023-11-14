@@ -1,5 +1,5 @@
 import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { TagsWrapper } from "./TagsComponent";
 import React from "react";
 import { t } from "architecture/lang";

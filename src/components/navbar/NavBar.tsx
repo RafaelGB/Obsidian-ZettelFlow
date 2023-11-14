@@ -6,7 +6,7 @@ import {
   callbackBuildActualState,
   callbackSkipNote,
   useNoteBuilderStore,
-} from "components/noteBuilder";
+} from "application/components/noteBuilder";
 import { c } from "architecture";
 import { Badge, Input } from "architecture/components/core";
 import { Icon } from "architecture/components/icon";

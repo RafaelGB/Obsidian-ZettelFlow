@@ -11,7 +11,8 @@ import { Modal } from "obsidian";
 export type NoteBuilderType = {
     plugin: ZettelFlow;
     modal: Modal;
-    flow: Flow
+    flow: Flow;
+    enableTutorial?: boolean;
 }
 
 export type ElementBuilderProps = {
@@ -87,3 +88,5 @@ export type CallbackPickedState = Pick<
 export type StoreNoteBuilderModifier = (
     partial: NoteBuilderState | Partial<NoteBuilderState>
 ) => void;
+
+export type TutorialType = Pick<NoteBuilderType, "plugin" | "modal">;  

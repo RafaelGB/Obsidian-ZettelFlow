@@ -3,7 +3,7 @@ import { t } from "architecture/lang";
 import {
   NoteBuilderState,
   StoreNoteBuilderModifier,
-} from "components/noteBuilder";
+} from "application/components/noteBuilder";
 import React from "react";
 
 const goPreviousAction =

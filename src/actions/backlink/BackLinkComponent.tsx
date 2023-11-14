@@ -9,7 +9,7 @@ import { App, Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
 import { Input, Search } from "architecture/components/core";
 import { t } from "architecture/lang";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 
 export function BacklinkWrapper(props: WrappedActionBuilderProps) {
   const { defaultFile } = props.action as BacklinkElement;

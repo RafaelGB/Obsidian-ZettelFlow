@@ -1,6 +1,6 @@
 import React from "react";
 import { c } from "architecture";
-import { useNoteBuilderStore } from "components/noteBuilder";
+import { useNoteBuilderStore } from "application/components/noteBuilder";
 
 export function Header() {
   const header = useNoteBuilderStore((store) => store.header);

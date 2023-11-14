@@ -5,6 +5,17 @@ import { WelcomeTutorial } from "./WelcomeTutorial";
 import { Section } from "components/section";
 import { Header } from "components/header";
 import { NavBar } from "components/navbar";
+import { TutorialType } from "./typing";
+
+export function buildTutorial(noteBuilderType: TutorialType) {
+  return (
+    <StrictMode>
+      <div>
+        <WelcomeTutorial {...noteBuilderType} />
+      </div>
+    </StrictMode>
+  );
+}
 
 export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
   return <NoteBuilder {...noteBuilderType} />;
@@ -21,8 +32,6 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 }
 
 function Component(noteBuilderType: NoteBuilderType) {
-  const { plugin } = noteBuilderType;
-  const { settings } = plugin;
   const actions = useNoteBuilderStore((store) => store.actions);
   useEffect(() => {
     return () => {
@@ -31,13 +40,11 @@ function Component(noteBuilderType: NoteBuilderType) {
     };
   }, []);
 
-  return settings.workflow?.length > 0 ? (
+  return (
     <>
       <NavBar {...noteBuilderType} />
       <Header />
       <Section {...noteBuilderType} />
     </>
-  ) : (
-    <WelcomeTutorial {...noteBuilderType} />
   );
 }

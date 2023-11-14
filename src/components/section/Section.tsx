@@ -4,7 +4,7 @@ import {
   NoteBuilderType,
   RootSelector,
   useNoteBuilderStore,
-} from "components/noteBuilder";
+} from "application/components/noteBuilder";
 
 export function Section(props: NoteBuilderType) {
   const section = useNoteBuilderStore((store) => store.section);

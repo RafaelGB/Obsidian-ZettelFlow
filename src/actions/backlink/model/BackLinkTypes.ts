@@ -1,4 +1,4 @@
-import { FinalElement } from "notes";
+import { FinalElement } from "application/notes";
 import { HeadingCache } from "obsidian";
 
 export type BacklinkElement = {

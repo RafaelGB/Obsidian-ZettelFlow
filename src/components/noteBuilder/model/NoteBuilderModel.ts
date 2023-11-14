@@ -4,8 +4,8 @@ import { Flow, FlowNode } from "architecture/plugin/canvas";
 import { HeaderType } from "components/header";
 import { SectionType } from "components/section";
 import ZettelFlow from "main";
-import { FinalElement } from "notes";
-import { NoteBuilder } from "notes/NoteBuilder";
+import { FinalElement } from "application/notes";
+import { NoteBuilder } from "application/notes/NoteBuilder";
 import { Modal } from "obsidian";
 
 export type NoteBuilderType = {

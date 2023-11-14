@@ -1,6 +1,6 @@
 import { Literal } from "architecture/plugin";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
-import { ContentDTO, FinalElement, NoteDTO } from "notes"
+import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
 import { StepBuilderModal } from "zettelkasten";
 
 export type ExecuteInfo = {

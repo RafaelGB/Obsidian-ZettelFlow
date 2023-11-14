@@ -1,13 +1,31 @@
-import { Action } from "architecture/api"
+import { Menu, TFolder } from "obsidian";
+import { Action } from "architecture/api";
 import { Literal, ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
+
+export type StepBuilderInfo = {
+    type: string,
+    contentEl: HTMLElement,
+    filename?: string;
+    folder?: TFolder;
+    menu?: Menu,
+    nodeId?: string,
+} & StepSettings;
+
+export type StepSettings = {
+    root: boolean
+    actions: Action[],
+    label: string
+    targetFolder?: string
+    childrenHeader?: string,
+    optional?: boolean,
+}
 
 export type ZettelFlowElement = {
     type: ZettelNodeType,
     childrenHeader: string,
     label: string,
     tooltip?: string,
-    element?: SectionElement,
     actions: Action[],
     color?: HexString,
     targetFolder?: string,

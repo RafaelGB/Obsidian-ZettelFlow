@@ -2,7 +2,7 @@ import { t } from "architecture/lang";
 import { AbstractHandlerClass } from "architecture/patterns";
 import { FILE_EXTENSIONS, FileService } from "architecture/plugin/services/FileService";
 import { FileSuggest } from "architecture/settings";
-import { SettingsHandlerInfo } from "config/model/SettingsTabModel";
+import { SettingsHandlerInfo } from "config/typing";
 import { Setting } from "obsidian";
 import { UniquePrefixToggleHandler } from "./UniquePrefixToggleHandler";
 

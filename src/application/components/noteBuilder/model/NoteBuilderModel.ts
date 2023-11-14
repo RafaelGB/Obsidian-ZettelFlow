@@ -1,7 +1,7 @@
 import { Action } from "architecture/api";
 import { Literal } from "architecture/plugin";
 import { Flow, FlowNode } from "architecture/plugin/canvas";
-import { HeaderType } from "components/header";
+import { HeaderType } from "application/components/header";
 import { SectionType } from "components/section";
 import ZettelFlow from "main";
 import { FinalElement } from "application/notes";

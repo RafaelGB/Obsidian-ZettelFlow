@@ -1,4 +1,4 @@
-import { FinalElement } from "./FinalNoteModel";
+import { FinalElement } from "../typing";
 import { log } from "architecture";
 import { Action } from "architecture/api";
 import { FileService } from "architecture/plugin";

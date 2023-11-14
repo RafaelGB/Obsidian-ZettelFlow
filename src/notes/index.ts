@@ -1,6 +1,6 @@
 export { Builder, NoteBuilder } from './NoteBuilder';
 
-export { FinalElement } from './model/FinalNoteModel';
+export { FinalElement } from './typing';
 
 export { ContentDTO } from './model/ContentDTO';
 

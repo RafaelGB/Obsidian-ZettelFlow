@@ -1,5 +1,6 @@
 import { log } from "architecture";
-import { Action, CustomZettelAction } from "../CustomZettelAction";
+import { CustomZettelAction } from "../CustomZettelAction";
+import { Action } from "../typing";
 
 class ActionsStore {
     private static instance: ActionsStore;
@@ -33,7 +34,7 @@ class ActionsStore {
         return action;
     }
 
-    public getDefaultActionInfo(name: string): Action {
+    public getDefaultActionInfo(name: string): Partial<Action> {
         const action = this.actions.get(name);
         if (!action) {
             log.error(`Action ${name} not found`);

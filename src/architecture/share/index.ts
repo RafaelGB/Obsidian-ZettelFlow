@@ -1,1 +1,1 @@
-export { generateInstanceId } from './utils/Generator';
+export { generateInstanceId } from './Generator';

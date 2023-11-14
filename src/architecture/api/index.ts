@@ -1,3 +1,3 @@
-export { CustomZettelAction, Action, ActionSetting } from './CustomZettelAction';
+export { CustomZettelAction } from './CustomZettelAction';
 export { actionsStore } from './store/ActionsStore';
-export { ExecuteInfo } from './model/CustomZettelActionTypes';
+export { ExecuteInfo, Action, ActionSetting } from './typing';

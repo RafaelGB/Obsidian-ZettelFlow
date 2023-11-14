@@ -28,6 +28,12 @@ export default class ZettelFlow extends Plugin {
 			DEFAULT_SETTINGS,
 			await this.loadData()
 		);
+		// LEGACY START: canvasFilePath was renamed to ribbonCanvas
+		if (this.settings.canvasFilePath) {
+			this.settings.ribbonCanvas = this.settings.canvasFilePath || "";
+			delete this.settings.canvasFilePath;
+		}
+		// LEGACY END
 		loadServicesThatRequireSettings(this.settings);
 	}
 
@@ -118,7 +124,7 @@ export default class ZettelFlow extends Plugin {
 										new Notice("Step configuration pasted!");
 									});
 								// Clear canvas clipboard cache
-								canvas.flows.delete(this.settings.canvasFilePath);
+								canvas.flows.delete(this.settings.ribbonCanvas);
 							});
 						}
 					} else if (file.extension === "canvas") {
@@ -132,7 +138,7 @@ export default class ZettelFlow extends Plugin {
 			this.app.workspace.on("canvas:node-menu", (menu, node) => {
 				// Check if canvas is the zettelFlow canvas and if the node is embedded
 				const file = this.app.workspace.getActiveFile();
-				if (file?.path === this.settings.canvasFilePath && typeof node.text === "string") {
+				if (file?.path === this.settings.ribbonCanvas && typeof node.text === "string") {
 					menu.addItem((item) => {
 						// Edit embed
 						item
@@ -141,7 +147,6 @@ export default class ZettelFlow extends Plugin {
 							.setSection('pane')
 							.onClick(async () => {
 								const stepSettings = YamlService.instance(node.text).getZettelFlowSettings();
-								await canvas.flows.update(file.path);
 								new StepBuilderModal(this.app, {
 									folder: file.parent || undefined,
 									filename: file.basename,

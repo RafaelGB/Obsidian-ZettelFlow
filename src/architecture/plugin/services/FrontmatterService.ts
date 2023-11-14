@@ -2,7 +2,7 @@ import { ObsidianApi, log } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
-import { ContentDTO } from "notes/model/ContentDTO";
+import { ContentDTO } from "application/notes/model/ContentDTO";
 import { ObsidianConfig } from "./ObsidianConfig";
 
 export class FrontmatterService {

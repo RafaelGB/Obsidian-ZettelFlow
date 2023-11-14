@@ -68,6 +68,8 @@ export default {
     step_builder_element_type_calendar_key_description: 'The metatada key of the frontmatter asigned to the calendar',
     step_builder_element_type_calendar_label_title: 'Label of calendar',
     step_builder_element_type_calendar_label_description: 'The label will be the title of your calendar',
+    step_builder_element_type_calendar_toggle_time_title: 'Enable time',
+    step_builder_element_type_calendar_toggle_time_description: 'Enable or disable time in the calendar',
     step_builder_element_type_selector_title: 'Element type selector',
     step_builder_element_type_selector_description: 'Add options to your step that will be displayed in the menu of the action.',
     step_builder_element_type_selector_label_title: 'Label of selector',

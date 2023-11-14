@@ -4,7 +4,7 @@ import { CalendarElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
 
 export const calendarSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, zone } = action as CalendarElement;
+    const { key, label, zone, enableTime } = action as CalendarElement;
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
     contentEl.createEl('h3', { text: name });
@@ -47,4 +47,16 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                     action.label = value;
                 });
         });
+    // Toggle to enable time
+    new Setting(contentEl)
+        .setName(t("step_builder_element_type_calendar_toggle_time_title"))
+        .setDesc(t("step_builder_element_type_calendar_toggle_time_description"))
+        .addToggle(toggle => {
+            toggle
+                .setValue(enableTime)
+                .onChange(async (value) => {
+                    action.enableTime = value;
+                });
+        });
+
 }

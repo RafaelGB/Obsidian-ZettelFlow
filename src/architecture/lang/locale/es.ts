@@ -67,6 +67,8 @@ export default {
     step_builder_element_type_calendar_key_description: 'La clave para los metadatos del frontmatter asignada al calendario',
     step_builder_element_type_calendar_label_title: 'Etiqueta del calendario',
     step_builder_element_type_calendar_label_description: 'La etiqueta será el título de tu calendario',
+    step_builder_element_type_calendar_toggle_time_title: 'Activar la opción de hora',
+    step_builder_element_type_calendar_toggle_time_description: 'Activa o desactiva la hora para tu calendario',
     step_builder_element_type_selector_title: 'Acción de selector',
     step_builder_element_type_selector_description: 'Añade opciones a tu paso que se mostrarán en el menú de la acción.',
     step_builder_element_type_selector_label_title: 'Etiqueta del selector',

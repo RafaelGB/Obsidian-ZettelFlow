@@ -1,4 +1,2 @@
-export * from './modals/ZettelFlowSettingsTab'
-export * from './model/ZettelSettingsModel';
-
-export { ZettelSettingsMapper } from './mappers/ZettelSettingsMapper';
+export { SettingsHandlerInfo, ZettelFlowSettings, DEFAULT_SETTINGS } from './typing';
+export { ZettelFlowSettingsTab } from './modals/ZettelFlowSettingsTab';

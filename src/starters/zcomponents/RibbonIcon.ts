@@ -1,7 +1,7 @@
 import { PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
-import { canvas } from "architecture/plugin/canvas";
+import { Flow, canvas } from "architecture/plugin/canvas";
 import ZettelFlow from "main";
 import { addIcon } from "obsidian";
 import { SelectorMenuModal } from "zettelkasten";
@@ -34,9 +34,11 @@ export class RibbonIcon extends PluginComponent {
         log.info('RibbonIcon loaded');
     }
     private ribbonIconCallback = async () => {
-        if (this.plugin.settings.canvasFilePath) {
-            await canvas.flows.update(this.plugin.settings.canvasFilePath);
+        let flow: Flow | undefined;
+        if (this.plugin.settings.ribbonCanvas) {
+            flow = await canvas.flows.update(this.plugin.settings.ribbonCanvas);
         }
-        new SelectorMenuModal(this.plugin.app, this.plugin).open();
+        console.log('flow', flow);
+        new SelectorMenuModal(this.plugin.app, this.plugin, flow).open();
     }
 }

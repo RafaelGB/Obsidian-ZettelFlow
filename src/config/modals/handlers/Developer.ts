@@ -2,7 +2,7 @@
 import { AbstractChain } from "architecture/patterns";
 import { c } from "architecture";
 // Internal imports
-import { SettingsHandlerInfo } from "../../model/SettingsTabModel";
+import { SettingsHandlerInfo } from "config/typing";
 import { LoggerToggleHandler } from "./developer/LoggerToggleHandler";
 
 

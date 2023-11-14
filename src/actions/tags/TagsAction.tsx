@@ -1,4 +1,4 @@
-import { CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
 import { TagsWrapper } from "./TagsComponent";
 import React from "react";
@@ -8,9 +8,12 @@ import { tagsSettings } from "./TagsSettings";
 export class TagsAction extends CustomZettelAction {
   private static ICON = "price-tag-glyph";
   id = "tags";
-  defaultAction = {
+  defaultAction: Partial<Action> = {
     type: this.id,
+    description: "Add tags to the note",
+    hasUI: true,
   };
+
   settings = tagsSettings;
 
   component(props: WrappedActionBuilderProps) {

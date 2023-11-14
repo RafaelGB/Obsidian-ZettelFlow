@@ -139,8 +139,9 @@ export default class ZettelFlow extends Plugin {
 							.setTitle(t("canvas_node_menu_edit_embed"))
 							.setIcon(RibbonIcon.ID)
 							.setSection('pane')
-							.onClick(() => {
+							.onClick(async () => {
 								const stepSettings = YamlService.instance(node.text).getZettelFlowSettings();
+								await canvas.flows.update(file.path);
 								new StepBuilderModal(this.app, {
 									folder: file.parent || undefined,
 									filename: file.basename,

@@ -87,6 +87,7 @@ export class FlowImpl implements Flow {
     }
 
     editTextNode = async (nodeId: string, text: string) => {
+        await this.refresh();
         const node = this.data.nodes.find(node => node.id === nodeId);
         if (!node) {
             throw new Error(`Node ${nodeId} not found`);
@@ -135,14 +136,6 @@ export class FlowImpl implements Flow {
         return rootNodes;
     }
 
-    copy = async (nodeId: string) => {
-
-    }
-
-    paste = async (nodeId: string) => {
-
-    }
-
     private nodesFrom(edgeInfo: EdgeInfo[]): FlowNode[] {
         const flowNodes: FlowNode[] = [];
         edgeInfo.forEach(async edge => {
@@ -174,6 +167,11 @@ export class FlowImpl implements Flow {
                 log.error(errorString);
                 new Notice(errorString);
             });
+    }
+
+    private async refresh() {
+        const content = await FileService.getContent(this.file);
+        this.data = JSON.parse(content);
     }
 
     private populateNode(data: CanvasTextData | CanvasFileData, node: StepSettings, tooltip?: string): FlowNode {

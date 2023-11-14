@@ -31,7 +31,7 @@ export abstract class CustomZettelAction implements ICustomZettelAction {
     return <></>;
   }
   abstract id: string;
-  abstract defaultAction: Action;
+  abstract defaultAction: Partial<Action>;
   abstract settings: ActionSetting;
   abstract execute(info: ExecuteInfo): Promise<void>;
   abstract getIcon(): string;

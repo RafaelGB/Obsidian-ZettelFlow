@@ -4,7 +4,7 @@ import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 import { Section } from "components/section";
 import { Header } from "components/header";
-import { NavBar } from "components/navbar";
+import { NavBar } from "application/components/navbar";
 import { TutorialType } from "./typing";
 
 export function buildTutorial(noteBuilderType: TutorialType) {

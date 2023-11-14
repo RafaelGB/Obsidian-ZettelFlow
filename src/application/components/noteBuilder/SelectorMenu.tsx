@@ -2,7 +2,7 @@ import React, { StrictMode, useEffect } from "react";
 import { NoteBuilderType } from "./model/NoteBuilderModel";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
-import { Section } from "components/section";
+import { Section } from "application/components/section";
 import { Header } from "application/components/header";
 import { NavBar } from "application/components/navbar";
 import { TutorialType } from "./typing";

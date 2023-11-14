@@ -1,4 +1,4 @@
-import { CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { CalendarWrapper } from "./CalendarComponent";
 import React from "react";
 import { WrappedActionBuilderProps } from "components/noteBuilder";
@@ -10,7 +10,7 @@ import { addIcon } from "obsidian";
 export class CalendarAction extends CustomZettelAction {
   private static ICON = "zettelflow-calendar-icon";
   id = "calendar";
-  defaultAction = {
+  defaultAction: Partial<Action> = {
     type: this.id,
   };
   settings = calendarSettings;

@@ -26,6 +26,7 @@ export function TagsWrapper(props: WrappedActionBuilderProps) {
         onChange={(tags) => {
           setSelectedTags(tags);
         }}
+        enableCreate={true}
       />
       <button
         onClick={() => {

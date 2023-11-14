@@ -29,9 +29,16 @@ export function ActionsManagement(props: ActionsManagementProps) {
             modal={modal}
             action={action}
             onRemove={() => {
-              const deepCopy = actions.slice();
-              info.actions = deepCopy.splice(index, 1);
-              setActions(deepCopy);
+              // Check if the action is the last one
+              if (actions.length === 1) {
+                info.actions = [];
+                setActions([]);
+              } else {
+                // Remove the action from the array with index
+                const deepCopy = actions.slice();
+                info.actions = deepCopy.splice(index, 1);
+                setActions(deepCopy);
+              }
             }}
           />
         );

@@ -7,7 +7,7 @@ import { TutorialType } from "./typing";
 export function WelcomeTutorial(noteBuilderType: TutorialType) {
   const { plugin, modal } = noteBuilderType;
   const { settings } = plugin;
-  const { canvasFilePath } = settings;
+  const { ribbonCanvas } = settings;
   return (
     <div className={c("welcome-tutorial")}>
       <h1>{t("welcome_tutorial_welcome_msg")}</h1>
@@ -23,11 +23,11 @@ export function WelcomeTutorial(noteBuilderType: TutorialType) {
             {t("welcome_tutorial_open_settings")}
           </button>
         </li>
-        {canvasFilePath ? (
+        {ribbonCanvas ? (
           <li>
             <button
               onClick={async () => {
-                await FileService.openFile(canvasFilePath);
+                await FileService.openFile(ribbonCanvas);
                 modal.close();
               }}
             >

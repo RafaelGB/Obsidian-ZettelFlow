@@ -13,7 +13,7 @@ export class CanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHand
         const { containerEl, plugin } = info;
         const source_form_promise = async (value: string): Promise<void> => {
             // set search value
-            info.plugin.settings.canvasFilePath = value;
+            info.plugin.settings.ribbonCanvas = value;
             // update settings
             await info.plugin.saveSettings();
         };
@@ -28,7 +28,7 @@ export class CanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHand
                 ).setExtensions(FILE_EXTENSIONS.ONLY_CANVAS);
 
                 cb.setPlaceholder(t("canvas_file_selector_placeholder"))
-                    .setValue(plugin.settings.canvasFilePath)
+                    .setValue(plugin.settings.ribbonCanvas)
                     .onChange(source_form_promise);
             });
         return this.goNext(info);

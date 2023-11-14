@@ -15,8 +15,8 @@ export class SettingsTab extends PluginComponent {
             id: 'open-canvas',
             name: t('command_settings_open_canvas'),
             callback: () => {
-                if (this.plugin.settings.canvasFilePath) {
-                    ObsidianApi.workspace().openLinkText(this.plugin.settings.canvasFilePath, "");
+                if (this.plugin.settings.ribbonCanvas) {
+                    ObsidianApi.workspace().openLinkText(this.plugin.settings.ribbonCanvas, "");
                 } else {
                     new Notice(t('notice_canvas_not_set'));
                 }

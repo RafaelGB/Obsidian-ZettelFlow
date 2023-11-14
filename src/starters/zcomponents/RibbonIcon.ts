@@ -35,8 +35,8 @@ export class RibbonIcon extends PluginComponent {
     }
     private ribbonIconCallback = async () => {
         let flow: Flow | undefined;
-        if (this.plugin.settings.canvasFilePath) {
-            flow = await canvas.flows.update(this.plugin.settings.canvasFilePath);
+        if (this.plugin.settings.ribbonCanvas) {
+            flow = await canvas.flows.update(this.plugin.settings.ribbonCanvas);
         }
         new SelectorMenuModal(this.plugin.app, this.plugin, flow).open();
     }

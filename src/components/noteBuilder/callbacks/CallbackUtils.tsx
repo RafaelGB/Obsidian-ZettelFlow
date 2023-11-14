@@ -1,4 +1,3 @@
-import { WorkflowStep } from "config";
 import {
   CallbackPickedState,
   NoteBuilderType,
@@ -109,18 +108,4 @@ export async function manageElement(
   } else {
     actions.setInvalidTitle(true);
   }
-}
-
-export function findIdInWorkflow(
-  toFind: string,
-  workflow: WorkflowStep[]
-): WorkflowStep | undefined {
-  for (const step of workflow) {
-    if (step.id === toFind) return step;
-    if (step.children) {
-      const found = findIdInWorkflow(toFind, step.children);
-      if (found) return found;
-    }
-  }
-  return undefined;
 }

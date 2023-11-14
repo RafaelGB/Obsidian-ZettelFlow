@@ -1,8 +1,8 @@
 import ZettelFlow from "main";
 import { PluginSettingTab } from "obsidian";
-import { SettingsHandlerInfo } from "../model/SettingsTabModel";
 import developer from "./handlers/Developer";
 import sections from "./handlers/Sections";
+import { SettingsHandlerInfo } from "../typing";
 
 class SettingsManager {
     plugin: ZettelFlow;

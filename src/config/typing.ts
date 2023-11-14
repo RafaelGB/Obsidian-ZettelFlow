@@ -1,9 +1,11 @@
+import { AbstractChain } from "architecture/patterns"
 import { FileService } from "architecture/plugin";
-import { FlowNode } from "architecture/plugin/canvas";
-export type WorkflowStep = {
-    id: string,
-    isRecursive?: boolean,
-    children?: WorkflowStep[],
+import ZettelFlow from "main"
+
+export type SettingsHandlerInfo = {
+    containerEl: HTMLElement,
+    plugin: ZettelFlow,
+    section?: AbstractChain<SettingsHandlerInfo>
 }
 
 export interface ZettelFlowSettings {
@@ -13,8 +15,6 @@ export interface ZettelFlowSettings {
     uniquePrefix: string,
     baseDir: string,
     canvasFilePath: string,
-    nodes: Record<string, FlowNode>,
-    workflow: WorkflowStep[]
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
@@ -22,5 +22,4 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     baseDir: FileService.PATH_SEPARATOR,
     uniquePrefixEnabled: false,
     uniquePrefix: "YYYYMMDDHHmmss",
-    nodes: {}
 }

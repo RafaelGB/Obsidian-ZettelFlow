@@ -59,7 +59,9 @@ export type PromptElement = {
     placeholder: string,
 } & AditionBaseElement;
 
-export type CalendarElement = AditionBaseElement;
+export type CalendarElement = {
+    enableTime: boolean,
+} & AditionBaseElement;
 
 export type SelectorElement = {
     options: Record<string, string>,

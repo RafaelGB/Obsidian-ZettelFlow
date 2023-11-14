@@ -38,6 +38,7 @@ export class FlowsImpl implements Flows {
         const data: CanvasData = JSON.parse(content);
         const flow = new FlowImpl(data, canvasFile);
         this.flows.set(canvasFile.path, flow);
+        log.info(`Flow ${canvasPath} loaded`);
         return flow;
     }
 
@@ -51,6 +52,7 @@ export class FlowsImpl implements Flows {
     }
 
     delete = (id: string) => {
+        log.info(`Cleaning flow ${id}`);
         return this.flows.delete(id);
     }
 }
@@ -88,11 +90,12 @@ export class FlowImpl implements Flow {
 
     editTextNode = async (nodeId: string, text: string) => {
         await this.refresh();
-        const node = this.data.nodes.find(node => node.id === nodeId);
-        if (!node) {
+        const index = this.data.nodes.findIndex(node => node.id === nodeId);
+        if (index === -1) {
             throw new Error(`Node ${nodeId} not found`);
         }
-        node.text = text;
+        this.data.nodes[index].text = text;
+        this.nodes.set(nodeId, this.data.nodes[index]);
         await this.save();
     }
 

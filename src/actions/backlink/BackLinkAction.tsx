@@ -16,6 +16,7 @@ export class BackLinkAction extends CustomZettelAction {
   id = "backlink";
   defaultAction: Partial<Action> = {
     type: this.id,
+    hasUI: true,
   };
   settings = backlinkSettings;
 

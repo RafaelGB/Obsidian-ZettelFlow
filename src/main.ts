@@ -29,8 +29,10 @@ export default class ZettelFlow extends Plugin {
 			await this.loadData()
 		);
 		// LEGACY START: canvasFilePath was renamed to ribbonCanvas
-		this.settings.ribbonCanvas = this.settings.canvasFilePath || "";
-		delete this.settings.canvasFilePath;
+		if (this.settings.canvasFilePath) {
+			this.settings.ribbonCanvas = this.settings.canvasFilePath || "";
+			delete this.settings.canvasFilePath;
+		}
 		// LEGACY END
 		loadServicesThatRequireSettings(this.settings);
 	}

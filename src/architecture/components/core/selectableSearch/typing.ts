@@ -3,4 +3,5 @@ export type SelectableSearchType = {
     onChange: (selections: string[]) => void
     initialSelections?: string[],
     placeholder?: string,
+    enableCreate?: boolean,
 }

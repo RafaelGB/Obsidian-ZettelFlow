@@ -1,7 +1,7 @@
 import { ObsidianApi, c } from "architecture";
 import { SelectableSearch } from "architecture/components/core";
 import { t } from "architecture/lang";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useMemo, useState } from "react";
 
 export function TagsWrapper(props: WrappedActionBuilderProps) {
@@ -26,6 +26,7 @@ export function TagsWrapper(props: WrappedActionBuilderProps) {
         onChange={(tags) => {
           setSelectedTags(tags);
         }}
+        enableCreate={true}
       />
       <button
         onClick={() => {

@@ -8,14 +8,15 @@ import { EditService, FileService } from "architecture/plugin";
 import { BacklinkWrapper } from "./BackLinkComponent";
 import React from "react";
 import { HeadingCache } from "obsidian";
-import { NoteDTO } from "notes";
+import { NoteDTO } from "application/notes";
 import { log } from "architecture";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";
   defaultAction: Action = {
     type: this.id,
+    hasUI: true,
   };
   settings = backlinkSettings;
 

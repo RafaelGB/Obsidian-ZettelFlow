@@ -1,7 +1,7 @@
 // External imports
 import { AbstractChain } from "architecture/patterns";
 // Internal imports
-import { SettingsHandlerInfo } from "../../model/SettingsTabModel";
+import { SettingsHandlerInfo } from "config/typing";
 import { CanvasFileSelectorHandler } from "./sections/CanvasFileSelectorHandler";
 
 

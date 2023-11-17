@@ -1,14 +1,13 @@
-import { DEFAULT_SETTINGS, ZettelFlowSettings, ZettelSettingsMapper } from 'config';
+import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
 import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
-import { ItemView, Notice, Plugin, TFile, TFolder } from 'obsidian';
-import { CanvasMapper, FrontmatterService, YamlService } from 'architecture/plugin';
-import { CanvasView } from 'obsidian/canvas';
+import { Notice, Plugin, TFile, TFolder } from 'obsidian';
+import { FrontmatterService, YamlService } from 'architecture/plugin';
 import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
-import { StepBuilderMapper, StepBuilderModal, ZettelFlowElement } from 'zettelkasten';
+import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, PromptAction, SelectorAction, TagsAction } from 'actions';
-import { log } from 'architecture';
+import { canvas } from 'architecture/plugin/canvas';
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
@@ -29,6 +28,12 @@ export default class ZettelFlow extends Plugin {
 			DEFAULT_SETTINGS,
 			await this.loadData()
 		);
+		// LEGACY START: canvasFilePath was renamed to ribbonCanvas
+		if (this.settings.canvasFilePath) {
+			this.settings.ribbonCanvas = this.settings.canvasFilePath || "";
+			delete this.settings.canvasFilePath;
+		}
+		// LEGACY END
 		loadServicesThatRequireSettings(this.settings);
 	}
 
@@ -45,11 +50,6 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	registerEvents() {
-		this.registerEvent(this.app.workspace.on('file-open', async (file) => {
-			this.saveWorkflow(file);
-		}));
-
-
 		this.registerEvent(
 			this.app.workspace.on('file-menu', (menu, file) => {
 				if (file instanceof TFolder) {
@@ -75,8 +75,8 @@ export default class ZettelFlow extends Plugin {
 						if (zettelFlowSettings) {
 							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
 							title = t("menu_pane_edit_step");
-							// Remove step configuration
 							menu.addItem((item) => {
+								// Remove step configuration
 								item
 									.setTitle(t("menu_pane_remove_step_configuration"))
 									.setIcon(RibbonIcon.ID)
@@ -84,38 +84,52 @@ export default class ZettelFlow extends Plugin {
 										await FrontmatterService.instance(file).removeStepSettings();
 										new Notice("Step configuration removed!");
 									});
-							});
-						}
-						// Transform note into step
-						menu.addItem((item) => {
-							item
-								.setTitle(title)
-								.setIcon(RibbonIcon.ID)
-								.onClick(() => {
-									new StepBuilderModal(this.app, {
-										folder: file.parent || undefined,
-										filename: file.basename,
-										menu,
-										...mappedInfo
-									})
-										.setMode("edit")
-										.open();
-								});
-						});
-					} else if (file.extension === "canvas" && file.path === this.settings.canvasFilePath) {
-						const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
-						if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
-							menu.addItem((item) => {
+							}).addItem((item) => {
+								// Copy step configuration to canvas clipboard
 								item
-									.setTitle("Save zettelFlow configuration")
+									.setTitle(t("menu_pane_copy_step_configuration"))
 									.setIcon(RibbonIcon.ID)
 									.onClick(async () => {
-										this.saveWorkflow(file);
-										new Notice("ZettelFlow configuration Saved!");
+										canvas.clipboard.save(zettelFlowSettings);
+										new Notice("Step configuration copied!");
 									});
 							});
-
+						} else {
+							// Transform note into step
+							menu.addItem((item) => {
+								item
+									.setTitle(title)
+									.setIcon(RibbonIcon.ID)
+									.onClick(() => {
+										new StepBuilderModal(this.app, {
+											folder: file.parent || undefined,
+											filename: file.basename,
+											menu,
+											...mappedInfo
+										})
+											.setMode("edit")
+											.open();
+									});
+							});
 						}
+						const clipboardSettings = canvas.clipboard.get();
+						if (clipboardSettings) {
+							menu.addItem((item) => {
+								// Paste step configuration from canvas clipboard
+								item
+									.setTitle(t("menu_pane_paste_step_configuration"))
+									.setIcon(RibbonIcon.ID)
+									.onClick(async () => {
+										await FrontmatterService.instance(file).setZettelFlowSettings(clipboardSettings);
+										new Notice("Step configuration pasted!");
+									});
+								// Clear canvas clipboard cache
+								canvas.flows.delete(this.settings.ribbonCanvas);
+							});
+						}
+					} else if (file.extension === "canvas") {
+						// Invalidate stored canvas (if was loaded before)
+						canvas.flows.delete(file.path);
 					}
 				}
 			}));
@@ -124,13 +138,14 @@ export default class ZettelFlow extends Plugin {
 			this.app.workspace.on("canvas:node-menu", (menu, node) => {
 				// Check if canvas is the zettelFlow canvas and if the node is embedded
 				const file = this.app.workspace.getActiveFile();
-				if (file?.path === this.settings.canvasFilePath && typeof node.text === "string") {
+				if (file?.path === this.settings.ribbonCanvas && typeof node.text === "string") {
 					menu.addItem((item) => {
+						// Edit embed
 						item
 							.setTitle(t("canvas_node_menu_edit_embed"))
 							.setIcon(RibbonIcon.ID)
 							.setSection('pane')
-							.onClick(() => {
+							.onClick(async () => {
 								const stepSettings = YamlService.instance(node.text).getZettelFlowSettings();
 								new StepBuilderModal(this.app, {
 									folder: file.parent || undefined,
@@ -143,34 +158,37 @@ export default class ZettelFlow extends Plugin {
 									.setNodeId(node.id)
 									.open();
 							})
+					}).addItem((item) => {
+						// Copy embed to canvas clipboard
+						item
+							.setTitle(t("menu_pane_copy_step_configuration"))
+							.setIcon(RibbonIcon.ID)
+							.setSection('pane')
+							.onClick(async () => {
+								canvas.clipboard.save(YamlService.instance(node.text).getZettelFlowSettings());
+								new Notice("Embed copied!");
+							})
 					});
-				}
 
+					const clipboardSettings = canvas.clipboard.get();
+					if (clipboardSettings) {
+						menu.addItem((item) => {
+							// Paste embed from canvas clipboard
+							item
+								.setTitle(t("menu_pane_paste_step_configuration"))
+								.setIcon(RibbonIcon.ID)
+								.setSection('pane')
+								.onClick(async () => {
+									const flow = await canvas.flows.update(file.path);
+									flow.editTextNode(node.id, JSON.stringify(clipboardSettings, null, 2));
+									new Notice("Embed pasted!");
+								})
+
+						});
+					}
+				}
 			})
 		);
 
-	}
-
-	private async saveWorkflow(file: TFile | null) {
-		const canvasView = this.app.workspace.getActiveViewOfType(ItemView);
-		if (canvasView?.getViewType() === 'canvas' && file?.path === this.settings.canvasFilePath) {
-			const canvasTree = CanvasMapper.instance((canvasView as CanvasView).canvas).getCanvasFileTree();
-			if (canvasTree.length === 0) {
-				log.warn("Canvas is empty, skipping save");
-				return;
-			}
-			const { sectionMap, workflow } = ZettelSettingsMapper.instance(canvasTree).marshall();
-			if (workflow.length === 0) {
-				log.warn("Workflow is empty, skipping save");
-				return;
-			}
-			const recordNodes: Record<string, ZettelFlowElement> = {};
-			sectionMap.forEach((node, key) => {
-				recordNodes[key] = node;
-			});
-			this.settings.nodes = recordNodes;
-			this.settings.workflow = workflow;
-			await this.saveSettings();
-		}
 	}
 }

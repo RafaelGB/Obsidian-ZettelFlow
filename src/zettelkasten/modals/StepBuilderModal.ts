@@ -2,9 +2,10 @@ import { App, Modal, Notice, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
-import { CanvasService, FileService } from "architecture/plugin";
+import { FileService } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { ObsidianApi, log } from "architecture";
+import { canvas } from "architecture/plugin/canvas";
 
 
 export class StepBuilderModal extends Modal {
@@ -67,14 +68,10 @@ export class StepBuilderModal extends Modal {
     private async saveEmbed(path: string): Promise<void> {
         if (this.info.nodeId) {
             const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
-            const file = await FileService.getFile(path, false);
-            if (!file) {
-                throw new Error(`File ${path} not found`);
-            }
-            const content = await ObsidianApi.vault().cachedRead(file);
-            CanvasService.instance(file, content)
-                .editEmbedNodeText(this.info.nodeId, JSON.stringify(stepSettings))
-                .save();
+            await canvas.flows.update(path);
+            await canvas.flows
+                .get(path)
+                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings, null, 2));
         } else {
             log.error(`Node id not found on embed mode`);
         }
@@ -102,24 +99,21 @@ export class StepBuilderModal extends Modal {
     private getBaseInfo(): StepBuilderInfo {
         if (this.partialInfo === undefined) {
             return {
-                type: `file`,
+                type: "file",
                 contentEl: this.contentEl,
-                isRoot: false,
+                root: false,
                 actions: [],
                 label: ``,
                 childrenHeader: ``,
-                path: ``
             }
         } else {
             return {
                 contentEl: this.contentEl,
                 ...this.partialInfo,
                 type: this.partialInfo.type === undefined ? `file` : this.partialInfo.type,
-                isRoot: this.partialInfo.isRoot === undefined ? false : this.partialInfo.isRoot,
-                element: this.partialInfo.element === undefined ? { type: `bridge`, isAction: false } : this.partialInfo.element,
+                root: this.partialInfo.root === undefined ? false : this.partialInfo.root,
                 label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,
                 childrenHeader: this.partialInfo.childrenHeader === undefined ? `` : this.partialInfo.childrenHeader,
-                path: this.partialInfo.path === undefined ? `` : this.partialInfo.path,
                 actions: this.partialInfo.actions === undefined ? [] : this.partialInfo.actions,
             }
         }

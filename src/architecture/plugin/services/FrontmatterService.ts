@@ -2,7 +2,7 @@ import { ObsidianApi, log } from "architecture";
 import { CachedMetadata, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
-import { ContentDTO } from "notes/model/ContentDTO";
+import { ContentDTO } from "application/notes/model/ContentDTO";
 import { ObsidianConfig } from "./ObsidianConfig";
 
 export class FrontmatterService {
@@ -47,6 +47,12 @@ export class FrontmatterService {
 
     public getZettelFlowSettings(): StepSettings {
         return this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY) as StepSettings;
+    }
+
+    public async setZettelFlowSettings(settings: StepSettings) {
+        await ObsidianApi.fileManager().processFrontMatter(this.file, (frontmatter) => {
+            frontmatter[FrontmatterService.FRONTMATTER_SETTINGS_KEY] = settings;
+        });
     }
 
     public getFrontmatter() {

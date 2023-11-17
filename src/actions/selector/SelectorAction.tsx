@@ -1,5 +1,5 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { WrappedActionBuilderProps } from "components/noteBuilder";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React from "react";
 import { elementTypeSelectorSettings } from "./ElementTypeSelectorHandler";
 import { SelectorWrapper } from "./components/SelectorComponent";
@@ -12,6 +12,7 @@ export class SelectorAction extends CustomZettelAction {
   id = "selector";
   defaultAction = {
     type: this.id,
+    hasUI: true,
   };
   settings = elementTypeSelectorSettings;
   constructor() {

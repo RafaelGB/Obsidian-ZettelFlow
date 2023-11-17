@@ -1,6 +1,7 @@
 import { PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
+import { Flow, canvas } from "architecture/plugin/canvas";
 import ZettelFlow from "main";
 import { addIcon } from "obsidian";
 import { SelectorMenuModal } from "zettelkasten";
@@ -26,13 +27,18 @@ export class RibbonIcon extends PluginComponent {
         this.plugin.addCommand({
             id: 'open-workflow',
             name: t('command_open_workflow'),
-            callback: () => {
+            callback: async () => {
                 this.ribbonIconCallback();
             }
         });
         log.info('RibbonIcon loaded');
     }
-    private ribbonIconCallback = () => {
-        new SelectorMenuModal(this.plugin.app, this.plugin).open();
+    private ribbonIconCallback = async () => {
+        let flow: Flow | undefined;
+        if (this.plugin.settings.ribbonCanvas) {
+            flow = await canvas.flows.update(this.plugin.settings.ribbonCanvas);
+        }
+        console.log('flow', flow);
+        new SelectorMenuModal(this.plugin.app, this.plugin, flow).open();
     }
 }

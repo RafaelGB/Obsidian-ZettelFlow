@@ -9,9 +9,9 @@ export class ChildrenHeaderHandler extends AbstractHandlerClass<StepBuilderModal
     description = t('step_builder_children_header_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
-        const { contentEl, childrenHeader, isRoot } = info;
+        const { contentEl, childrenHeader, root } = info;
         // If is root, skip this step
-        if (isRoot) return this.goNext(modal);
+        if (root) return this.goNext(modal);
 
         new Setting(contentEl)
             .setName(this.name)

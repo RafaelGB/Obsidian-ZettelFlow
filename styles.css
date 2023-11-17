@@ -29,10 +29,6 @@
 /*****************
 *   BASIC STYLES
 ******************/
-.zettelkasten-flow__is-leaf .zettelkasten-flow__icon * {
-  fill: var(--background-modifier-success);
-}
-
 .zettelkasten-flow__visible-overflow {
   overflow: visible;
 }

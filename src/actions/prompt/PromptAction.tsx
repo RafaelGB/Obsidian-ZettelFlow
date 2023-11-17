@@ -11,7 +11,7 @@ import { log } from "architecture";
 export class PromptAction extends CustomZettelAction {
   private static ICON = "zettelflow-prompt-icon";
   id = "prompt";
-  defaultAction: Partial<Action> = {
+  defaultAction: Action = {
     type: this.id,
     hasUI: true,
   };

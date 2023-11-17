@@ -8,7 +8,7 @@ import { tagsSettings } from "./TagsSettings";
 export class TagsAction extends CustomZettelAction {
   private static ICON = "price-tag-glyph";
   id = "tags";
-  defaultAction: Partial<Action> = {
+  defaultAction: Action = {
     type: this.id,
     description: "Add tags to the note",
     hasUI: true,

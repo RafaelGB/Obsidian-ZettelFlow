@@ -32,6 +32,7 @@ const context = await esbuild.context({
 		"@lezer/highlight",
 		"@lezer/lr",
 		...builtins],
+		
 	format: "cjs",
 	target: "ES6",
 	logLevel: "info",
@@ -39,6 +40,9 @@ const context = await esbuild.context({
 	minify: prod ? true : false,
 	treeShaking: true,
 	outfile: "dist/main.js",
+	loader: {
+        ".ttf": "file",
+    },
 });
 
 if (prod) {

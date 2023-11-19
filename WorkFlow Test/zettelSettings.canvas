@@ -82,7 +82,7 @@
     {
       "id": "a650bf5750a438ca",
       "type": "text",
-      "text": "{\n  \"root\": false,\n  \"actions\": [\n    {\n      \"type\": \"calendar\",\n      \"hasUI\": true,\n      \"description\": \"Timeline\",\n      \"key\": \"timeline\",\n      \"label\": \"Timeline\",\n      \"enableTime\": true\n    }\n  ],\n  \"label\": \"test Features\",\n  \"childrenHeader\": \"\"\n}",
+      "text": "{\n  \"root\": false,\n  \"actions\": [\n    {\n      \"type\": \"calendar\",\n      \"hasUI\": true,\n      \"description\": \"Timeline\",\n      \"key\": \"timeline\",\n      \"label\": \"Timeline\",\n      \"enableTime\": true\n    },\n    {\n      \"type\": \"script\",\n      \"hasUI\": false\n    }\n  ],\n  \"label\": \"test Features\",\n  \"childrenHeader\": \"\"\n}",
       "x": -252,
       "y": 520,
       "width": 480,

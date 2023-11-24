@@ -74,7 +74,6 @@ export default class ZettelFlow extends Plugin {
 						let title = t("menu_pane_transform_note_into_step");
 						if (zettelFlowSettings) {
 							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
-							title = t("menu_pane_edit_step");
 							menu.addItem((item) => {
 								// Remove step configuration
 								item
@@ -94,24 +93,24 @@ export default class ZettelFlow extends Plugin {
 										new Notice("Step configuration copied!");
 									});
 							});
-						} else {
-							// Transform note into step
-							menu.addItem((item) => {
-								item
-									.setTitle(title)
-									.setIcon(RibbonIcon.ID)
-									.onClick(() => {
-										new StepBuilderModal(this.app, {
-											folder: file.parent || undefined,
-											filename: file.basename,
-											menu,
-											...mappedInfo
-										})
-											.setMode("edit")
-											.open();
-									});
-							});
+							// Change title to edit step if step configuration is present
+							title = t("menu_pane_edit_step");
 						}
+						menu.addItem((item) => {
+							item
+								.setTitle(title)
+								.setIcon(RibbonIcon.ID)
+								.onClick(() => {
+									new StepBuilderModal(this.app, {
+										folder: file.parent || undefined,
+										filename: file.basename,
+										menu,
+										...mappedInfo
+									})
+										.setMode("edit")
+										.open();
+								});
+						});
 						const clipboardSettings = canvas.clipboard.get();
 						if (clipboardSettings) {
 							menu.addItem((item) => {

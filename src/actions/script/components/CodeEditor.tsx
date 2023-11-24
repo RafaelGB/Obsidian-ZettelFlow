@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { EditorWrapperProps } from "./typing";
-export function EditorWrapper(props: EditorWrapperProps) {
+export function CodeEditor(props: EditorWrapperProps) {
   const { root } = props;
   useEffect(() => {
     return () => {

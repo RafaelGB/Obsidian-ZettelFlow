@@ -17,3 +17,8 @@ zettelFlowSettings:
   childrenHeader: ""
   targetFolder: zettelFlow/fleeting/events
 ---
+```js
+function aa(){
+
+}
+```

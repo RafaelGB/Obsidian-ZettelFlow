@@ -2,7 +2,8 @@ import { ActionSetting } from "architecture/api";
 import { t } from "architecture/lang";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { EditorWrapper } from "./components/EditorWrapper";
+import { CodeEditor } from "./components/CodeEditor";
+import CodeMirror from "codemirror";
 
 export const scriptSettings: ActionSetting = (contentEl, _, action) => {
   contentEl.createEl("h3", {
@@ -11,6 +12,7 @@ export const scriptSettings: ActionSetting = (contentEl, _, action) => {
   contentEl.createEl("p", {
     text: t("step_builder_element_type_script_description"),
   });
+  CodeMirror;
   const root = createRoot(contentEl.createDiv());
-  root.render(<EditorWrapper action={action} root={root} />);
+  root.render(<CodeEditor action={action} root={root} />);
 };

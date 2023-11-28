@@ -12,7 +12,7 @@
 		{"id":"ab4d5a15cffc7de3","type":"file","file":"WorkFlow Test/actions/multi/Task required info.md","x":-409,"y":880,"width":450,"height":228},
 		{"id":"01e0bfcb96a5943c","type":"file","file":"WorkFlow Test/actions/prompt/Multimedia learning.md","x":-409,"y":1280,"width":400,"height":66,"color":"3"},
 		{"id":"f7c2b6af9c582d33","type":"file","file":"WorkFlow Test/actions/tags/configurable tags.md","x":534,"y":0,"width":453,"height":80,"color":"#bfa7ec"},
-		{"id":"a650bf5750a438ca","type":"text","text":"{\n  \"root\": false,\n  \"actions\": [\n    {\n      \"type\": \"script\",\n      \"hasUI\": false,\n      \"description\": \"pruebas\",\n      \"code\": \"content.addTag(\\\"sds\\\");\\nconst aa= \\\"\\\";\"\n    }\n  ],\n  \"label\": \"test Features\",\n  \"childrenHeader\": \"\"\n}","x":-252,"y":520,"width":480,"height":240}
+		{"id":"a650bf5750a438ca","type":"text","text":"{\n  \"root\": false,\n  \"actions\": [\n    {\n      \"type\": \"script\",\n      \"hasUI\": false,\n      \"description\": \"pruebas\",\n      \"code\": \"content.addTag(\\\"sds\\\");\\nnote.setTitle(\\\"change the final tittle\\\");\\nconsole.log(note.getTitle());\"\n    }\n  ],\n  \"label\": \"test Features\",\n  \"childrenHeader\": \"\"\n}","x":-252,"y":520,"width":480,"height":240}
 	],
 	"edges":[
 		{"id":"31586cccc0d2f2aa","fromNode":"59fcfd179cd2455c","fromSide":"right","toNode":"905fabf82d23102c","toSide":"left","label":"Tooltip of idea"},

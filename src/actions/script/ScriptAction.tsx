@@ -26,7 +26,7 @@ export class ScriptAction extends CustomZettelAction {
 
       const func = new Function("element", "content", "note", fullFunction);
       const result = await func(element, content, note);
-      console.log("Result:", result); // Para depuración
+      log.debug(`Script result: ${result}`);
     } catch (error) {
       log.error(`Error executing script: ${error}`);
     }

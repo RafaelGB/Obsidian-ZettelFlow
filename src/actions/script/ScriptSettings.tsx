@@ -1,11 +1,9 @@
 import { ActionSetting } from "architecture/api";
 import { t } from "architecture/lang";
 
-import { EditorState } from "@codemirror/state";
-import { EditorView, ViewUpdate } from "@codemirror/view";
-// Importa también las extensiones de lenguaje que necesitas, por ejemplo, para JavaScript
-import { javascript } from "@codemirror/lang-javascript";
+import { ViewUpdate } from "@codemirror/view";
 import { CodeElement } from "./typing";
+import { dispatchEditor } from "./config/EditorConfig";
 
 export const scriptSettings: ActionSetting = (contentEl, _, action) => {
   const scriptAction = action as CodeElement;
@@ -24,19 +22,5 @@ export const scriptSettings: ActionSetting = (contentEl, _, action) => {
     }
   };
 
-  const codeEditor = new EditorView({
-    state: EditorState.create({
-      doc: code,
-      extensions: [
-        javascript(),
-        // Listener to update the 'code' variable when the editor changes
-        EditorView.updateListener.of(handleEditorUpdate),
-      ],
-    }),
-    parent: editorEl,
-  }).dispatch();
-  /*
-  const root = createRoot(contentEl.createDiv());
-  root.render(<CodeEditorWrapper action={action} root={root} />);
-  */
+  dispatchEditor(editorEl, code, handleEditorUpdate);
 };

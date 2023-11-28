@@ -41,9 +41,12 @@ const context = await esbuild.context({
       "@codemirror/text",
       "@codemirror/tooltip",
       "@codemirror/view",
+      "@codemirror/basic-setup",
+      "@lezer/common",
+      "@lezer/highlight",
+      "@lezer/lr",
       ...builtins,
     ],
-		
 	format: "cjs",
 	target: "ES6",
 	logLevel: "info",

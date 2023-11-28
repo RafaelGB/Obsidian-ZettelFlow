@@ -15,25 +15,27 @@
   "author": "RafaelGB",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "20.9.1",
-    "@types/react": "18.2.37",
-    "@types/react-dom": "18.2.15",
-    "@typescript-eslint/eslint-plugin": "6.11.0",
-    "@typescript-eslint/parser": "6.11.0",
+    "@types/node": "20.10.0",
+    "@types/react": "18.2.39",
+    "@types/react-dom": "18.2.17",
+    "@typescript-eslint/eslint-plugin": "6.13.1",
+    "@typescript-eslint/parser": "6.13.1",
     "builtin-modules": "3.3.0",
-    "esbuild": "0.19.5",
-    "eslint": "8.53.0",
+    "esbuild": "0.19.8",
+    "eslint": "8.54.0",
     "eslint-plugin-react": "7.33.2",
     "jest": "29.7.0",
     "obsidian": "1.4.11",
     "ts-jest": "29.1.1",
     "tslib": "2.6.2",
-    "typescript": "5.2.2",
-    "zustand": "4.4.6"
+    "typescript": "5.3.2",
+    "zustand": "4.4.7",
+    "codemirror": "6.0.1"
   },
   "dependencies": {
     "@popperjs/core": "2.11.8",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "@codemirror/lang-javascript": "6.2.1"
   }
 }

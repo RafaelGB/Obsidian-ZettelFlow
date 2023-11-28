@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React from "react";
-import { elementTypeSelectorSettings } from "./ElementTypeSelectorHandler";
+import { elementTypeSelectorSettings } from "./SelectorSettings";
 import { SelectorWrapper } from "./components/SelectorComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";

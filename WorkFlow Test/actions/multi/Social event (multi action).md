@@ -13,6 +13,10 @@ zettelFlowSettings:
       label: Date of the event
       hasUI: true
       description: Event Date
+    - type: script
+      hasUI: false
+      description: pruebas
+      code: console.log("hello");
   label: Social event (multi action)
   childrenHeader: ""
   targetFolder: zettelFlow/fleeting/events

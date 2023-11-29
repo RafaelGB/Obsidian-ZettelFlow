@@ -19,7 +19,7 @@ const setSelectionElementAction =
             previousSections.set(position, {
                 header,
                 section,
-                element: builder.info.getElement(position),
+                element: builder.note.getElement(position),
                 isAction: actionWasTriggered,
             });
         }

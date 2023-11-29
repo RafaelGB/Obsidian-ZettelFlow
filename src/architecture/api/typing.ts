@@ -6,8 +6,7 @@ import { StepBuilderModal } from "zettelkasten";
 export type ExecuteInfo = {
     element: FinalElement,
     content: ContentDTO,
-    note: NoteDTO,
-    path: string
+    note: NoteDTO
 }
 
 export type Action = {

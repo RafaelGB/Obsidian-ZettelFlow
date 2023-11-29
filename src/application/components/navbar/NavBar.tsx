@@ -18,8 +18,8 @@ export function NavBar(props: NoteBuilderType) {
   const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
   const enableSkip = useNoteBuilderStore((store) => store.enableSkip);
   const [savedPaths, savedElements] = useNoteBuilderStore((store) => [
-    store.builder.info.getPaths(),
-    store.builder.info.getElements(),
+    store.builder.note.getPaths(),
+    store.builder.note.getElements(),
   ]);
 
   return (

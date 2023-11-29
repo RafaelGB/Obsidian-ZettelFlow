@@ -19,7 +19,7 @@ const goPreviousAction =
     const previousSection = previousSections.get(previousPosition);
     previousSections.delete(previousPosition);
     // On Builder
-    builder.info.deletePos(previousPosition);
+    builder.note.deletePos(previousPosition);
     set({
       position: previousPosition,
       previousSections,

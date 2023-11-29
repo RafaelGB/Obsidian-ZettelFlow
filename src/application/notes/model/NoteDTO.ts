@@ -10,6 +10,13 @@ export class NoteDTO {
     private uniquePrefixPattern = "";
     private targetFolder = "";
 
+    public getFinalPath(): string {
+        return this.getTargetFolder()
+            .concat(FileService.PATH_SEPARATOR)
+            .concat(this.getTitle())
+            .concat(FileService.MARKDOWN_EXTENSION);
+    }
+
     public getTitle(): string {
         return this.title;
     }

@@ -1,9 +1,10 @@
 import { basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
 import { EditorView, ViewUpdate, placeholder, lineNumbers, tooltips } from "@codemirror/view";
-import { javascript } from "@codemirror/lang-javascript";
 import { autocompletion } from "@codemirror/autocomplete";
+import { javascript } from "@codemirror/lang-javascript";
 import { codeFolding, bracketMatching } from "@codemirror/language";
+import { customAutocomplete } from "./extensions/Autocompletion";
 
 
 
@@ -15,6 +16,7 @@ export function dispatchEditor(parentEl: HTMLDivElement, code: string, onChange:
                 basicSetup,
                 EditorView.lineWrapping,
                 autocompletion(),
+                customAutocomplete,
                 codeFolding(),
                 bracketMatching(),
                 lineNumbers(),

@@ -14,6 +14,21 @@ Functionalities related with the file of the note.
 ### `content`
 Functionalities related with the content of the note.
 
+#### Functions
+- add(content: string): void => Add new content to the note.
+- get(): string => get the content of the note.
+- modify(key: string, result: string): void => Substitute a substring of the content with the result.
+- addTag(tag: string): void => add a tag to the note (frontmatter).
+- addTags(tags: string[]): void => add tags to the note (frontmatter).
+- getTags(): string[] => get the tags of the note (frontmatter).
+- addFrontMatter(frontmatter: Record<string, Literal>): void => add properties to the frontmatter.
+- getFrontMatter(): Record<string, Literal> => get the frontmatter of the note.
+
+### `context`
+An empty object that can be used to store data between script execution steps.
+
+### `app`
+Obsidian API functionalities. [See the official documentation](https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts).
 
 ## Component
 No component available.

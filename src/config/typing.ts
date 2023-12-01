@@ -13,7 +13,6 @@ export interface ZettelFlowSettings {
     uniquePrefixEnabled: boolean,
     uniquePrefix: string,
     ribbonCanvas: string,
-    canvasFilePath?: string,
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {

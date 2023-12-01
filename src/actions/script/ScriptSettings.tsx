@@ -3,7 +3,7 @@ import { t } from "architecture/lang";
 
 import { ViewUpdate } from "@codemirror/view";
 import { CodeElement } from "./typing";
-import { dispatchEditor } from "./config/EditorConfig";
+import { dispatchEditor } from "./editor/Dispatcher";
 
 export const scriptSettings: ActionSetting = (contentEl, _, action) => {
   const scriptAction = action as CodeElement;

@@ -5,6 +5,16 @@ import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
 import { Input } from "architecture/components/core";
 
+const URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/steps/";
+const ACTION_LABEL_URL: Record<string, string> = {
+  script: "ScriptStep",
+  prompt: "PromptStep",
+  selector: "SelectorStep",
+  tags: "TagStep",
+  calendar: "CalendarStep",
+  backlink: "BacklinkStep",
+};
+
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove } = props;
   const [accordionOpen, setAccordionOpen] = useState(false);
@@ -15,8 +25,15 @@ export function ActionAccordion(props: ActionAccordionProps) {
     <div className={c("accordion")}>
       <div className={c("accordion-header")}>
         <div className={c("accordion-header-info")}>
-          <label>{action.type}</label>
-          <Icon name={actionsStore.getIconOf(action.type)} />
+          <a
+            href={`${URL}${ACTION_LABEL_URL[action.type] || action.type}`}
+            style={{ color: "inherit", textDecoration: "none" }}
+            title={`${action.type} documentation`}
+            className={c("accordion-header-label")}
+          >
+            <label>{action.type}</label>
+            <Icon name={actionsStore.getIconOf(action.type)} />
+          </a>
           <Input
             value={action.description}
             placeholder="Action description"

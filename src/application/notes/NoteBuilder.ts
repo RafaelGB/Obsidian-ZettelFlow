@@ -59,11 +59,12 @@ export class NoteBuilder {
 
   private async manageElements() {
     log.debug(`Builder: ${this.note.getElements().size} elements to process`);
+    const context = {};
     for (const [, element] of this.note.getElements()) {
       log.trace(`Builder: processing element ${element.type}`);
       await actionsStore
         .getAction(element.type)
-        .execute({ element, content: this.content, note: this.note });
+        .execute({ element, content: this.content, note: this.note, context: context });
     }
   }
 

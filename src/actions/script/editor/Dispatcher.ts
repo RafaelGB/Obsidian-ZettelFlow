@@ -4,7 +4,7 @@ import { EditorView, ViewUpdate, placeholder, lineNumbers, tooltips } from "@cod
 import { autocompletion } from "@codemirror/autocomplete";
 import { javascript } from "@codemirror/lang-javascript";
 import { codeFolding, bracketMatching } from "@codemirror/language";
-import { customAutocomplete } from "./extensions/Autocompletion";
+import { customAutocomplete } from "./extensions/autoconfiguration/Autocompletion";
 
 
 

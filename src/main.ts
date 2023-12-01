@@ -194,7 +194,7 @@ export default class ZettelFlow extends Plugin {
 			}
 		}));
 
-		this.registerEvent(this.app.metadataCache.on("deleted", (file, _) => {
+		this.registerEvent(this.app.vault.on("delete", (file) => {
 			if (file.path === this.settings.ribbonCanvas) {
 				canvas.flows.delete(file.path);
 				this.settings.ribbonCanvas = "";

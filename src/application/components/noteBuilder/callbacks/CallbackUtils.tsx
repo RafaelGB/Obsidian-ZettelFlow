@@ -66,7 +66,7 @@ export async function manageElement(
   info: NoteBuilderType,
   skipChildrens = false
 ) {
-  const { actions, data } = state;
+  const { actions } = state;
   actions.manageNodeInfo(selectedElement);
 
   const { modal, flow } = info;
@@ -93,7 +93,7 @@ export async function manageElement(
   } else if (childrens.length === 1) {
     actions.setActionWasTriggered(false);
     nextElement(state, childrens[0].id, info);
-  } else if (data.getTitle()) {
+  } else {
     // Build and close modal
     actions
       .build()
@@ -103,9 +103,8 @@ export async function manageElement(
       })
       .catch((error) => {
         log.error(error);
-        new Notice("Error building note. See console for details.");
+        new Notice(`Error building note: ${error.message}`);
+        actions.setInvalidTitle(true);
       });
-  } else {
-    actions.setInvalidTitle(true);
   }
 }

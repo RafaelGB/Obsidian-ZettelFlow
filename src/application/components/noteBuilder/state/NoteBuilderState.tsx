@@ -42,7 +42,6 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setInvalidTitle: (invalidTitle) => {
       const { builder, position } = get();
       if (invalidTitle) {
-        new Notice("Title cannot be empty");
         builder.note.deletePos(position);
         set({ invalidTitle, builder, actionWasTriggered: true });
       } else {

@@ -198,6 +198,13 @@
   border-color: var(--background-modifier-success);
   box-shadow: 0 0.125rem 0.25rem var(--background-modifier-success);
 }
+/*****************
+*   ACTIONS COMMON
+******************/
+.zettelkasten-flow__accordion-header-label:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+}
 
 /*****************
 *   BACKLINK

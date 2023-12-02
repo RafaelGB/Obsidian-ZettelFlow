@@ -6,8 +6,9 @@ import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
-import { BackLinkAction, CalendarAction, PromptAction, SelectorAction, TagsAction } from 'actions';
+import { BackLinkAction, CalendarAction, PromptAction, ScriptAction, SelectorAction, TagsAction } from 'actions';
 import { canvas } from 'architecture/plugin/canvas';
+import { log } from 'architecture';
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
@@ -28,12 +29,6 @@ export default class ZettelFlow extends Plugin {
 			DEFAULT_SETTINGS,
 			await this.loadData()
 		);
-		// LEGACY START: canvasFilePath was renamed to ribbonCanvas
-		if (this.settings.canvasFilePath) {
-			this.settings.ribbonCanvas = this.settings.canvasFilePath || "";
-			delete this.settings.canvasFilePath;
-		}
-		// LEGACY END
 		loadServicesThatRequireSettings(this.settings);
 	}
 
@@ -47,6 +42,7 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new CalendarAction());
 		actionsStore.registerAction(new BackLinkAction());
 		actionsStore.registerAction(new TagsAction());
+		actionsStore.registerAction(new ScriptAction());
 	}
 
 	registerEvents() {
@@ -189,5 +185,22 @@ export default class ZettelFlow extends Plugin {
 			})
 		);
 
+		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+			if (oldPath === this.settings.ribbonCanvas) {
+				canvas.flows.delete(oldPath);
+				this.settings.ribbonCanvas = file.path;
+				this.saveSettings();
+				log.info("Renamed canvas file");
+			}
+		}));
+
+		this.registerEvent(this.app.vault.on("delete", (file) => {
+			if (file.path === this.settings.ribbonCanvas) {
+				canvas.flows.delete(file.path);
+				this.settings.ribbonCanvas = "";
+				this.saveSettings();
+				log.info("Deleted canvas file");
+			}
+		}));
 	}
 }

@@ -80,15 +80,6 @@
       "color": "#bc7171"
     },
     {
-      "id": "a650bf5750a438ca",
-      "type": "text",
-      "text": "{\n  \"root\": false,\n  \"actions\": [\n    {\n      \"type\": \"calendar\",\n      \"hasUI\": true,\n      \"description\": \"Timeline\",\n      \"key\": \"timeline\",\n      \"label\": \"Timeline\",\n      \"enableTime\": true\n    }\n  ],\n  \"label\": \"test Features\",\n  \"childrenHeader\": \"\"\n}",
-      "x": -252,
-      "y": 520,
-      "width": 480,
-      "height": 240
-    },
-    {
       "id": "6f8c1e8e4db48802",
       "type": "file",
       "file": "WorkFlow Test/root/Task Note.md",
@@ -126,6 +117,15 @@
       "width": 453,
       "height": 80,
       "color": "#bfa7ec"
+    },
+    {
+      "id": "a650bf5750a438ca",
+      "type": "text",
+      "text": "{\n  \"root\": false,\n  \"actions\": [\n    {\n      \"type\": \"script\",\n      \"hasUI\": false,\n      \"description\": \"pruebas\",\n      \"code\": \"content.addTag(\\\"sds\\\");\\nnote.setTitle(\\\"change the final tittle\\\");\\ncontent.add(\\\"nuevo contenido\\\");\\ncontext.pruebas= \\\"patata\\\";\"\n    },\n    {\n      \"type\": \"script\",\n      \"hasUI\": false,\n      \"description\": \"contextlog\",\n      \"code\": \"console.log(context);\"\n    }\n  ],\n  \"label\": \"test Features\",\n  \"childrenHeader\": \"\"\n}",
+      "x": -252,
+      "y": 520,
+      "width": 480,
+      "height": 240
     }
   ],
   "edges": [

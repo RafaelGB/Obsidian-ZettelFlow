@@ -33,7 +33,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setTitle: (title) =>
       set((state) => {
         const { builder } = state;
-        builder.info.setTitle(title);
+        builder.note.setTitle(title);
         return {
           title: title,
           builder,
@@ -43,7 +43,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       const { builder, position } = get();
       if (invalidTitle) {
         new Notice("Title cannot be empty");
-        builder.info.deletePos(position);
+        builder.note.deletePos(position);
         set({ invalidTitle, builder, actionWasTriggered: true });
       } else {
         set({ invalidTitle });
@@ -52,7 +52,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setTargetFolder: (targetFolder) =>
       set((state) => {
         const { builder } = state;
-        builder.info.setTargetFolder(targetFolder);
+        builder.note.setTargetFolder(targetFolder);
         return {
           builder,
         };
@@ -76,7 +76,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           log.debug(`Skipping manageElementInfo for element: ${node.label}`);
           return { builder };
         }
-        builder.info
+        builder.note
           .addPath(node.path, position)
           .setTargetFolder(node.targetFolder);
 
@@ -88,7 +88,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     addAction: (element, result) =>
       set((state) => {
         const { builder } = state;
-        builder.info.addAction(element, result, state.position);
+        builder.note.addAction(element, result, state.position);
         return {
           builder,
           actionWasTriggered: true,
@@ -98,7 +98,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set((state) => {
         const { builder, position } = state;
         const next = position + 1;
-        builder.info.addBackgroundAction(action, next);
+        builder.note.addBackgroundAction(action, next);
         return {
           builder,
           actionWasTriggered: true,
@@ -132,7 +132,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setPatternPrefix: (pattern) =>
       set((state) => {
         const { builder } = state;
-        builder.info.setPattern(pattern);
+        builder.note.setPattern(pattern);
         return {
           builder,
         };

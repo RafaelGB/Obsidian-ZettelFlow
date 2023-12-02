@@ -47,3 +47,4 @@ They will be shown as a list of options to select from. The options are:
 - **[Calendar](./steps/CalendarStep.md)**: A calendar to select a date. The date will be added to the note as a property.
 - **[Backlink](./steps/BacklinkStep.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.
 - **[Tags](./steps/TagsStep.md)**: Add tags to the built-in note template as property.
+- **[Script](./steps/ScriptStep.md)**: Executes a JavaScript script when the workflow is run. Configure the script with the code editor displayed in the settings of the action.

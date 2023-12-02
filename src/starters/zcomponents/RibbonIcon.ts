@@ -38,7 +38,6 @@ export class RibbonIcon extends PluginComponent {
         if (this.plugin.settings.ribbonCanvas) {
             flow = await canvas.flows.update(this.plugin.settings.ribbonCanvas);
         }
-        console.log('flow', flow);
         new SelectorMenuModal(this.plugin.app, this.plugin, flow).open();
     }
 }

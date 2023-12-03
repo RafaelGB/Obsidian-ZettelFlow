@@ -2,6 +2,7 @@ import { Literal } from "architecture/plugin";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
 import { StepBuilderModal } from "zettelkasten";
+import { TFile } from "obsidian";
 
 export type ExecuteInfo = {
     element: FinalElement,
@@ -28,6 +29,7 @@ export interface ICustomZettelAction {
     component(props: WrappedActionBuilderProps): JSX.Element;
     settings: ActionSetting;
     execute(info: ExecuteInfo): Promise<void>;
+    postProcess(info: ExecuteInfo, file: TFile): Promise<void>;
     getIcon(): string;
     getLabel(): string;
 }

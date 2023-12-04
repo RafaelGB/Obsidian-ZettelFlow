@@ -151,7 +151,7 @@ export class FlowImpl implements Flow {
                         break;
                     case "file":
                         const file = await FileService.getFile(node.file);
-                        if (file) {
+                        if (file && file.extension === "md") {
                             const fileNode = FrontmatterService.instance(file);
                             flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge.tooltip));
                         }

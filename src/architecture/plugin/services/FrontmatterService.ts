@@ -46,7 +46,16 @@ export class FrontmatterService {
     }
 
     public getZettelFlowSettings(): StepSettings {
-        return this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY) as StepSettings;
+        const potentialStepSettings = this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY);
+        if (!potentialStepSettings) {
+            return {
+                label: this.file.basename,
+                actions: [],
+                childrenHeader: "",
+                root: false
+            }
+        }
+        return potentialStepSettings as StepSettings;
     }
 
     public async setZettelFlowSettings(settings: StepSettings) {

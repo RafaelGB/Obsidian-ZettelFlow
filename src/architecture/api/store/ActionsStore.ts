@@ -40,7 +40,7 @@ class ActionsStore {
             log.error(`Action ${name} not found`);
             throw new Error(`Action ${name} not found`);
         }
-        return action.defaultAction;
+        return { ...action.defaultAction };
     }
 
     public unregisterAll(): void {

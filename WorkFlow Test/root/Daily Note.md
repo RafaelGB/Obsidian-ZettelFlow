@@ -1,14 +1,47 @@
+<< [[{{previousDay}}|Previous day]] | [[{{nextDay}}|Next day]] >>
+
+## 📊 Daily Metrics: 
+
 ---
-zettelFlowSettings:
-  root: false
-  actions:
-    - type: script
-      hasUI: false
-      description: Set title of today
-      code: |-
-        const today = moment().format("YYYY-MM-DD");
-        note.setTitle(today);
-  label: Daily
-  childrenHeader: ""
-  targetFolder: Daily
+
+**RealWorkHours**::
+
+**GoingOut**::
+
+**GoalAchieved**::
+
+  
+
+## Workflow:
+
 ---
+
+### What did I do [[<%* tR += previousDay; %>|the last day]]?
+
+### What I am going to do today?
+
+### To-do
+
+### What's in my way?
+
+  
+
+## Notes
+
+  
+
+## Links to this day
+
+```dataview
+
+TABLE tags, file.ctime
+
+WHERE dailyLink=[[{{today}}]]
+
+SORT file.ctime DESC
+
+```
+
+---
+
+<< [[{{previousDay}}|Previous day]] | [[{{nextDay}}|Next day]] >>

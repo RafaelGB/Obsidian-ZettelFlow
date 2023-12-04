@@ -51,9 +51,10 @@ export function ActionsManagement(props: ActionsManagementProps) {
           confirmTooltip={t(
             "step_builder_actions_management_add_action_tooltip"
           )}
-          onConfirm={(value) => {
+          onConfirm={(selectedType) => {
             const deepCopy = actions.slice();
-            deepCopy.push(actionsStore.getDefaultActionInfo(value));
+            deepCopy.push(actionsStore.getDefaultActionInfo(selectedType));
+            console.log(deepCopy);
             setActions(deepCopy);
             info.actions = deepCopy;
           }}

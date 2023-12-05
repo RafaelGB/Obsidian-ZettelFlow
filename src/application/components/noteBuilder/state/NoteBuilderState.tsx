@@ -4,7 +4,6 @@ import { NoteBuilderState } from "../model/NoteBuilderModel";
 import { t } from "architecture/lang";
 import { Builder } from "application/notes";
 
-import { Notice } from "obsidian";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
 import goPreviousAction from "./actions/goPreviousAction";
 import infoStep from "./actions/infoState";

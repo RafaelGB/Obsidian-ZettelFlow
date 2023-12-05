@@ -1,4 +1,4 @@
-import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { backlinkSettings } from "./BackLinkSettings";
 import {
   BacklinkComponentResult,
@@ -7,16 +7,16 @@ import {
 import { EditService, FileService } from "architecture/plugin";
 import { BacklinkWrapper } from "./BackLinkComponent";
 import React from "react";
-import { HeadingCache } from "obsidian";
-import { NoteDTO } from "application/notes";
+import { HeadingCache, TFile } from "obsidian";
 import { log } from "architecture";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";
-  defaultAction: Action = {
+  defaultAction = {
     type: this.id,
     hasUI: true,
+    id: this.id,
   };
   settings = backlinkSettings;
 
@@ -24,51 +24,56 @@ export class BackLinkAction extends CustomZettelAction {
     return <BacklinkWrapper {...props} />;
   }
 
-  async execute(info: ExecuteInfo) {
+  async postProcess(info: ExecuteInfo, file: TFile) {
     if (info.element.result) {
-      await this.dynamicConstructor(info);
+      await this.dynamicConstructor(info, file);
     } else {
-      await this.defaultConstructor(info);
+      await this.defaultConstructor(info, file);
     }
   }
 
-  private async dynamicConstructor(info: ExecuteInfo) {
-    const { element, note } = info;
+  private async dynamicConstructor(info: ExecuteInfo, source: TFile) {
+    const { element } = info;
     const { file, heading, regex } = element.result as BacklinkComponentResult;
 
-    await this.insertHeading(regex, file, heading, note);
+    await this.insertHeading(regex, file, heading, source);
   }
 
-  private async defaultConstructor(info: ExecuteInfo) {
-    const { element, note } = info;
+  private async defaultConstructor(info: ExecuteInfo, source: TFile) {
+    const { element } = info;
     const {
       defaultFile,
       insertPattern = "{{wikilink}}",
       defaultHeading,
     } = element as BacklinkElement;
     // Insert
-    await this.insertHeading(insertPattern, defaultFile, defaultHeading, note);
+    await this.insertHeading(
+      insertPattern,
+      defaultFile,
+      defaultHeading,
+      source
+    );
   }
 
   private async insertHeading(
     insertPattern: string,
     file: string | undefined,
     heading: HeadingCache | undefined,
-    note: NoteDTO
+    source: TFile
   ) {
     if (!file) {
-      log.error(`Target file is undefined for ${note.getTitle()}`);
+      log.error(`Target file is undefined for ${source.basename}`);
       return;
     }
 
     if (!heading) {
-      log.error(`Target heading is undefined for ${note.getTitle()}`);
+      log.error(`Target heading is undefined for ${source.basename}`);
       return;
     }
 
     const mdLink = `\n${insertPattern.replace(
       "{{wikilink}}",
-      `[[${note.getTitle()}]]`
+      `[[${source.basename}]]`
     )}\n`;
 
     if (file && heading) {

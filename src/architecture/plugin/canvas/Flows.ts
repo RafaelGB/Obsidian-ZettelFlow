@@ -7,6 +7,7 @@ import { YamlService } from "../services/YamlService";
 import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
 import { getCanvasColor } from "./shared/Color";
+import { canvasJsonFormatter } from "./formatter";
 
 type EdgeInfo = {
     key: string;
@@ -151,7 +152,7 @@ export class FlowImpl implements Flow {
                         break;
                     case "file":
                         const file = await FileService.getFile(node.file);
-                        if (file) {
+                        if (file && file.extension === "md") {
                             const fileNode = FrontmatterService.instance(file);
                             flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge.tooltip));
                         }
@@ -164,7 +165,7 @@ export class FlowImpl implements Flow {
 
     private async save() {
         await ObsidianApi.vault()
-            .modify(this.file, JSON.stringify(this.data, null, 2))
+            .modify(this.file, canvasJsonFormatter(this.data))
             .catch(error => {
                 const errorString = `Error saving canvas on ${this.file.path}: ${error}`;
                 log.error(errorString);

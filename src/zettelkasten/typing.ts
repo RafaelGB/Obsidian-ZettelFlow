@@ -41,19 +41,12 @@ export type SectionInfo = {
 }
 export type ZoneOption = 'frontmatter' | 'body';
 
-export type SectionElement = {
-    type: string,
-    hasUI?: boolean,
-    label?: string,
-    [key: string]: Literal,
-}
-
 
 export type AditionBaseElement = {
     key: string,
     label: string,
     zone: ZoneOption,
-} & SectionElement;
+} & Action;
 
 export type PromptElement = {
     placeholder: string,

@@ -49,6 +49,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
       }
     }
     setOptionsState(newOptionsState);
+    props.action.options = Object.fromEntries(newOptionsState);
   };
 
   const deleteOptionCallback = useCallback(
@@ -56,7 +57,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
       const newOptionsState = [...optionsState];
       newOptionsState.splice(index, 1);
       setOptionsState(newOptionsState);
-      action.options = Object.fromEntries(newOptionsState);
+      props.action.options = Object.fromEntries(newOptionsState);
     },
     [optionsState]
   );
@@ -68,7 +69,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
   ) => {
     optionsState[index] = [frontmatter, label];
     setOptionsState(optionsState);
-    action.options = Object.fromEntries(optionsState);
+    props.action.options = Object.fromEntries(optionsState);
   };
 
   const managerMemo = useMemo(() => {
@@ -100,7 +101,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
           {optionsState.map(([key, value], index) => {
             return (
               <OptionItem
-                key={action.id}
+                key={`${key}-${index}`}
                 frontmatter={key}
                 isDefault={defaultOptionState === key}
                 label={value}
@@ -109,7 +110,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
                 updateOptionInfoCallback={updateOptionInfoCallback}
                 changeDefaultCallback={(defaultOption) => {
                   setDefaultOptionState(defaultOption);
-                  action.defaultOption = defaultOption;
+                  props.action.defaultOption = defaultOption;
                 }}
               />
             );

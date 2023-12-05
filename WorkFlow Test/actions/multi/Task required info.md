@@ -17,6 +17,7 @@ zettelFlowSettings:
       defaultOption: "3"
       hasUI: true
       description: Priority of the task
+      id: a794cc92-1a18-4058-9add-ad61fcdfe3dd
     - type: prompt
       key: description
       label: description of the task
@@ -26,6 +27,7 @@ zettelFlowSettings:
       hasUI: true
       description: Description of the task
       zone: body
+      id: 2247ff92-853e-4c29-8e29-69049352de1e
     - type: backlink
       hasDefault: true
       defaultFile: WorkFlow Test/kanban/Backlinks Kanban.md
@@ -44,11 +46,13 @@ zettelFlowSettings:
       hasUI: false
       insertPattern: "- [ ] {{wikilink}}"
       description: Add task to Kanban
+      id: a8dc7f0b-a945-421b-b00a-c419ccc9d168
     - type: calendar
       description: Deadline of the task
       key: deadline
       label: Deadline
       hasUI: true
+      id: 6d981cca-074b-4694-86de-38c9cd7a4b9e
   targetFolder: zettelFlow/tasks
 ---
 # Description

@@ -9,11 +9,16 @@ zettelFlowSettings:
       key: priority
       label: choose a priority
       options:
-        "1": The most important thing
-        "2": Urgent
-        "3": Moderate
-        "4": Minor
-        "5": Trivial
+        - - "1"
+          - The most important thing
+        - - "2"
+          - Urgent
+        - - "3"
+          - Moderate
+        - - "4"
+          - Minor
+        - - "5"
+          - Trivial
       defaultOption: "3"
       hasUI: true
       description: Priority of the task

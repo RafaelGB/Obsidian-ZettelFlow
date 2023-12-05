@@ -455,11 +455,15 @@ textarea {
   margin-right: 10px;
 }
 
+.zettelkasten-flow__accordion-header-actions {
+  display: inherit;
+  gap: 10px;
+}
+
 .zettelkasten-flow__accordion-header-actions button {
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 10px;
 }
 
 .zettelkasten-flow__accordion-header-actions button:focus {

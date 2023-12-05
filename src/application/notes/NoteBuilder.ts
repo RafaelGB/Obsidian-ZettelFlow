@@ -1,4 +1,4 @@
-import { ObsidianApi, log } from "architecture";
+import { FatalError, ObsidianApi, log } from "architecture";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService } from "architecture/plugin";
 import moment from "moment";
@@ -89,7 +89,7 @@ export class NoteBuilder {
 
   private async errorManagement() {
     if (!this.note.getTitle()) {
-      throw new Error("Note title is empty");
+      throw new FatalError("Note title is empty").setCode(FatalError.INVALID_TITLE);
     }
   }
 }

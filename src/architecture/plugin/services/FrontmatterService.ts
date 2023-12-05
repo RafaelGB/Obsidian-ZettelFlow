@@ -44,6 +44,9 @@ export class FrontmatterService {
     public get() {
         return this.metadata;
     }
+    public hasZettelFlowSettings(): boolean {
+        return this.contains(FrontmatterService.FRONTMATTER_SETTINGS_KEY);
+    }
 
     public getZettelFlowSettings(): StepSettings {
         const potentialStepSettings = this.getProperty(FrontmatterService.FRONTMATTER_SETTINGS_KEY);

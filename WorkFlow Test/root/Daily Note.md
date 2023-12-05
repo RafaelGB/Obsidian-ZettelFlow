@@ -1,34 +1,13 @@
 << [[{{previousDay}}|Previous day]] | [[{{nextDay}}|Next day]] >>
-
-## 📊 Daily Metrics: 
-
----
-
-**RealWorkHours**::
-
-**GoingOut**::
-
-**GoalAchieved**::
-
-  
-
-## Workflow:
-
----
-
-### What did I do [[<%* tR += previousDay; %>|the last day]]?
+## Workflow
+### What did I do [[{{previousDay}}|the last day]]?
 
 ### What I am going to do today?
 
-### To-do
-
 ### What's in my way?
 
-  
+## TO DO
 
-## Notes
-
-  
 
 ## Links to this day
 

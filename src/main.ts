@@ -65,10 +65,11 @@ export default class ZettelFlow extends Plugin {
 					);
 				} else if (file instanceof TFile) {
 					if (file.extension === "md") {
-						const zettelFlowSettings = FrontmatterService.instance(file).getZettelFlowSettings();
+						const fileService = FrontmatterService.instance(file);
 						let mappedInfo = {};
 						let title = t("menu_pane_transform_note_into_step");
-						if (zettelFlowSettings) {
+						if (fileService.hasZettelFlowSettings()) {
+							const zettelFlowSettings = fileService.getZettelFlowSettings();
 							mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
 							menu.addItem((item) => {
 								// Remove step configuration
@@ -76,7 +77,7 @@ export default class ZettelFlow extends Plugin {
 									.setTitle(t("menu_pane_remove_step_configuration"))
 									.setIcon(RibbonIcon.ID)
 									.onClick(async () => {
-										await FrontmatterService.instance(file).removeStepSettings();
+										await fileService.removeStepSettings();
 										new Notice("Step configuration removed!");
 									});
 							}).addItem((item) => {
@@ -115,7 +116,7 @@ export default class ZettelFlow extends Plugin {
 									.setTitle(t("menu_pane_paste_step_configuration"))
 									.setIcon(RibbonIcon.ID)
 									.onClick(async () => {
-										await FrontmatterService.instance(file).setZettelFlowSettings(clipboardSettings);
+										await fileService.setZettelFlowSettings(clipboardSettings);
 										new Notice("Step configuration pasted!");
 									});
 								// Clear canvas clipboard cache

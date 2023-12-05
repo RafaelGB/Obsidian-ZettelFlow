@@ -100,7 +100,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
           {optionsState.map(([key, value], index) => {
             return (
               <OptionItem
-                key={`option-${index}-${key}`}
+                key={action.id}
                 frontmatter={key}
                 isDefault={defaultOptionState === key}
                 label={value}

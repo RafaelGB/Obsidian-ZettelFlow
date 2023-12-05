@@ -1,10 +1,11 @@
-import { ObsidianApi, log } from "architecture";
+import { FatalError, ObsidianApi, log } from "architecture";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService } from "architecture/plugin";
 import moment from "moment";
 import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
 import { actionsStore } from "architecture/api";
+import { TFile } from "obsidian";
 
 export class Builder {
   public static default(): NoteBuilder {
@@ -24,10 +25,13 @@ export class NoteBuilder {
     log.trace(`Builder: building note ${this.note.getTitle()} in folder ${this.note.getTargetFolder()}. paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
     this.note.setTitle(this.buildFilename());
     await this.buildNote();
+    await this.errorManagement();
+
     const generatedFile = await FileService.createFile(this.note.getFinalPath(), this.content.get(), false);
     await FrontmatterService
       .instance(generatedFile)
       .processFrontMatter(this.content);
+    await this.postProcess(generatedFile);
     return generatedFile.path;
   }
 
@@ -54,7 +58,6 @@ export class NoteBuilder {
       this.content.add(await service.getContent());
     }
     await this.manageElements();
-    await this.postProcess();
   }
 
   private async manageElements() {
@@ -68,9 +71,25 @@ export class NoteBuilder {
     }
   }
 
-  private async postProcess() {
+  private async postProcess(file: TFile) {
+    for (const [, element] of this.note.getElements()) {
+      log.trace(`Builder: processing element ${element.type}`);
+
+      const context = {};
+
+      await actionsStore
+        .getAction(element.type)
+        .postProcess({ element, content: this.content, note: this.note, context: context }, file);
+    }
+
     setTimeout(() => {
       ObsidianApi.executeCommandById('templater-obsidian:replace-in-file-templater');
     }, 1000);
+  }
+
+  private async errorManagement() {
+    if (!this.note.getTitle()) {
+      throw new FatalError("Note title is empty").setCode(FatalError.INVALID_TITLE);
+    }
   }
 }

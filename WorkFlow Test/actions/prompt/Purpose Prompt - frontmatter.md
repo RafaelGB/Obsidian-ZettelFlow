@@ -11,4 +11,5 @@ zettelFlowSettings:
       label: Purpose of your note
       zone: frontmatter
       hasUI: true
+      id: 0c14429f-9a74-4bc8-9ae1-7e5367414a0e
 ---

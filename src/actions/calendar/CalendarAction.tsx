@@ -13,6 +13,7 @@ export class CalendarAction extends CustomZettelAction {
   defaultAction: Action = {
     type: this.id,
     hasUI: true,
+    id: this.id,
   };
   settings = calendarSettings;
 

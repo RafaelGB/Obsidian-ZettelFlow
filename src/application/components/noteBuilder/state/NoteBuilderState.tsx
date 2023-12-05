@@ -4,7 +4,6 @@ import { NoteBuilderState } from "../model/NoteBuilderModel";
 import { t } from "architecture/lang";
 import { Builder } from "application/notes";
 
-import { Notice } from "obsidian";
 import setSelectionElementAction from "./actions/setSelectionElementAction";
 import goPreviousAction from "./actions/goPreviousAction";
 import infoStep from "./actions/infoState";
@@ -42,7 +41,6 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setInvalidTitle: (invalidTitle) => {
       const { builder, position } = get();
       if (invalidTitle) {
-        new Notice("Title cannot be empty");
         builder.note.deletePos(position);
         set({ invalidTitle, builder, actionWasTriggered: true });
       } else {

@@ -30,6 +30,7 @@ export class StepBuilderModal extends Modal {
 
     onOpen(): void {
         const span = activeDocument.createElement("span", {});
+        this.contentEl.parentElement?.style.setProperty("width", "100%");
         span.setText(` (${this.mode})`);
         // Header with title and subtitle with the mode
         this.info.contentEl.createEl("h2", { text: t("step_builder_title") })
@@ -71,7 +72,7 @@ export class StepBuilderModal extends Modal {
             await canvas.flows.update(path);
             await canvas.flows
                 .get(path)
-                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings, null, 2));
+                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
         } else {
             log.error(`Node id not found on embed mode`);
         }

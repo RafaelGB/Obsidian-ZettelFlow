@@ -2,6 +2,7 @@ import { autocompletion, CompletionContext, CompletionResult } from "@codemirror
 import { coreCompletions } from "./config/CoreObjs";
 import { contentCompletions } from "./config/ContentFns";
 import { noteCompletions } from "./config/NoteFns";
+import { appCompletions } from "./config/AppFns";
 
 
 function customCompletionProvider(context: CompletionContext): CompletionResult | null {
@@ -22,6 +23,8 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
         completions = noteCompletions;
     } else if (context.matchBefore(/content\.\w*$/)) {
         completions = contentCompletions;
+    } else if (context.matchBefore(/app\.\w*$/)) {
+        completions = appCompletions;
     } else {
         return null; // No completions
     }

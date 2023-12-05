@@ -13,6 +13,7 @@ export class SelectorAction extends CustomZettelAction {
   defaultAction = {
     type: this.id,
     hasUI: true,
+    id: this.id,
   };
   settings = elementTypeSelectorSettings;
   constructor() {

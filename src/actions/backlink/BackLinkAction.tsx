@@ -1,4 +1,4 @@
-import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { backlinkSettings } from "./BackLinkSettings";
 import {
   BacklinkComponentResult,
@@ -13,9 +13,10 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";
-  defaultAction: Action = {
+  defaultAction = {
     type: this.id,
     hasUI: true,
+    id: this.id,
   };
   settings = backlinkSettings;
 

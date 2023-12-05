@@ -8,5 +8,6 @@ export type ActionsManagementProps = {
 export type ActionAccordionProps = {
     modal: StepBuilderModal,
     action: Action,
+    index: number,
     onRemove: () => void,
 };

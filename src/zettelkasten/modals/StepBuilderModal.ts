@@ -72,7 +72,7 @@ export class StepBuilderModal extends Modal {
             await canvas.flows.update(path);
             await canvas.flows
                 .get(path)
-                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings, null, 2));
+                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
         } else {
             log.error(`Node id not found on embed mode`);
         }

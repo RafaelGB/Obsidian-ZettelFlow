@@ -175,7 +175,7 @@ export default class ZettelFlow extends Plugin {
 								.setSection('pane')
 								.onClick(async () => {
 									const flow = await canvas.flows.update(file.path);
-									flow.editTextNode(node.id, JSON.stringify(clipboardSettings, null, 2));
+									flow.editTextNode(node.id, JSON.stringify(clipboardSettings));
 									new Notice("Embed pasted!");
 								})
 

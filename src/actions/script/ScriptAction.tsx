@@ -1,4 +1,4 @@
-import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
 import { CodeElement } from "./typing";
 import { log } from "architecture";
@@ -6,9 +6,10 @@ import { log } from "architecture";
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
   id = "script";
-  defaultAction: Action = {
+  defaultAction = {
     type: this.id,
     hasUI: false,
+    id: this.id,
   };
   settings = scriptSettings;
 

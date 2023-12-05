@@ -13,6 +13,7 @@ export type ExecuteInfo = {
 
 export type Action = {
     type: string;
+    id: string;
     description?: string;
     hasUI?: boolean;
     [key: string]: Literal;

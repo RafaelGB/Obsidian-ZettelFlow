@@ -1,4 +1,4 @@
-import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React from "react";
 import { promptSettings } from "./PromptSettings";
@@ -11,9 +11,10 @@ import { log } from "architecture";
 export class PromptAction extends CustomZettelAction {
   private static ICON = "zettelflow-prompt-icon";
   id = "prompt";
-  defaultAction: Action = {
+  defaultAction = {
     type: this.id,
     hasUI: true,
+    id: this.id,
   };
   settings = promptSettings;
   constructor() {

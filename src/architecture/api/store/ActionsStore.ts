@@ -1,6 +1,7 @@
 import { log } from "architecture";
 import { CustomZettelAction } from "../CustomZettelAction";
 import { Action } from "../typing";
+import { v4 as uuidv4 } from 'uuid';
 
 class ActionsStore {
     private static instance: ActionsStore;
@@ -40,7 +41,12 @@ class ActionsStore {
             log.error(`Action ${name} not found`);
             throw new Error(`Action ${name} not found`);
         }
-        return { ...action.defaultAction };
+        const defaultAction: Action = {
+            ...action.defaultAction,
+            id: uuidv4()
+        };
+
+        return defaultAction;
     }
 
     public unregisterAll(): void {

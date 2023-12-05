@@ -428,7 +428,7 @@ textarea {
   border: 1px solid var(--background-secondary);
   border-radius: 4px;
   margin-bottom: 10px;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.2s ease;
   opacity: 1;
 }
 
@@ -473,7 +473,7 @@ textarea {
 .zettelkasten-flow__accordion-body {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease-out, opacity 0.2s ease-out;
+  transition: max-height 0.2s ease-out, opacity 0.1s ease-out;
   opacity: 0;
 }
 

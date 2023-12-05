@@ -6,7 +6,7 @@ import { ActionSelector } from "../ActionSelector";
 import React from "react";
 import { ElementSelector } from "../ElementSelector";
 import { Notice } from "obsidian";
-import { log } from "architecture";
+import { FatalError, WarningError, ZettelError, log } from "architecture";
 import { FileService } from "architecture/plugin";
 import { FlowNode } from "architecture/plugin/canvas";
 
@@ -101,10 +101,51 @@ export async function manageElement(
         modal.close();
         FileService.openFile(path);
       })
-      .catch((error) => {
+      .catch((error: ZettelError) => {
         log.error(error);
-        new Notice(`Error building note: ${error.message}`);
+        switch (error.getType()) {
+          case ZettelError.WARNING_TYPE: {
+            new Notice(`Error building note: ${error.message}`);
+            manageWarningError(actions, error);
+          }
+          case ZettelError.FATAL_TYPE: {
+            actions.setInvalidTitle(true);
+            new Notice(`Fatal error: ${error.message}`);
+            manageFatalError(actions, error);
+            break;
+          }
+          default: {
+            new Notice(`Not controlled error: ${error.message}`);
+            modal.close();
+          }
+        }
         actions.setInvalidTitle(true);
       });
+  }
+}
+
+function manageFatalError(
+  actions: CallbackPickedState["actions"],
+  error: FatalError
+) {
+  switch (error.getCode()) {
+    case FatalError.INVALID_TITLE: {
+      actions.setInvalidTitle(true);
+      break;
+    }
+    default: {
+      log.warn("Unknown fatal error");
+    }
+  }
+}
+
+function manageWarningError(
+  _: CallbackPickedState["actions"],
+  error: WarningError
+) {
+  switch (error.getCode()) {
+    default: {
+      log.warn("Unknown fatal error");
+    }
   }
 }

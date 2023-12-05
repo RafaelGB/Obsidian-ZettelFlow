@@ -1,6 +1,6 @@
 import { Menu, TFolder } from "obsidian";
 import { Action } from "architecture/api";
-import { Literal, ZettelNodeType } from "architecture/plugin"
+import { ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
 
 export type StepBuilderInfo = {

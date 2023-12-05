@@ -9,14 +9,17 @@ import { SELECTOR_DND_ID } from "./utils/Identifiers";
 import { OptionItem } from "./OptionItem";
 export function SelectorDnD(props: SelectorDnDProps) {
   const { action, root } = props;
-  const { options = {}, defaultOption } = action as SelectorElement;
+  // LEGACY: This is to keep the id of the action
+  if (!Array.isArray(props.action.options)) {
+    props.action.options = Object.entries(
+      props.action.options as Record<string, string>
+    );
+  }
+  // END LEGACY
+  const { options = [], defaultOption } = action as SelectorElement;
+
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
-  const [optionsState, setOptionsState] = useState(Object.entries(options));
-  useEffect(() => {
-    return () => {
-      action.options = Object.fromEntries(optionsState);
-    };
-  }, [optionsState]);
+  const [optionsState, setOptionsState] = useState(options);
 
   useEffect(() => {
     return () => {
@@ -49,6 +52,8 @@ export function SelectorDnD(props: SelectorDnDProps) {
       }
     }
     setOptionsState(newOptionsState);
+    console.log(newOptionsState);
+    props.action.options = newOptionsState;
   };
 
   const deleteOptionCallback = useCallback(
@@ -56,7 +61,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
       const newOptionsState = [...optionsState];
       newOptionsState.splice(index, 1);
       setOptionsState(newOptionsState);
-      action.options = Object.fromEntries(newOptionsState);
+      props.action.options = newOptionsState;
     },
     [optionsState]
   );
@@ -68,7 +73,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
   ) => {
     optionsState[index] = [frontmatter, label];
     setOptionsState(optionsState);
-    action.options = Object.fromEntries(optionsState);
+    props.action.options = optionsState;
   };
 
   const managerMemo = useMemo(() => {
@@ -89,7 +94,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
             `newOption ${newOptionsState.length}`,
           ]);
           setOptionsState(newOptionsState);
-          action.options = Object.fromEntries(newOptionsState);
+          action.options = newOptionsState;
         }}
         aria-label="Add option"
       >
@@ -100,7 +105,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
           {optionsState.map(([key, value], index) => {
             return (
               <OptionItem
-                key={action.id}
+                key={`${key}-${index}`}
                 frontmatter={key}
                 isDefault={defaultOptionState === key}
                 label={value}
@@ -109,7 +114,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
                 updateOptionInfoCallback={updateOptionInfoCallback}
                 changeDefaultCallback={(defaultOption) => {
                   setDefaultOptionState(defaultOption);
-                  action.defaultOption = defaultOption;
+                  props.action.defaultOption = defaultOption;
                 }}
               />
             );

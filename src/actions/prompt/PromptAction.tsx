@@ -29,13 +29,16 @@ export class PromptAction extends CustomZettelAction {
   }
 
   async execute(info: ExecuteInfo) {
-    const { element } = info;
+    const { element, context } = info;
     const { key, zone, result } = element;
     log.debug(`Prompt action: ${key} ${zone} ${result}`);
     if (TypeService.isString(key) && TypeService.isString(result)) {
       switch (zone) {
         case "body":
           info.content.modify(key, result);
+          break;
+        case "context":
+          context[key] = result;
           break;
         case "frontmatter":
         default:

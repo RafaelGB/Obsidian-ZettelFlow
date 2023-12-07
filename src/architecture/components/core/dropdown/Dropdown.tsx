@@ -22,7 +22,7 @@ export function Dropdown(props: DropdownType) {
         }}
         value={value}
       >
-        {Object.entries(options).map(([key, label], index) => {
+        {options.map(([key, label], index) => {
           return (
             <option key={`dropdown-${key}-${index}`} value={key}>
               {label}
@@ -36,7 +36,7 @@ export function Dropdown(props: DropdownType) {
           if (TypeService.isString(value)) {
             onConfirm(value);
           } else {
-            const value = Object.keys(options)[0];
+            const value = options[0][0];
             setValue(value);
             onConfirm(value);
           }

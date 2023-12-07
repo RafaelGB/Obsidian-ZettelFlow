@@ -8,7 +8,7 @@ export type ExecuteInfo = {
     element: FinalElement,
     content: ContentDTO,
     note: NoteDTO,
-    context: Object
+    context: Record<string, Literal>,
 }
 
 export type Action = {

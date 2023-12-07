@@ -29,6 +29,7 @@ export const elementTypeSelectorSettings: ActionSetting = (
           t("step_builder_element_type_zone_frontmatter")
         )
         .addOption("body", t("step_builder_element_type_zone_body"))
+        .addOption("context", t("step_builder_element_type_zone_context"))
         .setValue(zone !== undefined ? (zone as string) : "frontmatter")
         .onChange(async (value) => {
           action.zone = value;

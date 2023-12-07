@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export type DropdownType = {
     defaultValue?: string;
-    options: Record<string, string>;
+    options: [string, string][];
     confirmNode?: ReactNode;
     confirmTooltip?: string;
     className?: string[];

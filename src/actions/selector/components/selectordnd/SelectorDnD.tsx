@@ -52,7 +52,6 @@ export function SelectorDnD(props: SelectorDnDProps) {
       }
     }
     setOptionsState(newOptionsState);
-    console.log(newOptionsState);
     props.action.options = newOptionsState;
   };
 

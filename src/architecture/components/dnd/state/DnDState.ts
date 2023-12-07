@@ -13,10 +13,13 @@ export const useDnDManager = create<DnDManagerState>((set, get) => ({
         addScope: (uniqueId: string, manager: AbstractDndManager) => {
             const { scopes } = get();
             if (scopes.has(uniqueId)) {
-                return false;
+                log.debug(`Scope ${uniqueId} already exists. Replacing.`);
+                scopes.delete(uniqueId);
             }
+            log.debug(`Adding scope ${uniqueId}`);
             scopes.set(uniqueId, manager);
             set({ scopes: scopes });
+
             return true;
         },
         removeScope: (uniqueId: string) => {

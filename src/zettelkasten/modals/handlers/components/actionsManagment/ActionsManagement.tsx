@@ -44,10 +44,10 @@ export function ActionsManagement(props: ActionsManagementProps) {
     info.actions = newOptionsState;
   };
 
-  const actionsMemo: Record<string, string> = useMemo(() => {
-    const record: Record<string, string> = {};
+  const actionsMemo: [string, string][] = useMemo(() => {
+    const record: [string, string][] = [];
     actionsStore.getActionsKeys().forEach((key) => {
-      record[key] = actionsStore.getAction(key).getLabel();
+      record.push([key, actionsStore.getAction(key).getLabel()]);
     });
     return record;
   }, []);

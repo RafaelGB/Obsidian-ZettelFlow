@@ -14,6 +14,7 @@ export class Builder {
 }
 
 export class NoteBuilder {
+  public context = {};
   public note;
   private content;
   constructor() {
@@ -62,12 +63,11 @@ export class NoteBuilder {
 
   private async manageElements() {
     log.debug(`Builder: ${this.note.getElements().size} elements to process`);
-    const context = {};
     for (const [, element] of this.note.getElements()) {
       log.trace(`Builder: processing element ${element.type}`);
       await actionsStore
         .getAction(element.type)
-        .execute({ element, content: this.content, note: this.note, context: context });
+        .execute({ element, content: this.content, note: this.note, context: this.context });
     }
   }
 
@@ -75,11 +75,9 @@ export class NoteBuilder {
     for (const [, element] of this.note.getElements()) {
       log.trace(`Builder: processing element ${element.type}`);
 
-      const context = {};
-
       await actionsStore
         .getAction(element.type)
-        .postProcess({ element, content: this.content, note: this.note, context: context }, file);
+        .postProcess({ element, content: this.content, note: this.note, context: this.context }, file);
     }
 
     setTimeout(() => {

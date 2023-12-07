@@ -90,6 +90,7 @@ export default {
     step_builder_element_type_zone_description: 'Choose where you want to place the element.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',
     step_builder_element_type_zone_body: 'Body',
+    step_builder_element_type_zone_context: 'Context',
     step_builder_element_type_tags_description: 'This action will display a tags selector to add tags to the built-in note.',
     step_builder_element_type_script_title: 'Element type script options',
     step_builder_element_type_script_description: 'Choose the options for the script element.',

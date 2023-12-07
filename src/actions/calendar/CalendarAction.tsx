@@ -29,12 +29,15 @@ export class CalendarAction extends CustomZettelAction {
   }
 
   async execute(info: ExecuteInfo) {
-    const { content, element } = info;
+    const { content, element, context } = info;
     const { result, key, zone } = element;
     if (TypeService.isString(key) && TypeService.isDate(result)) {
       switch (zone) {
         case "body":
           content.modify(key, result.toISOString());
+          break;
+        case "context":
+          context[key] = result;
           break;
         case "frontmatter":
         default:

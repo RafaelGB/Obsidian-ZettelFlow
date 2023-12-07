@@ -89,6 +89,7 @@ export default {
     step_builder_element_type_zone_description: 'Elige dónde quieres colocar el elemento.',
     step_builder_element_type_zone_frontmatter: 'Frontmatter',
     step_builder_element_type_zone_body: 'Cuerpo',
+    step_builder_element_type_zone_context: 'Contexto',
     step_builder_element_type_tags_description: 'Esta acción añadirá las etiquetas que elijas a la nota en construcción.',
     step_builder_element_type_script_title: 'Opciones del elemento script',
     step_builder_element_type_script_description: 'Elige las opciones para el elemento script.',

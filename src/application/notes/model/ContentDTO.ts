@@ -1,3 +1,4 @@
+import { log } from "architecture";
 import { Literal } from "architecture/plugin";
 import { TypeService } from "architecture/typing";
 
@@ -28,6 +29,7 @@ export class ContentDTO {
             new RegExp(`{{${key}}}`, "g"),
             result
         );
+        log.debug(`ContentDTO: modified content with key: {{${key}}} and result: ${result}`);
     }
 
     public hasTags(): boolean {

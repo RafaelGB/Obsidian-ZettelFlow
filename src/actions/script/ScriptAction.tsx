@@ -19,20 +19,22 @@ export class ScriptAction extends CustomZettelAction {
       const { content, note, context } = info;
       const { code } = element;
 
-      const fullFunction = `
-      (async function(element, content, note, context){
-        ${code}
-      })(element, content, note, context);
-    `;
+      const AsyncFunction = Object.getPrototypeOf(
+        async function () {}
+      ).constructor;
 
-      const func = new Function(
+      const fnBody = `return (async () => {
+        ${code}
+      })(element, content, note, context);`;
+
+      const scriptFn = new AsyncFunction(
         "element",
         "content",
         "note",
         "context",
-        fullFunction
+        fnBody
       );
-      await func(element, content, note, context);
+      await scriptFn(element, content, note, context);
     } catch (error) {
       log.error(`Error executing script: ${error}`);
     }

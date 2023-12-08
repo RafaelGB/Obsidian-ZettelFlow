@@ -28,7 +28,9 @@ export class NoteBuilder {
     await this.buildNote();
     await this.errorManagement();
 
+    log.debug(`Builder: creating file ${this.note.getFinalPath()}`);
     const generatedFile = await FileService.createFile(this.note.getFinalPath(), this.content.get(), false);
+
     await FrontmatterService
       .instance(generatedFile)
       .processFrontMatter(this.content);

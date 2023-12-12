@@ -13,7 +13,7 @@ export function Header() {
   return (
     <div className={c("header")}>
       <button
-        placeholder={"Go to previous section"}
+        title={"Go to previous section"}
         disabled={disablePrevious}
         onClick={() => {
           actions.goPrevious();

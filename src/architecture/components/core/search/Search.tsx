@@ -1,17 +1,15 @@
 import { c } from "architecture";
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { useRef } from "react";
 import { SearchType } from "./typing";
-import {
-  useOnClickAway,
-  useScrollToSelected,
-  useVisibleModalOverflow,
-} from "architecture/hooks";
+import { useOnClickAway, useScrollToSelected } from "architecture/hooks";
+import ReactDOM from "react-dom";
 
 export function Search<T>(props: SearchType<T>) {
   const { onChange, options, placeholder } = props;
   // Refs
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   // States
   const [value, setValue] = useState<string>("");
@@ -20,20 +18,82 @@ export function Search<T>(props: SearchType<T>) {
   const [filteredOptions, setFilteredOptions] =
     useState<Record<string, T>>(options);
   const [visibleOptions, setVisibleOptions] = useState<boolean>(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [optionsHeight, setOptionsHeight] = useState(0);
 
   // Hooks
-  useOnClickAway(ref, () => {
+  useOnClickAway(listRef, () => {
     setVisibleOptions(false);
     setValue(selectedValue);
     setSelectedIndex(0);
   });
-  useVisibleModalOverflow([selectedValue]);
   useScrollToSelected(listRef, selectedIndex);
+
+  useLayoutEffect(() => {
+    if (visibleOptions && listRef.current) {
+      setOptionsHeight(listRef.current.offsetHeight);
+    }
+  }, [visibleOptions, listRef.current]);
+
+  useEffect(() => {
+    if (visibleOptions && inputRef.current) {
+      const inputRect = inputRef.current.getBoundingClientRect();
+      const espacioAbajo = window.innerHeight - inputRect.bottom;
+      const espacioArriba = inputRect.top;
+
+      let top;
+      if (espacioAbajo >= optionsHeight || espacioAbajo > espacioArriba) {
+        top = inputRect.bottom; // Colocar debajo
+      } else {
+        top = inputRect.top - optionsHeight; // Colocar arriba
+      }
+
+      setPosition({
+        top: top,
+        left: inputRect.left,
+        width: inputRect.width,
+      });
+    }
+  }, [visibleOptions, optionsHeight, inputRef.current]);
+
+  const searchOptionsFn = (
+    <ul
+      className={c("search-results")}
+      ref={listRef}
+      style={{
+        top: position.top,
+        left: position.left,
+        width: position.width,
+      }}
+    >
+      {Object.entries(filteredOptions).map(([key, value], index) => (
+        <li
+          tabIndex={index}
+          onClick={() => {
+            setValue(key);
+            setSelectedValue(key);
+            setFilteredOptions(filterRecordByKey(options, key));
+            onChange(value);
+            // blur of input
+            ref.current?.querySelector("input")?.blur();
+            setVisibleOptions(false);
+          }}
+          key={`option-${index}-${key}`}
+          className={
+            index === selectedIndex ? c("search-selected") : c("search-hidden")
+          }
+        >
+          {key}
+        </li>
+      ))}
+    </ul>
+  );
 
   // Render
   return (
     <div ref={ref}>
       <input
+        ref={inputRef}
         type="search"
         value={value}
         onChange={(e) => {
@@ -87,31 +147,9 @@ export function Search<T>(props: SearchType<T>) {
         }}
         placeholder={placeholder}
       />
-      {visibleOptions && (
-        <ul className={c("search-results")} ref={listRef}>
-          {Object.entries(filteredOptions).map(([key, value], index) => (
-            <li
-              tabIndex={index}
-              onClick={() => {
-                setValue(key);
-                setSelectedValue(key);
-                setFilteredOptions(filterRecordByKey(options, key));
-                onChange(value);
-                // blur of input
-                ref.current?.querySelector("input")?.blur();
-                setVisibleOptions(false);
-              }}
-              key={`option-${index}-${key}`}
-              className={
-                index === selectedIndex
-                  ? c("search-selected")
-                  : c("search-hidden")
-              }
-            >
-              {key}
-            </li>
-          ))}
-        </ul>
+      {ReactDOM.createPortal(
+        visibleOptions ? searchOptionsFn : null,
+        activeDocument.body
       )}
     </div>
   );

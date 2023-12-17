@@ -29,8 +29,10 @@
 /*****************
 *   BASIC STYLES
 ******************/
-.zettelkasten-flow__visible-overflow {
-  overflow: visible;
+.zettelkasten-flow__display-overflow {
+  position: fixed;
+  z-index: 9999;
+  top: 0;
 }
 
 .zettelkasten-flow__display-grid {
@@ -304,10 +306,11 @@ textarea {
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px; /* rounded corners */
   box-shadow: 0 2px 5px var(--background-modifier-border); /* drop shadow */
-  max-height: 200px;
-  overflow-y: auto;
-  transition: all 0.3s ease; /* smooth transition animation */
-  animation: fadeIn 0.3s ease forwards; /* fade in animation */
+  max-height: 90vh; /* max height is 90% of the viewport height */
+  overflow-y: auto; /* enable vertical scrolling */
+  transition: all 0.1s ease; /* smooth transition animation */
+  animation: fadeIn 0.1s ease forwards; /* fade in animation */
+  /* rendered as portal: overlaying the rest of the page */
 }
 .zettelkasten-flow__search-hidden {
   animation: fadeOut 0.3s ease forwards; /* fade out animation */

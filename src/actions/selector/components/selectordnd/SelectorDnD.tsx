@@ -10,14 +10,6 @@ import { OptionItem } from "./OptionItem";
 export function SelectorDnD(props: SelectorDnDProps) {
   const { action, root } = props;
   const { options = [], defaultOption } = action as SelectorElement;
-  // LEGACY: This is to keep the id of the action
-  if (!Array.isArray(options)) {
-    props.action.options = Object.entries(
-      props.action.options as Record<string, string>
-    );
-  }
-  // END LEGACY
-
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
   const [optionsState, setOptionsState] = useState(options);
 

@@ -29,12 +29,6 @@
 /*****************
 *   BASIC STYLES
 ******************/
-.zettelkasten-flow__display-overflow {
-  position: fixed;
-  z-index: 9999;
-  top: 0;
-}
-
 .zettelkasten-flow__display-grid {
   display: grid;
 }

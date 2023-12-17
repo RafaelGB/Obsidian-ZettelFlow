@@ -49,18 +49,26 @@ export class StepBuilderModal extends Modal {
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {
             case "edit" || "create":
-                this.saveFile(path.concat(".md")).catch((error) => {
-                    log.error(error);
-                    new Notice(`Error saving file ${path}, check console for more info`);
-                });
+                this.saveFile(path.concat(".md"))
+                    .then(() => {
+                        log.info(`File ${path} saved`);
+                    })
+                    .catch((error) => {
+                        log.error(error);
+                        new Notice(`Error saving file ${path}, check console for more info`);
+                    });
                 this.chain.postAction();
                 break
             case "embed":
-                this.saveEmbed(path.concat(".canvas")).catch((error) => {
-                    log.error(error);
-                    new Notice(`Error saving embed on ${path}, check console for more info`);
-                }
-                );
+                this.saveEmbed(path.concat(".canvas"))
+                    .then(() => {
+                        log.info(`Embed with id ${this.info.nodeId} saved on ${path}`);
+                    })
+                    .catch((error) => {
+                        log.error(error);
+                        new Notice(`Error saving embed on ${path}, check console for more info`);
+                    }
+                    );
                 this.chain.postAction();
                 break;
         }

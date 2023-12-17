@@ -75,7 +75,7 @@ export class FlowImpl implements Flow {
         }
         switch (node.type) {
             case "text":
-                const textNode = YamlService.instance(node.text);
+                const textNode = YamlService.instance(node.zettelflowConfig);
                 return this.populateNode(node, textNode.getZettelFlowSettings());
             case "file":
                 const file = await FileService.getFile(node.file);
@@ -95,7 +95,7 @@ export class FlowImpl implements Flow {
         if (index === -1) {
             throw new Error(`Node ${nodeId} not found`);
         }
-        this.data.nodes[index].text = text;
+        this.data.nodes[index].zettelflowConfig = text;
         this.nodes.set(nodeId, this.data.nodes[index]);
         await this.save();
     }
@@ -119,7 +119,9 @@ export class FlowImpl implements Flow {
         nodes.forEach(async node => {
             switch (node.type) {
                 case "text":
-                    const textNode = YamlService.instance(node.text);
+                    // LEGACY: Remove in future versions
+                    const textNode = node.zettelflowConfig !== undefined ? YamlService.instance(node.zettelflowConfig) : YamlService.instance(node.text);
+                    // END LEGACY
                     if (textNode.isRoot()) {
                         const flowNode = textNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
@@ -147,7 +149,9 @@ export class FlowImpl implements Flow {
             if (node) {
                 switch (node.type) {
                     case "text":
-                        const textNode = YamlService.instance(node.text);
+                        // LEGACY: Remove in future versions
+                        const textNode = node.zettelflowConfig !== undefined ? YamlService.instance(node.zettelflowConfig) : YamlService.instance(node.text);
+                        // END LEGACY
                         flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings(), edge.tooltip));
                         break;
                     case "file":

@@ -1,4 +1,4 @@
-import { App, FileManager, Keymap, MetadataCache, Vault, Workspace, Plugin } from "obsidian";
+import { App, FileManager, Keymap, MetadataCache, Vault, Workspace } from "obsidian";
 
 export class ObsidianAPIService {
     private static instance: ObsidianAPIService;

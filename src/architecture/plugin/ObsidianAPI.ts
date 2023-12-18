@@ -1,4 +1,4 @@
-import { App, FileManager, Keymap, MetadataCache, Vault, Workspace } from "obsidian";
+import { App, FileManager, Keymap, MetadataCache, Vault, Workspace, Plugin } from "obsidian";
 
 export class ObsidianAPIService {
     private static instance: ObsidianAPIService;
@@ -33,6 +33,10 @@ export class ObsidianAPIService {
 
     public getPluginApp(): App {
         return this.app;
+    }
+
+    public getExternalPlugin(pluginId: string) {
+        return this.app.plugins.getPlugin(pluginId);
     }
 
     public static getInstance(): ObsidianAPIService {

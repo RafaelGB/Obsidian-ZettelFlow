@@ -14,6 +14,9 @@ declare module "obsidian" {
         dom: {
             appContainerEl: HTMLElement;
         }
+        plugins: {
+            getPlugin(pluginId: string): any | null;
+        }
     }
     interface Workspace {
         on(name: "canvas:node-menu", callback: (menu: Menu, node: AllCanvasNodeData) => void): EventRef;

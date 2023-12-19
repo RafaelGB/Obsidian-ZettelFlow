@@ -8,6 +8,9 @@ import setSelectionElementAction from "./actions/setSelectionElementAction";
 import goPreviousAction from "./actions/goPreviousAction";
 import infoStep from "./actions/infoState";
 import { log } from "architecture";
+import { Action } from "architecture/api";
+import { v4 as uuid4 } from "uuid";
+import { FileService } from "architecture/plugin";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
@@ -74,9 +77,11 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           log.debug(`Skipping manageElementInfo for element: ${node.label}`);
           return { builder };
         }
-        builder.note
-          .addPath(node.path, position)
-          .setTargetFolder(node.targetFolder);
+        if (node.path) {
+          builder.note
+            .addPath(node.path, position)
+            .setTargetFolder(node.targetFolder);
+        }
 
         return {
           builder,
@@ -92,6 +97,28 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           actionWasTriggered: true,
         };
       }),
+    addJsFile: async (path) => {
+      const jsFile = await FileService.getFile(path);
+      if (jsFile) {
+        const jsContent = await FileService.getContent(jsFile);
+        set((state) => {
+          const { builder, position } = state;
+          const scriptAction: Action = {
+            id: uuid4(),
+            type: "script",
+            hasUI: false,
+            description: "Script file",
+            code: jsContent,
+          };
+          builder.note.addBackgroundAction(scriptAction, position);
+          return {
+            builder,
+            actionWasTriggered: true,
+          };
+        });
+      }
+    },
+
     addBackgroundAction: (action) =>
       set((state) => {
         const { builder, position } = state;

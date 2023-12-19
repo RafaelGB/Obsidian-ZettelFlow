@@ -23,7 +23,7 @@ export interface Flow {
     rootNodes: () => Promise<FlowNode[]>
 }
 
-export type ZettelNodeType = "text" | "file" | "link" | "group";
+export type ZettelNodeType = "text" | "file" | "link" | "group" | "javascript";
 
 export type FlowNode = {
     id: string
@@ -32,6 +32,7 @@ export type FlowNode = {
     tooltip?: string,
     // EXCLUSIVE FILE NODES
     path?: string,
+    extension?: string,
 } & StepSettings;
 
 export type Action = {

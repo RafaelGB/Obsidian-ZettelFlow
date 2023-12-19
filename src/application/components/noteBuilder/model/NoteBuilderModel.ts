@@ -56,6 +56,7 @@ export type NoteBuilderStateActions = {
     manageNodeInfo: (selectedNode: FlowNode, skipAddToBuilder?: boolean) => void;
     addAction: (element: Action, callbackResult: Literal) => void;
     addBackgroundAction: (action: Action) => void;
+    addJsFile: (path: string) => Promise<void>;
     setPatternPrefix: (prefix: string) => void;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;

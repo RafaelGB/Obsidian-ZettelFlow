@@ -67,7 +67,11 @@ export async function manageElement(
   skipChildrens = false
 ) {
   const { actions } = state;
-  actions.manageNodeInfo(selectedElement);
+  if (selectedElement.extension === "js" && selectedElement.path) {
+    await actions.addJsFile(selectedElement.path);
+  } else {
+    actions.manageNodeInfo(selectedElement);
+  }
 
   const { modal, flow } = info;
   const childrens = skipChildrens

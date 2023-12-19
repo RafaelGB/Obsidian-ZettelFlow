@@ -22,7 +22,7 @@ export class ScriptAction extends CustomZettelAction {
       const AsyncFunction = Object.getPrototypeOf(
         async function () {}
       ).constructor;
-      const zf = await externalFns();
+      const zf = await externalFns(); // FIXME Cache this per builder
       const fnBody = `return (async () => {
         ${code}
       })(element, content, note, context, zf);`;

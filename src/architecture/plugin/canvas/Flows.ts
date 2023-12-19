@@ -62,6 +62,9 @@ export class FlowImpl implements Flow {
     private nodes: Map<string, AllCanvasNodeData>;
     constructor(public data: CanvasData, private file: TFile) {
         this.nodes = data.nodes.reduce((map, obj) => {
+            if (obj.type === "file" && obj.file.endsWith(".js")) {
+                obj.extension = "js";
+            }
             map.set(obj.id, obj);
             return map;
         }, new Map<string, AllCanvasNodeData>());
@@ -82,8 +85,18 @@ export class FlowImpl implements Flow {
                 if (!file) {
                     throw new Error(`File ${node.file} not found`);
                 }
-                const fileNode = FrontmatterService.instance(file);
-                return this.populateNode(node, fileNode.getZettelFlowSettings());
+                switch (file.extension) {
+                    case "md": {
+                        const fileNode = FrontmatterService.instance(file);
+                        return this.populateNode(node, fileNode.getZettelFlowSettings());
+                    }
+                    case "js": {
+                        return this.populateScriptNode(node, file);
+                    }
+                    default: {
+                        throw new Error(`Externsion ${node.file} not supported for file ${file.basename}`);
+                    }
+                }
             default:
                 throw new Error(`Node ${nodeId} not supported`);
         }
@@ -156,9 +169,21 @@ export class FlowImpl implements Flow {
                         break;
                     case "file":
                         const file = await FileService.getFile(node.file);
-                        if (file && file.extension === "md") {
-                            const fileNode = FrontmatterService.instance(file);
-                            flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge.tooltip));
+                        if (!file) {
+                            throw new Error(`File ${node.file} not found`);
+                        }
+                        switch (file.extension) {
+                            case "md": {
+                                const fileNode = FrontmatterService.instance(file);
+                                flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge.tooltip));
+                                break;
+                            }
+                            case "js": {
+                                flowNodes.push(this.populateScriptNode(node, file, edge.tooltip));
+                                break;
+                            }
+                            default:
+                                log.warn(`Externsion ${node.file} not supported for file ${file.basename}`);
                         }
                         break;
                 }
@@ -192,4 +217,19 @@ export class FlowImpl implements Flow {
             tooltip
         }
     }
+
+    private populateScriptNode(data: CanvasFileData, file: TFile, tooltip?: string): FlowNode {
+        const node = {
+            ...data,
+            root: false,
+            actions: [],
+            label: `Script: ${file.basename}`,
+            color: getCanvasColor(data.color),
+            path: file.path,
+            tooltip
+        }
+        this.nodes.set(data.id, node);
+        return node;
+    }
+
 }

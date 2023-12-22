@@ -1,4 +1,4 @@
-import { HoverParent, HoverPopover, Plugin, TFile, TextFileView, WorkspaceLeaf } from "obsidian";
+import { HoverParent, HoverPopover, TFile, TextFileView, WorkspaceLeaf } from "obsidian";
 import { dispatchEditor } from "../editor/Dispatcher";
 import { EditService, FileService } from "architecture/plugin";
 import { EditorView } from "codemirror";
@@ -15,15 +15,17 @@ export class CodeView extends TextFileView implements HoverParent {
     editor: EditService;
     editorJit: NodeJS.Timeout | null;
 
-    constructor(leaf: WorkspaceLeaf, private plugin: Plugin) {
+    data: string;
+
+    constructor(leaf: WorkspaceLeaf) {
         super(leaf);
     }
 
     getViewData() {
-        return this.editor.content;
+        return this.data;
     }
 
-    setViewData(data: unknown, clear: boolean): void {
+    setViewData(data: unknown): void {
         if (data instanceof TFile) {
         }
     }
@@ -52,17 +54,18 @@ export class CodeView extends TextFileView implements HoverParent {
     async onLoadFile(file: TFile) {
         await super.onLoadFile(file);
         this.parentDiv = this.contentEl.createDiv();
-        const code = await FileService.getContent(file);
+        this.data = await FileService.getContent(file);
 
         this.editor = EditService.instance(file)
         this.view = dispatchEditor(
             this.parentDiv,
-            code,
+            this.data,
             (update) => {
                 if (this.editorJit) clearTimeout(this.editorJit);
                 this.editorJit = setTimeout(() => {
+                    this.data = update.state.doc.toString();
                     this.editor
-                        .setContent(update.state.doc.toString())
+                        .setContent(this.data)
                         .save();
                 }, 1000);
             });

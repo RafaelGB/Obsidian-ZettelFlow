@@ -39,7 +39,7 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	registerViews() {
-		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf, this));
+		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

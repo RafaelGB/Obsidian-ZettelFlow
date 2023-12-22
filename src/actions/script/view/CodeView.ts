@@ -1,25 +1,33 @@
 import { HoverParent, HoverPopover, Plugin, TFile, TextFileView, WorkspaceLeaf } from "obsidian";
 import { dispatchEditor } from "../editor/Dispatcher";
 import { EditService, FileService } from "architecture/plugin";
+import { EditorView } from "codemirror";
 
 export class CodeView extends TextFileView implements HoverParent {
     public static NAME = "ZettelFlowCodeView";
     public static EXTENSIONS = ["js"]
     file: TFile;
     hoverPopover: HoverPopover | null;
+
+    view: EditorView;
+    parentDiv: HTMLDivElement;
+
+    editor: EditService;
     editorJit: NodeJS.Timeout | null;
 
     constructor(leaf: WorkspaceLeaf, private plugin: Plugin) {
         super(leaf);
     }
 
-    getViewData(): string {
-        throw new Error("Method not implemented.");
+    getViewData() {
+        return this.editor.content;
     }
+
     setViewData(data: unknown, clear: boolean): void {
         if (data instanceof TFile) {
         }
     }
+
     clear(): void {
         // Do nothing
     }
@@ -43,17 +51,17 @@ export class CodeView extends TextFileView implements HoverParent {
      */
     async onLoadFile(file: TFile) {
         await super.onLoadFile(file);
-        const parentDiv = this.contentEl.createDiv();
+        this.parentDiv = this.contentEl.createDiv();
         const code = await FileService.getContent(file);
 
-        const editor = EditService.instance(file)
-        dispatchEditor(
-            parentDiv,
+        this.editor = EditService.instance(file)
+        this.view = dispatchEditor(
+            this.parentDiv,
             code,
             (update) => {
                 if (this.editorJit) clearTimeout(this.editorJit);
                 this.editorJit = setTimeout(() => {
-                    editor
+                    this.editor
                         .setContent(update.state.doc.toString())
                         .save();
                 }, 1000);
@@ -69,6 +77,14 @@ export class CodeView extends TextFileView implements HoverParent {
     * Triggered when the associated view is closed
     */
     async onClose() {
+        await super.onClose();
+        this.editor.save();
+        this.view.destroy();
+        this.parentDiv.remove();
+    }
 
+    async onUnloadFile(file: TFile) {
+        await super.onUnloadFile(file);
+        this.view.destroy();
     }
 }

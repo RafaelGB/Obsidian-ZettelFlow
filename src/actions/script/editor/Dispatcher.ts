@@ -6,7 +6,7 @@ import { codeFolding, bracketMatching } from "@codemirror/language";
 import { customAutocomplete } from "./extensions/autoconfiguration/Autocompletion";
 
 export function dispatchEditor(parentEl: HTMLDivElement, code: string, onChange: (update: ViewUpdate) => void) {
-    new EditorView({
+    const editorView = new EditorView({
         state: EditorState.create({
             doc: code,
             extensions: [
@@ -24,5 +24,8 @@ export function dispatchEditor(parentEl: HTMLDivElement, code: string, onChange:
             ],
         }),
         parent: parentEl,
-    }).dispatch();
+    });
+    editorView.dispatch();
+
+    return editorView;
 }

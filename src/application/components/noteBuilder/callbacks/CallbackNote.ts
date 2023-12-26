@@ -13,11 +13,11 @@ export const callbackRootBuilder =
   (state: CallbackPickedState, info: NoteBuilderType) =>
     (selected: string) => {
       const { actions } = state;
-      const { uniquePrefix, uniquePrefixEnabled } = info.plugin.settings;
-      if (uniquePrefixEnabled) {
-        actions.setPatternPrefix(uniquePrefix);
-      }
-      nextElement(state, selected, info);
+
+      actions.initPluginConfig(info.plugin.settings)
+        .then(() => {
+          nextElement(state, selected, info);
+        });
     };
 
 export const callbackElementBuilder =

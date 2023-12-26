@@ -3,7 +3,6 @@ import { EditorState } from "@codemirror/state";
 import { EditorView, ViewUpdate, placeholder, lineNumbers, tooltips, keymap } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { codeFolding, bracketMatching, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
-import { langs } from '@uiw/codemirror-extensions-langs';
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { lintGutter, lintKeymap } from "@codemirror/lint";
 
@@ -19,7 +18,6 @@ export function dispatchEditor(
             doc: code,
             extensions: [
                 basicSetup,
-                langs.javascript(),
                 EditorView.lineWrapping,
                 autocompletion(),
                 customAutocomplete,

@@ -7,6 +7,7 @@ import ZettelFlow from "main";
 import { FinalElement } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { Modal } from "obsidian";
+import { ZettelFlowSettings } from "config";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;
@@ -57,7 +58,7 @@ export type NoteBuilderStateActions = {
     addAction: (element: Action, callbackResult: Literal) => void;
     addBackgroundAction: (action: Action) => void;
     addJsFile: (path: string) => Promise<void>;
-    setPatternPrefix: (prefix: string) => void;
+    initPluginConfig: (settings: ZettelFlowSettings) => Promise<void>;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;
     setEnableSkip: (enable: boolean) => void;

@@ -9,6 +9,7 @@ export type ExecuteInfo = {
     content: ContentDTO,
     note: NoteDTO,
     context: Record<string, Literal>,
+    externalFns: Record<string, unknown>,
 }
 
 export type Action = {

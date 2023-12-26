@@ -8,7 +8,7 @@ import setSelectionElementAction from "./actions/setSelectionElementAction";
 import goPreviousAction from "./actions/goPreviousAction";
 import infoStep from "./actions/infoState";
 import { log } from "architecture";
-import { Action } from "architecture/api";
+import { Action, externalFns } from "architecture/api";
 import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
 
@@ -154,14 +154,19 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         currentNode: undefined,
       });
     },
-    setPatternPrefix: (pattern) =>
+    initPluginConfig: async (settings) => {
+      const extFns = await externalFns(settings);
       set((state) => {
         const { builder } = state;
-        builder.note.setPattern(pattern);
+        builder.externalFns = extFns;
+        if (settings.uniquePrefixEnabled) {
+          builder.note.setPattern(settings.uniquePrefix);
+        }
         return {
           builder,
         };
-      }),
+      });
+    },
     setActionWasTriggered: (actionWasTriggered) => {
       set({ actionWasTriggered });
     },

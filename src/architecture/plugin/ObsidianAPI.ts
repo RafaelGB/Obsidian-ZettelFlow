@@ -1,3 +1,4 @@
+import { log } from "architecture";
 import { App, FileManager, Keymap, MetadataCache, Vault, Workspace } from "obsidian";
 
 export class ObsidianAPIService {
@@ -5,6 +6,7 @@ export class ObsidianAPIService {
     private app: App;
     public static init(app: App): ObsidianAPIService {
         ObsidianAPIService.getInstance().app = app;
+        log.info('ObsidianAPIService loaded');
         return ObsidianAPIService.getInstance();
     }
     public vault(): Vault {
@@ -33,6 +35,10 @@ export class ObsidianAPIService {
 
     public getPluginApp(): App {
         return this.app;
+    }
+
+    public getExternalPlugin(pluginId: string) {
+        return this.app.plugins.getPlugin(pluginId);
     }
 
     public static getInstance(): ObsidianAPIService {

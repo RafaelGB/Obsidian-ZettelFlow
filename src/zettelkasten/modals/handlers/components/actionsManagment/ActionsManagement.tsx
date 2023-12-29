@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { ActionsManagementProps } from "./typing";
 import { ActionAccordion } from "./ActionAccordion";
-import { Dropdown } from "architecture/components/core";
+import { Search } from "architecture/components/core";
 import { actionsStore } from "architecture/api";
-import { Icon } from "architecture/components/icon";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { DndScope, Sortable } from "architecture/components/dnd";
@@ -44,10 +43,11 @@ export function ActionsManagement(props: ActionsManagementProps) {
     info.actions = newOptionsState;
   };
 
-  const actionsMemo: [string, string][] = useMemo(() => {
-    const record: [string, string][] = [];
+  const actionsMemo: Record<string, string> = useMemo(() => {
+    const record: Record<string, string> = {};
     actionsStore.getActionsKeys().forEach((key) => {
-      record.push([key, actionsStore.getAction(key).getLabel()]);
+      const label = actionsStore.getAction(key).getLabel();
+      record[label] = key;
     });
     return record;
   }, []);
@@ -88,19 +88,18 @@ export function ActionsManagement(props: ActionsManagementProps) {
         </Sortable>
       </DndScope>
       <div className={c("actions-management-add")}>
-        <Dropdown
+        <Search
           key={`dropdown-${info.actions.length}`}
           options={actionsMemo}
-          confirmNode={<Icon name="plus" />}
-          confirmTooltip={t(
-            "step_builder_actions_management_add_action_tooltip"
-          )}
-          onConfirm={(selectedType) => {
-            const deepCopy = [...actionsState];
-            deepCopy.push(actionsStore.getDefaultActionInfo(selectedType));
-            setActionsState(deepCopy);
-            info.actions = deepCopy;
+          onChange={async (value) => {
+            if (typeof value === "string") {
+              const deepCopy = [...actionsState];
+              deepCopy.push(actionsStore.getDefaultActionInfo(value));
+              setActionsState(deepCopy);
+              info.actions = deepCopy;
+            }
           }}
+          placeholder={t("step_builder_actions_management_add_action_tooltip")}
         />
       </div>
     </>

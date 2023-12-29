@@ -7,6 +7,7 @@ import { ZComponentsManager } from "../services/ZComponentsManager";
 import { RibbonIcon } from "../zcomponents/RibbonIcon";
 import { SettingsTab } from "../zcomponents/SettingsTab";
 import { PluginApi } from "../zcomponents/PluginApi";
+
 /**
  * Load all components of the plugin with the ZComponent interface
  * @param plugin 

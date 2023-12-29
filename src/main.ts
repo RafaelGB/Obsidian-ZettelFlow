@@ -9,6 +9,7 @@ import { actionsStore } from 'architecture/api/store/ActionsStore';
 import { BackLinkAction, CalendarAction, CodeView, PromptAction, ScriptAction, SelectorAction, TagsAction } from 'actions';
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from 'architecture';
+
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {

@@ -6,14 +6,17 @@ import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
-import { BackLinkAction, CalendarAction, PromptAction, ScriptAction, SelectorAction, TagsAction } from 'actions';
+import { BackLinkAction, CalendarAction, CodeView, PromptAction, ScriptAction, SelectorAction, TagsAction } from 'actions';
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from 'architecture';
+
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
 		loadPluginComponents(this);
+
+		this.registerViews();
 		this.registerActions();
 		this.registerEvents();
 
@@ -34,6 +37,16 @@ export default class ZettelFlow extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	registerViews() {
+		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
+		try {
+			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
+		} catch (e) {
+			log.error("There was an error registering CodeView for Javascript files. Maybe another plugin is using the same extensions?", e);
+			new Notice("Error registering CodeView extension for ZettelFlow. Check the console for more information.");
+		}
 	}
 
 	registerActions() {
@@ -200,6 +213,10 @@ export default class ZettelFlow extends Plugin {
 				this.settings.ribbonCanvas = file.path;
 				this.saveSettings();
 				log.info("Renamed canvas file");
+			} else if (oldPath === this.settings.jsLibraryFolderPath) {
+				this.settings.jsLibraryFolderPath = file.path;
+				this.saveSettings();
+				log.info("Renamed js library folder");
 			}
 		}));
 
@@ -208,6 +225,9 @@ export default class ZettelFlow extends Plugin {
 				canvas.flows.delete(file.path);
 				this.settings.ribbonCanvas = "";
 				this.saveSettings();
+				log.info("Deleted canvas file");
+			} else if (file.path === this.settings.jsLibraryFolderPath) {
+				this.settings.jsLibraryFolderPath = "";
 				log.info("Deleted canvas file");
 			}
 		}));

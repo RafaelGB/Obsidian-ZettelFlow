@@ -1,4 +1,4 @@
-import { CustomZettelAction, ExecuteInfo, externalFns } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
 import { CodeElement } from "./typing";
 import { log } from "architecture";
@@ -16,13 +16,12 @@ export class ScriptAction extends CustomZettelAction {
   async execute(info: ExecuteInfo) {
     try {
       const element = info.element as CodeElement;
-      const { content, note, context } = info;
+      const { content, note, context, externalFns } = info;
       const { code } = element;
 
       const AsyncFunction = Object.getPrototypeOf(
         async function () {}
       ).constructor;
-      const zf = await externalFns();
       const fnBody = `return (async () => {
         ${code}
       })(element, content, note, context, zf);`;
@@ -35,7 +34,7 @@ export class ScriptAction extends CustomZettelAction {
         "zf",
         fnBody
       );
-      await scriptFn(element, content, note, context, zf);
+      await scriptFn(element, content, note, context, externalFns);
     } catch (error) {
       log.error(`Error executing script: ${error}`);
     }

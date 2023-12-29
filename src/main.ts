@@ -212,6 +212,10 @@ export default class ZettelFlow extends Plugin {
 				this.settings.ribbonCanvas = file.path;
 				this.saveSettings();
 				log.info("Renamed canvas file");
+			} else if (oldPath === this.settings.jsLibraryFolderPath) {
+				this.settings.jsLibraryFolderPath = file.path;
+				this.saveSettings();
+				log.info("Renamed js library folder");
 			}
 		}));
 
@@ -220,6 +224,9 @@ export default class ZettelFlow extends Plugin {
 				canvas.flows.delete(file.path);
 				this.settings.ribbonCanvas = "";
 				this.saveSettings();
+				log.info("Deleted canvas file");
+			} else if (file.path === this.settings.jsLibraryFolderPath) {
+				this.settings.jsLibraryFolderPath = "";
 				log.info("Deleted canvas file");
 			}
 		}));

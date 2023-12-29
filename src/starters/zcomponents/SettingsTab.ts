@@ -10,7 +10,7 @@ export class SettingsTab extends PluginComponent {
     }
 
     onLoad(): void {
-        this.plugin.addSettingTab(new ZettelFlowSettingsTab(this.plugin as ZettelFlow));
+        this.plugin.addSettingTab(new ZettelFlowSettingsTab(this.plugin));
         this.plugin.addCommand({
             id: 'open-canvas',
             name: t('command_settings_open_canvas'),

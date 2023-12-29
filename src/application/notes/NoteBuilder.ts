@@ -6,7 +6,6 @@ import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
 import { actionsStore } from "architecture/api";
 import { TFile } from "obsidian";
-import { ZettelFlowSettings } from "config";
 
 export class Builder {
   public static default(): NoteBuilder {

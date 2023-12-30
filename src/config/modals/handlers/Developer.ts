@@ -13,6 +13,11 @@ export class Developer extends AbstractChain<SettingsHandlerInfo> {
     protected before(info: SettingsHandlerInfo): SettingsHandlerInfo {
         info.section = this;
         this.parentContainer = info.containerEl;
+
+        // Section title
+        info.containerEl.createEl('h2', { text: 'Developer' });
+
+        // Section container
         this.sectionContainer = info.containerEl.createDiv();
         this.sectionContainer.addClass(c('settings-developer-section'));
         info.containerEl = this.sectionContainer;

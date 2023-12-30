@@ -61,13 +61,15 @@ export class FlowsImpl implements Flows {
 export class FlowImpl implements Flow {
     private nodes: Map<string, AllCanvasNodeData>;
     constructor(public data: CanvasData, private file: TFile) {
-        this.nodes = data.nodes.reduce((map, obj) => {
-            if (obj.type === "file" && obj.file.endsWith(".js")) {
-                obj.extension = "js";
-            }
-            map.set(obj.id, obj);
-            return map;
-        }, new Map<string, AllCanvasNodeData>());
+        this.nodes = data.nodes
+            .filter(node => node.type !== "link")
+            .reduce((map, obj) => {
+                if (obj.type === "file" && obj.file.endsWith(".js")) {
+                    obj.extension = "js";
+                }
+                map.set(obj.id, obj);
+                return map;
+            }, new Map<string, AllCanvasNodeData>());
     }
 
 
@@ -77,10 +79,11 @@ export class FlowImpl implements Flow {
             throw new Error(`Node ${nodeId} not found`);
         }
         switch (node.type) {
-            case "text":
+            case "text" || "group": {
                 const textNode = YamlService.instance(node.zettelflowConfig);
                 return this.populateNode(node, textNode.getZettelFlowSettings());
-            case "file":
+            }
+            case "file": {
                 const file = await FileService.getFile(node.file);
                 if (!file) {
                     throw new Error(`File ${node.file} not found`);
@@ -97,6 +100,8 @@ export class FlowImpl implements Flow {
                         throw new Error(`Externsion ${node.file} not supported for file ${file.basename}`);
                     }
                 }
+            }
+
             default:
                 throw new Error(`Node ${nodeId} not supported`);
         }
@@ -132,9 +137,7 @@ export class FlowImpl implements Flow {
         nodes.forEach(async node => {
             switch (node.type) {
                 case "text":
-                    // LEGACY: Remove in future versions
-                    const textNode = node.zettelflowConfig !== undefined ? YamlService.instance(node.zettelflowConfig) : YamlService.instance(node.text);
-                    // END LEGACY
+                    const textNode = YamlService.instance(node.zettelflowConfig);
                     if (textNode.isRoot()) {
                         const flowNode = textNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
@@ -161,13 +164,12 @@ export class FlowImpl implements Flow {
             const node = this.nodes.get(edge.key);
             if (node) {
                 switch (node.type) {
-                    case "text":
-                        // LEGACY: Remove in future versions
-                        const textNode = node.zettelflowConfig !== undefined ? YamlService.instance(node.zettelflowConfig) : YamlService.instance(node.text);
-                        // END LEGACY
+                    case "text": {
+                        const textNode = YamlService.instance(node.zettelflowConfig);
                         flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings(), edge.tooltip));
                         break;
-                    case "file":
+                    }
+                    case "file": {
                         const file = await FileService.getFile(node.file);
                         if (!file) {
                             throw new Error(`File ${node.file} not found`);
@@ -183,9 +185,12 @@ export class FlowImpl implements Flow {
                                 break;
                             }
                             default:
-                                log.warn(`Externsion ${node.file} not supported for file ${file.basename}`);
+                                log.warn(`Extension ${node.file} not supported for file ${file.basename}`);
                         }
                         break;
+                    }
+                    case "group": {
+                    }
                 }
             }
         });

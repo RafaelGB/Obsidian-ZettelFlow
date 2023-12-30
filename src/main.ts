@@ -145,9 +145,13 @@ export default class ZettelFlow extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("canvas:node-menu", (menu, node) => {
+
 				// Check if canvas is the zettelFlow canvas and if the node is embedded
 				const file = this.app.workspace.getActiveFile();
-				if (file?.path === this.settings.ribbonCanvas && typeof node.text === "string") {
+				if (file?.path !== this.settings.ribbonCanvas) {
+					return;
+				}
+				if (node.unknownData.type === "text" || node.unknownData.type === "group") {
 					const zettelFlowSettings = node.unknownData.zettelflowConfig;
 					menu.addItem((item) => {
 						// Edit embed
@@ -156,10 +160,7 @@ export default class ZettelFlow extends Plugin {
 							.setIcon(RibbonIcon.ID)
 							.setSection('pane')
 							.onClick(async () => {
-								// LEGACY: Remove in future versions
-								const yamlService = zettelFlowSettings !== undefined ? YamlService.instance(zettelFlowSettings) : YamlService.instance(node.text);
-								// END LEGACY
-								const stepSettings = yamlService.getZettelFlowSettings();
+								const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
 								new StepBuilderModal(this.app, {
 									folder: file.parent || undefined,
 									filename: file.basename,
@@ -178,10 +179,7 @@ export default class ZettelFlow extends Plugin {
 							.setIcon(RibbonIcon.ID)
 							.setSection('pane')
 							.onClick(async () => {
-								// LEGACY: Remove in future versions
-								const yamlService = zettelFlowSettings !== undefined ? YamlService.instance(zettelFlowSettings) : YamlService.instance(node.text);
-								// END LEGACY
-								canvas.clipboard.save(yamlService.getZettelFlowSettings());
+								canvas.clipboard.save(YamlService.instance(zettelFlowSettings).getZettelFlowSettings());
 								new Notice("Embed copied!");
 							})
 					});

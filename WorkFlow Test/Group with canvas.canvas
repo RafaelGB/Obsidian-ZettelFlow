@@ -1,7 +1,7 @@
 {
 	"nodes":[
-		{"id":"f9b6aa7b457906e8","type":"group","x":-1056,"y":-760,"width":1656,"height":760,"color":"5","label":"Fleeting notes"},
-		{"id":"81b8465370e8740c","type":"group","x":-1056,"y":160,"width":776,"height":360,"color":"2","label":"Literature notes","zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"\",\"childrenHeader\":\"\"}"},
+		{"id":"f9b6aa7b457906e8","type":"group","x":-1056,"y":-760,"width":1656,"height":760,"color":"5","label":"Fleeting notes","zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Fleeting notes\",\"childrenHeader\":\"\",\"targetFolder\":\"zettelFlow/fleeting\"}"},
+		{"id":"81b8465370e8740c","type":"group","x":-1056,"y":160,"width":776,"height":360,"color":"2","label":"Literature notes","zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Literature notes\",\"childrenHeader\":\"\"}"},
 		{"id":"98c25f3516181d5b","type":"file","file":"WorkFlow Test/root/Daily Note.md","x":-966,"y":-680,"width":839,"height":595,"color":"3"},
 		{"id":"029fd58cea9b4303","type":"file","file":"WorkFlow Test/root/Meeting Note.md","x":-67,"y":-680,"width":561,"height":120,"color":"6"},
 		{"id":"79c65e7ed86bab49","type":"file","file":"WorkFlow Test/bridges/Idea Note.md","x":-67,"y":-176,"width":561,"height":91,"color":"2"},

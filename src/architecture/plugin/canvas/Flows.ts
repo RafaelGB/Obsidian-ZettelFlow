@@ -1,4 +1,4 @@
-import { ObsidianApi, c, log } from "architecture";
+import { ObsidianApi, log } from "architecture";
 import { Flow, FlowNode, Flows } from "./typing";
 import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasGroupData, CanvasTextData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";

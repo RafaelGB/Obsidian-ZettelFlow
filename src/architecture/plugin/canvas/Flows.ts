@@ -8,7 +8,7 @@ import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
 import { getCanvasColor } from "./shared/Color";
 import { canvasJsonFormatter } from "./formatter";
-import { isNodeInside } from "./shared/Geometry";
+import { findDirectChildren, isNodeInside } from "./shared/Geometry";
 
 type EdgeInfo = {
     key: string;
@@ -127,7 +127,9 @@ export class FlowImpl implements Flow {
             const childrenKeys: EdgeInfo[] = edges.filter(edge => edge.fromNode === nodeId).map(edge => ({ key: edge.toNode, tooltip: edge.label }));
             return this.nodesFrom(childrenKeys);
         } else {
-            const childrenKeys: EdgeInfo[] = this.data.nodes.filter(child => isNodeInside(child, node)).map(child => ({ key: child.id, tooltip: `Child of ${node.label}` }));
+            const childNodes = findDirectChildren(node, this.data.nodes);
+            const childrenKeys: EdgeInfo[] = childNodes.map(child => ({ key: child.id, tooltip: `Child of ${node.label}` }));
+
             return this.nodesFrom(childrenKeys);
         }
     }
@@ -140,6 +142,7 @@ export class FlowImpl implements Flow {
             return this.nodesFrom(parentKeys);
         } else {
             const parentKeys = this.data.nodes.filter(parent => isNodeInside(node, parent)).map(parent => ({ key: parent.id, tooltip: `Parent of ${node.label}` }));
+            // TODO obtain the smallest parent
             return this.nodesFrom(parentKeys);
         }
     }

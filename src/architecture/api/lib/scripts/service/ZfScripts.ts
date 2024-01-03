@@ -16,6 +16,10 @@ export class ZfScripts extends LibModule {
     }
 
     async create_dynamic_functions(): Promise<void> {
+        if (!this.settings.jsLibraryFolderPath) {
+            log.info("No jsLibraryFolderPath specified, skipping user functions loading");
+            return;
+        }
         const folder = ZfVault().resolveTFolder(this.settings.jsLibraryFolderPath);
 
         const files = ZfVault().obtainFilesFrom(folder, ["js"]);

@@ -1,6 +1,6 @@
 import { ObsidianApi, log } from "architecture";
 import { Flow, FlowNode, Flows } from "./typing";
-import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasTextData } from "obsidian/canvas";
+import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasGroupData, CanvasTextData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";
 import { Notice, TFile } from "obsidian";
 import { YamlService } from "../services/YamlService";
@@ -8,6 +8,7 @@ import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
 import { getCanvasColor } from "./shared/Color";
 import { canvasJsonFormatter } from "./formatter";
+import { findDirectChildren, isNodeInside } from "./shared/Geometry";
 
 type EdgeInfo = {
     key: string;
@@ -61,13 +62,15 @@ export class FlowsImpl implements Flows {
 export class FlowImpl implements Flow {
     private nodes: Map<string, AllCanvasNodeData>;
     constructor(public data: CanvasData, private file: TFile) {
-        this.nodes = data.nodes.reduce((map, obj) => {
-            if (obj.type === "file" && obj.file.endsWith(".js")) {
-                obj.extension = "js";
-            }
-            map.set(obj.id, obj);
-            return map;
-        }, new Map<string, AllCanvasNodeData>());
+        this.nodes = data.nodes
+            .filter(node => node.type !== "link")
+            .reduce((map, obj) => {
+                if (obj.type === "file" && obj.file.endsWith(".js")) {
+                    obj.extension = "js";
+                }
+                map.set(obj.id, obj);
+                return map;
+            }, new Map<string, AllCanvasNodeData>());
     }
 
 
@@ -78,9 +81,11 @@ export class FlowImpl implements Flow {
         }
         switch (node.type) {
             case "text":
+            case "group": {
                 const textNode = YamlService.instance(node.zettelflowConfig);
                 return this.populateNode(node, textNode.getZettelFlowSettings());
-            case "file":
+            }
+            case "file": {
                 const file = await FileService.getFile(node.file);
                 if (!file) {
                     throw new Error(`File ${node.file} not found`);
@@ -97,6 +102,8 @@ export class FlowImpl implements Flow {
                         throw new Error(`Externsion ${node.file} not supported for file ${file.basename}`);
                     }
                 }
+            }
+
             default:
                 throw new Error(`Node ${nodeId} not supported`);
         }
@@ -114,15 +121,30 @@ export class FlowImpl implements Flow {
     }
 
     childrensOf = async (nodeId: string) => {
-        const { edges } = this.data;
-        const childrenKeys: EdgeInfo[] = edges.filter(edge => edge.fromNode === nodeId).map(edge => ({ key: edge.toNode, tooltip: edge.label }));
-        return this.nodesFrom(childrenKeys);
+        const node = this.nodes.get(nodeId);
+        if (node?.type !== "group") {
+            const { edges } = this.data;
+            const childrenKeys: EdgeInfo[] = edges.filter(edge => edge.fromNode === nodeId).map(edge => ({ key: edge.toNode, tooltip: edge.label }));
+            return this.nodesFrom(childrenKeys);
+        } else {
+            const childNodes = findDirectChildren(node, this.data.nodes);
+            const childrenKeys: EdgeInfo[] = childNodes.map(child => ({ key: child.id, tooltip: `Child of ${node.label}` }));
+
+            return this.nodesFrom(childrenKeys);
+        }
     }
 
     parentsOf = async (nodeId: string) => {
-        const { edges } = this.data;
-        const parentKeys = edges.filter(edge => edge.toNode === nodeId).map(edge => ({ key: edge.fromNode, tooltip: edge.label }));
-        return this.nodesFrom(parentKeys);
+        const node = this.nodes.get(nodeId);
+        if (node?.type !== "group") {
+            const { edges } = this.data;
+            const parentKeys = edges.filter(edge => edge.toNode === nodeId).map(edge => ({ key: edge.fromNode, tooltip: edge.label }));
+            return this.nodesFrom(parentKeys);
+        } else {
+            const parentKeys = this.data.nodes.filter(parent => isNodeInside(node, parent)).map(parent => ({ key: parent.id, tooltip: `Parent of ${node.label}` }));
+            // TODO obtain the smallest parent
+            return this.nodesFrom(parentKeys);
+        }
     }
 
     rootNodes = async () => {
@@ -132,9 +154,8 @@ export class FlowImpl implements Flow {
         nodes.forEach(async node => {
             switch (node.type) {
                 case "text":
-                    // LEGACY: Remove in future versions
-                    const textNode = node.zettelflowConfig !== undefined ? YamlService.instance(node.zettelflowConfig) : YamlService.instance(node.text);
-                    // END LEGACY
+                case "group":
+                    const textNode = YamlService.instance(node.zettelflowConfig);
                     if (textNode.isRoot()) {
                         const flowNode = textNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
@@ -162,12 +183,12 @@ export class FlowImpl implements Flow {
             if (node) {
                 switch (node.type) {
                     case "text":
-                        // LEGACY: Remove in future versions
-                        const textNode = node.zettelflowConfig !== undefined ? YamlService.instance(node.zettelflowConfig) : YamlService.instance(node.text);
-                        // END LEGACY
+                    case "group": {
+                        const textNode = YamlService.instance(node.zettelflowConfig);
                         flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings(), edge.tooltip));
                         break;
-                    case "file":
+                    }
+                    case "file": {
                         const file = await FileService.getFile(node.file);
                         if (!file) {
                             throw new Error(`File ${node.file} not found`);
@@ -183,9 +204,10 @@ export class FlowImpl implements Flow {
                                 break;
                             }
                             default:
-                                log.warn(`Externsion ${node.file} not supported for file ${file.basename}`);
+                                log.warn(`Extension ${node.file} not supported for file ${file.basename}`);
                         }
                         break;
+                    }
                 }
             }
         });
@@ -207,7 +229,7 @@ export class FlowImpl implements Flow {
         this.data = JSON.parse(content);
     }
 
-    private populateNode(data: CanvasTextData | CanvasFileData, node: StepSettings, tooltip?: string): FlowNode {
+    private populateNode(data: CanvasTextData | CanvasFileData | CanvasGroupData, node: StepSettings, tooltip?: string): FlowNode {
         return {
             ...node,
             type: data.type,

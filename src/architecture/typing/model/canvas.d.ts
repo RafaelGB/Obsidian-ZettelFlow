@@ -10,4 +10,10 @@ declare module "obsidian/canvas" {
         };
         zettelflowConfig: string;
     }
+
+    interface CanvasNodeData {
+        canvas: {
+            data: CanvasData;
+        }
+    }
 }

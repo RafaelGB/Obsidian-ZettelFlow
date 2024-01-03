@@ -145,14 +145,19 @@ export default class ZettelFlow extends Plugin {
 
 		this.registerEvent(
 			this.app.workspace.on("canvas:node-menu", (menu, node) => {
-
 				// Check if canvas is the zettelFlow canvas and if the node is embedded
 				const file = this.app.workspace.getActiveFile();
 				if (file?.path !== this.settings.ribbonCanvas) {
 					return;
 				}
-				if (node.unknownData.type === "text" || node.unknownData.type === "group") {
-					const zettelFlowSettings = node.unknownData.zettelflowConfig;
+				const data = node.canvas.data;
+				const currentNode = data.nodes.find((n) => n.id === node.id);
+				if (!currentNode) {
+					return;
+				}
+
+				if (currentNode.type === "text" || currentNode.type === "group") {
+					const zettelFlowSettings = currentNode.zettelflowConfig;
 					menu.addItem((item) => {
 						// Edit embed
 						item

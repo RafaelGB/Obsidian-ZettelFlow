@@ -9,6 +9,7 @@ import { Notice } from "obsidian";
 import { FatalError, WarningError, ZettelError, log } from "architecture";
 import { FileService } from "architecture/plugin";
 import { FlowNode } from "architecture/plugin/canvas";
+import { t } from "architecture/lang";
 
 export async function nextElement(
   state: CallbackPickedState,
@@ -92,7 +93,7 @@ export async function manageElement(
       }
     );
     actions.setHeader({
-      title: childrenHeader,
+      title: childrenHeader || t("default_selector_title"),
     });
   } else if (childrens.length === 1) {
     actions.setActionWasTriggered(false);
@@ -113,7 +114,6 @@ export async function manageElement(
             manageWarningError(actions, error);
           }
           case ZettelError.FATAL_TYPE: {
-            actions.setInvalidTitle(true);
             new Notice(`Fatal error: ${error.message}`);
             manageFatalError(actions, error);
             break;

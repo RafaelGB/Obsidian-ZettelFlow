@@ -3,13 +3,10 @@ import { NoteBuilderState, SectionElementOptions, StoreNoteBuilderModifier } fro
 import { SectionType } from "application/components/section";
 
 const setSelectionElementAction =
-    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions = {
-        savePrevious: true,
-        isOptional: false,
-    }) => {
+    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions) => {
         log.trace(`setSelectionElementAction - config: ${JSON.stringify(config)}`);
         const { previousSections, previousArray, section, position, header, builder, actionWasTriggered } = get();
-        const { savePrevious, isOptional } = config;
+        const { savePrevious = true, isOptional = false } = config;
         const elementSection: SectionType = {
             ...section,
             element: element,

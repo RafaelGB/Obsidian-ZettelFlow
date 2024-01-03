@@ -1,4 +1,5 @@
 export default {
+    default_selector_title: "choose an option",
     canvas_node_menu_edit_embed: 'Edit embed node: Add or remove actions',
     navbar_skip_step: 'Skip step',
     navbar_abort_flow: 'Build note with only the steps completed so far',

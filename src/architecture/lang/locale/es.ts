@@ -57,6 +57,8 @@ export default {
     step_builder_target_folder_description: 'Elige la carpeta destino para la nota del paso.',
     step_builder_action_selector_title: 'Selector de acción',
     step_builder_action_selector_description: 'Elige la acción que quieres realizar.',
+    step_builder_element_type_key_title: 'Clave de la propiedad',
+    step_builder_element_type_key_description: 'La clave para los metadatos asignada al elemento',
     step_builder_element_type_prompt_title: 'Opciones del elemento prompt',
     step_builder_element_type_prompt_description: 'Elige las opciones para el elemento prompt.',
     step_builder_element_type_prompt_key_title: 'Clave del prompt',

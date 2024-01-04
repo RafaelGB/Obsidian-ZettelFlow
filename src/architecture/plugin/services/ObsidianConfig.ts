@@ -3,6 +3,7 @@ import { ObsidianApi } from "../ObsidianAPI";
 import { InformedLiteral, Literal } from "../model/FrontmatterModel";
 
 export class ObsidianConfig {
+    public static ALL_TYPES: ["text", "number", "date", "datetime", "multitext", "checkbox", "aliases"];
     private static parseMap: Map<string, (literal: InformedLiteral) => InformedLiteral> = new Map([
         [
             "checkbox", (literal: InformedLiteral): InformedLiteral => {

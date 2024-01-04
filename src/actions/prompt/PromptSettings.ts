@@ -2,6 +2,8 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { PromptElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
+import { ObsidianConfig } from "architecture/plugin";
+import { PropertySuggest } from "architecture/settings";
 
 export const promptSettings: ActionSetting = (contentEl, _, action) => {
     const { key, label, placeholder, zone } = action as PromptElement;
@@ -30,12 +32,20 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
     new Setting(contentEl)
         .setName(t("step_builder_element_type_key_title"))
         .setDesc(t("step_builder_element_type_key_description"))
-        .addText(text => {
-            text
-                .setValue(key || ``)
-                .onChange(async (value) => {
-                    action.key = value;
-                });
+        .addSearch(search => {
+            ObsidianConfig.getTypes().then(types => {
+                new PropertySuggest(
+                    search.inputEl,
+                    types,
+                    ["text"]
+                );
+                search
+                    .setValue(key || ``)
+                    .onChange(async (value) => {
+                        action.key = value;
+                    });
+            });
+
         });
 
     new Setting(contentEl)

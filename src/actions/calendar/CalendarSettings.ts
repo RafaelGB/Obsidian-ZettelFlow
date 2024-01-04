@@ -2,9 +2,12 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { CalendarElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
+import { PropertySuggest } from "architecture/settings";
+import { ObsidianConfig } from "architecture/plugin";
 
-export const calendarSettings: ActionSetting = (contentEl, _, action) => {
+export const calendarSettings: ActionSetting = (contentEl, modal, action) => {
     const { key, label, zone, enableTime } = action as CalendarElement;
+
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
     contentEl.createEl('h3', { text: name });
@@ -30,12 +33,20 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
     new Setting(contentEl)
         .setName(t("step_builder_element_type_key_title"))
         .setDesc(t("step_builder_element_type_key_description"))
-        .addText(text => {
-            text
-                .setValue(key || ``)
-                .onChange(async (value) => {
-                    action.key = value;
-                });
+        .addSearch(search => {
+            ObsidianConfig.getTypes().then(types => {
+                new PropertySuggest(
+                    search.inputEl,
+                    types,
+                    enableTime ? ["datetime"] : ["date"]
+                );
+                search
+                    .setValue(key || ``)
+                    .onChange(async (value) => {
+                        action.key = value;
+                    });
+            });
+
         });
 
     new Setting(contentEl)
@@ -57,6 +68,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                 .setValue(enableTime)
                 .onChange(async (value) => {
                     action.enableTime = value;
+                    modal.refresh();
                 });
         });
 

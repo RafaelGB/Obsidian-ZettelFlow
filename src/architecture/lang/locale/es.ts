@@ -59,6 +59,8 @@ export default {
     step_builder_action_selector_description: 'Elige la acción que quieres realizar.',
     step_builder_element_type_key_title: 'Clave de la propiedad',
     step_builder_element_type_key_description: 'La clave para los metadatos asignada al elemento',
+    step_builder_element_type_static_toggle_title: 'Comportamiento estático',
+    step_builder_element_type_static_toggle_description: 'Cuando está activado, al crear la nota se guardará el valor del elemento tal como se defina en la configuración sin necesidad de ninguna interfaz',
     step_builder_element_type_prompt_title: 'Opciones del elemento prompt',
     step_builder_element_type_prompt_description: 'Elige las opciones para el elemento prompt.',
     step_builder_element_type_prompt_key_title: 'Clave del prompt',

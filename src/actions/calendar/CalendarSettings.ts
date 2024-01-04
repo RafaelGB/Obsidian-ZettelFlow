@@ -4,9 +4,10 @@ import { CalendarElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
 import { PropertySuggest } from "architecture/settings";
 import { ObsidianConfig } from "architecture/plugin";
+import { v4 as uuid4 } from "uuid";
 
-export const calendarSettings: ActionSetting = (contentEl, modal, action) => {
-    const { key, label, zone, enableTime } = action as CalendarElement;
+export const calendarSettings: ActionSetting = (contentEl, _, action) => {
+    const { key, label, zone, enableTime, staticBehaviour, staticValue } = action as CalendarElement;
 
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
@@ -60,6 +61,7 @@ export const calendarSettings: ActionSetting = (contentEl, modal, action) => {
                 });
         });
     // Toggle to enable time
+    const dynamicId = uuid4();
     new Setting(contentEl)
         .setName(t("step_builder_element_type_calendar_toggle_time_title"))
         .setDesc(t("step_builder_element_type_calendar_toggle_time_description"))
@@ -68,8 +70,40 @@ export const calendarSettings: ActionSetting = (contentEl, modal, action) => {
                 .setValue(enableTime)
                 .onChange(async (value) => {
                     action.enableTime = value;
-                    modal.refresh();
+                    const input = document.getElementById(dynamicId);
+                    if (input) {
+                        input.setAttribute('type', value ? 'datetime-local' : 'date');
+                    }
                 });
         });
 
+    // Toggle to enable static behaviour
+    new Setting(contentEl)
+        .setName(t("step_builder_element_type_static_toggle_title"))
+        .setDesc(t("step_builder_element_type_static_toggle_description"))
+        .addToggle(toggle => {
+            toggle
+                .setValue(staticBehaviour)
+                .onChange(async (isStatic) => {
+                    action.staticBehaviour = isStatic;
+                    const staticInput = document.getElementById(dynamicId)
+                    if (staticInput) {
+                        staticInput.style.display = isStatic ? 'block' : 'none';
+                    }
+                    action.hasUI = !isStatic;
+                });
+        });
+
+    let inputEl: HTMLInputElement;
+    inputEl = contentEl.createEl('input', {
+        attr: {
+            type: enableTime ? 'datetime-local' : 'date',
+            value: staticValue || ''
+        }
+    });
+    inputEl.addEventListener('change', (e) => {
+        action.staticValue = (e.target as HTMLInputElement).value;
+    });
+    inputEl.id = dynamicId;
+    inputEl.style.display = staticBehaviour ? 'block' : 'none';
 }

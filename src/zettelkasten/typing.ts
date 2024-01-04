@@ -46,6 +46,8 @@ export type AditionBaseElement = {
     key: string,
     label: string,
     zone: ZoneOption,
+    staticBehaviour: boolean,
+    staticValue?: string,
 } & Action;
 
 export type PromptElement = {

@@ -60,6 +60,8 @@ export default {
     step_builder_action_selector_description: 'Choose the action you want to perform.',
     step_builder_element_type_key_title: 'Key of the property',
     step_builder_element_type_key_description: 'The metatada key asigned to the element',
+    step_builder_element_type_static_toggle_title: 'Enable static behaviour',
+    step_builder_element_type_static_toggle_description: 'When enabled, the element will be saved as you defined below without any UI.',
     step_builder_element_type_prompt_title: 'Element type prompt options',
     step_builder_element_type_prompt_description: 'Choose the options for the prompt element.',
     step_builder_element_type_prompt_label_title: 'Label of prompt',

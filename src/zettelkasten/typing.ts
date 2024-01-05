@@ -62,3 +62,7 @@ export type SelectorElement = {
     options: [string, string][],
     defaultOption?: string,
 } & AditionBaseElement;
+
+export type CheckboxElement = {
+    confirmTooltip: string,
+} & AditionBaseElement;

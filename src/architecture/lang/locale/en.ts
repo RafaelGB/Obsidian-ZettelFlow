@@ -102,6 +102,8 @@ export default {
     step_builder_element_type_tags_description: 'This action will display a tags selector to add tags to the built-in note.',
     step_builder_element_type_script_title: 'Element type script options',
     step_builder_element_type_script_description: 'Choose the options for the script element.',
+    step_builder_element_type_checkbox_title: 'Element type checkbox options',
+    step_builder_element_type_checkbox_description: 'Choose the options for the checkbox element.',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
 };

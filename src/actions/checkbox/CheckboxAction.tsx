@@ -36,7 +36,6 @@ export class CheckboxAction extends CustomZettelAction {
           break;
         case "frontmatter":
         default:
-          console.log("adding frontmatter", valueToSave);
           info.content.addFrontMatter({ [key]: valueToSave === "true" });
       }
     }

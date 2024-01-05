@@ -30,18 +30,19 @@ export class CalendarAction extends CustomZettelAction {
 
   async execute(info: ExecuteInfo) {
     const { content, element, context } = info;
-    const { result, key, zone } = element;
-    if (TypeService.isString(key) && TypeService.isDate(result)) {
+    const { result, key, zone, staticBehaviour, staticValue } = element;
+    const valueToSave = staticBehaviour ? staticValue : result;
+    if (TypeService.isString(key) && TypeService.isDate(valueToSave)) {
       switch (zone) {
         case "body":
-          content.modify(key, result.toISOString());
+          content.modify(key, valueToSave.toISOString());
           break;
         case "context":
-          context[key] = result;
+          context[key] = valueToSave;
           break;
         case "frontmatter":
         default:
-          content.addFrontMatter({ [key]: result });
+          content.addFrontMatter({ [key]: valueToSave });
       }
     }
   }

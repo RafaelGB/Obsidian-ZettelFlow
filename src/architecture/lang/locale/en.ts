@@ -62,6 +62,8 @@ export default {
     step_builder_element_type_key_description: 'The metatada key asigned to the element',
     step_builder_element_type_static_toggle_title: 'Enable static behaviour',
     step_builder_element_type_static_toggle_description: 'When enabled, the element will be saved as you defined below without any UI.',
+    step_builder_element_type_static_value_title: 'Static value',
+    step_builder_element_type_static_value_description: 'The value that will be saved in the element',
     step_builder_element_type_prompt_title: 'Element type prompt options',
     step_builder_element_type_prompt_description: 'Choose the options for the prompt element.',
     step_builder_element_type_prompt_label_title: 'Label of prompt',

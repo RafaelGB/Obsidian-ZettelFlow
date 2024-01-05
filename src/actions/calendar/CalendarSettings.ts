@@ -86,24 +86,32 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                 .setValue(staticBehaviour)
                 .onChange(async (isStatic) => {
                     action.staticBehaviour = isStatic;
-                    const staticInput = document.getElementById(dynamicId)
-                    if (staticInput) {
-                        staticInput.style.display = isStatic ? 'block' : 'none';
+                    const staticInput = document.getElementById(dynamicId) as HTMLInputElement;
+                    // find parent container with class 'setting-item' and hide it
+                    const parent: HTMLElement | null = staticInput.closest('.setting-item');
+                    if (parent) {
+                        if (isStatic) {
+                            parent.style.display = 'flex';
+                        } else {
+                            parent.style.display = 'none';
+                            staticInput.value = '';
+                            delete action.staticValue;
+                        }
                     }
                     action.hasUI = !isStatic;
                 });
         });
 
-    let inputEl: HTMLInputElement;
-    inputEl = contentEl.createEl('input', {
-        attr: {
-            type: enableTime ? 'datetime-local' : 'date',
-            value: staticValue || ''
-        }
-    });
-    inputEl.addEventListener('change', (e) => {
-        action.staticValue = (e.target as HTMLInputElement).value;
-    });
-    inputEl.id = dynamicId;
-    inputEl.style.display = staticBehaviour ? 'block' : 'none';
+    new Setting(contentEl)
+        .setName(t("step_builder_element_type_static_value_title"))
+        .setDesc(t("step_builder_element_type_static_value_description"))
+        .addText(text => {
+            text.inputEl.type = enableTime ? 'datetime-local' : 'date';
+            text.setValue(staticValue || ``)
+                .onChange(async (value) => {
+                    action.staticValue = value;
+                });
+            text.inputEl.id = dynamicId;
+            text.inputEl.style.display = staticBehaviour ? 'block' : 'none';
+        });
 }

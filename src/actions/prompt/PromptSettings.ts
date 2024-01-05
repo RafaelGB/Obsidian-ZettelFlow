@@ -4,9 +4,10 @@ import { PromptElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
+import { v4 as uuid4 } from "uuid";
 
 export const promptSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, placeholder, zone } = action as PromptElement;
+    const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as PromptElement;
     const name = t('step_builder_element_type_prompt_title');
     const description = t('step_builder_element_type_prompt_description');
     contentEl.createEl('h3', { text: name });
@@ -69,4 +70,48 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
                     action.placeholder = value;
                 });
         });
+
+
+    // Toggle to enable static behaviour
+    const dynamicId = uuid4();
+    new Setting(contentEl)
+        .setName(t("step_builder_element_type_static_toggle_title"))
+        .setDesc(t("step_builder_element_type_static_toggle_description"))
+        .addToggle(toggle => {
+            toggle
+                .setValue(staticBehaviour)
+                .onChange(async (isStatic) => {
+                    action.staticBehaviour = isStatic;
+                    const staticInput = document.getElementById(dynamicId) as HTMLInputElement;
+                    // find parent container with class 'setting-item' and hide it
+                    const parent: HTMLElement | null = staticInput.closest('.setting-item');
+                    if (parent) {
+                        if (isStatic) {
+                            parent.style.display = 'flex';
+                        } else {
+                            parent.style.display = 'none';
+                            staticInput.value = '';
+                            delete action.staticValue;
+                        }
+                    }
+                    action.hasUI = !isStatic;
+                });
+        });
+
+    const staticValueContainer = new Setting(contentEl)
+        .setName(t("step_builder_element_type_static_value_title"))
+        .setDesc(t("step_builder_element_type_static_value_description"))
+        .addText(text => {
+            text.setValue(staticValue || ``)
+                .onChange(async (value) => {
+                    action.staticValue = value;
+                });
+            text.inputEl.id = dynamicId;
+        });
+
+    if (staticBehaviour) {
+        staticValueContainer.settingEl.style.display = 'flex';
+    } else {
+        staticValueContainer.settingEl.style.display = 'none';
+    }
 }

@@ -102,7 +102,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                 });
         });
 
-    new Setting(contentEl)
+    const staticValueContainer = new Setting(contentEl)
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
         .addText(text => {
@@ -112,6 +112,10 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                     action.staticValue = value;
                 });
             text.inputEl.id = dynamicId;
-            text.inputEl.style.display = staticBehaviour ? 'block' : 'none';
         });
+    if (staticBehaviour) {
+        staticValueContainer.settingEl.style.display = 'flex';
+    } else {
+        staticValueContainer.settingEl.style.display = 'none';
+    }
 }

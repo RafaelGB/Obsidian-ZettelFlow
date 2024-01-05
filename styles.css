@@ -128,7 +128,7 @@
 /*****************
 *   SELECTOR MENU
 ******************/
-.zettelkasten-flow__icon * {
+.zettelkasten-flow__icon > .custom-icon {
   fill: var(--text-normal);
 }
 

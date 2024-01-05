@@ -46,6 +46,8 @@ export type AditionBaseElement = {
     key: string,
     label: string,
     zone: ZoneOption,
+    staticBehaviour: boolean,
+    staticValue?: string,
 } & Action;
 
 export type PromptElement = {
@@ -59,4 +61,8 @@ export type CalendarElement = {
 export type SelectorElement = {
     options: [string, string][],
     defaultOption?: string,
+} & AditionBaseElement;
+
+export type CheckboxElement = {
+    confirmTooltip: string,
 } & AditionBaseElement;

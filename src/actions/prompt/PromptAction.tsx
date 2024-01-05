@@ -30,19 +30,20 @@ export class PromptAction extends CustomZettelAction {
 
   async execute(info: ExecuteInfo) {
     const { element, context } = info;
-    const { key, zone, result } = element;
-    log.debug(`Prompt action: ${key} ${zone} ${result}`);
-    if (TypeService.isString(key) && TypeService.isString(result)) {
+    const { key, zone, result, staticBehaviour, staticValue } = element;
+    const valueToSave = staticBehaviour ? staticValue : result;
+    log.debug(`Prompt action: ${key} ${zone} ${valueToSave}`);
+    if (TypeService.isString(key) && TypeService.isString(valueToSave)) {
       switch (zone) {
         case "body":
-          info.content.modify(key, result);
+          info.content.modify(key, valueToSave);
           break;
         case "context":
-          context[key] = result;
+          context[key] = valueToSave;
           break;
         case "frontmatter":
         default:
-          info.content.addFrontMatter({ [key]: result });
+          info.content.addFrontMatter({ [key]: valueToSave });
       }
     }
   }

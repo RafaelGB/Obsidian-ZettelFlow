@@ -101,6 +101,7 @@ export default {
     step_builder_element_type_zone_body: 'Body',
     step_builder_element_type_zone_context: 'Context',
     step_builder_element_type_tags_description: 'This action will display a tags selector to add tags to the built-in note.',
+    step_builder_element_type_cssclasses_description: 'This action will display a css classes selector to add css classes to the built-in note.',
     step_builder_element_type_script_title: 'Element type script options',
     step_builder_element_type_script_description: 'Choose the options for the script element.',
     step_builder_element_type_checkbox_title: 'Element type checkbox options',

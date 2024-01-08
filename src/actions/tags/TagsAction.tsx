@@ -23,8 +23,9 @@ export class TagsAction extends CustomZettelAction {
 
   async execute(info: ExecuteInfo) {
     const { content, element } = info;
-    const { result } = element;
-    content.addTags(result as string[]);
+    const { result, staticBehaviour, staticValue } = element;
+    const valueToSave = staticBehaviour ? staticValue : result;
+    content.addTags(valueToSave as string[]);
   }
 
   getIcon(): string {

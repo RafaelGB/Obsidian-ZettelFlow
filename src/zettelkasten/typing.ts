@@ -41,14 +41,20 @@ export type SectionInfo = {
 }
 export type ZoneOption = 'frontmatter' | 'body';
 
+type StaticType = {
+    staticBehaviour: boolean,
+    staticValue?: string,
 
+}
 export type AditionBaseElement = {
     key: string,
     label: string,
     zone: ZoneOption,
-    staticBehaviour: boolean,
-    staticValue?: string,
-} & Action;
+} & Action & StaticType;
+
+export type TagsElement = {
+    staticValue?: string[],
+} & StaticType & Action;
 
 export type PromptElement = {
     placeholder: string,

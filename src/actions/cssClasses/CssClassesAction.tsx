@@ -1,37 +1,37 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
-import { TagsWrapper } from "./TagsComponent";
+import { CssClassesWrapper } from "./CssClassesComponent";
 import React from "react";
 import { t } from "architecture/lang";
-import { tagsSettings } from "./TagsSettings";
+import { cssclassesSettings } from "./CssClassesSettings";
 
-export class TagsAction extends CustomZettelAction {
-  private static ICON = "price-tag-glyph";
-  id = "tags";
+export class CssClassesAction extends CustomZettelAction {
+  private static ICON = "view";
+  id = "cssclasses";
   defaultAction = {
     type: this.id,
-    description: "Add tags to the note",
+    description: "Css Classes",
     hasUI: true,
     id: this.id,
   };
 
-  settings = tagsSettings;
+  settings = cssclassesSettings;
 
   component(props: WrappedActionBuilderProps) {
-    return <TagsWrapper {...props} />;
+    return <CssClassesWrapper {...props} />;
   }
 
   async execute(info: ExecuteInfo) {
     const { content, element } = info;
     const { result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    content.addTags(valueToSave as string[]);
+    content.addFrontMatter({ cssclasses: valueToSave });
   }
 
   getIcon(): string {
-    return TagsAction.ICON;
+    return CssClassesAction.ICON;
   }
   getLabel(): string {
-    return t("type_option_tags");
+    return t("type_option_cssclasses");
   }
 }

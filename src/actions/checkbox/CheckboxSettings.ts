@@ -90,7 +90,6 @@ export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
         .addText(text => {
-            console.log(staticValue);
             text.inputEl.type = 'checkbox';
             text.inputEl.id = dynamicId;
             text.inputEl.checked = staticValue === 'true';

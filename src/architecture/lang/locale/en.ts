@@ -19,6 +19,7 @@ export default {
     type_option_calendar: 'Calendar',
     type_option_selector: 'Selector',
     type_option_tags: 'Tags',
+    type_option_cssclasses: 'CSS Classes',
     menu_pane_create_new_step: 'Create new step',
     menu_pane_edit_step: 'Edit step',
     menu_pane_transform_note_into_step: 'Transform note into step',

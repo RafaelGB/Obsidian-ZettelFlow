@@ -28,5 +28,13 @@ declare module "obsidian" {
          * WARNING! not exposed by Obsidian, may break in future.
          */
         getTags(): Record<string, number>;
+
+        /**
+         *  Obtain the values associated with a given frontmatter key.
+         * 
+         * WARNING! not exposed by Obsidian, may break in future.
+         * @param key The key to search for.
+         */
+        getFrontmatterPropertyValuesForKey(key: string): string[];
     }
 }

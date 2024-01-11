@@ -19,6 +19,11 @@ When you complete all the steps, the plugin will generate a new note with the co
 ## How it works
 With your `.canvas` file, the plugin creates a workflow that will be used to generate new notes. The workflow is a directed graph where the nodes are the template files and the edges are the steps. The plugin will use the workflow to generate the UI.
 
+### Interconnected steps
+The steps are interconnected by the edges of the workflow. The edges are the links between the steps. The plugin will use the edges to generate the UI.
+
+Also, you can use the canvas groups to organize the steps. Every node inside a group will be configured as a child of the group node. The plugin will use the groups to generate the UI.
+
 ## Step configuration
 The initial step will be a selection of all the nodes marked as `root`.
 
@@ -43,6 +48,7 @@ Depending on the action type, there are other properties that can be configured.
 They will be shown as a list of options to select from. The options are:
 
 - **[Prompt](./steps/PromptStep.md)**: A simple input field to add a custom value to the built-in note template.
+- **[Checkbox](./steps/CheckboxStep.md)**: A checkbox to select a boolean value. The value will be added to the note as a property.
 - **[Selector](./steps/SelectorStep.md)**: A list of options to select from. The options are the values of the property defined in the file.
 - **[Calendar](./steps/CalendarStep.md)**: A calendar to select a date. The date will be added to the note as a property.
 - **[Backlink](./steps/BacklinkStep.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.

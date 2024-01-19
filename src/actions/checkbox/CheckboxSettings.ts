@@ -1,15 +1,15 @@
-import { Setting } from "obsidian";
-import { t } from "architecture/lang";
-import { PromptElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
+import { t } from "architecture/lang";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
+import { Setting } from "obsidian";
+import { CheckboxElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
 
-export const promptSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as PromptElement;
-    const name = t('step_builder_element_type_prompt_title');
-    const description = t('step_builder_element_type_prompt_description');
+export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
+    const { key, label, zone, staticBehaviour, staticValue } = action as CheckboxElement;
+    const name = t('step_builder_element_type_checkbox_title');
+    const description = t('step_builder_element_type_checkbox_description');
     contentEl.createEl('h3', { text: name });
     contentEl.createEl('p', { text: description });
 
@@ -38,7 +38,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
                 new PropertySuggest(
                     search.inputEl,
                     types,
-                    ["text"]
+                    ["checkbox"]
                 );
                 search
                     .setValue(key || ``)
@@ -59,18 +59,6 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
                     action.label = value;
                 });
         });
-
-    new Setting(contentEl)
-        .setName(t("step_builder_element_type_prompt_placeholder_title"))
-        .setDesc(t("step_builder_element_type_prompt_placeholder_description"))
-        .addTextArea(text => {
-            text
-                .setValue(placeholder || ``)
-                .onChange(async (value) => {
-                    action.placeholder = value;
-                });
-        });
-
 
     // Toggle to enable static behaviour
     const dynamicId = uuid4();
@@ -102,11 +90,12 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
         .addText(text => {
-            text.setValue(staticValue || ``)
-                .onChange(async (value) => {
-                    action.staticValue = value;
-                });
+            text.inputEl.type = 'checkbox';
             text.inputEl.id = dynamicId;
+            text.inputEl.checked = staticValue === 'true';
+            text.inputEl.addEventListener('change', (event) => {
+                action.staticValue = (event.target as HTMLInputElement).checked;
+            });
         });
 
     if (staticBehaviour) {
@@ -114,4 +103,4 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
     } else {
         staticValueContainer.settingEl.style.display = 'none';
     }
-}
+};

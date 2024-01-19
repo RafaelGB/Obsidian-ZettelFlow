@@ -25,18 +25,17 @@ export class NoteBuilder {
   }
 
   public async build(): Promise<string> {
-    log.trace(`Builder: building note ${this.note.getTitle()} in folder ${this.note.getTargetFolder()}. paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
     this.note.setTitle(this.buildFilename());
     await this.buildNote();
     await this.errorManagement();
-
-    log.debug(`Builder: creating file ${this.note.getFinalPath()}`);
     const generatedFile = await FileService.createFile(this.note.getFinalPath(), this.content.get(), false);
 
     await FrontmatterService
       .instance(generatedFile)
       .processFrontMatter(this.content);
     await this.postProcess(generatedFile);
+
+    log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
     return generatedFile.path;
   }
 

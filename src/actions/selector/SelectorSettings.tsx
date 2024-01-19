@@ -5,6 +5,8 @@ import React from "react";
 import { Setting } from "obsidian";
 import { ActionSetting } from "architecture/api";
 import { SelectorDnD } from "./components/selectordnd/SelectorDnD";
+import { ObsidianConfig } from "architecture/plugin";
+import { PropertySuggest } from "architecture/settings";
 
 export const elementTypeSelectorSettings: ActionSetting = (
   contentEl,
@@ -39,9 +41,12 @@ export const elementTypeSelectorSettings: ActionSetting = (
   new Setting(contentEl)
     .setName(t("step_builder_element_type_key_title"))
     .setDesc(t("step_builder_element_type_key_description"))
-    .addText((text) => {
-      text.setValue(key || ``).onChange(async (value) => {
-        action.key = value;
+    .addSearch((search) => {
+      ObsidianConfig.getTypes().then((types) => {
+        new PropertySuggest(search.inputEl, types);
+        search.setValue(key || ``).onChange(async (value) => {
+          action.key = value;
+        });
       });
     });
 

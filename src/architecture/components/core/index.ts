@@ -16,3 +16,6 @@ export { SelectableSearchType } from './selectableSearch/typing'
 
 export { Calendar } from './calendar/Calendar'
 export { CalendarType } from './calendar/typing'
+
+export { Checkbox } from './checkbox/Checkbox'
+export { CheckboxType } from './checkbox/typing'

@@ -6,7 +6,7 @@ import { t } from 'architecture/lang';
 import { RibbonIcon } from 'starters/zcomponents/RibbonIcon';
 import { StepBuilderMapper, StepBuilderModal } from 'zettelkasten';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
-import { BackLinkAction, CalendarAction, CodeView, PromptAction, ScriptAction, SelectorAction, TagsAction } from 'actions';
+import { BackLinkAction, CalendarAction, CheckboxAction, CodeView, CssClassesAction, PromptAction, ScriptAction, SelectorAction, TagsAction } from 'actions';
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from 'architecture';
 
@@ -51,10 +51,12 @@ export default class ZettelFlow extends Plugin {
 
 	registerActions() {
 		actionsStore.registerAction(new PromptAction());
+		actionsStore.registerAction(new CheckboxAction());
 		actionsStore.registerAction(new SelectorAction());
 		actionsStore.registerAction(new CalendarAction());
 		actionsStore.registerAction(new BackLinkAction());
 		actionsStore.registerAction(new TagsAction());
+		actionsStore.registerAction(new CssClassesAction());
 		actionsStore.registerAction(new ScriptAction());
 	}
 

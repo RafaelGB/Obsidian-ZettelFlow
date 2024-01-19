@@ -1,49 +1,51 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { WrappedActionBuilderProps } from "application/components/noteBuilder";
-import React from "react";
-import { promptSettings } from "./PromptSettings";
-import { PromptWrapper } from "./PromptComponent";
-import { t } from "architecture/lang";
-import { TypeService } from "architecture/typing";
 import { log } from "architecture";
+import { checkboxSettings } from "./CheckboxSettings";
+import { WrappedActionBuilderProps } from "application/components/noteBuilder";
+import { CheckboxWrapper } from "./CheckboxComponent";
+import React from "react";
+import { TypeService } from "architecture/typing";
 
-export class PromptAction extends CustomZettelAction {
-  private static ICON = "form-input";
-  id = "prompt";
+export class CheckboxAction extends CustomZettelAction {
+  private static ICON = "check-square";
+  id = "checkbox";
   defaultAction = {
     type: this.id,
-    hasUI: true,
+    hasUI: false,
     id: this.id,
   };
-  settings = promptSettings;
+
+  settings = checkboxSettings;
+
   component(props: WrappedActionBuilderProps) {
-    return <PromptWrapper {...props} />;
+    return <CheckboxWrapper {...props} />;
   }
 
   async execute(info: ExecuteInfo) {
     const { element, context } = info;
     const { key, zone, result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    log.debug(`Prompt action: ${key} ${zone} ${valueToSave}`);
-    if (TypeService.isString(key) && TypeService.isString(valueToSave)) {
+    log.debug(`Checkbox action: ${key} ${zone} ${valueToSave}`);
+    if (TypeService.isString(key) && valueToSave !== undefined) {
       switch (zone) {
         case "body":
-          info.content.modify(key, valueToSave);
+          info.content.modify(key, String(valueToSave));
           break;
         case "context":
           context[key] = valueToSave;
           break;
         case "frontmatter":
         default:
-          info.content.addFrontMatter({ [key]: valueToSave });
+          info.content.addFrontMatter({ [key]: valueToSave === "true" });
       }
     }
   }
-  getIcon() {
-    return PromptAction.ICON;
+
+  getIcon(): string {
+    return CheckboxAction.ICON;
   }
 
-  getLabel() {
-    return t("type_option_prompt");
+  getLabel(): string {
+    return "Checkbox";
   }
 }

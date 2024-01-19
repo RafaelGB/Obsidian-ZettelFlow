@@ -41,12 +41,20 @@ export type SectionInfo = {
 }
 export type ZoneOption = 'frontmatter' | 'body';
 
+type StaticType = {
+    staticBehaviour: boolean,
+    staticValue?: string,
 
+}
 export type AditionBaseElement = {
     key: string,
     label: string,
     zone: ZoneOption,
-} & Action;
+} & Action & StaticType;
+
+export type TagsElement = {
+    staticValue?: string[],
+} & StaticType & Action;
 
 export type PromptElement = {
     placeholder: string,
@@ -59,4 +67,8 @@ export type CalendarElement = {
 export type SelectorElement = {
     options: [string, string][],
     defaultOption?: string,
+} & AditionBaseElement;
+
+export type CheckboxElement = {
+    confirmTooltip: string,
 } & AditionBaseElement;

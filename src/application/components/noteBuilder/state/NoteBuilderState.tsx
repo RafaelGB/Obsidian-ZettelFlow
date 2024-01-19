@@ -77,11 +77,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           log.debug(`Skipping manageElementInfo for element: ${node.label}`);
           return { builder };
         }
-        if (node.path) {
-          builder.note
-            .addPath(node.path, position)
-            .setTargetFolder(node.targetFolder);
-        }
+        builder.note
+          .addPath(node.path, position)
+          .setTargetFolder(node.targetFolder);
 
         return {
           builder,

@@ -108,6 +108,12 @@ export default {
     step_builder_element_type_script_description: 'Elige las opciones para el elemento script.',
     step_builder_element_type_checkbox_title: 'Opciones del elemento checkbox',
     step_builder_element_type_checkbox_description: 'Elige las opciones para el elemento checkbox.',
+    step_builder_element_type_number_title: 'Opciones del elemento número',
+    step_builder_element_type_number_description: 'Elige las opciones para el elemento número.',
+    step_builder_element_type_number_label_title: 'Etiqueta del número',
+    step_builder_element_type_number_label_description: 'La etiqueta será el título de tu número',
+    step_builder_element_type_number_placeholder_title: 'Placeholder del número',
+    step_builder_element_type_number_placeholder_description: 'Texto de ayuda para mostrar en el número',
     step_builder_actions_management_title: 'Gestión de acciones',
     step_builder_actions_management_add_action_tooltip: 'Añadir acción',
 };

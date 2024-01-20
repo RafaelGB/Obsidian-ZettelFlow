@@ -107,6 +107,12 @@ export default {
     step_builder_element_type_script_description: 'Choose the options for the script element.',
     step_builder_element_type_checkbox_title: 'Element type checkbox options',
     step_builder_element_type_checkbox_description: 'Choose the options for the checkbox element.',
+    step_builder_element_type_number_title: 'Element type number options',
+    step_builder_element_type_number_description: 'Choose the options for the number element.',
+    step_builder_element_type_number_label_title: 'Label of number',
+    step_builder_element_type_number_label_description: 'The label will be the title of your number',
+    step_builder_element_type_number_placeholder_title: 'Placeholder of number',
+    step_builder_element_type_number_placeholder_description: 'Helper text to display in the number',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
 };

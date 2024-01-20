@@ -71,4 +71,5 @@ export type SelectorElement = {
 
 export type CheckboxElement = {
     confirmTooltip: string,
+    staticValue?: boolean,
 } & AditionBaseElement;

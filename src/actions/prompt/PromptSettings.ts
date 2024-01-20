@@ -101,7 +101,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
     const staticValueContainer = new Setting(contentEl)
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
-        .addText(text => {
+        .addTextArea(text => {
             text.setValue(staticValue || ``)
                 .onChange(async (value) => {
                     action.staticValue = value;

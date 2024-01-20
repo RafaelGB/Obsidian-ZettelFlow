@@ -11,7 +11,7 @@ export class CheckboxAction extends CustomZettelAction {
   id = "checkbox";
   defaultAction = {
     type: this.id,
-    hasUI: false,
+    hasUI: true,
     id: this.id,
   };
 
@@ -26,7 +26,7 @@ export class CheckboxAction extends CustomZettelAction {
     const { key, zone, result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
     log.debug(`Checkbox action: ${key} ${zone} ${valueToSave}`);
-    if (TypeService.isString(key) && valueToSave !== undefined) {
+    if (TypeService.isString(key) && TypeService.isBoolean(valueToSave)) {
       switch (zone) {
         case "body":
           info.content.modify(key, String(valueToSave));
@@ -36,7 +36,7 @@ export class CheckboxAction extends CustomZettelAction {
           break;
         case "frontmatter":
         default:
-          info.content.addFrontMatter({ [key]: valueToSave === "true" });
+          info.content.addFrontMatter({ [key]: valueToSave });
       }
     }
   }

@@ -16,6 +16,7 @@ export default {
     command_settings_open_canvas: 'Abrir canvas',
     type_option_bridge: 'Pasarela',
     type_option_prompt: 'Prompt',
+    type_option_number: 'Número',
     type_option_calendar: 'Calendario',
     type_option_selector: 'Selector',
     type_option_tags: 'Etiquetas',

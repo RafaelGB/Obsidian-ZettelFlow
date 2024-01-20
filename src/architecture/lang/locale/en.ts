@@ -16,6 +16,7 @@ export default {
     command_settings_open_canvas: 'Open canvas',
     type_option_bridge: 'Bridge',
     type_option_prompt: 'Prompt',
+    type_option_number: 'Number',
     type_option_calendar: 'Calendar',
     type_option_selector: 'Selector',
     type_option_tags: 'Tags',

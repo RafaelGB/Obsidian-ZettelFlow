@@ -1,6 +1,6 @@
 {
   "name": "zettelflow",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A plugin for Obsidian that allows you to create and manage notes in a ZettelFlow-like way.",
   "main": "main.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "ts-jest": "29.1.1",
     "tslib": "2.6.2",
     "typescript": "5.3.3",
-    "zustand": "4.4.7"
+    "zustand": "4.5.0"
   },
   "dependencies": {
     "@popperjs/core": "2.11.8",

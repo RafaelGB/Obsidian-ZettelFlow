@@ -14,6 +14,7 @@ export class PromptAction extends CustomZettelAction {
     type: this.id,
     hasUI: true,
     id: this.id,
+    zone: "frontmatter",
   };
   settings = promptSettings;
   component(props: WrappedActionBuilderProps) {

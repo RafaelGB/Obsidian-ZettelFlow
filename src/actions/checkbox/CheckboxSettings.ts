@@ -7,7 +7,7 @@ import { CheckboxElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
 
 export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, zone, staticBehaviour, staticValue } = action as CheckboxElement;
+    const { key, label, zone, staticBehaviour, staticValue = false } = action as CheckboxElement;
     const name = t('step_builder_element_type_checkbox_title');
     const description = t('step_builder_element_type_checkbox_description');
     contentEl.createEl('h3', { text: name });
@@ -89,13 +89,12 @@ export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
     const staticValueContainer = new Setting(contentEl)
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
-        .addText(text => {
-            text.inputEl.type = 'checkbox';
-            text.inputEl.id = dynamicId;
-            text.inputEl.checked = staticValue === 'true';
-            text.inputEl.addEventListener('change', (event) => {
-                action.staticValue = (event.target as HTMLInputElement).checked;
-            });
+        .addToggle(toggle => {
+            toggle.setValue(staticValue)
+                .onChange(async (value) => {
+                    action.staticValue = value;
+                });
+            toggle.toggleEl.id = dynamicId;
         });
 
     if (staticBehaviour) {

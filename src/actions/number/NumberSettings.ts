@@ -1,15 +1,15 @@
-import { Setting } from "obsidian";
-import { t } from "architecture/lang";
-import { PromptElement } from "zettelkasten";
 import { ActionSetting } from "architecture/api";
+import { t } from "architecture/lang";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
+import { Setting } from "obsidian";
+import { NumberElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
 
-export const promptSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as PromptElement;
-    const name = t('step_builder_element_type_prompt_title');
-    const description = t('step_builder_element_type_prompt_description');
+export const numberSettings: ActionSetting = (contentEl, _, action) => {
+    const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as NumberElement;
+    const name = t('step_builder_element_type_number_title');
+    const description = t('step_builder_element_type_number_description');
     contentEl.createEl('h3', { text: name });
     contentEl.createEl('p', { text: description });
 
@@ -38,7 +38,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
                 new PropertySuggest(
                     search.inputEl,
                     types,
-                    ["text"]
+                    ["number"]
                 );
                 search
                     .setValue(key || ``)
@@ -50,8 +50,8 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         });
 
     new Setting(contentEl)
-        .setName(t("step_builder_element_type_prompt_label_title"))
-        .setDesc(t("step_builder_element_type_prompt_label_description"))
+        .setName(t("step_builder_element_type_number_label_title"))
+        .setDesc(t("step_builder_element_type_number_label_description"))
         .addText(text => {
             text
                 .setValue(label || ``)
@@ -61,8 +61,8 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         });
 
     new Setting(contentEl)
-        .setName(t("step_builder_element_type_prompt_placeholder_title"))
-        .setDesc(t("step_builder_element_type_prompt_placeholder_description"))
+        .setName(t("step_builder_element_type_number_placeholder_title"))
+        .setDesc(t("step_builder_element_type_number_placeholder_description"))
         .addTextArea(text => {
             text
                 .setValue(placeholder || ``)
@@ -101,13 +101,20 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
     const staticValueContainer = new Setting(contentEl)
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
-        .addTextArea(text => {
-            text.setValue(staticValue || ``)
-                .onChange(async (value) => {
-                    action.staticValue = value;
-                });
-            text.inputEl.id = dynamicId;
-        });
+
+    staticValueContainer.settingEl.createEl('input', {
+        attr: {
+            type: 'number',
+            id: dynamicId,
+        },
+        cls: 'setting-item-input',
+        value: staticValue || '',
+    });
+
+    staticValueContainer.settingEl.addEventListener('change', (event) => {
+        const target = event.target as HTMLInputElement;
+        action.staticValue = parseFloat(target.value);
+    });
 
     if (staticBehaviour) {
         staticValueContainer.settingEl.style.display = 'flex';

@@ -491,7 +491,8 @@ textarea {
 }
 
 .zettelkasten-flow__selectable-search-header {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
 }
 
 .zettelkasten-flow__selectable-search-header > button {
@@ -504,9 +505,7 @@ textarea {
 }
 
 .zettelkasten-flow__selectable-pill-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-grow: 1;
   border: 1px solid var(--background-modifier-border);
 }
 
@@ -529,7 +528,7 @@ textarea {
   border: 2px solid var(--background-modifier-focus);
   border-radius: 20px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: space-between;
 }

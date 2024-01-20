@@ -27,6 +27,7 @@ export function TagsWrapper(props: WrappedActionBuilderProps) {
           setSelectedTags(tags);
         }}
         enableCreate={true}
+        autoFocus
       />
       <button
         onClick={() => {

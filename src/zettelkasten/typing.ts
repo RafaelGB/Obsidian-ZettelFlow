@@ -60,6 +60,11 @@ export type PromptElement = {
     placeholder: string,
 } & AditionBaseElement;
 
+export type NumberElement = {
+    placeholder: string,
+    staticValue?: number,
+} & AditionBaseElement;
+
 export type CalendarElement = {
     enableTime: boolean,
 } & AditionBaseElement;
@@ -71,4 +76,5 @@ export type SelectorElement = {
 
 export type CheckboxElement = {
     confirmTooltip: string,
+    staticValue?: boolean,
 } & AditionBaseElement;

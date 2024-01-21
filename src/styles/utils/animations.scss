@@ -17,3 +17,26 @@
         opacity: 0.6;
     }
 }
+
+/** Flash animation when dragging over a dropzone */
+@keyframes flashFrames {
+    0% {
+        opacity: 1;
+    }
+
+    25% {
+        opacity: 0.75;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    75% {
+        opacity: 0.75;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}

@@ -23,6 +23,7 @@ export function CssClassesWrapper(props: WrappedActionBuilderProps) {
           setSelectedCssClasses(cssclasses);
         }}
         enableCreate={true}
+        autoFocus
       />
       <button
         onClick={() => {

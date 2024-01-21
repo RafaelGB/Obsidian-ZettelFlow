@@ -1,0 +1,13 @@
+/** Just show the draggeable item */
+.zettelkasten-flow__dragging {
+    z-index: 9999;
+    border: 2px solid var(--background-modifier-border);
+    border-radius: 0.25rem;
+    background-color: var(--background-secondary);
+    box-shadow: 0 0.125rem 0.25rem var(--background-modifier-border);
+}
+
+.zettelkasten-flow__sortable {
+    /* Support for mobile Drag & Drop */
+    touch-action: none;
+}

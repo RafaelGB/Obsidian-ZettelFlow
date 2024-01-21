@@ -1,0 +1,38 @@
+.zettelkasten-flow__settings-item {
+    border-top: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+    width: 100%;
+    font-size: 16px;
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    color: var(--text-muted);
+    justify-content: space-between;
+}
+
+.zettelkasten-flow__setting-button-group {
+    display: flex;
+    justify-content: flex-end;
+    flex-grow: 1;
+    flex-shrink: 0;
+    max-width: 25px;
+}
+
+.zettelkasten-flow__setting-button-group>div {
+    margin-left: 12px;
+}
+
+.zettelkasten-flow__settings-toggle-group>div {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.zettelkasten-flow__settings-toggle-group .checkbox-container {
+    margin-right: 10px;
+}
+
+.zettelkasten-flow__settings-toggle-group .zettelkasten-flow__setting-item-label {
+    margin-bottom: 0;
+}

@@ -5,8 +5,14 @@ import { Icon } from "architecture/components/icon";
 import { useOnClickAway } from "architecture/hooks";
 
 export function SelectableSearch(props: SelectableSearchType) {
-  const { options, initialSelections, onChange, placeholder, enableCreate } =
-    props;
+  const {
+    options,
+    initialSelections,
+    onChange,
+    placeholder,
+    enableCreate,
+    autoFocus,
+  } = props;
   const [filteredOptions, setFilteredOptions] = useState(options);
 
   /* Current selected options*/
@@ -76,6 +82,7 @@ export function SelectableSearch(props: SelectableSearchType) {
             ref={inputRef}
             value={searchState}
             onChange={handleSearchChange}
+            autoFocus={autoFocus}
             onKeyDown={(e) => {
               switch (e.key) {
                 case "ArrowUp": {

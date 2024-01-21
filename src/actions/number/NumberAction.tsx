@@ -1,36 +1,37 @@
-import { CustomZettelAction, ExecuteInfo } from "architecture/api";
-import { log } from "architecture";
-import { checkboxSettings } from "./CheckboxSettings";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
-import { CheckboxWrapper } from "./CheckboxComponent";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { t } from "architecture/lang";
 import React from "react";
+import { numberSettings } from "./NumberSettings";
+import { log } from "architecture";
 import { TypeService } from "architecture/typing";
+import { NumberWrapper } from "./NumberComponent";
 
-export class CheckboxAction extends CustomZettelAction {
-  private static ICON = "check-square";
-  id = "checkbox";
+export class NumberAction extends CustomZettelAction {
+  private static ICON = "binary";
+  id = "number";
+
   defaultAction = {
     type: this.id,
     hasUI: true,
-    zone: "frontmatter",
     id: this.id,
+    zone: "frontmatter",
   };
-
-  settings = checkboxSettings;
+  settings = numberSettings;
 
   component(props: WrappedActionBuilderProps) {
-    return <CheckboxWrapper {...props} />;
+    return <NumberWrapper {...props} />;
   }
 
   async execute(info: ExecuteInfo) {
     const { element, context } = info;
     const { key, zone, result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    log.debug(`Checkbox action: ${key} ${zone} ${valueToSave}`);
-    if (TypeService.isString(key) && TypeService.isBoolean(valueToSave)) {
+    log.debug(`Number action: ${key} ${zone} ${valueToSave}`);
+    if (TypeService.isString(key) && TypeService.isNumber(valueToSave)) {
       switch (zone) {
         case "body":
-          info.content.modify(key, String(valueToSave));
+          info.content.modify(key, valueToSave.toString());
           break;
         case "context":
           context[key] = valueToSave;
@@ -43,10 +44,10 @@ export class CheckboxAction extends CustomZettelAction {
   }
 
   getIcon(): string {
-    return CheckboxAction.ICON;
+    return NumberAction.ICON;
   }
 
   getLabel(): string {
-    return "Checkbox";
+    return t("type_option_number");
   }
 }

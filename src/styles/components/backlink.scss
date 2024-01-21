@@ -1,0 +1,32 @@
+.zettelkasten-flow__backlink {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0.5rem;
+}
+
+.zettelkasten-flow__backlink-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.zettelkasten-flow__backlink-left>div {
+    margin-bottom: 1rem;
+}
+
+.zettelkasten-flow__backlink-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.zettelkasten-flow__backlink-right>div {
+    margin-bottom: 1rem;
+}
+
+.zettelkasten-flow__preview {
+    padding: 0.2rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 0.25rem;
+}

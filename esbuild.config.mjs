@@ -1,4 +1,5 @@
 import esbuild from "esbuild";
+import {sassPlugin} from "esbuild-sass-plugin";
 import process from "process";
 import builtins from "builtin-modules";
 
@@ -58,10 +59,18 @@ const context = await esbuild.context({
         ".ttf": "file",
     },
 });
+const styles = await esbuild.context({
+    entryPoints: ["src/styles/main.scss"],
+    bundle: true,
+    outfile: "dist/styles.css",
+    plugins: [sassPlugin()],
+});
 
 if (prod) {
 	await context.rebuild();
+    await styles.rebuild();
 	process.exit(0);
 } else {
 	await context.watch();
+    await styles.watch();
 }

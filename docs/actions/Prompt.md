@@ -1,5 +1,6 @@
 # Prompt Action
-Property with a custom value to be added into the built-in note template.
+Include a textarea to save text as a property in the built-in note template.
+
 ## Options
 - zone: The zone where the property will be added. (Frontmatter or Body)
 - Key: The key of the property to be added.

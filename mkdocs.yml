@@ -3,8 +3,25 @@ repo_url: https://github.com/RafaelGB/Obsidian-ZettelFlow
 edit_uri: edit/master/docs/
 theme:
   name: material
+  navigation.instant: true
   logo: resources/obsidian.png
   icon:
     repo: fontawesome/brands/github-alt
 plugins:
   - search
+nav:
+  - 1. Home: index.md
+  - 2. Actions:
+      - 2.1 Prompt: actions/Prompt.md
+      - 2.2 Number: actions/Number.md
+      - 2.3 Checkbox: actions/Checkbox.md
+      - 2.4 Calendar: actions/Calendar.md
+      - 2.5 Selector: actions/Selector.md
+      - 2.6 Tags: actions/Tags.md
+      - 2.7 Backlink: actions/Backlink.md
+      - 2.8 CssClasses: actions/CssClasses.md
+      - 2.9 Script: actions/Script.md
+  - 3. How to Contribute:
+      - 3.1 Wiki: how-to-contribute/Wiki.md
+extra_javascript:
+  - "extra_javascript/navigationInstant.js"

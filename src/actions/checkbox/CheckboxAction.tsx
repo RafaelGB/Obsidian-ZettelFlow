@@ -12,6 +12,7 @@ export class CheckboxAction extends CustomZettelAction {
   defaultAction = {
     type: this.id,
     hasUI: true,
+    zone: "frontmatter",
     id: this.id,
   };
 

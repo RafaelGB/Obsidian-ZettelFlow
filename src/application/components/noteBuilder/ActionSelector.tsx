@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { ActionBuilderProps } from "./model/NoteBuilderModel";
 import { callbackActionBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { actionsStore } from "architecture/api";
+import { ActionBuilderProps } from "./typing";
 
 export function ActionSelector(actionProps: ActionBuilderProps) {
   const { action } = actionProps;

@@ -3,7 +3,7 @@ import {
   ElementBuilderProps,
   ActionBuilderProps,
   CallbackPickedState,
-} from "../model/NoteBuilderModel";
+} from "../typing";
 import { Literal } from "architecture/plugin";
 import { manageAction, manageElement, nextElement } from "./CallbackUtils";
 import { Notice } from "obsidian";

@@ -7,6 +7,7 @@ import ZettelFlow from "main";
 import { FinalElement } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { Modal } from "obsidian";
+import { ZettelFlowSettings } from "config";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;
@@ -36,6 +37,7 @@ export type SavedSection = {
     element?: FinalElement;
 }
 export type SectionElementOptions = {
+    id?: string;
     savePrevious?: boolean;
     isOptional?: boolean;
 }
@@ -57,7 +59,8 @@ export type NoteBuilderStateActions = {
     manageNodeInfo: (selectedNode: FlowNode, skipAddToBuilder?: boolean) => void;
     addAction: (element: Action, callbackResult: Literal) => void;
     addBackgroundAction: (action: Action) => void;
-    setPatternPrefix: (prefix: string) => void;
+    addJsFile: (path: string) => Promise<void>;
+    initPluginConfig: (settings: ZettelFlowSettings) => Promise<void>;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;
     setEnableSkip: (enable: boolean) => void;
@@ -67,6 +70,7 @@ export type NoteBuilderStateActions = {
 export type NoteBuilderState = {
     title: string;
     invalidTitle: boolean;
+    currentAction: string;
     previousSections: Map<number, SavedSection>;
     previousArray: number[];
     section: SectionType;
@@ -89,4 +93,5 @@ export type StoreNoteBuilderModifier = (
     partial: NoteBuilderState | Partial<NoteBuilderState>
 ) => void;
 
-export type TutorialType = Pick<NoteBuilderType, "plugin" | "modal">;  
+export type TutorialType = Pick<NoteBuilderType, "plugin" | "modal">;
+

@@ -4,6 +4,7 @@ import { SectionType } from "application/components/section";
 
 const setSelectionElementAction =
     (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions = {
+        id: "",
         savePrevious: true,
         isOptional: false,
     }) => {
@@ -30,6 +31,7 @@ const setSelectionElementAction =
             previousSections: previousSections,
             enableSkip: isOptional,
             actionWasTriggered: false,
+            currentAction: "",
         });
 
     };

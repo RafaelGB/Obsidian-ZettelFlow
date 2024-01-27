@@ -1,5 +1,5 @@
 import React, { StrictMode, useEffect } from "react";
-import { NoteBuilderType } from "./model/NoteBuilderModel";
+import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 import { Section } from "application/components/section";

@@ -1,6 +1,6 @@
 import React from "react";
 import { create } from "zustand";
-import { NoteBuilderState } from "../model/NoteBuilderModel";
+import { NoteBuilderState } from "../typing";
 import { t } from "architecture/lang";
 import { Builder } from "application/notes";
 
@@ -15,6 +15,7 @@ import { FileService } from "architecture/plugin";
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   title: "",
   position: 0,
+  currentAction: "",
   previousSections: new Map(),
   previousArray: [],
   invalidTitle: false,
@@ -139,6 +140,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         previousSections: new Map(),
         previousArray: [],
         invalidTitle: false,
+        currentAction: "",
         section: {
           color: "",
           element: <></>,

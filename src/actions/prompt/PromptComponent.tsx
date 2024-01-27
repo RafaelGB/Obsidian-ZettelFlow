@@ -17,6 +17,7 @@ export function PromptWrapper(props: WrappedActionBuilderProps) {
         }
       }}
       key={"prompt-action"}
+      autofocus
     />
   );
 }

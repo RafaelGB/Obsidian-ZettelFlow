@@ -11,6 +11,7 @@ export function CalendarWrapper(props: WrappedActionBuilderProps) {
         callback(value);
       }}
       enableTime={action.enableTime as boolean}
+      autofocus
     />
   );
 }

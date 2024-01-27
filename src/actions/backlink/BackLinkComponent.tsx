@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { BacklinkElement } from "./model/BackLinkTypes";
+import { BacklinkElement } from "./typing";
 import {
   FileService,
   FrontmatterService,

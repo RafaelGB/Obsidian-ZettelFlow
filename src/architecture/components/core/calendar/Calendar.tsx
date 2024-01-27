@@ -5,7 +5,7 @@ import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 
 export function Calendar(info: CalendarType) {
-  const { onConfirm, className = [], enableTime } = info;
+  const { onConfirm, className = [], enableTime, autofocus = false } = info;
   const [valueState, setValueState] = React.useState<string>("");
   const [inputValid, setInputValid] = React.useState<boolean>(true);
   return (
@@ -20,6 +20,7 @@ export function Calendar(info: CalendarType) {
           setInputValid(true);
         }}
         placeholder="Empty"
+        autoFocus={autofocus}
       />
       <button
         onClick={() => {

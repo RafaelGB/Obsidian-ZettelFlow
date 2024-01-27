@@ -33,6 +33,7 @@ const goPreviousAction =
       },
       builder,
       actionWasTriggered: false,
+      currentAction: previousSection?.actionType || "",
     });
   };
 

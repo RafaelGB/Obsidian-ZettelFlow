@@ -8,4 +8,5 @@ export type DropdownType = {
     className?: string[];
     onConfirm?: (value: string) => void;
     onKeyDown?: (key: string, currentValue: string) => void;
+    autofocus?: boolean;
 }

@@ -24,14 +24,12 @@ export function Header() {
       >
         {"<"}
       </button>
-      <p>
-        {title}
-        {currentAction ? (
-          <Icon name={`${actionsStore.getIconOf(currentAction)}`} />
-        ) : (
-          ""
-        )}
-      </p>
+      <p>{title}</p>
+      {currentAction ? (
+        <Icon name={`${actionsStore.getIconOf(currentAction)}`} />
+      ) : (
+        ""
+      )}
     </div>
   );
 }

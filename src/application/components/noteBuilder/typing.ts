@@ -34,10 +34,11 @@ export type SavedSection = {
     section: SectionType;
     header: HeaderType;
     isAction: boolean;
+    actionType?: string;
     element?: FinalElement;
 }
 export type SectionElementOptions = {
-    id?: string;
+    actionType?: string;
     savePrevious?: boolean;
     isOptional?: boolean;
 }
@@ -53,7 +54,7 @@ export type NoteBuilderStateActions = {
     setInvalidTitle: (invalid: boolean) => void;
     setTargetFolder: (folder: string | undefined) => void;
     setHeader: (header: Partial<HeaderType>) => void;
-    setSectionElement: (element: JSX.Element, config?: Partial<SectionElementOptions>) => void;
+    setSectionElement: (element: JSX.Element, config: Partial<SectionElementOptions>) => void;
     goPrevious: () => void;
     build: () => Promise<string>;
     manageNodeInfo: (selectedNode: FlowNode, skipAddToBuilder?: boolean) => void;

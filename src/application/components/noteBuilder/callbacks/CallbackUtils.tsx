@@ -46,9 +46,9 @@ export function manageAction(
         key={`selector-action-${selectedElement.id}-${position}`}
       />,
       {
+        actionType: action.type,
         isOptional: selectedElement.optional,
         savePrevious: true,
-        id: action.id,
       }
     );
     actions.setHeader({

@@ -3,26 +3,26 @@ import { NoteBuilderState, SectionElementOptions, StoreNoteBuilderModifier } fro
 import { SectionType } from "application/components/section";
 
 const setSelectionElementAction =
-    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: SectionElementOptions = {
-        id: "",
-        savePrevious: true,
-        isOptional: false,
-    }) => {
+    (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: Partial<SectionElementOptions>) => {
         log.trace(`setSelectionElementAction - config: ${JSON.stringify(config)}`);
         const { previousSections, previousArray, section, position, header, builder, actionWasTriggered } = get();
-        const { savePrevious = true, isOptional = false } = config;
+        const { savePrevious = true, isOptional = false, actionType } = config;
         const elementSection: SectionType = {
             ...section,
             element: element,
         };
         if (savePrevious) {
             previousArray.push(position);
-            previousSections.set(position, {
+            const element = builder.note.getElement(position);
+            const savedSection = {
                 header,
                 section,
-                element: builder.note.getElement(position),
+                element: element,
                 isAction: actionWasTriggered,
-            });
+                actionType: element?.type
+            };
+
+            previousSections.set(position, savedSection);
         }
         log.trace(`section set from ${position} to ${position + 1}`);
         set({
@@ -31,7 +31,7 @@ const setSelectionElementAction =
             previousSections: previousSections,
             enableSkip: isOptional,
             actionWasTriggered: false,
-            currentAction: "",
+            currentAction: actionType,
         });
 
     };

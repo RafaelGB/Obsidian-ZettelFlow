@@ -4,13 +4,28 @@
 
 .zettelkasten-flow__input-group input,
 textarea {
-    border: solid 1.5px var(--background-secondary);
-    border-radius: 0.25rem;
-    background: none;
-    padding: 1rem;
-    font-size: 1rem;
     color: var(--text-normal);
-    transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+        padding: 10px;
+        border: solid 1.5px var(--background-secondary);
+        border-radius: 0.25rem;
+        background: none;
+        outline: none;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    
+        &:focus {
+            border-color: var(--text-accent);
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        }
+    
+        &::placeholder {
+            color: var(--text-secondary);
+        }
+    
+        &:disabled {
+            background-color: var(--background-secondary);
+            cursor: not-allowed;
+        }
 }
 
 .zettelkasten-flow__input-label {

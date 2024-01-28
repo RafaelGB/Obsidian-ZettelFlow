@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { NoteBuilderType } from "./model/NoteBuilderModel";
+import { NoteBuilderType } from "./typing";
 import { callbackRootBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import {

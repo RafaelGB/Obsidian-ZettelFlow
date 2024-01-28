@@ -8,6 +8,7 @@ export function TextArea(info: InputType) {
     className = [],
     value,
     required = false,
+    autofocus = false,
     onChange,
     onKeyDown,
   } = info;
@@ -32,6 +33,7 @@ export function TextArea(info: InputType) {
             onKeyDown(event.key, valueState || "");
           }
         }}
+        autoFocus={autofocus}
       />
     </div>
   );

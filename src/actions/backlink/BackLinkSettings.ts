@@ -1,7 +1,7 @@
 import { FILE_EXTENSIONS, FileService } from "architecture/plugin";
 import { FileSuggest, HeadingSuggest } from "architecture/settings";
 import { HeadingCache, Setting } from "obsidian";
-import { BacklinkElement } from "./model/BackLinkTypes";
+import { BacklinkElement } from "./typing";
 import { t } from "architecture/lang";
 import { ActionSetting } from "architecture/api";
 

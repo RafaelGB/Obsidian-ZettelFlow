@@ -1,7 +1,4 @@
-import {
-  CallbackPickedState,
-  NoteBuilderType,
-} from "../model/NoteBuilderModel";
+import { CallbackPickedState, NoteBuilderType } from "../typing";
 import { ActionSelector } from "../ActionSelector";
 import React from "react";
 import { ElementSelector } from "../ElementSelector";
@@ -48,7 +45,11 @@ export function manageAction(
         position={position}
         key={`selector-action-${selectedElement.id}-${position}`}
       />,
-      { isOptional: selectedElement.optional, savePrevious: true }
+      {
+        actionType: action.type,
+        isOptional: selectedElement.optional,
+        savePrevious: true,
+      }
     );
     actions.setHeader({
       title: action.description || `${action.type} action`,

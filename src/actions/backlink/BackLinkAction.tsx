@@ -1,9 +1,6 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { backlinkSettings } from "./BackLinkSettings";
-import {
-  BacklinkComponentResult,
-  BacklinkElement,
-} from "./model/BackLinkTypes";
+import { BacklinkComponentResult, BacklinkElement } from "./typing";
 import { EditService, FileService } from "architecture/plugin";
 import { BacklinkWrapper } from "./BackLinkComponent";
 import React from "react";

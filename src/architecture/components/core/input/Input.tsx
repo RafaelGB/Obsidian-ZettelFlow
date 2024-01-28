@@ -11,6 +11,7 @@ export function Input(info: InputType) {
     onChange,
     onKeyDown,
     disablePlaceHolderLabel = false,
+    autofocus = false,
   } = info;
   const [valueState, setValueState] = React.useState<string>(value || "");
   return (
@@ -33,6 +34,7 @@ export function Input(info: InputType) {
             onKeyDown(event.key, valueState || "");
           }
         }}
+        autoFocus={autofocus}
       />
       {!disablePlaceHolderLabel && (
         <label className={c("input-label")}>{placeholder}</label>

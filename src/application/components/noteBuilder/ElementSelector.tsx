@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { ElementBuilderProps } from "./model/NoteBuilderModel";
 import { callbackElementBuilder } from "./callbacks/CallbackNote";
 import { Select, SelectMapper } from "application/components/select";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
+import { ElementBuilderProps } from "./typing";
 
 export function ElementSelector(info: ElementBuilderProps) {
   const { childen } = info;

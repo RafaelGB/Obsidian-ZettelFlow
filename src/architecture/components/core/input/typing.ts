@@ -1,5 +1,6 @@
 export type InputType = {
     placeholder: string,
+    autofocus?: boolean,
     disablePlaceHolderLabel?: boolean
     className?: string[],
     value?: string,

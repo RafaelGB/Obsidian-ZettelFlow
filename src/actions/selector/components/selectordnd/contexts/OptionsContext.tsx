@@ -9,6 +9,7 @@ import { SELECTOR_DND_ID } from "../utils/Identifiers";
 interface OptionsContextProps {
   options: [string, string][];
   defaultOption: string | undefined;
+  add: () => void;
   delete: (index: number) => void;
   update: (index: number, frontmatter: string, label: string) => void;
   modifyDefault: (key: string) => void;
@@ -64,6 +65,16 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
     action.options = newOptionsState;
   };
 
+  const addOption = () => {
+    const newOptionsState = [...optionsState];
+    // add at the start
+    newOptionsState.unshift([
+      `newOption${newOptionsState.length}`,
+      `newOption ${newOptionsState.length}`,
+    ]);
+    setOptionsState(newOptionsState);
+    action.options = newOptionsState;
+  };
   const deleteOption = (index: number) => {
     const newOptionsState = [...optionsState];
     newOptionsState.splice(index, 1);
@@ -92,6 +103,7 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   const contextValue: OptionsContextProps = {
     options: optionsState,
     defaultOption: defaultOptionState,
+    add: addOption,
     delete: deleteOption,
     update: updateOption,
     modifyDefault: modifyDefaultOption,

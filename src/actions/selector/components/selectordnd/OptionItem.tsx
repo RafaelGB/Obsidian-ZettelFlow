@@ -1,27 +1,32 @@
 import { c } from "architecture";
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { Icon } from "architecture/components/icon";
 import { OptionItemProps } from "./model/OptionItemModel";
 import { SELECTOR_DND_ID } from "./utils/Identifiers";
+import { useOptionsContext } from "./contexts/OptionsContext";
 
 export function OptionItem(props: OptionItemProps) {
-  const {
-    frontmatter,
-    label,
-    index,
-    isDefault,
-    deleteOptionCallback,
-    updateOptionInfoCallback,
-    changeDefaultCallback,
-  } = props;
+  const { index } = props;
   const measureRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
-
+  const {
+    options,
+    defaultOption,
+    delete: deleteOption,
+    update,
+    modifyDefault,
+  } = useOptionsContext();
+  const [key, value] = options[index];
   useDragHandle(SELECTOR_DND_ID, measureRef, dragHandleRef, index);
 
-  const [frontmatterValue, setFrontmatterValue] = useState(frontmatter);
-  const [labelValue, setLabelValue] = useState(label);
+  const [frontmatterValue, setFrontmatterValue] = useState(key);
+  const [labelValue, setLabelValue] = useState(value);
+
+  const isDefaultMemo = useMemo(() => {
+    return defaultOption === key;
+  }, [defaultOption]);
+
   const body = (
     <div className={c("input_group")}>
       <div>
@@ -31,7 +36,7 @@ export function OptionItem(props: OptionItemProps) {
           value={frontmatterValue}
           onChange={(e) => {
             setFrontmatterValue(e.target.value);
-            updateOptionInfoCallback(index, e.target.value, labelValue);
+            update(index, e.target.value, labelValue);
           }}
         />
       </div>
@@ -42,16 +47,18 @@ export function OptionItem(props: OptionItemProps) {
           value={labelValue}
           onChange={(e) => {
             setLabelValue(e.target.value);
-            updateOptionInfoCallback(index, frontmatterValue, e.target.value);
+            update(index, frontmatterValue, e.target.value);
           }}
         />
       </div>
       <div className={c("settings-toggle-group")}>
         <div>
           <div
-            className={`checkbox-container${isDefault ? " is-enabled" : ""}`}
+            className={`checkbox-container${
+              isDefaultMemo ? " is-enabled" : ""
+            }`}
             onClick={() => {
-              changeDefaultCallback(frontmatter);
+              modifyDefault(key);
             }}
             aria-label={"Set as default"}
           />
@@ -68,7 +75,7 @@ export function OptionItem(props: OptionItemProps) {
         <div className={c("setting-button-group")}>
           <div
             className="clickable-icon"
-            onClick={() => deleteOptionCallback(index)}
+            onClick={() => deleteOption(index)}
             aria-label="Delete"
           >
             <Icon name="lucide-trash-2" />

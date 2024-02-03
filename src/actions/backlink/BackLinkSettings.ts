@@ -3,17 +3,21 @@ import { FileSuggest, HeadingSuggest } from "architecture/settings";
 import { HeadingCache, Setting } from "obsidian";
 import { BacklinkElement } from "./typing";
 import { t } from "architecture/lang";
-import { ActionSetting } from "architecture/api";
+import { Action, ActionSetting } from "architecture/api";
+import { StepBuilderModal } from "zettelkasten";
 
 export const backlinkSettings: ActionSetting = (contentEl, settingHandlerResponse, action) => {
-
-    const { info } = settingHandlerResponse;
-    const { optional } = info
-    const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');
     contentEl.createEl("h3", { text: name });
     contentEl.createEl("p", { text: description });
+    const backlinkContentEl = contentEl.createDiv();
+    render(settingHandlerResponse, action, backlinkContentEl);
+}
+function render(settingHandlerResponse: StepBuilderModal, action: Action, contentEl: HTMLElement): void {
+    const { info } = settingHandlerResponse;
+    const { optional } = info
+    const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
     const patternElement = new Setting(contentEl)
         .setName(t('step_builder_element_type_backlink_insert_pattern_title'))
         .setDesc(t('step_builder_element_type_backlink_insert_pattern_description').concat(insertPattern.replace("{{wikilink}}", "[[note link]]")))
@@ -42,7 +46,7 @@ export const backlinkSettings: ActionSetting = (contentEl, settingHandlerRespons
                         action.defaultFile = "";
                         action.defaultHeading = {};
                     }
-                    settingHandlerResponse.refresh();
+                    refresh(settingHandlerResponse, action, contentEl);
                 })
         });
 
@@ -65,7 +69,7 @@ export const backlinkSettings: ActionSetting = (contentEl, settingHandlerRespons
                     if (!cb.inputEl.value) {
                         action.defaultHeading = {};
                     }
-                    settingHandlerResponse.refresh();
+                    refresh(settingHandlerResponse, action, contentEl);
                 }
             });
 
@@ -89,4 +93,9 @@ export const backlinkSettings: ActionSetting = (contentEl, settingHandlerRespons
                 });
         }
     }
+}
+
+function refresh(settingHandlerResponse: StepBuilderModal, action: Action, contentEl: HTMLElement): void {
+    contentEl.empty();
+    render(settingHandlerResponse, action, contentEl);
 }

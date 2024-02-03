@@ -116,4 +116,6 @@ export default {
     step_builder_element_type_number_placeholder_description: 'Texto de ayuda para mostrar en el número',
     step_builder_actions_management_title: 'Gestión de acciones',
     step_builder_actions_management_add_action_tooltip: 'Añadir acción',
+    // NOTIFICATIONS
+    notification_duplicated_option: 'El frontmatter debe ser único para cada opción',
 };

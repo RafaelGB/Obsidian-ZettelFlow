@@ -115,4 +115,6 @@ export default {
     step_builder_element_type_number_placeholder_description: 'Helper text to display in the number',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
+    // NOTIFICATIONS
+    notification_duplicated_option: 'The frontmatter must be unique for each option',
 };

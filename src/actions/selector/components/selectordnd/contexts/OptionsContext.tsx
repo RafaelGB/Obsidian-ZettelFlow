@@ -1,10 +1,11 @@
-import { Action } from "architecture/api";
 import { DndScope, Sortable } from "architecture/components/dnd";
 import React, { useMemo } from "react";
 import { createContext, FC, ReactNode, useContext, useState } from "react";
 import { SelectorElement } from "zettelkasten";
 import { SelectorDnDManager } from "../managers/SelectorDnDManager";
 import { SELECTOR_DND_ID } from "../utils/Identifiers";
+import { Notice } from "obsidian";
+import { t } from "architecture/lang";
 
 interface OptionsContextProps {
   options: [string, string][];
@@ -28,12 +29,12 @@ export const useOptionsContext = () => {
 };
 
 interface OptionsProviderProps {
-  action: Action;
+  action: SelectorElement;
   children: ReactNode;
 }
 
 const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
-  const { options = [], defaultOption } = action as SelectorElement;
+  const { options = [], defaultOption } = action;
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
   const [optionsState, setOptionsState] = useState(options);
 
@@ -68,24 +69,42 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   const addOption = () => {
     const newOptionsState = [...optionsState];
     // add at the start
-    newOptionsState.unshift([
-      `newOption${newOptionsState.length}`,
-      `newOption ${newOptionsState.length}`,
-    ]);
+    const newKey = `newOption${newOptionsState.length}`;
+    const newLabel = `newOption ${newOptionsState.length}`;
+    newOptionsState.unshift([newKey, newLabel]);
+
     setOptionsState(newOptionsState);
-    action.options = newOptionsState;
+    // On disk
+    action.options.unshift([newKey, newLabel]);
   };
+
   const deleteOption = (index: number) => {
+    // On state
     const newOptionsState = [...optionsState];
     newOptionsState.splice(index, 1);
     setOptionsState(newOptionsState);
-    action.options = newOptionsState;
+    // On disk
+    action.options.splice(index, 1);
   };
 
   const updateOption = (index: number, frontmatter: string, label: string) => {
+    // Check first if the frontmatter is unique
+    const isUnique =
+      optionsState.find(([key], i) => {
+        if (i !== index && key === frontmatter) {
+          return true;
+        }
+        return false;
+      }) === undefined;
+
     optionsState[index] = [frontmatter, label];
     setOptionsState(optionsState);
-    action.options = optionsState;
+    if (isUnique) {
+      // On disk
+      action.options[index] = [frontmatter, label];
+    } else {
+      new Notice(t("notification_duplicated_option"));
+    }
   };
 
   const modifyDefaultOption = (key: string) => {

@@ -4,6 +4,7 @@ import { Icon } from "architecture/components/icon";
 import { SelectorDnDProps } from "./model/DnDSelectorStateModel";
 import { OptionItem } from "./OptionItem";
 import OptionsProvider, { useOptionsContext } from "./contexts/OptionsContext";
+import { SelectorElement } from "zettelkasten";
 export function SelectorDnD(props: SelectorDnDProps) {
   const { action, root } = props;
   useEffect(() => {
@@ -16,7 +17,10 @@ export function SelectorDnD(props: SelectorDnDProps) {
     <div>
       <h3>{t("step_builder_element_type_selector_title")}</h3>
       <p>{t("step_builder_element_type_selector_description")}</p>
-      <OptionsProvider key={`options-provider`} action={action}>
+      <OptionsProvider
+        key={`options-provider`}
+        action={action as SelectorElement}
+      >
         <OptionList />
       </OptionsProvider>
     </div>

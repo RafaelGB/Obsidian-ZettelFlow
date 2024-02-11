@@ -1,0 +1,7 @@
+{
+	"nodes":[
+		{"id":"7d3a5f6444dd6c5f","type":"group","zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"New Task\",\"childrenHeader\":\"What kind of task is this?\",\"targetFolder\":\"zettelFlow/tasks\"}","x":-494,"y":-240,"width":988,"height":480,"color":"#c18181","label":"Task notes"},
+		{"id":"6ef16e382b0b891a","x":-400,"y":-160,"width":400,"height":265,"type":"file","file":"WorkFlow Test/templates/New Goal.md"}
+	],
+	"edges":[]
+}

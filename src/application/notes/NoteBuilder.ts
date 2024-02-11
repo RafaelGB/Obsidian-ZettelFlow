@@ -6,6 +6,7 @@ import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
 import { actionsStore } from "architecture/api";
 import { TFile } from "obsidian";
+import { SelectorMenuModal } from "zettelkasten";
 
 export class Builder {
   public static default(): NoteBuilder {
@@ -24,7 +25,34 @@ export class NoteBuilder {
     this.content = new ContentDTO();
   }
 
-  public async build(): Promise<string> {
+  public async build(modal: SelectorMenuModal) {
+    if (modal.isEditor()) {
+      return await this.buildEditor(modal);
+    } else {
+      return await this.buildNewNote();
+    }
+  }
+
+  private async buildEditor(modal: SelectorMenuModal) {
+    const markdownView = modal.getMarkdownView();
+    if (!markdownView) {
+      throw new FatalError("Markdown view is undefined").setCode(FatalError.MARKDOWN_VIEW_UNDEFINED);
+    }
+    await this.buildNote();
+    modal.onEditorBuild(this.content.get());
+
+    // If the origin is a file, we need to process the frontmatter and post-process the file
+    if (markdownView.file) {
+      await FrontmatterService
+        .instance(markdownView.file)
+        .processFrontMatter(this.content);
+      await this.postProcess(markdownView.file);
+    }
+
+    return markdownView.file ? markdownView.file.path : "Embedded note";
+  }
+
+  private async buildNewNote() {
     this.note.setTitle(this.buildFilename());
     await this.buildNote();
     await this.errorManagement();

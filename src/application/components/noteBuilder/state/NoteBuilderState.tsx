@@ -13,6 +13,7 @@ import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
+  creationMode: true,
   title: "",
   position: 0,
   currentAction: "",
@@ -129,9 +130,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           position: next,
         };
       }),
-    build: async () => {
+    build: async (modal) => {
       const { builder } = get();
-      return await builder.build();
+      return await builder.build(modal);
     },
     reset: () => {
       set({

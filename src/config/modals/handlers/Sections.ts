@@ -2,13 +2,13 @@
 import { AbstractChain } from "architecture/patterns";
 // Internal imports
 import { SettingsHandlerInfo } from "config/typing";
-import { CanvasFileSelectorHandler } from "./sections/CanvasFileSelectorHandler";
+import { RibbonCanvasFileSelectorHandler } from "./sections/RibbonCanvasFileSelectorHandler";
 
 
 export class Sections extends AbstractChain<SettingsHandlerInfo> {
     private sectionContainer: HTMLElement;
     private parentContainer: HTMLElement;
-    protected starter = new CanvasFileSelectorHandler();
+    protected starter = new RibbonCanvasFileSelectorHandler();
     protected before(info: SettingsHandlerInfo): SettingsHandlerInfo {
         info.section = this;
         this.parentContainer = info.containerEl;

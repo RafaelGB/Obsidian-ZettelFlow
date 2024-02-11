@@ -7,9 +7,10 @@ import { buildTutorial } from "application/components/noteBuilder/SelectorMenu";
 import { log } from "architecture";
 export class SelectorMenuModal extends Modal {
     private root: Root;
-
+    private editorMode: boolean;
     constructor(app: App, private plugin: ZettelFlow, private flow?: Flow, private markdownView?: MarkdownView | MarkdownFileInfo) {
         super(app);
+        this.editorMode = markdownView !== undefined && markdownView.editor !== undefined;
     }
     onOpen(): void {
         const child = this.contentEl.createDiv();
@@ -52,7 +53,7 @@ export class SelectorMenuModal extends Modal {
     }
 
     isEditor(): boolean {
-        return this.markdownView !== undefined && this.markdownView.editor !== undefined;
+        return this.editorMode;
     }
 
     getMarkdownView(): MarkdownView | MarkdownFileInfo | undefined {

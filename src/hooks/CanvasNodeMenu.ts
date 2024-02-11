@@ -32,7 +32,7 @@ export class CanvasNodeMenu {
         if (!currentNode) {
             return;
         }
-
+        const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
         if (currentNode.type === "text" || currentNode.type === "group") {
             const zettelFlowSettings = currentNode.zettelflowConfig;
             menu.addItem((item) => {
@@ -51,6 +51,7 @@ export class CanvasNodeMenu {
                             ...stepSettings
                         })
                             .setMode("embed")
+                            .setBuilder(builderMode)
                             .setNodeId(node.id)
                             .open();
                     })

@@ -10,15 +10,23 @@ export class CanvasNodeMenu {
     public static setup(plugin: ZettelFlow) {
         new CanvasNodeMenu(plugin);
     }
+
     constructor(private plugin: ZettelFlow) {
         plugin.registerEvent(this.onCanvasNodeMenuTriggered);
     }
+
     private onCanvasNodeMenuTriggered = this.plugin.app.workspace.on("canvas:node-menu", (menu, node) => {
         // Check if canvas is the zettelFlow canvas and if the node is embedded
         const file = this.plugin.app.workspace.getActiveFile();
-        if (file?.path !== this.plugin.settings.ribbonCanvas) {
+        if (file === null) {
             return;
         }
+        const { ribbonCanvas, editorCanvas } = this.plugin.settings;
+        // Discard canvas if file.path is not one of the zettelFlow canvases
+        if (ribbonCanvas !== file.path && editorCanvas !== file.path) {
+            return;
+        }
+
         const data = node.canvas.data;
         const currentNode = data.nodes.find((n) => n.id === node.id);
         if (!currentNode) {

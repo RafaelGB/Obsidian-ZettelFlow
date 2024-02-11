@@ -136,6 +136,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     },
     reset: () => {
       set({
+        creationMode: true,
         title: "",
         position: 0,
         previousSections: new Map(),
@@ -176,6 +177,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     },
     setCurrentNode: (currentNode) => {
       set({ currentNode });
+    },
+    setIsCreationMode: (creationMode) => {
+      set({ creationMode });
     },
     /*
      * COMPLEX ACTIONS

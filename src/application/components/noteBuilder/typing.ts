@@ -55,6 +55,7 @@ export type NoteBuilderStateActions = {
     setTargetFolder: (folder: string | undefined) => void;
     setHeader: (header: Partial<HeaderType>) => void;
     setSectionElement: (element: JSX.Element, config: Partial<SectionElementOptions>) => void;
+    setIsCreationMode: (mode: boolean) => void;
     goPrevious: () => void;
     build: (modal: SelectorMenuModal) => Promise<string>;
     manageNodeInfo: (selectedNode: FlowNode, skipAddToBuilder?: boolean) => void;

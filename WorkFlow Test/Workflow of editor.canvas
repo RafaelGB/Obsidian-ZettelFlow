@@ -1,7 +1,10 @@
 {
 	"nodes":[
-		{"id":"7d3a5f6444dd6c5f","type":"group","zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"New Task\",\"childrenHeader\":\"What kind of task is this?\",\"targetFolder\":\"zettelFlow/tasks\"}","x":-494,"y":-240,"width":988,"height":480,"color":"#c18181","label":"Task notes"},
-		{"id":"6ef16e382b0b891a","x":-400,"y":-160,"width":400,"height":265,"type":"file","file":"WorkFlow Test/templates/New Goal.md"}
+		{"id":"7d3a5f6444dd6c5f","type":"group","zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Tasks section\",\"childrenHeader\":\"What kind of task is this?\",\"optional\":false}","x":-494,"y":-240,"width":988,"height":480,"color":"#c18181","label":"Tasks"},
+		{"id":"6ef16e382b0b891a","type":"file","file":"WorkFlow Test/templates/New Goal.md","x":-400,"y":-160,"width":400,"height":265},
+		{"id":"ee1c1866203ebadd","type":"text","text":"Add frontmatter to current note","zettelflowConfig":"{\"root\":false,\"actions\":[{\"type\":\"tags\",\"description\":\"Add tags to the note\",\"hasUI\":true,\"id\":\"16136fe0-0eec-4181-8e71-c64d78240845\"}],\"label\":\"Add frontmatter\",\"childrenHeader\":\"\"}","x":-325,"y":320,"width":250,"height":60}
 	],
-	"edges":[]
+	"edges":[
+		{"id":"f84884580ff07e41","fromNode":"6ef16e382b0b891a","fromSide":"bottom","toNode":"ee1c1866203ebadd","toSide":"top"}
+	]
 }

@@ -16,6 +16,7 @@ export class FileMenu {
     }
     private onFileMenuTriggered =
         this.plugin.app.workspace.on('file-menu', (menu, file) => {
+            const { ribbonCanvas } = this.plugin.settings;
             if (file instanceof TFolder) {
                 menu.addItem((item) => {
                     item
@@ -32,6 +33,7 @@ export class FileMenu {
                 }
                 );
             } else if (file instanceof TFile) {
+                const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
                 if (file.extension === "md") {
                     const fileService = FrontmatterService.instance(file);
                     let mappedInfo = {};
@@ -73,6 +75,7 @@ export class FileMenu {
                                     ...mappedInfo
                                 })
                                     .setMode("edit")
+                                    .setBuilder(builderMode)
                                     .open();
                             });
                     });

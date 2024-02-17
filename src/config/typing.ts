@@ -13,6 +13,7 @@ export interface ZettelFlowSettings {
     uniquePrefixEnabled: boolean,
     uniquePrefix: string,
     ribbonCanvas: string,
+    editorCanvas: string,
     jsLibraryFolderPath: string,
 }
 

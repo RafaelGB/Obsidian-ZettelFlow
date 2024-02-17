@@ -4,19 +4,13 @@ import { FILE_EXTENSIONS, FileService } from "architecture/plugin/services/FileS
 import { FileSuggest } from "architecture/settings";
 import { SettingsHandlerInfo } from "config/typing";
 import { Setting } from "obsidian";
-import { UniquePrefixToggleHandler } from "./UniquePrefixToggleHandler";
+import { EditorCanvasFileSelectorHandler } from "./EditorCanvasFileSelectorHandler";
 
-export class CanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
-    name = t('canvas_file_selector_title');
-    description = t('canvas_file_selector_description');
+export class RibbonCanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
+    name = t('ribbon_canvas_file_selector_title');
+    description = t('ribbon_canvas_file_selector_description');
     handle(info: SettingsHandlerInfo): SettingsHandlerInfo {
         const { containerEl, plugin } = info;
-        const source_form_promise = async (value: string): Promise<void> => {
-            // set search value
-            info.plugin.settings.ribbonCanvas = value;
-            // update settings
-            await info.plugin.saveSettings();
-        };
 
         new Setting(containerEl)
             .setName(this.name)
@@ -29,12 +23,18 @@ export class CanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHand
 
                 cb.setPlaceholder(t("canvas_file_selector_placeholder"))
                     .setValue(plugin.settings.ribbonCanvas)
-                    .onChange(source_form_promise);
+                    .onChange(async (value) => {
+                        // set search value
+                        info.plugin.settings.ribbonCanvas = value;
+                        // update settings
+                        await info.plugin.saveSettings();
+                    });
+
             });
         return this.goNext(info);
     }
 
     manageNextHandler() {
-        this.nextHandler = new UniquePrefixToggleHandler();
+        this.nextHandler = new EditorCanvasFileSelectorHandler();
     }
 }

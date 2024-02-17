@@ -37,7 +37,7 @@ export class EditorMenu {
 
     private async editorMenu(info: MarkdownView | MarkdownFileInfo) {
         let flow: Flow | undefined;
-        if (this.plugin.settings.ribbonCanvas) {
+        if (this.plugin.settings.editorCanvas) {
             flow = await canvas.flows.update(this.plugin.settings.editorCanvas);
         }
         new SelectorMenuModal(this.plugin.app, this.plugin, flow, info)

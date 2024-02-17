@@ -13,6 +13,7 @@ export default {
     component_confirm: 'Confirm',
     notice_canvas_not_set: 'Canvas file not set',
     command_open_workflow: 'Open workflow',
+    command_open_editor_workflow: 'Open editor workflow',
     command_settings_open_canvas: 'Open canvas',
     type_option_bridge: 'Bridge',
     type_option_prompt: 'Prompt',
@@ -117,6 +118,9 @@ export default {
     step_builder_element_type_number_placeholder_description: 'Helper text to display in the number',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
+    // MENUS
+    editor_menu_rigth_click_title: 'Zettelflow editor options',
     // NOTIFICATIONS
     notification_duplicated_option: 'The frontmatter must be unique for each option',
+    notification_editor_menu_no_active_view: 'No active view',
 };

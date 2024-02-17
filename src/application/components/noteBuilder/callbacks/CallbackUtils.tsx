@@ -105,7 +105,9 @@ export async function manageElement(
       .build(info.modal)
       .then(async (path) => {
         modal.close();
-        FileService.openFile(path);
+        if (!modal.isEditor()) {
+          FileService.openFile(path);
+        }
       })
       .catch((error: ZettelError) => {
         log.error(error);

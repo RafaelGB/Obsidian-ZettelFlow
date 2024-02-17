@@ -5,13 +5,25 @@ import { buildSelectorMenu } from "application/components/noteBuilder";
 import { Flow } from "architecture/plugin/canvas";
 import { buildTutorial } from "application/components/noteBuilder/SelectorMenu";
 import { log } from "architecture";
+
 export class SelectorMenuModal extends Modal {
     private root: Root;
     private editorMode: boolean;
+    private embedded: boolean;
     constructor(app: App, private plugin: ZettelFlow, private flow?: Flow, private markdownView?: MarkdownView | MarkdownFileInfo) {
         super(app);
         this.editorMode = markdownView !== undefined && markdownView.editor !== undefined;
     }
+    enableEmbedded(enabled: boolean): SelectorMenuModal {
+        this.embedded = enabled;
+        return this;
+    }
+
+    enableEditor(enabled: boolean): SelectorMenuModal {
+        this.editorMode = enabled;
+        return this;
+    }
+
     onOpen(): void {
         const child = this.contentEl.createDiv();
         this.root = createRoot(child);
@@ -54,6 +66,10 @@ export class SelectorMenuModal extends Modal {
 
     isEditor(): boolean {
         return this.editorMode;
+    }
+
+    isEmbedded(): boolean {
+        return this.embedded;
     }
 
     getMarkdownView(): MarkdownView | MarkdownFileInfo | undefined {

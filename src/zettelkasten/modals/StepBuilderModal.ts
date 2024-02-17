@@ -11,6 +11,7 @@ import { canvas } from "architecture/plugin/canvas";
 export class StepBuilderModal extends Modal {
     info: StepBuilderInfo;
     mode = "edit";
+    builder = "ribbon";
     chain = new StepTitleHandler();
     constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
         super(app);
@@ -20,6 +21,11 @@ export class StepBuilderModal extends Modal {
 
     setMode(mode: "edit" | "create" | "embed"): StepBuilderModal {
         this.mode = mode;
+        return this;
+    }
+
+    setBuilder(builder: "ribbon" | "editor"): StepBuilderModal {
+        this.builder = builder;
         return this;
     }
 

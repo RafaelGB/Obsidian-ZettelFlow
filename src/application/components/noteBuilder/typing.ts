@@ -6,12 +6,12 @@ import { SectionType } from "application/components/section";
 import ZettelFlow from "main";
 import { FinalElement } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
-import { Modal } from "obsidian";
 import { ZettelFlowSettings } from "config";
+import { SelectorMenuModal } from "zettelkasten";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;
-    modal: Modal;
+    modal: SelectorMenuModal;
     flow: Flow;
     enableTutorial?: boolean;
 }
@@ -55,8 +55,9 @@ export type NoteBuilderStateActions = {
     setTargetFolder: (folder: string | undefined) => void;
     setHeader: (header: Partial<HeaderType>) => void;
     setSectionElement: (element: JSX.Element, config: Partial<SectionElementOptions>) => void;
+    setIsCreationMode: (mode: boolean) => void;
     goPrevious: () => void;
-    build: () => Promise<string>;
+    build: (modal: SelectorMenuModal) => Promise<string>;
     manageNodeInfo: (selectedNode: FlowNode, skipAddToBuilder?: boolean) => void;
     addAction: (element: Action, callbackResult: Literal) => void;
     addBackgroundAction: (action: Action) => void;
@@ -69,6 +70,7 @@ export type NoteBuilderStateActions = {
 }
 
 export type NoteBuilderState = {
+    creationMode: boolean;
     title: string;
     invalidTitle: boolean;
     currentAction: string;

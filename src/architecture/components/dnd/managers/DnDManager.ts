@@ -139,7 +139,7 @@ export abstract class AbstractDndManager {
             if (!(droppable instanceof HTMLDivElement)) {
                 return;
             }
-            StylesTool.resetElement(droppable, '0.075s ease-in-out');
+            StylesTool.resetElement(droppable, '0.0s ease-in-out');
         });
     }
 

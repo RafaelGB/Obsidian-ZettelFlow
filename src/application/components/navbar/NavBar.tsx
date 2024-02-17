@@ -13,6 +13,8 @@ import { Icon } from "architecture/components/icon";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 
 export function NavBar(props: NoteBuilderType) {
+  const creationMode = useNoteBuilderStore((store) => store.creationMode);
+  const title = useNoteBuilderStore((store) => store.title);
   const actions = useNoteBuilderStore((store) => store.actions);
   const data = useNoteBuilderStore((store) => store.data);
   const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
@@ -24,15 +26,19 @@ export function NavBar(props: NoteBuilderType) {
 
   return (
     <div className={c("navbar")}>
-      <Input
-        placeholder={t("note_title_placeholder")}
-        onChange={(value) => {
-          actions.setTitle(value);
-          actions.setInvalidTitle(false);
-        }}
-        className={invalidTitle ? ["invalid"] : []}
-        required={true}
-      />
+      {creationMode ? (
+        <Input
+          placeholder={t("note_title_placeholder")}
+          onChange={(value) => {
+            actions.setTitle(value);
+            actions.setInvalidTitle(false);
+          }}
+          className={invalidTitle ? ["invalid"] : []}
+          required={true}
+        />
+      ) : (
+        <h5>{title}</h5>
+      )}
       <div className={c("navbar_button_group")}>
         {enableSkip && (
           <button

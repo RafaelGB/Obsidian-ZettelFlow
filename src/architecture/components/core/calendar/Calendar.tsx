@@ -21,6 +21,10 @@ export function Calendar(info: CalendarType) {
         }}
         placeholder="Empty"
         autoFocus={autofocus}
+        onFocus={(event) => {
+          const input = event.currentTarget;
+          input.showPicker();
+        }}
       />
       <button
         onClick={() => {

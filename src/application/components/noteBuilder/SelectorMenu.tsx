@@ -32,8 +32,16 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 }
 
 function Component(noteBuilderType: NoteBuilderType) {
+  const editor = noteBuilderType.modal.getMarkdownView();
   const actions = useNoteBuilderStore((store) => store.actions);
   useEffect(() => {
+    if (editor) {
+      actions.setIsCreationMode(false);
+      if (editor.file) {
+        actions.setTargetFolder(editor.file.path);
+        actions.setTitle(editor.file.basename);
+      }
+    }
     return () => {
       // Control global state resetting when the component is unmounted
       actions.reset();

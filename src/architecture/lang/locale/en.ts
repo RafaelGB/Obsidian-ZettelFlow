@@ -13,6 +13,7 @@ export default {
     component_confirm: 'Confirm',
     notice_canvas_not_set: 'Canvas file not set',
     command_open_workflow: 'Open workflow',
+    command_open_editor_workflow: 'Open editor workflow',
     command_settings_open_canvas: 'Open canvas',
     type_option_bridge: 'Bridge',
     type_option_prompt: 'Prompt',
@@ -33,9 +34,11 @@ export default {
     logger_level_title: 'Logger level',
     logger_level_description: 'Set logger level',
     note_title_placeholder: 'Note title',
-    canvas_file_selector_title: 'Canvas file',
-    canvas_file_selector_description: 'Select the canvas file wich contains the zettelkasten flow',
-    canvas_file_selector_placeholder: 'Select a canvas file',
+    ribbon_canvas_file_selector_title: 'New notes canvas file configuration',
+    ribbon_canvas_file_selector_description: 'Select the canvas file where you will use to build your new notes',
+    editor_canvas_file_selector_title: 'Editor canvas file configuration',
+    editor_canvas_file_selector_description: 'Select the canvas file where you will use inside the already created notes',
+    canvas_file_selector_placeholder: 'Select a file...',
     unique_prefix_toggle_title: 'Unique prefix',
     unique_prefix_toggle_description: 'Enable or disable unique prefix for your notes',
     unique_prefix_pattern_title: 'Unique prefix pattern',
@@ -115,4 +118,9 @@ export default {
     step_builder_element_type_number_placeholder_description: 'Helper text to display in the number',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
+    // MENUS
+    editor_menu_rigth_click_title: 'Zettelflow editor options',
+    // NOTIFICATIONS
+    notification_duplicated_option: 'The frontmatter must be unique for each option',
+    notification_editor_menu_no_active_view: 'No active view',
 };

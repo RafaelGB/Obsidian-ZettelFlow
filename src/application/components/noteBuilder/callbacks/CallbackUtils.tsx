@@ -102,10 +102,12 @@ export async function manageElement(
   } else {
     // Build and close modal
     actions
-      .build()
+      .build(info.modal)
       .then(async (path) => {
         modal.close();
-        FileService.openFile(path);
+        if (!modal.isEditor()) {
+          FileService.openFile(path);
+        }
       })
       .catch((error: ZettelError) => {
         log.error(error);

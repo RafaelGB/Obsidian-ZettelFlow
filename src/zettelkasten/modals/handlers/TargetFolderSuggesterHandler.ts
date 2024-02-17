@@ -10,7 +10,11 @@ export class TargetFolderSuggesterHandler extends AbstractHandlerClass<StepBuild
     description = t('step_builder_target_folder_description');
     handle(modal: StepBuilderModal): StepBuilderModal {
         const { info } = modal;
+        if (modal.builder === "editor") {
+            return this.goNext(modal);
+        }
         const { targetFolder, contentEl } = info;
+
         new Setting(contentEl)
             .setName(this.name)
             .setDesc(this.description)

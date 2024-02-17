@@ -13,6 +13,7 @@ export default {
     component_confirm: 'Confirmar',
     notice_canvas_not_set: 'Archivo canvas no establecido',
     command_open_workflow: 'Abrir flujo de trabajo',
+    command_open_editor_workflow: 'Abrir flujo de trabajo del editor',
     command_settings_open_canvas: 'Abrir canvas',
     type_option_bridge: 'Pasarela',
     type_option_prompt: 'Prompt',
@@ -116,4 +117,9 @@ export default {
     step_builder_element_type_number_placeholder_description: 'Texto de ayuda para mostrar en el número',
     step_builder_actions_management_title: 'Gestión de acciones',
     step_builder_actions_management_add_action_tooltip: 'Añadir acción',
+    // MENUS
+    editor_menu_rigth_click_title: 'Opciones del editor de ZettelFlow',
+    // NOTIFICATIONS
+    notification_duplicated_option: 'El frontmatter debe ser único para cada opción',
+    notification_editor_menu_no_active_view: 'No hay vista activa',
 };

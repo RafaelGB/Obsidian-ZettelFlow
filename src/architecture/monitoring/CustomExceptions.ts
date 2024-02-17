@@ -28,6 +28,7 @@ export class WarningError extends ZettelError {
 
 export class FatalError extends ZettelError {
     public static INVALID_TITLE = "invalid-title";
+    public static MARKDOWN_VIEW_UNDEFINED = "markdown-view-undefined";
     constructor(message: string) {
         super(message);
         this.type = ZettelError.FATAL_TYPE;

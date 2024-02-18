@@ -67,6 +67,7 @@ export type NumberElement = {
 
 export type CalendarElement = {
     enableTime: boolean,
+    format: string,
 } & AditionBaseElement;
 
 export type SelectorElement = {

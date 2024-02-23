@@ -111,22 +111,25 @@ export async function manageElement(
       })
       .catch((error: ZettelError) => {
         log.error(error);
-        switch (error.getType()) {
-          case ZettelError.WARNING_TYPE: {
-            new Notice(`Error building note: ${error.message}`);
-            manageWarningError(actions, error);
+        if (error! instanceof ZettelError) {
+          switch (error.getType()) {
+            case ZettelError.WARNING_TYPE: {
+              new Notice(`Warning error: ${error.message}`);
+              manageWarningError(actions, error);
+            }
+            case ZettelError.FATAL_TYPE: {
+              new Notice(`Fatal error: ${error.message}`);
+              manageFatalError(actions, error);
+              break;
+            }
+            default: {
+              new Notice(`Not controlled error: ${error.message}`);
+              modal.close();
+            }
           }
-          case ZettelError.FATAL_TYPE: {
-            new Notice(`Fatal error: ${error.message}`);
-            manageFatalError(actions, error);
-            break;
-          }
-          default: {
-            new Notice(`Not controlled error: ${error.message}`);
-            modal.close();
-          }
+        } else {
+          new Notice(`Not controlled error: ${error}`);
         }
-        actions.setInvalidTitle(true);
       });
   }
 }

@@ -26,10 +26,22 @@ export class NoteBuilder {
   }
 
   public async build(modal: SelectorMenuModal) {
-    if (modal.isEditor()) {
-      return await this.buildEditor(modal);
-    } else {
-      return await this.buildNewNote();
+    try {
+      if (modal.isEditor()) {
+        return await this.buildEditor(modal);
+      } else {
+        return await this.buildNewNote();
+      }
+    } catch (error) {
+      this.content.reset();
+      if (!modal.isEditor()) {
+        const potentialFile = await FileService.getFile(this.note.getFinalPath(), false);
+        // Check if the file was created and delete it
+        if (potentialFile) {
+          await FileService.deleteFile(potentialFile);
+        }
+      }
+      throw error;
     }
   }
 

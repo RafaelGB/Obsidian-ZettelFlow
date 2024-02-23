@@ -26,6 +26,10 @@ export class FileService {
         await ObsidianApi.workspace().openLinkText(path, "");
     }
 
+    public static async deleteFile(file: TFile): Promise<void> {
+        await ObsidianApi.vault().delete(file);
+    }
+
     public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {
         file_str = normalizePath(file_str);
 

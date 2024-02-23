@@ -34,9 +34,9 @@ interface OptionsProviderProps {
 }
 
 const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
-  const { options = [], defaultOption } = action;
+  const { options, defaultOption } = action;
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
-  const [optionsState, setOptionsState] = useState(options);
+  const [optionsState, setOptionsState] = useState(options || []);
 
   const swapOptions = (origin: number, dropped: number) => {
     const newOptionsState = [...optionsState];
@@ -75,6 +75,9 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
 
     setOptionsState(newOptionsState);
     // On disk
+    if (!action.options) {
+      action.options = [];
+    }
     action.options.unshift([newKey, newLabel]);
   };
 

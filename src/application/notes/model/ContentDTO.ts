@@ -82,4 +82,10 @@ export class ContentDTO {
             this.frontmatter = { ...this.frontmatter, ...frontmatter };
         }
     }
+
+    public reset() {
+        this.content = "";
+        this.frontmatter = {};
+        this.tags = [];
+    }
 }

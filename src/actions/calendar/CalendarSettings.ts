@@ -7,7 +7,9 @@ import { ObsidianConfig } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
 
 export const calendarSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, zone, enableTime, staticBehaviour, staticValue } = action as CalendarElement;
+    const {
+        key, label, zone, enableTime, staticBehaviour, staticValue, format
+    } = action as CalendarElement;
 
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
@@ -47,7 +49,6 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                         action.key = value;
                     });
             });
-
         });
 
     new Setting(contentEl)
@@ -60,6 +61,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                     action.label = value;
                 });
         });
+
     // Toggle to enable time
     const dynamicId = uuid4();
     new Setting(contentEl)
@@ -70,10 +72,25 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                 .setValue(enableTime)
                 .onChange(async (value) => {
                     action.enableTime = value;
+                    delete action.format;
                     const input = document.getElementById(dynamicId);
                     if (input) {
                         input.setAttribute('type', value ? 'datetime-local' : 'date');
                     }
+                });
+        });
+
+    // Format in function of the time is enabled or not
+    new Setting(contentEl)
+        .setName(t("step_builder_element_type_calendar_format_title"))
+        .setDesc(t("step_builder_element_type_calendar_format_description"))
+        .addText(text => {
+            const placeholder = enableTime ? 'YYYY-MM-DDTHH:MM' : 'YYYY-MM-DD';
+            text
+                .setValue(format || ``)
+                .setPlaceholder(placeholder)
+                .onChange(async (value) => {
+                    action.format = value;
                 });
         });
 

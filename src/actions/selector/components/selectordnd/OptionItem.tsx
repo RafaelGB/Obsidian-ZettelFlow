@@ -3,7 +3,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { Icon } from "architecture/components/icon";
 import { OptionItemProps } from "./model/OptionItemModel";
-import { SELECTOR_DND_ID } from "./utils/Identifiers";
+
 import { useOptionsContext } from "./contexts/OptionsContext";
 
 export function OptionItem(props: OptionItemProps) {
@@ -18,7 +18,8 @@ export function OptionItem(props: OptionItemProps) {
     modifyDefault,
   } = useOptionsContext();
   const [key, value] = options[index];
-  useDragHandle(SELECTOR_DND_ID, measureRef, dragHandleRef, index);
+  const { id } = useOptionsContext();
+  useDragHandle(id, measureRef, dragHandleRef, index);
 
   const [frontmatterValue, setFrontmatterValue] = useState(key);
   const [labelValue, setLabelValue] = useState(value);

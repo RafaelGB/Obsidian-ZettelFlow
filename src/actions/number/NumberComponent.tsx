@@ -10,6 +10,8 @@ export function NumberWrapper(props: WrappedActionBuilderProps) {
         type="number"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
             callback(parseFloat(e.currentTarget.value));
           }
         }}

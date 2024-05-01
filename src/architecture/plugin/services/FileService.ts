@@ -33,7 +33,7 @@ export class FileService {
     public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {
         file_str = normalizePath(file_str);
 
-        const file = ObsidianApi.vault().getAbstractFileByPath(file_str);
+        const file = ObsidianApi.vault().getFileByPath(file_str);
         if (!file && restrict) {
             throw new Error(`File "${file_str}" doesn't exist`);
         }

@@ -1,4 +1,4 @@
-import { ObsidianApi, log } from "architecture";
+import { FatalError, ObsidianApi, log } from "architecture";
 import { Flow, FlowNode, Flows } from "./typing";
 import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasGroupData, CanvasTextData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";
@@ -77,7 +77,7 @@ export class FlowImpl implements Flow {
     get = async (nodeId: string) => {
         const node = this.nodes.get(nodeId);
         if (!node) {
-            throw new Error(`Node ${nodeId} not found`);
+            throw new FatalError(`Node ${nodeId} not found`);
         }
         switch (node.type) {
             case "text":
@@ -86,9 +86,10 @@ export class FlowImpl implements Flow {
                 return this.populateNode(node, textNode.getZettelFlowSettings());
             }
             case "file": {
+                ObsidianApi.vault().getFileByPath(node.file);
                 const file = await FileService.getFile(node.file);
                 if (!file) {
-                    throw new Error(`File ${node.file} not found`);
+                    throw new FatalError(`File ${node.file} not found`);
                 }
                 switch (file.extension) {
                     case "md": {
@@ -164,7 +165,7 @@ export class FlowImpl implements Flow {
                 case "file":
                     const file = await FileService.getFile(node.file);
                     if (!file) {
-                        throw new Error(`File ${node.file} not found`);
+                        throw new FatalError(`File ${node.file} not found`);
                     }
                     const fileNode = FrontmatterService.instance(file);
                     if (fileNode.equals("zettelFlowSettings.root", true)) {
@@ -191,7 +192,7 @@ export class FlowImpl implements Flow {
                     case "file": {
                         const file = await FileService.getFile(node.file);
                         if (!file) {
-                            throw new Error(`File ${node.file} not found`);
+                            throw new FatalError(`File ${node.file} not found`);
                         }
                         switch (file.extension) {
                             case "md": {

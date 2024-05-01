@@ -31,7 +31,7 @@ export function Input(info: InputType) {
         }}
         onKeyDown={(event) => {
           if (onKeyDown) {
-            onKeyDown(event.key, valueState || "");
+            onKeyDown(event, valueState || "");
           }
         }}
         autoFocus={autofocus}

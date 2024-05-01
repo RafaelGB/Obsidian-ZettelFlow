@@ -11,8 +11,10 @@ export function PromptWrapper(props: WrappedActionBuilderProps) {
       placeholder={
         TypeService.isString(action.placeholder) ? action.placeholder : ""
       }
-      onKeyDown={(key, value) => {
-        if (key === "Enter") {
+      onKeyDown={(event, value) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.stopPropagation();
           callback(value);
         }
       }}

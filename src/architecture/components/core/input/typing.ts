@@ -6,5 +6,5 @@ export type InputType = {
     value?: string,
     required?: boolean,
     onChange?: (value: string) => void
-    onKeyDown?: (key: string, currentValue: string) => void
+    onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>, currentValue: string) => void
 }

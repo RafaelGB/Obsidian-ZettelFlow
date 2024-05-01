@@ -3,11 +3,12 @@ import React, { useMemo } from "react";
 import { createContext, FC, ReactNode, useContext, useState } from "react";
 import { SelectorElement } from "zettelkasten";
 import { SelectorDnDManager } from "../managers/SelectorDnDManager";
-import { SELECTOR_DND_ID } from "../utils/Identifiers";
 import { Notice } from "obsidian";
 import { t } from "architecture/lang";
+import { v4 as uuid4 } from "uuid";
 
 interface OptionsContextProps {
+  id: string;
   options: [string, string][];
   defaultOption: string | undefined;
   add: () => void;
@@ -123,6 +124,7 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   };
 
   const contextValue: OptionsContextProps = {
+    id: uuid4(),
     options: optionsState,
     defaultOption: defaultOptionState,
     add: addOption,
@@ -136,7 +138,7 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   }, [optionsState]);
 
   return (
-    <DndScope id={SELECTOR_DND_ID} manager={managerMemo}>
+    <DndScope id={contextValue.id} manager={managerMemo}>
       <Sortable axis="vertical">
         <OptionsContext.Provider value={contextValue}>
           {children}

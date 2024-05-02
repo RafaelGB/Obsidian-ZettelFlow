@@ -8,15 +8,18 @@ import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
 import { v4 as uuid4 } from "uuid";
 
-const URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/steps/";
+const URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/";
 const ACTION_LABEL_URL: Record<string, string> = {
-  script: "ScriptStep",
-  prompt: "PromptStep",
-  selector: "SelectorStep",
-  tags: "TagStep",
-  calendar: "CalendarStep",
-  backlink: "BacklinkStep",
-  "task-management": "TaskManagementStep",
+  script: "Script",
+  prompt: "Prompt",
+  number: "Number",
+  selector: "Selector",
+  cssclasses: "CssClasses",
+  tags: "Tags",
+  checkbox: "Checkbox",
+  calendar: "Calendar",
+  backlink: "Backlink",
+  "task-management": "TaskManagement",
 };
 
 export function ActionAccordion(props: ActionAccordionProps) {

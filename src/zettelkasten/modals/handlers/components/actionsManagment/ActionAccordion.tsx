@@ -63,6 +63,8 @@ export function ActionAccordion(props: ActionAccordionProps) {
               <label>{action.type}</label>
               <Icon name={actionsStore.getIconOf(action.type)} />
             </a>
+          </div>
+          <div className={c("accordion-header-actions")}>
             <Input
               value={action.description}
               placeholder="Action description"
@@ -72,14 +74,13 @@ export function ActionAccordion(props: ActionAccordionProps) {
               required={true}
               disablePlaceHolderLabel={true}
             />
-          </div>
-          <div className={c("accordion-header-actions")}>
             <button onClick={() => setAccordionOpen(!accordionOpen)}>
               <Icon
                 name={accordionOpen ? "up-chevron-glyph" : "down-chevron-glyph"}
               />
             </button>
             <button
+              className={c("accordion-header-remove")}
               onClick={() => {
                 handleRemove();
               }}

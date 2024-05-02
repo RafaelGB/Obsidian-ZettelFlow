@@ -93,3 +93,11 @@
 .zettelkasten-flow__accordion.exit {
     animation: slideUp 0.3s ease forwards;
 }
+
+.zettelkasten-flow__accordion-header-remove {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__accordion-header-remove:hover {
+    background-color: var(--background-modifier-error);
+}

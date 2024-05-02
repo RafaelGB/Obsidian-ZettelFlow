@@ -30,6 +30,8 @@ export class TaskManagementAction extends CustomZettelAction {
       rollupHeader,
       prefix = "",
       suffix = "",
+      key,
+      isContent,
     } = info.element as TaskManagementElement;
     const initFilesToSearch = FileService.getTfilesFromFolder(
       initialFolder || "/",
@@ -55,7 +57,11 @@ export class TaskManagementAction extends CustomZettelAction {
       .join("\n");
 
     if (normalizedTodos.length !== 0) {
-      content.add(`${rollupHeader}\n${normalizedTodos}`);
+      if (isContent && key !== undefined) {
+        content.modify(key, normalizedTodos);
+      } else {
+        content.add(`${rollupHeader}\n${normalizedTodos}`);
+      }
     }
   }
 

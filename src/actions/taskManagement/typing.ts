@@ -6,4 +6,6 @@ export type TaskManagementElement = {
     initialFolder?: string;
     prefix?: string;
     suffix?: string;
+    isContent?: boolean;
+    key?: string;
 } & FinalElement;

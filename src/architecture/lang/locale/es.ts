@@ -133,6 +133,8 @@ export default {
     step_builder_element_type_task_management_suffix_title: 'Sufijo para añadir a la tarea',
     step_builder_element_type_task_management_suffix_description: 'Sufijo a añadir a la tarea tras del rollup',
     step_builder_element_type_task_management_suffix_placeholder: '!',
+    step_builder_element_type_task_management_is_content_title: 'Activar el comportamiento como contenido',
+    step_builder_element_type_task_management_is_content_description: 'Cuando está activado, el rollup se  añadirá donde se coloque la clave "{{key}}" en la nota previamente',
     // MENUS
     editor_menu_rigth_click_title: 'Opciones del editor de ZettelFlow',
     // NOTIFICATIONS

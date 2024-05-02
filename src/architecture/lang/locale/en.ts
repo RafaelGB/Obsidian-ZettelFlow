@@ -132,6 +132,8 @@ export default {
     step_builder_element_type_task_management_suffix_title: 'Suffix title',
     step_builder_element_type_task_management_suffix_description: 'Suffix to add to the task after the rollup',
     step_builder_element_type_task_management_suffix_placeholder: '!',
+    step_builder_element_type_task_management_is_content_title: 'Enable as content behaviour',
+    step_builder_element_type_task_management_is_content_description: 'When enabled, the unfinished tasks will be added where the "{{key}}" is placed in the note previously',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
     // MENUS

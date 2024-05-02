@@ -16,6 +16,7 @@ const ACTION_LABEL_URL: Record<string, string> = {
   tags: "TagStep",
   calendar: "CalendarStep",
   backlink: "BacklinkStep",
+  "task-management": "TaskManagementStep",
 };
 
 export function ActionAccordion(props: ActionAccordionProps) {

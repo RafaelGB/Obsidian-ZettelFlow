@@ -167,10 +167,26 @@
 *   ACTION MANAGEMENT
 *********************/
 .zettelkasten-flow__actions-management-add {
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
     margin-top: 10px;
-    padding: 10px;
-    border-radius: 4px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    width: 100%;
+}
+
+.zettelkasten-flow__actions-management-add:hover {
+    background-color: var(--background-modifier-success);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+    .zettelkasten-flow__actions-management-add {
+        flex-direction: column;
+    }
 }

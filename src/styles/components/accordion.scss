@@ -59,3 +59,37 @@
     opacity: 1;
     padding: 10px 15px;
 }
+
+/* Animación al añadir */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.zettelkasten-flow__accordion.entrance {
+    animation: slideDown 0.3s ease forwards;
+}
+
+/* Animación al eliminar */
+@keyframes slideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.zettelkasten-flow__accordion.exit {
+    animation: slideUp 0.3s ease forwards;
+}

@@ -21,6 +21,7 @@ const ACTION_LABEL_URL: Record<string, string> = {
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove, index } = props;
   const [accordionOpen, setAccordionOpen] = useState(false);
+  const [animationClass, setAnimationClass] = useState("entrance");
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -33,10 +34,23 @@ export function ActionAccordion(props: ActionAccordionProps) {
     if (!action.id) {
       action.id = uuid4();
     }
+    const timer = setTimeout(() => {
+      setAnimationClass("");
+    }, 300); // Ajusta esto al tiempo de tu animación
+    return () => clearTimeout(timer);
   }, []);
+
+  // Gestionar la eliminación con animación
+  const handleRemove = () => {
+    setAnimationClass("exit");
+    setTimeout(() => {
+      onRemove();
+    }, 300); // Ajusta esto al tiempo de tu animación
+  };
+
   // END LEGACY
   return (
-    <div className={c("accordion")} ref={measureRef}>
+    <div className={`${c("accordion")} ${animationClass}`} ref={measureRef}>
       <Droppable index={index}>
         <div className={c("accordion-header")}>
           <div className={c("accordion-header-info")}>
@@ -67,7 +81,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
             </button>
             <button
               onClick={() => {
-                onRemove();
+                handleRemove();
               }}
             >
               <Icon name="cross" />

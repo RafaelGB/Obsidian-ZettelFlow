@@ -1,5 +1,5 @@
 import { ObsidianApi } from "architecture";
-import { TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
+import { DataWriteOptions, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 export const FILE_EXTENSIONS = Object.freeze({
     BASIC: ["md", "canvas"],
     ONLY_CANVAS: ["canvas"],
@@ -51,6 +51,10 @@ export class FileService {
 
     public static async getContent(file: TFile): Promise<string> {
         return await ObsidianApi.vault().cachedRead(file);
+    }
+
+    public static async modify(file: TFile, content: string, options?: DataWriteOptions | undefined): Promise<void> {
+        await ObsidianApi.vault().modify(file, content, options);
     }
 
     public static getFolder(folder_str: string): TFolder {

@@ -8,19 +8,24 @@ import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
 import { v4 as uuid4 } from "uuid";
 
-const URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/steps/";
+const URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/";
 const ACTION_LABEL_URL: Record<string, string> = {
-  script: "ScriptStep",
-  prompt: "PromptStep",
-  selector: "SelectorStep",
-  tags: "TagStep",
-  calendar: "CalendarStep",
-  backlink: "BacklinkStep",
+  script: "Script",
+  prompt: "Prompt",
+  number: "Number",
+  selector: "Selector",
+  cssclasses: "CssClasses",
+  tags: "Tags",
+  checkbox: "Checkbox",
+  calendar: "Calendar",
+  backlink: "Backlink",
+  "task-management": "TaskManagement",
 };
 
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove, index } = props;
   const [accordionOpen, setAccordionOpen] = useState(false);
+  const [animationClass, setAnimationClass] = useState("entrance");
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -33,10 +38,23 @@ export function ActionAccordion(props: ActionAccordionProps) {
     if (!action.id) {
       action.id = uuid4();
     }
+    const timer = setTimeout(() => {
+      setAnimationClass("");
+    }, 300); // Ajusta esto al tiempo de tu animación
+    return () => clearTimeout(timer);
   }, []);
+
+  // Gestionar la eliminación con animación
+  const handleRemove = () => {
+    setAnimationClass("exit");
+    setTimeout(() => {
+      onRemove();
+    }, 300); // Ajusta esto al tiempo de tu animación
+  };
+
   // END LEGACY
   return (
-    <div className={c("accordion")} ref={measureRef}>
+    <div className={`${c("accordion")} ${animationClass}`} ref={measureRef}>
       <Droppable index={index}>
         <div className={c("accordion-header")}>
           <div className={c("accordion-header-info")}>
@@ -49,6 +67,8 @@ export function ActionAccordion(props: ActionAccordionProps) {
               <label>{action.type}</label>
               <Icon name={actionsStore.getIconOf(action.type)} />
             </a>
+          </div>
+          <div className={c("accordion-header-actions")}>
             <Input
               value={action.description}
               placeholder="Action description"
@@ -58,16 +78,15 @@ export function ActionAccordion(props: ActionAccordionProps) {
               required={true}
               disablePlaceHolderLabel={true}
             />
-          </div>
-          <div className={c("accordion-header-actions")}>
             <button onClick={() => setAccordionOpen(!accordionOpen)}>
               <Icon
                 name={accordionOpen ? "up-chevron-glyph" : "down-chevron-glyph"}
               />
             </button>
             <button
+              className={c("accordion-header-remove")}
               onClick={() => {
-                onRemove();
+                handleRemove();
               }}
             >
               <Icon name="cross" />

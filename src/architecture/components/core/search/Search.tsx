@@ -6,7 +6,7 @@ import { useOnClickAway, useScrollToSelected } from "architecture/hooks";
 import ReactDOM from "react-dom";
 
 export function Search<T>(props: SearchType<T>) {
-  const { onChange, options, placeholder } = props;
+  const { className, onChange, options, placeholder } = props;
   // Refs
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,14 +38,14 @@ export function Search<T>(props: SearchType<T>) {
   useEffect(() => {
     if (visibleOptions && inputRef.current) {
       const inputRect = inputRef.current.getBoundingClientRect();
-      const espacioAbajo = window.innerHeight - inputRect.bottom;
-      const espacioArriba = inputRect.top;
+      const spaceDown = window.innerHeight - inputRect.bottom;
+      const spaceUp = inputRect.top;
 
       let top;
-      if (espacioAbajo >= optionsHeight || espacioAbajo > espacioArriba) {
-        top = inputRect.bottom; // Colocar debajo
+      if (spaceDown >= optionsHeight || spaceDown > spaceUp) {
+        top = inputRect.bottom; // render down
       } else {
-        top = inputRect.top - optionsHeight; // Colocar arriba
+        top = inputRect.top - optionsHeight; // render up
       }
 
       setPosition({
@@ -95,6 +95,7 @@ export function Search<T>(props: SearchType<T>) {
       <input
         ref={inputRef}
         type="search"
+        className={className}
         value={value}
         onChange={(e) => {
           const value = e.target.value;

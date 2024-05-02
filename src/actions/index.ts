@@ -7,5 +7,5 @@ export { TagsAction } from './tags/TagsAction';
 export { CssClassesAction } from './cssClasses/CssClassesAction';
 export { ScriptAction } from './script/ScriptAction';
 export { CheckboxAction } from './checkbox/CheckboxAction';
-
+export { TaskManagementAction } from './taskManagement/TaskManagementAction';
 export { CodeView } from './script/view/CodeView';

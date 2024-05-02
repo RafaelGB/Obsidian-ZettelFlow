@@ -20,7 +20,8 @@ nav:
       - 2.6 Tags: actions/Tags.md
       - 2.7 Backlink: actions/Backlink.md
       - 2.8 CssClasses: actions/CssClasses.md
-      - 2.9 Script: actions/Script.md
+      - 2.9 TaskManagement: actions/TaskManagement.md
+      - 2.10 Script: actions/Script.md
   - 3. How to Contribute:
       - 3.1 Wiki: how-to-contribute/Wiki.md
 extra_javascript:

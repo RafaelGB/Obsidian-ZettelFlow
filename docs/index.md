@@ -63,4 +63,5 @@ They will be shown as a list of options to select from. The options are:
 - **[Backlink](./actions/Backlink.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.
 - **[Tags](./actions/Tags.md)**: Add tags to the built-in note template as property.
 - **[CssClasses](./actions/CssClasses.md)**: Add a css class to the built-in note template as property.
+- **[TaskManagement](./actions/TaskManagement.md)**: Rollover the not completed task given regex and folders.
 - **[Script](./steps/Script.md)**: Executes a JavaScript script when the workflow is run. Configure the script with the code editor displayed in the settings of the action.

@@ -5,7 +5,7 @@ import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
 	BackLinkAction, CalendarAction, CheckboxAction, CodeView,
 	CssClassesAction, NumberAction, PromptAction, ScriptAction, SelectorAction,
-	TagsAction
+	TagsAction, TaskManagementAction
 } from 'actions';
 import { log } from 'architecture';
 import { Hooks } from 'hooks';
@@ -59,5 +59,6 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new TagsAction());
 		actionsStore.registerAction(new CssClassesAction());
 		actionsStore.registerAction(new ScriptAction());
+		actionsStore.registerAction(new TaskManagementAction());
 	}
 }

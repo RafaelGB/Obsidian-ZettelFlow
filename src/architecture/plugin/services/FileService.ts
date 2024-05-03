@@ -72,9 +72,10 @@ export class FileService {
 
     public static getTfilesFromFolder(
         folder_str: string,
-        fileExtensions: string[] = FILE_EXTENSIONS.BASIC
+        fileExtensions: string[] = FILE_EXTENSIONS.BASIC,
+        allowRecursive = true
     ): Array<TFile> {
-        let folder;
+        let folder: TFolder;
         try {
             folder = FileService.getFolder(folder_str);
         } catch (err) {
@@ -82,10 +83,17 @@ export class FileService {
             folder = FileService.getFolder(folder_str.split(FileService.PATH_SEPARATOR).slice(0, -1).join(FileService.PATH_SEPARATOR));
         }
         let files: Array<TFile> = [];
+        console.log(folder);
         Vault.recurseChildren(folder, (file: TAbstractFile) => {
-            if (file instanceof TFile) {
-                files.push(file);
+
+            if (!(file instanceof TFile)) {
+                return;
             }
+            const fileParent = file.parent;
+            if (fileParent !== null && !allowRecursive && fileParent.path !== folder.path) {
+                return;
+            }
+            files.push(file);
         });
 
         if (fileExtensions.length > 0) {

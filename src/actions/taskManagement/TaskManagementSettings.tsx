@@ -7,8 +7,16 @@ import { ObsidianConfig } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
 
 export const taskManagementSettings: ActionSetting = (contentEl, _, action) => {
-  const { initialFolder, regex, rollupHeader, prefix, suffix, isContent, key } =
-    action as TaskManagementElement;
+  const {
+    initialFolder,
+    regex,
+    rolloverHeader,
+    prefix,
+    suffix,
+    isContent,
+    key,
+    recursiveFolders = true,
+  } = action as TaskManagementElement;
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_task_management_target_folder_title"))
@@ -29,6 +37,22 @@ export const taskManagementSettings: ActionSetting = (contentEl, _, action) => {
     });
 
   new Setting(contentEl)
+    .setName(
+      t("step_builder_element_type_task_management_allow_recursive_title")
+    )
+    .setDesc(
+      t("step_builder_element_type_task_management_allow_recursive_description")
+    )
+    .addToggle((toggle) => {
+      toggle.setValue(recursiveFolders).onChange((value) => {
+        action.recursiveFolders = value;
+      });
+    });
+  if (action.recursiveFolders === undefined) {
+    action.recursiveFolders = true;
+  }
+
+  new Setting(contentEl)
     .setName(t("step_builder_element_type_task_management_regex_title"))
     .setDesc(t("step_builder_element_type_task_management_regex_description"))
     .addText((text) => {
@@ -43,23 +67,25 @@ export const taskManagementSettings: ActionSetting = (contentEl, _, action) => {
     });
 
   new Setting(contentEl)
-    .setName(t("step_builder_element_type_task_management_rollup_header_title"))
+    .setName(
+      t("step_builder_element_type_task_management_rollover_header_title")
+    )
     .setDesc(
-      t("step_builder_element_type_task_management_rollup_header_description")
+      t("step_builder_element_type_task_management_rollover_header_description")
     )
     .addText((text) => {
       text
         .setPlaceholder(
           t(
-            "step_builder_element_type_task_management_rollup_header_placeholder"
+            "step_builder_element_type_task_management_rollover_header_placeholder"
           )
         )
-        .setValue(rollupHeader)
+        .setValue(rolloverHeader)
         .onChange(async (value) => {
           if (value) {
-            action.rollupHeader = value;
+            action.rolloverHeader = value;
           } else {
-            delete action.rollupHeader;
+            delete action.rolloverHeader;
           }
         });
     });

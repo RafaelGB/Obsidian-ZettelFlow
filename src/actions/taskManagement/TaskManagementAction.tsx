@@ -27,13 +27,17 @@ export class TaskManagementAction extends CustomZettelAction {
     const {
       initialFolder,
       regex,
-      rollupHeader,
+      rolloverHeader,
       prefix = "",
       suffix = "",
+      key,
+      isContent,
+      recursiveFolders,
     } = info.element as TaskManagementElement;
     const initFilesToSearch = FileService.getTfilesFromFolder(
       initialFolder || "/",
-      ["md"]
+      ["md"],
+      recursiveFolders
     );
 
     log.debug(`Initial files to search: ${initFilesToSearch.length}`);
@@ -47,7 +51,7 @@ export class TaskManagementAction extends CustomZettelAction {
     // Get all unfinished todos
     const unfinishedTodos = [];
     for (const file of filesToSearch) {
-      const todos = await getAllUnfinishedTodos(file, rollupHeader);
+      const todos = await getAllUnfinishedTodos(file, rolloverHeader);
       unfinishedTodos.push(...todos);
     }
     const normalizedTodos = unfinishedTodos
@@ -55,7 +59,11 @@ export class TaskManagementAction extends CustomZettelAction {
       .join("\n");
 
     if (normalizedTodos.length !== 0) {
-      content.add(`${rollupHeader}\n${normalizedTodos}`);
+      if (isContent && key !== undefined) {
+        content.modify(key, normalizedTodos);
+      } else {
+        content.add(`${rolloverHeader}\n${normalizedTodos}`);
+      }
     }
   }
 

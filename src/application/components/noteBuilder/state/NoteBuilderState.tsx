@@ -181,6 +181,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setIsCreationMode: (creationMode) => {
       set({ creationMode });
     },
+    setVisualSection: (section) => {
+      set({ section });
+    },
     /*
      * COMPLEX ACTIONS
      */

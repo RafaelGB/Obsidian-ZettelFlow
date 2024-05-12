@@ -54,6 +54,7 @@ export type NoteBuilderStateActions = {
     setInvalidTitle: (invalid: boolean) => void;
     setTargetFolder: (folder: string | undefined) => void;
     setHeader: (header: Partial<HeaderType>) => void;
+    setVisualSection: (section: SectionType) => void;
     setSectionElement: (element: JSX.Element, config: Partial<SectionElementOptions>) => void;
     setIsCreationMode: (mode: boolean) => void;
     goPrevious: () => void;

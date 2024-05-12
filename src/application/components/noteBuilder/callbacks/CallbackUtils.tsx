@@ -7,6 +7,7 @@ import { FatalError, WarningError, ZettelError, log } from "architecture";
 import { FileService } from "architecture/plugin";
 import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
+import { ProgressBar, initProgressBar } from "architecture/components/core";
 
 export async function nextElement(
   state: CallbackPickedState,
@@ -100,6 +101,17 @@ export async function manageElement(
     actions.setActionWasTriggered(false);
     nextElement(state, childrens[0].id, info);
   } else {
+    const useProgressBar = initProgressBar(0);
+    actions.setVisualSection({
+      element: (
+        <ProgressBar
+          key="progress-bar"
+          useProgressBar={useProgressBar}
+          label="Loading..."
+        />
+      ),
+      color: "info",
+    });
     // Build and close modal
     actions
       .build(info.modal)

@@ -21,5 +21,4 @@ export { Checkbox } from './checkbox/Checkbox'
 export { CheckboxType } from './checkbox/typing'
 
 export { ProgressBar } from './progressbar/ProgressBar'
-export { ProgressBarType, ProgressBarState } from './progressbar/typing'
-export { initProgressBar } from './progressbar/state/ProgressBarState'
+export { ProgressBarType } from './progressbar/typing'

@@ -30,6 +30,10 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   builder: Builder.default(),
   actionWasTriggered: false,
   enableSkip: false,
+  // Progress bar properties
+  pbValue: 0,
+  pbElements: 0,
+  pbElementsDone: 0,
   actions: {
     /*
      * DIRECT ACTIONS
@@ -131,8 +135,14 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         };
       }),
     build: async (modal) => {
-      const { builder } = get();
-      return await builder.build(modal);
+      const { builder, actions } = get();
+      set({
+        pbValue: 0,
+        pbElements: builder.note.getElements().size,
+        pbElementsDone: 0,
+      });
+
+      return await builder.build(modal, actions);
     },
     reset: () => {
       set({
@@ -183,6 +193,16 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     },
     setVisualSection: (section) => {
       set({ section });
+    },
+    pbFinishElement: () => {
+      set((state) => {
+        const { pbElementsDone, pbElements } = state;
+        const next = pbElementsDone + 1;
+        return {
+          pbElementsDone: next,
+          pbValue: (next / pbElements) * 100,
+        };
+      });
     },
     /*
      * COMPLEX ACTIONS

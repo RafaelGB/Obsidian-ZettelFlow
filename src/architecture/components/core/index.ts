@@ -19,3 +19,6 @@ export { CalendarType } from './calendar/typing'
 
 export { Checkbox } from './checkbox/Checkbox'
 export { CheckboxType } from './checkbox/typing'
+
+export { ProgressBar } from './progressbar/ProgressBar'
+export { ProgressBarType } from './progressbar/typing'

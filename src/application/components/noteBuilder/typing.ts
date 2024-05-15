@@ -54,6 +54,7 @@ export type NoteBuilderStateActions = {
     setInvalidTitle: (invalid: boolean) => void;
     setTargetFolder: (folder: string | undefined) => void;
     setHeader: (header: Partial<HeaderType>) => void;
+    setVisualSection: (section: SectionType) => void;
     setSectionElement: (element: JSX.Element, config: Partial<SectionElementOptions>) => void;
     setIsCreationMode: (mode: boolean) => void;
     goPrevious: () => void;
@@ -67,6 +68,8 @@ export type NoteBuilderStateActions = {
     setActionWasTriggered: (triggered: boolean) => void;
     setEnableSkip: (enable: boolean) => void;
     setCurrentNode: (node: FlowNode) => void;
+    // Progress bar actions
+    pbFinishElement: () => void;
 }
 
 export type NoteBuilderState = {
@@ -79,6 +82,9 @@ export type NoteBuilderState = {
     section: SectionType;
     enableSkip: boolean;
     position: number;
+    pbValue: number;
+    pbElements: number;
+    pbElementsDone: number;
     header: HeaderType;
     builder: NoteBuilder;
     currentNode?: FlowNode;

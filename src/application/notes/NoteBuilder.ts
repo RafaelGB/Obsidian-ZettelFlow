@@ -7,6 +7,7 @@ import { ContentDTO } from "./model/ContentDTO";
 import { actionsStore } from "architecture/api";
 import { TFile } from "obsidian";
 import { SelectorMenuModal } from "zettelkasten";
+import { NoteBuilderStateActions } from "application/components/noteBuilder/typing";
 
 export class Builder {
   public static default(): NoteBuilder {
@@ -19,13 +20,14 @@ export class NoteBuilder {
   public note: NoteDTO;
   public externalFns: Record<string, unknown>;
   private content: ContentDTO;
-
+  private actions: NoteBuilderStateActions;
   constructor() {
     this.note = new NoteDTO();
     this.content = new ContentDTO();
   }
 
-  public async build(modal: SelectorMenuModal) {
+  public async build(modal: SelectorMenuModal, actions: NoteBuilderStateActions) {
+    this.actions = actions;
     try {
       if (modal.isEditor()) {
         return await this.buildEditor(modal);
@@ -111,6 +113,7 @@ export class NoteBuilder {
       await actionsStore
         .getAction(element.type)
         .execute({ element, content: this.content, note: this.note, context: this.context, externalFns: this.externalFns });
+      this.actions.pbFinishElement();
     }
   }
 

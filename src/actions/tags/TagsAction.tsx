@@ -17,6 +17,9 @@ export class TagsAction extends CustomZettelAction {
 
   settings = tagsSettings;
 
+  link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Tags";
+  purpose = "Add Obsidian tags to the note.";
+
   component(props: WrappedActionBuilderProps) {
     return <TagsWrapper {...props} />;
   }

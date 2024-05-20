@@ -11,3 +11,7 @@ export type ActionAccordionProps = {
     index: number,
     onRemove: () => void,
 };
+
+export type ActionAddMenuProps = {
+    onChange: (value: string | null) => void
+};

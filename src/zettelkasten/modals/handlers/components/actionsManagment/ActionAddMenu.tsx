@@ -1,21 +1,116 @@
 import React, { useMemo, useState } from "react";
-import { ActionAddMenuProps } from "./typing";
+import { ActionAddMenuProps, ActionCardInfo } from "./typing";
 import { c } from "architecture";
 import { actionsStore } from "architecture/api";
+import { Icon } from "architecture/components/icon";
 
 export function ActionAddMenu(props: ActionAddMenuProps) {
   const { onChange } = props;
   // Open/close action selector menu
   const [display, setDisplay] = useState(false);
+
+  return (
+    <div className={c("actions-management-add")}>
+      <button
+        className={
+          display
+            ? c("actions-management-add-button-active")
+            : c("actions-management-add-button")
+        }
+        onClick={() => setDisplay(!display)}
+      >
+        {display ? <Icon name="cross" /> : <Icon name="plus" />}
+      </button>
+      {display && (
+        <ActionCardsMenu
+          onChange={(value: string | null) => {
+            setDisplay(false);
+            onChange(value);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ActionCardsMenu(props: ActionAddMenuProps) {
+  const { onChange } = props;
   // Hooks
-  const actionsMemo: Record<string, string> = useMemo(() => {
-    const record: Record<string, string> = {};
+  const actionsMemo: ActionCardInfo[] = useMemo(() => {
+    const array: ActionCardInfo[] = [];
     actionsStore.getActionsKeys().forEach((key) => {
-      const label = actionsStore.getAction(key).getLabel();
-      record[label] = key;
+      const rawAction = actionsStore.getAction(key);
+      array.push({
+        icon: rawAction.getIcon(),
+        label: rawAction.getLabel(),
+        link: rawAction.link,
+        purpose: rawAction.purpose,
+        id: rawAction.id,
+      });
     });
-    return record;
+    return array;
   }, []);
 
-  return <div className={c("actions-management-add")}>TODO</div>;
+  const [filteredCards, setFilteredCards] = useState(actionsMemo);
+  return (
+    <div className={c("actions-management-add-menu")}>
+      <input
+        className={c("actions-management-add-menu-search")}
+        type="text"
+        placeholder="Search actions"
+        onChange={(e) => {
+          const value = e.target.value.toLowerCase();
+          if (value === "" || value === null) {
+            setFilteredCards(actionsMemo);
+          } else {
+            setFilteredCards(
+              actionsMemo.filter((card) =>
+                card.label.toLowerCase().includes(value)
+              )
+            );
+          }
+        }}
+      />
+      <div className={c("actions-list")}>
+        {filteredCards.map((card) => (
+          <ActionCard
+            key={card.id}
+            card={card}
+            trigger={() => {
+              setFilteredCards(actionsMemo);
+              onChange(card.id);
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionCard(props: { card: ActionCardInfo; trigger: () => void }) {
+  const { card } = props;
+  return (
+    <div
+      className={c("actions-management-add-card")}
+      onClick={() => props.trigger()}
+    >
+      <div className={c("actions-management-add-card-icon")}>
+        <Icon name={card.icon} />
+      </div>
+      <div className={c("actions-management-add-card-header")}>
+        <label>{card.label}</label>
+      </div>
+      <div className={c("actions-management-add-card-body")}>
+        <label>{card.purpose}</label>
+      </div>
+      <a
+        href={card.link}
+        title={`${card.label} documentation`}
+        className={c("actions-management-add-card-link")}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Icon name="info" />
+      </a>
+    </div>
+  );
 }

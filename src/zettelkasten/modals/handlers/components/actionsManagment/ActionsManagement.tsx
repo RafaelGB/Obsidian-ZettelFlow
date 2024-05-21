@@ -9,6 +9,7 @@ import { DndScope, Sortable } from "architecture/components/dnd";
 import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
 import { ActionsManager } from "../shared/managers/ActionsManager";
 import { v4 as uuid4 } from "uuid";
+import { ActionAddMenu } from "./ActionAddMenu";
 
 export function ActionsManagement(props: ActionsManagementProps) {
   const { modal } = props;
@@ -87,21 +88,16 @@ export function ActionsManagement(props: ActionsManagementProps) {
           })}
         </Sortable>
       </DndScope>
-      <div className={c("actions-management-add")}>
-        <Search
-          key={`dropdown-${info.actions.length}`}
-          options={actionsMemo}
-          onChange={async (value) => {
-            if (typeof value === "string") {
-              const deepCopy = [...actionsState];
-              deepCopy.push(actionsStore.getDefaultActionInfo(value));
-              setActionsState(deepCopy);
-              info.actions = deepCopy;
-            }
-          }}
-          placeholder={t("step_builder_actions_management_add_action_tooltip")}
-        />
-      </div>
+      <ActionAddMenu
+        onChange={async (value) => {
+          if (typeof value === "string") {
+            const deepCopy = [...actionsState];
+            deepCopy.push(actionsStore.getDefaultActionInfo(value));
+            setActionsState(deepCopy);
+            info.actions = deepCopy;
+          }
+        }}
+      />
     </>
   );
 }

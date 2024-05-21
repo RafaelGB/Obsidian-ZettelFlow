@@ -24,6 +24,7 @@
 @import 'components/input.scss';
 @import 'components/selector.scss';
 @import 'components/progressBar.scss';
+@import 'components/actionAddMenu.scss';
 
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {
@@ -162,32 +163,4 @@
 .zettelkasten-flow__welcome-tutorial li {
     /* space between list items */
     padding-bottom: 0.35rem;
-}
-
-/********************
-*   ACTION MANAGEMENT
-*********************/
-.zettelkasten-flow__actions-management-add {
-    background-color: var(--background-secondary);
-    color: var(--text-normal);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
-    padding: 10px 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s, box-shadow 0.3s;
-    width: 100%;
-}
-
-.zettelkasten-flow__actions-management-add:hover {
-    background-color: var(--background-modifier-success);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-@media (max-width: 600px) {
-    .zettelkasten-flow__actions-management-add {
-        flex-direction: column;
-    }
 }

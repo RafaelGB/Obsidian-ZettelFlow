@@ -1,9 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { ActionsManagementProps } from "./typing";
 import { ActionAccordion } from "./ActionAccordion";
-import { Search } from "architecture/components/core";
 import { actionsStore } from "architecture/api";
-import { c } from "architecture";
 import { t } from "architecture/lang";
 import { DndScope, Sortable } from "architecture/components/dnd";
 import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
@@ -43,15 +41,6 @@ export function ActionsManagement(props: ActionsManagementProps) {
     setActionsState(newOptionsState);
     info.actions = newOptionsState;
   };
-
-  const actionsMemo: Record<string, string> = useMemo(() => {
-    const record: Record<string, string> = {};
-    actionsStore.getActionsKeys().forEach((key) => {
-      const label = actionsStore.getAction(key).getLabel();
-      record[label] = key;
-    });
-    return record;
-  }, []);
 
   const managerMemo = useMemo(() => {
     return ActionsManager.init(updateActions);

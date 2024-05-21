@@ -19,16 +19,22 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
         }
         onClick={() => setDisplay(!display)}
       >
-        {display ? <Icon name="cross" /> : <Icon name="plus" />}
+        <Icon name="plus" />
       </button>
-      {display && (
+      <div
+        className={
+          display
+            ? c("actions-management-add-menu-show")
+            : c("actions-management-add-menu")
+        }
+      >
         <ActionCardsMenu
           onChange={(value: string | null) => {
             setDisplay(false);
             onChange(value);
           }}
         />
-      )}
+      </div>
     </div>
   );
 }
@@ -53,7 +59,7 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
 
   const [filteredCards, setFilteredCards] = useState(actionsMemo);
   return (
-    <div className={c("actions-management-add-menu")}>
+    <>
       <input
         className={c("actions-management-add-menu-search")}
         type="text"
@@ -83,7 +89,7 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
           />
         ))}
       </div>
-    </div>
+    </>
   );
 }
 

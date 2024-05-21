@@ -5,14 +5,14 @@
     align-items: center;
     margin-top: 10px;
     padding: 10px 20px;
+    flex-direction: column;
 }
 
 .zettelkasten-flow__actions-management-add-button-active,
 .zettelkasten-flow__actions-management-add-button {
-    background-color: var(--background-primary);
     color: var(--text-normal);
-    width: 50px;
-    height: 50px;
+    width: 35px;
+    height: 35;
     border: none;
     border-radius: 50%;
     display: flex;
@@ -24,21 +24,38 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+.zettelkasten-flow__actions-management-add-button {
+    background-color: var(--background-modifier-info);
+}
+
 .zettelkasten-flow__actions-management-add-button-active {
     background-color: var(--background-modifier-success);
     transform: rotate(45deg);
 }
 
-.zettelkasten-flow__actions-management-add-menu {
+.zettelkasten-flow__actions-management-add-menu,
+.zettelkasten-flow__actions-management-add-menu-show {
     background-color: var(--background-secondary);
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     max-width: 600px;
-    margin: 10px auto;
+    margin-top: 20px;
     min-height: 300px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    transition: opacity 0.3s, max-height 0.3s;
+}
+
+.zettelkasten-flow__actions-management-add-menu {
+    opacity: 0;
+    max-height: 0;
+}
+
+.zettelkasten-flow__actions-management-add-menu-show{
+    opacity: 1;
+    max-height: 1000px;
 }
 
 .zettelkasten-flow__actions-management-add-menu-search {

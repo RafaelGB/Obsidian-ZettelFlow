@@ -13,6 +13,9 @@ export class ScriptAction extends CustomZettelAction {
   };
   settings = scriptSettings;
 
+  link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script";
+  purpose = "Run a JS script when the note is created/edited.";
+
   async execute(info: ExecuteInfo) {
     try {
       const element = info.element as CodeElement;

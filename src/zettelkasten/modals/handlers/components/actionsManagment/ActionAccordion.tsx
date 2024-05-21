@@ -8,20 +8,6 @@ import { Droppable, useDragHandle } from "architecture/components/dnd";
 import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
 import { v4 as uuid4 } from "uuid";
 
-const URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/";
-const ACTION_LABEL_URL: Record<string, string> = {
-  script: "Script",
-  prompt: "Prompt",
-  number: "Number",
-  selector: "Selector",
-  cssclasses: "CssClasses",
-  tags: "Tags",
-  checkbox: "Checkbox",
-  calendar: "Calendar",
-  backlink: "Backlink",
-  "task-management": "TaskManagement",
-};
-
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove, index } = props;
   const [accordionOpen, setAccordionOpen] = useState(false);
@@ -59,7 +45,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
         <div className={c("accordion-header")}>
           <div className={c("accordion-header-info")}>
             <a
-              href={`${URL}${ACTION_LABEL_URL[action.type] || action.type}`}
+              href={`${actionsStore.getAction(action.type).link}`}
               style={{ color: "inherit", textDecoration: "none" }}
               title={`${action.type} documentation`}
               className={c("accordion-header-label")}

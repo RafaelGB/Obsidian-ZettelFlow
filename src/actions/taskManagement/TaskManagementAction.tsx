@@ -18,6 +18,11 @@ export class TaskManagementAction extends CustomZettelAction {
 
   settings = taskManagementSettings;
 
+  link =
+    "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/TaskManagement";
+  purpose =
+    "Rollover unfinished tasks from one/multiple notes to the created/modified one.";
+
   getIcon(): string {
     return TaskManagementAction.ICON;
   }

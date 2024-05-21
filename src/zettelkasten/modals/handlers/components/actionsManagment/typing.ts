@@ -11,3 +11,15 @@ export type ActionAccordionProps = {
     index: number,
     onRemove: () => void,
 };
+
+export type ActionAddMenuProps = {
+    onChange: (value: string | null) => void
+};
+
+export type ActionCardInfo = {
+    id: string,
+    icon: string,
+    label: string,
+    link: string,
+    purpose: string
+};

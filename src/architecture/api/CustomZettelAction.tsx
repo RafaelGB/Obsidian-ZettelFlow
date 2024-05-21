@@ -15,6 +15,8 @@ export abstract class CustomZettelAction implements ICustomZettelAction {
   abstract id: string;
   abstract defaultAction: Action;
   abstract settings: ActionSetting;
+  abstract link: string;
+  abstract purpose: string;
   async execute(_: ExecuteInfo) {
     // Do nothing by default
   }

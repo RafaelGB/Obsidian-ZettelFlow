@@ -17,6 +17,8 @@ export class BackLinkAction extends CustomZettelAction {
   };
   settings = backlinkSettings;
 
+  link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Backlink";
+  purpose = "Add a backlink of the in-building note to another note.";
   public component(props: WrappedActionBuilderProps) {
     return <BacklinkWrapper {...props} />;
   }

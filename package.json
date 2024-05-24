@@ -10,7 +10,8 @@
     "test": "jest",
     "lint": "oxlint ./src",
     "lint:fix": "oxlint ./src --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "commitlint": "commitlint --edit"
   },
   "keywords": [],
   "author": "RafaelGB",

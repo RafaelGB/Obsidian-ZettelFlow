@@ -1,6 +1,8 @@
 import ZettelFlow from "main";
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
+import { SelectorMenuModal } from "zettelkasten";
+import { MarkdownView } from "obsidian";
 export class VaultHooks {
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -8,6 +10,7 @@ export class VaultHooks {
     constructor(private plugin: ZettelFlow) {
         plugin.registerEvent(this.onRename);
         plugin.registerEvent(this.onDelete);
+        plugin.registerEvent(this.onCreate);
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -33,5 +36,28 @@ export class VaultHooks {
             this.plugin.settings.jsLibraryFolderPath = "";
             log.info("Deleted canvas file");
         }
+    });
+
+    private onCreate = this.plugin.app.vault.on("create", async (file) => {
+        const parent = file.parent;
+        console.log(file);
+        if (!parent) {
+            return;
+        }
+        const potentialCanvasConfig = `${this.plugin.settings.foldersFlowsPath}/${parent.path.replace(/\//g, "_")}.canvas`;
+        const potentialCanvasFile = this.plugin.app.vault.getAbstractFileByPath(potentialCanvasConfig);
+        if (potentialCanvasFile) {
+            setTimeout(async () => {
+                const flow = await canvas.flows.update(potentialCanvasFile.path);
+                const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView) {
+                    return;
+                }
+                new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
+                    .enableEditor(true)
+                    .open();
+            }, 400);
+        }
+
     });
 }

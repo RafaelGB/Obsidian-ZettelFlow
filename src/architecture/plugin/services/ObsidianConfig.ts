@@ -1,6 +1,6 @@
 import { log } from "architecture";
 import { ObsidianApi } from "../ObsidianAPI";
-import { Notice, TFile, TFolder } from "obsidian";
+import { Notice, TFolder } from "obsidian";
 import { InformedLiteral, Literal } from "../model/FrontmatterModel";
 
 export class ObsidianConfig {
@@ -66,24 +66,24 @@ export class ObsidianConfig {
      * @param filename
      * @returns json object
      */
-    public static async openCanvasFile(folder: TFolder) {
-        const canvasFilePath = `${ObsidianApi.vault().configDir}/plugins/ZettelFlow/folderFlows/${folder.path.replace(/\//g, "_")}.canvas`;
+    public static async openCanvasFile(folder: TFolder, prefixFolder = "_ZettelFlow"): Promise<void> {
+        const canvasFilePath = `${prefixFolder}/${folder.path.replace(/\//g, "_")}.canvas`;
         // Create file if it doesn't exist
         if (!await ObsidianApi.vault().adapter.exists(canvasFilePath)) {
             // Create folderFlows folder if it doesn't exist
-            if (!await ObsidianApi.vault().adapter.exists(`${ObsidianApi.vault().configDir}/plugins/ZettelFlow/folderFlows`)) {
-                await ObsidianApi.vault().adapter.mkdir(`${ObsidianApi.vault().configDir}/plugins/ZettelFlow/folderFlows`);
+            if (!await ObsidianApi.vault().adapter.exists(prefixFolder)) {
+                await ObsidianApi.vault().adapter.mkdir(prefixFolder);
             }
             await ObsidianApi.vault().adapter.write(canvasFilePath, "{}");
         }
         // Obtain TFile object
-        const canvasFile = ObsidianApi.vault().getAbstractFileByPath(canvasFilePath);
+        const canvasFile = ObsidianApi.vault().getFileByPath(canvasFilePath);
         if (!canvasFile) {
             new Notice(`Canvas file could not be opened: ${canvasFilePath}`);
             log.error(`Canvas file not found: ${canvasFilePath}`);
             return;
         }
-        ObsidianApi.workspace().getLeaf("window").openFile(canvasFile as TFile);
+        ObsidianApi.workspace().getLeaf(true).openFile(canvasFile);
         // Open file
 
         new Notice(`Canvas file opened: ${canvasFilePath}`);

@@ -16,14 +16,14 @@ export class FileMenu {
     }
     private onFileMenuTriggered =
         this.plugin.app.workspace.on('file-menu', (menu, file) => {
-            const { ribbonCanvas } = this.plugin.settings;
+            const { ribbonCanvas, foldersFlowsPath } = this.plugin.settings;
             if (file instanceof TFolder) {
                 menu.addItem((item) => {
                     item
                         .setTitle("Edit folder workflow")
                         .setIcon(RibbonIcon.ID)
                         .onClick(async () => {
-                            await ObsidianConfig.openCanvasFile(file);
+                            await ObsidianConfig.openCanvasFile(file, foldersFlowsPath);
                         });
                 });
             } else if (file instanceof TFile) {

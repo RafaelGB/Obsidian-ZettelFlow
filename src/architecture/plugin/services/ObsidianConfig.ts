@@ -1,5 +1,6 @@
 import { log } from "architecture";
 import { ObsidianApi } from "../ObsidianAPI";
+import { Notice, TFile, TFolder } from "obsidian";
 import { InformedLiteral, Literal } from "../model/FrontmatterModel";
 
 export class ObsidianConfig {
@@ -58,6 +59,34 @@ export class ObsidianConfig {
             return {};
         }
         return JSON.parse(await ObsidianApi.vault().adapter.read(typesFilePath)).types;
+    }
+
+    /**
+     * Read .canvas file from plugin folder given a filename
+     * @param filename
+     * @returns json object
+     */
+    public static async openCanvasFile(folder: TFolder) {
+        const canvasFilePath = `${ObsidianApi.vault().configDir}/plugins/ZettelFlow/folderFlows/${folder.path.replace(/\//g, "_")}.canvas`;
+        // Create file if it doesn't exist
+        if (!await ObsidianApi.vault().adapter.exists(canvasFilePath)) {
+            // Create folderFlows folder if it doesn't exist
+            if (!await ObsidianApi.vault().adapter.exists(`${ObsidianApi.vault().configDir}/plugins/ZettelFlow/folderFlows`)) {
+                await ObsidianApi.vault().adapter.mkdir(`${ObsidianApi.vault().configDir}/plugins/ZettelFlow/folderFlows`);
+            }
+            await ObsidianApi.vault().adapter.write(canvasFilePath, "{}");
+        }
+        // Obtain TFile object
+        const canvasFile = ObsidianApi.vault().getAbstractFileByPath(canvasFilePath);
+        if (!canvasFile) {
+            new Notice(`Canvas file could not be opened: ${canvasFilePath}`);
+            log.error(`Canvas file not found: ${canvasFilePath}`);
+            return;
+        }
+        ObsidianApi.workspace().getLeaf("window").openFile(canvasFile as TFile);
+        // Open file
+
+        new Notice(`Canvas file opened: ${canvasFilePath}`);
     }
 
     public static parseType(literal: Literal, type: string) {

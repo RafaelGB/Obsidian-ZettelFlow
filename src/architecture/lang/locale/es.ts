@@ -23,7 +23,6 @@ export default {
     type_option_tags: 'Etiquetas',
     type_option_cssclasses: 'Clases CSS',
     type_option_task_management: 'Gestión de tareas',
-    menu_pane_create_new_step: 'Crear nuevo paso del ZettelFlow',
     menu_pane_edit_step: 'Editar paso del ZettelFlow',
     menu_pane_transform_note_into_step: 'Transformar a nota ZettelFlow',
     menu_pane_remove_step_configuration: 'Restablecer a nota normal',

@@ -3,6 +3,7 @@ import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import { MarkdownView } from "obsidian";
+import { checkSemaphore } from "architecture/plugin";
 export class VaultHooks {
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -40,8 +41,7 @@ export class VaultHooks {
 
     private onCreate = this.plugin.app.vault.on("create", async (file) => {
         const parent = file.parent;
-        console.log(file);
-        if (!parent) {
+        if (!parent || !checkSemaphore()) {
             return;
         }
         const potentialCanvasConfig = `${this.plugin.settings.foldersFlowsPath}/${parent.path.replace(/\//g, "_")}.canvas`;
@@ -56,7 +56,7 @@ export class VaultHooks {
                 new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
                     .enableEditor(true)
                     .open();
-            }, 400);
+            }, 300);
         }
 
     });

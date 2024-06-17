@@ -15,10 +15,12 @@ export interface ZettelFlowSettings {
     ribbonCanvas: string,
     editorCanvas: string,
     jsLibraryFolderPath: string,
+    foldersFlowsPath: string,
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false,
     uniquePrefixEnabled: false,
     uniquePrefix: "YYYYMMDDHHmmss",
+    foldersFlowsPath: "_ZettelFlow"
 }

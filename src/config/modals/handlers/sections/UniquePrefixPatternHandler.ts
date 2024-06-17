@@ -4,7 +4,7 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { DEFAULT_SETTINGS } from "config";
 import moment from "moment";
-import { ScriptsFolderSelectorHandler } from "./ScriptsFolderSelectorHandler";
+import { FoldersFlowSelectorHandler } from "./FoldersFlowSelectorHandler";
 
 export class UniquePrefixPatternHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('unique_prefix_pattern_title');
@@ -38,6 +38,6 @@ export class UniquePrefixPatternHandler extends AbstractHandlerClass<SettingsHan
     }
 
     manageNextHandler() {
-        this.nextHandler = new ScriptsFolderSelectorHandler();
+        this.nextHandler = new FoldersFlowSelectorHandler();
     }
 }

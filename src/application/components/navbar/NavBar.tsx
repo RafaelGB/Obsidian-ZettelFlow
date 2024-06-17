@@ -60,14 +60,12 @@ export function NavBar(props: NoteBuilderType) {
         )}
       </div>
       <div className={c("navbar_icons")}>
-        <Badge
-          content={savedPaths.size}
-          children={<Icon name={RibbonIcon.TEMPLATE} />}
-        />
-        <Badge
-          content={savedElements.size}
-          children={<Icon name={RibbonIcon.ACTION} />}
-        />
+        <Badge content={savedPaths.size}>
+          <Icon name={RibbonIcon.TEMPLATE} />
+        </Badge>
+        <Badge content={savedElements.size}>
+          <Icon name={RibbonIcon.ACTION} />
+        </Badge>
       </div>
     </div>
   );

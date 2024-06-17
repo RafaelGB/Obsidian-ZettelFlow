@@ -54,7 +54,8 @@ export class StepBuilderModal extends Modal {
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {
-            case "edit" || "create":
+            case "edit":
+            case "create":
                 this.saveFile(path.concat(".md"))
                     .then(() => {
                         log.info(`File ${path} saved`);

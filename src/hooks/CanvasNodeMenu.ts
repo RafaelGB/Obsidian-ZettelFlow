@@ -21,9 +21,9 @@ export class CanvasNodeMenu {
         if (file === null) {
             return;
         }
-        const { ribbonCanvas, editorCanvas } = this.plugin.settings;
+        const { ribbonCanvas, editorCanvas, foldersFlowsPath } = this.plugin.settings;
         // Discard canvas if file.path is not one of the zettelFlow canvases
-        if (ribbonCanvas !== file.path && editorCanvas !== file.path) {
+        if (ribbonCanvas !== file.path && editorCanvas !== file.path && !file.path.startsWith(foldersFlowsPath)) {
             return;
         }
 

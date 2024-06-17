@@ -40,11 +40,11 @@ export function manageAction(
   } else if (action.hasUI) {
     actions.setSectionElement(
       <ActionSelector
+        key={`selector-action-${selectedElement.id}-${position}`}
         {...info}
         action={action}
         node={selectedElement}
         position={position}
-        key={`selector-action-${selectedElement.id}-${position}`}
       />,
       {
         actionType: action.type,
@@ -86,9 +86,9 @@ export async function manageElement(
     const childrenHeader = selectedElement.childrenHeader;
     actions.setSectionElement(
       <ElementSelector
+        key={`selector-children-${childrenHeader}`}
         {...info}
         childen={childrens}
-        key={`selector-children-${childrenHeader}`}
       />,
       {
         isOptional: false,

@@ -22,7 +22,8 @@ nav:
       - 2.8 CssClasses: actions/CssClasses.md
       - 2.9 TaskManagement: actions/TaskManagement.md
       - 2.10 Script: actions/Script.md
-  - 3. How to Contribute:
-      - 3.1 Wiki: how-to-contribute/Wiki.md
+  - 3. Folder Automatic Flows: folder-flows/FolderFlowsIntro.md
+  - 4. How to Contribute:
+      - 4.1 Wiki: how-to-contribute/Wiki.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

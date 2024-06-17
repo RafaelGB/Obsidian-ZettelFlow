@@ -1,5 +1,5 @@
 import { t } from "architecture/lang";
-import { FrontmatterService } from "architecture/plugin";
+import { FrontmatterService, ObsidianConfig } from "architecture/plugin";
 import ZettelFlow from "main";
 import { Notice, TFile, TFolder } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
@@ -16,22 +16,16 @@ export class FileMenu {
     }
     private onFileMenuTriggered =
         this.plugin.app.workspace.on('file-menu', (menu, file) => {
-            const { ribbonCanvas } = this.plugin.settings;
+            const { ribbonCanvas, foldersFlowsPath } = this.plugin.settings;
             if (file instanceof TFolder) {
                 menu.addItem((item) => {
                     item
-                        .setTitle(t("menu_pane_create_new_step"))
+                        .setTitle("Edit folder workflow")
                         .setIcon(RibbonIcon.ID)
-                        .onClick(() => {
-                            new StepBuilderModal(this.plugin.app, {
-                                folder: file,
-                                menu
-                            })
-                                .setMode("create")
-                                .open();
+                        .onClick(async () => {
+                            await ObsidianConfig.openCanvasFile(file, foldersFlowsPath);
                         });
-                }
-                );
+                });
             } else if (file instanceof TFile) {
                 const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
                 if (file.extension === "md") {

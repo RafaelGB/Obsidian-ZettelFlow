@@ -1,5 +1,4 @@
 import { ObsidianApi } from "architecture";
-import { log } from "console";
 import { DataWriteOptions, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 export const FILE_EXTENSIONS = Object.freeze({
     BASIC: ["md", "canvas"],

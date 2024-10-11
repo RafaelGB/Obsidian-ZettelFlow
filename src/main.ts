@@ -3,12 +3,13 @@ import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters'
 import { Notice, Plugin } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
-	BackLinkAction, CalendarAction, CheckboxAction, CodeView,
-	CssClassesAction, NumberAction, PromptAction, ScriptAction, SelectorAction,
+	BackLinkAction, CalendarAction, CheckboxAction,
+	CssClassesAction, DynamicSelectorAction, NumberAction, PromptAction, ScriptAction, SelectorAction,
 	TagsAction, TaskManagementAction
 } from 'actions';
 import { log } from 'architecture';
 import { Hooks } from 'hooks';
+import { CodeView } from 'architecture/components/core';
 
 export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
@@ -54,6 +55,7 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new NumberAction());
 		actionsStore.registerAction(new CheckboxAction());
 		actionsStore.registerAction(new SelectorAction());
+		actionsStore.registerAction(new DynamicSelectorAction());
 		actionsStore.registerAction(new CalendarAction());
 		actionsStore.registerAction(new BackLinkAction());
 		actionsStore.registerAction(new TagsAction());

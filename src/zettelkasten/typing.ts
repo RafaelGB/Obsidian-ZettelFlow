@@ -75,6 +75,10 @@ export type SelectorElement = {
     defaultOption?: string,
 } & AditionBaseElement;
 
+export type DynamicSelectorElement = {
+    code: string,
+} & AditionBaseElement;
+
 export type CheckboxElement = {
     confirmTooltip: string,
     staticValue?: boolean,

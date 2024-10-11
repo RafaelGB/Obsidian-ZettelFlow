@@ -1,5 +1,5 @@
 import { HoverParent, HoverPopover, TFile, TextFileView, WorkspaceLeaf } from "obsidian";
-import { dispatchEditor } from "../editor/Dispatcher";
+import { dispatchEditor } from "./editor/Dispatcher";
 import { EditService, FileService } from "architecture/plugin";
 import { EditorView } from "codemirror";
 

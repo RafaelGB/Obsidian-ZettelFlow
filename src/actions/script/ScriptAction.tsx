@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
-import { CodeElement } from "./typing";
 import { log } from "architecture";
+import { CodeElement } from "architecture/components/core";
 
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";

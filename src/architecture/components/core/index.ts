@@ -22,3 +22,7 @@ export { CheckboxType } from './checkbox/typing'
 
 export { ProgressBar } from './progressbar/ProgressBar'
 export { ProgressBarType } from './progressbar/typing'
+
+export { CodeView } from './codeView/CodeView'
+export { dispatchEditor } from './codeView/editor/Dispatcher'
+export { CodeElement } from './codeView/typing'

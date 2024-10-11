@@ -20,6 +20,7 @@ export default {
     type_option_number: 'Number',
     type_option_calendar: 'Calendar',
     type_option_selector: 'Selector',
+    type_option_dynamic_selector: 'Dynamic Selector',
     type_option_tags: 'Tags',
     type_option_cssclasses: 'CSS Classes',
     type_option_task_management: 'Task Management',

@@ -49,7 +49,6 @@ export class DynamicSelectorAction extends CustomZettelAction {
   }
 
   getLabel(): string {
-    // TODO: use translation
-    return "";
+    return t("type_option_dynamic_selector");
   }
 }

@@ -1,4 +1,4 @@
-import { isObsidianPropertyType } from "architecture/plugin";
+import { isObsidianPropertyType, ObsidianPropertyType } from "architecture/plugin";
 import { TextInputSuggest } from "./AbstractSuggester";
 export class PropertySuggest extends TextInputSuggest<string> {
     private filteredSuggestions: string[] = [];
@@ -36,7 +36,7 @@ export class PropertySuggest extends TextInputSuggest<string> {
             return isObsidianPropertyType(type);
         });
         this.filteredSuggestions = Object.entries(this.properties)
-            .filter(([_, type]) => filteredTypes.includes(type))
+            .filter(([_, type]) => filteredTypes.includes(type as ObsidianPropertyType))
             .map(([key, _]) => key);
     }
 }

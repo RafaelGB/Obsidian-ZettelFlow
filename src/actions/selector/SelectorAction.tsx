@@ -7,7 +7,7 @@ import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 
 export class SelectorAction extends CustomZettelAction {
-  private static ICON = "mouse-pointer-square";
+  private static ICON = "square-mouse-pointer";
   id = "selector";
   defaultAction = {
     type: this.id,

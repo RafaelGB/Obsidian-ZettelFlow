@@ -149,6 +149,29 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       // Execute the function
       const output = await scriptFn();
 
+      // Validate the output format
+      if (!Array.isArray(output)) {
+        throw new Error(
+          "The script must return an array of tuples. Example: [['key1', 'label1'], ['key2', 'label2']]"
+        );
+      }
+
+      for (let i = 0; i < output.length; i++) {
+        const item = output[i];
+        if (
+          !Array.isArray(item) ||
+          item.length !== 2 ||
+          typeof item[0] !== "string" ||
+          typeof item[1] !== "string"
+        ) {
+          throw new Error(
+            `The item at index ${i} is not a tuple [string, string]. ${JSON.stringify(
+              item
+            )}`
+          );
+        }
+      }
+
       return { output, error: null };
     } catch (err: any) {
       // Capture and return any errors that occur during execution

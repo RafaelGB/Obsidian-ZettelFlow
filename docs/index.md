@@ -59,6 +59,7 @@ They will be shown as a list of options to select from. The options are:
 - **[Checkbox](./actions/Checkbox.md)**: A checkbox to select a boolean value. The value will be added to the note as a property.
 - **[Number](./actions/Number.md)**: A number input to save a number as a property in the built-in note template.
 - **[Selector](./actions/Selector.md)**: A list of options to select from. The options are the values of the property defined in the file.
+- **[DynamicSelector](./actions/DynamicSelector.md)**: A list of options to select from. The options are the values of the property defined in the file. The list will be updated when the property changes.
 - **[Calendar](./actions/Calendar.md)**: A calendar to select a date. The date will be added to the note as a property.
 - **[Backlink](./actions/Backlink.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.
 - **[Tags](./actions/Tags.md)**: Add tags to the built-in note template as property.

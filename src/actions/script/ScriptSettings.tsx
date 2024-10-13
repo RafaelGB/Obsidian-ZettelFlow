@@ -1,9 +1,6 @@
 import { ActionSetting } from "architecture/api";
 import { t } from "architecture/lang";
-
-import { ViewUpdate } from "@codemirror/view";
-import { CodeElement } from "./typing";
-import { dispatchEditor } from "./editor/Dispatcher";
+import { CodeElement, dispatchEditor } from "architecture/components/core";
 
 export const scriptSettings: ActionSetting = (contentEl, _, action) => {
   const scriptAction = action as CodeElement;
@@ -16,11 +13,10 @@ export const scriptSettings: ActionSetting = (contentEl, _, action) => {
   });
   const editorEl = contentEl.createDiv();
   editorEl.id = "script-editor";
-  const handleEditorUpdate = (update: ViewUpdate) => {
+
+  dispatchEditor(editorEl, code, (update) => {
     if (update.docChanged) {
       scriptAction.code = update.state.doc.toString();
     }
-  };
-
-  dispatchEditor(editorEl, code, handleEditorUpdate);
+  });
 };

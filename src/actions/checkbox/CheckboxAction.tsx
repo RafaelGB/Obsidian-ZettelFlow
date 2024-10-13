@@ -19,6 +19,7 @@ export class CheckboxAction extends CustomZettelAction {
   settings = checkboxSettings;
 
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Checkbox";
+  // TODO: Translate this
   purpose = "Add a checkbox property. Works with boolean values.";
   component(props: WrappedActionBuilderProps) {
     return <CheckboxWrapper {...props} />;

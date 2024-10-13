@@ -1,27 +1,30 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React from "react";
-import { elementTypeSelectorSettings } from "./SelectorSettings";
-import { SelectorWrapper } from "./components/SelectorComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
+import { elementTypeDynamicSelectorSettings } from "./DynamicSelectorSettings";
+import { DynamicSelectorWrapper } from "./DynamicSelectorComponent";
 
-export class SelectorAction extends CustomZettelAction {
-  private static ICON = "square-mouse-pointer";
-  id = "selector";
+export class DynamicSelectorAction extends CustomZettelAction {
+  private static ICON = "square-dashed-mouse-pointer";
+  id = "dynamic-selector";
   defaultAction = {
     type: this.id,
     hasUI: true,
     id: this.id,
     zone: "frontmatter",
   };
-  settings = elementTypeSelectorSettings;
+  settings = elementTypeDynamicSelectorSettings;
 
-  link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Selector";
+  link =
+    "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/DynamicSelector";
+  // TODO: Translate this
   purpose =
-    "Create multiple options to select from and add the selected one to the note.";
+    "Create a script/rule to generate multiple options to be selected from. The selected option will be added to the note.";
+
   component(props: WrappedActionBuilderProps) {
-    return <SelectorWrapper {...props} />;
+    return <DynamicSelectorWrapper {...props} />;
   }
 
   async execute(info: ExecuteInfo) {
@@ -43,10 +46,10 @@ export class SelectorAction extends CustomZettelAction {
   }
 
   getIcon() {
-    return SelectorAction.ICON;
+    return DynamicSelectorAction.ICON;
   }
 
   getLabel(): string {
-    return t("type_option_selector");
+    return t("type_option_dynamic_selector");
   }
 }

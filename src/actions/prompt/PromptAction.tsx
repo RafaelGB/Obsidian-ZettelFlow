@@ -19,6 +19,7 @@ export class PromptAction extends CustomZettelAction {
   settings = promptSettings;
 
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Prompt";
+  // TODO: Translate this
   purpose = "Add text as property/context/body to the note.";
 
   component(props: WrappedActionBuilderProps) {

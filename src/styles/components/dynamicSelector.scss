@@ -1,0 +1,42 @@
+/* styles.css */
+
+/* Contenedor de depuración */
+.zettelkasten-flow__debug-container {
+    margin-top: 20px;
+}
+
+/* Contenedor de salida */
+.zettelkasten-flow__output-container {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--mod-ui-border);
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+    white-space: pre-wrap;
+}
+
+/* Output exitoso */
+.zettelkasten-flow__success-output {
+    color: var(--text-normal);
+    background-color: var(--interactive-success);
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Output con error */
+.zettelkasten-flow__error-output {
+    color: var(--error-fg);
+    background-color: var(--background-modifier-error);
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Botones específicos */
+.zettelkasten-flow__run-button {
+    margin-right: 10px;
+}
+
+.zettelkasten-flow__clear-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-normal);
+}

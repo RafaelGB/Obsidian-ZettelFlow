@@ -1,7 +1,7 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
-import { CodeElement } from "./typing";
 import { log } from "architecture";
+import { CodeElement } from "architecture/components/core";
 
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
@@ -14,6 +14,7 @@ export class ScriptAction extends CustomZettelAction {
   settings = scriptSettings;
 
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script";
+  // TODO: Translate this
   purpose = "Run a JS script when the note is created/edited.";
 
   async execute(info: ExecuteInfo) {

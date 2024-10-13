@@ -39,7 +39,7 @@ export type ZettelFlowElement = {
 export type SectionInfo = {
     title: string
 }
-export type ZoneOption = 'frontmatter' | 'body';
+export type ZoneOption = 'frontmatter' | 'body' | 'context';
 
 type StaticType = {
     staticBehaviour: boolean,
@@ -77,6 +77,7 @@ export type SelectorElement = {
 
 export type DynamicSelectorElement = {
     code: string,
+    zoneKey?: string,
 } & AditionBaseElement;
 
 export type CheckboxElement = {

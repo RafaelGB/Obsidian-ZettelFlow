@@ -47,7 +47,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
             contextKeySetting.setDisabled(true);
             contextKeySetting.settingEl.style.display = "none";
             // Optional: Clear the value if the zone is not "context"
-            action.key = "";
+            action.zoneKey = "";
             contextKeyTextInput.value = "";
           }
         });
@@ -59,10 +59,10 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
     .setDesc("The key to use in the context object.")
     .addText((text) => {
       text
-        .setPlaceholder("contextKey")
+        .setPlaceholder("key of the context object")
         .setValue(dynamicSelectorElement.zoneKey || "")
         .onChange(async (value) => {
-          action.key = value;
+          action.zoneKey = value;
         });
     });
 

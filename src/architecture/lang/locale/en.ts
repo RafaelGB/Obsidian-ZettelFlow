@@ -24,6 +24,7 @@ export default {
     type_option_tags: 'Tags',
     type_option_cssclasses: 'CSS Classes',
     type_option_task_management: 'Task Management',
+    type_option_multi_selector: 'Multi Selector',
     menu_pane_edit_step: 'Edit step',
     menu_pane_transform_note_into_step: 'Transform note into step',
     menu_pane_remove_step_configuration: 'Remove step configuration',

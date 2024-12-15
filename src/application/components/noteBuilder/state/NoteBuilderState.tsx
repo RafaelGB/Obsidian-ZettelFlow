@@ -1,5 +1,5 @@
 import React from "react";
-import { create } from "zustand";
+import { createWithEqualityFn as create } from "zustand/traditional";
 import { NoteBuilderState } from "../typing";
 import { t } from "architecture/lang";
 import { Builder } from "application/notes";

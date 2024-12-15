@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createWithEqualityFn as create } from 'zustand/traditional'
 import { DnDManagerState } from "../model/DnDManagerStateModel";
 import { AbstractDndManager } from "../managers/DnDManager";
 import { log } from "architecture";

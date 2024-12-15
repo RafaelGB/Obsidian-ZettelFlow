@@ -73,6 +73,7 @@ export type CalendarElement = {
 export type SelectorElement = {
     options: [string, string][],
     defaultOption?: string,
+    multiple?: boolean,
 } & AditionBaseElement;
 
 export type DynamicSelectorElement = {

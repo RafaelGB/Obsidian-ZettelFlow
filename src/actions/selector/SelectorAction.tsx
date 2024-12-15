@@ -5,6 +5,8 @@ import { elementTypeSelectorSettings } from "./SelectorSettings";
 import { SelectorWrapper } from "./components/SelectorComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
+import { SelectorElement } from "zettelkasten";
+import { MultipleSelector } from "./components/multiple/MultipleSelectorComponent";
 
 export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";
@@ -21,6 +23,13 @@ export class SelectorAction extends CustomZettelAction {
   purpose =
     "Create multiple options to select from and add the selected one to the note.";
   component(props: WrappedActionBuilderProps) {
+    const action = props.action as SelectorElement;
+    const { multiple } = action;
+
+    if (multiple) {
+      return <MultipleSelector {...props} />;
+    }
+    // If the action is not multiple, return the SelectorWrapper component
     return <SelectorWrapper {...props} />;
   }
 

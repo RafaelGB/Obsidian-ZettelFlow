@@ -9,4 +9,3 @@ export { ScriptAction } from './script/ScriptAction';
 export { CheckboxAction } from './checkbox/CheckboxAction';
 export { TaskManagementAction } from './taskManagement/TaskManagementAction';
 export { DynamicSelectorAction } from './dynamicSelector/DynamicSelectorAction';
-export { MultiSelectorAction } from './multiSelector/MultiSelectorAction';

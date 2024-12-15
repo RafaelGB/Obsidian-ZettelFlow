@@ -13,7 +13,7 @@ export const elementTypeSelectorSettings: ActionSetting = (
   _,
   action
 ) => {
-  const { zone, key, label } = action as SelectorElement;
+  const { zone, key, label, multiple } = action as SelectorElement;
   contentEl.createEl("h3", {
     text: t("step_builder_element_type_selector_title"),
   });
@@ -56,6 +56,15 @@ export const elementTypeSelectorSettings: ActionSetting = (
     .addText((text) => {
       text.setValue(label || ``).onChange(async (value) => {
         action.label = value;
+      });
+    });
+
+  new Setting(contentEl)
+    .setName("Enable multiple options")
+    .setDesc("Allow the user to select multiple options")
+    .addToggle((toggle) => {
+      toggle.setValue(multiple || false).onChange(async (value) => {
+        action.multiple = value;
       });
     });
 

@@ -1,21 +1,22 @@
+import { c } from "architecture";
+import { SelectableSearch } from "architecture/components/core";
+import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useEffect, useState } from "react";
-import { OptionType, Select } from "application/components/select";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 
-export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
+export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
   const element = action as DynamicSelectorElement;
   const { code } = element;
-
-  const [options, setOptions] = useState<OptionType[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Evitar ejecutar si no hay código dinámico
     if (!code) {
-      setOptions([]);
+      setSelectedOptions([]);
       setLoading(false);
       return;
     }
@@ -25,8 +26,8 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
     ).constructor;
 
     const fnBody = `return (async () => {
-        ${code}
-      })(element);`;
+          ${code}
+        })(element);`;
 
     let isMounted = true; // Para evitar actualizaciones de estado en componentes desmontados
 
@@ -47,16 +48,11 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
                 typeof item[1] === "string"
             )
           ) {
-            const dynamicOptions: OptionType[] = result.map(
-              ([key, label]: [string, string]) => ({
-                key,
-                label,
-                color: "var(--canvas-color-5)",
-                actionTypes: [],
-              })
+            const dynamicOptions: string[] = result.map(
+              ([key]: [string, string]) => key
             );
             if (isMounted) {
-              setOptions(dynamicOptions);
+              setSelectedOptions(dynamicOptions);
               setError(null);
             }
           } else {
@@ -95,11 +91,22 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   }
 
   return (
-    <Select
-      key={`dynamic-selector-root`}
-      options={options}
-      callback={callback}
-      autofocus={true}
-    />
+    <div className={c("tags")}>
+      <SelectableSearch
+        options={selectedOptions}
+        onChange={(tags) => {
+          setSelectedOptions(tags);
+        }}
+        enableCreate={true}
+        autoFocus
+      />
+      <button
+        onClick={() => {
+          callback(selectedOptions);
+        }}
+      >
+        {t("component_confirm")}
+      </button>
+    </div>
   );
 }

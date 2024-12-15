@@ -79,6 +79,7 @@ export type SelectorElement = {
 export type DynamicSelectorElement = {
     code: string,
     zoneKey?: string,
+    multiple?: boolean,
 } & AditionBaseElement;
 
 export type CheckboxElement = {

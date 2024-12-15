@@ -60,8 +60,8 @@ export const elementTypeSelectorSettings: ActionSetting = (
     });
 
   new Setting(contentEl)
-    .setName("Enable multiple options")
-    .setDesc("Allow the user to select multiple options")
+    .setName(t("step_builder_element_type_selector_multiple_title"))
+    .setDesc(t("step_builder_element_type_selector_multiple_description"))
     .addToggle((toggle) => {
       toggle.setValue(multiple || false).onChange(async (value) => {
         action.multiple = value;

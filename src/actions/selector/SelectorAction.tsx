@@ -6,7 +6,7 @@ import { SelectorWrapper } from "./components/SelectorComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { SelectorElement } from "zettelkasten";
-import { MultipleSelector } from "./components/multiple/MultipleSelectorComponent";
+import { MultipleSelector } from "./components/MultipleSelectorComponent";
 
 export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";

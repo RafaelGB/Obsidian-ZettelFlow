@@ -94,6 +94,8 @@ export default {
     step_builder_element_type_selector_description: 'Add options to your step that will be displayed in the menu of the action.',
     step_builder_element_type_selector_label_title: 'Label of selector',
     step_builder_element_type_selector_label_description: 'The label will be the title of your selector',
+    step_builder_element_type_selector_multiple_title: 'Enable multiple',
+    step_builder_element_type_selector_multiple_description: 'Enable or disable multiple selection in the selector',
     step_builder_element_type_backlink_title: 'Element type backlink options',
     step_builder_element_type_backlink_description: 'Action to insert backlink of the new note in the target note',
     step_builder_element_type_backlink_trigger_default_title: 'Enable default file',

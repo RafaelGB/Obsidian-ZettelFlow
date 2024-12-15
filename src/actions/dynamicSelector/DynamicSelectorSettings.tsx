@@ -14,7 +14,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
   action
 ) => {
   const dynamicSelectorElement = action as DynamicSelectorElement;
-  const { code, zone } = dynamicSelectorElement;
+  const { code, zone, multiple } = dynamicSelectorElement;
 
   // Create the title and description for the scripts section
   contentEl.createEl("h3", {
@@ -119,6 +119,14 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       });
     });
 
+  new Setting(contentEl)
+    .setName(t("step_builder_element_type_selector_multiple_title"))
+    .setDesc(t("step_builder_element_type_selector_multiple_description"))
+    .addToggle((toggle) => {
+      toggle.setValue(multiple || false).onChange(async (value) => {
+        action.multiple = value;
+      });
+    });
   // Create a container to display debugging results
   debugContainer.createDiv({
     cls: c("output-container"),

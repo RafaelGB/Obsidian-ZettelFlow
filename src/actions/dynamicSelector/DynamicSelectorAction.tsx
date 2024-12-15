@@ -5,6 +5,8 @@ import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { elementTypeDynamicSelectorSettings } from "./DynamicSelectorSettings";
 import { DynamicSelectorWrapper } from "./DynamicSelectorComponent";
+import { DynamicSelectorElement } from "zettelkasten/typing";
+import { DynamicMultipleSelector } from "./components/MultipleSelectorComponent";
 
 export class DynamicSelectorAction extends CustomZettelAction {
   private static ICON = "square-dashed-mouse-pointer";
@@ -24,6 +26,11 @@ export class DynamicSelectorAction extends CustomZettelAction {
     "Create a script/rule to generate multiple options to be selected from. The selected option will be added to the note.";
 
   component(props: WrappedActionBuilderProps) {
+    const action = props.action as DynamicSelectorElement;
+    const { multiple } = action;
+    if (multiple) {
+      return <DynamicMultipleSelector {...props} />;
+    }
     return <DynamicSelectorWrapper {...props} />;
   }
 

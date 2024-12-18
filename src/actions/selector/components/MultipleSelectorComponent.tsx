@@ -9,21 +9,19 @@ export function MultipleSelector(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const { options } = action as SelectorElement;
+
   const optionsMemo = useMemo(() => {
-    // Sort record by entry value (number type)
     const orderedOptions = options
-      .sort((a, b) => {
-        // Alphabetical order
-        return a[1] > b[1] ? 1 : -1;
-      })
+      .sort((a, b) => a[1].localeCompare(b[1]))
       .map(([key]) => key);
     return orderedOptions;
-  }, []);
+  }, [options]);
 
   return (
-    <div className={c("tags")}>
+    <div className={c("selectable-search")}>
       <SelectableSearch
         options={optionsMemo}
+        initialSelections={selectedOptions}
         onChange={(tags) => {
           setSelectedOptions(tags);
         }}
@@ -31,6 +29,7 @@ export function MultipleSelector(props: WrappedActionBuilderProps) {
         autoFocus
       />
       <button
+        className={c("confirm-button")}
         onClick={() => {
           callback(selectedOptions);
         }}

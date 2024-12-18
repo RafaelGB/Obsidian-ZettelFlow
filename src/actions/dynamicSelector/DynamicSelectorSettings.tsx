@@ -41,17 +41,6 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
         .setValue(zone !== undefined ? (zone as string) : "frontmatter")
         .onChange(async (value) => {
           action.zone = value;
-          // Show or hide the "Context key" field based on the selected zone
-          if (value === "context") {
-            contextKeySetting.setDisabled(false);
-            contextKeySetting.settingEl.style.display = "";
-          } else {
-            contextKeySetting.setDisabled(true);
-            contextKeySetting.settingEl.style.display = "none";
-            // Optional: Clear the value if the zone is not "context"
-            action.zoneKey = "";
-            contextKeyTextInput.value = "";
-          }
         });
     });
 
@@ -66,30 +55,6 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
         });
       });
     });
-
-  // Create the "Context key" field but hide it initially if the zone is not "context"
-  const contextKeySetting = new Setting(contentEl)
-    .setName("Context key")
-    .setDesc("The key to use in the context object.")
-    .addText((text) => {
-      text
-        .setPlaceholder("key of the context object")
-        .setValue(dynamicSelectorElement.zoneKey || "")
-        .onChange(async (value) => {
-          action.zoneKey = value;
-        });
-    });
-
-  // Hide the "Context key" field if the initial zone is not "context"
-  if (zone !== "context") {
-    contextKeySetting.settingEl.style.display = "none";
-    contextKeySetting.setDisabled(true);
-  }
-
-  // Get a reference to the "Context key" input to clear its value if necessary
-  const contextKeyTextInput = contextKeySetting.controlEl.querySelector(
-    "input"
-  ) as HTMLInputElement;
 
   // Create the container for the code editor
   const editorEl = contentEl.createDiv();

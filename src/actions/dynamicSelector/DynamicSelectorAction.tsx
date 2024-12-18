@@ -37,10 +37,18 @@ export class DynamicSelectorAction extends CustomZettelAction {
   async execute(info: ExecuteInfo) {
     const { content, element, context } = info;
     const { key, zone, result } = element;
-    if (TypeService.isString(key) && TypeService.isString(result)) {
+    if (!result) {
+      return;
+    }
+
+    if (
+      TypeService.isString(key) &&
+      (TypeService.isArray<String>(result, "string") ||
+        TypeService.isString(result))
+    ) {
       switch (zone) {
         case "body":
-          content.modify(key, result);
+          content.modify(key, result.toString());
           break;
         case "context":
           context[key] = result;

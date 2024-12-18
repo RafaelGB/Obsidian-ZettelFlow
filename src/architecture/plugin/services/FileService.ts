@@ -84,7 +84,6 @@ export class FileService {
             folder = FileService.getFolder(folder_str.split(FileService.PATH_SEPARATOR).slice(0, -1).join(FileService.PATH_SEPARATOR));
         }
         let files: Array<TFile> = [];
-        console.log(folder);
         Vault.recurseChildren(folder, (file: TAbstractFile) => {
 
             if (!(file instanceof TFile)) {

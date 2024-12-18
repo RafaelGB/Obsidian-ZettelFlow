@@ -7,6 +7,7 @@ import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { SelectorElement } from "zettelkasten";
 import { MultipleSelector } from "./components/MultipleSelectorComponent";
+import { Notice } from "obsidian";
 
 export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";
@@ -36,10 +37,16 @@ export class SelectorAction extends CustomZettelAction {
   async execute(info: ExecuteInfo) {
     const { content, element, context } = info;
     const { key, zone, result } = element;
-    if (TypeService.isString(key) && TypeService.isString(result)) {
+    // result could be a string or an array
+    if (
+      result &&
+      TypeService.isString(key) &&
+      (TypeService.isArray<String>(result, "string") ||
+        TypeService.isString(result))
+    ) {
       switch (zone) {
         case "body":
-          content.modify(key, result);
+          content.modify(key, result.toString());
           break;
         case "context":
           context[key] = result;
@@ -48,6 +55,8 @@ export class SelectorAction extends CustomZettelAction {
         default:
           content.addFrontMatter({ [key]: result });
       }
+    } else {
+      new Notice(`The result ${result} is not a string or an array of strings`);
     }
   }
 

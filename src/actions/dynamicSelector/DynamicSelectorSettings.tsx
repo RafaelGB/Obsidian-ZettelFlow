@@ -6,6 +6,8 @@ import { Setting } from "obsidian";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { ScriptResult } from "./typing";
 import { c } from "architecture";
+import { ObsidianConfig } from "architecture/plugin";
+import { PropertySuggest } from "architecture/settings";
 
 // Define the settings for the Dynamic Selector element type
 export const elementTypeDynamicSelectorSettings: ActionSetting = (
@@ -14,7 +16,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
   action
 ) => {
   const dynamicSelectorElement = action as DynamicSelectorElement;
-  const { code, zone, multiple } = dynamicSelectorElement;
+  const { code, zone, key, multiple } = dynamicSelectorElement;
 
   // Create the title and description for the scripts section
   contentEl.createEl("h3", {
@@ -51,6 +53,18 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
             contextKeyTextInput.value = "";
           }
         });
+    });
+
+  new Setting(contentEl)
+    .setName(t("step_builder_element_type_key_title"))
+    .setDesc(t("step_builder_element_type_key_description"))
+    .addSearch((search) => {
+      ObsidianConfig.getTypes().then((types) => {
+        new PropertySuggest(search.inputEl, types, ["text"]);
+        search.setValue(key || ``).onChange(async (value) => {
+          action.key = value;
+        });
+      });
     });
 
   // Create the "Context key" field but hide it initially if the zone is not "context"

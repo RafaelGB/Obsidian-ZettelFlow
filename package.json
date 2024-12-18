@@ -17,6 +17,7 @@
   "author": "RafaelGB",
   "license": "MIT",
   "devDependencies": {
+    "@codemirror/lang-javascript": "6.2.2",
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
     "@types/node": "22.10.2",

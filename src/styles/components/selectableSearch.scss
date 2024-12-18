@@ -33,40 +33,46 @@
 .zettelkasten-flow__selectable-pill {
     display: flex;
     align-items: center;
-    padding: 0.3em 0.6em;
+    padding: 0.2em 0.4em;
+    /* Reducción del padding */
     background-color: var(--accent-color, #007bff);
     border: none;
-    border-radius: 20px;
+    border-radius: 12px;
+    /* Reducción del border-radius */
     color: var(--text-normal, #ffffff);
     cursor: default;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, border-radius 0.3s;
 }
 
-/* Cambio de color al pasar el ratón sobre una etiqueta */
 .zettelkasten-flow__selectable-pill:hover {
     background-color: var(--accent-color-hover, #0056b3);
 }
 
-/* Etiqueta de texto dentro de la etiqueta */
 .zettelkasten-flow__pill-label {
-    margin-right: 0.5rem;
+    margin-right: 0.4rem;
+    /* Ajuste del margen */
+    font-size: 0.9rem;
+    /* Ajuste del tamaño de fuente */
 }
 
-/* Botón para eliminar una etiqueta */
 .zettelkasten-flow__pill-remove-button {
     background: none;
     border: none;
-    color: inherit;
+    color: var(--text-normal, #ffffff) !important;
+    background-color: var(--accent-color, #007bff) !important;
+    /* Uniformizar el color con la píldora */
     cursor: pointer;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.9rem;
+    /* Ajuste del tamaño del icono */
 }
 
-/* Cambio de color al pasar el ratón sobre el botón de eliminar */
 .zettelkasten-flow__pill-remove-button:hover {
     color: var(--selection, #ff4d4d);
+    /* Color de hover */
 }
 
 /* Input de búsqueda */

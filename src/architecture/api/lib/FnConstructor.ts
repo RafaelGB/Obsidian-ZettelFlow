@@ -1,12 +1,11 @@
 import { log } from "architecture";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { ZfScripts, ZfVault } from "architecture/api";
-import { ZettelFlowSettings } from "config";
 
-export async function externalFns(settings: ZettelFlowSettings): Promise<Record<string, unknown>> {
+async function externalFns(): Promise<Record<string, unknown>> {
     const fns: Record<string, unknown> = {};
-    const app = ObsidianApi.getPluginApp();
-
+    const app = ObsidianApi.globalApp();
+    const settings = ObsidianApi.getOwnPlugin().settings;
     // ZettelFlow external
     const externaFns: Record<string, unknown> = {};
     // TEMPLATER
@@ -41,3 +40,31 @@ export async function externalFns(settings: ZettelFlowSettings): Promise<Record<
     fns["internal"] = internalFns;
     return fns;
 };
+
+
+class FnsManager {
+    private static instance: FnsManager;
+    private cache: Promise<Record<string, unknown>> | null = null;
+
+    private constructor() { }
+
+    public static getInstance(): FnsManager {
+        if (!FnsManager.instance) {
+            FnsManager.instance = new FnsManager();
+        }
+        return FnsManager.instance;
+    }
+
+    public getFns(): Promise<Record<string, unknown>> {
+        if (!this.cache) {
+            this.cache = externalFns();
+        }
+        return this.cache;
+    }
+
+    public invalidateCache() {
+        this.cache = null;
+    }
+}
+
+export const fnsManager = FnsManager.getInstance();

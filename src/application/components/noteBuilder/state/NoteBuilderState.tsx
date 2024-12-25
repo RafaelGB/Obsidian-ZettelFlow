@@ -8,7 +8,7 @@ import setSelectionElementAction from "./actions/setSelectionElementAction";
 import goPreviousAction from "./actions/goPreviousAction";
 import infoStep from "./actions/infoState";
 import { log } from "architecture";
-import { Action, externalFns } from "architecture/api";
+import { Action } from "architecture/api";
 import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
 
@@ -167,10 +167,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       });
     },
     initPluginConfig: async (settings) => {
-      const extFns = await externalFns(settings);
       set((state) => {
         const { builder } = state;
-        builder.externalFns = extFns;
         if (settings.uniquePrefixEnabled) {
           builder.note.setPattern(settings.uniquePrefix);
         }

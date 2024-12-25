@@ -18,7 +18,6 @@ export class Builder {
 export class NoteBuilder {
   public context = {};
   public note: NoteDTO;
-  public externalFns: Record<string, unknown>;
   private content: ContentDTO;
   private actions: NoteBuilderStateActions;
   constructor() {
@@ -117,7 +116,7 @@ export class NoteBuilder {
       log.trace(`Builder: processing element ${element.type}`);
       await actionsStore
         .getAction(element.type)
-        .execute({ element, content: this.content, note: this.note, context: this.context, externalFns: this.externalFns });
+        .execute({ element, content: this.content, note: this.note, context: this.context });
       this.actions.pbFinishElement();
     }
   }
@@ -128,7 +127,7 @@ export class NoteBuilder {
 
       await actionsStore
         .getAction(element.type)
-        .postProcess({ element, content: this.content, note: this.note, context: this.context, externalFns: this.externalFns }, file);
+        .postProcess({ element, content: this.content, note: this.note, context: this.context }, file);
     }
 
     setTimeout(() => {

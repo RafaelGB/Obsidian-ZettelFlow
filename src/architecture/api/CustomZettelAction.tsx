@@ -9,7 +9,7 @@ import React from "react";
 import { TFile } from "obsidian";
 
 export abstract class CustomZettelAction implements ICustomZettelAction {
-  public component(props: WrappedActionBuilderProps): JSX.Element {
+  public component(_props: WrappedActionBuilderProps): JSX.Element {
     return <></>;
   }
   abstract id: string;

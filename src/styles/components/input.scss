@@ -1,33 +1,59 @@
+/* =======================================
+   INPUTS GENERAL
+======================================= */
+
+/* Contenedor del grupo de inputs */
 .zettelkasten-flow__input-group {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
 }
 
+/* Inputs y Textareas */
 .zettelkasten-flow__input-group input,
-textarea {
+.zettelkasten-flow__input-group textarea {
     color: var(--text-normal);
-        width: 100%;
-        padding: 10px;
-        border: solid 1.5px var(--background-secondary);
-        border-radius: 0.25rem;
-        background: none;
-        outline: none;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    
-        &:focus {
-            border-color: var(--text-accent);
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-        }
-    
-        &::placeholder {
-            color: var(--text-secondary);
-        }
-    
-        &:disabled {
-            background-color: var(--background-secondary);
-            cursor: not-allowed;
-        }
+    width: 100%;
+    padding: 12px 14px;
+    border: solid 1.5px var(--background-secondary);
+    border-radius: 0.25rem;
+    background: none;
+    outline: none;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
+/* Estados de Enfoque y Validación */
+.zettelkasten-flow__input-group input:focus,
+.zettelkasten-flow__input-group input:valid,
+.zettelkasten-flow__input-group textarea:focus,
+.zettelkasten-flow__input-group textarea:valid {
+    border-color: var(--text-accent);
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+
+/* Placeholder */
+.zettelkasten-flow__input-group input::placeholder,
+.zettelkasten-flow__input-group textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* Campos Deshabilitados */
+.zettelkasten-flow__input-group input:disabled,
+.zettelkasten-flow__input-group textarea:disabled {
+    background-color: var(--background-secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Labels */
 .zettelkasten-flow__input-label {
     color: var(--text-accent);
     pointer-events: none;
@@ -38,14 +64,10 @@ textarea {
     top: 0;
 }
 
-.zettelkasten-flow__input-group input:focus,
-.zettelkasten-flow__input-group input:valid {
-    outline: none;
-    border: 1.5px solid var(--text-accent);
-}
-
 .zettelkasten-flow__input-group input:focus~.zettelkasten-flow__input-label,
-.zettelkasten-flow__input-group input:valid~.zettelkasten-flow__input-label {
+.zettelkasten-flow__input-group input:valid~.zettelkasten-flow__input-label,
+.zettelkasten-flow__input-group textarea:focus~.zettelkasten-flow__input-label,
+.zettelkasten-flow__input-group textarea:valid~.zettelkasten-flow__input-label {
     transform: translateY(-50%) scale(0.8);
     background-color: var(--background-primary);
     padding: 0 0.2em;

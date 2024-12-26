@@ -1,72 +1,188 @@
+/* Main container of the multi-selector */
 .zettelkasten-flow__selectable-search {
+    position: relative;
+    /* Necessary for positioning the results list */
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 10px;
+    width: 100%;
+    font-family: var(--font-family, Arial, sans-serif);
+    margin-bottom: 1rem;
 }
 
+/* Selector header containing tags and the input */
 .zettelkasten-flow__selectable-search-header {
     display: flex;
-    width: 100%;
-}
-
-.zettelkasten-flow__selectable-search-header>button {
-    border-radius: 0%;
-    height: auto;
-}
-
-.zettelkasten-flow__selectable-search-header>button:hover {
-    color: var(--background-modifier-error);
-}
-
-.zettelkasten-flow__selectable-pill-group {
-    flex-grow: 1;
-    border: 1px solid var(--background-modifier-border);
-}
-
-.zettelkasten-flow__selectable-pill-group>input {
-    border-radius: 0%;
-    background-color: transparent;
-    border: 0;
-    width: 10%;
-}
-
-.zettelkasten-flow__selectable-pill-group>input:focus {
-    outline: none;
-    width: fit-content;
-}
-
-.zettelkasten-flow__selectable-pill {
-    padding: 0.1em 0.2em;
-    margin: 0.15em;
-    background-color: var(--color-accent);
-    border: 2px solid var(--background-modifier-focus);
-    border-radius: 20px;
-    cursor: pointer;
-    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
+    width: 100%;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    padding: 0.5rem;
+    background-color: var(--background-secondary, #f5f5f5);
+}
+
+/* Group of selected tags */
+.zettelkasten-flow__selectable-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Each selected tag */
+.zettelkasten-flow__selectable-pill {
+    display: flex;
+    align-items: center;
+    padding: 0.2em 0.4em;
+    /* Reduced padding */
+    background-color: var(--accent-color, #007bff);
+    border: none;
+    border-radius: 12px;
+    /* Reduced border-radius */
+    color: var(--text-normal, #ffffff);
+    cursor: default;
+    transition: background-color 0.3s, border-radius 0.3s;
 }
 
 .zettelkasten-flow__selectable-pill:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: var(--accent-color-hover, #0056b3);
 }
 
-.zettelkasten-flow__selectable-pill button {
+.zettelkasten-flow__pill-label {
+    margin-right: 0.4rem;
+    /* Margin adjustment */
+    font-size: 0.9rem;
+    /* Font size adjustment */
+}
+
+.zettelkasten-flow__pill-remove-button {
     background: none;
     border: none;
+    color: var(--text-normal, #ffffff) !important;
+    background-color: var(--accent-color, #007bff) !important;
+    /* Unified color with the pill */
     cursor: pointer;
-    margin-left: 5px;
-    max-height: 1.2rem;
-    max-width: 1.2rem;
-    border-radius: 50%;
-    background-color: var(--background-modifier-box-shadow);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    /* Icon size adjustment */
 }
 
-.zettelkasten-flow__selectable-pill>button:hover {
-    color: var(--background-modifier-error);
+.zettelkasten-flow__pill-remove-button:hover {
+    color: var(--selection, #ff4d4d);
+    /* Hover color */
 }
 
+/* Search input */
+.zettelkasten-flow__selectable-search-header>input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    padding: 0.3em;
+    min-width: 150px;
+    background-color: transparent;
+    color: var(--text-normal, #000000);
+}
+
+/* Search input placeholder */
+.zettelkasten-flow__selectable-search-header>input::placeholder {
+    color: var(--text-muted, #999999);
+}
+
+/* Button to clear all selections */
+.zettelkasten-flow__clear-all-button {
+    background: none;
+    border: none;
+    color: var(--selection, #ff4d4d);
+    cursor: pointer;
+    margin-left: 0.5rem;
+    padding: 0.3em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover color change for the clear-all button */
+.zettelkasten-flow__clear-all-button:hover {
+    color: var(--selection-hover, #cc0000);
+}
+
+/* Search results list */
 .zettelkasten-flow__selectable-search-results {
     position: relative;
+    top: 100%;
+    /* Positions the list just below the header */
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: var(--background-primary, #ffffff);
+    border: 1px solid var(--border-color, #ccc);
+    border-top: none;
+    z-index: 1000;
+    /* Ensures the list is above other elements */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 4px 4px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Each search option */
+.zettelkasten-flow__search-option {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: var(--text-normal, #000000);
+}
+
+/* Background change on hover or selected option */
+.zettelkasten-flow__search-option:hover,
+.zettelkasten-flow__search-selected {
+    background-color: var(--selection, #f1f1f1);
+}
+
+/* Message when there are no results */
+.zettelkasten-flow__no-results {
+    padding: 0.5rem 1rem;
+    color: var(--text-muted, #999999);
+}
+
+/* Confirmation button */
+.zettelkasten-flow__confirm-button {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--accent-color, #007bff);
+    color: var(--text-normal, #ffffff);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/* Hover color change for the confirmation button */
+.zettelkasten-flow__confirm-button:hover {
+    background-color: var(--accent-color-hover, #0056b3);
+}
+
+/* Loading and error states */
+.zettelkasten-flow__loading,
+.zettelkasten-flow__error {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-normal, #333333);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Specific color for the error state */
+.zettelkasten-flow__error {
+    color: var(--selection, #ff4d4d);
+}
+
+/* Icons for loading and error */
+.zettelkasten-flow__loading-icon,
+.zettelkasten-flow__error-icon {
+    margin-right: 0.5rem;
 }

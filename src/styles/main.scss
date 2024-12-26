@@ -2,30 +2,31 @@
 *  Architecture
 * ---------------
 */
-@import 'utils/variables.scss';
-@import 'utils/animations.scss';
-@import 'utils/mixins.scss';
+@use 'utils/variables.scss';
+@use 'utils/animations.scss';
+@use 'utils/mixins.scss';
 
 /*
 *  Libraries
 * ---------------
 */
-@import 'libraries/dragAndDrop.scss';
+
+@use 'libraries/dragAndDrop.scss';
 
 /*
 *  Components
 * ---------------
 */
-@import 'components/backlink.scss';
-@import 'components/navbar.scss';
-@import 'components/search.scss';
-@import 'components/selectableSearch.scss';
-@import 'components/accordion.scss';
-@import 'components/input.scss';
-@import 'components/selector.scss';
-@import 'components/dynamicSelector.scss';
-@import 'components/progressBar.scss';
-@import 'components/actionAddMenu.scss';
+@use 'components/backlink.scss';
+@use 'components/navbar.scss';
+@use 'components/search.scss';
+@use 'components/selectableSearch.scss';
+@use 'components/accordion.scss';
+@use 'components/input.scss';
+@use 'components/selector.scss';
+@use 'components/dynamicSelector.scss';
+@use 'components/progressBar.scss';
+@use 'components/actionAddMenu.scss';
 
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {

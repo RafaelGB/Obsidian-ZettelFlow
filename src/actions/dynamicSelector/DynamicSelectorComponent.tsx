@@ -1,7 +1,8 @@
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { OptionType, Select } from "application/components/select";
 import { DynamicSelectorElement } from "zettelkasten/typing";
+import { fnsManager } from "architecture/api";
 
 export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
@@ -12,79 +13,80 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Evitar ejecutar si no hay código dinámico
-    if (!code) {
-      setOptions([]);
-      setLoading(false);
-      return;
-    }
-
+  const resultMemo = useMemo(async () => {
+    const functions = await fnsManager.getFns();
+    const fnBody = `return (async () => {
+          ${code}
+        })(zf);`;
     const AsyncFunction = Object.getPrototypeOf(
       async function () {}
     ).constructor;
+    const scriptFn = new AsyncFunction("zf", fnBody);
 
-    const fnBody = `return (async () => {
-        ${code}
-      })(element);`;
+    return await scriptFn(functions);
+  }, []);
 
+  useEffect(() => {
     let isMounted = true; // Para evitar actualizaciones de estado en componentes desmontados
 
-    try {
-      const scriptFn = new AsyncFunction("element", fnBody);
-
-      const fetchOptions = async () => {
-        try {
-          const result = await scriptFn(element);
-          // Validar que result sea un arreglo de tuplas [string, string]
-          if (
-            Array.isArray(result) &&
-            result.every(
-              (item) =>
-                Array.isArray(item) &&
-                item.length === 2 &&
-                typeof item[0] === "string" &&
-                typeof item[1] === "string"
-            )
-          ) {
-            const dynamicOptions: OptionType[] = result.map(
-              ([key, label]: [string, string]) => ({
-                key,
-                label,
-                color: "var(--canvas-color-5)",
-                actionTypes: [],
-              })
-            );
-            if (isMounted) {
-              setOptions(dynamicOptions);
-              setError(null);
-            }
-          } else {
-            throw new Error("El formato de las opciones es inválido.");
-          }
-        } catch (err) {
-          console.error("Error al obtener las opciones dinámicas:", err);
-          if (isMounted) {
-            setError("No se pudieron cargar las opciones.");
-          }
-        } finally {
-          if (isMounted) {
-            setLoading(false);
-          }
+    const fetchData = async () => {
+      // Evitar ejecutar si no hay código dinámico
+      if (!code) {
+        if (isMounted) {
+          setOptions([]);
+          setLoading(false);
         }
-      };
+        return;
+      }
+      try {
+        const result = await resultMemo;
 
-      fetchOptions();
-    } catch (err) {
-      console.error("Error al inicializar la función dinámica:", err);
-      setError("Error de inicialización.");
-      setLoading(false);
-    }
+        // Validar que result sea un arreglo de tuplas [string, string]
+        if (
+          Array.isArray(result) &&
+          result.every(
+            (item) =>
+              Array.isArray(item) &&
+              item.length === 2 &&
+              typeof item[0] === "string" &&
+              typeof item[1] === "string"
+          )
+        ) {
+          const dynamicOptions: OptionType[] = result.map(
+            ([key, label]: [string, string]) => ({
+              key,
+              label,
+              color: "var(--canvas-color-5)",
+              actionTypes: [],
+            })
+          );
+          if (isMounted) {
+            setOptions(dynamicOptions);
+            setError(null);
+          }
+        } else {
+          throw new Error("The script must return an array of tuples.");
+        }
+      } catch (err) {
+        console.error("Error obtaining dynamic options", err);
+        if (isMounted) {
+          setError(
+            "There was an error obtaining the dynamic options. Please check the script / console for more information."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
 
     return () => {
-      isMounted = false; // Limpieza para evitar actualizaciones después del desmontaje
+      isMounted = false; // Cleanup after unmount
     };
-  }, [code, element]);
+  }, []); // Arreglo de dependencias vacío para ejecutar solo una vez
 
   if (loading) {
     return <div>Loading options...</div>;

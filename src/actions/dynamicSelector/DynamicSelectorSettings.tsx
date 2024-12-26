@@ -1,11 +1,13 @@
 import { t } from "architecture/lang";
-import { ActionSetting } from "architecture/api";
+import { ActionSetting, fnsManager } from "architecture/api";
 import { ViewUpdate } from "@codemirror/view";
 import { dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { ScriptResult } from "./typing";
 import { c } from "architecture";
+import { ObsidianConfig } from "architecture/plugin";
+import { PropertySuggest } from "architecture/settings";
 
 // Define the settings for the Dynamic Selector element type
 export const elementTypeDynamicSelectorSettings: ActionSetting = (
@@ -14,7 +16,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
   action
 ) => {
   const dynamicSelectorElement = action as DynamicSelectorElement;
-  const { code, zone } = dynamicSelectorElement;
+  const { code, zone, key, multiple } = dynamicSelectorElement;
 
   // Create the title and description for the scripts section
   contentEl.createEl("h3", {
@@ -39,43 +41,20 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
         .setValue(zone !== undefined ? (zone as string) : "frontmatter")
         .onChange(async (value) => {
           action.zone = value;
-          // Show or hide the "Context key" field based on the selected zone
-          if (value === "context") {
-            contextKeySetting.setDisabled(false);
-            contextKeySetting.settingEl.style.display = "";
-          } else {
-            contextKeySetting.setDisabled(true);
-            contextKeySetting.settingEl.style.display = "none";
-            // Optional: Clear the value if the zone is not "context"
-            action.zoneKey = "";
-            contextKeyTextInput.value = "";
-          }
         });
     });
 
-  // Create the "Context key" field but hide it initially if the zone is not "context"
-  const contextKeySetting = new Setting(contentEl)
-    .setName("Context key")
-    .setDesc("The key to use in the context object.")
-    .addText((text) => {
-      text
-        .setPlaceholder("key of the context object")
-        .setValue(dynamicSelectorElement.zoneKey || "")
-        .onChange(async (value) => {
-          action.zoneKey = value;
+  new Setting(contentEl)
+    .setName(t("step_builder_element_type_key_title"))
+    .setDesc(t("step_builder_element_type_key_description"))
+    .addSearch((search) => {
+      ObsidianConfig.getTypes().then((types) => {
+        new PropertySuggest(search.inputEl, types, ["text"]);
+        search.setValue(key || ``).onChange(async (value) => {
+          action.key = value;
         });
+      });
     });
-
-  // Hide the "Context key" field if the initial zone is not "context"
-  if (zone !== "context") {
-    contextKeySetting.settingEl.style.display = "none";
-    contextKeySetting.setDisabled(true);
-  }
-
-  // Get a reference to the "Context key" input to clear its value if necessary
-  const contextKeyTextInput = contextKeySetting.controlEl.querySelector(
-    "input"
-  ) as HTMLInputElement;
 
   // Create the container for the code editor
   const editorEl = contentEl.createDiv();
@@ -119,6 +98,14 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       });
     });
 
+  new Setting(contentEl)
+    .setName(t("step_builder_element_type_selector_multiple_title"))
+    .setDesc(t("step_builder_element_type_selector_multiple_description"))
+    .addToggle((toggle) => {
+      toggle.setValue(multiple || false).onChange(async (value) => {
+        action.multiple = value;
+      });
+    });
   // Create a container to display debugging results
   debugContainer.createDiv({
     cls: c("output-container"),
@@ -131,6 +118,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
    */
   const executeUserScript = async (userCode: string): Promise<ScriptResult> => {
     try {
+      const functions = await fnsManager.getFns();
       // Create a new async function from the user's code
       const AsyncFunction = Object.getPrototypeOf(
         async function () {}
@@ -144,10 +132,10 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       `;
 
       // Instantiate the function
-      const scriptFn = new AsyncFunction(fnBody);
+      const scriptFn = new AsyncFunction("zf", fnBody);
 
       // Execute the function
-      const output = await scriptFn();
+      const output = await scriptFn(functions);
 
       // Validate the output format
       if (!Array.isArray(output)) {

@@ -1,4 +1,4 @@
-import { ObsidianApi } from "architecture";
+import { log, ObsidianApi } from "architecture";
 import { DataWriteOptions, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 export const FILE_EXTENSIONS = Object.freeze({
     BASIC: ["md", "canvas"],
@@ -79,11 +79,11 @@ export class FileService {
         try {
             folder = FileService.getFolder(folder_str);
         } catch (err) {
+            log.warn("Folder not found, trying to get parent folder", err);
             // Split the string into '/' and remove the last element
             folder = FileService.getFolder(folder_str.split(FileService.PATH_SEPARATOR).slice(0, -1).join(FileService.PATH_SEPARATOR));
         }
         let files: Array<TFile> = [];
-        console.log(folder);
         Vault.recurseChildren(folder, (file: TAbstractFile) => {
 
             if (!(file instanceof TFile)) {

@@ -73,11 +73,12 @@ export type CalendarElement = {
 export type SelectorElement = {
     options: [string, string][],
     defaultOption?: string,
+    multiple?: boolean,
 } & AditionBaseElement;
 
 export type DynamicSelectorElement = {
     code: string,
-    zoneKey?: string,
+    multiple?: boolean,
 } & AditionBaseElement;
 
 export type CheckboxElement = {

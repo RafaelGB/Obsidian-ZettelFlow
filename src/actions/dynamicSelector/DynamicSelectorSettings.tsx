@@ -1,5 +1,5 @@
 import { t } from "architecture/lang";
-import { ActionSetting } from "architecture/api";
+import { ActionSetting, fnsManager } from "architecture/api";
 import { ViewUpdate } from "@codemirror/view";
 import { dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
@@ -118,6 +118,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
    */
   const executeUserScript = async (userCode: string): Promise<ScriptResult> => {
     try {
+      const functions = await fnsManager.getFns();
       // Create a new async function from the user's code
       const AsyncFunction = Object.getPrototypeOf(
         async function () {}
@@ -131,10 +132,10 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       `;
 
       // Instantiate the function
-      const scriptFn = new AsyncFunction(fnBody);
+      const scriptFn = new AsyncFunction("zf", fnBody);
 
       // Execute the function
-      const output = await scriptFn();
+      const output = await scriptFn(functions);
 
       // Validate the output format
       if (!Array.isArray(output)) {

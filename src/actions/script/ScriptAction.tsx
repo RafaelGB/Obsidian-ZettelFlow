@@ -27,11 +27,10 @@ export class ScriptAction extends CustomZettelAction {
       ).constructor;
       const fnBody = `return (async () => {
         ${code}
-      })(element, content, note, context, zf);`;
+      })(content, note, context, zf);`;
 
       const functions = await fnsManager.getFns();
       const scriptFn = new AsyncFunction(
-        "element",
         "content",
         "note",
         "context",

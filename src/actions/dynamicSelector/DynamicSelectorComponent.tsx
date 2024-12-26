@@ -17,13 +17,13 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
     const functions = await fnsManager.getFns();
     const fnBody = `return (async () => {
           ${code}
-        })(element);`;
+        })(zf);`;
     const AsyncFunction = Object.getPrototypeOf(
       async function () {}
     ).constructor;
-    const scriptFn = new AsyncFunction("element", "zf", fnBody);
+    const scriptFn = new AsyncFunction("zf", fnBody);
 
-    return await scriptFn(element, functions);
+    return await scriptFn(functions);
   }, []);
 
   useEffect(() => {
@@ -65,12 +65,14 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
             setError(null);
           }
         } else {
-          throw new Error("El formato de las opciones es inválido.");
+          throw new Error("The script must return an array of tuples.");
         }
       } catch (err) {
-        console.error("Error al obtener las opciones dinámicas:", err);
+        console.error("Error obtaining dynamic options", err);
         if (isMounted) {
-          setError("No se pudieron cargar las opciones.");
+          setError(
+            "There was an error obtaining the dynamic options. Please check the script / console for more information."
+          );
         }
       } finally {
         if (isMounted) {

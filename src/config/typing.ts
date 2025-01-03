@@ -11,6 +11,7 @@ export interface ZettelFlowSettings {
     loggerEnabled: boolean,
     logLevel: string,
     uniquePrefixEnabled: boolean,
+    tableOfContentEnabled: boolean,
     uniquePrefix: string,
     ribbonCanvas: string,
     editorCanvas: string,
@@ -22,5 +23,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false,
     uniquePrefixEnabled: false,
     uniquePrefix: "YYYYMMDDHHmmss",
-    foldersFlowsPath: "_ZettelFlow"
+    foldersFlowsPath: "_ZettelFlow",
+    tableOfContentEnabled: true,
 }

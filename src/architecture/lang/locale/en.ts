@@ -45,6 +45,8 @@ export default {
     unique_prefix_toggle_description: 'Enable or disable unique prefix for your notes',
     unique_prefix_pattern_title: 'Unique prefix pattern',
     unique_prefix_pattern_description: 'Set the pattern for the unique prefix',
+    table_of_content_toggle_title: 'Show table of content on top',
+    table_of_content_toggle_description: 'Enable or disable table of content on top of the note when the read mode is activated',
     scripts_folder_selector_title: 'Scripts folder',
     scripts_folder_selector_description: 'Select the folder where you will save your scripts (scripts action resources)',
     scripts_folder_selector_placeholder: 'Select a folder',

@@ -8,6 +8,7 @@ import {
     WidgetType
 } from "@codemirror/view";
 import { RangeSetBuilder } from "@codemirror/state";
+import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from "obsidian";
 
 /**
  * Loads text processors to replace placeholders of the form {{key}} 
@@ -133,6 +134,7 @@ export function loadTextProcessors(plugin: ZettelFlow): void {
     );
 
     plugin.registerEditorExtension(extension);
+    plugin.registerEditorSuggest(new VariableSuggester(plugin.app));
 }
 
 /**
@@ -154,5 +156,104 @@ class SelectableTextWidget extends WidgetType {
         span.style.color = "var(--text-accent-color)";
         span.style.textDecoration = "underline";
         return span;
+    }
+}
+
+class VariableSuggester extends EditorSuggest<string> {
+    constructor(app: App) {
+        super(app);
+    }
+
+    /**
+     * Called when the user selects an option from the suggestion list
+     * (by click or Enter).
+     */
+    selectSuggestion(variable: string, evt: MouseEvent | KeyboardEvent): void {
+        this.insertVariable(variable);
+    }
+
+    /**
+     * Fetches the suggestions based on the current context query.
+     * Uses Obsidian's built-in metadata cache without additional caching here.
+     */
+    getSuggestions(context: EditorSuggestContext): string[] {
+        const file = this.app.workspace.getActiveFile();
+        if (!file) return [];
+
+        // Directly retrieve frontmatter from Obsidian
+        const metadata = this.app.metadataCache.getFileCache(file)?.frontmatter;
+        if (!metadata) return [];
+
+        const lowerQuery = context.query.toLowerCase();
+        return Object.keys(metadata).filter((key) =>
+            key.toLowerCase().includes(lowerQuery)
+        );
+    }
+
+    /**
+     * Renders each suggestion in the dropdown.
+     */
+    renderSuggestion(variable: string, el: HTMLElement): void {
+        el.createEl("div", { text: variable });
+    }
+
+    /**
+     * Determines whether to trigger the suggester based on `{{...`.
+     */
+    onTrigger(
+        cursor: EditorPosition,
+        editor: Editor,
+        file: TFile
+    ): EditorSuggestTriggerInfo | null {
+        const line = editor.getLine(cursor.line);
+        // Get everything before the current cursor
+        const sub = line.substring(0, cursor.ch);
+
+        // Look for `{{` that hasn't been closed yet
+        // match[1] captures everything after `{{` and before any `}}`
+        const match = sub.match(/\{\{([^\}]*)$/);
+        if (!match) return null;
+
+        const startOfBraces = sub.lastIndexOf("{{");
+        if (startOfBraces === -1) return null;
+
+        // We'll look for a closing `}}` after the cursor, if it exists
+        let nextClose = line.indexOf("}}", cursor.ch);
+        // If there's no closing braces or it's before cursor, just use cursor
+        if (nextClose === -1 || nextClose < cursor.ch) {
+            nextClose = cursor.ch;
+        }
+
+        // The entire range includes everything from the `{{` up to `}}` (if found),
+        // or just the cursor if there's no `}}`.
+        return {
+            start: { line: cursor.line, ch: startOfBraces },
+            end: { line: cursor.line, ch: nextClose + 2 > line.length ? cursor.ch : nextClose + 2 },
+            query: match[1], // The partially typed text after `{{`
+        };
+    }
+
+    /**
+     * Inserts the chosen variable into the editor, making sure
+     * to replace the full `{{ ... }}` range with `{{variable}}`.
+     */
+    private insertVariable(variable: string): void {
+        if (!this.context) return;
+        const editor = this.context.editor;
+        if (!editor) return;
+
+        const startPos = this.context.start;
+        const endPos = this.context.end;
+
+        // Replace everything in the range from `{{` (startPos)
+        // to `}}` (endPos) with `{{variable}}`
+        editor.replaceRange(`{{${variable}}}`, startPos, endPos);
+
+        // Optionally place the cursor after the inserted variable
+        const afterInsert = {
+            line: startPos.line,
+            ch: startPos.ch + 2 + variable.length, // `{{` + variable
+        };
+        editor.setCursor(afterInsert);
     }
 }

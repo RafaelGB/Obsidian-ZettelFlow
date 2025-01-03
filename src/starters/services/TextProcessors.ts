@@ -1,17 +1,16 @@
-import ZettelFlow from "main"
-
+import ZettelFlow from "main";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { RangeSetBuilder } from "@codemirror/state";
 
 export function loadTextProcessors(plugin: ZettelFlow): void {
-
+    const regex = /{{(.*?)}}/g;
     plugin.registerMarkdownPostProcessor((element, context) => {
         const file = plugin.app.workspace.getActiveFile();
         if (file) {
             const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter;
             if (metadata) {
                 element.querySelectorAll("p").forEach((p) => {
-                    p.innerHTML = p.innerHTML.replace(/{{(.*?)}}/g, (_, key) => {
+                    p.innerHTML = p.innerHTML.replace(regex, (_, key) => {
                         return metadata[key.trim()] || `{{${key}}}`;
                     });
                 });
@@ -33,11 +32,12 @@ export function loadTextProcessors(plugin: ZettelFlow): void {
                 const file = plugin.app.workspace.getActiveFile();
                 if (!file) return Decoration.none;
 
+                // Obtaining the metadata of the active file
                 const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter || {};
+                const selectionRanges = view.state.selection.ranges;
 
                 for (let { from, to } of view.visibleRanges) {
                     const text = view.state.doc.sliceString(from, to);
-                    const regex = /{{(.*?)}}/g;
                     let match;
 
                     while ((match = regex.exec(text)) !== null) {
@@ -46,13 +46,23 @@ export function loadTextProcessors(plugin: ZettelFlow): void {
 
                         const key = match[1].trim();
 
-                        if (!metadata[key]) continue;
-                        const replacement = metadata[key] || `{{${key}}}`;
+                        // Check if the match overlaps with the selection
+                        const isInSelection = selectionRanges.some(range =>
+                            (start < range.to && end > range.from)
+                        );
 
+                        // Check if the match is on the current line
+                        const line = view.state.doc.lineAt(start);
+                        const cursorLine = view.state.doc.lineAt(view.state.selection.main.head);
+                        const isOnCurrentLine = line.number === cursorLine.number;
+
+                        if (isInSelection || isOnCurrentLine || !metadata[key]) continue;
+
+                        const replacement = metadata[key] || `{{${key}}}`;
                         builder.add(
                             start,
                             end,
-                            Decoration.replace({ widget: new SelectableTextWidget(replacement, `{{${key}}}`) })
+                            Decoration.replace({ widget: new SelectableTextWidget(replacement) })
                         );
                     }
                 }
@@ -61,7 +71,7 @@ export function loadTextProcessors(plugin: ZettelFlow): void {
             }
 
             update(update: ViewUpdate) {
-                if (update.docChanged || update.viewportChanged) {
+                if (update.docChanged || update.viewportChanged || update.selectionSet) {
                     this.decorations = this.updateDecorations(update.view);
                 }
             }
@@ -78,7 +88,6 @@ export function loadTextProcessors(plugin: ZettelFlow): void {
 class SelectableTextWidget extends WidgetType {
     constructor(
         private value: string,
-        private original: string
     ) {
         super();
     }
@@ -89,15 +98,6 @@ class SelectableTextWidget extends WidgetType {
         span.style.color = "var(--text-accent-color)";
         span.style.textDecoration = "underline";
 
-        // Event to do editable the text when the cursor is over or click
-        span.addEventListener("click", () => {
-
-            span.contentEditable = "true";
-            span.focus();
-        });
-
         return span;
     }
-
 }
-

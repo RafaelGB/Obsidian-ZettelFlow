@@ -10,20 +10,26 @@ import {
 import { log } from 'architecture';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
+import { allCanvasExtensions, CanvasExtension } from 'architecture/plugin/canvas';
 
 export default class ZettelFlow extends Plugin {
+	private canvasExtensions: CanvasExtension[] = [];
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
 
-		loadVariableTextProcessors(this);
-		loadPluginComponents(this);
 		loadTOCProcessors(this);
+		loadVariableTextProcessors(this);
+
+		loadPluginComponents(this);
 
 		this.registerViews();
 		this.registerActions();
 		Hooks.setup(this);
 
+		allCanvasExtensions.forEach((Extension: any) => {
+			this.canvasExtensions.push(new Extension(this));
+		});
 	}
 
 	onunload() {

@@ -16,6 +16,7 @@ export class CanvasNodeMenu {
     }
 
     private onCanvasNodeMenuTriggered = this.plugin.app.workspace.on("canvas:node-menu", (menu, node) => {
+
         // Check if canvas is the zettelFlow canvas and if the node is embedded
         const file = this.plugin.app.workspace.getActiveFile();
         if (file === null) {

@@ -17,7 +17,7 @@ import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, Edito
  * 
  * @param plugin The ZettelFlow plugin instance.
  */
-export function loadTextProcessors(plugin: ZettelFlow): void {
+export function loadVariableTextProcessors(plugin: ZettelFlow): void {
     const placeholderRegex = /{{(.*?)}}/g;
 
     /**

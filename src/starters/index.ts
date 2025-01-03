@@ -1,5 +1,7 @@
-import { loadTextProcessors } from './services/TextProcessors';
+import { loadVariableTextProcessors } from './services/VariableTextProcessors';
+import { loadTOCProcessors } from './services/TOCProcessors';
 
 export * from './utils/StartersTools';
 
-export { loadTextProcessors };
+export { loadVariableTextProcessors };
+export { loadTOCProcessors };

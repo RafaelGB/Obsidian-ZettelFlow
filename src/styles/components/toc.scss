@@ -1,0 +1,47 @@
+/* 
+------------------------------------------
+ Beautiful, Minimalist TOC Styling
+------------------------------------------
+*/
+
+.zettelkasten-flow__toc-container {
+    /* Container spacing and layout */
+    margin: 1.5rem 0;
+    padding: 1rem;
+
+    /* Visual styling */
+    background-color: var(--background-secondary-alt);
+    border-left: 4px solid var(--text-accent);
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /*prevent it from spanning the entire note width: */
+    max-width: 600px;
+  
+}
+
+.zettelkasten-flow__toc-container p {
+    /* Ensure paragraphs have a bit of spacing */
+    margin: 0.4rem 0;
+    padding-left: 0.2rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text-normal);
+
+    /* (Optional) Indentation can be tweaked or removed:
+  text-indent: 0.5rem;
+  */
+}
+
+.zettelkasten-flow__toc-container a {
+    /* Make links stand out */
+    color: var(--text-accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.zettelkasten-flow__toc-container a:hover {
+    /* Hover effect for link */
+    text-decoration: underline;
+    color: var(--interactive-accent);
+}

@@ -1,47 +1,77 @@
-/* 
-------------------------------------------
- Beautiful, Minimalist TOC Styling
-------------------------------------------
-*/
+/* -----------------------------------
+   Beautiful Tree-Style TOC
+-------------------------------------- */
 
+/* Overall container */
 .zettelkasten-flow__toc-container {
-    /* Container spacing and layout */
-    margin: 1.5rem 0;
+    margin: 1rem 0;
     padding: 1rem;
-
-    /* Visual styling */
     background-color: var(--background-secondary-alt);
     border-left: 4px solid var(--text-accent);
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    /*prevent it from spanning the entire note width: */
-    max-width: 600px;
-  
 }
 
-.zettelkasten-flow__toc-container p {
-    /* Ensure paragraphs have a bit of spacing */
-    margin: 0.4rem 0;
-    padding-left: 0.2rem;
-    font-size: 0.9rem;
+/* Remove default list style, set spacing and indentation */
+.zettelkasten-flow__toc-container ul {
+    list-style-type: none;
+    margin: 0;
+    padding-left: 1.2rem;
+    /* Indent the list a bit */
+}
+
+/* Each list item has a relative position for the tree lines */
+.zettelkasten-flow__toc-container li {
+    position: relative;
+    margin: 0;
+    padding: 0 0 0.3rem 0;
+    /* Some spacing between items */
     line-height: 1.4;
-    color: var(--text-normal);
-
-    /* (Optional) Indentation can be tweaked or removed:
-  text-indent: 0.5rem;
-  */
 }
 
+/* Draw a vertical line to connect nested ul children */
+.zettelkasten-flow__toc-container li::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -0.7rem;
+    /* Align with left side of text */
+    width: 1px;
+    height: 100%;
+    background-color: var(--text-faint);
+}
+
+/* Horizontal connector to the parent bullet */
+.zettelkasten-flow__toc-container li::after {
+    content: "";
+    position: absolute;
+    top: 0.7rem;
+    /* Nudges the line to the middle of text line-height */
+    left: -0.7rem;
+    width: 0.7rem;
+    height: 1px;
+    background-color: var(--text-faint);
+}
+
+/* The first list item in each nested <ul> doesn't need the vertical connector */
+.zettelkasten-flow__toc-container ul>li:first-of-type::before {
+    top: 0.7rem;
+    /* Start the vertical line at the parent's midpoint */
+}
+
+/* Remove the vertical line if there's no child <ul> */
+.zettelkasten-flow__toc-container li:only-child::before,
+.zettelkasten-flow__toc-container li:only-child::after {
+    background: none;
+}
+
+/* Links inside the TOC */
 .zettelkasten-flow__toc-container a {
-    /* Make links stand out */
     color: var(--text-accent);
-    text-decoration: none;
     font-weight: 500;
+    text-decoration: none;
 }
 
 .zettelkasten-flow__toc-container a:hover {
-    /* Hover effect for link */
     text-decoration: underline;
     color: var(--interactive-accent);
 }

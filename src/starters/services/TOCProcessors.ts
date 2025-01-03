@@ -34,11 +34,13 @@ export function loadTOCProcessors(plugin: ZettelFlow): void {
                     activeView.containerEl.querySelector(".inline-title");
 
                 if (anchorElement) {
-                    // Remove all existing TOC containers to prevent duplicates
+                    // Remove all existing TOC containers in case they exist
                     const existingTOCs = container.querySelectorAll(".zettelkasten-flow__toc-container");
-                    existingTOCs?.forEach((tocEl) => tocEl.remove());
-                    // Only proceed if the TOC feature is enabled
+                    existingTOCs.forEach((tocEl) => tocEl.remove());
+
+                    // Check your plugin settings before rendering
                     if (!plugin.settings.tableOfContentEnabled) return;
+
                     renderTOCAtTop(
                         plugin.app,
                         anchorElement as HTMLElement,
@@ -66,14 +68,14 @@ function generateTOC(container: HTMLElement): TOCEntry[] {
         return {
             level: Number(header.tagName[1]), // Convert "H1", "H2", etc. to an integer 1–6
             text: headerValue,
-            id: header.getAttribute("id") || slugify(headerValue.trim())
+            id: header.getAttribute("id") || slugify(headerValue.trim()),
         };
     });
 }
 
 /**
- * Renders the Table of Contents at the top of the note. If a TOC container
- * already exists, it is removed first to prevent duplicate or stale content.
+ * Renders the Table of Contents at the top of the note as a hierarchical
+ * tree using nested <ul> and <li> elements.
  *
  * @param app - The Obsidian App instance.
  * @param container - The element after which the TOC will be inserted.
@@ -93,34 +95,56 @@ function renderTOCAtTop(
     const tocContainer = document.createElement("div");
     tocContainer.className = "zettelkasten-flow__toc-container";
 
-    // Initialize counters for hierarchical numbering (1, 1.1, 1.2, etc.)
+    // Create the root UL that will hold all top-level items
+    const rootUl = document.createElement("ul");
+    tocContainer.appendChild(rootUl);
+
+    // This stack will keep track of the current <ul> for each heading level.
+    // Index 0 → for level 1, index 1 → for level 2, etc.
+    const ulStack: HTMLUListElement[] = [];
+    ulStack[0] = rootUl;
+
+    // Hierarchical counters (optional) if you want numeric prefix like "1.1.2"
     const counters = Array(6).fill(0);
 
-    // A component is required to render Markdown links properly
+    // We need a component to render Obsidian markdown links
     const tocComponent = new Component();
 
     toc.forEach((entry) => {
-        // Increment counter for current level
+        // Update counters for hierarchical numbering
         counters[entry.level - 1]++;
-        // Reset counters for deeper levels
         for (let i = entry.level; i < counters.length; i++) {
             counters[i] = 0;
         }
 
-        // Build hierarchical numbering (e.g., "1", "1.1", "2.1.1")
-        const number = counters
+        // Make sure we have a <ul> for this level; if not, create one
+        // and nest it under the previous level's <li>.
+        if (!ulStack[entry.level - 1]) {
+            const newUl = document.createElement("ul");
+            ulStack[entry.level - 2].lastElementChild?.appendChild(newUl);
+            ulStack[entry.level - 1] = newUl;
+        }
+
+        // Construct the link text (with or without numbering)
+        const numbering = counters
             .slice(0, entry.level)
-            .filter((count) => count > 0)
+            .filter((cnt) => cnt > 0)
             .join(".");
 
-        // Construct the Obsidian link for each header
-        const mdLink = `[[${sourcePath}#${entry.text}|${number} ${entry.text}]]`;
+        // Create the <li> element for the current heading
+        const li = document.createElement("li");
 
-        // Render the link into the TOC container
-        MarkdownRenderer.render(app, mdLink, tocContainer, sourcePath, tocComponent);
+        // Create the Obsidian link for the heading
+        const mdLink = `[[${sourcePath}#${entry.text}|${numbering ? numbering + " " : ""}${entry.text}]]`;
+
+        // Render the link markdown into the <li> directly
+        MarkdownRenderer.render(app, mdLink, li, sourcePath, tocComponent);
+
+        // Append the <li> to the correct <ul>
+        ulStack[entry.level - 1].appendChild(li);
     });
 
-    // Insert the TOC right after the specified container
+    // Insert the TOC container right after the specified anchor container
     container.parentElement?.insertBefore(tocContainer, container.nextSibling);
 }
 

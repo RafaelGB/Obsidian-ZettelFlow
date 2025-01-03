@@ -1,64 +1,107 @@
 import ZettelFlow from "main";
-import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
+import {
+    Decoration,
+    DecorationSet,
+    EditorView,
+    ViewPlugin,
+    ViewUpdate,
+    WidgetType
+} from "@codemirror/view";
 import { RangeSetBuilder } from "@codemirror/state";
 
+/**
+ * Loads text processors to replace placeholders of the form {{key}} 
+ * with corresponding frontmatter metadata. This includes both 
+ * the markdown post-processor and the live preview extension.
+ * 
+ * @param plugin The ZettelFlow plugin instance.
+ */
 export function loadTextProcessors(plugin: ZettelFlow): void {
-    const regex = /{{(.*?)}}/g;
-    plugin.registerMarkdownPostProcessor((element, context) => {
+    const placeholderRegex = /{{(.*?)}}/g;
+
+    /**
+     * Markdown Post-Processor:
+     * Replaces all placeholders in the rendered HTML with the corresponding 
+     * frontmatter values for the active file.
+     */
+    plugin.registerMarkdownPostProcessor((element, _context) => {
         const file = plugin.app.workspace.getActiveFile();
-        if (file) {
-            const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter;
-            if (metadata) {
-                element.querySelectorAll("p").forEach((p) => {
-                    p.innerHTML = p.innerHTML.replace(regex, (_, key) => {
-                        return metadata[key.trim()] || `{{${key}}}`;
-                    });
-                });
-            }
-        }
+        if (!file) return;
+
+        const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter;
+        if (!metadata) return;
+
+        element.querySelectorAll("p").forEach((paragraph) => {
+            paragraph.innerHTML = paragraph.innerHTML.replace(
+                placeholderRegex,
+                (_match, key) => metadata[key.trim()] ?? `{{${key}}}`
+            );
+        });
     });
 
-    // Extensión para el modo Live Preview
+    /**
+     * Live Preview Extension:
+     * Uses a ViewPlugin to replace placeholders with underlined text 
+     * if they are not selected or on the current editing line.
+     */
     const extension = ViewPlugin.fromClass(
         class {
-            decorations: DecorationSet;
+            public decorations: DecorationSet;
 
             constructor(view: EditorView) {
                 this.decorations = this.updateDecorations(view);
             }
 
-            updateDecorations(view: EditorView): DecorationSet {
+            /**
+             * Gathers decoration ranges for all found placeholders that can be replaced.
+             * 
+             * @param view The current EditorView.
+             * @returns A DecorationSet containing all relevant replacements.
+             */
+            private updateDecorations(view: EditorView): DecorationSet {
                 const builder = new RangeSetBuilder<Decoration>();
                 const file = plugin.app.workspace.getActiveFile();
-                if (!file) return Decoration.none;
 
-                // Obtaining the metadata of the active file
-                const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter || {};
-                const selectionRanges = view.state.selection.ranges;
+                if (!file) {
+                    return Decoration.none;
+                }
 
-                for (let { from, to } of view.visibleRanges) {
+                const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {};
+                if (Object.keys(metadata).length === 0) {
+                    return Decoration.none;
+                }
+
+                const { ranges: selectionRanges } = view.state.selection;
+
+                // Process only visible ranges to optimize performance
+                for (const { from, to } of view.visibleRanges) {
                     const text = view.state.doc.sliceString(from, to);
-                    let match;
 
-                    while ((match = regex.exec(text)) !== null) {
+                    // Reset regex index before each search
+                    placeholderRegex.lastIndex = 0;
+                    let match: RegExpExecArray | null;
+
+                    while ((match = placeholderRegex.exec(text)) !== null) {
                         const start = from + match.index;
                         const end = start + match[0].length;
-
                         const key = match[1].trim();
 
-                        // Check if the match overlaps with the selection
-                        const isInSelection = selectionRanges.some(range =>
-                            (start < range.to && end > range.from)
+                        // Check if placeholder is in the user's selection
+                        const isInSelection = selectionRanges.some(
+                            (range) => start < range.to && end > range.from
                         );
 
-                        // Check if the match is on the current line
+                        // Check if placeholder is on the user's current editing line
                         const line = view.state.doc.lineAt(start);
                         const cursorLine = view.state.doc.lineAt(view.state.selection.main.head);
                         const isOnCurrentLine = line.number === cursorLine.number;
 
-                        if (isInSelection || isOnCurrentLine || !metadata[key]) continue;
+                        // If in selection, current line, or no corresponding metadata, skip
+                        if (isInSelection || isOnCurrentLine || !metadata[key]) {
+                            continue;
+                        }
 
-                        const replacement = metadata[key] || `{{${key}}}`;
+                        const replacement = metadata[key] ?? `{{${key}}}`;
                         builder.add(
                             start,
                             end,
@@ -70,34 +113,46 @@ export function loadTextProcessors(plugin: ZettelFlow): void {
                 return builder.finish();
             }
 
-            update(update: ViewUpdate) {
+            /**
+             * Trigger decoration updates on certain events:
+             *  - Document change
+             *  - Viewport change
+             *  - Selection change
+             * 
+             * @param update A ViewUpdate containing the changed state.
+             */
+            public update(update: ViewUpdate) {
                 if (update.docChanged || update.viewportChanged || update.selectionSet) {
                     this.decorations = this.updateDecorations(update.view);
                 }
             }
         },
         {
-            decorations: v => v.decorations
+            decorations: (v) => v.decorations,
         }
     );
 
     plugin.registerEditorExtension(extension);
 }
 
-// Widget para renderizar el texto
+/**
+ * A widget class used to render placeholders as underlined, accent-colored text.
+ */
 class SelectableTextWidget extends WidgetType {
-    constructor(
-        private value: string,
-    ) {
+    constructor(private readonly value: string) {
         super();
     }
 
-    toDOM() {
+    /**
+     * Creates a DOM element (a span) to display the metadata replacement text.
+     * 
+     * @returns A span element with styling.
+     */
+    public toDOM(): HTMLElement {
         const span = document.createElement("span");
         span.textContent = this.value;
         span.style.color = "var(--text-accent-color)";
         span.style.textDecoration = "underline";
-
         return span;
     }
 }

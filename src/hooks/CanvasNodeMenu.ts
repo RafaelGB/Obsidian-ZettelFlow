@@ -16,6 +16,7 @@ export class CanvasNodeMenu {
     }
 
     private onCanvasNodeMenuTriggered = this.plugin.app.workspace.on("canvas:node-menu", (menu, node) => {
+
         // Check if canvas is the zettelFlow canvas and if the node is embedded
         const file = this.plugin.app.workspace.getActiveFile();
         if (file === null) {
@@ -39,7 +40,7 @@ export class CanvasNodeMenu {
                 // Edit embed
                 item
                     .setTitle(t("canvas_node_menu_edit_embed"))
-                    .setIcon(RibbonIcon.ID)
+                    .setIcon(RibbonIcon.ACTION)
                     .setSection('pane')
                     .onClick(async () => {
                         const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
@@ -59,7 +60,7 @@ export class CanvasNodeMenu {
                 // Copy embed to canvas clipboard
                 item
                     .setTitle(t("menu_pane_copy_step_configuration"))
-                    .setIcon(RibbonIcon.ID)
+                    .setIcon(RibbonIcon.ACTION)
                     .setSection('pane')
                     .onClick(async () => {
                         canvas.clipboard.save(YamlService.instance(zettelFlowSettings).getZettelFlowSettings());
@@ -73,7 +74,7 @@ export class CanvasNodeMenu {
                     // Paste embed from canvas clipboard
                     item
                         .setTitle(t("menu_pane_paste_step_configuration"))
-                        .setIcon(RibbonIcon.ID)
+                        .setIcon(RibbonIcon.ACTION)
                         .setSection('pane')
                         .onClick(async () => {
                             const flow = await canvas.flows.update(file.path);

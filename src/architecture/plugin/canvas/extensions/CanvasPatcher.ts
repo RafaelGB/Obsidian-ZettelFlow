@@ -36,16 +36,19 @@ export default class CanvasPatcher {
             this.plugin.registerEvent(event)
         })
 
-        console.log('Patching canvas view:', canvasView)
-
+        const that = this;
         // Patch canvas popup menu
         PatchHelper.patchObjectPrototype(this.plugin, canvasView.canvas.menu, {
             render: (next: any) => function (this: any, ...args: any) {
                 const result = next.call(this, ...args);
-                this.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
+                that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
                 next.call(this) // Re-Center the popup menu
                 return result;
             }
         })
+    }
+
+    private triggerWorkspaceEvent(event: string, ...args: any) {
+        this.plugin.app.workspace.trigger(event, ...args)
     }
 }

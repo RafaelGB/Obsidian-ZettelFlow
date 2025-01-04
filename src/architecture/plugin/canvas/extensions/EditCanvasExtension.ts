@@ -48,7 +48,12 @@ export default class EditStepCanvasExtension extends CanvasExtension {
 
                 // Get the first (and only) selected node
                 const selectedNode: CanvasElement = canvas.selection.values().next().value;
+                const data = selectedNode.getData();
 
+                // Only generate icon if the node is text/group type (holds zettelflowConfig)
+                if (data.type !== "text" && data.type !== "group") {
+                    return;
+                }
                 // Define a unique ID for our new button to prevent duplication
                 const buttonId = "edit-zettelflow-step-btn";
 
@@ -58,26 +63,21 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                     label: "Edit ZettelFlow Step",
                     icon: RibbonIcon.ID,
                     callback: () => {
-                        const data = selectedNode.getData();
                         const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
+                        const zettelFlowSettings = data.zettelflowConfig;
+                        const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
 
-                        // Only open modal if the node is text/group type (holds zettelflowConfig)
-                        if (data.type === "text" || data.type === "group") {
-                            const zettelFlowSettings = data.zettelflowConfig;
-                            const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
-
-                            new StepBuilderModal(this.plugin.app, {
-                                folder: file.parent || undefined,
-                                filename: file.basename,
-                                type: "text",
-                                // Additional context for the modal
-                                ...stepSettings,
-                            })
-                                .setMode("embed")
-                                .setBuilder(builderMode)
-                                .setNodeId(data.id)
-                                .open();
-                        }
+                        new StepBuilderModal(this.plugin.app, {
+                            folder: file.parent || undefined,
+                            filename: file.basename,
+                            type: "text",
+                            // Additional context for the modal
+                            ...stepSettings,
+                        })
+                            .setMode("embed")
+                            .setBuilder(builderMode)
+                            .setNodeId(data.id)
+                            .open();
                     },
                 });
 

@@ -42,7 +42,7 @@ export default class CanvasPatcher {
 
         // Patch canvas popup menu
         PatchHelper.patchObjectPrototype(this.plugin, canvasView.canvas.menu, {
-            render: (next: any) => function (...args: any) {
+            render: (next: any) => function (this: any, ...args: any) {
                 const result = next.call(this, ...args);
                 that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
                 next.call(this) // Re-Center the popup menu

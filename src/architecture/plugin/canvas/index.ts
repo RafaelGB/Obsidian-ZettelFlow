@@ -1,4 +1,5 @@
 import CanvasExtension from './extensions/CanvasExtension';
+import CanvasPatcher from './extensions/CanvasPatcher';
 import EditStepCanvasExtension from './extensions/EditCanvasExtension';
 
 export { canvas } from './Canvas';
@@ -11,4 +12,4 @@ const allCanvasExtensions: typeof CanvasExtension[] = [
     EditStepCanvasExtension
 ];
 
-export { allCanvasExtensions, CanvasExtension };
+export { allCanvasExtensions, CanvasExtension, CanvasPatcher };

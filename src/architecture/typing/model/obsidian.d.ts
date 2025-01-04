@@ -1,5 +1,5 @@
 import "obsidian";
-import { AllCanvasNodeData } from "obsidian/canvas";
+import { AllCanvasNodeData, Canvas } from "obsidian/canvas";
 declare module "obsidian" {
     interface setting {
         open: () => void;
@@ -19,8 +19,12 @@ declare module "obsidian" {
         }
     }
     interface Workspace {
+        // Out of official API but used in the codebase
         on(name: "canvas:node-menu", callback: (menu: Menu, node: AllCanvasNodeData) => void): EventRef;
+        // Monkey patching
+        on(name: "canvas:popup-menu", callback: (canvas: Canvas) => void): EventRef;
     }
+
     interface MetadataCache {
         /**
          * Obtain the tags of all the vault with their count.

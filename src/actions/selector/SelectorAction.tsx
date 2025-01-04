@@ -41,7 +41,7 @@ export class SelectorAction extends CustomZettelAction {
     if (
       result &&
       TypeService.isString(key) &&
-      (TypeService.isArray<String>(result, "string") ||
+      (TypeService.isArray<string>(result, "string") ||
         TypeService.isString(result))
     ) {
       switch (zone) {

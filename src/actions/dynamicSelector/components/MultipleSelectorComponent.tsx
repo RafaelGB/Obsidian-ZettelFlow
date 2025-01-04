@@ -50,7 +50,7 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
             )
           ) {
             const dynamicOptions: string[] = result.map(
-              ([key, label]: [string, string]) => key
+              ([key, _]: [string, string]) => key
             );
             if (isMounted) {
               setAvailableOptions(dynamicOptions);

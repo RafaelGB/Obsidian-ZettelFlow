@@ -168,7 +168,7 @@ class VariableSuggester extends EditorSuggest<string> {
      * Called when the user selects an option from the suggestion list
      * (by click or Enter).
      */
-    selectSuggestion(variable: string, evt: MouseEvent | KeyboardEvent): void {
+    selectSuggestion(variable: string, _: MouseEvent | KeyboardEvent): void {
         this.insertVariable(variable);
     }
 
@@ -203,7 +203,7 @@ class VariableSuggester extends EditorSuggest<string> {
     onTrigger(
         cursor: EditorPosition,
         editor: Editor,
-        file: TFile
+        _: TFile
     ): EditorSuggestTriggerInfo | null {
         const line = editor.getLine(cursor.line);
         // Get everything before the current cursor
@@ -211,7 +211,7 @@ class VariableSuggester extends EditorSuggest<string> {
 
         // Look for `{{` that hasn't been closed yet
         // match[1] captures everything after `{{` and before any `}}`
-        const match = sub.match(/\{\{([^\}]*)$/);
+        const match = sub.match(/\{\{([^}]*)$/);
         if (!match) return null;
 
         const startOfBraces = sub.lastIndexOf("{{");

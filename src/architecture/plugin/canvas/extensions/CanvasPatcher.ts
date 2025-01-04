@@ -10,8 +10,6 @@ export default class CanvasPatcher {
     }
 
     public async patch() {
-        const that = this
-
         // Wait for layout ready -> Support deferred view initialization
         await new Promise<void>(resolve => this.plugin.app.workspace.onLayoutReady(() => resolve()))
 
@@ -44,14 +42,10 @@ export default class CanvasPatcher {
         PatchHelper.patchObjectPrototype(this.plugin, canvasView.canvas.menu, {
             render: (next: any) => function (this: any, ...args: any) {
                 const result = next.call(this, ...args);
-                that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
+                this.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
                 next.call(this) // Re-Center the popup menu
                 return result;
             }
         })
-    }
-
-    private triggerWorkspaceEvent(event: string, ...args: any) {
-        this.plugin.app.workspace.trigger(event, ...args)
     }
 }

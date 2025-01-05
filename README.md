@@ -7,26 +7,111 @@
 - [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)
 - [Examples](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/WorkFlow%20Test)
 
-## Introduction: Designing Your Zettelkasten Workflow with the Obsidian-ZettelFlow
-Welcome to the Obsidian-ZettelFlow - your essential solution for optimizing your Zettelkasten method within the [Obsidian app](https://obsidian.md/). This innovative plugin empowers you to effortlessly configure a customized workflow, enabling the seamless creation of new notes while specifying properties, templates, and storage locations through the native canvas interface.
+# ZettelFlow: Unlock the Power of Custom Note Flows in Obsidian
 
-## Navigating the Zettelkasten Approach: A Concise Overview
-[Zettelkasten](https://zettelkasten.de/), originally conceptualized by sociologist Niklas Luhmann, is a sophisticated technique for note-taking and knowledge organization. The method centers on the idea that insights are best captured as individual "Zettels," which are interconnected to form a dynamic network of ideas. This network encourages a deeper understanding and enhances creativity.
+Welcome to **ZettelFlow**, the ultimate plugin for Obsidian that empowers you to design and navigate your own personalized workflows for creating and editing notes. Whether you're a fan of the Zettelkasten methodology or simply seeking a flexible way to structure your ideas, ZettelFlow adapts to your needs and puts creativity in your hands.
 
-## Introducing the Obsidian-ZettelFlow
-Our plugin elevates the Zettelkasten experience by using visual canvas directly within Obsidian. This canvas serves as a blueprint for constructing a personalized workflow that streamlines the creation of new notes. As you design your canvas, you're effectively designing the structure and metadata of each note you'll generate.
+---
 
-![](docs/resources/readme-intro.gif)
+## **What is ZettelFlow?**
 
-### Workflow Crafting: The Core Process
-- **Select Your Canvas**: Choose the canvas note that aligns with your note-taking style and preferences. This canvas defines the attributes and specifics of your notes-to-be.
-- **Configure Note Elements**: Begin designing your note by arranging elements on the canvas. These elements might represent properties, templates, or organizational criteria for your notes.
-- **Establish Relationships**: Define the relationships between canvas elements. These connections determine how your notes will be structured, tagged, or categorized once created.
-- **Generate Notes Instantly**: Once your canvas is refined, it becomes a template. When you're ready to create a new note, the plugin transforms your canvas configuration into a fully formed note in Obsidian.
-- **Effortless Note-Taking**: With a well-structured canvas, you're equipped to create notes with consistent attributes effortlessly. No more repetitive setups; it's all about instant productivity.
+ZettelFlow transforms Obsidian into a dynamic space for note-taking and knowledge management by using **canvas drawings** to create flows. These flows guide you through **step-by-step processes**, where each step can be a note, a group, or a card on the canvas, interconnected with arrows that represent their relationships.
 
-### Embark on Enhanced Note-Taking Efficiency
-The Obsidian-ZettelFlow revolutionizes the Zettelkasten approach by using the native canvas interface. This interface grants you the power to configure note properties, templates, and more, while expediting the note creation process. Experience the synergy of visual design and knowledge organization as you optimize your Zettelkasten workflow through this innovative plugin. Begin your journey towards a more efficient and structured note-taking experience today.
+ZettelFlow encourages you to:
+
+- Embrace the **[Zettelkasten philosophy](https://zettelkasten.de/overview/)** while tailoring it to your unique workflow.
+- Design **custom flows** that resonate with how you think and organize.
+- Dive deeper into your notes, crafting them in a structured yet flexible way.
+
+---
+
+## **How Does It Work?**
+
+### **1. Root Notes**
+Every flow begins with a **Root Note**. These are the starting points that appear when you initiate a new workflow. Think of them as entry points into your creative process.
+
+### **2. Steps**
+A **flow** consists of multiple **steps**, which can be:
+- **Notes**: Standard Obsidian notes.
+- **Groups**: Collections of related items.
+- **Canvas Cards**: Visual representations within the Obsidian canvas.
+
+These steps are linked with arrows, creating a clear visual representation of how your ideas connect and progress.
+
+### **3. Actions**
+Within each step, you can add **Actions** to enhance your notes. Actions are interactive elements that:
+- Modify your final note.
+- Edit existing notes dynamically. 
+
+> [!IMPORTANT]  
+> The canvas editor flow is different from the canvas creation flow. It should be configured independently in the plugin settings.
+
+#### **Available Actions**
+ZettelFlow provides a wide array of actions, including:
+
+- **[Prompt](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Prompt/)**: Input custom text.
+- **[Number](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Number/)**: Add numeric values.
+- **[Checkbox](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Checkbox/)**: Include checkboxes for tasks.
+- **[Calendar](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Calendar/)**: Pick dates.
+- **[Selector](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Selector/)**: Choose from a predefined list.
+- **[Dynamic Selector](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/DynamicSelector/)**: Generate lists dynamically.
+- **[Tags](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Tags/)**: Add or manage tags.
+- **[Backlink](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Backlink/)**: Create backlinks to other notes.
+- **[CssClasses](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CssClasses/)**: Apply CSS classes for styling.
+- **[Task Management](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/TaskManagement/)**: Manage tasks directly.
+- **[Script](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script/)**: Run custom scripts for advanced users.
+
+---
+
+## **Why Use ZettelFlow?**
+
+- **Freedom to Customize**: ZettelFlow adapts to your way of working, not the other way around.
+
+![](docs/resources/readme/Canvas-Sample.png)
+![](docs/resources/readme/demogif.gif)
+
+- **Visual Clarity**: Flows on the canvas provide an intuitive overview of your thought process.
+- **Deep Integration**: Seamlessly integrates with Obsidian, enhancing your existing workflow.
+- **Powerful Actions**: Automate and enrich your notes with a variety of built-in actions.
+
+---
+
+## **Getting Started**
+
+1. **Install the Plugin**
+   - Download and install ZettelFlow from the Obsidian plugin marketplace.
+
+![](docs/resources/readme/install-plugin.png)
+2. **Create Your First Flow**
+   - Create a new Canvas file in Obsidian.
+   - Configure it as the principal Flow file in the plugin settings.
+
+   ![](docs/resources/readme/Configure-principal-canvas.png)
+
+   - Open a canvas and start designing your flow by adding steps and connecting them with arrows.
+
+3. **Add Actions**
+   - Select a step and incorporate actions to modify or enhance your notes.
+
+![](docs/resources/readme/first%20root%20step.png)
+![](docs/resources/readme/root%20step%20options.png)
+
+4. **Explore Examples**
+   - Check the [official documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/) for example flows and action guides.
+
+---
+
+## **Learn More**
+
+For detailed instructions, descriptions of each action, and tips for creating advanced flows, visit the [ZettelFlow Documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/).
+
+If you have any questions or feedback, feel free to reach out via the Obsidian community forums or GitHub issues.
+
+---
+
+Unleash the full potential of your notes with ZettelFlow. **Your ideas, your flow, your rules.**
+
+
 
 ## Support
 If you enjoy ZettelFlow, consider [buy me a coffee](https://www.buymeacoffee.com/5tsytn22v9Z) or [sponsor me](https://github.com/sponsors/RafaelGB) to support my work. Thank you!

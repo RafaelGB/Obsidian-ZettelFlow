@@ -1,216 +1,156 @@
 {
-  "nodes": [
-    {
-      "id": "7de245ad599fd980",
-      "type": "group",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": 880,
-      "y": -127,
-      "width": 1125,
-      "height": 955,
-      "color": "5",
-      "label": "PARA classify system"
-    },
-    {
-      "id": "7d3a5f6444dd6c5f",
-      "type": "group",
-      "zettelflowConfig": "{\"root\":true,\"actions\":[],\"label\":\"Tasks section\",\"childrenHeader\":\"What kind of task is this?\",\"optional\":false}",
-      "styleAttributes": {},
-      "x": -384,
-      "y": -127,
-      "width": 988,
-      "height": 480,
-      "color": "#c18181",
-      "label": "Tasks"
-    },
-    {
-      "id": "6ef16e382b0b891a",
-      "type": "file",
-      "file": "WorkFlow Test/templates/New Goal.md",
-      "styleAttributes": {},
-      "x": -290,
-      "y": -47,
-      "width": 400,
-      "height": 265
-    },
-    {
-      "id": "ee1c1866203ebadd",
-      "type": "text",
-      "text": "Add frontmatter to current note",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"tags\",\"description\":\"Add tags to the note\",\"hasUI\":true,\"id\":\"16136fe0-0eec-4181-8e71-c64d78240845\"}],\"label\":\"Add frontmatter\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": -215,
-      "y": 433,
-      "width": 250,
-      "height": 60
-    },
-    {
-      "id": "5ae240fa25d495da",
-      "type": "text",
-      "text": "# Classify Note",
-      "zettelflowConfig": "{\"root\":true,\"actions\":[],\"label\":\"Classify the note\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": 1087,
-      "y": -45,
-      "width": 250,
-      "height": 65,
-      "color": "6"
-    },
-    {
-      "id": "d3f0b098efa839bf",
-      "type": "text",
-      "text": "Will this help me move a current project or goal forward?",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"First step\",\"childrenHeader\":\"Will this help me move a current project or goal forward?\"}",
-      "styleAttributes": {},
-      "x": 1066,
-      "y": 118,
-      "width": 292,
-      "height": 92,
-      "color": "3"
-    },
-    {
-      "id": "5c9528ac5e335984",
-      "type": "text",
-      "text": "## Project",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": 935,
-      "y": 317,
-      "width": 198,
-      "height": 73,
-      "color": "4"
-    },
-    {
-      "id": "a48083166804aeef",
-      "type": "text",
-      "text": "## Area",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on Areas\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": 1066,
-      "y": 525,
-      "width": 198,
-      "height": 73,
-      "color": "4"
-    },
-    {
-      "id": "fb13860ed697c910",
-      "type": "text",
-      "text": "# Delete",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Delete it\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": 1797,
-      "y": 680,
-      "width": 159,
-      "height": 82,
-      "color": "1"
-    },
-    {
-      "id": "864dc515580bf9f3",
-      "type": "text",
-      "text": "## Resoruces",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on resources\",\"childrenHeader\":\"\"}",
-      "styleAttributes": {},
-      "x": 1308,
-      "y": 689,
-      "width": 198,
-      "height": 73,
-      "color": "4"
-    },
-    {
-      "id": "302774077c42731d",
-      "type": "text",
-      "text": "Will this help me uphold an area of responsibility?",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will this help me uphold an area of responsibility?\"}",
-      "styleAttributes": {},
-      "x": 1308,
-      "y": 317,
-      "width": 292,
-      "height": 92,
-      "color": "3"
-    },
-    {
-      "id": "34dd3bd4cbce9c6a",
-      "type": "text",
-      "text": "Will it support one of my interest or curiosities?",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}",
-      "styleAttributes": {},
-      "x": 1505,
-      "y": 506,
-      "width": 292,
-      "height": 92,
-      "color": "3"
-    }
-  ],
-  "edges": [
-    {
-      "id": "f84884580ff07e41",
-      "fromNode": "6ef16e382b0b891a",
-      "fromSide": "bottom",
-      "toNode": "ee1c1866203ebadd",
-      "toSide": "top"
-    },
-    {
-      "id": "f0db70c043129c22",
-      "fromNode": "5ae240fa25d495da",
-      "fromSide": "bottom",
-      "toNode": "d3f0b098efa839bf",
-      "toSide": "top"
-    },
-    {
-      "id": "661cf914b56cbf43",
-      "fromNode": "d3f0b098efa839bf",
-      "fromSide": "bottom",
-      "toNode": "5c9528ac5e335984",
-      "toSide": "top",
-      "color": "4",
-      "label": "yes"
-    },
-    {
-      "id": "4d89c14340982f3e",
-      "fromNode": "d3f0b098efa839bf",
-      "fromSide": "bottom",
-      "toNode": "302774077c42731d",
-      "toSide": "top",
-      "color": "1",
-      "label": "no"
-    },
-    {
-      "id": "44f2b661f692365b",
-      "fromNode": "302774077c42731d",
-      "fromSide": "bottom",
-      "toNode": "a48083166804aeef",
-      "toSide": "top",
-      "color": "4",
-      "label": "yes"
-    },
-    {
-      "id": "51db4bbdcf3fd126",
-      "fromNode": "302774077c42731d",
-      "fromSide": "bottom",
-      "toNode": "34dd3bd4cbce9c6a",
-      "toSide": "top",
-      "color": "1",
-      "label": "no"
-    },
-    {
-      "id": "6cc24ea8b078f081",
-      "fromNode": "34dd3bd4cbce9c6a",
-      "fromSide": "bottom",
-      "toNode": "fb13860ed697c910",
-      "toSide": "top",
-      "color": "1",
-      "label": "no"
-    },
-    {
-      "id": "82ae5c303697541b",
-      "fromNode": "34dd3bd4cbce9c6a",
-      "fromSide": "bottom",
-      "toNode": "864dc515580bf9f3",
-      "toSide": "top",
-      "color": "4",
-      "label": "yes"
-    }
-  ],
-  "metadata": {}
+	"nodes":[
+		{
+			"id":"7de245ad599fd980",
+			"type":"group",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":880,
+			"y":-127,
+			"width":1125,
+			"height":955,
+			"color":"5",
+			"label":"PARA classify system"
+		},
+		{
+			"id":"7d3a5f6444dd6c5f",
+			"type":"group",
+			"zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Tasks section\",\"childrenHeader\":\"What kind of task is this?\",\"optional\":false}",
+			"styleAttributes":{},
+			"x":-384,
+			"y":-127,
+			"width":988,
+			"height":480,
+			"color":"#c18181",
+			"label":"Tasks"
+		},
+		{
+			"id":"6ef16e382b0b891a",
+			"type":"file",
+			"file":"WorkFlow Test/templates/New Goal.md",
+			"styleAttributes":{},
+			"x":-290,
+			"y":-47,
+			"width":400,
+			"height":265
+		},
+		{
+			"id":"ee1c1866203ebadd",
+			"type":"text",
+			"text":"Add frontmatter to current note",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[{\"type\":\"tags\",\"description\":\"Add tags to the note\",\"hasUI\":true,\"id\":\"16136fe0-0eec-4181-8e71-c64d78240845\"}],\"label\":\"Add frontmatter\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":-215,
+			"y":433,
+			"width":250,
+			"height":60
+		},
+		{
+			"id":"5ae240fa25d495da",
+			"type":"text",
+			"text":"# Classify Note",
+			"zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Classify the note\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":1087,
+			"y":-45,
+			"width":250,
+			"height":65,
+			"color":"6"
+		},
+		{
+			"id":"d3f0b098efa839bf",
+			"type":"text",
+			"text":"Will this help me move a current project or goal forward?",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"First step\",\"childrenHeader\":\"Will this help me move a current project or goal forward?\"}",
+			"styleAttributes":{},
+			"x":1066,
+			"y":118,
+			"width":292,
+			"height":92,
+			"color":"3"
+		},
+		{
+			"id":"5c9528ac5e335984",
+			"type":"text",
+			"text":"## Project",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":935,
+			"y":317,
+			"width":198,
+			"height":73,
+			"color":"4"
+		},
+		{
+			"id":"a48083166804aeef",
+			"type":"text",
+			"text":"## Area",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on Areas\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":1066,
+			"y":525,
+			"width":198,
+			"height":73,
+			"color":"4"
+		},
+		{
+			"id":"fb13860ed697c910",
+			"type":"text",
+			"text":"# Delete",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"Delete it\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":1797,
+			"y":680,
+			"width":159,
+			"height":82,
+			"color":"1"
+		},
+		{
+			"id":"864dc515580bf9f3",
+			"type":"text",
+			"text":"## Resoruces",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on resources\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":1308,
+			"y":689,
+			"width":198,
+			"height":73,
+			"color":"4"
+		},
+		{
+			"id":"302774077c42731d",
+			"type":"text",
+			"text":"Will this help me uphold an area of responsibility?",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will this help me uphold an area of responsibility?\"}",
+			"styleAttributes":{},
+			"x":1308,
+			"y":317,
+			"width":292,
+			"height":92,
+			"color":"3"
+		},
+		{
+			"id":"34dd3bd4cbce9c6a",
+			"type":"text",
+			"text":"Will it support one of my interest or curiosities?",
+			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}",
+			"styleAttributes":{},
+			"x":1505,
+			"y":506,
+			"width":292,
+			"height":92,
+			"color":"3"
+		}
+	],
+	"edges":[
+		{"id":"f84884580ff07e41","fromNode":"6ef16e382b0b891a","fromSide":"bottom","toNode":"ee1c1866203ebadd","toSide":"top"},
+		{"id":"f0db70c043129c22","fromNode":"5ae240fa25d495da","fromSide":"bottom","toNode":"d3f0b098efa839bf","toSide":"top"},
+		{"id":"661cf914b56cbf43","fromNode":"d3f0b098efa839bf","fromSide":"bottom","toNode":"5c9528ac5e335984","toSide":"top","color":"4","label":"yes"},
+		{"id":"4d89c14340982f3e","fromNode":"d3f0b098efa839bf","fromSide":"bottom","toNode":"302774077c42731d","toSide":"top","color":"1","label":"no"},
+		{"id":"44f2b661f692365b","fromNode":"302774077c42731d","fromSide":"bottom","toNode":"a48083166804aeef","toSide":"top","color":"4","label":"yes"},
+		{"id":"51db4bbdcf3fd126","fromNode":"302774077c42731d","fromSide":"bottom","toNode":"34dd3bd4cbce9c6a","toSide":"top","color":"1","label":"no"},
+		{"id":"6cc24ea8b078f081","fromNode":"34dd3bd4cbce9c6a","fromSide":"bottom","toNode":"fb13860ed697c910","toSide":"top","color":"1","label":"no"},
+		{"id":"82ae5c303697541b","fromNode":"34dd3bd4cbce9c6a","fromSide":"bottom","toNode":"864dc515580bf9f3","toSide":"top","color":"4","label":"yes"}
+	],
+	"metadata":{}
 }

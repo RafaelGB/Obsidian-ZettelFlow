@@ -63,6 +63,47 @@ ZettelFlow provides a wide array of actions, including:
 
 ---
 
+## **Relationships Between Steps**
+
+In ZettelFlow, steps can be interconnected in different ways, allowing you to create meaningful relationships between your notes, groups, and actions. Here are the types of relationships available:
+
+### 1. Arrow-Based Connections
+
+Notes and cards can be linked using arrows, representing a direct relationship or flow between steps. These connections visually guide the sequence of actions or ideas.
+
+### 2. Group-to-Nodes Relationships
+
+Groups establish a one-to-many relationship with the nodes they contain. For example:
+
+- A group can include multiple notes or cards as its children.
+- Any action performed on the group can cascade or relate to its nodes.
+- A group can act as a Root Node, serving as the starting point of a flow.
+
+### 3. JavaScript File Connections
+
+JavaScript files can be linked to steps as if they were actions, executing custom scripts. These connections allow advanced users to:
+
+- Extend ZettelFlow's functionality.
+- Automate or customize specific parts of the workflow.
+
+> [!NOTE] Limitations
+> JavaScript files cannot serve as Root Nodes. They can only appear in the middle or at the end of a flow chain.
+
+### 4. Root Node Eligibility
+
+Steps that can serve as Root Nodes include:
+
+- Groups
+- Notes
+- Cards
+
+> [!WARNING] Exclusions
+> JavaScript files are excluded from being Root Nodes.
+
+These relationships give you the freedom to structure your workflows logically and intuitively, ensuring each flow adapts to your specific needs.
+
+---
+
 ## **Why Use ZettelFlow?**
 
 - **Freedom to Customize**: ZettelFlow adapts to your way of working, not the other way around.

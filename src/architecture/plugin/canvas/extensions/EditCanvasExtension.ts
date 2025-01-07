@@ -26,15 +26,9 @@ export default class EditStepCanvasExtension extends CanvasExtension {
     init(): void {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("canvas:popup-menu", (canvas: Canvas) => {
-
-                // The menu object from the Canvas
-                const popupMenuEl = canvas?.menu?.menuEl;
-                if (!popupMenuEl) return;
-
                 // Check if canvas is one of the ZettelFlow canvases
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (!file) return;
-
                 const { ribbonCanvas, editorCanvas, foldersFlowsPath } = this.plugin.settings;
                 if (
                     ribbonCanvas !== file.path &&
@@ -43,6 +37,11 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 ) {
                     return;
                 }
+
+                // The menu object from the Canvas
+                const popupMenuEl = canvas?.menu?.menuEl;
+                if (!popupMenuEl) return;
+
                 // Only proceed if exactly one node is selected
                 if (canvas.selection.size !== 1) return;
 

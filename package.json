@@ -21,7 +21,7 @@
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
     "@types/node": "22.10.5",
-    "@types/react": "19.0.3",
+    "@types/react": "19.0.4",
     "@types/react-dom": "19.0.2",
     "@types/uuid": "10.0.0",
     "builtin-modules": "4.0.0",
@@ -35,7 +35,7 @@
     "sass": "1.83.1",
     "ts-jest": "29.2.5",
     "tslib": "2.8.1",
-    "typescript": "5.7.2",
+    "typescript": "5.7.3",
     "zustand": "5.0.3"
   },
   "dependencies": {
@@ -43,7 +43,7 @@
     "@popperjs/core": "2.11.8",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "uuid": "11.0.4",
+    "uuid": "11.0.5",
     "monkey-around": "3.0.0"
   }
 }

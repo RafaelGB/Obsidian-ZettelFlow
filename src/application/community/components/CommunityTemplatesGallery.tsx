@@ -1,163 +1,215 @@
-import React, { useState, useEffect } from "react";
-
-// Tipos de ejemplo para simular la respuesta de la API
-type CommunityTemplate = {
-  id: string;
-  name: string;
-  description: string;
-  author: string;
-};
-
+import { c } from "architecture";
+import { CommunityTemplateOptions } from "config";
+import React, { useState, useEffect, useRef } from "react";
+import { request } from "obsidian";
 // Interfaz para el objeto de paginación
 type CommunityTemplatesResponse = {
-  items: CommunityTemplate[];
-  currentPage: number;
-  totalPages: number;
+  total: number;
+  items: CommunityTemplateOptions[];
+  pageInfo: {
+    skip: number;
+    limit: number;
+    has_next: boolean;
+    has_previous: boolean;
+  };
 };
 
+// Mock de fetch para simular una API con paginación progresiva
 function fetchCommunityTemplates(
   page: number,
-  search: string
+  limit: number,
+  searchTerm: string,
+  filter: "all" | "step" | "action"
 ): Promise<CommunityTemplatesResponse> {
-  // Este fetch está moqueado para simular la llamada a una API con paginación.
-  // En una implementación real, usarías fetch/axios/etc. y construirías la URL
-  // con los parámetros `page` y `search`.
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Datos moqueados
-      const allItems: CommunityTemplate[] = [
-        {
-          id: "1",
-          name: "Plantilla A",
-          description: "Descripción A",
-          author: "Alice",
-        },
-        {
-          id: "2",
-          name: "Plantilla B",
-          description: "Descripción B",
-          author: "Bob",
-        },
-        {
-          id: "3",
-          name: "Plantilla C",
-          description: "Descripción C",
-          author: "Charlie",
-        },
-        {
-          id: "4",
-          name: "Plantilla D",
-          description: "Descripción D",
-          author: "Diana",
-        },
-        {
-          id: "5",
-          name: "Plantilla E",
-          description: "Descripción E",
-          author: "Edward",
-        },
-        // ... podrías simular muchas más
-      ];
+  return new Promise(async (resolve) => {
+    // Call API localhost:8080/list
+    const rawList = await request({
+      url: `http://127.0.0.1:8000/list`,
+      method: "GET",
+      contentType: "application/json",
+    });
 
-      // Filtra por nombre o autor si 'search' no está vacío
-      const filteredItems = allItems.filter(
-        (item) =>
-          item.name.toLowerCase().includes(search.toLowerCase()) ||
-          item.author.toLowerCase().includes(search.toLowerCase())
-      );
+    const data: CommunityTemplatesResponse = JSON.parse(rawList);
+    // Simula filtrado por searchTerm en title, description o author
+    let filteredData = data.items.filter((item) => {
+      const inSearch = [item.title, item.description, item.author]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const inFilter = filter === "all" ? true : item.type === filter;
+      return inSearch && inFilter;
+    });
 
-      // Definimos un tamaño de página fijo
-      const pageSize = 3;
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const pagedItems = filteredItems.slice(startIndex, endIndex);
+    // Simula paginación por 'page' y 'limit'
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const pagedData = filteredData.slice(startIndex, endIndex);
 
-      // Construimos la respuesta simulada
-      const response: CommunityTemplatesResponse = {
-        items: pagedItems,
-        currentPage: page,
-        totalPages: Math.ceil(filteredItems.length / pageSize),
-      };
-
-      resolve(response);
-    }, 500);
+    // Devuelve la página simulada
+    resolve(data);
   });
 }
 
 export function CommunityTemplatesGallery() {
+  // Estado para la búsqueda
   const [searchTerm, setSearchTerm] = useState("");
+  // Estado para el filtro (all | step | action)
+  const [filter, setFilter] = useState<"all" | "step" | "action">("all");
+  // Estado para los templates que se van acumulando
+  const [templates, setTemplates] = useState<CommunityTemplateOptions[]>([]);
+  // Estado para el tracking de la paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const [templates, setTemplates] = useState<CommunityTemplate[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Referencia para el IntersectionObserver (sentinela al final de la lista)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Efecto para "resetear" al cambiar searchTerm o filter
   useEffect(() => {
-    // Cada vez que cambie la página o el searchTerm, se hace un "fetch" simulado
-    fetchCommunityTemplates(currentPage, searchTerm).then((data) => {
-      setTemplates(data.items);
-      setTotalPages(data.totalPages);
-    });
-  }, [currentPage, searchTerm]);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Reiniciamos la paginación a la 1ra página al hacer una nueva búsqueda
-    setSearchTerm(e.target.value);
+    // Si cambian el buscador o el filtro, reiniciamos todo
+    setTemplates([]);
     setCurrentPage(1);
+    setHasMore(true);
+  }, [searchTerm, filter]);
+
+  // Efecto para cargar datos cuando currentPage o searchTerm/filter cambian
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      // Ejemplo: limit 3 items por "página"
+      const limit = 15;
+      const response = await fetchCommunityTemplates(
+        currentPage,
+        limit,
+        searchTerm,
+        filter
+      );
+
+      if (response.items.length < limit) {
+        // Si recibimos menos de 'limit' significa que ya no hay más páginas
+        setHasMore(false);
+      }
+
+      // Agregamos los nuevos items al array existente
+      setTemplates((prev) => [...prev, ...response.items]);
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [currentPage, searchTerm, filter, hasMore]);
+
+  // Efecto para configurar el IntersectionObserver
+  useEffect(() => {
+    // Si ya se terminó la data o si ya estamos cargando, no hace falta observar
+    if (!hasMore || isLoading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        // Si el "sentinela" es visible, cargamos la siguiente página
+        if (first.isIntersecting) {
+          setCurrentPage((prevPage) => prevPage + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    // Cleanup: desconectar el observer para evitar fugas de memoria
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [isLoading, hasMore]);
+
+  // Manejadores para la UI
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handleSetFilter = (value: "all" | "step" | "action") => {
+    setFilter(value);
   };
 
   return (
     <div style={{ padding: "1rem" }}>
-      {/* Buscador */}
-      <input
-        type="text"
-        placeholder="Buscar por nombre o autor..."
-        value={searchTerm}
-        onChange={handleSearch}
-        style={{ marginBottom: "1rem", width: "100%", padding: "0.5rem" }}
-      />
+      {/* Buscador + Filtros */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
+        {/* Buscador */}
+        <input
+          type="text"
+          placeholder="Buscar..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          style={{ width: "60%", padding: "0.5rem" }}
+        />
 
-      {/* Galería en Cards */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-        {templates.map((template) => (
-          <div
-            key={template.id}
+        {/* Filtros a la derecha */}
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            onClick={() => handleSetFilter("all")}
             style={{
-              flex: "0 0 calc(33.333% - 1rem)",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              padding: "1rem",
+              backgroundColor: filter === "all" ? "#bbb" : "",
             }}
           >
-            <h3>{template.name}</h3>
+            All
+          </button>
+          <button
+            onClick={() => handleSetFilter("step")}
+            style={{
+              backgroundColor: filter === "step" ? "#bbb" : "",
+            }}
+          >
+            Steps
+          </button>
+          <button
+            onClick={() => handleSetFilter("action")}
+            style={{
+              backgroundColor: filter === "action" ? "#bbb" : "",
+            }}
+          >
+            Actions
+          </button>
+        </div>
+      </div>
+
+      {/* Render de la lista en forma de “cards” */}
+      <div className={c("actions-list")}>
+        {templates.map((template) => (
+          <div key={template.id} className={c("actions-management-add-card")}>
+            <h3>{template.title}</h3>
             <p>{template.description}</p>
-            <small>Autor: {template.author}</small>
+            <small>
+              Autor: {template.author} | Tipo: {template.type} | Descargas:
+              {template.downloads}
+            </small>
           </div>
         ))}
       </div>
 
-      {/* Controles de Paginación */}
-      <div style={{ marginTop: "1rem" }}>
-        <button onClick={handlePrevPage} disabled={currentPage === 1}>
-          Anterior
-        </button>
-        <span style={{ margin: "0 1rem" }}>
-          Página {currentPage} de {totalPages}
-        </span>
-        <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-          Siguiente
-        </button>
-      </div>
+      {/* Sentinela para infinite scroll */}
+      {hasMore && !isLoading && (
+        <div ref={loadMoreRef} style={{ height: "1px", margin: "1rem 0" }} />
+      )}
+
+      {/* Mensajes de estado */}
+      {isLoading && <p>Cargando más plantillas...</p>}
+      {!hasMore && <p>No hay más resultados</p>}
     </div>
   );
 }

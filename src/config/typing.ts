@@ -22,9 +22,21 @@ export interface ZettelFlowSettings {
     installedTemplates: InstalledTemplates,
 }
 
+export type CommunityTemplateOptions = {
+    id: string;
+    title: string;
+    description: string;
+    author: string,
+    downloads: number;
+    type: "step" | "action";
+}
+
+export type CommunityStepSettings = StepSettings & CommunityTemplateOptions;
+export type CommunityAction = Action & CommunityTemplateOptions;
+
 export type InstalledTemplates = {
-    steps: StepSettings[],
-    actions: Action[],
+    steps: CommunityStepSettings[];
+    actions: CommunityAction[];
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {

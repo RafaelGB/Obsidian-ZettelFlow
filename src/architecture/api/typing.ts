@@ -3,6 +3,7 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
 import { StepBuilderModal } from "zettelkasten";
 import { TFile } from "obsidian";
+import { JSX } from "react";
 
 export type ExecuteInfo = {
     element: FinalElement,

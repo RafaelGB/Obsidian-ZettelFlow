@@ -1,3 +1,4 @@
+import { c } from "architecture";
 import ZettelFlow from "main";
 import { Modal } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
@@ -9,7 +10,7 @@ export class ManageInstalledTemplatesModal extends Modal {
   }
 
   onOpen(): void {
-    this.modalEl.addClass("mod-sidebar-layout");
+    this.modalEl.addClass(c("modal"));
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);
   }

@@ -20,7 +20,7 @@ export class CommunityTemplatesBrowserHandler extends AbstractHandlerClass<Setti
                     .setClass('mod-cta')
                     .setButtonText(t('community_templates_browser_button_text'))
                     .onClick(() => {
-                        new CommunityTemplatesModal(info.plugin.app).open();
+                        new CommunityTemplatesModal(info.plugin).open();
                     })
             );
 
@@ -33,7 +33,7 @@ export class CommunityTemplatesBrowserHandler extends AbstractHandlerClass<Setti
                     .setClass('mod-cta')
                     .setButtonText(t('manage_installed_templates_button_text'))
                     .onClick(() => {
-                        new ManageInstalledTemplatesModal(info.plugin.app).open();
+                        new ManageInstalledTemplatesModal(info.plugin).open();
                     })
             );
 

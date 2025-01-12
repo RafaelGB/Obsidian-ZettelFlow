@@ -1,136 +1,154 @@
-import { c } from "architecture";
-import { CommunityTemplateOptions } from "config";
 import React, { useState, useEffect, useRef } from "react";
 import { request } from "obsidian";
-// Interfaz para el objeto de paginación
-type CommunityTemplatesResponse = {
+import { c } from "architecture";
+import { CommunityTemplateOptions } from "config";
+
+/**
+ * Response type expected from the server.
+ * Adjust this interface according to your actual API response structure.
+ */
+interface CommunityTemplatesResponse {
   total: number;
   items: CommunityTemplateOptions[];
-  pageInfo: {
+  page_info: {
     skip: number;
     limit: number;
     has_next: boolean;
     has_previous: boolean;
   };
-};
+}
 
-// Mock de fetch para simular una API con paginación progresiva
-function fetchCommunityTemplates(
-  page: number,
+/**
+ * Fetches community templates from the local server, applying pagination, search, and filter.
+ *
+ * @param skip - The current pagination offset.
+ * @param limit - The number of items to retrieve per request.
+ * @param searchTerm - Current search input text.
+ * @param filter - Current filter selection (all, step, action).
+ * @returns A promise resolving to a CommunityTemplatesResponse object.
+ */
+async function fetchCommunityTemplates(
+  skip: number,
   limit: number,
   searchTerm: string,
   filter: "all" | "step" | "action"
 ): Promise<CommunityTemplatesResponse> {
-  return new Promise(async (resolve) => {
-    // Call API localhost:8080/list
-    const rawList = await request({
-      url: `http://127.0.0.1:8000/list`,
-      method: "GET",
-      contentType: "application/json",
-    });
-
-    const data: CommunityTemplatesResponse = JSON.parse(rawList);
-    // Simula filtrado por searchTerm en title, description o author
-    let filteredData = data.items.filter((item) => {
-      const inSearch = [item.title, item.description, item.author]
-        .join(" ")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const inFilter = filter === "all" ? true : item.type === filter;
-      return inSearch && inFilter;
-    });
-
-    // Simula paginación por 'page' y 'limit'
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const pagedData = filteredData.slice(startIndex, endIndex);
-
-    // Devuelve la página simulada
-    resolve(data);
+  // Example GET request using Obsidian's request.
+  // Adjust query params to match your back-end logic as needed.
+  const rawList = await request({
+    url: `http://127.0.0.1:8000/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
+      searchTerm
+    )}&filter=${filter}`,
+    method: "GET",
+    contentType: "application/json",
   });
+  return JSON.parse(rawList) as CommunityTemplatesResponse;
 }
 
+/**
+ * A React component that renders an infinite-scrolling gallery of community templates.
+ */
 export function CommunityTemplatesGallery() {
-  // Estado para la búsqueda
+  // ---- State hooks ----
   const [searchTerm, setSearchTerm] = useState("");
-  // Estado para el filtro (all | step | action)
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
-  // Estado para los templates que se van acumulando
+
+  // Holds the entire list of community templates fetched so far.
   const [templates, setTemplates] = useState<CommunityTemplateOptions[]>([]);
-  // Estado para el tracking de la paginación
-  const [currentPage, setCurrentPage] = useState(1);
+
+  // Pagination control: we use skip to track how many items are already fetched.
+  // (This is an alternative to using page numbers.)
+  const [skip, setSkip] = useState(0);
+
+  // Fixed limit of items to fetch each time. Adjust as needed.
+  const LIMIT = 15;
+
+  // Flags to control the loading process and determine if more items remain.
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Referencia para el IntersectionObserver (sentinela al final de la lista)
+  // A ref to the sentinel element at the bottom of the list for the IntersectionObserver.
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // Efecto para "resetear" al cambiar searchTerm o filter
+  // ---- Effects ----
+
+  /**
+   * Resets pagination (skip = 0) and template list whenever the search or filter changes.
+   * This ensures we start from scratch with the new criteria.
+   */
   useEffect(() => {
-    // Si cambian el buscador o el filtro, reiniciamos todo
     setTemplates([]);
-    setCurrentPage(1);
+    setSkip(0);
     setHasMore(true);
   }, [searchTerm, filter]);
 
-  // Efecto para cargar datos cuando currentPage o searchTerm/filter cambian
+  /**
+   * Fetches more data whenever `skip` changes (i.e., we scrolled down), or when we just reset
+   * due to new search/filter. If `hasMore` is false, we skip the fetch.
+   */
   useEffect(() => {
     if (!hasMore) return;
 
-    const fetchData = async () => {
+    const getData = async () => {
       setIsLoading(true);
-      // Ejemplo: limit 3 items por "página"
-      const limit = 15;
-      const response = await fetchCommunityTemplates(
-        currentPage,
-        limit,
-        searchTerm,
-        filter
-      );
 
-      if (response.items.length < limit) {
-        // Si recibimos menos de 'limit' significa que ya no hay más páginas
-        setHasMore(false);
+      try {
+        const response = await fetchCommunityTemplates(
+          skip,
+          LIMIT,
+          searchTerm,
+          filter
+        );
+        console.log(`has_next: ${response.page_info.has_next}`);
+        // If the server indicates there are no more pages, or if we got fewer items than `LIMIT`,
+        // we assume we've reached the end.
+        if (!response.page_info.has_next || response.items.length < LIMIT) {
+          setHasMore(false);
+        }
+
+        // Accumulate the newly fetched items
+        setTemplates((prev) => [...prev, ...response.items]);
+      } catch (error) {
+        console.error("Error fetching community templates:", error);
+        // In a real app, you might want to show an error message in the UI.
+      } finally {
+        setIsLoading(false);
       }
-
-      // Agregamos los nuevos items al array existente
-      setTemplates((prev) => [...prev, ...response.items]);
-      setIsLoading(false);
     };
 
-    fetchData();
-  }, [currentPage, searchTerm, filter, hasMore]);
+    getData();
+  }, [skip, searchTerm, filter, hasMore]);
 
-  // Efecto para configurar el IntersectionObserver
+  /**
+   * Sets up the IntersectionObserver to watch the sentinel element.
+   * When the sentinel is in view and we're not already fetching, increment `skip` by `LIMIT`.
+   */
   useEffect(() => {
-    // Si ya se terminó la data o si ya estamos cargando, no hace falta observar
     if (!hasMore || isLoading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const first = entries[0];
-        // Si el "sentinela" es visible, cargamos la siguiente página
-        if (first.isIntersecting) {
-          setCurrentPage((prevPage) => prevPage + 1);
+        const firstEntry = entries[0];
+        if (firstEntry.isIntersecting) {
+          setSkip((prevSkip) => prevSkip + LIMIT);
         }
       },
       { threshold: 0.1 }
     );
 
     const currentRef = loadMoreRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
+    if (currentRef) observer.observe(currentRef);
 
-    // Cleanup: desconectar el observer para evitar fugas de memoria
+    // Cleanup to avoid memory leaks.
     return () => {
       if (currentRef) {
         observer.unobserve(currentRef);
       }
     };
-  }, [isLoading, hasMore]);
+  }, [hasMore, isLoading]);
 
-  // Manejadores para la UI
+  // ---- Handlers for the UI elements ----
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -139,9 +157,11 @@ export function CommunityTemplatesGallery() {
     setFilter(value);
   };
 
+  // ---- Render ----
+
   return (
     <div style={{ padding: "1rem" }}>
-      {/* Buscador + Filtros */}
+      {/* Search + Filter Options */}
       <div
         style={{
           display: "flex",
@@ -150,21 +170,22 @@ export function CommunityTemplatesGallery() {
           marginBottom: "1rem",
         }}
       >
-        {/* Buscador */}
+        {/* Search Input */}
         <input
           type="text"
-          placeholder="Buscar..."
+          placeholder="Search by title, description, or author..."
           value={searchTerm}
           onChange={handleSearchChange}
           style={{ width: "60%", padding: "0.5rem" }}
         />
 
-        {/* Filtros a la derecha */}
+        {/* Filter Buttons */}
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
             onClick={() => handleSetFilter("all")}
             style={{
-              backgroundColor: filter === "all" ? "#bbb" : "",
+              backgroundColor: filter === "all" ? "#cccccc" : "",
+              padding: "0.5rem",
             }}
           >
             All
@@ -172,7 +193,8 @@ export function CommunityTemplatesGallery() {
           <button
             onClick={() => handleSetFilter("step")}
             style={{
-              backgroundColor: filter === "step" ? "#bbb" : "",
+              backgroundColor: filter === "step" ? "#cccccc" : "",
+              padding: "0.5rem",
             }}
           >
             Steps
@@ -180,7 +202,8 @@ export function CommunityTemplatesGallery() {
           <button
             onClick={() => handleSetFilter("action")}
             style={{
-              backgroundColor: filter === "action" ? "#bbb" : "",
+              backgroundColor: filter === "action" ? "#cccccc" : "",
+              padding: "0.5rem",
             }}
           >
             Actions
@@ -188,28 +211,28 @@ export function CommunityTemplatesGallery() {
         </div>
       </div>
 
-      {/* Render de la lista en forma de “cards” */}
+      {/* Templates List (rendered as cards) */}
       <div className={c("actions-list")}>
         {templates.map((template) => (
           <div key={template.id} className={c("actions-management-add-card")}>
             <h3>{template.title}</h3>
             <p>{template.description}</p>
             <small>
-              Autor: {template.author} | Tipo: {template.type} | Descargas:
+              Author: {template.author} | Type: {template.type} | Downloads:{" "}
               {template.downloads}
             </small>
           </div>
         ))}
       </div>
 
-      {/* Sentinela para infinite scroll */}
+      {/* Infinite scroll sentinel */}
       {hasMore && !isLoading && (
         <div ref={loadMoreRef} style={{ height: "1px", margin: "1rem 0" }} />
       )}
 
-      {/* Mensajes de estado */}
-      {isLoading && <p>Cargando más plantillas...</p>}
-      {!hasMore && <p>No hay más resultados</p>}
+      {/* Status messages */}
+      {isLoading && <p>Loading more templates...</p>}
+      {!hasMore && <p>No more results.</p>}
     </div>
   );
 }

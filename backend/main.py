@@ -1,90 +1,67 @@
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Union
-import random
+
+from services.mongodb import MongoCRUDService
 
 app = FastAPI()
+mongoCRUDService = MongoCRUDService()
 
-# Mock data
-data = [
-    {
-        "id": str(i),
-        "title": f"Plantilla {['Action', 'Step'][i % 2]} {i}",
-        "description": f"Desc {['Action', 'Step'][i % 2]} {i}",
-        "author": random.choice(["Alice", "Bob", "Charlie", "Diana", "Edward", "Fabian"]),
-        "type": ["action", "step"][i % 2],
-        "downloads": random.randint(20, 500),
-    }
-    for i in range(1, 101)
-]
 
 # Define models for StepSettings and Action
-class Action(BaseModel):
+class CommunityAction(BaseModel):
+    title: str
+    description: str
     type: str
-    id: str
-    description: Union[str, None] = None
     hasUI: Union[bool, None] = None
-    additional_props: dict = {}
+    model_config = ConfigDict(
+        extra='allow',
+    )
 
-class StepSettings(BaseModel):
+class Action(BaseModel):
+    description: str
+    type: str
+    hasUI: Union[bool, None] = None
+
+class CommunityStepSettings(BaseModel):
+    title: str
+    description: str
     root: bool
     actions: List[Action]
     label: str
     targetFolder: Union[str, None] = None
     childrenHeader: Union[str, None] = None
     optional: Union[bool, None] = None
+    model_config = ConfigDict(
+        extra='allow',
+    )
 
-@app.get("/list")
-def get_list(skip: int = Query(0, ge=0), limit: int = Query(10, ge=1)):
-    """Return a paginated list of data."""
-    start = skip
-    end = skip + limit
-    return {
-        "total": len(data),
-        "items": data[start:end],
-        "page_info": {
-            "skip": skip,
-            "limit": limit,
-            "has_next": end < len(data),
-            "has_previous": start > 0,
-        },
-    }
+@app.get("/filter")
+def filter(query: str = Query(None),
+           skip: int = Query(0, ge=0), limit: int = Query(10, ge=1)):
+    """Return a list of items from the database, with optional skip and limit parameters."""
+    print(f"Query: {query}; Skip: {skip}; Limit: {limit}")
+    return mongoCRUDService.read_templates(query=query, skip=skip, limit=limit)
 
 @app.get("/item/{item_id}")
 def get_item(item_id: str):
     """Return specific item data based on ID."""
-    item = next((item for item in data if item["id"] == item_id), None)
-    if not item:
+
+@app.post("/create/step")
+def create_step(item: CommunityStepSettings):
+    """Given a StepSettings object, create a new item in the database. Return the created item."""
+    return mongoCRUDService.create_step(item.model_dump())
+
+@app.post("/create/action")
+def create_action(item: CommunityAction):
+    """Given an Action object, create a new item in the database. Return the created item."""
+    return mongoCRUDService.create_action(item.model_dump())
+
+@app.delete("/delete/step/{item_id}")
+def delete_item(item_id: str):
+    """Delete the item with the given ID from the database."""
+    deletedItems = mongoCRUDService.delete_template(item_id)
+    # If no items were deleted, raise an HTTPException with status code 404
+    if deletedItems.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
-
-    if item["type"] == "step":
-        # Mocked StepSettings for a step item
-        response = {
-            "root": bool(random.getrandbits(1)),
-            "actions": [
-                {
-                    "type": random.choice(["navigate", "click"]),
-                    "id": f"action-{random.randint(1, 100)}",
-                    "description": "Mock action description",
-                    "hasUI": bool(random.getrandbits(1)),
-                }
-                for _ in range(random.randint(1, 5))
-            ],
-            "label": f"Label for step {item_id}",
-            "targetFolder": f"/folder/{item_id}" if bool(random.getrandbits(1)) else None,
-            "childrenHeader": f"Header-{item_id}" if bool(random.getrandbits(1)) else None,
-            "optional": bool(random.getrandbits(1)),
-        }
-    elif item["type"] == "action":
-        # Mocked Action data for an action item
-        response = {
-            "type": "action-type",
-            "id": item_id,
-            "description": f"Detailed description for action {item_id}",
-            "hasUI": bool(random.getrandbits(1)),
-            "additional_props": {f"key-{i}": f"value-{i}" for i in range(1, random.randint(2, 5))},
-        }
-    else:
-        raise HTTPException(status_code=400, detail="Invalid item type")
-
-    return response
+    

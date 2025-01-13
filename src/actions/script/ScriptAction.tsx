@@ -31,6 +31,7 @@ export class ScriptAction extends CustomZettelAction {
 
       const functions = await fnsManager.getFns();
       const scriptFn = new AsyncFunction(
+        "element",
         "content",
         "note",
         "context",

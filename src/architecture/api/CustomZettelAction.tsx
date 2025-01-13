@@ -5,7 +5,7 @@ import {
   ExecuteInfo,
   ICustomZettelAction,
 } from "./typing";
-import React from "react";
+import React, { JSX } from "react";
 import { TFile } from "obsidian";
 
 export abstract class CustomZettelAction implements ICustomZettelAction {

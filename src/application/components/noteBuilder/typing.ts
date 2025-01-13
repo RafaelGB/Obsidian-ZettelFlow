@@ -8,6 +8,7 @@ import { FinalElement } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { ZettelFlowSettings } from "config";
 import { SelectorMenuModal } from "zettelkasten";
+import { JSX } from "react";
 
 export type NoteBuilderType = {
     plugin: ZettelFlow;

@@ -105,9 +105,7 @@ function AccordionBody(props: ActionAccordionProps) {
   useEffect(() => {
     const body = bodyRef.current;
     if (body) {
-      actionsStore
-        .getAction(action.type)
-        .settings(bodyRef.current, modal, action);
+      actionsStore.getAction(action.type).settings(body, modal, action);
     }
   }, []);
   return <div ref={bodyRef} />;

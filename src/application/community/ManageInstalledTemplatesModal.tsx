@@ -1,6 +1,7 @@
 import { c } from "architecture";
 import ZettelFlow from "main";
 import { Modal } from "obsidian";
+import React from "react";
 import { createRoot, Root } from "react-dom/client";
 
 export class ManageInstalledTemplatesModal extends Modal {
@@ -13,5 +14,6 @@ export class ManageInstalledTemplatesModal extends Modal {
     this.modalEl.addClass(c("modal"));
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);
+    this.root.render(<div />);
   }
 }

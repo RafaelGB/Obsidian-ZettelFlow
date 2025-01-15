@@ -7,7 +7,7 @@ import { CommunityTemplatesGallery } from "./components/CommunityTemplatesGaller
 
 export class CommunityTemplatesModal extends Modal {
   private root: Root;
-  constructor(plugin: ZettelFlow) {
+  constructor(private plugin: ZettelFlow) {
     super(plugin.app);
   }
 
@@ -15,6 +15,6 @@ export class CommunityTemplatesModal extends Modal {
     this.modalEl.addClass(c("modal"));
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);
-    this.root.render(<CommunityTemplatesGallery />);
+    this.root.render(<CommunityTemplatesGallery plugin={this.plugin} />);
   }
 }

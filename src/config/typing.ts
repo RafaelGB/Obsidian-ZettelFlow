@@ -35,8 +35,8 @@ export type CommunityStepSettings = StepSettings & CommunityTemplateOptions;
 export type CommunityAction = Action & CommunityTemplateOptions;
 
 export type InstalledTemplates = {
-    steps: CommunityStepSettings[];
-    actions: CommunityAction[];
+    steps: Record<string, CommunityStepSettings>;
+    actions: Record<string, CommunityAction>;
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
@@ -46,7 +46,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     foldersFlowsPath: "_ZettelFlow",
     tableOfContentEnabled: true,
     installedTemplates: {
-        steps: [],
-        actions: [],
+        steps: {},
+        actions: {}
     }
 }

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { request } from "obsidian";
 import { c } from "architecture";
-import { CommunityTemplateOptions } from "config";
+import { CommunityStepSettings, CommunityTemplateOptions } from "config";
+import { PluginComponentProps } from "../typing";
 
 /**
  * Response type expected from the server.
- * Adjust this interface according to your actual API response structure.
+ * Ajusta esta interfaz de acuerdo a la respuesta real de tu API.
  */
 interface CommunityTemplatesResponse {
   total: number;
@@ -19,13 +20,7 @@ interface CommunityTemplatesResponse {
 }
 
 /**
- * Fetches community templates from the local server, applying pagination, search, and filter.
- *
- * @param skip - The current pagination offset.
- * @param limit - The number of items to retrieve per request.
- * @param searchTerm - Current search input text.
- * @param filter - Current filter selection (all, step, action).
- * @returns A promise resolving to a CommunityTemplatesResponse object.
+ * Función para obtener templates de la API, con filtros de paginación, búsqueda y tipo (step/action/all).
  */
 async function fetchCommunityTemplates(
   skip: number,
@@ -33,8 +28,6 @@ async function fetchCommunityTemplates(
   searchTerm: string,
   filter: "all" | "step" | "action"
 ): Promise<CommunityTemplatesResponse> {
-  // Example GET request using Obsidian's request.
-  // Adjust query params to match your back-end logic as needed.
   const rawList = await request({
     url: `http://127.0.0.1:8000/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
       searchTerm
@@ -42,56 +35,42 @@ async function fetchCommunityTemplates(
     method: "GET",
     contentType: "application/json",
   });
+
   return JSON.parse(rawList) as CommunityTemplatesResponse;
 }
 
-/**
- * A React component that renders an infinite-scrolling gallery of community templates.
- */
-export function CommunityTemplatesGallery() {
-  // ---- State hooks ----
+export function CommunityTemplatesGallery(props: PluginComponentProps) {
+  const { plugin } = props;
+  // Obtenemos steps y actions instalados desde las settings del plugin
+  const { steps, actions } = plugin.settings.installedTemplates;
+
+  // ---- State ----
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
-
-  // Holds the entire list of community templates fetched so far.
   const [templates, setTemplates] = useState<CommunityTemplateOptions[]>([]);
-
-  // Pagination control: we use skip to track how many items are already fetched.
-  // (This is an alternative to using page numbers.)
   const [skip, setSkip] = useState(0);
-
-  // Fixed limit of items to fetch each time. Adjust as needed.
   const LIMIT = 15;
-
-  // Flags to control the loading process and determine if more items remain.
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // A ref to the sentinel element at the bottom of the list for the IntersectionObserver.
+  // Sentinel para el infinite scroll
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // ---- Effects ----
 
-  /**
-   * Resets pagination (skip = 0) and template list whenever the search or filter changes.
-   * This ensures we start from scratch with the new criteria.
-   */
+  // 1) Reset de templates al cambiar búsqueda o filtro
   useEffect(() => {
     setTemplates([]);
     setSkip(0);
     setHasMore(true);
   }, [searchTerm, filter]);
 
-  /**
-   * Fetches more data whenever `skip` changes (i.e., we scrolled down), or when we just reset
-   * due to new search/filter. If `hasMore` is false, we skip the fetch.
-   */
+  // 2) Cada vez que 'skip' cambia (por scroll) o se resetea, cargamos más datos
   useEffect(() => {
     if (!hasMore) return;
 
     const getData = async () => {
       setIsLoading(true);
-
       try {
         const response = await fetchCommunityTemplates(
           skip,
@@ -99,18 +78,14 @@ export function CommunityTemplatesGallery() {
           searchTerm,
           filter
         );
-        console.log(`has_next: ${response.page_info.has_next}`);
-        // If the server indicates there are no more pages, or if we got fewer items than `LIMIT`,
-        // we assume we've reached the end.
+
         if (!response.page_info.has_next || response.items.length < LIMIT) {
           setHasMore(false);
         }
 
-        // Accumulate the newly fetched items
         setTemplates((prev) => [...prev, ...response.items]);
       } catch (error) {
         console.error("Error fetching community templates:", error);
-        // In a real app, you might want to show an error message in the UI.
       } finally {
         setIsLoading(false);
       }
@@ -119,10 +94,7 @@ export function CommunityTemplatesGallery() {
     getData();
   }, [skip, searchTerm, filter, hasMore]);
 
-  /**
-   * Sets up the IntersectionObserver to watch the sentinel element.
-   * When the sentinel is in view and we're not already fetching, increment `skip` by `LIMIT`.
-   */
+  // 3) IntersectionObserver para el infinite scroll
   useEffect(() => {
     if (!hasMore || isLoading) return;
 
@@ -139,16 +111,12 @@ export function CommunityTemplatesGallery() {
     const currentRef = loadMoreRef.current;
     if (currentRef) observer.observe(currentRef);
 
-    // Cleanup to avoid memory leaks.
     return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
+      if (currentRef) observer.unobserve(currentRef);
     };
   }, [hasMore, isLoading]);
 
-  // ---- Handlers for the UI elements ----
-
+  // ---- Handlers ----
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -157,11 +125,56 @@ export function CommunityTemplatesGallery() {
     setFilter(value);
   };
 
-  // ---- Render ----
+  /**
+   * Determina si el template está instalado según su tipo (step/action).
+   * Retorna true/false para indicar si está instalado.
+   */
+  const isTemplateInstalled = (template: CommunityTemplateOptions) => {
+    if (template.type === "step") {
+      return steps[template.id];
+    } else if (template.type === "action") {
+      return actions[template.id];
+    }
+    return false;
+  };
+
+  /**
+   * Lógica para instalar/desinstalar un template:
+   * Aquí deberías invocar la lógica real de tu plugin para modificar
+   * las settings. Por ejemplo, guardarlo en plugin.settings.installedTemplates
+   * y llamar a plugin.saveSettings(), etc.
+   */
+  const handleInstallUninstall = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    template: CommunityTemplateOptions
+  ) => {
+    e.stopPropagation(); // Evita que se dispare el onClick del card
+    const installed = isTemplateInstalled(template);
+    if (installed) {
+      if (template.type === "step") {
+        delete plugin.settings.installedTemplates.steps[template.id];
+      } else if (template.type === "action") {
+        delete plugin.settings.installedTemplates.actions[template.id];
+      }
+      setTemplates([...templates]);
+    } else {
+      if (template.type === "step") {
+        plugin.settings.installedTemplates.steps[template.id] =
+          template as CommunityStepSettings;
+      }
+
+      if (template.type === "action") {
+        plugin.settings.installedTemplates.actions[template.id] = template;
+      }
+
+      setTemplates([...templates]);
+    }
+    plugin.saveSettings();
+  };
 
   return (
     <div style={{ padding: "1rem" }}>
-      {/* Search + Filter Options */}
+      {/* Search + Filter */}
       <div
         style={{
           display: "flex",
@@ -170,16 +183,16 @@ export function CommunityTemplatesGallery() {
           marginBottom: "1rem",
         }}
       >
-        {/* Search Input */}
+        {/* Barra de búsqueda */}
         <input
           type="text"
-          placeholder="Search by title, description, or author..."
+          placeholder="Buscar por título, descripción o autor..."
           value={searchTerm}
           onChange={handleSearchChange}
           style={{ width: "60%", padding: "0.5rem" }}
         />
 
-        {/* Filter Buttons */}
+        {/* Filtros */}
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
             onClick={() => handleSetFilter("all")}
@@ -211,26 +224,69 @@ export function CommunityTemplatesGallery() {
         </div>
       </div>
 
-      {/* Templates List (rendered as cards) */}
+      {/* Lista de templates */}
       <div className={c("actions-list")}>
-        {templates.map((template) => (
-          <div key={template.id} className={c("actions-management-add-card")}>
-            <h3>{template.title}</h3>
-            <p>{template.description}</p>
-            <small>
-              Author: {template.author} | Type: {template.type} | Downloads:{" "}
-              {template.downloads}
-            </small>
-          </div>
-        ))}
+        {templates.map((template) => {
+          const installed = isTemplateInstalled(template);
+
+          return (
+            <div
+              key={template.id}
+              className={c("actions-management-add-card")}
+              style={{
+                border: "1px solid #ccc",
+                padding: "1rem",
+                marginBottom: "1rem",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              <h3 style={{ margin: 0 }}>
+                {template.title}
+                {installed && (
+                  <span
+                    style={{
+                      marginLeft: "0.5rem",
+                      color: "green",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    (Installed)
+                  </span>
+                )}
+              </h3>
+              <p>{template.description}</p>
+              <small>
+                Author: {template.author} | Type: {template.type} | Downloads:{" "}
+                {template.downloads}
+              </small>
+              <div style={{ marginTop: "0.5rem" }}>
+                <button
+                  onClick={(e) => {
+                    handleInstallUninstall(e, template);
+                  }}
+                  style={{
+                    padding: "0.3rem 0.6rem",
+                    backgroundColor: installed ? "#ff9999" : "#99cc99",
+                    borderRadius: "4px",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {installed ? "Uninstall" : "Install"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Infinite scroll sentinel */}
+      {/* Sentinel para el infinite scroll */}
       {hasMore && !isLoading && (
         <div ref={loadMoreRef} style={{ height: "1px", margin: "1rem 0" }} />
       )}
 
-      {/* Status messages */}
+      {/* Mensajes de estado */}
       {isLoading && <p>Loading more templates...</p>}
       {!hasMore && <p>No more results.</p>}
     </div>

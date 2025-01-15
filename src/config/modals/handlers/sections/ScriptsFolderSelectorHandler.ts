@@ -3,7 +3,6 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { FolderSuggest } from "architecture/settings";
 import { SettingsHandlerInfo } from "config/typing";
 import { Setting } from "obsidian";
-import { TableOfContentToggleHandler } from "./TableOfContentToggleHandler";
 
 export class ScriptsFolderSelectorHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('scripts_folder_selector_title');
@@ -30,9 +29,5 @@ export class ScriptsFolderSelectorHandler extends AbstractHandlerClass<SettingsH
                     .onChange(source_form_promise);
             });
         return this.goNext(info);
-    }
-
-    manageNextHandler() {
-        this.nextHandler = new TableOfContentToggleHandler();
     }
 }

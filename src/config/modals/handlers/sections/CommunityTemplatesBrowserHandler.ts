@@ -25,7 +25,7 @@ export class CommunityTemplatesBrowserHandler extends AbstractHandlerClass<Setti
             );
 
 
-        new Setting(info.containerEl)
+        new Setting(containerEl)
             .setName(`${t('manage_installed_templates_title')} (Beta)`)
             .setDesc(t('manage_installed_templates_description'))
             .addButton(button =>

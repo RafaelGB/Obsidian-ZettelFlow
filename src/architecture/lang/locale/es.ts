@@ -1,4 +1,5 @@
 export default {
+    reset_to_default: 'Restablecer al valor por defecto',
     default_selector_title: 'Elige una opción',
     canvas_node_menu_edit_embed: 'Editar nodo embebido: añadir o eliminar acciones',
     navbar_skip_step: 'Saltar paso',
@@ -29,6 +30,8 @@ export default {
     menu_pane_remove_step_configuration: 'Restablecer a nota normal',
     menu_pane_copy_step_configuration: 'Copiar al portapapeles (configuración de zettelFlow)',
     menu_pane_paste_step_configuration: 'Pegar desde el portapapeles (configuración de zettelFlow)',
+    community_url_title: 'URL de las plantillas de la comunidad',
+    community_url_description: 'Establece la URL de la comunidad de ZettelFlow',
     selector_menu_title: 'Menu Zettelcaster',
     logger_toggle_title: 'Activar logger',
     logger_toggle_description: 'Activar o desactivar logger',

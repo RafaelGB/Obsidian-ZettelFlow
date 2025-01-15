@@ -20,6 +20,9 @@ export interface ZettelFlowSettings {
     jsLibraryFolderPath: string,
     foldersFlowsPath: string,
     installedTemplates: InstalledTemplates,
+    communitySettings: {
+        url: string,
+    }
 }
 
 export type CommunityTemplateOptions = {
@@ -48,5 +51,8 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     installedTemplates: {
         steps: {},
         actions: {}
+    },
+    communitySettings: {
+        url: "http://127.0.0.1:8000"
     }
 }

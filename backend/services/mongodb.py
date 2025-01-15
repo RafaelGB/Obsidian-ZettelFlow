@@ -57,7 +57,6 @@ class MongoCRUDService:
             }
         }
 
-
     def update_template(self, template_id, update_data):
         '''Update a document in the database based on the template_id and update_data'''
         result = self.collection.update_one({"_id": template_id}, {"$set": update_data})

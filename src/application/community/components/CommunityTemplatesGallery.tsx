@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { request } from "obsidian";
 import { c } from "architecture";
-import { CommunityStepSettings, CommunityTemplateOptions } from "config";
+import {
+  CommunityStepSettings,
+  CommunityTemplateOptions,
+  ZettelFlowSettings,
+} from "config";
 import { PluginComponentProps } from "../typing";
 
 /**
@@ -26,10 +30,13 @@ async function fetchCommunityTemplates(
   skip: number,
   limit: number,
   searchTerm: string,
-  filter: "all" | "step" | "action"
+  filter: "all" | "step" | "action",
+  settings: ZettelFlowSettings
 ): Promise<CommunityTemplatesResponse> {
   const rawList = await request({
-    url: `http://127.0.0.1:8000/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
+    url: `${
+      settings.communitySettings.url
+    }/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
       searchTerm
     )}&filter=${filter}`,
     method: "GET",
@@ -76,7 +83,8 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
           skip,
           LIMIT,
           searchTerm,
-          filter
+          filter,
+          plugin.settings
         );
 
         if (!response.page_info.has_next || response.items.length < LIMIT) {

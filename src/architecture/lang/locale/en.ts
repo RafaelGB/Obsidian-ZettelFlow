@@ -1,4 +1,5 @@
 export default {
+    reset_to_default: 'Reset to default',
     default_selector_title: "choose an option",
     canvas_node_menu_edit_embed: 'Edit embed node: Add or remove actions',
     navbar_skip_step: 'Skip step',
@@ -31,6 +32,8 @@ export default {
     menu_pane_copy_step_configuration: 'Copy to clipboard (step configuration)',
     menu_pane_paste_step_configuration: 'Paste from clipboard (step configuration)',
     flow_selector_placeholder: 'Select a flow',
+    community_url_title: 'Community URL',
+    community_url_description: 'Set the URL of the community server',
     logger_toggle_title: 'Enable logger',
     logger_toggle_description: 'Enable or disable logger',
     logger_level_title: 'Logger level',

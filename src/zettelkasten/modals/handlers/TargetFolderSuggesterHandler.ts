@@ -1,14 +1,14 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { StepBuilderModal } from "zettelkasten";
 import { FolderSuggest } from "architecture/settings";
 import { OptionalToggleHandler } from "./OptionalToggleHandler";
+import { AbstractStepModal } from "../AbstractStepModal";
 
-export class TargetFolderSuggesterHandler extends AbstractHandlerClass<StepBuilderModal>  {
+export class TargetFolderSuggesterHandler extends AbstractHandlerClass<AbstractStepModal> {
     name = t('step_builder_target_folder_title');
     description = t('step_builder_target_folder_description');
-    handle(modal: StepBuilderModal): StepBuilderModal {
+    handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
         if (modal.builder === "editor") {
             return this.goNext(modal);

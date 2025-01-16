@@ -4,6 +4,7 @@ import { c } from "architecture";
 import { InstalledActionDetail } from "./ActionComponentView";
 import { InstalledStepDetail } from "./StepComponentView";
 import { CommunityAction, CommunityStepSettings } from "config";
+import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
 
 export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const { plugin } = props;
@@ -95,7 +96,11 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const onTemplateClick = (
     template: CommunityStepSettings | CommunityAction
   ) => {
-    setSelectedTemplate(template);
+    if (template.type === "step") {
+      new InstalledStepEditorModal(plugin.app).open();
+    } else if (template.type === "action") {
+      // TODO: Open action detail view
+    }
   };
 
   /**
@@ -134,6 +139,10 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
    */
   if (selectedTemplate) {
     if (selectedTemplate.type === "step") {
+      new InstalledStepEditorModal(
+        plugin.app,
+        selectedTemplate as CommunityStepSettings
+      ).open();
       return (
         <InstalledStepDetail
           step={selectedTemplate as CommunityStepSettings}

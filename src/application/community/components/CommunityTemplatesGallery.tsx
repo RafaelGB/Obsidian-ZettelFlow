@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { request } from "obsidian";
-import { c } from "architecture";
+import { c, log } from "architecture";
 import {
   CommunityStepSettings,
   CommunityTemplateOptions,
@@ -92,7 +92,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
 
         setTemplates((prev) => [...prev, ...response.items]);
       } catch (error) {
-        console.error("Error fetching community templates:", error);
+        log.error("Error fetching community templates:", error);
       } finally {
         setIsLoading(false);
       }

@@ -1,13 +1,13 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { StepBuilderModal } from "zettelkasten";
 import { StepSectionLabelHandler } from "./StepSectionLabelHandler";
+import { AbstractStepModal } from "../AbstractStepModal";
 
-export class StepTitleHandler extends AbstractHandlerClass<StepBuilderModal>  {
+export class StepTitleHandler extends AbstractHandlerClass<AbstractStepModal> {
     name = t('step_builder_step_title');
     description = t('step_builder_step_title_description');
-    handle(modal: StepBuilderModal): StepBuilderModal {
+    handle(modal: AbstractStepModal): AbstractStepModal {
         const { info, mode } = modal;
         if (mode !== "create") {
             return this.goNext(modal);

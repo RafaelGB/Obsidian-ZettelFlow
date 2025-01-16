@@ -2,12 +2,12 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { RootToggleHandler } from "./RootToggleHandler";
-import { StepBuilderModal } from "zettelkasten";
+import { AbstractStepModal } from "../AbstractStepModal";
 
-export class StepSectionLabelHandler extends AbstractHandlerClass<StepBuilderModal>  {
+export class StepSectionLabelHandler extends AbstractHandlerClass<AbstractStepModal> {
     name = t('step_builder_section_label_title');
     description = t('step_builder_section_label_description');
-    handle(modal: StepBuilderModal): StepBuilderModal {
+    handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
         const { contentEl, label } = info;
         const onChangePromise = (value: string) => {

@@ -5,11 +5,9 @@ import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { ObsidianApi, c, log } from "architecture";
-import { canvas } from "architecture/plugin/canvas";
 import { AbstractStepModal } from "./AbstractStepModal";
 
-
-export class StepBuilderModal extends AbstractStepModal {
+export class InstalledStepEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
     mode = "edit";
     builder = "ribbon";
@@ -20,17 +18,7 @@ export class StepBuilderModal extends AbstractStepModal {
 
     }
 
-    setMode(mode: "edit" | "create" | "embed"): StepBuilderModal {
-        this.mode = mode;
-        return this;
-    }
-
-    setBuilder(builder: "ribbon" | "editor"): StepBuilderModal {
-        this.builder = builder;
-        return this;
-    }
-
-    setNodeId(nodeId: string): StepBuilderModal {
+    setNodeId(nodeId: string): InstalledStepEditorModal {
         this.info.nodeId = nodeId;
         return this;
     }
@@ -54,6 +42,7 @@ export class StepBuilderModal extends AbstractStepModal {
     onClose(): void {
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
+
         switch (this.mode) {
             case "edit":
             case "create":
@@ -66,31 +55,7 @@ export class StepBuilderModal extends AbstractStepModal {
                         log.error(error);
                         new Notice(`Error saving file ${path}, check console for more info`);
                     });
-                break
-            case "embed":
-                this.saveEmbed(path.concat(".canvas"))
-                    .then(() => {
-                        log.info(`Embed with id ${this.info.nodeId} saved on ${path}`);
-                        this.chain.postAction();
-                    })
-                    .catch((error) => {
-                        log.error(error);
-                        new Notice(`Error saving embed on ${path}, check console for more info`);
-                    }
-                    );
                 break;
-        }
-    }
-
-    private async saveEmbed(path: string): Promise<void> {
-        if (this.info.nodeId) {
-            const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
-            await canvas.flows.update(path);
-            await canvas.flows
-                .get(path)
-                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
-        } else {
-            log.error(`Node id not found on embed mode`);
         }
     }
 

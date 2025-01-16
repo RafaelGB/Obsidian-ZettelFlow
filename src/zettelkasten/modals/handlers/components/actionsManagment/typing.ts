@@ -1,12 +1,12 @@
 import { Action } from "architecture/api";
-import { StepBuilderModal } from "zettelkasten/modals/StepBuilderModal";
+import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 
 export type ActionsManagementProps = {
-    modal: StepBuilderModal
+    modal: AbstractStepModal
 };
 
 export type ActionAccordionProps = {
-    modal: StepBuilderModal,
+    modal: AbstractStepModal,
     action: Action,
     index: number,
     onRemove: () => void,

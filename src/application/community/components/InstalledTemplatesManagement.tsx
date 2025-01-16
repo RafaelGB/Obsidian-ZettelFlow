@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { PluginComponentProps } from "../typing";
 import { c } from "architecture";
 import { InstalledActionDetail } from "./ActionComponentView";
@@ -7,68 +7,135 @@ import { CommunityAction, CommunityStepSettings } from "config";
 
 export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const { plugin } = props;
-  const { steps, actions } = plugin.settings.installedTemplates;
 
-  // Preparamos un array conjunto con todos los instalados
+  /**
+   * We keep local copies of steps and actions in state
+   * so that uninstalling an item removes it immediately from the UI.
+   */
+  const [localSteps, setLocalSteps] = useState<
+    Record<string, CommunityStepSettings>
+  >(() => ({ ...plugin.settings.installedTemplates.steps }));
+  const [localActions, setLocalActions] = useState<
+    Record<string, CommunityAction>
+  >(() => ({ ...plugin.settings.installedTemplates.actions }));
+
+  /**
+   * We'll store the search term and current filter in state
+   */
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState<"all" | "step" | "action">("all");
+
+  /**
+   * Keep track of the currently selected template (step or action)
+   * to display the detail view if needed.
+   */
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    CommunityStepSettings | CommunityAction | null
+  >(null);
+
+  /**
+   * Combine local steps and actions into a single array
+   * so we can filter and map them easily.
+   * Recomputed whenever localSteps or localActions changes.
+   */
   const allInstalled = useMemo(() => {
-    const stepArray = Object.entries(steps).map(([key, step]) => ({
+    const stepArray = Object.entries(localSteps).map(([key, step]) => ({
       ...step,
-      id: key, // Puede que el ID real lo tengas dentro de step, ajusta según tu caso
+      id: key,
     }));
-
-    const actionArray = Object.entries(actions).map(([key, action]) => ({
+    const actionArray = Object.entries(localActions).map(([key, action]) => ({
       ...action,
       id: key,
     }));
 
     return [...stepArray, ...actionArray];
-  }, [steps, actions]);
+  }, [localSteps, localActions]);
 
-  // ---- Estados ----
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<"all" | "step" | "action">("all");
-  // Estado para almacenar el template seleccionado
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    CommunityStepSettings | CommunityAction | null
-  >(null);
-
-  // ---- Handlers ----
+  /**
+   * Handler for searching by text.
+   */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
+  /**
+   * Handler for changing the filter (all, step, or action).
+   */
   const handleSetFilter = (value: "all" | "step" | "action") => {
     setFilter(value);
   };
 
-  // Desinstalar template individual
-  const handleUninstall = (
-    templateId: string,
-    templateType: "step" | "action"
-  ) => {
-    if (templateType === "step") {
-      delete plugin.settings.installedTemplates.steps[templateId];
-    } else {
-      delete plugin.settings.installedTemplates.actions[templateId];
-    }
-    plugin.saveSettings();
-  };
+  /**
+   * Handler to uninstall a given template.
+   * This removes the template from both local state and the plugin settings,
+   * then calls `plugin.saveSettings()` to persist.
+   */
+  const handleUninstall = useCallback(
+    (templateId: string, templateType: "step" | "action") => {
+      if (templateType === "step") {
+        // Remove from local state
+        setLocalSteps((prev) => {
+          const updated = { ...prev };
+          delete updated[templateId];
+          return updated;
+        });
+        // Remove from plugin settings
+        delete plugin.settings.installedTemplates.steps[templateId];
+      } else {
+        setLocalActions((prev) => {
+          const updated = { ...prev };
+          delete updated[templateId];
+          return updated;
+        });
+        delete plugin.settings.installedTemplates.actions[templateId];
+      }
+      // Persist changes
+      plugin.saveSettings();
 
+      // If the uninstalled template is currently being viewed, clear it.
+      setSelectedTemplate((prevSelected) => {
+        if (!prevSelected) return null;
+        if (
+          prevSelected.id === templateId &&
+          prevSelected.type === templateType
+        ) {
+          return null;
+        }
+        return prevSelected;
+      });
+    },
+    [plugin]
+  );
+
+  /**
+   * Handler for selecting a template to view in detail.
+   */
   const onTemplateClick = (
     template: CommunityStepSettings | CommunityAction
   ) => {
     setSelectedTemplate(template);
   };
 
+  /**
+   * Handler for going back to the list from the detail view.
+   */
   const handleBack = () => {
     setSelectedTemplate(null);
   };
 
-  // ---- Filtrado ----
+  /**
+   * Memoized filter function to derive the list of templates
+   * that match the current search term and filter type.
+   */
   const filteredInstalled = useMemo(() => {
-    // 1) Filtrado por texto
-    const textFiltered = allInstalled.filter((item) => {
-      const lowerSearch = searchTerm.toLowerCase();
+    // If nothing installed, short-circuit
+    if (!allInstalled.length) {
+      return [];
+    }
+
+    // Filter by search text
+    const lowerSearch = searchTerm.toLowerCase();
+    let filtered = allInstalled.filter((item) => {
       return (
         item.title.toLowerCase().includes(lowerSearch) ||
         item.description.toLowerCase().includes(lowerSearch) ||
@@ -76,14 +143,19 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
       );
     });
 
-    // 2) Filtrado por tipo
-    if (filter === "all") return textFiltered;
-    return textFiltered.filter((item) => item.type === filter);
+    // Then filter by type (if not 'all')
+    if (filter !== "all") {
+      filtered = filtered.filter((item) => item.type === filter);
+    }
+
+    return filtered;
   }, [allInstalled, searchTerm, filter]);
 
-  // ---- Render condicional (Lista o Detalle) ----
+  /**
+   * If a template is selected, render the detail view (Step or Action).
+   * Otherwise, render the list.
+   */
   if (selectedTemplate) {
-    // Si hay un template seleccionado, renderizamos la vista individual
     if (selectedTemplate.type === "step") {
       return (
         <InstalledStepDetail
@@ -91,37 +163,44 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
           onBack={handleBack}
         />
       );
-    } else {
-      return (
-        <InstalledActionDetail
-          action={selectedTemplate as CommunityAction}
-          onBack={handleBack}
-        />
-      );
     }
+    return (
+      <InstalledActionDetail
+        action={selectedTemplate as CommunityAction}
+        onBack={handleBack}
+      />
+    );
   }
 
+  // Render the list of installed templates
   return (
-    <div>
+    <div className={c("community-templates-gallery")}>
       <h1>Installed Templates</h1>
 
-      {/* Barra de búsqueda y filtros */}
-      <div>
-        {/* Barra de búsqueda */}
+      {/* Search and filter controls */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "1rem",
+        }}
+      >
+        {/* Search bar */}
         <input
           type="text"
-          placeholder="Buscar por título, descripción o autor..."
+          placeholder="Search by title, description or author..."
           value={searchTerm}
           onChange={handleSearchChange}
+          style={{ flex: 1, marginRight: "1rem", padding: "0.5rem" }}
         />
 
-        {/* Filtros por tipo */}
-        <div>
+        {/* Filter buttons */}
+        <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
             onClick={() => handleSetFilter("all")}
             style={{
-              backgroundColor: filter === "all" ? "#cccccc" : "",
               padding: "0.5rem",
+              backgroundColor: filter === "all" ? "#cccccc" : "",
             }}
           >
             All
@@ -129,8 +208,8 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
           <button
             onClick={() => handleSetFilter("step")}
             style={{
-              backgroundColor: filter === "step" ? "#cccccc" : "",
               padding: "0.5rem",
+              backgroundColor: filter === "step" ? "#cccccc" : "",
             }}
           >
             Steps
@@ -138,8 +217,8 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
           <button
             onClick={() => handleSetFilter("action")}
             style={{
-              backgroundColor: filter === "action" ? "#cccccc" : "",
               padding: "0.5rem",
+              backgroundColor: filter === "action" ? "#cccccc" : "",
             }}
           >
             Actions
@@ -147,26 +226,51 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
         </div>
       </div>
 
-      {/* Lista de templates instalados, mostrados en forma de cards */}
       {filteredInstalled.length === 0 && (
-        <p>No hay templates que coincidan con la búsqueda.</p>
+        <p style={{ fontStyle: "italic" }}>No matching templates found.</p>
       )}
 
-      <div className={c("actions-list")}>
+      {/* List of installed templates in card format */}
+      <div
+        className={c("actions-list")}
+        style={{ display: "grid", gap: "1rem" }}
+      >
         {filteredInstalled.map((template) => (
           <div
             key={template.id}
-            onClick={() => onTemplateClick(template)}
             className={c("actions-management-add-card")}
+            onClick={() => onTemplateClick(template)}
+            style={{
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+              padding: "1rem",
+              cursor: "pointer",
+            }}
           >
             <h3 style={{ margin: 0 }}>
-              {template.title} <span>({template.type})</span>
+              {template.title}{" "}
+              <span style={{ fontSize: "0.9rem", color: "#555" }}>
+                ({template.type})
+              </span>
             </h3>
-            <p>{template.description}</p>
-            <small>Author: {template.author}</small>
-            <div>
+            <p style={{ margin: "0.5rem 0" }}>{template.description}</p>
+            <small style={{ color: "#999" }}>
+              Author: {template.author} - Downloads: {template.downloads}
+            </small>
+            <div style={{ marginTop: "0.5rem", textAlign: "right" }}>
+              {/* Stop propagation to avoid triggering the onClick to open details */}
               <button
-                onClick={() => handleUninstall(template.id, template.type)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUninstall(template.id, template.type);
+                }}
+                style={{
+                  padding: "0.3rem 0.7rem",
+                  border: "none",
+                  borderRadius: "4px",
+                  backgroundColor: "#ff9999",
+                  cursor: "pointer",
+                }}
               >
                 Uninstall
               </button>

@@ -181,16 +181,9 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <div className={c("community-templates-gallery")}>
       {/* Search + Filter */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1rem",
-        }}
-      >
+      <div>
         {/* Barra de búsqueda */}
         <input
           type="text"
@@ -238,47 +231,20 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
           const installed = isTemplateInstalled(template);
 
           return (
-            <div
-              key={template.id}
-              className={c("actions-management-add-card")}
-              style={{
-                border: "1px solid #ccc",
-                padding: "1rem",
-                marginBottom: "1rem",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
+            <div key={template.id} className={c("actions-management-add-card")}>
               <h3 style={{ margin: 0 }}>
                 {template.title}
-                {installed && (
-                  <span
-                    style={{
-                      marginLeft: "0.5rem",
-                      color: "green",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    (Installed)
-                  </span>
-                )}
+                {installed && <span>(Installed)</span>}
               </h3>
               <p>{template.description}</p>
               <small>
                 Author: {template.author} | Type: {template.type} | Downloads:{" "}
                 {template.downloads}
               </small>
-              <div style={{ marginTop: "0.5rem" }}>
+              <div>
                 <button
                   onClick={(e) => {
                     handleInstallUninstall(e, template);
-                  }}
-                  style={{
-                    padding: "0.3rem 0.6rem",
-                    backgroundColor: installed ? "#ff9999" : "#99cc99",
-                    borderRadius: "4px",
-                    border: "none",
-                    cursor: "pointer",
                   }}
                 >
                   {installed ? "Uninstall" : "Install"}
@@ -290,9 +256,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
       </div>
 
       {/* Sentinel para el infinite scroll */}
-      {hasMore && !isLoading && (
-        <div ref={loadMoreRef} style={{ height: "1px", margin: "1rem 0" }} />
-      )}
+      {hasMore && !isLoading && <div ref={loadMoreRef} />}
 
       {/* Mensajes de estado */}
       {isLoading && <p>Loading more templates...</p>}

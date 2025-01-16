@@ -10,7 +10,6 @@ import { PluginComponentProps } from "../typing";
 
 /**
  * Response type expected from the server.
- * Ajusta esta interfaz de acuerdo a la respuesta real de tu API.
  */
 interface CommunityTemplatesResponse {
   total: number;
@@ -24,7 +23,7 @@ interface CommunityTemplatesResponse {
 }
 
 /**
- * Función para obtener templates de la API, con filtros de paginación, búsqueda y tipo (step/action/all).
+ * Fetch templates from the API with pagination, search, and type filtering.
  */
 async function fetchCommunityTemplates(
   skip: number,
@@ -48,10 +47,10 @@ async function fetchCommunityTemplates(
 
 export function CommunityTemplatesGallery(props: PluginComponentProps) {
   const { plugin } = props;
-  // Obtenemos steps y actions instalados desde las settings del plugin
+  // Installed steps & actions from plugin settings
   const { steps, actions } = plugin.settings.installedTemplates;
 
-  // ---- State ----
+  // ---- States ----
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
   const [templates, setTemplates] = useState<CommunityTemplateOptions[]>([]);
@@ -60,19 +59,19 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sentinel para el infinite scroll
+  // Sentinel for infinite scroll
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // ---- Effects ----
 
-  // 1) Reset de templates al cambiar búsqueda o filtro
+  // (1) Reset template list whenever search term or filter changes
   useEffect(() => {
     setTemplates([]);
     setSkip(0);
     setHasMore(true);
   }, [searchTerm, filter]);
 
-  // 2) Cada vez que 'skip' cambia (por scroll) o se resetea, cargamos más datos
+  // (2) Fetch more data when 'skip' changes or on initial load
   useEffect(() => {
     if (!hasMore) return;
 
@@ -100,9 +99,9 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     };
 
     getData();
-  }, [skip, searchTerm, filter, hasMore]);
+  }, [skip, searchTerm, filter, hasMore, plugin.settings]);
 
-  // 3) IntersectionObserver para el infinite scroll
+  // (3) Infinite scroll logic via IntersectionObserver
   useEffect(() => {
     if (!hasMore || isLoading) return;
 
@@ -125,6 +124,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   }, [hasMore, isLoading]);
 
   // ---- Handlers ----
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -134,118 +134,132 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   };
 
   /**
-   * Determina si el template está instalado según su tipo (step/action).
-   * Retorna true/false para indicar si está instalado.
+   * Check if a given template is installed (either step or action).
    */
   const isTemplateInstalled = (template: CommunityTemplateOptions) => {
     if (template.type === "step") {
-      return steps[template.id];
+      return !!steps[template.id];
     } else if (template.type === "action") {
-      return actions[template.id];
+      return !!actions[template.id];
     }
     return false;
   };
 
   /**
-   * Lógica para instalar/desinstalar un template:
-   * Aquí deberías invocar la lógica real de tu plugin para modificar
-   * las settings. Por ejemplo, guardarlo en plugin.settings.installedTemplates
-   * y llamar a plugin.saveSettings(), etc.
+   * Install/uninstall logic. After updating plugin settings,
+   * re-render by refreshing 'templates' array in local state.
    */
   const handleInstallUninstall = (
     e: React.MouseEvent<HTMLButtonElement>,
     template: CommunityTemplateOptions
   ) => {
-    e.stopPropagation(); // Evita que se dispare el onClick del card
+    e.stopPropagation(); // Prevent any onClick on the card itself
     const installed = isTemplateInstalled(template);
+
     if (installed) {
+      // Uninstall
       if (template.type === "step") {
         delete plugin.settings.installedTemplates.steps[template.id];
-      } else if (template.type === "action") {
+      } else {
         delete plugin.settings.installedTemplates.actions[template.id];
       }
-      setTemplates([...templates]);
     } else {
+      // Install
       if (template.type === "step") {
         plugin.settings.installedTemplates.steps[template.id] =
           template as CommunityStepSettings;
-      }
-
-      if (template.type === "action") {
+      } else {
         plugin.settings.installedTemplates.actions[template.id] = template;
       }
-
-      setTemplates([...templates]);
     }
+
     plugin.saveSettings();
+    // Force re-render of this gallery (so "Installed" label toggles)
+    setTemplates((prev) => [...prev]);
   };
 
   return (
     <div className={c("community-templates-gallery")}>
-      {/* Search + Filter */}
-      <div>
-        {/* Barra de búsqueda */}
+      {/* Title (optional) */}
+      <h1 className={c("community-templates-gallery-title")}>
+        Community Templates
+      </h1>
+
+      {/* Controls: Search & Filter */}
+      <div className={c("community-templates-controls")}>
+        {/* Search input */}
         <input
           type="text"
-          placeholder="Buscar por título, descripción o autor..."
+          placeholder="Search by title, description or author..."
           value={searchTerm}
           onChange={handleSearchChange}
-          style={{ width: "60%", padding: "0.5rem" }}
+          className={c("community-templates-search")}
         />
 
-        {/* Filtros */}
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+        {/* Filter buttons */}
+        <div className={c("community-templates-filters")}>
           <button
             onClick={() => handleSetFilter("all")}
-            style={{
-              backgroundColor: filter === "all" ? "#cccccc" : "",
-              padding: "0.5rem",
-            }}
+            className={
+              filter === "all"
+                ? c("community-templates-filter-button", "is-active")
+                : c("community-templates-filter-button")
+            }
           >
             All
           </button>
           <button
             onClick={() => handleSetFilter("step")}
-            style={{
-              backgroundColor: filter === "step" ? "#cccccc" : "",
-              padding: "0.5rem",
-            }}
+            className={
+              filter === "step"
+                ? c("community-templates-filter-button", "is-active")
+                : c("community-templates-filter-button")
+            }
           >
             Steps
           </button>
           <button
             onClick={() => handleSetFilter("action")}
-            style={{
-              backgroundColor: filter === "action" ? "#cccccc" : "",
-              padding: "0.5rem",
-            }}
+            className={
+              filter === "action"
+                ? c("community-templates-filter-button", "is-active")
+                : c("community-templates-filter-button")
+            }
           >
             Actions
           </button>
         </div>
       </div>
 
-      {/* Lista de templates */}
-      <div className={c("actions-list")}>
+      {/* Template List */}
+      <div className={c("community-templates-list")}>
         {templates.map((template) => {
           const installed = isTemplateInstalled(template);
-
           return (
-            <div key={template.id} className={c("actions-management-add-card")}>
-              <h3 style={{ margin: 0 }}>
-                {template.title}
-                {installed && <span>(Installed)</span>}
+            <div
+              key={template.id}
+              className={c("community-templates-card")}
+              // Could add onClick or card detail logic here if needed
+            >
+              <h3 className={c("community-templates-card-title")}>
+                {template.title}{" "}
+                {installed && (
+                  <span className={c("community-templates-card-subtitle")}>
+                    (Installed)
+                  </span>
+                )}
               </h3>
-              <p>{template.description}</p>
-              <small>
+              <p className={c("community-templates-card-description")}>
+                {template.description}
+              </p>
+              <small className={c("community-templates-card-meta")}>
                 Author: {template.author} | Type: {template.type} | Downloads:{" "}
                 {template.downloads}
               </small>
-              <div>
+              <div className={c("community-templates-card-actions")}>
                 <button
-                  onClick={(e) => {
-                    handleInstallUninstall(e, template);
-                  }}
+                  onClick={(e) => handleInstallUninstall(e, template)}
+                  className={c("community-templates-uninstall-button")}
                 >
                   {installed ? "Uninstall" : "Install"}
                 </button>
@@ -255,12 +269,20 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
         })}
       </div>
 
-      {/* Sentinel para el infinite scroll */}
-      {hasMore && !isLoading && <div ref={loadMoreRef} />}
+      {/* Infinite Scroll Sentinel */}
+      {hasMore && !isLoading && (
+        <div ref={loadMoreRef} className={c("community-templates-sentinel")} />
+      )}
 
-      {/* Mensajes de estado */}
-      {isLoading && <p>Loading more templates...</p>}
-      {!hasMore && <p>No more results.</p>}
+      {/* Loading / No More Results indicators */}
+      {isLoading && (
+        <p className={c("community-templates-load-status")}>
+          Loading more templates...
+        </p>
+      )}
+      {!hasMore && (
+        <p className={c("community-templates-no-results")}>No more results.</p>
+      )}
     </div>
   );
 }

@@ -1,19 +1,24 @@
-import { App, Notice, TFile } from "obsidian";
-import { StepBuilderInfo, StepSettings } from "zettelkasten";
-import { StepTitleHandler } from "./handlers/StepTitleHandler";
+import { Notice } from "obsidian";
+import { StepBuilderInfo } from "zettelkasten";
 import { t } from "architecture/lang";
-import { FileService } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
-import { ObsidianApi, c, log } from "architecture";
+import { c, log } from "architecture";
 import { AbstractStepModal } from "./AbstractStepModal";
+import { CommunityStepSettings } from "config";
+import ZettelFlow from "main";
+import { CommunityInfoHandler } from "./handlers/CommunityInfoHandler";
 
 export class InstalledStepEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
     mode = "edit";
     builder = "ribbon";
-    chain = new StepTitleHandler();
-    constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
-        super(app);
+    chain = new CommunityInfoHandler();
+    constructor(
+        private plugin: ZettelFlow,
+        private communityStepInfo: CommunityStepSettings,
+        private editCallback: (step: CommunityStepSettings) => void
+    ) {
+        super(plugin.app);
         this.info = this.getBaseInfo();
 
     }
@@ -40,64 +45,37 @@ export class InstalledStepEditorModal extends AbstractStepModal {
     }
 
     onClose(): void {
-        if (!this.info.folder || !this.info.filename) return;
-        const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
-
-        switch (this.mode) {
-            case "edit":
-            case "create":
-                this.saveFile(path.concat(".md"))
-                    .then(() => {
-                        log.info(`File ${path} saved`);
-                        this.chain.postAction();
-                    })
-                    .catch((error) => {
-                        log.error(error);
-                        new Notice(`Error saving file ${path}, check console for more info`);
-                    });
-                break;
-        }
+        this.saveStepToSettings()
+            .then(() => {
+                log.info(`Step saved to settings`);
+                this.chain.postAction();
+            })
+            .catch((error) => {
+                log.error(error);
+                new Notice(`Error saving step, check console for more info`);
+            });
     }
 
-    private async saveFile(path: string): Promise<void> {
-        let file = await FileService.getFile(path, false);
-        const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
-        if (!file) {
-            // Create file
-            file = await FileService.createFile(path, "", false);
-        }
-        await this.addStep(file, stepSettings);
-    }
 
-    private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {
-        ObsidianApi.fileManager().processFrontMatter(file, (frontmatter) => {
-            frontmatter.zettelFlowSettings = {
-                ...frontmatter.zettelFlowSettings,
-                ...stepSettings
-            }
-        });
+    private async saveStepToSettings(): Promise<void> {
+        const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, this.communityStepInfo);
+        console.log(stepSettings);
+        this.plugin.settings.installedTemplates.steps[this.communityStepInfo._id] = stepSettings;
+        await this.plugin.saveSettings();
+        this.editCallback(stepSettings);
     }
 
     private getBaseInfo(): StepBuilderInfo {
-        if (this.partialInfo === undefined) {
-            return {
-                type: "file",
-                contentEl: this.contentEl,
-                root: false,
-                actions: [],
-                label: ``,
-                childrenHeader: ``,
-            }
-        } else {
-            return {
-                contentEl: this.contentEl,
-                ...this.partialInfo,
-                type: this.partialInfo.type === undefined ? `file` : this.partialInfo.type,
-                root: this.partialInfo.root === undefined ? false : this.partialInfo.root,
-                label: this.partialInfo.label === undefined ? `` : this.partialInfo.label,
-                childrenHeader: this.partialInfo.childrenHeader === undefined ? `` : this.partialInfo.childrenHeader,
-                actions: this.partialInfo.actions === undefined ? [] : this.partialInfo.actions,
-            }
+
+        return {
+            contentEl: this.contentEl,
+            ...this.communityStepInfo,
+            type: "not defined",
+            root: this.communityStepInfo.root === undefined ? false : this.communityStepInfo.root,
+            label: this.communityStepInfo.label === undefined ? `` : this.communityStepInfo.label,
+            childrenHeader: this.communityStepInfo.childrenHeader === undefined ? `` : this.communityStepInfo.childrenHeader,
+            actions: this.communityStepInfo.actions === undefined ? [] : this.communityStepInfo.actions,
         }
+
     }
 }

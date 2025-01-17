@@ -26,7 +26,7 @@ export interface ZettelFlowSettings {
 }
 
 export type CommunityTemplateOptions = {
-    id: string;
+    _id: string;
     title: string;
     description: string;
     author: string,

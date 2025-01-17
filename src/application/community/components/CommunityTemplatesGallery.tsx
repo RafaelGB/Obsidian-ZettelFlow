@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { request } from "obsidian";
 import { c, log } from "architecture";
 import {
+  CommunityAction,
   CommunityStepSettings,
   CommunityTemplateOptions,
   ZettelFlowSettings,
@@ -138,9 +139,9 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
    */
   const isTemplateInstalled = (template: CommunityTemplateOptions) => {
     if (template.type === "step") {
-      return !!steps[template.id];
+      return !!steps[template._id];
     } else if (template.type === "action") {
-      return !!actions[template.id];
+      return !!actions[template._id];
     }
     return false;
   };
@@ -159,17 +160,18 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     if (installed) {
       // Uninstall
       if (template.type === "step") {
-        delete plugin.settings.installedTemplates.steps[template.id];
+        delete plugin.settings.installedTemplates.steps[template._id];
       } else {
-        delete plugin.settings.installedTemplates.actions[template.id];
+        delete plugin.settings.installedTemplates.actions[template._id];
       }
     } else {
       // Install
       if (template.type === "step") {
-        plugin.settings.installedTemplates.steps[template.id] =
+        plugin.settings.installedTemplates.steps[template._id] =
           template as CommunityStepSettings;
       } else {
-        plugin.settings.installedTemplates.actions[template.id] = template;
+        plugin.settings.installedTemplates.actions[template._id] =
+          template as CommunityAction;
       }
     }
 
@@ -237,7 +239,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
           const installed = isTemplateInstalled(template);
           return (
             <div
-              key={template.id}
+              key={template._id}
               className={c("community-templates-card")}
               // Could add onClick or card detail logic here if needed
             >

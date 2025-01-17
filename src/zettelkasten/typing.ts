@@ -10,6 +10,9 @@ export type StepBuilderInfo = {
     folder?: TFolder;
     menu?: Menu,
     nodeId?: string,
+    // EXCLUSIVE for COMMUNITY installed steps
+    title?: string,
+    description?: string,
 } & StepSettings;
 
 export type StepSettings = {

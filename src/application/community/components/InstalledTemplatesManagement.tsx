@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback } from "react";
 import { PluginComponentProps } from "../typing";
 import { c } from "architecture";
 import { InstalledActionDetail } from "./ActionComponentView";
-import { InstalledStepDetail } from "./StepComponentView";
 import { CommunityAction, CommunityStepSettings } from "config";
 import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
 
@@ -79,7 +78,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
       setSelectedTemplate((prevSelected) => {
         if (
           prevSelected &&
-          prevSelected.id === templateId &&
+          prevSelected._id === templateId &&
           prevSelected.type === templateType
         ) {
           return null;
@@ -91,13 +90,28 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   );
 
   /**
+   * Refresh an installed step template with new data in the list
+   */
+  const refreshStep = useCallback((step: CommunityStepSettings) => {
+    setLocalSteps((prev) => {
+      const updated = { ...prev };
+      updated[step._id] = step;
+      return updated;
+    });
+  }, []);
+
+  /**
    * Open detail view for a template
    */
   const onTemplateClick = (
     template: CommunityStepSettings | CommunityAction
   ) => {
     if (template.type === "step") {
-      new InstalledStepEditorModal(plugin.app).open();
+      new InstalledStepEditorModal(
+        plugin,
+        template as CommunityStepSettings,
+        refreshStep
+      ).open();
     } else if (template.type === "action") {
       // TODO: Open action detail view
     }
@@ -138,18 +152,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
    * - Otherwise, list all installed templates
    */
   if (selectedTemplate) {
-    if (selectedTemplate.type === "step") {
-      new InstalledStepEditorModal(
-        plugin.app,
-        selectedTemplate as CommunityStepSettings
-      ).open();
-      return (
-        <InstalledStepDetail
-          step={selectedTemplate as CommunityStepSettings}
-          onBack={handleBack}
-        />
-      );
-    }
     return (
       <InstalledActionDetail
         action={selectedTemplate as CommunityAction}

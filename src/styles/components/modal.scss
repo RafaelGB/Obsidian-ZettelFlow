@@ -4,3 +4,35 @@
     max-width: var(--modal-max-width);
     max-height: var(--modal-max-height);
 }
+
+.zettelkasten-flow__modal-navbar {
+    display: flex;
+    justify-content: space-between;
+    /* Empuja los elementos a los extremos */
+    align-items: center;
+    /* Centra verticalmente */
+    padding: 0.5em 1em;
+    /* Margen interior */
+    border-bottom: 1px solid #ccc;
+    /* Línea separadora */
+}
+
+.zettelkasten-flow__modal-navbar h2 {
+    margin: 0;
+    /* Elimina márgenes */
+    font-size: 1.5em;
+    /* Tamaño de la fuente */
+    font-weight: bold;
+    /* Negrita */
+}
+.zettelkasten-flow__navbar-button-group {
+    display: flex;
+    /* Flexbox */
+    gap: 0.5em;
+    /* Espacio entre elementos */
+}
+
+.zettelkasten-flow__modal-navbar button {
+    margin-left: auto;
+    /* Empuja el botón hacia la derecha */
+}

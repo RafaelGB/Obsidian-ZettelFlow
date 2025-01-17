@@ -66,7 +66,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                         const zettelFlowSettings = data.zettelflowConfig;
                         const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
 
-                        new StepBuilderModal(this.plugin.app, {
+                        new StepBuilderModal(this.plugin, {
                             folder: file.parent || undefined,
                             filename: file.basename,
                             type: "text",

@@ -1,6 +1,5 @@
 import { Notice } from "obsidian";
 import { StepBuilderInfo } from "zettelkasten";
-import { t } from "architecture/lang";
 import { StepBuilderMapper } from "zettelkasten";
 import { c, log } from "architecture";
 import { AbstractStepModal } from "./AbstractStepModal";
@@ -16,7 +15,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
     constructor(
         private plugin: ZettelFlow,
         private communityStepInfo: CommunityStepSettings,
-        private editCallback: (step: CommunityStepSettings) => void
+        private editCallback: (step: CommunityStepSettings) => void = () => { }
     ) {
         super(plugin.app);
         this.info = this.getBaseInfo();
@@ -33,7 +32,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
         this.modalEl.addClass(c("modal"));
         span.setText(` (${this.mode})`);
         // Header with title and subtitle with the mode
-        this.info.contentEl.createEl("h2", { text: t("step_builder_title") })
+        this.info.contentEl.createEl("h2", { text: "Installed Step Editor" })
             // Separator
             .appendChild(span);
         this.chain.handle(this);
@@ -59,7 +58,6 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
     private async saveStepToSettings(): Promise<void> {
         const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, this.communityStepInfo);
-        console.log(stepSettings);
         this.plugin.settings.installedTemplates.steps[this.communityStepInfo._id] = stepSettings;
         await this.plugin.saveSettings();
         this.editCallback(stepSettings);

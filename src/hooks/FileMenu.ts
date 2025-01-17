@@ -62,7 +62,7 @@ export class FileMenu {
                             .setTitle(title)
                             .setIcon(RibbonIcon.ID)
                             .onClick(() => {
-                                new StepBuilderModal(this.plugin.app, {
+                                new StepBuilderModal(this.plugin, {
                                     folder: file.parent || undefined,
                                     filename: file.basename,
                                     menu,

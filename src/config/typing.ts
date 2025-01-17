@@ -31,6 +31,7 @@ export type CommunityTemplateOptions = {
     description: string;
     author: string,
     downloads: number;
+    isSelf?: boolean;
     type: "step" | "action";
 }
 

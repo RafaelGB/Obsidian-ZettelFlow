@@ -17,7 +17,10 @@ export class StepBuilderModal extends AbstractStepModal {
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
-    constructor(private plugin: ZettelFlow, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
+    constructor(
+        private plugin: ZettelFlow,
+        private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>
+    ) {
         super(plugin.app);
         this.info = this.getBaseInfo();
 

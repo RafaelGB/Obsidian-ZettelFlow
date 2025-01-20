@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 from fastapi import HTTPException
-import uuid
 
 class MongoCRUDService:
     def __init__(self):
@@ -55,6 +54,24 @@ class MongoCRUDService:
                 "has_next": has_next
             }
         }
+    
+    def read_action(self, action_id):
+        '''Fetch a document from the database based on the action_id'''
+        document = self.collection.find_one({"_id": action_id, "template_type": "action"})
+        if not document:
+            raise HTTPException(status_code=404, detail="Action not found")
+        document = self._serialize_document(document)
+        print(f"Action: {document}")
+        return document
+
+    def read_step(self, step_id):
+        '''Fetch a document from the database based on the step_id'''
+        document = self.collection.find_one({"_id": step_id, "template_type": "step"})
+        if not document:
+            raise HTTPException(status_code=404, detail="Step not found")
+        document = self._serialize_document(document)
+        print(f"Step: {document}")
+        return document
 
     def update_template(self, template_id, update_data):
         '''Update a document in the database based on the template_id and update_data'''
@@ -76,3 +93,5 @@ class MongoCRUDService:
         '''Remove _id field and serialize the document'''
         document["id"] = str(document["_id"])  # Convert ObjectId to string
         return document
+
+    

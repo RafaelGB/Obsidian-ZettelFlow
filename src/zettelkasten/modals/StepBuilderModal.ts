@@ -93,7 +93,7 @@ export class StepBuilderModal extends AbstractStepModal {
                     description: "New template description",
                     isSelf: true
                 });
-                this.plugin.settings.installedTemplates.steps[stepSettings._id] = stepSettings;
+                this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
                 this.plugin.saveSettings();
                 // Step 2 - Open the modal to edit the step
                 new InstalledStepEditorModal(this.plugin, stepSettings).open();

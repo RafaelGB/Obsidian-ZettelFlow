@@ -62,7 +62,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
     private async saveStepToSettings(): Promise<void> {
         const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, this.communityStepInfo);
-        this.plugin.settings.installedTemplates.steps[this.communityStepInfo._id] = stepSettings;
+        this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id] = stepSettings;
         await this.plugin.saveSettings();
         this.editCallback(stepSettings);
     }

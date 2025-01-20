@@ -138,10 +138,10 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
    * Check if a given template is installed (either step or action).
    */
   const isTemplateInstalled = (template: CommunityTemplateOptions) => {
-    if (template.type === "step") {
-      return !!steps[template._id];
-    } else if (template.type === "action") {
-      return !!actions[template._id];
+    if (template.template_type === "step") {
+      return !!steps[template.id];
+    } else if (template.template_type === "action") {
+      return !!actions[template.id];
     }
     return false;
   };
@@ -159,18 +159,18 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
 
     if (installed) {
       // Uninstall
-      if (template.type === "step") {
-        delete plugin.settings.installedTemplates.steps[template._id];
+      if (template.template_type === "step") {
+        delete plugin.settings.installedTemplates.steps[template.id];
       } else {
-        delete plugin.settings.installedTemplates.actions[template._id];
+        delete plugin.settings.installedTemplates.actions[template.id];
       }
     } else {
       // Install
-      if (template.type === "step") {
-        plugin.settings.installedTemplates.steps[template._id] =
+      if (template.template_type === "step") {
+        plugin.settings.installedTemplates.steps[template.id] =
           template as CommunityStepSettings;
       } else {
-        plugin.settings.installedTemplates.actions[template._id] =
+        plugin.settings.installedTemplates.actions[template.id] =
           template as CommunityAction;
       }
     }
@@ -239,8 +239,11 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
           const installed = isTemplateInstalled(template);
           return (
             <div
-              key={template._id}
-              className={c("community-templates-card")}
+              key={template.id}
+              className={c(
+                "community-templates-card",
+                c(`template-type-${template.template_type}`)
+              )}
               // Could add onClick or card detail logic here if needed
             >
               <h3 className={c("community-templates-card-title")}>
@@ -255,8 +258,8 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 {template.description}
               </p>
               <small className={c("community-templates-card-meta")}>
-                Author: {template.author} | Type: {template.type} | Downloads:{" "}
-                {template.downloads}
+                Author: {template.author} | Type: {template.template_type} |
+                Downloads: {template.downloads}
               </small>
               <div className={c("community-templates-card-actions")}>
                 <button

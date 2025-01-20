@@ -78,8 +78,8 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
       setSelectedTemplate((prevSelected) => {
         if (
           prevSelected &&
-          prevSelected._id === templateId &&
-          prevSelected.type === templateType
+          prevSelected.id === templateId &&
+          prevSelected.template_type === templateType
         ) {
           return null;
         }
@@ -95,7 +95,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const refreshStep = useCallback((step: CommunityStepSettings) => {
     setLocalSteps((prev) => {
       const updated = { ...prev };
-      updated[step._id] = step;
+      updated[step.id] = step;
       return updated;
     });
   }, []);
@@ -106,13 +106,13 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const onTemplateClick = (
     template: CommunityStepSettings | CommunityAction
   ) => {
-    if (template.type === "step") {
+    if (template.template_type === "step") {
       new InstalledStepEditorModal(
         plugin,
         template as CommunityStepSettings,
         refreshStep
       ).open();
-    } else if (template.type === "action") {
+    } else if (template.template_type === "action") {
       // TODO: Open action detail view
     }
   };
@@ -141,7 +141,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
     });
 
     if (filter !== "all") {
-      filtered = filtered.filter((item) => item.type === filter);
+      filtered = filtered.filter((item) => item.template_type === filter);
     }
     return filtered;
   }, [allInstalled, searchTerm, filter]);
@@ -230,7 +230,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
             <h3 className={c("community-templates-card-title")}>
               {template.title}{" "}
               <span className={c("community-templates-card-subtitle")}>
-                ({template.type})
+                ({template.template_type})
               </span>
             </h3>
             <p className={c("community-templates-card-description")}>
@@ -244,7 +244,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleUninstall(template.id, template.type);
+                  handleUninstall(template.id, template.template_type);
                 }}
                 className={c("community-templates-uninstall-button")}
               >

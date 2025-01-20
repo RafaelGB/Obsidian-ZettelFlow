@@ -22,6 +22,10 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
     }
 
+    getPlugin(): ZettelFlow {
+        return this.plugin;
+    }
+
     setNodeId(nodeId: string): InstalledStepEditorModal {
         this.info.nodeId = nodeId;
         return this;

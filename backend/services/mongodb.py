@@ -5,15 +5,15 @@ import uuid
 class MongoCRUDService:
     def __init__(self):
         self.client = MongoClient("mongodb://admin:admin_password@localhost:27017/")
-        self.db = self.client["test_db"]
+        self.db = self.client["local_db"]
         self.collection = self.db["community_templates"]
 
     def create_step(self, data):
         '''Create a new step in the database'''
-        data["type"] = "step"
+        data["template_type"] = "step"
         data["downloads"] = 0
         # data.title should be unique, so check if it already exists
-        if self.collection.find_one({"title": data["title"], "type": "step"}):
+        if self.collection.find_one({"title": data["title"], "template_type": "step"}):
             raise HTTPException(status_code=400, detail="Step title already exists")
         self.collection.insert_one(data)
         print(f"Step created: {data}")
@@ -21,11 +21,10 @@ class MongoCRUDService:
 
     def create_action(self, data):
         '''Create a new action in the database'''
-        data["id"] = str(uuid.uuid4())  # Use UUID as the unique ID
-        data["type"] = "action"
+        data["template_type"] = "action"
         data["downloads"] = 0
         # data.title should be unique, so check if it already exists
-        if self.collection.find_one({"title": data["title"], "type": "action"}):
+        if self.collection.find_one({"title": data["title"], "template_type": "action"}):
             raise HTTPException(status_code=400, detail="Action title already exists")
         self.collection.insert_one(data)
         data = self._serialize_document(data)
@@ -47,7 +46,7 @@ class MongoCRUDService:
         
         # Serialize the documents
         items = [self._serialize_document(doc) for doc in documents]
-        
+        print(f"Items: {items}")
         return {
             "items": items,
             "page_info": {
@@ -75,5 +74,5 @@ class MongoCRUDService:
 
     def _serialize_document(self, document):
         '''Remove _id field and serialize the document'''
-        document["_id"] = str(document["_id"])  # Convert ObjectId to string
+        document["id"] = str(document["_id"])  # Convert ObjectId to string
         return document

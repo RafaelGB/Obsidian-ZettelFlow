@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from typing import List, Union
 
 from services.mongodb import MongoCRUDService
@@ -11,16 +11,15 @@ mongoCRUDService = MongoCRUDService()
 # Define models for StepSettings and Action
 class CommunityAction(BaseModel):
     title: str
-    description: str
     type: str
+    description: str
     hasUI: Union[bool, None] = None
-    model_config = ConfigDict(
-        extra='allow',
-    )
+    class Config:
+        extra = 'allow'
 
 class Action(BaseModel):
-    description: str
     type: str
+    description: str
     hasUI: Union[bool, None] = None
 
 class CommunityStepSettings(BaseModel):
@@ -32,13 +31,32 @@ class CommunityStepSettings(BaseModel):
     targetFolder: Union[str, None] = None
     childrenHeader: Union[str, None] = None
     optional: Union[bool, None] = None
-    model_config = ConfigDict(
-        extra='allow',
-    )
+    class Config:
+        extra = 'allow'
+
+class PageInfo(BaseModel):
+    skip: int
+    limit: int
+    has_next: bool
+
+class TemplateItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    downloads: int
+    type: str
+    class Config:
+        underscore_attrs_are_private = False
+
+class TemplateFilterResponse(BaseModel):
+    items: List[TemplateItem]
+    page_info: PageInfo
+    class Config:
+        extra = 'allow'
 
 @app.get("/filter")
 def filter(query: str = Query(None),
-           skip: int = Query(0, ge=0), limit: int = Query(10, ge=1)):
+           skip: int = Query(0, ge=0), limit: int = Query(10, ge=1))-> TemplateFilterResponse:
     """Return a list of items from the database, with optional skip and limit parameters."""
     print(f"Query: {query}; Skip: {skip}; Limit: {limit}")
     return mongoCRUDService.read_templates(query=query, skip=skip, limit=limit)

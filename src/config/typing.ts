@@ -32,7 +32,7 @@ export type CommunityTemplateOptions = {
     author: string,
     downloads: number;
     isSelf?: boolean;
-    type: "step" | "action";
+    template_type: "step" | "action";
 }
 
 export type CommunityStepSettings = StepSettings & CommunityTemplateOptions;

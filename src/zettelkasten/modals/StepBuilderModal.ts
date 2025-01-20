@@ -26,6 +26,10 @@ export class StepBuilderModal extends AbstractStepModal {
 
     }
 
+    getPlugin(): ZettelFlow {
+        return this.plugin;
+    }
+
     setMode(mode: "edit" | "create" | "embed"): StepBuilderModal {
         this.mode = mode;
         return this;

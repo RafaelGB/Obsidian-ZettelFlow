@@ -5,6 +5,7 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { CheckboxWrapper } from "./CheckboxComponent";
 import React from "react";
 import { TypeService } from "architecture/typing";
+import { checkboxSettingsReader } from "./CheckboxSettingsReader";
 
 export class CheckboxAction extends CustomZettelAction {
   private static ICON = "check-square";
@@ -17,7 +18,7 @@ export class CheckboxAction extends CustomZettelAction {
   };
 
   settings = checkboxSettings;
-
+  settingsReader = checkboxSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Checkbox";
   // TODO: Translate this
   purpose = "Add a checkbox property. Works with boolean values.";

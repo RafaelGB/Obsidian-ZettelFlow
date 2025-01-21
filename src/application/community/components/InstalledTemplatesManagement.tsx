@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { PluginComponentProps } from "../typing";
 import { c } from "architecture";
-import { InstalledActionDetail } from "./ActionComponentView";
 import { CommunityAction, CommunityStepSettings } from "config";
 import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
 
@@ -19,11 +18,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
-
-  // Currently selected template for detail view
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    CommunityStepSettings | CommunityAction | null
-  >(null);
 
   // Combine local steps and actions into a single array
   const allInstalled = useMemo(() => {
@@ -73,18 +67,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
         delete plugin.settings.installedTemplates.actions[templateId];
       }
       plugin.saveSettings();
-
-      // If we were viewing this template in detail, reset
-      setSelectedTemplate((prevSelected) => {
-        if (
-          prevSelected &&
-          prevSelected.id === templateId &&
-          prevSelected.template_type === templateType
-        ) {
-          return null;
-        }
-        return prevSelected;
-      });
     },
     [plugin]
   );
@@ -118,13 +100,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   };
 
   /**
-   * Return to the list from the detail view
-   */
-  const handleBack = () => {
-    setSelectedTemplate(null);
-  };
-
-  /**
    * Filter by search term and template type
    */
   const filteredInstalled = useMemo(() => {
@@ -145,20 +120,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
     }
     return filtered;
   }, [allInstalled, searchTerm, filter]);
-
-  /**
-   * Conditional rendering:
-   * - If a template is selected, show detail view
-   * - Otherwise, list all installed templates
-   */
-  if (selectedTemplate) {
-    return (
-      <InstalledActionDetail
-        action={selectedTemplate as CommunityAction}
-        onBack={handleBack}
-      />
-    );
-  }
 
   // Render the list of installed templates
   return (

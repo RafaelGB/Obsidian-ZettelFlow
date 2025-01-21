@@ -2,6 +2,7 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import {
   Action,
   ActionSetting,
+  ActionSettingReader,
   ExecuteInfo,
   ICustomZettelAction,
 } from "./typing";
@@ -15,6 +16,7 @@ export abstract class CustomZettelAction implements ICustomZettelAction {
   abstract id: string;
   abstract defaultAction: Action;
   abstract settings: ActionSetting;
+  abstract settingsReader: ActionSettingReader;
   abstract link: string;
   abstract purpose: string;
   async execute(_: ExecuteInfo) {

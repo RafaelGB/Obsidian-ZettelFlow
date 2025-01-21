@@ -8,10 +8,8 @@ import {
   ZettelFlowSettings,
 } from "config";
 import { PluginComponentProps } from "../typing";
+import { CommunityActionModal } from "../CommunityActionModal";
 
-/**
- * Response type expected from the server.
- */
 interface CommunityTemplatesResponse {
   total: number;
   items: CommunityTemplateOptions[];
@@ -23,9 +21,6 @@ interface CommunityTemplatesResponse {
   };
 }
 
-/**
- * Fetch templates from the API with pagination, search, and type filtering.
- */
 async function fetchCommunityTemplates(
   skip: number,
   limit: number,
@@ -46,13 +41,34 @@ async function fetchCommunityTemplates(
   return JSON.parse(rawList) as CommunityTemplatesResponse;
 }
 
+async function fetchActionTemplate(id: string, settings: ZettelFlowSettings) {
+  const rawList = await request({
+    url: `${settings.communitySettings.url}/actions/${id}`,
+    method: "GET",
+    contentType: "application/json",
+  });
+
+  return JSON.parse(rawList) as CommunityAction;
+}
+
+async function fetchStepTemplate(id: string, settings: ZettelFlowSettings) {
+  const rawList = await request({
+    url: `${settings.communitySettings.url}/steps/${id}`,
+    method: "GET",
+    contentType: "application/json",
+  });
+
+  return JSON.parse(rawList) as CommunityStepSettings;
+}
+
 export function CommunityTemplatesGallery(props: PluginComponentProps) {
   const { plugin } = props;
-  // Installed steps & actions from plugin settings
   const { steps, actions } = plugin.settings.installedTemplates;
 
   // ---- States ----
   const [searchTerm, setSearchTerm] = useState("");
+  const [targetSearchTerm, setTargetSearchTerm] = useState("");
+
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
   const [templates, setTemplates] = useState<CommunityTemplateOptions[]>([]);
   const [skip, setSkip] = useState(0);
@@ -60,21 +76,22 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sentinel for infinite scroll
+  // Reference for debouncing search input
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Infinite scroll sentinel reference
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // ---- Effects ----
-
-  // (1) Reset template list whenever search term or filter changes
+  // (1) Reset templates when changing search term or filter
   useEffect(() => {
     setTemplates([]);
     setSkip(0);
     setHasMore(true);
-  }, [searchTerm, filter]);
+  }, [targetSearchTerm, filter]);
 
-  // (2) Fetch more data when 'skip' changes or on initial load
+  // (2) Data loading
   useEffect(() => {
-    if (!hasMore) return;
+    if (!hasMore || isLoading) return;
 
     const getData = async () => {
       setIsLoading(true);
@@ -82,7 +99,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
         const response = await fetchCommunityTemplates(
           skip,
           LIMIT,
-          searchTerm,
+          targetSearchTerm,
           filter,
           plugin.settings
         );
@@ -100,16 +117,15 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     };
 
     getData();
-  }, [skip, searchTerm, filter, hasMore, plugin.settings]);
+  }, [skip, targetSearchTerm, filter, plugin.settings, hasMore, isLoading]);
 
-  // (3) Infinite scroll logic via IntersectionObserver
+  // (3) Infinite scroll observer
   useEffect(() => {
     if (!hasMore || isLoading) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        const firstEntry = entries[0];
-        if (firstEntry.isIntersecting) {
+      ([entry]) => {
+        if (entry.isIntersecting) {
           setSkip((prevSkip) => prevSkip + LIMIT);
         }
       },
@@ -124,19 +140,34 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     };
   }, [hasMore, isLoading]);
 
+  // (4) Cleanup de timeouts when unmounting
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // ---- Handlers ----
 
+  // Debounce en el input para actualizar 'targetSearchTerm' tras 400ms
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setTargetSearchTerm(e.target.value);
+    }, 400);
   };
 
   const handleSetFilter = (value: "all" | "step" | "action") => {
     setFilter(value);
   };
 
-  /**
-   * Check if a given template is installed (either step or action).
-   */
   const isTemplateInstalled = (template: CommunityTemplateOptions) => {
     if (template.template_type === "step") {
       return !!steps[template.id];
@@ -146,26 +177,27 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     return false;
   };
 
-  /**
-   * Install/uninstall logic. After updating plugin settings,
-   * re-render by refreshing 'templates' array in local state.
-   */
+  const handleTemplateClick = async (template: CommunityTemplateOptions) => {
+    if (template.template_type === "step") {
+    } else if (template.template_type === "action") {
+      const action = await fetchActionTemplate(template.id, plugin.settings);
+      new CommunityActionModal(plugin, action).open();
+    }
+  };
   const handleInstallUninstall = (
     e: React.MouseEvent<HTMLButtonElement>,
     template: CommunityTemplateOptions
   ) => {
-    e.stopPropagation(); // Prevent any onClick on the card itself
+    e.stopPropagation();
     const installed = isTemplateInstalled(template);
 
     if (installed) {
-      // Uninstall
       if (template.template_type === "step") {
         delete plugin.settings.installedTemplates.steps[template.id];
       } else {
         delete plugin.settings.installedTemplates.actions[template.id];
       }
     } else {
-      // Install
       if (template.template_type === "step") {
         plugin.settings.installedTemplates.steps[template.id] =
           template as CommunityStepSettings;
@@ -176,20 +208,16 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     }
 
     plugin.saveSettings();
-    // Force re-render of this gallery (so "Installed" label toggles)
     setTemplates((prev) => [...prev]);
   };
 
   return (
     <div className={c("community-templates-gallery")}>
-      {/* Title (optional) */}
       <h1 className={c("community-templates-gallery-title")}>
         Community Templates
       </h1>
 
-      {/* Controls: Search & Filter */}
       <div className={c("community-templates-controls")}>
-        {/* Search input */}
         <input
           type="text"
           placeholder="Search by title, description or author..."
@@ -198,7 +226,6 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
           className={c("community-templates-search")}
         />
 
-        {/* Filter buttons */}
         <div className={c("community-templates-filters")}>
           <button
             onClick={() => handleSetFilter("all")}
@@ -233,7 +260,6 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
         </div>
       </div>
 
-      {/* Template List */}
       <div className={c("community-templates-list")}>
         {templates.map((template) => {
           const installed = isTemplateInstalled(template);
@@ -244,7 +270,9 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 "community-templates-card",
                 c(`template-type-${template.template_type}`)
               )}
-              // Could add onClick or card detail logic here if needed
+              onClick={() => {
+                handleTemplateClick(template);
+              }}
             >
               <h3 className={c("community-templates-card-title")}>
                 {template.title}{" "}
@@ -261,7 +289,9 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 Author: {template.author} | Type: {template.template_type} |
                 Downloads: {template.downloads}
               </small>
+              {/*
               <div className={c("community-templates-card-actions")}>
+                
                 <button
                   onClick={(e) => handleInstallUninstall(e, template)}
                   className={c("community-templates-uninstall-button")}
@@ -269,22 +299,22 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                   {installed ? "Uninstall" : "Install"}
                 </button>
               </div>
+               */}
             </div>
           );
         })}
       </div>
 
-      {/* Infinite Scroll Sentinel */}
       {hasMore && !isLoading && (
         <div ref={loadMoreRef} className={c("community-templates-sentinel")} />
       )}
 
-      {/* Loading / No More Results indicators */}
       {isLoading && (
         <p className={c("community-templates-load-status")}>
           Loading more templates...
         </p>
       )}
+
       {!hasMore && (
         <p className={c("community-templates-no-results")}>No more results.</p>
       )}

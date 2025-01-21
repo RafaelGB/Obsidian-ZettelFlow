@@ -6,6 +6,7 @@ import { numberSettings } from "./NumberSettings";
 import { log } from "architecture";
 import { TypeService } from "architecture/typing";
 import { NumberWrapper } from "./NumberComponent";
+import { numberSettingsReader } from "./NumberSettingsReader";
 
 export class NumberAction extends CustomZettelAction {
   private static ICON = "binary";
@@ -18,7 +19,7 @@ export class NumberAction extends CustomZettelAction {
     zone: "frontmatter",
   };
   settings = numberSettings;
-
+  settingsReader = numberSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Number";
   // TODO: Translate this
   purpose = "Add a number property.";

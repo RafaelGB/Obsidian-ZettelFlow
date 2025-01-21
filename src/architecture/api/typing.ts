@@ -26,6 +26,11 @@ export type ActionSetting = (
     action: Action
 ) => void;
 
+export type ActionSettingReader = (
+    contentEl: HTMLElement,
+    action: Action
+) => void;
+
 export interface ICustomZettelAction {
     id: string;
     component(props: WrappedActionBuilderProps): JSX.Element;

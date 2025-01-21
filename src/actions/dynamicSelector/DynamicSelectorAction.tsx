@@ -7,6 +7,7 @@ import { elementTypeDynamicSelectorSettings } from "./DynamicSelectorSettings";
 import { DynamicSelectorWrapper } from "./DynamicSelectorComponent";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { DynamicMultipleSelector } from "./components/MultipleSelectorComponent";
+import { dynamicSelectorSettingsReader } from "./DynamicSelectorSettingsReader";
 
 export class DynamicSelectorAction extends CustomZettelAction {
   private static ICON = "square-dashed-mouse-pointer";
@@ -18,6 +19,7 @@ export class DynamicSelectorAction extends CustomZettelAction {
     zone: "frontmatter",
   };
   settings = elementTypeDynamicSelectorSettings;
+  settingsReader = dynamicSelectorSettingsReader;
 
   link =
     "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/DynamicSelector";

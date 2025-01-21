@@ -36,3 +36,44 @@
     margin-left: auto;
     /* Empuja el botón hacia la derecha */
 }
+
+/* Sección de tipo de acción */
+.zettelkasten-flow__modal-reader-type-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.zettelkasten-flow__modal-reader-type-section p {
+    margin: 0;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+zettelkasten-flow__.modal-reader-type-section .icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Sección de información general */
+.zettelkasten-flow__modal-reader-general-section {
+    margin-bottom: 20px;
+}
+
+/* Sección de configuración */
+.zettelkasten-flow__modal-reader-section {
+    margin-bottom: 20px;
+}
+
+/* Estilos para los elementos de configuración dentro de modal-reader-section */
+.zettelkasten-flow__modal-reader-section .setting-item {
+    margin-bottom: 15px;
+}
+
+/* Botones adicionales dentro de modal-reader-section si los hay */
+.zettelkasten-flow__modal-reader-section .setting-item button {
+    margin-top: 5px;
+}

@@ -11,11 +11,11 @@ class TemplateService:
     def __init__(self, repository: TemplateRepository):
         self.repository = repository
 
-    def filter_templates(self, query: Optional[str], skip: int, limit: int):
+    def filter_templates(self, query: Optional[str],template_type:Optional[str], skip: int, limit: int):
         """
         Returns a paginated list of templates, with optional text query.
         """
-        return self.repository.read_templates(query, skip, limit)
+        return self.repository.read_templates(query, template_type, skip, limit)
 
     def get_template(self, template_id: str, template_type: str):
         """

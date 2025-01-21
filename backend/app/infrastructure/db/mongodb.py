@@ -18,3 +18,11 @@ class MongoDBClient:
             doc["id"] = str(doc["_id"])
             del doc["_id"]
         return doc
+    
+    @staticmethod
+    def filterFields(doc: dict, fields: list) -> dict:
+        """
+        Filters the document to only include the specified fields.
+        """
+        doc = MongoDBClient.serialize_document(doc)
+        return {field: doc[field] for field in fields if field in doc}

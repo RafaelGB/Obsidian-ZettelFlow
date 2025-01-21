@@ -12,24 +12,35 @@ class TemplateRepository:
         self.collection = db_client.db["community_templates"]
         self.db_client = db_client
 
-    def read_templates(self, query: Optional[str], skip: int, limit: int) -> dict:
+    def read_templates(self, search: Optional[str], template_type: Optional[str], skip: int, limit: int) -> dict:
         """
         Fetch documents based on an optional text query, with skip and limit 
         for pagination. 
         """
         mongo_query = {}
-        if query:
-            # Example simple text search
-            mongo_query["title"] = {"$regex": query, "$options": "i"}
+        if search:
+            # Example simple text search with case-insensitive regex match on title and description
+            mongo_query["$or"] = [
+                {"title": {"$regex": search, "$options": "i"}},
+                {"description": {"$regex": search, "$options": "i"}}
+            ]
+        
+        if template_type and template_type != "all":
+            mongo_query["template_type"] = template_type
 
-        cursor = self.collection.find(mongo_query).skip(skip).limit(limit + 1)
+        cursor = self.collection.find(
+            mongo_query
+        ).skip(skip).limit(limit + 1)
         documents = list(cursor)
 
         has_next = len(documents) > limit
         if has_next:
             documents = documents[:limit]
 
-        items = [self.db_client.serialize_document(doc) for doc in documents]
+        items = [self.db_client.filterFields(
+                doc, 
+                ["id", "title", "description","template_type","downloads"]
+            ) for doc in documents]
         return {
             "items": items,
             "page_info": {

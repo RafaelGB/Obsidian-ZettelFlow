@@ -20,7 +20,7 @@ def create_application() -> FastAPI:
     """
     Create and configure the FastAPI application.
     """
-    app = FastAPI(title="My Hexagonal FastAPI CRUD")
+    app = FastAPI(title="ZettelFlow Community API")
 
     # Initialize DB client
     db_client = MongoDBClient()

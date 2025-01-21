@@ -30,15 +30,15 @@ async function fetchCommunityTemplates(
   skip: number,
   limit: number,
   searchTerm: string,
-  filter: "all" | "step" | "action",
+  type: "all" | "step" | "action",
   settings: ZettelFlowSettings
 ): Promise<CommunityTemplatesResponse> {
   const rawList = await request({
     url: `${
       settings.communitySettings.url
-    }/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
+    }/templates/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
       searchTerm
-    )}&filter=${filter}`,
+    )}&template_type=${type}`,
     method: "GET",
     contentType: "application/json",
   });

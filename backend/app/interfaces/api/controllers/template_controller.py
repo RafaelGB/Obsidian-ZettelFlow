@@ -11,14 +11,15 @@ def get_template_router(template_service: TemplateService) -> APIRouter:
 
     @router.get("/filter", response_model=Dict)
     def filter_templates(
-        query: Optional[str] = Query(None),
+        search: Optional[str] = Query(None),
+        template_type: Optional[str] = Query(None),
         skip: int = Query(0, ge=0),
         limit: int = Query(10, ge=1)
     ):
         """
         Returns a paginated list of template items.
         """
-        return template_service.filter_templates(query, skip, limit)
+        return template_service.filter_templates(search, template_type, skip, limit)
 
     @router.get("/item/{item_id}", response_model=Dict)
     def get_item(item_id: str, item_type: str):

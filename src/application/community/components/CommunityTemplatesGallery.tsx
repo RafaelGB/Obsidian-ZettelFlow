@@ -240,17 +240,25 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
       <div className={c("community-templates-list")}>
         {templates.map((template) => {
           const installed = isTemplateInstalled(template);
+          const isStep = template.template_type === "step";
+          const isAction = template.template_type === "action";
+
           return (
             <div
               key={template.id}
               className={c(
                 "community-templates-card",
-                c(`template-type-${template.template_type}`)
+                `template-type-${template.template_type}`
               )}
               onClick={() => {
                 handleTemplateClick(template);
               }}
             >
+              {/* Badge de Tipo de Plantilla */}
+              <span className={c("community-templates-card-type-badge")}>
+                {isStep ? "Step" : isAction ? "Action" : "Template"}
+              </span>
+
               <h3 className={c("community-templates-card-title")}>
                 {template.title}{" "}
                 {installed && (
@@ -263,20 +271,8 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 {template.description}
               </p>
               <small className={c("community-templates-card-meta")}>
-                Author: {template.author} | Type: {template.template_type} |
-                Downloads: {template.downloads}
+                Author: {template.author} | Downloads: {template.downloads}
               </small>
-              {/*
-              <div className={c("community-templates-card-actions")}>
-                
-                <button
-                  onClick={(e) => handleInstallUninstall(e, template)}
-                  className={c("community-templates-uninstall-button")}
-                >
-                  {installed ? "Uninstall" : "Install"}
-                </button>
-              </div>
-               */}
             </div>
           );
         })}

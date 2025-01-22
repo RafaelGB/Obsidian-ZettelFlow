@@ -65,19 +65,69 @@
     gap: 1rem;
 }
 
-/* Individual card */
+/* Individual card base styling */
 .zettelkasten-flow__community-templates-card {
+    position: relative;
+    /* Para posicionar elementos absolutos dentro de la tarjeta */
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius);
     padding: 1rem;
     background-color: var(--background-primary);
     cursor: default;
-    /* or pointer if you want clickable detail */
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .zettelkasten-flow__community-templates-card:hover {
     background-color: var(--background-secondary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Border accent based on template type */
+.zettelkasten-flow__template-type-step {
+    border-left: 4px solid var(--code-property);
+}
+
+.zettelkasten-flow__template-type-action {
+    border-left: 4px solid var(--code-important);
+}
+
+/* Badge indicating template type */
+.zettelkasten-flow__community-templates-card-type-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-inverse);
+}
+
+.zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--code-property);
+}
+
+.zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--code-important);
+}
+
+/* Icon in the top-right corner */
+.zettelkasten-flow__community-templates-card-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-icon {
+    fill: var(--code-property);
+}
+
+.zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-icon {
+    fill: var(--code-important);
 }
 
 /* Card title */
@@ -85,6 +135,9 @@
     margin: 0;
     font-size: 1.1rem;
     color: var(--text-normal);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 /* Subtitle for 'Installed' or template type */

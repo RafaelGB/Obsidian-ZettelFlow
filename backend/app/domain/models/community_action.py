@@ -18,4 +18,4 @@ class CommunityAction(Action):
     """
     title: str
     author: str
-    downloads: int
+    downloads: int = 0

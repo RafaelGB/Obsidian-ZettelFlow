@@ -11,6 +11,7 @@ class Action(BaseModel):
 
     class Config:
         extra = 'allow'
+
 class CommunityStepSettings(BaseModel):
     """
     Represents the domain model for community step settings.

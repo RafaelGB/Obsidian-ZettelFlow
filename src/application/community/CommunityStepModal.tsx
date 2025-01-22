@@ -4,6 +4,7 @@ import { MarkdownService } from "architecture/plugin";
 import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
 import { Component, Modal, setIcon } from "obsidian";
+import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
 
 export class CommunityStepModal extends Modal {
   constructor(private plugin: ZettelFlow, private step: CommunityStepSettings) {
@@ -30,6 +31,24 @@ export class CommunityStepModal extends Modal {
     const isInstalled = this.isTemplateInstalled(this.step);
     const buttonTitle = isInstalled ? "Desinstalar" : "Instalar";
 
+    if (isInstalled) {
+      navbarButtonGroup.createEl(
+        "button",
+        {
+          placeholder: "Manage",
+          title: "Manage",
+          text: "Manage",
+        },
+        (el) => {
+          el.addClass("mod-cta");
+          el.addEventListener("click", () => {
+            new InstalledStepEditorModal(this.plugin, this.step).open();
+            // close the current modal as we are opening a new one
+            this.close();
+          });
+        }
+      );
+    }
     // Add a button to apply an installed step template
     navbarButtonGroup.createEl(
       "button",
@@ -95,7 +114,7 @@ ${this.step.description}`;
   }
 
   private isTemplateInstalled(template: CommunityStepSettings): boolean {
-    return !!this.plugin.settings.installedTemplates.actions[template.id];
+    return !!this.plugin.settings.installedTemplates.steps[template.id];
   }
 
   onClose(): void {

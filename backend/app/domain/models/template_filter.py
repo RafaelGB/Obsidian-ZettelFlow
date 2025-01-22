@@ -17,6 +17,7 @@ class TemplateItem(BaseModel):
     title: str
     description: str
     downloads: int
+    author: str
     type: str
 
     class Config:

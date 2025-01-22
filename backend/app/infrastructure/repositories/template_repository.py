@@ -39,7 +39,7 @@ class TemplateRepository:
 
         items = [self.db_client.filterFields(
                 doc, 
-                ["id", "title", "description","template_type","downloads"]
+                ["id", "title", "description","template_type","downloads","author"]
             ) for doc in documents]
         return {
             "items": items,

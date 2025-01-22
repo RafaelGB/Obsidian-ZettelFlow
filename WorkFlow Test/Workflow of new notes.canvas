@@ -25,6 +25,18 @@
 			"label":"Task notes"
 		},
 		{
+			"id":"81b8465370e8740c",
+			"type":"group",
+			"zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Literature notes\",\"childrenHeader\":\"\"}",
+			"styleAttributes":{},
+			"x":-1056,
+			"y":400,
+			"width":776,
+			"height":360,
+			"color":"2",
+			"label":"Literature notes"
+		},
+		{
 			"id":"cdeadec939256ce9",
 			"type":"group",
 			"zettelflowConfig":"{\"root\":false,\"actions\":[],\"label\":\"Idea interactions\",\"childrenHeader\":\"What do you want to add?\"}",
@@ -37,18 +49,6 @@
 			"label":"Idea interactions"
 		},
 		{"id":"8ac8516446168314","type":"group","zettelflowConfig":"{\"root\":true,\"actions\":[{\"type\":\"number\",\"hasUI\":true,\"id\":\"0e03f599-347d-4ea3-91cb-db8735b37eb6\",\"zone\":\"context\",\"description\":\"Real hours\",\"key\":\"realWorkingHours\",\"label\":\"Real working hours\",\"placeholder\":\"How many hours do your work the last day?\"},{\"type\":\"checkbox\",\"hasUI\":true,\"zone\":\"context\",\"id\":\"7d6d59a5-35e2-4660-aab3-9a05aff1a3a0\",\"description\":\"Goals achieved last day\",\"key\":\"goalsAchieved\",\"label\":\"Last day Goals achieve\"},{\"type\":\"checkbox\",\"hasUI\":true,\"zone\":\"context\",\"id\":\"17742384-6f31-4876-934e-e94929526ba3\",\"description\":\"Remote work\",\"key\":\"remoteWork\",\"label\":\"Do you work at home last day?\"},{\"type\":\"selector\",\"hasUI\":true,\"id\":\"74fe06bf-9b1b-467b-9095-90f1c648d26c\",\"zone\":\"context\",\"description\":\"Level of focus\",\"key\":\"focusLevel\",\"label\":\"Concentration of the last day\",\"options\":[[\"1\",\"Nothing at all\"],[\"2\",\"Less than usual\"],[\"3\",\"Usual\"],[\"4\",\"Mind at work\"],[\"5\",\"Nirvana\"]],\"defaultOption\":\"3\"},{\"type\":\"selector\",\"hasUI\":true,\"id\":\"e6c81c0a-4366-4957-af5d-3bf72b2f9097\",\"description\":\"Feeling of the day\",\"key\":\"dayFeeling\",\"label\":\"How was the feeling of the last day\",\"options\":[[\"1\",\"Was a horrible day!\"],[\"2\",\"Was a bad day\"],[\"3\",\"Normal\"],[\"4\",\"Was a nice day\"],[\"5\",\"What an incredible day!\"]],\"defaultOption\":\"3\",\"zone\":\"context\"},{\"type\":\"number\",\"hasUI\":true,\"id\":\"4921a416-f36c-4587-afd4-7f67ced4a27e\",\"zone\":\"context\",\"description\":\"Number of Breaks\",\"key\":\"numberOfBreaks\",\"label\":\"Number of intentional breaks\",\"placeholder\":\"Write here the number of breaks you had the last day\"}],\"label\":\"Start the day!\",\"childrenHeader\":\"\",\"targetFolder\":\"Daily\",\"optional\":false}","x":80,"y":400,"width":465,"height":418,"color":"#446956","label":"Start the day"},
-		{
-			"id":"81b8465370e8740c",
-			"type":"group",
-			"zettelflowConfig":"{\"root\":true,\"actions\":[],\"label\":\"Literature notes\",\"childrenHeader\":\"\"}",
-			"styleAttributes":{},
-			"x":-1056,
-			"y":400,
-			"width":776,
-			"height":360,
-			"color":"2",
-			"label":"Literature notes"
-		},
 		{
 			"id":"6f97c91bece56e3c",
 			"type":"file",
@@ -186,8 +186,7 @@
 			"width":346,
 			"height":113,
 			"color":"2"
-		},
-		{"id":"f49e0ab1824b80b2","x":1485,"y":283,"width":250,"height":60,"type":"text","text":"SDS","zettelflowConfig":"{\"root\":false,\"actions\":[{\"description\":\"lab external\",\"type\":\"script\",\"hasUI\":false,\"id\":\"cf5c0162-9e76-4c97-a80f-ab902eccbf9c\"},{\"description\":\"lab internal\",\"type\":\"script\",\"hasUI\":false,\"id\":\"b31cf1c9-437b-4c77-a4d4-bb39f54ac75d\"}],\"label\":\"external scripts\",\"childrenHeader\":\"\",\"targetFolder\":null,\"optional\":false}"}
+		}
 	],
 	"edges":[
 		{"id":"33823787b848177c","fromNode":"98c25f3516181d5b","fromSide":"top","toNode":"c7ead17ed0de7735","toSide":"bottom","color":"5"},

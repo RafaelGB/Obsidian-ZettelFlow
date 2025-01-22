@@ -3,6 +3,7 @@ import { PluginComponentProps } from "../typing";
 import { c } from "architecture";
 import { CommunityAction, CommunityStepSettings } from "config";
 import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
+import { InstalledActionEditorModal } from "zettelkasten/modals/InstalledActionEditorModal";
 
 export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const { plugin } = props;
@@ -82,6 +83,14 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
     });
   }, []);
 
+  const refreshAction = useCallback((action: CommunityAction) => {
+    setLocalActions((prev) => {
+      const updated = { ...prev };
+      updated[action.id] = action;
+      return updated;
+    });
+  }, []);
+
   /**
    * Open detail view for a template
    */
@@ -96,6 +105,11 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
       ).open();
     } else if (template.template_type === "action") {
       // TODO: Open action detail view
+      new InstalledActionEditorModal(
+        plugin,
+        template as CommunityAction,
+        refreshAction
+      ).open();
     }
   };
 

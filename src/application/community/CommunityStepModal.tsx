@@ -1,9 +1,105 @@
+import { c } from "architecture";
+import { actionsStore } from "architecture/api";
+import { MarkdownService } from "architecture/plugin";
 import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
-import { Modal } from "obsidian";
+import { Component, Modal, setIcon } from "obsidian";
 
 export class CommunityStepModal extends Modal {
   constructor(private plugin: ZettelFlow, private step: CommunityStepSettings) {
     super(plugin.app);
+  }
+  onOpen(): void {
+    this.modalEl.addClass(c("modal"));
+    this.renderContent();
+  }
+
+  private renderContent() {
+    // Clear the previous content
+    this.contentEl.empty();
+
+    // Header with title and subtitle with the mode
+    const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
+
+    navbar.createEl("h2", { text: this.step.title });
+
+    const navbarButtonGroup = navbar.createDiv({
+      cls: c("navbar-button-group"),
+    });
+
+    const isInstalled = this.isTemplateInstalled(this.step);
+    const buttonTitle = isInstalled ? "Desinstalar" : "Instalar";
+
+    // Add a button to apply an installed step template
+    navbarButtonGroup.createEl(
+      "button",
+      {
+        placeholder: buttonTitle,
+        title: buttonTitle,
+        text: buttonTitle,
+      },
+      (el) => {
+        el.addClass("mod-cta");
+        el.addEventListener("click", () => {
+          if (isInstalled) {
+            delete this.plugin.settings.installedTemplates.actions[
+              this.step.id
+            ];
+          } else {
+            this.plugin.settings.installedTemplates.steps[this.step.id] =
+              this.step;
+          }
+          this.plugin.saveSettings();
+          this.renderContent();
+        });
+      }
+    );
+
+    const generalInfoEl = this.contentEl.createDiv({
+      cls: c("modal-reader-general-section"),
+    });
+    const descriptionEl = generalInfoEl.createDiv();
+
+    const mdContent = `**Author**: ${this.step.author}
+    **Target folder**: ${this.step.targetFolder}
+    **Opcional**: ${this.step.optional ? "✅" : "❌"}
+    **Root**: ${this.step.root ? "✅" : "❌"}
+    
+---
+
+${this.step.description}`;
+    const comp = new Component();
+    MarkdownService.render(
+      this.plugin.app,
+      mdContent,
+      descriptionEl,
+      "/",
+      comp
+    );
+
+    this.contentEl.createEl("h3", { text: "Actions" });
+    for (const action of this.step.actions) {
+      const actionEl = this.contentEl.createDiv({
+        cls: c("modal-reader-action-section"),
+      });
+      const currentAction = actionsStore.getAction(action.type);
+      actionEl.createEl("p", { text: `Type: ${currentAction.getLabel()}` });
+      actionEl.createEl("p", { text: `Description: ${action.description}` });
+      setIcon(actionEl.createDiv(), currentAction.getIcon());
+      const settingsSection = this.contentEl.createDiv({
+        cls: c("modal-reader-section"),
+      });
+      currentAction.settingsReader(settingsSection, action);
+      this.contentEl.createEl("hr");
+    }
+  }
+
+  private isTemplateInstalled(template: CommunityStepSettings): boolean {
+    return !!this.plugin.settings.installedTemplates.actions[template.id];
+  }
+
+  onClose(): void {
+    let { contentEl } = this;
+    contentEl.empty();
   }
 }

@@ -1,14 +1,21 @@
 from pydantic import BaseModel
 from typing import Union
 
-class CommunityAction(BaseModel):
+class Action(BaseModel):
+    """
+    Inner domain model representing an action within a step.
+    """
+    type: str
+    description: str
+    hasUI: Union[bool, None] = None
+    
+    class Config:
+        extra = 'allow'
+
+class CommunityAction(Action):
     """
     Represents the domain model for community actions.
     """
     title: str
-    type: str
-    description: str
-    hasUI: Union[bool, None] = None
-
-    class Config:
-        extra = 'allow'
+    author: str
+    downloads: int

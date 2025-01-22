@@ -9,12 +9,16 @@ class Action(BaseModel):
     description: str
     hasUI: Union[bool, None] = None
 
+    class Config:
+        extra = 'allow'
 class CommunityStepSettings(BaseModel):
     """
     Represents the domain model for community step settings.
     """
     title: str
     description: str
+    author: str
+    downloads: int = 0
     root: bool
     actions: List[Action]
     label: str

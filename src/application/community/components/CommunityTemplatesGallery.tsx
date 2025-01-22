@@ -9,6 +9,7 @@ import {
 } from "config";
 import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
+import { CommunityStepModal } from "../CommunityStepModal";
 
 interface CommunityTemplatesResponse {
   total: number;
@@ -179,36 +180,12 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
 
   const handleTemplateClick = async (template: CommunityTemplateOptions) => {
     if (template.template_type === "step") {
+      const step = await fetchStepTemplate(template.id, plugin.settings);
+      new CommunityStepModal(plugin, step).open();
     } else if (template.template_type === "action") {
       const action = await fetchActionTemplate(template.id, plugin.settings);
       new CommunityActionModal(plugin, action).open();
     }
-  };
-  const handleInstallUninstall = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    template: CommunityTemplateOptions
-  ) => {
-    e.stopPropagation();
-    const installed = isTemplateInstalled(template);
-
-    if (installed) {
-      if (template.template_type === "step") {
-        delete plugin.settings.installedTemplates.steps[template.id];
-      } else {
-        delete plugin.settings.installedTemplates.actions[template.id];
-      }
-    } else {
-      if (template.template_type === "step") {
-        plugin.settings.installedTemplates.steps[template.id] =
-          template as CommunityStepSettings;
-      } else {
-        plugin.settings.installedTemplates.actions[template.id] =
-          template as CommunityAction;
-      }
-    }
-
-    plugin.saveSettings();
-    setTemplates((prev) => [...prev]);
   };
 
   return (

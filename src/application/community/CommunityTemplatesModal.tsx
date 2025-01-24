@@ -13,7 +13,6 @@ export class CommunityTemplatesModal extends Modal {
   }
 
   onOpen(): void {
-    console.log("CommunityTemplatesModal opened");
     this.modalEl.addClass(c("modal"));
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);

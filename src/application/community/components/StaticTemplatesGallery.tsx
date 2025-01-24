@@ -5,18 +5,14 @@ import {
   CommunityAction,
   CommunityStepSettings,
   StaticTemplateOptions,
-  ZettelFlowSettings,
 } from "config";
 import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/action-catalog";
-async function fetchCommunityTemplates(
-  settings: ZettelFlowSettings
-): Promise<StaticTemplateOptions[]> {
-  console.log("Fetching community templates");
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
+async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");
   const rawList = await request({
     url: `${BASE_URL}/docs/main_template.json`,
@@ -77,7 +73,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await fetchCommunityTemplates(plugin.settings);
+        const response = await fetchCommunityTemplates();
         setTemplates((prev) => [...prev, ...response]);
       } catch (error) {
         log.error("Error fetching community templates:", error);

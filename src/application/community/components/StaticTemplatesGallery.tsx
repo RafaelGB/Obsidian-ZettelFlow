@@ -12,7 +12,7 @@ import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/action-catalog/docs/";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/action-catalog";
 async function fetchCommunityTemplates(
   settings: ZettelFlowSettings
 ): Promise<StaticTemplateOptions[]> {

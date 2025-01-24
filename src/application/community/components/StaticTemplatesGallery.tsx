@@ -11,40 +11,23 @@ import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 
-interface StaticTemplatesResponse {
-  total: number;
-  items: StaticTemplateOptions[];
-  page_info: {
-    skip: number;
-    limit: number;
-    has_next: boolean;
-    has_previous: boolean;
-  };
-}
-
+const BASE_URL =
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/action-catalog/docs/";
 async function fetchCommunityTemplates(
-  skip: number,
-  limit: number,
-  searchTerm: string,
-  type: "all" | "step" | "action",
   settings: ZettelFlowSettings
-): Promise<StaticTemplatesResponse> {
+): Promise<StaticTemplateOptions[]> {
   const rawList = await request({
-    url: `${
-      settings.communitySettings.url
-    }/templates/filter?skip=${skip}&limit=${limit}&search=${encodeURIComponent(
-      searchTerm
-    )}&template_type=${type}`,
+    url: `${BASE_URL}/docs/main_template.json`,
     method: "GET",
     contentType: "application/json",
   });
 
-  return JSON.parse(rawList) as StaticTemplatesResponse;
+  return JSON.parse(rawList) as StaticTemplateOptions[];
 }
 
 async function fetchActionTemplate(ref: string) {
   const rawList = await request({
-    url: `${ref}`,
+    url: `${BASE_URL}${ref}`,
     method: "GET",
     contentType: "application/json",
   });
@@ -54,7 +37,7 @@ async function fetchActionTemplate(ref: string) {
 
 async function fetchStepTemplate(ref: string) {
   const rawList = await request({
-    url: `${ref}`,
+    url: `${BASE_URL}${ref}`,
     method: "GET",
     contentType: "application/json",
   });
@@ -62,7 +45,7 @@ async function fetchStepTemplate(ref: string) {
   return JSON.parse(rawList) as CommunityStepSettings;
 }
 
-export function CommunityTemplatesGallery(props: PluginComponentProps) {
+export function StaticTemplatesGallery(props: PluginComponentProps) {
   const { plugin } = props;
   const { steps, actions } = plugin.settings.installedTemplates;
 
@@ -73,9 +56,6 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
   const [skip, setSkip] = useState(0);
-  const LIMIT = 15;
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Reference for debouncing search input
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,61 +67,24 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   useEffect(() => {
     setTemplates([]);
     setSkip(0);
-    setHasMore(true);
   }, [targetSearchTerm, filter]);
 
   // (2) Data loading
   useEffect(() => {
-    if (!hasMore || isLoading) return;
-
     const getData = async () => {
-      setIsLoading(true);
       try {
-        const response = await fetchCommunityTemplates(
-          skip,
-          LIMIT,
-          targetSearchTerm,
-          filter,
-          plugin.settings
-        );
+        const response = await fetchCommunityTemplates(plugin.settings);
 
-        if (!response.page_info.has_next || response.items.length < LIMIT) {
-          setHasMore(false);
-        }
-
-        setTemplates((prev) => [...prev, ...response.items]);
+        setTemplates((prev) => [...prev, ...response]);
       } catch (error) {
         log.error("Error fetching community templates:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     getData();
-  }, [skip, targetSearchTerm, filter, plugin.settings, hasMore, isLoading]);
+  }, [skip, targetSearchTerm, filter, plugin.settings]);
 
-  // (3) Infinite scroll observer
-  useEffect(() => {
-    if (!hasMore || isLoading) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setSkip((prevSkip) => prevSkip + LIMIT);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentRef = loadMoreRef.current;
-    if (currentRef) observer.observe(currentRef);
-
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, [hasMore, isLoading]);
-
-  // (4) Cleanup de timeouts when unmounting
+  // (3) Cleanup de timeouts when unmounting
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -276,20 +219,6 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
           );
         })}
       </div>
-
-      {hasMore && !isLoading && (
-        <div ref={loadMoreRef} className={c("community-templates-sentinel")} />
-      )}
-
-      {isLoading && (
-        <p className={c("community-templates-load-status")}>
-          Loading more templates...
-        </p>
-      )}
-
-      {!hasMore && (
-        <p className={c("community-templates-no-results")}>No more results.</p>
-      )}
     </div>
   );
 }

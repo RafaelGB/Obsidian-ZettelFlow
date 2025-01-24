@@ -4,6 +4,7 @@ import { Modal } from "obsidian";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { CommunityTemplatesGallery } from "./components/CommunityTemplatesGallery";
+import { StaticTemplatesGallery } from "./components/StaticTemplatesGallery";
 
 export class CommunityTemplatesModal extends Modal {
   private root: Root;
@@ -15,6 +16,8 @@ export class CommunityTemplatesModal extends Modal {
     this.modalEl.addClass(c("modal"));
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);
-    this.root.render(<CommunityTemplatesGallery plugin={this.plugin} />);
+
+    //this.root.render(<CommunityTemplatesGallery plugin={this.plugin} />);
+    this.root.render(<StaticTemplatesGallery plugin={this.plugin} />);
   }
 }

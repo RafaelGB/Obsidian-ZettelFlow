@@ -36,6 +36,7 @@ export class CommunityTemplatesBrowserHandler extends AbstractHandlerClass<Setti
                         new ManageInstalledTemplatesModal(info.plugin).open();
                     })
             );
+        // Future token implementation for community templates access
 
         return this.goNext(info);
     }

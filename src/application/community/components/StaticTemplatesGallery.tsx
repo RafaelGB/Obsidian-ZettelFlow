@@ -59,6 +59,9 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
 
   const [filter, setFilter] = useState<"all" | "step" | "action">("all");
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<
+    StaticTemplateOptions[]
+  >([]);
   const [skip, setSkip] = useState(0);
 
   // Reference for debouncing search input
@@ -75,7 +78,6 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     const getData = async () => {
       try {
         const response = await fetchCommunityTemplates(plugin.settings);
-
         setTemplates((prev) => [...prev, ...response]);
       } catch (error) {
         log.error("Error fetching community templates:", error);
@@ -85,7 +87,23 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     getData();
   }, [skip, targetSearchTerm, filter, plugin.settings]);
 
-  // (3) Cleanup de timeouts when unmounting
+  // (3) Apply search and filter
+  useEffect(() => {
+    const lowerCaseSearchTerm = targetSearchTerm.toLowerCase();
+    const filtered = templates.filter((template) => {
+      const matchesSearch =
+        template.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+        template.description.toLowerCase().includes(lowerCaseSearchTerm);
+      const matchesFilter =
+        filter === "all" || template.template_type === filter;
+
+      return matchesSearch && matchesFilter;
+    });
+
+    setFilteredTemplates(filtered);
+  }, [templates, targetSearchTerm, filter]);
+
+  // (4) Cleanup timeouts when unmounting
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -135,7 +153,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   return (
     <div className={c("community-templates-gallery")}>
       <h1 className={c("community-templates-gallery-title")}>
-        Community Templates
+        ZettelFlow Repository Examples
       </h1>
 
       <div className={c("community-templates-controls")}>
@@ -182,7 +200,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
       </div>
 
       <div className={c("community-templates-list")}>
-        {templates.map((template) => {
+        {filteredTemplates.map((template) => {
           const installed = isTemplateInstalled(template);
           const isStep = template.template_type === "step";
           const isAction = template.template_type === "action";

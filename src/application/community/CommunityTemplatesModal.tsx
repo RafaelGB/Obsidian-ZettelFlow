@@ -16,8 +16,11 @@ export class CommunityTemplatesModal extends Modal {
     this.modalEl.addClass(c("modal"));
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);
-
-    //this.root.render(<CommunityTemplatesGallery plugin={this.plugin} />);
-    this.root.render(<StaticTemplatesGallery plugin={this.plugin} />);
+    const { token } = this.plugin.settings.communitySettings;
+    if (token && token.length > 0) {
+      this.root.render(<CommunityTemplatesGallery plugin={this.plugin} />);
+    } else {
+      this.root.render(<StaticTemplatesGallery plugin={this.plugin} />);
+    }
   }
 }

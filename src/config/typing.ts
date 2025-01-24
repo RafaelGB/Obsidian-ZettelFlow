@@ -22,6 +22,7 @@ export interface ZettelFlowSettings {
     installedTemplates: InstalledTemplates,
     communitySettings: {
         url: string,
+        token?: string
     }
 }
 

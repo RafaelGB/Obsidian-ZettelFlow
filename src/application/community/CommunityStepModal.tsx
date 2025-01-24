@@ -61,9 +61,7 @@ export class CommunityStepModal extends Modal {
         el.addClass("mod-cta");
         el.addEventListener("click", () => {
           if (isInstalled) {
-            delete this.plugin.settings.installedTemplates.actions[
-              this.step.id
-            ];
+            delete this.plugin.settings.installedTemplates.steps[this.step.id];
           } else {
             this.plugin.settings.installedTemplates.steps[this.step.id] =
               this.step;

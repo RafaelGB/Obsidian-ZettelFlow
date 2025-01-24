@@ -16,6 +16,8 @@ const BASE_URL =
 async function fetchCommunityTemplates(
   settings: ZettelFlowSettings
 ): Promise<StaticTemplateOptions[]> {
+  console.log("Fetching community templates");
+  log.debug("Fetching community templates");
   const rawList = await request({
     url: `${BASE_URL}/docs/main_template.json`,
     method: "GET",
@@ -26,6 +28,7 @@ async function fetchCommunityTemplates(
 }
 
 async function fetchActionTemplate(ref: string) {
+  log.debug("Fetching action template", ref);
   const rawList = await request({
     url: `${BASE_URL}${ref}`,
     method: "GET",
@@ -36,6 +39,7 @@ async function fetchActionTemplate(ref: string) {
 }
 
 async function fetchStepTemplate(ref: string) {
+  log.debug("Fetching step template", ref);
   const rawList = await request({
     url: `${BASE_URL}${ref}`,
     method: "GET",
@@ -59,9 +63,6 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
 
   // Reference for debouncing search input
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Infinite scroll sentinel reference
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // (1) Reset templates when changing search term or filter
   useEffect(() => {

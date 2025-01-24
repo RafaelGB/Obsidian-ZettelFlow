@@ -1,7 +1,7 @@
 [
     {
         "id": "6793944ed93fcde45f9203e8",
-        "ref" :"/steps/community/diary_actions.json",
+        "ref" :"/docs/steps/community/diary_actions.json",
         "title": "Example",
         "description": "hello world",
         "template_type": "step",

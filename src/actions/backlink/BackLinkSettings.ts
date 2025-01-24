@@ -4,7 +4,7 @@ import { HeadingCache, Setting } from "obsidian";
 import { BacklinkElement } from "./typing";
 import { t } from "architecture/lang";
 import { Action, ActionSetting } from "architecture/api";
-import { StepBuilderModal } from "zettelkasten";
+import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 
 export const backlinkSettings: ActionSetting = (contentEl, settingHandlerResponse, action) => {
     const name = t('step_builder_element_type_backlink_title');
@@ -14,7 +14,7 @@ export const backlinkSettings: ActionSetting = (contentEl, settingHandlerRespons
     const backlinkContentEl = contentEl.createDiv();
     render(settingHandlerResponse, action, backlinkContentEl);
 }
-function render(settingHandlerResponse: StepBuilderModal, action: Action, contentEl: HTMLElement): void {
+function render(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
     const { info } = settingHandlerResponse;
     const { optional } = info
     const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
@@ -95,7 +95,7 @@ function render(settingHandlerResponse: StepBuilderModal, action: Action, conten
     }
 }
 
-function refresh(settingHandlerResponse: StepBuilderModal, action: Action, contentEl: HTMLElement): void {
+function refresh(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
     contentEl.empty();
     render(settingHandlerResponse, action, contentEl);
 }

@@ -1,8 +1,4 @@
-import {
-  ActionSettingReader,
-  CustomZettelAction,
-  ExecuteInfo,
-} from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { FileService } from "architecture/plugin";
 import { Notice, TFile } from "obsidian";
 import { taskManagementSettings } from "./TaskManagementSettings";

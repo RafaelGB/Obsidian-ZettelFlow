@@ -9,9 +9,12 @@ export class VaultHooks {
         new VaultHooks(plugin);
     }
     constructor(private plugin: ZettelFlow) {
-        plugin.registerEvent(this.onRename);
-        plugin.registerEvent(this.onDelete);
-        plugin.registerEvent(this.onCreate);
+        this.plugin.app.workspace.onLayoutReady(() => {
+            log.debug("Vault hooks setup with layout ready");
+            plugin.registerEvent(this.onRename);
+            plugin.registerEvent(this.onDelete);
+            plugin.registerEvent(this.onCreate);
+        });
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -74,6 +77,7 @@ export class VaultHooks {
             log.info("Deleted canvas file");
         }
     }
+
 
     private onCreate = this.plugin.app.vault.on("create", async (file) => {
         const parent = file.parent;

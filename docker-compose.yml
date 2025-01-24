@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  mongodb:
+    build:
+      context: ./containers/mongo
+      dockerfile: Dockerfile
+    container_name: mongodb-container
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: >
+        echo 'db.runCommand("ping").ok' | mongosh admin -u "${MONGO_INITDB_ROOT_USERNAME}" -p "${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+    # No expones el puerto de MongoDB al host por seguridad
+
+  fastapi:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastAPI-container
+    restart: unless-stopped
+    environment:
+      MONGODB_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGODB_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGODB_HOST: mongodb  # Nombre del servicio de MongoDB en la red
+      MONGODB_PORT: 27017
+      MONGODB_DB: ${MONGO_INITDB_DATABASE}
+      # Otras variables de entorno necesarias para FastAPI
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app  # Monta el código fuente para hot-reload
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

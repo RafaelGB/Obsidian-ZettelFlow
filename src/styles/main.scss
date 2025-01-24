@@ -17,6 +17,7 @@
 *  Components
 * ---------------
 */
+@use 'components/modal.scss';
 @use 'components/backlink.scss';
 @use 'components/navbar.scss';
 @use 'components/search.scss';
@@ -27,7 +28,7 @@
 @use 'components/dynamicSelector.scss';
 @use 'components/progressBar.scss';
 @use 'components/actionAddMenu.scss';
-@use 'components/toc.scss';
+@use 'components/community.scss';
 
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {

@@ -8,6 +8,7 @@ import { TypeService } from "architecture/typing";
 import { SelectorElement } from "zettelkasten";
 import { MultipleSelector } from "./components/MultipleSelectorComponent";
 import { Notice } from "obsidian";
+import { selectorSettingsReader } from "./SelectorSettingsReader";
 
 export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";
@@ -19,7 +20,7 @@ export class SelectorAction extends CustomZettelAction {
     zone: "frontmatter",
   };
   settings = elementTypeSelectorSettings;
-
+  settingsReader = selectorSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Selector";
   purpose =
     "Create multiple options to select from and add the selected one to the note.";

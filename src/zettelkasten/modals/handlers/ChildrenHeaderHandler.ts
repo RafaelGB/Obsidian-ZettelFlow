@@ -1,13 +1,13 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { StepBuilderModal } from "zettelkasten";
 import { ActionManagementHandler } from "./ActionManagementHandler";
+import { AbstractStepModal } from "../AbstractStepModal";
 
-export class ChildrenHeaderHandler extends AbstractHandlerClass<StepBuilderModal>  {
+export class ChildrenHeaderHandler extends AbstractHandlerClass<AbstractStepModal> {
     name = t('step_builder_children_header_title');
     description = t('step_builder_children_header_description');
-    handle(modal: StepBuilderModal): StepBuilderModal {
+    handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
         const { contentEl, childrenHeader, root } = info;
         // If is root, skip this step

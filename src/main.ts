@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
-import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings, loadTOCProcessors } from 'starters';
+import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { Notice, Plugin } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
@@ -17,8 +17,6 @@ export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
-
-		loadTOCProcessors(this);
 		loadVariableTextProcessors(this);
 
 		loadPluginComponents(this);

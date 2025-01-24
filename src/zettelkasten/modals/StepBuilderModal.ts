@@ -1,22 +1,33 @@
-import { App, Modal, Notice, TFile } from "obsidian";
+import { Notice, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
-import { ObsidianApi, log } from "architecture";
+import { ObsidianApi, c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
+import { AbstractStepModal } from "./AbstractStepModal";
+import ZettelFlow from "main";
+import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
+import { UsedInstalledStepsModal } from "application/community";
 
 
-export class StepBuilderModal extends Modal {
+export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
-    constructor(app: App, private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>) {
-        super(app);
+    constructor(
+        private plugin: ZettelFlow,
+        private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>
+    ) {
+        super(plugin.app);
         this.info = this.getBaseInfo();
 
+    }
+
+    getPlugin(): ZettelFlow {
+        return this.plugin;
     }
 
     setMode(mode: "edit" | "create" | "embed"): StepBuilderModal {
@@ -36,21 +47,73 @@ export class StepBuilderModal extends Modal {
 
     onOpen(): void {
         const span = activeDocument.createElement("span", {});
-        this.contentEl.parentElement?.style.setProperty("width", "100%");
-        span.setText(` (${this.mode})`);
+        this.modalEl.addClass(c("modal"));
         // Header with title and subtitle with the mode
-        this.info.contentEl.createEl("h2", { text: t("step_builder_title") })
-            // Separator
-            .appendChild(span);
+        const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
+
+        navbar.createEl("h2", { text: t("step_builder_title") })
+
+        // Separator
+        navbar.appendChild(span);
+
+        const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+        // Add a button to apply an installed step template
+        const useTemplateButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Apply Step", title: "Apply a template to this step"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", () => {
+                // Step 1 - Open the modal to select the step
+                log.info("info before", this.info);
+                new UsedInstalledStepsModal(this.plugin, (step) => {
+                    // Step 2 - Apply the step to the current step
+                    this.partialInfo = {
+                        ...this.info,
+                        ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
+                    }
+                    this.info = this.getBaseInfo();
+                    log.info("info after", this.info);
+                    // Step 3 - Refresh the modal
+                    this.refresh();
+                }).open();
+            });
+
+        });
+        setIcon(useTemplateButton.createDiv(), "pen");
+
+        // Add a button to use this step as source for a installed step
+        const saveButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Save as template", title: "Click to save this step as a reusable template"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", () => {
+                // Step 1 - save the step internally
+                const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+                    title: "New template",
+                    description: "New template description"
+                });
+                this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
+                this.plugin.saveSettings();
+                // Step 2 - Open the modal to edit the step
+                new InstalledStepEditorModal(this.plugin, stepSettings).open();
+            });
+
+        });
+        setIcon(saveButton.createDiv(), "book-marked");
+
+
         this.chain.handle(this);
     }
 
     refresh(): void {
-        this.info.contentEl.empty();
+        this.contentEl.empty();
         this.onOpen();
     }
 
     onClose(): void {
+        this.save();
+    }
+    private save() {
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {

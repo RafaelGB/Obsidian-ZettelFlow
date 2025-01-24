@@ -1,13 +1,13 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { StepBuilderModal } from "zettelkasten";
 import { ChildrenHeaderHandler } from "./ChildrenHeaderHandler";
+import { AbstractStepModal } from "../AbstractStepModal";
 
-export class OptionalToggleHandler extends AbstractHandlerClass<StepBuilderModal>  {
+export class OptionalToggleHandler extends AbstractHandlerClass<AbstractStepModal> {
     name = t('step_builder_optional_toggle_title');
     description = t('step_builder_optional_toggle_description');
-    handle(modal: StepBuilderModal): StepBuilderModal {
+    handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
         const { optional, root, contentEl } = info;
         // if is root, then it is not optional by default. Skip this step

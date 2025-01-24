@@ -8,3 +8,4 @@ export {
 export { StepBuilderModal } from './modals/StepBuilderModal';
 export { SelectorMenuModal } from './modals/SelectorMenuModal';
 export { StepBuilderMapper } from './mappers/StepBuilderMapper';
+export { ActionBuilderMapper } from './mappers/ActionBuilderMapper';

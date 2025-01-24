@@ -19,8 +19,8 @@ class SettingsManager {
     }
 
     private constructBody(handlerInfo: SettingsHandlerInfo): void {
-        handlerInfo = sections.run(handlerInfo);
-        developer.run(handlerInfo);
+        sections.run({ ...handlerInfo, containerEl: handlerInfo.containerEl.createDiv() });
+        developer.run({ ...handlerInfo, containerEl: handlerInfo.containerEl.createDiv() });
     }
 
 }

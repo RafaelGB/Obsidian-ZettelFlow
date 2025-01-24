@@ -1,0 +1,65 @@
+name: Add a new template for the community to use
+description: Your template will help others in the community to create incredible Flows!
+title: "[Template]:"
+labels: []
+projects: []
+assignees:
+  - RafaelGB
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your contribution! Please fill out the following information to help us understand your template better.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide a brief description of the template you are submitting.
+      placeholder: |
+        This template is used to...
+    validations:
+      required: false
+  - type: textarea
+    id: json-template
+    attributes:
+      label: JSON Template
+      description: Please provide the JSON template you would like to add to the community.
+      placeholder: |
+        {
+          "name": "My Template",
+          "description": "This is a template for...",
+          "type": "Step",
+          ...
+        }
+      value: |
+        {
+          "name": "",
+          "description": "",
+          "type": "step|action",
+          ...
+        }
+    validations:
+      required: true
+  - type: dropdown
+    id: template-type
+    attributes:
+      label: Wich type of template are you submitting?
+      multiple: false
+      default: Step
+      options:
+        - Step
+        - Action
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Review the following terms before submitting your template
+      description:
+      options:
+        - label: This template is not a duplicate of an existing template
+          required: true
+        - label: I have tested this template in my environment
+          required: true
+        - label: I have reviewed the template and it is working as expected
+          required: true

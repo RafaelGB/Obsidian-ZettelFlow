@@ -2,6 +2,7 @@ import { CustomZettelAction, ExecuteInfo, fnsManager } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
 import { log } from "architecture";
 import { CodeElement } from "architecture/components/core";
+import { scriptSettingsReader } from "./ScriptSettingsReader";
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
   id = "script";
@@ -11,7 +12,7 @@ export class ScriptAction extends CustomZettelAction {
     id: this.id,
   };
   settings = scriptSettings;
-
+  settingsReader = scriptSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script";
   // TODO: Translate this
   purpose = "Run a JS script when the note is created/edited.";
@@ -31,6 +32,7 @@ export class ScriptAction extends CustomZettelAction {
 
       const functions = await fnsManager.getFns();
       const scriptFn = new AsyncFunction(
+        "element",
         "content",
         "note",
         "context",

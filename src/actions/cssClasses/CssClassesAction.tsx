@@ -4,6 +4,7 @@ import { CssClassesWrapper } from "./CssClassesComponent";
 import React from "react";
 import { t } from "architecture/lang";
 import { cssclassesSettings } from "./CssClassesSettings";
+import { cssClassesSettingsReader } from "./CssClassesSettingsReader";
 
 export class CssClassesAction extends CustomZettelAction {
   private static ICON = "view";
@@ -16,7 +17,7 @@ export class CssClassesAction extends CustomZettelAction {
   };
 
   settings = cssclassesSettings;
-
+  settingsReader = cssClassesSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CssClasses";
   // TODO: Translate this
   purpose =

@@ -1,5 +1,7 @@
+import { Action } from "architecture/api"
 import { AbstractChain } from "architecture/patterns"
 import ZettelFlow from "main"
+import { StepSettings } from "zettelkasten"
 
 export type SettingsHandlerInfo = {
     containerEl: HTMLElement,
@@ -17,6 +19,37 @@ export interface ZettelFlowSettings {
     editorCanvas: string,
     jsLibraryFolderPath: string,
     foldersFlowsPath: string,
+    installedTemplates: InstalledTemplates,
+    communitySettings: {
+        url: string,
+        token?: string
+    }
+}
+
+export type CommunityTemplateOptions = {
+    id: string;
+    title: string;
+    description: string;
+    author: string;
+    downloads: number;
+    template_type: "step" | "action";
+}
+
+export type StaticTemplateOptions = {
+    id: string;
+    ref: string;
+    title: string;
+    description: string;
+    author: string;
+    template_type: "step" | "action";
+}
+
+export type CommunityStepSettings = StepSettings & CommunityTemplateOptions;
+export type CommunityAction = Action & CommunityTemplateOptions;
+
+export type InstalledTemplates = {
+    steps: Record<string, CommunityStepSettings>;
+    actions: Record<string, CommunityAction>;
 }
 
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
@@ -25,4 +58,11 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     uniquePrefix: "YYYYMMDDHHmmss",
     foldersFlowsPath: "_ZettelFlow",
     tableOfContentEnabled: true,
+    installedTemplates: {
+        steps: {},
+        actions: {}
+    },
+    communitySettings: {
+        url: "http://127.0.0.1:8000"
+    }
 }

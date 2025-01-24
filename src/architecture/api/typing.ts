@@ -1,8 +1,9 @@
 import { Literal } from "architecture/plugin";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
-import { StepBuilderModal } from "zettelkasten";
 import { TFile } from "obsidian";
+import { JSX } from "react";
+import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 
 export type ExecuteInfo = {
     element: FinalElement,
@@ -21,7 +22,12 @@ export type Action = {
 
 export type ActionSetting = (
     contentEl: HTMLElement,
-    props: StepBuilderModal,
+    props: AbstractStepModal,
+    action: Action
+) => void;
+
+export type ActionSettingReader = (
+    contentEl: HTMLElement,
     action: Action
 ) => void;
 

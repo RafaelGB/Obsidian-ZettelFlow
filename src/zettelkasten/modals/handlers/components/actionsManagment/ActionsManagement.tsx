@@ -78,6 +78,7 @@ export function ActionsManagement(props: ActionsManagementProps) {
         </Sortable>
       </DndScope>
       <ActionAddMenu
+        modal={modal}
         onChange={async (value) => {
           if (typeof value === "string") {
             const deepCopy = [...actionsState];

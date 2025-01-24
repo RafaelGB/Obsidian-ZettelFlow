@@ -44,7 +44,7 @@ export class CanvasNodeMenu {
                     .setSection('pane')
                     .onClick(async () => {
                         const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
-                        new StepBuilderModal(this.plugin.app, {
+                        new StepBuilderModal(this.plugin, {
                             folder: file.parent || undefined,
                             filename: file.basename,
                             type: "text",

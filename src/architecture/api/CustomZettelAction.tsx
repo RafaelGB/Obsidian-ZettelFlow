@@ -2,10 +2,11 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import {
   Action,
   ActionSetting,
+  ActionSettingReader,
   ExecuteInfo,
   ICustomZettelAction,
 } from "./typing";
-import React from "react";
+import React, { JSX } from "react";
 import { TFile } from "obsidian";
 
 export abstract class CustomZettelAction implements ICustomZettelAction {
@@ -15,6 +16,7 @@ export abstract class CustomZettelAction implements ICustomZettelAction {
   abstract id: string;
   abstract defaultAction: Action;
   abstract settings: ActionSetting;
+  abstract settingsReader: ActionSettingReader;
   abstract link: string;
   abstract purpose: string;
   async execute(_: ExecuteInfo) {

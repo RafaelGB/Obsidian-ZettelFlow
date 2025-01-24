@@ -6,6 +6,7 @@ import { PromptWrapper } from "./PromptComponent";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import { log } from "architecture";
+import { promptSettingsReader } from "./PromptSettingsReader";
 
 export class PromptAction extends CustomZettelAction {
   private static ICON = "form-input";
@@ -17,7 +18,7 @@ export class PromptAction extends CustomZettelAction {
     zone: "frontmatter",
   };
   settings = promptSettings;
-
+  settingsReader = promptSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Prompt";
   // TODO: Translate this
   purpose = "Add text as property/context/body to the note.";

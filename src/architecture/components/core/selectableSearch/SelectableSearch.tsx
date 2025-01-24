@@ -25,7 +25,9 @@ export function SelectableSearch(props: SelectableSearchType) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(
+    activeDocument.createElement("div")
+  );
 
   const filteredOptions = useMemo(() => {
     const lowerSearch = searchState.toLowerCase();

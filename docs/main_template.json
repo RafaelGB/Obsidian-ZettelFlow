@@ -1,10 +1,10 @@
 [
     {
-        "id": "6793944ed93fcde45f9203e8",
-        "ref" :"/docs/steps/community/diary_actions.json",
-        "title": "Example",
-        "description": "hello world",
+        "id": "1737731928",
         "template_type": "step",
+        "ref" :"/docs/steps/community/add_contact.json",
+        "title": "Add contact",
+        "description": "This step will include contact information when you create a new profile.",
         "author": "RafaelGB"
     }
 ]

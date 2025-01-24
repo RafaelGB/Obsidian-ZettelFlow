@@ -90,8 +90,7 @@ export class StepBuilderModal extends AbstractStepModal {
                 // Step 1 - save the step internally
                 const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
                     title: "New template",
-                    description: "New template description",
-                    isSelf: true
+                    description: "New template description"
                 });
                 this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
                 this.plugin.saveSettings();

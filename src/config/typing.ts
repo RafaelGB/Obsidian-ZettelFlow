@@ -29,9 +29,17 @@ export type CommunityTemplateOptions = {
     id: string;
     title: string;
     description: string;
-    author: string,
+    author: string;
     downloads: number;
-    isSelf?: boolean;
+    template_type: "step" | "action";
+}
+
+export type StaticTemplateOptions = {
+    id: string;
+    ref: string;
+    title: string;
+    description: string;
+    author: string;
     template_type: "step" | "action";
 }
 

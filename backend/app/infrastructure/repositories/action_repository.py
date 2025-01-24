@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import HTTPException
-from app.infrastructure.db.mongodb import MongoDBClient
-from app.domain.models.community_action import CommunityAction
+from infrastructure.db.mongodb import MongoDBClient
+from domain.models.community_action import CommunityAction
 
 class ActionRepository:
     """

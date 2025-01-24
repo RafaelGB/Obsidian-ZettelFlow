@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from typing import Dict, Optional
 
-from app.application.services.template_service import TemplateService
+from application.services.template_service import TemplateService
 
 def get_template_router(template_service: TemplateService) -> APIRouter:
     """

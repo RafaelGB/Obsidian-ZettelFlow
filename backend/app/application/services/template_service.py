@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from typing import Optional, Dict
 
-from app.infrastructure.repositories.template_repository import TemplateRepository
+from infrastructure.repositories.template_repository import TemplateRepository
 
 class TemplateService:
     """

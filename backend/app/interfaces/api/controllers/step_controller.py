@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from typing import Dict
 
-from app.domain.models.community_step_settings import CommunityStepSettings
-from app.application.services.step_service import StepService
+from domain.models.community_step_settings import CommunityStepSettings
+from application.services.step_service import StepService
 
 def get_step_router(step_service: StepService) -> APIRouter:
     """

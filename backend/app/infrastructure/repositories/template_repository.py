@@ -2,7 +2,7 @@ from typing import Optional, Union
 from fastapi import HTTPException
 from bson import ObjectId
 
-from app.infrastructure.db.mongodb import MongoDBClient
+from infrastructure.db.mongodb import MongoDBClient
 
 class TemplateRepository:
     """

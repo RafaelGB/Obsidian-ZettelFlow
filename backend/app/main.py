@@ -1,20 +1,20 @@
 from fastapi import FastAPI
 
 # Infrastructure
-from app.infrastructure.db.mongodb import MongoDBClient
-from app.infrastructure.repositories.step_repository import StepRepository
-from app.infrastructure.repositories.action_repository import ActionRepository
-from app.infrastructure.repositories.template_repository import TemplateRepository
+from infrastructure.db.mongodb import MongoDBClient
+from infrastructure.repositories.step_repository import StepRepository
+from infrastructure.repositories.action_repository import ActionRepository
+from infrastructure.repositories.template_repository import TemplateRepository
 
 # Application Services
-from app.application.services.step_service import StepService
-from app.application.services.action_service import ActionService
-from app.application.services.template_service import TemplateService
+from application.services.step_service import StepService
+from application.services.action_service import ActionService
+from application.services.template_service import TemplateService
 
 # Controllers
-from app.interfaces.api.controllers.step_controller import get_step_router
-from app.interfaces.api.controllers.action_controller import get_action_router
-from app.interfaces.api.controllers.template_controller import get_template_router
+from interfaces.api.controllers.step_controller import get_step_router
+from interfaces.api.controllers.action_controller import get_action_router
+from interfaces.api.controllers.template_controller import get_template_router
 
 def create_application() -> FastAPI:
     """
@@ -51,7 +51,7 @@ def create_application() -> FastAPI:
         prefix="/templates",
         tags=["Templates"]
     )
-
+    print("Application created successfully.")
     return app
 
 app = create_application()

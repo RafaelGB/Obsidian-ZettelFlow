@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from typing import Dict
 
-from app.domain.models.community_action import CommunityAction
-from app.application.services.action_service import ActionService
+from domain.models.community_action import CommunityAction
+from application.services.action_service import ActionService
 
 def get_action_router(action_service: ActionService) -> APIRouter:
     """

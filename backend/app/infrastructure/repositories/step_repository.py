@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import HTTPException
-from app.infrastructure.db.mongodb import MongoDBClient
-from app.domain.models.community_step_settings import CommunityStepSettings
+from infrastructure.db.mongodb import MongoDBClient
+from domain.models.community_step_settings import CommunityStepSettings
 
 class StepRepository:
     """

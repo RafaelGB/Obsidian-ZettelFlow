@@ -1,13 +1,22 @@
 from pymongo import MongoClient
 from bson import ObjectId
+import os
 
 class MongoDBClient:
+    # Retrieve MongoDB credentials from environment variables
+    __MONGODB_USERNAME = os.getenv("MONGODB_USERNAME")
+    __MONGODB_PASSWORD = os.getenv("MONGODB_PASSWORD")
+    __MONGODB_HOST = os.getenv("MONGODB_HOST", "localhost")
+    __MONGODB_PORT = os.getenv("MONGODB_PORT", "27017")
+    __MONGODB_DB = os.getenv("MONGODB_DB", "local_db")
     """
     Provides a MongoDB client and database connection.
     """
-    def __init__(self, uri: str = "mongodb://admin:admin_password@localhost:27017/", db_name: str = "local_db"):
+    def __init__(self):
+        uri = f"mongodb://{self.__MONGODB_USERNAME}:{self.__MONGODB_PASSWORD}@{self.__MONGODB_HOST}:{self.__MONGODB_PORT}/"
+        print(f"Connecting to MongoDB at {uri}")
         self.client = MongoClient(uri)
-        self.db = self.client[db_name]
+        self.db = self.client[self.__MONGODB_DB]
 
     @staticmethod
     def serialize_document(doc: dict) -> dict:

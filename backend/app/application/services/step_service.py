@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
-from app.domain.models.community_step_settings import CommunityStepSettings
-from app.infrastructure.repositories.step_repository import StepRepository
+from domain.models.community_step_settings import CommunityStepSettings
+from infrastructure.repositories.step_repository import StepRepository
 
 class StepService:
     """

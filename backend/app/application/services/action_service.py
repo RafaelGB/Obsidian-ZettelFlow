@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
-from app.domain.models.community_action import CommunityAction
-from app.infrastructure.repositories.action_repository import ActionRepository
+from domain.models.community_action import CommunityAction
+from infrastructure.repositories.action_repository import ActionRepository
 
 class ActionService:
     """

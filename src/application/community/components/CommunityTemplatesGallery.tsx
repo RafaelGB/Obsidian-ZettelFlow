@@ -254,7 +254,6 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 handleTemplateClick(template);
               }}
             >
-              {/* Badge de Tipo de Plantilla */}
               <span className={c("community-templates-card-type-badge")}>
                 {isStep ? "Step" : isAction ? "Action" : "Template"}
               </span>

@@ -3,7 +3,7 @@
 # Usamos la imagen oficial de MongoDB como base
 FROM mongo:6.0
 
-# Exponemos el puerto estándar de MongoDB
+# Exponer el puerto por defecto de MongoDB
 EXPOSE 27017
 
 # Definimos el comando de inicio, aunque el contenedor usa el entrypoint predeterminado de MongoDB

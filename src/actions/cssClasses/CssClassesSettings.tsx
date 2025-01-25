@@ -7,12 +7,13 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import { SelectableSearch } from "architecture/components/core";
 import { ObsidianApi } from "architecture";
+import { navbarAction } from "architecture/components/settings";
 
 export const cssclassesSettings: ActionSetting = (contentEl, _, action) => {
   const { staticBehaviour, staticValue } = action as TagsElement;
-  contentEl.createEl("p", {
-    text: t("step_builder_element_type_cssclasses_description"),
-  });
+  const name = t("step_builder_element_type_cssclasses_title");
+  const description = t("step_builder_element_type_cssclasses_description");
+  navbarAction(contentEl, name, description, action);
 
   // Toggle to enable static behaviour
   const dynamicId = uuid4();

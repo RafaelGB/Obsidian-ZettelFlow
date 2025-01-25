@@ -8,6 +8,7 @@ import { ScriptResult } from "./typing";
 import { c } from "architecture";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
+import { navbarAction } from "architecture/components/settings";
 
 // Define the settings for the Dynamic Selector element type
 export const elementTypeDynamicSelectorSettings: ActionSetting = (
@@ -18,13 +19,11 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
   const dynamicSelectorElement = action as DynamicSelectorElement;
   const { code, zone, key, multiple } = dynamicSelectorElement;
 
-  // Create the title and description for the scripts section
-  contentEl.createEl("h3", {
-    text: t("step_builder_element_type_script_title"),
-  });
-  contentEl.createEl("p", {
-    text: t("step_builder_element_type_script_description"),
-  });
+  const name = t("step_builder_element_type_dynamic_selector_title");
+  const description = t(
+    "step_builder_element_type_dynamic_selector_description"
+  );
+  navbarAction(contentEl, name, description, action);
 
   // Configuration for selecting the zone
   new Setting(contentEl)

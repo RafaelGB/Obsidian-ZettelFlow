@@ -5,13 +5,13 @@ import { PropertySuggest } from "architecture/settings";
 import { Setting } from "obsidian";
 import { NumberElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
+import { navbarAction } from "architecture/components/settings";
 
 export const numberSettings: ActionSetting = (contentEl, _, action) => {
     const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as NumberElement;
     const name = t('step_builder_element_type_number_title');
     const description = t('step_builder_element_type_number_description');
-    contentEl.createEl('h3', { text: name });
-    contentEl.createEl('p', { text: description });
+    navbarAction(contentEl, name, description, action);
 
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))

@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { StepBuilderInfo } from "zettelkasten";
 import { StepBuilderMapper } from "zettelkasten";
 import { c, log } from "architecture";
@@ -34,11 +34,29 @@ export class InstalledStepEditorModal extends AbstractStepModal {
     onOpen(): void {
         const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
-        span.setText(` (${this.mode})`);
         // Header with title and subtitle with the mode
-        this.info.contentEl.createEl("h2", { text: "Installed Step Editor" })
-            // Separator
-            .appendChild(span);
+        const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
+
+        navbar.createEl("h2", { text: "Installed Step Editor" })
+
+        // Separator
+        navbar.appendChild(span);
+
+        const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+        // Add a button to save the step into the clipboard
+        const useTemplateButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Copy Step", title: "Copy the step to the clipboard"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", () => {
+                // Save step to clipboard
+                navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2))
+                new Notice(`Step copied to clipboard`);
+            });
+
+        });
+        setIcon(useTemplateButton.createDiv(), "clipboard-copy");
+
         this.chain.handle(this);
     }
 

@@ -11,7 +11,7 @@ import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/release/2.7.0";
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");
   const rawList = await request({

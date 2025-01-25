@@ -5,15 +5,17 @@ import { BacklinkElement } from "./typing";
 import { t } from "architecture/lang";
 import { Action, ActionSetting } from "architecture/api";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
+import { navbarAction } from "architecture/components/settings";
 
 export const backlinkSettings: ActionSetting = (contentEl, settingHandlerResponse, action) => {
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');
-    contentEl.createEl("h3", { text: name });
-    contentEl.createEl("p", { text: description });
+    navbarAction(contentEl, name, description, action);
+
     const backlinkContentEl = contentEl.createDiv();
     render(settingHandlerResponse, action, backlinkContentEl);
 }
+
 function render(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
     const { info } = settingHandlerResponse;
     const { optional } = info

@@ -2,7 +2,7 @@ import { c, log } from "architecture";
 import { actionsStore } from "architecture/api";
 import { CommunityAction } from "config";
 import ZettelFlow from "main";
-import { Setting } from "obsidian";
+import { Notice, setIcon, Setting } from "obsidian";
 import { AbstractStepModal } from "./AbstractStepModal";
 import { StepBuilderInfo } from "zettelkasten/typing";
 
@@ -34,6 +34,31 @@ export class InstalledActionEditorModal extends AbstractStepModal {
     private renderContent() {
         // Clear the previous content
         this.contentEl.empty();
+        const span = activeDocument.createElement("span", {});
+        this.modalEl.addClass(c("modal"));
+        // Header with title and subtitle with the mode
+        const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
+
+        navbar.createEl("h2", { text: "Installed Action Editor" })
+
+        // Separator
+        navbar.appendChild(span);
+
+        const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+        // Add a button to save the step into the clipboard
+        const useTemplateButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Copy Action", title: "Copy the action to the clipboard"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", () => {
+                // Save step to clipboard
+                navigator.clipboard.writeText(JSON.stringify(this.communityAction, null, 2))
+                new Notice(`Action copied to clipboard`);
+            });
+
+        });
+        setIcon(useTemplateButton.createDiv(), "clipboard-copy")
+
         // Show author and download count (if available)
         const { author, downloads } = this.communityAction;
         const authorEl = this.contentEl.createDiv({ cls: c("modal-author") });

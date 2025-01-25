@@ -5,6 +5,7 @@ import { ActionSetting } from "architecture/api";
 import { PropertySuggest } from "architecture/settings";
 import { ObsidianConfig } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
+import { navbarAction } from "architecture/components/settings";
 
 export const calendarSettings: ActionSetting = (contentEl, _, action) => {
     const {
@@ -13,8 +14,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
 
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
-    contentEl.createEl('h3', { text: name });
-    contentEl.createEl('p', { text: description });
+    navbarAction(contentEl, name, description, action);
 
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))

@@ -9,9 +9,10 @@ import {
 import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
+import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/release/2.7.0";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/markdown_template_download";
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");
   const rawList = await request({
@@ -64,7 +65,9 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [targetSearchTerm, setTargetSearchTerm] = useState("");
 
-  const [filter, setFilter] = useState<"all" | "step" | "action">("all");
+  const [filter, setFilter] = useState<"all" | "step" | "action" | "markdown">(
+    "all"
+  );
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<
     StaticTemplateOptions[]
@@ -134,7 +137,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     }, 400);
   };
 
-  const handleSetFilter = (value: "all" | "step" | "action") => {
+  const handleSetFilter = (value: "all" | "step" | "action" | "markdown") => {
     setFilter(value);
   };
 
@@ -156,7 +159,16 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
       new CommunityActionModal(plugin, action).open();
     } else if (template.template_type === "markdown") {
       const markdown = await fetchMarkdownTemplate(template.ref);
-      console.log(markdown);
+      const filename = template.ref.split("/").pop();
+      if (filename) {
+        new CommunityMarkdownModal(
+          plugin,
+          markdown,
+          template.title,
+          template.description,
+          filename
+        ).open();
+      }
     }
   };
 
@@ -206,15 +218,22 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           >
             Actions
           </button>
+          <button
+            onClick={() => handleSetFilter("markdown")}
+            className={
+              filter === "markdown"
+                ? c("community-templates-filter-button", "is-active")
+                : c("community-templates-filter-button")
+            }
+          >
+            Markdown
+          </button>
         </div>
       </div>
 
       <div className={c("community-templates-list")}>
         {filteredTemplates.map((template) => {
           const installed = isTemplateInstalled(template);
-          const isStep = template.template_type === "step";
-          const isAction = template.template_type === "action";
-
           return (
             <div
               key={template.id}
@@ -227,7 +246,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
               }}
             >
               <span className={c("community-templates-card-type-badge")}>
-                {isStep ? "Step" : isAction ? "Action" : "Template"}
+                {template.template_type}
               </span>
 
               <h3 className={c("community-templates-card-title")}>

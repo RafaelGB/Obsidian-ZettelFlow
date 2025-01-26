@@ -21,6 +21,7 @@ export interface ZettelFlowSettings {
     foldersFlowsPath: string,
     installedTemplates: InstalledTemplates,
     communitySettings: {
+        markdownTemplateFolder: string,
         url: string,
         token?: string,
         clipboardTemplate?: CommunityStepSettings | CommunityAction
@@ -63,6 +64,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         actions: {}
     },
     communitySettings: {
-        url: "http://127.0.0.1:8000"
+        url: "http://127.0.0.1:8000",
+        markdownTemplateFolder: "_ZettelFlowMdTemplates",
     }
 }

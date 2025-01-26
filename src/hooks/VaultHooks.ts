@@ -10,10 +10,12 @@ export class VaultHooks {
     }
     constructor(private plugin: ZettelFlow) {
         this.plugin.app.workspace.onLayoutReady(() => {
-            log.debug("Vault hooks setup with layout ready");
-            plugin.registerEvent(this.onRename);
-            plugin.registerEvent(this.onDelete);
-            plugin.registerEvent(this.onCreate);
+            setTimeout(() => {
+                plugin.registerEvent(this.onRename);
+                plugin.registerEvent(this.onDelete);
+                plugin.registerEvent(this.onCreate);
+                log.debug("Vault hooks setup with layout ready");
+            }, 4000);
         });
     }
 

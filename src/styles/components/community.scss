@@ -91,6 +91,10 @@
     border-left: 4px solid var(--code-important);
 }
 
+.zettelkasten-flow__template-type-markdown {
+    border-left: 4px solid var(--background-modifier-border);
+}
+
 /* Badge indicating template type */
 .zettelkasten-flow__community-templates-card-type-badge {
     position: absolute;
@@ -112,6 +116,10 @@
     background-color: var(--code-important);
 }
 
+.zettelkasten-flow__template-type-markdown .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--background-modifier-border);
+}
+
 /* Icon in the top-right corner */
 .zettelkasten-flow__community-templates-card-icon {
     position: absolute;
@@ -128,6 +136,10 @@
 
 .zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-icon {
     fill: var(--code-important);
+}
+
+.zettelkasten-flow__template-type-markdown .zettelkasten-flow__community-templates-card-icon {
+    fill: var(--background-modifier-border);
 }
 
 /* Card title */

@@ -1,4 +1,7 @@
 export default {
+    markdown_templates_folder_title: 'Carpeta de plantillas de markdown',
+    markdown_templates_folder_description: 'Establece la carpeta donde guardarás tus plantillas de markdown',
+    markdown_templates_folder_placeholder: 'Selecciona una carpeta',
     reset_to_default: 'Restablecer al valor por defecto',
     default_selector_title: 'Elige una opción',
     canvas_node_menu_edit_embed: 'Editar nodo embebido: añadir o eliminar acciones',

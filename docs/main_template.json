@@ -14,5 +14,13 @@
         "title": "Add a new Book",
         "description": "This step will help you to add a new book to the library",
         "author": "RafaelGB"
+    },
+    {
+        "id": "bfebe2b5-9432-4c2a-a3dd-3ceaad7b7e35",
+        "template_type": "step",
+        "ref" :"/docs/steps/community/add_task.json",
+        "title": "New task",
+        "description": "This step is used to create a new task",
+        "author": "RafaelGB"
     }
 ]

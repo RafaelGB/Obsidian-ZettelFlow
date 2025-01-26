@@ -41,7 +41,7 @@ export type StaticTemplateOptions = {
     title: string;
     description: string;
     author: string;
-    template_type: "step" | "action";
+    template_type: "step" | "action" | "markdown";
 }
 
 export type CommunityStepSettings = StepSettings & CommunityTemplateOptions;

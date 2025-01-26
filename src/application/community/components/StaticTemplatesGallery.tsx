@@ -45,6 +45,17 @@ async function fetchStepTemplate(ref: string) {
   return JSON.parse(rawList) as CommunityStepSettings;
 }
 
+async function fetchMarkdownTemplate(ref: string) {
+  log.debug("Fetching markdown template", ref);
+  const markdown = await request({
+    url: `${BASE_URL}${ref}`,
+    method: "GET",
+    contentType: "text/plain",
+  });
+
+  return markdown;
+}
+
 export function StaticTemplatesGallery(props: PluginComponentProps) {
   const { plugin } = props;
   const { steps, actions } = plugin.settings.installedTemplates;
@@ -143,6 +154,9 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     } else if (template.template_type === "action") {
       const action = await fetchActionTemplate(template.ref);
       new CommunityActionModal(plugin, action).open();
+    } else if (template.template_type === "markdown") {
+      const markdown = await fetchMarkdownTemplate(template.ref);
+      console.log(markdown);
     }
   };
 

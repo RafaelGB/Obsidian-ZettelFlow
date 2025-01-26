@@ -1,5 +1,6 @@
 import { c } from "architecture";
 import { Action } from "architecture/api";
+import { CommunityAction } from "config";
 import { Notice, setIcon } from "obsidian";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 
@@ -19,9 +20,18 @@ export function navbarAction(contentEl: HTMLElement, name: string, description: 
         placeholder: "Copy Action", title: "Copy the action to the clipboard"
     }, el => {
         el.addClass("mod-cta");
-        el.addEventListener("click", () => {
+        el.addEventListener("click", async () => {
             // Save step to clipboard
-            navigator.clipboard.writeText(JSON.stringify(action, null, 2))
+            const communityAction: CommunityAction = {
+                ...action,
+                template_type: "action",
+                author: "You",
+                title: "New action",
+                description: action.description || "New action description"
+            }
+            navigator.clipboard.writeText(JSON.stringify(communityAction, null, 2))
+            modal.getPlugin().settings.communitySettings.clipboardTemplate = communityAction;
+            await modal.getPlugin().saveSettings();
             new Notice(`Action copied to clipboard`);
         });
 

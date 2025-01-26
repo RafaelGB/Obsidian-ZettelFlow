@@ -22,7 +22,8 @@ export interface ZettelFlowSettings {
     installedTemplates: InstalledTemplates,
     communitySettings: {
         url: string,
-        token?: string
+        token?: string,
+        clipboardTemplate?: CommunityStepSettings | CommunityAction
     }
 }
 
@@ -31,7 +32,6 @@ export type CommunityTemplateOptions = {
     title: string;
     description: string;
     author: string;
-    downloads: number;
     template_type: "step" | "action";
 }
 

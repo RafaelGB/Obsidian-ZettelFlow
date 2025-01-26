@@ -73,9 +73,11 @@ export class InstalledStepEditorModal extends AbstractStepModal {
             placeholder: "Copy Step", title: "Copy the step to the clipboard"
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", () => {
+            el.addEventListener("click", async () => {
                 // Save step to clipboard
-                navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2))
+                navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2));
+                this.plugin.settings.communitySettings.clipboardTemplate = this.communityStepInfo;
+                await this.plugin.saveSettings();
                 new Notice(`Step copied to clipboard`);
             });
 

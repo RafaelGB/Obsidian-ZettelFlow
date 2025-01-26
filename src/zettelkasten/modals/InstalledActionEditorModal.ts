@@ -9,11 +9,11 @@ import { ConfirmModal } from "architecture/components/settings";
 
 export class InstalledActionEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
-
+    private removed = false;
     constructor(
         private plugin: ZettelFlow,
         private communityAction: CommunityAction,
-        private editCallback: (step: CommunityAction) => void = () => { }
+        private editCallback: (step: CommunityAction, removed: boolean) => void = () => { }
     ) {
         super(plugin.app);
     }
@@ -38,7 +38,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
         // Header with title and subtitle with the mode
-        const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
+        const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
 
         navbar.createEl("h2", { text: "Installed Action Editor" })
 
@@ -59,8 +59,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
                     "Remove",
                     "Cancel",
                     async () => {
-                        delete this.plugin.settings.installedTemplates.actions[this.communityAction.id];
-                        await this.plugin.saveSettings();
+                        this.removed = true;
                         this.close();
                     }
                 ).open();
@@ -135,8 +134,12 @@ export class InstalledActionEditorModal extends AbstractStepModal {
     }
 
     private async saveActionToSettings(): Promise<void> {
-        this.editCallback(this.communityAction);
-        this.plugin.settings.installedTemplates.actions[this.communityAction.id] = this.communityAction;
+        if (this.removed) {
+            delete this.plugin.settings.installedTemplates.actions[this.communityAction.id];
+        } else {
+            this.plugin.settings.installedTemplates.actions[this.communityAction.id] = this.communityAction;
+        }
         this.plugin.saveSettings();
+        this.editCallback(this.communityAction, this.removed);
     }
 }

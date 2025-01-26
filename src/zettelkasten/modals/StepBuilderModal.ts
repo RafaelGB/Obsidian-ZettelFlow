@@ -63,7 +63,7 @@ export class StepBuilderModal extends AbstractStepModal {
             placeholder: "Copy Step", title: "Copy the step to the clipboard"
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", () => {
+            el.addEventListener("click", async () => {
                 // Step 1 - save the step internally
                 const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
                     title: "New template",
@@ -71,6 +71,9 @@ export class StepBuilderModal extends AbstractStepModal {
                 });
                 // Step 2 - Copy the step to the clipboard
                 navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
+                // Step 3 - Save the step to internal clipboard
+                this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
+                await this.plugin.saveSettings();
                 new Notice(`Step copied to clipboard`);
             });
 

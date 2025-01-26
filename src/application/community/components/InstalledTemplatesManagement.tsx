@@ -65,13 +65,20 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
     []
   );
 
-  const refreshAction = useCallback((action: CommunityAction) => {
-    setLocalActions((prev) => {
-      const updated = { ...prev };
-      updated[action.id] = action;
-      return updated;
-    });
-  }, []);
+  const refreshAction = useCallback(
+    (action: CommunityAction, removed: boolean) => {
+      setLocalActions((prev) => {
+        const updated = { ...prev };
+        if (removed) {
+          delete updated[action.id];
+        } else {
+          updated[action.id] = action;
+        }
+        return updated;
+      });
+    },
+    []
+  );
 
   /**
    * Open detail view for a template

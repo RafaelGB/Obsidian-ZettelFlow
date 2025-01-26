@@ -5,6 +5,7 @@ import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { InstalledTemplatesManagement } from "./components/InstalledTemplatesManagement";
 import { t } from "architecture/lang";
+import { CommunityAction, CommunityStepSettings } from "config";
 
 export class ManageInstalledTemplatesModal extends Modal {
   private root: Root;
@@ -32,32 +33,36 @@ export class ManageInstalledTemplatesModal extends Modal {
       cls: c("navbar-button-group"),
     });
 
-    // Add a button to import a template from the clipboard
-    const importButton = navbarButtonGroup.createEl(
-      "button",
-      {
-        placeholder: "Copy Step",
-        title: "Copy the step to the clipboard",
-      },
-      (el) => {
-        el.addClass("mod-cta");
-        el.addEventListener("click", () => {
-          navigator.clipboard.readText().then((text) => {
-            const template = JSON.parse(text);
-            if (template.template_type === "step") {
-              this.plugin.settings.installedTemplates.steps[template.id] =
-                template;
-            } else if (template.template_type === "action") {
-              this.plugin.settings.installedTemplates.actions[template.id] =
-                template;
+    const potentialSavedTempate =
+      this.plugin.settings.communitySettings.clipboardTemplate;
+    if (potentialSavedTempate) {
+      // Add a button to import a template from the clipboard
+      const importButton = navbarButtonGroup.createEl(
+        "button",
+        {
+          placeholder: "Add template from clipboard",
+          title: "Add template from clipboard to installed templates",
+        },
+        (el) => {
+          el.addClass("mod-cta");
+          el.addEventListener("click", () => {
+            if (potentialSavedTempate.template_type === "step") {
+              this.plugin.settings.installedTemplates.steps[
+                potentialSavedTempate.id
+              ] = potentialSavedTempate as CommunityStepSettings;
+            } else if (potentialSavedTempate.template_type === "action") {
+              this.plugin.settings.installedTemplates.actions[
+                potentialSavedTempate.id
+              ] = potentialSavedTempate as CommunityAction;
             }
+            delete this.plugin.settings.communitySettings.clipboardTemplate;
             this.plugin.saveSettings();
             this.refresh();
           });
-        });
-      }
-    );
-    setIcon(importButton.createDiv(), "import");
+        }
+      );
+      setIcon(importButton.createDiv(), "clipboard-paste");
+    }
 
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);

@@ -18,6 +18,7 @@ export function SelectableSearch(props: SelectableSearchType) {
     placeholder = "Buscar...",
     enableCreate = false,
     autoFocus = false,
+    disabled = false,
   } = props;
 
   const [searchState, setSearchState] = useState("");
@@ -125,6 +126,7 @@ export function SelectableSearch(props: SelectableSearchType) {
             <div key={`${option}-${index}`} className={c("selectable-pill")}>
               <span className={c("pill-label")}>{option}</span>
               <button
+                disabled={disabled}
                 className={c("pill-remove-button")}
                 aria-label={`Eliminar ${option}`}
                 onClick={(event) => {
@@ -137,6 +139,7 @@ export function SelectableSearch(props: SelectableSearchType) {
             </div>
           ))}
           <input
+            disabled={disabled}
             type="search"
             ref={inputRef}
             value={searchState}
@@ -151,6 +154,7 @@ export function SelectableSearch(props: SelectableSearchType) {
         </div>
         {selectedOptions.length > 0 && (
           <button
+            disabled={disabled}
             className={c("clear-all-button")}
             onClick={handleClearAll}
             aria-label="Eliminar todas las selecciones"

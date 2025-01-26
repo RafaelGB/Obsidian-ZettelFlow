@@ -5,4 +5,5 @@ export type SelectableSearchType = {
     initialSelections?: string[],
     placeholder?: string,
     enableCreate?: boolean,
+    disabled?: boolean
 }

@@ -13,10 +13,10 @@ export const backlinkSettings: ActionSetting = (contentEl, modal, action) => {
     navbarAction(contentEl, name, description, action, modal);
 
     const backlinkContentEl = contentEl.createDiv();
-    render(modal, action, backlinkContentEl);
+    backlinkDetails(modal, action, backlinkContentEl);
 }
 
-function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
+export function backlinkDetails(modal: AbstractStepModal, action: Action, contentEl: HTMLElement, readonly: boolean = false): void {
     const { info } = modal;
     const { optional } = info
     const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
@@ -25,6 +25,7 @@ function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement
         .setDesc(t('step_builder_element_type_backlink_insert_pattern_description').concat(insertPattern.replace("{{wikilink}}", "[[note link]]")))
     patternElement.addText((text) => {
         text
+            .setDisabled(readonly)
             .setPlaceholder('{{wikilink}}')
             .setValue(insertPattern)
             .onChange(async (value) => {
@@ -39,6 +40,7 @@ function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement
         .setDesc(t('step_builder_element_type_backlink_trigger_default_description'))
         .addToggle((toggle) => {
             toggle
+                .setDisabled(readonly)
                 .setValue(hasDefault)
                 .onChange(async (value) => {
                     action.hasDefault = value;
@@ -62,7 +64,9 @@ function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement
                     FileService.PATH_SEPARATOR,
                 ).setExtensions(FILE_EXTENSIONS.ONLY_MD);
 
-                cb.setPlaceholder(t('step_builder_element_type_backlink_search_file_placeholder'))
+                cb
+                    .setDisabled(readonly)
+                    .setPlaceholder(t('step_builder_element_type_backlink_search_file_placeholder'))
                     .setValue(defaultFile)
                     .onChange(async (value) => {
                         action.defaultFile = value;
@@ -84,7 +88,9 @@ function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement
                         cb.inputEl,
                         defaultFile,
                     );
-                    cb.setPlaceholder(t('step_builder_element_type_backlink_search_file_heading_placeholder'))
+                    cb
+                        .setDisabled(readonly)
+                        .setPlaceholder(t('step_builder_element_type_backlink_search_file_heading_placeholder'))
                         .setValue(defaultHeading?.heading || "")
                         .onChange(async () => {
                             if (cb.inputEl.dataset.heading) {
@@ -99,5 +105,5 @@ function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement
 
 function refresh(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
     contentEl.empty();
-    render(settingHandlerResponse, action, contentEl);
+    backlinkDetails(settingHandlerResponse, action, contentEl);
 }

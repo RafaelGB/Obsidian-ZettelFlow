@@ -13,10 +13,14 @@ export class InstalledStepEditorModal extends AbstractStepModal {
     mode = "edit";
     builder = "ribbon";
     chain = new CommunityInfoHandler();
+    private removed = false;
     constructor(
         private plugin: ZettelFlow,
         private communityStepInfo: CommunityStepSettings,
-        private editCallback: (step: CommunityStepSettings) => void = () => { }
+        private editCallback: (
+            step: CommunityStepSettings,
+            removed: boolean
+        ) => void = () => { }
     ) {
         super(plugin.app);
         this.info = this.getBaseInfo();
@@ -55,8 +59,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
                     "Remove",
                     "Cancel",
                     async () => {
-                        delete this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id];
-                        await this.plugin.saveSettings();
+                        this.removed = true;
                         this.close();
                     }
                 ).open();
@@ -102,9 +105,13 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
     private async saveStepToSettings(): Promise<void> {
         const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, this.communityStepInfo);
-        this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id] = stepSettings;
+        if (this.removed) {
+            delete this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id];
+        } else {
+            this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id] = stepSettings;
+        }
         await this.plugin.saveSettings();
-        this.editCallback(stepSettings);
+        this.editCallback(stepSettings, this.removed);
     }
 
     private getBaseInfo(): StepBuilderInfo {

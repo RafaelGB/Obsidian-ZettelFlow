@@ -50,7 +50,7 @@ export class CommunityStepModal extends Modal {
         }
       );
     }
-    // Add a button to apply an installed step template
+    // Add a button to remove/install the step
     navbarButtonGroup.createEl(
       "button",
       {

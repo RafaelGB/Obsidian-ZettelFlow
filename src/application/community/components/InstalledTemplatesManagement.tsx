@@ -50,13 +50,20 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   /**
    * Refresh an installed step template with new data in the list
    */
-  const refreshStep = useCallback((step: CommunityStepSettings) => {
-    setLocalSteps((prev) => {
-      const updated = { ...prev };
-      updated[step.id] = step;
-      return updated;
-    });
-  }, []);
+  const refreshStep = useCallback(
+    (step: CommunityStepSettings, removed: boolean) => {
+      setLocalSteps((prev) => {
+        const updated = { ...prev };
+        if (removed) {
+          delete updated[step.id];
+        } else {
+          updated[step.id] = step;
+        }
+        return updated;
+      });
+    },
+    []
+  );
 
   const refreshAction = useCallback((action: CommunityAction) => {
     setLocalActions((prev) => {
@@ -79,7 +86,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
         refreshStep
       ).open();
     } else if (template.template_type === "action") {
-      // TODO: Open action detail view
       new InstalledActionEditorModal(
         plugin,
         template as CommunityAction,
@@ -113,10 +119,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   // Render the list of installed templates
   return (
     <div className={c("community-templates-gallery")}>
-      <h1 className={c("community-templates-gallery-title")}>
-        Installed Templates
-      </h1>
-
       {/* Search and filter controls */}
       <div className={c("community-templates-controls")}>
         {/* Search bar */}

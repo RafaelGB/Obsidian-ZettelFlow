@@ -57,6 +57,26 @@ export class StepBuilderModal extends AbstractStepModal {
         navbar.appendChild(span);
 
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+
+        // Add a button to save the step into the clipboard
+        const clipboardButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Copy Step", title: "Copy the step to the clipboard"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", () => {
+                // Step 1 - save the step internally
+                const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+                    title: "New template",
+                    description: "New template description"
+                });
+                // Step 2 - Copy the step to the clipboard
+                navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
+                new Notice(`Step copied to clipboard`);
+            });
+
+        });
+        setIcon(clipboardButton.createDiv(), "clipboard-copy");
+
         // Add a button to apply an installed step template
         const useTemplateButton = navbarButtonGroup.createEl("button", {
             placeholder: "Apply Step", title: "Apply a template to this step"

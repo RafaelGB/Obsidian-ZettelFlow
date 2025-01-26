@@ -11,14 +11,14 @@ import { navbarAction } from "architecture/components/settings";
 
 export const elementTypeSelectorSettings: ActionSetting = (
   contentEl,
-  _,
+  modal,
   action
 ) => {
   const { zone, key, label, multiple } = action as SelectorElement;
 
   const name = t("step_builder_element_type_selector_title");
   const description = t("step_builder_element_type_selector_description");
-  navbarAction(contentEl, name, description, action);
+  navbarAction(contentEl, name, description, action, modal);
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_zone_title"))

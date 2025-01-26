@@ -1,8 +1,9 @@
 import { c } from "architecture";
 import { Action } from "architecture/api";
 import { Notice, setIcon } from "obsidian";
+import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 
-export function navbarAction(contentEl: HTMLElement, name: string, description: string, action: Action): void {
+export function navbarAction(contentEl: HTMLElement, name: string, description: string, action: Action, modal: AbstractStepModal): void {
     const span = activeDocument.createElement("span", {});
     // Header with title and subtitle with the mode
     const navbar = contentEl.createDiv({ cls: c("modal-navbar") });

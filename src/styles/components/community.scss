@@ -84,7 +84,7 @@
 
 /* Border accent based on template type */
 .zettelkasten-flow__template-type-step {
-    border-left: 4px solid var(--code-property);
+    border-left: 4px solid var(--color-accent);
 }
 
 .zettelkasten-flow__template-type-action {
@@ -105,7 +105,7 @@
 }
 
 .zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-type-badge {
-    background-color: var(--code-property);
+    background-color: var(--color-accent);
 }
 
 .zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-type-badge {
@@ -123,7 +123,7 @@
 }
 
 .zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-icon {
-    fill: var(--code-property);
+    fill: var(--color-accent);
 }
 
 .zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-icon {

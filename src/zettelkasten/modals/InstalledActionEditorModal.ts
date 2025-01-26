@@ -5,6 +5,7 @@ import ZettelFlow from "main";
 import { Notice, setIcon, Setting } from "obsidian";
 import { AbstractStepModal } from "./AbstractStepModal";
 import { StepBuilderInfo } from "zettelkasten/typing";
+import { ConfirmModal } from "architecture/components/settings";
 
 export class InstalledActionEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
@@ -45,6 +46,29 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         navbar.appendChild(span);
 
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+        // Add Uninstall button
+        const uninstallButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Remove", title: "Remove this action"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                new ConfirmModal(
+                    this.plugin.app,
+                    "Are you sure you want to remove this action?",
+                    "Remove",
+                    "Cancel",
+                    async () => {
+                        delete this.plugin.settings.installedTemplates.actions[this.communityAction.id];
+                        await this.plugin.saveSettings();
+                        this.close();
+                    }
+                ).open();
+
+            });
+        });
+        setIcon(uninstallButton.createDiv(), "trash-2")
+
         // Add a button to save the step into the clipboard
         const useTemplateButton = navbarButtonGroup.createEl("button", {
             placeholder: "Copy Action", title: "Copy the action to the clipboard"

@@ -7,11 +7,11 @@ import { NumberElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
-export const numberSettings: ActionSetting = (contentEl, _, action) => {
+export const numberSettings: ActionSetting = (contentEl, modal, action) => {
     const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as NumberElement;
     const name = t('step_builder_element_type_number_title');
     const description = t('step_builder_element_type_number_description');
-    navbarAction(contentEl, name, description, action);
+    navbarAction(contentEl, name, description, action, modal);
 
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))

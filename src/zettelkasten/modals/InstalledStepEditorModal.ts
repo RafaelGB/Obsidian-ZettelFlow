@@ -6,6 +6,7 @@ import { AbstractStepModal } from "./AbstractStepModal";
 import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
 import { CommunityInfoHandler } from "./handlers/CommunityInfoHandler";
+import { ConfirmModal } from "architecture/components/settings";
 
 export class InstalledStepEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
@@ -41,8 +42,29 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
         // Separator
         navbar.appendChild(span);
-
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+        // Add Uninstall button
+        const uninstallButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Remove", title: "Remove this step"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", async () => {
+                new ConfirmModal(
+                    this.plugin.app,
+                    "Are you sure you want to remove this step?",
+                    "Remove",
+                    "Cancel",
+                    async () => {
+                        delete this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id];
+                        await this.plugin.saveSettings();
+                        this.close();
+                    }
+                ).open();
+            });
+        });
+        setIcon(uninstallButton.createDiv(), "trash-2")
+
+
         // Add a button to save the step into the clipboard
         const useTemplateButton = navbarButtonGroup.createEl("button", {
             placeholder: "Copy Step", title: "Copy the step to the clipboard"

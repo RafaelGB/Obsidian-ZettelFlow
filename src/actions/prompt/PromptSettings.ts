@@ -1,18 +1,21 @@
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { PromptElement } from "zettelkasten";
-import { ActionSetting } from "architecture/api";
+import { Action, ActionSetting } from "architecture/api";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
-export const promptSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as PromptElement;
+export const promptSettings: ActionSetting = (contentEl, modal, action) => {
     const name = t('step_builder_element_type_prompt_title');
     const description = t('step_builder_element_type_prompt_description');
-    navbarAction(contentEl, name, description, action);
+    navbarAction(contentEl, name, description, action, modal);
+    promptDetails(contentEl, action);
+}
 
+export function promptDetails(contentEl: HTMLElement, action: Action, readMode: boolean = false): void {
+    const { key, label, placeholder, zone, staticBehaviour, staticValue } = action as PromptElement;
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))
         .setDesc(t("step_builder_element_type_zone_description"))
@@ -24,6 +27,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
                 )
                 .addOption("body", t("step_builder_element_type_zone_body"))
                 .addOption("context", t("step_builder_element_type_zone_context"))
+                .setDisabled(readMode)
                 .setValue(zone !== undefined ? (zone as string) : "frontmatter")
                 .onChange(async (value) => {
                     action.zone = value;
@@ -42,6 +46,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
                 );
                 search
                     .setValue(key || ``)
+                    .setDisabled(readMode)
                     .onChange(async (value) => {
                         action.key = value;
                     });
@@ -55,6 +60,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         .addText(text => {
             text
                 .setValue(label || ``)
+                .setDisabled(readMode)
                 .onChange(async (value) => {
                     action.label = value;
                 });
@@ -66,6 +72,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         .addTextArea(text => {
             text
                 .setValue(placeholder || ``)
+                .setDisabled(readMode)
                 .onChange(async (value) => {
                     action.placeholder = value;
                 });
@@ -80,6 +87,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         .addToggle(toggle => {
             toggle
                 .setValue(staticBehaviour)
+                .setDisabled(readMode)
                 .onChange(async (isStatic) => {
                     action.staticBehaviour = isStatic;
                     const staticInput = document.getElementById(dynamicId) as HTMLInputElement;
@@ -103,6 +111,7 @@ export const promptSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_static_value_description"))
         .addTextArea(text => {
             text.setValue(staticValue || ``)
+                .setDisabled(readMode)
                 .onChange(async (value) => {
                     action.staticValue = value;
                 });

@@ -7,7 +7,11 @@ import { ObsidianConfig } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
-export const taskManagementSettings: ActionSetting = (contentEl, _, action) => {
+export const taskManagementSettings: ActionSetting = (
+  contentEl,
+  modal,
+  action
+) => {
   const {
     initialFolder,
     regex,
@@ -23,7 +27,7 @@ export const taskManagementSettings: ActionSetting = (contentEl, _, action) => {
   const description = t(
     "step_builder_element_type_task_management_description"
   );
-  navbarAction(contentEl, name, description, action);
+  navbarAction(contentEl, name, description, action, modal);
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_task_management_target_folder_title"))

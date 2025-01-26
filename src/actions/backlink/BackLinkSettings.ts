@@ -7,17 +7,17 @@ import { Action, ActionSetting } from "architecture/api";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 import { navbarAction } from "architecture/components/settings";
 
-export const backlinkSettings: ActionSetting = (contentEl, settingHandlerResponse, action) => {
+export const backlinkSettings: ActionSetting = (contentEl, modal, action) => {
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');
-    navbarAction(contentEl, name, description, action);
+    navbarAction(contentEl, name, description, action, modal);
 
     const backlinkContentEl = contentEl.createDiv();
-    render(settingHandlerResponse, action, backlinkContentEl);
+    render(modal, action, backlinkContentEl);
 }
 
-function render(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
-    const { info } = settingHandlerResponse;
+function render(modal: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
+    const { info } = modal;
     const { optional } = info
     const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
     const patternElement = new Setting(contentEl)
@@ -48,7 +48,7 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
                         action.defaultFile = "";
                         action.defaultHeading = {};
                     }
-                    refresh(settingHandlerResponse, action, contentEl);
+                    refresh(modal, action, contentEl);
                 })
         });
 
@@ -71,7 +71,7 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
                     if (!cb.inputEl.value) {
                         action.defaultHeading = {};
                     }
-                    refresh(settingHandlerResponse, action, contentEl);
+                    refresh(modal, action, contentEl);
                 }
             });
 

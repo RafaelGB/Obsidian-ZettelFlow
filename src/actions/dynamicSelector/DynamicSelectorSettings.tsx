@@ -13,7 +13,7 @@ import { navbarAction } from "architecture/components/settings";
 // Define the settings for the Dynamic Selector element type
 export const elementTypeDynamicSelectorSettings: ActionSetting = (
   contentEl,
-  _,
+  modal,
   action
 ) => {
   const dynamicSelectorElement = action as DynamicSelectorElement;
@@ -23,7 +23,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
   const description = t(
     "step_builder_element_type_dynamic_selector_description"
   );
-  navbarAction(contentEl, name, description, action);
+  navbarAction(contentEl, name, description, action, modal);
 
   // Configuration for selecting the zone
   new Setting(contentEl)

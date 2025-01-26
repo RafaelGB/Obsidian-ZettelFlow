@@ -9,11 +9,11 @@ import { SelectableSearch } from "architecture/components/core";
 import { ObsidianApi } from "architecture";
 import { navbarAction } from "architecture/components/settings";
 
-export const cssclassesSettings: ActionSetting = (contentEl, _, action) => {
+export const cssclassesSettings: ActionSetting = (contentEl, modal, action) => {
   const { staticBehaviour, staticValue } = action as TagsElement;
   const name = t("step_builder_element_type_cssclasses_title");
   const description = t("step_builder_element_type_cssclasses_description");
-  navbarAction(contentEl, name, description, action);
+  navbarAction(contentEl, name, description, action, modal);
 
   // Toggle to enable static behaviour
   const dynamicId = uuid4();

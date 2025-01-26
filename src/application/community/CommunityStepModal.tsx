@@ -1,5 +1,6 @@
 import { c } from "architecture";
 import { actionsStore } from "architecture/api";
+import { ConfirmModal } from "architecture/components/settings";
 import { MarkdownService } from "architecture/plugin";
 import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
@@ -29,7 +30,7 @@ export class CommunityStepModal extends Modal {
     });
 
     const isInstalled = this.isTemplateInstalled(this.step);
-    const buttonTitle = isInstalled ? "Desinstalar" : "Instalar";
+    const buttonTitle = isInstalled ? "Remove" : "Install";
 
     if (isInstalled) {
       navbarButtonGroup.createEl(
@@ -61,7 +62,17 @@ export class CommunityStepModal extends Modal {
         el.addClass("mod-cta");
         el.addEventListener("click", () => {
           if (isInstalled) {
-            delete this.plugin.settings.installedTemplates.steps[this.step.id];
+            new ConfirmModal(
+              this.plugin.app,
+              "Are you sure you want to remove this action?",
+              "Remove",
+              "Cancel",
+              async () => {
+                delete this.plugin.settings.installedTemplates.steps[
+                  this.step.id
+                ];
+              }
+            ).open();
           } else {
             this.plugin.settings.installedTemplates.steps[this.step.id] =
               this.step;

@@ -7,11 +7,11 @@ import { CheckboxElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
-export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
+export const checkboxSettings: ActionSetting = (contentEl, modal, action) => {
     const { key, label, zone, staticBehaviour, staticValue = false } = action as CheckboxElement;
     const name = t('step_builder_element_type_checkbox_title');
     const description = t('step_builder_element_type_checkbox_description');
-    navbarAction(contentEl, name, description, action);
+    navbarAction(contentEl, name, description, action, modal);
 
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))

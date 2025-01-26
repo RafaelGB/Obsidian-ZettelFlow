@@ -17,11 +17,10 @@ export class StepBuilderMapper {
 
     public static StepBuilderInfo2CommunityStepSettings(info: StepBuilderInfo, origin: Partial<CommunityStepSettings>): CommunityStepSettings {
         const { label, childrenHeader, targetFolder, root, optional, actions, title = "", description = "" } = info;
-        const { author = "You", id = uuid4(), downloads = 0 } = origin;
+        const { author = "You", id = uuid4() } = origin;
         return {
             ...origin,
             template_type: "step",
-            downloads,
             author,
             id,
             title,

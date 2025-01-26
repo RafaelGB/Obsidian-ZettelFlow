@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
-import ZettelFlow from "main"; // Ajusta la ruta según tu proyecto
+import React, { useState, useMemo, ChangeEvent } from "react";
+import ZettelFlow from "main";
 import { c } from "architecture";
-import { StepSettings } from "zettelkasten"; // Ajusta la ruta según tu tipado real
+import { StepSettings } from "zettelkasten";
+import { CommunityStepSettings } from "config";
 
 interface StepTemplatesSelectorProps {
   plugin: ZettelFlow;
@@ -11,13 +12,10 @@ interface StepTemplatesSelectorProps {
 export function StepTemplatesSelector(props: StepTemplatesSelectorProps) {
   const { plugin, callback } = props;
 
-  // Campo de búsqueda
+  // State for the search term
   const [searchTerm, setSearchTerm] = useState("");
 
-  /**
-   * Obtenemos todos los Steps instalados desde la config del plugin,
-   * transformándolos a un array para iterar más fácilmente.
-   */
+  // Convert installed steps (object) into an array
   const stepsArray = useMemo(() => {
     const installedSteps = plugin.settings.installedTemplates.steps;
     return Object.entries(installedSteps).map(([key, step]) => ({
@@ -26,57 +24,64 @@ export function StepTemplatesSelector(props: StepTemplatesSelectorProps) {
     }));
   }, [plugin.settings.installedTemplates.steps]);
 
-  /**
-   * Filtramos los steps en base al campo de búsqueda
-   */
+  // Filter steps by search term
   const filteredSteps = useMemo(() => {
     const lowerSearch = searchTerm.toLowerCase();
     return stepsArray.filter((step) => {
-      // Ajusta los campos de búsqueda que necesites (title, description, author, etc.)
+      const title = step.title?.toLowerCase() || "";
+      const description = step.description?.toLowerCase() || "";
+      const author = step.author?.toLowerCase() || "";
+
       return (
-        step.title.toLowerCase().includes(lowerSearch) ||
-        step.description.toLowerCase().includes(lowerSearch) ||
-        step.author.toLowerCase().includes(lowerSearch)
+        title.includes(lowerSearch) ||
+        description.includes(lowerSearch) ||
+        author.includes(lowerSearch)
       );
     });
   }, [stepsArray, searchTerm]);
 
-  return (
-    <div className={c("step-templates-selector")}>
-      <h2 className={c("step-templates-selector__title")}>
-        Selecciona un Step
-      </h2>
+  // Handler for the input change in the search field
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
 
-      {/* Barra de búsqueda */}
+  // Renders each step card
+  const renderStepCard = (step: CommunityStepSettings & { id: string }) => (
+    <div
+      key={step.id}
+      className={c("community-templates-card", "template-type-step")}
+      onClick={() => callback(step)}
+      role="button"
+    >
+      <h3 className={c("community-templates-card-title")}>{step.title}</h3>
+      <p className={c("community-templates-card-description")}>
+        {step.description}
+      </p>
+      <small className={c("community-templates-card-meta")}>
+        Autor: {step.author}
+      </small>
+    </div>
+  );
+
+  return (
+    <div className={c("community-templates-gallery")}>
+      <h1 className={c("community-templates-gallery-title")}>Select a Step</h1>
+
+      {/* Search input */}
       <input
         type="text"
         className={c("step-templates-selector__search")}
         placeholder="Buscar por título, descripción o autor..."
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={handleSearchChange}
+        aria-label="Find a step by title, description or author"
       />
 
-      {/* Lista de Steps filtrados */}
-      <div className={c("step-templates-selector__list")}>
-        {filteredSteps.map((step) => (
-          <div
-            key={step.id}
-            className={c("step-templates-selector__card")}
-            onClick={() => callback(step)} // Al hacer clic, se invoca el callback
-          >
-            <h3 className={c("step-templates-selector__card-title")}>
-              {step.title}
-            </h3>
-            <p className={c("step-templates-selector__card-description")}>
-              {step.description}
-            </p>
-            <small className={c("step-templates-selector__card-author")}>
-              Autor: {step.author}
-            </small>
-          </div>
-        ))}
+      {/* List of steps */}
+      <div className={c("community-templates-list")}>
+        {filteredSteps.map(renderStepCard)}
 
-        {/* Si no hay resultados */}
+        {/* No results message */}
         {filteredSteps.length === 0 && (
           <p className={c("step-templates-selector__no-results")}>
             No se encontraron resultados.

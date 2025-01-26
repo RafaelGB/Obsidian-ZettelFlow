@@ -43,8 +43,10 @@ export default class ZettelFlow extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			await this.loadData(),
 		);
+		// Remove clipboard template. This is not a setting that should be saved.
+		delete this.settings.communitySettings.clipboardTemplate;
 		loadServicesThatRequireSettings(this.settings);
 	}
 

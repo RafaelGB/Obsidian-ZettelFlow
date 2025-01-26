@@ -1,5 +1,5 @@
 import { t } from "architecture/lang";
-import { ActionSetting, fnsManager } from "architecture/api";
+import { Action, ActionSetting, fnsManager } from "architecture/api";
 import { ViewUpdate } from "@codemirror/view";
 import { dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
@@ -8,23 +8,29 @@ import { ScriptResult } from "./typing";
 import { c } from "architecture";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
+import { navbarAction } from "architecture/components/settings";
 
 // Define the settings for the Dynamic Selector element type
 export const elementTypeDynamicSelectorSettings: ActionSetting = (
   contentEl,
-  _,
+  modal,
   action
 ) => {
+  const name = t("step_builder_element_type_dynamic_selector_title");
+  const description = t(
+    "step_builder_element_type_dynamic_selector_description"
+  );
+  navbarAction(contentEl, name, description, action, modal);
+  dynamicSelectorDetails(contentEl, action);
+};
+
+export function dynamicSelectorDetails(
+  contentEl: HTMLElement,
+  action: Action,
+  readonly: boolean = false
+): void {
   const dynamicSelectorElement = action as DynamicSelectorElement;
   const { code, zone, key, multiple } = dynamicSelectorElement;
-
-  // Create the title and description for the scripts section
-  contentEl.createEl("h3", {
-    text: t("step_builder_element_type_script_title"),
-  });
-  contentEl.createEl("p", {
-    text: t("step_builder_element_type_script_description"),
-  });
 
   // Configuration for selecting the zone
   new Setting(contentEl)
@@ -32,6 +38,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
     .setDesc(t("step_builder_element_type_zone_description"))
     .addDropdown((dropdown) => {
       dropdown
+        .setDisabled(readonly)
         .addOption(
           "frontmatter",
           t("step_builder_element_type_zone_frontmatter")
@@ -50,9 +57,12 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
     .addSearch((search) => {
       ObsidianConfig.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types, ["text"]);
-        search.setValue(key || ``).onChange(async (value) => {
-          action.key = value;
-        });
+        search
+          .setDisabled(readonly)
+          .setValue(key || ``)
+          .onChange(async (value) => {
+            action.key = value;
+          });
       });
     });
 
@@ -81,7 +91,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       "Run the script with a test input and verify if it works as expected."
     )
     .addButton((button) => {
-      button.setButtonText("Run");
+      button.setDisabled(readonly).setButtonText("Run");
       button.setCta(); // Set as the main call to action (optional)
       button.onClick(async () => {
         // Execute the script with the provided input
@@ -92,19 +102,24 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       });
     })
     .addButton((button) => {
-      button.setButtonText("Clear Output");
-      button.onClick(() => {
-        clearScriptOutput(debugContainer);
-      });
+      button
+        .setDisabled(readonly)
+        .setButtonText("Clear Output")
+        .onClick(() => {
+          clearScriptOutput(debugContainer);
+        });
     });
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_selector_multiple_title"))
     .setDesc(t("step_builder_element_type_selector_multiple_description"))
     .addToggle((toggle) => {
-      toggle.setValue(multiple || false).onChange(async (value) => {
-        action.multiple = value;
-      });
+      toggle
+        .setDisabled(readonly)
+        .setValue(multiple || false)
+        .onChange(async (value) => {
+          action.multiple = value;
+        });
     });
   // Create a container to display debugging results
   debugContainer.createDiv({
@@ -217,4 +232,4 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
       outputDiv.innerHTML = "";
     }
   };
-};
+}

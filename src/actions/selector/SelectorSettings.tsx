@@ -7,19 +7,18 @@ import { ActionSetting } from "architecture/api";
 import { SelectorDnD } from "./components/selectordnd/SelectorDnD";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
+import { navbarAction } from "architecture/components/settings";
 
 export const elementTypeSelectorSettings: ActionSetting = (
   contentEl,
-  _,
+  modal,
   action
 ) => {
   const { zone, key, label, multiple } = action as SelectorElement;
-  contentEl.createEl("h3", {
-    text: t("step_builder_element_type_selector_title"),
-  });
-  contentEl.createEl("p", {
-    text: t("step_builder_element_type_selector_description"),
-  });
+
+  const name = t("step_builder_element_type_selector_title");
+  const description = t("step_builder_element_type_selector_description");
+  navbarAction(contentEl, name, description, action, modal);
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_zone_title"))

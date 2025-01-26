@@ -48,48 +48,37 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   };
 
   /**
-   * Uninstall a template from both local state and plugin settings
-   */
-  const handleUninstall = useCallback(
-    (templateId: string, templateType: "step" | "action") => {
-      if (templateType === "step") {
-        setLocalSteps((prev) => {
-          const updated = { ...prev };
-          delete updated[templateId];
-          return updated;
-        });
-        delete plugin.settings.installedTemplates.steps[templateId];
-      } else {
-        setLocalActions((prev) => {
-          const updated = { ...prev };
-          delete updated[templateId];
-          return updated;
-        });
-        delete plugin.settings.installedTemplates.actions[templateId];
-      }
-      plugin.saveSettings();
-    },
-    [plugin]
-  );
-
-  /**
    * Refresh an installed step template with new data in the list
    */
-  const refreshStep = useCallback((step: CommunityStepSettings) => {
-    setLocalSteps((prev) => {
-      const updated = { ...prev };
-      updated[step.id] = step;
-      return updated;
-    });
-  }, []);
+  const refreshStep = useCallback(
+    (step: CommunityStepSettings, removed: boolean) => {
+      setLocalSteps((prev) => {
+        const updated = { ...prev };
+        if (removed) {
+          delete updated[step.id];
+        } else {
+          updated[step.id] = step;
+        }
+        return updated;
+      });
+    },
+    []
+  );
 
-  const refreshAction = useCallback((action: CommunityAction) => {
-    setLocalActions((prev) => {
-      const updated = { ...prev };
-      updated[action.id] = action;
-      return updated;
-    });
-  }, []);
+  const refreshAction = useCallback(
+    (action: CommunityAction, removed: boolean) => {
+      setLocalActions((prev) => {
+        const updated = { ...prev };
+        if (removed) {
+          delete updated[action.id];
+        } else {
+          updated[action.id] = action;
+        }
+        return updated;
+      });
+    },
+    []
+  );
 
   /**
    * Open detail view for a template
@@ -104,7 +93,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
         refreshStep
       ).open();
     } else if (template.template_type === "action") {
-      // TODO: Open action detail view
       new InstalledActionEditorModal(
         plugin,
         template as CommunityAction,
@@ -138,10 +126,6 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
   // Render the list of installed templates
   return (
     <div className={c("community-templates-gallery")}>
-      <h1 className={c("community-templates-gallery-title")}>
-        Installed Templates
-      </h1>
-
       {/* Search and filter controls */}
       <div className={c("community-templates-controls")}>
         {/* Search bar */}
@@ -196,38 +180,33 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
 
       {/* List of installed templates in card format */}
       <div className={c("community-templates-list")}>
-        {filteredInstalled.map((template) => (
-          <div
-            key={template.id}
-            className={c("community-templates-card")}
-            onClick={() => onTemplateClick(template)}
-          >
-            <h3 className={c("community-templates-card-title")}>
-              {template.title}{" "}
-              <span className={c("community-templates-card-subtitle")}>
-                ({template.template_type})
+        {filteredInstalled.map((template) => {
+          const isStep = template.template_type === "step";
+          const isAction = template.template_type === "action";
+          return (
+            <div
+              key={template.id}
+              className={c(
+                "community-templates-card",
+                `template-type-${template.template_type}`
+              )}
+              onClick={() => onTemplateClick(template)}
+            >
+              <span className={c("community-templates-card-type-badge")}>
+                {isStep ? "Step" : isAction ? "Action" : "Template"}
               </span>
-            </h3>
-            <p className={c("community-templates-card-description")}>
-              {template.description}
-            </p>
-            <small className={c("community-templates-card-meta")}>
-              Author: {template.author} - Downloads: {template.downloads}
-            </small>
-            <div className={c("community-templates-card-actions")}>
-              {/* Stop propagation to avoid triggering detail view */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleUninstall(template.id, template.template_type);
-                }}
-                className={c("community-templates-uninstall-button")}
-              >
-                Uninstall
-              </button>
+              <h3 className={c("community-templates-card-title")}>
+                {template.title}{" "}
+              </h3>
+              <p className={c("community-templates-card-description")}>
+                {template.description}
+              </p>
+              <small className={c("community-templates-card-meta")}>
+                Author: {template.author}
+              </small>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

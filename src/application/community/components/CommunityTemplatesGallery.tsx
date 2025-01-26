@@ -270,7 +270,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 {template.description}
               </p>
               <small className={c("community-templates-card-meta")}>
-                Author: {template.author} | Downloads: {template.downloads}
+                Author: {template.author}
               </small>
             </div>
           );

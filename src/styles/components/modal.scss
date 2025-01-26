@@ -66,6 +66,11 @@ zettelkasten-flow__.modal-reader-type-section .icon {
 /* Sección de configuración */
 .zettelkasten-flow__modal-reader-section {
     margin-bottom: 20px;
+    /* Mantiene el margen entre las zonas */
+    padding: 15px;
+    border: 2px dashed var(--background-modifier-border-focus);
+    background-color: var(--background-modifier-border);
+    border-radius: 10px;
 }
 
 /* Estilos para los elementos de configuración dentro de modal-reader-section */

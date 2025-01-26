@@ -5,17 +5,19 @@ import { BacklinkElement } from "./typing";
 import { t } from "architecture/lang";
 import { Action, ActionSetting } from "architecture/api";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
+import { navbarAction } from "architecture/components/settings";
 
-export const backlinkSettings: ActionSetting = (contentEl, settingHandlerResponse, action) => {
+export const backlinkSettings: ActionSetting = (contentEl, modal, action) => {
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');
-    contentEl.createEl("h3", { text: name });
-    contentEl.createEl("p", { text: description });
+    navbarAction(contentEl, name, description, action, modal);
+
     const backlinkContentEl = contentEl.createDiv();
-    render(settingHandlerResponse, action, backlinkContentEl);
+    backlinkDetails(modal, action, backlinkContentEl);
 }
-function render(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
-    const { info } = settingHandlerResponse;
+
+export function backlinkDetails(modal: AbstractStepModal, action: Action, contentEl: HTMLElement, readonly: boolean = false): void {
+    const { info } = modal;
     const { optional } = info
     const { hasDefault, insertPattern = "{{wikilink}}", defaultFile = "", defaultHeading } = action as BacklinkElement;
     const patternElement = new Setting(contentEl)
@@ -23,6 +25,7 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
         .setDesc(t('step_builder_element_type_backlink_insert_pattern_description').concat(insertPattern.replace("{{wikilink}}", "[[note link]]")))
     patternElement.addText((text) => {
         text
+            .setDisabled(readonly)
             .setPlaceholder('{{wikilink}}')
             .setValue(insertPattern)
             .onChange(async (value) => {
@@ -37,6 +40,7 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
         .setDesc(t('step_builder_element_type_backlink_trigger_default_description'))
         .addToggle((toggle) => {
             toggle
+                .setDisabled(readonly)
                 .setValue(hasDefault)
                 .onChange(async (value) => {
                     action.hasDefault = value;
@@ -46,7 +50,7 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
                         action.defaultFile = "";
                         action.defaultHeading = {};
                     }
-                    refresh(settingHandlerResponse, action, contentEl);
+                    refresh(modal, action, contentEl);
                 })
         });
 
@@ -60,7 +64,9 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
                     FileService.PATH_SEPARATOR,
                 ).setExtensions(FILE_EXTENSIONS.ONLY_MD);
 
-                cb.setPlaceholder(t('step_builder_element_type_backlink_search_file_placeholder'))
+                cb
+                    .setDisabled(readonly)
+                    .setPlaceholder(t('step_builder_element_type_backlink_search_file_placeholder'))
                     .setValue(defaultFile)
                     .onChange(async (value) => {
                         action.defaultFile = value;
@@ -69,7 +75,7 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
                     if (!cb.inputEl.value) {
                         action.defaultHeading = {};
                     }
-                    refresh(settingHandlerResponse, action, contentEl);
+                    refresh(modal, action, contentEl);
                 }
             });
 
@@ -82,7 +88,9 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
                         cb.inputEl,
                         defaultFile,
                     );
-                    cb.setPlaceholder(t('step_builder_element_type_backlink_search_file_heading_placeholder'))
+                    cb
+                        .setDisabled(readonly)
+                        .setPlaceholder(t('step_builder_element_type_backlink_search_file_heading_placeholder'))
                         .setValue(defaultHeading?.heading || "")
                         .onChange(async () => {
                             if (cb.inputEl.dataset.heading) {
@@ -97,5 +105,5 @@ function render(settingHandlerResponse: AbstractStepModal, action: Action, conte
 
 function refresh(settingHandlerResponse: AbstractStepModal, action: Action, contentEl: HTMLElement): void {
     contentEl.empty();
-    render(settingHandlerResponse, action, contentEl);
+    backlinkDetails(settingHandlerResponse, action, contentEl);
 }

@@ -7,12 +7,14 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import { SelectableSearch } from "architecture/components/core";
 import { ObsidianApi } from "architecture";
+import { navbarAction } from "architecture/components/settings";
 
-export const tagsSettings: ActionSetting = (contentEl, _, action) => {
+export const tagsSettings: ActionSetting = (contentEl, modal, action) => {
   const { staticBehaviour, staticValue } = action as TagsElement;
-  contentEl.createEl("p", {
-    text: t("step_builder_element_type_tags_description"),
-  });
+
+  const name = t("step_builder_element_type_tags_title");
+  const description = t("step_builder_element_type_tags_description");
+  navbarAction(contentEl, name, description, action, modal);
 
   // Toggle to enable static behaviour
   const dynamicId = uuid4();

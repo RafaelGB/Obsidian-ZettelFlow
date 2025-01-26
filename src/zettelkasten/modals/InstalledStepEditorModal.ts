@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { StepBuilderInfo } from "zettelkasten";
 import { StepBuilderMapper } from "zettelkasten";
 import { c, log } from "architecture";
@@ -6,16 +6,21 @@ import { AbstractStepModal } from "./AbstractStepModal";
 import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
 import { CommunityInfoHandler } from "./handlers/CommunityInfoHandler";
+import { ConfirmModal } from "architecture/components/settings";
 
 export class InstalledStepEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
     mode = "edit";
     builder = "ribbon";
     chain = new CommunityInfoHandler();
+    private removed = false;
     constructor(
         private plugin: ZettelFlow,
         private communityStepInfo: CommunityStepSettings,
-        private editCallback: (step: CommunityStepSettings) => void = () => { }
+        private editCallback: (
+            step: CommunityStepSettings,
+            removed: boolean
+        ) => void = () => { }
     ) {
         super(plugin.app);
         this.info = this.getBaseInfo();
@@ -34,11 +39,51 @@ export class InstalledStepEditorModal extends AbstractStepModal {
     onOpen(): void {
         const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
-        span.setText(` (${this.mode})`);
         // Header with title and subtitle with the mode
-        this.info.contentEl.createEl("h2", { text: "Installed Step Editor" })
-            // Separator
-            .appendChild(span);
+        const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
+
+        navbar.createEl("h2", { text: "Installed Step Editor" })
+
+        // Separator
+        navbar.appendChild(span);
+        const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+        // Add Uninstall button
+        const uninstallButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Remove", title: "Remove this step"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", async () => {
+                new ConfirmModal(
+                    this.plugin.app,
+                    "Are you sure you want to remove this step?",
+                    "Remove",
+                    "Cancel",
+                    async () => {
+                        this.removed = true;
+                        this.close();
+                    }
+                ).open();
+            });
+        });
+        setIcon(uninstallButton.createDiv(), "trash-2")
+
+
+        // Add a button to save the step into the clipboard
+        const useTemplateButton = navbarButtonGroup.createEl("button", {
+            placeholder: "Copy Step", title: "Copy the step to the clipboard"
+        }, el => {
+            el.addClass("mod-cta");
+            el.addEventListener("click", async () => {
+                // Save step to clipboard
+                navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2));
+                this.plugin.settings.communitySettings.clipboardTemplate = this.communityStepInfo;
+                await this.plugin.saveSettings();
+                new Notice(`Step copied to clipboard`);
+            });
+
+        });
+        setIcon(useTemplateButton.createDiv(), "clipboard-copy");
+
         this.chain.handle(this);
     }
 
@@ -62,9 +107,13 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
     private async saveStepToSettings(): Promise<void> {
         const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, this.communityStepInfo);
-        this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id] = stepSettings;
+        if (this.removed) {
+            delete this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id];
+        } else {
+            this.plugin.settings.installedTemplates.steps[this.communityStepInfo.id] = stepSettings;
+        }
         await this.plugin.saveSettings();
-        this.editCallback(stepSettings);
+        this.editCallback(stepSettings, this.removed);
     }
 
     private getBaseInfo(): StepBuilderInfo {

@@ -1,5 +1,6 @@
 import { ActionSettingReader } from "architecture/api";
+import { tagsDetails } from "./TagsSettings";
 
 export const tagsSettingsReader: ActionSettingReader = (contentEl, action) => {
-    // TODO: Implement tags settings reader
+    tagsDetails(contentEl, action, true);
 }

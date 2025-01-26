@@ -1,5 +1,6 @@
 import { ActionSettingReader } from "architecture/api";
+import { selectorDetails } from "./SelectorSettings";
 
 export const selectorSettingsReader: ActionSettingReader = (contentEl, action) => {
-    // TODO: Implement selector settings reader
+    selectorDetails(contentEl, action, true);
 }

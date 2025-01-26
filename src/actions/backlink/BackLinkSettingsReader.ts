@@ -22,7 +22,6 @@ class MockModal extends AbstractStepModal {
     }
 }
 export const backLinkSettingsReader: ActionSettingReader = (contentEl, action) => {
-    // TODO: Implement backlink settings reader
     const modal = new MockModal(ObsidianApi.globalApp(), {
         type: "mockType",
         contentEl: contentEl,

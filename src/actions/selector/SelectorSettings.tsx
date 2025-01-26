@@ -3,7 +3,7 @@ import { SelectorElement } from "zettelkasten";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { Setting } from "obsidian";
-import { ActionSetting } from "architecture/api";
+import { Action, ActionSetting } from "architecture/api";
 import { SelectorDnD } from "./components/selectordnd/SelectorDnD";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
@@ -14,17 +14,24 @@ export const elementTypeSelectorSettings: ActionSetting = (
   modal,
   action
 ) => {
-  const { zone, key, label, multiple } = action as SelectorElement;
-
   const name = t("step_builder_element_type_selector_title");
   const description = t("step_builder_element_type_selector_description");
   navbarAction(contentEl, name, description, action, modal);
+};
+
+export function selectorDetails(
+  contentEl: HTMLElement,
+  action: Action,
+  readonly: boolean = false
+) {
+  const { zone, key, label, multiple } = action as SelectorElement;
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_zone_title"))
     .setDesc(t("step_builder_element_type_zone_description"))
     .addDropdown((dropdown) => {
       dropdown
+        .setDisabled(readonly)
         .addOption(
           "frontmatter",
           t("step_builder_element_type_zone_frontmatter")
@@ -43,9 +50,12 @@ export const elementTypeSelectorSettings: ActionSetting = (
     .addSearch((search) => {
       ObsidianConfig.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types);
-        search.setValue(key || ``).onChange(async (value) => {
-          action.key = value;
-        });
+        search
+          .setDisabled(readonly)
+          .setValue(key || ``)
+          .onChange(async (value) => {
+            action.key = value;
+          });
       });
     });
 
@@ -53,20 +63,26 @@ export const elementTypeSelectorSettings: ActionSetting = (
     .setName(t("step_builder_element_type_prompt_label_title"))
     .setDesc(t("step_builder_element_type_prompt_label_description"))
     .addText((text) => {
-      text.setValue(label || ``).onChange(async (value) => {
-        action.label = value;
-      });
+      text
+        .setDisabled(readonly)
+        .setValue(label || ``)
+        .onChange(async (value) => {
+          action.label = value;
+        });
     });
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_selector_multiple_title"))
     .setDesc(t("step_builder_element_type_selector_multiple_description"))
     .addToggle((toggle) => {
-      toggle.setValue(multiple || false).onChange(async (value) => {
-        action.multiple = value;
-      });
+      toggle
+        .setDisabled(readonly)
+        .setValue(multiple || false)
+        .onChange(async (value) => {
+          action.multiple = value;
+        });
     });
 
   const root = createRoot(contentEl.createDiv());
   root.render(<SelectorDnD action={action} root={root} />);
-};
+}

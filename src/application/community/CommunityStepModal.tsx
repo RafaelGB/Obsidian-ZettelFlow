@@ -8,7 +8,11 @@ import { Component, Modal, setIcon } from "obsidian";
 import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
 
 export class CommunityStepModal extends Modal {
-  constructor(private plugin: ZettelFlow, private step: CommunityStepSettings) {
+  constructor(
+    private plugin: ZettelFlow,
+    private step: CommunityStepSettings,
+    private callback: () => void
+  ) {
     super(plugin.app);
   }
   onOpen(): void {
@@ -71,14 +75,18 @@ export class CommunityStepModal extends Modal {
                 delete this.plugin.settings.installedTemplates.steps[
                   this.step.id
                 ];
+                this.callback();
+                this.plugin.saveSettings();
+                this.renderContent();
               }
             ).open();
           } else {
             this.plugin.settings.installedTemplates.steps[this.step.id] =
               this.step;
+            this.callback();
+            this.plugin.saveSettings();
+            this.renderContent();
           }
-          this.plugin.saveSettings();
-          this.renderContent();
         });
       }
     );

@@ -150,10 +150,16 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     return false;
   };
 
+  const handleRefresh = () => {
+    // mark as installed/to be installed
+    const templates = [...filteredTemplates];
+    setFilteredTemplates(templates);
+  };
+
   const handleTemplateClick = async (template: StaticTemplateOptions) => {
     if (template.template_type === "step") {
       const step = await fetchStepTemplate(template.ref);
-      new CommunityStepModal(plugin, step).open();
+      new CommunityStepModal(plugin, step, handleRefresh).open();
     } else if (template.template_type === "action") {
       const action = await fetchActionTemplate(template.ref);
       new CommunityActionModal(plugin, action).open();

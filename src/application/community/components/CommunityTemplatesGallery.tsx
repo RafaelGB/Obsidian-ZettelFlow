@@ -178,10 +178,16 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     return false;
   };
 
+  const handleRefresh = () => {
+    // mark as installed/to be installed
+    const refreshTemplates = [...templates];
+    setTemplates(refreshTemplates);
+  };
+
   const handleTemplateClick = async (template: CommunityTemplateOptions) => {
     if (template.template_type === "step") {
       const step = await fetchStepTemplate(template.id, plugin.settings);
-      new CommunityStepModal(plugin, step).open();
+      new CommunityStepModal(plugin, step, handleRefresh).open();
     } else if (template.template_type === "action") {
       const action = await fetchActionTemplate(template.id, plugin.settings);
       new CommunityActionModal(plugin, action).open();

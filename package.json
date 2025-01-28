@@ -20,7 +20,7 @@
     "@codemirror/lang-javascript": "6.2.2",
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
-    "@types/node": "22.10.10",
+    "@types/node": "22.12.0",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
     "@types/uuid": "10.0.0",

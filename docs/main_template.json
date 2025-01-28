@@ -22,5 +22,13 @@
         "title": "New task",
         "description": "This step is used to create a new task",
         "author": "RafaelGB"
+    },
+    {
+        "id": "cae3b123-4c2a-4c2a-a3dd-3ceaad7b7e35",
+        "template_type": "markdown",
+        "ref" :"/docs/steps/markdown/Daily Note Template.md",
+        "title": "Daily Note Template",
+        "description": "This is a template for daily notes",
+        "author": "RafaelGB"
     }
 ]

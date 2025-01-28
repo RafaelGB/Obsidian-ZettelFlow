@@ -57,7 +57,6 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         id: rawAction.id,
       });
     });
-    console.log(actions);
     // Merge the actions with the installed actions
     Object.values(actions).forEach((action) => {
       array.push({

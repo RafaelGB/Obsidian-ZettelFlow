@@ -1,4 +1,7 @@
 export default {
+    markdown_templates_folder_title: 'Markdown templates folder',
+    markdown_templates_folder_description: 'Set the folder where the markdown templates are stored when you install them from the community browser',
+    markdown_templates_folder_placeholder: 'Select a folder...',
     reset_to_default: 'Reset to default',
     default_selector_title: "choose an option",
     canvas_node_menu_edit_embed: 'Edit embed node: Add or remove actions',

@@ -1,0 +1,208 @@
+/* Container for the gallery (reuse if you already have it) */
+.zettelkasten-flow__community-templates-gallery {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Optional title style */
+.zettelkasten-flow__community-templates-gallery-title {
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--text-normal);
+}
+
+/* Row that holds search input and filter buttons */
+.zettelkasten-flow__community-templates-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Search input styling */
+.zettelkasten-flow__community-templates-search {
+    width: 60%;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+/* Container for filter buttons */
+.zettelkasten-flow__community-templates-filters {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Filter button base styling */
+.zettelkasten-flow__community-templates-filter-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.zettelkasten-flow__community-templates-filter-button:hover {
+    background-color: var(--background-secondary);
+}
+
+/* Active filter button variation */
+.zettelkasten-flow__community-templates-filter-button.is-active {
+    background-color: var(--interactive-accent);
+    color: var(--text-inverse);
+    border-color: var(--interactive-accent);
+}
+
+/* Grid of template cards */
+.zettelkasten-flow__community-templates-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+/* Individual card base styling */
+.zettelkasten-flow__community-templates-card {
+    position: relative;
+    /* Para posicionar elementos absolutos dentro de la tarjeta */
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    background-color: var(--background-primary);
+    cursor: default;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.zettelkasten-flow__community-templates-card:hover {
+    background-color: var(--background-secondary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Border accent based on template type */
+.zettelkasten-flow__template-type-step {
+    border-left: 4px solid var(--color-accent);
+}
+
+.zettelkasten-flow__template-type-action {
+    border-left: 4px solid var(--code-important);
+}
+
+.zettelkasten-flow__template-type-markdown {
+    border-left: 4px solid var(--background-modifier-border);
+}
+
+/* Badge indicating template type */
+.zettelkasten-flow__community-templates-card-type-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-inverse);
+}
+
+.zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--color-accent);
+}
+
+.zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--code-important);
+}
+
+.zettelkasten-flow__template-type-markdown .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--background-modifier-border);
+}
+
+/* Icon in the top-right corner */
+.zettelkasten-flow__community-templates-card-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-icon {
+    fill: var(--color-accent);
+}
+
+.zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-icon {
+    fill: var(--code-important);
+}
+
+.zettelkasten-flow__template-type-markdown .zettelkasten-flow__community-templates-card-icon {
+    fill: var(--background-modifier-border);
+}
+
+/* Card title */
+.zettelkasten-flow__community-templates-card-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-normal);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Subtitle for 'Installed' or template type */
+.zettelkasten-flow__community-templates-card-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Card description text */
+.zettelkasten-flow__community-templates-card-description {
+    margin: 0.5rem 0;
+    color: var(--text-normal);
+}
+
+/* Metadata (author, downloads, etc.) */
+.zettelkasten-flow__community-templates-card-meta {
+    color: var(--text-faint);
+    font-size: 0.85rem;
+}
+
+/* Actions within the card (install/uninstall button) */
+.zettelkasten-flow__community-templates-card-actions {
+    margin-top: 0.5rem;
+    text-align: right;
+}
+
+/* Button for installing or uninstalling */
+.zettelkasten-flow__community-templates-uninstall-button {
+    padding: 0.3rem 0.7rem;
+    border: none;
+    border-radius: var(--radius);
+    background-color: var(--text-accent);
+    color: var(--text-inverse);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.zettelkasten-flow__community-templates-uninstall-button:hover {
+    background-color: var(--interactive-accent);
+}
+
+/* Loading or sentinel states */
+.zettelkasten-flow__community-templates-sentinel {
+    height: 1px;
+    margin: 1rem 0;
+}
+
+.zettelkasten-flow__community-templates-load-status {
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+.zettelkasten-flow__community-templates-no-results {
+    color: var(--text-faint);
+    font-style: italic;
+}

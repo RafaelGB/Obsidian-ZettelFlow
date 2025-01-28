@@ -4,6 +4,7 @@ import { TagsWrapper } from "./TagsComponent";
 import React from "react";
 import { t } from "architecture/lang";
 import { tagsSettings } from "./TagsSettings";
+import { tagsSettingsReader } from "./TagsSettingsReader";
 
 export class TagsAction extends CustomZettelAction {
   private static ICON = "price-tag-glyph";
@@ -16,6 +17,7 @@ export class TagsAction extends CustomZettelAction {
   };
 
   settings = tagsSettings;
+  settingsReader = tagsSettingsReader;
 
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Tags";
   purpose = "Add Obsidian tags to the note.";

@@ -1,5 +1,5 @@
 import { ObsidianApi, log } from "architecture";
-import { CachedMetadata, TFile } from "obsidian";
+import { CachedMetadata, FrontMatterCache, TFile } from "obsidian";
 import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
 import { ContentDTO } from "application/notes/model/ContentDTO";
@@ -67,13 +67,13 @@ export class FrontmatterService {
         });
     }
 
-    public getFrontmatter() {
+    public getFrontmatter(): Partial<FrontMatterCache> {
         const frontmatter = this.metadata.frontmatter;
         if (!frontmatter) {
             return {};
         }
         // return all properties except zettelFlowSettings
-        const { zettelFlowSettings, ...rest } = frontmatter;
+        const { zettelFlowSettings: _unused, ...rest } = frontmatter;
         return rest;
     }
 

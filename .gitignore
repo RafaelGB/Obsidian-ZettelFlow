@@ -134,3 +134,7 @@ dist
 # MkDocs documentation
 /site
 venv
+
+# Backend python
+.venv
+__pycache__

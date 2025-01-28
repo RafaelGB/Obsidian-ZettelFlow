@@ -10,6 +10,9 @@ export type StepBuilderInfo = {
     folder?: TFolder;
     menu?: Menu,
     nodeId?: string,
+    // EXCLUSIVE for COMMUNITY installed steps
+    title?: string,
+    description?: string,
 } & StepSettings;
 
 export type StepSettings = {
@@ -73,11 +76,12 @@ export type CalendarElement = {
 export type SelectorElement = {
     options: [string, string][],
     defaultOption?: string,
+    multiple?: boolean,
 } & AditionBaseElement;
 
 export type DynamicSelectorElement = {
     code: string,
-    zoneKey?: string,
+    multiple?: boolean,
 } & AditionBaseElement;
 
 export type CheckboxElement = {

@@ -6,6 +6,7 @@ import { calendarSettings } from "./CalendarSettings";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
 import moment from "moment";
+import { calendarSettingsReader } from "./CalendarSettingsReader";
 
 export class CalendarAction extends CustomZettelAction {
   private static ICON = "calendar-days";
@@ -16,7 +17,7 @@ export class CalendarAction extends CustomZettelAction {
     id: this.id,
   };
   settings = calendarSettings;
-
+  settingsReader = calendarSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Calendar";
   // TODO: Translate this
   purpose = "Add a calendar (date/time) to your note.";

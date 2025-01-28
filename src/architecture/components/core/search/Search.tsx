@@ -10,7 +10,8 @@ export function Search<T>(props: SearchType<T>) {
   // Refs
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  // Initial mockup of HTMLUListElement
+  const listRef = useRef<HTMLUListElement>(activeDocument.createElement("ul"));
   // States
   const [value, setValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");

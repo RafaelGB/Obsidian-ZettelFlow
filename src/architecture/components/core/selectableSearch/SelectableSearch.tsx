@@ -1,4 +1,10 @@
-import React, { ChangeEvent, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  useRef,
+  useState,
+  useMemo,
+  useEffect,
+} from "react";
 import { SelectableSearchType } from "./typing";
 import { c } from "architecture/styles/helper";
 import { Icon } from "architecture/components/icon";
@@ -7,70 +13,125 @@ import { useOnClickAway } from "architecture/hooks";
 export function SelectableSearch(props: SelectableSearchType) {
   const {
     options,
-    initialSelections,
+    initialSelections = [],
     onChange,
-    placeholder,
-    enableCreate,
-    autoFocus,
+    placeholder = "Buscar...",
+    enableCreate = false,
+    autoFocus = false,
+    disabled = false,
   } = props;
-  const [filteredOptions, setFilteredOptions] = useState(options);
 
-  /* Current selected options*/
-  const [initialSelectionsState, setInitialSelectionsState] = useState(
-    initialSelections || []
-  );
-  const [visibleOptions, setVisibleOptions] = useState<boolean>(false);
-
-  /* Search list */
-  const listRef = useRef<HTMLUListElement>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
-
-  /* Search input */
-  const inputRef = useRef<HTMLInputElement>(null);
   const [searchState, setSearchState] = useState("");
+  const [visibleOptions, setVisibleOptions] = useState<boolean>(false);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const containerRef = useRef<HTMLDivElement>(
+    activeDocument.createElement("div")
+  );
+
+  const filteredOptions = useMemo(() => {
+    const lowerSearch = searchState.toLowerCase();
+    return options.filter(
+      (option) =>
+        option.toLowerCase().includes(lowerSearch) &&
+        !initialSelections.includes(option)
+    );
+  }, [options, searchState, initialSelections]);
+
+  const [selectedOptions, setSelectedOptions] =
+    useState<string[]>(initialSelections);
+
+  useEffect(() => {
+    setSelectedOptions(initialSelections);
+  }, [initialSelections]);
+
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setSearchState(value);
+    setSearchState(event.target.value);
+    setSelectedIndex(0);
   };
 
-  /* Actions */
   const handleClearAll = () => {
-    setInitialSelectionsState([]);
-    setFilteredOptions(options);
+    setSelectedOptions([]);
     setSearchState("");
     onChange([]);
   };
-  const ref = useRef<HTMLDivElement>(null);
-  useOnClickAway(ref, () => {
+
+  const handleOptionSelect = (option: string) => {
+    const newSelectedOptions = [...selectedOptions, option];
+    setSelectedOptions(newSelectedOptions);
+    onChange(newSelectedOptions);
+    setSearchState("");
+    setVisibleOptions(false);
+  };
+
+  const handleRemoveOption = (option: string) => {
+    const newSelectedOptions = selectedOptions.filter(
+      (selectedOption) => selectedOption !== option
+    );
+    setSelectedOptions(newSelectedOptions);
+    onChange(newSelectedOptions);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex > 0 ? prevIndex - 1 : filteredOptions.length - 1
+        );
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : 0
+        );
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (filteredOptions[selectedIndex]) {
+          handleOptionSelect(filteredOptions[selectedIndex]);
+        } else if (enableCreate && searchState.trim()) {
+          handleOptionSelect(searchState.trim());
+        }
+        break;
+      case "Escape":
+        setVisibleOptions(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  useOnClickAway(containerRef, () => {
     setVisibleOptions(false);
     setSelectedIndex(0);
   });
 
   return (
-    <div className={c("selectable-search")} ref={ref}>
+    <div className={c("selectable-search")} ref={containerRef}>
       <div className={c("selectable-search-header")}>
         <div
           className={c("selectable-pill-group")}
           onClick={() => {
             inputRef.current?.focus();
+            setVisibleOptions(true);
           }}
+          role="combobox"
+          aria-haspopup="listbox"
+          aria-owns="search-results"
+          aria-expanded={visibleOptions}
         >
-          {initialSelectionsState.map((option, index) => (
+          {selectedOptions.map((option, index) => (
             <div key={`${option}-${index}`} className={c("selectable-pill")}>
-              <label onClick={() => {}}>{option}</label>
+              <span className={c("pill-label")}>{option}</span>
               <button
+                disabled={disabled}
+                className={c("pill-remove-button")}
+                aria-label={`Eliminar ${option}`}
                 onClick={(event) => {
                   event.stopPropagation();
-                  // Remove from selected options
-                  const newSelectedOptions = initialSelectionsState.filter(
-                    (selectedOption) => selectedOption !== option
-                  );
-                  setInitialSelectionsState(newSelectedOptions);
-                  // filter the neSelectedOptions from the original options
-                  setFilteredOptions(
-                    options.filter((op) => !newSelectedOptions.contains(op))
-                  );
-                  onChange(newSelectedOptions);
+                  handleRemoveOption(option);
                 }}
               >
                 <Icon name="cross" />
@@ -78,99 +139,64 @@ export function SelectableSearch(props: SelectableSearchType) {
             </div>
           ))}
           <input
+            disabled={disabled}
             type="search"
             ref={inputRef}
             value={searchState}
             onChange={handleSearchChange}
             autoFocus={autoFocus}
-            onKeyDown={(e) => {
-              switch (e.key) {
-                case "ArrowUp": {
-                  e.preventDefault();
-                  setSelectedIndex((prevIndex) => Math.max(0, prevIndex - 1));
-                  break;
-                }
-                case "ArrowDown": {
-                  e.preventDefault();
-                  setSelectedIndex((prevIndex) =>
-                    Math.min(
-                      Object.keys(filteredOptions).length - 1,
-                      prevIndex + 1
-                    )
-                  );
-                  break;
-                }
-                case "Enter": {
-                  e.preventDefault();
-                  if (enableCreate) {
-                    const newSelectedOptions = [
-                      ...initialSelectionsState,
-                      searchState,
-                    ];
-                    setInitialSelectionsState(newSelectedOptions);
-                    setFilteredOptions(
-                      options.filter((op) => !newSelectedOptions.contains(op))
-                    );
-                    setSearchState("");
-                    onChange(newSelectedOptions);
-                  } else {
-                    const valueFromCurrentIndex =
-                      filteredOptions[selectedIndex];
-                    const newSelectedOptions = [
-                      ...initialSelectionsState,
-                      valueFromCurrentIndex,
-                    ];
-                    setInitialSelectionsState(newSelectedOptions);
-                    setFilteredOptions(
-                      options.filter((op) => !newSelectedOptions.contains(op))
-                    );
-                    onChange(newSelectedOptions);
-                  }
-
-                  setVisibleOptions(false);
-                  break;
-                }
-              }
-            }}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            onFocus={() => {
-              setVisibleOptions(true);
-              setSelectedIndex(0);
-            }}
+            onFocus={() => setVisibleOptions(true)}
+            aria-autocomplete="list"
+            aria-controls="search-results"
           />
         </div>
-        <button onClick={handleClearAll}>
-          <Icon name="cross" />
-        </button>
+        {selectedOptions.length > 0 && (
+          <button
+            disabled={disabled}
+            className={c("clear-all-button")}
+            onClick={handleClearAll}
+            aria-label="Eliminar todas las selecciones"
+          >
+            <Icon name="cross" />
+          </button>
+        )}
       </div>
       {visibleOptions && (
         <ul
           className={c("search-results", "selectable-search-results")}
           ref={listRef}
+          role="listbox"
+          id="search-results"
         >
-          {filteredOptions.map((option, index) => (
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((option, index) => (
+              <li
+                key={`${option}-${index}`}
+                className={
+                  index === selectedIndex
+                    ? c("search-selected")
+                    : c("search-option")
+                }
+                onClick={() => handleOptionSelect(option)}
+                role="option"
+                aria-selected={index === selectedIndex}
+              >
+                {option}
+              </li>
+            ))
+          ) : enableCreate && searchState.trim() ? (
             <li
-              key={`${option}-${index}`}
-              className={
-                index === selectedIndex
-                  ? c("search-selected")
-                  : c("search-hidden")
-              }
-              onClick={() => {
-                setFilteredOptions(
-                  filteredOptions.filter((op) => op !== option)
-                );
-
-                const newSelectedOptions = [...initialSelectionsState, option];
-
-                setInitialSelectionsState(newSelectedOptions);
-                onChange(newSelectedOptions);
-                setSearchState("");
-              }}
+              className={c("search-option")}
+              onClick={() => handleOptionSelect(searchState.trim())}
+              role="option"
             >
-              {option}
+              Crear y seleccionar "{searchState.trim()}"
             </li>
-          ))}
+          ) : (
+            <li className={c("no-results")}>No se encontraron resultados</li>
+          )}
         </ul>
       )}
     </div>

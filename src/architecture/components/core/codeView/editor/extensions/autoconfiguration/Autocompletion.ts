@@ -17,53 +17,106 @@ const completionsTree = {
         external: integrationsCompletions
     }
 };
+
+/**
+ * Verify if the node is an array of Completion objects
+ */
 function isCompletionArray(node: unknown): node is Completion[] {
     return Array.isArray(node);
 }
 
+function findCompletions(
+    segments: string[],
+    node: Record<string, unknown> | Completion[]
+): Completion[] | null {
+    // If the node is an array of completions, return it
+    if (isCompletionArray(node)) return node;
+
+    // If there are no segments, return the keys of the current node
+    if (segments.length === 0) {
+        return Object.keys(node).map(key => ({
+            label: key,
+            type: 'object',
+            info: ''
+        }));
+    }
+
+    // Obtain the next segment and remove it from the array
+    const nextSegment = segments.shift();
+    if (!nextSegment) {
+        // If the segment does not match any key, return the current keys
+        return Object.keys(node).map(key => ({
+            label: key,
+            type: 'object',
+            info: ''
+        }));
+    }
+
+    // Continue recursively with the remaining segments
+    const nextNode = (node as Record<string, unknown>)[nextSegment] as Record<string, unknown> | undefined;
+    if (!nextNode) {
+        // If the segment does not match any key, return the current keys
+        return Object.keys(node).map(key => ({
+            label: key,
+            type: 'object',
+            info: ''
+        }));
+    }
+
+    // Continuamos recursivamente con los segmentos restantes
+    return findCompletions(segments, nextNode);
+}
+
 function customCompletionProvider(context: CompletionContext): CompletionResult | null {
     // Obtains the word before the cursor
-    const word = context.matchBefore(/\w*$/);
+    const word = context.matchBefore(/(\w+\.)*\w*$/);
     if (!word) return null;
 
-    // Suggest all completions after a dot
-    const coreWord = context.matchBefore(/(\w+\.)*\w*$/);
-    if (!coreWord || word.text.length >= 2) {
+    // Split the word by dots
+    const segments = word.text.split('.').filter(Boolean);
+
+
+    if (segments.length === 0) {
+        // If there are no segments, show the core completions
         return {
             from: word.from,
-            options: coreCompletions.filter(c => c.label.startsWith(word.text.substring(0, word.text.length - 1)))
+            options: coreCompletions
         };
     }
-    // Split the word by dots
-    const segments = coreWord.text.split('.');
-    function findCompletions(segments: string[], node: Record<string, any> | Completion[]): Completion[] | null {
-        if (isCompletionArray(node)) { return node; }
-        if (segments.length === 0) { return null; }
 
-        const nextSegment = segments.shift();
-        if (!nextSegment) {
-            // If there's no next segment, return the keys of the current node as completions.
-            return Object.keys(node).map(key => ({ label: key, type: 'object', info: '' }));
-        }
+    // If the first segment is not in coreCompletions, do not show suggestions
+    const rootSegment = segments[0];
+    const rootCompletion = coreCompletions.find(c => c.label === rootSegment);
 
-        const nextNode = node[nextSegment];
-        if (!nextNode) {
-            // If the next segment doesn't match, return the remaining keys at this level.
-            return Object.keys(node).map(key => ({ label: key, type: 'object', info: '' }));
-        }
-
-        if (isCompletionArray(nextNode)) { return nextNode; }
-        return findCompletions(segments, nextNode);
+    if (!rootCompletion) {
+        // If the first segment is not in coreCompletions, do not show suggestions
+        return null;
     }
 
-    const completions = findCompletions(segments, completionsTree);
+    // If the word ends with a dot, show the completions for the current segment
+    if (word.text.endsWith('.')) {
+        const completions = findCompletions(segments, completionsTree);
+        if (!completions) return null;
 
+        return {
+            from: word.to,
+            options: completions
+        };
+    }
+
+    // Find the completions for the current segment
+    const completions = findCompletions(segments, completionsTree);
     if (!completions) return null;
+
+    // Filter the completions by the last segment
+    const lastSegment = segments[segments.length - 1] || '';
+    const filtered = completions.filter(c => c.label.startsWith(lastSegment));
 
     return {
         from: word.from,
-        options: completions.filter(c => c.label.startsWith(word.text))
+        options: filtered
     };
 }
 
 export const customAutocomplete = autocompletion({ override: [customCompletionProvider] });
+

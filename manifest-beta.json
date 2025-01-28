@@ -1,0 +1,11 @@
+{
+	"id": "zettelflow",
+	"name": "ZettelFlow",
+	"version": "2.6.1",
+	"minAppVersion": "1.4.11",
+	"description": "Helps you to create and manage your notes in a Zettelkasten way via Canvas.",
+	"author": "RafaelGB",
+	"fundingUrl": "https://www.buymeacoffee.com/5tsytn22v9Z",
+	"helpUrl": "https://rafaelgb.github.io/Obsidian-ZettelFlow/",
+	"isDesktopOnly": false
+}

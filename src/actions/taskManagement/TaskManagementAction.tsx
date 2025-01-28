@@ -5,6 +5,7 @@ import { taskManagementSettings } from "./TaskManagementSettings";
 import { TaskManagementElement } from "./typing";
 import { t } from "architecture/lang";
 import { log } from "architecture";
+import { taskManagementSettingsReader } from "./TaskManagementSettingsReader";
 
 export class TaskManagementAction extends CustomZettelAction {
   private static ICON = "list-checks";
@@ -17,6 +18,7 @@ export class TaskManagementAction extends CustomZettelAction {
   };
 
   settings = taskManagementSettings;
+  settingsReader = taskManagementSettingsReader;
 
   link =
     "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/TaskManagement";

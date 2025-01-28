@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
-import { loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
+import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
 import { Notice, Plugin } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
@@ -10,29 +10,43 @@ import {
 import { log } from 'architecture';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
+import { allCanvasExtensions, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 
 export default class ZettelFlow extends Plugin {
+	private canvasExtensions: CanvasExtension[] = [];
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
+		loadVariableTextProcessors(this);
+
 		loadPluginComponents(this);
 
 		this.registerViews();
 		this.registerActions();
 		Hooks.setup(this);
 
+		new CanvasPatcher(this);
+		allCanvasExtensions.forEach((Extension: any) => {
+			this.canvasExtensions.push(new Extension(this));
+		});
 	}
 
 	onunload() {
 		actionsStore.unregisterAll();
 	}
 
+	async loadMarkdownPostProcessor() {
+
+	}
+
 	async loadSettings() {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			await this.loadData(),
 		);
+		// Remove clipboard template. This is not a setting that should be saved.
+		delete this.settings.communitySettings.clipboardTemplate;
 		loadServicesThatRequireSettings(this.settings);
 	}
 

@@ -5,7 +5,7 @@ export interface ZComponent {
 }
 
 export abstract class PluginComponent implements ZComponent {
-    constructor(plugin: ZettelFlow) { }
+    constructor(_plugin: ZettelFlow) { }
     abstract onLoad(): void;
     onUnload(): void { }
 }

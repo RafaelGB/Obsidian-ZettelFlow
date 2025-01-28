@@ -69,7 +69,7 @@
 }
 
 .zettelkasten-flow__actions-management-add-card {
-    background-color: var(--background-primary);
+    background-color: var(--background-secondary);
     padding: 10px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -79,6 +79,11 @@
     align-items: center;
     margin-bottom: 10px;
     flex: 1;
+    border: 1px solid var(--background-modifier-border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+
     /* Para que crezca verticalmente */
 }
 

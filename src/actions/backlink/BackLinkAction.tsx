@@ -7,6 +7,7 @@ import React from "react";
 import { HeadingCache, TFile } from "obsidian";
 import { log } from "architecture";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
+import { backLinkSettingsReader } from "./BackLinkSettingsReader";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";
@@ -16,7 +17,7 @@ export class BackLinkAction extends CustomZettelAction {
     id: this.id,
   };
   settings = backlinkSettings;
-
+  settingsReader = backLinkSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Backlink";
   // TODO: Translate this
   purpose = "Add a backlink of the in-building note to another note.";

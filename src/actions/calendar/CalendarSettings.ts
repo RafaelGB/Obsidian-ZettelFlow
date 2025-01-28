@@ -1,20 +1,23 @@
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { CalendarElement } from "zettelkasten";
-import { ActionSetting } from "architecture/api";
+import { Action, ActionSetting } from "architecture/api";
 import { PropertySuggest } from "architecture/settings";
 import { ObsidianConfig } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
+import { navbarAction } from "architecture/components/settings";
 
-export const calendarSettings: ActionSetting = (contentEl, _, action) => {
+export const calendarSettings: ActionSetting = (contentEl, modal, action) => {
+    const name = t('step_builder_element_type_calendar_title');
+    const description = t('step_builder_element_type_calendar_description');
+    navbarAction(contentEl, name, description, action, modal);
+    calendarDetails(contentEl, action);
+}
+
+export function calendarDetails(contentEl: HTMLElement, action: Action, readonly: boolean = false): void {
     const {
         key, label, zone, enableTime, staticBehaviour, staticValue, format
     } = action as CalendarElement;
-
-    const name = t('step_builder_element_type_calendar_title');
-    const description = t('step_builder_element_type_calendar_description');
-    contentEl.createEl('h3', { text: name });
-    contentEl.createEl('p', { text: description });
 
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))
@@ -27,6 +30,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                 )
                 .addOption("body", t("step_builder_element_type_zone_body"))
                 .addOption("context", t("step_builder_element_type_zone_context"))
+                .setDisabled(readonly)
                 .setValue(zone !== undefined ? (zone as string) : "frontmatter")
                 .onChange(async (value) => {
                     action.zone = value;
@@ -44,6 +48,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
                     enableTime ? ["datetime"] : ["date"]
                 );
                 search
+                    .setDisabled(readonly)
                     .setValue(key || ``)
                     .onChange(async (value) => {
                         action.key = value;
@@ -56,6 +61,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_calendar_label_description"))
         .addText(text => {
             text
+                .setDisabled(readonly)
                 .setValue(label || ``)
                 .onChange(async (value) => {
                     action.label = value;
@@ -69,6 +75,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_calendar_toggle_time_description"))
         .addToggle(toggle => {
             toggle
+                .setDisabled(readonly)
                 .setValue(enableTime)
                 .onChange(async (value) => {
                     action.enableTime = value;
@@ -87,6 +94,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
         .addText(text => {
             const placeholder = enableTime ? 'YYYY-MM-DDTHH:MM' : 'YYYY-MM-DD';
             text
+                .setDisabled(readonly)
                 .setValue(format || ``)
                 .setPlaceholder(placeholder)
                 .onChange(async (value) => {
@@ -100,6 +108,7 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_static_toggle_description"))
         .addToggle(toggle => {
             toggle
+                .setDisabled(readonly)
                 .setValue(staticBehaviour)
                 .onChange(async (isStatic) => {
                     action.staticBehaviour = isStatic;
@@ -124,7 +133,9 @@ export const calendarSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_static_value_description"))
         .addText(text => {
             text.inputEl.type = enableTime ? 'datetime-local' : 'date';
-            text.setValue(staticValue || ``)
+            text
+                .setDisabled(readonly)
+                .setValue(staticValue || ``)
                 .onChange(async (value) => {
                     action.staticValue = value;
                 });

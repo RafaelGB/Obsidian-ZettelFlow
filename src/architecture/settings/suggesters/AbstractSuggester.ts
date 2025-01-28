@@ -150,7 +150,7 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 
         if (suggestions.length > 0) {
             this.suggest.setSuggestions(suggestions);
-            this.open(ObsidianApi.getPluginApp().dom.appContainerEl, this.inputEl);
+            this.open(ObsidianApi.globalApp().dom.appContainerEl, this.inputEl);
         } else {
             this.close();
         }

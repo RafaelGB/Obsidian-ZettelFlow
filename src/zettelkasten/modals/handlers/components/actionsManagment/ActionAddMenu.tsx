@@ -29,6 +29,7 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
         }
       >
         <ActionCardsMenu
+          modal={props.modal}
           onChange={(value: string | null) => {
             setDisplay(false);
             onChange(value);
@@ -40,10 +41,12 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
 }
 
 function ActionCardsMenu(props: ActionAddMenuProps) {
-  const { onChange } = props;
+  const { onChange, modal } = props;
+  const { actions } = modal.getPlugin().settings.installedTemplates;
   // Hooks
   const actionsMemo: ActionCardInfo[] = useMemo(() => {
     const array: ActionCardInfo[] = [];
+
     actionsStore.getActionsKeys().forEach((key) => {
       const rawAction = actionsStore.getAction(key);
       array.push({
@@ -52,6 +55,15 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         link: rawAction.link,
         purpose: rawAction.purpose,
         id: rawAction.id,
+      });
+    });
+    // Merge the actions with the installed actions
+    Object.values(actions).forEach((action) => {
+      array.push({
+        icon: "pen",
+        label: action.title,
+        purpose: action.description,
+        id: action.id,
       });
     });
     return array;
@@ -92,7 +104,11 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
     </>
   );
 }
-
+/**
+ * Core actions of ZettelFlow
+ * @param props
+ * @returns
+ */
 function ActionCard(props: { card: ActionCardInfo; trigger: () => void }) {
   const { card } = props;
   return (

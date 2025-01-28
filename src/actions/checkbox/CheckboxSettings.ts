@@ -1,23 +1,27 @@
-import { ActionSetting } from "architecture/api";
+import { Action, ActionSetting } from "architecture/api";
 import { t } from "architecture/lang";
 import { ObsidianConfig } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
 import { Setting } from "obsidian";
 import { CheckboxElement } from "zettelkasten";
 import { v4 as uuid4 } from "uuid";
+import { navbarAction } from "architecture/components/settings";
 
-export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
-    const { key, label, zone, staticBehaviour, staticValue = false } = action as CheckboxElement;
+export const checkboxSettings: ActionSetting = (contentEl, modal, action) => {
     const name = t('step_builder_element_type_checkbox_title');
     const description = t('step_builder_element_type_checkbox_description');
-    contentEl.createEl('h3', { text: name });
-    contentEl.createEl('p', { text: description });
+    navbarAction(contentEl, name, description, action, modal);
+    checkboxDetails(contentEl, action);
+};
 
+export const checkboxDetails = (contentEl: HTMLElement, action: Action, readonly: boolean = false): void => {
+    const { key, label, zone, staticBehaviour, staticValue = false } = action as CheckboxElement;
     new Setting(contentEl)
         .setName(t("step_builder_element_type_zone_title"))
         .setDesc(t("step_builder_element_type_zone_description"))
         .addDropdown((dropdown) => {
             dropdown
+                .setDisabled(readonly)
                 .addOption(
                     "frontmatter",
                     t("step_builder_element_type_zone_frontmatter")
@@ -41,6 +45,7 @@ export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
                     ["checkbox"]
                 );
                 search
+                    .setDisabled(readonly)
                     .setValue(key || ``)
                     .onChange(async (value) => {
                         action.key = value;
@@ -54,6 +59,7 @@ export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_prompt_label_description"))
         .addText(text => {
             text
+                .setDisabled(readonly)
                 .setValue(label || ``)
                 .onChange(async (value) => {
                     action.label = value;
@@ -67,6 +73,7 @@ export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
         .setDesc(t("step_builder_element_type_static_toggle_description"))
         .addToggle(toggle => {
             toggle
+                .setDisabled(readonly)
                 .setValue(staticBehaviour)
                 .onChange(async (isStatic) => {
                     action.staticBehaviour = isStatic;
@@ -90,7 +97,9 @@ export const checkboxSettings: ActionSetting = (contentEl, _, action) => {
         .setName(t("step_builder_element_type_static_value_title"))
         .setDesc(t("step_builder_element_type_static_value_description"))
         .addToggle(toggle => {
-            toggle.setValue(staticValue)
+            toggle
+                .setDisabled(readonly)
+                .setValue(staticValue)
                 .onChange(async (value) => {
                     action.staticValue = value;
                 });

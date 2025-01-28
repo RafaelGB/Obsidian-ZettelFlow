@@ -12,7 +12,7 @@ import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/markdown_template_download";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");
   const rawList = await request({
@@ -180,10 +180,6 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
 
   return (
     <div className={c("community-templates-gallery")}>
-      <h1 className={c("community-templates-gallery-title")}>
-        ZettelFlow Repository Examples
-      </h1>
-
       <div className={c("community-templates-controls")}>
         <input
           type="text"

@@ -14,13 +14,14 @@ import { navbarAction } from "architecture/components/settings";
 export const elementTypeDynamicSelectorSettings: ActionSetting = (
   contentEl,
   modal,
-  action
+  action,
+  disableNavbar
 ) => {
   const name = t("step_builder_element_type_dynamic_selector_title");
   const description = t(
     "step_builder_element_type_dynamic_selector_description"
   );
-  navbarAction(contentEl, name, description, action, modal);
+  navbarAction(contentEl, name, description, action, modal, disableNavbar);
   dynamicSelectorDetails(contentEl, action);
 };
 

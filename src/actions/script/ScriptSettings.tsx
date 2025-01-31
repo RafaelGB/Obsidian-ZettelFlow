@@ -7,12 +7,17 @@ import { ContentDTO, NoteDTO } from "application/notes";
 import { c } from "architecture";
 import { navbarAction } from "architecture/components/settings";
 
-export const scriptSettings: ActionSetting = (contentEl, modal, action) => {
+export const scriptSettings: ActionSetting = (
+  contentEl,
+  modal,
+  action,
+  disableNavbar
+) => {
   const scriptAction = action as CodeElement;
   const { code } = scriptAction;
   const name = t("step_builder_element_type_script_title");
   const description = t("step_builder_element_type_script_description");
-  navbarAction(contentEl, name, description, action, modal);
+  navbarAction(contentEl, name, description, action, modal, disableNavbar);
 
   const editorEl = contentEl.createDiv();
   editorEl.id = "script-editor";

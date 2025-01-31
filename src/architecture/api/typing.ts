@@ -23,7 +23,8 @@ export type Action = {
 export type ActionSetting = (
     contentEl: HTMLElement,
     props: AbstractStepModal,
-    action: Action
+    action: Action,
+    disableNavbar?: boolean
 ) => void;
 
 export type ActionSettingReader = (

@@ -1,6 +1,6 @@
 import { c } from "architecture";
 import ZettelFlow from "main";
-import { Modal, setIcon } from "obsidian";
+import { Modal } from "obsidian";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { CommunityTemplatesGallery } from "./components/CommunityTemplatesGallery";

@@ -83,8 +83,9 @@
     padding: 1rem;
     margin-bottom: 1rem;
     cursor: pointer;
-
-    /* Para que crezca verticalmente */
+}
+.zettelkasten-flow__actions-management-add-card-custom {
+    background-color: var(--background-modifier-active);
 }
 
 .zettelkasten-flow__actions-management-add-card:hover {

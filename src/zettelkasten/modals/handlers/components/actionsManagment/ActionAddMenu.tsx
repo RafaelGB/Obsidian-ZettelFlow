@@ -83,8 +83,11 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
             setFilteredCards(actionsMemo);
           } else {
             setFilteredCards(
-              actionsMemo.filter((card) =>
-                card.label.toLowerCase().includes(value)
+              actionsMemo.filter(
+                (card) =>
+                  // Search by label and purpose
+                  card.label.toLowerCase().includes(value) ||
+                  card.purpose.toLowerCase().includes(value)
               )
             );
           }
@@ -114,7 +117,14 @@ function ActionCard(props: { card: ActionCardInfo; trigger: () => void }) {
   const { card } = props;
   return (
     <div
-      className={c("actions-management-add-card")}
+      className={
+        card.isTemplate
+          ? c(
+              "actions-management-add-card",
+              "actions-management-add-card-custom"
+            )
+          : c("actions-management-add-card")
+      }
       onClick={() => props.trigger()}
     >
       <div className={c("actions-management-add-card-icon")}>

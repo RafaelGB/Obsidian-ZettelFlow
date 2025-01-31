@@ -11,7 +11,7 @@ export const numberSettings: ActionSetting = (contentEl, modal, action, disableN
     const name = t('step_builder_element_type_number_title');
     const description = t('step_builder_element_type_number_description');
     navbarAction(contentEl, name, description, action, modal, disableNavbar);
-    numberDetails(contentEl, action);
+    numberDetails(contentEl.createDiv(), action);
 }
 
 export function numberDetails(contentEl: HTMLElement, action: Action, readonly: boolean = false): void {

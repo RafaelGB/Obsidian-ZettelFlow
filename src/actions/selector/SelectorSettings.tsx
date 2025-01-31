@@ -18,6 +18,7 @@ export const elementTypeSelectorSettings: ActionSetting = (
   const name = t("step_builder_element_type_selector_title");
   const description = t("step_builder_element_type_selector_description");
   navbarAction(contentEl, name, description, action, modal, disableNavbar);
+  selectorDetails(contentEl.createDiv(), action);
 };
 
 export function selectorDetails(

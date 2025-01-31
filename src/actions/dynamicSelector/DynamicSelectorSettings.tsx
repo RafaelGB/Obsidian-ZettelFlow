@@ -22,7 +22,7 @@ export const elementTypeDynamicSelectorSettings: ActionSetting = (
     "step_builder_element_type_dynamic_selector_description"
   );
   navbarAction(contentEl, name, description, action, modal, disableNavbar);
-  dynamicSelectorDetails(contentEl, action);
+  dynamicSelectorDetails(contentEl.createDiv(), action);
 };
 
 export function dynamicSelectorDetails(

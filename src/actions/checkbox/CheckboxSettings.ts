@@ -11,7 +11,7 @@ export const checkboxSettings: ActionSetting = (contentEl, modal, action, disabl
     const name = t('step_builder_element_type_checkbox_title');
     const description = t('step_builder_element_type_checkbox_description');
     navbarAction(contentEl, name, description, action, modal, disableNavbar);
-    checkboxDetails(contentEl, action);
+    checkboxDetails(contentEl.createDiv(), action);
 };
 
 export const checkboxDetails = (contentEl: HTMLElement, action: Action, readonly: boolean = false): void => {

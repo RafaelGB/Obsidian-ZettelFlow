@@ -11,9 +11,7 @@ export const backlinkSettings: ActionSetting = (contentEl, modal, action, disabl
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');
     navbarAction(contentEl, name, description, action, modal, disableNavbar);
-
-    const backlinkContentEl = contentEl.createDiv();
-    backlinkDetails(modal, action, backlinkContentEl);
+    backlinkDetails(modal, action, contentEl.createDiv());
 }
 
 export function backlinkDetails(modal: AbstractStepModal, action: Action, contentEl: HTMLElement, readonly: boolean = false): void {

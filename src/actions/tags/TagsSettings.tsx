@@ -18,7 +18,7 @@ export const tagsSettings: ActionSetting = (
   const name = t("step_builder_element_type_tags_title");
   const description = t("step_builder_element_type_tags_description");
   navbarAction(contentEl, name, description, action, modal), disableNavbar;
-  tagsDetails(contentEl, action);
+  tagsDetails(contentEl.createDiv(), action);
 };
 
 export function tagsDetails(

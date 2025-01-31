@@ -11,7 +11,7 @@ export const promptSettings: ActionSetting = (contentEl, modal, action, disableN
     const name = t('step_builder_element_type_prompt_title');
     const description = t('step_builder_element_type_prompt_description');
     navbarAction(contentEl, name, description, action, modal, disableNavbar);
-    promptDetails(contentEl, action);
+    promptDetails(contentEl.createDiv(), action);
 }
 
 export function promptDetails(contentEl: HTMLElement, action: Action, readMode: boolean = false): void {

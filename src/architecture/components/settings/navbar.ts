@@ -1,4 +1,3 @@
-import { UsedInstalledActionsModal } from "application/community/UsedInstalledAActionsModal";
 import { c } from "architecture";
 import { Action } from "architecture/api";
 import { CommunityAction } from "config";
@@ -49,26 +48,6 @@ export function navbarAction(
 
     });
     setIcon(useTemplateButton.createDiv(), "clipboard-copy");
-
-    // Add a button to apply a community template
-
-    const applyTemplate = navbarButtonGroup.createEl("button", {
-        placeholder: "Apply Action", title: "Apply the action to the current document"
-    }, el => {
-        el.addClass("mod-cta");
-        el.addEventListener("click", async () => {
-            // Apply the action to the current document
-            new UsedInstalledActionsModal(modal.getPlugin(), (action) => {
-                // obtain the action array position
-                const index = modal.info.actions.findIndex((a) => a.id === action.id);
-                // replace the action
-                modal.info.actions[index] = action;
-                // update the UI
-                modal.refresh();
-            }).open();
-        });
-    });
-    setIcon(applyTemplate.createDiv(), "pen");
 
     // Add action as community template
     const newCommunityAction = navbarButtonGroup.createEl("button", {

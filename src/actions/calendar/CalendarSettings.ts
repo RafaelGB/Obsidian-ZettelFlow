@@ -11,7 +11,7 @@ export const calendarSettings: ActionSetting = (contentEl, modal, action, disabl
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
     navbarAction(contentEl, name, description, action, modal, disableNavbar);
-    calendarDetails(contentEl, action);
+    calendarDetails(contentEl.createDiv(), action);
 }
 
 export function calendarDetails(contentEl: HTMLElement, action: Action, readonly: boolean = false): void {

@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { ActionsManagementProps } from "./typing";
 import { ActionAccordion } from "./ActionAccordion";
-import { actionsStore } from "architecture/api";
+import { Action, actionsStore } from "architecture/api";
 import { t } from "architecture/lang";
 import { DndScope, Sortable } from "architecture/components/dnd";
 import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
 import { ActionsManager } from "../shared/managers/ActionsManager";
 import { v4 as uuid4 } from "uuid";
 import { ActionAddMenu } from "./ActionAddMenu";
+import { ActionBuilderMapper } from "zettelkasten/mappers/ActionBuilderMapper";
 
 export function ActionsManagement(props: ActionsManagementProps) {
   const { modal } = props;
@@ -79,10 +80,21 @@ export function ActionsManagement(props: ActionsManagementProps) {
       </DndScope>
       <ActionAddMenu
         modal={modal}
-        onChange={async (value) => {
+        onChange={async (value, isTemplate) => {
           if (typeof value === "string") {
             const deepCopy = [...actionsState];
-            deepCopy.push(actionsStore.getDefaultActionInfo(value));
+            let newAction: Action;
+            if (isTemplate) {
+              const templateAction =
+                modal.getPlugin().settings.installedTemplates.actions[value];
+              newAction =
+                ActionBuilderMapper.CommunityActionSettings2Action(
+                  templateAction
+                );
+            } else {
+              newAction = actionsStore.getDefaultActionInfo(value);
+            }
+            deepCopy.push(newAction);
             setActionsState(deepCopy);
             info.actions = deepCopy;
           }

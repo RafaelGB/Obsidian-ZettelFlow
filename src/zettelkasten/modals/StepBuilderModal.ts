@@ -129,6 +129,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     refresh(): void {
+        console.log("refreshing");
         this.contentEl.empty();
         this.onOpen();
     }

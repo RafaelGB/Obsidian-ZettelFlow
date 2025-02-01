@@ -68,6 +68,10 @@
     font-size: 16px;
 }
 
+.zettelkasten-flow__actions-management-add-card-custom {
+    background-color: var(--background-modifier-active);
+}
+
 .zettelkasten-flow__actions-management-add-card {
     background-color: var(--background-secondary);
     padding: 10px;
@@ -83,9 +87,6 @@
     padding: 1rem;
     margin-bottom: 1rem;
     cursor: pointer;
-}
-.zettelkasten-flow__actions-management-add-card-custom {
-    background-color: var(--background-modifier-active);
 }
 
 .zettelkasten-flow__actions-management-add-card:hover {

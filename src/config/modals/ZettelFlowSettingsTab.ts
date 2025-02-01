@@ -1,5 +1,5 @@
 import ZettelFlow from "main";
-import { PluginSettingTab, setIcon } from "obsidian";
+import { PluginSettingTab } from "obsidian";
 import developer from "./handlers/Developer";
 import sections from "./handlers/Sections";
 import { SettingsHandlerInfo } from "../typing";
@@ -44,16 +44,18 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         });
 
         // Support link
-        const supportButton = navbarButtonGroup.createEl("a", {
+        const coffeeDiv = navbarButtonGroup.createDiv({ cls: c("navbar-button") });
+        coffeeDiv.addClass("ex-coffee-div");
+        const coffeeLink = coffeeDiv.createEl("a", {
             href: "https://www.buymeacoffee.com/5tsytn22v9Z",
-            title: "Support my Obsidian Plugins",
-        }, (el) => {
-            el.addClass("mod-cta");
-            // style to be aligned text and icon
-            el.style.display = "flex";
         });
-        supportButton.createDiv({ text: "Support" });
-        setIcon(supportButton.createDiv(), "heart");
+
+        const coffeeImg = coffeeLink.createEl("img", {
+            attr: {
+                src: "https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png",
+            },
+        });
+        coffeeImg.height = 25;
         this.manager.constructUI(containerEl);
     }
 

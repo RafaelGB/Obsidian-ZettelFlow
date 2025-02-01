@@ -7,13 +7,11 @@ import { Action, ActionSetting } from "architecture/api";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 import { navbarAction } from "architecture/components/settings";
 
-export const backlinkSettings: ActionSetting = (contentEl, modal, action) => {
+export const backlinkSettings: ActionSetting = (contentEl, modal, action, disableNavbar) => {
     const name = t('step_builder_element_type_backlink_title');
     const description = t('step_builder_element_type_backlink_description');
-    navbarAction(contentEl, name, description, action, modal);
-
-    const backlinkContentEl = contentEl.createDiv();
-    backlinkDetails(modal, action, backlinkContentEl);
+    navbarAction(contentEl, name, description, action, modal, disableNavbar);
+    backlinkDetails(modal, action, contentEl.createDiv());
 }
 
 export function backlinkDetails(modal: AbstractStepModal, action: Action, contentEl: HTMLElement, readonly: boolean = false): void {

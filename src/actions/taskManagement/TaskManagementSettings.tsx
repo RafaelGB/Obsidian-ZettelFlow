@@ -10,7 +10,8 @@ import { navbarAction } from "architecture/components/settings";
 export const taskManagementSettings: ActionSetting = (
   contentEl,
   modal,
-  action
+  action,
+  disableNavbar
 ) => {
   const {
     initialFolder,
@@ -27,7 +28,7 @@ export const taskManagementSettings: ActionSetting = (
   const description = t(
     "step_builder_element_type_task_management_description"
   );
-  navbarAction(contentEl, name, description, action, modal);
+  navbarAction(contentEl, name, description, action, modal, disableNavbar);
 
   new Setting(contentEl)
     .setName(t("step_builder_element_type_task_management_target_folder_title"))

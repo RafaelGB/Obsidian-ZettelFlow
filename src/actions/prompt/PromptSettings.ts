@@ -7,11 +7,11 @@ import { PropertySuggest } from "architecture/settings";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
-export const promptSettings: ActionSetting = (contentEl, modal, action) => {
+export const promptSettings: ActionSetting = (contentEl, modal, action, disableNavbar) => {
     const name = t('step_builder_element_type_prompt_title');
     const description = t('step_builder_element_type_prompt_description');
-    navbarAction(contentEl, name, description, action, modal);
-    promptDetails(contentEl, action);
+    navbarAction(contentEl, name, description, action, modal, disableNavbar);
+    promptDetails(contentEl.createDiv(), action);
 }
 
 export function promptDetails(contentEl: HTMLElement, action: Action, readMode: boolean = false): void {

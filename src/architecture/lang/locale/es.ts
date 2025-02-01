@@ -1,4 +1,6 @@
 export default {
+    modals_community_templates_add_template: 'Añadir plantilla',
+    modals_community_templates_title: 'Plantillas de la comunidad',
     markdown_templates_folder_title: 'Carpeta de plantillas de markdown',
     markdown_templates_folder_description: 'Establece la carpeta donde guardarás tus plantillas de markdown',
     markdown_templates_folder_placeholder: 'Selecciona una carpeta',

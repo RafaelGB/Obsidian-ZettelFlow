@@ -121,7 +121,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
 
         const currentAction = actionsStore.getAction(this.communityAction.type);
         const detailsEl = this.contentEl.createDiv({ cls: c("modal-reader-general-section") });
-        currentAction.settings(detailsEl, this, this.communityAction);
+        currentAction.settings(detailsEl, this, this.communityAction, true);
     }
 
     onClose(): void {

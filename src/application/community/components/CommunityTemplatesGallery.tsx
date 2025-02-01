@@ -196,10 +196,6 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
 
   return (
     <div className={c("community-templates-gallery")}>
-      <h1 className={c("community-templates-gallery-title")}>
-        Community Templates
-      </h1>
-
       <div className={c("community-templates-controls")}>
         <input
           type="text"

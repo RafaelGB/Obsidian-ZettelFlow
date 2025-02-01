@@ -1,4 +1,6 @@
 export default {
+    modals_community_templates_add_template: 'Add template',
+    modals_community_templates_title: 'Community Templates',
     markdown_templates_folder_title: 'Markdown templates folder',
     markdown_templates_folder_description: 'Set the folder where the markdown templates are stored when you install them from the community browser',
     markdown_templates_folder_placeholder: 'Select a folder...',

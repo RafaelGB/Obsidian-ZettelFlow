@@ -12,11 +12,13 @@ import { navbarAction } from "architecture/components/settings";
 export const elementTypeSelectorSettings: ActionSetting = (
   contentEl,
   modal,
-  action
+  action,
+  disableNavbar
 ) => {
   const name = t("step_builder_element_type_selector_title");
   const description = t("step_builder_element_type_selector_description");
-  navbarAction(contentEl, name, description, action, modal);
+  navbarAction(contentEl, name, description, action, modal, disableNavbar);
+  selectorDetails(contentEl.createDiv(), action);
 };
 
 export function selectorDetails(

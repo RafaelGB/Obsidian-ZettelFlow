@@ -9,10 +9,15 @@ import { SelectableSearch } from "architecture/components/core";
 import { ObsidianApi } from "architecture";
 import { navbarAction } from "architecture/components/settings";
 
-export const cssclassesSettings: ActionSetting = (contentEl, modal, action) => {
+export const cssclassesSettings: ActionSetting = (
+  contentEl,
+  modal,
+  action,
+  disableNavbar
+) => {
   const name = t("step_builder_element_type_cssclasses_title");
   const description = t("step_builder_element_type_cssclasses_description");
-  navbarAction(contentEl, name, description, action, modal);
+  navbarAction(contentEl, name, description, action, modal, disableNavbar);
 };
 
 export function cssClassesDetails(

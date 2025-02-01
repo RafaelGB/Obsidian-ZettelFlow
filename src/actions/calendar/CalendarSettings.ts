@@ -7,11 +7,11 @@ import { ObsidianConfig } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
-export const calendarSettings: ActionSetting = (contentEl, modal, action) => {
+export const calendarSettings: ActionSetting = (contentEl, modal, action, disableNavbar) => {
     const name = t('step_builder_element_type_calendar_title');
     const description = t('step_builder_element_type_calendar_description');
-    navbarAction(contentEl, name, description, action, modal);
-    calendarDetails(contentEl, action);
+    navbarAction(contentEl, name, description, action, modal, disableNavbar);
+    calendarDetails(contentEl.createDiv(), action);
 }
 
 export function calendarDetails(contentEl: HTMLElement, action: Action, readonly: boolean = false): void {

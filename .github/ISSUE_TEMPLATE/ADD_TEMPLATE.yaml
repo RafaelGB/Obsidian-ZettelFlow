@@ -45,7 +45,6 @@ body:
     attributes:
       label: Wich type of template are you submitting?
       multiple: false
-      default: Step
       options:
         - Step
         - Action

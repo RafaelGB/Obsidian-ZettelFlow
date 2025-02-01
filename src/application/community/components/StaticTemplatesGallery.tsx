@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { request } from "obsidian";
 import { c, log } from "architecture";
 import {
@@ -13,6 +13,7 @@ import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 
 const BASE_URL =
   "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
+
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");
   const rawList = await request({
@@ -20,7 +21,6 @@ async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
     method: "GET",
     contentType: "application/json",
   });
-
   return JSON.parse(rawList) as StaticTemplateOptions[];
 }
 
@@ -31,7 +31,6 @@ async function fetchActionTemplate(ref: string) {
     method: "GET",
     contentType: "application/json",
   });
-
   return JSON.parse(rawList) as CommunityAction;
 }
 
@@ -42,7 +41,6 @@ async function fetchStepTemplate(ref: string) {
     method: "GET",
     contentType: "application/json",
   });
-
   return JSON.parse(rawList) as CommunityStepSettings;
 }
 
@@ -53,7 +51,6 @@ async function fetchMarkdownTemplate(ref: string) {
     method: "GET",
     contentType: "text/plain",
   });
-
   return markdown;
 }
 
@@ -61,77 +58,64 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   const { plugin } = props;
   const { steps, actions } = plugin.settings.installedTemplates;
 
-  // ---- States ----
+  // Estados
   const [searchTerm, setSearchTerm] = useState("");
   const [targetSearchTerm, setTargetSearchTerm] = useState("");
-
   const [filter, setFilter] = useState<"all" | "step" | "action" | "markdown">(
     "all"
   );
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<
-    StaticTemplateOptions[]
-  >([]);
-  const [skip, setSkip] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Reference for debouncing search input
+  // Ref para debouncing en búsqueda
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // (1) Reset templates when changing search term or filter
+  // Reinicia las plantillas al cambiar el término o el filtro
   useEffect(() => {
     setTemplates([]);
-    setSkip(0);
   }, [targetSearchTerm, filter]);
 
-  // (2) Data loading
+  // Carga de datos
   useEffect(() => {
     const getData = async () => {
       try {
+        setIsLoading(true);
         const response = await fetchCommunityTemplates();
         setTemplates((prev) => [...prev, ...response]);
       } catch (error) {
         log.error("Error fetching community templates:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getData();
-  }, [skip, targetSearchTerm, filter, plugin.settings]);
+  }, [targetSearchTerm, filter, plugin.settings]);
 
-  // (3) Apply search and filter
-  useEffect(() => {
+  // Filtrado usando useMemo
+  const filteredTemplates = useMemo(() => {
     const lowerCaseSearchTerm = targetSearchTerm.toLowerCase();
-    const filtered = templates.filter((template) => {
+    return templates.filter((template) => {
       const matchesSearch =
         template.title.toLowerCase().includes(lowerCaseSearchTerm) ||
         template.description.toLowerCase().includes(lowerCaseSearchTerm);
       const matchesFilter =
         filter === "all" || template.template_type === filter;
-
       return matchesSearch && matchesFilter;
     });
-
-    setFilteredTemplates(filtered);
   }, [templates, targetSearchTerm, filter]);
 
-  // (4) Cleanup timeouts when unmounting
+  // Limpieza del timeout al desmontar
   useEffect(() => {
     return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
   }, []);
 
-  // ---- Handlers ----
-
-  // Debounce en el input para actualizar 'targetSearchTerm' tras 400ms
+  // Handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => {
       setTargetSearchTerm(e.target.value);
     }, 400);
@@ -151,9 +135,8 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   };
 
   const handleRefresh = () => {
-    // mark as installed/to be installed
-    const templates = [...filteredTemplates];
-    setFilteredTemplates(templates);
+    // Forzamos una actualización (por ejemplo, tras instalar)
+    setTemplates([...templates]);
   };
 
   const handleTemplateClick = async (template: StaticTemplateOptions) => {
@@ -178,6 +161,15 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     }
   };
 
+  // Mapeo de cada filtro a su clase de color (usa las mismas que en las cards)
+  const FILTER_COLORS: Record<"all" | "step" | "action" | "markdown", string> =
+    {
+      all: "template-type-all", // Puedes definir este color en CSS o elegir otro
+      step: "template-type-step",
+      action: "template-type-action",
+      markdown: "template-type-markdown",
+    };
+
   return (
     <div className={c("community-templates-gallery")}>
       <div className={c("community-templates-controls")}>
@@ -188,86 +180,73 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           onChange={handleSearchChange}
           className={c("community-templates-search")}
         />
-
         <div className={c("community-templates-filters")}>
-          <button
-            onClick={() => handleSetFilter("all")}
-            className={
-              filter === "all"
-                ? c("community-templates-filter-button", "is-active")
-                : c("community-templates-filter-button")
-            }
-          >
-            All
-          </button>
-          <button
-            onClick={() => handleSetFilter("step")}
-            className={
-              filter === "step"
-                ? c("community-templates-filter-button", "is-active")
-                : c("community-templates-filter-button")
-            }
-          >
-            Steps
-          </button>
-          <button
-            onClick={() => handleSetFilter("action")}
-            className={
-              filter === "action"
-                ? c("community-templates-filter-button", "is-active")
-                : c("community-templates-filter-button")
-            }
-          >
-            Actions
-          </button>
-          <button
-            onClick={() => handleSetFilter("markdown")}
-            className={
-              filter === "markdown"
-                ? c("community-templates-filter-button", "is-active")
-                : c("community-templates-filter-button")
-            }
-          >
-            Markdown
-          </button>
+          {(["all", "step", "action", "markdown"] as const).map((type) => {
+            const classesToApply = [
+              "community-templates-filter-button",
+              FILTER_COLORS[type],
+            ];
+            if (filter === type)
+              classesToApply.push(
+                "community-templates-filter-button-is-active"
+              );
+            return (
+              <button
+                key={type}
+                onClick={() => handleSetFilter(type)}
+                className={c(...classesToApply)}
+              >
+                {type === "all"
+                  ? "All"
+                  : type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className={c("community-templates-list")}>
-        {filteredTemplates.map((template) => {
-          const installed = isTemplateInstalled(template);
-          return (
-            <div
-              key={template.id}
-              className={c(
-                "community-templates-card",
-                `template-type-${template.template_type}`
-              )}
-              onClick={() => {
-                handleTemplateClick(template);
-              }}
-            >
-              <span className={c("community-templates-card-type-badge")}>
-                {template.template_type}
-              </span>
-
-              <h3 className={c("community-templates-card-title")}>
-                {template.title}{" "}
-                {installed && (
-                  <span className={c("community-templates-card-subtitle")}>
-                    (Installed)
-                  </span>
+        {isLoading ? (
+          <div className={c("community-templates-loading")}>
+            Cargando plantillas...
+          </div>
+        ) : filteredTemplates.length > 0 ? (
+          filteredTemplates.map((template) => {
+            const installed = isTemplateInstalled(template);
+            return (
+              <div
+                key={template.id}
+                className={c(
+                  "community-templates-card",
+                  `template-type-${template.template_type}`
                 )}
-              </h3>
-              <p className={c("community-templates-card-description")}>
-                {template.description}
-              </p>
-              <small className={c("community-templates-card-meta")}>
-                Author: {template.author}
-              </small>
-            </div>
-          );
-        })}
+                onClick={() => handleTemplateClick(template)}
+              >
+                <span className={c("community-templates-card-type-badge")}>
+                  {template.template_type}
+                </span>
+                <h3 className={c("community-templates-card-title")}>
+                  {template.title}{" "}
+                  {installed && (
+                    <span className={c("community-templates-card-subtitle")}>
+                      (Installed)
+                    </span>
+                  )}
+                </h3>
+                <p className={c("community-templates-card-description")}>
+                  {template.description}
+                </p>
+                <small className={c("community-templates-card-meta")}>
+                  Author: {template.author}
+                </small>
+              </div>
+            );
+          })
+        ) : (
+          <div className={c("community-templates-empty")}>
+            No se encontraron plantillas.
+          </div>
+        )}
       </div>
     </div>
   );

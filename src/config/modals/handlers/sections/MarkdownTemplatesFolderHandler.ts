@@ -7,7 +7,6 @@ import { Setting } from "obsidian";
 export class MarkdownTemplatesFolderHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('markdown_templates_folder_title');
     description = t('markdown_templates_folder_description');
-
     handle(info: SettingsHandlerInfo): SettingsHandlerInfo {
         const { containerEl, plugin } = info;
         const markdown_templates_promise = async (value: string): Promise<void> => {

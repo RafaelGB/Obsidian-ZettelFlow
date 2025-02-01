@@ -53,9 +53,8 @@
 
 /* Active filter button variation */
 .zettelkasten-flow__community-templates-filter-button.is-active {
-    background-color: var(--interactive-accent);
-    color: var(--text-inverse);
     border-color: var(--interactive-accent);
+    border: 2px solid var(--interactive-accent);
 }
 
 /* Grid of template cards */
@@ -80,6 +79,12 @@
 .zettelkasten-flow__community-templates-card:hover {
     background-color: var(--background-secondary);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.zettelkasten-flow__community-templates-filter-button-is-active{
+    background-color: var(--interactive-accent);
+    color: var(--text-inverse);
+    border-color: var(--interactive-accent);
 }
 
 /* Border accent based on template type */

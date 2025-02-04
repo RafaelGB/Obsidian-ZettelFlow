@@ -264,7 +264,9 @@ declare module "obsidian/canvas" {
         color: string
 
         setData(data: CanvasNodeData, addHistory?: boolean): void
-        getData(): CanvasNodeData
+        getData(): CanvasNodeData,
+        // Custom config
+        unknownData: Record<string, unknown>
     }
 
     type Side = 'top' | 'right' | 'bottom' | 'left'

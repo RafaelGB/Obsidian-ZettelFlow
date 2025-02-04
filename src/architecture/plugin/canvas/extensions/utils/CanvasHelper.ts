@@ -1,3 +1,4 @@
+import ZettelFlow from "main"
 import { setIcon, setTooltip } from "obsidian"
 import { Canvas, Position, Size } from "obsidian/canvas"
 
@@ -165,5 +166,20 @@ export default class CanvasHelper {
         separatorElement.classList.add('menu-separator')
 
         return separatorElement
+    }
+
+    static isCanvasFlow(plugin: ZettelFlow): boolean {
+        // Check if canvas is one of the ZettelFlow canvases
+        const file = plugin.app.workspace.getActiveFile();
+        if (!file) return false;
+        const { ribbonCanvas, editorCanvas, foldersFlowsPath } = plugin.settings;
+        if (
+            ribbonCanvas !== file.path &&
+            editorCanvas !== file.path &&
+            !file.path.startsWith(foldersFlowsPath)
+        ) {
+            return false;
+        }
+        return true;
     }
 }

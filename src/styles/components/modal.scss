@@ -82,3 +82,43 @@ zettelkasten-flow__.modal-reader-type-section .icon {
 .zettelkasten-flow__modal-reader-section .setting-item button {
     margin-top: 5px;
 }
+
+
+/* General container for the OptionsModal */
+.zettelkasten-flow__options-modal {
+    padding: 20px;
+}
+
+/* Title style */
+.zettelkasten-flow__options-modal-title {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Container that holds all options */
+.zettelkasten-flow__options-modal-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* Centra las opciones horizontalmente */
+    gap: 10px;
+    /* Espaciado entre opciones */
+}
+
+/* Button style */
+.zettelkasten-flow__options-modal-button {
+    width: 100%;
+    text-align: center;
+    /* Puedes agregar otros estilos para mejorar el aspecto, por ejemplo: */
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: none;
+    background-color: var(--background-modifier-accent);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.zettelkasten-flow__options-modal-button:hover {
+    background-color: var(--background-primary);
+}

@@ -103,6 +103,42 @@
       "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"hasUI\":true,\"id\":\"34bd979a-2eb5-4da5-9b92-0b340f778239\",\"description\":\"Real hours last day\",\"key\":\"realWorkingHours\",\"label\":\"Real working hours\",\"placeholder\":\"How many hours do your work the last day?\",\"zone\":\"context\"},{\"type\":\"selector\",\"hasUI\":true,\"id\":\"37ba8eaa-c992-495a-863d-5587e3436672\",\"description\":\"Goals Achieved last day\",\"key\":\"goalsAchieved\",\"label\":\"Goals achieved the last day\",\"options\":[[\"false\",\"No\"],[\"true\",\"Yes\"]],\"defaultOption\":\"false\",\"zone\":\"context\"},{\"type\":\"script\",\"hasUI\":false,\"description\":\"set title\",\"code\":\"const today = moment().format(\\\"YYYY-MM-DD\\\");\\ncontext.today = today;\\nnote.setTitle(today);\\ncontent.modify(\\\"today\\\",today);\\n\\nconst nextDay = moment().add(1,'days').format(\\\"YYYY-MM-DD\\\");\\ncontent.modify(\\\"nextDay\\\",nextDay);\",\"id\":\"42ce77f6-7802-4a98-893f-78492a2cda37\"},{\"type\":\"script\",\"hasUI\":false,\"description\":\"find notes to archive\",\"code\":\"const currentFolder = app.vault.getAbstractFileByPath(note.getTargetFolder());\\ncontext.currentYearString = new Date().getFullYear().toString();\\n// Obtain all the notes of the folder (not recursive folders)\\ncontext.notesToArchive = currentFolder.children\\n  .filter(a => a.basename!==undefined)\\n  .sort((a,b) => b.basename.localeCompare(a.basename));\\ncontext.FOLDER_REGEX =/\\\\/[^\\\\/]+$/;\",\"id\":\"2d56c6e3-408f-430f-9867-0444243379cf\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8da35c9f-bd25-4f7a-924d-b37a77b2aa54\",\"description\":\"Edit last day note\",\"code\":\"if(context.notesToArchive.length>0){\\n  const lastDayFile = context.notesToArchive.first();\\n  content.modify(\\\"previousDay\\\",lastDayFile.basename);\\n  await app.fileManager\\n     .processFrontMatter(lastDayFile, (frontmatter) => {\\n       frontmatter.realWorkingHours=context.realWorkingHours;\\nfrontmatter.goalsAchieved=context.goalsAchieved;\\n});\\n  let lastDayContent = await app.vault.read(lastDayFile);\\n  const NEXT_DAY_REGEX = /\\\\[\\\\[\\\\d{4}-\\\\d{2}-\\\\d{2}\\\\|Next day\\\\]\\\\]/;\\n  lastDayContent = lastDayContent.replaceAll(new RegExp(NEXT_DAY_REGEX, 'g'),`[[${context.today}|Next day]]`);\\n  await app.vault.modify(lastDayFile,lastDayContent);\\n}else{\\n  content.modify(\\n    \\\"previousDay\\\",\\n    moment().subtract(1, \\\"days\\\").format(\\\"YYYY-MM-DD\\\")\\n  );\\n}\"},{\"type\":\"script\",\"hasUI\":false,\"description\":\"archive notes\",\"code\":\"const baseFolder = note.getTargetFolder()+\\\"/\\\"+context.currentYearString;\\n// Create the folder if it does not exist\\nif (!await app.vault.adapter.exists(baseFolder)) {\\n  await app.vault.createFolder(baseFolder);\\n}\\n\\n// func to be called on loop\\nasync function archiveFiles(abstractFile){\\n\\tconst currentPathFolder = \\n    abstractFile.path.replace(context.FOLDER_REGEX, '');\\n\\tconst destinationPath = currentPathFolder + \\\"/\\\" + context.currentYearString + \\\"/\\\" \\n     + abstractFile.basename + \\\".\\\" + abstractFile.extension;\\n\\tapp.vault.rename(\\n\\t  abstractFile,\\n\\t  destinationPath\\n\\t);\\n}\\n\\ncontext.notesToArchive\\n  .forEach(\\n\\tfile => archiveFiles(file)\\n);\",\"id\":\"c4161508-2372-469e-9f24-c14445e0438f\"}],\"label\":\"daily actions\",\"childrenHeader\":\"\",\"targetFolder\":\"Daily\"}"
     },
     {
+      "color": "3",
+      "file": "WorkFlow Test/root/Daily Note.md",
+      "height": 940,
+      "id": "98c25f3516181d5b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 839,
+      "x": -960,
+      "y": -680
+    },
+    {
+      "file": "WorkFlow Test/ZettelFlow scripts/Integrated Script.js",
+      "height": 77,
+      "id": "6f97c91bece56e3c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -924,
+      "y": 494
+    },
+    {
+      "color": "#bc7171",
+      "height": 91,
+      "id": "c0372c42be0e9229",
+      "styleAttributes": {
+      },
+      "text": "## actions for literature \nembed actions!",
+      "type": "text",
+      "width": 400,
+      "x": -924,
+      "y": 649,
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"placeholder\":\"write the purpose of your note here...\",\"key\":\"purpose\",\"label\":\"Purpose of your note\",\"zone\":\"frontmatter\",\"hasUI\":true,\"description\":\"Purpose of the note\",\"id\":\"658e1332-5247-4f9a-b841-859813516d27\"}],\"label\":\"Embed info\",\"childrenHeader\":\"\",\"optional\":true}"
+    },
+    {
       "color": "6",
       "file": "WorkFlow Test/root/Meeting Note.md",
       "height": 120,
@@ -126,6 +162,31 @@
       "x": -67,
       "y": -521,
       "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"key\":\"description\",\"label\":\"Description\",\"placeholder\":\"Write a description for the event\",\"hasUI\":true,\"description\":\"Description of the event\",\"id\":\"34e07b65-1be9-45af-81de-755f1334e474\"},{\"type\":\"calendar\",\"key\":\"eventDate\",\"label\":\"Date of the event\",\"hasUI\":true,\"description\":\"Event Date\",\"id\":\"195612f5-af95-4373-9883-e038cbac155d\"}],\"label\":\"Social event (multi action)\",\"childrenHeader\":\"\",\"targetFolder\":\"zettelFlow/fleeting/events\"}"
+    },
+    {
+      "color": "#546d37",
+      "height": 128,
+      "id": "2e358bab4f00e48e",
+      "styleAttributes": {
+      },
+      "text": "# Configurable tags\n- Include tags dynamically",
+      "type": "text",
+      "width": 360,
+      "x": 1296,
+      "y": -707,
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"tags\",\"description\":\"Add tags to the note\",\"hasUI\":true,\"id\":\"bdb5a2d8-5ae2-48f2-8bd5-1e4ebf9fc179\"}],\"label\":\"Add tags\",\"childrenHeader\":\"\"}"
+    },
+    {
+      "height": 78,
+      "id": "8e3bcace76cc69dd",
+      "styleAttributes": {
+      },
+      "text": "## External Scripts",
+      "type": "text",
+      "width": 250,
+      "x": -484,
+      "y": 571,
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"script\",\"hasUI\":false,\"id\":\"6fac8215-8254-4772-a490-a1c027e7b209\",\"description\":\"lab external\",\"code\":\"const {tp,dv} = zf.external;\\n// Templater integration\\ntp.user.labExternal();\\n\\n// Dataview Integration;\\nconst myPage = dv.page(\\\"Daily/2023-12-04.md\\\");\\nconsole.log(myPage);\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8ddf54ad-1177-4741-b8f6-573638899ffc\",\"description\":\"lab internal\",\"code\":\"// Custom Script\\nzf.internal.user.customScript()\"}],\"label\":\"external scripts\",\"childrenHeader\":\"\"}"
     },
     {
       "color": "2",
@@ -153,31 +214,6 @@
       "y": -105
     },
     {
-      "color": "3",
-      "file": "WorkFlow Test/root/Daily Note.md",
-      "height": 940,
-      "id": "98c25f3516181d5b",
-      "styleAttributes": {
-      },
-      "type": "file",
-      "width": 839,
-      "x": -960,
-      "y": -680
-    },
-    {
-      "color": "#546d37",
-      "height": 128,
-      "id": "2e358bab4f00e48e",
-      "styleAttributes": {
-      },
-      "text": "# Configurable tags\n- Include tags dynamically",
-      "type": "text",
-      "width": 360,
-      "x": 1296,
-      "y": -707,
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"tags\",\"description\":\"Add tags to the note\",\"hasUI\":true,\"id\":\"bdb5a2d8-5ae2-48f2-8bd5-1e4ebf9fc179\"}],\"label\":\"Add tags\",\"childrenHeader\":\"\"}"
-    },
-    {
       "color": "#108457",
       "height": 165,
       "id": "a35ac0726aca8026",
@@ -189,30 +225,6 @@
       "x": 1306,
       "y": -540,
       "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"placeholder\":\"write the purpose of your note here...\",\"key\":\"purpose\",\"label\":\"Purpose of your note\",\"zone\":\"frontmatter\",\"hasUI\":true,\"id\":\"0c14429f-9a74-4bc8-9ae1-7e5367414a0e\",\"description\":\"Purpose of the note\"}],\"label\":\"Add purpose (frontmatter)\",\"childrenHeader\":\"\",\"optional\":true}"
-    },
-    {
-      "file": "WorkFlow Test/ZettelFlow scripts/Integrated Script.js",
-      "height": 77,
-      "id": "6f97c91bece56e3c",
-      "styleAttributes": {
-      },
-      "type": "file",
-      "width": 400,
-      "x": -924,
-      "y": 494
-    },
-    {
-      "color": "#bc7171",
-      "height": 91,
-      "id": "c0372c42be0e9229",
-      "styleAttributes": {
-      },
-      "text": "## actions for literature \nembed actions!",
-      "type": "text",
-      "width": 400,
-      "x": -924,
-      "y": 649,
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"placeholder\":\"write the purpose of your note here...\",\"key\":\"purpose\",\"label\":\"Purpose of your note\",\"zone\":\"frontmatter\",\"hasUI\":true,\"description\":\"Purpose of the note\",\"id\":\"658e1332-5247-4f9a-b841-859813516d27\"}],\"label\":\"Embed info\",\"childrenHeader\":\"\",\"optional\":true}"
     },
     {
       "height": 120,
@@ -249,18 +261,6 @@
       "width": 314,
       "x": 172,
       "y": 486
-    },
-    {
-      "height": 78,
-      "id": "8e3bcace76cc69dd",
-      "styleAttributes": {
-      },
-      "text": "## External Scripts",
-      "type": "text",
-      "width": 250,
-      "x": -484,
-      "y": 571,
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"script\",\"hasUI\":false,\"id\":\"6fac8215-8254-4772-a490-a1c027e7b209\",\"description\":\"lab external\",\"code\":\"const {tp,dv} = zf.external;\\n// Templater integration\\ntp.user.labExternal();\\n\\n// Dataview Integration;\\nconst myPage = dv.page(\\\"Daily/2023-12-04.md\\\");\\nconsole.log(myPage);\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8ddf54ad-1177-4741-b8f6-573638899ffc\",\"description\":\"lab internal\",\"code\":\"// Custom Script\\nzf.internal.user.customScript()\"}],\"label\":\"external scripts\",\"childrenHeader\":\"\"}"
     }
   ]
 }

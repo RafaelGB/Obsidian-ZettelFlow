@@ -1,4 +1,6 @@
 export default {
+    command_open_manage_templates: 'Open manage templates',
+    command_open_community_templates: 'Open community templates',
     modals_community_templates_add_template: 'Añadir plantilla',
     modals_community_templates_title: 'Plantillas de la comunidad',
     markdown_templates_folder_title: 'Carpeta de plantillas de markdown',

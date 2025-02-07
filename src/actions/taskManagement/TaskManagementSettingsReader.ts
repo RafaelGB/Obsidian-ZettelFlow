@@ -1,5 +1,6 @@
 import { ActionSettingReader } from "architecture/api";
+import { taskManagementDetails } from "./TaskManagementSettings";
 
 export const taskManagementSettingsReader: ActionSettingReader = (contentEl, action) => {
-    // TODO: Implement task management settings reader
+    taskManagementDetails(contentEl, action, true);
 }

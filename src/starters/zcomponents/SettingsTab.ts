@@ -1,3 +1,4 @@
+import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "application/community";
 import { ObsidianApi, PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
@@ -10,6 +11,7 @@ export class SettingsTab extends PluginComponent {
     }
 
     onLoad(): void {
+        // Open file with principal canvas flow
         this.plugin.addSettingTab(new ZettelFlowSettingsTab(this.plugin));
         this.plugin.addCommand({
             id: 'open-canvas',
@@ -20,6 +22,22 @@ export class SettingsTab extends PluginComponent {
                 } else {
                     new Notice(t('notice_canvas_not_set'));
                 }
+            }
+        });
+        // Open community templates
+        this.plugin.addCommand({
+            id: 'open-community-templates',
+            name: t('command_open_community_templates'),
+            callback: () => {
+                new CommunityTemplatesModal(this.plugin).open();
+            }
+        });
+        // Open local manage templates
+        this.plugin.addCommand({
+            id: 'open-manage-templates',
+            name: t('command_open_manage_templates'),
+            callback: () => {
+                new ManageInstalledTemplatesModal(this.plugin).open();
             }
         });
         log.info('SettingsTab loaded');

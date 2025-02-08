@@ -6,8 +6,8 @@ import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
 import { checkSemaphore, FrontmatterService } from "architecture/plugin";
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
-    private propertyCache: Record<string, any> = {};
-    private globalHook: { property: string, script: string };
+    private currentFrontmatter: FrontmatterService | null = null;
+    private globalHook: Array<{ property: string, script: string }>;
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
     }
@@ -17,7 +17,7 @@ export class VaultHooks {
                 plugin.registerEvent(this.onRename);
                 plugin.registerEvent(this.onDelete);
                 plugin.registerEvent(this.onCreate);
-                plugin.registerEvent(this.onUpdate);
+                plugin.registerEvent(this.onCacheUpdate);
                 plugin.registerEvent(this.onOpen);
                 log.debug("Vault hooks setup with layout ready");
             }, 4000);
@@ -25,10 +25,10 @@ export class VaultHooks {
 
         // For testing purposes, mount a mock globalHook configuration if not already set.
 
-        this.globalHook = {
+        this.globalHook = [{
             property: "dailyLink",
             script: "console.log('Global Hook triggered on file:', file.path); new Notice('Global Hook executed!');"
-        };
+        }];
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -115,45 +115,44 @@ export class VaultHooks {
 
     });
     private onOpen = this.plugin.app.workspace.on("file-open", (file) => {
-        if (!(file instanceof TFile)) {
-            return;
-        }
-        const fileService = FrontmatterService.instance(file);
-        const frontmatter = fileService.getFrontmatter();
-        // Update the cache with the current frontmatter values.
-        for (const key in frontmatter) {
-            const cacheKey = `${file.path}:${key}`;
-            this.propertyCache[cacheKey] = frontmatter[key];
+        if (file instanceof TFile && file.extension === "md") {
+            this.currentFrontmatter = FrontmatterService.instance(file);
+            log.info("Nuevo fichero abierto:", file.path);
+        } else {
+            this.currentFrontmatter = null;
         }
     });
 
     // Event triggered when a file is modified.
-    private onUpdate = this.plugin.app.vault.on("modify", (file) => {
-        if (!(file instanceof TFile)) {
+    private onCacheUpdate = this.plugin.app.metadataCache.on("changed", (file, _data, cache) => {
+        if (!this.currentFrontmatter) {
+            this.currentFrontmatter = FrontmatterService.instance(file);
             return;
         }
-        // Process only Markdown files.
+        // Verifica que exista configuración de hooks y que tengamos un fichero abierto.
+        if (!this.globalHook?.length || !this.currentFrontmatter) return;
+        // Solo procesamos ficheros Markdown.
         if (file.extension !== "md") return;
 
-        const fileService = FrontmatterService.instance(file);
-        // Retrieve the file's frontmatter.
-        const frontmatter = fileService.getFrontmatter();
 
-        // Global hook configuration (monitored property and script).
-        if (!this.globalHook) return;
-        console.log("Checking global hook property in cache", this.propertyCache);
-        // Check if the specified property exists in the file's frontmatter.
-        if (this.globalHook.property in frontmatter) {
-            const currentValue = frontmatter[this.globalHook.property];
-            const cacheKey = `${file.path}:${this.globalHook.property}`;
+        // Obtenemos el frontmatter antiguo (del servicio) y el nuevo (de la cache).
+        const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
+        const newFrontmatter: Record<string, any> = cache.frontmatter || {};
 
-            // If the property value has changed compared to the cached value, execute the hook.
-            if (this.propertyCache[cacheKey] !== currentValue) {
-                this.executeHook(this.globalHook.script, file);
-                // Update the cached value.
-                this.propertyCache[cacheKey] = currentValue;
+        // Recorremos cada hook configurado y comprobamos cambios en la propiedad.
+        this.globalHook.forEach(({ property, script }) => {
+            const oldValue = oldFrontmatter[property];
+            const newValue = newFrontmatter[property];
+
+            // Si la propiedad ha sido eliminada, añadida o modificada...
+            if (oldValue !== newValue) {
+                log.info(`Propiedad "${property}" modificada en ${file.path}:`, { oldValue, newValue });
+                this.executeHook(script, file);
             }
-        }
+        });
+
+        // Actualizamos el servicio para reflejar el nuevo estado del frontmatter.
+        this.currentFrontmatter = FrontmatterService.instance(file);
     });
 
     // Execute the script defined in the global hook configuration.

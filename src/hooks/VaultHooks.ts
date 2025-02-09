@@ -129,29 +129,28 @@ export class VaultHooks {
             this.currentFrontmatter = FrontmatterService.instance(file);
             return;
         }
-        // Verifica que exista configuración de hooks y que tengamos un fichero abierto.
+        // Verify that the global hook configuration is set and that the frontmatter is available.
         if (!this.globalHook?.length || !this.currentFrontmatter) return;
-        // Solo procesamos ficheros Markdown.
+        // Just process markdown files.
         if (file.extension !== "md") return;
 
 
-        // Obtenemos el frontmatter antiguo (del servicio) y el nuevo (de la cache).
+        // Obtain the frontmatter of the file before and after the change.
         const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
         const newFrontmatter: Record<string, any> = cache.frontmatter || {};
 
-        // Recorremos cada hook configurado y comprobamos cambios en la propiedad.
+        // Remind the user that the frontmatter has changed.
         this.globalHook.forEach(({ property, script }) => {
             const oldValue = oldFrontmatter[property];
             const newValue = newFrontmatter[property];
 
-            // Si la propiedad ha sido eliminada, añadida o modificada...
+            // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
-                log.info(`Propiedad "${property}" modificada en ${file.path}:`, { oldValue, newValue });
                 this.executeHook(script, file);
             }
         });
 
-        // Actualizamos el servicio para reflejar el nuevo estado del frontmatter.
+        // Update the current frontmatter.
         this.currentFrontmatter = FrontmatterService.instance(file);
     });
 

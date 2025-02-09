@@ -1,12 +1,25 @@
-import { DndScope, Sortable } from "architecture/components/dnd";
-import React, { useMemo } from "react";
-import { createContext, FC, ReactNode, useContext, useState } from "react";
+// OptionsProvider.tsx
+import React, { useState } from "react";
+import { createContext, FC, ReactNode, useContext } from "react";
 import { SelectorElement } from "zettelkasten";
-import { SelectorDnDManager } from "../managers/SelectorDnDManager";
 import { Notice } from "obsidian";
 import { t } from "architecture/lang";
 import { v4 as uuid4 } from "uuid";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
+// Define the shape of the context
 interface OptionsContextProps {
   id: string;
   options: [string, string][];
@@ -39,43 +52,20 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   const [defaultOptionState, setDefaultOptionState] = useState(defaultOption);
   const [optionsState, setOptionsState] = useState(options || []);
 
-  const swapOptions = (origin: number, dropped: number) => {
-    const newOptionsState = [...optionsState];
-    const originEntry = newOptionsState[origin];
-    let auxEntry = newOptionsState[dropped];
-    newOptionsState[dropped] = originEntry;
-    // Once we swap the first element, sort the array between the origin and the dropped
-    // element to keep the order
-    if (origin < dropped) {
-      dropped--;
-      while (origin <= dropped) {
-        const aux = newOptionsState[dropped];
-        newOptionsState[dropped] = auxEntry;
-        auxEntry = aux;
-        dropped--;
-      }
-    } else {
-      dropped++;
-      while (origin >= dropped) {
-        const aux = newOptionsState[dropped];
-        newOptionsState[dropped] = auxEntry;
-        auxEntry = aux;
-        dropped++;
-      }
-    }
+  // Function to swap options using dndkit's arrayMove helper
+  const swapOptions = (oldIndex: number, newIndex: number) => {
+    const newOptionsState = arrayMove(optionsState, oldIndex, newIndex);
     setOptionsState(newOptionsState);
     action.options = newOptionsState;
   };
 
   const addOption = () => {
     const newOptionsState = [...optionsState];
-    // add at the start
     const newKey = `newOption${newOptionsState.length}`;
     const newLabel = `newOption ${newOptionsState.length}`;
     newOptionsState.unshift([newKey, newLabel]);
 
     setOptionsState(newOptionsState);
-    // On disk
     if (!action.options) {
       action.options = [];
     }
@@ -83,28 +73,22 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   };
 
   const deleteOption = (index: number) => {
-    // On state
     const newOptionsState = [...optionsState];
     newOptionsState.splice(index, 1);
     setOptionsState(newOptionsState);
-    // On disk
     action.options.splice(index, 1);
   };
 
   const updateOption = (index: number, frontmatter: string, label: string) => {
-    // Check first if the frontmatter is unique
     const isUnique =
-      optionsState.find(([key], i) => {
-        if (i !== index && key === frontmatter) {
-          return true;
-        }
-        return false;
-      }) === undefined;
+      optionsState.find(([key], i) => i !== index && key === frontmatter) ===
+      undefined;
 
-    optionsState[index] = [frontmatter, label];
-    setOptionsState(optionsState);
+    const newOptionsState = [...optionsState];
+    newOptionsState[index] = [frontmatter, label];
+    setOptionsState(newOptionsState);
+
     if (isUnique) {
-      // On disk
       action.options[index] = [frontmatter, label];
     } else {
       new Notice(t("notification_duplicated_option"));
@@ -112,8 +96,8 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
   };
 
   const modifyDefaultOption = (key: string) => {
-    setDefaultOptionState((prevDefaultOption) => {
-      if (prevDefaultOption === key) {
+    setDefaultOptionState((prev) => {
+      if (prev === key) {
         action.defaultOption = undefined;
         return undefined;
       } else {
@@ -121,6 +105,25 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
         return key;
       }
     });
+  };
+
+  // Setup sensors for drag and drop using dndkit
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
+  );
+
+  // Handler for when drag ends to update the options order
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = optionsState.findIndex(([key]) => key === active.id);
+      const newIndex = optionsState.findIndex(([key]) => key === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        swapOptions(oldIndex, newIndex);
+      }
+    }
   };
 
   const contextValue: OptionsContextProps = {
@@ -133,18 +136,21 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
     modifyDefault: modifyDefaultOption,
   };
 
-  const managerMemo = useMemo(() => {
-    return SelectorDnDManager.init(swapOptions);
-  }, [optionsState]);
+  // Create an array of item IDs for the sortable context
+  const itemIds = optionsState.map(([key]) => key);
 
   return (
-    <DndScope id={contextValue.id} manager={managerMemo}>
-      <Sortable axis="vertical">
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
         <OptionsContext.Provider value={contextValue}>
           {children}
         </OptionsContext.Provider>
-      </Sortable>
-    </DndScope>
+      </SortableContext>
+    </DndContext>
   );
 };
 

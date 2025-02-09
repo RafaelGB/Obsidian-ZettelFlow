@@ -5,6 +5,7 @@ import { SelectorDnDProps } from "./model/DnDSelectorStateModel";
 import { OptionItem } from "./OptionItem";
 import OptionsProvider, { useOptionsContext } from "./contexts/OptionsContext";
 import { SelectorElement } from "zettelkasten";
+
 export function SelectorDnD(props: SelectorDnDProps) {
   const { action, root } = props;
   useEffect(() => {
@@ -17,10 +18,7 @@ export function SelectorDnD(props: SelectorDnDProps) {
     <div>
       <h3>{t("step_builder_element_type_selector_title")}</h3>
       <p>{t("step_builder_element_type_selector_description")}</p>
-      <OptionsProvider
-        key={`options-provider`}
-        action={action as SelectorElement}
-      >
+      <OptionsProvider action={action as SelectorElement}>
         <OptionList />
       </OptionsProvider>
     </div>
@@ -34,9 +32,9 @@ const OptionList = () => {
       <div className="clickable-icon" onClick={add} aria-label="Add option">
         <Icon name="lucide-plus" />
       </div>
-      {options.map(([key], index) => {
-        return <OptionItem key={`${key}-${index}`} index={index} />;
-      })}
+      {options.map(([key], index) => (
+        <OptionItem key={`${key}-${index}`} id={key} index={index} />
+      ))}
     </div>
   );
 };

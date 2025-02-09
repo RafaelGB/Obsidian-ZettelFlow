@@ -261,6 +261,15 @@
       "width": 314,
       "x": 172,
       "y": 486
+    },
+    {
+      "height": 60,
+      "id": "8b0cdc725afc4466",
+      "text": "pruebas",
+      "type": "text",
+      "width": 250,
+      "x": -15,
+      "y": 1126
     }
   ]
 }

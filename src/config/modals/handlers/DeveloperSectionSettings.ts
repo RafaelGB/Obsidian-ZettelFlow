@@ -6,7 +6,7 @@ import { SettingsHandlerInfo } from "config/typing";
 import { LoggerToggleHandler } from "./developer/LoggerToggleHandler";
 
 
-export class Developer extends AbstractChain<SettingsHandlerInfo> {
+export class DeveloperSectionSettings extends AbstractChain<SettingsHandlerInfo> {
     private sectionContainer: HTMLElement;
     private parentContainer: HTMLElement;
     protected starter = new LoggerToggleHandler();
@@ -37,5 +37,5 @@ export class Developer extends AbstractChain<SettingsHandlerInfo> {
 
 
 }
-const developer = new Developer();
-export default developer;
+const developerSectionSettings = new DeveloperSectionSettings();
+export default developerSectionSettings;

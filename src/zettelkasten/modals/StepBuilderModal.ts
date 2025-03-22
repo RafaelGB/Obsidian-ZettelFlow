@@ -129,7 +129,6 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     refresh(): void {
-        console.log("refreshing");
         this.contentEl.empty();
         this.onOpen();
     }
@@ -171,10 +170,10 @@ export class StepBuilderModal extends AbstractStepModal {
     private async saveEmbed(path: string): Promise<void> {
         if (this.info.nodeId) {
             const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
-            await canvas.flows.update(path);
-            await canvas.flows
-                .get(path)
-                .editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
+
+            // Save path on cache or just get the cached flow
+            const cachedFlow = await canvas.flows.update(path);
+            await cachedFlow.editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
         } else {
             log.error(`Node id not found on embed mode`);
         }

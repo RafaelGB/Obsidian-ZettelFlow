@@ -44,6 +44,11 @@ export class FlowsImpl implements Flows {
         return flow;
     }
 
+    /**
+     * Search for the flow in the cache, if not found, add it to the cache.
+     * @param canvasPath 
+     * @returns 
+     */
     update = async (canvasPath: string) => {
         const flow = this.flows.get(canvasPath);
         if (!flow) {
@@ -216,8 +221,9 @@ export class FlowImpl implements Flow {
     }
 
     private async save() {
+        const content = canvasJsonFormatter(this.data);
         await ObsidianApi.vault()
-            .modify(this.file, canvasJsonFormatter(this.data))
+            .modify(this.file, content)
             .catch(error => {
                 const errorString = `Error saving canvas on ${this.file.path}: ${error}`;
                 log.error(errorString);

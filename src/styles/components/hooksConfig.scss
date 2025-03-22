@@ -1,0 +1,220 @@
+/* Property Hooks Manager Styles */
+.zettelflow-property-hooks-manager {
+    margin: 1rem 0;
+}
+
+.zettelflow-property-hooks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.zettelflow-property-hooks-header h3 {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+}
+
+.zettelflow-property-hooks-add-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: var(--font-ui-small);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.zettelflow-property-hooks-add-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.zettelflow-property-hooks-empty {
+    color: var(--text-muted);
+    padding: 1rem;
+    text-align: center;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+}
+
+.zettelflow-property-hooks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.zettelflow-property-hooks-item {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+    overflow: hidden;
+}
+
+.zettelflow-property-hooks-item-header {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: var(--background-secondary-alt);
+    gap: 0.5rem;
+}
+
+.zettelflow-property-hooks-item-grip {
+    color: var(--text-muted);
+    font-family: monospace;
+    cursor: grab;
+}
+
+.zettelflow-property-type-badge {
+    font-size: var(--font-ui-smaller);
+    background-color: var(--background-modifier-success-hover);
+    color: var(--text-normal);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 0.5rem;
+}
+
+.zettelflow-property-hooks-item-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.zettelflow-property-hooks-edit-button,
+.zettelflow-property-hooks-delete-button {
+    background-color: transparent;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.zettelflow-property-hooks-edit-button {
+    color: var(--text-normal);
+}
+
+.zettelflow-property-hooks-delete-button {
+    color: var(--text-error);
+}
+
+.zettelflow-property-hooks-edit-button:hover {
+    background-color: var(--interactive-hover);
+}
+
+.zettelflow-property-hooks-delete-button:hover {
+    background-color: var(--background-modifier-error);
+    color: white;
+}
+
+.zettelflow-property-hooks-item-editor {
+    padding: 1rem;
+    background-color: var(--background-primary);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.zettelflow-property-hook-field {
+    margin-bottom: 1rem;
+}
+
+.zettelflow-property-hook-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.zettelflow-property-hook-script-hint {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.5rem;
+}
+
+.zettelflow-property-hook-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.zettelflow-property-hook-cancel-button,
+.zettelflow-property-hook-save-button {
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.zettelflow-property-hook-cancel-button {
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.zettelflow-property-hook-save-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.zettelflow-property-hook-cancel-button:hover {
+    background-color: var(--background-secondary-alt);
+}
+
+.zettelflow-property-hook-save-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.zettelflow-property-hook-save-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Property Selector dropdown */
+.zettelflow-property-hook-selector {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 1rem;
+    z-index: 1000;
+    width: 300px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.zettelflow-property-hook-selector select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    margin-bottom: 1rem;
+}
+
+.zettelflow-property-hook-selector-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.zettelflow-property-hook-selector-buttons button {
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+    border: 1px solid var(--background-modifier-border);
+}
+
+/* CodeEditor special styles */
+.zettelflow-property-hooks-code-editor {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    height: 150px;
+    overflow: auto;
+    font-family: var(--font-monospace);
+    line-height: 1.5;
+    font-size: var(--font-ui-small);
+}

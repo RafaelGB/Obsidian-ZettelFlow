@@ -3,7 +3,7 @@ import { t } from "architecture/lang";
 import { AbstractHandlerClass } from "architecture/patterns";
 import { SettingsHandlerInfo } from "config/typing";
 import { Setting } from "obsidian";
-import { CommunitySettingsHandler } from "./CommunitySettingsHandler";
+import { PropertyHooksHandler } from "./PropertyHooksHandler";
 
 export class LoggerLevelHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('logger_level_title');
@@ -40,6 +40,6 @@ export class LoggerLevelHandler extends AbstractHandlerClass<SettingsHandlerInfo
         return this.goNext(info);
     }
     manageNextHandler() {
-        this.nextHandler = new CommunitySettingsHandler();
+        this.nextHandler = new PropertyHooksHandler();
     }
 }

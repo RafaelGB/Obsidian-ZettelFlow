@@ -2,9 +2,12 @@ import ZettelFlow from "main";
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
-import { MarkdownView, TFile, TFolder } from "obsidian";
-import { checkSemaphore } from "architecture/plugin";
+import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
+import { checkSemaphore, FrontmatterService } from "architecture/plugin";
 export class VaultHooks {
+    // Cache to store the previous value of the monitored property for each file.
+    private currentFrontmatter: FrontmatterService | null = null;
+    private globalHook: Array<{ property: string, script: string }>;
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
     }
@@ -14,9 +17,15 @@ export class VaultHooks {
                 plugin.registerEvent(this.onRename);
                 plugin.registerEvent(this.onDelete);
                 plugin.registerEvent(this.onCreate);
+                plugin.registerEvent(this.onCacheUpdate);
+                plugin.registerEvent(this.onOpen);
                 log.debug("Vault hooks setup with layout ready");
             }, 4000);
         });
+
+        // For testing purposes, mount a mock globalHook configuration if not already set.
+
+        this.globalHook = [];
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -100,6 +109,56 @@ export class VaultHooks {
                     .open();
             }, 300);
         }
-
     });
+
+    private onOpen = this.plugin.app.workspace.on("file-open", (file) => {
+        if (file instanceof TFile && file.extension === "md") {
+            this.currentFrontmatter = FrontmatterService.instance(file);
+            log.info("Nuevo fichero abierto:", file.path);
+        } else {
+            this.currentFrontmatter = null;
+        }
+    });
+
+    // Event triggered when a file is modified.
+    private onCacheUpdate = this.plugin.app.metadataCache.on("changed", (file, _data, cache) => {
+        if (!this.currentFrontmatter) {
+            this.currentFrontmatter = FrontmatterService.instance(file);
+            return;
+        }
+        // Verify that the global hook configuration is set and that the frontmatter is available.
+        if (!this.globalHook?.length || !this.currentFrontmatter) return;
+        // Just process markdown files.
+        if (file.extension !== "md") return;
+
+
+        // Obtain the frontmatter of the file before and after the change.
+        const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
+        const newFrontmatter: Record<string, any> = cache.frontmatter || {};
+
+        // Remind the user that the frontmatter has changed.
+        this.globalHook.forEach(({ property, script }) => {
+            const oldValue = oldFrontmatter[property];
+            const newValue = newFrontmatter[property];
+
+            // If the property has changed, log the change and execute the script.
+            if (oldValue !== newValue) {
+                this.executeHook(script, file);
+            }
+        });
+
+        // Update the current frontmatter.
+        this.currentFrontmatter = FrontmatterService.instance(file);
+    });
+
+    // Execute the script defined in the global hook configuration.
+    private executeHook(script: string, file: TFile) {
+        try {
+            // Execute the script in the context of the file.
+            const func = new Function("file", script);
+            func(file);
+        } catch (error) {
+            new Notice("Error executing global hook: " + error.message);
+        }
+    }
 }

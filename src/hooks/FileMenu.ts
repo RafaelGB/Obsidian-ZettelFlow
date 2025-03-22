@@ -7,13 +7,18 @@ import { StepBuilderMapper, StepBuilderModal } from "zettelkasten";
 import { canvas } from 'architecture/plugin/canvas';
 
 export class FileMenu {
+
+
+    // Set up FileMenu functionality.
     public static setup(plugin: ZettelFlow) {
         new FileMenu(plugin);
     }
-
     constructor(private plugin: ZettelFlow) {
+        // Register file modification and file menu events.
         plugin.registerEvent(this.onFileMenuTriggered);
     }
+
+    // Register a custom file menu event.
     private onFileMenuTriggered =
         this.plugin.app.workspace.on('file-menu', (menu, file) => {
             const { ribbonCanvas, foldersFlowsPath } = this.plugin.settings;
@@ -36,7 +41,7 @@ export class FileMenu {
                         const zettelFlowSettings = fileService.getZettelFlowSettings();
                         mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
                         menu.addItem((item) => {
-                            // Remove step configuration
+                            // Remove step configuration.
                             item
                                 .setTitle(t("menu_pane_remove_step_configuration"))
                                 .setIcon(RibbonIcon.ID)
@@ -45,7 +50,7 @@ export class FileMenu {
                                     new Notice("Step configuration removed!");
                                 });
                         }).addItem((item) => {
-                            // Copy step configuration to canvas clipboard
+                            // Copy step configuration to canvas clipboard.
                             item
                                 .setTitle(t("menu_pane_copy_step_configuration"))
                                 .setIcon(RibbonIcon.ID)
@@ -54,7 +59,7 @@ export class FileMenu {
                                     new Notice("Step configuration copied!");
                                 });
                         });
-                        // Change title to edit step if step configuration is present
+                        // Change title to edit step if step configuration is present.
                         title = t("menu_pane_edit_step");
                     }
                     menu.addItem((item) => {
@@ -76,7 +81,7 @@ export class FileMenu {
                     const clipboardSettings = canvas.clipboard.get();
                     if (clipboardSettings) {
                         menu.addItem((item) => {
-                            // Paste step configuration from canvas clipboard
+                            // Paste step configuration from canvas clipboard.
                             item
                                 .setTitle(t("menu_pane_paste_step_configuration"))
                                 .setIcon(RibbonIcon.ID)
@@ -84,12 +89,12 @@ export class FileMenu {
                                     await fileService.setZettelFlowSettings(clipboardSettings);
                                     new Notice("Step configuration pasted!");
                                 });
-                            // Clear canvas clipboard cache
+                            // Clear the canvas clipboard cache.
                             canvas.flows.delete(this.plugin.settings.ribbonCanvas);
                         });
                     }
                 } else if (file.extension === "canvas") {
-                    // Invalidate stored canvas (if was loaded before)
+                    // Invalidate the stored canvas (if it was loaded previously).
                     canvas.flows.delete(file.path);
                 }
             }

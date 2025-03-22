@@ -4,9 +4,14 @@ import { c } from "architecture";
 import { actionsStore } from "architecture/api";
 import { Icon } from "architecture/components/icon";
 
+/**
+ * ActionAddMenu component renders a button that toggles the action selector menu.
+ *
+ * @param props - ActionAddMenuProps including the modal and onChange callback.
+ * @returns The add action menu interface.
+ */
 export function ActionAddMenu(props: ActionAddMenuProps) {
   const { onChange } = props;
-  // Open/close action selector menu
   const [display, setDisplay] = useState(false);
 
   return (
@@ -40,13 +45,19 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
   );
 }
 
+/**
+ * ActionCardsMenu renders the list of available actions for selection.
+ *
+ * @param props - Contains modal and onChange callback.
+ * @returns The searchable list of action cards.
+ */
 function ActionCardsMenu(props: ActionAddMenuProps) {
   const { onChange, modal } = props;
   const { actions } = modal.getPlugin().settings.installedTemplates;
-  // Hooks
+
+  // Build the list of action cards by merging built-in and template actions.
   const actionsMemo: ActionCardInfo[] = useMemo(() => {
     const array: ActionCardInfo[] = [];
-
     actionsStore.getActionsKeys().forEach((key) => {
       const rawAction = actionsStore.getAction(key);
       array.push({
@@ -57,7 +68,6 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         id: rawAction.id,
       });
     });
-    // Merge the actions with the installed actions
     Object.values(actions).forEach((action) => {
       array.push({
         icon: actionsStore.getAction(action.type).getIcon(),
@@ -71,6 +81,7 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
   }, []);
 
   const [filteredCards, setFilteredCards] = useState(actionsMemo);
+
   return (
     <>
       <input
@@ -79,18 +90,15 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         placeholder="Search actions"
         onChange={(e) => {
           const value = e.target.value.toLowerCase();
-          if (value === "" || value === null) {
-            setFilteredCards(actionsMemo);
-          } else {
-            setFilteredCards(
-              actionsMemo.filter(
-                (card) =>
-                  // Search by label and purpose
-                  card.label.toLowerCase().includes(value) ||
-                  card.purpose.toLowerCase().includes(value)
-              )
-            );
-          }
+          setFilteredCards(
+            value === ""
+              ? actionsMemo
+              : actionsMemo.filter(
+                  (card) =>
+                    card.label.toLowerCase().includes(value) ||
+                    card.purpose.toLowerCase().includes(value)
+                )
+          );
         }}
       />
       <div className={c("actions-list")}>
@@ -108,10 +116,12 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
     </>
   );
 }
+
 /**
- * Core actions of ZettelFlow
- * @param props
- * @returns
+ * ActionCard represents a single action option in the add menu.
+ *
+ * @param props - Contains the action card info and a trigger callback.
+ * @returns A clickable action card.
  */
 function ActionCard(props: { card: ActionCardInfo; trigger: () => void }) {
   const { card } = props;

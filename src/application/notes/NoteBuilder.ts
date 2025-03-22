@@ -58,7 +58,7 @@ export class NoteBuilder {
     if (!modal.isEmbedded() && markdownView.file) {
       await FrontmatterService
         .instance(markdownView.file)
-        .processFrontMatter(this.content);
+        .processTypedFrontMatter(this.content);
       await this.postProcess(markdownView.file);
     }
 
@@ -77,7 +77,7 @@ export class NoteBuilder {
 
     await FrontmatterService
       .instance(generatedFile)
-      .processFrontMatter(this.content);
+      .processTypedFrontMatter(this.content);
     await this.postProcess(generatedFile);
 
     log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)

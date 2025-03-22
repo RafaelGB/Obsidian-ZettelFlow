@@ -1,86 +1,104 @@
-import React, { useMemo, useState } from "react";
+// ActionsManagement.tsx
+import React, { useState } from "react";
 import { ActionsManagementProps } from "./typing";
 import { ActionAccordion } from "./ActionAccordion";
 import { Action, actionsStore } from "architecture/api";
 import { t } from "architecture/lang";
-import { DndScope, Sortable } from "architecture/components/dnd";
-import { ACTIONS_ACCORDION_DND_ID } from "../shared/Identifiers";
-import { ActionsManager } from "../shared/managers/ActionsManager";
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { v4 as uuid4 } from "uuid";
 import { ActionAddMenu } from "./ActionAddMenu";
 import { ActionBuilderMapper } from "zettelkasten/mappers/ActionBuilderMapper";
 
+/**
+ * ActionsManagement component manages the list of actions allowing
+ * reordering via drag & drop, removal and addition of new actions.
+ *
+ * @param props - ActionsManagementProps containing the modal and initial actions.
+ * @returns The actions management interface.
+ */
 export function ActionsManagement(props: ActionsManagementProps) {
   const { modal } = props;
   const { info } = modal;
   const [actionsState, setActionsState] = useState(info.actions);
 
-  const updateActions = (origin: number, dropped: number) => {
-    const newOptionsState = [...actionsState];
-    const originEntry = newOptionsState[origin];
-    let auxEntry = newOptionsState[dropped];
-    newOptionsState[dropped] = originEntry;
-    // Once we swap the first element, sort the array between the origin and the dropped
-    // element to keep the order
-    if (origin < dropped) {
-      dropped--;
-      while (origin <= dropped) {
-        const aux = newOptionsState[dropped];
-        newOptionsState[dropped] = auxEntry;
-        auxEntry = aux;
-        dropped--;
-      }
-    } else {
-      dropped++;
-      while (origin >= dropped) {
-        const aux = newOptionsState[dropped];
-        newOptionsState[dropped] = auxEntry;
-        auxEntry = aux;
-        dropped++;
+  // Setup dndkit sensors with a minimum activation distance
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  /**
+   * Handles the drag end event by computing the new order of actions.
+   *
+   * @param event - The drag end event from dndkit.
+   */
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = actionsState.findIndex(
+        (action) => action.id === active.id
+      );
+      const newIndex = actionsState.findIndex(
+        (action) => action.id === over.id
+      );
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newActionsState = arrayMove(actionsState, oldIndex, newIndex);
+        setActionsState(newActionsState);
+        info.actions = newActionsState;
       }
     }
-    setActionsState(newOptionsState);
-    info.actions = newOptionsState;
   };
-
-  const managerMemo = useMemo(() => {
-    return ActionsManager.init(updateActions);
-  }, [actionsState]);
 
   return (
     <>
       <h3>{t("step_builder_actions_management_title")}</h3>
-      <DndScope id={ACTIONS_ACCORDION_DND_ID} manager={managerMemo}>
-        <Sortable axis="vertical">
-          {actionsState.map((action, index) => {
-            return (
-              <ActionAccordion
-                key={action.id || uuid4()} // LEGACY: This is to keep the id of the action
-                modal={modal}
-                action={action}
-                index={index}
-                onRemove={() => {
-                  // Check if the action is the last one
-                  if (actionsState.length === 1) {
-                    info.actions = [];
-                    setActionsState([]);
-                  } else {
-                    // Remove the action from the array with index
-                    const filteredActions = [...actionsState].filter(
-                      (_, actionIndex) => actionIndex !== index
-                    );
-                    setActionsState(filteredActions);
-                    info.actions = filteredActions;
-                  }
-                }}
-              />
-            );
-          })}
-        </Sortable>
-      </DndScope>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <SortableContext
+          items={actionsState.map((action) => action.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {actionsState.map((action, index) => (
+            <ActionAccordion
+              key={action.id || uuid4()}
+              modal={modal}
+              action={action}
+              index={index}
+              onRemove={() => {
+                if (actionsState.length === 1) {
+                  info.actions = [];
+                  setActionsState([]);
+                } else {
+                  const filteredActions = actionsState.filter(
+                    (_, actionIndex) => actionIndex !== index
+                  );
+                  setActionsState(filteredActions);
+                  info.actions = filteredActions;
+                }
+              }}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
       <ActionAddMenu
         modal={modal}
-        onChange={async (value, isTemplate) => {
+        onChange={(value, isTemplate) => {
           if (typeof value === "string") {
             const deepCopy = [...actionsState];
             let newAction: Action;

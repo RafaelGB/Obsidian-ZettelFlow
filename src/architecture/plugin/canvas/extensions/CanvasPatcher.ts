@@ -38,7 +38,7 @@ export default class CanvasPatcher {
             this.plugin.registerEvent(event)
         })
 
-        const that = this;
+        const that = this; // eslint-disable-line
 
         // Patch canvas popup menu
         PatchHelper.patchObjectPrototype(this.plugin, canvasView.canvas.menu, {

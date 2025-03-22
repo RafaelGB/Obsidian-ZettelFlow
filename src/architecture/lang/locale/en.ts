@@ -1,4 +1,6 @@
 export default {
+    command_open_manage_templates: 'Open manage templates',
+    command_open_community_templates: 'Open community templates',
     modals_community_templates_add_template: 'Add template',
     modals_community_templates_title: 'Community Templates',
     markdown_templates_folder_title: 'Markdown templates folder',

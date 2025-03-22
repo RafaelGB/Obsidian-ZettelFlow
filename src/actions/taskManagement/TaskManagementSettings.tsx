@@ -1,4 +1,4 @@
-import { ActionSetting } from "architecture/api";
+import { Action, ActionSetting } from "architecture/api";
 import { t } from "architecture/lang";
 import { Setting } from "obsidian";
 import { TaskManagementElement } from "./typing";
@@ -13,6 +13,19 @@ export const taskManagementSettings: ActionSetting = (
   action,
   disableNavbar
 ) => {
+  const name = t("step_builder_element_type_task_management_title");
+  const description = t(
+    "step_builder_element_type_task_management_description"
+  );
+  navbarAction(contentEl, name, description, action, modal, disableNavbar);
+  taskManagementDetails(contentEl, action);
+};
+
+export function taskManagementDetails(
+  contentEl: HTMLElement,
+  action: Action,
+  readOnly = false
+) {
   const {
     initialFolder,
     regex,
@@ -24,12 +37,6 @@ export const taskManagementSettings: ActionSetting = (
     recursiveFolders = true,
   } = action as TaskManagementElement;
 
-  const name = t("step_builder_element_type_task_management_title");
-  const description = t(
-    "step_builder_element_type_task_management_description"
-  );
-  navbarAction(contentEl, name, description, action, modal, disableNavbar);
-
   new Setting(contentEl)
     .setName(t("step_builder_element_type_task_management_target_folder_title"))
     .setDesc(
@@ -38,6 +45,7 @@ export const taskManagementSettings: ActionSetting = (
     .addSearch((cb) => {
       new FolderSuggest(cb.inputEl);
       cb.setPlaceholder("Example: path/to/folder")
+        .setDisabled(readOnly)
         .setValue(initialFolder || "")
         .onChange((value: string) => {
           if (value) {
@@ -56,9 +64,12 @@ export const taskManagementSettings: ActionSetting = (
       t("step_builder_element_type_task_management_allow_recursive_description")
     )
     .addToggle((toggle) => {
-      toggle.setValue(recursiveFolders).onChange((value) => {
-        action.recursiveFolders = value;
-      });
+      toggle
+        .setDisabled(readOnly)
+        .setValue(recursiveFolders)
+        .onChange((value) => {
+          action.recursiveFolders = value;
+        });
     });
   if (action.recursiveFolders === undefined) {
     action.recursiveFolders = true;
@@ -69,6 +80,7 @@ export const taskManagementSettings: ActionSetting = (
     .setDesc(t("step_builder_element_type_task_management_regex_description"))
     .addText((text) => {
       text
+        .setDisabled(readOnly)
         .setPlaceholder(
           t("step_builder_element_type_task_management_regex_placeholder")
         )
@@ -87,6 +99,7 @@ export const taskManagementSettings: ActionSetting = (
     )
     .addText((text) => {
       text
+        .setDisabled(readOnly)
         .setPlaceholder(
           t(
             "step_builder_element_type_task_management_rollover_header_placeholder"
@@ -106,9 +119,12 @@ export const taskManagementSettings: ActionSetting = (
     .setName(t("step_builder_element_type_task_management_prefix_title"))
     .setDesc(t("step_builder_element_type_task_management_prefix_description"))
     .addText((text) => {
-      text.setValue(prefix || "").onChange(async (value) => {
-        action.prefix = value;
-      });
+      text
+        .setDisabled(readOnly)
+        .setValue(prefix || "")
+        .onChange(async (value) => {
+          action.prefix = value;
+        });
     });
 
   new Setting(contentEl)
@@ -116,6 +132,7 @@ export const taskManagementSettings: ActionSetting = (
     .setDesc(t("step_builder_element_type_task_management_suffix_description"))
     .addText((text) => {
       text
+        .setDisabled(readOnly)
         .setPlaceholder(
           t("step_builder_element_type_task_management_suffix_placeholder")
         )
@@ -136,13 +153,16 @@ export const taskManagementSettings: ActionSetting = (
       t("step_builder_element_type_task_management_is_content_description")
     )
     .addToggle((toggle) => {
-      toggle.setValue(isContent || false).onChange(async (value) => {
-        action.isContent = value;
-        const keyElement = document.getElementById(keyElementId);
-        if (keyElement) {
-          keyElement.style.display = value ? "block" : "none";
-        }
-      });
+      toggle
+        .setDisabled(readOnly)
+        .setValue(isContent || false)
+        .onChange(async (value) => {
+          action.isContent = value;
+          const keyElement = document.getElementById(keyElementId);
+          if (keyElement) {
+            keyElement.style.display = value ? "block" : "none";
+          }
+        });
     });
 
   const keyElement = new Setting(contentEl)
@@ -151,13 +171,16 @@ export const taskManagementSettings: ActionSetting = (
     .addSearch((search) => {
       ObsidianConfig.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types, ["text", "checkbox"]);
-        search.setValue(key || ``).onChange(async (value) => {
-          action.key = value;
-        });
+        search
+          .setDisabled(readOnly)
+          .setValue(key || ``)
+          .onChange(async (value) => {
+            action.key = value;
+          });
       });
     });
   keyElement.settingEl.id = keyElementId;
   if (!isContent) {
     keyElement.settingEl.style.display = "none";
   }
-};
+}

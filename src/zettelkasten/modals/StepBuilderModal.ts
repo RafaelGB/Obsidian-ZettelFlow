@@ -188,6 +188,7 @@ export class StepBuilderModal extends AbstractStepModal {
             file = await FileService.createFile(path, "", false);
         }
         await this.addStep(file, stepSettings);
+        new Notice(`Step saved on ${path}`);
     }
 
     private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {

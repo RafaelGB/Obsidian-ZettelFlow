@@ -25,10 +25,7 @@ export class VaultHooks {
 
         // For testing purposes, mount a mock globalHook configuration if not already set.
 
-        this.globalHook = [{
-            property: "dailyLink",
-            script: "console.log('Global Hook triggered on file:', file.path); new Notice('Global Hook executed!');"
-        }];
+        this.globalHook = [];
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -112,8 +109,8 @@ export class VaultHooks {
                     .open();
             }, 300);
         }
-
     });
+
     private onOpen = this.plugin.app.workspace.on("file-open", (file) => {
         if (file instanceof TFile && file.extension === "md") {
             this.currentFrontmatter = FrontmatterService.instance(file);

@@ -8,7 +8,6 @@ import { fnsManager } from "architecture/api";
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
     private currentFrontmatter: FrontmatterService | null = null;
-    private globalHook: Array<{ property: string, script: string }>;
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
     }
@@ -25,8 +24,6 @@ export class VaultHooks {
         });
 
         // For testing purposes, mount a mock globalHook configuration if not already set.
-
-        this.globalHook = [];
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -123,12 +120,13 @@ export class VaultHooks {
 
     // Event triggered when a file is modified.
     private onCacheUpdate = this.plugin.app.metadataCache.on("changed", (file, _data, cache) => {
+        const hooks = Object.entries(this.plugin.settings.propertyHooks || {});
         if (!this.currentFrontmatter) {
             this.currentFrontmatter = FrontmatterService.instance(file);
             return;
         }
         // Verify that the global hook configuration is set and that the frontmatter is available.
-        if (!this.globalHook?.length || !this.currentFrontmatter) return;
+        if (!hooks.length || !this.currentFrontmatter) return;
         // Just process markdown files.
         if (file.extension !== "md") return;
 
@@ -138,13 +136,13 @@ export class VaultHooks {
         const newFrontmatter: Record<string, any> = cache.frontmatter || {};
 
         // Remind the user that the frontmatter has changed.
-        this.globalHook.forEach(({ property, script }) => {
+        hooks.forEach(([property, hookSettings]) => {
             const oldValue = oldFrontmatter[property];
             const newValue = newFrontmatter[property];
 
             // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
-                this.executeHook(script, file, oldValue, newValue);
+                this.executeHook(hookSettings.script, file, oldValue, newValue);
             }
         });
 

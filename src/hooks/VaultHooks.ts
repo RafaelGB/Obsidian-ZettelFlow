@@ -4,6 +4,7 @@ import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
 import { checkSemaphore, FrontmatterService } from "architecture/plugin";
+import { fnsManager } from "architecture/api";
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
     private currentFrontmatter: FrontmatterService | null = null;
@@ -114,7 +115,7 @@ export class VaultHooks {
     private onOpen = this.plugin.app.workspace.on("file-open", (file) => {
         if (file instanceof TFile && file.extension === "md") {
             this.currentFrontmatter = FrontmatterService.instance(file);
-            log.info("Nuevo fichero abierto:", file.path);
+            log.debug("Nuevo fichero abierto:", file.path);
         } else {
             this.currentFrontmatter = null;
         }
@@ -143,7 +144,7 @@ export class VaultHooks {
 
             // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
-                this.executeHook(script, file);
+                this.executeHook(script, file, oldValue, newValue);
             }
         });
 
@@ -152,11 +153,25 @@ export class VaultHooks {
     });
 
     // Execute the script defined in the global hook configuration.
-    private executeHook(script: string, file: TFile) {
+    private async executeHook(script: string, file: TFile, oldValue: any, newValue: any) {
         try {
-            // Execute the script in the context of the file.
-            const func = new Function("file", script);
-            func(file);
+            const AsyncFunction = Object.getPrototypeOf(
+                async function () { }
+            ).constructor;
+            const fnBody = `return (async () => {
+                    ${script}
+                  })(file, oldValue, newValue, zf);`;
+
+            const functions = await fnsManager.getFns();
+            const scriptFn = new AsyncFunction(
+                "file",
+                "oldValue",
+                "newValue",
+                "zf",
+                fnBody
+            );
+
+            await scriptFn(file, oldValue, newValue, functions);
         } catch (error) {
             new Notice("Error executing global hook: " + error.message);
         }

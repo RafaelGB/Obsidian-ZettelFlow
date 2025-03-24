@@ -16,6 +16,9 @@
 }
 
 .zettelflow-property-hooks-add-button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
     border-radius: 4px;
@@ -49,20 +52,59 @@
     border-radius: 4px;
     background-color: var(--background-secondary);
     overflow: hidden;
+    transition: transform 0.2s ease, opacity 0.2s ease, height 0.3s ease;
+}
+
+/* Animation classes */
+.zettelflow-property-hooks-item.entrance {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: slide-in 0.3s ease forwards;
+}
+
+.zettelflow-property-hooks-item.exit {
+    opacity: 1;
+    animation: slide-out 0.3s ease forwards;
+}
+
+@keyframes slide-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-out {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
 }
 
 .zettelflow-property-hooks-item-header {
     display: flex;
     align-items: center;
-    padding: 0.5rem;
+    padding: 8px 12px;
     background-color: var(--background-secondary-alt);
-    gap: 0.5rem;
+    border-bottom: 1px solid var(--background-modifier-border);
+    user-select: none;
 }
 
-.zettelflow-property-hooks-item-grip {
-    color: var(--text-muted);
-    font-family: monospace;
-    cursor: grab;
+.zettelflow-property-hooks-item-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 8px;
 }
 
 .zettelflow-property-type-badge {
@@ -71,13 +113,12 @@
     color: var(--text-normal);
     padding: 2px 6px;
     border-radius: 3px;
-    margin-left: 0.5rem;
 }
 
 .zettelflow-property-hooks-item-actions {
-    margin-left: auto;
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 4px;
 }
 
 .zettelflow-property-hooks-edit-button,
@@ -85,8 +126,11 @@
     background-color: transparent;
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 2px 4px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background-color 0.2s ease;
 }
 
@@ -107,10 +151,21 @@
     color: white;
 }
 
+.zettelflow-property-hooks-drag-handle {
+    color: var(--text-muted);
+    cursor: grab;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+}
+
+.zettelflow-property-hooks-drag-handle:active {
+    cursor: grabbing;
+}
+
 .zettelflow-property-hooks-item-editor {
-    padding: 1rem;
+    padding: 12px;
     background-color: var(--background-primary);
-    border-top: 1px solid var(--background-modifier-border);
 }
 
 .zettelflow-property-hook-field {
@@ -132,8 +187,8 @@
 .zettelflow-property-hook-editor-buttons {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: 8px;
+    margin-top: 12px;
 }
 
 .zettelflow-property-hook-cancel-button,

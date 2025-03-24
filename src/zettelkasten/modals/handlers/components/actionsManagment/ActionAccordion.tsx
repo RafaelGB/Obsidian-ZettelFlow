@@ -6,7 +6,7 @@ import { actionsStore } from "architecture/api";
 import { Input } from "architecture/components/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { v4 as uuid4 } from "uuid";
+import { v7 as uuid7 } from "uuid";
 
 /**
  * ActionAccordion component represents a single action item with
@@ -25,7 +25,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
   // Ensure the action has a unique id (legacy support)
   useEffect(() => {
     if (!action.id) {
-      action.id = uuid4();
+      action.id = uuid7();
     }
     const timer = setTimeout(() => {
       setAnimationClass("");

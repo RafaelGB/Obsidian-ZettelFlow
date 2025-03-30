@@ -4,13 +4,14 @@ import { contentCompletions } from "./config/ContentFns";
 import { noteCompletions } from "./config/NoteFns";
 import { appCompletions } from "./config/AppFns";
 import { Completion } from "./typing";
-import { integrationsCompletions, internalVaultCompletions } from "./config/ZettelFlowFns";
+import { integrationsCompletions, internalVaultCompletions, zfCompletions } from "./config/ZettelFlowFns";
 
 const completionsTree = {
     note: noteCompletions,
     content: contentCompletions,
     app: appCompletions,
     zf: {
+        ...zfCompletions,
         internal: {
             vault: internalVaultCompletions
         },
@@ -41,18 +42,10 @@ function findCompletions(
         }));
     }
 
-    // Obtain the next segment and remove it from the array
-    const nextSegment = segments.shift();
-    if (!nextSegment) {
-        // If the segment does not match any key, return the current keys
-        return Object.keys(node).map(key => ({
-            label: key,
-            type: 'object',
-            info: ''
-        }));
-    }
+    // Get the next segment without removing it
+    const nextSegment = segments[0];
 
-    // Continue recursively with the remaining segments
+    // Continue recursively with the next node if it exists
     const nextNode = (node as Record<string, unknown>)[nextSegment] as Record<string, unknown> | undefined;
     if (!nextNode) {
         // If the segment does not match any key, return the current keys
@@ -63,60 +56,92 @@ function findCompletions(
         }));
     }
 
-    // Continuamos recursivamente con los segmentos restantes
-    return findCompletions(segments, nextNode);
+    // Move to the next segment
+    return findCompletions(segments.slice(1), nextNode);
 }
 
 function customCompletionProvider(context: CompletionContext): CompletionResult | null {
-    // Obtains the word before the cursor
-    const word = context.matchBefore(/(\w+\.)*\w*$/);
-    if (!word) return null;
+    // Get line content before cursor to check context
+    const line = context.state.doc.lineAt(context.pos);
+    const lineText = line.text.slice(0, context.pos - line.from);
 
-    // Split the word by dots
-    const segments = word.text.split('.').filter(Boolean);
-
-
-    if (segments.length === 0) {
-        // If there are no segments, show the core completions
-        return {
-            from: word.from,
-            options: coreCompletions
-        };
-    }
-
-    // If the first segment is not in coreCompletions, do not show suggestions
-    const rootSegment = segments[0];
-    const rootCompletion = coreCompletions.find(c => c.label === rootSegment);
-
-    if (!rootCompletion) {
-        // If the first segment is not in coreCompletions, do not show suggestions
+    // Check if we're in a comment or string where our completions aren't relevant
+    if (/\/\/.*$/.test(lineText) ||
+        (lineText.match(/"/g)?.length ?? 0) % 2 === 1 ||
+        (lineText.match(/'/g)?.length ?? 0) % 2 === 1) {
         return null;
     }
 
-    // If the word ends with a dot, show the completions for the current segment
-    if (word.text.endsWith('.')) {
-        const completions = findCompletions(segments, completionsTree);
-        if (!completions) return null;
+    // Check for dot triggering (property access)
+    const dotMatch = lineText.match(/(\w+(?:\.\w+)*)\.$/);
+    if (dotMatch) {
+        const segments = dotMatch[1].split('.').filter(Boolean);
+        if (segments.length > 0) {
+            // Check if first segment is one of our custom objects
+            const rootSegment = segments[0];
+            const rootCompletion = coreCompletions.find(c => c.label === rootSegment);
 
-        return {
-            from: word.to,
-            options: completions
-        };
+            if (rootCompletion) {
+                const completions = findCompletions(segments, completionsTree);
+                if (completions && completions.length > 0) {
+                    return {
+                        from: context.pos,
+                        options: completions,
+                        validFor: /^[\w.]*$/
+                    };
+                }
+            }
+        }
+        return null;
     }
 
-    // Find the completions for the current segment
-    const completions = findCompletions(segments, completionsTree);
-    if (!completions) return null;
+    // Regular word completion (not after a dot)
+    const word = context.matchBefore(/(?:^|[\s([{;])(\w+(?:\.\w+)*)$/);
+    if (!word || word.text.length === 0) return null;
+
+    // Only get the actual text without whitespace
+    const actualText = word.text.trim();
+    if (actualText.length === 0) return null;
+
+    // Split the word by dots
+    const segments = actualText.split('.').filter(Boolean);
+
+    if (segments.length === 0) {
+        return null;
+    }
+
+    // If first segment is not a core object, return null to allow default JS completion
+    const rootSegment = segments[0];
+    const rootCompletion = coreCompletions.find(c => c.label === rootSegment);
+    if (!rootCompletion) {
+        return null; // Let default JS completion handle this
+    }
+
+    // Find the completions for the current segments
+    const completionSegments = [...segments];
+    const lastSegment = completionSegments.pop() || '';
+    const completions = findCompletions(completionSegments, completionsTree);
+    if (!completions || completions.length === 0) return null;
 
     // Filter the completions by the last segment
-    const lastSegment = segments[segments.length - 1] || '';
-    const filtered = completions.filter(c => c.label.startsWith(lastSegment));
+    const filtered = completions.filter(c => c.label.toLowerCase().startsWith(lastSegment.toLowerCase()));
+
+    if (filtered.length === 0) return null;
 
     return {
-        from: word.from,
-        options: filtered
+        from: word.from + actualText.lastIndexOf(lastSegment),
+        options: filtered,
+        validFor: /^[\w.]*$/
     };
 }
 
-export const customAutocomplete = autocompletion({ override: [customCompletionProvider] });
+// Use the custom provider without overriding the default ones
+export const customAutocomplete = autocompletion({
+    // Add our custom completion provider in addition to the defaults
+    override: [customCompletionProvider],
+    activateOnTyping: true,
+    maxRenderedOptions: 10,
+    defaultKeymap: true,
+    optionClass: option => option.type === 'method' ? 'cm-method' : option.type === 'object' ? 'cm-object' : '',
+});
 

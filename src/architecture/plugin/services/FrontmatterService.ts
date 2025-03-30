@@ -58,6 +58,28 @@ export class FrontmatterService {
     }
 
     /**
+     * Retrieves a specific frontmatter property as a string.
+     * @param {string} property - The property name.
+     */
+    public async setProperty(property: string, value: Literal): Promise<void> {
+        await this.processFrontMatter(frontmatter => {
+            frontmatter[property] = value;
+        });
+    }
+
+    /**
+     * Sets multiple properties in the frontmatter.
+     * @param {Record<string, Literal>} properties - The properties to set.
+     */
+    public async setProperties(properties: Record<string, Literal>): Promise<void> {
+        await this.processFrontMatter(frontmatter => {
+            Object.entries(properties).forEach(([key, value]) => {
+                frontmatter[key] = value;
+            });
+        });
+    }
+
+    /**
      * Retrieves the entire frontmatter metadata.
      * @returns {CachedMetadata}
      */

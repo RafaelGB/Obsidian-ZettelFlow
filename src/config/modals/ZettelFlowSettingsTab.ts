@@ -2,6 +2,7 @@ import ZettelFlow from "main";
 import { PluginSettingTab } from "obsidian";
 import developerSectionSettings from "./handlers/DeveloperSectionSettings";
 import generalSectionSettings from "./handlers/GeneralSectionSettings";
+import hooksSectionSettings from "./handlers/HooksSectionSettings";
 import { SettingsHandlerInfo } from "../typing";
 import { c } from "architecture";
 
@@ -21,6 +22,7 @@ class SettingsManager {
 
     private constructBody(handlerInfo: SettingsHandlerInfo): void {
         generalSectionSettings.run({ ...handlerInfo, containerEl: handlerInfo.containerEl.createDiv() });
+        hooksSectionSettings.run({ ...handlerInfo, containerEl: handlerInfo.containerEl.createDiv() });
         developerSectionSettings.run({ ...handlerInfo, containerEl: handlerInfo.containerEl.createDiv() });
     }
 

@@ -1,7 +1,6 @@
 import { basicSetup } from "codemirror";
 import { EditorState } from "@codemirror/state";
 import { EditorView, ViewUpdate, placeholder, lineNumbers, tooltips, keymap } from "@codemirror/view";
-import { autocompletion } from "@codemirror/autocomplete";
 import { javascript } from "@codemirror/lang-javascript";
 import { codeFolding, bracketMatching, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
@@ -21,8 +20,7 @@ export function dispatchEditor(
                 basicSetup,
                 javascript(),
                 EditorView.lineWrapping,
-                autocompletion(),
-                customAutocomplete,
+                customAutocomplete,  // Add our custom autocompletion (it will work alongside JS completion)
                 codeFolding(),
                 bracketMatching(),
                 lineNumbers(),

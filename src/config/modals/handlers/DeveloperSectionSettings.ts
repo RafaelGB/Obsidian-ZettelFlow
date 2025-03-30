@@ -1,6 +1,7 @@
 // External imports
 import { AbstractChain } from "architecture/patterns";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 // Internal imports
 import { SettingsHandlerInfo } from "config/typing";
 import { LoggerToggleHandler } from "./developer/LoggerToggleHandler";
@@ -15,7 +16,7 @@ export class DeveloperSectionSettings extends AbstractChain<SettingsHandlerInfo>
         this.parentContainer = info.containerEl;
 
         // Section title
-        info.containerEl.createEl('h2', { text: 'Developer' });
+        info.containerEl.createEl('h2', { text: t('developer_section_title') });
 
         // Section container
         this.sectionContainer = info.containerEl.createDiv();

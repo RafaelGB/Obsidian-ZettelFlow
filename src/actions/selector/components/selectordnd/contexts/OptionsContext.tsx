@@ -8,7 +8,7 @@ import React, {
 import { SelectorElement } from "zettelkasten";
 import { Notice } from "obsidian";
 import { t } from "architecture/lang";
-import { v4 as uuid4 } from "uuid";
+import { v7 as uuid7 } from "uuid";
 import {
   DndContext,
   closestCenter,
@@ -215,7 +215,7 @@ const OptionsProvider: FC<OptionsProviderProps> = ({ action, children }) => {
 
   // Create the context value with a unique id and actions
   const contextValue: OptionsContextProps = {
-    id: uuid4(),
+    id: uuid7(),
     options: optionsState,
     defaultOption: defaultOptionState,
     add: addOption,

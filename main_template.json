@@ -1,0 +1,34 @@
+[
+    {
+        "id": "1737731928",
+        "template_type": "step",
+        "ref" :"/docs/steps/community/add_contact.json",
+        "title": "Add contact",
+        "description": "This step will include contact information when you create a new profile.",
+        "author": "RafaelGB"
+    },
+    {
+        "id": "dae608ae-7930-46a3-a161-03f58c03a514",
+        "template_type": "step",
+        "ref" :"/docs/steps/community/add_book.json",
+        "title": "Add a new Book",
+        "description": "This step will help you to add a new book to the library",
+        "author": "RafaelGB"
+    },
+    {
+        "id": "bfebe2b5-9432-4c2a-a3dd-3ceaad7b7e35",
+        "template_type": "step",
+        "ref" :"/docs/steps/community/add_task.json",
+        "title": "New task",
+        "description": "This step is used to create a new task",
+        "author": "RafaelGB"
+    },
+    {
+        "id": "cae3b123-4c2a-4c2a-a3dd-3ceaad7b7e35",
+        "template_type": "markdown",
+        "ref" :"/docs/steps/markdown/Daily Note Template.md",
+        "title": "Daily Note Template",
+        "description": "This is a template for daily notes",
+        "author": "RafaelGB"
+    }
+]

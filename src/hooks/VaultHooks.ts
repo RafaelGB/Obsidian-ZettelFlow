@@ -3,14 +3,19 @@ import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
-import { checkSemaphore, FrontmatterService } from "architecture/plugin";
+import { checkSemaphore, FileService, FrontmatterService } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
+
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
     private currentFrontmatter: FrontmatterService | null = null;
+    // Flag to prevent hook recursion
+    private isHookUpdating: boolean = false;
+
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
     }
+
     constructor(private plugin: ZettelFlow) {
         this.plugin.app.workspace.onLayoutReady(() => {
             setTimeout(() => {
@@ -130,6 +135,12 @@ export class VaultHooks {
         // Just process markdown files.
         if (file.extension !== "md") return;
 
+        // Skip if we're already updating from a hook to prevent recursion
+        if (this.isHookUpdating) {
+            this.isHookUpdating = false;
+            return;
+        }
+        this.isHookUpdating = true;
 
         // Obtain the frontmatter of the file before and after the change.
         const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
@@ -142,22 +153,24 @@ export class VaultHooks {
 
             // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
-                this.executeHook(hookSettings.script, file, oldValue, newValue);
+                this.executeHook(hookSettings.script, file, oldValue, newValue, property);
             }
         });
 
         // Update the current frontmatter.
+        this.isHookUpdating = false;
         this.currentFrontmatter = FrontmatterService.instance(file);
     });
 
     // Execute the script defined in the global hook configuration.
-    private async executeHook(script: string, file: TFile, oldValue: any, newValue: any) {
+    private async executeHook(script: string, file: TFile, oldValue: any, newValue: any, property: string) {
         try {
             const AsyncFunction = Object.getPrototypeOf(
                 async function () { }
             ).constructor;
             const fnBody = `return (async () => {
                     ${script}
+                    return newValue;
                   })(file, oldValue, newValue, zf);`;
 
             const functions = await fnsManager.getFns();
@@ -169,7 +182,13 @@ export class VaultHooks {
                 fnBody
             );
 
-            await scriptFn(file, oldValue, newValue, functions);
+            const finalValue = await scriptFn(file, oldValue, newValue, functions);
+
+            // If the script returned a different value, update the frontmatter
+            if (finalValue !== newValue) {
+                // Update the property with new value
+                await this.currentFrontmatter?.setProperty(property, finalValue);
+            }
         } catch (error) {
             new Notice("Error executing global hook: " + error.message);
         }

@@ -29,6 +29,8 @@
 @use 'components/progressBar.scss';
 @use 'components/actionAddMenu.scss';
 @use 'components/community.scss';
+@use 'components/hooksConfig.scss';
+@use 'components/codeEditor.scss';
 
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {

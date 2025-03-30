@@ -1,0 +1,9 @@
+.zettelkasten-flow__code-editor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+}

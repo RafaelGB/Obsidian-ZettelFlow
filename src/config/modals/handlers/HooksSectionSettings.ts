@@ -1,25 +1,26 @@
 // External imports
 import { AbstractChain } from "architecture/patterns";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 // Internal imports
 import { SettingsHandlerInfo } from "config/typing";
-import { LoggerToggleHandler } from "./developer/LoggerToggleHandler";
+import { PropertyHooksHandler } from "./hooks/PropertyHooksHandler";
 
-
-export class Developer extends AbstractChain<SettingsHandlerInfo> {
+export class HooksSectionSettings extends AbstractChain<SettingsHandlerInfo> {
     private sectionContainer: HTMLElement;
     private parentContainer: HTMLElement;
-    protected starter = new LoggerToggleHandler();
+    protected starter = new PropertyHooksHandler();
+
     protected before(info: SettingsHandlerInfo): SettingsHandlerInfo {
         info.section = this;
         this.parentContainer = info.containerEl;
 
         // Section title
-        info.containerEl.createEl('h2', { text: 'Developer' });
+        info.containerEl.createEl('h2', { text: t('hooks_section_title') });
 
         // Section container
         this.sectionContainer = info.containerEl.createDiv();
-        this.sectionContainer.addClass(c('settings-developer-section'));
+        this.sectionContainer.addClass(c('settings-hooks-section'));
         info.containerEl = this.sectionContainer;
         return info;
     }
@@ -34,8 +35,7 @@ export class Developer extends AbstractChain<SettingsHandlerInfo> {
         info.containerEl = this.sectionContainer;
         this.starter.handle(info);
     }
-
-
 }
-const developer = new Developer();
-export default developer;
+
+const hooksSectionSettings = new HooksSectionSettings();
+export default hooksSectionSettings;

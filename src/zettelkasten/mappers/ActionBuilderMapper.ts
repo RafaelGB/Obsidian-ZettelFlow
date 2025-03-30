@@ -4,9 +4,14 @@ import { CommunityAction } from "config";
 export class ActionBuilderMapper {
 
     public static CommunityActionSettings2Action(communityAction: CommunityAction): Action {
-        const { type, hasUI, description, id, // common
-            title, downloads, author, // different
+
+        const {
+            // common
+            type, hasUI, description, id,
+            // different 
+            title, downloads, author, // eslint-disable-line
             ...action } = communityAction;
+
         return {
             ...action,
             hasUI,

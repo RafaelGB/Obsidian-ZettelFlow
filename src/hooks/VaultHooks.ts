@@ -2,21 +2,33 @@ import ZettelFlow from "main";
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
-import { MarkdownView, TFile, TFolder } from "obsidian";
-import { checkSemaphore } from "architecture/plugin";
+import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
+import { checkSemaphore, FrontmatterService } from "architecture/plugin";
+import { fnsManager } from "architecture/api";
+
 export class VaultHooks {
+    // Cache to store the previous value of the monitored property for each file.
+    private currentFrontmatter: FrontmatterService | null = null;
+    // Flag to prevent hook recursion
+    private isHookUpdating: boolean = false;
+
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
     }
+
     constructor(private plugin: ZettelFlow) {
         this.plugin.app.workspace.onLayoutReady(() => {
             setTimeout(() => {
                 plugin.registerEvent(this.onRename);
                 plugin.registerEvent(this.onDelete);
                 plugin.registerEvent(this.onCreate);
+                plugin.registerEvent(this.onCacheUpdate);
+                plugin.registerEvent(this.onOpen);
                 log.debug("Vault hooks setup with layout ready");
             }, 4000);
         });
+
+        // For testing purposes, mount a mock globalHook configuration if not already set.
     }
 
     private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
@@ -100,6 +112,85 @@ export class VaultHooks {
                     .open();
             }, 300);
         }
-
     });
+
+    private onOpen = this.plugin.app.workspace.on("file-open", (file) => {
+        if (file instanceof TFile && file.extension === "md") {
+            this.currentFrontmatter = FrontmatterService.instance(file);
+            log.debug("Nuevo fichero abierto:", file.path);
+        } else {
+            this.currentFrontmatter = null;
+        }
+    });
+
+    // Event triggered when a file is modified.
+    private onCacheUpdate = this.plugin.app.metadataCache.on("changed", (file, _data, cache) => {
+        const hooks = Object.entries(this.plugin.settings.propertyHooks || {});
+        if (!this.currentFrontmatter) {
+            this.currentFrontmatter = FrontmatterService.instance(file);
+            return;
+        }
+        // Verify that the global hook configuration is set and that the frontmatter is available.
+        if (!hooks.length || !this.currentFrontmatter) return;
+        // Just process markdown files.
+        if (file.extension !== "md") return;
+
+        // Skip if we're already updating from a hook to prevent recursion
+        if (this.isHookUpdating) {
+            this.isHookUpdating = false;
+            return;
+        }
+        this.isHookUpdating = true;
+
+        // Obtain the frontmatter of the file before and after the change.
+        const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
+        const newFrontmatter: Record<string, any> = cache.frontmatter || {};
+
+        // Remind the user that the frontmatter has changed.
+        hooks.forEach(([property, hookSettings]) => {
+            const oldValue = oldFrontmatter[property];
+            const newValue = newFrontmatter[property];
+
+            // If the property has changed, log the change and execute the script.
+            if (oldValue !== newValue) {
+                this.executeHook(hookSettings.script, file, oldValue, newValue, property);
+            }
+        });
+
+        // Update the current frontmatter.
+        this.isHookUpdating = false;
+        this.currentFrontmatter = FrontmatterService.instance(file);
+    });
+
+    // Execute the script defined in the global hook configuration.
+    private async executeHook(script: string, file: TFile, oldValue: any, newValue: any, property: string) {
+        try {
+            const AsyncFunction = Object.getPrototypeOf(
+                async function () { }
+            ).constructor;
+            const fnBody = `return (async () => {
+                    ${script}
+                    return newValue;
+                  })(file, oldValue, newValue, zf);`;
+
+            const functions = await fnsManager.getFns();
+            const scriptFn = new AsyncFunction(
+                "file",
+                "oldValue",
+                "newValue",
+                "zf",
+                fnBody
+            );
+
+            const finalValue = await scriptFn(file, oldValue, newValue, functions);
+
+            // If the script returned a different value, update the frontmatter
+            if (finalValue !== newValue) {
+                // Update the property with new value
+                await this.currentFrontmatter?.setProperty(property, finalValue);
+            }
+        } catch (error) {
+            new Notice("Error executing global hook: " + error.message);
+        }
+    }
 }

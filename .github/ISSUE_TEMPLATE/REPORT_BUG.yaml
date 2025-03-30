@@ -1,0 +1,100 @@
+name: 🐞 Bug Report
+description: Report unexpected behavior in ZettelFlow plugin
+labels: ["Needs: Triage :mag:", "type:bug-suspected"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thank you for reporting a bug!** 🐛
+
+        Before submitting, please make sure to:
+        - Check if the [issue already exists](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues) to avoid duplicates
+        - Fill out the following template with as much detail as possible
+        - Include screenshots, logs, or any additional context that might help us understand the problem
+        - Describe the steps to reproduce the issue
+
+        **Note:** If you have a question or need help, please use the [Discussions](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions) section instead of creating an issue.
+
+  - type: dropdown
+    id: feature-component
+    attributes:
+      label: Feature/Component affected
+      description: "¿Which part of the plugin is affected by this bug?"
+      options:
+        - Zettel Linking
+        - Note Creation
+        - Templates System
+        - UI/UX
+        - Data Synchronization
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: input
+    id: obsidian-version
+    attributes:
+      label: Obsidian Version
+      description: "Version of Obsidian you are using (check in Settings > About)"
+      placeholder: "vX.X.X"
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin Version
+      description: "Version of the plugin you are using (check in Settings > Community plugins)"
+      placeholder: "vX.X.X"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android/iOS
+        - Another OS (please specify)
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce
+      description: "Detailed steps to reproduce the bug"
+      placeholder: |
+        1. Open...
+        2. Go to...
+        3. Click on...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: "What should happen instead?"
+      placeholder: "E.g. The note should be created with the correct title"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: "What actually happened?"
+      placeholder: "E.g. The note was created with a different title"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: "Any additional context or information that might help us understand the problem"
+      render: markdown

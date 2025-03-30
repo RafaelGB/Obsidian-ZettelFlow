@@ -4,6 +4,7 @@ import { setIcon, setTooltip } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
 import { StepBuilderModal } from "zettelkasten";
+import { canvas } from "../Canvas";
 
 interface MenuOption {
     id?: string;
@@ -25,7 +26,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
      */
     init(): void {
         this.plugin.registerEvent(
-            this.plugin.app.workspace.on("canvas:popup-menu", (canvas: Canvas) => {
+            this.plugin.app.workspace.on("canvas:popup-menu", async (eventCanvas: Canvas) => {
                 // Check if canvas is one of the ZettelFlow canvases
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (!file) return;
@@ -39,14 +40,19 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 }
 
                 // The menu object from the Canvas
-                const popupMenuEl = canvas?.menu?.menuEl;
+                const popupMenuEl = eventCanvas?.menu?.menuEl;
                 if (!popupMenuEl) return;
 
                 // Only proceed if exactly one node is selected
-                if (canvas.selection.size !== 1) return;
+                if (eventCanvas.selection.size !== 1) return;
 
                 // Get the first (and only) selected node
-                const selectedNode: CanvasElement = canvas.selection.values().next().value;
+                const flow = await canvas.flows.update(file.path);
+                const selectedNode: CanvasElement = eventCanvas.selection.values().next().value;
+
+                // We need to use the flow information cause eventCanvas value could be outdated
+                const selectedNodeIndex = flow.data.nodes.findIndex((node) => node.id === selectedNode.getData().id);
+                flow.data.nodes[selectedNodeIndex].zettelflowConfig
                 const data = selectedNode.getData();
 
                 // Only generate icon if the node is text/group type (holds zettelflowConfig)
@@ -63,7 +69,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                     icon: RibbonIcon.ID,
                     callback: () => {
                         const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
-                        const zettelFlowSettings = data.zettelflowConfig;
+                        const zettelFlowSettings = flow.data.nodes[selectedNodeIndex].zettelflowConfig;
                         const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
 
                         new StepBuilderModal(this.plugin, {
@@ -81,7 +87,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 });
 
                 // Add the new option to the popup menu, ensuring no duplicates
-                this.addPopupMenuOption(canvas, newOption);
+                this.addPopupMenuOption(eventCanvas, newOption);
             })
         );
     }

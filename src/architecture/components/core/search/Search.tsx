@@ -121,11 +121,13 @@ export function Search<T>(props: SearchType<T>) {
           switch (e.key) {
             case "ArrowUp": {
               e.preventDefault();
+              e.stopPropagation();
               setSelectedIndex((prevIndex) => Math.max(0, prevIndex - 1));
               break;
             }
             case "ArrowDown": {
               e.preventDefault();
+              e.stopPropagation();
               setSelectedIndex((prevIndex) =>
                 Math.min(Object.keys(filteredOptions).length - 1, prevIndex + 1)
               );
@@ -133,6 +135,7 @@ export function Search<T>(props: SearchType<T>) {
             }
             case "Enter": {
               e.preventDefault();
+              e.stopPropagation();
               const [key, value] = getEntryByIndex(
                 filteredOptions,
                 selectedIndex
@@ -143,6 +146,14 @@ export function Search<T>(props: SearchType<T>) {
               onChange(value);
               ref.current?.querySelector("input")?.blur();
               setVisibleOptions(false);
+              break;
+            }
+            case "Escape": {
+              e.stopPropagation();
+              e.preventDefault();
+              setVisibleOptions(false);
+              setValue(selectedValue);
+              setSelectedIndex(0);
               break;
             }
           }

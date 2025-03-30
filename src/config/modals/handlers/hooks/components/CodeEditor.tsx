@@ -54,14 +54,5 @@ export const CodeEditor = ({ value, onChange }: CodeEditorProps) => {
     }
   }, [value]);
 
-  return (
-    <div
-      className={c("code-editor-container")}
-      ref={editorRef}
-      style={{
-        height: "200px",
-        border: "1px solid var(--background-modifier-border)",
-      }}
-    />
-  );
+  return <div className={c("code-editor-container")} ref={editorRef} />;
 };

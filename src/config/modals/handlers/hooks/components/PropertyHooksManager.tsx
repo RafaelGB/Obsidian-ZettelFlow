@@ -22,6 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { PropertyHookAccordion } from "./PropertyHookAccordion";
+import { Search } from "architecture/components/core";
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
@@ -106,6 +107,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
   const handleAddHookCancel = () => {
     setIsAddingHook(false);
+    setSelectedNewProperty("");
   };
 
   const handleSaveHook = async (property: string, script: string) => {
@@ -123,9 +125,13 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
   // Get available properties (excluding ones that already have hooks)
   const existingHookProperties = Object.keys(hooks);
-  const availableProperties = Object.keys(propertyTypes).filter(
-    (prop) => !existingHookProperties.includes(prop)
-  );
+  const availableProperties: Record<string, string> = Object.keys(propertyTypes)
+    .filter((prop) => !existingHookProperties.includes(prop))
+    .reduce((acc: Record<string, string>, prop) => {
+      const keyToDisplay = `${prop} (${propertyTypes[prop]})`;
+      acc[keyToDisplay] = prop;
+      return acc;
+    }, {});
 
   return (
     <div className={c("property-hooks-manager")}>
@@ -141,7 +147,17 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
       {isAddingHook && (
         <div className={c("property-hook-selector")}>
-          <select
+          <Search
+            options={availableProperties}
+            onChange={async (value) => {
+              console.log("Selected value:", value);
+              if (!value) return;
+              if (!propertyTypes[value]) return;
+              setSelectedNewProperty(value);
+            }}
+            placeholder="Select a type"
+          />
+          {/* <select
             value={selectedNewProperty}
             onChange={(e) => setSelectedNewProperty(e.target.value)}
           >
@@ -152,6 +168,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
               </option>
             ))}
           </select>
+          */}
           <div className={c("property-hook-selector-buttons")}>
             <button onClick={handleAddHookConfirm}>
               {t("property_hooks_add_button")}

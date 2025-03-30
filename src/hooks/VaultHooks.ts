@@ -3,7 +3,7 @@ import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
-import { checkSemaphore, FileService, FrontmatterService } from "architecture/plugin";
+import { checkSemaphore, FrontmatterService } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
 
 export class VaultHooks {

@@ -1,21 +1,21 @@
 /* Property Hooks Manager Styles */
-.zettelflow-property-hooks-manager {
+.zettelkasten-flow__property-hooks-manager {
     margin: 1rem 0;
 }
 
-.zettelflow-property-hooks-header {
+.zettelkasten-flow__property-hooks-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.zettelflow-property-hooks-header h3 {
+.zettelkasten-flow__property-hooks-header h3 {
     margin: 0;
     font-size: var(--font-ui-medium);
 }
 
-.zettelflow-property-hooks-add-button {
+.zettelkasten-flow__property-hooks-add-button {
     display: flex;
     align-items: center;
     gap: 4px;
@@ -29,11 +29,11 @@
     transition: background-color 0.2s ease;
 }
 
-.zettelflow-property-hooks-add-button:hover {
+.zettelkasten-flow__property-hooks-add-button:hover {
     background-color: var(--interactive-accent-hover);
 }
 
-.zettelflow-property-hooks-empty {
+.zettelkasten-flow__property-hooks-empty {
     color: var(--text-muted);
     padding: 1rem;
     text-align: center;
@@ -41,13 +41,13 @@
     border-radius: 4px;
 }
 
-.zettelflow-property-hooks-list {
+.zettelkasten-flow__property-hooks-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.zettelflow-property-hooks-item {
+.zettelkasten-flow__property-hooks-item {
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     background-color: var(--background-secondary);
@@ -56,13 +56,13 @@
 }
 
 /* Animation classes */
-.zettelflow-property-hooks-item.entrance {
+.zettelkasten-flow__property-hooks-item.entrance {
     opacity: 0;
     transform: translateY(-20px);
     animation: slide-in 0.3s ease forwards;
 }
 
-.zettelflow-property-hooks-item.exit {
+.zettelkasten-flow__property-hooks-item.exit {
     opacity: 1;
     animation: slide-out 0.3s ease forwards;
 }
@@ -91,108 +91,129 @@
     }
 }
 
-.zettelflow-property-hooks-item-header {
+.zettelkasten-flow__property-hooks-item-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 8px 12px;
     background-color: var(--background-secondary-alt);
     border-bottom: 1px solid var(--background-modifier-border);
     user-select: none;
+    flex-wrap: nowrap;
+    gap: 12px;
 }
 
-.zettelflow-property-hooks-item-info {
+.zettelkasten-flow__property-hooks-item-info {
     display: flex;
     align-items: center;
+    gap: 12px;
+    min-width: 0;
+    overflow: hidden;
     flex: 1;
-    gap: 8px;
 }
 
-.zettelflow-property-type-badge {
+.zettelkasten-flow__property-hooks-item-info strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.zettelkasten-flow__property-type-badge {
     font-size: var(--font-ui-smaller);
-    background-color: var(--background-modifier-success-hover);
+    background-color: var(--color-accent);
     color: var(--text-normal);
     padding: 2px 6px;
     border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.zettelflow-property-hooks-item-actions {
+.zettelkasten-flow__property-hooks-item-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
-.zettelflow-property-hooks-edit-button,
-.zettelflow-property-hooks-delete-button {
+.zettelkasten-flow__property-hooks-edit-button,
+.zettelkasten-flow__property-hooks-delete-button {
     background-color: transparent;
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
-    padding: 2px 4px;
+    padding: 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
+    height: 24px;
+    width: 24px;
+    flex-shrink: 0;
 }
 
-.zettelflow-property-hooks-edit-button {
+.zettelkasten-flow__property-hooks-edit-button {
     color: var(--text-normal);
 }
 
-.zettelflow-property-hooks-delete-button {
+.zettelkasten-flow__property-hooks-delete-button {
     color: var(--text-error);
 }
 
-.zettelflow-property-hooks-edit-button:hover {
+.zettelkasten-flow__property-hooks-edit-button:hover {
     background-color: var(--interactive-hover);
 }
 
-.zettelflow-property-hooks-delete-button:hover {
+.zettelkasten-flow__property-hooks-delete-button:hover {
     background-color: var(--background-modifier-error);
     color: white;
 }
 
-.zettelflow-property-hooks-drag-handle {
+.zettelkasten-flow__property-hooks-drag-handle {
     color: var(--text-muted);
     cursor: grab;
     padding: 2px;
     display: flex;
     align-items: center;
+    height: 24px;
+    width: 24px;
+    flex-shrink: 0;
 }
 
-.zettelflow-property-hooks-drag-handle:active {
+.zettelkasten-flow__property-hooks-drag-handle:active {
     cursor: grabbing;
 }
 
-.zettelflow-property-hooks-item-editor {
+.zettelkasten-flow__property-hooks-item-editor {
     padding: 12px;
     background-color: var(--background-primary);
 }
 
-.zettelflow-property-hook-field {
+.zettelkasten-flow__property-hook-field {
     margin-bottom: 1rem;
 }
 
-.zettelflow-property-hook-field label {
+.zettelkasten-flow__property-hook-field label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
 }
 
-.zettelflow-property-hook-script-hint {
+.zettelkasten-flow__property-hook-script-hint {
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
     margin-bottom: 0.5rem;
 }
 
-.zettelflow-property-hook-editor-buttons {
+.zettelkasten-flow__property-hook-editor-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
     margin-top: 12px;
 }
 
-.zettelflow-property-hook-cancel-button,
-.zettelflow-property-hook-save-button {
+.zettelkasten-flow__property-hook-cancel-button,
+.zettelkasten-flow__property-hook-save-button {
     padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
@@ -200,32 +221,32 @@
     border: 1px solid var(--background-modifier-border);
 }
 
-.zettelflow-property-hook-cancel-button {
+.zettelkasten-flow__property-hook-cancel-button {
     background-color: var(--background-secondary);
     color: var(--text-normal);
 }
 
-.zettelflow-property-hook-save-button {
+.zettelkasten-flow__property-hook-save-button {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
     border-color: var(--interactive-accent);
 }
 
-.zettelflow-property-hook-cancel-button:hover {
+.zettelkasten-flow__property-hook-cancel-button:hover {
     background-color: var(--background-secondary-alt);
 }
 
-.zettelflow-property-hook-save-button:hover {
+.zettelkasten-flow__property-hook-save-button:hover {
     background-color: var(--interactive-accent-hover);
 }
 
-.zettelflow-property-hook-save-button:disabled {
+.zettelkasten-flow__property-hook-save-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
 /* Property Selector dropdown */
-.zettelflow-property-hook-selector {
+.zettelkasten-flow__property-hook-selector {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -239,7 +260,7 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.zettelflow-property-hook-selector select {
+.zettelkasten-flow__property-hook-selector select {
     width: 100%;
     padding: 8px;
     border: 1px solid var(--background-modifier-border);
@@ -249,13 +270,13 @@
     margin-bottom: 1rem;
 }
 
-.zettelflow-property-hook-selector-buttons {
+.zettelkasten-flow__property-hook-selector-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
 }
 
-.zettelflow-property-hook-selector-buttons button {
+.zettelkasten-flow__property-hook-selector-buttons button {
     padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
@@ -264,7 +285,7 @@
 }
 
 /* CodeEditor special styles */
-.zettelflow-property-hooks-code-editor {
+.zettelkasten-flow__property-hooks-code-editor {
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     height: 150px;

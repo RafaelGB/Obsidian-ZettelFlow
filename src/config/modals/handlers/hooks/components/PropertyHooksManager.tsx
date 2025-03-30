@@ -6,7 +6,7 @@ import ZettelFlow from "main";
 import { PropertyHookSettings } from "config/typing";
 import { log } from "architecture";
 import { Icon } from "architecture/components/icon";
-import { v4 as uuid4 } from "uuid";
+import { v7 as uuid7 } from "uuid";
 import {
   DndContext,
   closestCenter,
@@ -30,13 +30,16 @@ interface PropertyHooksManagerProps {
 export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
 }) => {
+  const { propertyHooks } = plugin.settings;
+  // State variables
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>(
     {}
   );
-  const [hooks, setHooks] = useState<Record<string, PropertyHookSettings>>({});
-  const [hookOrder, setHookOrder] = useState<string[]>([]);
-  const [editingScripts, setEditingScripts] = useState<Record<string, string>>(
-    {}
+  const [hooks, setHooks] = useState<Record<string, PropertyHookSettings>>(
+    propertyHooks || {}
+  );
+  const [hookOrder, setHookOrder] = useState<string[]>(
+    Object.keys(propertyHooks || [])
   );
   const [isAddingHook, setIsAddingHook] = useState(false);
   const [selectedNewProperty, setSelectedNewProperty] = useState("");
@@ -45,21 +48,6 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
-
-  // Load hooks from plugin settings
-  useEffect(() => {
-    const currentHooks = plugin.settings.propertyHooks || {};
-    log.debug("Loading hooks from plugin settings:", currentHooks);
-    setHooks(currentHooks);
-    setHookOrder(Object.keys(currentHooks));
-
-    // Initialize editing scripts with current values
-    const scripts: Record<string, string> = {};
-    Object.entries(currentHooks).forEach(([property, hook]) => {
-      scripts[property] = hook.script;
-    });
-    setEditingScripts(scripts);
-  }, [plugin.settings]);
 
   useEffect(() => {
     // Load all property types from Obsidian config
@@ -70,8 +58,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
     loadPropertyTypes();
   }, []);
 
-  const saveHooks = async () => {
-    const newHooks = { ...hooks };
+  const saveHooks = async (newHooks: Record<string, PropertyHookSettings>) => {
     plugin.settings.propertyHooks = newHooks;
     await plugin.saveSettings();
     log.debug("Hooks saved:", newHooks);
@@ -109,12 +96,10 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
   const handleAddHookConfirm = async () => {
     if (selectedNewProperty) {
-      const newHooks = { ...hooks };
-      newHooks[selectedNewProperty] = { script: "" };
-      setHooks(newHooks);
+      hooks[selectedNewProperty] = { script: "" };
+      setHooks({ ...hooks });
       setHookOrder([...hookOrder, selectedNewProperty]);
-      setEditingScripts({ ...editingScripts, [selectedNewProperty]: "" });
-      await saveHooks();
+      await saveHooks(hooks);
       setIsAddingHook(false);
     }
   };
@@ -124,19 +109,16 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   };
 
   const handleSaveHook = async (property: string, script: string) => {
-    const newHooks = { ...hooks };
-    newHooks[property] = { script };
-    setHooks(newHooks);
-    setEditingScripts({ ...editingScripts, [property]: script });
-    await saveHooks();
+    hooks[property] = { script };
+    setHooks({ ...hooks });
+    await saveHooks(hooks);
   };
 
   const handleDeleteHook = async (property: string) => {
-    const newHooks = { ...hooks };
-    delete newHooks[property];
-    setHooks(newHooks);
+    delete hooks[property];
+    setHooks({ ...hooks });
     setHookOrder(hookOrder.filter((p) => p !== property));
-    await saveHooks();
+    await saveHooks(hooks);
   };
 
   // Get available properties (excluding ones that already have hooks)
@@ -148,7 +130,6 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   return (
     <div className={c("property-hooks-manager")}>
       <div className={c("property-hooks-header")}>
-        <h3>{t("property_hooks_title")}</h3>
         <button
           className={c("property-hooks-add-button")}
           onClick={handleAddHook}
@@ -200,16 +181,10 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
             <div className={c("property-hooks-list")}>
               {hookOrder.map((property) => (
                 <PropertyHookAccordion
-                  key={property || uuid4()}
+                  key={property || uuid7()}
                   property={property}
                   propertyType={propertyTypes[property] || "unknown"}
-                  script={editingScripts[property] || ""}
-                  onScriptChange={(value) => {
-                    setEditingScripts({
-                      ...editingScripts,
-                      [property]: value,
-                    });
-                  }}
+                  script={hooks[property].script || ""}
                   onSave={(script) => handleSaveHook(property, script)}
                   onDelete={() => handleDeleteHook(property)}
                 />

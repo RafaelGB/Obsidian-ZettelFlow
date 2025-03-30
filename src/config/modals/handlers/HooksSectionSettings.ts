@@ -10,13 +10,13 @@ export class HooksSectionSettings extends AbstractChain<SettingsHandlerInfo> {
     private sectionContainer: HTMLElement;
     private parentContainer: HTMLElement;
     protected starter = new PropertyHooksHandler();
-    
+
     protected before(info: SettingsHandlerInfo): SettingsHandlerInfo {
         info.section = this;
         this.parentContainer = info.containerEl;
 
         // Section title
-        info.containerEl.createEl('h2', { text: t('property_hooks_setting_title') });
+        info.containerEl.createEl('h2', { text: t('hooks_section_title') });
 
         // Section container
         this.sectionContainer = info.containerEl.createDiv();

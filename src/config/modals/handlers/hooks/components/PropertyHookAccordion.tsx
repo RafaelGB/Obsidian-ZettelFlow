@@ -10,7 +10,6 @@ interface PropertyHookAccordionProps {
   property: string;
   propertyType: string;
   script: string;
-  onScriptChange: (value: string) => void;
   onSave: (script: string) => void;
   onDelete: () => void;
 }
@@ -19,7 +18,6 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
   property,
   propertyType,
   script,
-  onScriptChange,
   onSave,
   onDelete,
 }) => {
@@ -57,6 +55,7 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
 
   // Handle the save action
   const handleSave = () => {
+    console.log("Saving script:", localScript);
     onSave(localScript);
     setIsOpen(false);
   };
@@ -74,10 +73,24 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
         </div>
 
         <div className={c("property-hooks-item-actions")}>
+          {/* Drag handle with dndkit listeners */}
+          <div
+            className={c("property-hooks-drag-handle")}
+            aria-label="Drag to rearrange"
+            {...attributes}
+            {...listeners}
+          >
+            <Icon name="lucide-grip-horizontal" />
+          </div>
+
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={c("property-hooks-edit-button")}
-            title={t(isOpen ? "property_hooks_title" : "property_hooks_title")}
+            title={
+              t(
+                isOpen ? "property_hooks_title" : "property_hooks_empty"
+              ) as string
+            }
           >
             <Icon name={isOpen ? "up-chevron-glyph" : "down-chevron-glyph"} />
           </button>
@@ -89,16 +102,6 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
           >
             <Icon name="cross" />
           </button>
-
-          {/* Drag handle with dndkit listeners */}
-          <div
-            className={c("property-hooks-drag-handle")}
-            aria-label="Drag to rearrange"
-            {...attributes}
-            {...listeners}
-          >
-            <Icon name="lucide-grip-horizontal" />
-          </div>
         </div>
       </div>
 
@@ -113,7 +116,6 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
               value={localScript}
               onChange={(value) => {
                 setLocalScript(value);
-                onScriptChange(value);
               }}
             />
           </div>

@@ -172,7 +172,6 @@ export class VaultHooks {
                     property
                 };
                 event = await this.executeHook(hookSettings.script, event);
-                console.log("Event after hook execution:", event);
             }
         }
 

@@ -157,18 +157,6 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
             }}
             placeholder="Select a type"
           />
-          {/* <select
-            value={selectedNewProperty}
-            onChange={(e) => setSelectedNewProperty(e.target.value)}
-          >
-            <option value="">{t("property_hooks_select_property")}</option>
-            {availableProperties.map((prop) => (
-              <option key={prop} value={prop}>
-                {prop}
-              </option>
-            ))}
-          </select>
-          */}
           <div className={c("property-hook-selector-buttons")}>
             <button onClick={handleAddHookConfirm}>
               {t("property_hooks_add_button")}

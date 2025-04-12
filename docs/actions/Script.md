@@ -33,34 +33,7 @@ content.add("Hello world!");
 ### `zf`
 Functionalities offered by the plugin itself.
 
-#### Internal (`zf.internal`)
-Native functionalities of the plugin.
-
-##### Vault (`zf.internal.vault`)
-Functionalities related with the management of the vault.
-- `resolveTFolder(folder: string)`: TFolder => Resolves the target folder of the note given the path. If the folder is not defined, it returns the root folder of the vault.
-- `obtainFilesFrom(folder: TFolder, extensions: string[])`: TFile[] => Returns the files of the given folder filtered by the extensions. If the extensions are not defined, it will filter by markdown and canvas files (`["md", "canvas"]`)
-
-#### Integrations (`zf.external`)
-Some plugins offer their own API to interact with them. The following integrations are available:
-- [Dataview](https://github.com/blacksmithgu/obsidian-dataview/blob/master/src/api/plugin-api.ts): `zf.external.dv` Plugin with powerful query functionalities.
-Example:
-```javascript
-const {dv} = zf.external;
-const result = dv.pages().where(p => p.file.name === "My note").select(p => p.file.name);
-```
-
-- [Templater](https://silentvoid13.github.io/Templater/user-functions/script-user-functions.html) `zf.external.tp` Plugin that allows to create templates with JavaScript.
-  > ![note](https://img.icons8.com/color/20/000000/warning-shield.png)
-  > This integration only supports the functions that are available in the script user functions.
-
-Example:
-```javascript
-const {tp} = zf.external;
-// Create a script called "myScript" in the folder defined in the settings of the Templater plugin.
-const result = tp.user.myScript();
-```
-
+For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
 
 ### `context`
 An empty object that can be used to store data between script execution steps.

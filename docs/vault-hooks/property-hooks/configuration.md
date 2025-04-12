@@ -36,7 +36,7 @@ When writing your hook script, you have access to these variables:
   - `response`: Object where you can set new frontmatter values
     - `frontmatter`: Record of property/value pairs to update
 
-- `zf`: Access to ZettelFlow functions and utilities
+- `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
 
 ## Saving Updated Frontmatter
 

@@ -164,7 +164,6 @@ export class VaultHooks {
             const oldValue = oldFrontmatter[property];
             const newValue = newFrontmatter[property];
 
-            // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
                 event.request = {
                     oldValue,

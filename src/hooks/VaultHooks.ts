@@ -152,7 +152,8 @@ export class VaultHooks {
             request: {
                 oldValue: "",
                 newValue: "",
-                property: ""
+                property: "",
+                frontmatter: {}
             },
             file,
             response: {
@@ -168,7 +169,8 @@ export class VaultHooks {
                 event.request = {
                     oldValue,
                     newValue,
-                    property
+                    property,
+                    frontmatter: newFrontmatter
                 };
                 event = await this.executeHook(hookSettings.script, event);
             }

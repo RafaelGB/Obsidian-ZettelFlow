@@ -6,6 +6,7 @@ export type HookEvent = {
         oldValue: string;
         newValue: string;
         property: string;
+        frontmatter: Record<string, Literal>;
     };
     file: TFile;
     response: {

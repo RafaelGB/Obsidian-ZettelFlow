@@ -7,3 +7,35 @@
     background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
 }
+
+.zettelkasten-flow__completion {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__cm-completion-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.zettelkasten-flow__cm-completion-badge {
+    margin-right: 6px;
+    font-size: 1.1em;
+    color: var(--text-accent, var(--text-muted));
+}
+
+.zettelkasten-flow__cm-cm-completion-label {
+    flex-grow: 1;
+    font-weight: bold;
+}
+
+.zettelkasten-flow__cm-completion-type {
+    margin-left: 6px;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}

@@ -3,8 +3,9 @@ import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
-import { checkSemaphore, FrontmatterService } from "architecture/plugin";
+import { checkSemaphore, FrontmatterService, Literal } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
+import { HookEvent } from "./typing";
 
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
@@ -124,7 +125,7 @@ export class VaultHooks {
     });
 
     // Event triggered when a file is modified.
-    private onCacheUpdate = this.plugin.app.metadataCache.on("changed", (file, _data, cache) => {
+    private onCacheUpdate = this.plugin.app.metadataCache.on("changed", async (file, _data, cache) => {
         const hooks = Object.entries(this.plugin.settings.propertyHooks || {});
         if (!this.currentFrontmatter) {
             this.currentFrontmatter = FrontmatterService.instance(file);
@@ -145,52 +146,64 @@ export class VaultHooks {
         // Obtain the frontmatter of the file before and after the change.
         const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
         const newFrontmatter: Record<string, any> = cache.frontmatter || {};
-
+        const dynamicFrontmatter: Record<string, Literal> = {};
         // Remind the user that the frontmatter has changed.
-        hooks.forEach(([property, hookSettings]) => {
+        let event: HookEvent = {
+            request: {
+                oldValue: "",
+                newValue: "",
+                property: "",
+                frontmatter: {}
+            },
+            file,
+            response: {
+                frontmatter: dynamicFrontmatter
+            }
+        }
+        for (const hook of hooks) {
+            const [property, hookSettings] = hook;
             const oldValue = oldFrontmatter[property];
             const newValue = newFrontmatter[property];
 
-            // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
-                this.executeHook(hookSettings.script, file, oldValue, newValue, property);
+                event.request = {
+                    oldValue,
+                    newValue,
+                    property,
+                    frontmatter: newFrontmatter
+                };
+                event = await this.executeHook(hookSettings.script, event);
             }
-        });
+        }
 
+        await this.currentFrontmatter.setProperties(event.response.frontmatter);
         // Update the current frontmatter.
-        this.isHookUpdating = false;
         this.currentFrontmatter = FrontmatterService.instance(file);
+        this.isHookUpdating = false;
     });
 
     // Execute the script defined in the global hook configuration.
-    private async executeHook(script: string, file: TFile, oldValue: any, newValue: any, property: string) {
+    private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
         try {
             const AsyncFunction = Object.getPrototypeOf(
                 async function () { }
             ).constructor;
             const fnBody = `return (async () => {
                     ${script}
-                    return newValue;
-                  })(file, oldValue, newValue, zf);`;
+                    return event;
+                  })(event, zf);`;
 
             const functions = await fnsManager.getFns();
             const scriptFn = new AsyncFunction(
-                "file",
-                "oldValue",
-                "newValue",
+                "event",
                 "zf",
                 fnBody
             );
 
-            const finalValue = await scriptFn(file, oldValue, newValue, functions);
-
-            // If the script returned a different value, update the frontmatter
-            if (finalValue !== newValue) {
-                // Update the property with new value
-                await this.currentFrontmatter?.setProperty(property, finalValue);
-            }
+            return await scriptFn(event, functions);
         } catch (error) {
             new Notice("Error executing global hook: " + error.message);
+            throw error;
         }
     }
 }

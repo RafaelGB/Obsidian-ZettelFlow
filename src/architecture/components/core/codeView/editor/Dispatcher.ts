@@ -20,7 +20,7 @@ export function dispatchEditor(
                 basicSetup,
                 javascript(),
                 EditorView.lineWrapping,
-                customAutocomplete,  // Add our custom autocompletion (it will work alongside JS completion)
+                customAutocomplete,
                 codeFolding(),
                 bracketMatching(),
                 lineNumbers(),

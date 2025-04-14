@@ -1,4 +1,4 @@
-import { autocompletion, CompletionContext, CompletionResult } from "@codemirror/autocomplete";
+import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { coreCompletions } from "./config/CoreObjs";
 import { contentCompletions } from "./config/ContentFns";
 import { noteCompletions } from "./config/NoteFns";
@@ -6,6 +6,7 @@ import { appCompletions } from "./config/AppFns";
 import { Completion } from "./typing";
 import { integrationsCompletions, internalVaultCompletions, zfCompletions } from "./config/ZettelFlowFns";
 import { javascriptLanguage } from "@codemirror/lang-javascript";
+import { c } from "architecture";
 
 const completionsTree = {
     note: noteCompletions,
@@ -39,7 +40,9 @@ function findCompletions(
         return Object.keys(node).map(key => ({
             label: key,
             type: 'object',
-            info: ''
+            info: 'ZettelFlow API',
+            boost: 99, // Prioritize ZettelFlow completions
+            detail: '✨ ZF' // Visual indicator for ZettelFlow
         }));
     }
 
@@ -53,8 +56,15 @@ function findCompletions(
         return Object.keys(node).map(key => ({
             label: key,
             type: 'object',
-            info: ''
+            info: 'ZettelFlow API',
+            boost: 99,
+            detail: '✨ ZF'
         }));
+    }
+
+    // Stop suggesting if we've reached a leaf node that's not a completion array or object
+    if (typeof nextNode !== 'object' || nextNode === null) {
+        return null;
     }
 
     // Move to the next segment
@@ -85,9 +95,18 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
             if (rootCompletion) {
                 const completions = findCompletions(segments, completionsTree);
                 if (completions && completions.length > 0) {
+                    // Enhance all completions with ZettelFlow styling
+                    const enhancedCompletions = completions.map(c => ({
+                        ...c,
+                        detail: c.detail || '✨ ZettelFlow',
+                        info: c.info || 'ZF API',
+                        boost: c.boost || 99, // Prioritize over standard completions
+                        render: c.render || createZettelFlowRenderer(c)
+                    }));
+
                     return {
                         from: context.pos,
-                        options: completions,
+                        options: enhancedCompletions,
                         validFor: /^[\w.]*$/
                     };
                 }
@@ -129,10 +148,57 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
 
     if (filtered.length === 0) return null;
 
+    // Enhance all completions with ZettelFlow styling
+    const enhancedCompletions = filtered.map(c => ({
+        ...c,
+        detail: c.detail || '✨ ZettelFlow',
+        info: c.info || 'ZF API',
+        boost: c.boost || 99, // Prioritize over standard completions
+        render: c.render || createZettelFlowRenderer(c)
+    }));
+
     return {
         from: word.from + actualText.lastIndexOf(lastSegment),
-        options: filtered,
+        options: enhancedCompletions,
         validFor: /^[\w.]*$/
+    };
+}
+
+/**
+ * Creates a custom renderer for ZettelFlow completions
+ */
+function createZettelFlowRenderer(completion: Completion): (element: HTMLElement) => void {
+    return (element: HTMLElement) => {
+        // Add a CSS class for styling
+        element.classList.add(c('completion'));
+
+        // Create a container for better styling
+        const container = document.createElement('div');
+        container.className = c('completion-container');
+
+        // Add ZettelFlow icon/badge
+        const badge = document.createElement('span');
+        badge.className = c('completion-badge');
+        badge.textContent = '✨';
+
+        // Label with custom styling
+        const label = document.createElement('span');
+        label.className = c('completion-label');
+        label.textContent = completion.label;
+
+        // Type indicator
+        const type = document.createElement('span');
+        type.className = c('completion-type');
+        type.textContent = completion.type || 'property';
+
+        // Assemble the elements
+        container.appendChild(badge);
+        container.appendChild(label);
+        container.appendChild(type);
+
+        // Clear and append to the element
+        element.innerHTML = '';
+        element.appendChild(container);
     };
 }
 

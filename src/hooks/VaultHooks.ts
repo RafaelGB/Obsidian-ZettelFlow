@@ -152,7 +152,8 @@ export class VaultHooks {
             request: {
                 oldValue: "",
                 newValue: "",
-                property: ""
+                property: "",
+                frontmatter: {}
             },
             file,
             response: {
@@ -164,15 +165,14 @@ export class VaultHooks {
             const oldValue = oldFrontmatter[property];
             const newValue = newFrontmatter[property];
 
-            // If the property has changed, log the change and execute the script.
             if (oldValue !== newValue) {
                 event.request = {
                     oldValue,
                     newValue,
-                    property
+                    property,
+                    frontmatter: newFrontmatter
                 };
                 event = await this.executeHook(hookSettings.script, event);
-                console.log("Event after hook execution:", event);
             }
         }
 

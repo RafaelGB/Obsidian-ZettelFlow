@@ -1,6 +1,6 @@
-# ZettelFlow Plugin Documentation
+# ZettelFlow OnCreate Hooks
 
-## Introduction to Folder-Level Automated Flows
+## Folder-Level Automated Flows
 
 ### Overview
 

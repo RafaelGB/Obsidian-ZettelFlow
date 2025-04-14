@@ -23,8 +23,14 @@ nav:
       - 2.9 CssClasses: actions/CssClasses.md
       - 2.10 TaskManagement: actions/TaskManagement.md
       - 2.11 Script: actions/Script.md
-  - 3. Folder Automatic Flows: folder-flows/FolderFlowsIntro.md
+  - 3. Vault Hooks:
+      - 3.1 Property Hooks:
+          - 3.1.1 Overview: vault-hooks/property-hooks/overview.md
+          - 3.1.2 Configuration: vault-hooks/property-hooks/configuration.md
+          - 3.1.3 Examples: vault-hooks/property-hooks/examples.md
+      - 3.2 Folder Automation: vault-hooks/OnCreate.md
   - 4. How to Contribute:
       - 4.1 Wiki: how-to-contribute/Wiki.md
+  - 5. API: api/ZettelFlowAPI.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

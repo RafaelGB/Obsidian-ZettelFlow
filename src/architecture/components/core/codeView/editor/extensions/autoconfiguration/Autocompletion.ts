@@ -135,30 +135,8 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
         validFor: /^[\w.]*$/
     };
 }
+
 export const customAutocomplete = javascriptLanguage.data.of({
-    autocomplete: (context: any) => {
-        const word = context.matchBefore(/\w+/);
-        if (!word || word.from === word.to) return null;
-        const completions = coreCompletions.map(c => ({
-            label: c.label,
-            type: c.type,
-            info: c.info
-        }));
-        return {
-            from: word.from,
-            options: completions,
-            validFor: /^[\w.]*$/
-        };
-    }
+    autocomplete: customCompletionProvider
 });
-// Use the custom provider without overriding the default ones
-// export const customAutocomplete = autocompletion({
-    
-//     // Add our custom completion provider in addition to the defaults
-//     override: [customCompletionProvider],
-//     activateOnTyping: true,
-//     maxRenderedOptions: 10,
-//     defaultKeymap: true,
-//     optionClass: option => option.type === 'method' ? 'cm-method' : option.type === 'object' ? 'cm-object' : '',
-// });
 

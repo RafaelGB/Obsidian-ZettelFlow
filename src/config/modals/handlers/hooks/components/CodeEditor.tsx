@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { c } from "architecture";
-import { EditorView, basicSetup } from "codemirror";
-import { javascript } from "@codemirror/lang-javascript";
+import { EditorView } from "codemirror";
+import { dispatchEditor } from "architecture/components/core";
 
 interface CodeEditorProps {
   value: string;
@@ -19,19 +19,10 @@ export const CodeEditor = ({ value, onChange }: CodeEditorProps) => {
     if (viewRef.current) {
       viewRef.current.destroy();
     }
-
-    const view = new EditorView({
-      doc: value,
-      extensions: [
-        basicSetup,
-        javascript(),
-        EditorView.updateListener.of((update) => {
-          if (update.docChanged) {
-            onChange(update.state.doc.toString());
-          }
-        }),
-      ],
-      parent: editorRef.current,
+    const view = dispatchEditor(editorRef.current, value, (update) => {
+      if (update.docChanged) {
+        onChange(update.state.doc.toString());
+      }
     });
 
     viewRef.current = view;

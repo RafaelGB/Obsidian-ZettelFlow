@@ -5,6 +5,7 @@ import { noteCompletions } from "./config/NoteFns";
 import { appCompletions } from "./config/AppFns";
 import { Completion } from "./typing";
 import { integrationsCompletions, internalVaultCompletions, zfCompletions } from "./config/ZettelFlowFns";
+import { javascriptLanguage } from "@codemirror/lang-javascript";
 
 const completionsTree = {
     note: noteCompletions,
@@ -134,14 +135,30 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
         validFor: /^[\w.]*$/
     };
 }
-
-// Use the custom provider without overriding the default ones
-export const customAutocomplete = autocompletion({
-    // Add our custom completion provider in addition to the defaults
-    override: [customCompletionProvider],
-    activateOnTyping: true,
-    maxRenderedOptions: 10,
-    defaultKeymap: true,
-    optionClass: option => option.type === 'method' ? 'cm-method' : option.type === 'object' ? 'cm-object' : '',
+export const customAutocomplete = javascriptLanguage.data.of({
+    autocomplete: (context: any) => {
+        const word = context.matchBefore(/\w+/);
+        if (!word || word.from === word.to) return null;
+        const completions = coreCompletions.map(c => ({
+            label: c.label,
+            type: c.type,
+            info: c.info
+        }));
+        return {
+            from: word.from,
+            options: completions,
+            validFor: /^[\w.]*$/
+        };
+    }
 });
+// Use the custom provider without overriding the default ones
+// export const customAutocomplete = autocompletion({
+    
+//     // Add our custom completion provider in addition to the defaults
+//     override: [customCompletionProvider],
+//     activateOnTyping: true,
+//     maxRenderedOptions: 10,
+//     defaultKeymap: true,
+//     optionClass: option => option.type === 'method' ? 'cm-method' : option.type === 'object' ? 'cm-object' : '',
+// });
 

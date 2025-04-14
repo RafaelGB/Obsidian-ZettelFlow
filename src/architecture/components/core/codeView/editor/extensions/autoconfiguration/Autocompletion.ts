@@ -40,9 +40,9 @@ function findCompletions(
         return Object.keys(node).map(key => ({
             label: key,
             type: 'object',
-            info: 'ZettelFlow API',
+            info: 'ZF API',
             boost: 99, // Prioritize ZettelFlow completions
-            detail: '✨ ZF' // Visual indicator for ZettelFlow
+            detail: '✨ ZettelFlow' // Visual indicator for ZettelFlow
         }));
     }
 
@@ -56,9 +56,9 @@ function findCompletions(
         return Object.keys(node).map(key => ({
             label: key,
             type: 'object',
-            info: 'ZettelFlow API',
+            info: 'ZF API',
             boost: 99,
-            detail: '✨ ZF'
+            detail: '✨ ZettelFlow'
         }));
     }
 
@@ -170,25 +170,25 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
 function createZettelFlowRenderer(completion: Completion): (element: HTMLElement) => void {
     return (element: HTMLElement) => {
         // Add a CSS class for styling
-        element.classList.add(c('completion'));
+        element.classList.add(c('cm-completion'));
 
         // Create a container for better styling
         const container = document.createElement('div');
-        container.className = c('completion-container');
+        container.className = c('cm-completion-container');
 
         // Add ZettelFlow icon/badge
         const badge = document.createElement('span');
-        badge.className = c('completion-badge');
+        badge.className = c('cm-completion-badge');
         badge.textContent = '✨';
 
         // Label with custom styling
         const label = document.createElement('span');
-        label.className = c('completion-label');
+        label.className = c('cm-completion-label');
         label.textContent = completion.label;
 
         // Type indicator
         const type = document.createElement('span');
-        type.className = c('completion-type');
+        type.className = c('cm-completion-type');
         type.textContent = completion.type || 'property';
 
         // Assemble the elements

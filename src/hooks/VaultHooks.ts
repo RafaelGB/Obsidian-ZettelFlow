@@ -186,9 +186,23 @@ export class VaultHooks {
             event.response.frontmatter,
             event.response.removeProperties
         );
+
         // Update the current frontmatter.
         this.currentFrontmatter = FrontmatterService.instance(file);
         this.isHookUpdating = false;
+
+
+        if (event.response.flowToTrigger) {
+            const flow = await canvas.flows.update(event.response.flowToTrigger);
+            const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!activeView) {
+                return;
+            }
+
+            new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
+                .enableEditor(true)
+                .open();
+        }
     };
 
     // Execute the script defined in the global hook configuration.

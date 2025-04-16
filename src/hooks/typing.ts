@@ -12,5 +12,6 @@ export type HookEvent = {
     response: {
         frontmatter: Record<string, Literal>;
         removeProperties: string[];
+        flowToTrigger?: string;
     }
 }

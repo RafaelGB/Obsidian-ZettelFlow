@@ -9,5 +9,3 @@ export { ZettelNode, ZettelNodeType } from './model/CanvasModel';
 export { MarkdownService } from './services/Markdown';
 export { ObsidianConfig } from './services/ObsidianConfig';
 export { ObsidianPropertyType, isObsidianPropertyType } from './services/typing';
-
-export { blockSemaphore, checkSemaphore } from './services/Semaphore';

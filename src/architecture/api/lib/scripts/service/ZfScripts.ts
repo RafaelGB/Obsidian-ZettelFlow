@@ -1,6 +1,6 @@
 import { ZettelFlowSettings } from "config";
 import { LibModule } from "../../LibModule";
-import { App, TFile } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import { ZfVault } from "../../vault/service/ZfVault";
 import { log } from "architecture";
 
@@ -25,9 +25,12 @@ export class ZfScripts extends LibModule {
         const files = ZfVault().obtainFilesFrom(folder, ["js"]);
 
         for (const file of files) {
-            await this.loadUserFnFrom(
-                file
-            );
+            try {
+                await this.loadUserFnFrom(file);
+            } catch (error) {
+                log.error(`Error loading ZettelFlow script from path = "${file.path}`, error);
+                new Notice(`Error loading ZettelFlow script "${file.path}". ${error.message}`);
+            }
         };
     }
 

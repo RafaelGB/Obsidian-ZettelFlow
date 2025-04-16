@@ -2,8 +2,8 @@ import ZettelFlow from "main";
 import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
-import { MarkdownView, Notice, TFile, TFolder } from "obsidian";
-import { checkSemaphore, FrontmatterService, Literal } from "architecture/plugin";
+import { CachedMetadata, MarkdownView, Notice, TAbstractFile, TFile, TFolder } from "obsidian";
+import { FrontmatterService, Literal } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
 import { HookEvent } from "./typing";
 
@@ -18,27 +18,29 @@ export class VaultHooks {
     }
 
     constructor(private plugin: ZettelFlow) {
-        this.plugin.app.workspace.onLayoutReady(() => {
-            setTimeout(() => {
-                plugin.registerEvent(this.onRename);
-                plugin.registerEvent(this.onDelete);
-                plugin.registerEvent(this.onCreate);
-                plugin.registerEvent(this.onCacheUpdate);
-                plugin.registerEvent(this.onOpen);
-                log.debug("Vault hooks setup with layout ready");
-            }, 4000);
-        });
 
-        // For testing purposes, mount a mock globalHook configuration if not already set.
+        this.plugin.app.workspace.onLayoutReady(() => {
+            // Register hooks for Vault events
+            plugin.registerEvent(this.plugin.app.vault.on("rename", this.onRename, this.plugin));
+            plugin.registerEvent(this.plugin.app.vault.on("delete", this.onDelete, this.plugin));
+            plugin.registerEvent(this.plugin.app.vault.on("create", this.onCreate, this.plugin));
+
+            // Register hooks for MetadataCache events
+            plugin.registerEvent(this.plugin.app.metadataCache.on("changed", this.onCacheUpdate, this.plugin));
+
+            // Register hooks for Workspace events
+            plugin.registerEvent(this.plugin.app.workspace.on("file-open", this.onOpen, this.plugin));
+            log.debug("Vault hooks setup with layout ready");
+        });
     }
 
-    private onRename = this.plugin.app.vault.on("rename", (file, oldPath) => {
+    private onRename = (file: TAbstractFile, oldPath: string) => {
         if (file instanceof TFolder) {
             this.onRenameFolder(file, oldPath);
         } else if (file instanceof TFile) {
             this.onRenameFile(file, oldPath);
         }
-    });
+    };
 
     private onRenameFolder(folder: TFolder, oldPath: string) {
         const potentialCanvasConfig = `${this.plugin.settings.foldersFlowsPath}/${oldPath.replace(/\//g, "_")}.canvas`;
@@ -62,22 +64,29 @@ export class VaultHooks {
         }
     }
 
-    private onDelete = this.plugin.app.vault.on("delete", (file) => {
+    private onDelete = (file: TAbstractFile) => {
         if (file instanceof TFolder) {
             this.onDeleteFolder(file);
         } else if (file instanceof TFile) {
             this.onDeleteFile(file);
         }
 
-    });
+    };
 
     private onDeleteFolder = (folder: TFolder) => {
-        const potentialCanvasConfig = `${this.plugin.settings.foldersFlowsPath}/${folder.path.replace(/\//g, "_")}.canvas`;
-        const potentialCanvasFile = this.plugin.app.vault.getAbstractFileByPath(potentialCanvasConfig);
-        if (potentialCanvasFile) {
-            canvas.flows.delete(potentialCanvasFile.path);
-            this.plugin.app.vault.delete(potentialCanvasFile);
-            log.info(`Deleted canvas file for folder ${folder.path}: ${potentialCanvasFile.path}`);
+        if (folder.path === this.plugin.settings.jsLibraryFolderPath) {
+            this.plugin.settings.jsLibraryFolderPath = "";
+            log.info("Deleted canvas file");
+            this.plugin.saveSettings();
+        } else {
+
+            const potentialCanvasConfig = `${this.plugin.settings.foldersFlowsPath}/${folder.path.replace(/\//g, "_")}.canvas`;
+            const potentialCanvasFile = this.plugin.app.vault.getAbstractFileByPath(potentialCanvasConfig);
+            if (potentialCanvasFile) {
+                canvas.flows.delete(potentialCanvasFile.path);
+                this.plugin.app.vault.delete(potentialCanvasFile);
+                log.info(`Deleted canvas file for folder ${folder.path}: ${potentialCanvasFile.path}`);
+            }
         }
     }
 
@@ -87,45 +96,39 @@ export class VaultHooks {
             this.plugin.settings.ribbonCanvas = "";
             this.plugin.saveSettings();
             log.info("Deleted canvas file");
-        } else if (file.path === this.plugin.settings.jsLibraryFolderPath) {
-            this.plugin.settings.jsLibraryFolderPath = "";
-            log.info("Deleted canvas file");
         }
     }
 
-
-    private onCreate = this.plugin.app.vault.on("create", async (file) => {
+    private onCreate = async (file: TAbstractFile) => {
         const parent = file.parent;
-        if (!parent || !checkSemaphore()) {
+        if (!parent) {
             return;
         }
         const potentialCanvasConfig = `${this.plugin.settings.foldersFlowsPath}/${parent.path.replace(/\//g, "_")}.canvas`;
         const potentialCanvasFile = this.plugin.app.vault.getAbstractFileByPath(potentialCanvasConfig);
         if (potentialCanvasFile) {
-            setTimeout(async () => {
-                const flow = await canvas.flows.update(potentialCanvasFile.path);
-                const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                if (!activeView) {
-                    return;
-                }
-                new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
-                    .enableEditor(true)
-                    .open();
-            }, 300);
+            const flow = await canvas.flows.update(potentialCanvasFile.path);
+            const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!activeView) {
+                return;
+            }
+            new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
+                .enableEditor(true)
+                .open();
         }
-    });
+    };
 
-    private onOpen = this.plugin.app.workspace.on("file-open", (file) => {
+    private onOpen = (file: TFile | null) => {
         if (file instanceof TFile && file.extension === "md") {
             this.currentFrontmatter = FrontmatterService.instance(file);
             log.debug("Nuevo fichero abierto:", file.path);
         } else {
             this.currentFrontmatter = null;
         }
-    });
+    };
 
     // Event triggered when a file is modified.
-    private onCacheUpdate = this.plugin.app.metadataCache.on("changed", async (file, _data, cache) => {
+    private onCacheUpdate = async (file: TFile, data: string, cache: CachedMetadata) => {
         const hooks = Object.entries(this.plugin.settings.propertyHooks || {});
         if (!this.currentFrontmatter) {
             this.currentFrontmatter = FrontmatterService.instance(file);
@@ -157,7 +160,8 @@ export class VaultHooks {
             },
             file,
             response: {
-                frontmatter: dynamicFrontmatter
+                frontmatter: dynamicFrontmatter,
+                removeProperties: []
             }
         }
         for (const hook of hooks) {
@@ -173,14 +177,19 @@ export class VaultHooks {
                     frontmatter: newFrontmatter
                 };
                 event = await this.executeHook(hookSettings.script, event);
+
+                log.debug(`Hooks ${property} executed`, event);
             }
         }
 
-        await this.currentFrontmatter.setProperties(event.response.frontmatter);
+        await this.currentFrontmatter.setProperties(
+            event.response.frontmatter,
+            event.response.removeProperties
+        );
         // Update the current frontmatter.
         this.currentFrontmatter = FrontmatterService.instance(file);
         this.isHookUpdating = false;
-    });
+    };
 
     // Execute the script defined in the global hook configuration.
     private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {

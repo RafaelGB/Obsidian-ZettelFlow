@@ -2,27 +2,39 @@ import { log } from "architecture";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { ZfScripts, ZfVault } from "architecture/api";
 import { TemplaterTools, ZettelFlowApp, ZfExternalTools, ZfInternalTools } from "./typing";
+import { Notice } from "obsidian";
 
 async function buildExternalTools(): Promise<ZfExternalTools> {
     const externaFns: ZfExternalTools = {};
     // TEMPLATER
-    const templaterPlugin = ObsidianApi.getExternalPlugin("templater-obsidian");
+    try {
+        const templaterPlugin = ObsidianApi.getExternalPlugin("templater-obsidian");
 
-    if (templaterPlugin) {
-        const templater: TemplaterTools = {
-            user: await templaterPlugin.templater.functions_generator.user_functions.user_script_functions.generate_object()
-        };
-        log.info("Templater plugin found, adding templater functions to the API");
-        externaFns.tp = templater;
+        if (templaterPlugin) {
+            const templater: TemplaterTools = {
+                user: await templaterPlugin.templater.functions_generator.user_functions.user_script_functions.generate_object()
+            };
+            log.info("Templater plugin found, adding templater functions to the API");
+            externaFns.tp = templater;
+        }
+    } catch (error) {
+        delete externaFns.tp;
+        log.error("Error loading external tools: Templater", error);
+        new Notice("Error loading templater JS files: " + error.message);
     }
 
     // DATAVIEW
-    const dataviewPlugin = ObsidianApi.getExternalPlugin("dataview");
-    if (dataviewPlugin) {
-        log.info("Dataview plugin found, adding dataview functions to the API");
-        externaFns.dv = dataviewPlugin.api;
+    try {
+        const dataviewPlugin = ObsidianApi.getExternalPlugin("dataview");
+        if (dataviewPlugin) {
+            log.info("Dataview plugin found, adding dataview functions to the API");
+            externaFns.dv = dataviewPlugin.api;
+        }
+    } catch (error) {
+        delete externaFns.dv;
+        log.error("Error loading external tools: Dataview", error);
+        new Notice("Error loading dataview JS files: " + error.message);
     }
-
     return externaFns;
 }
 

@@ -12,10 +12,10 @@ export class CommunityInfoHandler extends AbstractHandlerClass<AbstractStepModal
         const { title, description, contentEl } = info;
 
         new Setting(contentEl)
-            .setName("Title")
-            .setDesc("Title of the installed step")
+            .setName(t("action_title_label"))
+            .setDesc(t("action_title_description"))
             .addText((text) => text
-                .setPlaceholder("Title")
+                .setPlaceholder(t("action_title_label"))
                 .setValue(title || '')
                 .onChange((value: string) => {
                     info.title = value;
@@ -23,13 +23,13 @@ export class CommunityInfoHandler extends AbstractHandlerClass<AbstractStepModal
             );
 
         const descSetting = new Setting(contentEl)
-            .setName("Description")
-            .setDesc("Information about the installed step and its purpose")
+            .setName(t("action_description_label"))
+            .setDesc(t("action_description_text"))
             .addTextArea((text) => {
                 text.inputEl.style.minWidth = "-webkit-fill-available";
                 text.inputEl.rows = 4;
                 text
-                    .setPlaceholder("Description")
+                    .setPlaceholder(t("action_description_label"))
                     .setValue(description || '')
                     .onChange((value: string) => {
                         info.description = value;

@@ -103,7 +103,7 @@ function Backlink(props: WrappedActionBuilderProps) {
             const availableHeaders = await obtainHeadersOfFinalFile(value);
             setHeadingMemo(availableHeaders);
           }}
-          placeholder="Select a file"
+          placeholder={t("backlink_select_file")}
         />
         {enableHeading && (
           <Search
@@ -111,7 +111,7 @@ function Backlink(props: WrappedActionBuilderProps) {
             onChange={(value) => {
               setFinalHeadingValue(value);
             }}
-            placeholder="Select a heading"
+            placeholder={t("backlink_select_heading")}
           />
         )}
         <button
@@ -129,7 +129,7 @@ function Backlink(props: WrappedActionBuilderProps) {
       <div className={c("backlink-right")}>
         <Input
           value={finalRegexValue}
-          placeholder="Regex"
+          placeholder={t("backlink_regex_placeholder")}
           onChange={(value) => {
             setFinalRegexValue(value);
           }}
@@ -186,7 +186,7 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
           props.callback(null);
         }}
       >
-        Continue
+        {t("backlink_continue")}
       </button>
     </>
   );

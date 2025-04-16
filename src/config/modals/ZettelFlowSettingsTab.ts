@@ -5,6 +5,7 @@ import generalSectionSettings from "./handlers/GeneralSectionSettings";
 import hooksSectionSettings from "./handlers/HooksSectionSettings";
 import { SettingsHandlerInfo } from "../typing";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 
 class SettingsManager {
     plugin: ZettelFlow;
@@ -50,11 +51,13 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         coffeeDiv.addClass("ex-coffee-div");
         const coffeeLink = coffeeDiv.createEl("a", {
             href: "https://www.buymeacoffee.com/5tsytn22v9Z",
+            title: t("support_coffee_button")
         });
 
         const coffeeImg = coffeeLink.createEl("img", {
             attr: {
                 src: "https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png",
+                alt: t("support_coffee_button")
             },
         });
         coffeeImg.height = 25;

@@ -1,6 +1,6 @@
 import { FatalError, ObsidianApi, log } from "architecture";
 import { TypeService } from "architecture/typing";
-import { FileService, FrontmatterService, blockSemaphore } from "architecture/plugin";
+import { FileService, FrontmatterService } from "architecture/plugin";
 import moment from "moment";
 import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
@@ -69,9 +69,6 @@ export class NoteBuilder {
     this.note.setTitle(this.buildFilename());
     await this.buildNote();
     await this.errorManagement();
-
-    // Prevent the Folder Flows to be activated once the note is created in a folder with an automatic configuration
-    blockSemaphore(2000);
 
     const generatedFile = await FileService.createFile(this.note.getFinalPath(), this.content.get(), false);
 

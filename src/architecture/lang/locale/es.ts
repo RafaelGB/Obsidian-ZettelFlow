@@ -224,6 +224,10 @@ export default {
     confirm_remove_action: '¿Estás seguro de que quieres eliminar esta acción?',
     confirm_remove_button: 'Eliminar',
     confirm_cancel_button: 'Cancelar',
+    confirm_add_step: '¿Estás seguro de que quieres añadir como plantilla este paso?',
+    confirm_add_button: 'Añadir',
+    confirm_apply_template_step: '¿Estás seguro de que quieres aplicar una plantilla a este paso?',
+    confirm_apply_template_button: 'Aplicar plantilla',
 
     // Installed action editor
     installed_action_editor_title: 'Editor de Acciones Instaladas',

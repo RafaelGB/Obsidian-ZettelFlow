@@ -48,6 +48,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
         // Separator
         navbar.appendChild(span);
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
+
         // Add Uninstall button
         const uninstallButton = navbarButtonGroup.createEl("button", {
             placeholder: t("remove_button"),

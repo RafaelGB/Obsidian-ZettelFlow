@@ -10,6 +10,7 @@ import { AbstractStepModal } from "./AbstractStepModal";
 import ZettelFlow from "main";
 import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
 import { UsedInstalledStepsModal } from "application/community";
+import { ConfirmModal } from "architecture/components/settings";
 
 
 export class StepBuilderModal extends AbstractStepModal {
@@ -88,19 +89,27 @@ export class StepBuilderModal extends AbstractStepModal {
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
-                // Step 1 - Open the modal to select the step
-                log.info("info before", this.info);
-                new UsedInstalledStepsModal(this.plugin, (step) => {
-                    // Step 2 - Apply the step to the current step
-                    this.partialInfo = {
-                        ...this.info,
-                        ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
+                new ConfirmModal(
+                    this.plugin.app,
+                    t("confirm_apply_template_step"),
+                    t("confirm_apply_template_button"),
+                    t("confirm_cancel_button"),
+                    async () => {
+                        // Step 1 - Open the modal to select the step
+                        log.info("info before", this.info);
+                        new UsedInstalledStepsModal(this.plugin, (step) => {
+                            // Step 2 - Apply the step to the current step
+                            this.partialInfo = {
+                                ...this.info,
+                                ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
+                            }
+                            this.info = this.getBaseInfo();
+                            log.info("info after", this.info);
+                            // Step 3 - Refresh the modal
+                            this.refresh();
+                        }).open();
                     }
-                    this.info = this.getBaseInfo();
-                    log.info("info after", this.info);
-                    // Step 3 - Refresh the modal
-                    this.refresh();
-                }).open();
+                ).open();
             });
 
         });
@@ -113,15 +122,24 @@ export class StepBuilderModal extends AbstractStepModal {
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
-                // Step 1 - save the step internally
-                const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                    title: t("step_template_default_title"),
-                    description: t("step_template_default_description")
-                });
-                this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
-                this.plugin.saveSettings();
-                // Step 2 - Open the modal to edit the step
-                new InstalledStepEditorModal(this.plugin, stepSettings).open();
+
+                new ConfirmModal(
+                    this.plugin.app,
+                    t("confirm_add_step"),
+                    t("confirm_add_button"),
+                    t("confirm_cancel_button"),
+                    async () => {
+                        // Step 1 - save the step internally
+                        const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+                            title: t("step_template_default_title"),
+                            description: t("step_template_default_description")
+                        });
+                        this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
+                        this.plugin.saveSettings();
+                        // Step 2 - Open the modal to edit the step
+                        new InstalledStepEditorModal(this.plugin, stepSettings).open();
+                    }
+                ).open();
             });
 
         });

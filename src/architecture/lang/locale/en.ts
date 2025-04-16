@@ -190,6 +190,10 @@ export default {
     confirm_remove_action: 'Are you sure you want to remove this action?',
     confirm_remove_button: 'Remove',
     confirm_cancel_button: 'Cancel',
+    confirm_add_step: 'Are you sure you want to add this step as a template?',
+    confirm_add_button: 'Add',
+    confirm_apply_template_step: 'Are you sure you want to apply a template to this step?',
+    confirm_apply_template_button: 'Apply a template',
 
     // Installed action editor
     installed_action_editor_title: 'Installed Action Editor',

@@ -150,7 +150,6 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           <Search
             options={availableProperties}
             onChange={async (value) => {
-              console.log("Selected value:", value);
               if (!value) return;
               if (!propertyTypes[value]) return;
               setSelectedNewProperty(value);

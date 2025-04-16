@@ -55,7 +55,6 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
 
   // Handle the save action
   const handleSave = () => {
-    console.log("Saving script:", localScript);
     onSave(localScript);
     setIsOpen(false);
   };

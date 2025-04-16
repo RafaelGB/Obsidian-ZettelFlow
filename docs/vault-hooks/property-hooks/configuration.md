@@ -34,7 +34,8 @@ When writing your hook script, you have access to these variables:
     - `property`: The name of the property that changed
   - `file`: The TFile object representing the current file
   - `response`: Object where you can set new frontmatter values
-    - `frontmatter`: Record of property/value pairs to update
+    - `frontmatter`: Record of property/value pairs to update/add to the frontmatter
+    - `removeProperties`: Array of properties to delete from the frontmatter
 
 - `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
 

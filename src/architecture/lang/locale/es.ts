@@ -203,4 +203,64 @@ export default {
     backlink_select_heading: 'Seleccionar un encabezado',
     backlink_regex_placeholder: 'Expresión regular',
     backlink_continue: 'Continuar',
+    // Step builder modal
+    step_builder_copy_button: 'Copiar Paso',
+    step_builder_copy_button_title: 'Copiar el paso al portapapeles',
+    step_builder_apply_button: 'Aplicar Plantilla',
+    step_builder_apply_button_title: 'Aplicar una plantilla a este paso',
+    step_builder_save_template_button: 'Guardar como plantilla',
+    step_builder_save_template_button_title: 'Haz clic para guardar este paso como una plantilla reutilizable',
+    step_copied_notice: 'Paso copiado al portapapeles',
+    step_template_default_title: 'Nueva plantilla',
+    step_template_default_description: 'Descripción de la nueva plantilla',
+
+    // Installed step editor
+    installed_step_editor_title: 'Editor de Pasos Instalados',
+    remove_button: 'Eliminar',
+    remove_step_button_title: 'Eliminar este paso',
+    remove_action_button_title: 'Eliminar esta acción',
+    copy_to_clipboard_button: 'Copiar al portapapeles',
+    confirm_remove_step: '¿Estás seguro de que quieres eliminar este paso?',
+    confirm_remove_action: '¿Estás seguro de que quieres eliminar esta acción?',
+    confirm_remove_button: 'Eliminar',
+    confirm_cancel_button: 'Cancelar',
+
+    // Installed action editor
+    installed_action_editor_title: 'Editor de Acciones Instaladas',
+    copy_action_button: 'Copiar Acción',
+    copy_action_button_title: 'Copiar la acción al portapapeles',
+    action_copied_notice: 'Acción copiada al portapapeles',
+    action_title_label: 'Título',
+    action_title_description: 'Título de la acción instalada',
+    action_description_label: 'Descripción',
+    action_description_text: 'Información sobre la acción instalada y su propósito',
+
+    // Community step modal
+    manage_button: 'Gestionar',
+
+    // Community templates metadata
+    template_author: 'Autor',
+    template_target_folder: 'Carpeta destino',
+    template_optional: 'Opcional',
+    template_root: 'Raíz',
+    template_actions: 'Acciones',
+    template_type: 'Tipo',
+    template_yes: '✅',
+    template_no: '❌',
+    template_downloads: 'Descargas',
+
+    // Community markdown modal
+    remove_markdown_button: 'Eliminar',
+    remove_markdown_button_title: 'Eliminar el archivo markdown',
+    download_button: 'Descargar',
+    download_button_title: 'Descargar el archivo markdown',
+    show_markdown_button: 'Cambiar a markdown',
+    show_preview_button: 'Cambiar a vista previa',
+
+    // Community action modal
+    uninstall_button: 'Desinstalar',
+    install_button: 'Instalar',
+
+    // Support
+    support_coffee_button: 'Invítame a un café',
 };

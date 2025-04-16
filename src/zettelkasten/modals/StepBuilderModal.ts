@@ -60,21 +60,22 @@ export class StepBuilderModal extends AbstractStepModal {
 
         // Add a button to save the step into the clipboard
         const clipboardButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Copy Step", title: "Copy the step to the clipboard"
+            placeholder: t("step_builder_copy_button"),
+            title: t("step_builder_copy_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", async () => {
                 // Step 1 - save the step internally
                 const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                    title: "New template",
-                    description: "New template description"
+                    title: t("step_template_default_title"),
+                    description: t("step_template_default_description")
                 });
                 // Step 2 - Copy the step to the clipboard
                 navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
                 // Step 3 - Save the step to internal clipboard
                 this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
                 await this.plugin.saveSettings();
-                new Notice(`Step copied to clipboard`);
+                new Notice(t("step_copied_notice"));
             });
 
         });
@@ -82,7 +83,8 @@ export class StepBuilderModal extends AbstractStepModal {
 
         // Add a button to apply an installed step template
         const useTemplateButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Apply Step", title: "Apply a template to this step"
+            placeholder: t("step_builder_apply_button"),
+            title: t("step_builder_apply_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
@@ -106,14 +108,15 @@ export class StepBuilderModal extends AbstractStepModal {
 
         // Add a button to use this step as source for a installed step
         const saveButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Save as template", title: "Click to save this step as a reusable template"
+            placeholder: t("step_builder_save_template_button"),
+            title: t("step_builder_save_template_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
                 // Step 1 - save the step internally
                 const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                    title: "New template",
-                    description: "New template description"
+                    title: t("step_template_default_title"),
+                    description: t("step_template_default_description")
                 });
                 this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
                 this.plugin.saveSettings();

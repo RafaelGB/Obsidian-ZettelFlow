@@ -169,6 +169,66 @@ export default {
     step_builder_element_type_task_management_is_content_description: 'When enabled, the unfinished tasks will be added where the "{{key}}" is placed in the note previously',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
+    // Step builder modal
+    step_builder_copy_button: 'Copy Step',
+    step_builder_copy_button_title: 'Copy the step to the clipboard',
+    step_builder_apply_button: 'Apply Step',
+    step_builder_apply_button_title: 'Apply a template to this step',
+    step_builder_save_template_button: 'Save as template',
+    step_builder_save_template_button_title: 'Click to save this step as a reusable template',
+    step_copied_notice: 'Step copied to clipboard',
+    step_template_default_title: 'New template',
+    step_template_default_description: 'New template description',
+
+    // Installed step editor
+    installed_step_editor_title: 'Installed Step Editor',
+    remove_button: 'Remove',
+    remove_step_button_title: 'Remove this step',
+    remove_action_button_title: 'Remove this action',
+    copy_to_clipboard_button: 'Copy to clipboard',
+    confirm_remove_step: 'Are you sure you want to remove this step?',
+    confirm_remove_action: 'Are you sure you want to remove this action?',
+    confirm_remove_button: 'Remove',
+    confirm_cancel_button: 'Cancel',
+
+    // Installed action editor
+    installed_action_editor_title: 'Installed Action Editor',
+    copy_action_button: 'Copy Action',
+    copy_action_button_title: 'Copy the action to the clipboard',
+    action_copied_notice: 'Action copied to clipboard',
+    action_title_label: 'Title',
+    action_title_description: 'Title of the installed action',
+    action_description_label: 'Description',
+    action_description_text: 'Information about the installed action and its purpose',
+
+    // Community step modal
+    manage_button: 'Manage',
+
+    // Community templates metadata
+    template_author: 'Author',
+    template_target_folder: 'Target folder',
+    template_optional: 'Optional',
+    template_root: 'Root',
+    template_actions: 'Actions',
+    template_type: 'Type',
+    template_yes: '✅',
+    template_no: '❌',
+    template_downloads: 'Downloads',
+
+    // Community markdown modal
+    remove_markdown_button: 'Remove',
+    remove_markdown_button_title: 'Remove the markdown file',
+    download_button: 'Download',
+    download_button_title: 'Download the markdown file',
+    show_markdown_button: 'Change to markdown',
+    show_preview_button: 'Change to preview',
+
+    // Community action modal
+    uninstall_button: 'Uninstall',
+    install_button: 'Install',
+
+    // Support
+    support_coffee_button: 'Buy me a coffee',
     // MENUS
     editor_menu_rigth_click_title: 'Zettelflow editor options',
     // NOTIFICATIONS

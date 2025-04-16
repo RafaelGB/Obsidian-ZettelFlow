@@ -1,6 +1,7 @@
 import { c } from "architecture";
 import { actionsStore } from "architecture/api";
 import { ConfirmModal } from "architecture/components/settings";
+import { t } from "architecture/lang";
 import { MarkdownService } from "architecture/plugin";
 import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
@@ -34,15 +35,15 @@ export class CommunityStepModal extends Modal {
     });
 
     const isInstalled = this.isTemplateInstalled(this.step);
-    const buttonTitle = isInstalled ? "Remove" : "Install";
+    const buttonTitle = isInstalled ? t("remove_button") : t("install_button");
 
     if (isInstalled) {
       navbarButtonGroup.createEl(
         "button",
         {
-          placeholder: "Manage",
-          title: "Manage",
-          text: "Manage",
+          placeholder: t("manage_button"),
+          title: t("manage_button"),
+          text: t("manage_button"),
         },
         (el) => {
           el.addClass("mod-cta");
@@ -68,9 +69,9 @@ export class CommunityStepModal extends Modal {
           if (isInstalled) {
             new ConfirmModal(
               this.plugin.app,
-              "Are you sure you want to remove this action?",
-              "Remove",
-              "Cancel",
+              t("confirm_remove_action"),
+              t("confirm_remove_button"),
+              t("confirm_cancel_button"),
               async () => {
                 delete this.plugin.settings.installedTemplates.steps[
                   this.step.id
@@ -96,10 +97,14 @@ export class CommunityStepModal extends Modal {
     });
     const descriptionEl = generalInfoEl.createDiv();
 
-    const mdContent = `**Author**: ${this.step.author}
-    **Target folder**: ${this.step.targetFolder}
-    **Opcional**: ${this.step.optional ? "✅" : "❌"}
-    **Root**: ${this.step.root ? "✅" : "❌"}
+    const mdContent = `**${t("template_author")}**: ${this.step.author}
+    **${t("template_target_folder")}**: ${this.step.targetFolder}
+    **${t("template_optional")}**: ${
+      this.step.optional ? t("template_yes") : t("template_no")
+    }
+    **${t("template_root")}**: ${
+      this.step.root ? t("template_yes") : t("template_no")
+    }
     
 ---
 
@@ -113,14 +118,18 @@ ${this.step.description}`;
       comp
     );
 
-    this.contentEl.createEl("h3", { text: "Actions" });
+    this.contentEl.createEl("h3", { text: t("template_actions") });
     for (const action of this.step.actions) {
       const actionEl = this.contentEl.createDiv({
         cls: c("modal-reader-action-section"),
       });
       const currentAction = actionsStore.getAction(action.type);
-      actionEl.createEl("p", { text: `Type: ${currentAction.getLabel()}` });
-      actionEl.createEl("p", { text: `Description: ${action.description}` });
+      actionEl.createEl("p", {
+        text: `${t("template_type")}: ${currentAction.getLabel()}`,
+      });
+      actionEl.createEl("p", {
+        text: `${t("action_description_label")}: ${action.description}`,
+      });
       setIcon(actionEl.createDiv(), currentAction.getIcon());
       const settingsSection = this.contentEl.createDiv({
         cls: c("modal-reader-section"),

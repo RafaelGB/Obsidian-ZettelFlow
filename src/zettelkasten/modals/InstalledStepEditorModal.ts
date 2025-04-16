@@ -7,6 +7,7 @@ import { CommunityStepSettings } from "config";
 import ZettelFlow from "main";
 import { CommunityInfoHandler } from "./handlers/CommunityInfoHandler";
 import { ConfirmModal } from "architecture/components/settings";
+import { t } from "architecture/lang";
 
 export class InstalledStepEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
@@ -42,22 +43,23 @@ export class InstalledStepEditorModal extends AbstractStepModal {
         // Header with title and subtitle with the mode
         const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
 
-        navbar.createEl("h2", { text: "Installed Step Editor" })
+        navbar.createEl("h2", { text: t("installed_step_editor_title") })
 
         // Separator
         navbar.appendChild(span);
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
         // Add Uninstall button
         const uninstallButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Remove", title: "Remove this step"
+            placeholder: t("remove_button"),
+            title: t("remove_step_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", async () => {
                 new ConfirmModal(
                     this.plugin.app,
-                    "Are you sure you want to remove this step?",
-                    "Remove",
-                    "Cancel",
+                    t("confirm_remove_step"),
+                    t("confirm_remove_button"),
+                    t("confirm_cancel_button"),
                     async () => {
                         this.removed = true;
                         this.close();
@@ -70,7 +72,8 @@ export class InstalledStepEditorModal extends AbstractStepModal {
 
         // Add a button to save the step into the clipboard
         const useTemplateButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Copy Step", title: "Copy the step to the clipboard"
+            placeholder: t("step_builder_copy_button"),
+            title: t("step_builder_copy_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", async () => {
@@ -78,7 +81,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
                 navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2));
                 this.plugin.settings.communitySettings.clipboardTemplate = this.communityStepInfo;
                 await this.plugin.saveSettings();
-                new Notice(`Step copied to clipboard`);
+                new Notice(t("step_copied_notice"));
             });
 
         });

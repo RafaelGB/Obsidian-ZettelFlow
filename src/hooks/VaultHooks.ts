@@ -157,7 +157,8 @@ export class VaultHooks {
             },
             file,
             response: {
-                frontmatter: dynamicFrontmatter
+                frontmatter: dynamicFrontmatter,
+                removeProperties: []
             }
         }
         for (const hook of hooks) {
@@ -173,10 +174,15 @@ export class VaultHooks {
                     frontmatter: newFrontmatter
                 };
                 event = await this.executeHook(hookSettings.script, event);
+
+                log.debug(`Hooks ${property} executed`, event);
             }
         }
 
-        await this.currentFrontmatter.setProperties(event.response.frontmatter);
+        await this.currentFrontmatter.setProperties(
+            event.response.frontmatter,
+            event.response.removeProperties
+        );
         // Update the current frontmatter.
         this.currentFrontmatter = FrontmatterService.instance(file);
         this.isHookUpdating = false;

@@ -108,9 +108,19 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
       {isOpen && (
         <div className={c("property-hooks-item-editor")}>
           <div className={c("property-hook-field")}>
-            <label>{t("property_hooks_script_label")}</label>
+            <div className={c("property-hook-label-container")}>
+              <label>{t("property_hooks_script_label")}</label>
+            </div>
             <p className={c("property-hook-script-hint")}>
               {t("property_hooks_script_hint")}
+              <a
+                href="https://rafaelgb.github.io/Obsidian-ZettelFlow/vault-hooks/property-hooks/overview/"
+                style={{ color: "inherit", textDecoration: "none" }}
+                title="documentation"
+                className={c("accordion-header-label")}
+              >
+                <Icon name="book-open-text" />
+              </a>
             </p>
             <CodeEditor
               value={localScript}

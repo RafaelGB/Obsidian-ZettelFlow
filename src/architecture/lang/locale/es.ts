@@ -180,7 +180,7 @@ export default {
     property_hooks_add_title: 'Añadir Nuevo Hook de Propiedad',
     property_hooks_property_label: 'Propiedad',
     property_hooks_script_label: 'Script del Hook',
-    property_hooks_script_hint: 'Este script se ejecutará cuando el valor de la propiedad cambie. Tienes acceso a las siguientes variables: app, file (archivo actual), oldValue, newValue.',
+    property_hooks_script_hint: 'Este script se ejecutará cuando el valor de la propiedad cambie. Tienes acceso al objeto event que contiene datos de solicitud y respuesta, y al objeto zf con funciones de utilidad',
     property_hooks_select_property: 'Selecciona una propiedad...',
     property_hooks_cancel_button: 'Cancelar',
     property_hooks_save_button: 'Guardar Hook',

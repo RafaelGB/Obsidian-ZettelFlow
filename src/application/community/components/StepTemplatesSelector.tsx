@@ -3,6 +3,7 @@ import ZettelFlow from "main";
 import { c } from "architecture";
 import { StepSettings } from "zettelkasten";
 import { CommunityStepSettings } from "config";
+import { t } from "architecture/lang";
 
 interface StepTemplatesSelectorProps {
   plugin: ZettelFlow;

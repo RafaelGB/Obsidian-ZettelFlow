@@ -4,6 +4,7 @@ import { c } from "architecture";
 import { CommunityAction, CommunityStepSettings } from "config";
 import { InstalledStepEditorModal } from "zettelkasten/modals/InstalledStepEditorModal";
 import { InstalledActionEditorModal } from "zettelkasten/modals/InstalledActionEditorModal";
+import { t } from "architecture/lang";
 
 export function InstalledTemplatesManagement(props: PluginComponentProps) {
   const { plugin } = props;

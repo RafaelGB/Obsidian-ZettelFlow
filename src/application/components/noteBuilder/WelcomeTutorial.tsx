@@ -11,7 +11,7 @@ export function WelcomeTutorial(noteBuilderType: TutorialType) {
   return (
     <div className={c("welcome-tutorial")}>
       <h1>{t("welcome_tutorial_welcome_msg")}</h1>
-      <span>Steps to configure your workflow</span>
+      <span>{t("welcome_tutorial_steps_configure")}</span>
       <ol type="1">
         <li>
           <button

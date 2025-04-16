@@ -18,6 +18,7 @@ export default {
     welcome_tutorial_add_steps: 'Add Steps to your Canvas and link them together as you wish. A step is a note of your vault with a special frontmatter configuration',
     welcome_tutorial_steps_guide: 'To make a note as a step with can right click on it and select "Transform to Step" or right click on a folder and create a new one',
     welcome_tutorial_steps_examples: 'You can find some examples in the plugin repository',
+    welcome_tutorial_steps_configure: 'Steps to configure your workflow',
     component_confirm: 'Confirm',
     notice_canvas_not_set: 'Canvas file not set',
     command_open_workflow: 'Open workflow',
@@ -190,4 +191,24 @@ export default {
     property_hooks_select_property: 'Select a property...',
     property_hooks_cancel_button: 'Cancel',
     property_hooks_save_button: 'Save Hook',
+    property_hooks_documentation: 'View documentation',
+    // Step templates
+    step_templates_select_step: 'Select a Step',
+    step_templates_search_placeholder: 'Search by title, description or author...',
+    step_templates_no_results: 'No results found.',
+    // Community templates
+    community_templates_search_placeholder: 'Search by title, description or author...',
+    community_templates_no_matching: 'No matching templates found.',
+    community_templates_filter_all: 'All',
+    community_templates_filter_steps: 'Steps',
+    community_templates_filter_actions: 'Actions',
+    community_templates_type_step: 'Step',
+    community_templates_type_action: 'Action',
+    community_templates_type_template: 'Template',
+    community_templates_author: 'Author',
+    // Backlink component
+    backlink_select_file: 'Select a file',
+    backlink_select_heading: 'Select a heading',
+    backlink_regex_placeholder: 'Regex',
+    backlink_continue: 'Continue',
 };

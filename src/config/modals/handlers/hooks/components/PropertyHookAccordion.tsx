@@ -116,7 +116,7 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
               <a
                 href="https://rafaelgb.github.io/Obsidian-ZettelFlow/vault-hooks/property-hooks/overview/"
                 style={{ color: "inherit", textDecoration: "none" }}
-                title="documentation"
+                title={t("property_hooks_documentation")}
                 className={c("accordion-header-label")}
               >
                 <Icon name="book-open-text" />

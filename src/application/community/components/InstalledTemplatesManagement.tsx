@@ -131,7 +131,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
         {/* Search bar */}
         <input
           type="text"
-          placeholder="Search by title, description or author..."
+          placeholder={t("community_templates_search_placeholder")}
           value={searchTerm}
           onChange={handleSearchChange}
           className={c("community-templates-search")}
@@ -147,7 +147,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
                 : c("community-templates-filter-button")
             }
           >
-            All
+            {t("community_templates_filter_all")}
           </button>
           <button
             onClick={() => handleSetFilter("step")}
@@ -157,7 +157,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
                 : c("community-templates-filter-button")
             }
           >
-            Steps
+            {t("community_templates_filter_steps")}
           </button>
           <button
             onClick={() => handleSetFilter("action")}
@@ -167,14 +167,14 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
                 : c("community-templates-filter-button")
             }
           >
-            Actions
+            {t("community_templates_filter_actions")}
           </button>
         </div>
       </div>
 
       {filteredInstalled.length === 0 && (
         <p className={c("community-templates-no-results")}>
-          No matching templates found.
+          {t("community_templates_no_matching")}
         </p>
       )}
 
@@ -193,7 +193,11 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
               onClick={() => onTemplateClick(template)}
             >
               <span className={c("community-templates-card-type-badge")}>
-                {isStep ? "Step" : isAction ? "Action" : "Template"}
+                {isStep
+                  ? t("community_templates_type_step")
+                  : isAction
+                  ? t("community_templates_type_action")
+                  : t("community_templates_type_template")}
               </span>
               <h3 className={c("community-templates-card-title")}>
                 {template.title}{" "}
@@ -202,7 +206,7 @@ export function InstalledTemplatesManagement(props: PluginComponentProps) {
                 {template.description}
               </p>
               <small className={c("community-templates-card-meta")}>
-                Author: {template.author}
+                {t("community_templates_author")}: {template.author}
               </small>
             </div>
           );

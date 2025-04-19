@@ -1,4 +1,5 @@
 import { c } from "architecture";
+import { t } from "architecture/lang";
 import { FileService, MarkdownService } from "architecture/plugin";
 import ZettelFlow from "main";
 import { Component, Modal, setIcon } from "obsidian";
@@ -41,7 +42,8 @@ export class CommunityMarkdownModal extends Modal {
 
             // Add a button to save the step into the clipboard
             const downloadMdButton = navbarButtonGroup.createEl("button", {
-                placeholder: "Remove", title: "Remove the markdown file"
+                placeholder: t("remove_markdown_button"),
+                title: t("remove_markdown_button_title")
             }, el => {
                 el.addClass("mod-cta");
                 el.addEventListener("click", async () => {
@@ -55,7 +57,8 @@ export class CommunityMarkdownModal extends Modal {
         } else {
             // Add a button to save the step into the clipboard
             const downloadMdButton = navbarButtonGroup.createEl("button", {
-                placeholder: "Download", title: "Download the markdown file"
+                placeholder: t("download_button"),
+                title: t("download_button_title")
             }, el => {
                 el.addClass("mod-cta");
                 el.addEventListener("click", async () => {
@@ -68,8 +71,8 @@ export class CommunityMarkdownModal extends Modal {
 
         // Toggle the markdown rendering
         const toggleMarkdownButton = navbarButtonGroup.createEl("button", {
-            placeholder: this.compiledMarkdown ? "Change to markdown" : "Change to preview",
-            title: this.compiledMarkdown ? "Change to markdown" : "Change to preview"
+            placeholder: this.compiledMarkdown ? t("show_markdown_button") : t("show_preview_button"),
+            title: this.compiledMarkdown ? t("show_markdown_button") : t("show_preview_button")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {

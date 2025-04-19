@@ -1,19 +1,20 @@
+import { c } from "architecture";
 import { t } from "architecture/lang";
 import { AbstractHandlerClass } from "architecture/patterns";
 import { FolderSuggest } from "architecture/settings";
 import { DEFAULT_SETTINGS, SettingsHandlerInfo } from "config/typing";
 import { Setting } from "obsidian";
-import { ScriptsFolderSelectorHandler } from "./ScriptsFolderSelectorHandler";
-import { c } from "architecture";
+
 
 export class FoldersFlowSelectorHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
-    name = t('folders_flows_selector_title');
-    description = t('folders_flows_selector_description');
+    name = t('hooks_flows_selector_title');
+    description = t('hooks_flows_selector_description');
     handle(info: SettingsHandlerInfo): SettingsHandlerInfo {
         const { containerEl, plugin } = info;
         const source_form_promise = async (value: string): Promise<void> => {
             // set search value
-            info.plugin.settings.foldersFlowsPath = value;
+            info.plugin.settings.hooks.folderFlowPath
+                = value;
             // update settings
             await info.plugin.saveSettings();
         };
@@ -28,7 +29,7 @@ export class FoldersFlowSelectorHandler extends AbstractHandlerClass<SettingsHan
                 );
 
                 cb.setPlaceholder(t("folders_flows_selector_placeholder"))
-                    .setValue(plugin.settings.foldersFlowsPath)
+                    .setValue(plugin.settings.hooks.folderFlowPath)
                     .onChange(source_form_promise);
             })
             // Reset to default button
@@ -37,17 +38,14 @@ export class FoldersFlowSelectorHandler extends AbstractHandlerClass<SettingsHan
                 .setButtonText(t('reset_to_default'))
                 .setIcon('reset')
                 .onClick(async () => {
-                    const defaultFoldersFlowPath = DEFAULT_SETTINGS.foldersFlowsPath;
-                    if (defaultFoldersFlowPath) {
-                        info.plugin.settings.foldersFlowsPath = defaultFoldersFlowPath;
+                    const defaultFolderFlowPath = DEFAULT_SETTINGS.hooks?.folderFlowPath;
+                    if (defaultFolderFlowPath) {
+                        info.plugin.settings.hooks.folderFlowPath = defaultFolderFlowPath;
                         await info.plugin.saveSettings();
                         await info.section?.refresh(info);
                     }
                 }));
-        return this.goNext(info);
-    }
 
-    manageNextHandler() {
-        this.nextHandler = new ScriptsFolderSelectorHandler();
+        return this.goNext(info);
     }
 }

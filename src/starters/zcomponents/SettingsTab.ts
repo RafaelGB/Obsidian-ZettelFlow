@@ -41,5 +41,21 @@ export class SettingsTab extends PluginComponent {
             }
         });
         log.info('SettingsTab loaded');
+
+        // Migrate settings if needed
+        this.legacyMigrateSettings().then(() => {
+            log.info('Settings migrated');
+        }).catch((error) => {
+            log.error('Error migrating settings:', error);
+        });
+    }
+    private async legacyMigrateSettings() {
+        const settings = this.plugin.settings as any;
+        if (settings.propertyHooks) {
+            settings.hooks.properties = settings.propertyHooks;
+            delete settings.propertyHooks;
+            await this.plugin.saveSettings();
+            log.info('Settings migrated');
+        }
     }
 }

@@ -3,6 +3,7 @@ import ZettelFlow from "main";
 import { c } from "architecture";
 import { StepSettings } from "zettelkasten";
 import { CommunityStepSettings } from "config";
+import { t } from "architecture/lang";
 
 interface StepTemplatesSelectorProps {
   plugin: ZettelFlow;
@@ -65,13 +66,15 @@ export function StepTemplatesSelector(props: StepTemplatesSelectorProps) {
 
   return (
     <div className={c("community-templates-gallery")}>
-      <h1 className={c("community-templates-gallery-title")}>Select a Step</h1>
+      <h1 className={c("community-templates-gallery-title")}>
+        {t("step_templates_select_step")}
+      </h1>
 
       {/* Search input */}
       <input
         type="text"
         className={c("step-templates-selector__search")}
-        placeholder="Buscar por título, descripción o autor..."
+        placeholder={t("step_templates_search_placeholder")}
         value={searchTerm}
         onChange={handleSearchChange}
         aria-label="Find a step by title, description or author"
@@ -84,7 +87,7 @@ export function StepTemplatesSelector(props: StepTemplatesSelectorProps) {
         {/* No results message */}
         {filteredSteps.length === 0 && (
           <p className={c("step-templates-selector__no-results")}>
-            No se encontraron resultados.
+            {t("step_templates_no_results")}
           </p>
         )}
       </div>

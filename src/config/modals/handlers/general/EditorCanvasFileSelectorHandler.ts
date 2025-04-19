@@ -5,6 +5,7 @@ import { FileSuggest } from "architecture/settings";
 import { SettingsHandlerInfo } from "config/typing";
 import { Setting } from "obsidian";
 import { UniquePrefixToggleHandler } from "./UniquePrefixToggleHandler";
+import { c } from "architecture";
 
 export class EditorCanvasFileSelectorHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
     name = t('editor_canvas_file_selector_title');
@@ -15,6 +16,7 @@ export class EditorCanvasFileSelectorHandler extends AbstractHandlerClass<Settin
         new Setting(containerEl)
             .setName(this.name)
             .setDesc(this.description)
+            .setClass(c('readable-setting-item'))
             .addSearch((cb) => {
                 new FileSuggest(
                     cb.inputEl,

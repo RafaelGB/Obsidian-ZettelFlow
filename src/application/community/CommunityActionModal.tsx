@@ -1,5 +1,6 @@
 import { c } from "architecture";
 import { actionsStore } from "architecture/api";
+import { t } from "architecture/lang";
 import { MarkdownService } from "architecture/plugin";
 import { CommunityAction } from "config";
 import ZettelFlow from "main";
@@ -30,7 +31,9 @@ export class CommunityActionModal extends Modal {
     });
 
     const isInstalled = this.isTemplateInstalled(this.action);
-    const buttonTitle = isInstalled ? "Desinstalar" : "Instalar";
+    const buttonTitle = isInstalled
+      ? t("uninstall_button")
+      : t("install_button");
 
     // Add a button to apply an installed step template
     navbarButtonGroup.createEl(
@@ -60,7 +63,9 @@ export class CommunityActionModal extends Modal {
     const typeEl = this.contentEl.createDiv({
       cls: c("modal-reader-type-section"),
     });
-    typeEl.createEl("p", { text: `Type: ${currentAction.getLabel()}` });
+    typeEl.createEl("p", {
+      text: `${t("template_type")}: ${currentAction.getLabel()}`,
+    });
     setIcon(typeEl.createDiv(), currentAction.getIcon());
 
     const generalInfoEl = this.contentEl.createDiv({

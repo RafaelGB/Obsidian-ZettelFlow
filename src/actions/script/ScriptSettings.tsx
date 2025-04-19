@@ -6,6 +6,7 @@ import { ScriptResult } from "actions";
 import { ContentDTO, NoteDTO } from "application/notes";
 import { c } from "architecture";
 import { navbarAction } from "architecture/components/settings";
+import { scriptActionAutocomplete } from "./extensions/autoconfiguration/ScriptStepAutocomplete";
 
 export const scriptSettings: ActionSetting = (
   contentEl,
@@ -22,11 +23,16 @@ export const scriptSettings: ActionSetting = (
   const editorEl = contentEl.createDiv();
   editorEl.id = "script-editor";
 
-  dispatchEditor(editorEl, code, (update) => {
-    if (update.docChanged) {
-      scriptAction.code = update.state.doc.toString();
-    }
-  });
+  dispatchEditor(
+    editorEl,
+    code,
+    (update) => {
+      if (update.docChanged) {
+        scriptAction.code = update.state.doc.toString();
+      }
+    },
+    [scriptActionAutocomplete]
+  );
   // Contenedor para resultados de depuración
   const debugContainer = contentEl.createDiv({
     cls: "debug-container",

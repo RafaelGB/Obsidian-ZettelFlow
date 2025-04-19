@@ -6,6 +6,7 @@ import { Notice, setIcon, Setting } from "obsidian";
 import { AbstractStepModal } from "./AbstractStepModal";
 import { StepBuilderInfo } from "zettelkasten/typing";
 import { ConfirmModal } from "architecture/components/settings";
+import { t } from "architecture/lang";
 
 export class InstalledActionEditorModal extends AbstractStepModal {
     info: StepBuilderInfo;
@@ -40,7 +41,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         // Header with title and subtitle with the mode
         const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
 
-        navbar.createEl("h2", { text: "Installed Action Editor" })
+        navbar.createEl("h2", { text: t("installed_action_editor_title") })
 
         // Separator
         navbar.appendChild(span);
@@ -48,16 +49,17 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
         // Add Uninstall button
         const uninstallButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Remove", title: "Remove this action"
+            placeholder: t("remove_button"),
+            title: t("remove_action_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", async (e) => {
                 e.stopPropagation();
                 new ConfirmModal(
                     this.plugin.app,
-                    "Are you sure you want to remove this action?",
-                    "Remove",
-                    "Cancel",
+                    t("confirm_remove_action"),
+                    t("confirm_remove_button"),
+                    t("confirm_cancel_button"),
                     async () => {
                         this.removed = true;
                         this.close();
@@ -70,13 +72,14 @@ export class InstalledActionEditorModal extends AbstractStepModal {
 
         // Add a button to save the step into the clipboard
         const useTemplateButton = navbarButtonGroup.createEl("button", {
-            placeholder: "Copy Action", title: "Copy the action to the clipboard"
+            placeholder: t("copy_action_button"),
+            title: t("copy_action_button_title")
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
                 // Save step to clipboard
                 navigator.clipboard.writeText(JSON.stringify(this.communityAction, null, 2))
-                new Notice(`Action copied to clipboard`);
+                new Notice(t("action_copied_notice"));
             });
 
         });
@@ -85,18 +88,18 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         // Show author and download count (if available)
         const { author, downloads } = this.communityAction;
         const authorEl = this.contentEl.createDiv({ cls: c("modal-author") });
-        authorEl.createEl("span", { text: `Author: ${author}` });
+        authorEl.createEl("span", { text: `${t("template_author")}: ${author}` });
         if (downloads) {
-            authorEl.createEl("span", { text: `Downloads: ${downloads}` });
+            authorEl.createEl("span", { text: `${t("template_downloads")}: ${downloads}` });
         }
 
         // Header with title and subtitle with the mode
         const { title, description } = this.communityAction;
         new Setting(this.contentEl)
-            .setName("Title")
-            .setDesc("Title of the installed action")
+            .setName(t("action_title_label"))
+            .setDesc(t("action_title_description"))
             .addText((text) => text
-                .setPlaceholder("Title")
+                .setPlaceholder(t("action_title_label"))
                 .setValue(title || '')
                 .onChange((value: string) => {
                     this.communityAction.title = value;
@@ -104,13 +107,13 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             );
 
         const descSetting = new Setting(this.contentEl)
-            .setName("Description")
-            .setDesc("Information about the installed action and its purpose")
+            .setName(t("action_description_label"))
+            .setDesc(t("action_description_text"))
             .addTextArea((text) => {
                 text.inputEl.style.minWidth = "-webkit-fill-available";
                 text.inputEl.rows = 4;
                 text
-                    .setPlaceholder("Description")
+                    .setPlaceholder(t("action_description_label"))
                     .setValue(description || '')
                     .onChange((value: string) => {
                         this.communityAction.description = value;

@@ -71,10 +71,16 @@ export class FrontmatterService {
      * Sets multiple properties in the frontmatter.
      * @param {Record<string, Literal>} properties - The properties to set.
      */
-    public async setProperties(properties: Record<string, Literal>): Promise<void> {
+    public async setProperties(properties: Record<string, Literal>, toRemove: string[] = []): Promise<void> {
         await this.processFrontMatter(frontmatter => {
+            // Add or update properties
             Object.entries(properties).forEach(([key, value]) => {
                 frontmatter[key] = value;
+            });
+
+            // Remove specified properties
+            toRemove.forEach(key => {
+                delete frontmatter[key];
             });
         });
     }

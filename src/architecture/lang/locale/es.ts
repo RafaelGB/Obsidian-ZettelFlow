@@ -18,6 +18,7 @@ export default {
     welcome_tutorial_add_steps: 'Añade pasos a tu canvas y enlázalos como desees. Un paso es una nota de tu vault con una configuración especial de frontmatter',
     welcome_tutorial_steps_guide: 'Para usar una nota como paso puedes hacer click derecho sobre ella y seleccionar "Transformar en paso" o hacer click derecho sobre una carpeta y crear una nueva',
     welcome_tutorial_steps_examples: 'Puedes encontrar algunos ejemplos en el repositorio del plugin',
+    welcome_tutorial_steps_configure: 'Pasos para configurar tu flujo de trabajo',
     component_confirm: 'Confirmar',
     notice_canvas_not_set: 'Archivo canvas no establecido',
     command_open_workflow: 'Abrir flujo de trabajo',
@@ -53,6 +54,15 @@ export default {
     community_templates_browser_title: 'Navegador de plantillas de la comunidad',
     community_templates_browser_description: 'Explora las plantillas de la comunidad',
     community_templates_browser_button_text: 'Explorar',
+    community_templates_search_placeholder: 'Buscar por título, descripción o autor...',
+    community_templates_no_matching: 'No se encontraron plantillas coincidentes.',
+    community_templates_filter_all: 'Todos',
+    community_templates_filter_steps: 'Pasos',
+    community_templates_filter_actions: 'Acciones',
+    community_templates_type_step: 'Paso',
+    community_templates_type_action: 'Acción',
+    community_templates_type_template: 'Plantilla',
+    community_templates_author: 'Autor',
     unique_prefix_toggle_title: 'Prefijo único',
     unique_prefix_toggle_description: 'Activa o desactiva el prefijo único para tus notas',
     unique_prefix_pattern_title: 'Patrón de prefijo único',
@@ -64,6 +74,8 @@ export default {
     folders_flows_selector_title: 'Carpeta con la configuración de flujos automáticos',
     folders_flows_selector_description: 'Selecciona la carpeta donde guardarás tus flujos de ZettelFlow asignados a la configuración de carpetas. Los ficheros que se creen en esas carpetas automáticamente aplicarán el flujo configurado',
     folders_flows_selector_placeholder: 'Selecciona una carpeta',
+    hooks_flows_selector_title: 'Carpeta con los flujos asignados a los hooks',
+    hooks_flows_selector_description: 'Selecciona la carpeta donde guardarás tus flujos de ZettelFlow asignados a los hooks. Cuando un hook se active e indique un flujo, se ejecutará tras la acción del hook',
     step_builder_element_type_task_management_title: 'Gestión de tareas',
     step_builder_element_type_task_management_description: 'Añade la gestión de tareas a tu paso',
     step_builder_title: 'Constructor de pasos del ZettelFlow',
@@ -162,6 +174,9 @@ export default {
     step_builder_element_type_task_management_suffix_placeholder: '!',
     step_builder_element_type_task_management_is_content_title: 'Activar el comportamiento como contenido',
     step_builder_element_type_task_management_is_content_description: 'Cuando está activado, el rollover se  añadirá donde se coloque la clave "{{key}}" en la nota previamente',
+    step_templates_select_step: 'Selecciona un Paso',
+    step_templates_search_placeholder: 'Buscar por título, descripción o autor...',
+    step_templates_no_results: 'No se encontraron resultados.',
     // MENUS
     editor_menu_rigth_click_title: 'Opciones del editor de ZettelFlow',
     // NOTIFICATIONS
@@ -180,8 +195,78 @@ export default {
     property_hooks_add_title: 'Añadir Nuevo Hook de Propiedad',
     property_hooks_property_label: 'Propiedad',
     property_hooks_script_label: 'Script del Hook',
-    property_hooks_script_hint: 'Este script se ejecutará cuando el valor de la propiedad cambie. Tienes acceso a las siguientes variables: app, file (archivo actual), oldValue, newValue.',
+    property_hooks_script_hint: 'Este script se ejecutará cuando el valor de la propiedad cambie. Tienes acceso al objeto event que contiene datos de solicitud y respuesta, y al objeto zf con funciones de utilidad',
     property_hooks_select_property: 'Selecciona una propiedad...',
     property_hooks_cancel_button: 'Cancelar',
     property_hooks_save_button: 'Guardar Hook',
+    property_hooks_documentation: 'Ver documentación',
+    // Backlink component
+    backlink_select_file: 'Seleccionar un archivo',
+    backlink_select_heading: 'Seleccionar un encabezado',
+    backlink_regex_placeholder: 'Expresión regular',
+    backlink_continue: 'Continuar',
+    // Step builder modal
+    step_builder_copy_button: 'Copiar Paso',
+    step_builder_copy_button_title: 'Copiar el paso al portapapeles',
+    step_builder_apply_button: 'Aplicar Plantilla',
+    step_builder_apply_button_title: 'Aplicar una plantilla a este paso',
+    step_builder_save_template_button: 'Guardar como plantilla',
+    step_builder_save_template_button_title: 'Haz clic para guardar este paso como una plantilla reutilizable',
+    step_copied_notice: 'Paso copiado al portapapeles',
+    step_template_default_title: 'Nueva plantilla',
+    step_template_default_description: 'Descripción de la nueva plantilla',
+
+    // Installed step editor
+    installed_step_editor_title: 'Editor de Pasos Instalados',
+    remove_button: 'Eliminar',
+    remove_step_button_title: 'Eliminar este paso',
+    remove_action_button_title: 'Eliminar esta acción',
+    copy_to_clipboard_button: 'Copiar al portapapeles',
+    confirm_remove_step: '¿Estás seguro de que quieres eliminar este paso?',
+    confirm_remove_action: '¿Estás seguro de que quieres eliminar esta acción?',
+    confirm_remove_button: 'Eliminar',
+    confirm_cancel_button: 'Cancelar',
+    confirm_add_step: '¿Estás seguro de que quieres añadir como plantilla este paso?',
+    confirm_add_button: 'Añadir',
+    confirm_apply_template_step: '¿Estás seguro de que quieres aplicar una plantilla a este paso?',
+    confirm_apply_template_button: 'Aplicar plantilla',
+
+    // Installed action editor
+    installed_action_editor_title: 'Editor de Acciones Instaladas',
+    copy_action_button: 'Copiar Acción',
+    copy_action_button_title: 'Copiar la acción al portapapeles',
+    action_copied_notice: 'Acción copiada al portapapeles',
+    action_title_label: 'Título',
+    action_title_description: 'Título de la acción instalada',
+    action_description_label: 'Descripción',
+    action_description_text: 'Información sobre la acción instalada y su propósito',
+
+    // Community step modal
+    manage_button: 'Gestionar',
+
+    // Community templates metadata
+    template_author: 'Autor',
+    template_target_folder: 'Carpeta destino',
+    template_optional: 'Opcional',
+    template_root: 'Raíz',
+    template_actions: 'Acciones',
+    template_type: 'Tipo',
+    template_yes: '✅',
+    template_no: '❌',
+    template_downloads: 'Descargas',
+
+    // Community markdown modal
+    remove_markdown_button: 'Eliminar',
+    remove_markdown_button_title: 'Eliminar el archivo markdown',
+    download_button: 'Descargar',
+    download_button_title: 'Descargar el archivo markdown',
+    show_markdown_button: 'Cambiar a markdown',
+    show_preview_button: 'Cambiar a vista previa',
+
+    // Community action modal
+    uninstall_button: 'Desinstalar',
+    install_button: 'Instalar',
+
+    // Support
+    support_coffee_button: 'Invítame a un café',
 };

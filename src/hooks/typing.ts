@@ -11,5 +11,7 @@ export type HookEvent = {
     file: TFile;
     response: {
         frontmatter: Record<string, Literal>;
+        removeProperties: string[];
+        flowToTrigger?: string;
     }
 }

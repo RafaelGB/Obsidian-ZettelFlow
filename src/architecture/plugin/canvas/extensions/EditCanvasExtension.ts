@@ -25,7 +25,6 @@ export default class EditStepCanvasExtension extends CanvasExtension {
      */
     init(): void {
         this.plugin.registerEvent(
-            // TODO: check this flow for new additions - it crashes 
             this.plugin.app.workspace.on("canvas:popup-menu", async (eventCanvas: Canvas) => {
                 // Check if canvas is one of the ZettelFlow canvases
                 const file = this.plugin.app.workspace.getActiveFile();

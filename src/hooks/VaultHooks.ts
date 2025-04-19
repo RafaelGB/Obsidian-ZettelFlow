@@ -193,7 +193,14 @@ export class VaultHooks {
 
 
         if (event.response.flowToTrigger) {
-            const flow = await canvas.flows.update(event.response.flowToTrigger);
+
+            // Remove potential file extension
+            if (event.response.flowToTrigger.endsWith(".canvas")) {
+                event.response.flowToTrigger = event.response.flowToTrigger.slice(0, -6);
+            }
+            // Build the path to the flow file
+            const flowPath = `${this.plugin.settings.hooks.folderFlowPath}/${event.response.flowToTrigger}.canvas`;
+            const flow = await canvas.flows.update(flowPath);
             const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
             if (!activeView) {
                 return;

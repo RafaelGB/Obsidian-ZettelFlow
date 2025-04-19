@@ -172,11 +172,12 @@ export default class CanvasHelper {
         // Check if canvas is one of the ZettelFlow canvases
         const file = plugin.app.workspace.getActiveFile();
         if (!file) return false;
-        const { ribbonCanvas, editorCanvas, foldersFlowsPath } = plugin.settings;
+        const { ribbonCanvas, editorCanvas, foldersFlowsPath, hooks } = plugin.settings;
         if (
             ribbonCanvas !== file.path &&
             editorCanvas !== file.path &&
-            !file.path.startsWith(foldersFlowsPath)
+            !file.path.startsWith(foldersFlowsPath) &&
+            !file.path.startsWith(hooks.folderFlowPath)
         ) {
             return false;
         }

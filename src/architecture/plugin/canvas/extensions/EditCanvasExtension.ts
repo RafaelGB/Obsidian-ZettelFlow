@@ -4,6 +4,7 @@ import { setIcon, setTooltip } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
 import { StepBuilderModal } from "zettelkasten";
+import CanvasHelper from "./utils/CanvasHelper";
 
 interface MenuOption {
     id?: string;
@@ -29,11 +30,9 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 // Check if canvas is one of the ZettelFlow canvases
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (!file) return;
-                const { ribbonCanvas, editorCanvas, foldersFlowsPath } = this.plugin.settings;
+                const { ribbonCanvas } = this.plugin.settings;
                 if (
-                    ribbonCanvas !== file.path &&
-                    editorCanvas !== file.path &&
-                    !file.path.startsWith(foldersFlowsPath)
+                    !CanvasHelper.isCanvasFlow(this.plugin)
                 ) {
                     return;
                 }

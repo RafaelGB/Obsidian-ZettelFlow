@@ -71,6 +71,8 @@ export default {
     folders_flows_selector_title: 'Automatic folder configuration',
     folders_flows_selector_description: 'Select the folder where you will save your flows asigned to any other folder configuration. The files created in those folders will automatically apply the flow configuration',
     folders_flows_selector_placeholder: 'Select a folder for the flows',
+    hooks_flows_selector_title: 'Hooks folder configuration',
+    hooks_flows_selector_description: 'Select the folder where you will save your flows asigned to any other hook code. The flows will be executed when the hook indicates it after it is triggered',
     step_builder_title: 'ZettelFlow Step Builder',
     step_builder_root_toggle_title: 'Root toggle',
     step_builder_root_toggle_description: 'This toggle will set the current element as the root element.',

@@ -5,6 +5,7 @@ import { t } from "architecture/lang";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./components/PropertyHooksManager";
+import { FoldersFlowSelectorHandler } from "./FoldersFlowSelectorHandler";
 
 export class PropertyHooksHandler extends AbstractHandlerClass<SettingsHandlerInfo> {
   name = t("property_hooks_setting_title");
@@ -25,5 +26,9 @@ export class PropertyHooksHandler extends AbstractHandlerClass<SettingsHandlerIn
     root.render(<PropertyHooksManager plugin={plugin} />);
 
     return this.goNext(info);
+  }
+
+  manageNextHandler() {
+    this.nextHandler = new FoldersFlowSelectorHandler();
   }
 }

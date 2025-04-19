@@ -128,8 +128,8 @@ export class VaultHooks {
     };
 
     // Event triggered when a file is modified.
-    private onCacheUpdate = async (file: TFile, data: string, cache: CachedMetadata) => {
-        const hooks = Object.entries(this.plugin.settings.propertyHooks || {});
+    private onCacheUpdate = async (file: TFile, _data: string, cache: CachedMetadata) => {
+        const hooks = Object.entries(this.plugin.settings.hooks.properties || {});
         if (!this.currentFrontmatter) {
             this.currentFrontmatter = FrontmatterService.instance(file);
             return;

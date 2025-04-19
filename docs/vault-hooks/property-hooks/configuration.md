@@ -36,6 +36,7 @@ When writing your hook script, you have access to these variables:
   - `response`: Object where you can set new frontmatter values
     - `frontmatter`: Record of property/value pairs to update/add to the frontmatter
     - `removeProperties`: Array of properties to delete from the frontmatter
+    - `flowToTrigger`: Canvas name to trigger (if applicable). It must be avaliable in the vault inside the path defined in the ZettelFlow settings panel - hooks section. It can only be initialized once and will be triggered when the all hooks are finished.
 
 - `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
 

@@ -57,8 +57,15 @@ export interface ZettelFlowSettings {
          */
         clipboardTemplate?: CommunityStepSettings | CommunityAction;
     };
-    /** Global hooks that will be executed on property changes on current file */
-    propertyHooks: Record<string, PropertyHookSettings>;
+    hooks: {
+        /** Global hooks that will be executed on property changes on current file */
+        properties: Record<string, PropertyHookSettings>;
+
+        /** Folder path with the potential Flows to be executed by the hooks */
+        folderFlowPath: string;
+
+    }
+
 }
 
 
@@ -125,7 +132,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false, // Logging is disabled by default.
     uniquePrefixEnabled: false, // Unique prefix is disabled by default.
     uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
-    foldersFlowsPath: "_ZettelFlow", // Default folder for storing flows.
+    foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
     tableOfContentEnabled: true, // Table of contents is enabled by default.
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
@@ -135,5 +142,8 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         url: "http://127.0.0.1:8000", // Default URL for community resources.
         markdownTemplateFolder: "_ZettelFlowMdTemplates", // Default folder for Markdown templates.
     },
-    propertyHooks: {} // No property hooks are defined by default.
+    hooks: {
+        properties: {}, // No global hooks are defined by default.
+        folderFlowPath: "_ZettelFlow/hooks" // Default folder for flow scripts.
+    }
 };

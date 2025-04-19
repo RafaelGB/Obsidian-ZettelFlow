@@ -74,6 +74,8 @@ export default {
     folders_flows_selector_title: 'Carpeta con la configuración de flujos automáticos',
     folders_flows_selector_description: 'Selecciona la carpeta donde guardarás tus flujos de ZettelFlow asignados a la configuración de carpetas. Los ficheros que se creen en esas carpetas automáticamente aplicarán el flujo configurado',
     folders_flows_selector_placeholder: 'Selecciona una carpeta',
+    hooks_flows_selector_title: 'Carpeta con los flujos asignados a los hooks',
+    hooks_flows_selector_description: 'Selecciona la carpeta donde guardarás tus flujos de ZettelFlow asignados a los hooks. Cuando un hook se active e indique un flujo, se ejecutará tras la acción del hook',
     step_builder_element_type_task_management_title: 'Gestión de tareas',
     step_builder_element_type_task_management_description: 'Añade la gestión de tareas a tu paso',
     step_builder_title: 'Constructor de pasos del ZettelFlow',

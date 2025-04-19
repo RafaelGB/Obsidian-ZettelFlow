@@ -122,3 +122,17 @@ zettelkasten-flow__.modal-reader-type-section .icon {
 .zettelkasten-flow__options-modal-button:hover {
     background-color: var(--background-primary);
 }
+
+.zettelkasten-flow__readable-setting-item .setting-item-info {
+    max-width: 50%;
+}
+
+.zettelkasten-flow__readable-setting-item .setting-item-control {
+    min-width: 50%;
+}
+
+.zettelkasten-flow__readable-setting-item .search-input-container {
+    width: -webkit-fill-available;
+}
+
+        

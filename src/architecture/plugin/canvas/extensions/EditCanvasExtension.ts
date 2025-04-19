@@ -4,7 +4,7 @@ import { setIcon, setTooltip } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
 import { StepBuilderModal } from "zettelkasten";
-import { canvas } from "../Canvas";
+import CanvasHelper from "./utils/CanvasHelper";
 
 interface MenuOption {
     id?: string;
@@ -30,11 +30,9 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 // Check if canvas is one of the ZettelFlow canvases
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (!file) return;
-                const { ribbonCanvas, editorCanvas, foldersFlowsPath } = this.plugin.settings;
+                const { ribbonCanvas } = this.plugin.settings;
                 if (
-                    ribbonCanvas !== file.path &&
-                    editorCanvas !== file.path &&
-                    !file.path.startsWith(foldersFlowsPath)
+                    !CanvasHelper.isCanvasFlow(this.plugin)
                 ) {
                     return;
                 }
@@ -47,12 +45,9 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 if (eventCanvas.selection.size !== 1) return;
 
                 // Get the first (and only) selected node
-                const flow = await canvas.flows.update(file.path);
                 const selectedNode: CanvasElement = eventCanvas.selection.values().next().value;
 
                 // We need to use the flow information cause eventCanvas value could be outdated
-                const selectedNodeIndex = flow.data.nodes.findIndex((node) => node.id === selectedNode.getData().id);
-                flow.data.nodes[selectedNodeIndex].zettelflowConfig
                 const data = selectedNode.getData();
 
                 // Only generate icon if the node is text/group type (holds zettelflowConfig)
@@ -69,7 +64,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                     icon: RibbonIcon.ID,
                     callback: () => {
                         const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
-                        const zettelFlowSettings = flow.data.nodes[selectedNodeIndex].zettelflowConfig;
+                        const zettelFlowSettings = data.zettelflowConfig;
                         const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
 
                         new StepBuilderModal(this.plugin, {

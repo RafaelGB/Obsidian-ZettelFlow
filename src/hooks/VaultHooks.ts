@@ -128,8 +128,8 @@ export class VaultHooks {
     };
 
     // Event triggered when a file is modified.
-    private onCacheUpdate = async (file: TFile, data: string, cache: CachedMetadata) => {
-        const hooks = Object.entries(this.plugin.settings.propertyHooks || {});
+    private onCacheUpdate = async (file: TFile, _data: string, cache: CachedMetadata) => {
+        const hooks = Object.entries(this.plugin.settings.hooks.properties || {});
         if (!this.currentFrontmatter) {
             this.currentFrontmatter = FrontmatterService.instance(file);
             return;
@@ -186,9 +186,30 @@ export class VaultHooks {
             event.response.frontmatter,
             event.response.removeProperties
         );
+
         // Update the current frontmatter.
         this.currentFrontmatter = FrontmatterService.instance(file);
         this.isHookUpdating = false;
+
+
+        if (event.response.flowToTrigger) {
+
+            // Remove potential file extension
+            if (event.response.flowToTrigger.endsWith(".canvas")) {
+                event.response.flowToTrigger = event.response.flowToTrigger.slice(0, -6);
+            }
+            // Build the path to the flow file
+            const flowPath = `${this.plugin.settings.hooks.folderFlowPath}/${event.response.flowToTrigger}.canvas`;
+            const flow = await canvas.flows.update(flowPath);
+            const activeView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!activeView) {
+                return;
+            }
+
+            new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
+                .enableEditor(true)
+                .open();
+        }
     };
 
     // Execute the script defined in the global hook configuration.

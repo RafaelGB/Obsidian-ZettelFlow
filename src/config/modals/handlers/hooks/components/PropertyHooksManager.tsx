@@ -31,16 +31,16 @@ interface PropertyHooksManagerProps {
 export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
 }) => {
-  const { propertyHooks } = plugin.settings;
+  const { properties } = plugin.settings.hooks;
   // State variables
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>(
     {}
   );
   const [hooks, setHooks] = useState<Record<string, PropertyHookSettings>>(
-    propertyHooks || {}
+    properties || {}
   );
   const [hookOrder, setHookOrder] = useState<string[]>(
-    Object.keys(propertyHooks || [])
+    Object.keys(properties || [])
   );
   const [isAddingHook, setIsAddingHook] = useState(false);
   const [selectedNewProperty, setSelectedNewProperty] = useState("");
@@ -60,7 +60,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   }, []);
 
   const saveHooks = async (newHooks: Record<string, PropertyHookSettings>) => {
-    plugin.settings.propertyHooks = newHooks;
+    plugin.settings.hooks.properties = newHooks;
     await plugin.saveSettings();
     log.debug("Hooks saved:", newHooks);
   };
@@ -84,7 +84,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
         });
 
         setHooks(orderedHooks);
-        plugin.settings.propertyHooks = orderedHooks;
+        plugin.settings.hooks.properties = orderedHooks;
         plugin.saveSettings();
       }
     }

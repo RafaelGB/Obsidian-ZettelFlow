@@ -6,3 +6,10 @@ export type Completion = {
     boost: number;
     render?: (completion: Completion) => string;
 };
+export type CompletionLeaf = Completion | Completion[];
+
+export type CompletionNode = Record<string, CompletionLeaf>;
+
+export type CompletionTree = {
+    [key: string]: CompletionNode | CompletionLeaf;
+};

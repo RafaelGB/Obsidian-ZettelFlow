@@ -1,5 +1,5 @@
 import { basicSetup } from "codemirror";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Extension } from "@codemirror/state";
 import { EditorView, ViewUpdate, placeholder, lineNumbers, tooltips, keymap } from "@codemirror/view";
 import { javascript } from "@codemirror/lang-javascript";
 import { codeFolding, bracketMatching, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
@@ -11,7 +11,8 @@ import { customAutocomplete } from "./extensions/autoconfiguration/Autocompletio
 export function dispatchEditor(
     parentEl: HTMLDivElement,
     code: string, onChange:
-        (update: ViewUpdate) => void
+        (update: ViewUpdate) => void,
+    extraExtensions: Extension[] = []
 ) {
     const editorView = new EditorView({
         state: EditorState.create({
@@ -32,6 +33,8 @@ export function dispatchEditor(
                 syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
                 // Listener to update the 'code' variable when the editor changes
                 EditorView.updateListener.of(onChange),
+                // Add any extra extensions passed in
+                ...extraExtensions
             ],
         }),
         parent: parentEl,

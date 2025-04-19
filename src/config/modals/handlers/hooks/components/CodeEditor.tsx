@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { c } from "architecture";
 import { EditorView } from "codemirror";
 import { dispatchEditor } from "architecture/components/core";
+import { hookAutocomplete } from "../extensions/autoconfiguration/HookAutocomplete";
 
 interface CodeEditorProps {
   value: string;
@@ -19,11 +20,16 @@ export const CodeEditor = ({ value, onChange }: CodeEditorProps) => {
     if (viewRef.current) {
       viewRef.current.destroy();
     }
-    const view = dispatchEditor(editorRef.current, value, (update) => {
-      if (update.docChanged) {
-        onChange(update.state.doc.toString());
-      }
-    });
+    const view = dispatchEditor(
+      editorRef.current,
+      value,
+      (update) => {
+        if (update.docChanged) {
+          onChange(update.state.doc.toString());
+        }
+      },
+      [hookAutocomplete]
+    );
 
     viewRef.current = view;
 

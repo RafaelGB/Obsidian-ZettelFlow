@@ -1,21 +1,23 @@
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
-import { coreCompletions } from "./config/CoreObjs";
-import { appCompletions } from "./config/AppFns";
-import { Completion } from "./typing";
-import { integrationsCompletions, internalVaultCompletions, zfCompletions } from "./config/ZettelFlowFns";
 import { javascriptLanguage } from "@codemirror/lang-javascript";
+
+import { Completion, CompletionTree } from "architecture/components/core";
+import { noteCompletions } from "./config/NoteFns";
+import { contentCompletions } from "./config/ContentFns";
 import { c } from "architecture";
 
-const completionsTree = {
-    app: appCompletions,
-    zf: {
-        ...zfCompletions,
-        internal: {
-            vault: internalVaultCompletions
-        },
-        external: integrationsCompletions
+// Define the structure of the event object
+const scriptActionTree: CompletionTree = {
+    note: noteCompletions,
+    content: contentCompletions,
+    context: {
+        label: "context",
+        type: "object",
+        info: "Empty object to communicate information between script actions",
+        detail: "✨ ZettelFlow Script Action",
+        boost: 1
     }
-};
+}
 
 /**
  * Verify if the node is an array of Completion objects
@@ -38,7 +40,7 @@ function findCompletions(
             type: 'object',
             info: 'ZF API',
             boost: 99, // Prioritize ZettelFlow completions
-            detail: '✨ ZettelFlow' // Visual indicator for ZettelFlow
+            detail: '✨ ZettelFlow Script Action' // Visual indicator for ZettelFlow
         }));
     }
 
@@ -86,15 +88,15 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
         if (segments.length > 0) {
             // Check if first segment is one of our custom objects
             const rootSegment = segments[0];
-            const rootCompletion = coreCompletions.find(c => c.label === rootSegment);
+            const rootCompletion = Object.keys(scriptActionTree).find(c => c === rootSegment);
 
             if (rootCompletion) {
-                const completions = findCompletions(segments, completionsTree);
+                const completions = findCompletions(segments, scriptActionTree);
                 if (completions && completions.length > 0) {
                     // Enhance all completions with ZettelFlow styling
                     const enhancedCompletions = completions.map(c => ({
                         ...c,
-                        detail: c.detail || '✨ ZettelFlow',
+                        detail: c.detail || '✨ ZettelFlow Script Action',
                         info: c.info || 'ZF API',
                         boost: c.boost || 99, // Prioritize over standard completions
                         render: c.render || createZettelFlowRenderer(c)
@@ -126,17 +128,10 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
         return null;
     }
 
-    // If first segment is not a core object, return null to allow default JS completion
-    const rootSegment = segments[0];
-    const rootCompletion = coreCompletions.find(c => c.label === rootSegment);
-    if (!rootCompletion) {
-        return null; // Let default JS completion handle this
-    }
-
     // Find the completions for the current segments
     const completionSegments = [...segments];
     const lastSegment = completionSegments.pop() || '';
-    const completions = findCompletions(completionSegments, completionsTree);
+    const completions = findCompletions(completionSegments, scriptActionTree);
     if (!completions || completions.length === 0) return null;
 
     // Filter the completions by the last segment
@@ -147,7 +142,7 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
     // Enhance all completions with ZettelFlow styling
     const enhancedCompletions = filtered.map(c => ({
         ...c,
-        detail: c.detail || '✨ ZettelFlow',
+        detail: c.detail || '✨ ZettelFlow Script Action',
         info: c.info || 'ZF API',
         boost: c.boost || 99, // Prioritize over standard completions
         render: c.render || createZettelFlowRenderer(c)
@@ -198,7 +193,6 @@ function createZettelFlowRenderer(completion: Completion): (element: HTMLElement
     };
 }
 
-export const customAutocomplete = javascriptLanguage.data.of({
+export const scriptActionAutocomplete = javascriptLanguage.data.of({
     autocomplete: customCompletionProvider
 });
-

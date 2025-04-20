@@ -3,40 +3,9 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { MarkdownService } from "architecture/plugin";
 import ZettelFlow from "main";
-
-// --- Type Definitions for Flow Data Structures ---
-interface FlowNode {
-  id: string;
-  type: string;
-  styleAttributes: Record<string, unknown>;
-  zettelflowConfig?: string;
-  text?: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color?: string;
-  label?: string;
-}
-
-interface FlowEdge {
-  id: string;
-  fromNode: string;
-  fromSide: string;
-  toNode: string;
-  toSide: string;
-  color?: string;
-  label?: string;
-}
-
-interface FlowData {
-  title: string;
-  description: string;
-  template_type: string;
-  author: string;
-  nodes: FlowNode[];
-  edges: FlowEdge[];
-}
+import { FlowData, FlowNode } from "./typing";
+import { CommunityStepSettings } from "config";
+import { actionsStore } from "architecture/api";
 
 /**
  * Modal to display community flow previews, metadata, nodes, and connections.
@@ -180,39 +149,100 @@ export class CommunityFlowModal extends Modal {
       const list = typeBlock.createEl("ul", { cls: c("flow-nodes-list") });
       nodes.forEach((node) => {
         const item = list.createEl("li", { cls: c("flow-node-item") });
-        const header = item.createDiv({ cls: c("flow-node-header") });
-        const title = node.label ?? node.text?.slice(0, 30) ?? node.id;
-        header.createEl("span", { text: title });
-        const icon = header.createDiv({ cls: c("flow-node-expand-icon") });
-        setIcon(icon, "chevron-down");
 
-        const content = item.createDiv({
-          cls: `${c("flow-node-content")} is-collapsed`,
-        });
-        header.addEventListener("click", () => {
-          content.toggleClass(
-            "is-collapsed",
-            !content.hasClass("is-collapsed")
-          );
-          setIcon(
-            icon,
-            content.hasClass("is-collapsed") ? "chevron-down" : "chevron-up"
-          );
+        // Create accordion header
+        const accordionHeader = item.createDiv({
+          cls: c("flow-node-accordion-header"),
         });
 
-        const details = content.createEl("ul", { cls: c("flow-node-details") });
-        details.createEl("li", { text: `ID: ${node.id}` });
-        details.createEl("li", { text: `Position: x=${node.x}, y=${node.y}` });
-        details.createEl("li", { text: `Size: ${node.width}×${node.height}` });
-        if (node.color)
-          details.createEl("li", { text: `Color: ${node.color}` });
-        if (node.zettelflowConfig) {
-          const configItem = details.createEl("li");
-          configItem.createEl("span", { text: "ZettelFlow Config:" });
-          configItem
-            .createEl("pre", { cls: c("flow-node-config") })
-            .createEl("code", { text: node.zettelflowConfig });
+        // Add node title/label to header
+        const nodeTitle =
+          node.text || node.label || `Node ${node.id.substring(0, 6)}...`;
+        accordionHeader.createEl("span", {
+          text: nodeTitle,
+          cls: c("flow-node-title"),
+        });
+
+        // Add toggle indicator
+        const toggleIndicator = accordionHeader.createSpan({
+          cls: c("flow-node-toggle"),
+        });
+        toggleIndicator.setText("▶");
+
+        // Create accordion content (initially hidden)
+        const accordionContent = item.createDiv({
+          cls: c("flow-node-accordion-content"),
+        });
+        accordionContent.style.display = "none";
+
+        // Add color badge if node has a color
+        if (node.color) {
+          const colorSection = accordionContent.createDiv({
+            cls: c("flow-node-color"),
+          });
+          colorSection.createEl("span", { text: "Color: " });
+          const colorBadge = colorSection.createSpan({
+            cls: c("flow-node-color-badge"),
+          });
+          colorBadge.style.backgroundColor = node.color;
         }
+
+        // Add node text if it exists and is different from the title
+        if (node.text && node.text !== nodeTitle) {
+          const textSection = accordionContent.createDiv({
+            cls: c("flow-node-text"),
+          });
+          textSection.createEl("div", { text: node.text });
+        }
+
+        // Add actions section only if actions exist
+        if (node.zettelflowConfig) {
+          try {
+            const zettelflowConfig = JSON.parse(
+              node.zettelflowConfig
+            ) as CommunityStepSettings;
+
+            if (
+              zettelflowConfig.actions &&
+              zettelflowConfig.actions.length > 0
+            ) {
+              const actionsSection = accordionContent.createDiv({
+                cls: c("flow-node-actions"),
+              });
+              actionsSection.createEl("h5", { text: t("template_actions") });
+
+              zettelflowConfig.actions.forEach((action) => {
+                const actionEl = actionsSection.createDiv({
+                  cls: c("modal-reader-action-section"),
+                });
+                const currentAction = actionsStore.getAction(action.type);
+                actionEl.createEl("p", {
+                  text: `${t("template_type")}: ${currentAction.getLabel()}`,
+                });
+                actionEl.createEl("p", {
+                  text: `${t("action_description_label")}: ${
+                    action.description
+                  }`,
+                });
+                setIcon(actionEl.createDiv(), currentAction.getIcon());
+                const settingsSection = actionsSection.createDiv({
+                  cls: c("modal-reader-section"),
+                });
+                currentAction.settingsReader(settingsSection, action);
+              });
+            }
+          } catch (error) {
+            console.error("Error parsing zettelflowConfig:", error);
+          }
+        }
+
+        // Add click event to toggle accordion
+        accordionHeader.addEventListener("click", () => {
+          const isExpanded = accordionContent.style.display !== "none";
+          accordionContent.style.display = isExpanded ? "none" : "block";
+          toggleIndicator.setText(isExpanded ? "▶" : "▼");
+          accordionHeader.toggleClass(c("expanded"), !isExpanded);
+        });
       });
     }
   }

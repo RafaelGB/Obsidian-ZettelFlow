@@ -1,0 +1,79 @@
+{
+  "title": "Add a new Callout",
+  "description": "This step will help you to add a new callout to your document. You can choose the type of callout, the mode (expanded or collapsed), and the title and body of the callout. It is designed for editor canvas file",
+  "template_type": "step",
+  "author": "RafaelGB",
+  "id": "9bba8ede-e6a1-40e6-a20a-ec3ccdb2aadb",
+  "root": true,
+  "actions": [
+    {
+      "type": "selector",
+      "hasUI": true,
+      "id": "5391dcf6-5ced-416c-a8ce-2331213ac208",
+      "zone": "context",
+      "description": "Callout Type",
+      "key": "calloutType",
+      "label": "Callout Type",
+      "defaultOption": "note",
+      "options": [
+        ["note", "🔵 ✏️ Note"],
+        ["info", "🔵 ℹ️ Info"],
+        ["todo", "🔵 🔳 Todo"],
+        ["tip", "🌐 🔥 Tip / Hint / Important"],
+        ["abstract", "🌐 📋 Abstract / Summary / TLDR"],
+        ["question", "🟡 ❓ Question / Help / FAQ"],
+        ["quote", "🔘 💬 Quote / Cite"],
+        ["example", "🟣 📑 Example"],
+        ["success", "🟢 ✔️ Success / Check / Done"],
+        ["warning", "🟠 ⚠️ Warning / Caution / Attention"],
+        ["failure", "🔴 ❌ Failure / Fail / Missing"],
+        ["danger", "🔴 ⚡️ Danger / Erro"],
+        ["bug", "🔴 🐞 Bug"]
+      ]
+    },
+    {
+      "type": "selector",
+      "hasUI": true,
+      "id": "d9bad44e-621e-4afc-a824-0f4754020589",
+      "zone": "context",
+      "description": "Callout Mode",
+      "key": "calloutMode",
+      "label": "Callout Mode",
+      "defaultOption": "None",
+      "options": [
+        ["", "None"],
+        ["+", "Expanded"],
+        ["-", "Collapsed"]
+      ]
+    },
+    {
+      "type": "prompt",
+      "hasUI": true,
+      "id": "a7ab8b98-d149-4b7b-acb4-c1aff7984447",
+      "zone": "context",
+      "description": "Title",
+      "key": "title",
+      "label": "Title of the callout",
+      "placeholder": "write here the title of your callout"
+    },
+    {
+      "type": "prompt",
+      "hasUI": true,
+      "id": "18e38ea3-4d5d-4076-a152-a2faabf33704",
+      "zone": "context",
+      "description": "Body",
+      "key": "body",
+      "label": "Body of the callout",
+      "placeholder": "Write here the bodoy of the callout"
+    },
+    {
+      "type": "script",
+      "hasUI": false,
+      "id": "84fc744a-abbb-4b55-84e9-850e236a5a64",
+      "description": "Build Callout",
+      "code": "const {calloutType, calloutMode, title, body} = context;\nconst calloutHead = `> [!${calloutType}]${calloutMode} **${title}**\\n`;\nconst calloutText = body.split('\\n').map(line => `> ${line}`).join('\\n');\ncontent.add(`${calloutHead}${calloutText}`);"
+    }
+  ],
+  "label": "Calloul type",
+  "childrenHeader": ""
+}

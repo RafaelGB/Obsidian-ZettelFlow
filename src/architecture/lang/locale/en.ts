@@ -181,7 +181,7 @@ export default {
     step_copied_notice: 'Step copied to clipboard',
     step_template_default_title: 'New template',
     step_template_default_description: 'New template description',
-
+    step_template_already_exists: 'Template already exists. It will be overwritten',
     // Installed step editor
     installed_step_editor_title: 'Installed Step Editor',
     remove_button: 'Remove',

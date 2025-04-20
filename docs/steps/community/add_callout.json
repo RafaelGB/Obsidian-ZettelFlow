@@ -1,5 +1,5 @@
 {
-  "title": "Add a new Callout",
+  "title": "Insert a new Callout",
   "description": "This step will help you to add a new callout to your document. You can choose the type of callout, the mode (expanded or collapsed), and the title and body of the callout. It is designed for editor canvas file",
   "template_type": "step",
   "author": "RafaelGB",

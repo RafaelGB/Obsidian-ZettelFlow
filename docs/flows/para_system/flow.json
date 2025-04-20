@@ -1,0 +1,179 @@
+{
+  "title": "PARA classify system",
+  "description": "This flow is used to classify notes in the PARA system. It helps you decide if a note should be classified as a project, area, resource, or archive.",
+  "template_type": "flow",
+  "author": "RafaelGB",
+  "nodes": [
+    {
+      "id": "7de245ad599fd980",
+      "styleAttributes": {},
+      "type": "group",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"\",\"childrenHeader\":\"\"}",
+      "x": 880,
+      "y": -127,
+      "width": 1125,
+      "height": 955,
+      "color": "5",
+      "label": "PARA classify system"
+    },
+    {
+      "id": "5ae240fa25d495da",
+      "styleAttributes": {},
+      "text": "# Classify Note",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":true,\"actions\":[],\"label\":\"Classify the note\",\"childrenHeader\":\"\"}",
+      "x": 1087,
+      "y": -45,
+      "width": 250,
+      "height": 65,
+      "color": "6"
+    },
+    {
+      "id": "d3f0b098efa839bf",
+      "styleAttributes": {},
+      "text": "Will this help me move a current project or goal forward?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"First step\",\"childrenHeader\":\"Will this help me move a current project or goal forward?\"}",
+      "x": 1066,
+      "y": 118,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    },
+    {
+      "id": "5c9528ac5e335984",
+      "styleAttributes": {},
+      "text": "## Project",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\n\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}",
+      "x": 935,
+      "y": 317,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "a48083166804aeef",
+      "styleAttributes": {},
+      "text": "## Area",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on Areas\",\"childrenHeader\":\"\"}",
+      "x": 1066,
+      "y": 525,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "fb13860ed697c910",
+      "styleAttributes": {},
+      "text": "# Delete",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Delete it\",\"childrenHeader\":\"\"}",
+      "x": 1797,
+      "y": 680,
+      "width": 159,
+      "height": 82,
+      "color": "1"
+    },
+    {
+      "id": "864dc515580bf9f3",
+      "styleAttributes": {},
+      "text": "## Resoruces",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on resources\",\"childrenHeader\":\"\"}",
+      "x": 1308,
+      "y": 689,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "302774077c42731d",
+      "styleAttributes": {},
+      "text": "Will this help me uphold an area of responsibility?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will this help me uphold an area of responsibility?\"}",
+      "x": 1308,
+      "y": 317,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    },
+    {
+      "id": "34dd3bd4cbce9c6a",
+      "styleAttributes": {},
+      "text": "Will it support one of my interest or curiosities?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}",
+      "x": 1505,
+      "y": 506,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    }
+  ],
+  "edges": [
+    {
+      "id": "f0db70c043129c22",
+      "fromNode": "5ae240fa25d495da",
+      "fromSide": "bottom",
+      "toNode": "d3f0b098efa839bf",
+      "toSide": "top"
+    },
+    {
+      "id": "661cf914b56cbf43",
+      "fromNode": "d3f0b098efa839bf",
+      "fromSide": "bottom",
+      "toNode": "5c9528ac5e335984",
+      "toSide": "top",
+      "color": "4",
+      "label": "yes"
+    },
+    {
+      "id": "4d89c14340982f3e",
+      "fromNode": "d3f0b098efa839bf",
+      "fromSide": "bottom",
+      "toNode": "302774077c42731d",
+      "toSide": "top",
+      "color": "1",
+      "label": "no"
+    },
+    {
+      "id": "44f2b661f692365b",
+      "fromNode": "302774077c42731d",
+      "fromSide": "bottom",
+      "toNode": "a48083166804aeef",
+      "toSide": "top",
+      "color": "4",
+      "label": "yes"
+    },
+    {
+      "id": "6cc24ea8b078f081",
+      "fromNode": "34dd3bd4cbce9c6a",
+      "fromSide": "bottom",
+      "toNode": "fb13860ed697c910",
+      "toSide": "top",
+      "color": "1",
+      "label": "no"
+    },
+    {
+      "id": "82ae5c303697541b",
+      "fromNode": "34dd3bd4cbce9c6a",
+      "fromSide": "bottom",
+      "toNode": "864dc515580bf9f3",
+      "toSide": "top",
+      "color": "4",
+      "label": "yes"
+    },
+    {
+      "id": "51db4bbdcf3fd126",
+      "fromNode": "302774077c42731d",
+      "fromSide": "bottom",
+      "toNode": "34dd3bd4cbce9c6a",
+      "toSide": "top",
+      "color": "1",
+      "label": "no"
+    }
+  ]
+}

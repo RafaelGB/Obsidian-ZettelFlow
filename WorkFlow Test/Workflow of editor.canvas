@@ -148,19 +148,6 @@
     {
       "color": "4",
       "height": 73,
-      "id": "5c9528ac5e335984",
-      "styleAttributes": {
-      },
-      "text": "## Project",
-      "type": "text",
-      "width": 198,
-      "x": 935,
-      "y": 317,
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\n\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}"
-    },
-    {
-      "color": "4",
-      "height": 73,
       "id": "a48083166804aeef",
       "styleAttributes": {
       },
@@ -222,6 +209,19 @@
       "x": 1505,
       "y": 506,
       "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}"
+    },
+    {
+      "color": "4",
+      "height": 73,
+      "id": "5c9528ac5e335984",
+      "styleAttributes": {
+      },
+      "text": "## Project",
+      "type": "text",
+      "width": 198,
+      "x": 935,
+      "y": 317,
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\n\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}"
     }
   ]
 }

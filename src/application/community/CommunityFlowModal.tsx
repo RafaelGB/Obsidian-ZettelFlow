@@ -6,11 +6,13 @@ import ZettelFlow from "main";
 import { FlowData, FlowNode } from "./typing";
 import { CommunityStepSettings } from "config";
 import { actionsStore } from "architecture/api";
+import { getCanvasColor } from "architecture/plugin/canvas/shared/Color";
 
 /**
  * Modal to display community flow previews, metadata, nodes, and connections.
  */
 export class CommunityFlowModal extends Modal {
+  private nodesRef: Record<string, string> = {};
   private isImageExpanded = false;
   private objectUrl: string | null = null;
 
@@ -147,7 +149,8 @@ export class CommunityFlowModal extends Modal {
       });
 
       const list = typeBlock.createEl("ul", { cls: c("flow-nodes-list") });
-      nodes.forEach((node) => {
+      nodes.forEach((node, index) => {
+        this.nodesRef[node.id] = `${type}(${index})`;
         const item = list.createEl("li", { cls: c("flow-node-item") });
 
         // Create accordion header
@@ -159,7 +162,7 @@ export class CommunityFlowModal extends Modal {
         const nodeTitle =
           node.text || node.label || `Node ${node.id.substring(0, 6)}...`;
         accordionHeader.createEl("span", {
-          text: nodeTitle,
+          text: `${this.nodesRef[node.id]} - ${nodeTitle}`,
           cls: c("flow-node-title"),
         });
 
@@ -184,7 +187,10 @@ export class CommunityFlowModal extends Modal {
           const colorBadge = colorSection.createSpan({
             cls: c("flow-node-color-badge"),
           });
-          colorBadge.style.backgroundColor = node.color;
+          const color = getComputedStyle(activeDocument.documentElement)
+            .getPropertyValue(getCanvasColor(node.color))
+            .trim();
+          colorBadge.style.backgroundColor = color;
         }
 
         // Add node text if it exists and is different from the title
@@ -263,20 +269,22 @@ export class CommunityFlowModal extends Modal {
 
     this.flow.edges.forEach((edge) => {
       const item = list.createEl("li", { cls: c("flow-edge-item") });
-      const from = this.flow.nodes.find((n) => n.id === edge.fromNode);
-      const to = this.flow.nodes.find((n) => n.id === edge.toNode);
-      const label = `${from?.label ?? edge.fromNode} → ${
-        to?.label ?? edge.toNode
+      const label = `${this.nodesRef[edge.fromNode]} → ${
+        this.nodesRef[edge.toNode]
       }`;
 
       const header = item.createDiv({ cls: c("flow-edge-header") });
       header.createEl("span", {
-        text: label + (edge.label ? ` (${edge.label})` : ""),
+        text: label,
       });
-      if (edge.color)
+      if (edge.color) {
+        const color = getComputedStyle(activeDocument.documentElement)
+          .getPropertyValue(getCanvasColor(edge.color))
+          .trim();
         header.createEl("span", {
           cls: c("flow-edge-color-badge"),
-        }).style.backgroundColor = edge.color;
+        }).style.backgroundColor = color;
+      }
     });
   }
 

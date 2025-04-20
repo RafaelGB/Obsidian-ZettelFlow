@@ -10,9 +10,10 @@ import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
+import { CommunityFlowModal } from "../CommunityFlowModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/community-docs";
 
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");
@@ -44,6 +45,16 @@ async function fetchStepTemplate(ref: string) {
   return JSON.parse(rawList) as CommunityStepSettings;
 }
 
+async function fetchFlowTemplate(ref: string) {
+  log.debug("Fetching flow template", ref);
+  const rawList = await request({
+    url: `${BASE_URL}${ref}/flow.json`,
+    method: "GET",
+    contentType: "application/json",
+  });
+  return JSON.parse(rawList);
+}
+
 async function fetchMarkdownTemplate(ref: string) {
   log.debug("Fetching markdown template", ref);
   const markdown = await request({
@@ -61,9 +72,9 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   // Estados
   const [searchTerm, setSearchTerm] = useState("");
   const [targetSearchTerm, setTargetSearchTerm] = useState("");
-  const [filter, setFilter] = useState<"all" | "step" | "action" | "markdown">(
-    "all"
-  );
+  const [filter, setFilter] = useState<
+    "all" | "step" | "action" | "markdown" | "flow"
+  >("all");
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -121,7 +132,9 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     }, 400);
   };
 
-  const handleSetFilter = (value: "all" | "step" | "action" | "markdown") => {
+  const handleSetFilter = (
+    value: "all" | "step" | "action" | "markdown" | "flow"
+  ) => {
     setFilter(value);
   };
 
@@ -158,17 +171,32 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           filename
         ).open();
       }
+    } else if (template.template_type === "flow") {
+      try {
+        const flow = await fetchFlowTemplate(template.ref);
+        new CommunityFlowModal(
+          plugin,
+          flow,
+          `${BASE_URL}${template.ref}/image.png`,
+          handleRefresh
+        ).open();
+      } catch (error) {
+        log.error("Error loading flow template:", error);
+      }
     }
   };
 
   // Mapeo de cada filtro a su clase de color (usa las mismas que en las cards)
-  const FILTER_COLORS: Record<"all" | "step" | "action" | "markdown", string> =
-    {
-      all: "template-type-all", // Puedes definir este color en CSS o elegir otro
-      step: "template-type-step",
-      action: "template-type-action",
-      markdown: "template-type-markdown",
-    };
+  const FILTER_COLORS: Record<
+    "all" | "step" | "action" | "markdown" | "flow",
+    string
+  > = {
+    all: "template-type-all", // Puedes definir este color en CSS o elegir otro
+    step: "template-type-step",
+    action: "template-type-action",
+    markdown: "template-type-markdown",
+    flow: "template-type-flow",
+  };
 
   return (
     <div className={c("community-templates-gallery")}>
@@ -181,27 +209,29 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           className={c("community-templates-search")}
         />
         <div className={c("community-templates-filters")}>
-          {(["all", "step", "action", "markdown"] as const).map((type) => {
-            const classesToApply = [
-              "community-templates-filter-button",
-              FILTER_COLORS[type],
-            ];
-            if (filter === type)
-              classesToApply.push(
-                "community-templates-filter-button-is-active"
+          {(["all", "step", "action", "markdown", "flow"] as const).map(
+            (type) => {
+              const classesToApply = [
+                "community-templates-filter-button",
+                FILTER_COLORS[type],
+              ];
+              if (filter === type)
+                classesToApply.push(
+                  "community-templates-filter-button-is-active"
+                );
+              return (
+                <button
+                  key={type}
+                  onClick={() => handleSetFilter(type)}
+                  className={c(...classesToApply)}
+                >
+                  {type === "all"
+                    ? "All"
+                    : type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
               );
-            return (
-              <button
-                key={type}
-                onClick={() => handleSetFilter(type)}
-                className={c(...classesToApply)}
-              >
-                {type === "all"
-                  ? "All"
-                  : type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            );
-          })}
+            }
+          )}
         </div>
       </div>
 

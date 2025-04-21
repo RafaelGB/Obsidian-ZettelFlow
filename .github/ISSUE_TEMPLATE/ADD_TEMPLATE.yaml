@@ -46,8 +46,10 @@ body:
       label: Wich type of template are you submitting?
       multiple: false
       options:
+        - Flow
         - Step
         - Action
+        - Markdown
     validations:
       required: true
   - type: checkboxes

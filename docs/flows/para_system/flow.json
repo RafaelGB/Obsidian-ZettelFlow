@@ -41,18 +41,6 @@
       "color": "3"
     },
     {
-      "id": "5c9528ac5e335984",
-      "styleAttributes": {},
-      "text": "## Project",
-      "type": "text",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\n\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}",
-      "x": 935,
-      "y": 317,
-      "width": 198,
-      "height": 73,
-      "color": "4"
-    },
-    {
       "id": "a48083166804aeef",
       "styleAttributes": {},
       "text": "## Area",
@@ -60,6 +48,18 @@
       "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on Areas\",\"childrenHeader\":\"\"}",
       "x": 1066,
       "y": 525,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "5c9528ac5e335984",
+      "styleAttributes": {},
+      "text": "## Project",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"calendar\",\"hasUI\":true,\"id\":\"db000280-4584-453b-9f9f-9c6dbcc8388b\",\"description\":\"deadline\",\"key\":\"deadline\",\"label\":\"add Deadline\"},{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"80b7bbca-f593-4536-bdaf-32b067d0fd63\",\"zone\":\"context\",\"description\":\"Select project\",\"code\":\"const testFolders = app.vault.getAllFolders();\\nreturn testFolders.map(folder => [folder.path,folder.name]);\",\"key\":\"projectOptions\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to selected project\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = \\\"1. 🧑🏼‍💻 Mis proyectos\\\" + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\n\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}",
+      "x": 935,
+      "y": 317,
       "width": 198,
       "height": 73,
       "color": "4"
@@ -77,9 +77,21 @@
       "color": "1"
     },
     {
+      "id": "34dd3bd4cbce9c6a",
+      "styleAttributes": {},
+      "text": "Will it support one of my interest or curiosities?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}",
+      "x": 1505,
+      "y": 506,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    },
+    {
       "id": "864dc515580bf9f3",
       "styleAttributes": {},
-      "text": "## Resoruces",
+      "text": "## Resources",
       "type": "text",
       "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Yes! Save on resources\",\"childrenHeader\":\"\"}",
       "x": 1308,
@@ -96,18 +108,6 @@
       "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will this help me uphold an area of responsibility?\"}",
       "x": 1308,
       "y": 317,
-      "width": 292,
-      "height": 92,
-      "color": "3"
-    },
-    {
-      "id": "34dd3bd4cbce9c6a",
-      "styleAttributes": {},
-      "text": "Will it support one of my interest or curiosities?",
-      "type": "text",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}",
-      "x": 1505,
-      "y": 506,
       "width": 292,
       "height": 92,
       "color": "3"
@@ -175,5 +175,9 @@
       "color": "1",
       "label": "no"
     }
-  ]
+  ],
+  "center": {
+    "x": 1442.5,
+    "y": 350.5
+  }
 }

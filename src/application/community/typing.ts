@@ -19,6 +19,8 @@ export interface FlowNode {
     height: number;
     color?: string;
     label?: string;
+    [key: string]: any;
+    // Additional properties can be added as needed
 }
 
 export interface FlowEdge {
@@ -31,7 +33,7 @@ export interface FlowEdge {
     label?: string;
 }
 
-export interface FlowData {
+export interface CommunityFlowData {
     title: string;
     description: string;
     template_type: string;

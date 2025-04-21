@@ -1,10 +1,11 @@
-import { Canvas, CanvasNode, Position } from "obsidian/canvas";
+import { AllCanvasNodeData, Canvas, CanvasEdgeData, CanvasNode, Position } from "obsidian/canvas";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
-import { UsedInstalledStepsModal } from "application/community";
+import { CommunityFlowData, UsedInstalledStepsModal } from "application/community";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { OptionsModal, Option } from "architecture/components/settings";
 import { StepSettings } from "zettelkasten";
+import { Notice } from "obsidian";
 
 const GROUP_NODE_SIZE = { width: 300, height: 300 };
 const TEXT_NODE_SIZE = { width: 300, height: 100 };
@@ -30,11 +31,42 @@ export default class AddManagedStepExtension extends CanvasExtension {
                 // Proceed only if the canvas is a ZettelFlow canvas.
                 if (CanvasHelper.isCanvasFlow(this.plugin)) {
                     this.addManagedStepOption(canvas);
+                    this.addClipboardOption(canvas);
                 }
             })
         );
     }
 
+    private addClipboardOption(canvas: Canvas): void {
+        const cardMenuOption = CanvasHelper.createCardMenuOption(
+            canvas,
+            {
+                id: "import-flow-data",
+                label: "Import Flow Data from Clipboard",
+                icon: "layout-template"
+            },
+            () => GROUP_NODE_SIZE,
+            (canvas: Canvas, pos: Position) => this.importFlowData(canvas, pos)
+        );
+
+        CanvasHelper.addCardMenuOption(canvas, cardMenuOption);
+    }
+    private importFlowData(canvas: Canvas, pos: Position): void {
+        const potentialData = this.plugin.settings.communitySettings.clipboardTemplate;
+        if (!potentialData || potentialData.template_type !== "flow") {
+            new Notice("You need to copy a flow template from the community browser to use this feature.");
+            return;
+        }
+        const data = potentialData as CommunityFlowData;
+        canvas.importData({
+            nodes: data.nodes as AllCanvasNodeData[],
+            edges: data.edges as CanvasEdgeData[]
+        });
+
+        delete this.plugin.settings.communitySettings.clipboardTemplate;
+        this.plugin.saveSettings();
+        new Notice("Flow data imported from clipboard!");
+    }
     /**
      * Adds the "Create Managed Step" option to the canvas's card menu.
      *

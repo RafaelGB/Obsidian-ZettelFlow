@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { request } from "obsidian";
+import { Notice, request } from "obsidian";
 import { c, log } from "architecture";
 import {
   CommunityAction,
   CommunityStepSettings,
   StaticTemplateOptions,
 } from "config";
-import { PluginComponentProps } from "../typing";
+import { CommunityFlowData, PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
@@ -52,7 +52,7 @@ async function fetchFlowTemplate(ref: string) {
     method: "GET",
     contentType: "application/json",
   });
-  return JSON.parse(rawList);
+  return JSON.parse(rawList) as CommunityFlowData;
 }
 
 async function fetchMarkdownTemplate(ref: string) {
@@ -153,36 +153,59 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   };
 
   const handleTemplateClick = async (template: StaticTemplateOptions) => {
-    if (template.template_type === "step") {
-      const step = await fetchStepTemplate(template.ref);
-      new CommunityStepModal(plugin, step, handleRefresh).open();
-    } else if (template.template_type === "action") {
-      const action = await fetchActionTemplate(template.ref);
-      new CommunityActionModal(plugin, action).open();
-    } else if (template.template_type === "markdown") {
-      const markdown = await fetchMarkdownTemplate(template.ref);
-      const filename = template.ref.split("/").pop();
-      if (filename) {
-        new CommunityMarkdownModal(
-          plugin,
-          markdown,
-          template.title,
-          template.description,
-          filename
-        ).open();
+    try {
+      switch (template.template_type) {
+        case "step": {
+          const step = await fetchStepTemplate(template.ref);
+          new CommunityStepModal(plugin, step, handleRefresh).open();
+          break;
+        }
+        case "action": {
+          const action = await fetchActionTemplate(template.ref);
+          new CommunityActionModal(plugin, action).open();
+          break;
+        }
+        case "markdown": {
+          const markdown = await fetchMarkdownTemplate(template.ref);
+          const filename = template.ref.split("/").pop();
+
+          if (!filename) {
+            throw new Error("Invalid markdown template filename");
+          }
+
+          new CommunityMarkdownModal(
+            plugin,
+            markdown,
+            template.title,
+            template.description,
+            filename
+          ).open();
+          break;
+        }
+        case "flow": {
+          const flow = await fetchFlowTemplate(template.ref);
+          new CommunityFlowModal(
+            plugin,
+            flow,
+            `${BASE_URL}${template.ref}/image.png`,
+            () => {}
+          ).open();
+          break;
+        }
+        default: {
+          // Handle unexpected template types
+          log.warn(`Unknown template type: ${template.template_type}`);
+          new Notice(
+            `Unknown template type: ${template.template_type}. Please check the console for details.`
+          );
+        }
       }
-    } else if (template.template_type === "flow") {
-      try {
-        const flow = await fetchFlowTemplate(template.ref);
-        new CommunityFlowModal(
-          plugin,
-          flow,
-          `${BASE_URL}${template.ref}/image.png`,
-          handleRefresh
-        ).open();
-      } catch (error) {
-        log.error("Error loading flow template:", error);
-      }
+    } catch (error) {
+      log.error(`Error processing ${template.template_type} template:`, error);
+      // Could show a notification to the user here
+      new Notice(
+        `Failed to open ${template.title}. Check the console for details.`
+      );
     }
   };
 

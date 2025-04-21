@@ -1,9 +1,9 @@
-import { Component, Modal, requestUrl, setIcon } from "obsidian";
+import { Component, Modal, Notice, requestUrl, setIcon } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { MarkdownService } from "architecture/plugin";
 import ZettelFlow from "main";
-import { FlowData, FlowNode } from "./typing";
+import { CommunityFlowData, FlowNode } from "./typing";
 import { CommunityStepSettings } from "config";
 import { actionsStore } from "architecture/api";
 import { getCanvasColor } from "architecture/plugin/canvas/shared/Color";
@@ -17,7 +17,7 @@ export class CommunityFlowModal extends Modal {
   private objectUrl: string | null = null;
   constructor(
     private plugin: ZettelFlow,
-    private flow: FlowData,
+    private flow: CommunityFlowData,
     private imageUrl: string,
     private onInstallToggle: () => void
   ) {
@@ -62,8 +62,7 @@ export class CommunityFlowModal extends Modal {
     navbar.createEl("h2", { text: this.flow.title });
 
     const buttonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
-    const installed = false; // TODO: determine actual install state
-    const btnText = installed ? t("remove_button") : t("install_button");
+    const btnText = t("copy_to_clipboard_button");
 
     const actionBtn = buttonGroup.createEl("button", {
       text: btnText,
@@ -71,8 +70,18 @@ export class CommunityFlowModal extends Modal {
     });
     actionBtn.addClass("mod-cta");
     actionBtn.addEventListener("click", () => {
+      this.plugin.settings.communitySettings.clipboardTemplate = this.flow;
+      this.plugin.saveSettings();
+      actionBtn.setText(t("template_copied"));
+      actionBtn.setAttribute("aria-disabled", "true");
+      actionBtn.setAttribute("disabled", "true");
+      setTimeout(() => {
+        actionBtn.setText(btnText);
+        actionBtn.removeAttribute("aria-disabled");
+        actionBtn.removeAttribute("disabled");
+      }, 3000);
+      new Notice(`${this.flow.title} ${t("template_copied_to_clipboard")}`);
       this.onInstallToggle();
-      this.renderContent();
     });
 
     // --- Description Section ---

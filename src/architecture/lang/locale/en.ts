@@ -211,6 +211,8 @@ export default {
     manage_button: 'Manage',
 
     // Community templates metadata
+    template_copied_to_clipboard: 'Template copied to clipboard',
+    template_copied: 'Template copied',
     template_author: 'Author',
     template_target_folder: 'Target folder',
     template_optional: 'Optional',

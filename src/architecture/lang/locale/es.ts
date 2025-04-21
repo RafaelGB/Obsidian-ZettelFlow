@@ -246,6 +246,8 @@ export default {
     manage_button: 'Gestionar',
 
     // Community templates metadata
+    template_copied_to_clipboard: 'Plantilla copiada al portapapeles',
+    template_copied: 'Plantilla copiada',
     template_author: 'Autor',
     template_target_folder: 'Carpeta destino',
     template_optional: 'Opcional',

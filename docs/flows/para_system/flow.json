@@ -69,7 +69,7 @@
       "styleAttributes": {},
       "text": "# Delete",
       "type": "text",
-      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Delete it\",\"childrenHeader\":\"\"}",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"script\",\"hasUI\":false,\"id\":\"d1193854-0608-4496-81f7-21f5227630e2\",\"description\":\"delete current note\",\"code\":\"const currentFile = app.workspace.getActiveFile();\\nif(currentFile.extension === \\\"md\\\"){\\n  \\n  app.vault.delete(currentFile);\\n  new Notice(`File ${currentFile.name} deleted`);\\n}\\n\"}],\"label\":\"Delete it\",\"childrenHeader\":\"\"}",
       "x": 1797,
       "y": 680,
       "width": 159,

@@ -54,7 +54,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
         // Create a new option
         const newOption = this.createPopupMenuOption({
             id: buttonId,
-            label: "Edit ZettelFlow Step",
+            label: "Copy Flow to Clipboard",
             icon: "clipboard-copy",
             callback: () => {
                 navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));

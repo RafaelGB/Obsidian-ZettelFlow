@@ -100,6 +100,10 @@
     border-left: 4px solid var(--background-modifier-border);
 }
 
+.zettelkasten-flow__template-type-flow {
+    border-left: 4px solid var(--code-keyword);
+}
+
 /* Badge indicating template type */
 .zettelkasten-flow__community-templates-card-type-badge {
     position: absolute;

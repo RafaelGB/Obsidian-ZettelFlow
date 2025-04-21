@@ -3,7 +3,7 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { MarkdownService } from "architecture/plugin";
 import ZettelFlow from "main";
-import { CommunityFlowData, FlowNode } from "./typing";
+import { CommunityFlowData, CommunityFlowNode } from "./typing";
 import { CommunityStepSettings } from "config";
 import { actionsStore } from "architecture/api";
 import { getCanvasColor } from "architecture/plugin/canvas/shared/Color";
@@ -144,7 +144,7 @@ ${this.flow.description}`;
     section.createEl("h3", { text: "Flow Nodes" });
 
     const container = section.createDiv({ cls: c("flow-nodes-container") });
-    const grouped: Record<string, FlowNode[]> = {};
+    const grouped: Record<string, CommunityFlowNode[]> = {};
     this.flow.nodes.forEach((node) => {
       (grouped[node.type] ||= []).push(node);
     });
@@ -299,7 +299,7 @@ ${this.flow.description}`;
       const item = list.createEl("li", { cls: c("flow-edge-item") });
       const label = `${this.nodesRef[edge.fromNode]} → ${
         this.nodesRef[edge.toNode]
-      }${edge.label ? ` | Label: ${edge.label})` : ""}`;
+      }${edge.label ? ` | Label: "${edge.label}"` : ""}`;
 
       const header = item.createDiv({ cls: c("flow-edge-header") });
       header.createEl("span", {

@@ -13,7 +13,7 @@ import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 import { CommunityFlowModal } from "../CommunityFlowModal";
 
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/community-docs";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
 
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");

@@ -5,13 +5,14 @@
 
 - [Documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/)
 - [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)
-- [Examples](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/WorkFlow%20Test)
 
 # ZettelFlow: Unlock the Power of Custom Note Flows in Obsidian
 
 Welcome to **ZettelFlow**, the ultimate plugin for Obsidian that empowers you to design and navigate your own personalized workflows for creating and editing notes. Whether you're a fan of the Zettelkasten methodology or simply seeking a flexible way to structure your ideas, ZettelFlow adapts to your needs and puts creativity in your hands.
 
 ---
+## **Quick Start Guide**
+Use our community resources to kickstart your ZettelFlow experience. You can find pre-built flows, steps, and actions that you can easily import into your own vault. Check out the [Community Resources Guide](https://rafaelgb.github.io/how-to-contribute/community-examples/) for more information.
 
 ## **What is ZettelFlow?**
 

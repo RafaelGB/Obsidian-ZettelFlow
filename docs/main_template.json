@@ -1,34 +1,50 @@
 [
-    {
-        "id": "1737731928",
-        "template_type": "step",
-        "ref" :"/docs/steps/community/add_contact.json",
-        "title": "Add contact",
-        "description": "This step will include contact information when you create a new profile.",
-        "author": "RafaelGB"
-    },
-    {
-        "id": "dae608ae-7930-46a3-a161-03f58c03a514",
-        "template_type": "step",
-        "ref" :"/docs/steps/community/add_book.json",
-        "title": "Add a new Book",
-        "description": "This step will help you to add a new book to the library",
-        "author": "RafaelGB"
-    },
-    {
-        "id": "bfebe2b5-9432-4c2a-a3dd-3ceaad7b7e35",
-        "template_type": "step",
-        "ref" :"/docs/steps/community/add_task.json",
-        "title": "New task",
-        "description": "This step is used to create a new task",
-        "author": "RafaelGB"
-    },
-    {
-        "id": "cae3b123-4c2a-4c2a-a3dd-3ceaad7b7e35",
-        "template_type": "markdown",
-        "ref" :"/docs/steps/markdown/Daily Note Template.md",
-        "title": "Daily Note Template",
-        "description": "This is a template for daily notes",
-        "author": "RafaelGB"
-    }
+  {
+    "id": "29e67386-84d6-4538-98ae-6457c750b622",
+    "template_type": "flow",
+    "ref": "/docs/flows/para_system",
+    "title": "PARA classify system",
+    "description": "This flow is used to classify notes in the PARA system.",
+    "author": "RafaelGB"
+  },
+  {
+    "id": "3ac7462e-cd9e-4781-93a1-80e82c150352",
+    "template_type": "step",
+    "ref": "/docs/steps/community/add_contact.json",
+    "title": "Add contact",
+    "description": "This step will include contact information when you create a new profile.",
+    "author": "RafaelGB"
+  },
+  {
+    "id": "dae608ae-7930-46a3-a161-03f58c03a514",
+    "template_type": "step",
+    "ref": "/docs/steps/community/add_book.json",
+    "title": "Add a new Book",
+    "description": "This step will help you to add a new book to the library",
+    "author": "RafaelGB"
+  },
+  {
+    "id": "bfebe2b5-9432-4c2a-a3dd-3ceaad7b7e35",
+    "template_type": "step",
+    "ref": "/docs/steps/community/add_task.json",
+    "title": "New task",
+    "description": "This step is used to create a new task",
+    "author": "RafaelGB"
+  },
+  {
+    "id": "9bba8ede-e6a1-40e6-a20a-ec3ccdb2aadb",
+    "template_type": "step",
+    "ref": "/docs/steps/community/add_callout.json",
+    "title": "Insert a new Callout",
+    "description": "Add a new callout to your current document.",
+    "author": "RafaelGB"
+  },
+  {
+    "id": "cae3b123-4c2a-4c2a-a3dd-3ceaad7b7e35",
+    "template_type": "markdown",
+    "ref": "/docs/steps/markdown/Daily Note Template.md",
+    "title": "Daily Note Template",
+    "description": "This is a template for daily notes",
+    "author": "RafaelGB"
+  }
 ]

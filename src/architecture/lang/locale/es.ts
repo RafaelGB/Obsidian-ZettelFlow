@@ -215,6 +215,7 @@ export default {
     step_copied_notice: 'Paso copiado al portapapeles',
     step_template_default_title: 'Nueva plantilla',
     step_template_default_description: 'Descripción de la nueva plantilla',
+    step_template_already_exists: 'La plantilla ya existe. Se sobreescribirá con la nueva versión.',
 
     // Installed step editor
     installed_step_editor_title: 'Editor de Pasos Instalados',
@@ -245,6 +246,8 @@ export default {
     manage_button: 'Gestionar',
 
     // Community templates metadata
+    template_copied_to_clipboard: 'Plantilla copiada al portapapeles',
+    template_copied: 'Plantilla copiada',
     template_author: 'Autor',
     template_target_folder: 'Carpeta destino',
     template_optional: 'Opcional',

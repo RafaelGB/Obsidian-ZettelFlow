@@ -1,3 +1,4 @@
+import { CommunityFlowData } from "application/community";
 import { Action } from "architecture/api";
 import { AbstractChain } from "architecture/patterns";
 import ZettelFlow from "main";
@@ -55,7 +56,7 @@ export interface ZettelFlowSettings {
          * Optional default clipboard template,
          * can be either a step or an action.
          */
-        clipboardTemplate?: CommunityStepSettings | CommunityAction;
+        clipboardTemplate?: CommunityStepSettings | CommunityAction | CommunityFlowData;
     };
     hooks: {
         /** Global hooks that will be executed on property changes on current file */
@@ -102,7 +103,7 @@ export type StaticTemplateOptions = {
     /**
      * Type of the template: can be "step", "action", or "markdown"
      */
-    template_type: "step" | "action" | "markdown";
+    template_type: "step" | "action" | "markdown" | "flow";
 };
 
 /**

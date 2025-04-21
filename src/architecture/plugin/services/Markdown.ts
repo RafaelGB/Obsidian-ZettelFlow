@@ -3,11 +3,11 @@ import { App, Component, MarkdownRenderer } from "obsidian";
 export class MarkdownService {
     public static render(
         app: App, content: string, element: HTMLElement,
-        sourcePath: string, component: Component
+        sourcePath: string, component: Component, classNames: string[] = ["markdown-preview-view"]
     ) {
         element.empty();
         const dom = element.createDiv();
-        dom.addClasses(["markdown-preview-view"]);
+        dom.addClasses(classNames);
         MarkdownRenderer.render(
             app,
             content,

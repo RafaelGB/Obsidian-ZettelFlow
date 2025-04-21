@@ -1,10 +1,11 @@
-import { Canvas, CanvasNode, Position } from "obsidian/canvas";
+import { AllCanvasNodeData, Canvas, CanvasEdgeData, CanvasNode, Position } from "obsidian/canvas";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
-import { UsedInstalledStepsModal } from "application/community";
+import { CommunityFlowNode, UsedInstalledStepsModal } from "application/community";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { OptionsModal, Option } from "architecture/components/settings";
 import { StepSettings } from "zettelkasten";
+import { Notice } from "obsidian";
 
 const GROUP_NODE_SIZE = { width: 300, height: 300 };
 const TEXT_NODE_SIZE = { width: 300, height: 100 };
@@ -30,9 +31,72 @@ export default class AddManagedStepExtension extends CanvasExtension {
                 // Proceed only if the canvas is a ZettelFlow canvas.
                 if (CanvasHelper.isCanvasFlow(this.plugin)) {
                     this.addManagedStepOption(canvas);
+                    this.addClipboardOption(canvas);
                 }
             })
         );
+    }
+
+    /**
+     * Adds the "Import Flow Data from Clipboard" option to the canvas's card menu.
+     *
+     * @param {Canvas} canvas - The canvas to which the option is added.
+     */
+    private addClipboardOption(canvas: Canvas): void {
+        const cardMenuOption = CanvasHelper.createCardMenuOption(
+            canvas,
+            {
+                id: "import-flow-data",
+                label: "Import Flow Data from Clipboard",
+                icon: "layout-template"
+            },
+            () => GROUP_NODE_SIZE,
+            (canvas: Canvas, pos: Position) => this.importFlowData(canvas, pos)
+        );
+
+        CanvasHelper.addCardMenuOption(canvas, cardMenuOption);
+    }
+
+    /**
+     * Imports flow data from the clipboard into the canvas.
+     *
+     * @param {Canvas} canvas - The canvas where the flow data will be imported.
+     * @param {Position} pos - The position where the flow data will be placed.
+     */
+    private importFlowData(canvas: Canvas, pos: Position): void {
+        const potentialData = this.plugin.settings.communitySettings.clipboardTemplate;
+        if (!potentialData || potentialData.template_type !== "flow") {
+            new Notice("You need to copy a flow template from the community browser to use this feature.");
+            return;
+        }
+        const nodeData = potentialData.nodes.map((node: CommunityFlowNode) => {
+            return this.modifyRelativePositionFromCenter(node, potentialData.center, pos);
+        });
+        canvas.importData({
+            nodes: nodeData as AllCanvasNodeData[],
+            edges: potentialData.edges as CanvasEdgeData[]
+        });
+
+        delete this.plugin.settings.communitySettings.clipboardTemplate;
+        this.plugin.saveSettings();
+        new Notice("Flow data imported from clipboard!");
+    }
+
+    /**
+     * Given a node with an absolute x and y position, modifies its position
+     * to be relative to the center of the dropped flow.
+     * 
+     * @param {CommunityFlowNode} node The node to be modified
+     * @param {Position} actualPos Center of the flow as was imported
+     * @param {Position} targetPos Center of the node that was dropped
+     * @returns 
+     */
+    private modifyRelativePositionFromCenter(node: CommunityFlowNode, actualPos: Position, targetPos: Position) {
+        const xDiff = actualPos.x - targetPos.x;
+        const yDiff = actualPos.y - targetPos.y;
+        node.x = node.x - xDiff;
+        node.y = node.y - yDiff;
+        return node;
     }
 
     /**

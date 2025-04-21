@@ -15,7 +15,6 @@ export class CommunityFlowModal extends Modal {
   private nodesRef: Record<string, string> = {};
   private isImageExpanded = false;
   private objectUrl: string | null = null;
-
   constructor(
     private plugin: ZettelFlow,
     private flow: FlowData,
@@ -80,9 +79,12 @@ export class CommunityFlowModal extends Modal {
     const infoSection = this.contentEl.createDiv({
       cls: c("modal-reader-general-section"),
     });
-    const md = `**${t("template_author")}**: ${this.flow.author}\n\n---\n\n${
-      this.flow.description
-    }`;
+    const md = `**${t("template_author")}**: ${this.flow.author}
+
+---
+
+${this.flow.description}`;
+
     MarkdownService.render(
       this.plugin.app,
       md,
@@ -166,6 +168,13 @@ export class CommunityFlowModal extends Modal {
           cls: c("flow-node-title"),
         });
 
+        // Add color badge if node has a color
+        if (node.color) {
+          accordionHeader.style.borderLeft = `4px solid rgb(${getCanvasColor(
+            node.color
+          )})`;
+        }
+
         // Add toggle indicator
         const toggleIndicator = accordionHeader.createSpan({
           cls: c("flow-node-toggle"),
@@ -177,21 +186,6 @@ export class CommunityFlowModal extends Modal {
           cls: c("flow-node-accordion-content"),
         });
         accordionContent.style.display = "none";
-
-        // Add color badge if node has a color
-        if (node.color) {
-          const colorSection = accordionContent.createDiv({
-            cls: c("flow-node-color"),
-          });
-          colorSection.createEl("span", { text: "Color: " });
-          const colorBadge = colorSection.createSpan({
-            cls: c("flow-node-color-badge"),
-          });
-          const color = getComputedStyle(activeDocument.documentElement)
-            .getPropertyValue(getCanvasColor(node.color))
-            .trim();
-          colorBadge.style.backgroundColor = color;
-        }
 
         // Add node text if it exists and is different from the title
         if (node.text && node.text !== nodeTitle) {
@@ -207,6 +201,31 @@ export class CommunityFlowModal extends Modal {
             const zettelflowConfig = JSON.parse(
               node.zettelflowConfig
             ) as CommunityStepSettings;
+
+            // Target folder
+            const mdContent = `**${t("template_target_folder")}**: ${
+              zettelflowConfig.targetFolder
+            }
+            **${t("template_optional")}**: ${
+              zettelflowConfig.optional ? t("template_yes") : t("template_no")
+            }
+            **${t("template_root")}**: ${
+              zettelflowConfig.root ? t("template_yes") : t("template_no")
+            }`;
+
+            const comp = new Component();
+            const descriptionSection = accordionContent.createDiv({
+              cls: c("modal-reader-general-section"),
+            });
+
+            MarkdownService.render(
+              this.plugin.app,
+              mdContent,
+              descriptionSection,
+              "/",
+              comp,
+              [c("modal-reader-markdown-preview")]
+            );
 
             if (
               zettelflowConfig.actions &&
@@ -271,19 +290,16 @@ export class CommunityFlowModal extends Modal {
       const item = list.createEl("li", { cls: c("flow-edge-item") });
       const label = `${this.nodesRef[edge.fromNode]} → ${
         this.nodesRef[edge.toNode]
-      }`;
+      }${edge.label ? ` | Label: ${edge.label})` : ""}`;
 
       const header = item.createDiv({ cls: c("flow-edge-header") });
       header.createEl("span", {
         text: label,
       });
       if (edge.color) {
-        const color = getComputedStyle(activeDocument.documentElement)
-          .getPropertyValue(getCanvasColor(edge.color))
-          .trim();
-        header.createEl("span", {
-          cls: c("flow-edge-color-badge"),
-        }).style.backgroundColor = color;
+        header.style.borderLeft = `4px solid rgb(${getCanvasColor(
+          edge.color
+        )})`;
       }
     });
   }

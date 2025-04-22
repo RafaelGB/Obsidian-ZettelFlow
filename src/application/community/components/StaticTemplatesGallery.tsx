@@ -11,9 +11,11 @@ import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 import { CommunityFlowModal } from "../CommunityFlowModal";
-
+// feature/examples_with_mds
+// main
+// TODO: use main branch
 const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
+  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/examples_with_mds";
 
 async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
   log.debug("Fetching community templates");

@@ -21,6 +21,7 @@ export class CommunityFlowModal extends Modal {
   private imageUrl = `${COMMUNITY_BASE_URL}${this.refUrl}/image.png`;
   private objectUrl: string | null = null;
   private filesToDownload: Record<string, string> = {};
+  private downloadMdButton: HTMLButtonElement;
   constructor(
     private plugin: ZettelFlow,
     private flow: CommunityFlowData,
@@ -90,18 +91,25 @@ export class CommunityFlowModal extends Modal {
       this.onInstallToggle();
     });
 
-    // Add a button to save the step into the clipboard
-    const downloadMdButton = buttonGroup.createEl(
+    // --- Download Files Section ---
+    this.downloadMdButton = buttonGroup.createEl(
       "button",
       {
-        placeholder: t("download_button"),
-        title: t("download_button_title"),
+        placeholder: t("template_download_flow_files"),
+        title: t("template_download_flow_title"),
       },
       (el) => {
         el.addClass("mod-cta");
         el.addEventListener("click", async () => {
           Object.entries(this.filesToDownload).forEach(
             async ([filename, content]) => {
+              const path = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
+              // Delete existing file if it exists
+              const potentialFile = await FileService.getFile(path, false);
+              if (potentialFile) {
+                await FileService.deleteFile(potentialFile);
+              }
+
               await FileService.createFile(
                 `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`,
                 content,
@@ -109,10 +117,19 @@ export class CommunityFlowModal extends Modal {
               );
             }
           );
+          new Notice(
+            `${t("template_files_downloaded")} ${this.flow.title} ${t(
+              "template_files_downloaded_notice"
+            ).replace(
+              "{{count}}",
+              Object.keys(this.filesToDownload).length.toString()
+            )}`
+          );
         });
       }
     );
-    setIcon(downloadMdButton.createDiv(), "download");
+    setIcon(this.downloadMdButton.createDiv(), "download");
+    this.downloadMdButton.style.display = "none";
 
     // --- Description Section ---
     const infoSection = this.contentEl.createDiv({
@@ -253,17 +270,18 @@ ${this.flow.description}`;
     accordionContent: HTMLDivElement,
     node: CommunityFlowNode
   ): Promise<void> {
-    const file = node.file as string;
+    const filename = node.file as string;
     const fileContent = await fetchMarkdownTemplate(
-      `${this.refUrl}/${file.split("/").pop()!}`
+      `${this.refUrl}/${filename}`
     );
-    this.filesToDownload[file] = fileContent;
+    this.filesToDownload[filename] = fileContent;
 
     const comp = new Component();
     const mdContent = accordionContent.createDiv({
       cls: c("markdown-content"),
     });
     MarkdownService.render(this.app, fileContent, mdContent, "/", comp);
+    this.enableDownloadButton();
   }
 
   private renderNodeItem(
@@ -378,5 +396,9 @@ ${this.flow.description}`;
   onClose(): void {
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.contentEl.empty();
+  }
+
+  private enableDownloadButton(): void {
+    this.downloadMdButton.style.display = "block";
   }
 }

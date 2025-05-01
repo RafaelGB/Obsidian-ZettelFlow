@@ -49,7 +49,7 @@
       "color": "2"
     },
     {
-      "file": "{{markdownTemplateFolder}}/Meeting Template.md",
+      "file": "Meeting Template.md",
       "id": "9f4ab4ed6efe34e6",
       "type": "file",
       "x": 600,
@@ -69,7 +69,7 @@
       "color": "5"
     },
     {
-      "file": "{{markdownTemplateFolder}}/Idea Template.md",
+      "file": "Idea Template.md",
       "id": "7a039d0f305588f4",
       "type": "file",
       "x": -459,
@@ -78,7 +78,7 @@
       "height": 400
     },
     {
-      "file": "{{markdownTemplateFolder}}/Design Template.md",
+      "file": "Design Template.md",
       "id": "c8c9d8f6669b819d",
       "type": "file",
       "x": -960,

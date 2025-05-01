@@ -1,6 +1,7 @@
 import ZettelFlow from "main";
 import { TFile } from "obsidian";
 import { FrontmatterService } from "./FrontmatterService";
+import { log } from "architecture";
 
 type FileOnFly = {
     frontmatter: FrontmatterService;
@@ -17,7 +18,9 @@ export class VaultStateManager {
     public static init(plugin: ZettelFlow) {
         VaultStateManager.INSTANCE = new VaultStateManager(plugin);
     }
-    constructor(private plugin: ZettelFlow) { }
+    constructor(plugin: ZettelFlow) {
+        log.debug(`plugin`, plugin.settings.communitySettings);
+    }
 
     public clean() {
         this.managedFiles = {};

@@ -1,5 +1,5 @@
 import ZettelFlow from "main";
-import { Position } from "obsidian/canvas";
+import { CanvasNodeData, Position } from "obsidian/canvas";
 import { StepSettings } from "zettelkasten";
 
 export type CommunityStep = {
@@ -11,16 +11,9 @@ export type PluginComponentProps = {
     plugin: ZettelFlow;
 }
 
-export interface CommunityFlowNode {
+export interface CommunityFlowNode extends CanvasNodeData {
     index: number;
-    id: string;
-    type: string;
     zettelflowConfig?: string;
-    text?: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
     color?: string;
     label?: string;
     file?: string;
@@ -39,6 +32,7 @@ export interface CommunityFlowEdge {
 }
 
 export interface CommunityFlowData {
+    id: string;
     title: string;
     description: string;
     template_type: string;

@@ -139,7 +139,10 @@ export class VaultHooks {
         if (file.extension !== "md") return;
 
         // Skip if we're already updating from a hook to prevent recursion
-        if (VaultStateManager.INSTANCE.isOnProcess(file.path)) {
+        if (
+            !VaultStateManager.INSTANCE.isGlobalEnabled() ||
+            VaultStateManager.INSTANCE.isOnProcess(file.path)
+        ) {
             return;
         }
 

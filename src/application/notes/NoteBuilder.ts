@@ -28,72 +28,68 @@ export class NoteBuilder {
   public async build(modal: SelectorMenuModal, actions: NoteBuilderStateActions) {
     this.actions = actions;
     if (modal.isEditor()) {
-      try {
-        VaultStateManager.INSTANCE.processStart(this.note.getFinalPath());
-        const editor = await this.buildEditor(modal);
-        return editor;
-      }
-      catch (error) {
-        this.content.reset();
-        throw error;
-      } finally {
-        VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
-      }
+      return await this.buildEditor(modal);
     } else {
-      try {
-        VaultStateManager.INSTANCE.disableGlobal();
-        const builder = await this.buildNewNote();
-        return builder;
-      } catch (error) {
-        this.content.reset();
-        const potentialFile = await FileService.getFile(this.note.getFinalPath(), false);
-        // Check if the file was created and delete it
-        if (potentialFile) {
-          await FileService.deleteFile(potentialFile);
-        }
-        VaultStateManager.INSTANCE.enableGlobal();
-        throw error;
-      } finally {
-        // Enable other process
-        VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
-      }
+      return await this.buildNewNote();
     }
   }
 
   private async buildEditor(modal: SelectorMenuModal) {
-    const markdownView = modal.getMarkdownView();
-    if (!markdownView) {
-      throw new FatalError("Markdown view is undefined").setCode(FatalError.MARKDOWN_VIEW_UNDEFINED);
-    }
-    await this.buildNote();
+    try {
+      const markdownView = modal.getMarkdownView();
+      if (!markdownView) {
+        throw new FatalError("Markdown view is undefined").setCode(FatalError.MARKDOWN_VIEW_UNDEFINED);
+      }
+      await this.buildNote();
 
-    modal.onEditorBuild(this.content.get());
-    // If the origin is a file, we need to process the frontmatter and post-process the file
-    if (!modal.isEmbedded() && markdownView.file) {
-      await FrontmatterService
-        .instance(markdownView.file)
-        .processTypedFrontMatter(this.content);
-      await this.postProcess(markdownView.file);
-    }
+      modal.onEditorBuild(this.content.get());
+      // If the origin is a file, we need to process the frontmatter and post-process the file
+      if (!modal.isEmbedded() && markdownView.file) {
+        await FrontmatterService
+          .instance(markdownView.file)
+          .processTypedFrontMatter(this.content);
+        await this.postProcess(markdownView.file);
+      }
 
-    return markdownView.file ? markdownView.file.path : "Embedded note";
+      return markdownView.file ? markdownView.file.path : "Embedded note";
+    } catch (error) {
+      this.content.reset();
+      throw error;
+    } finally {
+      VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
+    }
   }
 
   private async buildNewNote() {
-    this.note.setTitle(this.buildFilename());
-    await this.buildNote();
-    await this.errorManagement();
+    try {
+      VaultStateManager.INSTANCE.disableGlobal();
+      this.note.setTitle(this.buildFilename());
+      await this.buildNote();
+      await this.errorManagement();
 
-    const generatedFile = await FileService.createFile(this.note.getFinalPath(), this.content.get(), false);
+      const generatedFile = await FileService.createFile(this.note.getFinalPath(), this.content.get(), false);
 
-    await FrontmatterService
-      .instance(generatedFile)
-      .processTypedFrontMatter(this.content);
-    await this.postProcess(generatedFile);
+      await FrontmatterService
+        .instance(generatedFile)
+        .processTypedFrontMatter(this.content);
+      await this.postProcess(generatedFile);
 
-    log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
+      log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
 
-    return generatedFile.path;
+      return generatedFile.path;
+    } catch (error) {
+      this.content.reset();
+      const potentialFile = await FileService.getFile(this.note.getFinalPath(), false);
+      // Check if the file was created and delete it
+      if (potentialFile) {
+        await FileService.deleteFile(potentialFile);
+      }
+      VaultStateManager.INSTANCE.enableGlobal();
+      throw error;
+    } finally {
+      // Enable other process
+      VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
+    }
   }
 
   private buildFilename(): string {

@@ -8,7 +8,6 @@ import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 import { CommunityFlowModal } from "../CommunityFlowModal";
 import {
-  COMMUNITY_BASE_URL,
   fetchActionTemplate,
   fetchCommunityTemplates,
   fetchFlowTemplate,

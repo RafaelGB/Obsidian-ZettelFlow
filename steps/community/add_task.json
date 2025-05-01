@@ -1,0 +1,118 @@
+{
+  "title": "New task",
+  "description": "This step is used to create a new task",
+  "template_type": "step",
+  "author": "RafaelGB",
+  "id": "bfebe2b5-9432-4c2a-a3dd-3ceaad7b7e35",
+  "root": true,
+  "actions": [
+    {
+      "type": "prompt",
+      "hasUI": false,
+      "id": "f91899a3-fee5-49a7-9389-571ec8624e48",
+      "zone": "frontmatter",
+      "description": "Status of the task",
+      "key": "status",
+      "label": "Status",
+      "staticBehaviour": true,
+      "staticValue": "📃 Backlog"
+    },
+    {
+      "type": "calendar",
+      "hasUI": true,
+      "id": "d71f1379-0838-4f80-95ac-72c661691673",
+      "description": "Deadline",
+      "key": "deadline",
+      "label": "Deadline",
+      "format": "YYYY-MM-DD"
+    },
+    {
+      "type": "prompt",
+      "hasUI": true,
+      "id": "810bafc3-b243-4184-be09-3ad16d3494ee",
+      "description": "Purpose",
+      "key": "purpose",
+      "label": "Purpose",
+      "placeholder": "Write what you need to do..."
+    },
+    {
+      "type": "prompt",
+      "hasUI": false,
+      "id": "b9bd176f-3363-4a8d-9a76-1215fda0c2bc",
+      "description": "dailyLink",
+      "staticBehaviour": true,
+      "staticValue": "[[<% tp.date.now(\"YYYY-MM-DD\", 0) %>]]",
+      "key": "dailyLink",
+      "label": "DailyLink"
+    },
+    {
+      "type": "number",
+      "hasUI": true,
+      "id": "d9cdaf84-0db7-4790-baf1-2ae23517ea18",
+      "zone": "context",
+      "description": "Optimistic number of hours",
+      "key": "optimisticEstimation",
+      "label": "Optimistic estimation"
+    },
+    {
+      "type": "number",
+      "hasUI": true,
+      "id": "b7aebe74-2a0e-4bb1-bc16-de5f9220dc18",
+      "zone": "context",
+      "description": "Nominal number of hours",
+      "key": "nominalEstimation",
+      "label": "Nominal estimation"
+    },
+    {
+      "type": "number",
+      "hasUI": true,
+      "id": "8a49e677-795c-4b04-8c31-ac765ec1b1f2",
+      "zone": "context",
+      "description": "Pessimistic number of hours",
+      "key": "pessimisticEstimation",
+      "label": "Pessimistic estimation"
+    },
+    {
+      "type": "script",
+      "hasUI": false,
+      "id": "d8fa38e8-e8e7-4322-a689-427799d7a790",
+      "description": "calculate estimation",
+      "code": "const mu = (context.optimisticEstimation+(4*context.nominalEstimation)+context.pessimisticEstimation)/6;\nlet sigma = (context.pessimisticEstimation-context.optimisticEstimation)/6;\nsigma = sigma*sigma;\n\nconst frontmatterParams = {\n  estimationMu: mu,\n  estimationSigma: sigma\n};\n\n\nconsole.log(`estimations: ${frontmatterParams}`);\n\ncontent.addFrontMatter(frontmatterParams);"
+    },
+    {
+      "type": "selector",
+      "hasUI": true,
+      "id": "e2976823-d028-4259-9397-0032bfcebbcc",
+      "zone": "frontmatter",
+      "description": "Priority",
+      "key": "priority",
+      "label": "Priority of your task",
+      "options": [
+        [
+          "1",
+          "Critical"
+        ],
+        [
+          "2",
+          "High"
+        ],
+        [
+          "3",
+          "Medium"
+        ],
+        [
+          "4",
+          "Low"
+        ],
+        [
+          "5",
+          "Trivial"
+        ]
+      ],
+      "defaultOption": "P3"
+    }
+  ],
+  "label": "New task",
+  "childrenHeader": "",
+  "targetFolder": "Tasks"
+}

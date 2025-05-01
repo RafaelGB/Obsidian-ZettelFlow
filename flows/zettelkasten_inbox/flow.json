@@ -1,0 +1,117 @@
+{
+  "title": "Zettelkasten Inbox",
+  "description": "This flow is used to create notes following the Zettelkasten system. It helps you to create a new note and classify it into one of the categories: Idea Note, Pill of Knowledge, Meeting Note, or Draft of a Design. It also allows you to add tags to the notes.",
+  "template_type": "flow",
+  "author": "RafaelGB",
+  "nodes": [
+    {
+      "id": "e69949f7683d5e95",
+      "type": "group",
+      "zettelflowConfig": "{\"root\":true,\"actions\":[{\"type\":\"script\",\"hasUI\":false,\"id\":\"881de9f0-b008-4d13-90dd-07ffdd945df0\",\"description\":\"Add Daily Link\",\"code\":\"const today = `[[${moment().format('YYYY-MM-DD')}]]`;\\ncontent.addFrontMatter({dailyLink: today});\"}],\"label\":\"new inbox input\",\"childrenHeader\":\"\",\"targetFolder\":\"0. 🧵 Inbox\",\"optional\":false}",
+      "x": -440,
+      "y": -480,
+      "width": 937,
+      "height": 560,
+      "color": "4",
+      "label": "Inbox"
+    },
+    {
+      "id": "6825647bd22aa08b",
+      "text": "## Idea Note",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"backlink\",\"hasUI\":false,\"id\":\"b82f3fa1-388a-4a30-9dc0-54fe2f93019d\",\"description\":\"Add to Ideas Kanban\",\"insertPattern\":\"- [  ] {{wikilink}}\",\"hasDefault\":true,\"defaultFile\":\"0. 🧵 Inbox/0.1 💡 Ideas/Ideas Kanban.md\",\"defaultHeading\":{\"position\":{\"start\":{\"line\":6,\"col\":0,\"offset\":32},\"end\":{\"line\":6,\"col\":13,\"offset\":45}},\"heading\":\"📝 Backlog\",\"level\":2}}],\"label\":\"Idea Note\",\"childrenHeader\":\"\",\"targetFolder\":\"0. 🧵 Inbox/0.1 💡 Ideas\"}",
+      "x": -396,
+      "y": -405,
+      "width": 273,
+      "height": 106,
+      "color": "6"
+    },
+    {
+      "id": "dab51f918cacb2ed",
+      "text": "## Pill of knowledge",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Pill of knowledge\",\"childrenHeader\":\"\",\"targetFolder\":\"0. 🧵 Inbox/0.2 💊 Knowledge pills\"}",
+      "x": 96,
+      "y": -405,
+      "width": 344,
+      "height": 106,
+      "color": "#e972c3"
+    },
+    {
+      "id": "47086fa3fd043f8c",
+      "text": "## Meeting Note",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"tags\",\"description\":\"Add tags to the note\",\"hasUI\":false,\"id\":\"636288e4-e8dc-4b5f-9b35-b91081176ae1\",\"staticBehaviour\":true,\"staticValue\":[\"meet\"]}],\"label\":\"Meeting Note\",\"childrenHeader\":\"Choose a type of meeting\",\"targetFolder\":\"0. 🧵 Inbox/0.4. 📞 Meetings\"}",
+      "x": 96,
+      "y": -146,
+      "width": 344,
+      "height": 120,
+      "color": "2"
+    },
+    {
+      "file": "Meeting Template.md",
+      "id": "9f4ab4ed6efe34e6",
+      "type": "file",
+      "x": 600,
+      "y": -286,
+      "width": 400,
+      "height": 400
+    },
+    {
+      "id": "c7ba394e75c0cd99",
+      "text": "## Draft of a design",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"Draft of a design\",\"childrenHeader\":\"\",\"targetFolder\":\"0. 🧵 Inbox/0.3. 🔬 Research\"}",
+      "x": -396,
+      "y": -146,
+      "width": 365,
+      "height": 120,
+      "color": "5"
+    },
+    {
+      "file": "Idea Template.md",
+      "id": "7a039d0f305588f4",
+      "type": "file",
+      "x": -459,
+      "y": -1000,
+      "width": 400,
+      "height": 400
+    },
+    {
+      "file": "Design Template.md",
+      "id": "c8c9d8f6669b819d",
+      "type": "file",
+      "x": -960,
+      "y": -286,
+      "width": 400,
+      "height": 400
+    }
+  ],
+  "edges": [
+    {
+      "id": "c520e8f7e9736b19",
+      "fromNode": "6825647bd22aa08b",
+      "fromSide": "top",
+      "toNode": "7a039d0f305588f4",
+      "toSide": "bottom"
+    },
+    {
+      "id": "04c6a08328fbfdc6",
+      "fromNode": "47086fa3fd043f8c",
+      "fromSide": "right",
+      "toNode": "9f4ab4ed6efe34e6",
+      "toSide": "left"
+    },
+    {
+      "id": "ac9a0dc9b19ef957",
+      "fromNode": "c7ba394e75c0cd99",
+      "fromSide": "left",
+      "toNode": "c8c9d8f6669b819d",
+      "toSide": "right"
+    }
+  ],
+  "center": {
+    "x": 20,
+    "y": -443
+  }
+}

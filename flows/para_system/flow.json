@@ -1,0 +1,224 @@
+{
+  "title": "PARA classify system",
+  "description": "This flow is used to classify notes in the PARA system. It helps you decide if a note should be classified as a project, area, resource, or archive.",
+  "template_type": "flow",
+  "author": "RafaelGB",
+  "nodes": [
+    {
+      "id": "ef5187a1b7fb3a36",
+      "type": "group",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"\",\"childrenHeader\":\"\"}",
+      "x": -20,
+      "y": 140,
+      "width": 1223,
+      "height": 979,
+      "color": "5",
+      "label": "PARA classify system"
+    },
+    {
+      "id": "6fd84f85a235293c",
+      "text": "# Classify Note",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":true,\"actions\":[],\"label\":\"Classify the note\",\"childrenHeader\":\"\"}",
+      "x": 174,
+      "y": 222,
+      "width": 250,
+      "height": 65,
+      "color": "6"
+    },
+    {
+      "id": "7aecaee24c5ac807",
+      "text": "# Archive Note",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":true,\"actions\":[],\"label\":\"Archive de note\",\"childrenHeader\":\"\"}",
+      "x": 759,
+      "y": 225,
+      "width": 251,
+      "height": 62,
+      "color": "2"
+    },
+    {
+      "id": "e2e868d87557efac",
+      "text": "Will this help me move a current project or goal forward?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"First step\",\"childrenHeader\":\"Will this help me move a current project or goal forward?\"}",
+      "x": 153,
+      "y": 385,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    },
+    {
+      "id": "d27a95abc6f1d2f1",
+      "text": "## Project",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"b2dfa6b1-eaf9-40f7-9229-f5251eeafd9b\",\"zone\":\"context\",\"description\":\"Select a project folder\",\"key\":\"targetProject\",\"code\":\"let projectFolder = app.vault.getFolderByPath(\\\"1. 🧑🏼‍💻 My projects\\\");\\nif(!projectFolder){\\n  new Notice(`Error: \\\"1. 🧑🏼‍💻 My projects\\\" folder does not exist!. It will be created`);\\n  projectFolder = await app.vault.createFolder(\\\"1. 🧑🏼‍💻 My projects\\\");\\n}\\nconst projects = projectFolder.children;\\nconst folders = [];\\nfunction parsePathAsNaturalValue(path){\\n  const prefixRemovePath = path.slice(\\\"1. 🧑🏼‍💻 My projects/\\\".length);\\n  return prefixRemovePath;\\n}\\n\\nfunction findFolders(currentFolder){\\n  currentFolder.children\\n    .filter(potentialFolder => potentialFolder.children)\\n    .forEach(f=> {\\n        folders.push([f.path,parsePathAsNaturalValue(f.path)]);\\n        findFolders(f);\\n      });\\n}\\n\\n\\nprojects\\n.filter(potentialFolder => potentialFolder.children)\\n.forEach(f => {\\n  folders.push([f.path,parsePathAsNaturalValue(f.path)]);\\n  findFolders(f);\\n});\\nreturn folders;\",\"zoneKey\":\"targetProject\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"8830936a-26b9-4025-84be-5df0e9f900d4\",\"description\":\"Move to projects\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = context.targetProject + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Yes! Save on projects\",\"childrenHeader\":\"\"}",
+      "x": 22,
+      "y": 584,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "ecf0b07e21ef46c9",
+      "text": "Will this help me uphold an area of responsibility?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will this help me uphold an area of responsibility?\"}",
+      "x": 395,
+      "y": 584,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    },
+    {
+      "id": "89bf01cb05130a62",
+      "text": "## Area",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"f2f727e6-1629-49ee-bb4d-55b283ec9713\",\"zone\":\"context\",\"description\":\"Select area folder\",\"code\":\"let areaFolder = app.vault.getFolderByPath(\\\"3. 📑Areas\\\");\\n\\nif(!areaFolder){\\n  new Notice(`Error: \\\"3. 📑Areas\\\" folder does not exist. It will be created`);\\n  areaFolder = await app.vault.createFolder(\\\"3. 📑Areas\\\");\\n}\\n\\nconst areaFolders = areaFolder.children;\\nreturn areaFolders\\n.filter(potentialFolder => potentialFolder.children)\\n.map(folder => [folder.path,folder.name]);\",\"zoneKey\":\"targetArea\",\"key\":\"targetArea\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"4abfff7a-2f98-496d-8f4a-1d5e34699680\",\"description\":\"Move to selected area\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst areaPath = context.targetArea + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  areaPath\\n\\t);\"}],\"label\":\"Yes! Save on Areas\",\"childrenHeader\":\"\"}",
+      "x": 153,
+      "y": 792,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "410e391d92a46835",
+      "text": "Save into a new folder",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"prompt\",\"hasUI\":true,\"id\":\"9cb97333-632a-488b-8b39-e820f9347da3\",\"zone\":\"context\",\"description\":\"Folder name\",\"key\":\"folderName\",\"label\":\"Folder name\",\"placeholder\":\"Write here the name of the folder where you want to save the note\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"92ddc322-b37c-406e-969e-b8888219f9c7\",\"description\":\"Create folder and move the note here\",\"code\":\"const today = new Date();\\nconst yyyy = today.getFullYear();\\nconst mm = String(today.getMonth() + 1).padStart(2, '0'); // Los meses en JS son de 0 a 11, por eso se suma 1\\nconst dd = String(today.getDate()).padStart(2, '0');\\n\\nconst formattedDate = `${yyyy}${mm}${dd}`;\\nconst folder = `${formattedDate} - ${context.folderName}`;\\nconst activeFile = app.workspace.getActiveFile();\\nconst finalFolder = `5. 🗄️ Archives/${folder}`;\\nawait app.vault.createFolder(finalFolder);\\nawait app.vault.rename(\\n  activeFile,\\n  finalFolder+\\\"/\\\"+activeFile.basename+\\\".\\\"+activeFile.extension\\n);\"}],\"label\":\"Create a new folder and save it inside\",\"childrenHeader\":\"\"}",
+      "x": 676,
+      "y": 355,
+      "width": 167,
+      "height": 122,
+      "color": "4"
+    },
+    {
+      "id": "98203fd5384fc9f7",
+      "text": "Save into an existing folder",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"a02ae620-fe29-4ade-b005-963f87e55c19\",\"zone\":\"context\",\"description\":\"Select existed archive folder\",\"zoneKey\":\"targetArchive\",\"code\":\"let archiveFolder = app.vault.getFolderByPath(\\\"5. 🗄️ Archives\\\");\\nif(!archiveFolder){\\n  new Notice(`Error: \\\"5. 🗄️ Archives\\\" folder does not exist. It will be created`);\\n  archiveFolder = await app.vault.createFolder(\\\"5. 🗄️ Archives\\\");\\n}\\n\\nconst projectFolders = archiveFolder.children;\\nreturn projectFolders\\n.filter(potentialFolder => potentialFolder.children)\\n.map(folder => [folder.path,folder.name]);\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"4ee0c7ad-db7d-4168-8bd4-c6e52becbc11\",\"description\":\"move file to existed folder\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst projectsPath = context.targetArchive + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  projectsPath\\n\\t);\"}],\"label\":\"Save the note into an existing folder\",\"childrenHeader\":\"\"}",
+      "x": 926,
+      "y": 355,
+      "width": 167,
+      "height": 122,
+      "color": "3"
+    },
+    {
+      "id": "91b66e771904eef9",
+      "text": "Will it support one of my interest or curiosities?",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[],\"label\":\"No\",\"childrenHeader\":\"Will it support one of my interest or curiosities?\"}",
+      "x": 642,
+      "y": 783,
+      "width": 292,
+      "height": 92,
+      "color": "3"
+    },
+    {
+      "id": "e68c20d0501db55a",
+      "text": "## Resources",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"dynamic-selector\",\"hasUI\":true,\"id\":\"f2f727e6-1629-49ee-bb4d-55b283ec9713\",\"zone\":\"context\",\"description\":\"Select resource folder\",\"code\":\"let resourcesFolder = app.vault.getFolderByPath(\\\"4. 🗂 Resources\\\");\\n\\nif(!resourcesFolder){\\n  new Notice(`Error: \\\"4. 🗂 Resources\\\" folder does not exist`);\\n  resourcesFolder = await app.vault.createFolder(\\\"4. 🗂 Resources\\\");\\n}\\n\\nconst resourceFolders = resourcesFolder.children;\\nreturn resourceFolders\\n.filter(potentialFolder => potentialFolder.children)\\n.map(folder => [folder.path,folder.name]);\",\"zoneKey\":\"targetArea\",\"key\":\"targetArea\"},{\"type\":\"script\",\"hasUI\":false,\"id\":\"4abfff7a-2f98-496d-8f4a-1d5e34699680\",\"description\":\"Move to selected area\",\"code\":\"const activeFile = app.workspace.getActiveFile();\\nconst areaPath = context.targetArea + \\n    \\\"/\\\" + \\n    activeFile.basename + \\n    \\\".\\\" + \\n    activeFile.extension;\\n// Move to projects\\napp.vault.rename(\\n\\t  activeFile,\\n\\t  areaPath\\n\\t);\"}],\"label\":\"Yes! Save on resources\",\"childrenHeader\":\"\"}",
+      "x": 445,
+      "y": 966,
+      "width": 198,
+      "height": 73,
+      "color": "4"
+    },
+    {
+      "id": "b7189623af50f459",
+      "text": "# Delete",
+      "type": "text",
+      "zettelflowConfig": "{\"root\":false,\"actions\":[{\"type\":\"script\",\"hasUI\":false,\"id\":\"d1193854-0608-4496-81f7-21f5227630e2\",\"description\":\"delete current note\",\"code\":\"const currentFile = app.workspace.getActiveFile();\\nif(currentFile.extension === \\\"md\\\"){\\n  \\n  app.vault.delete(currentFile);\\n  new Notice(`File ${currentFile.name} deleted`);\\n}\\n\"}],\"label\":\"Delete it\",\"childrenHeader\":\"\"}",
+      "x": 934,
+      "y": 966,
+      "width": 159,
+      "height": 69,
+      "color": "1"
+    }
+  ],
+  "edges": [
+    {
+      "id": "7980a7426ab43fc6",
+      "fromNode": "6fd84f85a235293c",
+      "fromSide": "bottom",
+      "toNode": "e2e868d87557efac",
+      "toSide": "top",
+      "color": "6"
+    },
+    {
+      "id": "9c483427e5fccf3c",
+      "fromNode": "7aecaee24c5ac807",
+      "fromSide": "bottom",
+      "toNode": "98203fd5384fc9f7",
+      "toSide": "top",
+      "color": "3"
+    },
+    {
+      "id": "51ff9ecb0aefa9ec",
+      "fromNode": "7aecaee24c5ac807",
+      "fromSide": "bottom",
+      "toNode": "410e391d92a46835",
+      "toSide": "top",
+      "color": "4"
+    },
+    {
+      "id": "de077b013571ae84",
+      "fromNode": "e2e868d87557efac",
+      "fromSide": "bottom",
+      "toNode": "ecf0b07e21ef46c9",
+      "toSide": "top",
+      "color": "1",
+      "label": "no"
+    },
+    {
+      "id": "dba3b81c3b2c9fff",
+      "fromNode": "e2e868d87557efac",
+      "fromSide": "bottom",
+      "toNode": "d27a95abc6f1d2f1",
+      "toSide": "top",
+      "color": "4",
+      "label": "yes"
+    },
+    {
+      "id": "a4a90505a7350dd1",
+      "fromNode": "ecf0b07e21ef46c9",
+      "fromSide": "bottom",
+      "toNode": "89bf01cb05130a62",
+      "toSide": "top",
+      "color": "4",
+      "label": "yes"
+    },
+    {
+      "id": "58ff261567b107a0",
+      "fromNode": "ecf0b07e21ef46c9",
+      "fromSide": "bottom",
+      "toNode": "91b66e771904eef9",
+      "toSide": "top",
+      "color": "1",
+      "label": "no"
+    },
+    {
+      "id": "41ba349d158e20b6",
+      "fromNode": "91b66e771904eef9",
+      "fromSide": "bottom",
+      "toNode": "e68c20d0501db55a",
+      "toSide": "top",
+      "color": "4",
+      "label": "yes"
+    },
+    {
+      "id": "5357a51ec0b840bf",
+      "fromNode": "91b66e771904eef9",
+      "fromSide": "bottom",
+      "toNode": "b7189623af50f459",
+      "toSide": "top",
+      "color": "1",
+      "label": "no"
+    }
+  ],
+  "center": {
+    "x": 591.5,
+    "y": 629.5
+  }
+}

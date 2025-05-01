@@ -3,11 +3,8 @@ import { CommunityAction, CommunityStepSettings, StaticTemplateOptions } from "c
 import { request } from "obsidian";
 import { CommunityFlowData } from "../typing";
 
-// feature/examples_with_mds
-// main
-// TODO: use main branch
 export const COMMUNITY_BASE_URL =
-    "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/feature/examples_with_mds";
+    "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
 
 export async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
     log.debug("Fetching community templates");

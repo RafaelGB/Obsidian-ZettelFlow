@@ -12,7 +12,7 @@ Welcome to **ZettelFlow**, the ultimate plugin for Obsidian that empowers you to
 
 ---
 ## **Quick Start Guide**
-Use our community resources to kickstart your ZettelFlow experience. You can find pre-built flows, steps, and actions that you can easily import into your own vault. Check out the [Community Resources Guide](https://rafaelgb.github.io/how-to-contribute/community-examples/) for more information.
+Use our community resources to kickstart your ZettelFlow experience. You can find pre-built flows, steps, and actions that you can easily import into your own vault. Check out the [Community Resources Guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/how-to-contribute/community-examples/) for more information.
 
 ## **What is ZettelFlow?**
 

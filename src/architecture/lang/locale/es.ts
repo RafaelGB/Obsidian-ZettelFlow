@@ -257,6 +257,10 @@ export default {
     template_yes: '✅',
     template_no: '❌',
     template_downloads: 'Descargas',
+    template_files_downloaded: 'Archivos descargados',
+    template_files_downloaded_notice: 'Se han descargado {{count}} archivos',
+    template_download_flow_files: 'Descargar plantillas del Flow',
+    template_download_flow_title: 'Descarga en tu Vault las plantillas asociadas al Flow',
 
     // Community markdown modal
     remove_markdown_button: 'Eliminar',

@@ -8,4 +8,6 @@ export { ZettelNode, ZettelNodeType } from './model/CanvasModel';
 
 export { MarkdownService } from './services/Markdown';
 export { ObsidianConfig } from './services/ObsidianConfig';
+export { VaultStateManager } from './services/VaultStateManager';
+
 export { ObsidianPropertyType, isObsidianPropertyType } from './services/typing';

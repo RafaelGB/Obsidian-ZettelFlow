@@ -1,5 +1,13 @@
 [
   {
+    "id": "01965897-6e31-7f4b-9cbb-c0b9e140c9ca",
+    "template_type": "flow",
+    "ref": "/docs/flows/zettelkasten_inbox",
+    "title": "Zettelkasten Inbox",
+    "description": "This flow is used to create notes following the Zettelkasten system",
+    "author": "RafaelGB"
+  },
+  {
     "id": "29e67386-84d6-4538-98ae-6457c750b622",
     "template_type": "flow",
     "ref": "/docs/flows/para_system",

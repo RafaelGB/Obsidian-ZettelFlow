@@ -12,6 +12,7 @@ export type PluginComponentProps = {
 }
 
 export interface CommunityFlowNode {
+    index: number;
     id: string;
     type: string;
     zettelflowConfig?: string;
@@ -22,6 +23,7 @@ export interface CommunityFlowNode {
     height: number;
     color?: string;
     label?: string;
+    file?: string;
     [key: string]: any;
     // Additional properties can be added as needed
 }

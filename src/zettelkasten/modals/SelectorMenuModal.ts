@@ -61,11 +61,13 @@ export class SelectorMenuModal extends Modal {
 
     onEditorBuild(content: string): void {
         if (this.markdownView && this.markdownView.editor) {
+            console.log("onEditorBuild");
             log.debug('Inserting content into the editor', this.markdownView);
             const editor = this.markdownView.editor;
             const position = editor.getCursor();
             // Add the template to the editor
             editor.replaceRange(content, { line: position.line, ch: position.ch }, { line: position.line, ch: position.ch });
+
         }
     }
 

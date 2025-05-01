@@ -222,6 +222,10 @@ export default {
     template_yes: '✅',
     template_no: '❌',
     template_downloads: 'Downloads',
+    template_files_downloaded: 'Download finished',
+    template_files_downloaded_notice: '{{count}} files were downloaded',
+    template_download_flow_files: 'Download flow files',
+    template_download_flow_title: 'Download templates associated to the flow into your vault',
 
     // Community markdown modal
     remove_markdown_button: 'Remove',

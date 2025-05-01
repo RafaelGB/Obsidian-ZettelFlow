@@ -1,12 +1,16 @@
 import { Component, Modal, Notice, requestUrl, setIcon } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { MarkdownService } from "architecture/plugin";
+import { FileService, MarkdownService } from "architecture/plugin";
 import ZettelFlow from "main";
 import { CommunityFlowData, CommunityFlowNode } from "./typing";
 import { CommunityStepSettings } from "config";
 import { actionsStore } from "architecture/api";
 import { getCanvasColor } from "architecture/plugin/canvas/shared/Color";
+import {
+  COMMUNITY_BASE_URL,
+  fetchMarkdownTemplate,
+} from "./services/CommunityHttpClientService";
 
 /**
  * Modal to display community flow previews, metadata, nodes, and connections.
@@ -14,11 +18,14 @@ import { getCanvasColor } from "architecture/plugin/canvas/shared/Color";
 export class CommunityFlowModal extends Modal {
   private nodesRef: Record<string, string> = {};
   private isImageExpanded = false;
+  private imageUrl = `${COMMUNITY_BASE_URL}${this.refUrl}/image.png`;
   private objectUrl: string | null = null;
+  private filesToDownload: Record<string, string> = {};
+  private downloadMdButton: HTMLButtonElement;
   constructor(
     private plugin: ZettelFlow,
     private flow: CommunityFlowData,
-    private imageUrl: string,
+    private refUrl: string,
     private onInstallToggle: () => void
   ) {
     super(plugin.app);
@@ -84,6 +91,46 @@ export class CommunityFlowModal extends Modal {
       this.onInstallToggle();
     });
 
+    // --- Download Files Section ---
+    this.downloadMdButton = buttonGroup.createEl(
+      "button",
+      {
+        placeholder: t("template_download_flow_files"),
+        title: t("template_download_flow_title"),
+      },
+      (el) => {
+        el.addClass("mod-cta");
+        el.addEventListener("click", async () => {
+          Object.entries(this.filesToDownload).forEach(
+            async ([filename, content]) => {
+              const path = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
+              // Delete existing file if it exists
+              const potentialFile = await FileService.getFile(path, false);
+              if (potentialFile) {
+                await FileService.deleteFile(potentialFile);
+              }
+
+              await FileService.createFile(
+                `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`,
+                content,
+                false
+              );
+            }
+          );
+          new Notice(
+            `${t("template_files_downloaded")} ${this.flow.title} ${t(
+              "template_files_downloaded_notice"
+            ).replace(
+              "{{count}}",
+              Object.keys(this.filesToDownload).length.toString()
+            )}`
+          );
+        });
+      }
+    );
+    setIcon(this.downloadMdButton.createDiv(), "download");
+    this.downloadMdButton.style.display = "none";
+
     // --- Description Section ---
     const infoSection = this.contentEl.createDiv({
       cls: c("modal-reader-general-section"),
@@ -145,7 +192,8 @@ ${this.flow.description}`;
 
     const container = section.createDiv({ cls: c("flow-nodes-container") });
     const grouped: Record<string, CommunityFlowNode[]> = {};
-    this.flow.nodes.forEach((node) => {
+    this.flow.nodes.forEach((node, index) => {
+      node.index = index;
       (grouped[node.type] ||= []).push(node);
     });
 
@@ -171,7 +219,10 @@ ${this.flow.description}`;
 
         // Add node title/label to header
         const nodeTitle =
-          node.text || node.label || `Node ${node.id.substring(0, 6)}...`;
+          node.text ||
+          node.label ||
+          node.file ||
+          `Node ${node.id.substring(0, 6)}...`;
         accordionHeader.createEl("span", {
           text: `${this.nodesRef[node.id]} - ${nodeTitle}`,
           cls: c("flow-node-title"),
@@ -196,80 +247,15 @@ ${this.flow.description}`;
         });
         accordionContent.style.display = "none";
 
-        // Add node text if it exists and is different from the title
-        if (node.text && node.text !== nodeTitle) {
-          const textSection = accordionContent.createDiv({
-            cls: c("flow-node-text"),
-          });
-          textSection.createEl("div", { text: node.text });
+        switch (type) {
+          case "text":
+          case "group":
+            this.renderNodeItem(accordionContent, node, nodeTitle);
+            break;
+          case "file":
+            this.renderFileNodeItem(accordionContent, node);
+            break;
         }
-
-        // Add actions section only if actions exist
-        if (node.zettelflowConfig) {
-          try {
-            const zettelflowConfig = JSON.parse(
-              node.zettelflowConfig
-            ) as CommunityStepSettings;
-
-            // Target folder
-            const mdContent = `**${t("template_target_folder")}**: ${
-              zettelflowConfig.targetFolder
-            }
-            **${t("template_optional")}**: ${
-              zettelflowConfig.optional ? t("template_yes") : t("template_no")
-            }
-            **${t("template_root")}**: ${
-              zettelflowConfig.root ? t("template_yes") : t("template_no")
-            }`;
-
-            const comp = new Component();
-            const descriptionSection = accordionContent.createDiv({
-              cls: c("modal-reader-general-section"),
-            });
-
-            MarkdownService.render(
-              this.plugin.app,
-              mdContent,
-              descriptionSection,
-              "/",
-              comp,
-              [c("modal-reader-markdown-preview")]
-            );
-
-            if (
-              zettelflowConfig.actions &&
-              zettelflowConfig.actions.length > 0
-            ) {
-              const actionsSection = accordionContent.createDiv({
-                cls: c("flow-node-actions"),
-              });
-              actionsSection.createEl("h5", { text: t("template_actions") });
-
-              zettelflowConfig.actions.forEach((action) => {
-                const actionEl = actionsSection.createDiv({
-                  cls: c("modal-reader-action-section"),
-                });
-                const currentAction = actionsStore.getAction(action.type);
-                actionEl.createEl("p", {
-                  text: `${t("template_type")}: ${currentAction.getLabel()}`,
-                });
-                actionEl.createEl("p", {
-                  text: `${t("action_description_label")}: ${
-                    action.description
-                  }`,
-                });
-                setIcon(actionEl.createDiv(), currentAction.getIcon());
-                const settingsSection = actionsSection.createDiv({
-                  cls: c("modal-reader-section"),
-                });
-                currentAction.settingsReader(settingsSection, action);
-              });
-            }
-          } catch (error) {
-            console.error("Error parsing zettelflowConfig:", error);
-          }
-        }
-
         // Add click event to toggle accordion
         accordionHeader.addEventListener("click", () => {
           const isExpanded = accordionContent.style.display !== "none";
@@ -281,6 +267,103 @@ ${this.flow.description}`;
     }
   }
 
+  private async renderFileNodeItem(
+    accordionContent: HTMLDivElement,
+    node: CommunityFlowNode
+  ): Promise<void> {
+    const filename = node.file as string;
+    const fileContent = await fetchMarkdownTemplate(
+      `${this.refUrl}/${filename}`
+    );
+    this.filesToDownload[filename] = fileContent;
+
+    const comp = new Component();
+    const mdContent = accordionContent.createDiv({
+      cls: c("markdown-content"),
+    });
+    MarkdownService.render(this.app, fileContent, mdContent, "/", comp);
+    this.enableDownloadButton();
+
+    console.log("fileContent", fileContent);
+    this.flow.nodes[
+      node.index
+    ].file = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
+  }
+
+  private renderNodeItem(
+    accordionContent: HTMLDivElement,
+    node: CommunityFlowNode,
+    nodeTitle: string
+  ): void {
+    // Add node text if it exists and is different from the title
+    if (node.text && node.text !== nodeTitle) {
+      const textSection = accordionContent.createDiv({
+        cls: c("flow-node-text"),
+      });
+      textSection.createEl("div", { text: node.text });
+    }
+
+    // Add actions section only if actions exist
+    if (node.zettelflowConfig) {
+      try {
+        const zettelflowConfig = JSON.parse(
+          node.zettelflowConfig
+        ) as CommunityStepSettings;
+
+        // Target folder
+        const mdContent = `**${t("template_target_folder")}**: ${
+          zettelflowConfig.targetFolder
+        }
+            **${t("template_optional")}**: ${
+          zettelflowConfig.optional ? t("template_yes") : t("template_no")
+        }
+            **${t("template_root")}**: ${
+          zettelflowConfig.root ? t("template_yes") : t("template_no")
+        }`;
+
+        const comp = new Component();
+        const descriptionSection = accordionContent.createDiv({
+          cls: c("modal-reader-general-section"),
+        });
+
+        MarkdownService.render(
+          this.plugin.app,
+          mdContent,
+          descriptionSection,
+          "/",
+          comp,
+          [c("modal-reader-markdown-preview")]
+        );
+
+        if (zettelflowConfig.actions && zettelflowConfig.actions.length > 0) {
+          const actionsSection = accordionContent.createDiv({
+            cls: c("flow-node-actions"),
+          });
+          actionsSection.createEl("h5", { text: t("template_actions") });
+
+          zettelflowConfig.actions.forEach((action) => {
+            const actionEl = actionsSection.createDiv({
+              cls: c("modal-reader-action-section"),
+            });
+            const currentAction = actionsStore.getAction(action.type);
+            actionEl.createEl("p", {
+              text: `${t("template_type")}: ${currentAction.getLabel()}`,
+            });
+            actionEl.createEl("p", {
+              text: `${t("action_description_label")}: ${action.description}`,
+            });
+            setIcon(actionEl.createDiv(), currentAction.getIcon());
+            const settingsSection = actionsSection.createDiv({
+              cls: c("modal-reader-section"),
+            });
+            currentAction.settingsReader(settingsSection, action);
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing zettelflowConfig:", error);
+      }
+    }
+  }
   /**
    * Renders a list of flow edges with source → target.
    */
@@ -319,5 +402,9 @@ ${this.flow.description}`;
   onClose(): void {
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.contentEl.empty();
+  }
+
+  private enableDownloadButton(): void {
+    this.downloadMdButton.style.display = "block";
   }
 }

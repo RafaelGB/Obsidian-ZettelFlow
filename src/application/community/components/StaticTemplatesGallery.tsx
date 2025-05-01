@@ -1,69 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Notice, request } from "obsidian";
+import { Notice } from "obsidian";
 import { c, log } from "architecture";
-import {
-  CommunityAction,
-  CommunityStepSettings,
-  StaticTemplateOptions,
-} from "config";
-import { CommunityFlowData, PluginComponentProps } from "../typing";
+import { StaticTemplateOptions } from "config";
+import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 import { CommunityFlowModal } from "../CommunityFlowModal";
-
-const BASE_URL =
-  "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
-
-async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]> {
-  log.debug("Fetching community templates");
-  const rawList = await request({
-    url: `${BASE_URL}/docs/main_template.json`,
-    method: "GET",
-    contentType: "application/json",
-  });
-  return JSON.parse(rawList) as StaticTemplateOptions[];
-}
-
-async function fetchActionTemplate(ref: string) {
-  log.debug("Fetching action template", ref);
-  const rawList = await request({
-    url: `${BASE_URL}${ref}`,
-    method: "GET",
-    contentType: "application/json",
-  });
-  return JSON.parse(rawList) as CommunityAction;
-}
-
-async function fetchStepTemplate(ref: string) {
-  log.debug("Fetching step template", ref);
-  const rawList = await request({
-    url: `${BASE_URL}${ref}`,
-    method: "GET",
-    contentType: "application/json",
-  });
-  return JSON.parse(rawList) as CommunityStepSettings;
-}
-
-async function fetchFlowTemplate(ref: string) {
-  log.debug("Fetching flow template", ref);
-  const rawList = await request({
-    url: `${BASE_URL}${ref}/flow.json`,
-    method: "GET",
-    contentType: "application/json",
-  });
-  return JSON.parse(rawList) as CommunityFlowData;
-}
-
-async function fetchMarkdownTemplate(ref: string) {
-  log.debug("Fetching markdown template", ref);
-  const markdown = await request({
-    url: `${BASE_URL}${ref}`,
-    method: "GET",
-    contentType: "text/plain",
-  });
-  return markdown;
-}
+import {
+  fetchActionTemplate,
+  fetchCommunityTemplates,
+  fetchFlowTemplate,
+  fetchMarkdownTemplate,
+  fetchStepTemplate,
+} from "../services/CommunityHttpClientService";
 
 export function StaticTemplatesGallery(props: PluginComponentProps) {
   const { plugin } = props;
@@ -184,12 +134,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         }
         case "flow": {
           const flow = await fetchFlowTemplate(template.ref);
-          new CommunityFlowModal(
-            plugin,
-            flow,
-            `${BASE_URL}${template.ref}/image.png`,
-            () => {}
-          ).open();
+          new CommunityFlowModal(plugin, flow, template.ref, () => {}).open();
           break;
         }
         default: {
@@ -209,12 +154,12 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     }
   };
 
-  // Mapeo de cada filtro a su clase de color (usa las mismas que en las cards)
+  // Mapping of filter types to CSS classes
   const FILTER_COLORS: Record<
     "all" | "step" | "action" | "markdown" | "flow",
     string
   > = {
-    all: "template-type-all", // Puedes definir este color en CSS o elegir otro
+    all: "template-type-all",
     step: "template-type-step",
     action: "template-type-action",
     markdown: "template-type-markdown",

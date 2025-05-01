@@ -1,6 +1,6 @@
-import { Canvas, CanvasElement } from "obsidian/canvas";
+import { Canvas, CanvasElement, SelectionData } from "obsidian/canvas";
 import CanvasExtension from "./CanvasExtension";
-import { setIcon, setTooltip } from "obsidian";
+import { Notice, setIcon, setTooltip } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
 import { StepBuilderModal } from "zettelkasten";
@@ -27,64 +27,98 @@ export default class EditStepCanvasExtension extends CanvasExtension {
     init(): void {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("canvas:popup-menu", async (eventCanvas: Canvas) => {
-                // Check if canvas is one of the ZettelFlow canvases
-                const file = this.plugin.app.workspace.getActiveFile();
-                if (!file) return;
-                const { ribbonCanvas } = this.plugin.settings;
+                // Check if is dragging
+                if (eventCanvas.isDragging) return;
+
                 if (
                     !CanvasHelper.isCanvasFlow(this.plugin)
                 ) {
                     return;
                 }
 
-                // The menu object from the Canvas
-                const popupMenuEl = eventCanvas?.menu?.menuEl;
-                if (!popupMenuEl) return;
-
                 // Only proceed if exactly one node is selected
-                if (eventCanvas.selection.size !== 1) return;
-
-                // Get the first (and only) selected node
-                const selectedNode: CanvasElement = eventCanvas.selection.values().next().value;
-
-                // We need to use the flow information cause eventCanvas value could be outdated
-                const data = selectedNode.getData();
-
-                // Only generate icon if the node is text/group type (holds zettelflowConfig)
-                if (data.type !== "text" && data.type !== "group") {
-                    return;
+                if (eventCanvas.selection.size === 1) {
+                    this.uniqueNodePopupMenu(eventCanvas);
+                } else if (eventCanvas.selection.size > 1) {
+                    this.multipleNodePopupMenu(eventCanvas);
                 }
-                // Define a unique ID for our new button to prevent duplication
-                const buttonId = "edit-zettelflow-step-btn";
-
-                // Create a new option
-                const newOption = this.createPopupMenuOption({
-                    id: buttonId,
-                    label: "Edit ZettelFlow Step",
-                    icon: RibbonIcon.ID,
-                    callback: () => {
-                        const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
-                        const zettelFlowSettings = data.zettelflowConfig;
-                        const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
-
-                        new StepBuilderModal(this.plugin, {
-                            folder: file.parent || undefined,
-                            filename: file.basename,
-                            type: "text",
-                            // Additional context for the modal
-                            ...stepSettings,
-                        })
-                            .setMode("embed")
-                            .setBuilder(builderMode)
-                            .setNodeId(data.id)
-                            .open();
-                    },
-                });
-
-                // Add the new option to the popup menu, ensuring no duplicates
-                this.addPopupMenuOption(eventCanvas, newOption);
             })
         );
+    }
+    private multipleNodePopupMenu(eventCanvas: Canvas) {
+        const selectedNode: SelectionData = eventCanvas.getSelectionData();
+
+        // Define a unique ID for our new button to prevent duplication
+        const buttonId = "save-zettelflow-clipboard-btn";
+
+        // Create a new option
+        const newOption = this.createPopupMenuOption({
+            id: buttonId,
+            label: "Copy Flow to Clipboard",
+            icon: "clipboard-copy",
+            callback: () => {
+                navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));
+                new Notice(`Flow copied to clipboard!`);
+            },
+        });
+
+        // Add the new option to the popup menu, ensuring no duplicates
+        this.addPopupMenuOption(eventCanvas, newOption);
+    }
+
+    /**
+     * Adds a shortcut button to ZettelFlow Settings of the selected node
+     * @param eventCanvas The current Canvas instance.
+     */
+    private uniqueNodePopupMenu(eventCanvas: Canvas) {
+        // Check if canvas is one of the ZettelFlow canvases
+        const file = this.plugin.app.workspace.getActiveFile();
+        if (!file) return;
+        const { ribbonCanvas } = this.plugin.settings;
+
+        // The menu object from the Canvas
+        const popupMenuEl = eventCanvas?.menu?.menuEl;
+        if (!popupMenuEl) return;
+
+        // Get the first (and only) selected node
+        const selectedNode: CanvasElement = eventCanvas.selection.values().next().value;
+
+        // We need to use the flow information cause eventCanvas value could be outdated
+        const data = selectedNode.getData();
+
+        // Only generate icon if the node is text/group type (holds zettelflowConfig)
+        if (data.type !== "text" && data.type !== "group") {
+            return;
+        }
+        // Define a unique ID for our new button to prevent duplication
+        const buttonId = "edit-zettelflow-step-btn";
+
+        // Create a new option
+        const newOption = this.createPopupMenuOption({
+            id: buttonId,
+            label: "Edit ZettelFlow Step",
+            icon: RibbonIcon.ID,
+            callback: () => {
+                const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
+                const zettelFlowSettings = data.zettelflowConfig;
+                const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
+
+                new StepBuilderModal(this.plugin, {
+                    folder: file.parent || undefined,
+                    filename: file.basename,
+                    type: "text",
+                    // Additional context for the modal
+                    ...stepSettings,
+                })
+                    .setMode("embed")
+                    .setBuilder(builderMode)
+                    .setNodeId(data.id)
+                    .open();
+            },
+        });
+
+        // Add the new option to the popup menu, ensuring no duplicates
+        this.addPopupMenuOption(eventCanvas, newOption);
     }
 
     /**

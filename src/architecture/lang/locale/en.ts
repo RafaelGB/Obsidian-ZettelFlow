@@ -181,7 +181,7 @@ export default {
     step_copied_notice: 'Step copied to clipboard',
     step_template_default_title: 'New template',
     step_template_default_description: 'New template description',
-
+    step_template_already_exists: 'Template already exists. It will be overwritten',
     // Installed step editor
     installed_step_editor_title: 'Installed Step Editor',
     remove_button: 'Remove',
@@ -211,6 +211,8 @@ export default {
     manage_button: 'Manage',
 
     // Community templates metadata
+    template_copied_to_clipboard: 'Template copied to clipboard',
+    template_copied: 'Template copied',
     template_author: 'Author',
     template_target_folder: 'Target folder',
     template_optional: 'Optional',
@@ -220,6 +222,10 @@ export default {
     template_yes: '✅',
     template_no: '❌',
     template_downloads: 'Downloads',
+    template_files_downloaded: 'Download finished',
+    template_files_downloaded_notice: '{{count}} files were downloaded',
+    template_download_flow_files: 'Download flow files',
+    template_download_flow_title: 'Download templates associated to the flow into your vault',
 
     // Community markdown modal
     remove_markdown_button: 'Remove',

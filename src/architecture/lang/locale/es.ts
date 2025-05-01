@@ -215,6 +215,7 @@ export default {
     step_copied_notice: 'Paso copiado al portapapeles',
     step_template_default_title: 'Nueva plantilla',
     step_template_default_description: 'Descripción de la nueva plantilla',
+    step_template_already_exists: 'La plantilla ya existe. Se sobreescribirá con la nueva versión.',
 
     // Installed step editor
     installed_step_editor_title: 'Editor de Pasos Instalados',
@@ -245,6 +246,8 @@ export default {
     manage_button: 'Gestionar',
 
     // Community templates metadata
+    template_copied_to_clipboard: 'Plantilla copiada al portapapeles',
+    template_copied: 'Plantilla copiada',
     template_author: 'Autor',
     template_target_folder: 'Carpeta destino',
     template_optional: 'Opcional',
@@ -254,6 +257,10 @@ export default {
     template_yes: '✅',
     template_no: '❌',
     template_downloads: 'Descargas',
+    template_files_downloaded: 'Archivos descargados',
+    template_files_downloaded_notice: 'Se han descargado {{count}} archivos',
+    template_download_flow_files: 'Descargar plantillas del Flow',
+    template_download_flow_title: 'Descarga en tu Vault las plantillas asociadas al Flow',
 
     // Community markdown modal
     remove_markdown_button: 'Eliminar',

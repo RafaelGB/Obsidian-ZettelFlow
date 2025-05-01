@@ -3,15 +3,13 @@ import { canvas } from 'architecture/plugin/canvas';
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import { CachedMetadata, MarkdownView, Notice, TAbstractFile, TFile, TFolder } from "obsidian";
-import { FrontmatterService, Literal } from "architecture/plugin";
+import { FrontmatterService, Literal, VaultStateManager } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
 import { HookEvent } from "./typing";
 
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
     private currentFrontmatter: FrontmatterService | null = null;
-    // Flag to prevent hook recursion
-    private isHookUpdating: boolean = false;
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -120,10 +118,11 @@ export class VaultHooks {
 
     private onOpen = (file: TFile | null) => {
         if (file instanceof TFile && file.extension === "md") {
+            VaultStateManager.INSTANCE.activeFile(file);
             this.currentFrontmatter = FrontmatterService.instance(file);
             log.debug("Nuevo fichero abierto:", file.path);
         } else {
-            this.currentFrontmatter = null;
+            VaultStateManager.INSTANCE.clean();
         }
     };
 
@@ -140,11 +139,14 @@ export class VaultHooks {
         if (file.extension !== "md") return;
 
         // Skip if we're already updating from a hook to prevent recursion
-        if (this.isHookUpdating) {
-            this.isHookUpdating = false;
+        if (
+            !VaultStateManager.INSTANCE.isGlobalEnabled() ||
+            VaultStateManager.INSTANCE.isOnProcess(file.path)
+        ) {
             return;
         }
-        this.isHookUpdating = true;
+
+        VaultStateManager.INSTANCE.processStart(file.path);
 
         // Obtain the frontmatter of the file before and after the change.
         const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
@@ -189,7 +191,7 @@ export class VaultHooks {
 
         // Update the current frontmatter.
         this.currentFrontmatter = FrontmatterService.instance(file);
-        this.isHookUpdating = false;
+        VaultStateManager.INSTANCE.processFinished(file.path);
 
 
         if (event.response.flowToTrigger) {

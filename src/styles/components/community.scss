@@ -129,6 +129,10 @@
     background-color: var(--background-modifier-border);
 }
 
+.zettelkasten-flow__template-type-flow .zettelkasten-flow__community-templates-card-type-badge {
+    background-color: var(--code-keyword);
+}
+
 /* Icon in the top-right corner */
 .zettelkasten-flow__community-templates-card-icon {
     position: absolute;

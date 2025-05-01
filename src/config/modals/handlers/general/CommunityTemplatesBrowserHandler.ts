@@ -13,7 +13,7 @@ export class CommunityTemplatesBrowserHandler extends AbstractHandlerClass<Setti
         const { containerEl } = info;
 
         new Setting(containerEl)
-            .setName(`${this.name} (Beta)`)
+            .setName(`${this.name}`)
             .setDesc(this.description)
             .addButton(button =>
                 button
@@ -26,7 +26,7 @@ export class CommunityTemplatesBrowserHandler extends AbstractHandlerClass<Setti
 
 
         new Setting(containerEl)
-            .setName(`${t('manage_installed_templates_title')} (Beta)`)
+            .setName(`${t('manage_installed_templates_title')}`)
             .setDesc(t('manage_installed_templates_description'))
             .addButton(button =>
                 button

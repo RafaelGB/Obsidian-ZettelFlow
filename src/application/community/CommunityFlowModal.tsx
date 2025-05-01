@@ -192,7 +192,8 @@ ${this.flow.description}`;
 
     const container = section.createDiv({ cls: c("flow-nodes-container") });
     const grouped: Record<string, CommunityFlowNode[]> = {};
-    this.flow.nodes.forEach((node) => {
+    this.flow.nodes.forEach((node, index) => {
+      node.index = index;
       (grouped[node.type] ||= []).push(node);
     });
 
@@ -282,6 +283,11 @@ ${this.flow.description}`;
     });
     MarkdownService.render(this.app, fileContent, mdContent, "/", comp);
     this.enableDownloadButton();
+
+    console.log("fileContent", fileContent);
+    this.flow.nodes[
+      node.index
+    ].file = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
   }
 
   private renderNodeItem(

@@ -155,12 +155,12 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     }
   };
 
-  // Mapeo de cada filtro a su clase de color (usa las mismas que en las cards)
+  // Mapping of filter types to CSS classes
   const FILTER_COLORS: Record<
     "all" | "step" | "action" | "markdown" | "flow",
     string
   > = {
-    all: "template-type-all", // Puedes definir este color en CSS o elegir otro
+    all: "template-type-all",
     step: "template-type-step",
     action: "template-type-action",
     markdown: "template-type-markdown",

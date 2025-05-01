@@ -1,6 +1,6 @@
 import { FatalError, ObsidianApi, log } from "architecture";
 import { TypeService } from "architecture/typing";
-import { FileService, FrontmatterService } from "architecture/plugin";
+import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import moment from "moment";
 import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
@@ -27,22 +27,36 @@ export class NoteBuilder {
 
   public async build(modal: SelectorMenuModal, actions: NoteBuilderStateActions) {
     this.actions = actions;
-    try {
-      if (modal.isEditor()) {
-        return await this.buildEditor(modal);
-      } else {
-        return await this.buildNewNote();
+    if (modal.isEditor()) {
+      try {
+        VaultStateManager.INSTANCE.processStart(this.note.getFinalPath());
+        const editor = await this.buildEditor(modal);
+        return editor;
       }
-    } catch (error) {
-      this.content.reset();
-      if (!modal.isEditor()) {
+      catch (error) {
+        this.content.reset();
+        throw error;
+      } finally {
+        VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
+      }
+    } else {
+      try {
+        VaultStateManager.INSTANCE.disableGlobal();
+        const builder = await this.buildNewNote();
+        return builder;
+      } catch (error) {
+        this.content.reset();
         const potentialFile = await FileService.getFile(this.note.getFinalPath(), false);
         // Check if the file was created and delete it
         if (potentialFile) {
           await FileService.deleteFile(potentialFile);
         }
+        VaultStateManager.INSTANCE.enableGlobal();
+        throw error;
+      } finally {
+        // Enable other process
+        VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
       }
-      throw error;
     }
   }
 
@@ -52,8 +66,8 @@ export class NoteBuilder {
       throw new FatalError("Markdown view is undefined").setCode(FatalError.MARKDOWN_VIEW_UNDEFINED);
     }
     await this.buildNote();
-    modal.onEditorBuild(this.content.get());
 
+    modal.onEditorBuild(this.content.get());
     // If the origin is a file, we need to process the frontmatter and post-process the file
     if (!modal.isEmbedded() && markdownView.file) {
       await FrontmatterService

@@ -22,6 +22,7 @@ export class VaultHooks {
             plugin.registerEvent(this.plugin.app.vault.on("rename", this.onRename, this.plugin));
             plugin.registerEvent(this.plugin.app.vault.on("delete", this.onDelete, this.plugin));
             plugin.registerEvent(this.plugin.app.vault.on("create", this.onCreate, this.plugin));
+            plugin.registerEvent(this.plugin.app.vault.on("modify", this.onModify, this.plugin));
 
             // Register hooks for MetadataCache events
             plugin.registerEvent(this.plugin.app.metadataCache.on("changed", this.onCacheUpdate, this.plugin));
@@ -61,6 +62,14 @@ export class VaultHooks {
             log.info("Renamed js library folder");
         }
     }
+
+    private onModify = (file: TAbstractFile) => {
+        if (file instanceof TFile && file.extension === "canvas") {
+            // If the modified file is a canvas file, we need to update the canvas flows
+            canvas.flows.delete(file.path);
+            log.debug(`Canvas was modified: ${file.path}. Cache revoked.`);
+        }
+    };
 
     private onDelete = (file: TAbstractFile) => {
         if (file instanceof TFolder) {

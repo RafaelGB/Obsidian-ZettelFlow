@@ -66,8 +66,12 @@ export class VaultStateManager {
         const ps: FileOnFly = this.managedFiles[key];
         if (ps) {
             ps.onProcess = false;
-            // TODO: compare registered timestamp with current date and log execution time.
-
+            const endAt = new Date();
+            if (ps.processStartAt) {
+                const duration = endAt.getTime() - ps.processStartAt.getTime();
+                log.debug(`[VaultStateManager] Process finished for ${key} in ${duration}ms`);
+            }
+            ps.processStartAt = undefined;
         }
     }
 }

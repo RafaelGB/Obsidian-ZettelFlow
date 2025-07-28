@@ -1,17 +1,36 @@
-import { Literal } from "architecture/plugin";
-import { TFile } from "obsidian";
+import type { TFile } from "obsidian";
+import type { Literal } from "architecture/plugin";
 
-export type HookEvent = {
-    request: {
-        oldValue: string;
-        newValue: string;
-        property: string;
-        frontmatter: Record<string, Literal>;
-    };
+export interface HookRequest {
+    oldValue: unknown;
+    newValue: unknown;
+    property: string;
+    frontmatter: Record<string, unknown>;
+}
+
+export interface HookResponse {
+    frontmatter: Record<string, Literal>;
+    removeProperties: string[];
+    /** Nombre del flow (con o sin .canvas) a disparar opcionalmente. */
+    flowToTrigger?: string;
+}
+
+export interface HookEvent {
+    request: HookRequest;
+    response: HookResponse;
     file: TFile;
-    response: {
-        frontmatter: Record<string, Literal>;
-        removeProperties: string[];
-        flowToTrigger?: string;
-    }
+}
+
+export interface HookSettings {
+    /** Código JS/TS async del usuario que muta `event` y lo devuelve. */
+    script: string;
+}
+
+export type PropertiesHooksConfig = Record<string, HookSettings>;
+
+export interface HooksConfig {
+    /** Carpeta donde viven los flows disparados por hooks. */
+    folderFlowPath: string;
+    /** Mapa propiedad → hook. */
+    properties: PropertiesHooksConfig;
 }

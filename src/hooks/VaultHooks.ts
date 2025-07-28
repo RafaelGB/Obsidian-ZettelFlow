@@ -9,7 +9,7 @@ import { HookEvent } from "./typing";
 
 export class VaultHooks {
     // Cache to store the previous value of the monitored property for each file.
-    private currentFrontmatter: FrontmatterService | null = null;
+    private currentFrontmatter: Record<string, FrontmatterService> = {};
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -67,7 +67,6 @@ export class VaultHooks {
         if (file instanceof TFile && file.extension === "canvas") {
             // If the modified file is a canvas file, we need to update the canvas flows
             canvas.flows.delete(file.path);
-            log.debug(`Canvas was modified: ${file.path}. Cache revoked.`);
         }
     };
 
@@ -128,7 +127,7 @@ export class VaultHooks {
     private onOpen = (file: TFile | null) => {
         if (file instanceof TFile && file.extension === "md") {
             VaultStateManager.INSTANCE.activeFile(file);
-            this.currentFrontmatter = FrontmatterService.instance(file);
+            this.currentFrontmatter[file.path] = FrontmatterService.instance(file);
             log.debug("Nuevo fichero abierto:", file.path);
         } else {
             VaultStateManager.INSTANCE.clean();
@@ -138,8 +137,8 @@ export class VaultHooks {
     // Event triggered when a file is modified.
     private onCacheUpdate = async (file: TFile, _data: string, cache: CachedMetadata) => {
         const hooks = Object.entries(this.plugin.settings.hooks.properties || {});
-        if (!this.currentFrontmatter) {
-            this.currentFrontmatter = FrontmatterService.instance(file);
+        if (!this.currentFrontmatter[file.path]) {
+            this.currentFrontmatter[file.path] = FrontmatterService.instance(file);
             return;
         }
         // Verify that the global hook configuration is set and that the frontmatter is available.
@@ -158,7 +157,7 @@ export class VaultHooks {
         VaultStateManager.INSTANCE.processStart(file.path);
 
         // Obtain the frontmatter of the file before and after the change.
-        const oldFrontmatter = this.currentFrontmatter.getFrontmatter();
+        const oldFrontmatter = this.currentFrontmatter[file.path].getFrontmatter();
         const newFrontmatter: Record<string, any> = cache.frontmatter || {};
         const dynamicFrontmatter: Record<string, Literal> = {};
         // Remind the user that the frontmatter has changed.
@@ -193,13 +192,13 @@ export class VaultHooks {
             }
         }
 
-        await this.currentFrontmatter.setProperties(
+        await this.currentFrontmatter[file.path].setProperties(
             event.response.frontmatter,
             event.response.removeProperties
         );
 
         // Update the current frontmatter.
-        this.currentFrontmatter = FrontmatterService.instance(file);
+        this.currentFrontmatter[file.path] = FrontmatterService.instance(file);
         VaultStateManager.INSTANCE.processFinished(file.path);
 
 
@@ -221,6 +220,12 @@ export class VaultHooks {
                 .enableEditor(true)
                 .open();
         }
+
+        // Revoke cache of current frontmatter 1 minute after the last change
+        setTimeout(() => {
+            delete this.currentFrontmatter[file.path];
+            log.info(`Cache for ${file.path} revoked`);
+        }, 60000);
     };
 
     // Execute the script defined in the global hook configuration.

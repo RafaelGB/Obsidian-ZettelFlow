@@ -77,8 +77,14 @@ export class VaultHooks {
         });
     }
 
-    // ========== Vault: rename ==========
+    /**
+     * When a file is renamed, we check if it is a folder or a file. Then we handle it accordingly.
+     * @param file The file that was renamed.
+     * @param oldPath The old path of the file before renaming.
+     */
     private onRename = (file: TAbstractFile, oldPath: string) => {
+        if (VaultStateManager.INSTANCE.isFreezed()) return;
+
         if (isFolder(file)) {
             this.onRenameFolder(file, oldPath);
         } else if (file instanceof TFile) {
@@ -124,12 +130,12 @@ export class VaultHooks {
         }
     }
 
-    // ========== Vault: modify ==========
+    /**
+     * When a file is modified, we invalidate the flow cache.
+     * @param file The file that was modified.
+     */
     private onModify = (file: TAbstractFile) => {
-        if (!VaultStateManager.INSTANCE.isVaultStateEnabled()) {
-            log.warn("[VaultHooks] VaultStateManager is disabled, skipping modify hook.");
-            return
-        }
+        if (VaultStateManager.INSTANCE.isFreezed()) return;
 
         if (isCanvasFile(file)) {
             canvas.flows.delete(file.path);
@@ -137,8 +143,13 @@ export class VaultHooks {
         }
     };
 
-    // ========== Vault: delete ==========
+    /**
+     * When a file is deleted, we check if it is a folder or a file. Then we handle it accordingly.
+     * @param file The file that was deleted.
+     */
     private onDelete = (file: TAbstractFile) => {
+        if (VaultStateManager.INSTANCE.isFreezed()) return;
+
         if (isFolder(file)) {
             this.onDeleteFolder(file);
         } else if (file instanceof TFile) {
@@ -152,7 +163,7 @@ export class VaultHooks {
         if (folder.path === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = "";
             this.plugin.saveSettings();
-            log.info("[VaultHooks] Eliminada jsLibraryFolderPath.");
+            log.info("[VaultHooks] Removed jsLibraryFolderPath.");
             return;
         }
 
@@ -190,8 +201,13 @@ export class VaultHooks {
         }
     };
 
-    // ========== Vault: create ==========
+    /**
+     * When a file is created, we check if it is a folder or a file. Then we handle it accordingly.
+     * @param file The file that was created.
+     */
     private onCreate = async (file: TAbstractFile) => {
+        if (VaultStateManager.INSTANCE.isFreezed()) return;
+
         const parent = file.parent;
         if (!parent) return;
 
@@ -212,8 +228,13 @@ export class VaultHooks {
         }
     };
 
-    // ========== Workspace: file-open ==========
+    /**
+     * When a file is opened, we check if it is a markdown file and add it to the VaultStateManager.
+     * @param file The file that was opened.
+     */
     private onOpen = (file: TFile | null) => {
+        if (VaultStateManager.INSTANCE.isFreezed()) return;
+
         if (isMarkdownFile(file)) {
             VaultStateManager.INSTANCE.add(file);
             log.debug("[VaultHooks] Opened file:", file.path);
@@ -222,6 +243,12 @@ export class VaultHooks {
 
     // ========== MetadataCache: changed ==========
     private onCacheUpdate = (file: TFile, _data: string, cache: CachedMetadata) => {
+        if (
+            VaultStateManager.INSTANCE.isFreezed() ||
+            VaultStateManager.INSTANCE.isOnProcess(file.path)
+        ) {
+            return;
+        }
         // Sólo nos interesan markdowns
         if (file.extension !== "md") return;
 
@@ -249,14 +276,6 @@ export class VaultHooks {
             (hooksCfg.properties || {}) as PropertiesHooksConfig
         );
         if (!hooksEntries.length) return;
-
-        // Evita recursión o desactivación global
-        if (
-            !VaultStateManager.INSTANCE.isVaultStateEnabled() ||
-            VaultStateManager.INSTANCE.isOnProcess(file.path)
-        ) {
-            return;
-        }
 
         // Asegura servicio de frontmatter previo
         const fmPrev = this.getOrCreateFrontmatterService(file);

@@ -156,7 +156,6 @@ export class FrontmatterService {
      * @param {ContentDTO} content - The content to update.
      */
     public async processTypedFrontMatter(content: ContentDTO): Promise<void> {
-        console.log("processTypedFrontMatter");
         try {
             const typeMap = await ObsidianConfig.getTypes();
             await this.processFrontMatter(frontmatter => {

@@ -12,7 +12,7 @@ type FileOnFly = {
 export class VaultStateManager {
     public static INSTANCE: VaultStateManager;
 
-    private vaultStateEnabled: boolean = true;
+    private frozen: boolean = false;
     private managedFiles: Record<string, FileOnFly> = {};
 
     public static init(plugin: ZettelFlow) {
@@ -63,16 +63,26 @@ export class VaultStateManager {
         return false;
     }
 
-    public isVaultStateEnabled(): boolean {
-        return this.vaultStateEnabled;
+    /**
+     * Checks if the VaultStateManager is frozen.
+     * @returns {boolean} True if frozen, false otherwise.
+     */
+    public isFreezed(): boolean {
+        return this.frozen;
     }
 
-    public disableVaultState() {
-        this.vaultStateEnabled = false;
+    /**
+     * Enables the VaultStateManager, allowing modifications to the vault state.
+     */
+    public defrost() {
+        this.frozen = false;
     }
 
-    public enableVaultState() {
-        this.vaultStateEnabled = true;
+    /**
+     * Freezes the VaultStateManager, preventing any further modifications.
+     */
+    public freeze() {
+        this.frozen = true;
     }
 
     public processStart(key: string) {

@@ -1,10 +1,4 @@
-import React, {
-  ChangeEvent,
-  useRef,
-  useState,
-  useMemo,
-  useEffect,
-} from "react";
+import React, { ChangeEvent, useRef, useState, useMemo } from "react";
 import { SelectableSearchType } from "./typing";
 import { c } from "architecture/styles/helper";
 import { Icon } from "architecture/components/icon";
@@ -30,21 +24,17 @@ export function SelectableSearch(props: SelectableSearchType) {
     activeDocument.createElement("div")
   );
 
+  const [selectedOptions, setSelectedOptions] = useState<string[]>(
+    () => initialSelections
+  );
+
   const filteredOptions = useMemo(() => {
-    const lowerSearch = searchState.toLowerCase();
+    const lower = searchState.toLowerCase();
     return options.filter(
-      (option) =>
-        option.toLowerCase().includes(lowerSearch) &&
-        !initialSelections.includes(option)
+      (opt) =>
+        opt.toLowerCase().includes(lower) && !selectedOptions.includes(opt)
     );
-  }, [options, searchState, initialSelections]);
-
-  const [selectedOptions, setSelectedOptions] =
-    useState<string[]>(initialSelections);
-
-  useEffect(() => {
-    setSelectedOptions(initialSelections);
-  }, [initialSelections]);
+  }, [options, searchState, selectedOptions]);
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchState(event.target.value);

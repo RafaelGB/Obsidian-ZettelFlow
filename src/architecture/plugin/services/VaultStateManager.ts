@@ -12,7 +12,7 @@ type FileOnFly = {
 export class VaultStateManager {
     public static INSTANCE: VaultStateManager;
 
-    private globalEnabled: boolean = true;
+    private vaultStateEnabled: boolean = true;
     private managedFiles: Record<string, FileOnFly> = {};
 
     public static init(plugin: ZettelFlow) {
@@ -22,14 +22,36 @@ export class VaultStateManager {
         log.debug(`plugin`, plugin.settings.communitySettings);
     }
 
-    public clean() {
+    public cleanAll() {
         this.managedFiles = {};
     }
 
-    public activeFile(file: TFile) {
+    public add(file: TFile) {
         this.managedFiles[file.path] = {
             frontmatter: FrontmatterService.instance(file),
             onProcess: false
+        }
+        log.debug(`[VaultStateManager] Added file: ${file.path}`);
+        return this.managedFiles[file.path];
+    }
+
+    public update(file: TFile) {
+        if (this.managedFiles[file.path]) {
+            this.managedFiles[file.path].frontmatter = FrontmatterService.instance(file);
+        } else {
+            log.warn(`[VaultStateManager] Attempted to update non-existing file: ${file.path}`);
+        }
+    }
+
+    public get(key: string): FileOnFly | undefined {
+        return this.managedFiles[key];
+    }
+
+    public remove(key: string) {
+        if (this.managedFiles[key]) {
+            delete this.managedFiles[key];
+        } else {
+            log.warn(`[VaultStateManager] Attempted to remove non-existing file: ${key}`);
         }
     }
 
@@ -41,24 +63,26 @@ export class VaultStateManager {
         return false;
     }
 
-    public isGlobalEnabled(): boolean {
-        return this.globalEnabled;
+    public isVaultStateEnabled(): boolean {
+        return this.vaultStateEnabled;
     }
 
-    public disableGlobal() {
-        this.globalEnabled = false;
+    public disableVaultState() {
+        this.vaultStateEnabled = false;
     }
 
-    public enableGlobal() {
-        this.globalEnabled = true;
+    public enableVaultState() {
+        this.vaultStateEnabled = true;
     }
 
     public processStart(key: string) {
         const ps: FileOnFly = this.managedFiles[key];
         if (ps) {
             ps.onProcess = true;
-            // TODO: register a timestamp
             ps.processStartAt = new Date();
+            log.debug(`[VaultStateManager] Process started for ${key} at ${ps.processStartAt}`);
+
+            this.managedFiles[key] = ps;
         }
     }
 
@@ -72,6 +96,8 @@ export class VaultStateManager {
                 log.debug(`[VaultStateManager] Process finished for ${key} in ${duration}ms`);
             }
             ps.processStartAt = undefined;
+
+            this.managedFiles[key] = ps;
         }
     }
 }

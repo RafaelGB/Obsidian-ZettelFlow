@@ -40,8 +40,8 @@ const METADATA_DEBOUNCE_MS = 60;
 const FRONTMATTER_CACHE_TTL_MS = 60_000;
 
 export class VaultHooks {
-    private currentFrontmatter: Map<string, FrontmatterService> = new Map();
     private debounceTimers: Map<string, number> = new Map();
+    private revokeTimers: Map<string, number> = new Map();
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -126,6 +126,11 @@ export class VaultHooks {
 
     // ========== Vault: modify ==========
     private onModify = (file: TAbstractFile) => {
+        if (!VaultStateManager.INSTANCE.isVaultStateEnabled()) {
+            log.warn("[VaultHooks] VaultStateManager is disabled, skipping modify hook.");
+            return
+        }
+
         if (isCanvasFile(file)) {
             canvas.flows.delete(file.path);
             log.debug("[VaultHooks] Invalida flow cache por modificación:", file.path);
@@ -210,11 +215,8 @@ export class VaultHooks {
     // ========== Workspace: file-open ==========
     private onOpen = (file: TFile | null) => {
         if (isMarkdownFile(file)) {
-            VaultStateManager.INSTANCE.activeFile(file);
-            this.currentFrontmatter.set(file.path, FrontmatterService.instance(file));
-            log.debug("[VaultHooks] Fichero abierto:", file.path);
-        } else {
-            VaultStateManager.INSTANCE.clean();
+            VaultStateManager.INSTANCE.add(file);
+            log.debug("[VaultHooks] Opened file:", file.path);
         }
     };
 
@@ -250,7 +252,7 @@ export class VaultHooks {
 
         // Evita recursión o desactivación global
         if (
-            !VaultStateManager.INSTANCE.isGlobalEnabled() ||
+            !VaultStateManager.INSTANCE.isVaultStateEnabled() ||
             VaultStateManager.INSTANCE.isOnProcess(file.path)
         ) {
             return;
@@ -307,8 +309,8 @@ export class VaultHooks {
                     event.response.frontmatter,
                     event.response.removeProperties
                 );
-                // Refresca el servicio tras escribir
-                this.currentFrontmatter.set(file.path, FrontmatterService.instance(file));
+
+                VaultStateManager.INSTANCE.update(file);
             }
 
             // Disparar flow si procede y el archivo es el activo
@@ -326,23 +328,26 @@ export class VaultHooks {
         } finally {
             VaultStateManager.INSTANCE.processFinished(file.path);
 
-            // Revoke cache after processing
-            window.setTimeout(() => {
-                this.currentFrontmatter.delete(file.path);
+            // Revoke cache after processing. Cancel any previous timer.
+            const previous = this.revokeTimers.get(file.path);
+            if (previous) window.clearTimeout(previous);
+
+            const revokeTimer = window.setTimeout(() => {
+                VaultStateManager.INSTANCE.remove(file.path);
                 log.info(`[VaultHooks] Revoke frontmatter cache for ${file.path}`);
             }, FRONTMATTER_CACHE_TTL_MS);
+            this.revokeTimers.set(file.path, revokeTimer);
         }
     }
 
     // ========== Helpers ==========
 
     private getOrCreateFrontmatterService(file: TFile): FrontmatterService {
-        let svc = this.currentFrontmatter.get(file.path);
+        let svc = VaultStateManager.INSTANCE.get(file.path);
         if (!svc) {
-            svc = FrontmatterService.instance(file);
-            this.currentFrontmatter.set(file.path, svc);
+            return VaultStateManager.INSTANCE.add(file).frontmatter;
         }
-        return svc;
+        return svc.frontmatter;
     }
 
     private async openFlowSelectorIfActive(flow: any) {

@@ -18,9 +18,10 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { v4 as uuid4 } from "uuid";
+import { v7 as uuid7 } from "uuid";
 import { ActionAddMenu } from "./ActionAddMenu";
 import { ActionBuilderMapper } from "zettelkasten/mappers/ActionBuilderMapper";
+import { log } from "architecture";
 
 /**
  * ActionsManagement component manages the list of actions allowing
@@ -76,7 +77,7 @@ export function ActionsManagement(props: ActionsManagementProps) {
         >
           {actionsState.map((action, index) => (
             <ActionAccordion
-              key={action.id || uuid4()}
+              key={action.id || uuid7()}
               modal={modal}
               action={action}
               index={index}
@@ -99,6 +100,8 @@ export function ActionsManagement(props: ActionsManagementProps) {
       <ActionAddMenu
         modal={modal}
         onChange={(value, isTemplate) => {
+          log.debug(`Adding action: ${value}, isTemplate: ${isTemplate}`);
+
           if (typeof value === "string") {
             const deepCopy = [...actionsState];
             let newAction: Action;
@@ -114,7 +117,11 @@ export function ActionsManagement(props: ActionsManagementProps) {
             }
             deepCopy.push(newAction);
             setActionsState(deepCopy);
-            info.actions = deepCopy;
+            props.modal.info.actions = deepCopy;
+            log.debug(
+              `New action added: ${newAction.id}. Current actions:`,
+              deepCopy
+            );
           }
         }}
       />

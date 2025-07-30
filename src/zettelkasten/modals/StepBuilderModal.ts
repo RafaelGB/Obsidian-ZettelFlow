@@ -2,7 +2,7 @@ import { Notice, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
-import { FileService } from "architecture/plugin";
+import { FileService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { ObsidianApi, c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
@@ -47,6 +47,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     onOpen(): void {
+        VaultStateManager.INSTANCE.disableVaultState();
         const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
         // Header with title and subtitle with the mode
@@ -160,8 +161,10 @@ export class StepBuilderModal extends AbstractStepModal {
 
     onClose(): void {
         this.save();
+        VaultStateManager.INSTANCE.enableVaultState();
     }
-    private save() {
+
+    public save() {
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {

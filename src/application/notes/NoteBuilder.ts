@@ -62,7 +62,7 @@ export class NoteBuilder {
 
   private async buildNewNote() {
     try {
-      VaultStateManager.INSTANCE.disableGlobal();
+      VaultStateManager.INSTANCE.disableVaultState();
       this.note.setTitle(this.buildFilename());
       await this.buildNote();
       await this.errorManagement();
@@ -84,7 +84,7 @@ export class NoteBuilder {
       if (potentialFile) {
         await FileService.deleteFile(potentialFile);
       }
-      VaultStateManager.INSTANCE.enableGlobal();
+      VaultStateManager.INSTANCE.enableVaultState();
       throw error;
     } finally {
       // Enable other process

@@ -6,7 +6,7 @@ import { Setting } from "obsidian";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { ScriptResult } from "./typing";
 import { c } from "architecture";
-import { ObsidianConfig } from "architecture/plugin";
+import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
 import { navbarAction } from "architecture/components/settings";
 
@@ -56,7 +56,7 @@ export function dynamicSelectorDetails(
     .setName(t("step_builder_element_type_key_title"))
     .setDesc(t("step_builder_element_type_key_description"))
     .addSearch((search) => {
-      ObsidianConfig.getTypes().then((types) => {
+      ObsidianNativeTypesManager.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types, ["text"]);
         search
           .setDisabled(readonly)

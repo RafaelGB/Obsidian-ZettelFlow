@@ -247,6 +247,7 @@ export default {
     notification_duplicated_option: 'The frontmatter must be unique for each option',
     notification_editor_menu_no_active_view: 'No active view',
     developer_section_title: 'Developer',
+    manage_types_button: 'Manage Obsidian Types',
     hooks_section_title: 'Hooks',
     property_hooks_setting_title: 'Property Hooks',
     property_hooks_setting_description: 'Configure hooks to run when properties change in your current open file.',

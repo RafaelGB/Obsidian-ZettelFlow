@@ -4,3 +4,4 @@ export {
 } from './typing';
 
 export { ZettelFlowSettingsTab } from './modals/ZettelFlowSettingsTab';
+export { ObsidianTypesModal } from './types/ObsidianTypesModal';

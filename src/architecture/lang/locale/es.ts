@@ -183,6 +183,7 @@ export default {
     notification_duplicated_option: 'El frontmatter debe ser único para cada opción',
     notification_editor_menu_no_active_view: 'No hay vista activa',
     developer_section_title: 'Desarrollador',
+    manage_types_button: 'Gestionar tipos de Obsidian',
     hooks_section_title: 'Hooks',
     property_hooks_setting_title: 'Configuración de Hooks de Propiedades',
     property_hooks_setting_description: 'Configura hooks para ejecutar cuando las propiedades cambien en el archivo actual.',

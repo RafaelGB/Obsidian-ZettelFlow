@@ -23,6 +23,8 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { PropertyHookAccordion } from "./PropertyHookAccordion";
 import { Search } from "architecture/components/core";
+import { CommunityTemplatesModal } from "application/community";
+import { ObsidianTypesModal } from "config";
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
@@ -32,6 +34,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
 }) => {
   const { properties } = plugin.settings.hooks;
+
   // State variables
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>(
     {}
@@ -142,6 +145,15 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
         >
           <Icon name="plus" />
           {t("property_hooks_add_button")}
+        </button>
+        <button
+          className={"mod-cta"}
+          onClick={async () => {
+            new ObsidianTypesModal(plugin).open();
+          }}
+        >
+          <Icon name="ManageTypes" />
+          {t("manage_types_button")}
         </button>
       </div>
 

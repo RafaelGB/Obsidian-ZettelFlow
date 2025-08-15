@@ -23,7 +23,6 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { PropertyHookAccordion } from "./PropertyHookAccordion";
 import { Search } from "architecture/components/core";
-import { CommunityTemplatesModal } from "application/community";
 import { ObsidianTypesModal } from "config";
 
 interface PropertyHooksManagerProps {

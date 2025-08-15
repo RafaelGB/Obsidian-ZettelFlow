@@ -247,10 +247,6 @@
 
 /* Property Selector dropdown */
 .zettelkasten-flow__property-hook-selector {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;

@@ -2,6 +2,21 @@ import { ObsidianApi } from "architecture";
 
 export class ObsidianNativeTypesManager {
     /**
+     * List of available types that can be used in Obsidian.
+     * @type {string[]}
+     */
+    public static readonly AVAILABLE_TYPES = [
+        "text",
+        "multitext",
+        "number",
+        "checkbox",
+        "date",
+        "datetime",
+        "aliases",
+        "tags"
+    ];
+
+    /**
      * Retrieves all native types defined in the Obsidian configuration.
      * @returns {Promise<Record<string, string>>} A promise that resolves to an object containing type names and their values.
      */

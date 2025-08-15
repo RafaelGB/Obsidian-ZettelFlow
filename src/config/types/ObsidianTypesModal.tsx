@@ -6,6 +6,7 @@ import { ObsidianNativeTypesManager } from "architecture/plugin";
 export class ObsidianTypesModal extends Modal {
   private rawTypes: Record<string, string> = {};
   private filteredTypes: Record<string, string> = {};
+  private typesWithHook: string[] = [];
 
   // refs UI
   private tbodyEl: HTMLTableSectionElement | null = null;
@@ -13,7 +14,6 @@ export class ObsidianTypesModal extends Modal {
   private searchInput!: HTMLInputElement;
   private tableWrap!: HTMLDivElement;
 
-  // filas vivas para validar/leer
   private rows: Array<{
     tr: HTMLTableRowElement;
     nameInput: HTMLInputElement;
@@ -22,8 +22,9 @@ export class ObsidianTypesModal extends Modal {
     deleteBtn: HTMLButtonElement;
   }> = [];
 
-  constructor(private plugin: ZettelFlow) {
+  constructor(plugin: ZettelFlow) {
     super(plugin.app);
+    this.typesWithHook = Object.keys(plugin.settings.hooks.properties);
   }
 
   async onOpen(): Promise<void> {
@@ -31,17 +32,14 @@ export class ObsidianTypesModal extends Modal {
 
     this.rawTypes = (await ObsidianNativeTypesManager.getTypes?.()) ?? {};
     this.filteredTypes = { ...this.rawTypes };
-    // limpiar
     this.contentEl.empty();
 
-    // NAVBAR
     const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
     navbar.createEl("h2", {
       text: "Tipos personalizados",
       cls: c("modal-title"),
     });
 
-    // Toolbar: filtro + añadir
     const toolbar = navbar.createDiv({ cls: c("types-toolbar") });
     const searchWrap = toolbar.createDiv({ cls: c("search-wrap") });
     this.searchInput = searchWrap.createEl("input", {
@@ -50,23 +48,12 @@ export class ObsidianTypesModal extends Modal {
       cls: c("search-input"),
     });
     this.searchInput.addEventListener("input", () => this.applyFilter());
-    this.tableWrap = this.contentEl.createDiv({ cls: c("types-cards-wrap") });
-
-    const table = this.tableWrap.createEl("table", { cls: c("cards") });
-
-    const thead = table.createEl("thead");
-    const headRow = thead.createEl("tr");
-    headRow.createEl("th", { text: "Nombre", cls: c("col-name") });
-    headRow.createEl("th", { text: "Tipo", cls: c("col-type") });
-    headRow.createEl("th", { text: "Acciones", cls: c("col-actions") });
-
-    this.tbodyEl = table.createEl("tbody");
 
     // New row button
     const footer = this.contentEl.createDiv({ cls: c("types-footer") });
     this.addBtn = footer.createEl(
       "button",
-      { text: "Añadir fila", title: "Añadir" },
+      { text: "Add row", title: "Add" },
       (el) => {
         setIcon(el, "plus");
         el.addClass(c("add-row-btn"));
@@ -81,6 +68,18 @@ export class ObsidianTypesModal extends Modal {
         }
       )
     );
+
+    this.tableWrap = this.contentEl.createDiv({ cls: c("types-cards-wrap") });
+
+    const table = this.tableWrap.createEl("table", { cls: c("cards") });
+
+    const thead = table.createEl("thead");
+    const headRow = thead.createEl("tr");
+    headRow.createEl("th", { text: "Nombre", cls: c("col-name") });
+    headRow.createEl("th", { text: "Tipo", cls: c("col-type") });
+    headRow.createEl("th", { text: "Acciones", cls: c("col-actions") });
+
+    this.tbodyEl = table.createEl("tbody");
 
     await this.renderCards();
   }
@@ -114,7 +113,12 @@ export class ObsidianTypesModal extends Modal {
   ) {
     if (!this.tbodyEl) return;
 
-    const tr = this.tbodyEl.createEl("tr", { cls: c("types-row") });
+    const trClasses = [c("types-row")];
+    if (this.typesWithHook.includes(name)) {
+      trClasses.push(c("types-row-with-hook"));
+    }
+
+    const tr = this.tbodyEl.createEl("tr", { cls: trClasses });
 
     // Actions cell
     const tdActions = tr.createEl("td", { cls: c("actions-cell") });
@@ -153,6 +157,7 @@ export class ObsidianTypesModal extends Modal {
     const tdType = tr.createEl("td");
     const typeSelect = tdType.createEl("select");
     typeSelect.classList.add(c("type-select"));
+
     ObsidianNativeTypesManager.AVAILABLE_TYPES.forEach((opt) => {
       const o = document.createElement("option");
       o.value = opt;

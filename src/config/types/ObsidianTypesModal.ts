@@ -3,6 +3,7 @@ import ZettelFlow from "main";
 import { Modal, setIcon } from "obsidian";
 import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { t } from "architecture/lang";
+import { TypeIcon } from "./TypeIcon";
 
 export class ObsidianTypesModal extends Modal {
   private rawTypes: Record<string, string> = {};
@@ -18,7 +19,7 @@ export class ObsidianTypesModal extends Modal {
   private rows: Array<{
     tr: HTMLTableRowElement;
     nameInput: HTMLInputElement;
-    typeSelect: HTMLSelectElement;
+    typeSelect: TypeIcon;
     editBtn: HTMLButtonElement;
     deleteBtn: HTMLButtonElement;
   }> = [];
@@ -142,7 +143,7 @@ export class ObsidianTypesModal extends Modal {
     });
     setIcon(editBtn, "edit");
     editBtn.addEventListener("click", () => {
-      onEdit(nameInput.value, typeSelect.value);
+      onEdit(nameInput.value, typeSelect.getValue());
     });
 
     const deleteBtn = tdActions.createEl("button", {
@@ -166,21 +167,11 @@ export class ObsidianTypesModal extends Modal {
     });
     nameInput.classList.add(c("name-input"));
 
-    // Type
+    // Type applying icon
     const tdType = tr.createEl("td");
-    const typeSelect = tdType.createEl("select");
-    typeSelect.classList.add(c("type-select"));
-
-    ObsidianNativeTypesManager.AVAILABLE_TYPES.forEach((opt) => {
-      const o = document.createElement("option");
-      o.value = opt;
-      o.textContent = opt;
-      if (opt === type) o.selected = true;
-      typeSelect.appendChild(o);
+    const typeSelect = new TypeIcon(tdType, type, () => {
+      // In case of future features, this is the callback for when the type changes
     });
-    if (!ObsidianNativeTypesManager.AVAILABLE_TYPES.includes(type)) {
-      typeSelect.value = ObsidianNativeTypesManager.AVAILABLE_TYPES[0];
-    }
 
     this.rows.push({ tr, nameInput, typeSelect, editBtn, deleteBtn });
   }

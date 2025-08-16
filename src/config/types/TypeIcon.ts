@@ -24,7 +24,7 @@ export class TypeIcon extends Component {
     this.onChange = onChange;
     this.options = ObsidianNativeTypesManager.AVAILABLE_TYPES.map((type) => ({
       value: type,
-      icon: this.getIconForType(type),
+      icon: ObsidianNativeTypesManager.getIconForType(type),
     }));
 
     this.triggerEl = this.parentEl.createDiv({
@@ -38,7 +38,7 @@ export class TypeIcon extends Component {
   }
 
   private updateIcon() {
-    const icon = this.getIconForType(this.value);
+    const icon = ObsidianNativeTypesManager.getIconForType(this.value);
     setIcon(this.iconEl, icon);
   }
 
@@ -61,24 +61,5 @@ export class TypeIcon extends Component {
 
   getValue() {
     return this.value;
-  }
-
-  private getIconForType(type: string): string {
-    switch (type) {
-      case "text":
-        return "text";
-      case "number":
-        return "hash";
-      case "date":
-        return "calendar";
-      case "datetime":
-        return "clock";
-      case "multitext":
-        return "list";
-      case "checkbox":
-        return "check-square";
-      default:
-        return "file-question";
-    }
   }
 }

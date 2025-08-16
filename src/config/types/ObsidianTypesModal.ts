@@ -134,6 +134,25 @@ export class ObsidianTypesModal extends Modal {
 
     const tr = this.tbodyEl.createEl("tr", { cls: trClasses });
 
+    // Name and type container
+    const nameAndTypeContainer = tr.createEl("div", {
+      cls: c("name-type-container"),
+    });
+    // Name
+    const tdName = nameAndTypeContainer.createEl("td");
+    const nameInput = tdName.createEl("input", {
+      type: "text",
+      value: name,
+      placeholder: t("types_modal_name_input_placeholder"),
+    });
+    nameInput.classList.add(c("name-input"));
+
+    // Type applying icon
+    const tdType = nameAndTypeContainer.createEl("td");
+    const typeSelect = new TypeIcon(tdType, type, () => {
+      // In case of future features, this is the callback for when the type changes
+    });
+
     // Actions cell
     const tdActions = tr.createEl("td", { cls: c("actions-cell") });
 
@@ -156,21 +175,6 @@ export class ObsidianTypesModal extends Modal {
       tr.remove();
       this.rows = this.rows.filter((r) => r.tr !== tr);
       ObsidianNativeTypesManager.removeType(nameInput.value);
-    });
-
-    // Name
-    const tdName = tr.createEl("td");
-    const nameInput = tdName.createEl("input", {
-      type: "text",
-      value: name,
-      placeholder: t("types_modal_name_input_placeholder"),
-    });
-    nameInput.classList.add(c("name-input"));
-
-    // Type applying icon
-    const tdType = tr.createEl("td");
-    const typeSelect = new TypeIcon(tdType, type, () => {
-      // In case of future features, this is the callback for when the type changes
     });
 
     this.rows.push({ tr, nameInput, typeSelect, editBtn, deleteBtn });

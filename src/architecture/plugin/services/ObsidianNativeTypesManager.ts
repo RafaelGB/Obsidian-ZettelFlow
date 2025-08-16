@@ -1,4 +1,4 @@
-import { ObsidianApi } from "architecture";
+import { c, ObsidianApi } from "architecture";
 
 export class ObsidianNativeTypesManager {
     /**
@@ -15,6 +15,34 @@ export class ObsidianNativeTypesManager {
         "aliases",
         "tags"
     ];
+
+    /**
+     * Returns the icon associated with a given type.
+     * @param {string} type - The type for which to get the icon.
+     * @returns {string} The icon name.
+     */
+    public static getIconForType(type: string): string {
+        switch (type) {
+            case "text":
+                return "text";
+            case "number":
+                return "binary";
+            case "date":
+                return "calendar";
+            case "datetime":
+                return "clock";
+            case "multitext":
+                return "list";
+            case "checkbox":
+                return "check-square";
+            case "aliases":
+                return "forward";
+            case "tags":
+                return "tags";
+            default:
+                return "file-question";
+        }
+    }
 
     /**
      * Retrieves all native types defined in the Obsidian configuration.

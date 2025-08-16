@@ -55,7 +55,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   useEffect(() => {
     // Load all property types from Obsidian config
     const loadPropertyTypes = async () => {
-      const types = await ObsidianNativeTypesManager.getTypes();
+      const types = await ObsidianNativeTypesManager.getAllTypes();
       setPropertyTypes(types);
     };
     loadPropertyTypes();

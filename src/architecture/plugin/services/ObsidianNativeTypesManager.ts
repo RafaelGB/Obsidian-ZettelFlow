@@ -1,4 +1,4 @@
-import { c, ObsidianApi } from "architecture";
+import { ObsidianApi } from "architecture";
 
 export class ObsidianNativeTypesManager {
     /**
@@ -11,7 +11,11 @@ export class ObsidianNativeTypesManager {
         "number",
         "checkbox",
         "date",
-        "datetime",
+        "datetime"
+    ];
+
+    public static readonly ALL_TYPES = [
+        ...ObsidianNativeTypesManager.AVAILABLE_TYPES,
         "aliases",
         "tags"
     ];
@@ -45,16 +49,30 @@ export class ObsidianNativeTypesManager {
     }
 
     /**
-     * Retrieves all native types defined in the Obsidian configuration.
+     * Retrieves all types defined in the Obsidian configuration.
      * @returns {Promise<Record<string, string>>} A promise that resolves to an object containing type names and their values.
      */
-    public static async getTypes(): Promise<Record<string, string>> {
+    public static async getAllTypes(): Promise<Record<string, string>> {
         const typesFilePath = `${ObsidianApi.vault().configDir}/types.json`;
         // Check if file exists
         if (!await ObsidianApi.vault().adapter.exists(typesFilePath)) {
             return {};
         }
         return JSON.parse(await ObsidianApi.vault().adapter.read(typesFilePath)).types;
+    }
+    /**
+     * Retrieves all native types defined in the Obsidian configuration.
+     * Excludes unique types like "aliases" and "tags".
+     * @returns {Promise<Record<string, string>>} A promise that resolves to an object containing type names and their values.
+     */
+    public static async getTypes(): Promise<Record<string, string>> {
+        const rawTypes = await this.getAllTypes();
+
+        // Remove unique types
+        delete rawTypes["tags"];
+        delete rawTypes["aliases"];
+
+        return rawTypes || {};
     }
 
     /**

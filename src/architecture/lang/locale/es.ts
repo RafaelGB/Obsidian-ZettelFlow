@@ -277,4 +277,16 @@ export default {
 
     // Support
     support_coffee_button: 'Invítame a un café',
+
+    // Types Modal
+    types_modal_title: 'Tipos de Obsidian',
+    types_modal_filter_placeholder: 'Filtrar tipos...',
+    types_modal_add_row_button: 'Añadir fila',
+    types_modal_add_row_button_title: 'Añadir un nuevo tipo',
+    types_modal_table_header_name: 'Nombre',
+    types_modal_table_header_type: 'Tipo',
+    types_modal_table_header_actions: 'Acciones',
+    types_modal_edit_button_title: 'Editar',
+    types_modal_delete_button_title: 'Eliminar',
+    types_modal_name_input_placeholder: 'ejemplo: mi_tipo'
 };

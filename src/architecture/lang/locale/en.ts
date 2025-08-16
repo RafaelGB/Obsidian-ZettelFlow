@@ -284,4 +284,15 @@ export default {
     backlink_select_heading: 'Select a heading',
     backlink_regex_placeholder: 'Regex',
     backlink_continue: 'Continue',
+    // Types Modal
+    types_modal_title: 'Custom Types',
+    types_modal_filter_placeholder: 'Filter by name...',
+    types_modal_add_row_button: 'Add row',
+    types_modal_add_row_button_title: 'Add',
+    types_modal_table_header_name: 'Name',
+    types_modal_table_header_type: 'Type',
+    types_modal_table_header_actions: 'Actions',
+    types_modal_edit_button_title: 'Edit',
+    types_modal_delete_button_title: 'Delete',
+    types_modal_name_input_placeholder: 'e.g. priority',
 };

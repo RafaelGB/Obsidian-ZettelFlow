@@ -374,6 +374,10 @@
     padding: var(--zf-pad);
 }
 
+.zettelkasten-flow__types-row-with-hook{
+    background: var(--background-modifier-active-hover);
+}
+
 /* Quitamos “look” de tabla dentro de la card */
 .zettelkasten-flow__types-row>td {
     display: block;

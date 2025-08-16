@@ -2,6 +2,7 @@ import { c } from "architecture";
 import ZettelFlow from "main";
 import { Modal, setIcon } from "obsidian";
 import { ObsidianNativeTypesManager } from "architecture/plugin";
+import { t } from "architecture/lang";
 
 export class ObsidianTypesModal extends Modal {
   private rawTypes: Record<string, string> = {};
@@ -36,7 +37,7 @@ export class ObsidianTypesModal extends Modal {
 
     const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
     navbar.createEl("h2", {
-      text: "Tipos personalizados",
+      text: t("types_modal_title"),
       cls: c("modal-title"),
     });
 
@@ -44,7 +45,7 @@ export class ObsidianTypesModal extends Modal {
     const searchWrap = toolbar.createDiv({ cls: c("search-wrap") });
     this.searchInput = searchWrap.createEl("input", {
       type: "search",
-      placeholder: "Filtrar por nombre…",
+      placeholder: t("types_modal_filter_placeholder"),
       cls: c("search-input"),
     });
     this.searchInput.addEventListener("input", () => this.applyFilter());
@@ -53,7 +54,10 @@ export class ObsidianTypesModal extends Modal {
     const footer = this.contentEl.createDiv({ cls: c("types-footer") });
     this.addBtn = footer.createEl(
       "button",
-      { text: "Add row", title: "Add" },
+      {
+        text: t("types_modal_add_row_button"),
+        title: t("types_modal_add_row_button_title"),
+      },
       (el) => {
         setIcon(el, "plus");
         el.addClass(c("add-row-btn"));
@@ -75,9 +79,18 @@ export class ObsidianTypesModal extends Modal {
 
     const thead = table.createEl("thead");
     const headRow = thead.createEl("tr");
-    headRow.createEl("th", { text: "Nombre", cls: c("col-name") });
-    headRow.createEl("th", { text: "Tipo", cls: c("col-type") });
-    headRow.createEl("th", { text: "Acciones", cls: c("col-actions") });
+    headRow.createEl("th", {
+      text: t("types_modal_table_header_name"),
+      cls: c("col-name"),
+    });
+    headRow.createEl("th", {
+      text: t("types_modal_table_header_type"),
+      cls: c("col-type"),
+    });
+    headRow.createEl("th", {
+      text: t("types_modal_table_header_actions"),
+      cls: c("col-actions"),
+    });
 
     this.tbodyEl = table.createEl("tbody");
 
@@ -89,7 +102,7 @@ export class ObsidianTypesModal extends Modal {
   }
 
   private async renderCards() {
-    // limpiar
+    // Initialize tbody
     this.tbodyEl?.empty();
     this.rows = [];
 
@@ -124,7 +137,7 @@ export class ObsidianTypesModal extends Modal {
     const tdActions = tr.createEl("td", { cls: c("actions-cell") });
 
     const editBtn = tdActions.createEl("button", {
-      title: "Editar",
+      title: t("types_modal_edit_button_title"),
       cls: c("edit-btn"),
     });
     setIcon(editBtn, "edit");
@@ -133,7 +146,7 @@ export class ObsidianTypesModal extends Modal {
     });
 
     const deleteBtn = tdActions.createEl("button", {
-      title: "Eliminar",
+      title: t("types_modal_delete_button_title"),
       cls: c("delete-btn"),
     });
 
@@ -149,7 +162,7 @@ export class ObsidianTypesModal extends Modal {
     const nameInput = tdName.createEl("input", {
       type: "text",
       value: name,
-      placeholder: "p.ej. prioridad",
+      placeholder: t("types_modal_name_input_placeholder"),
     });
     nameInput.classList.add(c("name-input"));
 

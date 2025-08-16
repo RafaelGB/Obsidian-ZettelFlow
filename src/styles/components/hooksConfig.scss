@@ -388,40 +388,37 @@
 .zettelkasten-flow__name-type-container {
     display: flex;
     align-items: center;
-    gap: 4px; /* Reduce gap for tighter packing */
-    border: 1px solid var(--zf-border);
-    border-radius: 10px;
-    padding: 0 4px 0 10px; /* Adjust padding */
-    transition: border-color .15s ease, box-shadow .15s ease;
+    gap: 8px;
 }
 
-.zettelkasten-flow__name-type-container:focus-within {
-    border-color: var(--zf-accent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--zf-accent) 20%, transparent);
+/* Make the first cell (name) take up available space */
+.zettelkasten-flow__name-type-container>td:first-child {
+    flex-grow: 1;
 }
 
 .zettelkasten-flow__name-type-container .zettelkasten-flow__name-input {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    box-shadow: none;
-    background: transparent;
-    padding: 8px 0; /* Remove horizontal padding from input */
+    /* The input should fill its container cell */
     width: 100%;
 }
 
 .zettelkasten-flow__name-type-container .zettelkasten-flow__type-icon-trigger {
     flex-shrink: 0;
     cursor: pointer;
+    padding: 4px;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4px;
+    transition: background-color 0.2s ease;
 }
 
 .zettelkasten-flow__name-type-container .zettelkasten-flow__type-icon-trigger:hover {
     background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__name-type-container .zettelkasten-flow__type-icon-trigger svg {
+    width: 20px;
+    height: 20px;
 }
 
 /* Controles */

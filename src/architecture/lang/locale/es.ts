@@ -186,7 +186,7 @@ export default {
     manage_types_button: 'Gestionar tipos de Obsidian',
     hooks_section_title: 'Hooks',
     property_hooks_setting_title: 'Configuración de Hooks de Propiedades',
-    property_hooks_setting_description: 'Configura hooks para ejecutar cuando las propiedades cambien en el archivo actual.',
+    property_hooks_setting_description: 'Configura hooks para ejecutar cuando las propiedades cambien en el archivo actual. Debes registrar la propiedad para crear un hook para ella.',
     property_hooks_title: 'Hooks de propiedades',
     property_hooks_add_button: 'Añadir Hook',
     property_hooks_empty: 'No hay hooks configurados todavía. Haz clic en "Añadir Hook" para crear uno.',

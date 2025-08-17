@@ -17,7 +17,8 @@ export class TypeIcon extends Component {
   constructor(
     private parentEl: HTMLElement,
     initialValue: string,
-    onChange: (value: string) => void
+    onChange: (value: string) => void,
+    disabled: boolean = false
   ) {
     super();
     this.value = initialValue;
@@ -33,8 +34,9 @@ export class TypeIcon extends Component {
     });
     this.iconEl = this.triggerEl.createSpan();
     this.updateIcon();
-
-    this.triggerEl.addEventListener("click", this.showMenu.bind(this));
+    if (!disabled) {
+      this.triggerEl.addEventListener("click", this.showMenu.bind(this));
+    }
   }
 
   private updateIcon() {

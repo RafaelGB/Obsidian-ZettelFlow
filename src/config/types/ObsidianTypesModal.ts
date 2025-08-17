@@ -20,8 +20,8 @@ export class ObsidianTypesModal extends Modal {
     tr: HTMLTableRowElement;
     nameInput: HTMLInputElement;
     typeSelect: TypeIcon;
-    editBtn: HTMLButtonElement;
-    deleteBtn: HTMLButtonElement;
+    editBtn?: HTMLButtonElement;
+    deleteBtn?: HTMLButtonElement;
   }> = [];
 
   constructor(plugin: ZettelFlow) {
@@ -50,16 +50,6 @@ export class ObsidianTypesModal extends Modal {
       cls: c("search-input"),
     });
     this.searchInput.addEventListener("input", () => this.applyFilter());
-
-    const nativePropertiesEditBtn = toolbar.createEl("button", {
-      title: t("types_modal_native_properties_edit_button_title"),
-      cls: "mod-cta"
-    });
-    setIcon(nativePropertiesEditBtn.createDiv(), "archive");
-    nativePropertiesEditBtn.addEventListener("click", () => {
-      this.app.workspace.revealLeaf(this.app.workspace.getLeavesOfType('all-properties')[0]);
-      closeAllModalsByEsc();
-    });
 
     // New row button
     const footer = this.contentEl.createDiv({ cls: c("types-footer") });
@@ -120,10 +110,7 @@ export class ObsidianTypesModal extends Modal {
 
     // Initialize rows
     Object.entries(this.filteredTypes).forEach(([name, type]) =>
-      this.addRow(name, type, (value, type) => {
-        ObsidianNativeTypesManager.updateType(value, type);
-      })
-    );
+      this.addRow(name, type));
   }
 
   /**
@@ -134,7 +121,7 @@ export class ObsidianTypesModal extends Modal {
   private addRow(
     name: string,
     type: string,
-    onEdit: (value: string, type: string) => void
+    onEdit?: (value: string, type: string) => void
   ) {
     if (!this.tbodyEl) return;
 
@@ -157,38 +144,46 @@ export class ObsidianTypesModal extends Modal {
       placeholder: t("types_modal_name_input_placeholder"),
     });
     nameInput.classList.add(c("name-input"));
+    nameInput.disabled = !onEdit;
 
     // Type applying icon
     const tdType = nameAndTypeContainer.createEl("td");
-    const typeSelect = new TypeIcon(tdType, type, () => {
-      // In case of future features, this is the callback for when the type changes
-    });
+    const typeSelect = new TypeIcon(
+      tdType,
+      type, () => { },
+      onEdit === undefined);
 
     // Actions cell
-    const tdActions = tr.createEl("td", { cls: c("actions-cell") });
+    if (onEdit) {
+      const tdActions = tr.createEl("td", { cls: c("actions-cell") });
 
-    const editBtn = tdActions.createEl("button", {
-      title: t("types_modal_edit_button_title"),
-      cls: c("edit-btn"),
-    });
-    setIcon(editBtn, "edit");
-    editBtn.addEventListener("click", () => {
-      onEdit(nameInput.value, typeSelect.getValue());
-    });
+      const editBtn = tdActions.createEl("button", {
+        title: t("types_modal_edit_button_title"),
+        cls: c("edit-btn"),
+      });
+      setIcon(editBtn, "edit");
+      editBtn.addEventListener("click", () => {
+        onEdit(nameInput.value, typeSelect.getValue());
+      });
 
-    const deleteBtn = tdActions.createEl("button", {
-      title: t("types_modal_delete_button_title"),
-      cls: c("delete-btn"),
-    });
+      const deleteBtn = tdActions.createEl("button", {
+        title: t("types_modal_delete_button_title"),
+        cls: c("delete-btn"),
+      });
 
-    setIcon(deleteBtn, "trash");
-    deleteBtn.addEventListener("click", () => {
-      tr.remove();
-      this.rows = this.rows.filter((r) => r.tr !== tr);
-      ObsidianNativeTypesManager.removeType(nameInput.value);
-    });
+      setIcon(deleteBtn, "trash");
+      deleteBtn.addEventListener("click", () => {
+        tr.remove();
+        this.rows = this.rows.filter((r) => r.tr !== tr);
+        ObsidianNativeTypesManager.removeType(nameInput.value);
+      });
+      this.rows.push({ tr, nameInput, typeSelect, editBtn, deleteBtn });
+    } else {
+      // If no onEdit function is provided, we just add the row without actions
+      this.rows.push({ tr, nameInput, typeSelect });
+    }
 
-    this.rows.push({ tr, nameInput, typeSelect, editBtn, deleteBtn });
+
   }
 
   private applyFilter() {
@@ -206,28 +201,5 @@ export class ObsidianTypesModal extends Modal {
     }
 
     this.renderCards();
-  }
-}
-
-/**
- * Closes all modals by simulating an Escape key press.
- */
-export function closeAllModalsByEsc(): void {
-  const hasModals = () =>
-    document.querySelector(".modal-container, .modal-bg") !== null;
-
-  // Prevent infinite loop
-  let guard = 25;
-
-  while (hasModals() && guard-- > 0) {
-    const evt = new KeyboardEvent("keydown", {
-      key: "Escape",
-      code: "Escape",
-      keyCode: 27,
-      which: 27,
-      bubbles: true,
-      cancelable: true,
-    });
-    document.dispatchEvent(evt);
   }
 }

@@ -356,8 +356,8 @@
 /* Grid responsive de cards */
 .zettelkasten-flow__cards>tbody {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--zf-gap);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
     margin: 0;
     padding: 2px;
 }

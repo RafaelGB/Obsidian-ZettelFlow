@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { ObsidianNativeTypesManager } from "architecture/plugin";
+import { Keyboard, ObsidianNativeTypesManager } from "architecture/plugin";
 import ZettelFlow from "main";
 import { PropertyHookSettings } from "config/typing";
 import { log } from "architecture";
@@ -145,15 +145,29 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           <Icon name="plus" />
           {t("property_hooks_add_button")}
         </button>
-        <button
-          className={"mod-cta"}
-          onClick={async () => {
-            new ObsidianTypesModal(plugin).open();
-          }}
-        >
-          <Icon name="ManageTypes" />
-          {t("manage_types_button")}
-        </button>
+        <div className={c("navbar-button-group")}>
+          <button
+            className={"mod-cta"}
+            title={t("types_modal_native_properties_edit_button_title")}
+            onClick={() => {
+              plugin.app.workspace.revealLeaf(
+                plugin.app.workspace.getLeavesOfType("all-properties")[0]
+              );
+              Keyboard.closeAllModalsByEsc();
+            }}
+          >
+            <Icon name="archive" />
+          </button>
+          <button
+            className={"mod-cta"}
+            onClick={async () => {
+              new ObsidianTypesModal(plugin).open();
+            }}
+          >
+            <Icon name="ManageTypes" />
+            {t("manage_types_button")}
+          </button>
+        </div>
       </div>
 
       {isAddingHook && (

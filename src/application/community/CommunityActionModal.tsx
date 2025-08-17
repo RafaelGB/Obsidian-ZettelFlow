@@ -94,7 +94,6 @@ export class CommunityActionModal extends Modal {
   }
 
   onClose(): void {
-    let { contentEl } = this;
-    contentEl.empty();
+    this.contentEl.empty();
   }
 }

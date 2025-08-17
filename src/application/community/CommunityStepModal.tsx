@@ -144,7 +144,6 @@ ${this.step.description}`;
   }
 
   onClose(): void {
-    let { contentEl } = this;
-    contentEl.empty();
+    this.contentEl.empty();
   }
 }

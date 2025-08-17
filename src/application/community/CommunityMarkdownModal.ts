@@ -92,7 +92,6 @@ export class CommunityMarkdownModal extends Modal {
     }
 
     onClose() {
-        let { contentEl } = this;
-        contentEl.empty();
+        this.contentEl.empty();
     }
 }

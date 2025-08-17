@@ -43,13 +43,12 @@ export class ConfirmModal extends Modal {
      * We use it to build and display the user interface elements.
      */
     onOpen() {
-        const { contentEl } = this;
 
         // Create the question text
-        contentEl.createEl("h2", { text: this.question });
+        this.contentEl.createEl("h2", { text: this.question });
 
         // Create a container for buttons using a Setting
-        new Setting(contentEl)
+        new Setting(this.contentEl)
             .addButton((btn) => {
                 btn.setButtonText(this.acceptButtonText)
                     .setCta() // makes the button stand out
@@ -72,7 +71,6 @@ export class ConfirmModal extends Modal {
      * We can handle any cleanup logic here.
      */
     onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
+        this.contentEl.empty();
     }
 }

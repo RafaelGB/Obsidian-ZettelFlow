@@ -1,5 +1,5 @@
 // ActionsManagement.tsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ActionsManagementProps } from "./typing";
 import { ActionAccordion } from "./ActionAccordion";
 import { Action, actionsStore } from "architecture/api";
@@ -22,6 +22,8 @@ import { v7 as uuid7 } from "uuid";
 import { ActionAddMenu } from "./ActionAddMenu";
 import { ActionBuilderMapper } from "zettelkasten/mappers/ActionBuilderMapper";
 import { log } from "architecture";
+import { Icon } from "architecture/components/icon";
+import { CommunityAction } from "config";
 
 /**
  * ActionsManagement component manages the list of actions allowing
@@ -33,12 +35,80 @@ import { log } from "architecture";
 export function ActionsManagement(props: ActionsManagementProps) {
   const { modal } = props;
   const { info } = modal;
+
+  const initialClipboard = useMemo(() => {
+    const clipboardTemplate =
+      modal.getPlugin().settings.communitySettings.clipboardTemplate;
+    if (clipboardTemplate?.template_type === "action") {
+      return clipboardTemplate as CommunityAction;
+    }
+    return null;
+  }, []);
+
   const [actionsState, setActionsState] = useState(info.actions);
+  const [actionClipboard, setActionClipboard] = useState(initialClipboard);
 
   // Setup dndkit sensors with a minimum activation distance
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
+
+  /**
+   * Handles the paste action from the clipboard.
+   * It retrieves the action from the clipboard, updates the actions state,
+   * and clears the clipboard.
+   */
+  const handlePasteAction = () => {
+    if (actionClipboard === null) {
+      log.warn("No action in clipboard to paste.");
+      return;
+    }
+
+    const clipboardAction =
+      ActionBuilderMapper.CommunityActionSettings2Action(actionClipboard);
+    updateActionsState([clipboardAction]);
+    setActionClipboard(null);
+
+    modal.getPlugin().settings.communitySettings.clipboardTemplate = undefined;
+    modal.getPlugin().saveSettings();
+  };
+
+  /**
+   * Handles the addition of a new action based on user selection.
+   * It updates the actions state and modal info with the new action.
+   * @param value  - The identifier of the action to add, can be a string or null.
+   * @param isTemplate  - Indicates if the action is a template.
+   */
+  const handleAddAction = (value: string | null, isTemplate: boolean) => {
+    log.debug(`Adding action: ${value}, isTemplate: ${isTemplate}`);
+
+    if (typeof value === "string") {
+      let newAction: Action;
+      if (isTemplate) {
+        const templateAction =
+          modal.getPlugin().settings.installedTemplates.actions[value];
+        newAction =
+          ActionBuilderMapper.CommunityActionSettings2Action(templateAction);
+      } else {
+        newAction = actionsStore.getDefaultActionInfo(value);
+      }
+      updateActionsState([newAction]);
+    }
+  };
+
+  const updateActionsState = (newActions: Action[]) => {
+    const deepCopy = [...actionsState];
+    deepCopy.push(...newActions);
+    setActionsState(deepCopy);
+    props.modal.info.actions = deepCopy;
+
+    for (const newAction of newActions) {
+      log.debug(
+        `New action added: ${newAction.id}. Current actions:`,
+        deepCopy
+      );
+    }
+  };
 
   /**
    * Handles the drag end event by computing the new order of actions.
@@ -65,6 +135,15 @@ export function ActionsManagement(props: ActionsManagementProps) {
   return (
     <>
       <h3>{t("step_builder_actions_management_title")}</h3>
+      {actionClipboard !== null && (
+        <button
+          className="mod-cta"
+          title="Paste copyed action"
+          onClick={handlePasteAction}
+        >
+          <Icon name="clipboard-paste" />
+        </button>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -97,34 +176,7 @@ export function ActionsManagement(props: ActionsManagementProps) {
           ))}
         </SortableContext>
       </DndContext>
-      <ActionAddMenu
-        modal={modal}
-        onChange={(value, isTemplate) => {
-          log.debug(`Adding action: ${value}, isTemplate: ${isTemplate}`);
-
-          if (typeof value === "string") {
-            const deepCopy = [...actionsState];
-            let newAction: Action;
-            if (isTemplate) {
-              const templateAction =
-                modal.getPlugin().settings.installedTemplates.actions[value];
-              newAction =
-                ActionBuilderMapper.CommunityActionSettings2Action(
-                  templateAction
-                );
-            } else {
-              newAction = actionsStore.getDefaultActionInfo(value);
-            }
-            deepCopy.push(newAction);
-            setActionsState(deepCopy);
-            props.modal.info.actions = deepCopy;
-            log.debug(
-              `New action added: ${newAction.id}. Current actions:`,
-              deepCopy
-            );
-          }
-        }}
-      />
+      <ActionAddMenu modal={modal} onChange={handleAddAction} />
     </>
   );
 }

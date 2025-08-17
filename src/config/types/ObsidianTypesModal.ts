@@ -51,6 +51,16 @@ export class ObsidianTypesModal extends Modal {
     });
     this.searchInput.addEventListener("input", () => this.applyFilter());
 
+    const nativePropertiesEditBtn = toolbar.createEl("button", {
+      title: t("types_modal_native_properties_edit_button_title"),
+      cls: "mod-cta"
+    });
+    setIcon(nativePropertiesEditBtn.createDiv(), "archive");
+    nativePropertiesEditBtn.addEventListener("click", () => {
+      this.app.workspace.revealLeaf(this.app.workspace.getLeavesOfType('all-properties')[0]);
+      closeAllModalsByEsc();
+    });
+
     // New row button
     const footer = this.contentEl.createDiv({ cls: c("types-footer") });
     this.addBtn = footer.createEl(
@@ -58,6 +68,7 @@ export class ObsidianTypesModal extends Modal {
       {
         text: t("types_modal_add_row_button"),
         title: t("types_modal_add_row_button_title"),
+        cls: c("add-row-btn"),
       },
       (el) => {
         setIcon(el, "plus");
@@ -195,5 +206,28 @@ export class ObsidianTypesModal extends Modal {
     }
 
     this.renderCards();
+  }
+}
+
+/**
+ * Closes all modals by simulating an Escape key press.
+ */
+export function closeAllModalsByEsc(): void {
+  const hasModals = () =>
+    document.querySelector(".modal-container, .modal-bg") !== null;
+
+  // Prevent infinite loop
+  let guard = 25;
+
+  while (hasModals() && guard-- > 0) {
+    const evt = new KeyboardEvent("keydown", {
+      key: "Escape",
+      code: "Escape",
+      keyCode: 27,
+      which: 27,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(evt);
   }
 }

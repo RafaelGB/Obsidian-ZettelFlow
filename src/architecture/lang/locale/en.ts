@@ -295,4 +295,5 @@ export default {
     types_modal_edit_button_title: 'Edit',
     types_modal_delete_button_title: 'Delete',
     types_modal_name_input_placeholder: 'e.g. priority',
+    types_modal_native_properties_edit_button_title: 'Shortcut to edit native properties',
 };

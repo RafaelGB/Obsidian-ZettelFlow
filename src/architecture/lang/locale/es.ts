@@ -288,5 +288,6 @@ export default {
     types_modal_table_header_actions: 'Acciones',
     types_modal_edit_button_title: 'Editar',
     types_modal_delete_button_title: 'Eliminar',
-    types_modal_name_input_placeholder: 'ejemplo: mi_tipo'
+    types_modal_name_input_placeholder: 'ejemplo: mi_tipo',
+    types_modal_native_properties_edit_button_title: 'Acceso directo al editor de propiedades nativas',
 };

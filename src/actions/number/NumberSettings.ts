@@ -1,6 +1,6 @@
 import { Action, ActionSetting } from "architecture/api";
 import { t } from "architecture/lang";
-import { ObsidianConfig } from "architecture/plugin";
+import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
 import { Setting } from "obsidian";
 import { NumberElement } from "zettelkasten";
@@ -38,7 +38,7 @@ export function numberDetails(contentEl: HTMLElement, action: Action, readonly: 
         .setName(t("step_builder_element_type_key_title"))
         .setDesc(t("step_builder_element_type_key_description"))
         .addSearch(search => {
-            ObsidianConfig.getTypes().then(types => {
+            ObsidianNativeTypesManager.getTypes().then(types => {
                 new PropertySuggest(
                     search.inputEl,
                     types,

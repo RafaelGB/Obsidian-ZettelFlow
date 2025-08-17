@@ -22,15 +22,14 @@ export class OptionsModal extends Modal {
     }
 
     onOpen() {
-        const { contentEl } = this;
-        contentEl.addClass(c("options-modal"));
+        this.contentEl.addClass(c("options-modal"));
 
         // Modal title
-        const titleEl = contentEl.createEl("h2", { text: this.question });
+        const titleEl = this.contentEl.createEl("h2", { text: this.question });
         titleEl.addClass(c("options-modal-title"));
 
         // Container for options
-        const optionsContainer = contentEl.createDiv({ cls: c("options-modal-container") });
+        const optionsContainer = this.contentEl.createDiv({ cls: c("options-modal-container") });
 
         // Create a button for each option
         this.options.forEach(option => {

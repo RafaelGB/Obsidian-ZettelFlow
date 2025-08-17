@@ -2,7 +2,7 @@ import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { PromptElement } from "zettelkasten";
 import { Action, ActionSetting } from "architecture/api";
-import { ObsidianConfig } from "architecture/plugin";
+import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
@@ -38,7 +38,7 @@ export function promptDetails(contentEl: HTMLElement, action: Action, readMode: 
         .setName(t("step_builder_element_type_key_title"))
         .setDesc(t("step_builder_element_type_key_description"))
         .addSearch(search => {
-            ObsidianConfig.getTypes().then(types => {
+            ObsidianNativeTypesManager.getTypes().then(types => {
                 new PropertySuggest(
                     search.inputEl,
                     types,

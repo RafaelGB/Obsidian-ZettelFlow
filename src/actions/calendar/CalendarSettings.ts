@@ -3,7 +3,7 @@ import { t } from "architecture/lang";
 import { CalendarElement } from "zettelkasten";
 import { Action, ActionSetting } from "architecture/api";
 import { PropertySuggest } from "architecture/settings";
-import { ObsidianConfig } from "architecture/plugin";
+import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { v4 as uuid4 } from "uuid";
 import { navbarAction } from "architecture/components/settings";
 
@@ -41,7 +41,7 @@ export function calendarDetails(contentEl: HTMLElement, action: Action, readonly
         .setName(t("step_builder_element_type_key_title"))
         .setDesc(t("step_builder_element_type_key_description"))
         .addSearch(search => {
-            ObsidianConfig.getTypes().then(types => {
+            ObsidianNativeTypesManager.getTypes().then(types => {
                 new PropertySuggest(
                     search.inputEl,
                     types,

@@ -9,5 +9,8 @@ export { ZettelNode, ZettelNodeType } from './model/CanvasModel';
 export { MarkdownService } from './services/Markdown';
 export { ObsidianConfig } from './services/ObsidianConfig';
 export { VaultStateManager } from './services/VaultStateManager';
+export { ObsidianNativeTypesManager } from './services/ObsidianNativeTypesManager';
 
 export { ObsidianPropertyType, isObsidianPropertyType } from './services/typing';
+
+export { Keyboard } from './services/Keyboard';

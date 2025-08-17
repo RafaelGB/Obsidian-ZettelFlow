@@ -39,8 +39,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     }
 
     display() {
-        const { containerEl } = this;
-        containerEl.empty();
+        this.containerEl.empty();
         const navbar = this.containerEl.createDiv({ cls: c("modal-navbar") });
         const navbarButtonGroup = navbar.createDiv({
             cls: c("navbar-button-group"),
@@ -61,7 +60,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             },
         });
         coffeeImg.height = 25;
-        this.manager.constructUI(containerEl);
+        this.manager.constructUI(this.containerEl);
     }
 
 }

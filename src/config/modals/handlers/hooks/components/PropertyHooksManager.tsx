@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { ObsidianConfig } from "architecture/plugin";
+import { Keyboard, ObsidianNativeTypesManager } from "architecture/plugin";
 import ZettelFlow from "main";
 import { PropertyHookSettings } from "config/typing";
 import { log } from "architecture";
@@ -23,6 +23,7 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { PropertyHookAccordion } from "./PropertyHookAccordion";
 import { Search } from "architecture/components/core";
+import { ObsidianTypesModal } from "config";
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
@@ -32,6 +33,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
 }) => {
   const { properties } = plugin.settings.hooks;
+
   // State variables
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>(
     {}
@@ -53,7 +55,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   useEffect(() => {
     // Load all property types from Obsidian config
     const loadPropertyTypes = async () => {
-      const types = await ObsidianConfig.getTypes();
+      const types = await ObsidianNativeTypesManager.getAllTypes();
       setPropertyTypes(types);
     };
     loadPropertyTypes();
@@ -143,6 +145,29 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           <Icon name="plus" />
           {t("property_hooks_add_button")}
         </button>
+        <div className={c("navbar-button-group")}>
+          <button
+            className={"mod-cta"}
+            title={t("types_modal_native_properties_edit_button_title")}
+            onClick={() => {
+              plugin.app.workspace.revealLeaf(
+                plugin.app.workspace.getLeavesOfType("all-properties")[0]
+              );
+              Keyboard.closeAllModalsByEsc();
+            }}
+          >
+            <Icon name="archive" />
+          </button>
+          <button
+            className={"mod-cta"}
+            onClick={async () => {
+              new ObsidianTypesModal(plugin).open();
+            }}
+          >
+            <Icon name="ManageTypes" />
+            {t("manage_types_button")}
+          </button>
+        </div>
       </div>
 
       {isAddingHook && (

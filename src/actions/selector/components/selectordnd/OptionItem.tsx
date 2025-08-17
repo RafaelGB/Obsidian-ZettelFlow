@@ -46,10 +46,8 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
             <input
               type="text"
               value={frontmatterValue}
-              onChange={(e) => {
-                setFrontmatterValue(e.target.value);
-                update(index, e.target.value, labelValue);
-              }}
+              onChange={(e) => setFrontmatterValue(e.target.value)}
+              onBlur={() => update(index, frontmatterValue.trim(), labelValue)}
             />
           </div>
           <div>
@@ -57,10 +55,8 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
             <input
               type="text"
               value={labelValue}
-              onChange={(e) => {
-                setLabelValue(e.target.value);
-                update(index, frontmatterValue, e.target.value);
-              }}
+              onChange={(e) => setLabelValue(e.target.value)}
+              onBlur={() => update(index, frontmatterValue.trim(), labelValue)}
             />
           </div>
           <div className={c("settings-toggle-group")}>

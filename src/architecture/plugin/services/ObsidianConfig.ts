@@ -52,15 +52,6 @@ export class ObsidianConfig {
         ]
     ]);
 
-    public static async getTypes(): Promise<Record<string, string>> {
-        const typesFilePath = `${ObsidianApi.vault().configDir}/types.json`;
-        // Check if file exists
-        if (!await ObsidianApi.vault().adapter.exists(typesFilePath)) {
-            return {};
-        }
-        return JSON.parse(await ObsidianApi.vault().adapter.read(typesFilePath)).types;
-    }
-
     /**
      * Read .canvas file from plugin folder given a filename
      * @param filename

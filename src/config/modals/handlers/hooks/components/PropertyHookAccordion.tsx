@@ -5,6 +5,7 @@ import { Icon } from "architecture/components/icon";
 import { CodeEditor } from "./CodeEditor";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ObsidianNativeTypesManager } from "architecture/plugin";
 
 interface PropertyHookAccordionProps {
   property: string;
@@ -68,7 +69,11 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
       <div className={c("property-hooks-item-header")}>
         <div className={c("property-hooks-item-info")}>
           <strong>{property}</strong>
-          <span className={c("property-type-badge")}>{propertyType}</span>
+          <span className={c("property-type-badge")}>
+            <Icon
+              name={ObsidianNativeTypesManager.getIconForType(propertyType)}
+            />
+          </span>
         </div>
 
         <div className={c("property-hooks-item-actions")}>

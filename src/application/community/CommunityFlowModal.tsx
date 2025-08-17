@@ -284,7 +284,6 @@ ${this.flow.description}`;
     MarkdownService.render(this.app, fileContent, mdContent, "/", comp);
     this.enableDownloadButton();
 
-    console.log("fileContent", fileContent);
     this.flow.nodes[
       node.index
     ].file = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;

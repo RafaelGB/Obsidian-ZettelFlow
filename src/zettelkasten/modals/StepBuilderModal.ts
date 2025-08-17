@@ -2,7 +2,7 @@ import { Notice, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
-import { FileService } from "architecture/plugin";
+import { FileService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { ObsidianApi, c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
@@ -47,6 +47,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     onOpen(): void {
+        VaultStateManager.INSTANCE.freeze();
         const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
         // Header with title and subtitle with the mode
@@ -159,37 +160,37 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     onClose(): void {
-        this.save();
+        this.save().then(() => {
+            log.info(`Step saved successfully`);
+        }).catch((error) => {
+            log.error(`Error saving step: ${error}`);
+            new Notice(`Error saving step, check console for more info`);
+        }).finally(() => {
+            VaultStateManager.INSTANCE.defrost();
+        });
     }
-    private save() {
+
+    private async save() {
         if (!this.info.folder || !this.info.filename) return;
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {
             case "edit":
-            case "create":
-                this.saveFile(path.concat(".md"))
-                    .then(() => {
-                        log.info(`File ${path} saved`);
-                        this.chain.postAction();
-                    })
-                    .catch((error) => {
-                        log.error(error);
-                        new Notice(`Error saving file ${path}, check console for more info`);
-                    });
-                break
-            case "embed":
-                this.saveEmbed(path.concat(".canvas"))
-                    .then(() => {
-                        log.info(`Embed with id ${this.info.nodeId} saved on ${path}`);
-                        this.chain.postAction();
-                    })
-                    .catch((error) => {
-                        log.error(error);
-                        new Notice(`Error saving embed on ${path}, check console for more info`);
-                    }
-                    );
+            case "create": {
+                await this.saveFile(path.concat(".md"));
+                log.info(`File ${path} saved`);
                 break;
+            }
+            case "embed": {
+                await this.saveEmbed(path.concat(".canvas"));
+                log.info(`Embed with id ${this.info.nodeId} saved on ${path}`);
+                break;
+            }
+            default: {
+                log.error(`Unknown mode ${this.mode}`);
+                throw new Error(`Unknown mode ${this.mode}`);
+            }
         }
+        this.chain.postAction();
     }
 
     private async saveEmbed(path: string): Promise<void> {

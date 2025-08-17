@@ -4,6 +4,7 @@ import { Literal } from "../model/FrontmatterModel";
 import { StepSettings } from "zettelkasten";
 import { ContentDTO } from "application/notes/model/ContentDTO";
 import { ObsidianConfig } from "./ObsidianConfig";
+import { ObsidianNativeTypesManager } from "./ObsidianNativeTypesManager";
 
 /**
  * Service to manage frontmatter metadata in Obsidian notes.
@@ -156,9 +157,8 @@ export class FrontmatterService {
      * @param {ContentDTO} content - The content to update.
      */
     public async processTypedFrontMatter(content: ContentDTO): Promise<void> {
-        console.log("processTypedFrontMatter");
         try {
-            const typeMap = await ObsidianConfig.getTypes();
+            const typeMap = await ObsidianNativeTypesManager.getTypes();
             await this.processFrontMatter(frontmatter => {
                 if (content.hasTags()) {
                     frontmatter.tags = content.getTags();

@@ -183,9 +183,10 @@ export default {
     notification_duplicated_option: 'El frontmatter debe ser único para cada opción',
     notification_editor_menu_no_active_view: 'No hay vista activa',
     developer_section_title: 'Desarrollador',
+    manage_types_button: 'Gestionar tipos de Obsidian',
     hooks_section_title: 'Hooks',
     property_hooks_setting_title: 'Configuración de Hooks de Propiedades',
-    property_hooks_setting_description: 'Configura hooks para ejecutar cuando las propiedades cambien en el archivo actual.',
+    property_hooks_setting_description: 'Configura hooks para ejecutar cuando las propiedades cambien en el archivo actual. Debes registrar la propiedad para crear un hook para ella.',
     property_hooks_title: 'Hooks de propiedades',
     property_hooks_add_button: 'Añadir Hook',
     property_hooks_empty: 'No hay hooks configurados todavía. Haz clic en "Añadir Hook" para crear uno.',
@@ -276,4 +277,17 @@ export default {
 
     // Support
     support_coffee_button: 'Invítame a un café',
+
+    // Types Modal
+    types_modal_title: 'Tipos de Obsidian',
+    types_modal_filter_placeholder: 'Filtrar tipos...',
+    types_modal_add_row_button: 'Añadir fila',
+    types_modal_add_row_button_title: 'Añadir un nuevo tipo',
+    types_modal_table_header_name: 'Nombre',
+    types_modal_table_header_type: 'Tipo',
+    types_modal_table_header_actions: 'Acciones',
+    types_modal_edit_button_title: 'Editar',
+    types_modal_delete_button_title: 'Eliminar',
+    types_modal_name_input_placeholder: 'ejemplo: mi_tipo',
+    types_modal_native_properties_edit_button_title: 'Acceso directo al editor de propiedades nativas',
 };

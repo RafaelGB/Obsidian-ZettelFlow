@@ -30,37 +30,45 @@ export function Search<T>(props: SearchType<T>) {
   });
   useScrollToSelected(listRef, selectedIndex);
 
+  const updatePosition = () => {
+    if (!visibleOptions || !inputRef.current) return;
+    const r = inputRef.current.getBoundingClientRect();
+    const h = listRef.current?.offsetHeight ?? optionsHeight;
+    const spaceDown = window.innerHeight - r.bottom;
+    const spaceUp = r.top;
+
+    const renderDown = spaceDown >= h || spaceDown > spaceUp;
+    const top = renderDown ? r.bottom : Math.max(8, r.top - h); // clamp pequeño
+
+    setPosition({ top, left: r.left, width: r.width });
+  };
+
   useLayoutEffect(() => {
     if (visibleOptions && listRef.current) {
       setOptionsHeight(listRef.current.offsetHeight);
+      updatePosition();
     }
-  }, [visibleOptions, listRef.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleOptions]);
 
   useEffect(() => {
-    if (visibleOptions && inputRef.current) {
-      const inputRect = inputRef.current.getBoundingClientRect();
-      const spaceDown = window.innerHeight - inputRect.bottom;
-      const spaceUp = inputRect.top;
-
-      let top;
-      if (spaceDown >= optionsHeight || spaceDown > spaceUp) {
-        top = inputRect.bottom; // render down
-      } else {
-        top = inputRect.top - optionsHeight; // render up
-      }
-
-      setPosition({
-        top: top,
-        left: inputRect.left,
-        width: inputRect.width,
-      });
-    }
-  }, [visibleOptions, optionsHeight, inputRef.current]);
+    if (!visibleOptions) return;
+    updatePosition();
+    // captura scrolls de cualquier contenedor
+    const opts = { capture: true, passive: true } as AddEventListenerOptions;
+    activeWindow.addEventListener("scroll", updatePosition, opts);
+    activeWindow.addEventListener("resize", updatePosition);
+    return () => {
+      activeWindow.removeEventListener("scroll", updatePosition, opts as any);
+      activeWindow.removeEventListener("resize", updatePosition);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleOptions]);
 
   const searchOptionsFn = (
     <ul
-      className={c("search-results")}
       ref={listRef}
+      className={c("search-results")}
       style={{
         top: position.top,
         left: position.left,
@@ -69,20 +77,17 @@ export function Search<T>(props: SearchType<T>) {
     >
       {Object.entries(filteredOptions).map(([key, value], index) => (
         <li
+          key={`option-${index}-${key}`}
           tabIndex={index}
           onClick={() => {
             setValue(key);
             setSelectedValue(key);
             setFilteredOptions(filterRecordByKey(options, key));
             onChange(value);
-            // blur of input
             ref.current?.querySelector("input")?.blur();
             setVisibleOptions(false);
           }}
-          key={`option-${index}-${key}`}
-          className={
-            index === selectedIndex ? c("search-selected") : c("search-hidden")
-          }
+          className={index === selectedIndex ? c("search-selected") : ""}
         >
           {key}
         </li>

@@ -5,7 +5,7 @@ import React from "react";
 import { Setting } from "obsidian";
 import { Action, ActionSetting } from "architecture/api";
 import { SelectorDnD } from "./components/selectordnd/SelectorDnD";
-import { ObsidianConfig } from "architecture/plugin";
+import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
 import { navbarAction } from "architecture/components/settings";
 
@@ -50,7 +50,7 @@ export function selectorDetails(
     .setName(t("step_builder_element_type_key_title"))
     .setDesc(t("step_builder_element_type_key_description"))
     .addSearch((search) => {
-      ObsidianConfig.getTypes().then((types) => {
+      ObsidianNativeTypesManager.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types);
         search
           .setDisabled(readonly)

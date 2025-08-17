@@ -1,5 +1,5 @@
 .zettelkasten-flow__search-results {
-    position: absolute;
+    position: fixed;
     z-index: 9999;
     background-color: var(--background-secondary);
     list-style: none;
@@ -10,7 +10,7 @@
     /* rounded corners */
     box-shadow: 0 2px 5px var(--background-modifier-border);
     /* drop shadow */
-    max-height: 90vh;
+    max-height: min(200px, 45vh);
     /* max height is 90% of the viewport height */
     overflow-y: auto;
     /* enable vertical scrolling */

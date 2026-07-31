@@ -158,7 +158,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
      * @returns The newly created HTML button element.
      */
     private createPopupMenuOption(menuOption: MenuOption): HTMLElement {
-        const menuOptionElement = document.createElement("button");
+        const menuOptionElement = createEl("button");
 
         // Use the provided ID if present
         if (menuOption.id) {

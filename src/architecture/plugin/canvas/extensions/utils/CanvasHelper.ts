@@ -14,7 +14,7 @@ export default class CanvasHelper {
     static readonly GRID_SIZE = 20
 
     static createControlMenuButton(menuOption: MenuOption): HTMLElement {
-        const quickSetting = document.createElement('div')
+        const quickSetting = createDiv()
         if (menuOption.id) quickSetting.id = menuOption.id
         quickSetting.classList.add('canvas-control-item')
         setIcon(quickSetting, menuOption.icon)
@@ -30,7 +30,7 @@ export default class CanvasHelper {
     }
 
     static createCardMenuOption(canvas: Canvas, menuOption: MenuOption, previewNodeSize: () => Size, onPlaced: (canvas: Canvas, pos: Position) => void): HTMLElement {
-        const menuOptionElement = document.createElement('div')
+        const menuOptionElement = createDiv()
         if (menuOption.id) menuOptionElement.id = menuOption.id
         menuOptionElement.classList.add('canvas-card-menu-button')
         menuOptionElement.classList.add('mod-draggable')
@@ -57,7 +57,7 @@ export default class CanvasHelper {
     }
 
     static createPopupMenuOption(menuOption: MenuOption): HTMLElement {
-        const menuOptionElement = document.createElement('button')
+        const menuOptionElement = createEl('button')
         if (menuOption.id) menuOptionElement.id = menuOption.id
         menuOptionElement.classList.add('clickable-icon')
         setIcon(menuOptionElement, menuOption.icon)
@@ -82,7 +82,7 @@ export default class CanvasHelper {
                 menuOptionElement.classList.add('is-active')
 
                 // Add popup menu
-                const submenu = document.createElement('div')
+                const submenu = createDiv()
                 submenu.id = submenuId
                 submenu.classList.add('canvas-submenu')
 
@@ -128,18 +128,18 @@ export default class CanvasHelper {
 
 
     static createDropdownOptionElement(menuOption: MenuOption): HTMLElement {
-        const menuDropdownOptionElement = document.createElement('div')
+        const menuDropdownOptionElement = createDiv()
         menuDropdownOptionElement.classList.add('menu-item')
         menuDropdownOptionElement.classList.add('tappable')
 
         // Add icon
-        const iconElement = document.createElement('div')
+        const iconElement = createDiv()
         iconElement.classList.add('menu-item-icon')
         setIcon(iconElement, menuOption.icon)
         menuDropdownOptionElement.appendChild(iconElement)
 
         // Add label
-        const labelElement = document.createElement('div')
+        const labelElement = createDiv()
         labelElement.classList.add('menu-item-title')
         labelElement.textContent = menuOption.label
         menuDropdownOptionElement.appendChild(labelElement)
@@ -162,7 +162,7 @@ export default class CanvasHelper {
     }
 
     static createDropdownSeparatorElement(): HTMLElement {
-        const separatorElement = document.createElement('div')
+        const separatorElement = createDiv()
         separatorElement.classList.add('menu-separator')
 
         return separatorElement

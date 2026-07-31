@@ -37,6 +37,12 @@
     display: none !important;
 }
 
+/* {{frontmatter}} live-preview placeholder widget (VariableTextProcessors). */
+.zettelkasten-flow__placeholder-widget {
+    color: var(--text-accent-color);
+    text-decoration: underline;
+}
+
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {
     background-color: var(--background-modifier-error);

@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
-import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings } from 'starters';
+import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings, unloadPluginComponents } from 'starters';
 import { Notice, Plugin } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
@@ -32,6 +32,7 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	onunload() {
+		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}
 

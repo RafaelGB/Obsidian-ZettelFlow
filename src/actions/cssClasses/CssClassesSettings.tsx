@@ -45,9 +45,9 @@ export function cssClassesDetails(
             staticInput.closest(".setting-item");
           if (parent) {
             if (isStatic) {
-              parent.style.display = "flex";
+              parent.removeClass("zettelkasten-flow__is-hidden");
             } else {
-              parent.style.display = "none";
+              parent.addClass("zettelkasten-flow__is-hidden");
               staticInput.value = "";
               delete action.staticValue;
             }
@@ -80,8 +80,8 @@ export function cssClassesDetails(
   );
 
   if (staticBehaviour) {
-    staticValueContainer.settingEl.style.display = "flex";
+    staticValueContainer.settingEl.removeClass("zettelkasten-flow__is-hidden");
   } else {
-    staticValueContainer.settingEl.style.display = "none";
+    staticValueContainer.settingEl.addClass("zettelkasten-flow__is-hidden");
   }
 }

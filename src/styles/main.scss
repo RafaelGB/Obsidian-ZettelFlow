@@ -32,6 +32,11 @@
 @use 'components/hooksConfig.scss';
 @use 'components/codeEditor.scss';
 
+/* Utility: hide an element without inline styles (see no-static-styles-assignment). */
+.zettelkasten-flow__is-hidden {
+    display: none !important;
+}
+
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {
     background-color: var(--background-modifier-error);

@@ -138,3 +138,7 @@ venv
 # Backend python
 .venv
 __pycache__
+
+# Claude Code harness — COMMITTED on purpose (CLAUDE.md, .claude/agents, .claude/skills,
+# .claude/settings.json). Only machine-local overrides are ignored.
+.claude/settings.local.json

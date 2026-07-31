@@ -1,5 +1,5 @@
 import { c } from "architecture";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useRef } from "react";
 import { SearchType } from "./typing";
 import { useOnClickAway, useScrollToSelected } from "architecture/hooks";
@@ -30,7 +30,7 @@ export function Search<T>(props: SearchType<T>) {
   });
   useScrollToSelected(listRef, selectedIndex);
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (!visibleOptions || !inputRef.current) return;
     const r = inputRef.current.getBoundingClientRect();
     const h = listRef.current?.offsetHeight ?? optionsHeight;
@@ -41,15 +41,14 @@ export function Search<T>(props: SearchType<T>) {
     const top = renderDown ? r.bottom : Math.max(8, r.top - h); // clamp pequeño
 
     setPosition({ top, left: r.left, width: r.width });
-  };
+  }, [visibleOptions, optionsHeight]);
 
   useLayoutEffect(() => {
     if (visibleOptions && listRef.current) {
       setOptionsHeight(listRef.current.offsetHeight);
       updatePosition();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect intentionally re-runs only when visibleOptions changes
-  }, [visibleOptions]);
+  }, [visibleOptions, updatePosition]);
 
   useEffect(() => {
     if (!visibleOptions) return;
@@ -62,8 +61,7 @@ export function Search<T>(props: SearchType<T>) {
       activeWindow.removeEventListener("scroll", updatePosition, opts);
       activeWindow.removeEventListener("resize", updatePosition);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect intentionally re-runs only when visibleOptions changes
-  }, [visibleOptions]);
+  }, [visibleOptions, updatePosition]);
 
   const searchOptionsFn = (
     <ul

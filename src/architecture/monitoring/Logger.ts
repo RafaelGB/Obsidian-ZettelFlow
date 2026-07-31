@@ -59,7 +59,10 @@ class Log implements LogInterface {
 
     private configureLogger() {
         if (this.levelInfo >= LevelInfoRecord.trace && this.isDebugModeEnabled) {
-            this.trace = console.trace.bind(console, `[TRACE]`);
+            // console.trace/console.info are disallowed by the Obsidian guidelines
+            // (only warn/error/debug are permitted); route the lower verbosity
+            // levels through console.debug while keeping the level prefix.
+            this.trace = (...args: unknown[]) => console.debug(`[TRACE]`, ...args);
         } else {
             this.trace = () => {
                 // Disable trace mode
@@ -67,7 +70,7 @@ class Log implements LogInterface {
         }
 
         if (this.levelInfo >= LevelInfoRecord.debug && this.isDebugModeEnabled) {
-            this.debug = console.debug.bind(console, `[DEBUG]`);
+            this.debug = (...args: unknown[]) => console.debug(`[DEBUG]`, ...args);
         } else {
             this.debug = () => {
                 // Disable debug mode
@@ -75,7 +78,7 @@ class Log implements LogInterface {
         }
 
         if (this.levelInfo >= LevelInfoRecord.info && this.isDebugModeEnabled) {
-            this.info = console.info.bind(console, `[INFO]`);
+            this.info = (...args: unknown[]) => console.debug(`[INFO]`, ...args);
         } else {
             this.info = () => {
                 // Disable info mode
@@ -83,7 +86,7 @@ class Log implements LogInterface {
         }
 
         if (this.levelInfo >= LevelInfoRecord.warn && this.isDebugModeEnabled) {
-            this.warn = console.warn.bind(console, `[WARN]`);
+            this.warn = (...args: unknown[]) => console.warn(`[WARN]`, ...args);
         } else {
             this.warn = () => {
                 // Disable warn mode
@@ -92,7 +95,7 @@ class Log implements LogInterface {
 
         // Errors always surface, regardless of the debug toggle, so users can report issues
         // (this also matches Obsidian's guideline of logging errors by default).
-        this.error = console.error.bind(console, `[ERROR]`);
+        this.error = (...args: unknown[]) => console.error(`[ERROR]`, ...args);
     }
 
     public static getInstance(): LogInterface {

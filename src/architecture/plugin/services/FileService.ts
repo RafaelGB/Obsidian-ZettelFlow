@@ -53,7 +53,7 @@ export class FileService {
         return await ObsidianApi.vault().cachedRead(file);
     }
 
-    public static async modify(file: TFile, content: string, options?: DataWriteOptions | undefined): Promise<void> {
+    public static async modify(file: TFile, content: string, options?: DataWriteOptions): Promise<void> {
         await ObsidianApi.vault().modify(file, content, options);
     }
 

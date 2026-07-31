@@ -24,12 +24,14 @@ class Suggest<T> {
         containerEl.on(
             "click",
             ".suggestion-item",
-            this.onSuggestionClick.bind(this)
+            (event, delegateTarget) =>
+                this.onSuggestionClick(event, delegateTarget as HTMLDivElement)
         );
         containerEl.on(
             "mousemove",
             ".suggestion-item",
-            this.onSuggestionMouseover.bind(this)
+            (event, delegateTarget) =>
+                this.onSuggestionMouseover(event, delegateTarget as HTMLDivElement)
         );
 
         scope.register([], "ArrowUp", (event) => {
@@ -125,11 +127,11 @@ export abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
         const suggestion = this.suggestEl.createDiv("suggestion");
         this.suggest = new Suggest(this, suggestion, this.scope);
 
-        this.scope.register([], "Escape", this.close.bind(this));
+        this.scope.register([], "Escape", () => this.close());
 
-        this.inputEl.addEventListener("input", this.onInputChanged.bind(this));
-        this.inputEl.addEventListener("focus", this.onInputChanged.bind(this));
-        this.inputEl.addEventListener("blur", this.close.bind(this));
+        this.inputEl.addEventListener("input", () => this.onInputChanged());
+        this.inputEl.addEventListener("focus", () => this.onInputChanged());
+        this.inputEl.addEventListener("blur", () => this.close());
         this.suggestEl.on(
             "mousedown",
             ".suggestion-container",

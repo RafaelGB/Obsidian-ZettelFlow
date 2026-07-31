@@ -12,6 +12,17 @@ declare module "obsidian/canvas" {
         zettelflowConfig: string;
     }
 
+    interface CanvasGroupData extends CanvasNodeData {
+        /**
+         * Serialized ZettelFlow step configuration carried by group nodes.
+         *
+         * WARNING! ZettelFlow-specific field stored alongside the native canvas
+         * data; it is read back through {@link YamlService} which tolerates an
+         * empty/undefined value.
+         */
+        zettelflowConfig: string;
+    }
+
     interface Size {
         width: number
         height: number

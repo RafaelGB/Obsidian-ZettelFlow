@@ -37,7 +37,7 @@ export class FlowsImpl implements Flows {
             throw new Error(`Canvas file ${canvasPath} not found`);
         }
         const content = await FileService.getContent(canvasFile);
-        const data: CanvasData = JSON.parse(content);
+        const data = JSON.parse(content) as CanvasData;
         const flow = new FlowImpl(data, canvasFile);
         this.flows.set(canvasFile.path, flow);
         log.info(`Flow ${canvasPath} loaded`);
@@ -241,7 +241,7 @@ export class FlowImpl implements Flow {
 
     private async refresh() {
         const content = await FileService.getContent(this.file);
-        this.data = JSON.parse(content);
+        this.data = JSON.parse(content) as CanvasData;
     }
 
     private populateNode(data: CanvasTextData | CanvasFileData | CanvasGroupData, node: StepSettings, tooltip?: string): FlowNode {

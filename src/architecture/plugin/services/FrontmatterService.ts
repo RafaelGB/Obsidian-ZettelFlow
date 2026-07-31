@@ -184,9 +184,9 @@ export class FrontmatterService {
 
     /**
      * Helper method to safely process frontmatter modifications.
-     * @param {(frontmatter: any) => void} updateFn - The function that modifies the frontmatter.
+     * @param {(frontmatter: Record<string, unknown>) => void} updateFn - The function that modifies the frontmatter.
      */
-    private async processFrontMatter(updateFn: (frontmatter: any) => void): Promise<void> {
+    private async processFrontMatter(updateFn: (frontmatter: Record<string, unknown>) => void): Promise<void> {
         try {
             await ObsidianApi.fileManager().processFrontMatter(this.file, updateFn);
         } catch (error) {
@@ -201,6 +201,12 @@ export class FrontmatterService {
      * @returns {Literal}
      */
     private getAnidatedProperty(property: string): Literal {
-        return property.split(".").reduce((acc, key) => acc?.[key], this.metadata.frontmatter) || undefined;
+        const value = property.split(".").reduce<unknown>((acc, key) => {
+            if (acc && typeof acc === "object") {
+                return (acc as Record<string, unknown>)[key];
+            }
+            return undefined;
+        }, this.metadata.frontmatter);
+        return value || undefined;
     }
 }

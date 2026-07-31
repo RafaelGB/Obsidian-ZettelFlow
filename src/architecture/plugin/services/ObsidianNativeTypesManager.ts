@@ -58,7 +58,9 @@ export class ObsidianNativeTypesManager {
         if (!await ObsidianApi.vault().adapter.exists(typesFilePath)) {
             return {};
         }
-        return JSON.parse(await ObsidianApi.vault().adapter.read(typesFilePath)).types;
+        const raw = await ObsidianApi.vault().adapter.read(typesFilePath);
+        const parsed = JSON.parse(raw) as { types: Record<string, string> };
+        return parsed.types;
     }
     /**
      * Retrieves all native types defined in the Obsidian configuration.

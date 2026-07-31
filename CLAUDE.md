@@ -17,7 +17,7 @@ each step's **actions**. It's a monorepo:
   templates.
 - `docs/` + `mkdocs.yml` — the MkDocs Material site (GitHub Pages).
 
-Current version: `2.11.0`, `minAppVersion 1.4.11`, desktop **and** mobile (`isDesktopOnly:false`).
+Current version: `2.11.0`, `minAppVersion 1.7.2`, desktop **and** mobile (`isDesktopOnly:false`).
 
 ## Architecture in 60 seconds
 

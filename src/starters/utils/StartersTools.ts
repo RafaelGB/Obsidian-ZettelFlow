@@ -19,6 +19,14 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.loadComponents();
 }
 
+/**
+ * Unload all registered plugin components, running their onUnload() and clearing the
+ * registry so a re-enable starts from a clean slate.
+ */
+export function unloadPluginComponents(): void {
+    ZComponentsManager.unloadComponents();
+}
+
 export function loadServicesThatRequireSettings(setttings: ZettelFlowSettings): void {
     log.setDebugMode(setttings.loggerEnabled);
     log.setLevelInfo(setttings.logLevel);

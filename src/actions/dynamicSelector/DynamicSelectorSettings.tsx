@@ -105,7 +105,7 @@ export function dynamicSelectorDetails(
     .addButton((button) => {
       button
         .setDisabled(readonly)
-        .setButtonText("Clear Output")
+        .setButtonText("Clear output")
         .onClick(() => {
           clearScriptOutput(debugContainer);
         });

@@ -27,10 +27,10 @@ export function ActionAccordion(props: ActionAccordionProps) {
     if (!action.id) {
       action.id = uuid7();
     }
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setAnimationClass("");
     }, 300); // Adjust to your animation duration
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [action]);
 
   // Integrate with dndkit using useSortable
@@ -48,7 +48,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
    */
   const handleRemove = () => {
     setAnimationClass("exit");
-    setTimeout(() => {
+    window.setTimeout(() => {
       onRemove();
     }, 300); // Adjust to your animation duration
   };

@@ -29,11 +29,11 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
   useEffect(() => {
     setLocalScript(script);
 
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setAnimationClass("");
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [script]);
 
   // Integrate with dndkit for drag-and-drop
@@ -49,7 +49,7 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
   // Handle the removal with animation
   const handleDelete = () => {
     setAnimationClass("exit");
-    setTimeout(() => {
+    window.setTimeout(() => {
       onDelete();
     }, 300);
   };

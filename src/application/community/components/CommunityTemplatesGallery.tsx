@@ -78,7 +78,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Reference for debouncing search input
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   // Infinite scroll sentinel reference
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -145,7 +145,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+        window.clearTimeout(searchTimeoutRef.current);
       }
     };
   }, []);
@@ -157,10 +157,10 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     setSearchTerm(e.target.value);
 
     if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
+      window.clearTimeout(searchTimeoutRef.current);
     }
 
-    searchTimeoutRef.current = setTimeout(() => {
+    searchTimeoutRef.current = window.setTimeout(() => {
       setTargetSearchTerm(e.target.value);
     }, 400);
   };

@@ -13,7 +13,7 @@ export class CodeView extends TextFileView implements HoverParent {
     parentDiv: HTMLDivElement;
 
     editor: EditService;
-    editorJit: NodeJS.Timeout | null;
+    editorJit: number | null;
 
     data: string;
 
@@ -61,8 +61,8 @@ export class CodeView extends TextFileView implements HoverParent {
             this.parentDiv,
             this.data,
             (update) => {
-                if (this.editorJit) clearTimeout(this.editorJit);
-                this.editorJit = setTimeout(() => {
+                if (this.editorJit) window.clearTimeout(this.editorJit);
+                this.editorJit = window.setTimeout(() => {
                     this.data = update.state.doc.toString();
                     this.editor
                         .setContent(this.data)

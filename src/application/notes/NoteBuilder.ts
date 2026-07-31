@@ -137,7 +137,7 @@ export class NoteBuilder {
         .postProcess({ element, content: this.content, note: this.note, context: this.context }, file);
     }
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       ObsidianApi.executeCommandById('templater-obsidian:replace-in-file-templater');
     }, 1000);
   }

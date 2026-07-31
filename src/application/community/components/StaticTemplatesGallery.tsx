@@ -29,7 +29,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Ref para debouncing en búsqueda
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   // Reinicia las plantillas al cambiar el término o el filtro
   useEffect(() => {
@@ -69,15 +69,15 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   // Limpieza del timeout al desmontar
   useEffect(() => {
     return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      if (searchTimeoutRef.current) window.clearTimeout(searchTimeoutRef.current);
     };
   }, []);
 
   // Handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => {
+    if (searchTimeoutRef.current) window.clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = window.setTimeout(() => {
       setTargetSearchTerm(e.target.value);
     }, 400);
   };

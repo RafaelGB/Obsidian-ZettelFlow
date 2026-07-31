@@ -90,13 +90,9 @@ class Log implements LogInterface {
             }
         }
 
-        if (this.levelInfo >= LevelInfoRecord.error && this.isDebugModeEnabled) {
-            this.error = console.error.bind(console, `[ERROR]`);
-        } else {
-            this.error = () => {
-                // Disable error mode
-            }
-        }
+        // Errors always surface, regardless of the debug toggle, so users can report issues
+        // (this also matches Obsidian's guideline of logging errors by default).
+        this.error = console.error.bind(console, `[ERROR]`);
     }
 
     public static getInstance(): LogInterface {

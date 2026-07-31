@@ -61,6 +61,7 @@ push to `main`.
 
 - **Commits:** Conventional Commits, enforced by a commit-msg hook
   (`feat(scope): …`, `fix: …`, `docs: …`). Pre-commit runs `npm run lint`.
+  **Do not add a `Co-Authored-By: Claude` (or any AI) trailer to commit messages.**
 - **Branches:** work on `feature/*`; open PRs into `main`. Only commit/push when asked.
 - **Imports:** bare-specifier aliases via `tsconfig` `baseUrl: src` — `architecture`, `config`,
   `actions`, `application`, `hooks`, `zettelkasten`, `starters`. No `paths` map.

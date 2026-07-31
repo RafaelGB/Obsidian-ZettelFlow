@@ -110,7 +110,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             .setName(t("action_description_label"))
             .setDesc(t("action_description_text"))
             .addTextArea((text) => {
-                text.inputEl.style.minWidth = "-webkit-fill-available";
+                text.inputEl.addClass(c("fill-available"));
                 text.inputEl.rows = 4;
                 text
                     .setPlaceholder(t("action_description_label"))
@@ -120,7 +120,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
                     })
             }
             );
-        descSetting.settingEl.style.display = 'block';
+        descSetting.settingEl.addClass(c("display-block"));
 
         const currentAction = actionsStore.getAction(this.communityAction.type);
         const detailsEl = this.contentEl.createDiv({ cls: c("modal-reader-general-section") });

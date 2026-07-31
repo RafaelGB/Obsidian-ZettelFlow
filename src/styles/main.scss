@@ -37,6 +37,22 @@
     display: none !important;
 }
 
+/* Utility: force block display (preserves prior inline `display: block`). */
+.zettelkasten-flow__display-block {
+    display: block;
+}
+
+/* Utility: let a control grow to the available width (textarea descriptions). */
+.zettelkasten-flow__fill-available {
+    min-width: -webkit-fill-available;
+}
+
+/* Utility: constrain a preview image to the modal width. */
+.zettelkasten-flow__flow-image-fit {
+    max-width: 100%;
+    height: auto;
+}
+
 /* {{frontmatter}} live-preview placeholder widget (VariableTextProcessors). */
 .zettelkasten-flow__placeholder-widget {
     color: var(--text-accent-color);
@@ -133,6 +149,11 @@
     margin-bottom: 0.5rem;
     border-radius: 0.25rem;
     display: none;
+}
+
+/* Shown on demand (autofocus / keyboard search) without inline styles. */
+.zettelkasten-flow__select-group input.zettelkasten-flow__is-visible {
+    display: block;
 }
 
 .zettelkasten-flow__option {

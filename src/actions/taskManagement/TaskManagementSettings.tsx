@@ -1,4 +1,5 @@
 import { Action, ActionSetting } from "architecture/api";
+import { c } from "architecture";
 import { t } from "architecture/lang";
 import { Setting } from "obsidian";
 import { TaskManagementElement } from "./typing";
@@ -160,7 +161,8 @@ export function taskManagementDetails(
           action.isContent = value;
           const keyElement = document.getElementById(keyElementId);
           if (keyElement) {
-            keyElement.style.display = value ? "block" : "none";
+            keyElement.toggleClass(c("display-block"), value);
+            keyElement.toggleClass(c("is-hidden"), !value);
           }
         });
     });
@@ -181,6 +183,6 @@ export function taskManagementDetails(
     });
   keyElement.settingEl.id = keyElementId;
   if (!isContent) {
-    keyElement.settingEl.style.display = "none";
+    keyElement.settingEl.addClass(c("is-hidden"));
   }
 }

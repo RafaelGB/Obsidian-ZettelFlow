@@ -129,7 +129,7 @@ export class CommunityFlowModal extends Modal {
       }
     );
     setIcon(this.downloadMdButton.createDiv(), "download");
-    this.downloadMdButton.style.display = "none";
+    this.downloadMdButton.addClass(c("is-hidden"));
 
     // --- Description Section ---
     const infoSection = this.contentEl.createDiv({
@@ -165,8 +165,7 @@ ${this.flow.description}`;
       });
 
       // Ensure image fits within modal
-      imgEl.style.maxWidth = "100%";
-      imgEl.style.height = "auto";
+      imgEl.addClass(c("flow-image-fit"));
 
       imgEl.addEventListener("click", () => {
         this.isImageExpanded = !this.isImageExpanded;
@@ -230,9 +229,10 @@ ${this.flow.description}`;
 
         // Add color badge if node has a color
         if (node.color) {
-          accordionHeader.style.borderLeft = `4px solid rgb(${getCanvasColor(
-            node.color
-          )})`;
+          accordionHeader.addClass(c("flow-node-has-color"));
+          accordionHeader.setCssProps({
+            "--zf-node-color": `rgb(${getCanvasColor(node.color)})`,
+          });
         }
 
         // Add toggle indicator
@@ -245,7 +245,7 @@ ${this.flow.description}`;
         const accordionContent = item.createDiv({
           cls: c("flow-node-accordion-content"),
         });
-        accordionContent.style.display = "none";
+        accordionContent.addClass(c("is-hidden"));
 
         switch (type) {
           case "text":
@@ -258,8 +258,8 @@ ${this.flow.description}`;
         }
         // Add click event to toggle accordion
         accordionHeader.addEventListener("click", () => {
-          const isExpanded = accordionContent.style.display !== "none";
-          accordionContent.style.display = isExpanded ? "none" : "block";
+          const isExpanded = !accordionContent.hasClass(c("is-hidden"));
+          accordionContent.toggleClass(c("is-hidden"), isExpanded);
           toggleIndicator.setText(isExpanded ? "▶" : "▼");
           accordionHeader.toggleClass(c("expanded"), !isExpanded);
         });
@@ -388,9 +388,10 @@ ${this.flow.description}`;
         text: label,
       });
       if (edge.color) {
-        header.style.borderLeft = `4px solid rgb(${getCanvasColor(
-          edge.color
-        )})`;
+        header.addClass(c("flow-node-has-color"));
+        header.setCssProps({
+          "--zf-node-color": `rgb(${getCanvasColor(edge.color)})`,
+        });
       }
     });
   }
@@ -404,6 +405,6 @@ ${this.flow.description}`;
   }
 
   private enableDownloadButton(): void {
-    this.downloadMdButton.style.display = "block";
+    this.downloadMdButton.removeClass(c("is-hidden"));
   }
 }

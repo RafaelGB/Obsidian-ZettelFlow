@@ -14,13 +14,15 @@ module.exports = {
   testEnvironment: "node",
   roots: ["<rootDir>/test"],
   testMatch: ["**/*.test.ts"],
+  setupFiles: ["<rootDir>/test/setup.ts"],
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.jest.json" }],
   },
   moduleFileExtensions: ["ts", "tsx", "js", "json"],
   moduleNameMapper: {
     "^obsidian$": "<rootDir>/test/__mocks__/obsidian.ts",
-    "^architecture$": "<rootDir>/src/architecture",
+    "^architecture$": "<rootDir>/test/__mocks__/architecture.ts",
+    "^architecture/plugin$": "<rootDir>/test/__mocks__/architecture-plugin.ts",
     "^architecture/(.*)$": "<rootDir>/src/architecture/$1",
     "^config$": "<rootDir>/src/config",
     "^config/(.*)$": "<rootDir>/src/config/$1",

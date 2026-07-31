@@ -63,4 +63,13 @@ nav) is updated in the **same** change. Specs and their status live under `specs
 
 Conventional Commits (`feat(scope):`, `fix:`, `docs:`), no AI co-author trailer. Work on one
 `feature/*` branch; each commit is a coherent advance that leaves `verify` green so CI passes at
-every commit.
+every commit. Commits **reference** the issue (`(#N)`); they do **not** close it.
+
+## X. Issues close on merge, never from a feature branch
+
+An issue is Done only when its fix is on `main`. Close issues through the **pull request** that
+merges the branch — put `Closes #N` (one per addressed issue) in the **PR body**, so merging to
+`main` closes them automatically. Never `gh issue close` from a feature branch and never rely on a
+commit message to close an issue (feature-branch commits don't trigger auto-close, and closing
+before merge marks work shipped that isn't). The stage-5 "issue closed" gate means "listed in the
+PR's `Closes` set", realised when the PR merges.

@@ -55,6 +55,7 @@ Every spec and plan is gated on these — the full text is in
 7. **Disclose capabilities** — file-system / network / script-exec are documented.
 8. **Docs ship with the change**.
 9. **Small, conventional, single-branch** commits.
+10. **Issues close on merge** via the PR (`Closes #N`), never from a feature-branch commit.
 
 ## Directory layout
 
@@ -77,7 +78,8 @@ specs/
    `lint:obsidian no new no-static-styles-assignment`.
 4. `/implement specs/0088-inline-styles` — migrate file by file, `npm run verify` green, one
    commit per file, push (CI green).
-5. Run `obsidian-plugin-quality` + the reviewer, confirm the ACs, close #88.
+5. Run `obsidian-plugin-quality` + the reviewer, confirm the ACs, and add `Closes #88` to the PR
+   body — #88 closes when the PR merges to `main`.
 
 ## When to skip stages
 

@@ -41,7 +41,7 @@ expensive to retrofit after the fact. The pipeline front-loads them.
 | 2 | Plan | `/plan` | **`implementation-planner`** | `plan.md` | files listed by layer; score-rule impact named; test + i18n + docs impact stated; rollback |
 | 3 | Tasks | `/tasks` | **`implementation-planner`** | `tasks.md` | ordered TDD tasks, each with its failing test + the guardrail that proves it |
 | 4 | Implement | `/implement` (+ `tdd`) | main assistant | code, tests, commits | `npm run verify` green before every commit; CI green on push; single branch |
-| 5 | Verify & review | `obsidian-plugin-quality` + review | **`obsidian-plugin-reviewer`** | `review.md`, closed issue | every acceptance criterion met; score held or raised; docs + `en`/`es` synced |
+| 5 | Verify & review | `obsidian-plugin-quality` + review | **`obsidian-plugin-reviewer`** | `review.md`, PR `Closes #N` | every acceptance criterion met; score held or raised; docs + `en`/`es` synced; issue in the PR's `Closes` set |
 
 The agents in **bold** are defined in [`.claude/agents/`](../.claude/agents/); the skills are in
 [`.claude/skills/`](../.claude/skills/). Stage 4 leans on the **`tdd`** skill; stage 5 leans on
@@ -75,7 +75,8 @@ Most of the time you invoke the stage skills in order and let the owning agent d
 3. `/tasks <spec folder>` → the `implementation-planner` writes `tasks.md`.
 4. `/implement <spec folder>` → work the tasks test-first, one commit per advance.
 5. Run `obsidian-plugin-quality` and the `obsidian-plugin-reviewer` on the diff; check the
-   acceptance criteria; close the issue.
+   acceptance criteria; add `Closes #N` to the PR body. Issues close when the PR merges to `main`
+   — never from a feature-branch commit or `gh issue close` (constitution §X).
 
 **Right-sizing.** A one-line, no-behavior change (typo, comment, dependency bump) may skip
 straight to `/implement` — but anything that changes behavior, a public surface, UI text, or could

@@ -40,4 +40,10 @@ to the branch and must keep CI green at every step.
 
 When all tasks are `[x]`: run the **`obsidian-plugin-quality`** skill and the
 **`obsidian-plugin-reviewer`** agent on the diff, verify every acceptance criterion in `spec.md`,
-write an optional `review.md`, set the spec **Status: Done**, and close the issue.
+write an optional `review.md`, and set the spec **Status: Done**.
+
+**Closing the issue (constitution §X).** Commits only *reference* the issue (`(#N)`) — they never
+close it. The issue is closed by the **pull request** that merges the branch to `main`: put
+`Closes #N` (one line per addressed issue) in the **PR body**. Do not `gh issue close` from the
+feature branch and do not put closing keywords in commit messages. "Issue closed" is realised when
+the PR merges.

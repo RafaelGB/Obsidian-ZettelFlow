@@ -102,18 +102,46 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 
 Full list + roadmap: [`docs/development/project-health-and-roadmap.md`](docs/development/project-health-and-roadmap.md).
 
+## How we work: Spec-Driven Development (SDD)
+
+Non-trivial changes are built **spec-first**: intent → `spec.md` → `plan.md` → `tasks.md` → code,
+written test-first against acceptance criteria fixed up front, then reviewed against the Obsidian
+score. The pipeline, its stage owners, and the invariants live in
+[`specs/`](specs/README.md) ([constitution](specs/constitution.md)) and the narrative is
+[`docs/development/spec-driven-development.md`](docs/development/spec-driven-development.md).
+
+```
+constitution → /specify → /plan → /tasks → /implement → verify & review → Done
+   invariants    spec.md    plan.md  tasks.md   code+tests    score audit + reviewer
+```
+
+| Stage | Skill | Owner agent |
+|---|---|---|
+| Specify | `specify` | `spec-author` |
+| Plan / Tasks | `plan`, `tasks` | `implementation-planner` |
+| Implement | `implement` (+ `tdd`) | main assistant |
+| Verify & review | `obsidian-plugin-quality` | `obsidian-plugin-reviewer` |
+
+Specs live in `specs/NNNN-slug/` (`NNNN` = the GitHub issue number when there is one). A tiny,
+no-behavior change may skip to `/implement`; anything touching behavior, a public surface, UI text,
+or the score runs the full flow. Start with the **`sdd`** skill for the map.
+
 ## Harness contents (`.claude/`)
 
 This harness is committed (only `.claude/settings.local.json` is git-ignored). It provides:
 
 - **Skills** (`.claude/skills/`):
+  - `sdd` — the Spec-Driven Development pipeline map (start here for any non-trivial change).
+  - `specify` / `plan` / `tasks` / `implement` — the four SDD stage workflows.
   - `obsidian-plugin-quality` — audit against the Obsidian review/score; use before release.
   - `tdd` — the test-first workflow (jest, alias mappings, the Obsidian mock).
   - `new-action` — scaffold a new action (the 4-file pattern + registration + docs).
   - `release` — the release checklist (version bump, `versions.json`, tag, artifacts).
-- **Agent** (`.claude/agents/`):
+- **Agents** (`.claude/agents/`):
+  - `spec-author` — writes `spec.md` (SDD stage 1).
+  - `implementation-planner` — writes `plan.md` + `tasks.md` (SDD stages 2–3).
   - `obsidian-plugin-reviewer` — reviews a diff against the Obsidian guidelines and reports
-    file-anchored findings.
+    file-anchored findings (SDD stage 5).
 
 ## Working agreements
 

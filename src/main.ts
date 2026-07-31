@@ -8,6 +8,7 @@ import {
 	TagsAction, TaskManagementAction
 } from 'actions';
 import { log } from 'architecture';
+import { t } from 'architecture/lang';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
 import { allCanvasExtensions, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
@@ -62,7 +63,7 @@ export default class ZettelFlow extends Plugin {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {
 			log.error("There was an error registering CodeView for Javascript files. Maybe another plugin is using the same extensions?", e);
-			new Notice("Error registering CodeView extension for ZettelFlow. Check the console for more information.");
+			new Notice(t('notice_codeview_registration_error'));
 		}
 	}
 

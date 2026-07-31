@@ -140,7 +140,7 @@ function createHookRenderer(completion: Completion): (element: HTMLElement) => v
         container.appendChild(type);
 
         // Clear and append to the element
-        element.innerHTML = '';
+        element.empty();
         element.appendChild(container);
     };
 }

@@ -195,7 +195,7 @@ export function dynamicSelectorDetails(
     // Clear any previous content in the output container
     const existingOutput = container.querySelector(`.${c("output-container")}`);
     if (existingOutput) {
-      existingOutput.innerHTML = "";
+      existingOutput.empty();
     }
 
     // Create the output container if it doesn't exist
@@ -230,7 +230,7 @@ export function dynamicSelectorDetails(
   const clearScriptOutput = (container: HTMLElement) => {
     const outputDiv = container.querySelector(`.${c("output-container")}`);
     if (outputDiv) {
-      outputDiv.innerHTML = "";
+      outputDiv.empty();
     }
   };
 }

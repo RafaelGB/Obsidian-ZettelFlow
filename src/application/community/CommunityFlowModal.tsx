@@ -36,7 +36,7 @@ export class CommunityFlowModal extends Modal {
    */
   onOpen(): void {
     this.modalEl.addClass(c("modal"));
-    this.renderContent();
+    void this.renderContent();
   }
 
   /**
@@ -78,7 +78,7 @@ export class CommunityFlowModal extends Modal {
     actionBtn.addClass("mod-cta");
     actionBtn.addEventListener("click", () => {
       this.plugin.settings.communitySettings.clipboardTemplate = this.flow;
-      this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       actionBtn.setText(t("template_copied"));
       actionBtn.setAttribute("aria-disabled", "true");
       actionBtn.setAttribute("disabled", "true");
@@ -100,21 +100,23 @@ export class CommunityFlowModal extends Modal {
       },
       (el) => {
         el.addClass("mod-cta");
-        el.addEventListener("click", async () => {
+        el.addEventListener("click", () => {
           Object.entries(this.filesToDownload).forEach(
-            async ([filename, content]) => {
-              const path = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
-              // Delete existing file if it exists
-              const potentialFile = await FileService.getFile(path, false);
-              if (potentialFile) {
-                await FileService.deleteFile(potentialFile);
-              }
+            ([filename, content]) => {
+              void (async () => {
+                const path = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
+                // Delete existing file if it exists
+                const potentialFile = await FileService.getFile(path, false);
+                if (potentialFile) {
+                  await FileService.deleteFile(potentialFile);
+                }
 
-              await FileService.createFile(
-                `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`,
-                content,
-                false
-              );
+                await FileService.createFile(
+                  `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`,
+                  content,
+                  false
+                );
+              })();
             }
           );
           new Notice(
@@ -253,7 +255,7 @@ ${this.flow.description}`;
             this.renderNodeItem(accordionContent, node, nodeTitle);
             break;
           case "file":
-            this.renderFileNodeItem(accordionContent, node);
+            void this.renderFileNodeItem(accordionContent, node);
             break;
         }
         // Add click event to toggle accordion

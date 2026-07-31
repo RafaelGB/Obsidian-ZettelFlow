@@ -55,7 +55,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
             title: t("remove_step_button_title")
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", async () => {
+            el.addEventListener("click", () => {
                 new ConfirmModal(
                     this.plugin.app,
                     t("confirm_remove_step"),
@@ -77,12 +77,14 @@ export class InstalledStepEditorModal extends AbstractStepModal {
             title: t("step_builder_copy_button_title")
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", async () => {
-                // Save step to clipboard
-                navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2));
-                this.plugin.settings.communitySettings.clipboardTemplate = this.communityStepInfo;
-                await this.plugin.saveSettings();
-                new Notice(t("step_copied_notice"));
+            el.addEventListener("click", () => {
+                void (async () => {
+                    // Save step to clipboard
+                    void navigator.clipboard.writeText(JSON.stringify(this.communityStepInfo, null, 2));
+                    this.plugin.settings.communitySettings.clipboardTemplate = this.communityStepInfo;
+                    await this.plugin.saveSettings();
+                    new Notice(t("step_copied_notice"));
+                })();
             });
 
         });

@@ -97,11 +97,13 @@ function Backlink(props: WrappedActionBuilderProps) {
       <div className={c("backlink-left")}>
         <Search
           options={fileMemo}
-          onChange={async (value) => {
-            setFinalFileValue(value);
-            setEnableHeading(value !== "");
-            const availableHeaders = await obtainHeadersOfFinalFile(value);
-            setHeadingMemo(availableHeaders);
+          onChange={(value) => {
+            void (async () => {
+              setFinalFileValue(value);
+              setEnableHeading(value !== "");
+              const availableHeaders = await obtainHeadersOfFinalFile(value);
+              setHeadingMemo(availableHeaders);
+            })();
           }}
           placeholder={t("backlink_select_file")}
         />

@@ -56,7 +56,7 @@ export function dynamicSelectorDetails(
     .setName(t("step_builder_element_type_key_title"))
     .setDesc(t("step_builder_element_type_key_description"))
     .addSearch((search) => {
-      ObsidianNativeTypesManager.getTypes().then((types) => {
+      void ObsidianNativeTypesManager.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types, ["text"]);
         search
           .setDisabled(readonly)

@@ -31,19 +31,21 @@ export function navbarAction(
         placeholder: "Copy Action", title: "Copy the action to the clipboard"
     }, el => {
         el.addClass("mod-cta");
-        el.addEventListener("click", async () => {
-            // Save step to clipboard
-            const communityAction: CommunityAction = {
-                ...action,
-                template_type: "action",
-                author: "You",
-                title: "New action",
-                description: action.description || "New action description"
-            }
-            navigator.clipboard.writeText(JSON.stringify(communityAction, null, 2))
-            modal.getPlugin().settings.communitySettings.clipboardTemplate = communityAction;
-            await modal.getPlugin().saveSettings();
-            new Notice(`Action copied to clipboard`);
+        el.addEventListener("click", () => {
+            void (async () => {
+                // Save step to clipboard
+                const communityAction: CommunityAction = {
+                    ...action,
+                    template_type: "action",
+                    author: "You",
+                    title: "New action",
+                    description: action.description || "New action description"
+                }
+                void navigator.clipboard.writeText(JSON.stringify(communityAction, null, 2))
+                modal.getPlugin().settings.communitySettings.clipboardTemplate = communityAction;
+                await modal.getPlugin().saveSettings();
+                new Notice(`Action copied to clipboard`);
+            })();
         });
 
     });
@@ -54,14 +56,14 @@ export function navbarAction(
         placeholder: "Add to Community", title: "Add the action to the community templates"
     }, el => {
         el.addClass("mod-cta");
-        el.addEventListener("click", async () => {
+        el.addEventListener("click", () => {
             // Step 1 - save the action internally
             const newCommunityAction = ActionBuilderMapper.Action2CommunityActionSettings(action, {
                 title: "New template",
                 description: "New template description"
             });
             modal.getPlugin().settings.installedTemplates.actions[newCommunityAction.id] = newCommunityAction;
-            modal.getPlugin().saveSettings();
+            void modal.getPlugin().saveSettings();
             // Step 2 - Open the modal to edit the action
             new InstalledActionEditorModal(modal.getPlugin(), newCommunityAction).open();
         });

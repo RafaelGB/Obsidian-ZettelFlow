@@ -18,7 +18,7 @@ export class CommunityMarkdownModal extends Modal {
 
     onOpen() {
         this.modalEl.addClass(c("modal"));
-        this.renderContent();
+        void this.renderContent();
     }
 
     private async renderContent() {
@@ -46,11 +46,12 @@ export class CommunityMarkdownModal extends Modal {
                 title: t("remove_markdown_button_title")
             }, el => {
                 el.addClass("mod-cta");
-                el.addEventListener("click", async () => {
-                    // Remove the file from the Vault
-                    await FileService.deleteFile(potentialFile);
-                    this.renderContent();
-
+                el.addEventListener("click", () => {
+                    void (async () => {
+                        // Remove the file from the Vault
+                        await FileService.deleteFile(potentialFile);
+                        void this.renderContent();
+                    })();
                 });
             });
             setIcon(downloadMdButton.createDiv(), "trash-2");
@@ -61,9 +62,11 @@ export class CommunityMarkdownModal extends Modal {
                 title: t("download_button_title")
             }, el => {
                 el.addClass("mod-cta");
-                el.addEventListener("click", async () => {
-                    await FileService.createFile(`${mdTemplateFolder}/${this.filename}`, this.content, true);
-                    this.renderContent();
+                el.addEventListener("click", () => {
+                    void (async () => {
+                        await FileService.createFile(`${mdTemplateFolder}/${this.filename}`, this.content, true);
+                        void this.renderContent();
+                    })();
                 });
             });
             setIcon(downloadMdButton.createDiv(), "download");
@@ -77,7 +80,7 @@ export class CommunityMarkdownModal extends Modal {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
                 this.compiledMarkdown = !this.compiledMarkdown;
-                this.renderContent();
+                void this.renderContent();
             });
         });
         setIcon(toggleMarkdownButton.createDiv(), this.compiledMarkdown ? "file-text" : "eye");

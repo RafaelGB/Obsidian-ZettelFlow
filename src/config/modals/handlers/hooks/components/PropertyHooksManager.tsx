@@ -58,7 +58,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
       const types = await ObsidianNativeTypesManager.getAllTypes();
       setPropertyTypes(types);
     };
-    loadPropertyTypes();
+    void loadPropertyTypes();
   }, []);
 
   const saveHooks = async (newHooks: Record<string, PropertyHookSettings>) => {
@@ -87,7 +87,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
         setHooks(orderedHooks);
         plugin.settings.hooks.properties = orderedHooks;
-        plugin.saveSettings();
+        void plugin.saveSettings();
       }
     }
   };
@@ -150,7 +150,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
             className={"mod-cta"}
             title={t("types_modal_native_properties_edit_button_title")}
             onClick={() => {
-              plugin.app.workspace.revealLeaf(
+              void plugin.app.workspace.revealLeaf(
                 plugin.app.workspace.getLeavesOfType("all-properties")[0]
               );
               Keyboard.closeAllModalsByEsc();
@@ -160,7 +160,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           </button>
           <button
             className={"mod-cta"}
-            onClick={async () => {
+            onClick={() => {
               new ObsidianTypesModal(plugin).open();
             }}
           >
@@ -174,7 +174,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
         <div className={c("property-hook-selector")}>
           <Search
             options={availableProperties}
-            onChange={async (value) => {
+            onChange={(value) => {
               if (!value) return;
               if (!propertyTypes[value]) return;
               setSelectedNewProperty(value);
@@ -182,7 +182,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
             placeholder="Select a type"
           />
           <div className={c("property-hook-selector-buttons")}>
-            <button onClick={handleAddHookConfirm}>
+            <button onClick={() => { void handleAddHookConfirm(); }}>
               {t("property_hooks_add_button")}
             </button>
             <button onClick={handleAddHookCancel}>
@@ -214,8 +214,8 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
                   property={property}
                   propertyType={propertyTypes[property] || "unknown"}
                   script={hooks[property].script || ""}
-                  onSave={(script) => handleSaveHook(property, script)}
-                  onDelete={() => handleDeleteHook(property)}
+                  onSave={(script) => { void handleSaveHook(property, script); }}
+                  onDelete={() => { void handleDeleteHook(property); }}
                 />
               ))}
             </div>

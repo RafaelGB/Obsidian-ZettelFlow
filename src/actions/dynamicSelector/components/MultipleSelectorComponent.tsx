@@ -72,7 +72,7 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
         }
       };
 
-      fetchOptions();
+      void fetchOptions();
     } catch (err) {
       console.error("Error al inicializar la función dinámica:", err);
       setError("Error de inicialización.");

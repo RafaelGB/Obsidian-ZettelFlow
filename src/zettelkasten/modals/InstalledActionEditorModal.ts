@@ -53,7 +53,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             title: t("remove_action_button_title")
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", async (e) => {
+            el.addEventListener("click", (e) => {
                 e.stopPropagation();
                 new ConfirmModal(
                     this.plugin.app,
@@ -78,7 +78,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
                 // Save step to clipboard
-                navigator.clipboard.writeText(JSON.stringify(this.communityAction, null, 2))
+                void navigator.clipboard.writeText(JSON.stringify(this.communityAction, null, 2))
                 new Notice(t("action_copied_notice"));
             });
 
@@ -142,7 +142,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         } else {
             this.plugin.settings.installedTemplates.actions[this.communityAction.id] = this.communityAction;
         }
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.editCallback(this.communityAction, this.removed);
     }
 }

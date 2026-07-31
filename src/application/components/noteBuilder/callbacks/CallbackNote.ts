@@ -14,16 +14,16 @@ export const callbackRootBuilder =
     (selected: string) => {
       const { actions } = state;
 
-      actions.initPluginConfig(info.plugin.settings)
+      void actions.initPluginConfig(info.plugin.settings)
         .then(() => {
-          nextElement(state, selected, info);
+          void nextElement(state, selected, info);
         });
     };
 
 export const callbackElementBuilder =
   (state: CallbackPickedState, info: ElementBuilderProps) =>
     (selected: string) => {
-      nextElement(state, selected, info);
+      void nextElement(state, selected, info);
     };
 
 export const callbackActionBuilder =
@@ -46,7 +46,7 @@ export const callbackSkipNote = (state: CallbackPickedState, info: NoteBuilderTy
   delete currentNode.path;
   log.info(`Skip note callback for node ${currentNode.id}`);
 
-  manageElement(currentNode, state, info);
+  void manageElement(currentNode, state, info);
 }
 
 export const callbackBuildActualState = (state: CallbackPickedState, info: NoteBuilderType) => () => {
@@ -59,5 +59,5 @@ export const callbackBuildActualState = (state: CallbackPickedState, info: NoteB
     return;
   }
   log.info(`Build actual state callback for node ${currentNode.id}`);
-  manageElement(currentNode, state, info, true);
+  void manageElement(currentNode, state, info, true);
 }

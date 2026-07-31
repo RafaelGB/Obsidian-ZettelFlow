@@ -74,7 +74,7 @@ export class ObsidianConfig {
             log.error(`Canvas file not found: ${canvasFilePath}`);
             return;
         }
-        ObsidianApi.workspace().getLeaf(true).openFile(canvasFile);
+        void ObsidianApi.workspace().getLeaf(true).openFile(canvasFile);
         // Open file
 
         new Notice(`Canvas file opened: ${canvasFilePath}`);

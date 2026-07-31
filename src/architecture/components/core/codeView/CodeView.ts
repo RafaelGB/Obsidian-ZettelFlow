@@ -65,7 +65,7 @@ export class CodeView extends TextFileView implements HoverParent {
                 if (this.editorJit) window.clearTimeout(this.editorJit);
                 this.editorJit = window.setTimeout(() => {
                     this.data = update.state.doc.toString();
-                    this.editor
+                    void this.editor
                         .setContent(this.data)
                         .save();
                 }, 1000);
@@ -82,7 +82,7 @@ export class CodeView extends TextFileView implements HoverParent {
     */
     async onClose() {
         await super.onClose();
-        this.editor.save();
+        void this.editor.save();
         this.view.destroy();
         this.parentDiv.remove();
     }

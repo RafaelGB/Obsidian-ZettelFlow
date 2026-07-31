@@ -15,7 +15,7 @@ export class ConfirmModal extends Modal {
     private cancelButtonText: string;
 
     // Callback to be invoked when the user accepts
-    private onAcceptCallback: () => void;
+    private onAcceptCallback: () => Promise<void>;
 
     /**
      * APPLICATION SERVICE: The constructor receives all necessary data to fulfill the modal's purpose:
@@ -54,7 +54,7 @@ export class ConfirmModal extends Modal {
                     .setCta() // makes the button stand out
                     .onClick(() => {
                         // Invoke the callback if user accepts
-                        this.onAcceptCallback();
+                        void this.onAcceptCallback();
                         this.close();
                     });
             })

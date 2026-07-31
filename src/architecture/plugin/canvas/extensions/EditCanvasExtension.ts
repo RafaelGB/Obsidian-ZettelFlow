@@ -26,7 +26,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
      */
     init(): void {
         this.plugin.registerEvent(
-            this.plugin.app.workspace.on("canvas:popup-menu", async (eventCanvas: Canvas) => {
+            this.plugin.app.workspace.on("canvas:popup-menu", (eventCanvas: Canvas) => {
                 // Check if is dragging
                 if (eventCanvas.isDragging) return;
 
@@ -57,7 +57,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
             label: "Copy Flow to Clipboard",
             icon: "clipboard-copy",
             callback: () => {
-                navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));
+                void navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));
                 new Notice(`Flow copied to clipboard!`);
             },
         });

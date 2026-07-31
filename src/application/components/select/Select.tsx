@@ -11,7 +11,7 @@ export function Select(selectType: SelectType) {
   const [arrowIndex, setArrowIndex] = useState<number>(-1);
   const [searchValue, setSearchValue] = useState<string>("");
   const [optionsState, setOptionsState] = useState(options);
-  const internalCallback = async (selectedOption: string) => {
+  const internalCallback = (selectedOption: string) => {
     setSelected(selectedOption);
     callback(selectedOption);
   };

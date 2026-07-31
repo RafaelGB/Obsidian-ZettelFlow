@@ -51,7 +51,7 @@ export class ZfVaultImpl extends LibModule implements IZfVault {
 
     public static instanceInit(app: App): void {
         this.instance = new ZfVaultImpl(app);
-        this.instance.init();
+        void this.instance.init();
         log.info("ZfVault loaded");
     }
 

@@ -120,11 +120,11 @@ export class VaultHooks {
         if (oldPath === settings.ribbonCanvas) {
             canvas.flows.delete(oldPath);
             settings.ribbonCanvas = file.path;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Renombrado ribbonCanvas.");
         } else if (oldPath === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = file.path;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Renombrado jsLibraryFolderPath.");
         }
     }
@@ -161,7 +161,7 @@ export class VaultHooks {
 
         if (folder.path === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = "";
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Removed jsLibraryFolderPath.");
             return;
         }
@@ -195,7 +195,7 @@ export class VaultHooks {
         if (file.path === this.plugin.settings.ribbonCanvas) {
             canvas.flows.delete(file.path);
             this.plugin.settings.ribbonCanvas = "";
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Eliminado ribbonCanvas.");
         }
     };
@@ -256,9 +256,11 @@ export class VaultHooks {
         if (previous) window.clearTimeout(previous);
 
         const handle = window.setTimeout(
-            () => this.processMetadataChange(file, cache).catch((e) => {
-                log.error("[VaultHooks] Error procesando metadata change:", e);
-            }),
+            () => {
+                this.processMetadataChange(file, cache).catch((e) => {
+                    log.error("[VaultHooks] Error procesando metadata change:", e);
+                });
+            },
             METADATA_DEBOUNCE_MS
         );
 

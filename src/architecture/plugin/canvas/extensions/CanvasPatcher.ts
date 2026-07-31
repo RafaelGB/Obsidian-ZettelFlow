@@ -10,7 +10,7 @@ import JSONC from "tiny-jsonc"
 export default class CanvasPatcher {
 
     constructor(private plugin: ZettelFlow) {
-        this.patch();
+        void this.patch();
     }
 
     public async patch() {
@@ -30,12 +30,14 @@ export default class CanvasPatcher {
             // Get the current canvas view or wait for it to be created
             let canvasView = await getCanvasView()
             canvasView ??= await new Promise<CanvasView>(resolve => {
-                const event = this.plugin.app.workspace.on('layout-change', async () => {
-                    const newCanvasView = await getCanvasView()
-                    if (!newCanvasView) return
+                const event = this.plugin.app.workspace.on('layout-change', () => {
+                    void (async () => {
+                        const newCanvasView = await getCanvasView()
+                        if (!newCanvasView) return
 
-                    resolve(newCanvasView)
-                    this.plugin.app.workspace.offref(event)
+                        resolve(newCanvasView)
+                        this.plugin.app.workspace.offref(event)
+                    })()
                 })
 
                 this.plugin.registerEvent(event)

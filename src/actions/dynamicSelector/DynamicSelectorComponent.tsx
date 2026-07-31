@@ -81,7 +81,7 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
       }
     };
 
-    fetchData();
+    void fetchData();
 
     return () => {
       isMounted = false; // Cleanup after unmount

@@ -16,7 +16,7 @@ export function RootSelector(info: NoteBuilderType) {
 
   const [options, setOptions] = useState<OptionType[]>([]);
   useEffect(() => {
-    flow.rootNodes().then((rootNodes) => {
+    void flow.rootNodes().then((rootNodes) => {
       const rootNodesOptions = SelectMapper.flowNodes2Options(rootNodes);
       setOptions(rootNodesOptions);
     });

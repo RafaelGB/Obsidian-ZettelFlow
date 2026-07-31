@@ -78,7 +78,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
         });
 
         delete this.plugin.settings.communitySettings.clipboardTemplate;
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         new Notice("Flow data imported from clipboard!");
     }
 

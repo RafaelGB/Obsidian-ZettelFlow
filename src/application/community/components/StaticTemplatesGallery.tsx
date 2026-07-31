@@ -50,7 +50,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
       }
     };
 
-    getData();
+    void getData();
   }, [targetSearchTerm, filter, plugin.settings]);
 
   // Filtrado usando useMemo
@@ -220,7 +220,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                   "community-templates-card",
                   `template-type-${template.template_type}`
                 )}
-                onClick={() => handleTemplateClick(template)}
+                onClick={() => { void handleTemplateClick(template); }}
               >
                 <span className={c("community-templates-card-type-badge")}>
                   {template.template_type}

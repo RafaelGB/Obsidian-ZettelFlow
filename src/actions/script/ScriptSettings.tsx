@@ -49,7 +49,7 @@ export const scriptSettings: ActionSetting = (
       });
     })
     .addButton((button) => {
-      button.setButtonText("Clear Output");
+      button.setButtonText("Clear output");
       button.onClick(() => {
         clearScriptOutput(debugContainer);
       });

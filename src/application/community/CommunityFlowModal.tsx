@@ -155,7 +155,7 @@ ${this.flow.description}`;
       const imgSection = this.contentEl.createDiv({
         cls: c("modal-reader-flow-image-section"),
       });
-      imgSection.createEl("h3", { text: "Flow Preview" });
+      imgSection.createEl("h3", { text: "Flow preview" });
 
       const container = imgSection.createDiv({
         cls: c("flow-image-container"),
@@ -188,7 +188,7 @@ ${this.flow.description}`;
     const section = this.contentEl.createDiv({
       cls: c("modal-reader-flow-nodes-section"),
     });
-    section.createEl("h3", { text: "Flow Nodes" });
+    section.createEl("h3", { text: "Flow nodes" });
 
     const container = section.createDiv({ cls: c("flow-nodes-container") });
     const grouped: Record<string, CommunityFlowNode[]> = {};
@@ -372,7 +372,7 @@ ${this.flow.description}`;
     const section = this.contentEl.createDiv({
       cls: c("modal-reader-flow-edges-section"),
     });
-    section.createEl("h3", { text: "Flow Connections" });
+    section.createEl("h3", { text: "Flow connections" });
     const list = section
       .createDiv({ cls: c("flow-edges-container") })
       .createEl("ul", { cls: c("flow-edges-list") });

@@ -82,7 +82,7 @@ export class CommunityFlowModal extends Modal {
       actionBtn.setText(t("template_copied"));
       actionBtn.setAttribute("aria-disabled", "true");
       actionBtn.setAttribute("disabled", "true");
-      setTimeout(() => {
+      window.setTimeout(() => {
         actionBtn.setText(btnText);
         actionBtn.removeAttribute("aria-disabled");
         actionBtn.removeAttribute("disabled");

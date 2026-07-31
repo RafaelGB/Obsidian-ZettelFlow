@@ -24,5 +24,5 @@ COPY ./app /app/app
 # Expon el puerto que usará la aplicación
 EXPOSE 8000
 
-# Comando para iniciar la aplicación con Uvicorn y soporte de recarga en desarrollo
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Comando para iniciar la aplicación con Uvicorn (producción: sin auto-recarga)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

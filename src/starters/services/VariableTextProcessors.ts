@@ -9,9 +9,10 @@ import {
 } from "@codemirror/view";
 import { RangeSetBuilder } from "@codemirror/state";
 import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo, TFile } from "obsidian";
+import { substitutePlaceholders } from "starters/services/placeholders";
 
 /**
- * Loads text processors to replace placeholders of the form {{key}} 
+ * Loads text processors to replace placeholders of the form {{key}}
  * with corresponding frontmatter metadata. This includes both 
  * the markdown post-processor and the live preview extension.
  * 
@@ -32,11 +33,23 @@ export function loadVariableTextProcessors(plugin: ZettelFlow): void {
         const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter;
         if (!metadata) return;
 
+        // Walk text nodes only and replace placeholders as text (never as HTML) so that
+        // frontmatter values cannot inject markup into the rendered note.
         element.querySelectorAll("p").forEach((paragraph) => {
-            paragraph.innerHTML = paragraph.innerHTML.replace(
-                placeholderRegex,
-                (_match, key) => metadata[key.trim()] ?? `{{${key}}}`
-            );
+            const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+            const textNodes: Text[] = [];
+            let current = walker.nextNode();
+            while (current) {
+                textNodes.push(current as Text);
+                current = walker.nextNode();
+            }
+            textNodes.forEach((node) => {
+                const original = node.textContent ?? "";
+                const replaced = substitutePlaceholders(original, metadata);
+                if (replaced !== original) {
+                    node.textContent = replaced;
+                }
+            });
         });
     });
 

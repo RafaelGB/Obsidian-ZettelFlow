@@ -102,7 +102,7 @@ export const scriptSettings: ActionSetting = (
     const outputDiv = container.querySelector(".output-container");
     if (!outputDiv) return;
 
-    outputDiv.innerHTML = "";
+    outputDiv.empty();
 
     if (result.error) {
       outputDiv.createEl("div", {
@@ -120,6 +120,6 @@ export const scriptSettings: ActionSetting = (
   // Función para limpiar resultados
   const clearScriptOutput = (container: HTMLElement) => {
     const outputDiv = container.querySelector(".output-container");
-    if (outputDiv) outputDiv.innerHTML = "";
+    if (outputDiv) outputDiv.empty();
   };
 };

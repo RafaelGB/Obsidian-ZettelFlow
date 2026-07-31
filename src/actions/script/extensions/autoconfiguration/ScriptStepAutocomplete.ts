@@ -188,7 +188,7 @@ function createZettelFlowRenderer(completion: Completion): (element: HTMLElement
         container.appendChild(type);
 
         // Clear and append to the element
-        element.innerHTML = '';
+        element.empty();
         element.appendChild(container);
     };
 }

@@ -41,7 +41,7 @@ export class FoldersFlowSelectorHandler extends AbstractHandlerClass<SettingsHan
                     if (defaultFoldersFlowPath) {
                         info.plugin.settings.foldersFlowsPath = defaultFoldersFlowPath;
                         await info.plugin.saveSettings();
-                        await info.section?.refresh(info);
+                        info.section?.refresh(info);
                     }
                 }));
         return this.goNext(info);

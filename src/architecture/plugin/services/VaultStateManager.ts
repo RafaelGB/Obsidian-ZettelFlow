@@ -90,7 +90,7 @@ export class VaultStateManager {
         if (ps) {
             ps.onProcess = true;
             ps.processStartAt = new Date();
-            log.debug(`[VaultStateManager] Process started for ${key} at ${ps.processStartAt}`);
+            log.debug(`[VaultStateManager] Process started for ${key} at ${String(ps.processStartAt)}`);
 
             this.managedFiles[key] = ps;
         }

@@ -31,7 +31,6 @@ import {
 import type {
     HookEvent,
     HooksConfig,
-    PropertiesHooksConfig,
 } from "./typing";
 
 /** Ajustable si ves muchos "changed" por tecleo. */
@@ -176,8 +175,8 @@ export class VaultHooks {
 
         if (canvasFile instanceof TFile) {
             canvas.flows.delete(canvasFile.path);
-            this.plugin.app.vault
-                .delete(canvasFile)
+            this.plugin.app.fileManager
+                .trashFile(canvasFile)
                 .then(() =>
                     log.info(
                         `[VaultHooks] Eliminado canvas asociado a carpeta ${folder.path}: ${canvasFile.path}`
@@ -272,9 +271,7 @@ export class VaultHooks {
             folderFlowPath: "",
         };
 
-        const hooksEntries = Object.entries(
-            (hooksCfg.properties || {}) as PropertiesHooksConfig
-        );
+        const hooksEntries = Object.entries(hooksCfg.properties || {});
         if (!hooksEntries.length) return;
 
         // Asegura servicio de frontmatter previo

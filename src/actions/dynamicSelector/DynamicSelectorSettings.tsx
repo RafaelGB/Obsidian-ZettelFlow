@@ -46,7 +46,7 @@ export function dynamicSelectorDetails(
         )
         .addOption("body", t("step_builder_element_type_zone_body"))
         .addOption("context", t("step_builder_element_type_zone_context"))
-        .setValue(zone !== undefined ? (zone as string) : "frontmatter")
+        .setValue(zone !== undefined ? zone : "frontmatter")
         .onChange(async (value) => {
           action.zone = value;
         });
@@ -205,7 +205,7 @@ export function dynamicSelectorDetails(
 
     // Display the result or error
     if (result.error) {
-      outputDiv.createEl("div", {
+      outputDiv.createDiv({
         text: `Error: ${result.error}`,
         cls: c("error-output"),
       });

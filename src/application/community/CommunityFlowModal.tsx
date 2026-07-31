@@ -222,7 +222,7 @@ ${this.flow.description}`;
           node.label ||
           node.file ||
           `Node ${node.id.substring(0, 6)}...`;
-        accordionHeader.createEl("span", {
+        accordionHeader.createSpan({
           text: `${this.nodesRef[node.id]} - ${nodeTitle}`,
           cls: c("flow-node-title"),
         });
@@ -299,7 +299,7 @@ ${this.flow.description}`;
       const textSection = accordionContent.createDiv({
         cls: c("flow-node-text"),
       });
-      textSection.createEl("div", { text: node.text });
+      textSection.createDiv({ text: node.text });
     }
 
     // Add actions section only if actions exist
@@ -384,7 +384,7 @@ ${this.flow.description}`;
       }${edge.label ? ` | Label: "${edge.label}"` : ""}`;
 
       const header = item.createDiv({ cls: c("flow-edge-header") });
-      header.createEl("span", {
+      header.createSpan({
         text: label,
       });
       if (edge.color) {

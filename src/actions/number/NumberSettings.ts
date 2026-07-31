@@ -28,7 +28,7 @@ export function numberDetails(contentEl: HTMLElement, action: Action, readonly: 
                 )
                 .addOption("body", t("step_builder_element_type_zone_body"))
                 .addOption("context", t("step_builder_element_type_zone_context"))
-                .setValue(zone !== undefined ? (zone as string) : "frontmatter")
+                .setValue(zone !== undefined ? zone : "frontmatter")
                 .onChange(async (value) => {
                     action.zone = value;
                 });

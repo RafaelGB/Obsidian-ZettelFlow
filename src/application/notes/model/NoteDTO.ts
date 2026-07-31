@@ -62,7 +62,7 @@ export class NoteDTO {
         callbackResult: unknown,
         pos: number
     ): NoteDTO {
-        log.debug(`Builder: adding action ${action.label} at position ${pos}`);
+        log.debug(`Builder: adding action ${String(action.label)} at position ${pos}`);
         this.savedActions.set(pos, {
             ...action,
             result: callbackResult,

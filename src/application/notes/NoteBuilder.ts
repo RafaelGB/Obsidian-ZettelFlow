@@ -74,7 +74,7 @@ export class NoteBuilder {
         .processTypedFrontMatter(this.content);
       await this.postProcess(generatedFile);
 
-      log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
+      log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${String(this.note.getPaths())}, elements: ${String(this.note.getElements())}`)
 
       return generatedFile.path;
     } catch (error) {

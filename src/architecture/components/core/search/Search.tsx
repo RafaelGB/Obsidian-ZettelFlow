@@ -11,7 +11,7 @@ export function Search<T>(props: SearchType<T>) {
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // Initial mockup of HTMLUListElement
-  const listRef = useRef<HTMLUListElement>(activeDocument.createElement("ul"));
+  const listRef = useRef<HTMLUListElement>(activeDocument.createEl("ul"));
   // States
   const [value, setValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");
@@ -48,7 +48,7 @@ export function Search<T>(props: SearchType<T>) {
       setOptionsHeight(listRef.current.offsetHeight);
       updatePosition();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect intentionally re-runs only when visibleOptions changes
   }, [visibleOptions]);
 
   useEffect(() => {
@@ -59,10 +59,10 @@ export function Search<T>(props: SearchType<T>) {
     activeWindow.addEventListener("scroll", updatePosition, opts);
     activeWindow.addEventListener("resize", updatePosition);
     return () => {
-      activeWindow.removeEventListener("scroll", updatePosition, opts as any);
+      activeWindow.removeEventListener("scroll", updatePosition, opts);
       activeWindow.removeEventListener("resize", updatePosition);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect intentionally re-runs only when visibleOptions changes
   }, [visibleOptions]);
 
   const searchOptionsFn = (

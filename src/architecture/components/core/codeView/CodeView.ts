@@ -27,6 +27,7 @@ export class CodeView extends TextFileView implements HoverParent {
 
     setViewData(data: unknown): void {
         if (data instanceof TFile) {
+            // No action needed; view data is derived elsewhere
         }
     }
 

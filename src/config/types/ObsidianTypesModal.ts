@@ -133,7 +133,7 @@ export class ObsidianTypesModal extends Modal {
     const tr = this.tbodyEl.createEl("tr", { cls: trClasses });
 
     // Name and type container
-    const nameAndTypeContainer = tr.createEl("div", {
+    const nameAndTypeContainer = tr.createDiv({
       cls: c("name-type-container"),
     });
     // Name

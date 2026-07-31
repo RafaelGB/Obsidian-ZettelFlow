@@ -28,7 +28,7 @@ export function promptDetails(contentEl: HTMLElement, action: Action, readMode: 
                 .addOption("body", t("step_builder_element_type_zone_body"))
                 .addOption("context", t("step_builder_element_type_zone_context"))
                 .setDisabled(readMode)
-                .setValue(zone !== undefined ? (zone as string) : "frontmatter")
+                .setValue(zone !== undefined ? zone : "frontmatter")
                 .onChange(async (value) => {
                     action.zone = value;
                 });

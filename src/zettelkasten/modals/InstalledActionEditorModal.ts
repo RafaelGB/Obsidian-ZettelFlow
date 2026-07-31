@@ -88,9 +88,9 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         // Show author and download count (if available)
         const { author, downloads } = this.communityAction;
         const authorEl = this.contentEl.createDiv({ cls: c("modal-author") });
-        authorEl.createEl("span", { text: `${t("template_author")}: ${author}` });
+        authorEl.createSpan({ text: `${t("template_author")}: ${author}` });
         if (downloads) {
-            authorEl.createEl("span", { text: `${t("template_downloads")}: ${downloads}` });
+            authorEl.createSpan({ text: `${t("template_downloads")}: ${String(downloads)}` });
         }
 
         // Header with title and subtitle with the mode

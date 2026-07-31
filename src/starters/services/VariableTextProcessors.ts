@@ -206,7 +206,7 @@ class VariableSuggester extends EditorSuggest<string> {
      * Renders each suggestion in the dropdown.
      */
     renderSuggestion(variable: string, el: HTMLElement): void {
-        el.createEl("div", { text: variable });
+        el.createDiv({ text: variable });
     }
 
     /**

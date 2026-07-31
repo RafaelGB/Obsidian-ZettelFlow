@@ -116,12 +116,13 @@ export async function manageElement(
       })
       .catch((error: ZettelError) => {
         log.error(error);
-        if (error! instanceof ZettelError) {
+        if (error instanceof ZettelError) {
           switch (error.getType()) {
             case ZettelError.WARNING_TYPE: {
               new Notice(`Warning error: ${error.message}`);
               manageWarningError(actions, error);
             }
+            // falls through
             case ZettelError.FATAL_TYPE: {
               new Notice(`Fatal error: ${error.message}`);
               manageFatalError(actions, error);
@@ -133,7 +134,7 @@ export async function manageElement(
             }
           }
         } else {
-          new Notice(`Not controlled error: ${error}`);
+          new Notice(`Not controlled error: ${String(error)}`);
         }
       });
   }

@@ -46,7 +46,7 @@ function findCompletions(
     const nextSegment = segments[0];
 
     // Continue recursively with the next node if it exists
-    const nextNode = (node as Record<string, unknown>)[nextSegment] as Record<string, unknown> | undefined;
+    const nextNode = node[nextSegment] as Record<string, unknown> | undefined;
     if (!nextNode) {
         // If the segment does not match any key, return the current keys
         return Object.keys(node).map(key => ({

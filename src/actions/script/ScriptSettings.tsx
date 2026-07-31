@@ -105,7 +105,7 @@ export const scriptSettings: ActionSetting = (
     outputDiv.empty();
 
     if (result.error) {
-      outputDiv.createEl("div", {
+      outputDiv.createDiv({
         text: `Error: ${result.error}`,
         cls: c("error-output"),
       });

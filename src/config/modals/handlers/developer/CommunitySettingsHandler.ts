@@ -28,7 +28,7 @@ export class CommunitySettingsHandler extends AbstractHandlerClass<SettingsHandl
                     if (defaultUrl) {
                         info.plugin.settings.communitySettings.url = defaultUrl
                         await info.plugin.saveSettings();
-                        await info.section?.refresh(info);
+                        info.section?.refresh(info);
                     }
                 }));
 

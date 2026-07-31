@@ -65,14 +65,27 @@ export default class PatchHelper {
         })
     }
 
-    static patchObjectPrototype<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): void {
-        const uninstaller = around((target as any).constructor.prototype, functions)
-        plugin.register(uninstaller)
+    /** Safely resolve `target.constructor.prototype` without unsafe `any` access. */
+    private static prototypeOf(target: unknown): object | undefined {
+        const ctor = (target as { constructor?: { prototype?: object } } | null | undefined)?.constructor
+        return ctor?.prototype
     }
 
-    static patchObjectInstance<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): void {
+    static patchObjectPrototype<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): boolean {
+        // Fail soft: if the target (or its prototype) is missing because Obsidian's
+        // internals changed, skip patching and report failure so the caller can degrade.
+        const prototype = PatchHelper.prototypeOf(target)
+        if (!prototype) return false
+        const uninstaller = around(prototype as Record<string, unknown>, functions)
+        plugin.register(uninstaller)
+        return true
+    }
+
+    static patchObjectInstance<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): boolean {
+        if (!target) return false
         const uninstaller = around(target as any, functions)
         plugin.register(uninstaller)
+        return true
     }
 
     static patchPrototype<T>(
@@ -90,14 +103,16 @@ export default class PatchHelper {
         prototype: boolean = false
     ): T | null {
         if (!object) return null
-        const target = prototype ? object.constructor.prototype : object
+        const target = prototype ? PatchHelper.prototypeOf(object) : object
+        if (!target) return null
 
-        // Validate override requirements
+        // Validate override requirements. Fail soft: if a method we meant to override
+        // is missing (Obsidian internals changed), return null instead of throwing so
+        // the caller can degrade gracefully with a user Notice (see CanvasPatcher).
         for (const key of Object.keys(patches) as Array<FunctionKeys<T>>) {
             const patch = patches[key]
-            if (patch?.__overrideExisting) {
-                if (typeof target[key] !== 'function')
-                    throw new Error(`Method ${String(key)} does not exist on target`)
+            if (patch?.__overrideExisting && typeof (target as Record<string, unknown>)[key as string] !== 'function') {
+                return null
             }
         }
 

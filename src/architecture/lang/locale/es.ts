@@ -22,6 +22,7 @@ export default {
     component_confirm: 'Confirmar',
     notice_canvas_not_set: 'Archivo canvas no establecido',
     notice_codeview_registration_error: 'Error al registrar la extensión del editor de código de ZettelFlow. Consulta la consola para más información.',
+    notice_canvas_patch_failed: 'ZettelFlow no pudo conectar con el canvas. Los flujos de canvas pueden no estar disponibles; el resto del plugin funciona con normalidad.',
     command_open_workflow: 'Abrir flujo de trabajo',
     command_open_editor_workflow: 'Abrir flujo de trabajo del editor',
     command_settings_open_canvas: 'Abrir canvas',

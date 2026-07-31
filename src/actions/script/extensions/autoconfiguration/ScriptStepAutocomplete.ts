@@ -163,33 +163,12 @@ function createZettelFlowRenderer(completion: Completion): (element: HTMLElement
         // Add a CSS class for styling
         element.classList.add(c('cm-completion'));
 
-        // Create a container for better styling
-        const container = document.createElement('div');
-        container.className = c('cm-completion-container');
-
-        // Add ZettelFlow icon/badge
-        const badge = document.createElement('span');
-        badge.className = c('cm-completion-badge');
-        badge.textContent = '✨';
-
-        // Label with custom styling
-        const label = document.createElement('span');
-        label.className = c('cm-completion-label');
-        label.textContent = completion.label;
-
-        // Type indicator
-        const type = document.createElement('span');
-        type.className = c('cm-completion-type');
-        type.textContent = completion.type || 'property';
-
-        // Assemble the elements
-        container.appendChild(badge);
-        container.appendChild(label);
-        container.appendChild(type);
-
-        // Clear and append to the element
+        // Rebuild the completion item using Obsidian's DOM helpers
         element.empty();
-        element.appendChild(container);
+        const container = element.createDiv({ cls: c('cm-completion-container') });
+        container.createSpan({ cls: c('cm-completion-badge'), text: '✨' });
+        container.createSpan({ cls: c('cm-completion-label'), text: completion.label });
+        container.createSpan({ cls: c('cm-completion-type'), text: completion.type || 'property' });
     };
 }
 

@@ -34,5 +34,11 @@ export default [
         ecmaFeatures: { jsx: true },
       },
     },
+    rules: {
+      // `no-undef` is redundant under TypeScript (tsc already enforces it) and false-positives
+      // on type-only names (CanvasData, EventRef, Menu, React...). typescript-eslint recommends
+      // turning it off for .ts/.tsx. See https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule
+      "no-undef": "off",
+    },
   },
 ];

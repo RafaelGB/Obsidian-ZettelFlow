@@ -155,6 +155,26 @@ Unleash the full potential of your notes with ZettelFlow. **Your ideas, your flo
 
 
 
+## Capabilities & privacy
+
+ZettelFlow is transparent about what it can do inside your vault. It collects **no telemetry** and
+sends **no personal data or vault contents** anywhere. The plugin uses these capabilities:
+
+- **File system (vault).** ZettelFlow reads your Canvas flow files and creates/edits notes in your
+  vault as the result of a flow. All access goes through Obsidian's `Vault` API — never a hardcoded
+  path. Works on desktop and mobile.
+- **Network — optional, only for the community feature.** If (and only if) you open the community
+  templates browser, ZettelFlow fetches example flows, steps, actions and preview images from the
+  ZettelFlow community source, and — if you configure your own community backend URL and token — from
+  that server. Nothing is sent unless you use this feature; browsing works read-only and no analytics
+  are collected.
+- **Script execution.** The **Script** action and JavaScript step files run **JavaScript you write**
+  as part of a flow. This code runs with the plugin's access to your vault, so only run scripts you
+  trust — exactly like any code you add to your own vault.
+
+See [Capabilities & privacy](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/capabilities-and-privacy/)
+for details. This disclosure is provided ahead of Obsidian's upcoming capability-label system.
+
 ## Support
 If you enjoy ZettelFlow, consider [buy me a coffee](https://www.buymeacoffee.com/5tsytn22v9Z) or [sponsor me](https://github.com/sponsors/RafaelGB) to support my work. Thank you!
 

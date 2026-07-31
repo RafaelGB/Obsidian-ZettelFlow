@@ -164,11 +164,10 @@ class SelectableTextWidget extends WidgetType {
      * @returns A span element with styling.
      */
     public toDOM(): HTMLElement {
-        const span = document.createElement("span");
-        span.textContent = this.value;
-        span.style.color = "var(--text-accent-color)";
-        span.style.textDecoration = "underline";
-        return span;
+        return createSpan({
+            cls: "zettelkasten-flow__placeholder-widget",
+            text: this.value,
+        });
     }
 }
 

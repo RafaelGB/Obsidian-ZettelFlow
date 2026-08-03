@@ -2,7 +2,8 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useEffect, useMemo, useState } from "react";
 import { OptionType, Select } from "application/components/select";
 import { DynamicSelectorElement } from "zettelkasten/typing";
-import { fnsManager } from "architecture/api";
+import { fnsManager, buildAsyncScriptFunction } from "architecture/api";
+import { isStringTupleArray } from "./typing";
 
 export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
@@ -18,10 +19,7 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
     const fnBody = `return (async () => {
           ${code}
         })(zf);`;
-    const AsyncFunction = Object.getPrototypeOf(
-      async function () {}
-    ).constructor;
-    const scriptFn = new AsyncFunction("zf", fnBody);
+    const scriptFn = buildAsyncScriptFunction(["zf"], fnBody);
 
     return await scriptFn(functions);
   }, []);
@@ -41,19 +39,10 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
       try {
         const result = await resultMemo;
 
-        // Validar que result sea un arreglo de tuplas [string, string]
-        if (
-          Array.isArray(result) &&
-          result.every(
-            (item) =>
-              Array.isArray(item) &&
-              item.length === 2 &&
-              typeof item[0] === "string" &&
-              typeof item[1] === "string"
-          )
-        ) {
+        // Validate that result is an array of [string, string] tuples
+        if (isStringTupleArray(result)) {
           const dynamicOptions: OptionType[] = result.map(
-            ([key, label]: [string, string]) => ({
+            ([key, label]) => ({
               key,
               label,
               color: "var(--canvas-color-5)",

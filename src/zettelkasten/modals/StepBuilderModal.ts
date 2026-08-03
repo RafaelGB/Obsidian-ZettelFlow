@@ -173,7 +173,11 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private async save() {
-        if (!this.info.folder || !this.info.filename) return;
+        if (!this.info.folder || !this.info.filename) {
+            log.error("[StepBuilder] Cannot save step: missing target folder or filename", this.info);
+            new Notice(t("step_builder_save_missing_target"));
+            return;
+        }
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {
             case "edit":
@@ -204,6 +208,7 @@ export class StepBuilderModal extends AbstractStepModal {
             await cachedFlow.editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
         } else {
             log.error(`Node id not found on embed mode`);
+            new Notice(t("step_builder_save_missing_node"));
         }
     }
 
@@ -219,7 +224,9 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {
-        void ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
+        // Must be awaited: save() runs from onClose and defrosts the vault state right after,
+        // so a fire-and-forget write could be dropped and the step never persisted (#79).
+        await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
             frontmatter.zettelFlowSettings = {
                 ...frontmatter.zettelFlowSettings,
                 ...stepSettings

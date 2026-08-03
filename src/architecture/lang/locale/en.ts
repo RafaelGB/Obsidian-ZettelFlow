@@ -77,6 +77,8 @@ export default {
     hooks_flows_selector_title: 'Hooks folder configuration',
     hooks_flows_selector_description: 'Select the folder where you will save your flows asigned to any other hook code. The flows will be executed when the hook indicates it after it is triggered',
     step_builder_title: 'ZettelFlow step builder',
+    step_builder_save_missing_target: "Couldn't save the step: no target folder or filename.",
+    step_builder_save_missing_node: "Couldn't save the step: the canvas node is missing.",
     step_builder_root_toggle_title: 'Root toggle',
     step_builder_root_toggle_description: 'This toggle will set the current element as the root element.',
     step_builder_step_title: 'Step title',

@@ -77,6 +77,8 @@ export default {
     hooks_flows_selector_title: 'Configuración de la carpeta de hooks',
     hooks_flows_selector_description: 'Selecciona la carpeta donde guardarás tus flujos asignados a cualquier código de hook. Los flujos se ejecutarán cuando el hook lo indique tras activarse',
     step_builder_title: 'Constructor de pasos de ZettelFlow',
+    step_builder_save_missing_target: 'No se pudo guardar el paso: falta la carpeta o el nombre de archivo de destino.',
+    step_builder_save_missing_node: 'No se pudo guardar el paso: falta el nodo del lienzo.',
     step_builder_root_toggle_title: 'Elemento raíz',
     step_builder_root_toggle_description: 'Este interruptor establece el elemento actual como el elemento raíz.',
     step_builder_step_title: 'Título del paso',

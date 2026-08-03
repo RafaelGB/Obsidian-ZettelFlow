@@ -80,7 +80,7 @@ export function loadVariableTextProcessors(plugin: ZettelFlow): void {
                     return Decoration.none;
                 }
 
-                const metadata = plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {};
+                const metadata: Record<string, unknown> = plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {};
                 if (Object.keys(metadata).length === 0) {
                     return Decoration.none;
                 }
@@ -115,7 +115,8 @@ export function loadVariableTextProcessors(plugin: ZettelFlow): void {
                             continue;
                         }
 
-                        const replacement = metadata[key] ?? `{{${key}}}`;
+                        const rawValue = metadata[key];
+                        const replacement = typeof rawValue === "string" ? rawValue : `{{${key}}}`;
                         builder.add(
                             start,
                             end,

@@ -219,7 +219,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {
-        void ObsidianApi.fileManager().processFrontMatter(file, (frontmatter) => {
+        void ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
             frontmatter.zettelFlowSettings = {
                 ...frontmatter.zettelFlowSettings,
                 ...stepSettings

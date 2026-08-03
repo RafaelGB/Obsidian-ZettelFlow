@@ -2,7 +2,7 @@ import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "applicat
 import { ObsidianApi, PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
-import { ZettelFlowSettingsTab } from "config";
+import { ZettelFlowSettingsTab, ZettelFlowSettings } from "config";
 import ZettelFlow from "main";
 import { Notice } from "obsidian";
 export class SettingsTab extends PluginComponent {
@@ -50,7 +50,11 @@ export class SettingsTab extends PluginComponent {
         });
     }
     private async legacyMigrateSettings() {
-        const settings = this.plugin.settings as any;
+        // Legacy shape: `propertyHooks` used to live at the settings root before it moved
+        // under `hooks.properties`. Type the migration access without unsafe any.
+        const settings = this.plugin.settings as ZettelFlowSettings & {
+            propertyHooks?: ZettelFlowSettings["hooks"]["properties"];
+        };
         if (settings.propertyHooks) {
             settings.hooks.properties = settings.propertyHooks;
             delete settings.propertyHooks;

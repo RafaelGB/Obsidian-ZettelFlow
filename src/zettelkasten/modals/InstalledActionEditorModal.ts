@@ -90,7 +90,8 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         const authorEl = this.contentEl.createDiv({ cls: c("modal-author") });
         authorEl.createSpan({ text: `${t("template_author")}: ${author}` });
         if (downloads) {
-            authorEl.createSpan({ text: `${t("template_downloads")}: ${String(downloads)}` });
+            const downloadsText = typeof downloads === "string" ? downloads : JSON.stringify(downloads);
+            authorEl.createSpan({ text: `${t("template_downloads")}: ${downloadsText}` });
         }
 
         // Header with title and subtitle with the mode

@@ -22,7 +22,13 @@
   "author": "RafaelGB",
   "license": "MIT",
   "devDependencies": {
+    "@codemirror/autocomplete": "6.18.4",
+    "@codemirror/commands": "6.3.1",
     "@codemirror/lang-javascript": "6.2.5",
+    "@codemirror/language": "6.10.7",
+    "@codemirror/lint": "6.8.4",
+    "@codemirror/state": "6.5.0",
+    "@codemirror/view": "6.38.6",
     "@commitlint/cli": "21.2.1",
     "@commitlint/config-conventional": "21.2.0",
     "@types/node": "26.1.2",

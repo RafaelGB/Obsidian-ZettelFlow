@@ -90,8 +90,8 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 
 ## Known gaps (don't be surprised)
 
-- **`versions.json` and `version-bump.mjs` are missing** (referenced by `npm version`). Restore
-  them before a compliant release.
+- **`versions.json` and `version-bump.mjs` are present** — `npm version <x.y.z>` bumps
+  `manifest.json` and records the `version → minAppVersion` map. Current release line: `2.12.0`.
 - **Tests are only seeded** — a jest + TDD harness now exists (pure-logic suites); breadth must
   grow (tracked by issues).
 - `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). Two

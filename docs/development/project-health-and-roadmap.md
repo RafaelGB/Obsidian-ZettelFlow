@@ -19,8 +19,8 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 
 | # | Issue | Impact | Where |
 |---|---|---|---|
-| 1 | **`versions.json` missing** | Breaks a compliant release; Obsidian can't map versions → `minAppVersion` | repo root (referenced by `npm version`) |
-| 2 | **`version-bump.mjs` missing** | The `npm version` script fails | repo root |
+| 1 | ~~**`versions.json` missing**~~ — present; maps `2.11.0→1.7.2`, `2.12.0→1.13.1` | — | repo root |
+| 2 | ~~**`version-bump.mjs` missing**~~ — present; run by `npm version` | — | repo root |
 | 3 | **Thin tests** — a jest + TDD harness is now seeded (3 pure-logic suites); breadth is still low | Limited regression safety net | whole repo |
 | 4 | ~~**Obsidian-rule backlog** (was 475 problems)~~ — **cleared and blocking** (#85); two larger migrations deferred (#111, #112) | — | tooling |
 | 5 | **`innerHTML` usage (~8)** | Security/guideline flag; lowers score | `VariableTextProcessors`, `*Settings`, autocompletion |
@@ -39,7 +39,8 @@ Ordered by leverage. Each item is small enough to be a focused PR.
 
 ### Milestone 1 — Release & submission compliance (unblocks everything)
 
-- [ ] Restore `version-bump.mjs`; generate and commit `versions.json`.
+- [x] Restore `version-bump.mjs`; generate and commit `versions.json` (`2.11.0→1.7.2`,
+      `2.12.0→1.13.1`).
 - [x] Add `eslint-plugin-obsidianmd` + `eslint.config.mjs` + `npm run lint:obsidian`; run it in
       CI. **Done (#85):** the 475-problem backlog is burned down to zero and the check is now
       blocking (part of `npm run verify`, the pre-push hook and CI). Two larger best-practice

@@ -18,7 +18,7 @@ import {
 } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
 
-import { valuesEqual, hasFrontmatterMutations } from "./utils/CompareUtils";
+import { hasFrontmatterMutations, copyFrontmatter, changedHookProperties } from "./utils/CompareUtils";
 import {
     isCanvasFile,
     isFolder,
@@ -42,6 +42,13 @@ const FRONTMATTER_CACHE_TTL_MS = 60_000;
 export class VaultHooks {
     private debounceTimers: Map<string, number> = new Map();
     private revokeTimers: Map<string, number> = new Map();
+    /**
+     * Independent, copied frontmatter snapshot per file, used as the "previous" value when
+     * detecting property changes. Kept separate from Obsidian's metadata cache because that
+     * cache is mutated in place — reading it as "old" made every property look unchanged and
+     * was why property hooks never fired.
+     */
+    private lastFrontmatter: Map<string, Record<string, unknown>> = new Map();
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -117,6 +124,7 @@ export class VaultHooks {
 
     private onRenameFile(file: TFile, oldPath: string) {
         const settings = this.plugin.settings;
+        this.lastFrontmatter.delete(oldPath);
 
         if (oldPath === settings.ribbonCanvas) {
             canvas.flows.delete(oldPath);
@@ -193,6 +201,7 @@ export class VaultHooks {
     };
 
     private onDeleteFile = (file: TFile) => {
+        this.lastFrontmatter.delete(file.path);
         if (file.path === this.plugin.settings.ribbonCanvas) {
             canvas.flows.delete(file.path);
             this.plugin.settings.ribbonCanvas = "";
@@ -237,6 +246,12 @@ export class VaultHooks {
 
         if (isMarkdownFile(file)) {
             VaultStateManager.INSTANCE.add(file);
+            // Seed the change-detection baseline with the current frontmatter so the first
+            // property edit after opening is detected as a change.
+            this.lastFrontmatter.set(
+                file.path,
+                copyFrontmatter(this.plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {})
+            );
             log.debug("[VaultHooks] Opened file:", file.path);
         }
     };
@@ -277,10 +292,16 @@ export class VaultHooks {
         const hooksEntries = Object.entries(hooksCfg.properties || {});
         if (!hooksEntries.length) return;
 
-        // Asegura servicio de frontmatter previo
+        // Service used only to WRITE any hook response mutations.
         const fmPrev = this.getOrCreateFrontmatterService(file);
-        const oldFrontmatter: Record<string, unknown> = fmPrev.getFrontmatter() ?? {};
-        const newFrontmatter: Record<string, unknown> = cache.frontmatter || {};
+        // Compare against our own copied snapshot, never the live metadata cache: Obsidian
+        // mutates getFileCache().frontmatter in place, which made old === new and stopped
+        // property hooks from ever firing.
+        const newFrontmatter: Record<string, unknown> = copyFrontmatter(cache.frontmatter ?? {});
+        const oldFrontmatter: Record<string, unknown> = this.lastFrontmatter.get(file.path) ?? newFrontmatter;
+        const changed = new Set(
+            changedHookProperties(hooksEntries.map(([property]) => property), oldFrontmatter, newFrontmatter)
+        );
 
         const dynamicFrontmatter: Record<string, Literal> = {};
         let event: HookEvent = {
@@ -301,20 +322,17 @@ export class VaultHooks {
 
         try {
             for (const [property, hookSettings] of hooksEntries) {
-                const oldValue = oldFrontmatter[property];
-                const newValue = newFrontmatter[property];
+                if (!changed.has(property)) continue;
 
-                if (!valuesEqual(oldValue, newValue)) {
-                    event.request = {
-                        oldValue,
-                        newValue,
-                        property,
-                        frontmatter: newFrontmatter,
-                    };
+                event.request = {
+                    oldValue: oldFrontmatter[property],
+                    newValue: newFrontmatter[property],
+                    property,
+                    frontmatter: newFrontmatter,
+                };
 
-                    event = await this.executeHook(hookSettings.script, event);
-                    log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
-                }
+                event = await this.executeHook(hookSettings.script, event);
+                log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
             }
 
             if (
@@ -346,6 +364,9 @@ export class VaultHooks {
             }
         } finally {
             VaultStateManager.INSTANCE.processFinished(file.path);
+
+            // Remember the latest frontmatter so the next change diffs against it.
+            this.lastFrontmatter.set(file.path, newFrontmatter);
 
             // Revoke cache after processing. Cancel any previous timer.
             const previous = this.revokeTimers.get(file.path);

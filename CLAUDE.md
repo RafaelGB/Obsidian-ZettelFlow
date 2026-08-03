@@ -17,7 +17,7 @@ each step's **actions**. It's a monorepo:
   templates.
 - `docs/` + `mkdocs.yml` — the MkDocs Material site (GitHub Pages).
 
-Current version: `2.11.0`, `minAppVersion 1.7.2`, desktop **and** mobile (`isDesktopOnly:false`).
+Current version: `2.11.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
 
 ## Architecture in 60 seconds
 
@@ -49,7 +49,7 @@ links (plugin core, actions & note builder, vault hooks, community & backend).
 | Type-check (blocking) | `npm run typecheck` |
 | Test — TDD (blocking) | `npm test` / `npm run test:watch` / `npm run test:coverage` |
 | Verify all (pre-push + CI) | `npm run verify` |
-| Obsidian-guideline lint (advisory) | `npm run lint:obsidian` — baseline 475 problems, tracked by issues |
+| Obsidian-guideline lint (blocking) | `npm run lint:obsidian` — clean (0), part of `verify`/CI |
 | Backend (optional) | `docker compose up --build` (needs a root `.env`) |
 | Docs preview | `mkdocs serve` |
 
@@ -94,7 +94,9 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
   them before a compliant release.
 - **Tests are only seeded** — a jest + TDD harness now exists (pure-logic suites); breadth must
   grow (tracked by issues).
-- `eslint-plugin-obsidianmd` reports a **baseline of 475 problems** to burn down (advisory in CI).
+- `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). Two
+  larger best-practice migrations are deferred with per-file rule relaxations: AbstractInputSuggest
+  (#111) and the declarative settings API (#112).
 - `innerHTML` (~8 spots) and widespread inline styles need migration.
 - `log.error` is silenced when the logger toggle is off.
 - Canvas integration **monkey-patches** internal Obsidian APIs — fragile across app updates; keep

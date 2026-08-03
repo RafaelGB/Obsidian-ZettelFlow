@@ -1,24 +1,28 @@
 import { around } from "monkey-around"
 import { Plugin } from "obsidian"
 
+// The safe stand-in for "any function": contravariant `never` params match any parameter
+// list and `unknown` return matches any return, so this accepts every function without `any`.
+type UnknownFn = (...args: never[]) => unknown
+
 // Is any
 type IsAny<T> = 0 extends 1 & T ? true : false
 type NotAny<T> = IsAny<T> extends true ? never : T
 
 // All keys in T that are functions
 type FunctionKeys<T> = {
-    [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never
+    [K in keyof T]: T[K] extends UnknownFn ? K : never
 }[keyof T]
 
 // The type of the function at key K in T
 type KeyFunction<T, K extends FunctionKeys<T>> =
-    T[K] extends (...args: any[]) => any ? T[K] : never
+    T[K] extends UnknownFn ? T[K] : never
 
 // The type of a patch function for key K in T
 type KeyFunctionReplacement<T, K extends FunctionKeys<T>, R extends ReturnType<KeyFunction<T, K>>> =
     (this: T, ...args: Parameters<KeyFunction<T, K>>) => IsAny<ReturnType<KeyFunction<T, K>>> extends false
         ? ReturnType<KeyFunction<T, K>> & NotAny<R>
-        : any
+        : unknown
 
 // The wrapper of a patch function for key K in T
 type PatchFunctionWrapper<T, K extends FunctionKeys<T>, R extends ReturnType<KeyFunction<T, K>>> =
@@ -34,58 +38,10 @@ export default class PatchHelper {
         fn: PatchFunctionWrapper<T, K, R> & { __overrideExisting?: boolean }
     ) { return Object.assign(fn, { __overrideExisting: true }) }
 
-    static tryPatchWorkspacePrototype<T>(plugin: Plugin, getTarget: () => T | undefined, functions: { [key: string]: (next: any) => (...args: any) => any }): Promise<T> {
-        return new Promise((resolve) => {
-            const tryPatch = () => {
-                const target = getTarget()
-                if (!target) return null
-
-                const uninstaller = around(target.constructor.prototype, functions)
-                plugin.register(uninstaller)
-
-                return target
-            }
-
-            const result = tryPatch()
-            if (result) {
-                resolve(result)
-                return
-            }
-
-            const listener = plugin.app.workspace.on('layout-change', () => {
-                const result = tryPatch()
-
-                if (result) {
-                    plugin.app.workspace.offref(listener)
-                    resolve(result)
-                }
-            })
-
-            plugin.registerEvent(listener)
-        })
-    }
-
     /** Safely resolve `target.constructor.prototype` without unsafe `any` access. */
     private static prototypeOf(target: unknown): object | undefined {
         const ctor = (target as { constructor?: { prototype?: object } } | null | undefined)?.constructor
         return ctor?.prototype
-    }
-
-    static patchObjectPrototype<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): boolean {
-        // Fail soft: if the target (or its prototype) is missing because Obsidian's
-        // internals changed, skip patching and report failure so the caller can degrade.
-        const prototype = PatchHelper.prototypeOf(target)
-        if (!prototype) return false
-        const uninstaller = around(prototype as Record<string, unknown>, functions)
-        plugin.register(uninstaller)
-        return true
-    }
-
-    static patchObjectInstance<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): boolean {
-        if (!target) return false
-        const uninstaller = around(target as any, functions)
-        plugin.register(uninstaller)
-        return true
     }
 
     static patchPrototype<T>(
@@ -116,7 +72,12 @@ export default class PatchHelper {
             }
         }
 
-        const uninstaller = around(target as any, patches)
+        // monkey-around erases the concrete method types; bridge our typed patch object to
+        // its `Record<string, fn>` shape without reintroducing `any`.
+        const uninstaller = around(
+            target as unknown as Record<string, UnknownFn>,
+            patches as unknown as Partial<Record<string, (next: UnknownFn) => UnknownFn>>
+        )
         plugin.register(uninstaller)
 
         return object

@@ -7,7 +7,7 @@ declare module "obsidian/canvas" {
         text: string;
         unknownData: {
             zettelflowConfig?: string;
-            [key: string]: any;
+            [key: string]: unknown;
         };
         zettelflowConfig: string;
     }
@@ -92,11 +92,11 @@ declare module "obsidian/canvas" {
         deselectAll(): void
 
         toggleObjectSnapping(enabled: boolean): void
-        dragTempNode(dragEvent: any, nodeSize: Size, onDropped: (position: Position) => void): void
+        dragTempNode(dragEvent: PointerEvent, nodeSize: Size, onDropped: (position: Position) => void): void
 
-        createTextNode(options: { [key: string]: any }): CanvasNode
-        createGroupNode(options: { [key: string]: any }): CanvasNode
-        createFileNode(options: { [key: string]: any }): CanvasNode
+        createTextNode(options: Record<string, unknown>): CanvasNode
+        createGroupNode(options: Record<string, unknown>): CanvasNode
+        createFileNode(options: Record<string, unknown>): CanvasNode
 
         addNode(node: CanvasNode): void
         removeNode(node: CanvasNode): void
@@ -128,7 +128,7 @@ declare module "obsidian/canvas" {
     }
 
     interface CanvasMetadata {
-        properties: { [key: string]: any }
+        properties: { [key: string]: unknown }
     }
 
     interface CanvasHistory {
@@ -299,7 +299,7 @@ declare module "obsidian/canvas" {
         portalId?: string
         isUnsaved?: boolean
 
-        [key: string]: any
+        [key: string]: unknown
     }
 
     interface CanvasEdge extends CanvasElement {
@@ -364,6 +364,7 @@ declare module "obsidian/canvas" {
     }
 
     interface PopupMenu {
+        canvas: Canvas
         menuEl: HTMLElement
         render(): void
     }

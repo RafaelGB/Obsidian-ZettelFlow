@@ -1,6 +1,6 @@
 import ZettelFlow from "main";
 import { Notice, requireApiVersion } from "obsidian";
-import { CanvasView } from "obsidian/canvas";
+import { CanvasView, PopupMenu } from "obsidian/canvas";
 import PatchHelper from "./utils/PatchHelper";
 import { log } from "architecture";
 import { t } from "architecture/lang";
@@ -54,9 +54,9 @@ export default class CanvasPatcher {
 
             // Patch canvas popup menu (guarded — the menu is an internal we don't control)
             if (canvasView.canvas.menu) {
-                const menuPatched = PatchHelper.patchObjectPrototype(this.plugin, canvasView.canvas.menu, {
-                    render: (next: any) => function (this: any, ...args: any) {
-                        const result = next.call(this, ...args);
+                const menuPatched = PatchHelper.patchPrototype<PopupMenu>(this.plugin, canvasView.canvas.menu, {
+                    render: next => function (this: PopupMenu) {
+                        const result = next.call(this);
                         that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
                         next.call(this) // Re-Center the popup menu
                         return result;
@@ -69,7 +69,7 @@ export default class CanvasPatcher {
 
             // Patch canvas view (guarded — patchPrototype returns null if the methods are gone)
             const viewPatched = PatchHelper.patchPrototype<CanvasView>(this.plugin, canvasView, {
-                getViewData: PatchHelper.OverrideExisting(next => function (...args: any): string {
+                getViewData: PatchHelper.OverrideExisting(next => function (): string {
                     const canvasData = this.canvas.getData()
 
                     try {
@@ -84,22 +84,22 @@ export default class CanvasPatcher {
                             return JSON.stringify(canvasData, null, 2)
                         } catch (e) {
                             log.error('Failed to stringify canvas data using JSON.stringify:', e)
-                            return next.call(this, ...args)
+                            return next.call(this)
                         }
                     }
                 }),
-                setViewData: PatchHelper.OverrideExisting(next => function (json: string, ...args: any): void {
+                setViewData: PatchHelper.OverrideExisting(next => function (json: string): void {
                     json = json !== '' ? json : '{}'
 
                     let result
                     try {
-                        result = next.call(this, json, ...args)
+                        result = next.call(this, json)
                     } catch (e) {
                         log.error('Invalid JSON, repairing through the canvas parser:', e)
 
                         // Try to parse it with trailing commas
                         json = JSON.stringify(JSONC.parse(json), null, 2)
-                        result = next.call(this, json, ...args)
+                        result = next.call(this, json)
                     }
 
                     that.triggerWorkspaceEvent("zettelflow-node-connection-drop-menu", this.canvas)
@@ -122,7 +122,7 @@ export default class CanvasPatcher {
         new Notice(t('notice_canvas_patch_failed'))
     }
 
-    private triggerWorkspaceEvent(event: string, ...args: any) {
+    private triggerWorkspaceEvent(event: string, ...args: unknown[]) {
         this.plugin.app.workspace.trigger(event, ...args)
     }
 }

@@ -55,7 +55,7 @@ export default class CanvasPatcher {
             // Patch canvas popup menu (guarded — the menu is an internal we don't control)
             if (canvasView.canvas.menu) {
                 const menuPatched = PatchHelper.patchPrototype<PopupMenu>(this.plugin, canvasView.canvas.menu, {
-                    render: next => function (this: PopupMenu) {
+                    render: (next: () => void) => function (this: PopupMenu) {
                         const result = next.call(this);
                         that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
                         next.call(this) // Re-Center the popup menu
@@ -69,7 +69,7 @@ export default class CanvasPatcher {
 
             // Patch canvas view (guarded — patchPrototype returns null if the methods are gone)
             const viewPatched = PatchHelper.patchPrototype<CanvasView>(this.plugin, canvasView, {
-                getViewData: PatchHelper.OverrideExisting(next => function (): string {
+                getViewData: PatchHelper.OverrideExisting<CanvasView, "getViewData", string>(next => function (this: CanvasView): string {
                     const canvasData = this.canvas.getData()
 
                     try {
@@ -88,7 +88,7 @@ export default class CanvasPatcher {
                         }
                     }
                 }),
-                setViewData: PatchHelper.OverrideExisting(next => function (json: string): void {
+                setViewData: PatchHelper.OverrideExisting<CanvasView, "setViewData", void>(next => function (this: CanvasView, json: string): void {
                     json = json !== '' ? json : '{}'
 
                     let result

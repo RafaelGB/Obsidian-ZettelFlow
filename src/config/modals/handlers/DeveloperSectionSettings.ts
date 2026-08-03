@@ -2,6 +2,7 @@
 import { AbstractChain } from "architecture/patterns";
 import { c } from "architecture";
 import { t } from "architecture/lang";
+import { Setting } from "obsidian";
 // Internal imports
 import { SettingsHandlerInfo } from "config/typing";
 import { LoggerToggleHandler } from "./developer/LoggerToggleHandler";
@@ -16,7 +17,9 @@ export class DeveloperSectionSettings extends AbstractChain<SettingsHandlerInfo>
         this.parentContainer = info.containerEl;
 
         // Section title
-        info.containerEl.createEl('h2', { text: t('developer_section_title') });
+        new Setting(info.containerEl)
+            .setName(t('developer_section_title'))
+            .setHeading();
 
         // Section container
         this.sectionContainer = info.containerEl.createDiv();

@@ -26,9 +26,11 @@ export function WelcomeTutorial(noteBuilderType: TutorialType) {
         {ribbonCanvas ? (
           <li>
             <button
-              onClick={async () => {
-                await FileService.openFile(ribbonCanvas);
-                modal.close();
+              onClick={() => {
+                void (async () => {
+                  await FileService.openFile(ribbonCanvas);
+                  modal.close();
+                })();
               }}
             >
               {t("welcome_tutorial_open_canvas")}

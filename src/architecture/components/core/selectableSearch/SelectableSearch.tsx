@@ -20,9 +20,7 @@ export function SelectableSearch(props: SelectableSearchType) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const containerRef = useRef<HTMLDivElement>(
-    activeDocument.createElement("div")
-  );
+  const containerRef = useRef<HTMLDivElement>(activeDocument.createDiv());
 
   const [selectedOptions, setSelectedOptions] = useState<string[]>(
     () => initialSelections

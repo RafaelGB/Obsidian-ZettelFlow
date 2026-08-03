@@ -57,7 +57,9 @@ export class SelectorAction extends CustomZettelAction {
           content.addFrontMatter({ [key]: result });
       }
     } else {
-      new Notice(`The result ${result} is not a string or an array of strings`);
+      new Notice(
+        `The result ${String(result)} is not a string or an array of strings`
+      );
     }
   }
 

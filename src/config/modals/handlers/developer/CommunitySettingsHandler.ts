@@ -12,7 +12,7 @@ export class CommunitySettingsHandler extends AbstractHandlerClass<SettingsHandl
             .setName(this.name)
             .setDesc(this.description)
             .addText(text => text
-                .setPlaceholder("https://...")
+                .setPlaceholder(t('community_url_placeholder'))
                 .setValue(info.plugin.settings.communitySettings.url)
                 .onChange(async (value) => {
                     info.plugin.settings.communitySettings.url = value;
@@ -28,7 +28,7 @@ export class CommunitySettingsHandler extends AbstractHandlerClass<SettingsHandl
                     if (defaultUrl) {
                         info.plugin.settings.communitySettings.url = defaultUrl
                         await info.plugin.saveSettings();
-                        await info.section?.refresh(info);
+                        info.section?.refresh(info);
                     }
                 }));
 

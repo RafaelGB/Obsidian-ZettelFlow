@@ -1,9 +1,13 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { SettingsHandlerInfo } from "config/typing";
-import { Setting } from "obsidian";
+import { Setting, moment as obsidianMoment } from "obsidian";
+import type MomentFn from "moment";
 import { t } from "architecture/lang";
 import { DEFAULT_SETTINGS } from "config";
-import moment from "moment";
+
+// Obsidian bundles moment and re-exports it, but types it as a namespace; cast to the
+// callable moment signature (type-only import of 'moment' is allowed by the guidelines).
+const moment = obsidianMoment as unknown as typeof MomentFn;
 import { FoldersFlowSelectorHandler } from "./FoldersFlowSelectorHandler";
 
 export class UniquePrefixPatternHandler extends AbstractHandlerClass<SettingsHandlerInfo> {

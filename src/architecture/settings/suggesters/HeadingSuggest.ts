@@ -9,7 +9,7 @@ export class HeadingSuggest extends TextInputSuggest<HeadingCache> {
         filePath: string,
     ) {
         super(inputEl);
-        FileService.getFile(filePath, false).then((file) => {
+        void FileService.getFile(filePath, false).then((file) => {
             if (file) {
                 this.file = file;
             }

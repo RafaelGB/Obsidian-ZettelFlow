@@ -54,7 +54,7 @@ export class CommunityActionModal extends Modal {
             this.plugin.settings.installedTemplates.actions[this.action.id] =
               this.action;
           }
-          this.plugin.saveSettings();
+          void this.plugin.saveSettings();
           this.renderContent();
         });
       }

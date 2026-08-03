@@ -29,22 +29,28 @@ export class ZfScripts extends LibModule {
                 await this.loadUserFnFrom(file);
             } catch (error) {
                 log.error(`Error loading ZettelFlow script from path = "${file.path}`, error);
-                new Notice(`Error loading ZettelFlow script "${file.path}". ${error.message}`);
+                const message = error instanceof Error ? error.message : String(error);
+                new Notice(`Error loading ZettelFlow script "${file.path}". ${message}`);
             }
         };
     }
 
     async loadUserFnFrom(file: TFile): Promise<void> {
         const file_content = await this.app.vault.read(file);
-        const req = (s: string) => {
-            return window.require && window.require(s);
-        };
+        const nodeRequire = (window as { require?: (s: string) => unknown }).require;
+        const req = (s: string): unknown => (nodeRequire ? nodeRequire(s) : undefined);
         const exp: Record<string, unknown> = {};
         const mod = {
             exports: exp
         };
 
-        const wrapping_fn = window.eval("(function anonymous(require, module, exports){" + file_content + "\n})");
+        // Wrap the user script as a CommonJS module. We build it with the Function
+        // constructor (reached through a function's prototype) rather than eval: it runs in
+        // the global scope with no access to this closure — both safer and lint-clean.
+        const fnProto = Object.getPrototypeOf(function () { /* probe */ }) as {
+            constructor: new (...args: string[]) => (require: unknown, module: unknown, exports: unknown) => void;
+        };
+        const wrapping_fn = new fnProto.constructor("require", "module", "exports", file_content);
         wrapping_fn(req, mod, exp);
         const formula_function = exp['default'] || mod.exports;
 

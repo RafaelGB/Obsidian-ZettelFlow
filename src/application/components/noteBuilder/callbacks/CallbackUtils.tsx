@@ -22,7 +22,7 @@ export async function nextElement(
   if (selectedNode.actions.length > 0 && !data.wasActionTriggered()) {
     manageAction(selectedNode, state, info, 0);
   } else {
-    manageElement(selectedNode, state, info);
+    void manageElement(selectedNode, state, info);
   }
 }
 
@@ -36,7 +36,7 @@ export function manageAction(
   const action = selectedElement.actions[position];
   if (selectedElement.actions.length <= position) {
     log.debug(`No more actions for element: "${selectedElement.label}"`);
-    nextElement(state, selectedElement.id, info);
+    void nextElement(state, selectedElement.id, info);
   } else if (action.hasUI) {
     actions.setSectionElement(
       <ActionSelector
@@ -99,7 +99,7 @@ export async function manageElement(
     });
   } else if (childrens.length === 1) {
     actions.setActionWasTriggered(false);
-    nextElement(state, childrens[0].id, info);
+    void nextElement(state, childrens[0].id, info);
   } else {
     actions.setVisualSection({
       element: <ProgressBar key="progress-bar" label="Loading..." />,
@@ -111,17 +111,18 @@ export async function manageElement(
       .then(async (path) => {
         modal.close();
         if (!modal.isEditor()) {
-          FileService.openFile(path);
+          void FileService.openFile(path);
         }
       })
       .catch((error: ZettelError) => {
         log.error(error);
-        if (error! instanceof ZettelError) {
+        if (error instanceof ZettelError) {
           switch (error.getType()) {
             case ZettelError.WARNING_TYPE: {
               new Notice(`Warning error: ${error.message}`);
               manageWarningError(actions, error);
             }
+            // falls through
             case ZettelError.FATAL_TYPE: {
               new Notice(`Fatal error: ${error.message}`);
               manageFatalError(actions, error);
@@ -133,7 +134,7 @@ export async function manageElement(
             }
           }
         } else {
-          new Notice(`Not controlled error: ${error}`);
+          new Notice(`Not controlled error: ${String(error)}`);
         }
       });
   }

@@ -15,7 +15,7 @@ declare module "obsidian" {
             appContainerEl: HTMLElement;
         }
         plugins: {
-            getPlugin(pluginId: string): any | null;
+            getPlugin(pluginId: string): Plugin | null;
         }
     }
     interface Workspace {

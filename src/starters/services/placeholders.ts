@@ -14,6 +14,9 @@ export function substitutePlaceholders(
 ): string {
     return text.replace(/{{(.*?)}}/g, (_match, key: string) => {
         const value = metadata[key.trim()];
-        return value == null ? `{{${key}}}` : String(value);
+        if (value == null) return `{{${key}}}`;
+        if (typeof value === "string") return value;
+        // Numbers, booleans, arrays and objects are serialized (avoids "[object Object]").
+        return JSON.stringify(value);
     });
 }

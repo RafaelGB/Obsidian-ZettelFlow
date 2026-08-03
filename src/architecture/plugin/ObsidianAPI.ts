@@ -1,6 +1,6 @@
 import { log } from "architecture";
 import ZettelFlow from "main";
-import { App, FileManager, Keymap, MetadataCache, Vault, Workspace } from "obsidian";
+import { App, FileManager, Keymap, MetadataCache, Plugin, Vault, Workspace } from "obsidian";
 
 export class ObsidianAPIService {
     private static instance: ObsidianAPIService;
@@ -42,7 +42,7 @@ export class ObsidianAPIService {
         return this.app.plugins.getPlugin('zettelflow') as ZettelFlow;
     }
 
-    public getExternalPlugin(pluginId: string) {
+    public getExternalPlugin(pluginId: string): Plugin | null {
         return this.app.plugins.getPlugin(pluginId);
     }
 

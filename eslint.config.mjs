@@ -5,10 +5,10 @@
 // Run with: npm run lint:obsidian
 // Reference:  docs/development/obsidian-review-and-scoring.md
 //
-// Note: today this is ADVISORY (CI runs it with continue-on-error) because the codebase
-// still has known violations tracked as issues. Once those are fixed, flip the CI step to
-// blocking. Day-to-day linting is oxlint (`npm run lint`); this focuses purely on the
-// Obsidian score.
+// This is BLOCKING (part of `npm run verify`, the pre-push hook and CI). The backlog from
+// #85 is burned down to zero; the only relaxations are two per-file rule downgrades for
+// larger refactors that are deferred to their own tracked issues (see below). Day-to-day
+// linting is oxlint (`npm run lint`); this focuses purely on the Obsidian score.
 import tseslint from "typescript-eslint";
 import obsidianmd from "eslint-plugin-obsidianmd";
 
@@ -39,6 +39,23 @@ export default [
       // on type-only names (CanvasData, EventRef, Menu, React...). typescript-eslint recommends
       // turning it off for .ts/.tsx. See https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule
       "no-undef": "off",
+    },
+  },
+  {
+    // Deferred (tracked by #111): migrating the custom popper-based suggester to Obsidian's
+    // built-in AbstractInputSuggest is a behavior-risky rewrite of every suggester. Relaxed
+    // here (not inline — obsidianmd/* can't be disabled inline) until #111 lands.
+    files: ["src/architecture/settings/suggesters/AbstractSuggester.ts"],
+    rules: {
+      "obsidianmd/prefer-abstract-input-suggest": "off",
+    },
+  },
+  {
+    // Deferred (tracked by #112): adopting the declarative settings API (getSettingDefinitions)
+    // is a large migration. Relaxed here until #112 lands.
+    files: ["src/config/modals/ZettelFlowSettingsTab.ts"],
+    rules: {
+      "obsidianmd/settings-tab/prefer-setting-definitions": "off",
     },
   },
 ];

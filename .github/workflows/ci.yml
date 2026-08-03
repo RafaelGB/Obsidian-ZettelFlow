@@ -37,6 +37,5 @@ jobs:
       - name: Unit tests (jest)
         run: npm test
 
-      - name: Obsidian guideline lint (advisory)
+      - name: Obsidian guideline lint (blocking)
         run: npm run lint:obsidian
-        continue-on-error: true

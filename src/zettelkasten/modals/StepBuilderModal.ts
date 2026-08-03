@@ -66,18 +66,20 @@ export class StepBuilderModal extends AbstractStepModal {
             title: t("step_builder_copy_button_title")
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", async () => {
-                // Step 1 - save the step internally
-                const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                    title: t("step_template_default_title"),
-                    description: t("step_template_default_description")
-                });
-                // Step 2 - Copy the step to the clipboard
-                navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
-                // Step 3 - Save the step to internal clipboard
-                this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
-                await this.plugin.saveSettings();
-                new Notice(t("step_copied_notice"));
+            el.addEventListener("click", () => {
+                void (async () => {
+                    // Step 1 - save the step internally
+                    const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+                        title: t("step_template_default_title"),
+                        description: t("step_template_default_description")
+                    });
+                    // Step 2 - Copy the step to the clipboard
+                    void navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
+                    // Step 3 - Save the step to internal clipboard
+                    this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
+                    await this.plugin.saveSettings();
+                    new Notice(t("step_copied_notice"));
+                })();
             });
 
         });
@@ -140,7 +142,7 @@ export class StepBuilderModal extends AbstractStepModal {
                             new Notice(t("step_template_already_exists"));
                         }
                         this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
-                        this.plugin.saveSettings();
+                        void this.plugin.saveSettings();
                         // Step 2 - Open the modal to edit the step
                         new InstalledStepEditorModal(this.plugin, stepSettings).open();
                     }
@@ -217,7 +219,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {
-        ObsidianApi.fileManager().processFrontMatter(file, (frontmatter) => {
+        void ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
             frontmatter.zettelFlowSettings = {
                 ...frontmatter.zettelFlowSettings,
                 ...stepSettings

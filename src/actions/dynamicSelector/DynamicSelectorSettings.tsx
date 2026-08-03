@@ -1,10 +1,10 @@
 import { t } from "architecture/lang";
-import { Action, ActionSetting, fnsManager } from "architecture/api";
+import { Action, ActionSetting, fnsManager, buildAsyncScriptFunction, errorMessage } from "architecture/api";
 import { ViewUpdate } from "@codemirror/view";
 import { dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
 import { DynamicSelectorElement } from "zettelkasten/typing";
-import { ScriptResult } from "./typing";
+import { ScriptResult, isStringTupleArray } from "./typing";
 import { c } from "architecture";
 import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { PropertySuggest } from "architecture/settings";
@@ -46,7 +46,7 @@ export function dynamicSelectorDetails(
         )
         .addOption("body", t("step_builder_element_type_zone_body"))
         .addOption("context", t("step_builder_element_type_zone_context"))
-        .setValue(zone !== undefined ? (zone as string) : "frontmatter")
+        .setValue(zone !== undefined ? zone : "frontmatter")
         .onChange(async (value) => {
           action.zone = value;
         });
@@ -56,7 +56,7 @@ export function dynamicSelectorDetails(
     .setName(t("step_builder_element_type_key_title"))
     .setDesc(t("step_builder_element_type_key_description"))
     .addSearch((search) => {
-      ObsidianNativeTypesManager.getTypes().then((types) => {
+      void ObsidianNativeTypesManager.getTypes().then((types) => {
         new PropertySuggest(search.inputEl, types, ["text"]);
         search
           .setDisabled(readonly)
@@ -135,11 +135,6 @@ export function dynamicSelectorDetails(
   const executeUserScript = async (userCode: string): Promise<ScriptResult> => {
     try {
       const functions = await fnsManager.getFns();
-      // Create a new async function from the user's code
-      const AsyncFunction = Object.getPrototypeOf(
-        async function () {}
-      ).constructor;
-
       // Prepare the function body
       const fnBody = `
         return (async () => {
@@ -147,39 +142,21 @@ export function dynamicSelectorDetails(
         })();
       `;
 
-      // Instantiate the function
-      const scriptFn = new AsyncFunction("zf", fnBody);
-
-      // Execute the function
+      // Instantiate and execute the user's code
+      const scriptFn = buildAsyncScriptFunction(["zf"], fnBody);
       const output = await scriptFn(functions);
 
       // Validate the output format
-      if (!Array.isArray(output)) {
+      if (!isStringTupleArray(output)) {
         throw new Error(
           "The script must return an array of tuples. Example: [['key1', 'label1'], ['key2', 'label2']]"
         );
       }
 
-      for (let i = 0; i < output.length; i++) {
-        const item = output[i];
-        if (
-          !Array.isArray(item) ||
-          item.length !== 2 ||
-          typeof item[0] !== "string" ||
-          typeof item[1] !== "string"
-        ) {
-          throw new Error(
-            `The item at index ${i} is not a tuple [string, string]. ${JSON.stringify(
-              item
-            )}`
-          );
-        }
-      }
-
       return { output, error: null };
-    } catch (err: any) {
+    } catch (err) {
       // Capture and return any errors that occur during execution
-      return { output: null, error: err.message || String(err) };
+      return { output: null, error: errorMessage(err) };
     }
   };
 
@@ -205,16 +182,16 @@ export function dynamicSelectorDetails(
 
     // Display the result or error
     if (result.error) {
-      outputDiv.createEl("div", {
+      outputDiv.createDiv({
         text: `Error: ${result.error}`,
         cls: c("error-output"),
       });
     } else {
       // Format the output as JSON for better readability
       const formattedOutput =
-        typeof result.output === "object"
-          ? JSON.stringify(result.output, null, 2)
-          : String(result.output);
+        typeof result.output === "string"
+          ? result.output
+          : JSON.stringify(result.output, null, 2);
 
       outputDiv.createEl("pre", {
         text: `Output:\n${formattedOutput}`,

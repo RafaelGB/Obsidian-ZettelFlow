@@ -17,7 +17,7 @@ export interface CommunityFlowNode extends CanvasNodeData {
     color?: string;
     label?: string;
     file?: string;
-    [key: string]: any;
+    [key: string]: unknown;
     // Additional properties can be added as needed
 }
 

@@ -17,7 +17,7 @@ each step's **actions**. It's a monorepo:
   templates.
 - `docs/` + `mkdocs.yml` — the MkDocs Material site (GitHub Pages).
 
-Current version: `2.11.0`, `minAppVersion 1.4.11`, desktop **and** mobile (`isDesktopOnly:false`).
+Current version: `2.11.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
 
 ## Architecture in 60 seconds
 
@@ -49,7 +49,7 @@ links (plugin core, actions & note builder, vault hooks, community & backend).
 | Type-check (blocking) | `npm run typecheck` |
 | Test — TDD (blocking) | `npm test` / `npm run test:watch` / `npm run test:coverage` |
 | Verify all (pre-push + CI) | `npm run verify` |
-| Obsidian-guideline lint (advisory) | `npm run lint:obsidian` — baseline 475 problems, tracked by issues |
+| Obsidian-guideline lint (blocking) | `npm run lint:obsidian` — clean (0), part of `verify`/CI |
 | Backend (optional) | `docker compose up --build` (needs a root `.env`) |
 | Docs preview | `mkdocs serve` |
 
@@ -94,7 +94,9 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
   them before a compliant release.
 - **Tests are only seeded** — a jest + TDD harness now exists (pure-logic suites); breadth must
   grow (tracked by issues).
-- `eslint-plugin-obsidianmd` reports a **baseline of 475 problems** to burn down (advisory in CI).
+- `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). Two
+  larger best-practice migrations are deferred with per-file rule relaxations: AbstractInputSuggest
+  (#111) and the declarative settings API (#112).
 - `innerHTML` (~8 spots) and widespread inline styles need migration.
 - `log.error` is silenced when the logger toggle is off.
 - Canvas integration **monkey-patches** internal Obsidian APIs — fragile across app updates; keep
@@ -102,18 +104,46 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 
 Full list + roadmap: [`docs/development/project-health-and-roadmap.md`](docs/development/project-health-and-roadmap.md).
 
+## How we work: Spec-Driven Development (SDD)
+
+Non-trivial changes are built **spec-first**: intent → `spec.md` → `plan.md` → `tasks.md` → code,
+written test-first against acceptance criteria fixed up front, then reviewed against the Obsidian
+score. The pipeline, its stage owners, and the invariants live in
+[`specs/`](specs/README.md) ([constitution](specs/constitution.md)) and the narrative is
+[`docs/development/spec-driven-development.md`](docs/development/spec-driven-development.md).
+
+```
+constitution → /specify → /plan → /tasks → /implement → verify & review → Done
+   invariants    spec.md    plan.md  tasks.md   code+tests    score audit + reviewer
+```
+
+| Stage | Skill | Owner agent |
+|---|---|---|
+| Specify | `specify` | `spec-author` |
+| Plan / Tasks | `plan`, `tasks` | `implementation-planner` |
+| Implement | `implement` (+ `tdd`) | main assistant |
+| Verify & review | `obsidian-plugin-quality` | `obsidian-plugin-reviewer` |
+
+Specs live in `specs/NNNN-slug/` (`NNNN` = the GitHub issue number when there is one). A tiny,
+no-behavior change may skip to `/implement`; anything touching behavior, a public surface, UI text,
+or the score runs the full flow. Start with the **`sdd`** skill for the map.
+
 ## Harness contents (`.claude/`)
 
 This harness is committed (only `.claude/settings.local.json` is git-ignored). It provides:
 
 - **Skills** (`.claude/skills/`):
+  - `sdd` — the Spec-Driven Development pipeline map (start here for any non-trivial change).
+  - `specify` / `plan` / `tasks` / `implement` — the four SDD stage workflows.
   - `obsidian-plugin-quality` — audit against the Obsidian review/score; use before release.
   - `tdd` — the test-first workflow (jest, alias mappings, the Obsidian mock).
   - `new-action` — scaffold a new action (the 4-file pattern + registration + docs).
   - `release` — the release checklist (version bump, `versions.json`, tag, artifacts).
-- **Agent** (`.claude/agents/`):
+- **Agents** (`.claude/agents/`):
+  - `spec-author` — writes `spec.md` (SDD stage 1).
+  - `implementation-planner` — writes `plan.md` + `tasks.md` (SDD stages 2–3).
   - `obsidian-plugin-reviewer` — reviews a diff against the Obsidian guidelines and reports
-    file-anchored findings.
+    file-anchored findings (SDD stage 5).
 
 ## Working agreements
 

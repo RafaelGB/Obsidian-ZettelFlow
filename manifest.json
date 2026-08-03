@@ -2,7 +2,7 @@
   "id": "zettelflow",
   "name": "ZettelFlow",
   "version": "2.11.0",
-  "minAppVersion": "1.4.11",
+  "minAppVersion": "1.13.1",
   "description": "Helps you to create and manage your notes in a Zettelkasten way via Canvas.",
   "author": "RafaelGB",
   "fundingUrl": "https://www.buymeacoffee.com/5tsytn22v9Z",

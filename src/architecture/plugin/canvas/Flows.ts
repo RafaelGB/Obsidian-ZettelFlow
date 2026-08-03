@@ -37,7 +37,7 @@ export class FlowsImpl implements Flows {
             throw new Error(`Canvas file ${canvasPath} not found`);
         }
         const content = await FileService.getContent(canvasFile);
-        const data: CanvasData = JSON.parse(content);
+        const data = JSON.parse(content) as CanvasData;
         const flow = new FlowImpl(data, canvasFile);
         this.flows.set(canvasFile.path, flow);
         log.info(`Flow ${canvasPath} loaded`);
@@ -154,20 +154,24 @@ export class FlowImpl implements Flow {
     }
 
     rootNodes = async () => {
-        // Map nodes to check if they are root
+        // Map nodes to check if they are root.
+        // NOTE: iterate with for..of + await — a `forEach(async …)` would return
+        // before the awaited file-node branches push their result, silently dropping
+        // file-based root nodes (and leaking unhandled rejections).
         const rootNodes: FlowNode[] = [];
         const { nodes } = this.data;
-        nodes.forEach(async node => {
+        for (const node of nodes) {
             switch (node.type) {
                 case "text":
-                case "group":
+                case "group": {
                     const textNode = YamlService.instance(node.zettelflowConfig);
                     if (textNode.isRoot()) {
                         const flowNode = textNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
                     }
                     break;
-                case "file":
+                }
+                case "file": {
                     const file = await FileService.getFile(node.file);
                     if (!file) {
                         throw new FatalError(`File ${node.file} not found`);
@@ -177,14 +181,18 @@ export class FlowImpl implements Flow {
                         const flowNode = fileNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
                     }
+                    break;
+                }
             }
-        });
+        }
         return rootNodes;
     }
 
-    private nodesFrom(edgeInfo: EdgeInfo[]): FlowNode[] {
+    private async nodesFrom(edgeInfo: EdgeInfo[]): Promise<FlowNode[]> {
+        // for..of + await (not forEach(async …)) so awaited file-node branches are
+        // actually included in the returned array — see the note on rootNodes.
         const flowNodes: FlowNode[] = [];
-        edgeInfo.forEach(async edge => {
+        for (const edge of edgeInfo) {
             const node = this.nodes.get(edge.key);
             if (node) {
                 switch (node.type) {
@@ -216,7 +224,7 @@ export class FlowImpl implements Flow {
                     }
                 }
             }
-        });
+        }
         return flowNodes;
     }
 
@@ -233,7 +241,7 @@ export class FlowImpl implements Flow {
 
     private async refresh() {
         const content = await FileService.getContent(this.file);
-        this.data = JSON.parse(content);
+        this.data = JSON.parse(content) as CanvasData;
     }
 
     private populateNode(data: CanvasTextData | CanvasFileData | CanvasGroupData, node: StepSettings, tooltip?: string): FlowNode {

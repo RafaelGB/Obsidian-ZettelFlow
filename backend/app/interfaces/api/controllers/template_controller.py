@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Query
-from typing import Dict, Optional
+from fastapi import APIRouter, Depends, Query
+from typing import Optional
 
 from application.services.template_service import TemplateService
+from interfaces.api.schemas import DeleteResponse, TemplateItemResponse, TemplatesPage
+from interfaces.api.security import require_token
 
 def get_template_router(template_service: TemplateService) -> APIRouter:
     """
@@ -9,7 +11,11 @@ def get_template_router(template_service: TemplateService) -> APIRouter:
     """
     router = APIRouter()
 
-    @router.get("/filter", response_model=Dict)
+    @router.get(
+        "/filter",
+        response_model=TemplatesPage,
+        response_model_exclude_none=True,
+    )
     def filter_templates(
         search: Optional[str] = Query(None),
         template_type: Optional[str] = Query(None),
@@ -21,14 +27,18 @@ def get_template_router(template_service: TemplateService) -> APIRouter:
         """
         return template_service.filter_templates(search, template_type, skip, limit)
 
-    @router.get("/item/{item_id}", response_model=Dict)
+    @router.get("/item/{item_id}", response_model=TemplateItemResponse)
     def get_item(item_id: str, item_type: str):
         """
         Retrieves an item by ID and type (step or action).
         """
         return template_service.get_template(item_id, item_type)
 
-    @router.delete("/delete/{template_id}", response_model=Dict)
+    @router.delete(
+        "/delete/{template_id}",
+        response_model=DeleteResponse,
+        dependencies=[Depends(require_token)],
+    )
     def delete_template(template_id: str):
         """
         Deletes a template by ID.

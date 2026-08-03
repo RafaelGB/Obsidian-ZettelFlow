@@ -30,7 +30,7 @@ export class TagsAction extends CustomZettelAction {
     const { content, element } = info;
     const { result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    content.addTags(valueToSave as string[]);
+    content.addTags(valueToSave);
   }
 
   getIcon(): string {

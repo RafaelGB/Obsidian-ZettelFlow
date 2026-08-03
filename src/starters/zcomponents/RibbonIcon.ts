@@ -40,7 +40,7 @@ export class RibbonIcon extends PluginComponent {
             id: 'open-workflow',
             name: t('command_open_workflow'),
             callback: async () => {
-                this.ribbonIconCallback();
+                void this.ribbonIconCallback();
             }
         });
         log.info('RibbonIcon loaded');

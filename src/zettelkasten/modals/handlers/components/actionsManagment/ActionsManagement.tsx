@@ -70,7 +70,7 @@ export function ActionsManagement(props: ActionsManagementProps) {
     setActionClipboard(null);
 
     modal.getPlugin().settings.communitySettings.clipboardTemplate = undefined;
-    modal.getPlugin().saveSettings();
+    void modal.getPlugin().saveSettings();
   };
 
   /**

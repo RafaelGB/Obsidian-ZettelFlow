@@ -11,7 +11,7 @@ export function Select(selectType: SelectType) {
   const [arrowIndex, setArrowIndex] = useState<number>(-1);
   const [searchValue, setSearchValue] = useState<string>("");
   const [optionsState, setOptionsState] = useState(options);
-  const internalCallback = async (selectedOption: string) => {
+  const internalCallback = (selectedOption: string) => {
     setSelected(selectedOption);
     callback(selectedOption);
   };
@@ -21,7 +21,7 @@ export function Select(selectType: SelectType) {
   useEffect(() => {
     if (!autofocus) return;
     if (Platform.isMobile && searchRef.current) {
-      searchRef.current.style.display = "block";
+      searchRef.current.addClass(c("is-visible"));
       searchRef.current.focus();
     } else if (groupRef.current) {
       groupRef.current.focus();
@@ -74,9 +74,9 @@ export function Select(selectType: SelectType) {
             }
           } else if (
             searchRef.current &&
-            searchRef.current.style.display !== "block"
+            !searchRef.current.hasClass(c("is-visible"))
           ) {
-            searchRef.current.style.display = "block";
+            searchRef.current.addClass(c("is-visible"));
             searchRef.current.focus();
           }
         }}

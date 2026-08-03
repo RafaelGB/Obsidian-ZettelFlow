@@ -8,6 +8,7 @@ import {
 	TagsAction, TaskManagementAction
 } from 'actions';
 import { log } from 'architecture';
+import { t } from 'architecture/lang';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
 import { allCanvasExtensions, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
@@ -26,7 +27,7 @@ export default class ZettelFlow extends Plugin {
 		Hooks.setup(this);
 
 		new CanvasPatcher(this);
-		allCanvasExtensions.forEach((Extension: any) => {
+		allCanvasExtensions.forEach((Extension) => {
 			this.canvasExtensions.push(new Extension(this));
 		});
 	}
@@ -44,11 +45,11 @@ export default class ZettelFlow extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData(),
-		);
+			(await this.loadData()) as Partial<ZettelFlowSettings>,
+		) as ZettelFlowSettings;
 		// Remove clipboard template. This is not a setting that should be saved.
 		delete this.settings.communitySettings.clipboardTemplate;
-		this.saveSettings();
+		void this.saveSettings();
 		loadServicesThatRequireSettings(this.settings);
 	}
 
@@ -62,7 +63,7 @@ export default class ZettelFlow extends Plugin {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {
 			log.error("There was an error registering CodeView for Javascript files. Maybe another plugin is using the same extensions?", e);
-			new Notice("Error registering CodeView extension for ZettelFlow. Check the console for more information.");
+			new Notice(t('notice_codeview_registration_error'));
 		}
 	}
 

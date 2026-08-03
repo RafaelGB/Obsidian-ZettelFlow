@@ -77,7 +77,7 @@ export class CommunityStepModal extends Modal {
                   this.step.id
                 ];
                 this.callback();
-                this.plugin.saveSettings();
+                void this.plugin.saveSettings();
                 this.renderContent();
               }
             ).open();
@@ -85,7 +85,7 @@ export class CommunityStepModal extends Modal {
             this.plugin.settings.installedTemplates.steps[this.step.id] =
               this.step;
             this.callback();
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             this.renderContent();
           }
         });

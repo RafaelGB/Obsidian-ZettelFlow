@@ -1,5 +1,6 @@
 import ZettelFlow from "main";
 import { canvas } from "architecture/plugin/canvas";
+import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import {
@@ -31,7 +32,6 @@ import {
 import type {
     HookEvent,
     HooksConfig,
-    PropertiesHooksConfig,
 } from "./typing";
 
 /** Ajustable si ves muchos "changed" por tecleo. */
@@ -121,11 +121,11 @@ export class VaultHooks {
         if (oldPath === settings.ribbonCanvas) {
             canvas.flows.delete(oldPath);
             settings.ribbonCanvas = file.path;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Renombrado ribbonCanvas.");
         } else if (oldPath === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = file.path;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Renombrado jsLibraryFolderPath.");
         }
     }
@@ -162,7 +162,7 @@ export class VaultHooks {
 
         if (folder.path === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = "";
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Removed jsLibraryFolderPath.");
             return;
         }
@@ -176,8 +176,8 @@ export class VaultHooks {
 
         if (canvasFile instanceof TFile) {
             canvas.flows.delete(canvasFile.path);
-            this.plugin.app.vault
-                .delete(canvasFile)
+            this.plugin.app.fileManager
+                .trashFile(canvasFile)
                 .then(() =>
                     log.info(
                         `[VaultHooks] Eliminado canvas asociado a carpeta ${folder.path}: ${canvasFile.path}`
@@ -196,7 +196,7 @@ export class VaultHooks {
         if (file.path === this.plugin.settings.ribbonCanvas) {
             canvas.flows.delete(file.path);
             this.plugin.settings.ribbonCanvas = "";
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Eliminado ribbonCanvas.");
         }
     };
@@ -257,9 +257,11 @@ export class VaultHooks {
         if (previous) window.clearTimeout(previous);
 
         const handle = window.setTimeout(
-            () => this.processMetadataChange(file, cache).catch((e) => {
-                log.error("[VaultHooks] Error procesando metadata change:", e);
-            }),
+            () => {
+                this.processMetadataChange(file, cache).catch((e) => {
+                    log.error("[VaultHooks] Error procesando metadata change:", e);
+                });
+            },
             METADATA_DEBOUNCE_MS
         );
 
@@ -272,14 +274,12 @@ export class VaultHooks {
             folderFlowPath: "",
         };
 
-        const hooksEntries = Object.entries(
-            (hooksCfg.properties || {}) as PropertiesHooksConfig
-        );
+        const hooksEntries = Object.entries(hooksCfg.properties || {});
         if (!hooksEntries.length) return;
 
         // Asegura servicio de frontmatter previo
         const fmPrev = this.getOrCreateFrontmatterService(file);
-        const oldFrontmatter = fmPrev.getFrontmatter() ?? {};
+        const oldFrontmatter: Record<string, unknown> = fmPrev.getFrontmatter() ?? {};
         const newFrontmatter: Record<string, unknown> = cache.frontmatter || {};
 
         const dynamicFrontmatter: Record<string, Literal> = {};
@@ -301,8 +301,8 @@ export class VaultHooks {
 
         try {
             for (const [property, hookSettings] of hooksEntries) {
-                const oldValue = (oldFrontmatter as any)[property];
-                const newValue = (newFrontmatter as any)[property];
+                const oldValue = oldFrontmatter[property];
+                const newValue = newFrontmatter[property];
 
                 if (!valuesEqual(oldValue, newValue)) {
                     event.request = {
@@ -369,7 +369,7 @@ export class VaultHooks {
         return svc.frontmatter;
     }
 
-    private async openFlowSelectorIfActive(flow: any) {
+    private async openFlowSelectorIfActive(flow: Flow) {
         const activeView =
             this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!activeView) return;
@@ -381,7 +381,12 @@ export class VaultHooks {
 
     private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
         try {
-            const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+            // The AsyncFunction constructor isn't exposed on the global scope; reach it via
+            // the prototype of an async function. Type it so the built function is callable.
+            const asyncProto = Object.getPrototypeOf(async function () { }) as {
+                constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
+            };
+            const AsyncFunction = asyncProto.constructor;
             const fnBody = `return (async () => {
         ${script}
         return event;
@@ -390,9 +395,11 @@ export class VaultHooks {
             const functions = await fnsManager.getFns();
             const scriptFn = new AsyncFunction("event", "zf", fnBody);
 
-            return await scriptFn(event, functions);
-        } catch (error: any) {
-            const msg = error?.message ?? String(error);
+            return (await scriptFn(event, functions)) as HookEvent;
+        } catch (error: unknown) {
+            const msg = error instanceof Error
+                ? error.message
+                : typeof error === "string" ? error : JSON.stringify(error);
             new Notice("Error executing global hook: " + msg);
             log.error("[VaultHooks] Error ejecutando script de hook:", error);
             throw error;

@@ -1,24 +1,28 @@
 import { around } from "monkey-around"
 import { Plugin } from "obsidian"
 
+// The safe stand-in for "any function": contravariant `never` params match any parameter
+// list and `unknown` return matches any return, so this accepts every function without `any`.
+type UnknownFn = (...args: never[]) => unknown
+
 // Is any
 type IsAny<T> = 0 extends 1 & T ? true : false
 type NotAny<T> = IsAny<T> extends true ? never : T
 
 // All keys in T that are functions
 type FunctionKeys<T> = {
-    [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never
+    [K in keyof T]: T[K] extends UnknownFn ? K : never
 }[keyof T]
 
 // The type of the function at key K in T
 type KeyFunction<T, K extends FunctionKeys<T>> =
-    T[K] extends (...args: any[]) => any ? T[K] : never
+    T[K] extends UnknownFn ? T[K] : never
 
 // The type of a patch function for key K in T
 type KeyFunctionReplacement<T, K extends FunctionKeys<T>, R extends ReturnType<KeyFunction<T, K>>> =
     (this: T, ...args: Parameters<KeyFunction<T, K>>) => IsAny<ReturnType<KeyFunction<T, K>>> extends false
         ? ReturnType<KeyFunction<T, K>> & NotAny<R>
-        : any
+        : unknown
 
 // The wrapper of a patch function for key K in T
 type PatchFunctionWrapper<T, K extends FunctionKeys<T>, R extends ReturnType<KeyFunction<T, K>>> =
@@ -34,45 +38,10 @@ export default class PatchHelper {
         fn: PatchFunctionWrapper<T, K, R> & { __overrideExisting?: boolean }
     ) { return Object.assign(fn, { __overrideExisting: true }) }
 
-    static tryPatchWorkspacePrototype<T>(plugin: Plugin, getTarget: () => T | undefined, functions: { [key: string]: (next: any) => (...args: any) => any }): Promise<T> {
-        return new Promise((resolve) => {
-            const tryPatch = () => {
-                const target = getTarget()
-                if (!target) return null
-
-                const uninstaller = around(target.constructor.prototype, functions)
-                plugin.register(uninstaller)
-
-                return target
-            }
-
-            const result = tryPatch()
-            if (result) {
-                resolve(result)
-                return
-            }
-
-            const listener = plugin.app.workspace.on('layout-change', () => {
-                const result = tryPatch()
-
-                if (result) {
-                    plugin.app.workspace.offref(listener)
-                    resolve(result)
-                }
-            })
-
-            plugin.registerEvent(listener)
-        })
-    }
-
-    static patchObjectPrototype<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): void {
-        const uninstaller = around((target as any).constructor.prototype, functions)
-        plugin.register(uninstaller)
-    }
-
-    static patchObjectInstance<T>(plugin: Plugin, target: T, functions: { [key: string]: (next: any) => (...args: any) => any }): void {
-        const uninstaller = around(target as any, functions)
-        plugin.register(uninstaller)
+    /** Safely resolve `target.constructor.prototype` without unsafe `any` access. */
+    private static prototypeOf(target: unknown): object | undefined {
+        const ctor = (target as { constructor?: { prototype?: object } } | null | undefined)?.constructor
+        return ctor?.prototype
     }
 
     static patchPrototype<T>(
@@ -90,18 +59,25 @@ export default class PatchHelper {
         prototype: boolean = false
     ): T | null {
         if (!object) return null
-        const target = prototype ? object.constructor.prototype : object
+        const target = prototype ? PatchHelper.prototypeOf(object) : object
+        if (!target) return null
 
-        // Validate override requirements
+        // Validate override requirements. Fail soft: if a method we meant to override
+        // is missing (Obsidian internals changed), return null instead of throwing so
+        // the caller can degrade gracefully with a user Notice (see CanvasPatcher).
         for (const key of Object.keys(patches) as Array<FunctionKeys<T>>) {
             const patch = patches[key]
-            if (patch?.__overrideExisting) {
-                if (typeof target[key] !== 'function')
-                    throw new Error(`Method ${String(key)} does not exist on target`)
+            if (patch?.__overrideExisting && typeof (target as Record<string, unknown>)[key as string] !== 'function') {
+                return null
             }
         }
 
-        const uninstaller = around(target as any, patches)
+        // monkey-around erases the concrete method types; bridge our typed patch object to
+        // its `Record<string, fn>` shape without reintroducing `any`.
+        const uninstaller = around(
+            target as unknown as Record<string, UnknownFn>,
+            patches as unknown as Partial<Record<string, (next: UnknownFn) => UnknownFn>>
+        )
         plugin.register(uninstaller)
 
         return object

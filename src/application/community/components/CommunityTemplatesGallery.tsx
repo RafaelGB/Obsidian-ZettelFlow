@@ -117,7 +117,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
       }
     };
 
-    getData();
+    void getData();
   }, [skip, targetSearchTerm, filter, plugin.settings, hasMore, isLoading]);
 
   // (3) Infinite scroll observer
@@ -253,7 +253,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 `template-type-${template.template_type}`
               )}
               onClick={() => {
-                handleTemplateClick(template);
+                void handleTemplateClick(template);
               }}
             >
               <span className={c("community-templates-card-type-badge")}>

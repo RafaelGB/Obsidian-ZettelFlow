@@ -1,13 +1,17 @@
 import { FatalError, ObsidianApi, log } from "architecture";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
-import moment from "moment";
 import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
 import { actionsStore } from "architecture/api";
-import { TFile } from "obsidian";
+import { TFile, moment as obsidianMoment } from "obsidian";
+import type MomentFn from "moment";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderStateActions } from "application/components/noteBuilder/typing";
+
+// Obsidian bundles moment and re-exports it, but types it as a namespace; cast to the
+// callable moment signature (type-only import of 'moment' is allowed by the guidelines).
+const moment = obsidianMoment as unknown as typeof MomentFn;
 
 export class Builder {
   public static default(): NoteBuilder {
@@ -74,7 +78,7 @@ export class NoteBuilder {
         .processTypedFrontMatter(this.content);
       await this.postProcess(generatedFile);
 
-      log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${this.note.getPaths()}, elements: ${this.note.getElements()}`)
+      log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${JSON.stringify(this.note.getPaths())}, elements: ${JSON.stringify(this.note.getElements())}`)
 
       return generatedFile.path;
     } catch (error) {

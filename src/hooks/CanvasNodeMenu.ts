@@ -78,7 +78,7 @@ export class CanvasNodeMenu {
                         .setSection('pane')
                         .onClick(async () => {
                             const flow = await canvas.flows.update(file.path);
-                            flow.editTextNode(node.id, JSON.stringify(clipboardSettings));
+                            void flow.editTextNode(node.id, JSON.stringify(clipboardSettings));
                             new Notice("Embed pasted!");
                         })
 

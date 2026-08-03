@@ -30,7 +30,9 @@ export class CheckboxAction extends CustomZettelAction {
     const { element, context } = info;
     const { key, zone, result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    log.debug(`Checkbox action: ${key} ${zone} ${valueToSave}`);
+    log.debug(
+      `Checkbox action: ${String(key)} ${String(zone)} ${String(valueToSave)}`
+    );
     if (TypeService.isString(key) && TypeService.isBoolean(valueToSave)) {
       switch (zone) {
         case "body":

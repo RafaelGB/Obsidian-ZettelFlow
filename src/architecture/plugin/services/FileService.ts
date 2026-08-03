@@ -27,7 +27,7 @@ export class FileService {
     }
 
     public static async deleteFile(file: TFile): Promise<void> {
-        await ObsidianApi.vault().delete(file);
+        await ObsidianApi.fileManager().trashFile(file);
     }
 
     public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {
@@ -53,7 +53,7 @@ export class FileService {
         return await ObsidianApi.vault().cachedRead(file);
     }
 
-    public static async modify(file: TFile, content: string, options?: DataWriteOptions | undefined): Promise<void> {
+    public static async modify(file: TFile, content: string, options?: DataWriteOptions): Promise<void> {
         await ObsidianApi.vault().modify(file, content, options);
     }
 

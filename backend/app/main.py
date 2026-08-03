@@ -1,4 +1,7 @@
+import os
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # Infrastructure
 from infrastructure.db.mongodb import MongoDBClient
@@ -15,12 +18,27 @@ from application.services.template_service import TemplateService
 from interfaces.api.controllers.step_controller import get_step_router
 from interfaces.api.controllers.action_controller import get_action_router
 from interfaces.api.controllers.template_controller import get_template_router
+from interfaces.api.schemas import HealthResponse
 
 def create_application() -> FastAPI:
     """
     Create and configure the FastAPI application.
     """
     app = FastAPI(title="ZettelFlow Community API")
+
+    # CORS: allowed origins come from ZETTELFLOW_ALLOWED_ORIGINS (comma-separated),
+    # defaulting to "*". Credentials are disabled because auth uses the custom
+    # X-ZettelFlow-Token header (not cookies), which also keeps a wildcard origin
+    # spec-compliant.
+    allowed_origins = os.getenv("ZETTELFLOW_ALLOWED_ORIGINS", "*")
+    origins = [o.strip() for o in allowed_origins.split(",") if o.strip()] or ["*"]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     # Initialize DB client
     db_client = MongoDBClient()
@@ -34,6 +52,13 @@ def create_application() -> FastAPI:
     step_service = StepService(step_repo)
     action_service = ActionService(action_repo)
     template_service = TemplateService(template_repo)
+
+    @app.get("/health", response_model=HealthResponse, tags=["Health"])
+    def health() -> HealthResponse:
+        """
+        Liveness probe. Public (no auth) and does not touch the database.
+        """
+        return HealthResponse(status="ok")
 
     # Routers
     app.include_router(

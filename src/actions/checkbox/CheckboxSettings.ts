@@ -28,7 +28,7 @@ export const checkboxDetails = (contentEl: HTMLElement, action: Action, readonly
                 )
                 .addOption("body", t("step_builder_element_type_zone_body"))
                 .addOption("context", t("step_builder_element_type_zone_context"))
-                .setValue(zone !== undefined ? (zone as string) : "frontmatter")
+                .setValue(zone !== undefined ? zone : "frontmatter")
                 .onChange(async (value) => {
                     action.zone = value;
                 });
@@ -38,7 +38,7 @@ export const checkboxDetails = (contentEl: HTMLElement, action: Action, readonly
         .setName(t("step_builder_element_type_key_title"))
         .setDesc(t("step_builder_element_type_key_description"))
         .addSearch(search => {
-            ObsidianNativeTypesManager.getTypes().then(types => {
+            void ObsidianNativeTypesManager.getTypes().then(types => {
                 new PropertySuggest(
                     search.inputEl,
                     types,

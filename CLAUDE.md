@@ -97,7 +97,8 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 - `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). Two
   larger best-practice migrations are deferred with per-file rule relaxations: AbstractInputSuggest
   (#111) and the declarative settings API (#112).
-- `innerHTML` (~8 spots) and widespread inline styles need migration.
+- `innerHTML` and inline `el.style.*` assignments are fully migrated (0 remaining; enforced by
+  the blocking Obsidian lint). Keep it that way — use `createEl`/`empty()` and `c('name')` classes.
 - `log.error` is silenced when the logger toggle is off.
 - Canvas integration **monkey-patches** internal Obsidian APIs — fragile across app updates; keep
   patches defensive.

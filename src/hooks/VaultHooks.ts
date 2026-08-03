@@ -1,5 +1,6 @@
 import ZettelFlow from "main";
 import { canvas } from "architecture/plugin/canvas";
+import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import {
@@ -278,7 +279,7 @@ export class VaultHooks {
 
         // Asegura servicio de frontmatter previo
         const fmPrev = this.getOrCreateFrontmatterService(file);
-        const oldFrontmatter = fmPrev.getFrontmatter() ?? {};
+        const oldFrontmatter: Record<string, unknown> = fmPrev.getFrontmatter() ?? {};
         const newFrontmatter: Record<string, unknown> = cache.frontmatter || {};
 
         const dynamicFrontmatter: Record<string, Literal> = {};
@@ -300,8 +301,8 @@ export class VaultHooks {
 
         try {
             for (const [property, hookSettings] of hooksEntries) {
-                const oldValue = (oldFrontmatter as any)[property];
-                const newValue = (newFrontmatter as any)[property];
+                const oldValue = oldFrontmatter[property];
+                const newValue = newFrontmatter[property];
 
                 if (!valuesEqual(oldValue, newValue)) {
                     event.request = {
@@ -368,7 +369,7 @@ export class VaultHooks {
         return svc.frontmatter;
     }
 
-    private async openFlowSelectorIfActive(flow: any) {
+    private async openFlowSelectorIfActive(flow: Flow) {
         const activeView =
             this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!activeView) return;
@@ -380,7 +381,12 @@ export class VaultHooks {
 
     private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
         try {
-            const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+            // The AsyncFunction constructor isn't exposed on the global scope; reach it via
+            // the prototype of an async function. Type it so the built function is callable.
+            const asyncProto = Object.getPrototypeOf(async function () { }) as {
+                constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
+            };
+            const AsyncFunction = asyncProto.constructor;
             const fnBody = `return (async () => {
         ${script}
         return event;
@@ -389,9 +395,11 @@ export class VaultHooks {
             const functions = await fnsManager.getFns();
             const scriptFn = new AsyncFunction("event", "zf", fnBody);
 
-            return await scriptFn(event, functions);
-        } catch (error: any) {
-            const msg = error?.message ?? String(error);
+            return (await scriptFn(event, functions)) as HookEvent;
+        } catch (error: unknown) {
+            const msg = error instanceof Error
+                ? error.message
+                : typeof error === "string" ? error : JSON.stringify(error);
             new Notice("Error executing global hook: " + msg);
             log.error("[VaultHooks] Error ejecutando script de hook:", error);
             throw error;

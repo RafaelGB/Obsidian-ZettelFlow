@@ -46,7 +46,7 @@ export class NoteBuilder {
       }
       await this.buildNote();
 
-      modal.onEditorBuild(this.content.get());
+      modal.onEditorBuild(this.content.get(), this.content.getModifications());
       // If the origin is a file, we need to process the frontmatter and post-process the file
       if (!modal.isEmbedded() && markdownView.file) {
         await FrontmatterService

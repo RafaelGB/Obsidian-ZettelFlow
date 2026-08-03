@@ -59,14 +59,26 @@ export class SelectorMenuModal extends Modal {
         this.root.unmount();
     }
 
-    onEditorBuild(content: string): void {
+    onEditorBuild(content: string, modifications: Record<string, string> = {}): void {
         if (this.markdownView && this.markdownView.editor) {
             log.debug('Inserting content into the editor', this.markdownView);
             const editor = this.markdownView.editor;
-            const position = editor.getCursor();
-            // Add the template to the editor
-            editor.replaceRange(content, { line: position.line, ch: position.ch }, { line: position.line, ch: position.ch });
-
+            // Add the merged template content at the cursor.
+            if (content) {
+                const position = editor.getCursor();
+                editor.replaceRange(content, { line: position.line, ch: position.ch }, { line: position.line, ch: position.ch });
+            }
+            // Also replace {{placeholder}} occurrences already present in the note body so
+            // body-zone actions (e.g. prompt) work when editing an existing note, not only
+            // when creating one (#75).
+            const entries = Object.entries(modifications);
+            if (entries.length > 0) {
+                let doc = editor.getValue();
+                for (const [key, value] of entries) {
+                    doc = doc.replace(new RegExp(`{{${key}}}`, "g"), value);
+                }
+                editor.setValue(doc);
+            }
         }
     }
 

@@ -97,4 +97,19 @@ describe("ContentDTO", () => {
     c.addTags(["a", "a", "b"]);
     expect(c.getTags()).toEqual(["a", "b"]);
   });
+
+  it("records modify() substitutions so an editor flow can replay them (#75)", () => {
+    const c = new ContentDTO();
+    c.add("{{a}}");
+    c.modify("a", "X");
+    c.modify("after-thought", "done");
+    expect(c.getModifications()).toEqual({ a: "X", "after-thought": "done" });
+  });
+
+  it("clears recorded modifications on reset()", () => {
+    const c = new ContentDTO();
+    c.modify("a", "X");
+    c.reset();
+    expect(c.getModifications()).toEqual({});
+  });
 });

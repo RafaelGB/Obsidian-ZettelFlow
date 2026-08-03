@@ -44,6 +44,9 @@ class Log implements LogInterface {
     private constructor() {
         this.isDebugModeEnabled = false;
         this.levelInfo = 0;
+        // Wire the handlers from the start. Otherwise error() stays a no-op until the user
+        // toggles the logger in settings, silently swallowing errors on a fresh load.
+        this.configureLogger();
     }
 
     public setDebugMode(isDebugModeEnabled: boolean) {

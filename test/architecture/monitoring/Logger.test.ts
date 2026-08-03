@@ -21,6 +21,18 @@ describe("Logger", () => {
     expect(errorSpy).toHaveBeenCalled();
   });
 
+  it("emits error out of the box, before any setDebugMode/setLevelInfo call (regression)", () => {
+    // A fresh singleton (never configured) used to leave error() as a no-op, silently
+    // swallowing errors on a plain load. The constructor now wires it up.
+    jest.isolateModules(() => {
+      const freshLog = (
+        require("architecture/monitoring/Logger") as typeof import("architecture/monitoring/Logger")
+      ).log;
+      freshLog.error("boom");
+    });
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
   it("still emits error when debug mode is on", () => {
     log.setDebugMode(true);
     log.error("boom");

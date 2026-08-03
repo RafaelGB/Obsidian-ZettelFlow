@@ -25,7 +25,7 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 | 4 | ~~**Obsidian-rule backlog** (was 475 problems)~~ — **cleared and blocking** (#85); two larger migrations deferred (#111, #112) | — | tooling |
 | 5 | ~~**`innerHTML` usage (~8)**~~ — 0 remaining; enforced by the blocking Obsidian lint | — | — |
 | 6 | **Widespread inline styles** (`el.style.*`) | `no-static-styles-assignment` violations | community/config modals |
-| 7 | **`log.error` silenced when logging off** | Hard to diagnose user issues | `Logger.ts` |
+| 7 | ~~**`log.error` silenced when logging off**~~ — errors always surface (wired in the constructor) | — | `Logger.ts` |
 | 8 | **`onunload` doesn't call `unloadComponents()`** | Component teardown skipped | `main.ts` |
 | 9 | **Canvas monkey-patching** of internal APIs | Fragile across Obsidian updates; manual-review flag | `canvas/CanvasPatcher` |
 | 10 | **Backend has no auth/CORS/health, dev-only posture** | Not production-ready | `backend/` |

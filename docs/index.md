@@ -1,68 +1,71 @@
-# Welcome to ZettelFlow
-> **Note:** This Documentation is still a work in progress. If you have any questions, please feel free to open a issue or disccusion.
+# ZettelFlow
 
-ZettelFlow is a dynamic template engine based on Zettelkasten method. It is designed to minimize the friction between your thoughts and the final output. It is a tool that helps you to write and organize your thoughts.
+**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph, configure each step with actions, and the plugin walks you through it every time you want to create a note — filling in frontmatter, body content, dates, and more automatically.
 
-## Our canvas example
-To understand the concept of ZettelFLow, you can use the following configuration as an example:
-![png](./resources/canvas-sample.png)
+---
 
-With the native Obsidian canvas, you can construct a workflow for your ideas. Use groups or edges to organize your thoughts. The plugin will use this canvas to generate a UI when you want to create a new note.
+## Quick start
 
-## How to start
-1. Create a `.canvas` file where you want (A new folder for the next steps is recommended).
-2. Go to plugin configuration page and set the `.canvas` file path.
-3. Starts to create template files and add them to the `.canvas` file 
-4. Convert your template files or embed notes into `steps` (See [examples here](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/WorkFlow%20Test)) by right-clicking on the element and selecting `ZettelFlow: Convert to step/edit the step` (*On mobile, long press on the file and select the option*).
+=== "New to ZettelFlow?"
 
-## How to use
-The plugin offers a ribon Icon to open the note builder UI. (*You can also configure a hotkey to open it.*)
+    1. Install from the Obsidian community plugin browser.
+    2. Create a `.canvas` file anywhere in your vault.
+    3. In **Settings → ZettelFlow**, point *New notes canvas* at that file.
+    4. Add a note file to the canvas, right-click → *Create managed step*, enable **Root**.
+    5. Click the ZettelFlow ribbon icon to run your first wizard.
 
-The UI will show you the steps you can select to generate a new note.
+    Prefer a visual walkthrough? See [Getting started](development/getting-started.md).
 
-When you complete all the steps, the plugin will generate a new note with the content of the template files and merge their properties.
+=== "Already using ZettelFlow?"
 
-> **Note:** You can configure a shortcut to open the note builder UI.
+    Jump straight to what you need:
+
+    - [Actions reference](actions/Prompt.md) — all 11 built-in actions
+    - [Conditional edges](architecture/conditional-edges.md) — branch flows at runtime
+    - [Dynamic variables](architecture/actions-and-note-builder.md) — `{{title}}`, `{{frontmatter.*}}`, `{{canvas.name}}`
+    - [.zftemplate](architecture/zftemplate-schema.md) — export and share complete flows
+    - [Vault hooks](vault-hooks/OnCreate.md) — automate note creation on folder/property events
+
+---
 
 ## How it works
-With your `.canvas` file, the plugin creates a workflow that will be used to generate new notes. The workflow is a directed graph where the nodes are the template files and the edges are the steps
 
-### Interconnected steps
-The steps are interconnected by:
-- **Edges**: The edges are the arrows between the steps in the canvas. With the direction of the arrow, you can configure the order of the steps. The plugin will use the edges to generate the UI.
-- **Groups**: The groups are the boxes in the canvas.You can anidate groups to create a hierarchy of steps (including another groups)
+```
+Canvas file          ZettelFlow wizard          Note in your vault
+(your workflow)  ──►  (step-by-step UI)  ──►   (frontmatter + body merged)
+```
 
-## Step configuration
-The initial step will be a selection of all the nodes marked as `root`.
+| Concept | Description |
+|---|---|
+| **Canvas** | A native Obsidian `.canvas` file. Each node is a step; arrows define execution order. |
+| **Step** | A note file configured with a root toggle, target folder, optional flag, body template, and one or more actions. |
+| **Action** | An interactive element in the wizard (prompt, calendar, selector, tags, script…) that contributes a property or content to the built note. |
+| **Root** | The node(s) the wizard presents first as entry points. |
+| **Conditional edge** | An arrow labelled `if: <expression>` that the wizard skips if the condition is false. |
 
-### Basic configuration
-- **Root toggle**: If it's enabled, it will be shown as the first step in the UI.
-- **Target folder search**: The folder where the new note will be created (the note builder will use **the last step** with this property informed).
-- **Optional toggle**: If the step is an action, a Skip button will be shown in the UI when this option is enabled.
+---
 
-### Actions
-By default the steps starts with no actions. If you want to add one, there is a dropdown menu to select the action type and a button to add it.
+## Feature overview
 
-A step can have multiple actions, making the configuration more flexible. The order is not important fot the final note, but it will be the order shown in the UI of the note builder.
+| Feature | Docs |
+|---|---|
+| 11 built-in actions | [Actions →](actions/Prompt.md) |
+| Canvas-native workflow engine | [Architecture overview →](architecture/overview.md) |
+| Conditional edges (`if: expr`) | [Conditional edges →](architecture/conditional-edges.md) |
+| Dynamic template variables | [Actions & note builder →](architecture/actions-and-note-builder.md) |
+| Live preview in step builder | [Actions & note builder →](architecture/actions-and-note-builder.md) |
+| Vault hooks (folder / property) | [Vault hooks →](vault-hooks/OnCreate.md) |
+| Community templates browser | [Community & backend →](architecture/community-and-backend.md) |
+| `.zftemplate` export/import | [.zftemplate schema →](architecture/zftemplate-schema.md) |
+| Notes history sidebar | [Architecture overview →](architecture/overview.md) |
+| Active flow status widget | [Architecture overview →](architecture/overview.md) |
 
-#### action properties
-There are basic properties that all the actions have:
-- **type**: The action type.
-- **description**: The description of the action. It will be shown in the UI of the note builder and in the action step configuration.
+---
 
-Depending on the action type, there are other properties that can be configured. See the action type documentation for more information.
+## Resources
 
-#### action types
-They will be shown as a list of options to select from. The options are:
-
-- **[Prompt](./actions/Prompt.md)**: A simple input field to add a custom value to the built-in note template.
-- **[Checkbox](./actions/Checkbox.md)**: A checkbox to select a boolean value. The value will be added to the note as a property.
-- **[Number](./actions/Number.md)**: A number input to save a number as a property in the built-in note template.
-- **[Selector](./actions/Selector.md)**: A list of options to select from. The options are the values of the property defined in the file.
-- **[DynamicSelector](./actions/DynamicSelector.md)**: A list of options to select from. The options are the values of the property defined in the file. The list will be updated when the property changes.
-- **[Calendar](./actions/Calendar.md)**: A calendar to select a date. The date will be added to the note as a property.
-- **[Backlink](./actions/Backlink.md)**: Insert the wikilink of the built-in note template in the heading note that you have configured.
-- **[Tags](./actions/Tags.md)**: Add tags to the built-in note template as property.
-- **[CssClasses](./actions/CssClasses.md)**: Add a css class to the built-in note template as property.
-- **[TaskManagement](./actions/TaskManagement.md)**: Rollover the not completed task given regex and folders.
-- **[Script](./steps/Script.md)**: Executes a JavaScript script when the workflow is run. Configure the script with the code editor displayed in the settings of the action.
+- [GitHub repository](https://github.com/RafaelGB/Obsidian-ZettelFlow)
+- [Bug reports & feature requests](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues)
+- [Discussions](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)
+- [Changelog / releases](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases)
+- [Project roadmap](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/project-health-and-roadmap/)

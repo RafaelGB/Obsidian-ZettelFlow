@@ -11,7 +11,7 @@ export class CssClassesAction extends CustomZettelAction {
   id = "cssclasses";
   defaultAction = {
     type: this.id,
-    description: "Css Classes",
+    description: "CSS classes",
     hasUI: true,
     id: this.id,
   };

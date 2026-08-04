@@ -17,8 +17,6 @@ export interface ZettelFlowSettings {
     logLevel: string;
     /** Enable or disable the use of a unique prefix */
     uniquePrefixEnabled: boolean;
-    /** Enable or disable the generation of a table of contents */
-    tableOfContentEnabled: boolean;
     /** Format/string used as a unique prefix (e.g., "YYYYMMDDHHmmss") */
     uniquePrefix: string;
     /** Identifier for the ribbon canvas */
@@ -125,7 +123,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     uniquePrefixEnabled: false, // Unique prefix is disabled by default.
     uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
-    tableOfContentEnabled: true, // Table of contents is enabled by default.
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.

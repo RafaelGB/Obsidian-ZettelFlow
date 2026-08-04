@@ -47,7 +47,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
             canvas,
             {
                 id: "import-flow-data",
-                label: "Import Flow Data from Clipboard",
+                label: "Import flow data from clipboard",
                 icon: "layout-template"
             },
             () => GROUP_NODE_SIZE,
@@ -109,7 +109,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
             canvas,
             {
                 id: "create-managed-step",
-                label: "Create Managed Step",
+                label: "Create managed step",
                 icon: RibbonIcon.ID
             },
             () => GROUP_NODE_SIZE,

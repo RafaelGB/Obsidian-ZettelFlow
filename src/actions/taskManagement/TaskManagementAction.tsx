@@ -12,7 +12,7 @@ export class TaskManagementAction extends CustomZettelAction {
   id = "task-management";
   defaultAction = {
     type: this.id,
-    description: "Task Management",
+    description: "Task management",
     hasUI: false,
     id: this.id,
   };

@@ -28,7 +28,7 @@ export function navbarAction(
     const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
     // Add a button to save the step into the clipboard
     const useTemplateButton = navbarButtonGroup.createEl("button", {
-        placeholder: "Copy Action", title: "Copy the action to the clipboard"
+        placeholder: "Copy action", title: "Copy the action to the clipboard"
     }, el => {
         el.addClass("mod-cta");
         el.addEventListener("click", () => {
@@ -53,7 +53,7 @@ export function navbarAction(
 
     // Add action as community template
     const newCommunityAction = navbarButtonGroup.createEl("button", {
-        placeholder: "Add to Community", title: "Add the action to the community templates"
+        placeholder: "Add to community", title: "Add the action to the community templates"
     }, el => {
         el.addClass("mod-cta");
         el.addEventListener("click", () => {

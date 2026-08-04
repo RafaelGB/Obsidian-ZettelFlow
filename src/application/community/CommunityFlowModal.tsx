@@ -203,7 +203,7 @@ ${this.flow.description}`;
         cls: c("flow-node-type-section"),
       });
       typeBlock.createEl("h4", {
-        text: `${type.charAt(0).toUpperCase() + type.slice(1)} Nodes (${
+        text: `${type.charAt(0).toUpperCase() + type.slice(1)} nodes (${
           nodes.length
         })`,
       });

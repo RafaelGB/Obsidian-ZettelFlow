@@ -86,8 +86,6 @@ export default {
     unique_prefix_toggle_description: 'Activa o desactiva el prefijo único para tus notas',
     unique_prefix_pattern_title: 'Patrón del prefijo único',
     unique_prefix_pattern_description: 'Establece el patrón del prefijo único',
-    table_of_content_toggle_title: 'Mostrar la tabla de contenido arriba',
-    table_of_content_toggle_description: 'Activa o desactiva la tabla de contenido en la parte superior de la nota cuando el modo lectura está activado',
     scripts_folder_selector_title: 'Carpeta de scripts',
     scripts_folder_selector_description: 'Selecciona la carpeta donde guardarás tus scripts (recursos de la acción de scripts)',
     scripts_folder_selector_placeholder: 'Selecciona una carpeta',

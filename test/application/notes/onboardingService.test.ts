@@ -1,6 +1,7 @@
 import { describe, it, expect, jest } from "@jest/globals";
 import {
     createExampleFlow,
+    repairBrokenExampleFlow,
     EXAMPLE_CANVAS_PATH,
     EXAMPLE_STEP_PATH,
 } from "application/notes/onboardingService";
@@ -109,6 +110,90 @@ describe("createExampleFlow — fresh vault (no files exist)", () => {
         vault.create.mockRejectedValue(new Error("fail"));
         await createExampleFlow(plugin);
         expect(plugin.saveSettings).not.toHaveBeenCalled();
+    });
+});
+
+// ─── repairBrokenExampleFlow ─────────────────────────────────────────────────
+
+describe("repairBrokenExampleFlow", () => {
+    const BROKEN_CONTENT = "# {{title}}\n"; // old onboarding — no frontmatter
+    const CORRECT_CONTENT = "---\nzettelFlowSettings:\n  root: true\n---\n# body\n";
+
+    function makeRepairPlugin(opts: {
+        stepContent: string;
+        stepExists: boolean;
+        ribbonCanvas: string;
+    }) {
+        const stepTFile = { path: EXAMPLE_STEP_PATH };
+        const vault = {
+            getFileByPath: jest.fn<(p: string) => null | object>((p) =>
+                opts.stepExists && p === EXAMPLE_STEP_PATH ? stepTFile : null
+            ),
+            cachedRead: jest.fn<() => Promise<string>>().mockResolvedValue(opts.stepContent),
+            modify: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        };
+        const plugin = {
+            app: { vault },
+            settings: { ribbonCanvas: opts.ribbonCanvas },
+            saveSettings: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+        } as unknown as import("main").default;
+        return { plugin, vault };
+    }
+
+    it("repairs file when it exists but has no zettelFlowSettings frontmatter", async () => {
+        const { plugin, vault } = makeRepairPlugin({
+            stepExists: true,
+            stepContent: BROKEN_CONTENT,
+            ribbonCanvas: EXAMPLE_CANVAS_PATH,
+        });
+
+        const repaired = await repairBrokenExampleFlow(plugin);
+
+        expect(repaired).toBe(true);
+        expect(vault.modify).toHaveBeenCalledWith(
+            { path: EXAMPLE_STEP_PATH },
+            expect.stringContaining("zettelFlowSettings:")
+        );
+    });
+
+    it("does NOT overwrite a file that already has correct frontmatter", async () => {
+        const { plugin, vault } = makeRepairPlugin({
+            stepExists: true,
+            stepContent: CORRECT_CONTENT,
+            ribbonCanvas: EXAMPLE_CANVAS_PATH,
+        });
+
+        const repaired = await repairBrokenExampleFlow(plugin);
+
+        expect(repaired).toBe(false);
+        expect(vault.modify).not.toHaveBeenCalled();
+    });
+
+    it("is a no-op when the step file does not exist yet", async () => {
+        const { plugin, vault } = makeRepairPlugin({
+            stepExists: false,
+            stepContent: "",
+            ribbonCanvas: EXAMPLE_CANVAS_PATH,
+        });
+
+        const repaired = await repairBrokenExampleFlow(plugin);
+
+        expect(repaired).toBe(false);
+        expect(vault.modify).not.toHaveBeenCalled();
+        expect(vault.cachedRead).not.toHaveBeenCalled();
+    });
+
+    it("is a no-op when ribbonCanvas does not point to the example canvas", async () => {
+        const { plugin, vault } = makeRepairPlugin({
+            stepExists: true,
+            stepContent: BROKEN_CONTENT,
+            ribbonCanvas: "other/canvas.canvas",
+        });
+
+        const repaired = await repairBrokenExampleFlow(plugin);
+
+        expect(repaired).toBe(false);
+        expect(vault.modify).not.toHaveBeenCalled();
     });
 });
 

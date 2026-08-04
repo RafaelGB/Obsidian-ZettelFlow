@@ -70,6 +70,23 @@ async function writeFile(
     }
 }
 
+/**
+ * Repairs a stale onboarding step file that was created by an older version of
+ * ZettelFlow without the required zettelFlowSettings frontmatter.
+ *
+ * Returns true if the file was rewritten, false if no repair was needed.
+ */
+export async function repairBrokenExampleFlow(plugin: ZettelFlow): Promise<boolean> {
+    if (plugin.settings.ribbonCanvas !== EXAMPLE_CANVAS_PATH) return false;
+    const { vault } = plugin.app;
+    const stepFile = vault.getFileByPath(EXAMPLE_STEP_PATH);
+    if (!stepFile) return false;
+    const content = await vault.cachedRead(stepFile);
+    if (content.includes("zettelFlowSettings:")) return false;
+    await vault.modify(stepFile, STEP_TEMPLATE);
+    return true;
+}
+
 export async function createExampleFlow(plugin: ZettelFlow): Promise<string | null> {
     const vault = plugin.app.vault;
     try {

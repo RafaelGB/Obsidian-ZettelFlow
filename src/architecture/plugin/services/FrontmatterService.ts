@@ -12,13 +12,21 @@ import { ObsidianNativeTypesManager } from "./ObsidianNativeTypesManager";
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
     private metadata: CachedMetadata;
+    private cacheMiss: boolean;
 
     /**
      * Creates an instance of FrontmatterService.
      * @param {TFile} file - The file to retrieve metadata from.
      */
     constructor(private file: TFile) {
-        this.metadata = ObsidianApi.metadataCache().getFileCache(file) || { frontmatter: {} };
+        const cached = ObsidianApi.metadataCache().getFileCache(file);
+        this.cacheMiss = !cached;
+        this.metadata = cached || { frontmatter: {} };
+    }
+
+    /** True when MetadataCache had no entry for this file (race / stale install). */
+    public isCacheMiss(): boolean {
+        return this.cacheMiss;
     }
 
     /**

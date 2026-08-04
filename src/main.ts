@@ -12,7 +12,8 @@ import { t } from 'architecture/lang';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
 import { HistoryView } from 'architecture/components/core/historyView/HistoryView';
-import { allCanvasExtensions, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
+import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
+import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
 export default class ZettelFlow extends Plugin {
 	private canvasExtensions: CanvasExtension[] = [];
@@ -30,6 +31,12 @@ export default class ZettelFlow extends Plugin {
 		new CanvasPatcher(this);
 		allCanvasExtensions.forEach((Extension) => {
 			this.canvasExtensions.push(new Extension(this));
+		});
+
+		this.app.workspace.onLayoutReady(() => {
+			void repairBrokenExampleFlow(this).then(repaired => {
+				if (repaired) canvas.flows.delete(EXAMPLE_CANVAS_PATH);
+			});
 		});
 	}
 

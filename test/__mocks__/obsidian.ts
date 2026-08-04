@@ -45,28 +45,58 @@ export function requireApiVersion(_version: string): boolean {
 }
 
 /**
- * Minimal YAML parser covering the flat `key: value` subset that ZettelFlow's
- * canvas node configs use (booleans, numbers, strings). Enough for `YamlService`
- * (`isRoot()` / `getZettelFlowSettings()`) under test; not a general YAML engine.
+ * Minimal YAML parser covering the subset ZettelFlow uses:
+ *  - flat `key: value` (booleans, numbers, strings, quoted strings)
+ *  - one level of nested objects (`key:\n  nested: value`)
+ * Not a general YAML engine, but sufficient for FrontmatterService and
+ * YamlService tests (isRoot, getZettelFlowSettings, zettelFlowSettings.root).
  */
+function parseScalar(raw: string): unknown {
+  if (raw === "true") return true;
+  if (raw === "false") return false;
+  if (raw !== "" && !Number.isNaN(Number(raw))) return Number(raw);
+  if (
+    (raw.startsWith("'") && raw.endsWith("'")) ||
+    (raw.startsWith('"') && raw.endsWith('"'))
+  ) {
+    return raw.slice(1, -1);
+  }
+  return raw;
+}
+
 export function parseYaml(yaml: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   if (!yaml) return result;
+  let currentKey: string | null = null;
+  let currentObj: Record<string, unknown> | null = null;
+
   for (const rawLine of yaml.split("\n")) {
+    if (rawLine.trim() === "" || rawLine.trim().startsWith("#")) continue;
+    // Skip YAML list items (arrays not needed for these tests)
+    if (rawLine.trimStart().startsWith("-")) continue;
+
+    const indent = rawLine.length - rawLine.trimStart().length;
     const line = rawLine.trim();
-    if (line === "" || line.startsWith("#")) continue;
     const separator = line.indexOf(":");
     if (separator === -1) continue;
+
     const key = line.slice(0, separator).trim();
     const raw = line.slice(separator + 1).trim();
-    if (raw === "true") {
-      result[key] = true;
-    } else if (raw === "false") {
-      result[key] = false;
-    } else if (raw !== "" && !Number.isNaN(Number(raw))) {
-      result[key] = Number(raw);
-    } else {
-      result[key] = raw;
+
+    if (indent === 0) {
+      if (raw === "") {
+        // Start of nested object
+        currentKey = key;
+        currentObj = {};
+        result[currentKey] = currentObj;
+      } else {
+        currentKey = null;
+        currentObj = null;
+        result[key] = parseScalar(raw);
+      }
+    } else if (currentObj !== null) {
+      // Nested key (2-level only)
+      currentObj[key] = parseScalar(raw);
     }
   }
   return result;

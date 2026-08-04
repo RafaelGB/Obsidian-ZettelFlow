@@ -2,7 +2,7 @@ import { FatalError, ObsidianApi, log } from "architecture";
 import { Flow, FlowNode, Flows } from "./typing";
 import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasGroupData, CanvasTextData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";
-import { Notice, TFile } from "obsidian";
+import { Notice, TFile, parseYaml } from "obsidian";
 import { YamlService } from "../services/YamlService";
 import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
@@ -185,12 +185,31 @@ export class FlowImpl implements Flow {
                     if (fileNode.equals("zettelFlowSettings.root", true)) {
                         const flowNode = fileNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
+                    } else if (fileNode.isCacheMiss()) {
+                        // MetadataCache race / stale install: fall back to reading raw disk content
+                        const settings = await this.readSettingsFromDisk(file);
+                        if (settings?.root === true) {
+                            rootNodes.push(this.populateNode(node, settings));
+                        }
                     }
                     break;
                 }
             }
         }
         return rootNodes;
+    }
+
+    private async readSettingsFromDisk(file: TFile): Promise<StepSettings | null> {
+        try {
+            const content = await FileService.getContent(file);
+            const match = content.match(/^---\n([\s\S]*?)\n---/);
+            if (!match) return null;
+            const parsed = parseYaml(match[1]) as Record<string, unknown>;
+            const settings = parsed.zettelFlowSettings as StepSettings | undefined;
+            return settings ?? null;
+        } catch {
+            return null;
+        }
     }
 
     private async nodesFrom(edgeInfo: EdgeInfo[]): Promise<FlowNode[]> {

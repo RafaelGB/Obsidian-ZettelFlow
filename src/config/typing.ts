@@ -54,6 +54,8 @@ export interface ZettelFlowSettings {
 
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
+    /** True once the first-launch welcome notice has been shown. */
+    hasSeenWelcome: boolean;
 }
 
 export type { HistoryEntry } from "application/notes/historyUtils";
@@ -136,4 +138,5 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         folderFlowPath: "_ZettelFlow/hooks" // Default folder for flow scripts.
     },
     history: [],
+    hasSeenWelcome: false,
 };

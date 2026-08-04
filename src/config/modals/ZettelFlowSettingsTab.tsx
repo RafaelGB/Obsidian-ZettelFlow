@@ -11,6 +11,7 @@ import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "applicat
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
+import { createExampleFlow } from "application/notes/onboardingService";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -26,6 +27,32 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     override getSettingDefinitions(): SettingDefinitionItem[] {
         const plugin = this.plugin;
         return [
+            // ── Get started (shown only when no canvas is configured) ─────────
+            {
+                type: "group",
+                heading: t("settings_get_started_title"),
+                cls: c("get-started-group"),
+                visible: () => !plugin.settings.ribbonCanvas,
+                items: [
+                    {
+                        name: t("settings_get_started_description"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_get_started_button"))
+                                    .setCta()
+                                    .onClick(async () => {
+                                        const path = await createExampleFlow(plugin);
+                                        if (path) {
+                                            this.update();
+                                            await FileService.openFile(path);
+                                        }
+                                    })
+                            );
+                        },
+                    },
+                ],
+            },
             // ── General ──────────────────────────────────────────────────────
             {
                 type: "group",

@@ -8,11 +8,19 @@
 
 === "New to ZettelFlow?"
 
+    **Fastest path — let ZettelFlow set things up for you:**
+
     1. Install from the Obsidian community plugin browser.
-    2. Create a `.canvas` file anywhere in your vault.
-    3. In **Settings → ZettelFlow**, point *New notes canvas* at that file.
-    4. Add a note file to the canvas, right-click → *Create managed step*, enable **Root**.
-    5. Click the ZettelFlow ribbon icon to run your first wizard.
+    2. Click the ZettelFlow ribbon icon (or run *Open ZettelFlow* from the command palette).
+    3. On the welcome screen, click **Create example flow** — ZettelFlow creates a sample canvas and step template, sets it as your flow canvas, and opens it.
+    4. Run the ribbon icon again to try your first wizard.
+
+    **Manual path — build your own flow from scratch:**
+
+    1. Create a `.canvas` file anywhere in your vault.
+    2. In **Settings → ZettelFlow**, point *New notes canvas* at that file.
+    3. Add a note file to the canvas, right-click → *Create managed step*, enable **Root**.
+    4. Click the ribbon icon to run the wizard.
 
     Prefer a visual walkthrough? See [Getting started](development/getting-started.md).
 
@@ -49,6 +57,7 @@ Canvas file          ZettelFlow wizard          Note in your vault
 
 | Feature | Docs |
 |---|---|
+| Guided first-run with example flow | [Getting started →](development/getting-started.md) |
 | 11 built-in actions | [Actions →](actions/Prompt.md) |
 | Canvas-native workflow engine | [Architecture overview →](architecture/overview.md) |
 | Conditional edges (`if: expr`) | [Conditional edges →](architecture/conditional-edges.md) |

@@ -320,4 +320,20 @@ export default {
     types_modal_delete_button_title: 'Delete',
     types_modal_name_input_placeholder: 'e.g. priority',
     types_modal_native_properties_edit_button_title: 'Shortcut to edit native properties',
+
+    // Onboarding
+    onboarding_welcome_title: 'Welcome to ZettelFlow',
+    onboarding_welcome_tagline: 'Canvas-based note-creation workflows for Obsidian.',
+    onboarding_what_is: 'Design a workflow on an Obsidian Canvas, configure each step with actions, and ZettelFlow walks you through it as a wizard whenever you create a note.',
+    onboarding_create_example: 'Create example flow',
+    onboarding_create_example_tooltip: 'Creates a sample canvas and step template in your vault so you can explore ZettelFlow immediately.',
+    onboarding_open_docs: 'View documentation',
+    onboarding_configure_canvas: 'Configure existing canvas',
+    onboarding_example_created: 'Example flow created — canvas set as your flow canvas. Open the canvas to explore it.',
+    onboarding_example_create_failed: 'Could not create the example flow. Check the console for details.',
+    onboarding_notice_msg: 'ZettelFlow is installed. Configure a canvas or create an example flow to get started.',
+    onboarding_notice_open_settings: 'Open settings',
+    settings_get_started_title: 'Get started',
+    settings_get_started_description: 'No canvas configured yet. Create an example flow to see ZettelFlow in action, or configure an existing canvas above.',
+    settings_get_started_button: 'Create example flow',
 };

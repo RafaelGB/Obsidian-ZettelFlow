@@ -320,4 +320,20 @@ export default {
     types_modal_delete_button_title: 'Eliminar',
     types_modal_name_input_placeholder: 'p. ej. prioridad',
     types_modal_native_properties_edit_button_title: 'Acceso directo para editar las propiedades nativas',
+
+    // Incorporación
+    onboarding_welcome_title: 'Bienvenido a ZettelFlow',
+    onboarding_welcome_tagline: 'Flujos de creación de notas basados en Canvas para Obsidian.',
+    onboarding_what_is: 'Diseña un flujo en un Canvas de Obsidian, configura cada paso con acciones y ZettelFlow te guiará como un asistente cada vez que crees una nota.',
+    onboarding_create_example: 'Crear flujo de ejemplo',
+    onboarding_create_example_tooltip: 'Crea un canvas de ejemplo y una plantilla de paso en tu bóveda para que puedas explorar ZettelFlow de inmediato.',
+    onboarding_open_docs: 'Ver documentación',
+    onboarding_configure_canvas: 'Configurar canvas existente',
+    onboarding_example_created: 'Flujo de ejemplo creado — el canvas se ha establecido como tu canvas de flujo. Ábrelo para explorarlo.',
+    onboarding_example_create_failed: 'No se pudo crear el flujo de ejemplo. Consulta la consola para más detalles.',
+    onboarding_notice_msg: 'ZettelFlow está instalado. Configura un canvas o crea un flujo de ejemplo para empezar.',
+    onboarding_notice_open_settings: 'Abrir ajustes',
+    settings_get_started_title: 'Empezar',
+    settings_get_started_description: 'Aún no hay un canvas configurado. Crea un flujo de ejemplo para ver ZettelFlow en acción, o configura un canvas existente arriba.',
+    settings_get_started_button: 'Crear flujo de ejemplo',
 };

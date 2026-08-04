@@ -53,6 +53,10 @@ export function ActionAccordion(props: ActionAccordionProps) {
     }, 300); // Adjust to your animation duration
   };
 
+  const knownAction = actionsStore.getActionsKeys().includes(action.type)
+    ? actionsStore.getAction(action.type)
+    : null;
+
   return (
     <div
       ref={setNodeRef}
@@ -62,13 +66,13 @@ export function ActionAccordion(props: ActionAccordionProps) {
       <div className={c("accordion-header")}>
         <div className={c("accordion-header-info")}>
           <a
-            href={`${actionsStore.getAction(action.type).link}`}
+            href={knownAction?.link ?? "#"}
             style={{ color: "inherit", textDecoration: "none" }}
             title={`${action.type} documentation`}
             className={c("accordion-header-label")}
           >
             <label>{action.type}</label>
-            <Icon name={actionsStore.getIconOf(action.type)} />
+            {knownAction && <Icon name={actionsStore.getIconOf(action.type)} />}
           </a>
         </div>
         <div className={c("accordion-header-actions")}>
@@ -127,7 +131,8 @@ function AccordionBody(props: ActionAccordionProps) {
 
   useEffect(() => {
     const body = bodyRef.current;
-    if (body) {
+    if (!body) return;
+    if (actionsStore.getActionsKeys().includes(action.type)) {
       actionsStore.getAction(action.type).settings(body, modal, action);
     }
   }, [modal, action]);

@@ -195,6 +195,7 @@ export default {
     step_builder_element_type_task_management_is_content_description: 'Cuando está activado, las tareas sin finalizar se añadirán donde se haya colocado la clave "{{key}}" en la nota previamente',
     step_builder_actions_management_title: 'Gestión de acciones',
     step_builder_actions_management_add_action_tooltip: 'Añadir acción',
+    actions_management_render_error: 'No se pudo mostrar el panel de acciones. Consulta la consola para más detalles.',
     // Modal del constructor de pasos
     step_builder_copy_button: 'Copiar paso',
     step_builder_copy_button_title: 'Copiar el paso al portapapeles',

@@ -53,7 +53,8 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
  */
 function ActionCardsMenu(props: ActionAddMenuProps) {
   const { onChange, modal } = props;
-  const { actions } = modal.getPlugin().settings.installedTemplates;
+  // Guard: installedTemplates.actions may be absent in settings saved by older versions
+  const actions = modal.getPlugin().settings.installedTemplates?.actions ?? {};
 
   // Build the list of action cards by merging built-in and template actions.
   const actionsMemo: ActionCardInfo[] = useMemo(() => {
@@ -69,6 +70,8 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
       });
     });
     Object.values(actions).forEach((action) => {
+      // Skip template actions whose type no longer exists in the registry
+      if (!actionsStore.getActionsKeys().includes(action.type)) return;
       array.push({
         icon: actionsStore.getAction(action.type).getIcon(),
         label: action.title,
@@ -96,7 +99,7 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
               : actionsMemo.filter(
                   (card) =>
                     card.label.toLowerCase().includes(value) ||
-                    card.purpose.toLowerCase().includes(value)
+                    (card.purpose ?? "").toLowerCase().includes(value)
                 )
           );
         }}

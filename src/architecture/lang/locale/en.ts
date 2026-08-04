@@ -195,6 +195,7 @@ export default {
     step_builder_element_type_task_management_is_content_description: 'When enabled, the unfinished tasks will be added where the "{{key}}" is placed in the note previously',
     step_builder_actions_management_title: 'Actions management',
     step_builder_actions_management_add_action_tooltip: 'Add action',
+    actions_management_render_error: 'Could not render the actions panel. Check the console for details.',
     // Step builder modal
     step_builder_copy_button: 'Copy step',
     step_builder_copy_button_title: 'Copy the step to the clipboard',

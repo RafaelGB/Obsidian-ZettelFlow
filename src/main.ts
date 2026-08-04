@@ -43,13 +43,18 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<ZettelFlowSettings>,
-		) as ZettelFlowSettings;
+		const loaded = (await this.loadData()) as Partial<ZettelFlowSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {}) as ZettelFlowSettings;
+
+		// Object.assign is shallow — patch nested objects so older saved data that
+		// predates a new sub-field still gets the correct default value.
+		this.settings.installedTemplates = {
+			steps: loaded?.installedTemplates?.steps ?? {},
+			actions: loaded?.installedTemplates?.actions ?? {},
+		};
+
 		// Remove clipboard template. This is not a setting that should be saved.
-		delete this.settings.communitySettings.clipboardTemplate;
+		delete this.settings.communitySettings?.clipboardTemplate;
 		void this.saveSettings();
 		loadServicesThatRequireSettings(this.settings);
 	}

@@ -43,7 +43,7 @@ body:
   - type: dropdown
     id: template-type
     attributes:
-      label: Wich type of template are you submitting?
+      label: What type of template are you submitting?
       multiple: false
       options:
         - Flow

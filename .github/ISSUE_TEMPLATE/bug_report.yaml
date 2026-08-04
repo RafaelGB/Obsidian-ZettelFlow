@@ -1,0 +1,99 @@
+name: Bug report
+description: Something isn't working as expected in ZettelFlow.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a bug report, please:
+        - Search [existing issues](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues) to avoid duplicates.
+        - Reproduce the problem with no other community plugins active (safe mode).
+        - If the bug is a question or feature idea, use [Discussions](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions) instead.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the plugin is affected?
+      options:
+        - Canvas / flow definition
+        - Note-builder wizard
+        - Step builder
+        - Actions (prompt, calendar, selector, tags…)
+        - Vault hooks (folder automation, property hooks)
+        - Community templates browser
+        - Settings
+        - Performance / memory
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: plugin_version
+    attributes:
+      label: Plugin version
+      placeholder: "e.g. 2.12.0 — find it in Settings › Community plugins"
+    validations:
+      required: true
+
+  - type: input
+    id: obsidian_version
+    attributes:
+      label: Obsidian version
+      placeholder: "e.g. 1.7.4 — find it in Settings › About"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Desktop — Windows
+        - Desktop — macOS
+        - Desktop — Linux
+        - Mobile — Android
+        - Mobile — iOS/iPadOS
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reliably trigger the problem.
+      placeholder: |
+        1. Open a ZettelFlow canvas
+        2. Trigger the note-builder wizard
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: "What should have happened?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      placeholder: "What happened instead? Include any error messages or notices."
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output (if any)
+      description: Open the developer console (Ctrl/Cmd+Shift+I → Console tab), reproduce the bug, and paste any red errors here.
+      render: text
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Canvas JSON, screenshots, screen recordings, or anything else that helps.

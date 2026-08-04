@@ -10,6 +10,8 @@ export type StepBuilderInfo = {
     folder?: TFolder;
     menu?: Menu,
     nodeId?: string,
+    /** Markdown body of the step file (template content). Managed by StepBuilderModal only. */
+    body?: string;
     // EXCLUSIVE for COMMUNITY installed steps
     title?: string,
     description?: string,

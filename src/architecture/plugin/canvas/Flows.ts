@@ -66,6 +66,11 @@ export class FlowsImpl implements Flows {
 
 export class FlowImpl implements Flow {
     private nodes: Map<string, AllCanvasNodeData>;
+
+    get canvasPath(): string {
+        return this.file.path;
+    }
+
     constructor(public data: CanvasData, private file: TFile) {
         this.nodes = data.nodes
             .filter(node => node.type !== "link")

@@ -1,4 +1,5 @@
 import { FatalError, ObsidianApi, log } from "architecture";
+import { substituteContextTokens } from "./contextTokens";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { NoteDTO } from "./model/NoteDTO";
@@ -24,12 +25,14 @@ export class NoteBuilder {
   public note: NoteDTO;
   private content: ContentDTO;
   private actions: NoteBuilderStateActions;
+  private modal: SelectorMenuModal | undefined;
   constructor() {
     this.note = new NoteDTO();
     this.content = new ContentDTO();
   }
 
   public async build(modal: SelectorMenuModal, actions: NoteBuilderStateActions) {
+    this.modal = modal;
     this.actions = actions;
     if (modal.isEditor()) {
       return await this.buildEditor(modal);
@@ -118,7 +121,18 @@ export class NoteBuilder {
       }
       this.content.add(await service.getContent());
     }
+    this.applyContextTokens();
     await this.manageElements();
+  }
+
+  private applyContextTokens(): void {
+    const sourceFile = this.modal?.getSourceFile();
+    const sourceFrontmatter: Record<string, unknown> = sourceFile
+      ? (ObsidianApi.globalApp().metadataCache.getFileCache(sourceFile)?.frontmatter ?? {})
+      : {};
+    const canvasName = this.modal?.getCanvasName() ?? "";
+    const substituted = substituteContextTokens(this.content.get(), sourceFrontmatter, canvasName);
+    this.content.set(substituted);
   }
 
   private async manageElements() {

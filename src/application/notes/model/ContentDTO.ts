@@ -17,6 +17,10 @@ export class ContentDTO {
         return this.content;
     }
 
+    public set(content: string): void {
+        this.content = content;
+    }
+
     /**
    * Substitutes at the content the key for the result (all of them)
    * 

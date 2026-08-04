@@ -1,4 +1,4 @@
-import { App, MarkdownFileInfo, MarkdownView, Modal } from "obsidian";
+import { App, MarkdownFileInfo, MarkdownView, Modal, TFile } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import ZettelFlow from "main";
 import { buildSelectorMenu } from "application/components/noteBuilder";
@@ -92,6 +92,17 @@ export class SelectorMenuModal extends Modal {
 
     getMarkdownView(): MarkdownView | MarkdownFileInfo | undefined {
         return this.markdownView;
+    }
+
+    getSourceFile(): TFile | undefined {
+        return (this.markdownView as MarkdownView)?.file ?? undefined;
+    }
+
+    getCanvasName(): string {
+        if (!this.flow) return "";
+        const p = this.flow.canvasPath;
+        const filename = p.split("/").pop() ?? p;
+        return filename.replace(/\.[^.]+$/, "");
     }
 
 }

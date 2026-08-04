@@ -45,6 +45,7 @@ export default {
     import_template_skip: 'Omitir existentes',
     import_template_folder_placeholder: 'Selecciona la carpeta destino...',
     import_template_success: 'Plantilla importada correctamente',
+    edge_condition_invalid_expression: 'Condición de arista no válida — la arista se trata como incondicional',
     command_settings_open_canvas: 'Abrir canvas',
     type_option_bridge: 'Pasarela',
     type_option_prompt: 'Prompt',

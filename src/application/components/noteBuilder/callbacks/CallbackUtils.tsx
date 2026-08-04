@@ -5,10 +5,12 @@ import { ElementSelector } from "../ElementSelector";
 import { Notice } from "obsidian";
 import { FatalError, WarningError, ZettelError, log } from "architecture";
 import { FileService } from "architecture/plugin";
+import { ObsidianApi } from "architecture";
 import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
 import { HistoryView } from "architecture/components/core/historyView/HistoryView";
+import { evaluateCondition, parseEdgeCondition, EvalContext } from "application/notes/conditionEvaluator";
 
 export async function nextElement(
   state: CallbackPickedState,
@@ -79,9 +81,11 @@ export async function manageElement(
   }
 
   const { modal, flow } = info;
-  const childrens = skipChildrens
+  const rawChildren = skipChildrens
     ? []
     : await flow.childrensOf(selectedElement.id);
+  const evalCtx = buildEvalContext(state, info);
+  const childrens = filterConditionalEdges(rawChildren, evalCtx);
 
   if (childrens.length > 1) {
     // Element Selector
@@ -144,6 +148,31 @@ export async function manageElement(
         }
       });
   }
+}
+
+function buildEvalContext(state: CallbackPickedState, info: NoteBuilderType): EvalContext {
+  const sourceFile = info.modal.getSourceFile();
+  const frontmatter: Record<string, unknown> = sourceFile
+    ? (ObsidianApi.globalApp().metadataCache.getFileCache(sourceFile)?.frontmatter ?? {})
+    : {};
+  return {
+    frontmatter,
+    noteTitle: state.data.getTitle(),
+    canvasName: info.modal.getCanvasName(),
+  };
+}
+
+function filterConditionalEdges(children: FlowNode[], ctx: EvalContext): FlowNode[] {
+  return children.filter((child) => {
+    const expr = parseEdgeCondition(child.tooltip);
+    if (!expr) return true;
+    try {
+      return evaluateCondition(expr, ctx);
+    } catch {
+      new Notice(t("edge_condition_invalid_expression"));
+      return true; // safe fallback
+    }
+  });
 }
 
 function manageFatalError(

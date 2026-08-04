@@ -45,6 +45,7 @@ export default {
     import_template_skip: 'Skip existing',
     import_template_folder_placeholder: 'Select target folder...',
     import_template_success: 'Template imported successfully',
+    edge_condition_invalid_expression: 'Invalid edge condition — edge treated as unconditional',
     command_settings_open_canvas: 'Open canvas',
     type_option_bridge: 'Bridge',
     type_option_prompt: 'Prompt',

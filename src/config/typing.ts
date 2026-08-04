@@ -1,20 +1,6 @@
 import { CommunityFlowData } from "application/community";
 import { Action } from "architecture/api";
-import { AbstractChain } from "architecture/patterns";
-import ZettelFlow from "main";
 import { StepSettings } from "zettelkasten";
-
-/**
- * Provides information required by the settings handler.
- */
-export type SettingsHandlerInfo = {
-    /** DOM element that acts as the container for settings UI */
-    containerEl: HTMLElement;
-    /** Instance of the main ZettelFlow plugin */
-    plugin: ZettelFlow;
-    /** Optional chain section for additional settings handling */
-    section?: AbstractChain<SettingsHandlerInfo>;
-};
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */

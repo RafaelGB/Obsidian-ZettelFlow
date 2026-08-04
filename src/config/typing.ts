@@ -56,6 +56,8 @@ export interface ZettelFlowSettings {
     history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
     hasSeenWelcome: boolean;
+    /** When true, new notes are created in the active file's folder instead of the step's targetFolder. */
+    createInCurrentFolder: boolean;
 }
 
 export type { HistoryEntry } from "application/notes/historyUtils";
@@ -139,4 +141,5 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     },
     history: [],
     hasSeenWelcome: false,
+    createInCurrentFolder: false,
 };

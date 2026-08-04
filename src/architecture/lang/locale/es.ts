@@ -321,6 +321,10 @@ export default {
     types_modal_name_input_placeholder: 'p. ej. prioridad',
     types_modal_native_properties_edit_button_title: 'Acceso directo para editar las propiedades nativas',
 
+    // Crear en carpeta actual
+    create_in_current_folder_toggle_title: 'Crear nota en la carpeta actual',
+    create_in_current_folder_toggle_description: 'Cuando está activo, las notas siempre se crean en la carpeta del archivo activo, ignorando la carpeta destino configurada en cada paso.',
+
     // Incorporación
     onboarding_welcome_title: 'Bienvenido a ZettelFlow',
     onboarding_welcome_tagline: 'Flujos de creación de notas basados en Canvas para Obsidian.',

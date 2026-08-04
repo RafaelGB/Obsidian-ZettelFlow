@@ -106,3 +106,33 @@ describe("NoteDTO", () => {
     expect(n.setTitle("x").setTargetFolder("f").setPattern("p")).toBe(n);
   });
 });
+
+describe("NoteDTO.lockTargetFolder", () => {
+  it("sets the folder and locks it", () => {
+    const n = new NoteDTO();
+    n.lockTargetFolder("vault/current");
+    expect(n.getTargetFolder()).toBe("vault/current");
+    expect(n.isTargetFolderLocked()).toBe(true);
+  });
+
+  it("prevents subsequent setTargetFolder calls from overwriting", () => {
+    const n = new NoteDTO();
+    n.lockTargetFolder("locked-folder");
+    n.setTargetFolder("step-folder");
+    expect(n.getTargetFolder()).toBe("locked-folder");
+  });
+
+  it("strips a trailing slash from the locked path", () => {
+    const n = new NoteDTO();
+    n.lockTargetFolder("notes/");
+    expect(n.getTargetFolder()).toBe("notes");
+  });
+
+  it("is a no-op for an empty path", () => {
+    const n = new NoteDTO();
+    n.setTargetFolder("step-folder");
+    n.lockTargetFolder("");
+    expect(n.isTargetFolderLocked()).toBe(false);
+    expect(n.getTargetFolder()).toBe("step-folder");
+  });
+});

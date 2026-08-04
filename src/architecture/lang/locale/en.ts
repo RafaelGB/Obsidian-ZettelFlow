@@ -321,6 +321,10 @@ export default {
     types_modal_name_input_placeholder: 'e.g. priority',
     types_modal_native_properties_edit_button_title: 'Shortcut to edit native properties',
 
+    // Create in current folder
+    create_in_current_folder_toggle_title: 'Create note in current folder',
+    create_in_current_folder_toggle_description: 'When enabled, notes are always created in the folder of the currently active file, ignoring each step\'s configured target folder.',
+
     // Onboarding
     onboarding_welcome_title: 'Welcome to ZettelFlow',
     onboarding_welcome_tagline: 'Canvas-based note-creation workflows for Obsidian.',

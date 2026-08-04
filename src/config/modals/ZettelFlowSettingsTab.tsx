@@ -108,6 +108,11 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
+                        name: t("create_in_current_folder_toggle_title"),
+                        desc: t("create_in_current_folder_toggle_description"),
+                        control: { type: "toggle", key: "createInCurrentFolder" },
+                    },
+                    {
                         name: t("unique_prefix_toggle_title"),
                         desc: t("unique_prefix_toggle_description"),
                         control: { type: "toggle", key: "uniquePrefixEnabled" },

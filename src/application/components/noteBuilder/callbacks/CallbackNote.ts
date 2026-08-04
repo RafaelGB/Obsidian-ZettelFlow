@@ -13,8 +13,11 @@ export const callbackRootBuilder =
   (state: CallbackPickedState, info: NoteBuilderType) =>
     (selected: string) => {
       const { actions } = state;
+      const currentFolder = info.plugin.settings.createInCurrentFolder
+        ? info.plugin.app.workspace.getActiveFile()?.parent?.path
+        : undefined;
 
-      void actions.initPluginConfig(info.plugin.settings)
+      void actions.initPluginConfig(info.plugin.settings, currentFolder)
         .then(() => {
           void nextElement(state, selected, info);
         });

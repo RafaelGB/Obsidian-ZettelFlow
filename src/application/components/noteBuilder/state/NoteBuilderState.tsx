@@ -168,11 +168,14 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         currentNode: undefined,
       });
     },
-    initPluginConfig: async (settings) => {
+    initPluginConfig: async (settings, currentFolder) => {
       set((state) => {
         const { builder } = state;
         if (settings.uniquePrefixEnabled) {
           builder.note.setPattern(settings.uniquePrefix);
+        }
+        if (currentFolder) {
+          builder.note.lockTargetFolder(currentFolder);
         }
         return {
           builder,

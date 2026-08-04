@@ -9,6 +9,7 @@ export class NoteDTO {
     private savedActions = new Map<number, FinalElement>();
     private uniquePrefixPattern = "";
     private targetFolder = "";
+    private targetFolderLocked = false;
 
     public getFinalPath(): string {
         return this.getTargetFolder()
@@ -33,12 +34,28 @@ export class NoteDTO {
     }
 
     public setTargetFolder(targetFolder: string | undefined) {
+        if (this.targetFolderLocked) return this;
         if (targetFolder) {
             this.targetFolder = targetFolder.endsWith(FileService.PATH_SEPARATOR)
                 ? targetFolder.substring(0, targetFolder.length - 1)
                 : targetFolder;
         }
         return this;
+    }
+
+    /** Pin the note to this folder, ignoring any per-step targetFolder. */
+    public lockTargetFolder(path: string): NoteDTO {
+        if (path) {
+            this.targetFolder = path.endsWith(FileService.PATH_SEPARATOR)
+                ? path.substring(0, path.length - 1)
+                : path;
+            this.targetFolderLocked = true;
+        }
+        return this;
+    }
+
+    public isTargetFolderLocked(): boolean {
+        return this.targetFolderLocked;
     }
 
     public getElements(): Map<number, FinalElement> {

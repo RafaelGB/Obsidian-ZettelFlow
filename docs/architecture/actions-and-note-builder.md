@@ -119,6 +119,10 @@ Outliers to know:
 - `savedActions: Map<number, FinalElement>` — configured actions + their results.
 - `getFinalPath()` = `targetFolder/title.md`; `deletePos(pos)` prunes paths/actions at/after a
   position (used by back-navigation).
+- `lockTargetFolder(path)` — pins the note to a specific folder, preventing any per-step
+  `targetFolder` from overriding it. Used by the **Create note in current folder** setting
+  (`createInCurrentFolder` in `ZettelFlowSettings`): when enabled, the active file's parent
+  folder is locked in at wizard start and no step can change it.
 
 ## 5. The build pipeline — `NoteBuilder.ts`
 

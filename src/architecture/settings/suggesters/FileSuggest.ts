@@ -6,7 +6,7 @@ import { FileService, FILE_EXTENSIONS } from "architecture/plugin";
 export class FileSuggest extends TextInputSuggest<TFile> {
     private extensions = FILE_EXTENSIONS.BASIC;
     constructor(
-        public inputEl: HTMLInputElement,
+        inputEl: HTMLInputElement,
         private folderPath: string,
     ) {
         super(inputEl);
@@ -40,7 +40,7 @@ export class FileSuggest extends TextInputSuggest<TFile> {
         el.setText(file.basename);
     }
 
-    selectSuggestion(file: TFile): void {
+    selectSuggestion(file: TFile, _evt: MouseEvent | KeyboardEvent): void {
         this.inputEl.value = file.path;
         this.inputEl.trigger("input");
         this.close();

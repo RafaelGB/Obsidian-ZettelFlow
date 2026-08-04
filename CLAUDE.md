@@ -94,9 +94,9 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
   `manifest.json` and records the `version → minAppVersion` map. Current release line: `2.12.0`.
 - **Tests are only seeded** — a jest + TDD harness now exists (pure-logic suites); breadth must
   grow (tracked by issues).
-- `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). Two
-  larger best-practice migrations are deferred with per-file rule relaxations: AbstractInputSuggest
-  (#111) and the declarative settings API (#112).
+- `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). One
+  larger best-practice migration is deferred with a per-file rule relaxation: the declarative
+  settings API (#112). AbstractInputSuggest migration is complete (#111).
 - `innerHTML` and inline `el.style.*` assignments are fully migrated (0 remaining; enforced by
   the blocking Obsidian lint). Keep it that way — use `createEl`/`empty()` and `c('name')` classes.
 - `log.error` always surfaces (wired in the Logger constructor), even before the logger is

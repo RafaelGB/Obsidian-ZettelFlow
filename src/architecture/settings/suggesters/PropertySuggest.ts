@@ -3,7 +3,7 @@ import { TextInputSuggest } from "./AbstractSuggester";
 export class PropertySuggest extends TextInputSuggest<string> {
     private filteredSuggestions: string[] = [];
     constructor(
-        public inputEl: HTMLInputElement,
+        inputEl: HTMLInputElement,
         private properties: Record<string, string>,
         types?: string[]
     ) {
@@ -25,7 +25,7 @@ export class PropertySuggest extends TextInputSuggest<string> {
         el.setText(property);
     }
 
-    selectSuggestion(property: string): void {
+    selectSuggestion(property: string, _evt: MouseEvent | KeyboardEvent): void {
         this.inputEl.value = property;
         this.inputEl.trigger("input");
         this.close();

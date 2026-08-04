@@ -5,7 +5,7 @@ import { FileService, FrontmatterService } from "architecture/plugin";
 export class HeadingSuggest extends TextInputSuggest<HeadingCache> {
     private file: TFile;
     constructor(
-        public inputEl: HTMLInputElement,
+        inputEl: HTMLInputElement,
         filePath: string,
     ) {
         super(inputEl);
@@ -39,7 +39,7 @@ export class HeadingSuggest extends TextInputSuggest<HeadingCache> {
         el.setText(hc.heading);
     }
 
-    selectSuggestion(hc: HeadingCache): void {
+    selectSuggestion(hc: HeadingCache, _evt: MouseEvent | KeyboardEvent): void {
         this.inputEl.dataset.heading = JSON.stringify(hc);
         this.inputEl.value = hc.heading;
         this.inputEl.trigger("input");

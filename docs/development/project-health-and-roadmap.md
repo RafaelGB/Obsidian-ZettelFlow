@@ -22,7 +22,7 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 | 1 | ~~**`versions.json` missing**~~ — present; maps `2.11.0→1.7.2`, `2.12.0→1.13.1` | — | repo root |
 | 2 | ~~**`version-bump.mjs` missing**~~ — present; run by `npm version` | — | repo root |
 | 3 | **Thin tests** — a jest + TDD harness is now seeded (3 pure-logic suites); breadth is still low | Limited regression safety net | whole repo |
-| 4 | ~~**Obsidian-rule backlog** (was 475 problems)~~ — **cleared and blocking** (#85); two larger migrations deferred (#111, #112) | — | tooling |
+| 4 | ~~**Obsidian-rule backlog** (was 475 problems)~~ — **cleared and blocking** (#85); AbstractInputSuggest migration done (#111); declarative settings API deferred (#112) | — | tooling |
 | 5 | ~~**`innerHTML` usage (~8)**~~ — 0 remaining; enforced by the blocking Obsidian lint | — | — |
 | 6 | **Widespread inline styles** (`el.style.*`) | `no-static-styles-assignment` violations | community/config modals |
 | 7 | ~~**`log.error` silenced when logging off**~~ — errors always surface (wired in the constructor) | — | `Logger.ts` |

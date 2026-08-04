@@ -2,10 +2,14 @@
 
 ZettelFlow is built **spec-first**. Before code exists, a change is a written **spec** (what & why),
 then a **plan** (how), then a list of **tasks** (test-first, one commit each). Only then do we
-write code — and we measure it against acceptance criteria the spec fixed up front. This page is
-the narrative; the machine-readable home of the process is [`specs/`](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/specs)
-(the [pipeline README](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/specs/README.md)
-and the [constitution](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/specs/constitution.md)).
+write code — and we measure it against acceptance criteria the spec fixed up front.
+
+**Everything lives in GitHub Issues** — the spec is the issue body; the plan and task checklist
+are issue comments. There is no local `specs/` directory.
+
+The machine-readable rules are in the
+[constitution](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/docs/development/constitution.md).
+The harness skills live in [`.claude/`](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/.claude).
 
 ## Why spec-first for an Obsidian plugin
 
@@ -27,14 +31,14 @@ front-loads them as **gates**: each stage has to clear its gate before the next 
 idea / issue → constitution → specify → plan → tasks → implement → verify & review → Done
 ```
 
-| Stage | You run | The owner | It produces | Gate |
-|---|---|---|---|---|
-| 0. Constitution | read it | — | `specs/constitution.md` | the invariants below |
-| 1. Specify | `/specify` | `spec-author` agent | `spec.md` | testable acceptance criteria; capabilities disclosed |
-| 2. Plan | `/plan` | `implementation-planner` agent | `plan.md` | files by layer; **zero-new-violations** score delta; test/i18n/docs impact |
-| 3. Tasks | `/tasks` | `implementation-planner` agent | `tasks.md` | ordered TDD tasks, each with its failing test |
-| 4. Implement | `/implement` | main assistant + `tdd` skill | code, tests, commits | `verify` green per commit; CI green; single branch |
-| 5. Verify & review | quality audit + review | `obsidian-plugin-reviewer` agent | `review.md`, closed issue | acceptance met; score held/raised; docs + `en`/`es` synced |
+| Stage | You run | The owner | It produces | Where it lives | Gate |
+|---|---|---|---|---|---|
+| 0. Constitution | read it | — | invariants | `docs/development/constitution.md` | the invariants below |
+| 1. Specify | `/specify` | `spec-author` agent | spec | **issue body** | testable ACs; capabilities disclosed |
+| 2. Plan | `/plan` | `implementation-planner` agent | technical plan | **issue comment** | files by layer; zero-new-violations score delta; test/i18n/docs impact |
+| 3. Tasks | `/tasks` | `implementation-planner` agent | TDD checklist | **issue comment** | ordered tasks, each with its failing test |
+| 4. Implement | `/implement` | main assistant + `tdd` skill | code, tests, commits | feature branch | `verify` green per commit; CI green; single branch |
+| 5. Verify & review | quality audit + review | `obsidian-plugin-reviewer` agent | review findings | PR / issue comments | ACs met; score held/raised; docs + `en`/`es` synced |
 
 Each stage is a **skill** in the harness (`sdd`, `specify`, `plan`, `tasks`, `implement`) plus the
 existing `tdd`, `obsidian-plugin-quality` and `release` skills; the **agents** live in
@@ -43,7 +47,7 @@ existing `tdd`, `obsidian-plugin-quality` and `release` skills; the **agents** l
 ## The invariants (constitution)
 
 Every spec and plan is gated on these — the full text is in
-[`specs/constitution.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/specs/constitution.md):
+[`docs/development/constitution.md`](constitution.md):
 
 1. **The score is a release gate** — no change lowers it; plans name the rules they could trip.
 2. **Test-first** — behavior/bug changes land with a test that failed before; `verify` green per commit.
@@ -57,27 +61,18 @@ Every spec and plan is gated on these — the full text is in
 9. **Small, conventional, single-branch** commits.
 10. **Issues close on merge** via the PR (`Closes #N`), never from a feature-branch commit.
 
-## Directory layout
-
-One folder per spec, `specs/NNNN-slug/`, where `NNNN` is the GitHub issue number when the work has
-one (specs map 1:1 to issues) else a zero-padded sequence:
-
-```
-specs/
-  constitution.md      README.md      templates/{spec,plan,tasks}.md
-  0088-inline-styles/  spec.md  plan.md  tasks.md  [review.md]
-```
-
 ## Worked example (an `obsidian-score` issue)
 
-1. `/specify 88` — the `spec-author` reads issue #88, writes `specs/0088-inline-styles/spec.md`
+Suppose issue #88 tracks the inline-styles migration:
+
+1. `/specify 88` — the `spec-author` reads the issue, writes the spec into the **issue body**
    with `AC: no inline el.style.* remain in src` and `AC: lint:obsidian no-static-styles-assignment = 0`.
-2. `/plan specs/0088-inline-styles` — the `implementation-planner` lists the offending files,
-   maps each inline style to a `c()` class + SCSS partial, and states the score delta (−12).
-3. `/tasks specs/0088-inline-styles` — one task per file/component, each with the guardrail
-   `lint:obsidian no new no-static-styles-assignment`.
-4. `/implement specs/0088-inline-styles` — migrate file by file, `npm run verify` green, one
-   commit per file, push (CI green).
+2. `/plan 88` — the `implementation-planner` reads the spec body, maps each inline style to a
+   `c()` class + SCSS partial, posts the technical plan as an **issue comment** (delta: −12 violations).
+3. `/tasks 88` — a second **issue comment** appears: one task per file/component, each with the
+   guardrail `lint:obsidian no new no-static-styles-assignment`.
+4. `/implement 88` — the assistant reads the issue (body + comments), migrates file by file,
+   `npm run verify` green, one commit per file, push (CI green), checks off each task in the comment.
 5. Run `obsidian-plugin-quality` + the reviewer, confirm the ACs, and add `Closes #88` to the PR
    body — #88 closes when the PR merges to `main`.
 

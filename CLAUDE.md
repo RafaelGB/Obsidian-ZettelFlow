@@ -110,27 +110,29 @@ Full list + roadmap: [`docs/development/project-health-and-roadmap.md`](docs/dev
 
 ## How we work: Spec-Driven Development (SDD)
 
-Non-trivial changes are built **spec-first**: intent → `spec.md` → `plan.md` → `tasks.md` → code,
-written test-first against acceptance criteria fixed up front, then reviewed against the Obsidian
-score. The pipeline, its stage owners, and the invariants live in
-[`specs/`](specs/README.md) ([constitution](specs/constitution.md)) and the narrative is
-[`docs/development/spec-driven-development.md`](docs/development/spec-driven-development.md).
+Non-trivial changes are built **spec-first**: intent → spec in the **GitHub issue body** → plan
+comment → tasks comment → code test-first → reviewed against the Obsidian score.
+
+**Everything lives in GitHub Issues** — the spec is the issue body; the plan and task checklist
+are issue comments. No local `specs/` directory.
+
+The invariants are in [`docs/development/constitution.md`](docs/development/constitution.md) and the
+narrative is [`docs/development/spec-driven-development.md`](docs/development/spec-driven-development.md).
 
 ```
 constitution → /specify → /plan → /tasks → /implement → verify & review → Done
-   invariants    spec.md    plan.md  tasks.md   code+tests    score audit + reviewer
+   invariants   issue body  comment  comment   code+tests   score audit + reviewer
 ```
 
-| Stage | Skill | Owner agent |
-|---|---|---|
-| Specify | `specify` | `spec-author` |
-| Plan / Tasks | `plan`, `tasks` | `implementation-planner` |
-| Implement | `implement` (+ `tdd`) | main assistant |
-| Verify & review | `obsidian-plugin-quality` | `obsidian-plugin-reviewer` |
+| Stage | Skill | Owner agent | Produces |
+|---|---|---|---|
+| Specify | `specify` | `spec-author` | Issue body (spec) |
+| Plan / Tasks | `plan`, `tasks` | `implementation-planner` | Issue comments (plan + task checklist) |
+| Implement | `implement` (+ `tdd`) | main assistant | code, tests, commits |
+| Verify & review | `obsidian-plugin-quality` | `obsidian-plugin-reviewer` | review findings |
 
-Specs live in `specs/NNNN-slug/` (`NNNN` = the GitHub issue number when there is one). A tiny,
-no-behavior change may skip to `/implement`; anything touching behavior, a public surface, UI text,
-or the score runs the full flow. Start with the **`sdd`** skill for the map.
+A tiny, no-behavior change may skip to `/implement`; anything touching behavior, a public surface,
+UI text, or the score runs the full flow. Start with the **`sdd`** skill for the map.
 
 ## Harness contents (`.claude/`)
 
@@ -144,8 +146,8 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
   - `new-action` — scaffold a new action (the 4-file pattern + registration + docs).
   - `release` — the release checklist (version bump, `versions.json`, tag, artifacts).
 - **Agents** (`.claude/agents/`):
-  - `spec-author` — writes `spec.md` (SDD stage 1).
-  - `implementation-planner` — writes `plan.md` + `tasks.md` (SDD stages 2–3).
+  - `spec-author` — writes the spec into the GitHub issue body (SDD stage 1).
+  - `implementation-planner` — posts the plan + task checklist as issue comments (SDD stages 2–3).
   - `obsidian-plugin-reviewer` — reviews a diff against the Obsidian guidelines and reports
     file-anchored findings (SDD stage 5).
 

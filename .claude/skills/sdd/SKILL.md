@@ -5,11 +5,13 @@ description: The Spec-Driven Development pipeline for ZettelFlow — the end-to-
 
 # Spec-Driven Development (SDD) — the ZettelFlow pipeline
 
-ZettelFlow is built **spec-first**: intent → `spec.md` → `plan.md` → `tasks.md` → code, written
-test-first against acceptance criteria fixed up front, then reviewed against the Obsidian quality
-score. This skill is the map. The full reference lives in [`specs/README.md`](../../../specs/README.md)
-and [`specs/constitution.md`](../../../specs/constitution.md) (the invariants); the narrative is
-[`docs/development/spec-driven-development.md`](../../../docs/development/spec-driven-development.md).
+ZettelFlow is built **spec-first**: intent → spec in the GitHub issue → plan comment → tasks
+comment → code test-first → reviewed against the Obsidian quality score. This skill is the map.
+The invariants are in [`docs/development/constitution.md`](../../../docs/development/constitution.md);
+the narrative is [`docs/development/spec-driven-development.md`](../../../docs/development/spec-driven-development.md).
+
+**Everything lives in GitHub Issues** — the spec is the issue body; the plan and tasks are issue
+comments. No local `specs/` directory.
 
 ## Why spec-first here
 
@@ -22,33 +24,31 @@ The pipeline front-loads them as gates.
 
 | # | Stage | Skill to invoke | Owner agent | Produces |
 |---|---|---|---|---|
-| 0 | Constitution | — (read it) | — | `specs/constitution.md` |
-| 1 | Specify | `specify` | `spec-author` | `specs/NNNN-slug/spec.md` |
-| 2 | Plan | `plan` | `implementation-planner` | `.../plan.md` |
-| 3 | Tasks | `tasks` | `implementation-planner` | `.../tasks.md` |
+| 0 | Constitution | — (read it) | — | `docs/development/constitution.md` |
+| 1 | Specify | `specify` | `spec-author` | Issue body (spec) |
+| 2 | Plan | `plan` | `implementation-planner` | Issue comment (plan) |
+| 3 | Tasks | `tasks` | `implementation-planner` | Issue comment (task checklist) |
 | 4 | Implement | `implement` (+ `tdd`) | main assistant | code, tests, commits |
-| 5 | Verify & review | `obsidian-plugin-quality` + `obsidian-plugin-reviewer` | reviewer | `review.md`, closed issue |
-
-`NNNN` = the GitHub issue number when there is one, else a zero-padded sequence. One folder per
-spec under `specs/`.
+| 5 | Verify & review | `obsidian-plugin-quality` + `obsidian-plugin-reviewer` | reviewer agent | review comment, PR `Closes #N` |
 
 ## How to drive it
 
-- **Starting an issue:** `specify <issue #>` → `plan <folder>` → `tasks <folder>` →
-  `implement <folder>` → run the quality audit + reviewer → close the issue.
+- **Starting an issue:** `specify <issue # or description>` → `plan <issue #>` → `tasks <issue #>` →
+  `implement <issue #>` → run the quality audit + reviewer → open PR with `Closes #N`.
 - **Tiny, no-behavior change** (typo, dep bump): skip to `implement`. Anything touching behavior,
-  a public surface, UI text, or the score goes through the full flow.
+  a public surface, UI text, or the score runs the full flow.
 - **Branch & CI discipline** (constitution §IX): one `feature/*` branch; each commit is a coherent
-  advance that leaves `npm run verify` green so CI passes at every commit.
+  advance that leaves `npm run verify` green.
 
 ## Non-negotiables the pipeline enforces (constitution)
 
 Score is a release gate (§I) · test-first (§II) · facades not globals, no `innerHTML`, no inline
 styles (§III) · sentence-case i18n in `en`+`es`, clean commands/headings (§IV) · cross-platform
 (§V) · defensive Canvas patcher (§VI) · disclose capabilities (§VII) · docs ship with the change
-(§VIII) · small conventional single-branch commits (§IX).
+(§VIII) · small conventional single-branch commits (§IX) · issues close via PR merge, not manually
+(§X).
 
 ## Related skills
 
-`tdd` (the stage-4 discipline) · `obsidian-plugin-quality` (the stage-5 score audit) · `new-action`
-(the scaffold for the specific case of adding an action) · `release` (shipping a version).
+`tdd` (stage-4 discipline) · `obsidian-plugin-quality` (stage-5 score audit) · `new-action`
+(scaffold for adding a new action) · `release` (shipping a version).

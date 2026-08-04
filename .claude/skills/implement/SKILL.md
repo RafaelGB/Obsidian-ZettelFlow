@@ -1,13 +1,18 @@
 ---
 name: implement
-description: Stage 4 of the SDD pipeline — execute a ZettelFlow tasks.md test-first (red → green → refactor), one commit per advance, keeping npm run verify green and CI green on every commit on a single feature branch. Use after tasks.md exists and the user says "implement", "build spec N", "work the tasks", or "start coding". Drives the tdd skill.
+description: Stage 4 of the SDD pipeline — execute a ZettelFlow task checklist (in a GitHub issue comment) test-first (red → green → refactor), one commit per advance, keeping npm run verify green and CI green on every commit on a single feature branch. Use after a tasks comment exists and the user says "implement", "build issue #N", "work the tasks", or "start coding". Drives the tdd skill.
 ---
 
 # /implement — build the tasks test-first
 
-Stage 4 of the [SDD pipeline](../../../specs/README.md). Work `tasks.md` top to bottom using the
-**`tdd`** discipline. This stage is done by the main assistant (not a subagent) because it commits
-to the branch and must keep CI green at every step.
+Stage 4 of the [SDD pipeline](../sdd/SKILL.md). Work the task checklist (in the GitHub issue
+comment) top to bottom using the **`tdd`** discipline. This stage is done by the main assistant
+(not a subagent) because it commits to the branch and must keep CI green at every step.
+
+## Before starting
+
+Run `gh issue view <N>` — read the spec (body) and the plan + tasks comments. The tasks comment
+has the checklist; the plan comment has the files, guardrails, and risks.
 
 ## The loop (per task)
 
@@ -20,14 +25,16 @@ to the branch and must keep CI green at every step.
    run `npm run lint:obsidian` and confirm **no new** violations. For i18n tasks confirm
    `en.ts`/`es.ts` key parity.
 5. **Commit** — one Conventional Commit per completed task/advance (constitution §IX):
-   `git add -A && git commit -m "<type>(<scope>): <subject>"`. Mark the task `[x]` in `tasks.md`.
-6. **Keep CI green** — push the branch; the CI workflow re-runs the blocking guardrails. Because
+   `git add -A && git commit -m "<type>(<scope>): <subject>"`.
+6. **Check off the task** — mark `[x]` directly in the GitHub issue comment (edit the comment with
+   `gh issue comment <comment-id> --edit-last` or find the comment id and patch it).
+7. **Keep CI green** — push the branch; the CI workflow re-runs the blocking guardrails. Because
    `verify` is green locally, CI stays green. Fix forward if a push ever goes red — don't stack
    more commits on a red branch.
 
 ## Rules
 
-- **Single branch** — one `feature/*` branch for the whole spec; never commit to `main`.
+- **Single branch** — one `feature/*` branch for the whole issue; never commit to `main`.
 - **Never** introduce `innerHTML`, inline `el.style.*`, Title-case UI strings, bare `console.*`,
   or global `app` — they cost score (constitution §III–IV). Build DOM with `createEl`; style with
   `c()` + SCSS; log with `log`.
@@ -38,9 +45,9 @@ to the branch and must keep CI green at every step.
 
 ## Exit → stage 5
 
-When all tasks are `[x]`: run the **`obsidian-plugin-quality`** skill and the
-**`obsidian-plugin-reviewer`** agent on the diff, verify every acceptance criterion in `spec.md`,
-write an optional `review.md`, and set the spec **Status: Done**.
+When all tasks are checked off: run the **`obsidian-plugin-quality`** skill and the
+**`obsidian-plugin-reviewer`** agent on the diff, and verify every acceptance criterion in the
+issue spec (body).
 
 **Closing the issue (constitution §X).** Commits only *reference* the issue (`(#N)`) — they never
 close it. The issue is closed by the **pull request** that merges the branch to `main`: put

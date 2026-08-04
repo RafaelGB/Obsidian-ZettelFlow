@@ -321,6 +321,11 @@ export default {
     types_modal_name_input_placeholder: 'p. ej. prioridad',
     types_modal_native_properties_edit_button_title: 'Acceso directo para editar las propiedades nativas',
 
+    // Selector raíz
+    root_selector_loading: 'Cargando pasos...',
+    root_selector_no_steps: 'No se encontraron pasos raíz. Haz clic derecho en un nodo del canvas → "Crear paso gestionado" y activa Raíz.',
+    root_selector_error: 'No se pudieron cargar los pasos del canvas. Consulta la consola para más detalles.',
+
     // Crear en carpeta actual
     create_in_current_folder_toggle_title: 'Crear nota en la carpeta actual',
     create_in_current_folder_toggle_description: 'Cuando está activo, las notas siempre se crean en la carpeta del archivo activo, ignorando la carpeta destino configurada en cada paso.',

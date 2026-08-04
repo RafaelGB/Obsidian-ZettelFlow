@@ -321,6 +321,11 @@ export default {
     types_modal_name_input_placeholder: 'e.g. priority',
     types_modal_native_properties_edit_button_title: 'Shortcut to edit native properties',
 
+    // Root selector
+    root_selector_loading: 'Loading steps...',
+    root_selector_no_steps: 'No root steps found. Right-click a canvas node → "Create managed step" and enable Root.',
+    root_selector_error: 'Could not load steps from the canvas. Check the console for details.',
+
     // Create in current folder
     create_in_current_folder_toggle_title: 'Create note in current folder',
     create_in_current_folder_toggle_description: 'When enabled, notes are always created in the folder of the currently active file, ignoring each step\'s configured target folder.',

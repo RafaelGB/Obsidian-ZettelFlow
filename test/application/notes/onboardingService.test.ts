@@ -1,15 +1,24 @@
-import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { describe, it, expect, jest } from "@jest/globals";
 import {
     createExampleFlow,
     EXAMPLE_CANVAS_PATH,
     EXAMPLE_STEP_PATH,
 } from "application/notes/onboardingService";
 
-const makeMockPlugin = () => {
+const mockTFile = { path: EXAMPLE_STEP_PATH };
+const mockTCanvas = { path: EXAMPLE_CANVAS_PATH };
+
+const makeMockPlugin = (stepExists = false, canvasExists = false) => {
     const vault = {
-        getAbstractFileByPath: jest.fn<() => null | object>().mockReturnValue(null),
+        getAbstractFileByPath: jest.fn<(p: string) => null | object>().mockReturnValue(null),
+        getFileByPath: jest.fn<(p: string) => null | object>((p) => {
+            if (p === EXAMPLE_STEP_PATH && stepExists) return mockTFile;
+            if (p === EXAMPLE_CANVAS_PATH && canvasExists) return mockTCanvas;
+            return null;
+        }),
         createFolder: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
         create: jest.fn<() => Promise<object>>().mockResolvedValue({}),
+        modify: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
     };
     const plugin = {
         app: { vault },
@@ -34,11 +43,10 @@ describe("onboarding constants", () => {
     });
 });
 
-describe("createExampleFlow", () => {
+describe("createExampleFlow — fresh vault (no files exist)", () => {
     it("returns the canvas path on success", async () => {
         const { plugin } = makeMockPlugin();
-        const result = await createExampleFlow(plugin);
-        expect(result).toBe(EXAMPLE_CANVAS_PATH);
+        expect(await createExampleFlow(plugin)).toBe(EXAMPLE_CANVAS_PATH);
     });
 
     it("sets ribbonCanvas on plugin settings", async () => {
@@ -53,7 +61,37 @@ describe("createExampleFlow", () => {
         expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     });
 
-    it("skips createFolder when the folder already exists", async () => {
+    it("calls vault.create for the step file", async () => {
+        const { plugin, vault } = makeMockPlugin();
+        await createExampleFlow(plugin);
+        expect(vault.create).toHaveBeenCalledWith(EXAMPLE_STEP_PATH, expect.stringContaining("zettelFlowSettings"));
+    });
+
+    it("STEP_TEMPLATE contains zettelFlowSettings.root YAML", async () => {
+        const { plugin, vault } = makeMockPlugin();
+        await createExampleFlow(plugin);
+        const stepCall = (vault.create as jest.MockedFunction<typeof vault.create>).mock.calls.find(
+            ([path]) => path === EXAMPLE_STEP_PATH
+        );
+        expect(stepCall).toBeDefined();
+        const content = stepCall![1] as string;
+        expect(content).toContain("zettelFlowSettings:");
+        expect(content).toContain("root: true");
+        expect(content).toContain("type: prompt");
+    });
+
+    it("canvas JSON does not contain zettelflowConfig", async () => {
+        const { plugin, vault } = makeMockPlugin();
+        await createExampleFlow(plugin);
+        const canvasCall = (vault.create as jest.MockedFunction<typeof vault.create>).mock.calls.find(
+            ([path]) => path === EXAMPLE_CANVAS_PATH
+        );
+        expect(canvasCall).toBeDefined();
+        const content = canvasCall![1] as string;
+        expect(content).not.toContain("zettelflowConfig");
+    });
+
+    it("skips createFolder when folders already exist", async () => {
         const { plugin, vault } = makeMockPlugin();
         vault.getAbstractFileByPath.mockReturnValue({ path: "existing" });
         await createExampleFlow(plugin);
@@ -63,8 +101,7 @@ describe("createExampleFlow", () => {
     it("returns null when vault.create rejects", async () => {
         const { plugin, vault } = makeMockPlugin();
         vault.create.mockRejectedValue(new Error("disk full"));
-        const result = await createExampleFlow(plugin);
-        expect(result).toBeNull();
+        expect(await createExampleFlow(plugin)).toBeNull();
     });
 
     it("does not call saveSettings when vault.create fails", async () => {
@@ -72,5 +109,22 @@ describe("createExampleFlow", () => {
         vault.create.mockRejectedValue(new Error("fail"));
         await createExampleFlow(plugin);
         expect(plugin.saveSettings).not.toHaveBeenCalled();
+    });
+});
+
+describe("createExampleFlow — files already exist (overwrite)", () => {
+    it("calls vault.modify instead of vault.create when files exist", async () => {
+        const { plugin, vault } = makeMockPlugin(true, true);
+        await createExampleFlow(plugin);
+        expect(vault.modify).toHaveBeenCalledWith(mockTFile, expect.stringContaining("zettelFlowSettings"));
+        expect(vault.modify).toHaveBeenCalledWith(mockTCanvas, expect.any(String));
+        expect(vault.create).not.toHaveBeenCalled();
+    });
+
+    it("still sets ribbonCanvas and saves settings after modify", async () => {
+        const { plugin } = makeMockPlugin(true, true);
+        await createExampleFlow(plugin);
+        expect(plugin.settings.ribbonCanvas).toBe(EXAMPLE_CANVAS_PATH);
+        expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     });
 });

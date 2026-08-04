@@ -241,3 +241,14 @@
     /* space between list items */
     padding-bottom: 0.35rem;
 }
+
+.zettelkasten-flow__root-selector-status {
+    padding: 1.25rem 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.zettelkasten-flow__root-selector-status--error {
+    color: var(--text-error);
+}

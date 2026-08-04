@@ -5,6 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
+    "dev:vault": "node esbuild.config.mjs vault",
+    "deploy:vault": "node scripts/deploy-vault.mjs",
     "release": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "jest",

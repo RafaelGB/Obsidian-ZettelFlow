@@ -142,3 +142,6 @@ __pycache__
 # Claude Code harness — COMMITTED on purpose (CLAUDE.md, .claude/agents, .claude/skills,
 # .claude/settings.json). Only machine-local overrides are ignored.
 .claude/settings.local.json
+
+# Local Obsidian test vault path — set this to your plugin directory for dev:vault
+.vault-path

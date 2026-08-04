@@ -44,6 +44,8 @@ links (plugin core, actions & note builder, vault hooks, community & backend).
 | Task | Command |
 |---|---|
 | Dev build + watch | `npm run dev` |
+| Dev build + watch + auto-deploy to test vault | `npm run dev:vault` (needs `.vault-path`) |
+| One-shot deploy to test vault | `npm run deploy:vault` (needs `.vault-path`) |
 | Production build (type-check + minify → `dist/`) | `npm run release` |
 | Lint (blocking) | `npm run lint` (oxlint) / `npm run lint:fix` |
 | Type-check (blocking) | `npm run typecheck` |

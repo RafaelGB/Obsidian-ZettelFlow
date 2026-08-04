@@ -178,8 +178,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         name: t("property_hooks_setting_title"),
                         desc: t("property_hooks_setting_description"),
                         render: (setting) => {
+                            setting.settingEl.addClass(c("property-hooks-setting-item"));
                             const container = setting.settingEl.createDiv({
-                                cls: "property-hooks-container",
+                                cls: c("property-hooks-container"),
                             });
                             const root = createRoot(container);
                             root.render(<PropertyHooksManager plugin={plugin} />);

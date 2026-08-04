@@ -1,4 +1,22 @@
 /* Property Hooks Manager Styles */
+
+/*
+ * The hooks manager is a full-width panel, not a standard setting control.
+ * Render it as a block so the manager fills the row below the name/desc header.
+ */
+.zettelkasten-flow__property-hooks-setting-item {
+    display: block;
+
+    .setting-item-control {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__property-hooks-container {
+    padding-top: var(--size-4-2);
+    width: 100%;
+}
+
 .zettelkasten-flow__property-hooks-manager {
     margin: 1rem 0;
 }

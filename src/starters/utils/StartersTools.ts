@@ -9,6 +9,7 @@ import { SettingsTab } from "../zcomponents/SettingsTab";
 import { PluginApi } from "../zcomponents/PluginApi";
 import { HistoryViewComponent } from "../zcomponents/HistoryViewComponent";
 import { FlowStatusComponent } from "../zcomponents/FlowStatusComponent";
+import { TemplateExportComponent } from "../zcomponents/TemplateExportComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -20,6 +21,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new PluginApi(plugin));
     ZComponentsManager.registerComponent(new HistoryViewComponent(plugin));
     ZComponentsManager.registerComponent(new FlowStatusComponent(plugin));
+    ZComponentsManager.registerComponent(new TemplateExportComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

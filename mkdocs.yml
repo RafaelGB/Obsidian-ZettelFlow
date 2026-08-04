@@ -39,6 +39,7 @@ nav:
       - 6.3 Actions & note builder: architecture/actions-and-note-builder.md
       - 6.4 Vault hooks internals: architecture/vault-hooks-internals.md
       - 6.5 Community & backend: architecture/community-and-backend.md
+      - 6.6 .zftemplate schema: architecture/zftemplate-schema.md
   - 7. Development:
       - 7.1 Getting started: development/getting-started.md
       - 7.2 Contributing & conventions: development/contributing-and-conventions.md

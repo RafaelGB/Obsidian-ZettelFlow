@@ -1,0 +1,103 @@
+.zettelkasten-flow__history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 4px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    gap: 8px;
+}
+
+.zettelkasten-flow__history-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    font-weight: 600;
+}
+
+.zettelkasten-flow__history-clear-button {
+    font-size: var(--font-ui-smaller);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-muted);
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__history-empty {
+    padding: 24px 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__history-list {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__history-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    gap: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-small);
+
+    &:hover {
+        background: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__history-entry-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.zettelkasten-flow__history-note-name {
+    font-weight: 500;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-normal);
+
+    &:hover {
+        color: var(--text-accent);
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__history-canvas-name {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+        color: var(--text-accent);
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__history-missing {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.zettelkasten-flow__history-timestamp {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    white-space: nowrap;
+    flex-shrink: 0;
+}

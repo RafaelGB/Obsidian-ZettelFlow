@@ -1,6 +1,7 @@
 import { CommunityFlowData } from "application/community";
 import { Action } from "architecture/api";
 import { StepSettings } from "zettelkasten";
+import type { HistoryEntry } from "application/notes/historyUtils";
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
@@ -53,7 +54,11 @@ export interface ZettelFlowSettings {
 
     }
 
+    /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
+    history: HistoryEntry[];
 }
+
+export type { HistoryEntry } from "application/notes/historyUtils";
 
 
 /**
@@ -132,5 +137,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     hooks: {
         properties: {}, // No global hooks are defined by default.
         folderFlowPath: "_ZettelFlow/hooks" // Default folder for flow scripts.
-    }
+    },
+    history: [],
 };

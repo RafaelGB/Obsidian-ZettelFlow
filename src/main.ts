@@ -11,6 +11,7 @@ import { log } from 'architecture';
 import { t } from 'architecture/lang';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
+import { HistoryView } from 'architecture/components/core/historyView/HistoryView';
 import { allCanvasExtensions, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 
 export default class ZettelFlow extends Plugin {
@@ -59,6 +60,7 @@ export default class ZettelFlow extends Plugin {
 
 	registerViews() {
 		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
+		this.registerView(HistoryView.NAME, (leaf) => new HistoryView(leaf, this));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

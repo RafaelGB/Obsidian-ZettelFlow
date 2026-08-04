@@ -31,6 +31,7 @@
 @use 'components/community.scss';
 @use 'components/hooksConfig.scss';
 @use 'components/codeEditor.scss';
+@use 'components/historyView.scss';
 
 /* Utility: hide an element without inline styles (see no-static-styles-assignment). */
 .zettelkasten-flow__is-hidden {

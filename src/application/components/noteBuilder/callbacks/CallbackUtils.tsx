@@ -8,6 +8,7 @@ import { FileService } from "architecture/plugin";
 import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
+import { HistoryView } from "architecture/components/core/historyView/HistoryView";
 
 export async function nextElement(
   state: CallbackPickedState,
@@ -109,10 +110,13 @@ export async function manageElement(
     actions
       .build(info.modal)
       .then(async (path) => {
-        modal.close();
         if (!modal.isEditor()) {
+          HistoryView.record(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
+            ? info.flow.canvasPath
+            : "");
           void FileService.openFile(path);
         }
+        modal.close();
       })
       .catch((error: ZettelError) => {
         log.error(error);

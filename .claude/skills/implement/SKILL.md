@@ -45,9 +45,30 @@ has the checklist; the plan comment has the files, guardrails, and risks.
 
 ## Exit → stage 5
 
-When all tasks are checked off: run the **`obsidian-plugin-quality`** skill and the
-**`obsidian-plugin-reviewer`** agent on the diff, and verify every acceptance criterion in the
-issue spec (body).
+When all tasks are checked off, do **three things before declaring done**:
+
+### 1. Docs audit (mandatory)
+
+For every user-facing change — new feature, changed behaviour, new config option, new action,
+changed UI text — ask: *does the existing docs page cover this?*
+
+- **New feature / behaviour change** → update the matching page under `docs/` AND check the
+  `mkdocs.yml` nav (add an entry if the feature deserves its own page).
+- **New action** → add or update `docs/actions/<ActionName>.md`.
+- **New config option** → update the settings section of the relevant architecture page.
+- **API / public surface change** → update `docs/api/ZettelFlowAPI.md`.
+- **No user-facing change** (pure refactor, test, chore) → docs audit is still required; confirm
+  explicitly that no doc update is needed and state why.
+
+This audit is a **blocking exit criterion** — do not commit the implementation without it.
+Docs and code travel in the same commit (or a `docs:` follow-up commit immediately after).
+
+### 2. Quality check
+
+Run the **`obsidian-plugin-quality`** skill and the **`obsidian-plugin-reviewer`** agent on the
+diff, and verify every acceptance criterion in the issue spec (body).
+
+### 3. Close the issue via PR
 
 **Closing the issue (constitution §X).** Commits only *reference* the issue (`(#N)`) — they never
 close it. The issue is closed by the **pull request** that merges the branch to `main`: put

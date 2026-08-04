@@ -17,7 +17,7 @@ each step's **actions**. It's a monorepo:
   templates.
 - `docs/` + `mkdocs.yml` — the MkDocs Material site (GitHub Pages).
 
-Current version: `2.11.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
+Current version: `2.12.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
 
 ## Architecture in 60 seconds
 
@@ -155,6 +155,12 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
 
 - Prefer editing existing patterns over inventing new ones — actions, settings handlers, and
   modals each have an established shape; match it.
+- **Docs are a blocking exit criterion for every implementation.** When you finish a feature or
+  fix, before committing, run a docs audit: does any page under `docs/` need to reflect the
+  change? New feature → update or create a doc page. New action → `docs/actions/<Name>.md`.
+  New config option → update the relevant architecture page. Changed behaviour → update the
+  matching page. Pure refactor → confirm in the PR description that no doc change is needed. The
+  `implement` skill exit step encodes the full checklist.
 - When you change behavior or a public surface, update the matching page under `docs/` (and the
   `mkdocs.yml` nav) in the same change.
 - Don't introduce `innerHTML`, inline styles, or Title-case UI strings — they cost score.

@@ -20,6 +20,7 @@ export async function nextElement(
 
   const selectedNode = await flow.get(selected);
   actions.setCurrentNode(selectedNode);
+  actions.setActiveContext(info.modal.getCanvasName(), selectedNode.label);
   if (selectedNode.actions.length > 0 && !data.wasActionTriggered()) {
     manageAction(selectedNode, state, info, 0);
   } else {
@@ -110,6 +111,7 @@ export async function manageElement(
     actions
       .build(info.modal)
       .then(async (path) => {
+        actions.setActiveContext("", "");
         if (!modal.isEditor()) {
           HistoryView.record(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
             ? info.flow.canvasPath

@@ -34,6 +34,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   pbValue: 0,
   pbElements: 0,
   pbElementsDone: 0,
+  activeCanvasName: "",
+  activeStepName: "",
   actions: {
     /*
      * DIRECT ACTIONS
@@ -185,6 +187,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     },
     setCurrentNode: (currentNode) => {
       set({ currentNode });
+    },
+    setActiveContext: (activeCanvasName, activeStepName) => {
+      set({ activeCanvasName, activeStepName });
     },
     setIsCreationMode: (creationMode) => {
       set({ creationMode });

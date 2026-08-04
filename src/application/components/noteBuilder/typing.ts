@@ -69,6 +69,7 @@ export type NoteBuilderStateActions = {
     setActionWasTriggered: (triggered: boolean) => void;
     setEnableSkip: (enable: boolean) => void;
     setCurrentNode: (node: FlowNode) => void;
+    setActiveContext: (canvasName: string, stepName: string) => void;
     // Progress bar actions
     pbFinishElement: () => void;
 }
@@ -89,6 +90,8 @@ export type NoteBuilderState = {
     header: HeaderType;
     builder: NoteBuilder;
     currentNode?: FlowNode;
+    activeCanvasName: string;
+    activeStepName: string;
     actionWasTriggered: boolean;
     actions: NoteBuilderStateActions;
     data: NoteBuilderStateInfo;

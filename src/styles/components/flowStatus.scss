@@ -1,0 +1,18 @@
+.zettelkasten-flow__flow-status {
+    display: none;
+}
+
+.zettelkasten-flow__flow-status--active {
+    display: flex;
+    align-items: center;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    gap: 4px;
+}
+
+.zettelkasten-flow__flow-status-text {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

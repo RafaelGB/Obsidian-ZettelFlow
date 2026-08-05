@@ -70,6 +70,8 @@ export type NoteBuilderStateActions = {
     setEnableSkip: (enable: boolean) => void;
     setCurrentNode: (node: FlowNode) => void;
     setActiveContext: (canvasName: string, stepName: string) => void;
+    // Companion pane: record a chosen connection link and bump the preview (#127)
+    insertLink: (basename: string) => void;
     // Progress bar actions
     pbFinishElement: () => void;
 }
@@ -84,6 +86,8 @@ export type NoteBuilderState = {
     section: SectionType;
     enableSkip: boolean;
     position: number;
+    /** Increments whenever a connection link is inserted, so the preview re-assembles (#127). */
+    linkVersion: number;
     pbValue: number;
     pbElements: number;
     pbElementsDone: number;

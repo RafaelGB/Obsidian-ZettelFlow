@@ -1,7 +1,10 @@
 import React, { StrictMode, useEffect } from "react";
+import { Platform } from "obsidian";
+import { c } from "architecture";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
+import { CompanionPane } from "./CompanionPane";
 import { Section } from "application/components/section";
 import { Header } from "application/components/header";
 import { NavBar } from "application/components/navbar";
@@ -48,11 +51,28 @@ function Component(noteBuilderType: NoteBuilderType) {
     };
   }, []);
 
+  // The companion pane is desktop-only and creation-mode-only (FR-1, FR-10); on mobile or in
+  // the editor flow the wizard renders unchanged.
+  const showCompanionPane = !Platform.isMobile && !editor;
+
+  if (!showCompanionPane) {
+    return (
+      <>
+        <NavBar {...noteBuilderType} />
+        <Header />
+        <Section {...noteBuilderType} />
+      </>
+    );
+  }
+
   return (
-    <>
-      <NavBar {...noteBuilderType} />
-      <Header />
-      <Section {...noteBuilderType} />
-    </>
+    <div className={c("note-builder-layout")}>
+      <div className={c("note-builder-main")}>
+        <NavBar {...noteBuilderType} />
+        <Header />
+        <Section {...noteBuilderType} />
+      </div>
+      <CompanionPane {...noteBuilderType} />
+    </div>
   );
 }

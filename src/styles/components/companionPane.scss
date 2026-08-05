@@ -1,0 +1,112 @@
+/* Companion pane beside the note-builder wizard (#127). Desktop only. */
+
+/* Widen the note-builder modal so the pane fits beside the wizard. */
+.zettelkasten-flow__note-builder-modal-wide {
+    width: 90vw;
+    max-width: 60rem;
+}
+
+.zettelkasten-flow__note-builder-layout {
+    display: flex;
+    gap: var(--size-4-4);
+    align-items: flex-start;
+}
+
+.zettelkasten-flow__note-builder-main {
+    flex: 1 1 55%;
+    min-width: 0;
+}
+
+.zettelkasten-flow__companion-pane {
+    flex: 1 1 45%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4);
+    padding-left: var(--size-4-4);
+    border-left: 1px solid var(--background-modifier-border);
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__companion-pane-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__companion-pane-heading {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__companion-pane-status {
+    margin: 0;
+    padding: var(--size-4-2) 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__companion-pane-status--error {
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__companion-pane-preview {
+    padding: var(--size-4-3);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    background: var(--background-secondary);
+}
+
+.zettelkasten-flow__companion-pane-preview-title {
+    margin: 0 0 var(--size-4-2) 0;
+    word-break: break-word;
+}
+
+.zettelkasten-flow__companion-pane-preview-body {
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__companion-pane-suggestions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__companion-pane-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+}
+
+.zettelkasten-flow__companion-pane-suggestion:hover {
+    background: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__companion-pane-suggestion-open {
+    flex: 1;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-normal);
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-link {
+    flex-shrink: 0;
+    cursor: pointer;
+}

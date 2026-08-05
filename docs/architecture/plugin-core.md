@@ -138,8 +138,8 @@ Both extend `CanvasExtension` (constructor stores `plugin`, calls `abstract init
 - **`EditStepCanvasExtension`** — listens to `canvas:popup-menu`; on a ZettelFlow canvas adds
   "Edit ZettelFlow Step" (single selection → `StepBuilderModal`) or "Copy Flow to Clipboard".
 - **`AddManagedStepExtension`** — listens to `zettelflow-node-connection-drop-menu`; adds
-  "Create Managed Step" (pick an installed step → creates a node with
-  `unknownData.zettelflowConfig`) and "Import Flow Data from Clipboard".
+  "Create Managed Step" (if templates are installed: pick one first; otherwise: blank step config)
+  → creates a node with `unknownData.zettelflowConfig`) and "Import Flow Data from Clipboard".
 
 All extensions gate on `CanvasHelper.isCanvasFlow(plugin)` — i.e. the active file is
 `ribbonCanvas` / `editorCanvas` or lives under `foldersFlowsPath` / `hooks.folderFlowPath`.

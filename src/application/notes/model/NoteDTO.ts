@@ -7,6 +7,7 @@ export class NoteDTO {
     private title = "";
     private paths = new Map<number, string>();
     private savedActions = new Map<number, FinalElement>();
+    private links: string[] = [];
     private uniquePrefixPattern = "";
     private targetFolder = "";
     private targetFolderLocked = false;
@@ -120,6 +121,22 @@ export class NoteDTO {
                 this.savedActions.delete(position);
             }
         });
+        return this;
+    }
+
+    /**
+     * Connection links chosen in the companion pane, appended to the note body as
+     * `[[wikilinks]]` when the note is built (#127). Session-scoped: not tied to a step
+     * position, so navigating back and forth does not discard them.
+     */
+    public getLinks(): string[] {
+        return this.links;
+    }
+
+    public addLink(basename: string | undefined): NoteDTO {
+        if (basename && !this.links.includes(basename)) {
+            this.links.push(basename);
+        }
         return this;
     }
 

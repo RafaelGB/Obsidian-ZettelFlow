@@ -117,6 +117,8 @@ Outliers to know:
 - `title`, `targetFolder`, `uniquePrefixPattern`.
 - `paths: Map<number, string>` — chosen step-template `.md` paths, keyed by wizard position.
 - `savedActions: Map<number, FinalElement>` — configured actions + their results.
+- `links: string[]` — connection links chosen in the companion pane; appended to the body as
+  `[[wikilinks]]` at build time (`addLink`/`getLinks`, session-scoped).
 - `getFinalPath()` = `targetFolder/title.md`; `deletePos(pos)` prunes paths/actions at/after a
   position (used by back-navigation).
 - `lockTargetFolder(path)` — pins the note to a specific folder, preventing any per-step
@@ -136,7 +138,7 @@ Outliers to know:
   backed by a real file, also `processTypedFrontMatter` + `postProcess`.
 
 `buildNote()` — for each chosen step template: read its frontmatter (`addFrontMatter`) and body
-(`add`), then `manageElements()`.
+(`add`), then `manageElements()`, then `appendConnectionLinks()` (companion-pane links, if any).
 
 `manageElements()` — for each saved action element:
 `actionsStore.getAction(element.type).execute({ element, content, note, context })`, advancing
@@ -201,6 +203,49 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
              0 ─► ProgressBar ─► builder.build(modal)
                      buildNote → execute each action → createFile
                      → processTypedFrontMatter → postProcess → open note
+```
+
+### The companion pane — live preview & connection suggestions
+
+On **desktop, in the creation flow** (ribbon → `SelectorMenuModal`), a **companion pane** renders
+beside the wizard (`application/components/noteBuilder/CompanionPane.tsx`). It gives the author a
+feedback loop (*what am I building?*) and nudges a link before the note is filed (*connect it*).
+On mobile, or in the editor/embedded flow, the wizard renders exactly as before — the pane is
+absent (`!Platform.isMobile && !modal.getMarkdownView()` gate in `SelectorMenu.tsx`).
+
+**Live preview.** The pane reproduces the note **in memory** — no vault file is created,
+modified, or deleted. The Obsidian-free pure function
+`assembleNotePreview` (`application/notes/previewAssembly.ts`) mirrors `NoteBuilder.buildNote()`:
+concatenate step-template bodies in position order, merge frontmatter (hoisting/de-duping `tags`),
+run `substituteContextTokens`, apply each captured action result by its `zone`
+(`body` → `{{key}}` replace, `frontmatter` → set, `context` → ignored for display), substitute
+`{{title}}`, and append any recorded connection links. The React side does the async file reads
+(`FrontmatterService.getContent`/`getFrontmatter`, cached per session), then calls the pure
+function and renders the result via `MarkdownService` (a YAML frontmatter block + the body).
+
+**Connection suggestions.** A second pure function
+`rankConnectionSuggestions` (`application/notes/connectionSuggestions.ts`) scores candidate notes
+(gathered from `metadataCache`) by shared tags and title-keyword overlap, returning a bounded,
+relevance-ordered top-N. Each suggestion opens the note on click; the **insert-link** control
+records the note on `NoteDTO` (`addLink`) via the store's `insertLink` action. Recorded links are
+appended to the body as `[[wikilinks]]` at build time (`NoteBuilder.appendConnectionLinks`) and
+are reflected live in the preview.
+
+**Re-render, performance, observability.** The `builder` object is mutated in place and never
+changes identity, so the pane subscribes to identity-changing store values — `position`, `title`,
+and a `linkVersion` counter — and reads builder data fresh. Assembly is **debounced ~300ms**
+(`window.setTimeout`), template reads are **session-cached**, and the candidate scan is bounded.
+Assembly logs its elapsed time (`log.debug`); a template-read failure surfaces a `Notice` and
+`log.error` and leaves the wizard fully usable. The pane always shows one of four states:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Empty: pane opens (no answers yet)
+    Empty --> Loading: first step answered / title typed
+    Loading --> Ready: assembled + suggestions ready
+    Loading --> Error: template read failed (Notice + log.error)
+    Ready --> Loading: step advances / title edited / link inserted
+    Error --> Loading: retry on next change
 ```
 
 ## 7. Script action & the `zf` API

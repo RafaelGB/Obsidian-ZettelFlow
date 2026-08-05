@@ -123,6 +123,20 @@ export class NoteBuilder {
     }
     this.applyContextTokens();
     await this.manageElements();
+    this.appendConnectionLinks();
+  }
+
+  /**
+   * Appends the connection links chosen in the companion pane (#127) to the note body as
+   * `[[wikilinks]]`, so authors can link before they file. No-op when none were chosen.
+   */
+  private appendConnectionLinks(): void {
+    const links = this.note.getLinks();
+    if (links.length === 0) return;
+    const body = this.content.get();
+    const wikilinks = links.map((link) => `[[${link}]]`).join("\n");
+    const separator = body.length === 0 || body.endsWith("\n") ? "\n" : "\n\n";
+    this.content.set(body.concat(separator, wikilinks, "\n"));
   }
 
   private applyContextTokens(): void {

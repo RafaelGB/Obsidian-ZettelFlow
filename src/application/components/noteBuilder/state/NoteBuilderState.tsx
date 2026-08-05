@@ -16,6 +16,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   creationMode: true,
   title: "",
   position: 0,
+  linkVersion: 0,
   currentAction: "",
   previousSections: new Map(),
   previousArray: [],
@@ -151,6 +152,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         creationMode: true,
         title: "",
         position: 0,
+        linkVersion: 0,
         previousSections: new Map(),
         previousArray: [],
         invalidTitle: false,
@@ -194,6 +196,13 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setActiveContext: (activeCanvasName, activeStepName) => {
       set({ activeCanvasName, activeStepName });
     },
+    insertLink: (basename) =>
+      set((state) => {
+        const { builder, linkVersion } = state;
+        builder.note.addLink(basename);
+        // linkVersion changes identity so the companion pane re-assembles the preview (#127).
+        return { builder, linkVersion: linkVersion + 1 };
+      }),
     setIsCreationMode: (creationMode) => {
       set({ creationMode });
     },

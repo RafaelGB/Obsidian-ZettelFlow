@@ -107,6 +107,35 @@ describe("NoteDTO", () => {
   });
 });
 
+describe("NoteDTO connection links", () => {
+  it("records connection links in insertion order", () => {
+    const n = new NoteDTO();
+    n.addLink("First note").addLink("Second note");
+    expect(n.getLinks()).toEqual(["First note", "Second note"]);
+  });
+
+  it("de-duplicates repeated links", () => {
+    const n = new NoteDTO();
+    n.addLink("Repeat").addLink("Repeat");
+    expect(n.getLinks()).toEqual(["Repeat"]);
+  });
+
+  it("ignores empty link names", () => {
+    const n = new NoteDTO();
+    n.addLink("");
+    expect(n.getLinks()).toEqual([]);
+  });
+
+  it("drops links at or after a position on deletePos (kept in sync with steps)", () => {
+    const n = new NoteDTO();
+    n.addLink("Kept").addLink("Dropped");
+    n.addPath("a", 0).addPath("b", 1);
+    n.deletePos(1);
+    // links are session-scoped, not position-keyed, so they survive step navigation
+    expect(n.getLinks()).toEqual(["Kept", "Dropped"]);
+  });
+});
+
 describe("NoteDTO.lockTargetFolder", () => {
   it("sets the folder and locks it", () => {
     const n = new NoteDTO();

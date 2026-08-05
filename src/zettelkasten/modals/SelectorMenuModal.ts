@@ -1,10 +1,10 @@
-import { App, MarkdownFileInfo, MarkdownView, Modal, TFile } from "obsidian";
+import { App, MarkdownFileInfo, MarkdownView, Modal, Platform, TFile } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import ZettelFlow from "main";
 import { buildSelectorMenu } from "application/components/noteBuilder";
 import { Flow } from "architecture/plugin/canvas";
 import { buildTutorial } from "application/components/noteBuilder/SelectorMenu";
-import { log } from "architecture";
+import { c, log } from "architecture";
 
 export class SelectorMenuModal extends Modal {
     private root: Root;
@@ -30,6 +30,10 @@ export class SelectorMenuModal extends Modal {
     }
 
     onOpen(): void {
+        // Widen the modal so the companion pane sits beside the wizard (desktop, creation flow).
+        if (this.flow && !Platform.isMobile && !this.isEditor()) {
+            this.modalEl.addClass(c("note-builder-modal-wide"));
+        }
         const child = this.contentEl.createDiv();
         this.root = createRoot(child);
         if (this.flow) {

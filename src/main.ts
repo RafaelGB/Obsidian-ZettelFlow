@@ -5,7 +5,7 @@ import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
 	BackLinkAction, CalendarAction, CheckboxAction,
 	CssClassesAction, DynamicSelectorAction, NumberAction, PromptAction, ScriptAction, SelectorAction,
-	TagsAction, TaskManagementAction
+	TagsAction, TaskManagementAction, ZettelIdAction
 } from 'actions';
 import { log } from 'architecture';
 import { t } from 'architecture/lang';
@@ -93,5 +93,6 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new CssClassesAction());
 		actionsStore.registerAction(new ScriptAction());
 		actionsStore.registerAction(new TaskManagementAction());
+		actionsStore.registerAction(new ZettelIdAction());
 	}
 }

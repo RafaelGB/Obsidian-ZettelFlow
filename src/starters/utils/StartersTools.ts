@@ -11,6 +11,7 @@ import { HistoryViewComponent } from "../zcomponents/HistoryViewComponent";
 import { FlowStatusComponent } from "../zcomponents/FlowStatusComponent";
 import { TemplateExportComponent } from "../zcomponents/TemplateExportComponent";
 import { OnboardingComponent } from "../zcomponents/OnboardingComponent";
+import { SlipboxHealthViewComponent } from "../zcomponents/SlipboxHealthViewComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -24,6 +25,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new FlowStatusComponent(plugin));
     ZComponentsManager.registerComponent(new TemplateExportComponent(plugin));
     ZComponentsManager.registerComponent(new OnboardingComponent(plugin));
+    ZComponentsManager.registerComponent(new SlipboxHealthViewComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

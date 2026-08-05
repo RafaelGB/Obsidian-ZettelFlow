@@ -48,6 +48,7 @@ nav:
       - 7.4 Obsidian review & scoring: development/obsidian-review-and-scoring.md
       - 7.5 Project health & roadmap: development/project-health-and-roadmap.md
       - 7.6 Spec-driven development: development/spec-driven-development.md
+      - 7.7 Slip-box health dashboard: development/slipbox-health-dashboard.md
       - 7.7 Capabilities & privacy: development/capabilities-and-privacy.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

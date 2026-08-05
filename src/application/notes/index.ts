@@ -13,3 +13,14 @@ export type {
     PreviewElement,
     PreviewTemplate,
 } from './previewAssembly';
+
+export {
+    rankConnectionSuggestions,
+    extractTitleKeywords,
+    DEFAULT_MAX_SUGGESTIONS,
+} from './connectionSuggestions';
+export type {
+    ConnectionSuggestion,
+    SuggestionCandidate,
+    RankSuggestionsInput,
+} from './connectionSuggestions';

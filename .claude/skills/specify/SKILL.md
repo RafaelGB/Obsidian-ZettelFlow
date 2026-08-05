@@ -29,6 +29,9 @@ issue, the relevant code, and `docs/development/constitution.md`, then writes th
      "`es.ts` has every key `en.ts` has").
    - **Capability disclosure** — tick file-system / network / clipboard / script-exec / none
      (constitution §VII).
+   - **Diagrams** — at least one Mermaid diagram (flow / state / sequence). Rules and templates:
+     [`references/diagrams.md`](references/diagrams.md). Show empty/loading/error states (UX-first),
+     annotate expensive edges (performance) and where logs/events fire (observability).
    - **Out of scope / Open questions** — keep the change small; surface unknowns now.
 
 ## Quality bar (the stage-1 gate)

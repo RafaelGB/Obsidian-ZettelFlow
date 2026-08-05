@@ -62,9 +62,21 @@ Add the label `sdd` to mark it as a spec-driven issue.
 - [ ] Script execution
 - [x] None / already disclosed
 
+## Diagrams
+<at least one Mermaid diagram — see below>
+
 ## Out of scope
 <bound the change; surface unknowns>
 ```
+
+### Diagrams (required)
+
+Every non-trivial spec includes **at least one Mermaid diagram** under a `## Diagrams` section.
+Follow `.claude/skills/specify/references/diagrams.md`: pick flow / state / sequence by what the
+change is about; show **empty/loading/error** states (UX-first), annotate **expensive** edges
+(file I/O, network, indexing) and mark where **logs/events/Notices** fire (observability). Keep
+spec-stage diagrams at the level of user-observable flow/state — save call-level sequence diagrams
+for the plan comment.
 
 ## Rules
 

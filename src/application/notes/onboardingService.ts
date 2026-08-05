@@ -76,6 +76,10 @@ async function writeFile(
  *
  * Returns true if the file was rewritten, false if no repair was needed.
  */
+// The old onboarding (before aaac1c5) created Introduction.md with just this line.
+// We only auto-repair that exact default; any other content is user-customised.
+const OLD_BROKEN_TEMPLATE = "# {{title}}";
+
 export async function repairBrokenExampleFlow(plugin: ZettelFlow): Promise<boolean> {
     if (plugin.settings.ribbonCanvas !== EXAMPLE_CANVAS_PATH) return false;
     const { vault } = plugin.app;
@@ -83,6 +87,7 @@ export async function repairBrokenExampleFlow(plugin: ZettelFlow): Promise<boole
     if (!stepFile) return false;
     const content = await vault.cachedRead(stepFile);
     if (content.includes("zettelFlowSettings:")) return false;
+    if (content.trim() !== OLD_BROKEN_TEMPLATE) return false;
     await vault.modify(stepFile, STEP_TEMPLATE);
     return true;
 }
@@ -94,8 +99,14 @@ export async function createExampleFlow(plugin: ZettelFlow): Promise<string | nu
         await ensureFolder(vault, EXAMPLE_STEPS_FOLDER);
         await ensureFolder(vault, EXAMPLE_NOTES_FOLDER);
 
+        // Step file: always write the latest template so the frontmatter is correct.
         await writeFile(vault, EXAMPLE_STEP_PATH, STEP_TEMPLATE);
-        await writeFile(vault, EXAMPLE_CANVAS_PATH, EXAMPLE_CANVAS_CONTENT);
+
+        // Canvas: only create when it does not yet exist.
+        // An existing canvas may contain user-added nodes — never overwrite it.
+        if (!vault.getFileByPath(EXAMPLE_CANVAS_PATH)) {
+            await vault.create(EXAMPLE_CANVAS_PATH, EXAMPLE_CANVAS_CONTENT);
+        }
 
         plugin.settings.ribbonCanvas = EXAMPLE_CANVAS_PATH;
         await plugin.saveSettings();

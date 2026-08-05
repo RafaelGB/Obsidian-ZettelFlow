@@ -123,14 +123,25 @@ export default class AddManagedStepExtension extends CanvasExtension {
      * Handles the managed step creation process by first prompting the user to select a step,
      * then presenting node creation options based on the chosen step.
      *
+     * When no step templates are installed, skip the template picker and go directly to
+     * the node-type selection with a blank step configuration so the canvas is never left
+     * with an unusable empty modal.
+     *
      * @param {Canvas} canvas - The canvas where the node will be created.
      * @param {Position} pos - The position at which to create the node.
      */
     private handleManagedStepCreation(canvas: Canvas, pos: Position): void {
-        new UsedInstalledStepsModal(this.plugin, (step) => {
+        const installedSteps = this.plugin.settings.installedTemplates.steps;
+        const openNodeTypeModal = (step: StepSettings) => {
             const options: Option[] = this.getCreationOptions(canvas, pos, step);
             new OptionsModal(this.plugin.app, "Type of Canvas component", options).open();
-        }).open();
+        };
+
+        if (Object.keys(installedSteps).length > 0) {
+            new UsedInstalledStepsModal(this.plugin, openNodeTypeModal).open();
+        } else {
+            openNodeTypeModal({ root: false, actions: [], label: "" });
+        }
     }
 
     /**

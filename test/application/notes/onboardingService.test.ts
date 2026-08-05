@@ -156,6 +156,19 @@ describe("repairBrokenExampleFlow", () => {
         );
     });
 
+    it("does NOT overwrite a file with custom content that lacks frontmatter", async () => {
+        const { plugin, vault } = makeRepairPlugin({
+            stepExists: true,
+            stepContent: "# My custom introduction\n\nUser notes here.\n",
+            ribbonCanvas: EXAMPLE_CANVAS_PATH,
+        });
+
+        const repaired = await repairBrokenExampleFlow(plugin);
+
+        expect(repaired).toBe(false);
+        expect(vault.modify).not.toHaveBeenCalled();
+    });
+
     it("does NOT overwrite a file that already has correct frontmatter", async () => {
         const { plugin, vault } = makeRepairPlugin({
             stepExists: true,
@@ -197,16 +210,25 @@ describe("repairBrokenExampleFlow", () => {
     });
 });
 
-describe("createExampleFlow — files already exist (overwrite)", () => {
-    it("calls vault.modify instead of vault.create when files exist", async () => {
+describe("createExampleFlow — files already exist", () => {
+    it("overwrites the step file but preserves the canvas when both exist", async () => {
         const { plugin, vault } = makeMockPlugin(true, true);
         await createExampleFlow(plugin);
+        // Step file: overwritten to apply latest template
         expect(vault.modify).toHaveBeenCalledWith(mockTFile, expect.stringContaining("zettelFlowSettings"));
-        expect(vault.modify).toHaveBeenCalledWith(mockTCanvas, expect.any(String));
-        expect(vault.create).not.toHaveBeenCalled();
+        // Canvas: NOT overwritten — user data is preserved
+        const canvasModify = (vault.modify.mock.calls as [object, string][]).find(
+            ([f]) => (f as { path: string }).path === EXAMPLE_CANVAS_PATH
+        );
+        expect(canvasModify).toBeUndefined();
+        // Canvas: NOT re-created (already exists)
+        const canvasCreate = (vault.create.mock.calls as [string, string][]).find(
+            ([p]) => p === EXAMPLE_CANVAS_PATH
+        );
+        expect(canvasCreate).toBeUndefined();
     });
 
-    it("still sets ribbonCanvas and saves settings after modify", async () => {
+    it("still sets ribbonCanvas and saves settings", async () => {
         const { plugin } = makeMockPlugin(true, true);
         await createExampleFlow(plugin);
         expect(plugin.settings.ribbonCanvas).toBe(EXAMPLE_CANVAS_PATH);

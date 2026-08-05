@@ -33,8 +33,6 @@ export default {
     step_builder_body_template_title: 'Body template',
     step_builder_body_template_description: 'Markdown template for the created note\'s body',
     step_builder_body_template_placeholder: 'Write markdown content here...',
-    step_builder_preview_toggle_title: 'Toggle preview',
-    step_builder_preview_placeholder: 'Preview will appear here once you type.',
     command_export_canvas_template: 'Export current canvas as .zftemplate',
     command_import_canvas_template: 'Import .zftemplate',
     export_template_no_canvas: 'No canvas file is currently active',

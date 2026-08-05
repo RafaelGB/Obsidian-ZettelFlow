@@ -1,4 +1,4 @@
-import { Component, MarkdownRenderer, Notice, Platform, setIcon, TFile } from "obsidian";
+import { Notice, Platform, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
@@ -11,20 +11,12 @@ import ZettelFlow from "main";
 import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
 import { UsedInstalledStepsModal } from "application/community";
 import { ConfirmModal } from "architecture/components/settings";
-import { substitutePreviewTokens } from "application/notes/previewUtils";
-
-const PREVIEW_STORAGE_KEY = "zettelflow-preview-open";
-
 
 export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
-
-    private previewEl: HTMLElement | undefined;
-    private previewComponent: Component | undefined;
-    private debounceTimer: number | undefined;
 
     constructor(
         private plugin: ZettelFlow,
@@ -159,48 +151,21 @@ export class StepBuilderModal extends AbstractStepModal {
         });
         setIcon(saveButton.createDiv(), "book-marked");
 
-        // Preview toggle (desktop only)
-        if (!Platform.isMobile && this.mode !== "embed") {
-            const previewOpen = this.plugin.app.loadLocalStorage(PREVIEW_STORAGE_KEY) !== false;
-            const toggleButton = navbarButtonGroup.createEl("button", {
-                title: t("step_builder_preview_toggle_title")
-            }, el => {
-                el.addClass("mod-cta");
-                el.toggleClass("is-active", previewOpen);
-                el.addEventListener("click", () => {
-                    const isOpen = this.plugin.app.loadLocalStorage(PREVIEW_STORAGE_KEY) !== false;
-                    const next = !isOpen;
-                    this.plugin.app.saveLocalStorage(PREVIEW_STORAGE_KEY, next);
-                    el.toggleClass("is-active", next);
-                    if (this.previewEl) {
-                        this.previewEl.parentElement?.toggleClass(
-                            c("step-builder-preview-wrapper--hidden"), !next
-                        );
-                    }
-                });
-            });
-            setIcon(toggleButton.createDiv(), "eye");
-        }
-
         this.chain.handle(this);
 
-        // Body template + preview (desktop only, not in embed mode)
+        // Body template editor (desktop only, not in embed mode). Embed nodes store
+        // their config on the canvas node itself, so they have no markdown body to edit.
         if (!Platform.isMobile && this.mode !== "embed") {
-            this.setupBodyAndPreview();
+            this.setupBody();
         }
     }
 
     refresh(): void {
-        window.clearTimeout(this.debounceTimer);
-        this.debounceTimer = undefined;
-        this.previewComponent?.unload();
-        this.previewComponent = undefined;
-        this.previewEl = undefined;
         this.contentEl.empty();
         this.onOpen();
     }
 
-    private setupBodyAndPreview(): void {
+    private setupBody(): void {
         const { contentEl } = this.info;
         const textarea = contentEl.createEl("textarea", {
             cls: c("step-builder-body"),
@@ -209,23 +174,11 @@ export class StepBuilderModal extends AbstractStepModal {
         textarea.value = this.info.body ?? "";
         textarea.addEventListener("input", () => {
             this.info.body = textarea.value;
-            this.schedulePreviewUpdate();
         });
-
-        const previewOpen = this.plugin.app.loadLocalStorage(PREVIEW_STORAGE_KEY) !== false;
-        const wrapper = contentEl.createDiv({ cls: c("step-builder-preview-wrapper") });
-        wrapper.toggleClass(c("step-builder-preview-wrapper--hidden"), !previewOpen);
-
-        const header = wrapper.createDiv({ cls: c("step-builder-preview-header") });
-        header.textContent = "Preview";
-
-        this.previewEl = wrapper.createDiv({ cls: c("step-builder-preview-content") });
 
         // Load from file when editing (body undefined = not yet loaded)
         if (this.info.body === undefined && this.mode === "edit") {
             void this.loadBodyFromFile(textarea);
-        } else {
-            this.schedulePreviewUpdate();
         }
     }
 
@@ -237,42 +190,9 @@ export class StepBuilderModal extends AbstractStepModal {
         const body = await FrontmatterService.instance(file).getContent();
         this.info.body = body;
         textarea.value = body;
-        this.schedulePreviewUpdate();
-    }
-
-    private schedulePreviewUpdate(): void {
-        window.clearTimeout(this.debounceTimer);
-        this.debounceTimer = window.setTimeout(() => {
-            this.debounceTimer = undefined;
-            void this.renderPreview();
-        }, 300);
-    }
-
-    private async renderPreview(): Promise<void> {
-        if (!this.previewEl) return;
-        this.previewComponent?.unload();
-        this.previewComponent = new Component();
-        this.previewComponent.load();
-
-        this.previewEl.empty();
-        const date = new Date().toISOString().split("T")[0];
-        const substituted = substitutePreviewTokens(
-            this.info.body ?? "",
-            this.info.label,
-            date
-        );
-        await MarkdownRenderer.render(
-            this.plugin.app,
-            substituted || `*${t("step_builder_preview_placeholder")}*`,
-            this.previewEl,
-            this.info.folder?.path ?? "",
-            this.previewComponent
-        );
     }
 
     onClose(): void {
-        window.clearTimeout(this.debounceTimer);
-        this.previewComponent?.unload();
         this.save().then(() => {
             log.info(`Step saved successfully`);
         }).catch((error) => {

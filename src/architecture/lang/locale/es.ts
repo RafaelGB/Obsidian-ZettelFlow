@@ -33,8 +33,6 @@ export default {
     step_builder_body_template_title: 'Plantilla del cuerpo',
     step_builder_body_template_description: 'Plantilla en Markdown para el cuerpo de la nota creada',
     step_builder_body_template_placeholder: 'Escribe contenido en Markdown aquí...',
-    step_builder_preview_toggle_title: 'Mostrar u ocultar vista previa',
-    step_builder_preview_placeholder: 'La vista previa aparecerá aquí cuando escribas.',
     command_export_canvas_template: 'Exportar canvas actual como .zftemplate',
     command_import_canvas_template: 'Importar .zftemplate',
     export_template_no_canvas: 'No hay ningún archivo canvas activo actualmente',

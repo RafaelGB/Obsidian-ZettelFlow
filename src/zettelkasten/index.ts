@@ -3,7 +3,8 @@ export {
     StepBuilderInfo, StepSettings, ZettelFlowElement,
     SectionInfo, ZoneOption, AditionBaseElement,
     PromptElement, NumberElement, CalendarElement,
-    SelectorElement, CheckboxElement, TagsElement
+    SelectorElement, CheckboxElement, TagsElement,
+    ZettelIdElement
 } from './typing';
 export { StepBuilderModal } from './modals/StepBuilderModal';
 export { SelectorMenuModal } from './modals/SelectorMenuModal';

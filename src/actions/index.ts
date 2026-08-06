@@ -10,3 +10,4 @@ export { CheckboxAction } from './checkbox/CheckboxAction';
 export { TaskManagementAction } from './taskManagement/TaskManagementAction';
 export { DynamicSelectorAction } from './dynamicSelector/DynamicSelectorAction';
 export { ScriptResult } from './dynamicSelector/typing';
+export { ZettelIdAction } from './zettelId/ZettelIdAction';

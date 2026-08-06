@@ -23,6 +23,7 @@ nav:
       - 2.9 CssClasses: actions/CssClasses.md
       - 2.10 TaskManagement: actions/TaskManagement.md
       - 2.11 Script: actions/Script.md
+      - 2.12 Zettel ID: actions/ZettelId.md
   - 3. Vault Hooks:
       - 3.1 Property Hooks:
           - 3.1.1 Overview: vault-hooks/property-hooks/overview.md

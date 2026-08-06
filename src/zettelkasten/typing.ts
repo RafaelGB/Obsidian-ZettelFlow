@@ -2,6 +2,7 @@ import { Menu, TFolder } from "obsidian";
 import { Action } from "architecture/api";
 import { ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
+import type { ZettelIdStrategy, FolgezettelRelationship } from "../actions/zettelId/zettelIdLogic";
 
 export type StepBuilderInfo = {
     type: string,
@@ -90,3 +91,14 @@ export type CheckboxElement = {
     confirmTooltip: string,
     staticValue?: boolean,
 } & AditionBaseElement;
+
+export type { ZettelIdStrategy, FolgezettelRelationship };
+export type ZettelIdElement = {
+    strategy?: ZettelIdStrategy;
+    key: string;
+    writeFrontmatter: boolean;
+    writeFilename: boolean;
+    timestampFormat: string;
+    parent?: string;
+    relationship: FolgezettelRelationship;
+} & Action;

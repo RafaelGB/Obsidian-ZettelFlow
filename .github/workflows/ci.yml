@@ -1,14 +1,23 @@
 name: CI
 
-# Quality guardrails for every pull request and feature-branch push:
-# type-check, lint and unit tests are BLOCKING; the Obsidian guideline lint is advisory
-# until the tracked violations are fixed (then make it blocking).
+# Quality guardrails: type-check, lint and unit tests are BLOCKING.
+#
+# Triggers are deduped so each change runs the suite ONCE:
+#   - pull_request → the canonical check for every feature/fix branch (branch protection uses it).
+#   - push → only main and release/** (post-merge verification). Feature/fix branches are NOT
+#     built on push; they always land through a PR, so a push trigger here only duplicated the
+#     pull_request run and competed for hosted runners.
+# The concurrency group cancels an in-progress run when the same PR/branch is pushed again.
 on:
   pull_request:
   push:
     branches:
-      - "feature/**"
-      - "fix/**"
+      - main
+      - "release/**"
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

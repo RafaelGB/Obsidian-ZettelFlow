@@ -5,6 +5,7 @@ import { Completion, CompletionTree } from "architecture/components/core";
 import { noteCompletions } from "./config/NoteFns";
 import { contentCompletions } from "./config/ContentFns";
 import { c } from "architecture";
+import { findCompletions as findCompletionsInTree, KeyCompletionDefaults } from "architecture/components/core/codeView/editor/extensions/autoconfiguration/completionTree";
 
 // Define the structure of the event object
 const scriptActionTree: CompletionTree = {
@@ -19,54 +20,13 @@ const scriptActionTree: CompletionTree = {
     }
 }
 
-/**
- * Verify if the node is an array of Completion objects
- */
-function isCompletionArray(node: unknown): node is Completion[] {
-    return Array.isArray(node);
-}
+const SCRIPT_DEFAULTS: KeyCompletionDefaults = { info: "ZF API", detail: "✨ ZettelFlow Script Action" };
 
 function findCompletions(
     segments: string[],
     node: Record<string, unknown> | Completion[]
 ): Completion[] | null {
-    // If the node is an array of completions, return it
-    if (isCompletionArray(node)) return node;
-
-    // If there are no segments, return the keys of the current node
-    if (segments.length === 0) {
-        return Object.keys(node).map(key => ({
-            label: key,
-            type: 'object',
-            info: 'ZF API',
-            boost: 99, // Prioritize ZettelFlow completions
-            detail: '✨ ZettelFlow Script Action' // Visual indicator for ZettelFlow
-        }));
-    }
-
-    // Get the next segment without removing it
-    const nextSegment = segments[0];
-
-    // Continue recursively with the next node if it exists
-    const nextNode = node[nextSegment] as Record<string, unknown> | undefined;
-    if (!nextNode) {
-        // If the segment does not match any key, return the current keys
-        return Object.keys(node).map(key => ({
-            label: key,
-            type: 'object',
-            info: 'ZF API',
-            boost: 99,
-            detail: '✨ ZettelFlow'
-        }));
-    }
-
-    // Stop suggesting if we've reached a leaf node that's not a completion array or object
-    if (typeof nextNode !== 'object' || nextNode === null) {
-        return null;
-    }
-
-    // Move to the next segment
-    return findCompletions(segments.slice(1), nextNode);
+    return findCompletionsInTree(segments, node, SCRIPT_DEFAULTS);
 }
 
 function customCompletionProvider(context: CompletionContext): CompletionResult | null {

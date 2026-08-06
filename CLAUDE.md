@@ -163,5 +163,11 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
   `implement` skill exit step encodes the full checklist.
 - When you change behavior or a public surface, update the matching page under `docs/` (and the
   `mkdocs.yml` nav) in the same change.
+- **Surface important features in the README (adoption is a first-class goal).** If a change ships
+  a feature a *user* would care about (a new command, view, action, or workflow — not an internal
+  refactor), it must appear in the main `README.md` in the same change: add a row to the **Features**
+  table, and for a headline capability also a bullet in the **Zettelkasten toolkit** section. The
+  README is how new users decide to install — a shipped-but-unadvertised feature is a missed
+  download. This is a blocking exit criterion (see the `implement` skill).
 - Don't introduce `innerHTML`, inline styles, or Title-case UI strings — they cost score.
 - Keep the two locale files (`en.ts`/`es.ts`) in sync.

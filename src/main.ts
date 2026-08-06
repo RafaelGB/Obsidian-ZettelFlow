@@ -13,6 +13,7 @@ import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
 import { HistoryView } from 'architecture/components/core/historyView/HistoryView';
 import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/SlipboxHealthView';
+import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
@@ -75,6 +76,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
 		this.registerView(HistoryView.NAME, (leaf) => new HistoryView(leaf, this));
 		this.registerView(SlipboxHealthView.NAME, (leaf) => new SlipboxHealthView(leaf));
+		this.registerView(ResurfaceView.NAME, (leaf) => new ResurfaceView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

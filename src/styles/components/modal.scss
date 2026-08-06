@@ -5,82 +5,112 @@
     max-height: var(--modal-max-height);
 }
 
+/* Sticky, theme-aware header so the title + actions stay visible while the body scrolls. */
 .zettelkasten-flow__modal-navbar {
     display: flex;
     justify-content: space-between;
-    /* Empuja los elementos a los extremos */
     align-items: center;
-    /* Centra verticalmente */
-    padding: 0.5em 1em;
-    /* Margen interior */
-    border-bottom: 1px solid #ccc;
-    /* Línea separadora */
+    gap: 0.75rem;
+    padding: 0.75rem 0.25rem 0.85rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .zettelkasten-flow__modal-navbar h2 {
     margin: 0;
-    /* Elimina márgenes */
-    font-size: 1.5em;
-    /* Tamaño de la fuente */
-    font-weight: bold;
-    /* Negrita */
-}
-.zettelkasten-flow__navbar-button-group {
-    display: flex;
-    /* Flexbox */
-    gap: 0.5em;
-    /* Espacio entre elementos */
+    font-size: var(--h3-size);
+    font-weight: var(--h3-weight);
+    line-height: 1.2;
+    color: var(--text-normal);
 }
 
-.zettelkasten-flow__modal-navbar button {
+.zettelkasten-flow__navbar-button-group {
+    display: flex;
+    gap: 0.35rem;
+    flex-shrink: 0;
     margin-left: auto;
-    /* Empuja el botón hacia la derecha */
+}
+
+/* Compact, square icon buttons in the header — consistent hit target, subtle hover. */
+.zettelkasten-flow__navbar-button-group button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: var(--radius-s);
+    transition: background-color 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.zettelkasten-flow__navbar-button-group button:hover {
+    transform: translateY(-1px);
+}
+
+.zettelkasten-flow__navbar-button-group button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
 /* Sección de tipo de acción */
 .zettelkasten-flow__modal-reader-type-section {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .zettelkasten-flow__modal-reader-type-section p {
     margin: 0;
-    margin-right: 10px;
-    font-weight: bold;
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
 }
 
-zettelkasten-flow__.modal-reader-type-section .icon {
-    width: 24px;
-    height: 24px;
+.zettelkasten-flow__modal-reader-type-section .icon {
+    width: 1.5rem;
+    height: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--text-accent);
 }
 
 /* Sección de información general */
 .zettelkasten-flow__modal-reader-general-section {
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
 }
 
-/* Sección de configuración */
+/* Configuration group rendered as a calm, theme-aware card (was a heavy dashed box). */
 .zettelkasten-flow__modal-reader-section {
-    margin-bottom: 20px;
-    /* Mantiene el margen entre las zonas */
-    padding: 15px;
-    border: 2px dashed var(--background-modifier-border-focus);
-    background-color: var(--background-modifier-border);
-    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-m);
 }
 
-/* Estilos para los elementos de configuración dentro de modal-reader-section */
 .zettelkasten-flow__modal-reader-section .setting-item {
-    margin-bottom: 15px;
+    margin-bottom: 0.85rem;
+    border-top: none;
 }
 
-/* Botones adicionales dentro de modal-reader-section si los hay */
+.zettelkasten-flow__modal-reader-section .setting-item:last-child {
+    margin-bottom: 0;
+}
+
 .zettelkasten-flow__modal-reader-section .setting-item button {
-    margin-top: 5px;
+    margin-top: 0.3rem;
+}
+
+/* Honour the user's reduced-motion preference for the header micro-interactions. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__navbar-button-group button {
+        transition: none;
+    }
+
+    .zettelkasten-flow__navbar-button-group button:hover {
+        transform: none;
+    }
 }
 
 
@@ -109,18 +139,29 @@ zettelkasten-flow__.modal-reader-type-section .icon {
 .zettelkasten-flow__options-modal-button {
     width: 100%;
     text-align: center;
-    /* Puedes agregar otros estilos para mejorar el aspecto, por ejemplo: */
-    padding: 8px 12px;
-    border-radius: 4px;
-    border: none;
-    background-color: var(--background-modifier-accent);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-s);
+    border: 1px solid transparent;
+    background-color: var(--background-secondary);
     color: var(--text-normal);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
 }
 
 .zettelkasten-flow__options-modal-button:hover {
-    background-color: var(--background-primary);
+    background-color: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__options-modal-button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__options-modal-button {
+        transition: none;
+    }
 }
 
 .zettelkasten-flow__readable-setting-item .setting-item-info {

@@ -58,6 +58,7 @@ Canvas file          ZettelFlow wizard          Note in your vault
 | Feature | Docs |
 |---|---|
 | Guided first-run with example flow | [Getting started →](development/getting-started.md) |
+| Zettelkasten starter flows | [Starter flows →](development/zettelkasten-starter-flows.md) |
 | 11 built-in actions | [Actions →](actions/Prompt.md) |
 | Canvas-native workflow engine | [Architecture overview →](architecture/overview.md) |
 | Conditional edges (`if: expr`) | [Conditional edges →](architecture/conditional-edges.md) |

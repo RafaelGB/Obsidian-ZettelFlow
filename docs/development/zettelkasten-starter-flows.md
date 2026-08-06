@@ -7,8 +7,9 @@ a canvas whose single file node points at a step markdown file carrying valid
 
 ## Installing
 
-Run the command **"Install Zettelkasten starter flows"** from the command palette. A picker opens
-with a toggle per note type; enable the ones you want and click **Install selected**. A single
+Run the command **"Install Zettelkasten starter flows"** from the command palette — or click
+**Install** next to *Starter flows* in **Settings → ZettelFlow → Zettelkasten toolkit**. A picker
+opens with a toggle per note type; enable the ones you want and click **Install selected**. A single
 notice reports how many flows were installed and how many were skipped.
 
 ## The four note types

@@ -6,7 +6,8 @@ so authors can fix connectivity before the graph becomes fragmented.
 
 ## Opening the dashboard
 
-Run the command **"Show slip-box health"** from the command palette. Re-running it reveals the
+Run the command **"Show slip-box health"** from the command palette, or click **Open** next to
+*Slip-box health* in **Settings → ZettelFlow → Zettelkasten toolkit**. Re-running it reveals the
 existing leaf instead of opening a second one.
 
 ## View states

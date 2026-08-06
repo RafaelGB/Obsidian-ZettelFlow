@@ -53,5 +53,6 @@ nav:
       - 7.8 Capabilities & privacy: development/capabilities-and-privacy.md
       - 7.9 Zettelkasten starter flows: development/zettelkasten-starter-flows.md
       - 7.10 Map of content builder: development/moc-builder.md
+      - 7.11 Connection resurfacing: development/connection-resurfacing.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

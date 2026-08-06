@@ -45,7 +45,7 @@ has the checklist; the plan comment has the files, guardrails, and risks.
 
 ## Exit → stage 5
 
-When all tasks are checked off, do **three things before declaring done**:
+When all tasks are checked off, do **four things before declaring done**:
 
 ### 1. Docs audit (mandatory)
 
@@ -63,12 +63,28 @@ changed UI text — ask: *does the existing docs page cover this?*
 This audit is a **blocking exit criterion** — do not commit the implementation without it.
 Docs and code travel in the same commit (or a `docs:` follow-up commit immediately after).
 
-### 2. Quality check
+### 2. README showcase audit (mandatory for user-facing features)
+
+Adoption is a first-class goal: the main `README.md` is how new users decide to install. For every
+change that ships something a *user* would care about — a new command, sidebar view, action, or
+workflow — ask: *would a prospective user find this in the README?*
+
+- **New user-facing feature** → add a row to the **Features** table. For a **headline** capability
+  (a whole new tool/view/workflow, not a minor option) also add a bullet to the
+  **Zettelkasten toolkit** section near the top, phrased as user value (what it does for them).
+- **New action** → also bump the "N built-in actions" row count and list.
+- **No user-facing surface** (pure refactor, internal fix) → state explicitly that no README change
+  is needed.
+
+Like the docs audit, this is a **blocking exit criterion** — a shipped-but-unadvertised feature is
+a missed download. README and code travel in the same change.
+
+### 3. Quality check
 
 Run the **`obsidian-plugin-quality`** skill and the **`obsidian-plugin-reviewer`** agent on the
 diff, and verify every acceptance criterion in the issue spec (body).
 
-### 3. Close the issue via PR
+### 4. Close the issue via PR
 
 **Closing the issue (constitution §X).** Commits only *reference* the issue (`(#N)`) — they never
 close it. The issue is closed by the **pull request** that merges the branch to `main`: put

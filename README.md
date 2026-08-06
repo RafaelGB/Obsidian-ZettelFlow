@@ -11,6 +11,31 @@
 
 ---
 
+## Zettelkasten toolkit
+
+ZettelFlow is more than a note templater — it is a full **Zettelkasten workflow**. Beyond the
+canvas wizard, it ships a set of tools that grow and maintain your slip-box:
+
+- **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
+  suggested connections to existing notes so you can link before you file.
+- **🔑 Zettel ID action** — stamp every note with a stable unique identifier (sortable
+  timestamp or Luhmann-style **Folgezettel** branching like `21 → 21a → 21a1`).
+- **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes
+  so link-debt never piles up unseen.
+- **🚀 Starter flows** — one-click, ready-made flows for the four classic note types
+  (fleeting, literature, permanent, structure/MOC).
+- **🗺️ Map-of-content builder** — gather notes by tag/folder into a MOC and refresh it safely;
+  re-runs never touch your own prose.
+- **✨ Connection resurfacing** — "talk to your slip-box": for the note you're reading, see
+  older, related notes worth revisiting, plus a daily spark of forgotten ideas.
+- **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
+  command, leaving the source as a hub.
+
+> New here? Run **Install Zettelkasten starter flows** from the command palette, or open
+> **Settings → ZettelFlow** to launch these tools.
+
+---
+
 ## How it works
 
 ```
@@ -54,10 +79,17 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
-| **11 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script. |
+| **12 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID. |
 | **Conditional edges** | Label a canvas arrow `if: frontmatter.type === "meeting"` to branch the workflow at runtime. |
 | **Dynamic templates** | Use `{{title}}`, `{{date}}`, `{{frontmatter.key}}`, `{{canvas.name}}` in step body templates. |
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |
+| **Companion pane** | Live note preview + connection suggestions while the wizard runs — link before you file. |
+| **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
+| **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes. |
+| **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes. |
+| **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
+| **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |
+| **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |
 | **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |

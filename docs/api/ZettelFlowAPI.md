@@ -9,6 +9,11 @@ The ZettelFlow API is organized into two main sections:
 - **Internal API** (`zf.internal`): Native functionalities provided by ZettelFlow
 - **External API** (`zf.external`): Integrations with other plugins
 
+> **Editor autocomplete.** In the `.js` script editor, typing `zf.` / `app.` triggers
+> ZettelFlow-aware completions (badged ✨): `zf.internal.vault`, `zf.internal.user`,
+> `zf.external.tp`/`dv`, and the common `app.*` members. They are prioritised above the editor's
+> default JavaScript suggestions.
+
 ## Internal API
 
 ### Vault Operations (`zf.internal.vault`)

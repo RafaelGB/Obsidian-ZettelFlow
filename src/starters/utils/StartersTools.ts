@@ -15,6 +15,7 @@ import { SlipboxHealthViewComponent } from "../zcomponents/SlipboxHealthViewComp
 import { ResurfaceComponent } from "../zcomponents/ResurfaceComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
+import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -32,6 +33,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ResurfaceComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
+    ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

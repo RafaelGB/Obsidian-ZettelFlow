@@ -11,6 +11,8 @@ It ships as **both** a command and a dedicated sidebar view, plus an on-demand *
 
 - **Command** — run **"Resurface related notes"** from the command palette. It activates (or
   reveals) the sidebar view. Re-running reveals the existing leaf instead of opening a second one.
+- **Settings** — click **Open** next to *Connection resurfacing* in
+  **Settings → ZettelFlow → Zettelkasten toolkit**.
 - **Sidebar view** — titled **"Resurface"** (`sparkles` icon). Once open it refreshes on its own as
   you move between notes.
 

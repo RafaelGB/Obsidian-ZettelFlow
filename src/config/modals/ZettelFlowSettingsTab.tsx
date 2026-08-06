@@ -1,20 +1,35 @@
 import ZettelFlow from "main";
-import { moment as obsidianMoment, PluginSettingTab, SettingDefinitionItem } from "obsidian";
+import { moment as obsidianMoment, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
-import { FILE_EXTENSIONS, FileService } from "architecture/plugin";
+import { FILE_EXTENSIONS, FileService, activateSidebarView } from "architecture/plugin";
 import { DEFAULT_SETTINGS } from "config";
 import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
 import { createExampleFlow } from "application/notes/onboardingService";
+import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
+import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
+import { StarterFlowsModal } from "zettelkasten/modals/StarterFlowsModal";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
+
+// Documentation base + per-feature pages surfaced from the Zettelkasten toolkit settings group.
+const DOCS_BASE = "https://rafaelgb.github.io/Obsidian-ZettelFlow/";
+const TOOLKIT_DOCS = {
+    companion: `${DOCS_BASE}architecture/actions-and-note-builder/`,
+    zettelId: `${DOCS_BASE}actions/ZettelId/`,
+    health: `${DOCS_BASE}development/slipbox-health-dashboard/`,
+    starter: `${DOCS_BASE}development/zettelkasten-starter-flows/`,
+    moc: `${DOCS_BASE}development/moc-builder/`,
+    resurface: `${DOCS_BASE}development/connection-resurfacing/`,
+    atomicity: `${DOCS_BASE}development/atomicity-split/`,
+} as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
     plugin: ZettelFlow;
@@ -201,6 +216,85 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     },
                 ],
             },
+            // ── Zettelkasten toolkit ──────────────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_toolkit_heading"),
+                cls: c("toolkit-group"),
+                items: [
+                    {
+                        name: t("settings_toolkit_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("toolkit-intro"));
+                        },
+                    },
+                    // Launchers: open the sidebar views / modal without the command palette.
+                    {
+                        name: t("settings_toolkit_health_name"),
+                        desc: t("settings_toolkit_health_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, SlipboxHealthView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.health);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_resurface_name"),
+                        desc: t("settings_toolkit_resurface_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, ResurfaceView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.resurface);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_starter_name"),
+                        desc: t("settings_toolkit_starter_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_install_button"))
+                                    .setCta()
+                                    .onClick(() => new StarterFlowsModal(plugin.app).open())
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.starter);
+                        },
+                    },
+                    // Learn-more rows: features reached via the wizard / commands, doc link only.
+                    {
+                        name: t("settings_toolkit_companion_name"),
+                        desc: t("settings_toolkit_companion_desc"),
+                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.companion),
+                    },
+                    {
+                        name: t("settings_toolkit_zettelid_name"),
+                        desc: t("settings_toolkit_zettelid_desc"),
+                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.zettelId),
+                    },
+                    {
+                        name: t("settings_toolkit_moc_name"),
+                        desc: t("settings_toolkit_moc_desc"),
+                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.moc),
+                    },
+                    {
+                        name: t("settings_toolkit_atomicity_name"),
+                        desc: t("settings_toolkit_atomicity_desc"),
+                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.atomicity),
+                    },
+                ],
+            },
             // ── Hooks ─────────────────────────────────────────────────────────
             {
                 type: "group",
@@ -321,4 +415,16 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
 
 function buildPrefixDescription(pattern: string): string {
     return `${t("unique_prefix_pattern_description")}\n${t("unique_prefix_pattern_helper")}: ${moment().format(pattern)}`;
+}
+
+/** Adds an "open documentation" icon button that opens the given docs URL in the browser. */
+function addDocsButton(setting: Setting, url: string): void {
+    setting.addExtraButton((btn) =>
+        btn
+            .setIcon("help")
+            .setTooltip(t("settings_toolkit_docs_tooltip"))
+            .onClick(() => {
+                window.open(url, "_blank");
+            })
+    );
 }

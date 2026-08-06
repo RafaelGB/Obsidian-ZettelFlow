@@ -49,18 +49,41 @@ export class ObsidianNativeTypesManager {
     }
 
     /**
+     * Short-lived cache of the parsed `types.json` so a burst of note builds (each of which needs
+     * the native types to type-cast frontmatter) doesn't read + parse the config file every time.
+     * Invalidated on any write and after a short TTL so external edits are still picked up.
+     */
+    private static typesCache: { value: Record<string, string>; expiry: number } | null = null;
+    private static readonly TYPES_CACHE_TTL_MS = 5000;
+
+    /** Drops the cached `types.json` so the next read re-fetches from disk. */
+    public static invalidateTypesCache(): void {
+        ObsidianNativeTypesManager.typesCache = null;
+    }
+
+    /**
      * Retrieves all types defined in the Obsidian configuration.
+     * Reads and parses `types.json` at most once per {@link TYPES_CACHE_TTL_MS} window; callers
+     * receive a fresh shallow copy so they can freely mutate it without corrupting the cache.
      * @returns {Promise<Record<string, string>>} A promise that resolves to an object containing type names and their values.
      */
     public static async getAllTypes(): Promise<Record<string, string>> {
+        const cache = ObsidianNativeTypesManager.typesCache;
+        if (cache && cache.expiry > Date.now()) {
+            return { ...cache.value };
+        }
+
         const typesFilePath = `${ObsidianApi.vault().configDir}/types.json`;
         // Check if file exists
         if (!await ObsidianApi.vault().adapter.exists(typesFilePath)) {
+            ObsidianNativeTypesManager.typesCache = { value: {}, expiry: Date.now() + ObsidianNativeTypesManager.TYPES_CACHE_TTL_MS };
             return {};
         }
         const raw = await ObsidianApi.vault().adapter.read(typesFilePath);
         const parsed = JSON.parse(raw) as { types: Record<string, string> };
-        return parsed.types;
+        const value = parsed.types ?? {};
+        ObsidianNativeTypesManager.typesCache = { value, expiry: Date.now() + ObsidianNativeTypesManager.TYPES_CACHE_TTL_MS };
+        return { ...value };
     }
     /**
      * Retrieves all native types defined in the Obsidian configuration.
@@ -93,6 +116,7 @@ export class ObsidianNativeTypesManager {
             `${ObsidianApi.vault().configDir}/types.json`,
             JSON.stringify({ types }, null, 2)
         );
+        ObsidianNativeTypesManager.invalidateTypesCache();
     }
 
     /**
@@ -110,6 +134,7 @@ export class ObsidianNativeTypesManager {
             `${ObsidianApi.vault().configDir}/types.json`,
             JSON.stringify({ types }, null, 2)
         );
+        ObsidianNativeTypesManager.invalidateTypesCache();
     }
 
     /**
@@ -128,5 +153,6 @@ export class ObsidianNativeTypesManager {
             `${ObsidianApi.vault().configDir}/types.json`,
             JSON.stringify({ types }, null, 2)
         );
+        ObsidianNativeTypesManager.invalidateTypesCache();
     }
 }

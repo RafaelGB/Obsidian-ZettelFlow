@@ -155,7 +155,9 @@ export class FrontmatterService {
      * @returns {Promise<string>}
      */
     public async getContent(): Promise<string> {
-        const rawContent = await ObsidianApi.vault().read(this.file);
+        // cachedRead avoids a full uncached disk read per template during a note build; the
+        // content is only used to assemble the new note, so the cache view is authoritative.
+        const rawContent = await ObsidianApi.vault().cachedRead(this.file);
         const endLine = this.metadata.frontmatterPosition?.end?.line;
         return rawContent.split("\n").slice(endLine ? endLine + 1 : 0).join("\n").concat("\n");
     }

@@ -75,9 +75,9 @@ export class FlowImpl implements Flow {
         this.nodes = data.nodes
             .filter(node => node.type !== "link")
             .reduce((map, obj) => {
-                if (obj.type === "file" && obj.file.endsWith(".js")) {
-                    obj.extension = "js";
-                }
+                // Note: we intentionally do NOT stamp a synthetic `extension` field on the node.
+                // `.js` file nodes are detected from the TFile extension at use-time; mutating the
+                // persisted node object here would serialize a non-schema key back into the canvas.
                 map.set(obj.id, obj);
                 return map;
             }, new Map<string, AllCanvasNodeData>());

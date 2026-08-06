@@ -169,9 +169,13 @@ export class NoteBuilder {
         .postProcess({ element, content: this.content, note: this.note, context: this.context }, file);
     }
 
-    window.setTimeout(() => {
-      ObsidianApi.executeCommandById('templater-obsidian:replace-in-file-templater');
-    }, 1000);
+    // Only trigger Templater's replace-in-file if the plugin is actually installed — otherwise
+    // this schedules a no-op command lookup on every note build.
+    if (ObsidianApi.globalApp().plugins.getPlugin('templater-obsidian')) {
+      window.setTimeout(() => {
+        ObsidianApi.executeCommandById('templater-obsidian:replace-in-file-templater');
+      }, 1000);
+    }
   }
 
   private async errorManagement() {

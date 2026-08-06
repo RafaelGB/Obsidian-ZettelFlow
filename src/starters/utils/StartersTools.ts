@@ -13,6 +13,7 @@ import { TemplateExportComponent } from "../zcomponents/TemplateExportComponent"
 import { OnboardingComponent } from "../zcomponents/OnboardingComponent";
 import { SlipboxHealthViewComponent } from "../zcomponents/SlipboxHealthViewComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
+import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -28,6 +29,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new OnboardingComponent(plugin));
     ZComponentsManager.registerComponent(new SlipboxHealthViewComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
+    ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

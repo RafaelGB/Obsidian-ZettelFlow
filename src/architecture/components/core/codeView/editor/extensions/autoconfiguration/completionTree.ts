@@ -18,6 +18,21 @@ export function isCompletionArray(node: unknown): node is Completion[] {
     return Array.isArray(node);
 }
 
+/**
+ * A node that is itself a {@link Completion} (a `label`+`type` object) is a leaf API member with
+ * no sub-members — e.g. the script `context` object. Without this check it would be walked as a
+ * record and `context.` would wrongly suggest its own metadata keys (`label`, `type`, `info`, …).
+ */
+export function isCompletionLeaf(node: unknown): boolean {
+    return (
+        typeof node === "object" &&
+        node !== null &&
+        !Array.isArray(node) &&
+        "label" in node &&
+        "type" in node
+    );
+}
+
 function keysToCompletions(
     node: Record<string, unknown>,
     defaults: KeyCompletionDefaults
@@ -46,6 +61,9 @@ export function findCompletions(
     defaults: KeyCompletionDefaults
 ): Completion[] | null {
     if (isCompletionArray(node)) return node;
+
+    // A bare Completion leaf has no members to drill into (empty suggestions for `leaf.`).
+    if (isCompletionLeaf(node)) return null;
 
     if (segments.length === 0) {
         return keysToCompletions(node, defaults);

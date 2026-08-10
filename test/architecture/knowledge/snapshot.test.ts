@@ -43,4 +43,17 @@ describe("gatherSnapshot — frontmatter relation resolution (#147)", () => {
         const snapshot = gatherSnapshot(file("a.md"));
         expect(snapshot.resolvedTargets).toEqual({});
     });
+
+    it("resolves wikilink names under source keys to vault paths (#148)", () => {
+        __setMockObsidianApi({
+            metadataCache: {
+                getFileCache: () => ({ frontmatter: { sources: ["[[Lit]]"] }, tags: [] }),
+                resolvedLinks: {},
+                getFirstLinkpathDest: (name: string) => (name === "Lit" ? { path: "lit.md" } : null),
+            } as never,
+        });
+
+        const snapshot = gatherSnapshot(file("a.md"));
+        expect(snapshot.resolvedTargets).toEqual({ Lit: "lit.md" });
+    });
 });

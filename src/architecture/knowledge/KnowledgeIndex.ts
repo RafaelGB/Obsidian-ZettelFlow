@@ -6,6 +6,7 @@ import type { KnowledgeSchemas } from "./model/schema";
 import { gatherSnapshot } from "./snapshot";
 import { parseInlineFields } from "./parse/inlineFields";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
+import { isClaimOrSourceKey, isSourceKey } from "./claims";
 
 export type KnowledgeIndexStatus = "idle" | "building" | "ready";
 
@@ -110,9 +111,10 @@ export class KnowledgeIndex {
     }
 
     /**
-     * Deferred, read-only pass that enriches ideas with inline `key:: [[target]]` relations by
-     * reading note bodies via `cachedRead`. O(vault content) — run after layout-ready, off on
-     * mobile by default. Batched/yielding, per-file `try/catch`, zero writes.
+     * Deferred, read-only pass that enriches ideas with inline `key:: [[target]]` relations (#147)
+     * and inline `claim::` / `source:: [[X]]` fields (#148) by reading note bodies via `cachedRead`.
+     * O(vault content) — run after layout-ready, off on mobile by default. Batched/yielding,
+     * per-file `try/catch`, zero writes. A single pass covers both relations and claims/sources.
      */
     public async enrichInlineRelations(): Promise<void> {
         const start = Date.now();
@@ -124,12 +126,18 @@ export class KnowledgeIndex {
             try {
                 const body = await vault.cachedRead(file);
                 const inlineFields = parseInlineFields(body);
-                if (!inlineFields.some((field) => isSemanticRelationType(field.key))) continue;
+                if (
+                    !inlineFields.some(
+                        (field) => isSemanticRelationType(field.key) || isClaimOrSourceKey(field.key)
+                    )
+                ) {
+                    continue;
+                }
 
                 const snapshot = gatherSnapshot(file);
                 const resolvedTargets: Record<string, string> = { ...snapshot.resolvedTargets };
                 for (const field of inlineFields) {
-                    if (!isSemanticRelationType(field.key)) continue;
+                    if (!isSemanticRelationType(field.key) && !isSourceKey(field.key)) continue;
                     for (const name of extractWikilinks(field.value)) {
                         if (resolvedTargets[name]) continue;
                         const dest = metadataCache.getFirstLinkpathDest(name, file.path);

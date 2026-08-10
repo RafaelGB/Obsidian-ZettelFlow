@@ -2,6 +2,11 @@ import { CommunityFlowData } from "application/community";
 import { Action } from "architecture/api";
 import { StepSettings } from "zettelkasten";
 import type { HistoryEntry } from "application/notes/historyUtils";
+import {
+    DEFAULT_STATE_PROPERTY,
+    DEFAULT_CREATED_PROPERTY,
+    DEFAULT_LAST_REVIEWED_PROPERTY,
+} from "architecture/knowledge/lifecycle/states";
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
@@ -51,6 +56,16 @@ export interface ZettelFlowSettings {
         folderFlowPath: string;
 
     }
+
+    /** Note lifecycle (#146): configurable frontmatter property names (no lock-in). */
+    lifecycle: {
+        /** Property carrying the lifecycle state token (default "state"). */
+        stateProperty: string;
+        /** Property carrying the capture timestamp (default "created"). */
+        createdProperty: string;
+        /** Property carrying the last-reviewed timestamp (default "last-reviewed"). */
+        lastReviewedProperty: string;
+    };
 
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
@@ -142,6 +157,11 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     hooks: {
         properties: {}, // No global hooks are defined by default.
         folderFlowPath: "_ZettelFlow/hooks" // Default folder for flow scripts.
+    },
+    lifecycle: {
+        stateProperty: DEFAULT_STATE_PROPERTY,
+        createdProperty: DEFAULT_CREATED_PROPERTY,
+        lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
     history: [],
     hasSeenWelcome: false,

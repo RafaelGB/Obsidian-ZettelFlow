@@ -109,7 +109,9 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
     }));
 
     return {
-        from: word.from + actualText.lastIndexOf(lastSegment),
+        // Replace only the final segment under the cursor (see Autocompletion.ts): deriving `from`
+        // from the cursor avoids eating a leading delimiter captured by the match.
+        from: context.pos - lastSegment.length,
         options: enhancedCompletions,
         validFor: /^[\w.]*$/
     };

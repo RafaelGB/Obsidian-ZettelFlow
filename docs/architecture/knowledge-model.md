@@ -15,6 +15,9 @@ src/architecture/knowledge/
   model/schema.ts          # pure — StateSchema/RelationSchema/ClaimSchema extension points
   parse/inlineFields.ts    # pure — standalone `key:: value` parser (no Dataview)
   derive/edges.ts          # pure — links → directed typed edges
+  lifecycle/               # pure — lifecycle states + transition machine + StateSchema (#146)
+  relations/               # pure — semantic relation vocabulary + SemanticRelationSchema (#147)
+  claims/                  # pure — claim/source keys + link/text classifier + ClaimSourceSchema (#148)
   query/queries.ts         # pure — read-only query surface
   snapshot.ts              # Obsidian-facing (thin) — TFile + metadata cache → IdeaSnapshot
   KnowledgeIndex.ts        # Obsidian-facing — getInstance() singleton, event wiring, build state
@@ -45,7 +48,8 @@ Pure functions over the model (`query/queries.ts`), all O(edges) reads that neve
 - `edgesByType`, `outgoingRelations`, `incomingRelations`
 - `orphans` (no **incoming**), `leaves` (no **outgoing**) — plus the unambiguous primitives
   `notesWithNoIncoming` / `notesWithNoOutgoing`
-- `hubs(threshold)`, `unsourced`, `byMaturity`
+- `hubs(threshold)`, `byMaturity`
+- `unsourced` (claim-aware, #148), `claimsWithoutSources`, `sourcesByReferenceCount`
 
 !!! note "Terminology (spec FR-5)"
     Here `orphan` = *no incoming* and `leaf` = *no outgoing*. The slip-box health view
@@ -126,3 +130,36 @@ stripped (`[[X|alias]]` / `[[X#h]]` → `X`); unresolved links are excluded.
 
 > **Capability note:** enabling inline parsing performs read-only body reads via the `Vault`
 > `cachedRead` facade. No writes, no network.
+
+## Claims & sources (#148)
+
+`ClaimSourceSchema` (in the pure `src/architecture/knowledge/claims/`) fills the `ClaimSchema` slot
+so `Idea.claims` is populated, which makes `maturitySignals.hasSources` and the `unsourced` query
+meaningful. It powers *"which ideas make a claim with no evidence?"* and feeds the research actions
+(#155).
+
+**Declaration convention — hybrid, gated by declaration:**
+
+| The note declares… | Result |
+|---|---|
+| explicit `claim` / `claim::` fields | those become claims, each carrying the note-level sources |
+| only `sources` / `source::` (no explicit claim) | one synthesized note-level claim (text = note basename) carrying those sources |
+| neither | `claims = []` — the note stays **out** of the claims accounting (index/MOC notes aren't flagged) |
+
+**Sources** are classified by kind (additive optional `Source.kind`): a `[[link]]` → `{ kind: "link",
+ref: <resolved path> }` (alias/heading stripped, unresolved excluded); free text (URL / DOI /
+citation) → `{ kind: "text", ref: <trimmed> }`. A source declared in both frontmatter and inline
+collapses to one (dedupe by resolved path / normalized text). Per-claim source binding is deferred —
+every claim on a note shares the note-level sources.
+
+Parsing is **hybrid**, reusing #147's infrastructure exactly: frontmatter claims/sources are read in
+the synchronous build; inline `claim::` / `source:: [[X]]` ride the **same** deferred, opt-in
+`parseInlineRelations` pass (one `cachedRead` per file — no second scan, no new setting). The pure
+schema is Obsidian-free (guarded); link resolution lives in `snapshot.ts` / `KnowledgeIndex.ts`.
+
+Claim-aware queries: `unsourced` = notes with `claims.length > 0 && !hasSources`;
+`claimsWithoutSources` gives the claim-granular view; `sourcesByReferenceCount` ranks sources by how
+many notes cite them.
+
+> **Capability note:** read-only, like the rest of the model — claims/sources are *derived* from
+> notes, never written. Authoring actions (attach source, extract claims) are #155.

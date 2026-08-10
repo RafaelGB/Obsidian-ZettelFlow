@@ -10,6 +10,8 @@ export { DEFAULT_RELATION_TYPE };
 
 export interface Source {
     ref: string;
+    /** How the source is expressed: a `[[link]]` to a note, or free text (URL/DOI/citation). #148 */
+    kind?: "link" | "text";
 }
 
 export interface Claim {
@@ -108,7 +110,16 @@ export function deriveIdea(snapshot: IdeaSnapshot, schemas: KnowledgeSchemas = {
         : extractEdges(snapshot.path, outgoingLinks);
 
     const claims = schemas.claims
-        ? safe(() => schemas.claims!.parse({ path: snapshot.path, frontmatter: fm, inlineFields }), [])
+        ? safe(
+            () =>
+                schemas.claims!.parse({
+                    path: snapshot.path,
+                    frontmatter: fm,
+                    inlineFields,
+                    resolvedTargets: snapshot.resolvedTargets ?? {},
+                }),
+            []
+        )
         : [];
 
     const outDegree = relations.length;

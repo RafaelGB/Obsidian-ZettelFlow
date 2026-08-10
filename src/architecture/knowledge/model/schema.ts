@@ -28,6 +28,12 @@ export interface ClaimParseInput {
     path: string;
     frontmatter: Record<string, unknown>;
     inlineFields: InlineField[];
+    /**
+     * Optional map of wikilink name → resolved vault path, filled by the Obsidian-facing layer
+     * (#148) so the pure schema can classify link sources without resolving links itself.
+     * Additive: absent for schemas that don't need it.
+     */
+    resolvedTargets?: Record<string, string>;
 }
 
 export interface StateSchema {

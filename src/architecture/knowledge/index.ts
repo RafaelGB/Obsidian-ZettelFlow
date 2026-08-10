@@ -6,6 +6,7 @@ export { extractEdges } from "./derive/edges";
 export { parseInlineFields } from "./parse/inlineFields";
 export * from "./lifecycle";
 export * from "./relations";
+export * from "./claims";
 export * as knowledgeQueries from "./query/queries";
 export { KnowledgeIndex } from "./KnowledgeIndex";
 export type { KnowledgeIndexStatus } from "./KnowledgeIndex";

@@ -1,4 +1,4 @@
-import type { Idea, IdeaState, Relation } from "../model/Idea";
+import type { Claim, Idea, IdeaState, Relation, Source } from "../model/Idea";
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 
 /**
@@ -78,8 +78,57 @@ export function hubs(model: KnowledgeModel, threshold = 5): Idea[] {
     return model.all().filter((idea) => idea.maturitySignals.degree >= threshold);
 }
 
+/**
+ * Ideas that make a claim but have no source (#148). Claim-aware: notes that declare no claim or
+ * source (bare/structural/MOC notes) are excluded — only notes in the claims accounting count, so
+ * this no longer degenerates to "every note".
+ */
 export function unsourced(model: KnowledgeModel): Idea[] {
-    return model.all().filter((idea) => !idea.maturitySignals.hasSources);
+    return model
+        .all()
+        .filter((idea) => idea.claims.length > 0 && !idea.maturitySignals.hasSources);
+}
+
+/** Each sourceless claim paired with its idea (#148) — claim-granular view of `unsourced`. */
+export function claimsWithoutSources(model: KnowledgeModel): { idea: Idea; claim: Claim }[] {
+    const result: { idea: Idea; claim: Claim }[] = [];
+    for (const idea of model.all()) {
+        for (const claim of idea.claims) {
+            if (claim.sources.length === 0) result.push({ idea, claim });
+        }
+    }
+    return result;
+}
+
+/**
+ * Every distinct source with the number of notes referencing it (#148), most-referenced first.
+ * Links are keyed by resolved path, free-text by normalized (trimmed, lower-cased) value; a note
+ * is counted once per distinct source even if it cites it in several claims.
+ */
+export function sourcesByReferenceCount(
+    model: KnowledgeModel
+): { source: Source; count: number }[] {
+    const byKey = new Map<string, { source: Source; notes: Set<string> }>();
+    const keyOf = (source: Source): string =>
+        source.kind === "link" ? `link:${source.ref}` : `text:${source.ref.trim().toLowerCase()}`;
+
+    for (const idea of model.all()) {
+        for (const claim of idea.claims) {
+            for (const source of claim.sources) {
+                const key = keyOf(source);
+                let entry = byKey.get(key);
+                if (!entry) {
+                    entry = { source, notes: new Set<string>() };
+                    byKey.set(key, entry);
+                }
+                entry.notes.add(idea.path);
+            }
+        }
+    }
+
+    return [...byKey.values()]
+        .map((entry) => ({ source: entry.source, count: entry.notes.size }))
+        .sort((a, b) => b.count - a.count);
 }
 
 export type MaturityTier = "isolated" | "sparse" | "connected";

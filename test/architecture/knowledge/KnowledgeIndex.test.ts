@@ -3,6 +3,7 @@ import { __setMockObsidianApi, log } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge/KnowledgeIndex";
 import { LifecycleStateSchema } from "architecture/knowledge/lifecycle";
 import { SemanticRelationSchema } from "architecture/knowledge/relations";
+import { ClaimSourceSchema } from "architecture/knowledge/claims";
 import * as Q from "architecture/knowledge/query/queries";
 import { TFile } from "obsidian";
 
@@ -285,5 +286,57 @@ describe("KnowledgeIndex.enrichInlineRelations (#147)", () => {
         index.build();
         await expect(index.enrichInlineRelations()).resolves.toBeUndefined();
         expect(Q.edgesByType(index.getModel(), "supports")).toEqual([]);
+    });
+});
+
+describe("KnowledgeIndex + claim/source schema (#148)", () => {
+    it("populates claims + hasSources from frontmatter sources; unsourced is claim-aware (AC-2/AC-7)", () => {
+        const { processFrontMatter, writes } = wireRelations({
+            frontmatter: {
+                "a.md": { sources: ["[[Lit]]"] },
+                "b.md": { claim: "bare claim" },
+                "lit.md": {},
+            },
+            links: { Lit: "lit.md" },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ claims: new ClaimSourceSchema() });
+        index.build();
+        const model = index.getModel();
+
+        expect(model.get("a.md")?.claims).toEqual([
+            { text: "a", sources: [{ ref: "lit.md", kind: "link" }] },
+        ]);
+        expect(model.get("a.md")?.maturitySignals.hasSources).toBe(true);
+        expect(model.get("b.md")?.maturitySignals.hasSources).toBe(false);
+        // b.md declares a claim but no source; a.md is sourced; lit.md declares nothing
+        expect(Q.unsourced(model).map((i) => i.path)).toEqual(["b.md"]);
+        expect(writes.create).not.toHaveBeenCalled();
+        expect(processFrontMatter).not.toHaveBeenCalled();
+    });
+});
+
+describe("KnowledgeIndex inline claims/sources in the deferred pass (#148)", () => {
+    it("adds inline source:: [[X]] via the deferred pass; absent after frontmatter-only build (AC-8)", async () => {
+        const { writes, processFrontMatter, cachedRead } = wireRelations({
+            frontmatter: { "a.md": {}, "lit.md": {} },
+            bodies: { "a.md": "source:: [[Lit]]", "lit.md": "" },
+            links: { Lit: "lit.md" },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ claims: new ClaimSourceSchema() });
+        index.build();
+        expect(index.getModel().get("a.md")?.claims).toEqual([]); // frontmatter-only build
+
+        await index.enrichInlineRelations();
+
+        const model = index.getModel();
+        expect(model.get("a.md")?.claims).toEqual([
+            { text: "a", sources: [{ ref: "lit.md", kind: "link" }] },
+        ]);
+        expect(model.get("a.md")?.maturitySignals.hasSources).toBe(true);
+        expect(cachedRead).toHaveBeenCalledTimes(2); // one read per file, no second scan
+        expect(writes.modify).not.toHaveBeenCalled();
+        expect(processFrontMatter).not.toHaveBeenCalled();
     });
 });

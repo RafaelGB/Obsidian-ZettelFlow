@@ -2,6 +2,7 @@ import { TFile } from "obsidian";
 import { ObsidianApi } from "architecture";
 import type { IdeaSnapshot, InlineField } from "./model/Idea";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
+import { isSourceKey } from "./claims";
 
 /**
  * Read-only gatherer: turn a `TFile` + the metadata cache into a pure {@link IdeaSnapshot}.
@@ -34,7 +35,10 @@ export function gatherSnapshot(file: TFile): IdeaSnapshot {
     };
 }
 
-/** Resolve wikilink names under semantic relation keys to vault paths (frontmatter only, sync). */
+/**
+ * Resolve wikilink names under semantic relation keys (#147) and source keys (#148) to vault paths
+ * (frontmatter only, synchronous).
+ */
 function resolveFrontmatterTargets(
     file: TFile,
     frontmatter: Record<string, unknown>
@@ -42,7 +46,7 @@ function resolveFrontmatterTargets(
     const metadataCache = ObsidianApi.metadataCache();
     const targets: Record<string, string> = {};
     for (const [key, value] of Object.entries(frontmatter)) {
-        if (!isSemanticRelationType(key)) continue;
+        if (!isSemanticRelationType(key) && !isSourceKey(key)) continue;
         for (const name of extractWikilinks(value)) {
             if (targets[name]) continue;
             const dest = metadataCache.getFirstLinkpathDest(name, file.path);

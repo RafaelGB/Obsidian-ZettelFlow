@@ -124,8 +124,12 @@ export type InstalledTemplates = {
  */
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false, // Logging is disabled by default.
+    logLevel: "info", // Default log level; must match a key of the logger's level record.
     uniquePrefixEnabled: false, // Unique prefix is disabled by default.
     uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
+    ribbonCanvas: "", // No ribbon canvas configured until the user picks one.
+    editorCanvas: "", // No editor canvas configured until the user picks one.
+    jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
     installedTemplates: {
         steps: {},   // No step templates are installed by default.

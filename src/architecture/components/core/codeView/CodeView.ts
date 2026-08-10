@@ -57,13 +57,16 @@ export class CodeView extends TextFileView implements HoverParent {
         this.parentDiv = this.contentEl.createDiv();
         this.data = await FileService.getContent(file);
 
-        this.editor = EditService.instance(file)
+        // Seed the edit service with the loaded content so a save is never issued with an
+        // undefined body (which would reject the write / clobber the file).
+        this.editor = EditService.instance(file).setContent(this.data);
         this.view = dispatchEditor(
             this.parentDiv,
             this.data,
             (update) => {
                 if (this.editorJit) window.clearTimeout(this.editorJit);
                 this.editorJit = window.setTimeout(() => {
+                    this.editorJit = null;
                     this.data = update.state.doc.toString();
                     void this.editor
                         .setContent(this.data)
@@ -71,6 +74,19 @@ export class CodeView extends TextFileView implements HoverParent {
                 }, 1000);
             });
         this.file = file;
+    }
+
+    /**
+     * Flush a pending debounced save immediately, if any. Called before the view is torn down or
+     * switched to another file so the (still-current) editor writes the outgoing file's content —
+     * never a stale snapshot into the next file.
+     */
+    private flushPendingSave(): void {
+        if (!this.editorJit) return;
+        window.clearTimeout(this.editorJit);
+        this.editorJit = null;
+        this.data = this.view.state.doc.toString();
+        void this.editor.setContent(this.data).save();
     }
 
     private initActions(): void {
@@ -82,13 +98,16 @@ export class CodeView extends TextFileView implements HoverParent {
     */
     async onClose() {
         await super.onClose();
-        void this.editor.save();
+        this.flushPendingSave();
         this.view.destroy();
         this.parentDiv.remove();
     }
 
     async onUnloadFile(file: TFile) {
         await super.onUnloadFile(file);
+        // Cancel/flush any pending save before the editor is reassigned to the next file, so the
+        // outgoing file's content is never written into the incoming one.
+        this.flushPendingSave();
         this.view.destroy();
     }
 }

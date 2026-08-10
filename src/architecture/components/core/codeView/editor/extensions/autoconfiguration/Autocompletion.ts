@@ -28,7 +28,7 @@ function findCompletions(
     return findCompletionsInTree(segments, node, CODEVIEW_DEFAULTS);
 }
 
-function customCompletionProvider(context: CompletionContext): CompletionResult | null {
+export function customCompletionProvider(context: CompletionContext): CompletionResult | null {
     // Get line content before cursor to check context
     const line = context.state.doc.lineAt(context.pos);
     const lineText = line.text.slice(0, context.pos - line.from);
@@ -115,7 +115,10 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
     }));
 
     return {
-        from: word.from + actualText.lastIndexOf(lastSegment),
+        // Replace only the final segment under the cursor. Deriving `from` from the cursor keeps
+        // it correct even when `word` includes a leading delimiter (space/`(`/`[`/…), which would
+        // otherwise shift `from` left by one and eat the preceding character on accept.
+        from: context.pos - lastSegment.length,
         options: enhancedCompletions,
         validFor: /^[\w.]*$/
     };

@@ -96,3 +96,33 @@ Sibling issues register a `StateSchema`, `RelationSchema`, or `ClaimSchema` via
 `KnowledgeIndex.getInstance().registerSchemas({...})`. `deriveIdea` calls the registered parser or
 falls back to the documented default. The `Idea` shape and the query signatures stay fixed, so a new
 vocabulary becomes queryable **without** changing either.
+
+## Semantic relations (#147)
+
+`SemanticRelationSchema` (in the pure `src/architecture/knowledge/relations/`) turns a note's
+frontmatter and inline `key:: [[target]]` fields into typed, directed edges, so `[[links]]` gain
+meaning and `edgesByType` / `incomingRelations` / `outgoingRelations` answer questions like *"what
+contradicts this?"*.
+
+**Vocabulary** (fixed set; extensible in code, no settings editor yet): `supports`, `contradicts`,
+`expands`, `inspired-by`, `question`, `example`, `implements` — plus the plain `link` fallback for
+untyped links. A target that gets a semantic type is **not** also emitted as a `link` edge, and
+`(type, from, to)` duplicates collapse to one.
+
+**Hybrid parsing** (perf decision — the build stays synchronous and cache-only):
+
+| Source | When | How |
+|---|---|---|
+| Frontmatter (`supports: ["[[X]]"]`) | inside the synchronous build | free from the metadata cache; targets resolved via `getFirstLinkpathDest` into the snapshot's additive `resolvedTargets` |
+| Inline (`supports:: [[X]]`) | a **deferred pass after layout-ready** (`KnowledgeIndex.enrichInlineRelations`) | reads bodies via `cachedRead` (O(vault content)), so it never blocks load |
+
+The deferred inline pass is gated by the **`parseInlineRelations`** setting — **on by default on
+desktop, off on mobile** (resolved as `?? !Platform.isMobile`). It is read-only (zero writes),
+batched/yielding, and wraps each file in `try/catch`.
+
+Only the pure schema and vocabulary are Obsidian-free (guarded); link resolution and body reads live
+in the Obsidian-facing `snapshot.ts` / `KnowledgeIndex.ts`. Wikilink aliases and headings/blocks are
+stripped (`[[X|alias]]` / `[[X#h]]` → `X`); unresolved links are excluded.
+
+> **Capability note:** enabling inline parsing performs read-only body reads via the `Vault`
+> `cachedRead` facade. No writes, no network.

@@ -17,6 +17,7 @@ import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
 import { KnowledgeIndexComponent } from "../zcomponents/KnowledgeIndexComponent";
+import { StateTransitionComponent } from "../zcomponents/StateTransitionComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -36,6 +37,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));
     ZComponentsManager.registerComponent(new KnowledgeIndexComponent(plugin));
+    ZComponentsManager.registerComponent(new StateTransitionComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

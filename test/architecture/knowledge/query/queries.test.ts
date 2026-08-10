@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
-import { Idea } from "architecture/knowledge/model/Idea";
+import { Claim, Idea } from "architecture/knowledge/model/Idea";
 import * as Q from "architecture/knowledge/query/queries";
 
 function idea(
@@ -77,9 +77,61 @@ describe("query surface (AC-3, AC-7, FR-5)", () => {
         const model = fixture();
         expect(Q.hubs(model, 2).map((i) => i.path)).toEqual(["a.md", "b.md", "c.md"]);
         expect(Q.hubs(model, 3)).toEqual([]);
-        expect(Q.unsourced(model).map((i) => i.path)).toEqual(["a.md", "b.md", "d.md"]);
+        // #148: `unsourced` is claim-aware — notes with no claim/source declaration are excluded
+        // (this fixture declares none), so it no longer degenerates to "every sourceless note".
+        expect(Q.unsourced(model)).toEqual([]);
         const byMaturity = Q.byMaturity(model);
         expect(byMaturity.get("isolated")?.map((i) => i.path)).toEqual(["d.md"]);
         expect(byMaturity.get("sparse")?.map((i) => i.path)).toEqual(["a.md", "b.md", "c.md"]);
+    });
+});
+
+function ideaWithClaims(path: string, claims: Claim[]): Idea {
+    return {
+        path,
+        title: path,
+        created: 0,
+        modified: 0,
+        state: "permanent",
+        relations: [],
+        claims,
+        maturitySignals: {
+            inDegree: 0,
+            outDegree: 0,
+            degree: 0,
+            hasSources: claims.some((c) => c.sources.length > 0),
+        },
+    };
+}
+
+describe("claims & sources queries (#148)", () => {
+    function model(): KnowledgeModel {
+        const m = new KnowledgeModel();
+        m.build([
+            ideaWithClaims("n1.md", [
+                { text: "c1", sources: [{ ref: "S1.md", kind: "link" }] },
+                { text: "c2", sources: [] },
+            ]),
+            ideaWithClaims("n2.md", [
+                { text: "c3", sources: [{ ref: "S1.md", kind: "link" }, { ref: "doi:x", kind: "text" }] },
+            ]),
+            ideaWithClaims("n3.md", []), // no claims -> not in the accounting
+            ideaWithClaims("n4.md", [{ text: "c4", sources: [] }]), // claim, no sources -> unsourced
+        ]);
+        return m;
+    }
+
+    it("unsourced excludes bare notes and counts only claimed-but-sourceless notes (AC-2)", () => {
+        expect(Q.unsourced(model()).map((i) => i.path)).toEqual(["n4.md"]);
+    });
+
+    it("claimsWithoutSources is claim-granular (AC-5)", () => {
+        const out = Q.claimsWithoutSources(model()).map((x) => `${x.idea.path}:${x.claim.text}`);
+        expect(out).toEqual(["n1.md:c2", "n4.md:c4"]);
+    });
+
+    it("sourcesByReferenceCount counts distinct notes per source, most-referenced first (AC-4)", () => {
+        const out = Q.sourcesByReferenceCount(model()).map((x) => `${x.source.ref}:${x.count}`);
+        expect(out).toEqual(["S1.md:2", "doi:x:1"]);
     });
 });

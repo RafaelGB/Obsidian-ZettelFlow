@@ -59,6 +59,9 @@ export function requireApiVersion(_version: string): boolean {
   return true;
 }
 
+/** Mutable platform flag so tests can exercise the desktop/mobile default. */
+export const Platform = { isMobile: false };
+
 /**
  * Minimal YAML parser covering the subset ZettelFlow uses:
  *  - flat `key: value` (booleans, numbers, strings, quoted strings)

@@ -2,6 +2,7 @@ import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { __setMockObsidianApi, log } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge/KnowledgeIndex";
 import { LifecycleStateSchema } from "architecture/knowledge/lifecycle";
+import { SemanticRelationSchema } from "architecture/knowledge/relations";
 import * as Q from "architecture/knowledge/query/queries";
 import { TFile } from "obsidian";
 
@@ -170,5 +171,119 @@ describe("KnowledgeIndex + lifecycle StateSchema (#146)", () => {
 
         expect(Q.byState(index.getModel(), "permanent").map((i) => i.path)).toEqual(["a.md"]);
         expect(Q.byState(index.getModel(), "fleeting")).toEqual([]);
+    });
+});
+
+function wireRelations(opts: {
+    frontmatter?: Record<string, Record<string, unknown>>;
+    resolvedLinks?: Record<string, Record<string, number>>;
+    links?: Record<string, string>;
+    bodies?: Record<string, string>;
+}) {
+    const fm = opts.frontmatter ?? {};
+    const paths = new Set<string>([
+        ...Object.keys(fm),
+        ...Object.keys(opts.bodies ?? {}),
+        ...Object.keys(opts.resolvedLinks ?? {}),
+    ]);
+    const files = [...paths].map(file);
+    const writes = { create: jest.fn(), modify: jest.fn(), rename: jest.fn(), trash: jest.fn() };
+    const processFrontMatter = jest.fn();
+    const cachedRead = jest.fn(async (f: TFile) => (opts.bodies ?? {})[f.path] ?? "");
+    const vault = { getMarkdownFiles: () => files, on: jest.fn(() => ({})), cachedRead, ...writes };
+    const links = opts.links ?? {};
+    const metadataCache = {
+        getFileCache: (f: TFile) => ({ frontmatter: fm[f.path] ?? {}, tags: [] }),
+        resolvedLinks: opts.resolvedLinks ?? {},
+        getFirstLinkpathDest: (name: string) => (links[name] ? { path: links[name] } : null),
+        on: jest.fn(() => ({})),
+    };
+    __setMockObsidianApi({
+        vault: vault as never,
+        metadataCache: metadataCache as never,
+        fileManager: { processFrontMatter } as never,
+    });
+    return { writes, processFrontMatter, cachedRead };
+}
+
+describe("KnowledgeIndex + semantic relation schema (#147)", () => {
+    it("populates typed edges from frontmatter after registration (AC-1)", () => {
+        wireRelations({ frontmatter: { "a.md": { contradicts: ["[[B]]"] }, "b.md": {} }, links: { B: "b.md" } });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ relations: new SemanticRelationSchema() });
+        index.build();
+        expect(Q.edgesByType(index.getModel(), "contradicts").map((e) => `${e.from}->${e.to}`)).toEqual([
+            "a.md->b.md",
+        ]);
+    });
+
+    it("keeps a plain [[link]] as a link edge (AC-3)", () => {
+        wireRelations({ frontmatter: { "a.md": {}, "d.md": {} }, resolvedLinks: { "a.md": { "d.md": 1 } } });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ relations: new SemanticRelationSchema() });
+        index.build();
+        expect(Q.edgesByType(index.getModel(), "link").map((e) => `${e.from}->${e.to}`)).toEqual([
+            "a.md->d.md",
+        ]);
+    });
+
+    it("a target both typed and plain-linked is a single typed edge (AC-4)", () => {
+        wireRelations({
+            frontmatter: { "a.md": { supports: ["[[B]]"] }, "b.md": {} },
+            resolvedLinks: { "a.md": { "b.md": 1 } },
+            links: { B: "b.md" },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ relations: new SemanticRelationSchema() });
+        index.build();
+        const model = index.getModel();
+        expect(Q.edgesByType(model, "supports").map((e) => `${e.from}->${e.to}`)).toEqual(["a.md->b.md"]);
+        expect(Q.edgesByType(model, "link")).toEqual([]);
+    });
+
+    it("ignores an unknown relation key (AC-5)", () => {
+        wireRelations({ frontmatter: { "a.md": { foobar: ["[[B]]"] }, "b.md": {} }, links: { B: "b.md" } });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ relations: new SemanticRelationSchema() });
+        index.build();
+        expect(Q.edgesByType(index.getModel(), "foobar")).toEqual([]);
+    });
+});
+
+describe("KnowledgeIndex.enrichInlineRelations (#147)", () => {
+    it("adds inline relations (outgoing + incoming) and performs zero writes (AC-2/AC-7)", async () => {
+        const { writes, processFrontMatter } = wireRelations({
+            frontmatter: { "a.md": {}, "c.md": {} },
+            bodies: { "a.md": "supports:: [[C]]", "c.md": "" },
+            links: { C: "c.md" },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ relations: new SemanticRelationSchema() });
+        index.build();
+        expect(Q.edgesByType(index.getModel(), "supports")).toEqual([]); // frontmatter-only build
+
+        await index.enrichInlineRelations();
+
+        const model = index.getModel();
+        expect(Q.outgoingRelations(model, "a.md", "supports").map((e) => e.to)).toEqual(["c.md"]);
+        expect(Q.incomingRelations(model, "c.md", "supports").map((e) => e.from)).toEqual(["a.md"]);
+        expect(writes.create).not.toHaveBeenCalled();
+        expect(writes.modify).not.toHaveBeenCalled();
+        expect(writes.rename).not.toHaveBeenCalled();
+        expect(writes.trash).not.toHaveBeenCalled();
+        expect(processFrontMatter).not.toHaveBeenCalled();
+    });
+
+    it("does not throw or create an edge for an unresolved inline target (AC-9)", async () => {
+        wireRelations({
+            frontmatter: { "a.md": {} },
+            bodies: { "a.md": "supports:: [[Nonexistent]]" },
+            links: {},
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.registerSchemas({ relations: new SemanticRelationSchema() });
+        index.build();
+        await expect(index.enrichInlineRelations()).resolves.toBeUndefined();
+        expect(Q.edgesByType(index.getModel(), "supports")).toEqual([]);
     });
 });

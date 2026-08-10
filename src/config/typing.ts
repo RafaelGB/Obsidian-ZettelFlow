@@ -67,6 +67,15 @@ export interface ZettelFlowSettings {
         lastReviewedProperty: string;
     };
 
+    /** Semantic relations (#147). */
+    relations: {
+        /**
+         * Parse inline `key:: [[X]]` relations by reading note bodies (a deferred pass). When
+         * unset, defaults to on for desktop and off for mobile (resolved at runtime).
+         */
+        parseInlineRelations?: boolean;
+    };
+
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
@@ -163,6 +172,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         createdProperty: DEFAULT_CREATED_PROPERTY,
         lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
+    relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

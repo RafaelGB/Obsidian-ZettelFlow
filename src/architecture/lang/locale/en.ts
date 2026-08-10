@@ -491,4 +491,8 @@ export default {
     settings_created_property_desc: 'Frontmatter property that carries the capture timestamp.',
     settings_last_reviewed_property_name: 'Last-reviewed property',
     settings_last_reviewed_property_desc: 'Frontmatter property that carries the last-reviewed timestamp.',
+    settings_relations_heading: 'Semantic relations',
+    settings_relations_intro: 'Turn typed links (supports, contradicts, expands, …) into a meaningful graph so you can ask what supports or contradicts an idea.',
+    settings_parse_inline_relations_name: 'Parse inline relations',
+    settings_parse_inline_relations_desc: 'Also read inline "key:: [[note]]" fields from note bodies, not just frontmatter. Runs after load; on by default on desktop, off on mobile.',
 };

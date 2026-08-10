@@ -11,7 +11,9 @@ describe("KnowledgeIndexComponent", () => {
 
         new KnowledgeIndexComponent(plugin).onLoad();
 
-        expect(spy).toHaveBeenCalledWith(plugin);
+        // bootstrap(plugin, { parseInlineRelations }) — assert the plugin is passed, not the opts shape.
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy.mock.calls[0][0]).toBe(plugin);
         spy.mockRestore();
     });
 });

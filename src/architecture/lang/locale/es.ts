@@ -491,4 +491,8 @@ export default {
     settings_created_property_desc: 'Propiedad del frontmatter que lleva la marca de tiempo de captura.',
     settings_last_reviewed_property_name: 'Propiedad de última revisión',
     settings_last_reviewed_property_desc: 'Propiedad del frontmatter que lleva la marca de tiempo de última revisión.',
+    settings_relations_heading: 'Relaciones semánticas',
+    settings_relations_intro: 'Convierte los enlaces con tipo (apoya, contradice, amplía, …) en un grafo con significado para poder preguntar qué apoya o contradice una idea.',
+    settings_parse_inline_relations_name: 'Analizar relaciones inline',
+    settings_parse_inline_relations_desc: 'Lee también los campos inline "clave:: [[nota]]" del cuerpo de la nota, no solo el frontmatter. Se ejecuta tras la carga; activado por defecto en escritorio, desactivado en móvil.',
 };

@@ -18,6 +18,7 @@ export const cssclassesSettings: ActionSetting = (
   const name = t("step_builder_element_type_cssclasses_title");
   const description = t("step_builder_element_type_cssclasses_description");
   navbarAction(contentEl, name, description, action, modal, disableNavbar);
+  cssClassesDetails(contentEl.createDiv(), action);
 };
 
 export function cssClassesDetails(

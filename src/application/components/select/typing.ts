@@ -1,4 +1,5 @@
 import { HexString } from "obsidian";
+import type { StepPhase } from "zettelkasten/phases";
 
 export type SelectType = {
     options: OptionType[];
@@ -20,4 +21,6 @@ export type OptionType = {
     color: HexString;
     actionTypes: string[];
     tooltip?: string;
+    /** Optional knowledge-transformation phase (#149) used to group options in the selector. */
+    phase?: StepPhase;
 }

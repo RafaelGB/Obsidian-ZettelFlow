@@ -1,5 +1,5 @@
 import ZettelFlow from "main";
-import { moment as obsidianMoment, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { moment as obsidianMoment, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
@@ -299,6 +299,40 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                         plugin.settings.lifecycle.lastReviewedProperty =
                                             value.trim() || DEFAULT_LAST_REVIEWED_PROPERTY;
                                         await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                ],
+            },
+            // ── Semantic relations ────────────────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_relations_heading"),
+                items: [
+                    {
+                        name: t("settings_relations_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    {
+                        name: t("settings_parse_inline_relations_name"),
+                        desc: t("settings_parse_inline_relations_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(
+                                        plugin.settings.relations?.parseInlineRelations ??
+                                            !Platform.isMobile
+                                    )
+                                    .onChange(async (value) => {
+                                        plugin.settings.relations = { parseInlineRelations: value };
+                                        await plugin.saveSettings();
+                                        // Rebuild frontmatter edges, then re-enrich inline ones if on.
+                                        const index = KnowledgeIndex.getInstance();
+                                        index.build();
+                                        if (value) void index.enrichInlineRelations();
                                     })
                             );
                         },

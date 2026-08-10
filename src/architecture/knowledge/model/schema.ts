@@ -16,6 +16,12 @@ export interface RelationParseInput {
     frontmatter: Record<string, unknown>;
     inlineFields: InlineField[];
     outgoingLinks: string[];
+    /**
+     * Optional map of wikilink name → resolved vault path, filled by the Obsidian-facing layer
+     * (#147) so the pure schema can emit edges to real paths without resolving links itself.
+     * Additive: absent for schemas that don't need it.
+     */
+    resolvedTargets?: Record<string, string>;
 }
 
 export interface ClaimParseInput {

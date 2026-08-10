@@ -208,3 +208,21 @@ describe("installStarterFlows — AC-6 partial mix", () => {
         expect(paths).not.toContain(STARTER_FLOW_PATHS.permanent.step);
     });
 });
+
+describe("installStarterFlows — #149 default knowledge phases", () => {
+    it("stamps each starter step with its default phase token", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ALL_TYPES);
+
+        const expected: Record<StarterFlowType, string> = {
+            fleeting: "CAPTURE",
+            literature: "PROCESS",
+            permanent: "DEVELOP",
+            moc: "CONNECT",
+        };
+        for (const type of ALL_TYPES) {
+            const content = createdContent(vault, STARTER_FLOW_PATHS[type].step);
+            expect(content).toContain(`phase: ${expected[type]}`);
+        }
+    });
+});

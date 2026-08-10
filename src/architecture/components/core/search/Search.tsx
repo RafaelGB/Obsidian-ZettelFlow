@@ -139,10 +139,9 @@ export function Search<T>(props: SearchType<T>) {
             case "Enter": {
               e.preventDefault();
               e.stopPropagation();
-              const [key, value] = getEntryByIndex(
-                filteredOptions,
-                selectedIndex
-              );
+              const entry = getEntryByIndex(filteredOptions, selectedIndex);
+              if (!entry) break; // no match under the cursor (e.g. empty filtered list)
+              const [key, value] = entry;
               setValue(key);
               setSelectedValue(key);
               setFilteredOptions(filterRecordByKey(options, key));
@@ -173,7 +172,7 @@ export function Search<T>(props: SearchType<T>) {
 function getEntryByIndex<T>(
   record: Record<string, T>,
   index: number
-): [string, T] {
+): [string, T] | undefined {
   return Object.entries(record)[index];
 }
 

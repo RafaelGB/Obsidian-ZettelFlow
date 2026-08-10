@@ -100,7 +100,18 @@ export class VaultHooks {
     };
 
     private onRenameFolder(folder: TFolder, oldPath: string) {
-        const { foldersFlowsPath } = this.plugin.settings;
+        const settings = this.plugin.settings;
+        const { foldersFlowsPath } = settings;
+
+        // The scripts library is a *folder* path, so its rename arrives here (not in onRenameFile).
+        // Keep the setting in sync and refresh the `zf` script API so it reads from the new path.
+        if (oldPath === settings.jsLibraryFolderPath) {
+            settings.jsLibraryFolderPath = folder.path;
+            void this.plugin.saveSettings();
+            fnsManager.invalidateCache();
+            log.info("[VaultHooks] Renamed jsLibraryFolderPath.");
+        }
+
         const oldCanvas = canvasPathFromFolder(foldersFlowsPath, oldPath);
         const candidate = this.plugin.app.vault.getAbstractFileByPath(oldCanvas);
 
@@ -131,11 +142,8 @@ export class VaultHooks {
             settings.ribbonCanvas = file.path;
             void this.plugin.saveSettings();
             log.info("[VaultHooks] Renombrado ribbonCanvas.");
-        } else if (oldPath === settings.jsLibraryFolderPath) {
-            settings.jsLibraryFolderPath = file.path;
-            void this.plugin.saveSettings();
-            log.info("[VaultHooks] Renombrado jsLibraryFolderPath.");
         }
+        // jsLibraryFolderPath is a folder path, so its rename is handled in onRenameFolder.
     }
 
     /**
@@ -171,6 +179,7 @@ export class VaultHooks {
         if (folder.path === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = "";
             void this.plugin.saveSettings();
+            fnsManager.invalidateCache();
             log.info("[VaultHooks] Removed jsLibraryFolderPath.");
             return;
         }

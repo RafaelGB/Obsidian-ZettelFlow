@@ -6,6 +6,7 @@ import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
 import { FILE_EXTENSIONS, FileService, activateSidebarView } from "architecture/plugin";
+import { fnsManager } from "architecture/api";
 import { DEFAULT_SETTINGS } from "config";
 import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
@@ -191,6 +192,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .onChange(async (value) => {
                                         plugin.settings.jsLibraryFolderPath = value;
                                         await plugin.saveSettings();
+                                        // Rebuild the `zf` script API so it reads from the new folder.
+                                        fnsManager.invalidateCache();
                                     });
                             });
                         },

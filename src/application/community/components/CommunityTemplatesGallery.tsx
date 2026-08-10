@@ -118,7 +118,9 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
     };
 
     void getData();
-  }, [skip, targetSearchTerm, filter, plugin.settings, hasMore, isLoading]);
+    // `hasMore`/`isLoading` are read as in-effect guards only — including them in the deps caused
+    // the effect to re-fire every time it toggled `isLoading`, re-fetching page 0 in a loop.
+  }, [skip, targetSearchTerm, filter, plugin.settings]);
 
   // (3) Infinite scroll observer
   useEffect(() => {

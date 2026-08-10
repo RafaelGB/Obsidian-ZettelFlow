@@ -206,14 +206,17 @@ function hookCompletionProvider(context: CompletionContext): CompletionResult | 
         }));
 
         return {
-            from: word.from + actualText.lastIndexOf(lastSegment),
+            // Replace only the final segment under the cursor (see Autocompletion.ts): deriving
+            // `from` from the cursor avoids eating a leading delimiter captured by the match.
+            from: context.pos - lastSegment.length,
             options: enhancedCompletions,
             validFor: /^[\w.]*$/
         };
     } else if (rootSegment.startsWith('e') && 'event'.startsWith(rootSegment)) {
         // Provide the 'event' global variable as a completion
         return {
-            from: word.from,
+            // Replace the typed prefix only (not the leading delimiter word.from would include).
+            from: context.pos - rootSegment.length,
             options: eventCompletions.map(c => ({
                 ...c,
                 render: c.render || createHookRenderer(c)

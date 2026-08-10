@@ -48,4 +48,10 @@ export class CommunityTemplatesModal extends Modal {
       this.root.render(<StaticTemplatesGallery plugin={this.plugin} />);
     }
   }
+
+  onClose(): void {
+    // Unmount the React tree so its effects/observers/timers stop when the modal closes.
+    this.root?.unmount();
+    this.contentEl.empty();
+  }
 }

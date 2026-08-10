@@ -63,4 +63,25 @@ describe("findCompletions", () => {
         const weird = { a: { b: "not-an-object" } } as unknown as Record<string, unknown>;
         expect(findCompletions(["a", "b"], weird, DEFAULTS)).toBeNull();
     });
+
+    it("treats a bare Completion object as a leaf (no children), not a record of metadata keys", () => {
+        // Regression: a node that is itself a Completion (e.g. the script `context` object) was
+        // walked as a record, so `context.` suggested its metadata keys (label/type/info/...).
+        const contextLeaf = {
+            label: "context",
+            type: "object",
+            info: "Empty object to share info between script actions",
+            detail: "✨",
+            boost: 1,
+        };
+        const treeWithLeaf = {
+            note: [{ label: "title", type: "property", info: "", detail: "", boost: 99 }] as Completion[],
+            context: contextLeaf as unknown as Record<string, unknown>,
+        };
+        // Drilling into the leaf yields nothing to suggest.
+        expect(findCompletions(["context"], treeWithLeaf, DEFAULTS)).toBeNull();
+        // But the leaf is still listed among its parent's keys.
+        const rootLabels = findCompletions([], treeWithLeaf, DEFAULTS)?.map((c) => c.label);
+        expect(rootLabels).toContain("context");
+    });
 });

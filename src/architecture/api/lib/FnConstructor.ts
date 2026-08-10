@@ -99,7 +99,13 @@ class FnsManager {
 
     public getFns(): Promise<ZettelFlowApp> {
         if (!this.cache) {
-            this.cache = buildTools();
+            // Do NOT cache a rejected build: if it fails (e.g. a bad scripts-folder path) we must
+            // let the next call retry after the user fixes the config, instead of serving the same
+            // rejected promise for the rest of the session.
+            this.cache = buildTools().catch((error) => {
+                this.cache = null;
+                throw error;
+            });
         }
         return this.cache;
     }

@@ -40,3 +40,12 @@
 .zettelkasten-flow__settings-toggle-group .zettelkasten-flow__setting-item-label {
     margin-bottom: 0;
 }
+/* Phase group header in the step selector (#149) — labels a run of steps by knowledge phase. */
+.zettelkasten-flow__select-group-phase-header {
+    padding: 6px 12px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}

@@ -12,6 +12,7 @@ export class SelectMapper {
                 tooltip: node.tooltip,
                 color: node.color,
                 actionTypes: actions.map((action) => action.type),
+                phase: node.phase,
             })
         });
         return options;

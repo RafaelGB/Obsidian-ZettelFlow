@@ -3,6 +3,7 @@ import { Action } from "architecture/api";
 import { ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
 import type { ZettelIdStrategy, FolgezettelRelationship } from "../actions/zettelId/zettelIdLogic";
+import type { StepPhase } from "./phases";
 
 export type StepBuilderInfo = {
     type: string,
@@ -25,6 +26,12 @@ export type StepSettings = {
     targetFolder?: string
     childrenHeader?: string,
     optional?: boolean,
+    /**
+     * Optional knowledge-transformation phase this step advances (#149). Additive & cosmetic:
+     * absence means "unphased"; it labels/groups the step in the builder and does NOT drive
+     * execution or ordering. Orthogonal to the note lifecycle `state` (#146).
+     */
+    phase?: StepPhase,
 }
 
 export type ZettelFlowElement = {

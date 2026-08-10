@@ -30,9 +30,13 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   older, related notes worth revisiting, plus a daily spark of forgotten ideas.
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
-- **🌱 Note lifecycle states** — give every note a phase (🌱 fleeting → 📝 literature →
+- **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
   💡 permanent → 🔬 developing → 📚 evergreen → 🪦 archived) and move it with a validated
   **Change note state** command; the state lives in plain, configurable frontmatter.
+- **🧭 Knowledge phases for steps** — tag each step in a flow with the stage of knowledge work it
+  advances (Capture → Classify → Process → Connect → Develop → Review → Consolidate); the step
+  builder groups your flow by phase, so a workflow reads as an arc of thinking. Distinct from a
+  note's lifecycle *state*: a step has a **phase**, a note has a **state**.
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.

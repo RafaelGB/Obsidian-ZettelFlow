@@ -1,4 +1,5 @@
 import { log } from "architecture";
+import type { StepPhase } from "zettelkasten/phases";
 
 /**
  * Curated starter flows for the four classic Zettelkasten note types.
@@ -71,12 +72,14 @@ interface PromptSpec {
  * exact shape used by the onboarding example flow. The single step is always the
  * flow root and targets the shared examples notes folder.
  */
-function buildStepTemplate(label: string, prompts: PromptSpec[], body: string): string {
+function buildStepTemplate(label: string, prompts: PromptSpec[], body: string, phase: StepPhase): string {
     const lines: string[] = [];
     lines.push("---");
     lines.push("zettelFlowSettings:");
     lines.push("  root: true");
     lines.push(`  label: ${label}`);
+    // Default knowledge-transformation phase for the starter flow (#149) — cosmetic metadata.
+    lines.push(`  phase: ${phase}`);
     lines.push("  actions:");
     for (const prompt of prompts) {
         lines.push("    - type: prompt");
@@ -133,7 +136,8 @@ const STEP_TEMPLATES: Record<StarterFlowType, string> = {
                 placeholder: "What is on your mind?...",
             },
         ],
-        "# {{title}}\n"
+        "# {{title}}\n",
+        "CAPTURE"
     ),
     literature: buildStepTemplate(
         "Literature note",
@@ -179,7 +183,8 @@ const STEP_TEMPLATES: Record<StarterFlowType, string> = {
                 placeholder: "Summarise it in your own words...",
             },
         ],
-        "# {{title}}\n\n**Source:** {{source}} — {{author}} (p. {{page}})\n\n{{summary}}\n"
+        "# {{title}}\n\n**Source:** {{source}} — {{author}} (p. {{page}})\n\n{{summary}}\n",
+        "PROCESS"
     ),
     permanent: buildStepTemplate(
         "Permanent note",
@@ -209,7 +214,8 @@ const STEP_TEMPLATES: Record<StarterFlowType, string> = {
                 placeholder: "Link it to existing notes...",
             },
         ],
-        "# {{title}}\n\n{{idea}}\n\n## Connections\n\n{{connect}}\n"
+        "# {{title}}\n\n{{idea}}\n\n## Connections\n\n{{connect}}\n",
+        "DEVELOP"
     ),
     moc: buildStepTemplate(
         "Structure note",
@@ -231,7 +237,8 @@ const STEP_TEMPLATES: Record<StarterFlowType, string> = {
                 placeholder: "Describe the theme this map gathers...",
             },
         ],
-        "# {{title}}\n\n{{about}}\n\n## Notes in this map\n\n"
+        "# {{title}}\n\n{{about}}\n\n## Notes in this map\n\n",
+        "CONNECT"
     ),
 };
 

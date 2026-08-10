@@ -70,3 +70,7 @@ read-only. `created`/`last-reviewed` are reserved names only; #146 never writes 
 The lifecycle plugs into #145 via a `LifecycleStateSchema implements StateSchema`, registered with
 `KnowledgeIndex.getInstance().registerSchemas({ state })`. `byState` / `statePartition` then
 classify every note. The maturity *score* over these states is #158.
+
+> **State ≠ phase.** A note's lifecycle **state** (here) is orthogonal to a step's
+> [workflow phase](workflow-phases.md) (#149): a note has a *state* (how mature it is), a step has a
+> *phase* (the kind of knowledge work it performs).

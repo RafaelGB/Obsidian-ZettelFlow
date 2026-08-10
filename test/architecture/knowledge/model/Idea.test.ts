@@ -5,6 +5,7 @@ import {
     DEFAULT_RELATION_TYPE,
     IdeaSnapshot,
 } from "architecture/knowledge/model/Idea";
+import { ClaimSourceSchema } from "architecture/knowledge/claims/ClaimSourceSchema";
 
 function emptySnapshot(path = "a.md"): IdeaSnapshot {
     return {
@@ -47,5 +48,16 @@ describe("deriveIdea", () => {
     it("exposes stable default constants", () => {
         expect(DEFAULT_STATE).toBe("unknown");
         expect(DEFAULT_RELATION_TYPE).toBe("link");
+    });
+
+    it("feeds resolvedTargets to a registered claim schema so sources classify (#148)", () => {
+        const snap: IdeaSnapshot = {
+            ...emptySnapshot("a.md"),
+            frontmatter: { sources: ["[[B]]"] },
+            resolvedTargets: { B: "b.md" },
+        };
+        const idea = deriveIdea(snap, { claims: new ClaimSourceSchema() });
+        expect(idea.claims).toEqual([{ text: "a", sources: [{ ref: "b.md", kind: "link" }] }]);
+        expect(idea.maturitySignals.hasSources).toBe(true);
     });
 });

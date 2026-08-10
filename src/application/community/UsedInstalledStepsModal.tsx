@@ -30,4 +30,9 @@ export class UsedInstalledStepsModal extends Modal {
       />
     );
   }
+
+  onClose(): void {
+    this.root?.unmount();
+    this.contentEl.empty();
+  }
 }

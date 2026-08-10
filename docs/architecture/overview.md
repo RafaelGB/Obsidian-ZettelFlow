@@ -44,6 +44,7 @@ src/
 ├── config/                 # ZettelFlowSettings + DEFAULT_SETTINGS + settings-tab UI (3 sections)
 ├── architecture/           # The internal framework (see plugin-core.md)
 │   ├── api/                #   ActionsStore, CustomZettelAction base, fnsManager (zf), ZfVault/ZfScripts
+│   ├── knowledge/          #   Knowledge model: read-only idea index + query surface (see knowledge-model.md)
 │   ├── plugin/             #   ObsidianApi facade, Lifecycle, canvas patcher + extensions, services, VaultStateManager
 │   ├── components/         #   React/DOM primitives: core (CodeView, search), settings modals
 │   ├── monitoring/         #   Logger + custom exceptions

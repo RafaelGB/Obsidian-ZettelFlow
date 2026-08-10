@@ -61,6 +61,8 @@ export interface IdeaSnapshot {
     tags: string[];
     outgoingLinks: string[];
     inlineFields: InlineField[];
+    /** Optional wikilink name → resolved vault path map (filled by the Obsidian layer, #147). */
+    resolvedTargets?: Record<string, string>;
 }
 
 function basename(path: string): string {
@@ -93,7 +95,14 @@ export function deriveIdea(snapshot: IdeaSnapshot, schemas: KnowledgeSchemas = {
 
     const relations = schemas.relations
         ? safe(
-            () => schemas.relations!.parse({ path: snapshot.path, frontmatter: fm, inlineFields, outgoingLinks }),
+            () =>
+                schemas.relations!.parse({
+                    path: snapshot.path,
+                    frontmatter: fm,
+                    inlineFields,
+                    outgoingLinks,
+                    resolvedTargets: snapshot.resolvedTargets ?? {},
+                }),
             []
         )
         : extractEdges(snapshot.path, outgoingLinks);

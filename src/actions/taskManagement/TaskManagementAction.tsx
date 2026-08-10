@@ -6,6 +6,7 @@ import { TaskManagementElement } from "./typing";
 import { t } from "architecture/lang";
 import { log } from "architecture";
 import { taskManagementSettingsReader } from "./TaskManagementSettingsReader";
+import { rolloverUnfinishedTodos } from "./taskManagementLogic";
 
 export class TaskManagementAction extends CustomZettelAction {
   private static ICON = "list-checks";
@@ -81,15 +82,10 @@ export class TaskManagementAction extends CustomZettelAction {
 
 const getAllUnfinishedTodos = async (file: TFile, tasksHeader: string) => {
   const contents = await FileService.getContent(file);
-  const contentsForDailyTasks = contents.split(tasksHeader)[1] || contents;
-  const unfinishedTodosRegex = /\t*- \[ \].*/g;
-  const unfinishedTodos = Array.from(
-    contentsForDailyTasks.matchAll(unfinishedTodosRegex)
-  ).map(([todo]) => todo);
-  const fileWithoutTasks = contents.split(/.*\t*- \[ \].*\n?/g).join("");
-  await FileService.modify(file, fileWithoutTasks);
+  const { collected, newContents } = rolloverUnfinishedTodos(contents, tasksHeader);
+  await FileService.modify(file, newContents);
   new Notice(
-    `Rollover ${unfinishedTodos.length} unfinished task/s from ${file.basename}`
+    `Rollover ${collected.length} unfinished task/s from ${file.basename}`
   );
-  return unfinishedTodos;
+  return collected;
 };

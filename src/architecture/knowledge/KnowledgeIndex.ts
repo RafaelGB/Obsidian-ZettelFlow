@@ -127,7 +127,7 @@ export class KnowledgeIndex {
                 if (!inlineFields.some((field) => isSemanticRelationType(field.key))) continue;
 
                 const snapshot = gatherSnapshot(file);
-                const resolvedTargets: Record<string, string> = { ...(snapshot.resolvedTargets ?? {}) };
+                const resolvedTargets: Record<string, string> = { ...snapshot.resolvedTargets };
                 for (const field of inlineFields) {
                     if (!isSemanticRelationType(field.key)) continue;
                     for (const name of extractWikilinks(field.value)) {

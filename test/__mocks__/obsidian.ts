@@ -40,6 +40,21 @@ export function normalizePath(path: string): string {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
 
+export function getLanguage(): string {
+  return "en";
+}
+
+export class SuggestModal<T> {
+  constructor(public app?: unknown) {}
+  setPlaceholder(_text: string): void {}
+  getSuggestions(_query: string): T[] {
+    return [];
+  }
+  renderSuggestion(_value: T, _el: unknown): void {}
+  onChooseSuggestion(_value: T): void {}
+  open(): void {}
+}
+
 export function requireApiVersion(_version: string): boolean {
   return true;
 }

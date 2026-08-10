@@ -29,7 +29,7 @@ Each note is modelled as an `Idea`, keyed by its **vault path**:
 |---|---|
 | `path` | Identity (decision #3 — by path, re-keyed on rename). |
 | `title`, `created`, `modified` | Basic metadata (basename fallback if no title). |
-| `state` | Lifecycle state. Vocabulary owned by **#146**; defaults to `DEFAULT_STATE` (`"unknown"`). |
+| `state` | Lifecycle state. The [lifecycle](knowledge-lifecycle.md) (#146) registers a `StateSchema` classifying notes into fleeting → … → archived (fallback `fleeting`); with no schema registered it defaults to `DEFAULT_STATE` (`"unknown"`). |
 | `relations` | Outgoing **typed, directed** edges. Vocabulary owned by **#147**; plain `[[links]]` become `DEFAULT_RELATION_TYPE` (`"link"`) edges. |
 | `claims` | Claims & sources. Owned by **#148**; defaults to `[]`. |
 | `maturitySignals` | Raw signals only (`inDegree`, `outDegree`, `degree`, `hasSources`). The maturity *score* is **#158/#159**, not here. |

@@ -7,6 +7,14 @@ import { log } from "architecture/monitoring/Logger";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
 import { FILE_EXTENSIONS, FileService, activateSidebarView } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
+import { KnowledgeIndex } from "architecture/knowledge";
+import {
+    DEFAULT_STATE_PROPERTY,
+    DEFAULT_CREATED_PROPERTY,
+    DEFAULT_LAST_REVIEWED_PROPERTY,
+    LifecycleStateSchema,
+} from "architecture/knowledge/lifecycle";
+import { buildLifecycleAliases } from "architecture/knowledge/lifecycleAliases";
 import { DEFAULT_SETTINGS } from "config";
 import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
@@ -19,6 +27,9 @@ import { StarterFlowsModal } from "zettelkasten/modals/StarterFlowsModal";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
+
+// Debounce the (expensive) index re-register + rebuild when the user edits the state property name.
+let lifecycleRebuildTimer: number | undefined;
 
 // Documentation base + per-feature pages surfaced from the Zettelkasten toolkit settings group.
 const DOCS_BASE = "https://rafaelgb.github.io/Obsidian-ZettelFlow/";
@@ -215,6 +226,81 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                         await plugin.saveSettings();
                                     });
                             });
+                        },
+                    },
+                ],
+            },
+            // ── Knowledge lifecycle ───────────────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_lifecycle_heading"),
+                items: [
+                    {
+                        name: t("settings_lifecycle_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    {
+                        name: t("settings_state_property_name"),
+                        desc: t("settings_state_property_desc"),
+                        render: (setting) => {
+                            setting.addText((text) =>
+                                text
+                                    .setPlaceholder(DEFAULT_STATE_PROPERTY)
+                                    .setValue(plugin.settings.lifecycle.stateProperty)
+                                    .onChange(async (value) => {
+                                        const next = value.trim() || DEFAULT_STATE_PROPERTY;
+                                        plugin.settings.lifecycle.stateProperty = next;
+                                        await plugin.saveSettings();
+                                        if (lifecycleRebuildTimer) {
+                                            window.clearTimeout(lifecycleRebuildTimer);
+                                        }
+                                        // Re-register the schema and rebuild once typing settles.
+                                        lifecycleRebuildTimer = window.setTimeout(() => {
+                                            const index = KnowledgeIndex.getInstance();
+                                            index.registerSchemas({
+                                                state: new LifecycleStateSchema(
+                                                    next,
+                                                    buildLifecycleAliases()
+                                                ),
+                                            });
+                                            index.build();
+                                        }, 500);
+                                    })
+                            );
+                        },
+                    },
+                    {
+                        name: t("settings_created_property_name"),
+                        desc: t("settings_created_property_desc"),
+                        render: (setting) => {
+                            setting.addText((text) =>
+                                text
+                                    .setPlaceholder(DEFAULT_CREATED_PROPERTY)
+                                    .setValue(plugin.settings.lifecycle.createdProperty)
+                                    .onChange(async (value) => {
+                                        plugin.settings.lifecycle.createdProperty =
+                                            value.trim() || DEFAULT_CREATED_PROPERTY;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
+                        name: t("settings_last_reviewed_property_name"),
+                        desc: t("settings_last_reviewed_property_desc"),
+                        render: (setting) => {
+                            setting.addText((text) =>
+                                text
+                                    .setPlaceholder(DEFAULT_LAST_REVIEWED_PROPERTY)
+                                    .setValue(plugin.settings.lifecycle.lastReviewedProperty)
+                                    .onChange(async (value) => {
+                                        plugin.settings.lifecycle.lastReviewedProperty =
+                                            value.trim() || DEFAULT_LAST_REVIEWED_PROPERTY;
+                                        await plugin.saveSettings();
+                                    })
+                            );
                         },
                     },
                 ],

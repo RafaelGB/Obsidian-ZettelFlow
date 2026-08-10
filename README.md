@@ -30,6 +30,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   older, related notes worth revisiting, plus a daily spark of forgotten ideas.
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
+- **🌱 Note lifecycle states** — give every note a phase (🌱 fleeting → 📝 literature →
+  💡 permanent → 🔬 developing → 📚 evergreen → 🪦 archived) and move it with a validated
+  **Change note state** command; the state lives in plain, configurable frontmatter.
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.
@@ -90,6 +93,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |
 | **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |
+| **Note lifecycle states** | Classify notes by phase (fleeting → … → archived) and change state with a validated command; state lives in configurable frontmatter (no lock-in). |
 | **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
@@ -102,7 +106,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 
 ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. The plugin uses these capabilities:
 
-- **File system (vault).** Reads canvas flow files and creates/edits notes. All access goes through Obsidian's `Vault` API — never a hardcoded path. Works on desktop and mobile.
+- **File system (vault).** Reads canvas flow files and creates/edits notes (e.g. the **Change note state** command writes a single lifecycle property to the active note). All access goes through Obsidian's `Vault` / `FrontmatterService` API — never a hardcoded path. Works on desktop and mobile.
 - **Network — optional, community feature only.** If (and only if) you open the community templates browser, ZettelFlow fetches example flows from the ZettelFlow community source. Nothing is sent unless you use this feature.
 - **Script execution.** The Script action and JavaScript step files run **JavaScript you write** as part of a flow. This code runs with the plugin's access to your vault — only run scripts you trust.
 

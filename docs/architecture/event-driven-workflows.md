@@ -78,6 +78,16 @@ node, use the *open flow* action and edit it in the canvas.
 | **Same execution path** | A bound flow runs through the **same** entry a manual run uses — identical note output, no parallel code path. |
 | **Lifecycle-owned** | Every listener and timer is removed on disable and on plugin unload. |
 
+## Caveats
+
+- **Conditions run synchronously.** A binding's `condition` is a `zf` script with **no timeout** —
+  the same execution model as property hooks and the Script action. Keep it cheap: a heavy or
+  infinite condition blocks Obsidian's UI thread. Prefer a small predicate over the note's
+  frontmatter/path.
+- **`note.modified` can be noisy.** A binding on `note.modified` with a broad or absent condition
+  opens the wizard on *every* qualifying edit (throttled to at most once per note per window).
+  Scope it with a condition, or prefer `note.created` / `property.changed` where you can.
+
 ## Capabilities & privacy
 
 Event-driven workflows observe vault **file/metadata events** (file-system reads) and, on a fire,

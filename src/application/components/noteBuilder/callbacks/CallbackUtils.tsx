@@ -10,7 +10,9 @@ import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
 import { HistoryView } from "architecture/components/core/historyView/HistoryView";
-import { evaluateCondition, parseEdgeCondition, EvalContext } from "application/notes/conditionEvaluator";
+import { evaluateEdgeGate, EvalContext } from "application/notes/conditionEvaluator";
+import { isWaitNode, WaitMachine } from "architecture/plugin/workflow";
+import { WaitPromptModal } from "zettelkasten/modals/WaitPromptModal";
 
 export async function nextElement(
   state: CallbackPickedState,
@@ -23,11 +25,43 @@ export async function nextElement(
   const selectedNode = await flow.get(selected);
   actions.setCurrentNode(selectedNode);
   actions.setActiveContext(info.modal.getCanvasName(), selectedNode.label);
-  if (selectedNode.actions.length > 0 && !data.wasActionTriggered()) {
-    manageAction(selectedNode, state, info, 0);
-  } else {
-    void manageElement(selectedNode, state, info);
+
+  // How the wizard proceeds once this node is cleared to run (WAIT gates this).
+  const proceed = () => {
+    if (selectedNode.actions.length > 0 && !data.wasActionTriggered()) {
+      manageAction(selectedNode, state, info, 0);
+    } else {
+      void manageElement(selectedNode, state, info);
+    }
+  };
+
+  // WAIT block (#151): suspend the wizard on a human-confirmation pause. The pure WaitMachine
+  // guarantees we advance at most once; closing the prompt without confirming aborts (fail safe —
+  // no build, no mutation). No cross-restart persistence: a pending WAIT is simply dropped.
+  if (isWaitNode(selectedNode)) {
+    const machine = new WaitMachine();
+    machine.reachWait();
+    log.info(`[workflow] WAIT reached at "${selectedNode.label}" — suspending`);
+    const message = selectedNode.wait?.message || t("workflow_wait_prompt_default_message");
+    new WaitPromptModal(
+      info.plugin.app,
+      message,
+      () => {
+        if (machine.confirm()) {
+          log.info(`[workflow] WAIT resumed at "${selectedNode.label}"`);
+          proceed();
+        }
+      },
+      () => {
+        machine.cancel();
+        log.warn(`[workflow] WAIT cancelled at "${selectedNode.label}" — aborting workflow`);
+        info.modal.close();
+      }
+    ).open();
+    return;
   }
+
+  proceed();
 }
 
 export function manageAction(
@@ -163,15 +197,15 @@ function buildEvalContext(state: CallbackPickedState, info: NoteBuilderType): Ev
 }
 
 function filterConditionalEdges(children: FlowNode[], ctx: EvalContext): FlowNode[] {
+  // IF block (#151): each edge is gated by the #119 evaluator via evaluateEdgeGate. A malformed
+  // expression safe-opens and is surfaced (Notice + debug log) rather than silently dropping a branch.
   return children.filter((child) => {
-    const expr = parseEdgeCondition(child.tooltip);
-    if (!expr) return true;
-    try {
-      return evaluateCondition(expr, ctx);
-    } catch {
+    const { open, invalid } = evaluateEdgeGate(child.tooltip, ctx);
+    if (invalid) {
+      log.debug(`[workflow] invalid IF condition on edge to "${child.label}" — opening (safe)`);
       new Notice(t("edge_condition_invalid_expression"));
-      return true; // safe fallback
     }
+    return open;
   });
 }
 

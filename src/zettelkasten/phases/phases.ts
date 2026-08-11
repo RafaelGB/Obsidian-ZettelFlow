@@ -80,15 +80,16 @@ export function groupOptionsByPhase<T extends { phase?: StepPhase }>(
 
 /**
  * Merge a step's settings into an existing frontmatter `zettelFlowSettings` object, DELETING the
- * `phase` key when the incoming settings carry none. The file-node save path spreads
- * `{ ...existing, ...incoming }`, which would otherwise leave a previously-saved phase token behind
- * when the user clears it. Pure & unit-tested.
+ * optional-marker keys (`phase` #149, `wait` #151) when the incoming settings carry none. The
+ * file-node save path spreads `{ ...existing, ...incoming }`, which would otherwise leave a
+ * previously-saved marker behind when the user clears it in the builder. Pure & unit-tested.
  */
-export function mergePhaseIntoFrontmatter(
+export function mergeStepSettingsIntoFrontmatter(
     existing: Record<string, unknown> | undefined,
     incoming: Record<string, unknown>
 ): Record<string, unknown> {
     const merged: Record<string, unknown> = { ...existing, ...incoming };
     if (incoming.phase === undefined) delete merged.phase;
+    if (incoming.wait === undefined) delete merged.wait;
     return merged;
 }

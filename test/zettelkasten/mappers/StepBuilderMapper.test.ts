@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { StepBuilderMapper } from "zettelkasten/mappers/StepBuilderMapper";
-import { mergePhaseIntoFrontmatter } from "zettelkasten/phases";
+import { mergeStepSettingsIntoFrontmatter } from "zettelkasten/phases";
 import type { StepBuilderInfo, StepSettings } from "zettelkasten/typing";
 
 function info(overrides: Partial<StepBuilderInfo> = {}): StepBuilderInfo {
@@ -100,17 +100,29 @@ describe("StepBuilderMapper — WAIT round-trip (#151, back-compat)", () => {
     });
 });
 
-describe("mergePhaseIntoFrontmatter — clear-on-save (#149)", () => {
-    it("keeps a phase that the incoming settings carry", () => {
-        const merged = mergePhaseIntoFrontmatter({ label: "x" }, { label: "x", phase: "PROCESS" });
+describe("mergeStepSettingsIntoFrontmatter — clear-on-save (#149 phase, #151 wait)", () => {
+    it("keeps a phase and a wait that the incoming settings carry", () => {
+        const merged = mergeStepSettingsIntoFrontmatter(
+            { label: "x" },
+            { label: "x", phase: "PROCESS", wait: { mode: "confirm" } }
+        );
         expect(merged.phase).toBe("PROCESS");
+        expect(merged.wait).toEqual({ mode: "confirm" });
     });
 
-    it("DELETES a previously-saved phase when the incoming settings clear it (AC-2 clear)", () => {
-        const merged = mergePhaseIntoFrontmatter(
+    it("DELETES a previously-saved phase when the incoming settings clear it (AC-6 clear)", () => {
+        const merged = mergeStepSettingsIntoFrontmatter(
             { label: "x", phase: "CAPTURE" },
             { label: "x" } // no phase key -> cleared
         );
         expect("phase" in merged).toBe(false);
+    });
+
+    it("DELETES a previously-saved wait when the incoming settings clear it (AC-6 clear)", () => {
+        const merged = mergeStepSettingsIntoFrontmatter(
+            { label: "x", wait: { mode: "confirm" } },
+            { label: "x" } // no wait key -> cleared
+        );
+        expect("wait" in merged).toBe(false);
     });
 });

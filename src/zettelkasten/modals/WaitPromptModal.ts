@@ -21,7 +21,7 @@ export class WaitPromptModal extends Modal {
     }
 
     onOpen(): void {
-        this.contentEl.createEl("h2", { text: t("workflow_wait_prompt_title") });
+        this.setTitle(t("workflow_wait_prompt_title"));
         this.contentEl.createEl("p", { text: this.message });
         new Setting(this.contentEl)
             .addButton((btn) =>

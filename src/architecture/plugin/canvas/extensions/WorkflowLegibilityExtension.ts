@@ -54,6 +54,8 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
     }
 
     private applyStyling(canvas: Canvas): void {
+        // Clear the previous pass first so removed/changed nodes don't keep a stale class or label.
+        this.clearStyled();
         try {
             if (!CanvasHelper.isCanvasFlow(this.plugin)) return;
             const nodes = canvas?.nodes;
@@ -107,20 +109,25 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         return undefined;
     }
 
-    /** Toggle the block-kind class + tooltip on an element (clearing any stale block class first). */
+    /** Add the block-kind class + tooltip to an element (a prior `clearStyled()` removed any stale one). */
     private applyBlockClass(el: HTMLElement, style: BlockStyle | undefined): void {
-        for (const kind of WORKFLOW_BLOCK_KINDS) el.classList.remove(c(BLOCK_STYLE[kind].cssClass));
         if (!style) return;
         el.classList.add(c(style.cssClass));
-        this.styledEls.add(el);
         if (style.tooltipKey) el.setAttribute("aria-label", t(style.tooltipKey as LocaleKey));
+        this.styledEls.add(el);
+    }
+
+    /** Strip every class + label this extension applied. Keeps `styledEls` bounded to the last pass. */
+    private clearStyled(): void {
+        for (const el of this.styledEls) {
+            for (const kind of WORKFLOW_BLOCK_KINDS) el.classList.remove(c(BLOCK_STYLE[kind].cssClass));
+            el.removeAttribute("aria-label");
+        }
+        this.styledEls.clear();
     }
 
     private teardown(): void {
         if (this.restyleTimer) window.clearTimeout(this.restyleTimer);
-        for (const el of this.styledEls) {
-            for (const kind of WORKFLOW_BLOCK_KINDS) el.classList.remove(c(BLOCK_STYLE[kind].cssClass));
-        }
-        this.styledEls.clear();
+        this.clearStyled();
     }
 }

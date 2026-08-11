@@ -9,8 +9,11 @@
 
 import { log } from "architecture";
 
-/** A `zf`-style script runner: given source and a context, returns (a promise of) some value. */
-export type ConditionRunner = (script: string, ctx: unknown) => unknown | Promise<unknown>;
+/**
+ * A `zf`-style script runner: given source and a context, returns some value (sync or a promise —
+ * the caller `await`s it either way). Typed `unknown` because a user script may return anything.
+ */
+export type ConditionRunner = (script: string, ctx: unknown) => unknown;
 
 /**
  * Evaluate a binding condition. Absent/blank → `true`. Otherwise run `script` via `runScript` and

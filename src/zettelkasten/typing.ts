@@ -114,6 +114,17 @@ export type CheckboxElement = {
     staticValue?: boolean,
 } & AditionBaseElement;
 
+/**
+ * Config shared by the #153 knowledge actions (detect-orphan / calculate-maturity /
+ * find-contradiction / find-unanswered-question): the result `key`, the `zone` it's written to, and
+ * an optional `target` note to analyze (empty ⇒ the note being built).
+ */
+export type KnowledgeActionElement = {
+    key: string,
+    zone: ZoneOption,
+    target?: string,
+} & Action;
+
 export type { ZettelIdStrategy, FolgezettelRelationship };
 export type ZettelIdElement = {
     strategy?: ZettelIdStrategy;

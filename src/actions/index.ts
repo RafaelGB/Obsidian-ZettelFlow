@@ -11,3 +11,7 @@ export { TaskManagementAction } from './taskManagement/TaskManagementAction';
 export { DynamicSelectorAction } from './dynamicSelector/DynamicSelectorAction';
 export { ScriptResult } from './dynamicSelector/typing';
 export { ZettelIdAction } from './zettelId/ZettelIdAction';
+export { DetectOrphanAction } from './detectOrphan/DetectOrphanAction';
+export { CalculateMaturityAction } from './calculateMaturity/CalculateMaturityAction';
+export { FindContradictionAction } from './findContradiction/FindContradictionAction';
+export { FindUnansweredQuestionAction } from './findUnansweredQuestion/FindUnansweredQuestionAction';

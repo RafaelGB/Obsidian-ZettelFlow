@@ -67,3 +67,9 @@ if: (frontmatter.priority === "high") && (canvas.name === "Daily")
 - Arbitrary JavaScript (no `eval`, no `Function()`)
 - Looping constructs
 - Visual condition builder (planned separately)
+
+## See also
+
+A conditional edge is the **IF** block of the
+[visual workflow language](event-driven-workflows.md#visual-workflow-language-when--if--action--wait)
+(WHEN / IF / ACTION / WAIT).

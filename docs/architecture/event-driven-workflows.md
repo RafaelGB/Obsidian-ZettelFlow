@@ -96,6 +96,43 @@ disclosed file-system capability. A binding condition runs as a **`zf` script**,
 already-disclosed script-execution capability (the same evaluator as hooks / the Script action). No
 network calls, no AI — event-driven execution is fully local.
 
+## Visual workflow language (WHEN / IF / ACTION / WAIT)
+
+Event-driven workflows compose on the **native canvas** as a small, readable language — *WHEN* a
+vault event happens, *IF* a condition holds, run an *ACTION*, then *WAIT* for you. Each block lowers
+onto a primitive ZettelFlow already runs, so there is **one execution path** (the engine above), not
+a second runtime:
+
+| Block | Is | Where it lives |
+|---|---|---|
+| **WHEN** | the event trigger | the root step's `zettelFlowSettings.trigger` — author it in the step builder's *When (event trigger)* field |
+| **IF** | a conditional branch | an `if: …` canvas edge label ([conditional edges](conditional-edges.md)) |
+| **ACTION** | a step to run | an ordinary Step node, authored with the step builder |
+| **WAIT** | a human-confirmation pause | a new additive `wait` marker on a step — toggle *Wait for confirmation* in the step builder, or *Mark as a wait step* from the canvas node menu |
+
+### WAIT — the human-in-the-loop pause
+
+When the wizard reaches a WAIT step it **suspends** and shows a prompt: **Continue** resumes the
+workflow, **Cancel** (or closing the prompt) aborts it. Nothing is written until the workflow
+finishes, so a cancelled or dropped WAIT leaves the vault untouched. v1 WAIT is **human confirmation
+only** and has **no cross-restart persistence** — a WAIT still pending when Obsidian closes is simply
+dropped (it fails safe: no half-built note). Keep it out of unattended, event-triggered flows unless
+a person is there to answer.
+
+### In-canvas legibility
+
+On a ZettelFlow canvas the blocks are **visually annotated** by kind — WAIT nodes badged, WHEN
+(trigger) roots and IF edges marked — so a flow reads as an arc of thinking at a glance. This styling
+is **cosmetic only**: it changes nothing about execution or storage, and if Obsidian's canvas
+internals change it simply doesn't apply (the workflow still runs).
+
+### Safety
+
+A visually-authored workflow inherits every guard above: **off by default**, **throttled**, and
+**loop-guarded** — a WAIT pause never defeats the loop guard (a resumed run's own write is still
+suppressed). An IF condition reuses the safe [#119 evaluator](conditional-edges.md) (no `eval`); a
+malformed condition **safe-opens** the branch rather than silently dropping it.
+
 ## See also
 
 - [Vault hooks internals](vault-hooks-internals.md) — property/folder hooks fire from the same

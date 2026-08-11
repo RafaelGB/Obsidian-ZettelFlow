@@ -547,4 +547,7 @@ export default {
     step_builder_trigger_condition_desc: 'A zf script; the flow runs only when it returns a truthy value.',
     canvas_node_menu_mark_wait: 'Mark as a wait step',
     canvas_node_menu_unmark_wait: 'Remove the wait pause',
+    workflow_canvas_when_tooltip: 'Runs automatically on a vault event',
+    workflow_canvas_if_tooltip: 'Conditional branch',
+    workflow_canvas_wait_tooltip: 'Pauses for your confirmation',
 };

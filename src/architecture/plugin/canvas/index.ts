@@ -2,6 +2,7 @@ import AddManagedStepExtension from './extensions/AddManagedStepExtension';
 import CanvasExtension from './extensions/CanvasExtension';
 import CanvasPatcher from './extensions/CanvasPatcher';
 import EditStepCanvasExtension from './extensions/EditCanvasExtension';
+import WorkflowLegibilityExtension from './extensions/WorkflowLegibilityExtension';
 import type ZettelFlow from 'main';
 
 /** Concrete, instantiable canvas-extension constructor (CanvasExtension itself is abstract). */
@@ -15,7 +16,8 @@ export { canvasJsonFormatter } from './formatter';
 
 const allCanvasExtensions: CanvasExtensionConstructor[] = [
     EditStepCanvasExtension,
-    AddManagedStepExtension
+    AddManagedStepExtension,
+    WorkflowLegibilityExtension
 ];
 
 export { allCanvasExtensions, CanvasExtension, CanvasPatcher };

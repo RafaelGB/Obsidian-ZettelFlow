@@ -547,4 +547,7 @@ export default {
     step_builder_trigger_condition_desc: 'Un script zf; el flujo se ejecuta solo cuando devuelve un valor verdadero.',
     canvas_node_menu_mark_wait: 'Marcar como paso de espera',
     canvas_node_menu_unmark_wait: 'Quitar la pausa de espera',
+    workflow_canvas_when_tooltip: 'Se ejecuta automáticamente ante un evento de la bóveda',
+    workflow_canvas_if_tooltip: 'Rama condicional',
+    workflow_canvas_wait_tooltip: 'Pausa para tu confirmación',
 };

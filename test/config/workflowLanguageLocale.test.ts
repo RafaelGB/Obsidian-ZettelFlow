@@ -25,13 +25,17 @@ const WORKFLOW_KEYS = [
     // node menu
     "canvas_node_menu_mark_wait",
     "canvas_node_menu_unmark_wait",
+    // in-canvas legibility tooltips
+    "workflow_canvas_when_tooltip",
+    "workflow_canvas_if_tooltip",
+    "workflow_canvas_wait_tooltip",
     // block labels
     ...WORKFLOW_BLOCK_KINDS.map((kind) => BLOCK_LABEL_KEY[kind]),
 ];
 
 describe("visual workflow language i18n parity (#151, AC-7)", () => {
     it("defines every new key in both en and es, non-empty", () => {
-        expect(WORKFLOW_KEYS.length).toBe(19);
+        expect(WORKFLOW_KEYS.length).toBe(22);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of WORKFLOW_KEYS) {

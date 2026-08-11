@@ -11,6 +11,7 @@ import { promptSettingsReader } from "./PromptSettingsReader";
 export class PromptAction extends CustomZettelAction {
   private static ICON = "form-input";
   id = "prompt";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

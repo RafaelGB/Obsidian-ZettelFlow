@@ -10,6 +10,7 @@ import { checkboxSettingsReader } from "./CheckboxSettingsReader";
 export class CheckboxAction extends CustomZettelAction {
   private static ICON = "check-square";
   id = "checkbox";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

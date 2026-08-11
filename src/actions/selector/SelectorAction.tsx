@@ -13,6 +13,7 @@ import { selectorSettingsReader } from "./SelectorSettingsReader";
 export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";
   id = "selector";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

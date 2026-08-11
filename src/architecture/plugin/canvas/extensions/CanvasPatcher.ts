@@ -103,6 +103,10 @@ export default class CanvasPatcher {
                     }
 
                     that.triggerWorkspaceEvent("zettelflow-node-connection-drop-menu", this.canvas)
+                    // Signal a canvas (re)render so the workflow-legibility extension can re-apply
+                    // its cosmetic block-kind styling (#151). Guarded: reuses this already-guarded
+                    // patch, adds no new patched method.
+                    that.triggerWorkspaceEvent("zettelflow-canvas-render", this.canvas)
                     return result
                 })
             })

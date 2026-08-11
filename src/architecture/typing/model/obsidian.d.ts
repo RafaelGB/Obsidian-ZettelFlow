@@ -24,6 +24,7 @@ declare module "obsidian" {
         // Monkey patching
         on(name: "canvas:popup-menu", callback: (canvas: Canvas) => void): EventRef;
         on(name: "zettelflow-node-connection-drop-menu", callback: (canvas: Canvas) => void): EventRef;
+        on(name: "zettelflow-canvas-render", callback: (canvas: Canvas) => void): EventRef;
     }
 
     interface MetadataCache {

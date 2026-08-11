@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { StepBuilderMapper } from "zettelkasten/mappers/StepBuilderMapper";
-import { mergePhaseIntoFrontmatter } from "zettelkasten/phases";
+import { mergeStepSettingsIntoFrontmatter } from "zettelkasten/phases";
 import type { StepBuilderInfo, StepSettings } from "zettelkasten/typing";
 
 function info(overrides: Partial<StepBuilderInfo> = {}): StepBuilderInfo {
@@ -71,17 +71,58 @@ describe("StepBuilderMapper — trigger round-trip (#150, back-compat)", () => {
     });
 });
 
-describe("mergePhaseIntoFrontmatter — clear-on-save (#149)", () => {
-    it("keeps a phase that the incoming settings carry", () => {
-        const merged = mergePhaseIntoFrontmatter({ label: "x" }, { label: "x", phase: "PROCESS" });
-        expect(merged.phase).toBe("PROCESS");
+describe("StepBuilderMapper — WAIT round-trip (#151, back-compat)", () => {
+    const wait = { mode: "confirm" as const, message: "Ready?" };
+
+    it("omits the wait key for a step without a wait marker", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        expect("wait" in settings).toBe(false);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect("wait" in back).toBe(false);
     });
 
-    it("DELETES a previously-saved phase when the incoming settings clear it (AC-2 clear)", () => {
-        const merged = mergePhaseIntoFrontmatter(
+    it("preserves a wait marker both directions", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ wait }));
+        expect(settings.wait).toEqual(wait);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect(back.wait).toEqual(wait);
+    });
+
+    it("two steps differing only by wait have deep-equal non-wait projections", () => {
+        const withWait = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ wait }));
+        const without = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        const strip = (s: StepSettings) => {
+            const { wait: w, ...rest } = s;
+            void w;
+            return rest;
+        };
+        expect(strip(withWait)).toEqual(strip(without));
+    });
+});
+
+describe("mergeStepSettingsIntoFrontmatter — clear-on-save (#149 phase, #151 wait)", () => {
+    it("keeps a phase and a wait that the incoming settings carry", () => {
+        const merged = mergeStepSettingsIntoFrontmatter(
+            { label: "x" },
+            { label: "x", phase: "PROCESS", wait: { mode: "confirm" } }
+        );
+        expect(merged.phase).toBe("PROCESS");
+        expect(merged.wait).toEqual({ mode: "confirm" });
+    });
+
+    it("DELETES a previously-saved phase when the incoming settings clear it (AC-6 clear)", () => {
+        const merged = mergeStepSettingsIntoFrontmatter(
             { label: "x", phase: "CAPTURE" },
             { label: "x" } // no phase key -> cleared
         );
         expect("phase" in merged).toBe(false);
+    });
+
+    it("DELETES a previously-saved wait when the incoming settings clear it (AC-6 clear)", () => {
+        const merged = mergeStepSettingsIntoFrontmatter(
+            { label: "x", wait: { mode: "confirm" } },
+            { label: "x" } // no wait key -> cleared
+        );
+        expect("wait" in merged).toBe(false);
     });
 });

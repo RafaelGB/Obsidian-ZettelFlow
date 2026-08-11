@@ -203,6 +203,33 @@ describe("FlowImpl.rootNodes — file-type nodes", () => {
         expect(roots[0].trigger).toEqual(trigger);
     });
 
+    // ── WAIT marker (#151) — additive & back-compatible ─────────────────────────
+    it("back-compat: a node with no wait loads with wait === undefined (AC-6)", async () => {
+        wireApp({
+            fileExists: true,
+            cache: { frontmatter: { zettelFlowSettings: { root: true, label: "Test" } } },
+            diskContent: ROOT_CONTENT,
+        });
+
+        const roots = await new FlowImpl(makeCanvas(), fakeCanvasFile).rootNodes();
+
+        expect(roots).toHaveLength(1);
+        expect(roots[0].wait).toBeUndefined();
+    });
+
+    it("propagates a WAIT marker from the node's zettelFlowSettings frontmatter (AC-6)", async () => {
+        const wait = { mode: "confirm", message: "Ready?" };
+        wireApp({
+            fileExists: true,
+            cache: { frontmatter: { zettelFlowSettings: { root: true, label: "Test", wait } } },
+            diskContent: ROOT_CONTENT,
+        });
+
+        const roots = await new FlowImpl(makeCanvas(), fakeCanvasFile).rootNodes();
+
+        expect(roots[0].wait).toEqual(wait);
+    });
+
     it("a trigger does not change the execution-relevant projection of the node (AC-8)", async () => {
         const project = (node: Record<string, unknown>) => {
             const { trigger, color, ...rest } = node;

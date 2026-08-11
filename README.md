@@ -40,6 +40,10 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **⚡ Event-driven workflows** — let a flow **react** to vault events (a note created, a property
   or tag change) instead of only running on demand. Opt-in and **off by default**, throttled, and
   loop-guarded so a flow can never retrigger itself; an optional `zf` condition gates each trigger.
+- **🧩 Visual workflow language (WHEN / IF / ACTION / WAIT)** — compose a reactive flow on the canvas
+  as a readable program: **WHEN** a vault event happens, **IF** a condition holds, run an **ACTION**,
+  then **WAIT** for your confirmation. WAIT is a human-in-the-loop pause; the blocks are annotated on
+  the canvas so a flow reads as an arc of thinking.
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.
@@ -103,6 +107,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Note lifecycle states** | Classify notes by phase (fleeting → … → archived) and change state with a validated command; state lives in configurable frontmatter (no lock-in). |
 | **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
 | **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
+| **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |

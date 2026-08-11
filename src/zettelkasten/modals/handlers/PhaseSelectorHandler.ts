@@ -1,7 +1,7 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { RootToggleHandler } from "./RootToggleHandler";
+import { StepWaitHandler } from "./StepWaitHandler";
 import { AbstractStepModal } from "../AbstractStepModal";
 import { STEP_PHASES, PHASE_LABEL_KEY, isStepPhase } from "zettelkasten/phases";
 
@@ -36,6 +36,6 @@ export class PhaseSelectorHandler extends AbstractHandlerClass<AbstractStepModal
     }
 
     public manageNextHandler(): void {
-        this.nextHandler = new RootToggleHandler();
+        this.nextHandler = new StepWaitHandler();
     }
 }

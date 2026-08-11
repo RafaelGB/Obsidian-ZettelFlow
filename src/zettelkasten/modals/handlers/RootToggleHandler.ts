@@ -1,7 +1,7 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
-import { TargetFolderSuggesterHandler } from "./TargetFolderSuggesterHandler";
+import { StepTriggerHandler } from "./StepTriggerHandler";
 import { AbstractStepModal } from "../AbstractStepModal";
 
 export class RootToggleHandler extends AbstractHandlerClass<AbstractStepModal> {
@@ -30,6 +30,6 @@ export class RootToggleHandler extends AbstractHandlerClass<AbstractStepModal> {
     }
 
     public manageNextHandler() {
-        this.nextHandler = new TargetFolderSuggesterHandler();
+        this.nextHandler = new StepTriggerHandler();
     }
 }

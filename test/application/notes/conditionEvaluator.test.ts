@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import {
     evaluateCondition,
     parseEdgeCondition,
+    evaluateEdgeGate,
     EvalContext,
 } from "application/notes/conditionEvaluator";
 
@@ -112,5 +113,38 @@ describe("parseEdgeCondition", () => {
 
     it("returns undefined for empty string", () => {
         expect(parseEdgeCondition("")).toBeUndefined();
+    });
+});
+
+describe("evaluateEdgeGate — IF block gate reusing the #119 evaluator (AC-4)", () => {
+    it("opens an unconditional edge (no 'if:' prefix)", () => {
+        expect(evaluateEdgeGate("Next step", ctx())).toEqual({ open: true, invalid: false });
+        expect(evaluateEdgeGate(undefined, ctx())).toEqual({ open: true, invalid: false });
+    });
+
+    it("opens when a truthy condition holds", () => {
+        expect(
+            evaluateEdgeGate('if: frontmatter.type === "literature"', ctx({ type: "literature" }))
+        ).toEqual({ open: true, invalid: false });
+    });
+
+    it("closes when the condition is false", () => {
+        expect(
+            evaluateEdgeGate('if: frontmatter.type === "literature"', ctx({ type: "fleeting" }))
+        ).toEqual({ open: false, invalid: false });
+    });
+
+    it("evaluates a missing frontmatter key without throwing (absent → null)", () => {
+        // absent key resolves to null, so `!== "x"` is a definite, non-throwing true
+        expect(evaluateEdgeGate('if: frontmatter.missing !== "x"', ctx())).toEqual({
+            open: true,
+            invalid: false,
+        });
+    });
+
+    it("safe-opens and flags an invalid expression (never throws)", () => {
+        const result = evaluateEdgeGate("if: === &&", ctx());
+        expect(result.open).toBe(true);
+        expect(result.invalid).toBe(true);
     });
 });

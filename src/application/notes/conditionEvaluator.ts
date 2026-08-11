@@ -188,6 +188,32 @@ export function evaluateCondition(expression: string, context: EvalContext): boo
     return result;
 }
 
+/** The outcome of gating a workflow edge (IF block, #151): whether it opens, and whether the
+ * expression was malformed (safe-opened). */
+export interface EdgeGateResult {
+    open: boolean;
+    invalid: boolean;
+}
+
+/**
+ * Gate a workflow edge as an **IF** block (#151), reusing the #119 evaluator — no new expression
+ * language, no `eval`. An edge with no `if:` label is unconditional (`open`). A well-formed condition
+ * opens iff it is truthy. A **malformed** condition **safe-opens** (`open: true, invalid: true`) so a
+ * typo never silently drops a branch — the caller surfaces the `invalid` flag (a Notice).
+ */
+export function evaluateEdgeGate(
+    tooltip: string | undefined,
+    context: EvalContext
+): EdgeGateResult {
+    const expression = parseEdgeCondition(tooltip);
+    if (expression === undefined) return { open: true, invalid: false };
+    try {
+        return { open: evaluateCondition(expression, context), invalid: false };
+    } catch {
+        return { open: true, invalid: true };
+    }
+}
+
 const CONDITION_PREFIX = /^if:\s*/i;
 
 /**

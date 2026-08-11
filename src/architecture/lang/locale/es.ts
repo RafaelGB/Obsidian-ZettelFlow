@@ -527,4 +527,9 @@ export default {
     event_note_modified_label: 'Nota modificada',
     event_property_changed_label: 'Propiedad cambiada',
     event_tag_added_label: 'Etiqueta añadida',
+    // Visual workflow language (#151)
+    workflow_wait_prompt_title: '¿Continuar este flujo?',
+    workflow_wait_prompt_default_message: 'Este flujo está en pausa. Continúa cuando estés listo.',
+    workflow_wait_continue_button: 'Continuar',
+    workflow_wait_cancel_button: 'Cancelar',
 };

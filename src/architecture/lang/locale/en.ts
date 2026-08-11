@@ -527,4 +527,9 @@ export default {
     event_note_modified_label: 'Note modified',
     event_property_changed_label: 'Property changed',
     event_tag_added_label: 'Tag added',
+    // Visual workflow language (#151)
+    workflow_wait_prompt_title: 'Continue this workflow?',
+    workflow_wait_prompt_default_message: 'This workflow is paused. Continue when you are ready.',
+    workflow_wait_continue_button: 'Continue',
+    workflow_wait_cancel_button: 'Cancel',
 };

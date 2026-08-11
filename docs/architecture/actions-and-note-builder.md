@@ -276,3 +276,39 @@ The **Dynamic Selector** uses a narrower script contract: called with only `zf`,
 See the step-by-step recipe in
 [Contributing & conventions](../development/contributing-and-conventions.md#adding-a-new-action),
 and the `new-action` harness skill which scaffolds the 4 files and the registration for you.
+
+## 9. Action categories (cognitive capabilities)
+
+Since #152 the action picker groups actions by **what they do to knowledge** rather than showing a
+flat list. There are five closed categories, rendered in this canonical order (emoji is decorative;
+the label is i18n, sentence case):
+
+| Category | Meaning |
+|---|---|
+| 📝 **Manipulation** | create / modify a note, add a property, tag, id, task, css class |
+| 🔗 **Relations** | create / remove / suggest a link between notes |
+| 🧠 **Knowledge** | extract concepts, find contradictions/duplicates, maturity *(actions land here with #153)* |
+| 🔍 **Research** | find / attach sources, extract & compare claims *(#155)* |
+| 🤖 **AI** | optional, provider-agnostic AI capabilities *(#156)* |
+
+**Built-in mapping (behavior-neutral — categorization changed nothing about how actions run):**
+Backlink → 🔗 Relations; every other built-in (Prompt, Number, Checkbox, Calendar, Selector,
+Dynamic selector, Tags, CSS classes, Task management, Script, Zettel ID) → 📝 Manipulation. The
+Knowledge / Research / AI groups ship **empty** and fill in as #153 / #155 / #156 land.
+
+**Declaring a category (third-party actions).** A category is an **optional** `category` field on
+`CustomZettelAction`:
+
+```ts
+export class MyAction extends CustomZettelAction {
+  id = "my-action";
+  category = "relations" as const; // optional — omit to stay uncategorized
+  // …
+}
+```
+
+Omitting it is fully supported (the #33 back-compat contract): the action still registers, runs, and
+appears in the picker under an **"Other"** group. **Empty groups are hidden**, so the uncategorized
+group only shows when at least one action has no category. The vocabulary, the canonical order, the
+grouping helper and the i18n label keys live in the pure, Obsidian-free
+`architecture/api/categories`.

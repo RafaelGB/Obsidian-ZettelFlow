@@ -189,11 +189,17 @@ export class WorkflowEventEngine {
 
     // ── Binding registry (flow-folder scan) ──────────────────────────────────────
     private async rebuildBindings(): Promise<void> {
+        this.bindings = await this.scanTriggers();
+        log.debug(`[WorkflowEventEngine] Rebuilt ${this.bindings.length} trigger binding(s).`);
+    }
+
+    /**
+     * Scan the flows folder and resolve every per-flow trigger into a binding. Read-only (no arm
+     * required) so the settings management list can call it directly.
+     */
+    public async scanTriggers(): Promise<WorkflowBinding[]> {
         const folder = this.plugin.settings.foldersFlowsPath;
-        if (!folder) {
-            this.bindings = [];
-            return;
-        }
+        if (!folder) return [];
         try {
             const files = FileService.getTfilesFromFolder(folder, FILE_EXTENSIONS.ONLY_CANVAS);
             const sources: FlowTriggerSource[] = [];
@@ -203,18 +209,56 @@ export class WorkflowEventEngine {
                     const roots = await flow.rootNodes();
                     sources.push({
                         flowPath: file.path,
-                        roots: roots.map((root) => ({ nodeId: root.id, trigger: root.trigger })),
+                        roots: roots.map((root) => ({
+                            nodeId: root.id,
+                            filePath: root.path,
+                            trigger: root.trigger,
+                        })),
                     });
                 } catch (error) {
                     log.warn(`[WorkflowEventEngine] Could not scan flow ${file.path}`, error);
                 }
             }
-            this.bindings = buildBindings(sources);
-            log.debug(`[WorkflowEventEngine] Rebuilt ${this.bindings.length} trigger binding(s).`);
+            return buildBindings(sources);
         } catch (error) {
-            log.error("[WorkflowEventEngine] Failed to rebuild trigger bindings.", error);
-            this.bindings = [];
+            log.error("[WorkflowEventEngine] Failed to scan trigger bindings.", error);
+            return [];
         }
+    }
+
+    // ── Management (file-node roots only — the v1 authoring path) ────────────────
+    /** Toggle a trigger's `enabled` flag in its root step's frontmatter. Re-scans afterwards. */
+    public async setTriggerEnabled(binding: WorkflowBinding, enabled: boolean): Promise<void> {
+        await this.mutateTrigger(binding, (settings) => {
+            const trigger = settings.trigger as Record<string, unknown> | undefined;
+            if (trigger) trigger.enabled = enabled;
+        });
+    }
+
+    /** Remove a trigger entirely from its root step's frontmatter. Re-scans afterwards. */
+    public async removeTrigger(binding: WorkflowBinding): Promise<void> {
+        await this.mutateTrigger(binding, (settings) => {
+            delete settings.trigger;
+        });
+    }
+
+    private async mutateTrigger(
+        binding: WorkflowBinding,
+        mutate: (settings: Record<string, unknown>) => void
+    ): Promise<void> {
+        if (!binding.filePath) {
+            log.warn("[WorkflowEventEngine] Cannot edit a trigger that has no root file (edit it in the canvas).");
+            return;
+        }
+        const file = this.plugin.app.vault.getAbstractFileByPath(binding.filePath);
+        if (!(file instanceof TFile)) return;
+        await this.plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+            const settings = frontmatter.zettelFlowSettings as Record<string, unknown> | undefined;
+            if (settings) mutate(settings);
+        });
+        // The step file changed (not the canvas), so force the flow cache to re-read, then re-scan.
+        canvas.flows.delete(binding.flowPath);
+        if (this.armed) await this.rebuildBindings();
     }
 
     private isFlowCanvas(file: TFile): boolean {

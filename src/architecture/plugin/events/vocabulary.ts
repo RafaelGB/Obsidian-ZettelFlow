@@ -67,10 +67,13 @@ export interface WorkflowEventPayload {
     newValue?: unknown;
 }
 
-/** i18n key of each wired event's sentence-case label. Pure data; the `t()` lookup lives in the UI. */
-export const EVENT_LABEL_KEY: Record<WiredEvent, string> = {
+/**
+ * i18n key of each wired event's sentence-case label. Pure data; the `t()` lookup lives in the UI.
+ * `as const` (no widening annotation) keeps the values as literal key types so `t()` accepts them.
+ */
+export const EVENT_LABEL_KEY = {
     "note.created": "event_note_created_label",
     "note.modified": "event_note_modified_label",
     "property.changed": "event_property_changed_label",
     "tag.added": "event_tag_added_label",
-} as const;
+} as const satisfies Record<WiredEvent, string>;

@@ -7,6 +7,7 @@ import { log } from "architecture/monitoring/Logger";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
 import { FILE_EXTENSIONS, FileService, activateSidebarView } from "architecture/plugin";
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
+import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
@@ -367,6 +368,70 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                         else engine.disarm();
                                     })
                             );
+                        },
+                    },
+                    {
+                        name: t("settings_events_bindings_heading"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                            const list = setting.settingEl.createDiv({
+                                cls: c("event-bindings-list"),
+                            });
+                            const renderList = async () => {
+                                list.empty();
+                                const engine = WorkflowEventEngine.getInstance();
+                                const bindings = await engine.scanTriggers();
+                                if (!bindings.length) {
+                                    new Setting(list).setName(
+                                        t("settings_events_binding_list_empty")
+                                    );
+                                    return;
+                                }
+                                for (const binding of bindings) {
+                                    const flowName =
+                                        binding.flowPath.split(FileService.PATH_SEPARATOR).pop() ??
+                                        binding.flowPath;
+                                    const eventLabel = isWiredEvent(binding.event)
+                                        ? t(EVENT_LABEL_KEY[binding.event])
+                                        : binding.event;
+                                    const row = new Setting(list)
+                                        .setName(`${flowName} · ${eventLabel}`)
+                                        .setDesc(binding.flowPath);
+                                    if (binding.filePath) {
+                                        row.addToggle((toggle) =>
+                                            toggle
+                                                .setTooltip(t("settings_events_binding_enabled_name"))
+                                                .setValue(binding.enabled !== false)
+                                                .onChange((value) =>
+                                                    void engine.setTriggerEnabled(binding, value)
+                                                )
+                                        );
+                                        row.addExtraButton((btn) =>
+                                            btn
+                                                .setIcon("trash")
+                                                .setTooltip(
+                                                    t("settings_events_binding_remove_tooltip")
+                                                )
+                                                .onClick(async () => {
+                                                    await engine.removeTrigger(binding);
+                                                    await renderList();
+                                                })
+                                        );
+                                    } else {
+                                        row.addExtraButton((btn) =>
+                                            btn
+                                                .setIcon("pencil")
+                                                .setTooltip(
+                                                    t("settings_events_binding_open_tooltip")
+                                                )
+                                                .onClick(() =>
+                                                    void FileService.openFile(binding.flowPath)
+                                                )
+                                        );
+                                    }
+                                }
+                            };
+                            void renderList();
                         },
                     },
                 ],

@@ -30,12 +30,18 @@ export interface WorkflowBinding {
     flowPath: string;
     /** Id of the root node carrying the trigger (for the management list / removal). */
     nodeId?: string;
+    /**
+     * Vault-relative path of the root step's markdown file, when the root is a file node. Lets the
+     * management UI edit/remove the trigger via that file's `zettelFlowSettings` frontmatter.
+     * Absent for text/group roots (their config lives in the canvas JSON).
+     */
+    filePath?: string;
 }
 
 /** One flow's contribution to the scan: its path and the triggers on its root node(s). */
 export interface FlowTriggerSource {
     flowPath: string;
-    roots: { nodeId?: string; trigger?: WorkflowTrigger }[];
+    roots: { nodeId?: string; filePath?: string; trigger?: WorkflowTrigger }[];
 }
 
 /**
@@ -55,6 +61,7 @@ export function buildBindings(flows: FlowTriggerSource[]): WorkflowBinding[] {
             };
             if (trigger.condition !== undefined) binding.condition = trigger.condition;
             if (trigger.enabled !== undefined) binding.enabled = trigger.enabled;
+            if (root.filePath !== undefined) binding.filePath = root.filePath;
             bindings.push(binding);
         }
     }

@@ -63,6 +63,29 @@ describe("binding model, build-from-flow-scan, and match (FR-3, AC-1 support)", 
             expect(buildBindings(flows)).toEqual([]);
         });
 
+        it("carries the root's file path when present (for frontmatter write-back)", () => {
+            const flows: FlowTriggerSource[] = [
+                {
+                    flowPath: "flows/f.canvas",
+                    roots: [
+                        {
+                            nodeId: "a",
+                            filePath: "steps/root.md",
+                            trigger: { event: "note.created" },
+                        },
+                    ],
+                },
+            ];
+            expect(buildBindings(flows)[0].filePath).toBe("steps/root.md");
+        });
+
+        it("omits filePath for a text/group root (no linked file)", () => {
+            const flows: FlowTriggerSource[] = [
+                { flowPath: "flows/f.canvas", roots: [{ nodeId: "a", trigger: { event: "note.created" } }] },
+            ];
+            expect("filePath" in buildBindings(flows)[0]).toBe(false);
+        });
+
         it("preserves the enabled flag when present", () => {
             const flows: FlowTriggerSource[] = [
                 {

@@ -173,4 +173,64 @@ describe("FlowImpl.rootNodes — file-type nodes", () => {
         const flow = new FlowImpl(makeCanvas(), fakeCanvasFile);
         await expect(flow.rootNodes()).rejects.toThrow();
     });
+
+    // ── Event triggers (#150) — additive & back-compatible ──────────────────────
+    it("back-compat: a root with no trigger loads with trigger === undefined (AC-7)", async () => {
+        wireApp({
+            fileExists: true,
+            cache: { frontmatter: { zettelFlowSettings: { root: true, label: "Test" } } },
+            diskContent: ROOT_CONTENT,
+        });
+
+        const roots = await new FlowImpl(makeCanvas(), fakeCanvasFile).rootNodes();
+
+        expect(roots).toHaveLength(1);
+        expect(roots[0].trigger).toBeUndefined();
+    });
+
+    it("propagates a per-flow trigger from the root's zettelFlowSettings frontmatter", async () => {
+        const trigger = { event: "note.created", condition: "return true" };
+        wireApp({
+            fileExists: true,
+            cache: {
+                frontmatter: { zettelFlowSettings: { root: true, label: "Test", trigger } },
+            },
+            diskContent: ROOT_CONTENT,
+        });
+
+        const roots = await new FlowImpl(makeCanvas(), fakeCanvasFile).rootNodes();
+
+        expect(roots[0].trigger).toEqual(trigger);
+    });
+
+    it("a trigger does not change the execution-relevant projection of the node (AC-8)", async () => {
+        const project = (node: Record<string, unknown>) => {
+            const { trigger, color, ...rest } = node;
+            void trigger;
+            void color;
+            return rest;
+        };
+
+        wireApp({
+            fileExists: true,
+            cache: { frontmatter: { zettelFlowSettings: { root: true, label: "Test" } } },
+            diskContent: ROOT_CONTENT,
+        });
+        const withoutTrigger = (await new FlowImpl(makeCanvas(), fakeCanvasFile).rootNodes())[0];
+
+        wireApp({
+            fileExists: true,
+            cache: {
+                frontmatter: {
+                    zettelFlowSettings: { root: true, label: "Test", trigger: { event: "note.modified" } },
+                },
+            },
+            diskContent: ROOT_CONTENT,
+        });
+        const withTrigger = (await new FlowImpl(makeCanvas(), fakeCanvasFile).rootNodes())[0];
+
+        expect(project(withTrigger as unknown as Record<string, unknown>)).toEqual(
+            project(withoutTrigger as unknown as Record<string, unknown>)
+        );
+    });
 });

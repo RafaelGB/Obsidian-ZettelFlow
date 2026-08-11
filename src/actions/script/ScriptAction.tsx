@@ -6,6 +6,7 @@ import { scriptSettingsReader } from "./ScriptSettingsReader";
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
   id = "script";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: false,

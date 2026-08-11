@@ -1,4 +1,5 @@
 import { Action } from "architecture/api";
+import type { ActionCategory } from "architecture/api/categories/categories";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 
 export type ActionsManagementProps = {
@@ -23,5 +24,7 @@ export type ActionCardInfo = {
     label: string,
     link?: string,
     purpose: string,
-    isTemplate?: boolean
+    isTemplate?: boolean,
+    /** Cognitive-capability category for picker grouping (#152); absent ⇒ uncategorized. */
+    category?: ActionCategory
 };

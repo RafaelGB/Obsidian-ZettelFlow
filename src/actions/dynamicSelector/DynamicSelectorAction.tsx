@@ -12,6 +12,7 @@ import { dynamicSelectorSettingsReader } from "./DynamicSelectorSettingsReader";
 export class DynamicSelectorAction extends CustomZettelAction {
   private static ICON = "square-dashed-mouse-pointer";
   id = "dynamic-selector";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

@@ -11,6 +11,7 @@ import { backLinkSettingsReader } from "./BackLinkSettingsReader";
 export class BackLinkAction extends CustomZettelAction {
   private static ICON = "links-coming-in";
   id = "backlink";
+  category = "relations" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

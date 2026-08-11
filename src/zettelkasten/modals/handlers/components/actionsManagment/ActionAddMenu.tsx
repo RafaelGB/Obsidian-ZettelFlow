@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { ActionAddMenuProps, ActionCardInfo } from "./typing";
 import { c } from "architecture";
-import { actionsStore } from "architecture/api";
+import { t } from "architecture/lang";
+import { actionsStore, groupActionsByCategory, CATEGORY_EMOJI, CATEGORY_LABEL_KEY } from "architecture/api";
 import { Icon } from "architecture/components/icon";
 
 /**
@@ -67,17 +68,21 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         link: rawAction.link,
         purpose: rawAction.purpose,
         id: rawAction.id,
+        category: rawAction.category,
       });
     });
     Object.values(actions).forEach((action) => {
       // Skip template actions whose type no longer exists in the registry
       if (!actionsStore.getActionsKeys().includes(action.type)) return;
+      const baseAction = actionsStore.getAction(action.type);
       array.push({
-        icon: actionsStore.getAction(action.type).getIcon(),
+        icon: baseAction.getIcon(),
         label: action.title,
         purpose: action.description,
         id: action.id,
         isTemplate: true,
+        // A template inherits its base action type's category (#152, FR-8).
+        category: baseAction.category,
       });
     });
     return array;
@@ -105,15 +110,34 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         }}
       />
       <div className={c("actions-list")}>
-        {filteredCards.map((card) => (
-          <ActionCard
-            key={card.id}
-            card={card}
-            trigger={() => {
-              setFilteredCards(actionsMemo);
-              onChange(card.id, card.isTemplate || false);
-            }}
-          />
+        {groupActionsByCategory(filteredCards).map((group) => (
+          <div
+            key={group.category ?? "uncategorized"}
+            className={c("actions-category-group")}
+          >
+            <div className={c("actions-category-header")}>
+              {group.category && (
+                <span className={c("actions-category-emoji")} aria-hidden="true">
+                  {CATEGORY_EMOJI[group.category]}
+                </span>
+              )}
+              <label>
+                {group.category
+                  ? t(CATEGORY_LABEL_KEY[group.category])
+                  : t("action_category_uncategorized_label")}
+              </label>
+            </div>
+            {group.items.map((card) => (
+              <ActionCard
+                key={card.id}
+                card={card}
+                trigger={() => {
+                  setFilteredCards(actionsMemo);
+                  onChange(card.id, card.isTemplate || false);
+                }}
+              />
+            ))}
+          </div>
         ))}
       </div>
     </>

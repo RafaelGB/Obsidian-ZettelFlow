@@ -1,4 +1,5 @@
 import { Literal } from "architecture/plugin";
+import { ActionCategory } from "./categories";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
 import { TFile } from "obsidian";
@@ -34,6 +35,8 @@ export type ActionSettingReader = (
 
 export interface ICustomZettelAction {
     id: string;
+    /** Optional cognitive-capability category (#152); absent ⇒ uncategorized. */
+    category?: ActionCategory;
     component(props: WrappedActionBuilderProps): JSX.Element;
     settings: ActionSetting;
     execute(info: ExecuteInfo): Promise<void>;

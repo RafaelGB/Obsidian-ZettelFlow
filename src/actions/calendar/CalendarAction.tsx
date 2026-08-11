@@ -16,6 +16,7 @@ const moment = obsidianMoment as unknown as typeof MomentFn;
 export class CalendarAction extends CustomZettelAction {
   private static ICON = "calendar-days";
   id = "calendar";
+  category = "manipulation" as const;
   defaultAction: Action = {
     type: this.id,
     hasUI: true,

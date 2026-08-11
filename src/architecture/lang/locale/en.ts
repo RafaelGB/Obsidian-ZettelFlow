@@ -550,4 +550,11 @@ export default {
     workflow_canvas_when_tooltip: 'Runs automatically on a vault event',
     workflow_canvas_if_tooltip: 'Conditional branch',
     workflow_canvas_wait_tooltip: 'Pauses for your confirmation',
+    // Action categories (#152)
+    action_category_manipulation_label: 'Manipulation',
+    action_category_relations_label: 'Relations',
+    action_category_knowledge_label: 'Knowledge',
+    action_category_research_label: 'Research',
+    action_category_ai_label: 'AI',
+    action_category_uncategorized_label: 'Other',
 };

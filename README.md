@@ -108,6 +108,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
 | **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
+| **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |

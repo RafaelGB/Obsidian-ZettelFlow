@@ -550,4 +550,11 @@ export default {
     workflow_canvas_when_tooltip: 'Se ejecuta automáticamente ante un evento de la bóveda',
     workflow_canvas_if_tooltip: 'Rama condicional',
     workflow_canvas_wait_tooltip: 'Pausa para tu confirmación',
+    // Action categories (#152)
+    action_category_manipulation_label: 'Manipulación',
+    action_category_relations_label: 'Relaciones',
+    action_category_knowledge_label: 'Conocimiento',
+    action_category_research_label: 'Investigación',
+    action_category_ai_label: 'IA',
+    action_category_uncategorized_label: 'Otros',
 };

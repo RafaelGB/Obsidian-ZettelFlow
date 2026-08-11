@@ -117,7 +117,7 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
           >
             <div className={c("actions-category-header")}>
               {group.category && (
-                <span className={c("actions-category-emoji")}>
+                <span className={c("actions-category-emoji")} aria-hidden="true">
                   {CATEGORY_EMOJI[group.category]}
                 </span>
               )}

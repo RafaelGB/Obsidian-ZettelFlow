@@ -149,6 +149,10 @@
     padding-bottom: 4px;
 }
 
+.zettelkasten-flow__actions-category-emoji {
+    line-height: 1;
+}
+
 .zettelkasten-flow__actions-category-group>.zettelkasten-flow__actions-management-add-card {
     flex: 1 1 calc(33.333% - 10px);
     /* Tres columnas */

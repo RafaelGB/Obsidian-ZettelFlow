@@ -37,6 +37,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   advances (Capture → Classify → Process → Connect → Develop → Review → Consolidate); the step
   builder groups your flow by phase, so a workflow reads as an arc of thinking. Distinct from a
   note's lifecycle *state*: a step has a **phase**, a note has a **state**.
+- **⚡ Event-driven workflows** — let a flow **react** to vault events (a note created, a property
+  or tag change) instead of only running on demand. Opt-in and **off by default**, throttled, and
+  loop-guarded so a flow can never retrigger itself; an optional `zf` condition gates each trigger.
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.
@@ -99,6 +102,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |
 | **Note lifecycle states** | Classify notes by phase (fleeting → … → archived) and change state with a validated command; state lives in configurable frontmatter (no lock-in). |
 | **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
+| **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |

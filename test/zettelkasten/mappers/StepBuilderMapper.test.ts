@@ -42,6 +42,35 @@ describe("StepBuilderMapper — phase round-trip (#149)", () => {
     });
 });
 
+describe("StepBuilderMapper — trigger round-trip (#150, back-compat)", () => {
+    const trigger = { event: "note.created" as const, condition: "return true" };
+
+    it("omits the trigger key for a step without a trigger", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        expect("trigger" in settings).toBe(false);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect("trigger" in back).toBe(false);
+    });
+
+    it("preserves a trigger opaquely both directions (no builder UI, but never dropped)", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ trigger }));
+        expect(settings.trigger).toEqual(trigger);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect(back.trigger).toEqual(trigger);
+    });
+
+    it("two steps differing only by trigger have deep-equal non-trigger projections", () => {
+        const withTrigger = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ trigger }));
+        const without = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        const strip = (s: StepSettings) => {
+            const { trigger: t, ...rest } = s;
+            void t;
+            return rest;
+        };
+        expect(strip(withTrigger)).toEqual(strip(without));
+    });
+});
+
 describe("mergePhaseIntoFrontmatter — clear-on-save (#149)", () => {
     it("keeps a phase that the incoming settings carry", () => {
         const merged = mergePhaseIntoFrontmatter({ label: "x" }, { label: "x", phase: "PROCESS" });

@@ -4,6 +4,7 @@ import { ZettelNodeType } from "architecture/plugin"
 import { HexString } from "obsidian"
 import type { ZettelIdStrategy, FolgezettelRelationship } from "../actions/zettelId/zettelIdLogic";
 import type { StepPhase } from "./phases";
+import type { WorkflowTrigger } from "architecture/plugin/events";
 
 export type StepBuilderInfo = {
     type: string,
@@ -32,6 +33,13 @@ export type StepSettings = {
      * execution or ordering. Orthogonal to the note lifecycle `state` (#146).
      */
     phase?: StepPhase,
+    /**
+     * Optional event-driven trigger (#150). Only meaningful on a flow's **root** step: it binds the
+     * flow to a vault event so it can run without a manual launch. Additive & opt-in — absence means
+     * the flow is manual-only (back-compat). Authored in frontmatter in v1 (no builder UI yet); the
+     * builder preserves it opaquely so an unrelated edit never drops it.
+     */
+    trigger?: WorkflowTrigger,
 }
 
 export type ZettelFlowElement = {

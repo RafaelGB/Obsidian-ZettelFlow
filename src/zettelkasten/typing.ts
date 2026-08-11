@@ -5,6 +5,7 @@ import { HexString } from "obsidian"
 import type { ZettelIdStrategy, FolgezettelRelationship } from "../actions/zettelId/zettelIdLogic";
 import type { StepPhase } from "./phases";
 import type { WorkflowTrigger } from "architecture/plugin/events";
+import type { WaitSettings } from "architecture/plugin/workflow";
 
 export type StepBuilderInfo = {
     type: string,
@@ -40,6 +41,12 @@ export type StepSettings = {
      * builder preserves it opaquely so an unrelated edit never drops it.
      */
     trigger?: WorkflowTrigger,
+    /**
+     * Optional WAIT marker (#151): when present, the note-builder wizard pauses at this step until
+     * the user confirms (human-in-the-loop). Additive & opt-in — absence means the step runs
+     * straight through (back-compat). The only new block kind of the visual workflow language.
+     */
+    wait?: WaitSettings,
 }
 
 export type ZettelFlowElement = {

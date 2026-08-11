@@ -71,6 +71,35 @@ describe("StepBuilderMapper — trigger round-trip (#150, back-compat)", () => {
     });
 });
 
+describe("StepBuilderMapper — WAIT round-trip (#151, back-compat)", () => {
+    const wait = { mode: "confirm" as const, message: "Ready?" };
+
+    it("omits the wait key for a step without a wait marker", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        expect("wait" in settings).toBe(false);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect("wait" in back).toBe(false);
+    });
+
+    it("preserves a wait marker both directions", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ wait }));
+        expect(settings.wait).toEqual(wait);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect(back.wait).toEqual(wait);
+    });
+
+    it("two steps differing only by wait have deep-equal non-wait projections", () => {
+        const withWait = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ wait }));
+        const without = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        const strip = (s: StepSettings) => {
+            const { wait: w, ...rest } = s;
+            void w;
+            return rest;
+        };
+        expect(strip(withWait)).toEqual(strip(without));
+    });
+});
+
 describe("mergePhaseIntoFrontmatter — clear-on-save (#149)", () => {
     it("keeps a phase that the incoming settings carry", () => {
         const merged = mergePhaseIntoFrontmatter({ label: "x" }, { label: "x", phase: "PROCESS" });

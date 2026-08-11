@@ -6,6 +6,7 @@ import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
 import { FILE_EXTENSIONS, FileService, activateSidebarView } from "architecture/plugin";
+import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { fnsManager } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
@@ -360,6 +361,10 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .onChange(async (value) => {
                                         plugin.settings.events = { enabled: value };
                                         await plugin.saveSettings();
+                                        // Arm/disarm the listener set immediately — no reload needed.
+                                        const engine = WorkflowEventEngine.getInstance();
+                                        if (value) engine.arm();
+                                        else engine.disarm();
                                     })
                             );
                         },

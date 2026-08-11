@@ -15,6 +15,7 @@ import { HistoryView } from 'architecture/components/core/historyView/HistoryVie
 import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/SlipboxHealthView';
 import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
+import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
 export default class ZettelFlow extends Plugin {
@@ -29,6 +30,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerViews();
 		this.registerActions();
 		Hooks.setup(this);
+		WorkflowEventEngine.setup(this);
 
 		new CanvasPatcher(this);
 		allCanvasExtensions.forEach((Extension) => {

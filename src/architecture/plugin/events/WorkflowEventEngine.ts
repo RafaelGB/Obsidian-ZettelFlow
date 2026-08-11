@@ -96,8 +96,9 @@ export class WorkflowEventEngine {
     }
 
     private track(ref: EventRef): void {
-        // registerEvent guarantees unload cleanup; eventRefs lets disarm() remove them at runtime.
-        this.plugin.registerEvent(ref);
+        // Tracked so disarm() can offref at runtime; unload teardown is guaranteed by the
+        // plugin.register(() => disarm()) hook in setup(). (Not registerEvent — that can't be undone
+        // for a runtime toggle-off and would accumulate dead closures across arm/disarm cycles.)
         this.eventRefs.push(ref);
     }
 

@@ -513,4 +513,16 @@ export default {
     settings_relations_intro: 'Turn typed links (supports, contradicts, expands, …) into a meaningful graph so you can ask what supports or contradicts an idea.',
     settings_parse_inline_relations_name: 'Parse inline relations',
     settings_parse_inline_relations_desc: 'Also read inline "key:: [[note]]" fields from note bodies, not just frontmatter. Runs after load; on by default on desktop, off on mobile.',
+    // Event-driven workflows (#150)
+    settings_events_heading: 'Event-driven workflows',
+    settings_events_intro: 'Let a flow react to vault events instead of only running on demand. Off by default, throttled, and loop-guarded — a flow can never retrigger itself.',
+    settings_events_enable_name: 'Enable event-driven workflows',
+    settings_events_enable_desc: 'When on, flows with a trigger react to vault events. When off, no listeners run and behavior is unchanged.',
+    settings_events_binding_list_empty: 'No triggers yet. Add a "trigger" to a flow\'s root step frontmatter to bind it to an event.',
+    settings_events_binding_remove_tooltip: 'Remove this trigger from the flow',
+    settings_events_binding_enabled_name: 'Enabled',
+    event_note_created_label: 'Note created',
+    event_note_modified_label: 'Note modified',
+    event_property_changed_label: 'Property changed',
+    event_tag_added_label: 'Tag added',
 };

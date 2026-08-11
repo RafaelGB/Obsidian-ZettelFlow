@@ -513,4 +513,16 @@ export default {
     settings_relations_intro: 'Convierte los enlaces con tipo (apoya, contradice, amplía, …) en un grafo con significado para poder preguntar qué apoya o contradice una idea.',
     settings_parse_inline_relations_name: 'Analizar relaciones inline',
     settings_parse_inline_relations_desc: 'Lee también los campos inline "clave:: [[nota]]" del cuerpo de la nota, no solo el frontmatter. Se ejecuta tras la carga; activado por defecto en escritorio, desactivado en móvil.',
+    // Event-driven workflows (#150)
+    settings_events_heading: 'Flujos por eventos',
+    settings_events_intro: 'Deja que un flujo reaccione a eventos de la bóveda en lugar de ejecutarse solo a petición. Desactivado por defecto, con límite de frecuencia y protección contra bucles — un flujo nunca puede reactivarse a sí mismo.',
+    settings_events_enable_name: 'Activar los flujos por eventos',
+    settings_events_enable_desc: 'Cuando está activo, los flujos con un disparador reaccionan a eventos de la bóveda. Cuando está desactivado, no se ejecuta ningún listener y el comportamiento no cambia.',
+    settings_events_binding_list_empty: 'Aún no hay disparadores. Añade un "trigger" al frontmatter del paso raíz de un flujo para vincularlo a un evento.',
+    settings_events_binding_remove_tooltip: 'Quitar este disparador del flujo',
+    settings_events_binding_enabled_name: 'Activado',
+    event_note_created_label: 'Nota creada',
+    event_note_modified_label: 'Nota modificada',
+    event_property_changed_label: 'Propiedad cambiada',
+    event_tag_added_label: 'Etiqueta añadida',
 };

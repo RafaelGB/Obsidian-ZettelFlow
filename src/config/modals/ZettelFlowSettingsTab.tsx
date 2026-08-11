@@ -339,6 +339,33 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     },
                 ],
             },
+            // ── Event-driven workflows (#150) ─────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_events_heading"),
+                items: [
+                    {
+                        name: t("settings_events_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    {
+                        name: t("settings_events_enable_name"),
+                        desc: t("settings_events_enable_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.events?.enabled ?? false)
+                                    .onChange(async (value) => {
+                                        plugin.settings.events = { enabled: value };
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                ],
+            },
             // ── Zettelkasten toolkit ──────────────────────────────────────────
             {
                 type: "group",

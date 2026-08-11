@@ -76,6 +76,15 @@ export interface ZettelFlowSettings {
         parseInlineRelations?: boolean;
     };
 
+    /** Event-driven workflows (#150). */
+    events: {
+        /**
+         * Master switch for event-driven execution. OFF by default: with it disabled no vault
+         * listeners are armed and no flow can fire on its own — behavior identical to today.
+         */
+        enabled: boolean;
+    };
+
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
@@ -173,6 +182,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
+    events: { enabled: false }, // Event-driven workflows are opt-in (#150).
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

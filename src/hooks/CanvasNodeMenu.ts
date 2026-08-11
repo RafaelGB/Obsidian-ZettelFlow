@@ -1,6 +1,7 @@
 import { t } from "architecture/lang";
 import { YamlService } from "architecture/plugin";
 import { canvas } from "architecture/plugin/canvas";
+import { isWaitNode } from "architecture/plugin/workflow";
 import ZettelFlow from "main";
 import { Notice } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
@@ -66,6 +67,23 @@ export class CanvasNodeMenu {
                         canvas.clipboard.save(YamlService.instance(zettelFlowSettings).getZettelFlowSettings());
                         new Notice("Embed copied!");
                     })
+            });
+
+            // WAIT affordance (#151): mark/unmark this node as a human-confirmation pause.
+            menu.addItem((item) => {
+                const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
+                const hasWait = isWaitNode(stepSettings);
+                item
+                    .setTitle(hasWait ? t("canvas_node_menu_unmark_wait") : t("canvas_node_menu_mark_wait"))
+                    .setIcon(RibbonIcon.ACTION)
+                    .setSection('pane')
+                    .onClick(async () => {
+                        const next = { ...stepSettings };
+                        if (hasWait) delete next.wait;
+                        else next.wait = { mode: "confirm" };
+                        const flow = await canvas.flows.update(file.path);
+                        void flow.editTextNode(node.id, JSON.stringify(next));
+                    });
             });
 
             const clipboardSettings = canvas.clipboard.get();

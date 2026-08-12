@@ -10,14 +10,16 @@ telemetry** and transmits **no personal data or vault contents**.
 |---|---|---|---|
 | **File system (vault)** | Always | Read your Canvas flow files; create and edit notes as the output of a flow; install community templates into your vault. | Obsidian's `Vault` API and `FileManager` — no hardcoded `.obsidian` paths, path-normalised, desktop **and** mobile. |
 | **Network** | Opt-in | Only the **community templates** browser: fetch example flows/steps/actions and preview images from the ZettelFlow community source, and — if you configure one — your own community backend URL (authenticated with the token you set). | `request`/`requestUrl` in `src/application/community/`. No requests are made unless you open the community browser. |
+| **AI provider (external)** | Opt-in, off by default | The optional **🤖 AI action category** (`summarize`, `classify`, `generate-questions`). When you enable it and run an AI action, the **note content** is sent to the single OpenAI-compatible endpoint **you configure** to get a completion back. | `requestUrl` in `src/architecture/ai/OpenAiCompatibleProvider.ts` only. No bundled key, no default endpoint, no other endpoint, no telemetry. Off by default — with the switch off, no AI request is ever made. See [AI provider setup](ai-provider-setup.md). |
 | **Script execution** | Opt-in | The **Script** action and JavaScript step files execute **JavaScript you author** as part of a flow. | The `.js` code editor (`CodeView`) and the script action. Runs with the plugin's vault access — run only scripts you trust. |
 | **Clipboard** | No | — | ZettelFlow does not read or write the system clipboard. |
 
 ## No telemetry
 
 ZettelFlow does not embed analytics, crash reporting, or any phone-home. The only outbound
-requests are the opt-in community fetches above. Nothing about your notes leaves your machine
-unless *you* publish a template to a community backend you configured.
+requests are the opt-in community fetches and the opt-in AI provider above. Nothing about your notes
+leaves your machine unless *you* publish a template to a community backend you configured, or *you*
+enable AI and run an AI action (which sends the note content only to the endpoint you set).
 
 ## Self-hosting the community backend
 

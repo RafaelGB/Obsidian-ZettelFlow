@@ -35,6 +35,9 @@ nav:
       - 2.21 Compare claims: actions/CompareClaims.md
       - 2.22 Find sources: actions/FindSources.md
       - 2.23 Attach source: actions/AttachSource.md
+      - 2.24 Summarize: actions/Summarize.md
+      - 2.25 Classify: actions/Classify.md
+      - 2.26 Generate questions: actions/GenerateQuestions.md
   - 3. Vault Hooks:
       - 3.1 Property Hooks:
           - 3.1.1 Overview: vault-hooks/property-hooks/overview.md
@@ -70,5 +73,6 @@ nav:
       - 7.10 Map of content builder: development/moc-builder.md
       - 7.11 Connection resurfacing: development/connection-resurfacing.md
       - 7.12 Atomicity split assist: development/atomicity-split.md
+      - 7.13 AI provider setup: development/ai-provider-setup.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

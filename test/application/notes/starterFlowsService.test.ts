@@ -209,6 +209,16 @@ describe("installStarterFlows — AC-6 partial mix", () => {
     });
 });
 
+describe("installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6)", () => {
+    it("emits unchanged step content for fleeting/literature/permanent/moc", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ALL_TYPES);
+        for (const type of ALL_TYPES) {
+            expect(createdContent(vault, STARTER_FLOW_PATHS[type].step)).toMatchSnapshot(type);
+        }
+    });
+});
+
 describe("installStarterFlows — #149 default knowledge phases", () => {
     it("stamps each starter step with its default phase token", async () => {
         const { vault } = makeVault();

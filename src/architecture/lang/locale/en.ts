@@ -656,6 +656,17 @@ export default {
     discoveries_accept_error_notice: 'Could not link the notes.',
     settings_toolkit_discoveries_name: 'Discoveries',
     settings_toolkit_discoveries_desc: 'Surface up to three unexpected connections worth making.',
+    // Living knowledge map (#164)
+    knowledge_map_view_title: 'Knowledge map',
+    command_show_knowledge_map: 'Show knowledge map',
+    knowledge_map_indexing: 'Building the index…',
+    knowledge_map_empty: 'No hubs yet — keep connecting your notes.',
+    knowledge_map_error: 'Could not build the knowledge map.',
+    knowledge_map_refresh_button: 'Refresh',
+    knowledge_map_unclustered_heading: 'Unclustered',
+    knowledge_map_member_count: '{0} notes',
+    settings_toolkit_map_name: 'Knowledge map',
+    settings_toolkit_map_desc: 'A living map of your hubs and the notes that orbit them.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

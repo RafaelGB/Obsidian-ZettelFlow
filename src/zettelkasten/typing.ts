@@ -125,6 +125,20 @@ export type KnowledgeActionElement = {
     target?: string,
 } & Action;
 
+/**
+ * Config shared by the #154 relation actions. Ranking actions (find-related / suggest-link) use
+ * `key`/`zone`/`target` (target = the source note to rank against) plus an optional `limit`;
+ * create-semantic-relation uses `relationType` (the #147 semantic type) + `target` (the destination
+ * note it points to). One `target` field, two readings — see the #154 design decisions.
+ */
+export type RelationActionElement = {
+    key: string,
+    zone: ZoneOption,
+    target?: string,
+    limit?: number,
+    relationType?: string,
+} & Action;
+
 export type { ZettelIdStrategy, FolgezettelRelationship };
 export type ZettelIdElement = {
     strategy?: ZettelIdStrategy;

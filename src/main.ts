@@ -21,6 +21,7 @@ import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/Sl
 import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
 import { ThinkingHeatmapView } from 'architecture/components/core/thinkingHeatmap/ThinkingHeatmapView';
 import { DiscoveriesView } from 'architecture/components/core/discoveries/DiscoveriesView';
+import { KnowledgeMapView } from 'architecture/components/core/knowledgeMap/KnowledgeMapView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
@@ -91,6 +92,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(ResurfaceView.NAME, (leaf) => new ResurfaceView(leaf));
 		this.registerView(ThinkingHeatmapView.NAME, (leaf) => new ThinkingHeatmapView(leaf));
 		this.registerView(DiscoveriesView.NAME, (leaf) => new DiscoveriesView(leaf));
+		this.registerView(KnowledgeMapView.NAME, (leaf) => new KnowledgeMapView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

@@ -26,6 +26,7 @@ import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
 import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
+import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -49,6 +50,7 @@ const TOOLKIT_DOCS = {
     atomicity: `${DOCS_BASE}development/atomicity-split/`,
     heatmap: `${DOCS_BASE}development/thinking-heatmap/`,
     discoveries: `${DOCS_BASE}development/morning-discovery/`,
+    map: `${DOCS_BASE}development/living-knowledge-map/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -517,6 +519,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.discoveries);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_map_name"),
+                        desc: t("settings_toolkit_map_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, KnowledgeMapView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.map);
                         },
                     },
                     {

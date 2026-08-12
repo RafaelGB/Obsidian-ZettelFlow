@@ -64,6 +64,27 @@ row is **one click from a fix** — it opens the offending note. The debt model
 reads the in-memory **Knowledge Model**, so it only sees *resolved* links — **broken-link** and
 **duplicate** debt are deliberately deferred (the model does not ingest unresolved links).
 
+## Knowledge balance (#161)
+
+Below the debt section the pane shows **Knowledge balance** — what your slip-box is *made of*. Every
+note is classified into exactly one composition bucket (**evidence-first** cascade) and shown as a
+count + percent:
+
+| Bucket | A note lands here when… |
+|---|---|
+| **References** | it carries a source (`hasSources`) — checked first, so a sourced note is a reference regardless of what else it does |
+| **Questions** | else it has an outgoing `question` relation |
+| **Examples** | else it has an outgoing `example` relation |
+| **Conclusions** | else it has an outgoing `supports` or `implements` relation |
+| **Concepts** | otherwise (the default) |
+
+Because buckets are mutually exclusive the percentages partition the vault (they sum to ~100%, give
+or take integer rounding). When the vault has at least `MIN_NOTES_FOR_SUGGESTIONS = 5` notes, a
+balance nudge fires for any under-represented bucket (exact, un-rounded ratio): references < 15 %,
+examples < 10 %, questions < 5 %. A balanced slip-box shows a single "well-balanced" line. The model
+(`src/architecture/knowledge/balance/knowledgeBalance.ts`) is pure, Obsidian-free and unit-tested;
+classification is from model signals only (no note-body NLP).
+
 ## Architecture
 
 ```

@@ -21,9 +21,10 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **🔑 Zettel ID action** — stamp every note with a stable unique identifier (sortable
   timestamp or Luhmann-style **Folgezettel** branching like `21 → 21a → 21a1`).
 - **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes,
-  plus a **Knowledge Debt score** (0–100) with a severity bar and a per-category drill-down
-  (unreferenced · dangling · unsourced · open questions), each item one click from a fix — so
-  knowledge-debt never piles up unseen.
+  a **Knowledge Debt score** (0–100) with a severity bar and a per-category drill-down
+  (unreferenced · dangling · unsourced · open questions) each one click from a fix, and a
+  **Knowledge balance** read-out — what your slip-box is made of (references · questions · examples ·
+  conclusions · concepts) with balance nudges — so knowledge-debt never piles up unseen.
 - **🚀 Starter flows** — one-click, ready-made flows for the four classic note types
   (fleeting, literature, permanent, structure/MOC), plus a **Literature → Permanent** composed
   showcase that chains the cognitive actions (extract claims → find related → suggest connections →
@@ -124,7 +125,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |
 | **Companion pane** | Live note preview + connection suggestions while the wizard runs — link before you file. |
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
-| **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, plus a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes. |
+| **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |

@@ -52,6 +52,10 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   related** and **suggest link** rank notes worth linking by shared graph context (co-citation +
   coupling), and **create semantic relation** writes a typed edge (supports, contradicts, …) to a
   target note. Graph-structural, deterministic, offline.
+- **🔍 Research actions** — actions that make sourcing and claim-checking part of the workflow:
+  **extract claims**, **compare claims** (surface notes that agree with or contradict yours),
+  **find sources** (suggest existing vault sources for an under-sourced note), and **attach
+  source**. Over the claims-and-sources model, deterministic and offline.
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.
@@ -101,7 +105,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
-| **19 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question — and 🔗 relation actions — find related, suggest link, create semantic relation. |
+| **23 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question — 🔗 relation actions — find related, suggest link, create semantic relation — and 🔍 research actions — extract claims, compare claims, find sources, attach source. |
 | **Conditional edges** | Label a canvas arrow `if: frontmatter.type === "meeting"` to branch the workflow at runtime. |
 | **Dynamic templates** | Use `{{title}}`, `{{date}}`, `{{frontmatter.key}}`, `{{canvas.name}}` in step body templates. |
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |

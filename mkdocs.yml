@@ -31,6 +31,10 @@ nav:
       - 2.17 Find related: actions/FindRelated.md
       - 2.18 Suggest link: actions/SuggestLink.md
       - 2.19 Create semantic relation: actions/CreateSemanticRelation.md
+      - 2.20 Extract claims: actions/ExtractClaims.md
+      - 2.21 Compare claims: actions/CompareClaims.md
+      - 2.22 Find sources: actions/FindSources.md
+      - 2.23 Attach source: actions/AttachSource.md
   - 3. Vault Hooks:
       - 3.1 Property Hooks:
           - 3.1.1 Overview: vault-hooks/property-hooks/overview.md

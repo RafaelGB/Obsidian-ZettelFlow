@@ -21,11 +21,20 @@ const KEYS = [
     "knowledge_action_target_desc",
     "knowledge_find_contradiction_notice",
     "knowledge_find_unanswered_question_notice",
+    // Next-move suggestion (#158)
+    "knowledge_action_next_move_label",
+    "knowledge_action_next_move_desc",
+    "knowledge_next_move_add_source",
+    "knowledge_next_move_connect",
+    "knowledge_next_move_add_example",
+    "knowledge_next_move_advance_state",
+    "knowledge_next_move_complete",
+    "knowledge_next_move_notice",
 ];
 
-describe("knowledge action i18n parity (#153, AC-8)", () => {
-    it("defines all 18 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(18);
+describe("knowledge action i18n parity (#153/#158, AC-8)", () => {
+    it("defines all 26 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(26);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

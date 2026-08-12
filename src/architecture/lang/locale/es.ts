@@ -578,6 +578,15 @@ export default {
     knowledge_action_target_desc: 'Nota a analizar; déjalo vacío para usar la nota que se está creando.',
     knowledge_find_contradiction_notice: 'Se han encontrado {0} nota(s) contradictoria(s).',
     knowledge_find_unanswered_question_notice: 'Se han encontrado {0} pregunta(s) sin responder.',
+    // Sugerencia de siguiente movimiento (#158)
+    knowledge_action_next_move_label: 'Sugerir siguiente movimiento',
+    knowledge_action_next_move_desc: 'Sugiere la acción más útil para desarrollar esta nota.',
+    knowledge_next_move_add_source: 'Añade una fuente',
+    knowledge_next_move_connect: 'Conéctala con una nota relacionada',
+    knowledge_next_move_add_example: 'Añade un ejemplo',
+    knowledge_next_move_advance_state: 'Desarróllala hacia el siguiente estado',
+    knowledge_next_move_complete: 'Bien desarrollada — no requiere acción.',
+    knowledge_next_move_notice: 'Se han sugerido {0} movimiento(s).',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

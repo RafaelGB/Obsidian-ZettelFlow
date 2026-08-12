@@ -48,6 +48,10 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   detect an **orphan**, **calculate maturity** (0–100 from state, links, sources and age), **find
   contradictions**, and **find unanswered questions** — deterministic, offline, over the knowledge
   model. They feed the knowledge-health layer.
+- **🔗 Relation actions** — actions that turn connection-making into a workflow step: **find
+  related** and **suggest link** rank notes worth linking by shared graph context (co-citation +
+  coupling), and **create semantic relation** writes a typed edge (supports, contradicts, …) to a
+  target note. Graph-structural, deterministic, offline.
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.
@@ -97,7 +101,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
-| **16 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, and 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question. |
+| **19 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question — and 🔗 relation actions — find related, suggest link, create semantic relation. |
 | **Conditional edges** | Label a canvas arrow `if: frontmatter.type === "meeting"` to branch the workflow at runtime. |
 | **Dynamic templates** | Use `{{title}}`, `{{date}}`, `{{frontmatter.key}}`, `{{canvas.name}}` in step body templates. |
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |

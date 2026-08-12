@@ -15,6 +15,10 @@ const KEYS = [
     "ai_disabled_notice",
     "ai_not_configured_notice",
     "ai_request_failed_notice",
+    // summarize (T9)
+    "ai_summarize_label",
+    "ai_summarize_desc",
+    "ai_summarize_notice",
 ];
 
 describe("ai action i18n parity (#156, AC-5)", () => {

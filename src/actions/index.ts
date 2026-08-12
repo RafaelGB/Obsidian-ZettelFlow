@@ -22,3 +22,4 @@ export { ExtractClaimsAction } from './extractClaims/ExtractClaimsAction';
 export { CompareClaimsAction } from './compareClaims/CompareClaimsAction';
 export { FindSourcesAction } from './findSources/FindSourcesAction';
 export { AttachSourceAction } from './attachSource/AttachSourceAction';
+export { SummarizeAction } from './ai/SummarizeAction';

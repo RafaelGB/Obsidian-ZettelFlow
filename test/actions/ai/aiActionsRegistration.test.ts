@@ -13,7 +13,15 @@ const PURE_LOGIC = [
     "src/architecture/ai/openaiCompatibleLogic.ts",
 ];
 
-// Grows in T9+ with the three action files.
+// Grows across T9–T11 as each AI action lands.
+const ACTION_FILES = [
+    "src/actions/ai/SummarizeAction.tsx",
+];
+
+const REGISTERED_CLASSES = [
+    "SummarizeAction",
+];
+
 const ALL_AI_SOURCES = [
     "src/architecture/ai/aiGate.ts",
     "src/architecture/ai/openaiCompatibleLogic.ts",
@@ -21,9 +29,23 @@ const ALL_AI_SOURCES = [
     "src/architecture/ai/OpenAiCompatibleProvider.ts",
     "src/architecture/ai/AiService.ts",
     "src/actions/ai/aiActionShared.ts",
+    ...ACTION_FILES,
 ];
 
 describe("ai infrastructure guardrails (#156, AC-4/FR-3/FR-5)", () => {
+    it("each action declares the ai category (AC-4)", () => {
+        for (const file of ACTION_FILES) {
+            expect(read(file)).toMatch(/category\s*=\s*"ai"\s+as const/);
+        }
+    });
+
+    it("main.ts registers every AI action (AC-4)", () => {
+        const main = read("src/main.ts");
+        for (const cls of REGISTERED_CLASSES) {
+            expect(main).toContain(`registerAction(new ${cls}())`);
+        }
+    });
+
     it("only the provider module reaches the network via requestUrl, and never fetch", () => {
         for (const file of ALL_AI_SOURCES) {
             const source = read(file);

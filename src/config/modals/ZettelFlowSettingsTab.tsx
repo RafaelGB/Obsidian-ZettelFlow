@@ -22,6 +22,7 @@ import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "applicat
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
+import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -436,6 +437,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     },
                 ],
             },
+            // ── AI (optional, off by default) ─────────────────────────────────
+            aiSettingsGroup(plugin),
             // ── Zettelkasten toolkit ──────────────────────────────────────────
             {
                 type: "group",

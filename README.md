@@ -56,6 +56,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   **extract claims**, **compare claims** (surface notes that agree with or contradict yours),
   **find sources** (suggest existing vault sources for an under-sourced note), and **attach
   source**. Over the claims-and-sources model, deterministic and offline.
+- **🤖 AI actions — optional, off by default** — AI is *one action category, never the core*: the
+  whole plugin works fully with AI disabled. Opt in with your own OpenAI-compatible provider
+  (endpoint + key + model — OpenAI, OpenRouter, LM Studio, Ollama…) to **summarize**, **classify**,
+  and **generate questions**. No bundled key, no telemetry; the note content is sent only to the
+  endpoint you configure. See [AI provider setup](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/ai-provider-setup/).
 
 > New here? Run **Install Zettelkasten starter flows** from the command palette, or open
 > **Settings → ZettelFlow** to launch these tools.
@@ -105,7 +110,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
-| **23 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question — 🔗 relation actions — find related, suggest link, create semantic relation — and 🔍 research actions — extract claims, compare claims, find sources, attach source. |
+| **26 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question — 🔗 relation actions — find related, suggest link, create semantic relation — 🔍 research actions — extract claims, compare claims, find sources, attach source — and 🤖 optional AI actions (off by default) — summarize, classify, generate questions. |
 | **Conditional edges** | Label a canvas arrow `if: frontmatter.type === "meeting"` to branch the workflow at runtime. |
 | **Dynamic templates** | Use `{{title}}`, `{{date}}`, `{{frontmatter.key}}`, `{{canvas.name}}` in step body templates. |
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |

@@ -152,6 +152,12 @@ export type ResearchActionElement = {
     source?: string,
 } & Action;
 
+/** Config shared by the #156 AI actions: the result `key` and the `zone` it's written to. */
+export type AiActionElement = {
+    key: string,
+    zone: ZoneOption,
+} & Action;
+
 export type { ZettelIdStrategy, FolgezettelRelationship };
 export type ZettelIdElement = {
     strategy?: ZettelIdStrategy;

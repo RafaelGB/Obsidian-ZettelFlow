@@ -157,7 +157,9 @@ export class SlipboxHealthView extends ItemView {
             cls: [c("knowledge-debt-bar-fill"), c(`knowledge-debt-bar-fill--${severityBucket(this.debt.score)}`)].join(" "),
         });
 
-        if (this.debt.score === 0) {
+        // Gate the "clean" message on real emptiness, not the rounded score: a tiny amount of debt
+        // in a large vault can round to 0 yet still have fixable notes worth surfacing.
+        if (this.debt.categories.every((category) => category.count === 0)) {
             section.createDiv({ cls: c("knowledge-debt-clean"), text: t("knowledge_debt_clean") });
             return;
         }

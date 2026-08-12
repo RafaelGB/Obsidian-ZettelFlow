@@ -69,3 +69,16 @@ export function pruneCounts(
     }
     return pruned;
 }
+
+/**
+ * Pure tally update (#162): return a fresh count map with `now`'s day incremented by one and old
+ * keys pruned. The whole persistence step of {@link DevelopmentJournal} reduces to this.
+ */
+export function recordDay(
+    counts: Record<string, number>,
+    now: number,
+    keepDays: number = KEEP_DAYS
+): Record<string, number> {
+    const key = toDayKey(now);
+    return pruneCounts({ ...counts, [key]: (counts[key] ?? 0) + 1 }, now, keepDays);
+}

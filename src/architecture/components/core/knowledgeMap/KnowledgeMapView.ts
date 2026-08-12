@@ -92,7 +92,9 @@ export class KnowledgeMapView extends ItemView {
             cls: c("knowledge-map-refresh"),
             attr: { "aria-label": t("knowledge_map_refresh_button") },
         });
-        this.registerDomEvent(refresh, "click", () => this.recompute());
+        // Plain listener on a per-render element: it's GC'd with the node on the next empty()
+        // (registerDomEvent would retain each detached node until onClose across recomputes).
+        refresh.addEventListener("click", () => this.recompute());
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("knowledge-map-status"), text: t("knowledge_map_indexing") });
@@ -121,7 +123,7 @@ export class KnowledgeMapView extends ItemView {
         const head = section.createEl("h5", { cls: c("knowledge-map-hub") });
         const name = head.createSpan({ text: basename(cluster.hub), cls: c("knowledge-map-hub-name") });
         name.setAttribute("title", cluster.hub);
-        this.registerDomEvent(name, "click", () => void this.app.workspace.openLinkText(cluster.hub, "", false));
+        name.addEventListener("click", () => void this.app.workspace.openLinkText(cluster.hub, "", false));
         head.createSpan({
             text: ` · ${t("knowledge_map_member_count", String(cluster.members.length))}`,
             cls: c("knowledge-map-count"),
@@ -134,6 +136,6 @@ export class KnowledgeMapView extends ItemView {
         const row = list.createDiv({ cls: c("knowledge-map-member") });
         const name = row.createSpan({ text: basename(path), cls: c("knowledge-map-member-name") });
         name.setAttribute("title", path);
-        this.registerDomEvent(name, "click", () => void this.app.workspace.openLinkText(path, "", false));
+        name.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
     }
 }

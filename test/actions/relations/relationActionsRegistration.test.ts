@@ -9,6 +9,7 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 // Grows as the three relation actions land: T4 find-related, T5 suggest-link, T6 create.
 const ACTION_FILES = [
     "src/actions/findRelated/FindRelatedAction.tsx",
+    "src/actions/suggestLink/SuggestLinkAction.tsx",
 ];
 
 const LOGIC_FILES = [
@@ -23,6 +24,7 @@ const ALL_RELATION_SOURCES = [
 
 const REGISTERED_CLASSES = [
     "FindRelatedAction",
+    "SuggestLinkAction",
 ];
 
 describe("relation action guardrails (#154, AC-4/AC-5)", () => {

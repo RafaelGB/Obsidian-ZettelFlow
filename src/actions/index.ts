@@ -16,3 +16,4 @@ export { CalculateMaturityAction } from './calculateMaturity/CalculateMaturityAc
 export { FindContradictionAction } from './findContradiction/FindContradictionAction';
 export { FindUnansweredQuestionAction } from './findUnansweredQuestion/FindUnansweredQuestionAction';
 export { FindRelatedAction } from './findRelated/FindRelatedAction';
+export { SuggestLinkAction } from './suggestLink/SuggestLinkAction';

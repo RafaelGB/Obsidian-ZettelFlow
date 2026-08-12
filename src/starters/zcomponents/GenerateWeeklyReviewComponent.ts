@@ -57,6 +57,8 @@ export class GenerateWeeklyReviewComponent extends PluginComponent {
                 },
                 dateLabel
             );
+            // Filename stays a stable English literal (the note's H1 is localized): a locale-dependent
+            // path would break the same-day idempotent overwrite if the language changed.
             await FileService.writeFile(`_ZettelFlow/reviews/Weekly review ${dateLabel}.md`, markdown);
         } catch (error) {
             log.error(`[weekly-review] failed: ${error instanceof Error ? error.message : "unknown error"}`);

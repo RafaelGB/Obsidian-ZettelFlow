@@ -10,7 +10,7 @@ export function idea(
     path: string,
     state: string,
     relations: { to: string; type?: string }[] = [],
-    opts: { hasSources?: boolean; created?: number; claims?: { text: string; sources?: Source[] }[] } = {}
+    opts: { hasSources?: boolean; created?: number; modified?: number; claims?: { text: string; sources?: Source[] }[] } = {}
 ): Idea {
     const rels = relations.map((r) => ({ type: r.type ?? "link", from: path, to: r.to }));
     const claims = (opts.claims ?? []).map((c) => ({ text: c.text, sources: c.sources ?? [] }));
@@ -18,7 +18,7 @@ export function idea(
         path,
         title: path,
         created: opts.created ?? 0,
-        modified: 0,
+        modified: opts.modified ?? 0,
         state,
         relations: rels,
         claims,

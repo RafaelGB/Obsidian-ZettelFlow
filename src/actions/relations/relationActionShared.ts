@@ -100,7 +100,7 @@ function rankingForm(contentEl: HTMLElement, action: Action, readonly: boolean):
                 .setValue(el.limit !== undefined ? String(el.limit) : "")
                 .setDisabled(readonly)
                 .onChange((value) => {
-                    const parsed = Number(value);
+                    const parsed = Math.floor(Number(value));
                     action.limit = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
                 })
         );

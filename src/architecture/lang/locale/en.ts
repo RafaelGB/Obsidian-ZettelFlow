@@ -400,6 +400,8 @@ export default {
     starter_flows_permanent_description: 'Distil one atomic idea and connect it to what you already know.',
     starter_flows_moc_name: 'Structure note (map of content)',
     starter_flows_moc_description: 'Create an index note that links related notes together.',
+    starter_flows_literature_to_permanent_name: 'Literature → Permanent',
+    starter_flows_literature_to_permanent_description: 'A composed showcase: capture a source, then extract claims, find related notes, suggest connections, spot contradictions and promote to a permanent note.',
     starter_flows_install_button: 'Install selected',
     starter_flows_none_selected: 'Select at least one flow to install.',
     starter_flows_summary_notice: '{0} flows installed, {1} skipped (already present).',

@@ -7,6 +7,7 @@ import {
     DEFAULT_CREATED_PROPERTY,
     DEFAULT_LAST_REVIEWED_PROPERTY,
 } from "architecture/knowledge/lifecycle/states";
+import type { AiSettings } from "architecture/ai";
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
@@ -84,6 +85,12 @@ export interface ZettelFlowSettings {
          */
         enabled: boolean;
     };
+
+    /**
+     * Optional, provider-agnostic AI (#156). OFF by default: while `enabled` is false no AI action
+     * ever reaches the network. Bring-your-own OpenAI-compatible endpoint + key + model.
+     */
+    ai: AiSettings;
 
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
@@ -183,6 +190,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     },
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
     events: { enabled: false }, // Event-driven workflows are opt-in (#150).
+    ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

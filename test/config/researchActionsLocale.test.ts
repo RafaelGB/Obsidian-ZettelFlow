@@ -17,6 +17,10 @@ const KEYS = [
     "research_action_limit_desc",
     "research_action_source_value_name",
     "research_action_source_value_desc",
+    // extract-claims (T6)
+    "research_extract_claims_label",
+    "research_extract_claims_desc",
+    "research_extract_claims_notice",
 ];
 
 describe("research action i18n parity (#155, AC-7)", () => {

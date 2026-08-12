@@ -620,4 +620,7 @@ export default {
     research_action_limit_desc: 'How many candidate sources to keep, most-referenced first.',
     research_action_source_value_name: 'Source',
     research_action_source_value_desc: 'A wikilink to a note or free text (URL, DOI, citation) to attach as a source.',
+    research_extract_claims_label: 'Extract claims',
+    research_extract_claims_desc: 'Surface the claims and sources a note declares.',
+    research_extract_claims_notice: 'Extracted {0} claim(s).',
 };

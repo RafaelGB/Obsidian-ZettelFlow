@@ -18,3 +18,4 @@ export { FindUnansweredQuestionAction } from './findUnansweredQuestion/FindUnans
 export { FindRelatedAction } from './findRelated/FindRelatedAction';
 export { SuggestLinkAction } from './suggestLink/SuggestLinkAction';
 export { CreateSemanticRelationAction } from './createSemanticRelation/CreateSemanticRelationAction';
+export { ExtractClaimsAction } from './extractClaims/ExtractClaimsAction';

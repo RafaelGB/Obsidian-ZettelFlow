@@ -620,4 +620,7 @@ export default {
     research_action_limit_desc: 'Cuántas fuentes candidatas conservar, de más a menos referenciadas.',
     research_action_source_value_name: 'Fuente',
     research_action_source_value_desc: 'Un wikilink a una nota o texto libre (URL, DOI, cita) para adjuntar como fuente.',
+    research_extract_claims_label: 'Extraer afirmaciones',
+    research_extract_claims_desc: 'Muestra las afirmaciones y fuentes que declara una nota.',
+    research_extract_claims_notice: 'Se han extraído {0} afirmación(es).',
 };

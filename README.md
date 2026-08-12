@@ -32,6 +32,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   re-runs never touch your own prose.
 - **✨ Connection resurfacing** — "talk to your slip-box": for the note you're reading, see
   older, related notes worth revisiting, plus a daily spark of forgotten ideas.
+- **🗓️ Second-brain review** — one command generates a weekly **review note**: ideas created,
+  orphans, forgotten ideas, and important-but-unreviewed notes over the last 7 days — each a click
+  from a fix.
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
 - **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
@@ -122,6 +125,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Companion pane** | Live note preview + connection suggestions while the wizard runs — link before you file. |
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, plus a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes. |
+| **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |

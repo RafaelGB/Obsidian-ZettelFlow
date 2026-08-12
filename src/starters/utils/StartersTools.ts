@@ -13,6 +13,7 @@ import { TemplateExportComponent } from "../zcomponents/TemplateExportComponent"
 import { OnboardingComponent } from "../zcomponents/OnboardingComponent";
 import { SlipboxHealthViewComponent } from "../zcomponents/SlipboxHealthViewComponent";
 import { ResurfaceComponent } from "../zcomponents/ResurfaceComponent";
+import { GenerateWeeklyReviewComponent } from "../zcomponents/GenerateWeeklyReviewComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
@@ -33,6 +34,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new OnboardingComponent(plugin));
     ZComponentsManager.registerComponent(new SlipboxHealthViewComponent(plugin));
     ZComponentsManager.registerComponent(new ResurfaceComponent(plugin));
+    ZComponentsManager.registerComponent(new GenerateWeeklyReviewComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));

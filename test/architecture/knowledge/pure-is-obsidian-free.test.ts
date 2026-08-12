@@ -4,7 +4,7 @@ import { join } from "path";
 
 // src/architecture/knowledge, reached from test/architecture/knowledge/
 const KNOWLEDGE_ROOT = join(__dirname, "..", "..", "..", "src", "architecture", "knowledge");
-const PURE_DIRS = ["model", "parse", "derive", "query", "lifecycle", "relations", "claims", "debt"];
+const PURE_DIRS = ["model", "parse", "derive", "query", "lifecycle", "relations", "claims", "debt", "review"];
 
 function collectTsFiles(dir: string): string[] {
     const out: string[] = [];

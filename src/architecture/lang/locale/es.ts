@@ -623,4 +623,7 @@ export default {
     research_extract_claims_label: 'Extraer afirmaciones',
     research_extract_claims_desc: 'Muestra las afirmaciones y fuentes que declara una nota.',
     research_extract_claims_notice: 'Se han extraído {0} afirmación(es).',
+    research_compare_claims_label: 'Comparar afirmaciones',
+    research_compare_claims_desc: 'Encuentra notas cuyas afirmaciones concuerdan o contradicen las de esta nota.',
+    research_compare_claims_notice: '{0} concordante(s), {1} contradictoria(s).',
 };

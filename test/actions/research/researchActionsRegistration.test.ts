@@ -9,10 +9,12 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 // Grows across T6–T9 as each research action lands.
 const ACTION_FILES = [
     "src/actions/extractClaims/ExtractClaimsAction.tsx",
+    "src/actions/compareClaims/CompareClaimsAction.tsx",
 ];
 
 const LOGIC_FILES = [
     "src/actions/extractClaims/extractClaimsLogic.ts",
+    "src/actions/compareClaims/compareClaimsLogic.ts",
 ];
 
 const ALL_RESEARCH_SOURCES = [
@@ -23,6 +25,7 @@ const ALL_RESEARCH_SOURCES = [
 
 const REGISTERED_CLASSES = [
     "ExtractClaimsAction",
+    "CompareClaimsAction",
 ];
 
 describe("research action guardrails (#155, AC-4/AC-5/FR-6)", () => {

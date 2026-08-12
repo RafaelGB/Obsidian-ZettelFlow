@@ -623,4 +623,7 @@ export default {
     research_extract_claims_label: 'Extract claims',
     research_extract_claims_desc: 'Surface the claims and sources a note declares.',
     research_extract_claims_notice: 'Extracted {0} claim(s).',
+    research_compare_claims_label: 'Compare claims',
+    research_compare_claims_desc: "Find notes whose claims agree with or contradict this note's claims.",
+    research_compare_claims_notice: '{0} agreeing, {1} contradicting note(s).',
 };

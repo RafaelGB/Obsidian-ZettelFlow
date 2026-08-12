@@ -19,6 +19,10 @@ const KEYS = [
     "ai_summarize_label",
     "ai_summarize_desc",
     "ai_summarize_notice",
+    // classify (T10)
+    "ai_classify_label",
+    "ai_classify_desc",
+    "ai_classify_notice",
 ];
 
 describe("ai action i18n parity (#156, AC-5)", () => {

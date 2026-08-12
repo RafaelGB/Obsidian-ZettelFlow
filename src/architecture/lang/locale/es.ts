@@ -645,4 +645,7 @@ export default {
     ai_summarize_label: 'Resumir',
     ai_summarize_desc: 'Resume la nota que se está creando con IA.',
     ai_summarize_notice: 'Se ha escrito un resumen con IA.',
+    ai_classify_label: 'Clasificar',
+    ai_classify_desc: 'Sugiere etiquetas temáticas para la nota con IA.',
+    ai_classify_notice: 'Se han escrito {0} etiqueta(s) con IA.',
 };

@@ -16,10 +16,12 @@ const PURE_LOGIC = [
 // Grows across T9–T11 as each AI action lands.
 const ACTION_FILES = [
     "src/actions/ai/SummarizeAction.tsx",
+    "src/actions/ai/ClassifyAction.tsx",
 ];
 
 const REGISTERED_CLASSES = [
     "SummarizeAction",
+    "ClassifyAction",
 ];
 
 const ALL_AI_SOURCES = [

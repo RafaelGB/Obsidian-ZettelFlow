@@ -645,4 +645,7 @@ export default {
     ai_summarize_label: 'Summarize',
     ai_summarize_desc: 'Summarize the note being built with AI.',
     ai_summarize_notice: 'Wrote an AI summary.',
+    ai_classify_label: 'Classify',
+    ai_classify_desc: 'Suggest topic tags for the note with AI.',
+    ai_classify_notice: 'Wrote {0} AI tag(s).',
 };

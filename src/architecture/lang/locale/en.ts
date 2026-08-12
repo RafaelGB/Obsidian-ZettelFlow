@@ -578,6 +578,15 @@ export default {
     knowledge_action_target_desc: 'Note to analyze; leave empty to use the note being built.',
     knowledge_find_contradiction_notice: 'Found {0} contradicting note(s).',
     knowledge_find_unanswered_question_notice: 'Found {0} unanswered question(s).',
+    // Next-move suggestion (#158)
+    knowledge_action_next_move_label: 'Suggest next move',
+    knowledge_action_next_move_desc: 'Suggest the most useful next action to develop this note.',
+    knowledge_next_move_add_source: 'Add a source',
+    knowledge_next_move_connect: 'Connect it to a related note',
+    knowledge_next_move_add_example: 'Add an example',
+    knowledge_next_move_advance_state: 'Develop it toward the next state',
+    knowledge_next_move_complete: 'Well developed — no action needed.',
+    knowledge_next_move_notice: 'Suggested {0} next move(s).',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

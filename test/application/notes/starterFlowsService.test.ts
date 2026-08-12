@@ -277,6 +277,37 @@ describe("literatureToPermanent composed flow (#157, AC-1/AC-2)", () => {
     });
 });
 
+describe("installStarterFlows — #157 create-only idempotency for the composed flow (AC-3)", () => {
+    it("fresh-installs one canvas + one step and logs once", async () => {
+        const infoSpy = jest.spyOn(log, "info");
+        const { vault } = makeVault();
+
+        const result = await installStarterFlows(vault, ["literatureToPermanent"]);
+
+        expect(result.installed).toEqual(["literatureToPermanent"]);
+        expect(vault.create).toHaveBeenCalledTimes(2);
+        const paths = createdPaths(vault);
+        expect(paths).toContain(STARTER_FLOW_PATHS.literatureToPermanent.canvas);
+        expect(paths).toContain(STARTER_FLOW_PATHS.literatureToPermanent.step);
+        expect(infoSpy).toHaveBeenCalledTimes(1);
+        infoSpy.mockRestore();
+    });
+
+    it("skips the composed flow when both files already exist, writing nothing", async () => {
+        const { vault } = makeVault([
+            STARTER_FLOW_PATHS.literatureToPermanent.canvas,
+            STARTER_FLOW_PATHS.literatureToPermanent.step,
+        ]);
+
+        const result = await installStarterFlows(vault, ["literatureToPermanent"]);
+
+        expect(result.skipped).toContain("literatureToPermanent");
+        expect(result.installed).not.toContain("literatureToPermanent");
+        expect(vault.create).not.toHaveBeenCalled();
+        expect(vault.createFolder).not.toHaveBeenCalled();
+    });
+});
+
 describe("installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6)", () => {
     it("emits unchanged step content for fleeting/literature/permanent/moc", async () => {
         const { vault } = makeVault();

@@ -48,12 +48,11 @@ describe("built-in action category assignment (#152, AC-1/AC-5/AC-7)", () => {
         }
     });
 
-    it("main.ts registerActions() still registers exactly the twelve known built-ins (AC-5)", () => {
+    it("main.ts registerActions() still registers all twelve original built-ins (AC-5)", () => {
         const main = readFileSync(join(ROOT, "src", "main.ts"), "utf8");
-        const registered = [...main.matchAll(/registerAction\(new (\w+)\(\)\)/g)].map((m) => m[1]).sort();
-        const expected = Object.keys(EXPECTED)
-            .map((rel) => rel.split("/")[1])
-            .sort();
-        expect(registered).toEqual(expected);
+        const registered = [...main.matchAll(/registerAction\(new (\w+)\(\)\)/g)].map((m) => m[1]);
+        const expected = Object.keys(EXPECTED).map((rel) => rel.split("/")[1]);
+        // Later slices add actions (e.g. #153 knowledge actions); assert none were removed/renamed.
+        for (const cls of expected) expect(registered).toContain(cls);
     });
 });

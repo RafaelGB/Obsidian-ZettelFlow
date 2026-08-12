@@ -17,3 +17,4 @@ export { FindContradictionAction } from './findContradiction/FindContradictionAc
 export { FindUnansweredQuestionAction } from './findUnansweredQuestion/FindUnansweredQuestionAction';
 export { FindRelatedAction } from './findRelated/FindRelatedAction';
 export { SuggestLinkAction } from './suggestLink/SuggestLinkAction';
+export { CreateSemanticRelationAction } from './createSemanticRelation/CreateSemanticRelationAction';

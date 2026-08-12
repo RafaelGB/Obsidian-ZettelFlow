@@ -10,10 +10,12 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const ACTION_FILES = [
     "src/actions/findRelated/FindRelatedAction.tsx",
     "src/actions/suggestLink/SuggestLinkAction.tsx",
+    "src/actions/createSemanticRelation/CreateSemanticRelationAction.tsx",
 ];
 
 const LOGIC_FILES = [
     "src/actions/relations/relationRankingLogic.ts",
+    "src/actions/createSemanticRelation/createSemanticRelationLogic.ts",
 ];
 
 const ALL_RELATION_SOURCES = [
@@ -25,6 +27,7 @@ const ALL_RELATION_SOURCES = [
 const REGISTERED_CLASSES = [
     "FindRelatedAction",
     "SuggestLinkAction",
+    "CreateSemanticRelationAction",
 ];
 
 describe("relation action guardrails (#154, AC-4/AC-5)", () => {

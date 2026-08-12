@@ -42,6 +42,28 @@ events. Rapid changes are **debounced** (400 ms) so at most one recompute fires 
 Each recompute emits a `log.debug` line with duration, note count, orphan count, and dead-end
 count.
 
+## Knowledge debt (#159)
+
+Below the orphan/dead-end sections the pane shows a **Knowledge Debt** read-out: a single **0–100
+Debt Score** (0 = clean, higher = more debt) with a severity bar (low / medium / high) and a
+per-category drill-down. It is a *byproduct* of the model your workflows already populate — not a
+separate tracker.
+
+**Categories** (each a fraction of the vault, weighted into the score):
+
+| Category | Fires when | Weight | Fix |
+|---|---|---|---|
+| **Unreferenced** | nothing links to the note | 0.25 | connect it (find related / suggest link) |
+| **Dangling** | the note links to nothing | 0.20 | connect it |
+| **Unsourced** | the note makes a claim with no source | 0.30 | attach a source |
+| **Open questions** | the note raises a `question` nothing `supports` | 0.25 | answer the question |
+
+`score = round(100 · Σ weightᵢ · countᵢ / max(1, totalNotes))`, clamped to 0–100. Each drill-down
+row is **one click from a fix** — it opens the offending note. The debt model
+(`src/architecture/knowledge/debt/knowledgeDebt.ts`) is pure, Obsidian-free and unit-tested; it
+reads the in-memory **Knowledge Model**, so it only sees *resolved* links — **broken-link** and
+**duplicate** debt are deliberately deferred (the model does not ingest unresolved links).
+
 ## Architecture
 
 ```

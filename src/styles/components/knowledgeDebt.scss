@@ -1,0 +1,92 @@
+.zettelkasten-flow__knowledge-debt {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__knowledge-debt-heading {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__knowledge-debt-score {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.zettelkasten-flow__knowledge-debt-bar {
+    height: 6px;
+    width: 100%;
+    background: var(--background-modifier-border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+}
+
+.zettelkasten-flow__knowledge-debt-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+}
+
+.zettelkasten-flow__knowledge-debt-bar-fill--low {
+    width: 25%;
+    background: var(--color-green);
+}
+
+.zettelkasten-flow__knowledge-debt-bar-fill--medium {
+    width: 60%;
+    background: var(--color-orange);
+}
+
+.zettelkasten-flow__knowledge-debt-bar-fill--high {
+    width: 95%;
+    background: var(--color-red);
+}
+
+.zettelkasten-flow__knowledge-debt-clean {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__knowledge-debt-category {
+    margin-bottom: 0.6rem;
+}
+
+.zettelkasten-flow__knowledge-debt-category-heading {
+    margin: 0.3rem 0 0.1rem;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__knowledge-debt-category-desc {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.zettelkasten-flow__knowledge-debt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.15rem 0;
+}
+
+.zettelkasten-flow__knowledge-debt-item-name {
+    cursor: pointer;
+    color: var(--text-accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__knowledge-debt-item-name:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__knowledge-debt-open-button {
+    flex-shrink: 0;
+    font-size: var(--font-ui-smaller);
+}

@@ -2,9 +2,33 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ObsidianApi } from "architecture";
+import { KnowledgeIndex } from "architecture/knowledge";
+import {
+    computeKnowledgeDebt,
+    severityBucket,
+    DebtCategory,
+    DebtCategoryKey,
+    KnowledgeDebt,
+} from "architecture/knowledge/debt/knowledgeDebt";
 import { classifyHealth, HealthNote, HealthResult } from "./classifyHealth";
 
 const DEBOUNCE_MS = 400;
+
+type LocaleKey = Parameters<typeof t>[0];
+
+/** Self-describing debt-category labels/descriptions (#159, avoids the older orphan/dead-end wording). */
+const DEBT_LABELS: Record<DebtCategoryKey, LocaleKey> = {
+    unreferenced: "knowledge_debt_unreferenced_label",
+    dangling: "knowledge_debt_dangling_label",
+    unsourced: "knowledge_debt_unsourced_label",
+    "open-question": "knowledge_debt_open_question_label",
+};
+const DEBT_DESCS: Record<DebtCategoryKey, LocaleKey> = {
+    unreferenced: "knowledge_debt_unreferenced_desc",
+    dangling: "knowledge_debt_dangling_desc",
+    unsourced: "knowledge_debt_unsourced_desc",
+    "open-question": "knowledge_debt_open_question_desc",
+};
 
 type ViewState = "indexing" | "ready" | "empty" | "error";
 
@@ -13,6 +37,7 @@ export class SlipboxHealthView extends ItemView {
 
     private state: ViewState = "indexing";
     private result: HealthResult | null = null;
+    private debt: KnowledgeDebt | null = null;
     private debounceTimer: number | undefined;
 
     constructor(leaf: WorkspaceLeaf) {
@@ -68,11 +93,15 @@ export class SlipboxHealthView extends ItemView {
                 ? "empty"
                 : "ready";
 
+            const index = KnowledgeIndex.getInstance();
+            this.debt = index.status === "ready" ? computeKnowledgeDebt(index.getModel()) : null;
+
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +
                 `scanned=${this.result.totalScanned}, ` +
                 `orphans=${this.result.orphans.length}, ` +
-                `dead-ends=${this.result.deadEnds.length}`
+                `dead-ends=${this.result.deadEnds.length}, ` +
+                `debt=${this.debt ? this.debt.score : "n/a"}`
             );
         } catch (err) {
             this.state = "error";
@@ -108,11 +137,65 @@ export class SlipboxHealthView extends ItemView {
                 break;
             case "empty":
                 container.createDiv({ cls: c("slipbox-health-status"), text: t("slipbox_health_all_connected") });
+                this.renderDebtSection(container);
                 break;
             case "ready":
                 this.renderResults(container);
+                this.renderDebtSection(container);
                 break;
         }
+    }
+
+    private renderDebtSection(container: HTMLElement): void {
+        if (!this.debt) return;
+        const section = container.createDiv({ cls: c("knowledge-debt") });
+        section.createEl("h5", { text: t("knowledge_debt_heading"), cls: c("knowledge-debt-heading") });
+        section.createDiv({ cls: c("knowledge-debt-score"), text: t("knowledge_debt_score", String(this.debt.score)) });
+
+        const bar = section.createDiv({ cls: c("knowledge-debt-bar") });
+        bar.createDiv({
+            cls: [c("knowledge-debt-bar-fill"), c(`knowledge-debt-bar-fill--${severityBucket(this.debt.score)}`)].join(" "),
+        });
+
+        // Gate the "clean" message on real emptiness, not the rounded score: a tiny amount of debt
+        // in a large vault can round to 0 yet still have fixable notes worth surfacing.
+        if (this.debt.categories.every((category) => category.count === 0)) {
+            section.createDiv({ cls: c("knowledge-debt-clean"), text: t("knowledge_debt_clean") });
+            return;
+        }
+
+        for (const category of this.debt.categories) {
+            if (category.count > 0) this.renderDebtCategory(section, category);
+        }
+    }
+
+    private renderDebtCategory(section: HTMLElement, category: DebtCategory): void {
+        const block = section.createDiv({ cls: c("knowledge-debt-category") });
+        block.createEl("h6", {
+            text: `${t(DEBT_LABELS[category.key])} · ${t("knowledge_debt_count", String(category.count))}`,
+            cls: c("knowledge-debt-category-heading"),
+        });
+        block.createDiv({ cls: c("knowledge-debt-category-desc"), text: t(DEBT_DESCS[category.key]) });
+        const list = block.createDiv({ cls: c("knowledge-debt-list") });
+        for (const path of category.paths) this.renderDebtRow(list, path);
+    }
+
+    private renderDebtRow(list: HTMLElement, path: string): void {
+        const row = list.createDiv({ cls: c("knowledge-debt-item") });
+        const basename = path.split("/").pop()?.replace(/\.md$/i, "") ?? path;
+        const nameEl = row.createSpan({ text: basename, cls: c("knowledge-debt-item-name") });
+        nameEl.setAttribute("title", path);
+        nameEl.addEventListener("click", () => {
+            void this.app.workspace.openLinkText(path, "", false);
+        });
+        const openBtn = row.createEl("button", {
+            text: t("slipbox_health_connect_now"),
+            cls: c("knowledge-debt-open-button"),
+            attr: { "aria-label": t("slipbox_health_connect_now") },
+        });
+        openBtn.addEventListener("click", () => {
+            void this.app.workspace.openLinkText(path, "", false);
+        });
     }
 
     private renderResults(container: HTMLElement): void {

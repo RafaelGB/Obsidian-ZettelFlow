@@ -656,6 +656,17 @@ export default {
     discoveries_accept_error_notice: 'No se han podido enlazar las notas.',
     settings_toolkit_discoveries_name: 'Descubrimientos',
     settings_toolkit_discoveries_desc: 'Muestra hasta tres conexiones inesperadas que vale la pena hacer.',
+    // Mapa de conocimiento vivo (#164)
+    knowledge_map_view_title: 'Mapa de conocimiento',
+    command_show_knowledge_map: 'Mostrar mapa de conocimiento',
+    knowledge_map_indexing: 'Construyendo el índice…',
+    knowledge_map_empty: 'Aún no hay hubs — sigue conectando tus notas.',
+    knowledge_map_error: 'No se ha podido construir el mapa de conocimiento.',
+    knowledge_map_refresh_button: 'Actualizar',
+    knowledge_map_unclustered_heading: 'Sin agrupar',
+    knowledge_map_member_count: '{0} notas',
+    settings_toolkit_map_name: 'Mapa de conocimiento',
+    settings_toolkit_map_desc: 'Un mapa vivo de tus hubs y las notas que orbitan a su alrededor.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

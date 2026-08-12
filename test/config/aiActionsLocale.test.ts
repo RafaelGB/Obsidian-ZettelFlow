@@ -23,6 +23,10 @@ const KEYS = [
     "ai_classify_label",
     "ai_classify_desc",
     "ai_classify_notice",
+    // generate-questions (T11)
+    "ai_generate_questions_label",
+    "ai_generate_questions_desc",
+    "ai_generate_questions_notice",
 ];
 
 describe("ai action i18n parity (#156, AC-5)", () => {

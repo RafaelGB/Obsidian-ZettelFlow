@@ -648,4 +648,7 @@ export default {
     ai_classify_label: 'Clasificar',
     ai_classify_desc: 'Sugiere etiquetas temáticas para la nota con IA.',
     ai_classify_notice: 'Se han escrito {0} etiqueta(s) con IA.',
+    ai_generate_questions_label: 'Generar preguntas',
+    ai_generate_questions_desc: 'Genera preguntas abiertas que plantea la nota con IA.',
+    ai_generate_questions_notice: 'Se han escrito {0} pregunta(s) con IA.',
 };

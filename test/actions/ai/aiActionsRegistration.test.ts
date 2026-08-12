@@ -17,11 +17,13 @@ const PURE_LOGIC = [
 const ACTION_FILES = [
     "src/actions/ai/SummarizeAction.tsx",
     "src/actions/ai/ClassifyAction.tsx",
+    "src/actions/ai/GenerateQuestionsAction.tsx",
 ];
 
 const REGISTERED_CLASSES = [
     "SummarizeAction",
     "ClassifyAction",
+    "GenerateQuestionsAction",
 ];
 
 const ALL_AI_SOURCES = [

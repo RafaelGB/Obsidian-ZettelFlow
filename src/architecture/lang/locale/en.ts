@@ -648,4 +648,7 @@ export default {
     ai_classify_label: 'Classify',
     ai_classify_desc: 'Suggest topic tags for the note with AI.',
     ai_classify_notice: 'Wrote {0} AI tag(s).',
+    ai_generate_questions_label: 'Generate questions',
+    ai_generate_questions_desc: 'Generate open questions the note raises with AI.',
+    ai_generate_questions_notice: 'Wrote {0} AI question(s).',
 };

@@ -71,6 +71,10 @@ describe("ai infrastructure guardrails (#156, AC-4/FR-3/FR-5)", () => {
         }
     });
 
+    it("the settings group surfaces the data-disclosure text (AC-3)", () => {
+        expect(read("src/config/modals/handlers/aiSettingsGroup.ts")).toMatch(/settings_ai_disclosure/);
+    });
+
     it("no AI source mutates a foreign note — writes go through the DTO", () => {
         for (const file of ALL_AI_SOURCES) {
             const source = read(file);

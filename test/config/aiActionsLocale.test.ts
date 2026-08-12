@@ -27,7 +27,27 @@ const KEYS = [
     "ai_generate_questions_label",
     "ai_generate_questions_desc",
     "ai_generate_questions_notice",
+    // settings UI + disclosure (T12)
+    "settings_ai_heading",
+    "settings_ai_intro",
+    "settings_ai_enable_name",
+    "settings_ai_enable_desc",
+    "settings_ai_endpoint_name",
+    "settings_ai_endpoint_desc",
+    "settings_ai_endpoint_placeholder",
+    "settings_ai_apikey_name",
+    "settings_ai_apikey_desc",
+    "settings_ai_model_name",
+    "settings_ai_model_desc",
+    "settings_ai_model_placeholder",
+    "settings_ai_disclosure",
 ];
+
+describe("ai key count (#156)", () => {
+    it("ships all 31 AI keys", () => {
+        expect(KEYS.length).toBe(31);
+    });
+});
 
 describe("ai action i18n parity (#156, AC-5)", () => {
     it("defines every AI key in both en and es, non-empty", () => {

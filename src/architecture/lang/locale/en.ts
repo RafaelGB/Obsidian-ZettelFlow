@@ -651,4 +651,18 @@ export default {
     ai_generate_questions_label: 'Generate questions',
     ai_generate_questions_desc: 'Generate open questions the note raises with AI.',
     ai_generate_questions_notice: 'Wrote {0} AI question(s).',
+    // AI settings (#156)
+    settings_ai_heading: 'AI (optional)',
+    settings_ai_intro: 'AI is one optional action category — the whole plugin works with it off. It is off by default.',
+    settings_ai_enable_name: 'Enable AI actions',
+    settings_ai_enable_desc: 'Allow AI actions to call your configured provider. Off by default.',
+    settings_ai_endpoint_name: 'Endpoint URL',
+    settings_ai_endpoint_desc: 'Full OpenAI-compatible chat-completions URL (OpenAI, OpenRouter, LM Studio, Ollama, …).',
+    settings_ai_endpoint_placeholder: 'https://api.openai.com/v1/chat/completions',
+    settings_ai_apikey_name: 'API key',
+    settings_ai_apikey_desc: "Your provider key, stored in this vault's plugin data. Sent only to your endpoint.",
+    settings_ai_model_name: 'Model',
+    settings_ai_model_desc: 'The model name your provider expects.',
+    settings_ai_model_placeholder: 'gpt-4o-mini',
+    settings_ai_disclosure: 'When you run an AI action, the note content is sent only to the endpoint above. No telemetry, no bundled key, no other endpoint.',
 };

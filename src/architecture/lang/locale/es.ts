@@ -651,4 +651,18 @@ export default {
     ai_generate_questions_label: 'Generar preguntas',
     ai_generate_questions_desc: 'Genera preguntas abiertas que plantea la nota con IA.',
     ai_generate_questions_notice: 'Se han escrito {0} pregunta(s) con IA.',
+    // Ajustes de IA (#156)
+    settings_ai_heading: 'IA (opcional)',
+    settings_ai_intro: 'La IA es una categoría de acciones opcional — el plugin funciona por completo con ella desactivada. Está desactivada por defecto.',
+    settings_ai_enable_name: 'Activar acciones de IA',
+    settings_ai_enable_desc: 'Permite que las acciones de IA llamen a tu proveedor configurado. Desactivada por defecto.',
+    settings_ai_endpoint_name: 'URL del endpoint',
+    settings_ai_endpoint_desc: 'URL completa de chat-completions compatible con OpenAI (OpenAI, OpenRouter, LM Studio, Ollama, …).',
+    settings_ai_endpoint_placeholder: 'https://api.openai.com/v1/chat/completions',
+    settings_ai_apikey_name: 'Clave de API',
+    settings_ai_apikey_desc: 'Tu clave del proveedor, guardada en los datos del plugin de esta bóveda. Se envía solo a tu endpoint.',
+    settings_ai_model_name: 'Modelo',
+    settings_ai_model_desc: 'El nombre del modelo que espera tu proveedor.',
+    settings_ai_model_placeholder: 'gpt-4o-mini',
+    settings_ai_disclosure: 'Al ejecutar una acción de IA, el contenido de la nota se envía solo al endpoint de arriba. Sin telemetría, sin clave incluida, sin ningún otro endpoint.',
 };

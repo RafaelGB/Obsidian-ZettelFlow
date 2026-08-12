@@ -55,4 +55,10 @@ export class DevelopmentJournal {
             void this.host?.saveSettings();
         }, SAVE_DEBOUNCE_MS);
     }
+
+    /** Cancel any pending debounced save and persist immediately (call on plugin unload). */
+    public flush(): void {
+        window.clearTimeout(this.saveTimer);
+        void this.host?.saveSettings();
+    }
 }

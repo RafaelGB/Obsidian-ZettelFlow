@@ -626,7 +626,6 @@ export default {
     knowledge_balance_balanced: 'Your slip-box is well-balanced.',
     // Thinking heatmap + journal (#162)
     thinking_heatmap_view_title: 'Thinking heatmap',
-    thinking_heatmap_indexing: 'Building the index…',
     thinking_heatmap_empty: 'No development yet — develop a note to see it here.',
     thinking_heatmap_error: 'Could not build the heatmap.',
     thinking_heatmap_refresh_button: 'Refresh',

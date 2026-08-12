@@ -4,7 +4,6 @@ import es from "architecture/lang/locale/es";
 
 const KEYS = [
     "thinking_heatmap_view_title",
-    "thinking_heatmap_indexing",
     "thinking_heatmap_empty",
     "thinking_heatmap_error",
     "thinking_heatmap_refresh_button",
@@ -23,8 +22,8 @@ const KEYS = [
 ];
 
 describe("thinking heatmap i18n parity (#162, AC-5)", () => {
-    it("defines all 17 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(17);
+    it("defines all 16 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(16);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

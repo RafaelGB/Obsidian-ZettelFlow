@@ -68,7 +68,7 @@ export class ThinkingHeatmapView extends ItemView {
             cls: c("thinking-heatmap-refresh"),
             attr: { "aria-label": t("thinking_heatmap_refresh_button") },
         });
-        refresh.addEventListener("click", () => this.recompute());
+        this.registerDomEvent(refresh, "click", () => this.recompute());
 
         if (this.state === "error") {
             container.createDiv({ cls: c("thinking-heatmap-status"), text: t("thinking_heatmap_error") });
@@ -85,9 +85,12 @@ export class ThinkingHeatmapView extends ItemView {
     }
 
     private renderGrid(container: HTMLElement): void {
+        // A labeled group of per-day images: each cell is announced (role="img" + aria-label) but is
+        // not a tab stop — 364 tab stops would be a keyboard burden, and per-cell labels + the group
+        // label make it screen-reader legible without a contradictory atomic role on the grid.
         const grid = container.createDiv({ cls: c("thinking-heatmap-grid") });
-        grid.setAttribute("role", "img");
-        grid.setAttribute("aria-label", t("thinking_heatmap_summary", String(this.total)));
+        grid.setAttribute("role", "group");
+        grid.setAttribute("aria-label", t("thinking_heatmap_view_title"));
         const weeks = Math.ceil(this.cells.length / 7);
         for (let week = 0; week < weeks; week++) {
             const column = grid.createDiv({ cls: c("thinking-heatmap-col") });
@@ -97,8 +100,10 @@ export class ThinkingHeatmapView extends ItemView {
                 const el = column.createDiv({
                     cls: [c("thinking-heatmap-cell"), c(`thinking-heatmap-cell--l${cell.level}`)].join(" "),
                 });
-                el.setAttribute("tabindex", "0");
-                el.setAttribute("aria-label", t("thinking_heatmap_cell_label", String(cell.count), cell.date));
+                const label = t("thinking_heatmap_cell_label", String(cell.count), cell.date);
+                el.setAttribute("role", "img");
+                el.setAttribute("aria-label", label);
+                el.setAttribute("title", label);
             }
         }
     }

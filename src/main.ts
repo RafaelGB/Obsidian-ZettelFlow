@@ -53,6 +53,7 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	onunload() {
+		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}

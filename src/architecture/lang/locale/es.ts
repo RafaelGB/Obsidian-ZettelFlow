@@ -626,7 +626,6 @@ export default {
     knowledge_balance_balanced: 'Tu slip-box está bien equilibrado.',
     // Mapa de calor del pensamiento + diario (#162)
     thinking_heatmap_view_title: 'Mapa de calor del pensamiento',
-    thinking_heatmap_indexing: 'Construyendo el índice…',
     thinking_heatmap_empty: 'Aún no hay desarrollo — desarrolla una nota para verlo aquí.',
     thinking_heatmap_error: 'No se ha podido construir el mapa de calor.',
     thinking_heatmap_refresh_button: 'Actualizar',

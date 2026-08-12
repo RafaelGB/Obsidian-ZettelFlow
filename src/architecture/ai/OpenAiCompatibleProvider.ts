@@ -3,6 +3,18 @@ import { AiProvider } from "./AiProvider";
 import type { AiSettings } from "./aiGate";
 import { buildChatRequestBody, parseChatCompletion } from "./openaiCompatibleLogic";
 
+/** Bound each request so a hung/misconfigured endpoint fails with a clear error instead of pending. */
+const REQUEST_TIMEOUT_MS = 30_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_resolve, reject) =>
+            setTimeout(() => reject(new Error(`AI request timed out after ${ms}ms`)), ms)
+        ),
+    ]);
+}
+
 /**
  * The single built-in {@link AiProvider} (#156, FR-2/FR-3): an OpenAI-compatible chat-completions
  * client. POSTs to the user-configured endpoint via Obsidian `requestUrl` (never `fetch`), sends the
@@ -13,16 +25,19 @@ export class OpenAiCompatibleProvider implements AiProvider {
     constructor(private readonly settings: AiSettings) {}
 
     async complete(prompt: string): Promise<string> {
-        const response = await requestUrl({
-            url: this.settings.endpoint,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.settings.apiKey}`,
-            },
-            body: JSON.stringify(buildChatRequestBody(this.settings.model, prompt)),
-            throw: false,
-        });
+        const response = await withTimeout(
+            requestUrl({
+                url: this.settings.endpoint,
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${this.settings.apiKey}`,
+                },
+                body: JSON.stringify(buildChatRequestBody(this.settings.model, prompt)),
+                throw: false,
+            }),
+            REQUEST_TIMEOUT_MS
+        );
         if (response.status < 200 || response.status >= 300) {
             throw new Error(`AI request failed with status ${response.status}`);
         }

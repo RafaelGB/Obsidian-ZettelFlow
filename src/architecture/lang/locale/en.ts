@@ -641,7 +641,7 @@ export default {
     ai_action_zone_context: 'Context',
     ai_disabled_notice: 'AI is off — enable it in ZettelFlow settings.',
     ai_not_configured_notice: 'Configure the AI endpoint, key and model in ZettelFlow settings.',
-    ai_request_failed_notice: 'The AI request failed — see the console for details.',
+    ai_request_failed_notice: 'The AI request failed. Check your provider endpoint, key and model.',
     ai_summarize_label: 'Summarize',
     ai_summarize_desc: 'Summarize the note being built with AI.',
     ai_summarize_notice: 'Wrote an AI summary.',

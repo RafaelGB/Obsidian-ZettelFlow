@@ -641,7 +641,7 @@ export default {
     ai_action_zone_context: 'Contexto',
     ai_disabled_notice: 'La IA está desactivada — actívala en los ajustes de ZettelFlow.',
     ai_not_configured_notice: 'Configura el endpoint, la clave y el modelo de IA en los ajustes de ZettelFlow.',
-    ai_request_failed_notice: 'La petición a la IA ha fallado — revisa la consola para más detalles.',
+    ai_request_failed_notice: 'La petición a la IA ha fallado. Revisa el endpoint, la clave y el modelo del proveedor.',
     ai_summarize_label: 'Resumir',
     ai_summarize_desc: 'Resume la nota que se está creando con IA.',
     ai_summarize_notice: 'Se ha escrito un resumen con IA.',

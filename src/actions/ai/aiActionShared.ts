@@ -5,7 +5,7 @@ import { navbarAction } from "architecture/components/settings";
 import { t } from "architecture/lang";
 import { AiService } from "architecture/ai/AiService";
 import type { AiActionElement } from "zettelkasten";
-import { resolveTargetPath, writeKnowledgeResult } from "../knowledge/knowledgeActionShared";
+import { writeKnowledgeResult } from "../knowledge/knowledgeActionShared";
 
 /**
  * Shared plumbing for the #156 🤖 AI actions: the authoring form (result property + zone) and the
@@ -17,7 +17,7 @@ import { resolveTargetPath, writeKnowledgeResult } from "../knowledge/knowledgeA
 type LocaleKey = Parameters<typeof t>[0];
 
 // Reused #153 write path so AI results land like every other action's.
-export { resolveTargetPath, writeKnowledgeResult };
+export { writeKnowledgeResult };
 
 /** How an AI action turns note content into a prompt, post-processes the completion, and notices. */
 export interface AiActionSpec {
@@ -87,8 +87,8 @@ export async function runAiAction(
     const service = AiService.getInstance();
     const state = service.gate();
     if (state === "disabled") {
+        // Silent no-op: these actions auto-run in a flow, so a per-build notice would be noise.
         log.debug("[ai] disabled — skipping");
-        new Notice(t("ai_disabled_notice"));
         return;
     }
     if (state === "unconfigured") {

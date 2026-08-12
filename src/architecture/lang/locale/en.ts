@@ -632,4 +632,14 @@ export default {
     research_attach_source_label: 'Attach source',
     research_attach_source_desc: 'Attach a source (wikilink or free text) to the note being built.',
     research_attach_source_notice: 'Attached source {0}.',
+    // AI actions (#156)
+    ai_action_property_name: 'Result property',
+    ai_action_property_desc: 'Frontmatter property (or context key) the AI result is written to.',
+    ai_action_zone_name: 'Write to',
+    ai_action_zone_desc: 'Where the result goes: the note frontmatter or the workflow context.',
+    ai_action_zone_frontmatter: 'Frontmatter',
+    ai_action_zone_context: 'Context',
+    ai_disabled_notice: 'AI is off — enable it in ZettelFlow settings.',
+    ai_not_configured_notice: 'Configure the AI endpoint, key and model in ZettelFlow settings.',
+    ai_request_failed_notice: 'The AI request failed — see the console for details.',
 };

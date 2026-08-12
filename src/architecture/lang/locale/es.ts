@@ -632,4 +632,14 @@ export default {
     research_attach_source_label: 'Adjuntar fuente',
     research_attach_source_desc: 'Adjunta una fuente (wikilink o texto libre) a la nota que se está creando.',
     research_attach_source_notice: 'Se ha adjuntado la fuente {0}.',
+    // Acciones de IA (#156)
+    ai_action_property_name: 'Propiedad de resultado',
+    ai_action_property_desc: 'Propiedad del frontmatter (o clave de contexto) donde se escribe el resultado de la IA.',
+    ai_action_zone_name: 'Escribir en',
+    ai_action_zone_desc: 'Dónde va el resultado: el frontmatter de la nota o el contexto del flujo.',
+    ai_action_zone_frontmatter: 'Frontmatter',
+    ai_action_zone_context: 'Contexto',
+    ai_disabled_notice: 'La IA está desactivada — actívala en los ajustes de ZettelFlow.',
+    ai_not_configured_notice: 'Configura el endpoint, la clave y el modelo de IA en los ajustes de ZettelFlow.',
+    ai_request_failed_notice: 'La petición a la IA ha fallado — revisa la consola para más detalles.',
 };

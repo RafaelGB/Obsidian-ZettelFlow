@@ -129,16 +129,20 @@ export class DiscoveriesView extends ItemView {
     private async accept(discovery: Discovery): Promise<void> {
         try {
             const file = ObsidianApi.vault().getFileByPath(discovery.a);
-            if (!(file instanceof TFile)) return;
+            if (!(file instanceof TFile)) {
+                new Notice(t("discoveries_accept_error_notice"));
+                return;
+            }
             const link = `[[${basename(discovery.b)}]]`;
             await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
                 const existing = frontmatter.expands;
+                // Add-only, never overwrite a user's existing value (any type is preserved).
                 if (Array.isArray(existing)) {
                     if (!existing.includes(link)) existing.push(link);
-                } else if (typeof existing === "string" && existing.length > 0) {
-                    if (existing !== link) frontmatter.expands = [existing, link];
-                } else {
+                } else if (existing === undefined || existing === null || existing === "") {
                     frontmatter.expands = link;
+                } else if (existing !== link) {
+                    frontmatter.expands = [existing, link];
                 }
             });
             new Notice(t("discoveries_accepted_notice"));

@@ -15,6 +15,7 @@ import { SlipboxHealthViewComponent } from "../zcomponents/SlipboxHealthViewComp
 import { ResurfaceComponent } from "../zcomponents/ResurfaceComponent";
 import { GenerateWeeklyReviewComponent } from "../zcomponents/GenerateWeeklyReviewComponent";
 import { ThinkingHeatmapComponent } from "../zcomponents/ThinkingHeatmapComponent";
+import { DiscoveriesComponent } from "../zcomponents/DiscoveriesComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
@@ -37,6 +38,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ResurfaceComponent(plugin));
     ZComponentsManager.registerComponent(new GenerateWeeklyReviewComponent(plugin));
     ZComponentsManager.registerComponent(new ThinkingHeatmapComponent(plugin));
+    ZComponentsManager.registerComponent(new DiscoveriesComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));

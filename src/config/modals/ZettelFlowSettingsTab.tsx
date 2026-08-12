@@ -25,6 +25,7 @@ import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksM
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
+import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -47,6 +48,7 @@ const TOOLKIT_DOCS = {
     resurface: `${DOCS_BASE}development/connection-resurfacing/`,
     atomicity: `${DOCS_BASE}development/atomicity-split/`,
     heatmap: `${DOCS_BASE}development/thinking-heatmap/`,
+    discoveries: `${DOCS_BASE}development/morning-discovery/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -500,6 +502,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.heatmap);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_discoveries_name"),
+                        desc: t("settings_toolkit_discoveries_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, DiscoveriesView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.discoveries);
                         },
                     },
                     {

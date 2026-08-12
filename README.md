@@ -39,6 +39,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **🔥 Thinking heatmap** — a GitHub-style calendar of **ideas developed** (state advanced, source
   or connection added) over the last year — momentum, not note-count volume. Fed by a private,
   local, on-by-default journal (day → count only; no content, no network).
+- **🔭 Morning discovery** — up to **three surprising connections**: pairs of notes that share
+  concepts but aren't linked yet, one click from relating them. Graph-structural, offline — the
+  value of a slip-box is in the links you *didn't* already know about.
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
 - **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
@@ -131,6 +134,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
+| **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
 | **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |

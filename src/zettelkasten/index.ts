@@ -4,7 +4,7 @@ export {
     SectionInfo, ZoneOption, AditionBaseElement,
     PromptElement, NumberElement, CalendarElement,
     SelectorElement, CheckboxElement, TagsElement,
-    ZettelIdElement, KnowledgeActionElement
+    ZettelIdElement, KnowledgeActionElement, RelationActionElement
 } from './typing';
 export { StepBuilderModal } from './modals/StepBuilderModal';
 export { SelectorMenuModal } from './modals/SelectorMenuModal';

@@ -28,6 +28,9 @@ nav:
       - 2.14 Calculate maturity: actions/CalculateMaturity.md
       - 2.15 Find contradiction: actions/FindContradiction.md
       - 2.16 Find unanswered question: actions/FindUnansweredQuestion.md
+      - 2.17 Find related: actions/FindRelated.md
+      - 2.18 Suggest link: actions/SuggestLink.md
+      - 2.19 Create semantic relation: actions/CreateSemanticRelation.md
   - 3. Vault Hooks:
       - 3.1 Property Hooks:
           - 3.1.1 Overview: vault-hooks/property-hooks/overview.md

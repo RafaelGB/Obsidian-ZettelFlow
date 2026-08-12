@@ -139,6 +139,19 @@ export type RelationActionElement = {
     relationType?: string,
 } & Action;
 
+/**
+ * Config shared by the #155 research actions. The analysis actions (extract-claims / compare-claims
+ * / find-sources) use `key`/`zone`/`target` (target = the source note to analyze) plus an optional
+ * `limit` (find-sources top-K); attach-source uses `source` (the raw value to attach) + `zone`.
+ */
+export type ResearchActionElement = {
+    key: string,
+    zone: ZoneOption,
+    target?: string,
+    limit?: number,
+    source?: string,
+} & Action;
+
 export type { ZettelIdStrategy, FolgezettelRelationship };
 export type ZettelIdElement = {
     strategy?: ZettelIdStrategy;

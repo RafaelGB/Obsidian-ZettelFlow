@@ -607,4 +607,17 @@ export default {
     relation_find_related_notice: 'Found {0} related note(s).',
     relation_suggest_link_notice: 'Suggested {0} link(s).',
     relation_create_relation_notice: 'Wrote a {0} relation.',
+    // Research actions (#155)
+    research_action_property_name: 'Result property',
+    research_action_property_desc: 'Frontmatter property (or context key) the result is written to.',
+    research_action_zone_name: 'Write to',
+    research_action_zone_desc: 'Where the result goes: the note frontmatter or the workflow context.',
+    research_action_zone_frontmatter: 'Frontmatter',
+    research_action_zone_context: 'Context',
+    research_action_target_name: 'Source note (optional)',
+    research_action_target_desc: 'Note to analyze; leave empty to use the note being built.',
+    research_action_limit_name: 'Max results',
+    research_action_limit_desc: 'How many candidate sources to keep, most-referenced first.',
+    research_action_source_value_name: 'Source',
+    research_action_source_value_desc: 'A wikilink to a note or free text (URL, DOI, citation) to attach as a source.',
 };

@@ -607,4 +607,17 @@ export default {
     relation_find_related_notice: 'Se han encontrado {0} nota(s) relacionada(s).',
     relation_suggest_link_notice: 'Se han sugerido {0} enlace(s).',
     relation_create_relation_notice: 'Se ha escrito una relación {0}.',
+    // Acciones de investigación (#155)
+    research_action_property_name: 'Propiedad de resultado',
+    research_action_property_desc: 'Propiedad del frontmatter (o clave de contexto) donde se escribe el resultado.',
+    research_action_zone_name: 'Escribir en',
+    research_action_zone_desc: 'Dónde va el resultado: el frontmatter de la nota o el contexto del flujo.',
+    research_action_zone_frontmatter: 'Frontmatter',
+    research_action_zone_context: 'Contexto',
+    research_action_target_name: 'Nota origen (opcional)',
+    research_action_target_desc: 'Nota a analizar; déjalo vacío para usar la nota que se está creando.',
+    research_action_limit_name: 'Máximo de resultados',
+    research_action_limit_desc: 'Cuántas fuentes candidatas conservar, de más a menos referenciadas.',
+    research_action_source_value_name: 'Fuente',
+    research_action_source_value_desc: 'Un wikilink a una nota o texto libre (URL, DOI, cita) para adjuntar como fuente.',
 };

@@ -10,6 +10,12 @@ import {
     DebtCategoryKey,
     KnowledgeDebt,
 } from "architecture/knowledge/debt/knowledgeDebt";
+import {
+    computeKnowledgeBalance,
+    CompositionBucket,
+    BalanceSuggestion,
+    KnowledgeBalance,
+} from "architecture/knowledge/balance/knowledgeBalance";
 import { classifyHealth, HealthNote, HealthResult } from "./classifyHealth";
 
 const DEBOUNCE_MS = 400;
@@ -30,6 +36,20 @@ const DEBT_DESCS: Record<DebtCategoryKey, LocaleKey> = {
     "open-question": "knowledge_debt_open_question_desc",
 };
 
+/** Composition-bucket labels + balance-suggestion lines (#161). */
+const BALANCE_LABELS: Record<CompositionBucket, LocaleKey> = {
+    reference: "knowledge_balance_reference_label",
+    question: "knowledge_balance_question_label",
+    example: "knowledge_balance_example_label",
+    conclusion: "knowledge_balance_conclusion_label",
+    concept: "knowledge_balance_concept_label",
+};
+const BALANCE_SUGGESTIONS: Record<BalanceSuggestion, LocaleKey> = {
+    "add-sources": "knowledge_balance_suggest_add_sources",
+    "add-examples": "knowledge_balance_suggest_add_examples",
+    "ask-questions": "knowledge_balance_suggest_ask_questions",
+};
+
 type ViewState = "indexing" | "ready" | "empty" | "error";
 
 export class SlipboxHealthView extends ItemView {
@@ -38,6 +58,7 @@ export class SlipboxHealthView extends ItemView {
     private state: ViewState = "indexing";
     private result: HealthResult | null = null;
     private debt: KnowledgeDebt | null = null;
+    private balance: KnowledgeBalance | null = null;
     private debounceTimer: number | undefined;
 
     constructor(leaf: WorkspaceLeaf) {
@@ -94,14 +115,22 @@ export class SlipboxHealthView extends ItemView {
                 : "ready";
 
             const index = KnowledgeIndex.getInstance();
-            this.debt = index.status === "ready" ? computeKnowledgeDebt(index.getModel()) : null;
+            if (index.status === "ready") {
+                const model = index.getModel();
+                this.debt = computeKnowledgeDebt(model);
+                this.balance = computeKnowledgeBalance(model);
+            } else {
+                this.debt = null;
+                this.balance = null;
+            }
 
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +
                 `scanned=${this.result.totalScanned}, ` +
                 `orphans=${this.result.orphans.length}, ` +
                 `dead-ends=${this.result.deadEnds.length}, ` +
-                `debt=${this.debt ? this.debt.score : "n/a"}`
+                `debt=${this.debt ? this.debt.score : "n/a"}, ` +
+                `balance=${this.balance ? this.balance.total : "n/a"}`
             );
         } catch (err) {
             this.state = "error";
@@ -138,11 +167,34 @@ export class SlipboxHealthView extends ItemView {
             case "empty":
                 container.createDiv({ cls: c("slipbox-health-status"), text: t("slipbox_health_all_connected") });
                 this.renderDebtSection(container);
+                this.renderBalanceSection(container);
                 break;
             case "ready":
                 this.renderResults(container);
                 this.renderDebtSection(container);
+                this.renderBalanceSection(container);
                 break;
+        }
+    }
+
+    private renderBalanceSection(container: HTMLElement): void {
+        if (!this.balance || this.balance.total === 0) return;
+        const section = container.createDiv({ cls: c("knowledge-balance") });
+        section.createEl("h5", { text: t("knowledge_balance_heading"), cls: c("knowledge-balance-heading") });
+
+        const list = section.createDiv({ cls: c("knowledge-balance-list") });
+        for (const bucket of this.balance.buckets) {
+            const row = list.createDiv({ cls: c("knowledge-balance-row") });
+            row.createSpan({ text: t(BALANCE_LABELS[bucket.key]), cls: c("knowledge-balance-label") });
+            row.createSpan({ text: `${bucket.count} (${bucket.percent}%)`, cls: c("knowledge-balance-value") });
+        }
+
+        if (this.balance.suggestions.length === 0) {
+            section.createDiv({ cls: c("knowledge-balance-note"), text: t("knowledge_balance_balanced") });
+            return;
+        }
+        for (const suggestion of this.balance.suggestions) {
+            section.createDiv({ cls: c("knowledge-balance-suggestion"), text: t(BALANCE_SUGGESTIONS[suggestion]) });
         }
     }
 

@@ -613,6 +613,17 @@ export default {
     knowledge_debt_unsourced_desc: 'These notes make a claim with no source.',
     knowledge_debt_open_question_label: 'Open questions',
     knowledge_debt_open_question_desc: 'These notes raise a question nothing answers yet.',
+    // Knowledge balance (#161)
+    knowledge_balance_heading: 'Knowledge balance',
+    knowledge_balance_reference_label: 'References',
+    knowledge_balance_question_label: 'Questions',
+    knowledge_balance_example_label: 'Examples',
+    knowledge_balance_conclusion_label: 'Conclusions',
+    knowledge_balance_concept_label: 'Concepts',
+    knowledge_balance_suggest_add_sources: 'Few references — add primary sources to some notes.',
+    knowledge_balance_suggest_add_examples: 'Few examples — ground some ideas with a concrete example.',
+    knowledge_balance_suggest_ask_questions: 'Few open questions — let some notes raise a question.',
+    knowledge_balance_balanced: 'Your slip-box is well-balanced.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

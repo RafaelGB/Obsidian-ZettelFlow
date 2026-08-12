@@ -613,6 +613,17 @@ export default {
     knowledge_debt_unsourced_desc: 'Estas notas afirman algo sin fuente.',
     knowledge_debt_open_question_label: 'Preguntas abiertas',
     knowledge_debt_open_question_desc: 'Estas notas plantean una pregunta que nada responde aún.',
+    // Balance de conocimiento (#161)
+    knowledge_balance_heading: 'Balance de conocimiento',
+    knowledge_balance_reference_label: 'Referencias',
+    knowledge_balance_question_label: 'Preguntas',
+    knowledge_balance_example_label: 'Ejemplos',
+    knowledge_balance_conclusion_label: 'Conclusiones',
+    knowledge_balance_concept_label: 'Conceptos',
+    knowledge_balance_suggest_add_sources: 'Pocas referencias — añade fuentes primarias a algunas notas.',
+    knowledge_balance_suggest_add_examples: 'Pocos ejemplos — aterriza algunas ideas con un ejemplo concreto.',
+    knowledge_balance_suggest_ask_questions: 'Pocas preguntas abiertas — deja que algunas notas planteen una pregunta.',
+    knowledge_balance_balanced: 'Tu slip-box está bien equilibrado.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

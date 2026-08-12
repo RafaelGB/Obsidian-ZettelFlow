@@ -209,6 +209,115 @@ describe("installStarterFlows — AC-6 partial mix", () => {
     });
 });
 
+/** Parse the `zettelFlowSettings.actions` list from an emitted step markdown. */
+function parseActionsBlock(content: string): Record<string, string>[] {
+    const lines = content.split("\n");
+    const start = lines.findIndex((l) => l.trim() === "actions:");
+    const entries: Record<string, string>[] = [];
+    let current: Record<string, string> | null = null;
+    for (let i = start + 1; i < lines.length; i++) {
+        const line = lines[i];
+        const head = line.match(/^ {4}- ([\w-]+): (.*)$/);
+        const field = line.match(/^ {6}([\w-]+): (.*)$/);
+        if (head) {
+            current = { [head[1]]: head[2] };
+            entries.push(current);
+        } else if (field && current) {
+            current[field[1]] = field[2];
+        } else if (/^ {0,2}\S/.test(line)) {
+            break; // dedented back to a top-level zettelFlowSettings key
+        }
+    }
+    return entries;
+}
+
+describe("literatureToPermanent composed flow (#157, AC-1/AC-2)", () => {
+    it("composes the nine cognitive/prompt entries in order (AC-1)", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ["literatureToPermanent"]);
+        const content = createdContent(vault, STARTER_FLOW_PATHS.literatureToPermanent.step);
+        const actions = parseActionsBlock(content);
+
+        expect(actions.map((a) => a.type)).toEqual([
+            "prompt", "prompt", "prompt",
+            "extract-claims", "find-related", "suggest-link", "find-contradiction", "calculate-maturity",
+            "prompt",
+        ]);
+        expect(actions.map((a) => a.key)).toEqual([
+            "title", "source", "summary",
+            "claims", "related", "suggestedLinks", "contradictions", "maturity",
+            "state",
+        ]);
+        expect(actions[4].limit).toBe("10"); // find-related
+        expect(actions[5].limit).toBe("5"); // suggest-link
+    });
+
+    it("promotes to permanent via a static, no-UI prompt entry (AC-1)", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ["literatureToPermanent"]);
+        const promote = parseActionsBlock(
+            createdContent(vault, STARTER_FLOW_PATHS.literatureToPermanent.step)
+        ).at(-1)!;
+        expect(promote.type).toBe("prompt");
+        expect(promote.key).toBe("state");
+        expect(promote.zone).toBe("frontmatter");
+        expect(promote.hasUI).toBe("false");
+        expect(promote.staticBehaviour).toBe("true");
+        expect(promote.staticValue).toBe("permanent");
+    });
+
+    it("makes every step an independent, removable top-level entry (AC-2)", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ["literatureToPermanent"]);
+        const content = createdContent(vault, STARTER_FLOW_PATHS.literatureToPermanent.step);
+        // Nine distinct "- type:" list items, each with its own key.
+        expect(content.match(/^ {4}- type:/gm)).toHaveLength(9);
+        expect(new Set(parseActionsBlock(content).map((a) => a.key)).size).toBe(9);
+        expect(content).toContain("root: true");
+    });
+});
+
+describe("installStarterFlows — #157 create-only idempotency for the composed flow (AC-3)", () => {
+    it("fresh-installs one canvas + one step and logs once", async () => {
+        const infoSpy = jest.spyOn(log, "info");
+        const { vault } = makeVault();
+
+        const result = await installStarterFlows(vault, ["literatureToPermanent"]);
+
+        expect(result.installed).toEqual(["literatureToPermanent"]);
+        expect(vault.create).toHaveBeenCalledTimes(2);
+        const paths = createdPaths(vault);
+        expect(paths).toContain(STARTER_FLOW_PATHS.literatureToPermanent.canvas);
+        expect(paths).toContain(STARTER_FLOW_PATHS.literatureToPermanent.step);
+        expect(infoSpy).toHaveBeenCalledTimes(1);
+        infoSpy.mockRestore();
+    });
+
+    it("skips the composed flow when both files already exist, writing nothing", async () => {
+        const { vault } = makeVault([
+            STARTER_FLOW_PATHS.literatureToPermanent.canvas,
+            STARTER_FLOW_PATHS.literatureToPermanent.step,
+        ]);
+
+        const result = await installStarterFlows(vault, ["literatureToPermanent"]);
+
+        expect(result.skipped).toContain("literatureToPermanent");
+        expect(result.installed).not.toContain("literatureToPermanent");
+        expect(vault.create).not.toHaveBeenCalled();
+        expect(vault.createFolder).not.toHaveBeenCalled();
+    });
+});
+
+describe("installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6)", () => {
+    it("emits unchanged step content for fleeting/literature/permanent/moc", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ALL_TYPES);
+        for (const type of ALL_TYPES) {
+            expect(createdContent(vault, STARTER_FLOW_PATHS[type].step)).toMatchSnapshot(type);
+        }
+    });
+});
+
 describe("installStarterFlows — #149 default knowledge phases", () => {
     it("stamps each starter step with its default phase token", async () => {
         const { vault } = makeVault();
@@ -219,6 +328,7 @@ describe("installStarterFlows — #149 default knowledge phases", () => {
             literature: "PROCESS",
             permanent: "DEVELOP",
             moc: "CONNECT",
+            literatureToPermanent: "DEVELOP",
         };
         for (const type of ALL_TYPES) {
             const content = createdContent(vault, STARTER_FLOW_PATHS[type].step);

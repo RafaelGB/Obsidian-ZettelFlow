@@ -400,6 +400,8 @@ export default {
     starter_flows_permanent_description: 'Destila una idea atómica y conéctala con lo que ya sabes.',
     starter_flows_moc_name: 'Nota de estructura (mapa de contenido)',
     starter_flows_moc_description: 'Crea una nota índice que enlaza notas relacionadas entre sí.',
+    starter_flows_literature_to_permanent_name: 'Literatura → Permanente',
+    starter_flows_literature_to_permanent_description: 'Un ejemplo compuesto: captura una fuente y luego extrae afirmaciones, busca notas relacionadas, sugiere conexiones, detecta contradicciones y promuévela a nota permanente.',
     starter_flows_install_button: 'Instalar seleccionados',
     starter_flows_none_selected: 'Selecciona al menos un flujo para instalar.',
     starter_flows_summary_notice: '{0} flujos instalados, {1} omitidos (ya existían).',

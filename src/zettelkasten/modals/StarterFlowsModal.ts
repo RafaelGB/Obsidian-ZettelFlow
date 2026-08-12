@@ -33,6 +33,11 @@ const FLOW_ROWS: ReadonlyArray<{
         name: "starter_flows_moc_name",
         description: "starter_flows_moc_description",
     },
+    {
+        type: "literatureToPermanent",
+        name: "starter_flows_literature_to_permanent_name",
+        description: "starter_flows_literature_to_permanent_description",
+    },
 ];
 
 /**

@@ -8,7 +8,7 @@ import {
 	TagsAction, TaskManagementAction, ZettelIdAction,
 	DetectOrphanAction, CalculateMaturityAction, FindContradictionAction, FindUnansweredQuestionAction,
 	FindRelatedAction, SuggestLinkAction, CreateSemanticRelationAction,
-	ExtractClaimsAction, CompareClaimsAction, FindSourcesAction
+	ExtractClaimsAction, CompareClaimsAction, FindSourcesAction, AttachSourceAction
 } from 'actions';
 import { log } from 'architecture';
 import { t } from 'architecture/lang';
@@ -113,5 +113,6 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new ExtractClaimsAction());
 		actionsStore.registerAction(new CompareClaimsAction());
 		actionsStore.registerAction(new FindSourcesAction());
+		actionsStore.registerAction(new AttachSourceAction());
 	}
 }

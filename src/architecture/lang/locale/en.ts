@@ -629,4 +629,7 @@ export default {
     research_find_sources_label: 'Find sources',
     research_find_sources_desc: 'Suggest existing vault sources for an under-sourced note.',
     research_find_sources_notice: 'Suggested {0} source(s).',
+    research_attach_source_label: 'Attach source',
+    research_attach_source_desc: 'Attach a source (wikilink or free text) to the note being built.',
+    research_attach_source_notice: 'Attached source {0}.',
 };

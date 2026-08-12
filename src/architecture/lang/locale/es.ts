@@ -629,4 +629,7 @@ export default {
     research_find_sources_label: 'Buscar fuentes',
     research_find_sources_desc: 'Sugiere fuentes existentes en la bóveda para una nota poco documentada.',
     research_find_sources_notice: 'Se han sugerido {0} fuente(s).',
+    research_attach_source_label: 'Adjuntar fuente',
+    research_attach_source_desc: 'Adjunta una fuente (wikilink o texto libre) a la nota que se está creando.',
+    research_attach_source_notice: 'Se ha adjuntado la fuente {0}.',
 };

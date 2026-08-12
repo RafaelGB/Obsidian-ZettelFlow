@@ -11,12 +11,14 @@ const ACTION_FILES = [
     "src/actions/extractClaims/ExtractClaimsAction.tsx",
     "src/actions/compareClaims/CompareClaimsAction.tsx",
     "src/actions/findSources/FindSourcesAction.tsx",
+    "src/actions/attachSource/AttachSourceAction.tsx",
 ];
 
 const LOGIC_FILES = [
     "src/actions/extractClaims/extractClaimsLogic.ts",
     "src/actions/compareClaims/compareClaimsLogic.ts",
     "src/actions/findSources/findSourcesLogic.ts",
+    "src/actions/attachSource/attachSourceLogic.ts",
 ];
 
 const ALL_RESEARCH_SOURCES = [
@@ -29,6 +31,7 @@ const REGISTERED_CLASSES = [
     "ExtractClaimsAction",
     "CompareClaimsAction",
     "FindSourcesAction",
+    "AttachSourceAction",
 ];
 
 describe("research action guardrails (#155, AC-4/AC-5/FR-6)", () => {

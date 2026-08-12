@@ -29,7 +29,17 @@ const KEYS = [
     "research_find_sources_label",
     "research_find_sources_desc",
     "research_find_sources_notice",
+    // attach-source (T9)
+    "research_attach_source_label",
+    "research_attach_source_desc",
+    "research_attach_source_notice",
 ];
+
+describe("research action i18n key count (#155)", () => {
+    it("ships all 24 research keys", () => {
+        expect(KEYS.length).toBe(24);
+    });
+});
 
 describe("research action i18n parity (#155, AC-7)", () => {
     it("defines every research key in both en and es, non-empty", () => {

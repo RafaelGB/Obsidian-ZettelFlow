@@ -1,0 +1,73 @@
+.zettelkasten-flow__discoveries {
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__discoveries-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__discoveries-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__discoveries-refresh {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__discoveries-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__discoveries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.zettelkasten-flow__discoveries-card {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    padding: 0.6rem;
+    background: var(--background-secondary);
+}
+
+.zettelkasten-flow__discoveries-pair {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    margin-bottom: 0.3rem;
+}
+
+.zettelkasten-flow__discoveries-note {
+    color: var(--text-accent);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__discoveries-sep {
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__discoveries-prompt {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__discoveries-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__discoveries-actions button {
+    font-size: var(--font-ui-smaller);
+}

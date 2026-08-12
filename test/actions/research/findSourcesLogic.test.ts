@@ -16,12 +16,13 @@ const model = buildModel([
 ]);
 
 describe("findSources (#155, FR-5, D5, AC-3)", () => {
-    it("ranks vault candidate sources by reference count descending", () => {
-        expect(findSources(model, "t.md").map((s) => s.ref)).toEqual(["src3", "src1", "src2"]);
+    it("ranks a neighbour's source first, then by reference count descending", () => {
+        // src1 is cited by the neighbour n1.md, so it leads despite src3's higher vault count.
+        expect(findSources(model, "t.md").map((s) => s.ref)).toEqual(["src1", "src3", "src2"]);
     });
 
     it("caps to the top-K limit", () => {
-        expect(findSources(model, "t.md", { limit: 1 }).map((s) => s.ref)).toEqual(["src3"]);
+        expect(findSources(model, "t.md", { limit: 1 }).map((s) => s.ref)).toEqual(["src1"]);
     });
 
     it("returns [] for an already-sourced target", () => {

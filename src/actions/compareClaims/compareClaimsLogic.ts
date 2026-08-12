@@ -20,10 +20,10 @@ const NEGATION_MARKERS: ReadonlySet<string> = new Set([
 
 /** trim → lowercase → collapse whitespace → strip surrounding quotes and trailing sentence punctuation. */
 export function normalize(text: string): string {
-    let t = text.trim().toLowerCase().replace(/\s+/g, " ");
-    t = t.replace(/^["'“”‘’]+/, "").replace(/["'“”‘’]+$/, "");
-    t = t.replace(/[.!?;；]+$/, "");
-    return t.trim();
+    let out = text.trim().toLowerCase().replace(/\s+/g, " ");
+    out = out.replace(/^["'“”‘’]+/, "").replace(/["'“”‘’]+$/, "");
+    out = out.replace(/[.!?;；]+$/, "");
+    return out.trim();
 }
 
 /** True when a normalized claim carries any negation marker (or the `n't` contraction). */

@@ -15,9 +15,10 @@ most-referenced sources ([`sourcesByReferenceCount`](../architecture/knowledge-m
 ## Result
 
 A ranked list of candidate sources (link sources as extensionless `[[wikilinks]]`, free text
-verbatim), ordered by how widely each is already cited in the vault, plus a `Notice` with the
-count. **The note must be unsourced** — an already-sourced / unknown target, or an empty model,
-yields an empty result. If the index isn't ready, the action safely no-ops.
+verbatim): sources cited by the note's **graph neighbours** come first (topically relevant), then by
+how widely each is already cited in the vault — plus a `Notice` with the count. **The note must be
+unsourced** — an already-sourced / unknown target, or an empty model, yields an empty result. If the
+index isn't ready, the action safely no-ops.
 
 ## Capabilities
 

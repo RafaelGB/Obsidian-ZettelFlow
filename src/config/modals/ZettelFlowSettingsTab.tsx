@@ -23,6 +23,8 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
+import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
+import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -44,6 +46,7 @@ const TOOLKIT_DOCS = {
     moc: `${DOCS_BASE}development/moc-builder/`,
     resurface: `${DOCS_BASE}development/connection-resurfacing/`,
     atomicity: `${DOCS_BASE}development/atomicity-split/`,
+    heatmap: `${DOCS_BASE}development/thinking-heatmap/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -439,6 +442,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             },
             // ── AI (optional, off by default) ─────────────────────────────────
             aiSettingsGroup(plugin),
+            // ── Thinking journal (#162) ───────────────────────────────────────
+            journalSettingsGroup(plugin),
             // ── Zettelkasten toolkit ──────────────────────────────────────────
             {
                 type: "group",
@@ -480,6 +485,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.resurface);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_heatmap_name"),
+                        desc: t("settings_toolkit_heatmap_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, ThinkingHeatmapView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.heatmap);
                         },
                     },
                     {

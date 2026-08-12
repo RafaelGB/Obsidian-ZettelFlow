@@ -42,6 +42,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **🔭 Morning discovery** — up to **three surprising connections**: pairs of notes that share
   concepts but aren't linked yet, one click from relating them. Graph-structural, offline — the
   value of a slip-box is in the links you *didn't* already know about.
+- **🗺️ Living knowledge map** — detects your **hubs** and the notes that orbit each one, and
+  regenerates as the vault changes so it never goes stale. Read-only, offline — the shape of your
+  knowledge at a glance.
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
 - **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
@@ -135,6 +138,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
+| **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
 | **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |

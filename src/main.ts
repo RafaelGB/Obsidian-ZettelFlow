@@ -19,8 +19,10 @@ import { CodeView } from 'architecture/components/core';
 import { HistoryView } from 'architecture/components/core/historyView/HistoryView';
 import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/SlipboxHealthView';
 import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
+import { ThinkingHeatmapView } from 'architecture/components/core/thinkingHeatmap/ThinkingHeatmapView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
+import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
 export default class ZettelFlow extends Plugin {
@@ -28,6 +30,7 @@ export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
+		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		loadVariableTextProcessors(this);
 
 		loadPluginComponents(this);
@@ -50,6 +53,7 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	onunload() {
+		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}
@@ -84,6 +88,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(HistoryView.NAME, (leaf) => new HistoryView(leaf, this));
 		this.registerView(SlipboxHealthView.NAME, (leaf) => new SlipboxHealthView(leaf));
 		this.registerView(ResurfaceView.NAME, (leaf) => new ResurfaceView(leaf));
+		this.registerView(ThinkingHeatmapView.NAME, (leaf) => new ThinkingHeatmapView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

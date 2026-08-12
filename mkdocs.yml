@@ -76,5 +76,6 @@ nav:
       - 7.12 Atomicity split assist: development/atomicity-split.md
       - 7.13 AI provider setup: development/ai-provider-setup.md
       - 7.14 Second-brain review: development/second-brain-review.md
+      - 7.15 Thinking heatmap: development/thinking-heatmap.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

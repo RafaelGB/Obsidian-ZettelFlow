@@ -1,0 +1,92 @@
+.zettelkasten-flow__thinking-heatmap {
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__thinking-heatmap-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__thinking-heatmap-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__thinking-heatmap-refresh {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__thinking-heatmap-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__thinking-heatmap-summary {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__thinking-heatmap-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+}
+
+.zettelkasten-flow__thinking-heatmap-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.zettelkasten-flow__thinking-heatmap-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__thinking-heatmap-cell:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+}
+
+.zettelkasten-flow__thinking-heatmap-cell--l0 {
+    background: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__thinking-heatmap-cell--l1 {
+    background: color-mix(in srgb, var(--color-green) 30%, var(--background-primary));
+}
+
+.zettelkasten-flow__thinking-heatmap-cell--l2 {
+    background: color-mix(in srgb, var(--color-green) 55%, var(--background-primary));
+}
+
+.zettelkasten-flow__thinking-heatmap-cell--l3 {
+    background: color-mix(in srgb, var(--color-green) 78%, var(--background-primary));
+}
+
+.zettelkasten-flow__thinking-heatmap-cell--l4 {
+    background: var(--color-green);
+}
+
+.zettelkasten-flow__thinking-heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 0.5rem;
+}
+
+.zettelkasten-flow__thinking-heatmap-legend-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin: 0 0.25rem;
+}

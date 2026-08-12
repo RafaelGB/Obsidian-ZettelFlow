@@ -10,11 +10,13 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const ACTION_FILES = [
     "src/actions/extractClaims/ExtractClaimsAction.tsx",
     "src/actions/compareClaims/CompareClaimsAction.tsx",
+    "src/actions/findSources/FindSourcesAction.tsx",
 ];
 
 const LOGIC_FILES = [
     "src/actions/extractClaims/extractClaimsLogic.ts",
     "src/actions/compareClaims/compareClaimsLogic.ts",
+    "src/actions/findSources/findSourcesLogic.ts",
 ];
 
 const ALL_RESEARCH_SOURCES = [
@@ -26,6 +28,7 @@ const ALL_RESEARCH_SOURCES = [
 const REGISTERED_CLASSES = [
     "ExtractClaimsAction",
     "CompareClaimsAction",
+    "FindSourcesAction",
 ];
 
 describe("research action guardrails (#155, AC-4/AC-5/FR-6)", () => {

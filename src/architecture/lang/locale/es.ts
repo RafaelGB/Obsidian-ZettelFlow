@@ -626,4 +626,7 @@ export default {
     research_compare_claims_label: 'Comparar afirmaciones',
     research_compare_claims_desc: 'Encuentra notas cuyas afirmaciones concuerdan o contradicen las de esta nota.',
     research_compare_claims_notice: '{0} concordante(s), {1} contradictoria(s).',
+    research_find_sources_label: 'Buscar fuentes',
+    research_find_sources_desc: 'Sugiere fuentes existentes en la bóveda para una nota poco documentada.',
+    research_find_sources_notice: 'Se han sugerido {0} fuente(s).',
 };

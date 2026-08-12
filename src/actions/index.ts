@@ -20,3 +20,4 @@ export { SuggestLinkAction } from './suggestLink/SuggestLinkAction';
 export { CreateSemanticRelationAction } from './createSemanticRelation/CreateSemanticRelationAction';
 export { ExtractClaimsAction } from './extractClaims/ExtractClaimsAction';
 export { CompareClaimsAction } from './compareClaims/CompareClaimsAction';
+export { FindSourcesAction } from './findSources/FindSourcesAction';

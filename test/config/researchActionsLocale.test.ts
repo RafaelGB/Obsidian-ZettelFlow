@@ -25,6 +25,10 @@ const KEYS = [
     "research_compare_claims_label",
     "research_compare_claims_desc",
     "research_compare_claims_notice",
+    // find-sources (T8)
+    "research_find_sources_label",
+    "research_find_sources_desc",
+    "research_find_sources_notice",
 ];
 
 describe("research action i18n parity (#155, AC-7)", () => {

@@ -626,4 +626,7 @@ export default {
     research_compare_claims_label: 'Compare claims',
     research_compare_claims_desc: "Find notes whose claims agree with or contradict this note's claims.",
     research_compare_claims_notice: '{0} agreeing, {1} contradicting note(s).',
+    research_find_sources_label: 'Find sources',
+    research_find_sources_desc: 'Suggest existing vault sources for an under-sourced note.',
+    research_find_sources_notice: 'Suggested {0} source(s).',
 };

@@ -92,6 +92,16 @@ export interface ZettelFlowSettings {
      */
     ai: AiSettings;
 
+    /**
+     * Development-event journal (#162), the data source for the thinking heatmap. ON by default:
+     * privacy-benign — a capped per-day count map only (no note paths, no content, no network).
+     */
+    journal: {
+        enabled: boolean;
+        /** `YYYY-MM-DD` → development-event count, pruned to the last ~year. */
+        counts: Record<string, number>;
+    };
+
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
@@ -191,6 +201,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
     events: { enabled: false }, // Event-driven workflows are opt-in (#150).
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
+    journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

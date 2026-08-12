@@ -21,6 +21,7 @@ import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/Sl
 import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
+import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
 export default class ZettelFlow extends Plugin {
@@ -28,6 +29,7 @@ export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
+		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		loadVariableTextProcessors(this);
 
 		loadPluginComponents(this);

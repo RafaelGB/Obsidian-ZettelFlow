@@ -7,6 +7,8 @@ import { gatherSnapshot } from "./snapshot";
 import { parseInlineFields } from "./parse/inlineFields";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
 import { isClaimOrSourceKey, isSourceKey } from "./claims";
+import { detectDevelopmentEvents } from "./journal/developmentEvents";
+import { DevelopmentJournal } from "architecture/plugin/journal/DevelopmentJournal";
 
 export type KnowledgeIndexStatus = "idle" | "building" | "ready";
 
@@ -156,8 +158,28 @@ export class KnowledgeIndex {
     }
 
     private upsert(file: TFile): void {
+        const before = this.model.get(file.path);
         this.model.upsert(deriveIdea(gatherSnapshot(file), this.schemas));
         log.debug(`[KnowledgeIndex] upsert ${file.path}`);
+        this.recordDevelopment(file.path, before);
+    }
+
+    /**
+     * Journal any development events for this note (#162). Best-effort: compares the before/after
+     * (both graph-recomputed) and records when the note advanced. Wrapped so a journal failure can
+     * never break indexing; the bulk `build()`/enrichment passes bypass this per-file hook.
+     */
+    private recordDevelopment(path: string, before: Idea | undefined): void {
+        try {
+            const journal = DevelopmentJournal.getInstance();
+            if (!journal.enabled()) return;
+            const after = this.model.get(path);
+            if (after && detectDevelopmentEvents(before, after).length > 0) {
+                journal.record(Date.now());
+            }
+        } catch (error) {
+            log.error(`[KnowledgeIndex] development journal failed: ${error instanceof Error ? error.message : "unknown error"}`);
+        }
     }
 
     private isMarkdown(file: TAbstractFile): file is TFile {

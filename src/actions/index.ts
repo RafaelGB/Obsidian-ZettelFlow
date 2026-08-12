@@ -15,6 +15,7 @@ export { DetectOrphanAction } from './detectOrphan/DetectOrphanAction';
 export { CalculateMaturityAction } from './calculateMaturity/CalculateMaturityAction';
 export { FindContradictionAction } from './findContradiction/FindContradictionAction';
 export { FindUnansweredQuestionAction } from './findUnansweredQuestion/FindUnansweredQuestionAction';
+export { SuggestNextMoveAction } from './suggestNextMove/SuggestNextMoveAction';
 export { FindRelatedAction } from './findRelated/FindRelatedAction';
 export { SuggestLinkAction } from './suggestLink/SuggestLinkAction';
 export { CreateSemanticRelationAction } from './createSemanticRelation/CreateSemanticRelationAction';

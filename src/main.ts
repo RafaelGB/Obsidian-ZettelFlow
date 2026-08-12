@@ -7,6 +7,7 @@ import {
 	CssClassesAction, DynamicSelectorAction, NumberAction, PromptAction, ScriptAction, SelectorAction,
 	TagsAction, TaskManagementAction, ZettelIdAction,
 	DetectOrphanAction, CalculateMaturityAction, FindContradictionAction, FindUnansweredQuestionAction,
+	SuggestNextMoveAction,
 	FindRelatedAction, SuggestLinkAction, CreateSemanticRelationAction,
 	ExtractClaimsAction, CompareClaimsAction, FindSourcesAction, AttachSourceAction,
 	SummarizeAction, ClassifyAction, GenerateQuestionsAction
@@ -108,6 +109,7 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new CalculateMaturityAction());
 		actionsStore.registerAction(new FindContradictionAction());
 		actionsStore.registerAction(new FindUnansweredQuestionAction());
+		actionsStore.registerAction(new SuggestNextMoveAction());
 		actionsStore.registerAction(new FindRelatedAction());
 		actionsStore.registerAction(new SuggestLinkAction());
 		actionsStore.registerAction(new CreateSemanticRelationAction());

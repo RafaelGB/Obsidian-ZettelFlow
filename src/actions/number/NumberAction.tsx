@@ -23,7 +23,9 @@ export class NumberAction extends CustomZettelAction {
   settingsReader = numberSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Number";
   // TODO: Translate this
-  purpose = "Add a number property.";
+  get purpose(): string {
+    return t("number_purpose");
+  }
   component(props: WrappedActionBuilderProps) {
     return <NumberWrapper {...props} />;
   }

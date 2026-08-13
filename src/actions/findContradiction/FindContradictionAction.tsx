@@ -25,7 +25,9 @@ export class FindContradictionAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/FindContradiction";
-    purpose = "List notes that contradict this one (via a contradicts relation).";
+    get purpose(): string {
+        return t("find_contradiction_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as KnowledgeActionElement;

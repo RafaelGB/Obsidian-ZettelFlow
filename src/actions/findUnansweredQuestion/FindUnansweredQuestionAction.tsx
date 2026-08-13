@@ -25,7 +25,9 @@ export class FindUnansweredQuestionAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/FindUnansweredQuestion";
-    purpose = "List questions this note raises that nothing answers yet.";
+    get purpose(): string {
+        return t("find_unanswered_question_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as KnowledgeActionElement;

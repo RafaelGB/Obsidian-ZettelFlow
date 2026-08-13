@@ -25,8 +25,9 @@ export class DynamicSelectorAction extends CustomZettelAction {
   link =
     "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/DynamicSelector";
   // TODO: Translate this
-  purpose =
-    "Create a script/rule to generate multiple options to be selected from. The selected option will be added to the note.";
+  get purpose(): string {
+    return t("dynamic_selector_purpose");
+  }
 
   component(props: WrappedActionBuilderProps) {
     const action = props.action as DynamicSelectorElement;

@@ -20,7 +20,9 @@ export class AttachSourceAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/AttachSource";
-    purpose = "Attach a source to the note being built.";
+    get purpose(): string {
+        return t("attach_source_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as ResearchActionElement;

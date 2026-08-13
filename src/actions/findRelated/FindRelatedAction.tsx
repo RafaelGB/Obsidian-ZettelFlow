@@ -27,7 +27,9 @@ export class FindRelatedAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/FindRelated";
-    purpose = "Rank notes worth linking by shared graph context.";
+    get purpose(): string {
+        return t("find_related_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as RelationActionElement;

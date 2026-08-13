@@ -1,4 +1,5 @@
 import { CustomZettelAction, ExecuteInfo } from "architecture/api";
+import { t } from "architecture/lang";
 import { backlinkSettings } from "./BackLinkSettings";
 import { BacklinkComponentResult, BacklinkElement } from "./typing";
 import { EditService, FileService } from "architecture/plugin";
@@ -21,7 +22,9 @@ export class BackLinkAction extends CustomZettelAction {
   settingsReader = backLinkSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Backlink";
   // TODO: Translate this
-  purpose = "Add a backlink of the in-building note to another note.";
+  get purpose(): string {
+    return t("backlink_purpose");
+  }
   public component(props: WrappedActionBuilderProps) {
     return <BacklinkWrapper {...props} />;
   }

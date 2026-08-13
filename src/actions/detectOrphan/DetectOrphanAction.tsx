@@ -24,7 +24,9 @@ export class DetectOrphanAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/DetectOrphan";
-    purpose = "Flag whether the note is an orphan (no links in or out).";
+    get purpose(): string {
+        return t("detect_orphan_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as KnowledgeActionElement;

@@ -18,7 +18,9 @@ export class GenerateQuestionsAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/GenerateQuestions";
-    purpose = "Generate open questions the note raises with AI.";
+    get purpose(): string {
+        return t("generate_questions_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as AiActionElement;

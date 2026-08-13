@@ -83,5 +83,6 @@ nav:
       - 7.18 Concept navigation: development/concept-navigation.md
       - 7.19 Open questions: development/open-questions.md
       - 7.20 Evolution timeline: development/evolution-timeline.md
+      - 7.21 Evidence map: development/evidence-map.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

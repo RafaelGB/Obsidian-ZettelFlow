@@ -5,10 +5,10 @@
 // Run with: npm run lint:obsidian
 // Reference:  docs/development/obsidian-review-and-scoring.md
 //
-// Note: today this is ADVISORY (CI runs it with continue-on-error) because the codebase
-// still has known violations tracked as issues. Once those are fixed, flip the CI step to
-// blocking. Day-to-day linting is oxlint (`npm run lint`); this focuses purely on the
-// Obsidian score.
+// This is BLOCKING (part of `npm run verify`, the pre-push hook and CI). The backlog from
+// #85 is burned down to zero with all deferred migrations now complete (#111 AbstractInputSuggest,
+// #112 declarative settings API). No per-file relaxations remain. Day-to-day linting is
+// oxlint (`npm run lint`); this file focuses purely on the Obsidian score.
 import tseslint from "typescript-eslint";
 import obsidianmd from "eslint-plugin-obsidianmd";
 

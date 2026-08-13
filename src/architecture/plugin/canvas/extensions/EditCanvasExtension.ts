@@ -1,4 +1,4 @@
-import { Canvas, CanvasElement, SelectionData } from "obsidian/canvas";
+import { AllCanvasNodeData, Canvas, CanvasElement, SelectionData } from "obsidian/canvas";
 import CanvasExtension from "./CanvasExtension";
 import { Notice, setIcon, setTooltip } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
@@ -26,7 +26,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
      */
     init(): void {
         this.plugin.registerEvent(
-            this.plugin.app.workspace.on("canvas:popup-menu", async (eventCanvas: Canvas) => {
+            this.plugin.app.workspace.on("canvas:popup-menu", (eventCanvas: Canvas) => {
                 // Check if is dragging
                 if (eventCanvas.isDragging) return;
 
@@ -57,7 +57,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
             label: "Copy Flow to Clipboard",
             icon: "clipboard-copy",
             callback: () => {
-                navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));
+                void navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));
                 new Notice(`Flow copied to clipboard!`);
             },
         });
@@ -81,10 +81,11 @@ export default class EditStepCanvasExtension extends CanvasExtension {
         if (!popupMenuEl) return;
 
         // Get the first (and only) selected node
-        const selectedNode: CanvasElement = eventCanvas.selection.values().next().value;
+        const [selectedNode]: CanvasElement[] = [...eventCanvas.selection];
+        if (!selectedNode) return;
 
         // We need to use the flow information cause eventCanvas value could be outdated
-        const data = selectedNode.getData();
+        const data = selectedNode.getData() as AllCanvasNodeData;
 
         // Only generate icon if the node is text/group type (holds zettelflowConfig)
         if (data.type !== "text" && data.type !== "group") {

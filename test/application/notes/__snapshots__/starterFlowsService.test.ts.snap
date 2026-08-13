@@ -1,0 +1,202 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6) emits unchanged step content for fleeting/literature/permanent/moc: fleeting 1`] = `
+"---
+zettelFlowSettings:
+  root: true
+  label: Fleeting note
+  phase: CAPTURE
+  actions:
+    - type: prompt
+      id: zf-fleeting-title
+      description: Capture your thought
+      hasUI: true
+      key: title
+      zone: context
+      label: Capture your thought
+      placeholder: What is on your mind?...
+      staticBehaviour: false
+  targetFolder: _ZettelFlow/examples/notes
+  childrenHeader: ''
+  optional: false
+---
+
+# {{title}}
+"
+`;
+
+exports[`installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6) emits unchanged step content for fleeting/literature/permanent/moc: literature 1`] = `
+"---
+zettelFlowSettings:
+  root: true
+  label: Literature note
+  phase: PROCESS
+  actions:
+    - type: prompt
+      id: zf-lit-title
+      description: Title
+      hasUI: true
+      key: title
+      zone: context
+      label: Title
+      placeholder: Give this literature note a name...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-lit-source
+      description: Source
+      hasUI: true
+      key: source
+      zone: frontmatter
+      label: Source
+      placeholder: Book, article, video...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-lit-author
+      description: Author
+      hasUI: true
+      key: author
+      zone: frontmatter
+      label: Author
+      placeholder: Who created it?...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-lit-page
+      description: Page or location
+      hasUI: true
+      key: page
+      zone: frontmatter
+      label: Page or location
+      placeholder: e.g. p. 42...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-lit-summary
+      description: Your summary
+      hasUI: true
+      key: summary
+      zone: context
+      label: Your summary
+      placeholder: Summarise it in your own words...
+      staticBehaviour: false
+  targetFolder: _ZettelFlow/examples/notes
+  childrenHeader: ''
+  optional: false
+---
+
+# {{title}}
+
+**Source:** {{source}} — {{author}} (p. {{page}})
+
+{{summary}}
+"
+`;
+
+exports[`installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6) emits unchanged step content for fleeting/literature/permanent/moc: moc 1`] = `
+"---
+zettelFlowSettings:
+  root: true
+  label: Structure note
+  phase: CONNECT
+  actions:
+    - type: prompt
+      id: zf-moc-title
+      description: Map title
+      hasUI: true
+      key: title
+      zone: context
+      label: Map title
+      placeholder: Name this map of content...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-moc-about
+      description: What does this map organise?
+      hasUI: true
+      key: about
+      zone: context
+      label: What does this map organise?
+      placeholder: Describe the theme this map gathers...
+      staticBehaviour: false
+  targetFolder: _ZettelFlow/examples/notes
+  childrenHeader: ''
+  optional: false
+---
+
+# {{title}}
+
+{{about}}
+
+## Notes in this map
+
+"
+`;
+
+exports[`installStarterFlows — #157 byte-for-byte guard for the four shipped flows (D6) emits unchanged step content for fleeting/literature/permanent/moc: permanent 1`] = `
+"---
+zettelFlowSettings:
+  root: true
+  label: Permanent note
+  phase: DEVELOP
+  actions:
+    - type: prompt
+      id: zf-perm-title
+      description: Title
+      hasUI: true
+      key: title
+      zone: context
+      label: Title
+      placeholder: Name the idea...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-perm-idea
+      description: The atomic idea
+      hasUI: true
+      key: idea
+      zone: context
+      label: The atomic idea
+      placeholder: State one idea, in your own words...
+      staticBehaviour: false
+    - type: prompt
+      id: zf-perm-connect
+      description: How does this connect to what you already know?
+      hasUI: true
+      key: connect
+      zone: context
+      label: How does this connect to what you already know?
+      placeholder: Link it to existing notes...
+      staticBehaviour: false
+  onCreation:
+    - type: find-related
+      id: zf-perm-related
+      hasUI: false
+      key: related
+      zone: frontmatter
+      limit: 10
+    - type: find-contradiction
+      id: zf-perm-contradiction
+      hasUI: false
+      key: contradictions
+      zone: frontmatter
+    - type: suggest-link
+      id: zf-perm-suggest
+      hasUI: false
+      key: suggestedLinks
+      zone: frontmatter
+      limit: 5
+    - type: calculate-maturity
+      id: zf-perm-maturity
+      hasUI: false
+      key: maturity
+      zone: frontmatter
+  targetFolder: _ZettelFlow/examples/notes
+  childrenHeader: ''
+  optional: false
+---
+
+# {{title}}
+
+{{idea}}
+
+## Connections
+
+{{connect}}
+"
+`;

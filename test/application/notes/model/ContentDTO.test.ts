@@ -47,4 +47,69 @@ describe("ContentDTO", () => {
     expect(c.getFrontmatter()).toEqual({});
     expect(c.getTags()).toEqual([]);
   });
+
+  it("leaves unmatched {{placeholders}} untouched when modifying an absent key", () => {
+    const c = new ContentDTO();
+    c.add("{{a}} stays {{b}}");
+    c.modify("missing", "X");
+    expect(c.get()).toBe("{{a}} stays {{b}}");
+  });
+
+  it("merges successive frontmatter calls, later keys overriding earlier ones", () => {
+    const c = new ContentDTO();
+    c.addFrontMatter({ title: "first", author: "me" });
+    c.addFrontMatter({ title: "second" });
+    expect(c.getFrontmatter()).toEqual({ title: "second", author: "me" });
+  });
+
+  it("accumulates and de-duplicates tags hoisted across successive frontmatter calls", () => {
+    const c = new ContentDTO();
+    c.addFrontMatter({ tags: ["a", "b"] });
+    c.addFrontMatter({ tags: ["b", "c"] });
+    expect(c.getTags()).toEqual(["a", "b", "c"]);
+  });
+
+  it("strips the 'tags' key out of the caller's frontmatter object (documents the mutation)", () => {
+    const c = new ContentDTO();
+    const input: Record<string, unknown> = { title: "t", tags: ["x"] };
+    c.addFrontMatter(input as never);
+    expect(input.tags).toBeUndefined();
+    expect(input).toEqual({ title: "t" });
+  });
+
+  it("treats a falsy frontmatter argument as a no-op", () => {
+    const c = new ContentDTO();
+    c.addFrontMatter(undefined as never);
+    c.addFrontMatter(null as never);
+    expect(c.getFrontmatter()).toEqual({});
+    expect(c.getTags()).toEqual([]);
+  });
+
+  it("ignores an array of tags that contains a non-string element", () => {
+    const c = new ContentDTO();
+    c.addTags(["ok", 1] as never);
+    expect(c.getTags()).toEqual([]);
+    expect(c.hasTags()).toBe(false);
+  });
+
+  it("de-duplicates within a single addTags array call", () => {
+    const c = new ContentDTO();
+    c.addTags(["a", "a", "b"]);
+    expect(c.getTags()).toEqual(["a", "b"]);
+  });
+
+  it("records modify() substitutions so an editor flow can replay them (#75)", () => {
+    const c = new ContentDTO();
+    c.add("{{a}}");
+    c.modify("a", "X");
+    c.modify("after-thought", "done");
+    expect(c.getModifications()).toEqual({ a: "X", "after-thought": "done" });
+  });
+
+  it("clears recorded modifications on reset()", () => {
+    const c = new ContentDTO();
+    c.modify("a", "X");
+    c.reset();
+    expect(c.getModifications()).toEqual({});
+  });
 });

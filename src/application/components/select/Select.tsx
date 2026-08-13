@@ -1,9 +1,11 @@
 import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./typing";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 import { Platform } from "obsidian";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
+import { groupOptionsByPhase, PHASE_LABEL_KEY } from "zettelkasten/phases";
 
 export function Select(selectType: SelectType) {
   const { options, callback, className = [], autofocus = false } = selectType;
@@ -11,7 +13,7 @@ export function Select(selectType: SelectType) {
   const [arrowIndex, setArrowIndex] = useState<number>(-1);
   const [searchValue, setSearchValue] = useState<string>("");
   const [optionsState, setOptionsState] = useState(options);
-  const internalCallback = async (selectedOption: string) => {
+  const internalCallback = (selectedOption: string) => {
     setSelected(selectedOption);
     callback(selectedOption);
   };
@@ -21,12 +23,15 @@ export function Select(selectType: SelectType) {
   useEffect(() => {
     if (!autofocus) return;
     if (Platform.isMobile && searchRef.current) {
-      searchRef.current.style.display = "block";
+      searchRef.current.addClass(c("is-visible"));
       searchRef.current.focus();
     } else if (groupRef.current) {
       groupRef.current.focus();
     }
   }, [autofocus]);
+
+  // Group by knowledge phase (#149); null = no option is phased → render a flat list (legacy look).
+  const phaseGroups = groupOptionsByPhase(optionsState);
 
   return (
     <div className={c("select-group", ...className)}>
@@ -74,22 +79,42 @@ export function Select(selectType: SelectType) {
             }
           } else if (
             searchRef.current &&
-            searchRef.current.style.display !== "block"
+            !searchRef.current.hasClass(c("is-visible"))
           ) {
-            searchRef.current.style.display = "block";
+            searchRef.current.addClass(c("is-visible"));
             searchRef.current.focus();
           }
         }}
       >
-        {optionsState.map((option, index) => (
-          <OptionElement
-            option={option}
-            index={index}
-            callback={internalCallback}
-            isSelected={selected === option.key}
-            key={`option-${option.key}-${index}`}
-          />
-        ))}
+        {phaseGroups
+          ? phaseGroups.map((group) => (
+              <React.Fragment key={`phase-${group.phase ?? "unphased"}`}>
+                <div className={c("select-group-phase-header")}>
+                  {group.phase ? t(PHASE_LABEL_KEY[group.phase]) : t("step_phase_unphased")}
+                </div>
+                {group.options.map((option) => {
+                  const index = optionsState.indexOf(option);
+                  return (
+                    <OptionElement
+                      option={option}
+                      index={index}
+                      callback={internalCallback}
+                      isSelected={selected === option.key}
+                      key={`option-${option.key}-${index}`}
+                    />
+                  );
+                })}
+              </React.Fragment>
+            ))
+          : optionsState.map((option, index) => (
+              <OptionElement
+                option={option}
+                index={index}
+                callback={internalCallback}
+                isSelected={selected === option.key}
+                key={`option-${option.key}-${index}`}
+              />
+            ))}
       </div>
     </div>
   );

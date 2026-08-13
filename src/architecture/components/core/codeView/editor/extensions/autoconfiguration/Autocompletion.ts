@@ -2,72 +2,33 @@ import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { coreCompletions } from "./config/CoreObjs";
 import { appCompletions } from "./config/AppFns";
 import { Completion } from "./typing";
-import { integrationsCompletions, internalVaultCompletions, zfCompletions } from "./config/ZettelFlowFns";
+import { integrationsCompletions, internalUserCompletions, internalVaultCompletions, zfCompletions } from "./config/ZettelFlowFns";
 import { javascriptLanguage } from "@codemirror/lang-javascript";
 import { c } from "architecture";
+import { findCompletions as findCompletionsInTree, KeyCompletionDefaults } from "./completionTree";
 
 const completionsTree = {
     app: appCompletions,
     zf: {
         ...zfCompletions,
         internal: {
-            vault: internalVaultCompletions
+            vault: internalVaultCompletions,
+            user: internalUserCompletions
         },
         external: integrationsCompletions
     }
 };
 
-/**
- * Verify if the node is an array of Completion objects
- */
-function isCompletionArray(node: unknown): node is Completion[] {
-    return Array.isArray(node);
-}
+const CODEVIEW_DEFAULTS: KeyCompletionDefaults = { info: "ZF API", detail: "✨ ZettelFlow" };
 
 function findCompletions(
     segments: string[],
     node: Record<string, unknown> | Completion[]
 ): Completion[] | null {
-    // If the node is an array of completions, return it
-    if (isCompletionArray(node)) return node;
-
-    // If there are no segments, return the keys of the current node
-    if (segments.length === 0) {
-        return Object.keys(node).map(key => ({
-            label: key,
-            type: 'object',
-            info: 'ZF API',
-            boost: 99, // Prioritize ZettelFlow completions
-            detail: '✨ ZettelFlow' // Visual indicator for ZettelFlow
-        }));
-    }
-
-    // Get the next segment without removing it
-    const nextSegment = segments[0];
-
-    // Continue recursively with the next node if it exists
-    const nextNode = (node as Record<string, unknown>)[nextSegment] as Record<string, unknown> | undefined;
-    if (!nextNode) {
-        // If the segment does not match any key, return the current keys
-        return Object.keys(node).map(key => ({
-            label: key,
-            type: 'object',
-            info: 'ZF API',
-            boost: 99,
-            detail: '✨ ZettelFlow'
-        }));
-    }
-
-    // Stop suggesting if we've reached a leaf node that's not a completion array or object
-    if (typeof nextNode !== 'object' || nextNode === null) {
-        return null;
-    }
-
-    // Move to the next segment
-    return findCompletions(segments.slice(1), nextNode);
+    return findCompletionsInTree(segments, node, CODEVIEW_DEFAULTS);
 }
 
-function customCompletionProvider(context: CompletionContext): CompletionResult | null {
+export function customCompletionProvider(context: CompletionContext): CompletionResult | null {
     // Get line content before cursor to check context
     const line = context.state.doc.lineAt(context.pos);
     const lineText = line.text.slice(0, context.pos - line.from);
@@ -154,7 +115,10 @@ function customCompletionProvider(context: CompletionContext): CompletionResult 
     }));
 
     return {
-        from: word.from + actualText.lastIndexOf(lastSegment),
+        // Replace only the final segment under the cursor. Deriving `from` from the cursor keeps
+        // it correct even when `word` includes a leading delimiter (space/`(`/`[`/…), which would
+        // otherwise shift `from` left by one and eat the preceding character on accept.
+        from: context.pos - lastSegment.length,
         options: enhancedCompletions,
         validFor: /^[\w.]*$/
     };

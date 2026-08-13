@@ -2,6 +2,10 @@ import esbuild from "esbuild";
 import {sassPlugin} from "esbuild-sass-plugin";
 import process from "process";
 import builtins from "builtin-modules";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { execFileSync } from "child_process";
 
 const banner =
 `/*
@@ -11,6 +15,39 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
+const vaultMode = (process.argv[2] === "vault");
+
+// Verify .vault-path exists before starting vault-mode watcher
+if (vaultMode) {
+    const rootDir = path.dirname(fileURLToPath(import.meta.url));
+    const vaultPathFile = path.join(rootDir, ".vault-path");
+    if (!fs.existsSync(vaultPathFile)) {
+        console.error(
+            "[dev:vault] No .vault-path file found.\n" +
+            "Create one with the absolute path to your plugin directory:\n" +
+            "  echo C:\\YourVault\\.obsidian\\plugins\\zettelflow > .vault-path"
+        );
+        process.exit(1);
+    }
+}
+
+function deployToVault() {
+    try {
+        execFileSync(process.execPath, ["scripts/deploy-vault.mjs"], { stdio: "inherit" });
+    } catch {
+        // deploy-vault already logged the error
+    }
+}
+
+// Plugin that copies to vault after each successful build
+const vaultDeployPlugin = {
+    name: "vault-deploy",
+    setup(build) {
+        build.onEnd((result) => {
+            if (result.errors.length === 0) deployToVault();
+        });
+    },
+};
 
 const context = await esbuild.context({
 	banner: {
@@ -58,12 +95,13 @@ const context = await esbuild.context({
 	loader: {
         ".ttf": "file",
     },
+    plugins: vaultMode ? [vaultDeployPlugin] : [],
 });
 const styles = await esbuild.context({
     entryPoints: ["src/styles/main.scss"],
     bundle: true,
     outfile: "dist/styles.css",
-    plugins: [sassPlugin()],
+    plugins: [sassPlugin(), ...(vaultMode ? [vaultDeployPlugin] : [])],
 });
 
 if (prod) {
@@ -71,6 +109,9 @@ if (prod) {
     await styles.rebuild();
 	process.exit(0);
 } else {
+    if (vaultMode) {
+        console.log("[dev:vault] Watching — artifacts will be deployed to vault on each rebuild.");
+    }
 	await context.watch();
     await styles.watch();
 }

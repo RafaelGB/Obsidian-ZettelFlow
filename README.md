@@ -1,163 +1,239 @@
 
-# Obsidian-ZettelFlow
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest)
-[![Github All Releases](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)]()
+# ZettelFlow
 
-- [Documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/)
-- [Roadmap](https://github.com/users/RafaelGB/projects/9/views/1)
+[![GitHub release](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest)
+[![Total downloads](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge)](https://github.com/sponsors/RafaelGB)
 
-# ZettelFlow: Unlock the Power of Custom Note Flows in Obsidian
+> **Most plugins help you _write_. Almost none help you _think_.**
 
-Welcome to **ZettelFlow**, the ultimate plugin for Obsidian that empowers you to design and navigate your own personalized workflows for creating and editing notes. Whether you're a fan of the Zettelkasten methodology or simply seeking a flexible way to structure your ideas, ZettelFlow adapts to your needs and puts creativity in your hands.
+**Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine
+that makes the knowledge inside it evolve** — it doesn't manage notes, it manages the *processes that
+transform knowledge*. It stands on **four pillars**:
 
----
-## **Quick Start Guide**
-Use our community resources to kickstart your ZettelFlow experience. You can find pre-built flows, steps, and actions that you can easily import into your own vault. Check out the [Community Resources Guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/how-to-contribute/community-examples/) for more information.
+- 🌱 **Knowledge Lifecycle** — every idea has a state (fleeting → permanent → evergreen); ZettelFlow knows the phase and proposes the next move.
+- 🕸️ **Semantic Knowledge Graph** — relations with *meaning*: ask *"show me every idea that contradicts this"* and follow reasoning chains.
+- 🔭 **Knowledge Discovery** — surface the unexpected: connections you didn't know you'd made, ideas worth challenging, a book outline hiding in a folder.
+- 🩺 **Knowledge Health** — measure balance and richness, not volume: maturity, knowledge debt, a weekly review, a heatmap of ideas *developed*.
 
-## **What is ZettelFlow?**
+**AI is one Action, never the product** — every pillar works fully with AI disabled. And **nothing is
+removed, only repositioned**: the canvas wizard you know is the engine's front end.
 
-ZettelFlow transforms Obsidian into a dynamic space for note-taking and knowledge management by using **canvas drawings** to create flows. These flows guide you through **step-by-step processes**, where each step can be a note, a group, or a card on the canvas, interconnected with arrows that represent their relationships.
-
-ZettelFlow encourages you to:
-
-- Embrace the **[Zettelkasten philosophy](https://zettelkasten.de/overview/)** while tailoring it to your unique workflow.
-- Design **custom flows** that resonate with how you think and organize.
-- Dive deeper into your notes, crafting them in a structured yet flexible way.
+> Read the **[manifesto →](https://rafaelgb.github.io/Obsidian-ZettelFlow/manifesto/)** · **[full documentation →](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**
 
 ---
 
-## **How Does It Work?**
+### How it works, in one line
 
-### **1. Root Notes**
-Every flow begins with a **Root Note**. These are the starting points that appear when you initiate a new workflow. Think of them as entry points into your creative process.
-
-### **2. Steps**
-A **flow** consists of multiple **steps**, which can be:
-- **Notes**: Standard Obsidian notes.
-- **Groups**: Collections of related items.
-- **Canvas Cards**: Visual representations within the Obsidian canvas.
-
-These steps are linked with arrows, creating a clear visual representation of how your ideas connect and progress.
-
-### **3. Actions**
-Within each step, you can add **Actions** to enhance your notes. Actions are interactive elements that:
-- Modify your final note.
-- Edit existing notes dynamically. 
-
-> [!IMPORTANT]  
-> The canvas editor flow is different from the canvas creation flow. It should be configured independently in the plugin settings.
-
-#### **Available Actions**
-ZettelFlow provides a wide array of actions, including:
-
-- **[Prompt](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Prompt/)**: Input custom text.
-- **[Number](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Number/)**: Add numeric values.
-- **[Checkbox](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Checkbox/)**: Include checkboxes for tasks.
-- **[Calendar](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Calendar/)**: Pick dates.
-- **[Selector](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Selector/)**: Choose from a predefined list.
-- **[Dynamic Selector](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/DynamicSelector/)**: Generate lists dynamically.
-- **[Tags](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Tags/)**: Add or manage tags.
-- **[Backlink](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Backlink/)**: Create backlinks to other notes.
-- **[CssClasses](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CssClasses/)**: Apply CSS classes for styling.
-- **[Task Management](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/TaskManagement/)**: Manage tasks directly.
-- **[Script](https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script/)**: Run custom scripts for advanced users.
+**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates, selectors, and more without you touching a template manually. Each step is a piece of the cognitive engine; each note lands already related, cross-checked and scored.
 
 ---
 
-## **Relationships Between Steps**
+## Zettelkasten toolkit
 
-In ZettelFlow, steps can be interconnected in different ways, allowing you to create meaningful relationships between your notes, groups, and actions. Here are the types of relationships available:
+ZettelFlow is more than a note templater — it is a full **Zettelkasten workflow**. Beyond the
+canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 
-### 1. Arrow-Based Connections
+- **🏠 ZettelFlow Home** — *open ZettelFlow, not Obsidian.* A single front door: a greeting and
+  "you've been thinking for N days", your new ideas, main concepts, notes that deserve a review,
+  suggested connections, and the **next recommended session** ("Continue *Spring Events*"). Read-only,
+  offline — the state of your mind at a glance.
+- **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
+  suggested connections to existing notes so you can link before you file.
+- **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
+  one command clusters and orders them from the semantic graph into an outline (MOC) that links every
+  source note. It organizes what you already know — graph-derived, offline, no AI.
+- **🔑 Zettel ID action** — stamp every note with a stable unique identifier (sortable
+  timestamp or Luhmann-style **Folgezettel** branching like `21 → 21a → 21a1`).
+- **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes,
+  a **Knowledge Debt score** (0–100) with a severity bar and a per-category drill-down
+  (unreferenced · dangling · unsourced · open questions) each one click from a fix, and a
+  **Knowledge balance** read-out — what your slip-box is made of (references · questions · examples ·
+  conclusions · concepts) with balance nudges — so knowledge-debt never piles up unseen.
+- **📊 Knowledge dashboard** — the *state of your system* as an ops console: connectivity %
+  (connected / orphaned / unresolved), a knowledge-debt bar, and a "today" panel (to process ·
+  contradictions · connections · open questions) — **every panel proposes a recommended next
+  action**, one click from the surface to act on it. Read-only, offline.
+- **📦 Methodology packages** — an app store of knowledge *systems*: install the **Zettelkasten**
+  package and get all its flows (and their built-in patterns) in one go; remove it just as cleanly
+  (it trashes only its own files, never your notes). Atomic install, local, no network.
+- **🚀 Starter flows** — one-click, ready-made flows for the four classic note types
+  (fleeting, literature, permanent, structure/MOC), plus a **Literature → Permanent** composed
+  showcase that chains the cognitive actions (extract claims → find related → suggest connections →
+  identify contradictions → promote) into one runnable, fully-editable flow.
+- **🗺️ Map-of-content builder** — gather notes by tag/folder into a MOC and refresh it safely;
+  re-runs never touch your own prose.
+- **✨ Connection resurfacing** — "talk to your slip-box": for the note you're reading, see
+  older, related notes worth revisiting, plus a daily spark of forgotten ideas.
+- **🗓️ Second-brain review** — one command generates a weekly **review note**: ideas created,
+  orphans, forgotten ideas, and important-but-unreviewed notes over the last 7 days — each a click
+  from a fix.
+- **🔥 Thinking heatmap** — a GitHub-style calendar of **ideas developed** (state advanced, source
+  or connection added) over the last year — momentum, not note-count volume. Fed by a private,
+  local, on-by-default journal (day → count only; no content, no network).
+- **🔭 Morning discovery** — up to **three surprising connections**: pairs of notes that share
+  concepts but aren't linked yet, one click from relating them. Graph-structural, offline — the
+  value of a slip-box is in the links you *didn't* already know about.
+- **🗺️ Living knowledge map** — detects your **hubs** and the notes that orbit each one, and
+  regenerates as the vault changes so it never goes stale. Read-only, offline — the shape of your
+  knowledge at a glance.
+- **🕸️ Concept navigation** — walk your vault like a wiki you wrote: focus a note, see its typed
+  neighbours (in **and** out), click one to re-focus — Learning → Memory → Spacing effect → Anki,
+  no folders. Ships with headless **reasoning paths** that read the graph as an argument
+  (supports → expands → example → implements). Read-only, offline.
+- **❓ Open questions** — every unanswered question in your vault, made first-class: each `question::`
+  with no answer yet, its asker(s), and the note most likely to answer it (ranked by shared graph
+  context). Read-only, offline — a live thread instead of a dead end.
+- **🕰️ Evolution timeline** — the *conceptual* history of an idea (not a text diff): a per-note
+  sequence of its lifecycle state + claims, captured only on meaningful change. Local, bounded,
+  **opt-in** (it stores note content) — see how a claim evolved from "AI replaces us" to "AI is a copilot".
+- **⚖️ Evidence map** *(experimental)* — ask "what do *you* think about this?" and get a grounded
+  synthesis reconstructed only from your graph: what supports it, what contradicts it, the sourced
+  evidence, the gaps — every row linked to the source note, **no invented content, no AI required**.
+- **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
+  command, leaving the source as a hub.
+- **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
+  💡 permanent → 🔬 developing → 📚 evergreen → 🪦 archived) and move it with a validated
+  **Change note state** command; the state lives in plain, configurable frontmatter.
+- **🧭 Knowledge phases for steps** — tag each step in a flow with the stage of knowledge work it
+  advances (Capture → Classify → Process → Connect → Develop → Review → Consolidate); the step
+  builder groups your flow by phase, so a workflow reads as an arc of thinking. Distinct from a
+  note's lifecycle *state*: a step has a **phase**, a note has a **state**.
+- **⚡ Event-driven workflows** — let a flow **react** to vault events (a note created, a property
+  or tag change) instead of only running on demand. Opt-in and **off by default**, throttled, and
+  loop-guarded so a flow can never retrigger itself; an optional `zf` condition gates each trigger.
+- **🧩 Visual workflow language (WHEN / IF / ACTION / WAIT)** — compose a reactive flow on the canvas
+  as a readable program: **WHEN** a vault event happens, **IF** a condition holds, run an **ACTION**,
+  then **WAIT** for your confirmation. WAIT is a human-in-the-loop pause; the blocks are annotated on
+  the canvas so a flow reads as an arc of thinking.
+- **🧠 Knowledge actions** — actions that *reason about* your slip-box, not just write to a note:
+  detect an **orphan**, **calculate maturity** (0–100 from state, links, sources and age), **find
+  contradictions**, **find unanswered questions**, **suggest the next move** (a concrete
+  to-do: add a source, connect it, add an example, develop it), and run the **thinking simulator**
+  (critical-thinking prompts adapted to a note's gaps — *what if it's false? what evidence is
+  missing? what contradicts it?*) — deterministic, offline, over the knowledge model. They feed the
+  knowledge-health layer.
+- **🔗 Relation actions** — actions that turn connection-making into a workflow step: **find
+  related** and **suggest link** rank notes worth linking by shared graph context (co-citation +
+  coupling), and **create semantic relation** writes a typed edge (supports, contradicts, …) to a
+  target note. Graph-structural, deterministic, offline.
+- **🔍 Research actions** — actions that make sourcing and claim-checking part of the workflow:
+  **extract claims**, **compare claims** (surface notes that agree with or contradict yours),
+  **find sources** (suggest existing vault sources for an under-sourced note), and **attach
+  source**. Over the claims-and-sources model, deterministic and offline.
+- **🤖 AI actions — optional, off by default** — AI is *one action category, never the core*: the
+  whole plugin works fully with AI disabled. Opt in with your own OpenAI-compatible provider
+  (endpoint + key + model — OpenAI, OpenRouter, LM Studio, Ollama…) to **summarize**, **classify**,
+  and **generate questions**. No bundled key, no telemetry; the note content is sent only to the
+  endpoint you configure. See [AI provider setup](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/ai-provider-setup/).
 
-Notes and cards can be linked using arrows, representing a direct relationship or flow between steps. These connections visually guide the sequence of actions or ideas.
-
-### 2. Group-to-Nodes Relationships
-
-Groups establish a one-to-many relationship with the nodes they contain. For example:
-
-- A group can include multiple notes or cards as its children.
-- Any action performed on the group can cascade or relate to its nodes.
-- A group can act as a Root Node, serving as the starting point of a flow.
-
-### 3. JavaScript File Connections
-
-JavaScript files can be linked to steps as if they were actions, executing custom scripts. These connections allow advanced users to:
-
-- Extend ZettelFlow's functionality.
-- Automate or customize specific parts of the workflow.
-
-> [!NOTE] Limitations
-> JavaScript files cannot serve as Root Nodes. They can only appear in the middle or at the end of a flow chain.
-
-### 4. Root Node Eligibility
-
-Steps that can serve as Root Nodes include:
-
-- Groups
-- Notes
-- Cards
-
-> [!WARNING] Exclusions
-> JavaScript files are excluded from being Root Nodes.
-
-These relationships give you the freedom to structure your workflows logically and intuitively, ensuring each flow adapts to your specific needs.
+> New here? Run **Install Zettelkasten starter flows** from the command palette, or open
+> **Settings → ZettelFlow** to launch these tools.
 
 ---
 
-## **Why Use ZettelFlow?**
+## How it works
 
-- **Freedom to Customize**: ZettelFlow adapts to your way of working, not the other way around.
+```
+Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
+(your workflow)   (step-by-step UI)      (frontmatter + body merged)
+```
 
-![](docs/resources/readme/Canvas-Sample.png)
-![](docs/resources/readme/demogif.gif)
+1. **Design** — Create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
+2. **Configure** — Right-click any canvas node → *Edit ZettelFlow step* to add actions (prompt, calendar, selector, tags…).
+3. **Run** — Click the ribbon icon (or use the command) to open the wizard. ZettelFlow walks the canvas graph and builds the note.
 
-- **Visual Clarity**: Flows on the canvas provide an intuitive overview of your thought process.
-- **Deep Integration**: Seamlessly integrates with Obsidian, enhancing your existing workflow.
-- **Powerful Actions**: Automate and enrich your notes with a variety of built-in actions.
-
----
-
-## **Getting Started**
-
-1. **Install the Plugin**
-   - Download and install ZettelFlow from the Obsidian plugin marketplace.
-
-![](docs/resources/readme/install-plugin.png)
-2. **Create Your First Flow**
-   - Create a new Canvas file in Obsidian.
-   - Configure it as the principal Flow file in the plugin settings.
-
-   ![](docs/resources/readme/Configure-principal-canvas.png)
-
-   - Open a canvas and start designing your flow by adding steps and connecting them with arrows.
-
-3. **Add Actions**
-   - Select a step and incorporate actions to modify or enhance your notes.
-
-![](docs/resources/readme/first%20root%20step.png)
-![](docs/resources/readme/root%20step%20options.png)
-
-4. **Explore Examples**
-   - Check the [official documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/) for example flows and action guides.
+![Canvas example](docs/resources/readme/Canvas-Sample.png)
+![Wizard demo](docs/resources/readme/demogif.gif)
 
 ---
 
-## **Learn More**
+## Get started in 5 minutes
 
-For detailed instructions, descriptions of each action, and tips for creating advanced flows, visit the [ZettelFlow Documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/).
+**Fastest path:**
 
-If you have any questions or feedback, feel free to reach out via the Obsidian community forums or GitHub issues.
+1. Install **ZettelFlow** from the Obsidian community plugin browser.
+2. Click the ZettelFlow ribbon icon (or run *Open ZettelFlow* from the command palette).
+3. On the welcome screen, click **Create example flow** — ZettelFlow creates a sample canvas, sets it as your flow canvas, and opens it.
+4. Click the ribbon icon again to run your first wizard.
+
+**Manual path (build your own flow):**
+
+1. Create a `.canvas` file (e.g. `flows/daily-note.canvas`).
+2. In **Settings → ZettelFlow**, set that canvas as the "new notes canvas".
+3. Add a note file to the canvas, right-click it → *Create managed step*, enable **Root**.
+4. Click the ribbon icon — your first wizard run.
+
+Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [Discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).
+
+![Install screenshot](docs/resources/readme/install-plugin.png)
 
 ---
 
-Unleash the full potential of your notes with ZettelFlow. **Your ideas, your flow, your rules.**
+## Features
 
+| Feature | Description |
+|---|---|
+| **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
+| **Knowledge patterns** | Templates that carry behavior — on creation a pattern runs its attached offline knowledge/relation actions through the standard pipeline. The shipped **Permanent Note** pattern wires find related · find contradictions · suggest links · calculate maturity, computed against your existing graph. Additive & backward-compatible; legacy templates are unchanged. |
+| **28 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question, suggest next move, thinking simulator — 🔗 relation actions — find related, suggest link, create semantic relation — 🔍 research actions — extract claims, compare claims, find sources, attach source — and 🤖 optional AI actions (off by default) — summarize, classify, generate questions. |
+| **Conditional edges** | Label a canvas arrow `if: frontmatter.type === "meeting"` to branch the workflow at runtime. |
+| **Dynamic templates** | Use `{{title}}`, `{{date}}`, `{{frontmatter.key}}`, `{{canvas.name}}` in step body templates. |
+| **Live body preview** | See the rendered note body while editing a step's template (desktop). |
+| **Companion pane** | Live note preview + connection suggestions while the wizard runs — link before you file. |
+| **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
+| **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
+| **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
+| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, and the deterministic next recommended session. Read-only, offline. |
+| **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
+| **Methodology packages** | Install a whole knowledge system as a unit — the reference **Zettelkasten** package bundles all its flows; atomic install + clean removal (trashes only its own files). Local, no network. |
+| **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
+| **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
+| **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
+| **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
+| **Concept navigation** | Walk your vault by typed relation (in + out) — focus a note, click a neighbour to re-focus, no folders — plus argument-forward reasoning paths over the same graph. Read-only, offline. |
+| **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
+| **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. Local, bounded, opt-in. |
+| **Evidence map** *(experimental)* | Compound thinking — a grounded synthesis of a note from your own graph (supports · contradicts · evidence · gaps), every row linked to its source note. No invented content, no AI. |
+| **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
+| **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
+| **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |
+| **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |
+| **Note lifecycle states** | Classify notes by phase (fleeting → … → archived) and change state with a validated command; state lives in configurable frontmatter (no lock-in). |
+| **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
+| **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
+| **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
+| **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
+| **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
+| **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
+| **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |
+| **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`). |
 
+---
+
+## Capabilities & privacy
+
+ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. The plugin uses these capabilities:
+
+- **File system (vault).** Reads canvas flow files and creates/edits notes (e.g. the **Change note state** command writes a single lifecycle property to the active note). All access goes through Obsidian's `Vault` / `FrontmatterService` API — never a hardcoded path. Works on desktop and mobile.
+- **Network — optional, community feature only.** If (and only if) you open the community templates browser, ZettelFlow fetches example flows from the ZettelFlow community source. Nothing is sent unless you use this feature.
+- **Script execution.** The Script action and JavaScript step files run **JavaScript you write** as part of a flow. This code runs with the plugin's access to your vault — only run scripts you trust.
+
+See [Capabilities & privacy](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/capabilities-and-privacy/) for full details.
+
+---
+
+## Contributing
+
+- **Bug?** → [Open a bug report](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=bug_report.yaml)
+- **Idea?** → [Open a feature request](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=feature_request.yaml)
+- **Question?** → [Start a discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)
+- **Code?** → Read [Contributing & conventions](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/contributing-and-conventions/) and open a PR.
+
+---
 
 ## Support
-If you enjoy ZettelFlow, consider [buy me a coffee](https://www.buymeacoffee.com/5tsytn22v9Z) or [sponsor me](https://github.com/sponsors/RafaelGB) to support my work. Thank you!
 
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge)](https://github.com/sponsors/RafaelGB)
+If ZettelFlow saves you time, consider supporting development:
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/5tsytn22v9Z)

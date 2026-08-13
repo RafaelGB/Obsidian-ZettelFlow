@@ -18,7 +18,7 @@ export class TypeService {
     }
 
     public static isArray<T>(value: object, typeOf: string): value is Array<T> {
-        return value && typeof value === "object" && value.constructor === Array && (value as Array<T>).every((item: any) => typeof item === typeOf);
+        return value && typeof value === "object" && value.constructor === Array && (value as Array<T>).every((item: unknown) => typeof item === typeOf);
     }
 
     public static isDate(value: unknown): value is Date {

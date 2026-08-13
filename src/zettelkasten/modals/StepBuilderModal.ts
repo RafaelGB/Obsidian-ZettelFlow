@@ -1,9 +1,10 @@
-import { Notice, setIcon, TFile } from "obsidian";
+import { Notice, Platform, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
-import { FileService, VaultStateManager } from "architecture/plugin";
+import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
+import { mergeStepSettingsIntoFrontmatter } from "zettelkasten/phases";
 import { ObsidianApi, c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
 import { AbstractStepModal } from "./AbstractStepModal";
@@ -12,19 +13,18 @@ import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
 import { UsedInstalledStepsModal } from "application/community";
 import { ConfirmModal } from "architecture/components/settings";
 
-
 export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
+
     constructor(
         private plugin: ZettelFlow,
         private partialInfo?: Partial<Omit<StepBuilderInfo, "containerEl">>
     ) {
         super(plugin.app);
         this.info = this.getBaseInfo();
-
     }
 
     getPlugin(): ZettelFlow {
@@ -66,18 +66,20 @@ export class StepBuilderModal extends AbstractStepModal {
             title: t("step_builder_copy_button_title")
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", async () => {
-                // Step 1 - save the step internally
-                const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                    title: t("step_template_default_title"),
-                    description: t("step_template_default_description")
-                });
-                // Step 2 - Copy the step to the clipboard
-                navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
-                // Step 3 - Save the step to internal clipboard
-                this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
-                await this.plugin.saveSettings();
-                new Notice(t("step_copied_notice"));
+            el.addEventListener("click", () => {
+                void (async () => {
+                    // Step 1 - save the step internally
+                    const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+                        title: t("step_template_default_title"),
+                        description: t("step_template_default_description")
+                    });
+                    // Step 2 - Copy the step to the clipboard
+                    void navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
+                    // Step 3 - Save the step to internal clipboard
+                    this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
+                    await this.plugin.saveSettings();
+                    new Notice(t("step_copied_notice"));
+                })();
             });
 
         });
@@ -140,7 +142,7 @@ export class StepBuilderModal extends AbstractStepModal {
                             new Notice(t("step_template_already_exists"));
                         }
                         this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
-                        this.plugin.saveSettings();
+                        void this.plugin.saveSettings();
                         // Step 2 - Open the modal to edit the step
                         new InstalledStepEditorModal(this.plugin, stepSettings).open();
                     }
@@ -150,13 +152,45 @@ export class StepBuilderModal extends AbstractStepModal {
         });
         setIcon(saveButton.createDiv(), "book-marked");
 
-
         this.chain.handle(this);
+
+        // Body template editor (desktop only, not in embed mode). Embed nodes store
+        // their config on the canvas node itself, so they have no markdown body to edit.
+        if (!Platform.isMobile && this.mode !== "embed") {
+            this.setupBody();
+        }
     }
 
     refresh(): void {
         this.contentEl.empty();
         this.onOpen();
+    }
+
+    private setupBody(): void {
+        const { contentEl } = this.info;
+        const textarea = contentEl.createEl("textarea", {
+            cls: c("step-builder-body"),
+            placeholder: t("step_builder_body_template_placeholder"),
+        });
+        textarea.value = this.info.body ?? "";
+        textarea.addEventListener("input", () => {
+            this.info.body = textarea.value;
+        });
+
+        // Load from file when editing (body undefined = not yet loaded)
+        if (this.info.body === undefined && this.mode === "edit") {
+            void this.loadBodyFromFile(textarea);
+        }
+    }
+
+    private async loadBodyFromFile(textarea: HTMLTextAreaElement): Promise<void> {
+        if (!this.info.folder || !this.info.filename) return;
+        const path = `${this.info.folder.path}${FileService.PATH_SEPARATOR}${this.info.filename}.md`;
+        const file = await FileService.getFile(path, false);
+        if (!file) return;
+        const body = await FrontmatterService.instance(file).getContent();
+        this.info.body = body;
+        textarea.value = body;
     }
 
     onClose(): void {
@@ -171,7 +205,11 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private async save() {
-        if (!this.info.folder || !this.info.filename) return;
+        if (!this.info.folder || !this.info.filename) {
+            log.error("[StepBuilder] Cannot save step: missing target folder or filename", this.info);
+            new Notice(t("step_builder_save_missing_target"));
+            return;
+        }
         const path = this.info.folder.path.concat(FileService.PATH_SEPARATOR).concat(this.info.filename);
         switch (this.mode) {
             case "edit":
@@ -202,26 +240,40 @@ export class StepBuilderModal extends AbstractStepModal {
             await cachedFlow.editTextNode(this.info.nodeId, JSON.stringify(stepSettings));
         } else {
             log.error(`Node id not found on embed mode`);
+            new Notice(t("step_builder_save_missing_node"));
         }
     }
 
     private async saveFile(path: string): Promise<void> {
         let file = await FileService.getFile(path, false);
         const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
+        const body = this.info.body;
         if (!file) {
-            // Create file
-            file = await FileService.createFile(path, "", false);
+            file = await FileService.createFile(path, body ?? "", false);
+        } else if (body !== undefined) {
+            await this.updateFileBody(file, body);
         }
         await this.addStep(file, stepSettings);
         new Notice(`Step saved on ${path}`);
     }
 
+    private async updateFileBody(file: TFile, body: string): Promise<void> {
+        const raw = await FileService.getContent(file);
+        const fmMatch = raw.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+        const frontmatterBlock = fmMatch ? fmMatch[0] : "";
+        await FileService.modify(file, frontmatterBlock + body);
+    }
+
     private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {
-        ObsidianApi.fileManager().processFrontMatter(file, (frontmatter) => {
-            frontmatter.zettelFlowSettings = {
-                ...frontmatter.zettelFlowSettings,
-                ...stepSettings
-            }
+        // Must be awaited: save() runs from onClose and defrosts the vault state right after,
+        // so a fire-and-forget write could be dropped and the step never persisted (#79).
+        await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
+            // Use the pure merge helper so a cleared phase/wait marker is DELETED (a plain spread
+            // would leave a previously-saved value behind). The canvas/embed path full-replaces already.
+            frontmatter.zettelFlowSettings = mergeStepSettingsIntoFrontmatter(
+                frontmatter.zettelFlowSettings,
+                stepSettings
+            );
         });
     }
 
@@ -234,6 +286,7 @@ export class StepBuilderModal extends AbstractStepModal {
                 actions: [],
                 label: ``,
                 childrenHeader: ``,
+                body: "",
             }
         } else {
             return {

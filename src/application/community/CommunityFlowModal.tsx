@@ -36,7 +36,7 @@ export class CommunityFlowModal extends Modal {
    */
   onOpen(): void {
     this.modalEl.addClass(c("modal"));
-    this.renderContent();
+    void this.renderContent();
   }
 
   /**
@@ -78,7 +78,7 @@ export class CommunityFlowModal extends Modal {
     actionBtn.addClass("mod-cta");
     actionBtn.addEventListener("click", () => {
       this.plugin.settings.communitySettings.clipboardTemplate = this.flow;
-      this.plugin.saveSettings();
+      void this.plugin.saveSettings();
       actionBtn.setText(t("template_copied"));
       actionBtn.setAttribute("aria-disabled", "true");
       actionBtn.setAttribute("disabled", "true");
@@ -100,21 +100,23 @@ export class CommunityFlowModal extends Modal {
       },
       (el) => {
         el.addClass("mod-cta");
-        el.addEventListener("click", async () => {
+        el.addEventListener("click", () => {
           Object.entries(this.filesToDownload).forEach(
-            async ([filename, content]) => {
-              const path = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
-              // Delete existing file if it exists
-              const potentialFile = await FileService.getFile(path, false);
-              if (potentialFile) {
-                await FileService.deleteFile(potentialFile);
-              }
+            ([filename, content]) => {
+              void (async () => {
+                const path = `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`;
+                // Delete existing file if it exists
+                const potentialFile = await FileService.getFile(path, false);
+                if (potentialFile) {
+                  await FileService.deleteFile(potentialFile);
+                }
 
-              await FileService.createFile(
-                `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`,
-                content,
-                false
-              );
+                await FileService.createFile(
+                  `${this.plugin.settings.communitySettings.markdownTemplateFolder}/${filename}`,
+                  content,
+                  false
+                );
+              })();
             }
           );
           new Notice(
@@ -129,7 +131,7 @@ export class CommunityFlowModal extends Modal {
       }
     );
     setIcon(this.downloadMdButton.createDiv(), "download");
-    this.downloadMdButton.style.display = "none";
+    this.downloadMdButton.addClass(c("is-hidden"));
 
     // --- Description Section ---
     const infoSection = this.contentEl.createDiv({
@@ -165,8 +167,7 @@ ${this.flow.description}`;
       });
 
       // Ensure image fits within modal
-      imgEl.style.maxWidth = "100%";
-      imgEl.style.height = "auto";
+      imgEl.addClass(c("flow-image-fit"));
 
       imgEl.addEventListener("click", () => {
         this.isImageExpanded = !this.isImageExpanded;
@@ -202,7 +203,7 @@ ${this.flow.description}`;
         cls: c("flow-node-type-section"),
       });
       typeBlock.createEl("h4", {
-        text: `${type.charAt(0).toUpperCase() + type.slice(1)} Nodes (${
+        text: `${type.charAt(0).toUpperCase() + type.slice(1)} nodes (${
           nodes.length
         })`,
       });
@@ -223,16 +224,17 @@ ${this.flow.description}`;
           node.label ||
           node.file ||
           `Node ${node.id.substring(0, 6)}...`;
-        accordionHeader.createEl("span", {
+        accordionHeader.createSpan({
           text: `${this.nodesRef[node.id]} - ${nodeTitle}`,
           cls: c("flow-node-title"),
         });
 
         // Add color badge if node has a color
         if (node.color) {
-          accordionHeader.style.borderLeft = `4px solid rgb(${getCanvasColor(
-            node.color
-          )})`;
+          accordionHeader.addClass(c("flow-node-has-color"));
+          accordionHeader.setCssProps({
+            "--zf-node-color": `rgb(${getCanvasColor(node.color)})`,
+          });
         }
 
         // Add toggle indicator
@@ -245,7 +247,7 @@ ${this.flow.description}`;
         const accordionContent = item.createDiv({
           cls: c("flow-node-accordion-content"),
         });
-        accordionContent.style.display = "none";
+        accordionContent.addClass(c("is-hidden"));
 
         switch (type) {
           case "text":
@@ -253,13 +255,13 @@ ${this.flow.description}`;
             this.renderNodeItem(accordionContent, node, nodeTitle);
             break;
           case "file":
-            this.renderFileNodeItem(accordionContent, node);
+            void this.renderFileNodeItem(accordionContent, node);
             break;
         }
         // Add click event to toggle accordion
         accordionHeader.addEventListener("click", () => {
-          const isExpanded = accordionContent.style.display !== "none";
-          accordionContent.style.display = isExpanded ? "none" : "block";
+          const isExpanded = !accordionContent.hasClass(c("is-hidden"));
+          accordionContent.toggleClass(c("is-hidden"), isExpanded);
           toggleIndicator.setText(isExpanded ? "▶" : "▼");
           accordionHeader.toggleClass(c("expanded"), !isExpanded);
         });
@@ -299,7 +301,7 @@ ${this.flow.description}`;
       const textSection = accordionContent.createDiv({
         cls: c("flow-node-text"),
       });
-      textSection.createEl("div", { text: node.text });
+      textSection.createDiv({ text: node.text });
     }
 
     // Add actions section only if actions exist
@@ -384,13 +386,14 @@ ${this.flow.description}`;
       }${edge.label ? ` | Label: "${edge.label}"` : ""}`;
 
       const header = item.createDiv({ cls: c("flow-edge-header") });
-      header.createEl("span", {
+      header.createSpan({
         text: label,
       });
       if (edge.color) {
-        header.style.borderLeft = `4px solid rgb(${getCanvasColor(
-          edge.color
-        )})`;
+        header.addClass(c("flow-node-has-color"));
+        header.setCssProps({
+          "--zf-node-color": `rgb(${getCanvasColor(edge.color)})`,
+        });
       }
     });
   }
@@ -404,6 +407,6 @@ ${this.flow.description}`;
   }
 
   private enableDownloadButton(): void {
-    this.downloadMdButton.style.display = "block";
+    this.downloadMdButton.removeClass(c("is-hidden"));
   }
 }

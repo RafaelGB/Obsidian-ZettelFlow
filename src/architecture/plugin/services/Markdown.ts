@@ -8,7 +8,7 @@ export class MarkdownService {
         element.empty();
         const dom = element.createDiv();
         dom.addClasses(classNames);
-        MarkdownRenderer.render(
+        void MarkdownRenderer.render(
             app,
             content,
             dom.createDiv(),

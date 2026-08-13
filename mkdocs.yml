@@ -11,6 +11,7 @@ plugins:
   - search
 nav:
   - 1. Home: index.md
+  - The manifesto: manifesto.md
   - 2. Actions:
       - 2.1 Prompt: actions/Prompt.md
       - 2.2 Number: actions/Number.md
@@ -23,6 +24,23 @@ nav:
       - 2.9 CssClasses: actions/CssClasses.md
       - 2.10 TaskManagement: actions/TaskManagement.md
       - 2.11 Script: actions/Script.md
+      - 2.12 Zettel ID: actions/ZettelId.md
+      - 2.13 Detect orphan: actions/DetectOrphan.md
+      - 2.14 Calculate maturity: actions/CalculateMaturity.md
+      - 2.15 Find contradiction: actions/FindContradiction.md
+      - 2.16 Find unanswered question: actions/FindUnansweredQuestion.md
+      - 2.17 Find related: actions/FindRelated.md
+      - 2.18 Suggest link: actions/SuggestLink.md
+      - 2.19 Create semantic relation: actions/CreateSemanticRelation.md
+      - 2.20 Extract claims: actions/ExtractClaims.md
+      - 2.21 Compare claims: actions/CompareClaims.md
+      - 2.22 Find sources: actions/FindSources.md
+      - 2.23 Attach source: actions/AttachSource.md
+      - 2.24 Summarize: actions/Summarize.md
+      - 2.25 Classify: actions/Classify.md
+      - 2.26 Generate questions: actions/GenerateQuestions.md
+      - 2.27 Suggest next move: actions/SuggestNextMove.md
+      - 2.28 Thinking simulator: actions/ThinkingSimulator.md
   - 3. Vault Hooks:
       - 3.1 Property Hooks:
           - 3.1.1 Overview: vault-hooks/property-hooks/overview.md
@@ -39,11 +57,39 @@ nav:
       - 6.3 Actions & note builder: architecture/actions-and-note-builder.md
       - 6.4 Vault hooks internals: architecture/vault-hooks-internals.md
       - 6.5 Community & backend: architecture/community-and-backend.md
+      - 6.6 .zftemplate schema: architecture/zftemplate-schema.md
+      - 6.7 Conditional edges: architecture/conditional-edges.md
+      - 6.8 Knowledge model: architecture/knowledge-model.md
+      - 6.9 Knowledge lifecycle: architecture/knowledge-lifecycle.md
+      - 6.10 Workflow phases: architecture/workflow-phases.md
+      - 6.11 Event-driven & visual workflows: architecture/event-driven-workflows.md
+      - 6.12 Reposition map (feature → layer): architecture/reposition-map.md
   - 7. Development:
       - 7.1 Getting started: development/getting-started.md
       - 7.2 Contributing & conventions: development/contributing-and-conventions.md
       - 7.3 Testing & guardrails: development/testing-and-guardrails.md
       - 7.4 Obsidian review & scoring: development/obsidian-review-and-scoring.md
       - 7.5 Project health & roadmap: development/project-health-and-roadmap.md
+      - 7.6 Spec-driven development: development/spec-driven-development.md
+      - 7.7 Slip-box health dashboard: development/slipbox-health-dashboard.md
+      - 7.8 Capabilities & privacy: development/capabilities-and-privacy.md
+      - 7.9 Zettelkasten starter flows: development/zettelkasten-starter-flows.md
+      - 7.10 Map of content builder: development/moc-builder.md
+      - 7.11 Connection resurfacing: development/connection-resurfacing.md
+      - 7.12 Atomicity split assist: development/atomicity-split.md
+      - 7.13 AI provider setup: development/ai-provider-setup.md
+      - 7.14 Second-brain review: development/second-brain-review.md
+      - 7.15 Thinking heatmap: development/thinking-heatmap.md
+      - 7.16 Morning discovery: development/morning-discovery.md
+      - 7.17 Living knowledge map: development/living-knowledge-map.md
+      - 7.18 Concept navigation: development/concept-navigation.md
+      - 7.19 Open questions: development/open-questions.md
+      - 7.20 Evolution timeline: development/evolution-timeline.md
+      - 7.21 Evidence map: development/evidence-map.md
+      - 7.22 Knowledge patterns: development/knowledge-patterns.md
+      - 7.23 Knowledge dashboard: development/knowledge-dashboard.md
+      - 7.24 ZettelFlow home: development/zettelflow-home.md
+      - 7.25 Derived projects: development/derived-projects.md
+      - 7.26 Methodology packages: development/methodology-packages.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

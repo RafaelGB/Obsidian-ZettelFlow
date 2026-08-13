@@ -56,7 +56,7 @@ export class ManageInstalledTemplatesModal extends Modal {
               ] = potentialSavedTempate as CommunityAction;
             }
             delete this.plugin.settings.communitySettings.clipboardTemplate;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             this.refresh();
           });
         }

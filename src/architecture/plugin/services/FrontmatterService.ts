@@ -12,13 +12,21 @@ import { ObsidianNativeTypesManager } from "./ObsidianNativeTypesManager";
 export class FrontmatterService {
     public static FRONTMATTER_SETTINGS_KEY = "zettelFlowSettings";
     private metadata: CachedMetadata;
+    private cacheMiss: boolean;
 
     /**
      * Creates an instance of FrontmatterService.
      * @param {TFile} file - The file to retrieve metadata from.
      */
     constructor(private file: TFile) {
-        this.metadata = ObsidianApi.metadataCache().getFileCache(file) || { frontmatter: {} };
+        const cached = ObsidianApi.metadataCache().getFileCache(file);
+        this.cacheMiss = !cached;
+        this.metadata = cached || { frontmatter: {} };
+    }
+
+    /** True when MetadataCache had no entry for this file (race / stale install). */
+    public isCacheMiss(): boolean {
+        return this.cacheMiss;
     }
 
     /**
@@ -147,7 +155,9 @@ export class FrontmatterService {
      * @returns {Promise<string>}
      */
     public async getContent(): Promise<string> {
-        const rawContent = await ObsidianApi.vault().read(this.file);
+        // cachedRead avoids a full uncached disk read per template during a note build; the
+        // content is only used to assemble the new note, so the cache view is authoritative.
+        const rawContent = await ObsidianApi.vault().cachedRead(this.file);
         const endLine = this.metadata.frontmatterPosition?.end?.line;
         return rawContent.split("\n").slice(endLine ? endLine + 1 : 0).join("\n").concat("\n");
     }
@@ -184,9 +194,9 @@ export class FrontmatterService {
 
     /**
      * Helper method to safely process frontmatter modifications.
-     * @param {(frontmatter: any) => void} updateFn - The function that modifies the frontmatter.
+     * @param {(frontmatter: Record<string, unknown>) => void} updateFn - The function that modifies the frontmatter.
      */
-    private async processFrontMatter(updateFn: (frontmatter: any) => void): Promise<void> {
+    private async processFrontMatter(updateFn: (frontmatter: Record<string, unknown>) => void): Promise<void> {
         try {
             await ObsidianApi.fileManager().processFrontMatter(this.file, updateFn);
         } catch (error) {
@@ -201,6 +211,12 @@ export class FrontmatterService {
      * @returns {Literal}
      */
     private getAnidatedProperty(property: string): Literal {
-        return property.split(".").reduce((acc, key) => acc?.[key], this.metadata.frontmatter) || undefined;
+        const value = property.split(".").reduce<unknown>((acc, key) => {
+            if (acc && typeof acc === "object") {
+                return (acc as Record<string, unknown>)[key];
+            }
+            return undefined;
+        }, this.metadata.frontmatter);
+        return value || undefined;
     }
 }

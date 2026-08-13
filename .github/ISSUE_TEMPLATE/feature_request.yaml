@@ -1,0 +1,62 @@
+name: Feature request
+description: Propose a new capability or improvement to ZettelFlow.
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests are prioritised based on user impact and alignment with ZettelFlow's
+        [architecture and roadmap](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/project-health-and-roadmap/).
+        Please be specific — vague requests are hard to act on.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the plugin does this feature belong to?
+      options:
+        - Canvas / flow definition
+        - Note-builder wizard
+        - Step builder
+        - Actions
+        - Vault hooks
+        - Community templates
+        - Developer / API
+        - Settings / UX
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: Describe the specific workflow friction this would solve. "I want to…" or "Right now I can't…"
+      placeholder: |
+        When I have a multi-step canvas that branches by note type, I have to…
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe what you'd like to see. Be as concrete as possible — UI sketches, config examples, or pseudo-API are all welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you've tried, or other approaches you ruled out?
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched [existing issues](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues) and this is not a duplicate.
+          required: true
+        - label: This is a feature request, not a bug report or question.
+          required: true

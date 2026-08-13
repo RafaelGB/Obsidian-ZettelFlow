@@ -1,0 +1,165 @@
+# Knowledge model
+
+> The foundation of the [Knowledge OS epic (#144)](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/144).
+> A single, read-only, incremental in-memory index that represents the vault as **ideas** — the
+> substrate every later layer (Lifecycle, Semantic Graph, Discovery, Health) reads from, instead of
+> each feature re-scanning the metadata cache with its own snapshot shape.
+
+Lives in `src/architecture/knowledge/`, with a strict **pure / Obsidian-facing split** so every
+derivation and query is unit-testable in jest's node environment.
+
+```
+src/architecture/knowledge/
+  model/Idea.ts            # pure — Idea/Relation/Claim/Source types, deriveIdea(), safe defaults
+  model/KnowledgeModel.ts  # pure — in-memory graph: Map<path,Idea> + adjacency + edges-by-type
+  model/schema.ts          # pure — StateSchema/RelationSchema/ClaimSchema extension points
+  parse/inlineFields.ts    # pure — standalone `key:: value` parser (no Dataview)
+  derive/edges.ts          # pure — links → directed typed edges
+  lifecycle/               # pure — lifecycle states + transition machine + StateSchema (#146)
+  relations/               # pure — semantic relation vocabulary + SemanticRelationSchema (#147)
+  claims/                  # pure — claim/source keys + link/text classifier + ClaimSourceSchema (#148)
+  query/queries.ts         # pure — read-only query surface
+  snapshot.ts              # Obsidian-facing (thin) — TFile + metadata cache → IdeaSnapshot
+  KnowledgeIndex.ts        # Obsidian-facing — getInstance() singleton, event wiring, build state
+  index.ts                 # barrel
+```
+
+## The idea model
+
+Each note is modelled as an `Idea`, keyed by its **vault path**:
+
+| Field | Meaning |
+|---|---|
+| `path` | Identity (decision #3 — by path, re-keyed on rename). |
+| `title`, `created`, `modified` | Basic metadata (basename fallback if no title). |
+| `state` | Lifecycle state. The [lifecycle](knowledge-lifecycle.md) (#146) registers a `StateSchema` classifying notes into fleeting → … → archived (fallback `fleeting`); with no schema registered it defaults to `DEFAULT_STATE` (`"unknown"`). |
+| `relations` | Outgoing **typed, directed** edges. Vocabulary owned by **#147**; plain `[[links]]` become `DEFAULT_RELATION_TYPE` (`"link"`) edges. |
+| `claims` | Claims & sources. Owned by **#148**; defaults to `[]`. |
+| `maturitySignals` | Raw signals only (`inDegree`, `outDegree`, `degree`, `hasSources`). The maturity *score* is **#158/#159**, not here. |
+
+`deriveIdea(snapshot, schemas?)` turns a pure `IdeaSnapshot` into an `Idea`. It never throws and
+never touches Obsidian: a cache-miss / empty-frontmatter snapshot yields the documented defaults.
+
+## Query surface
+
+Pure functions over the model (`query/queries.ts`), all O(edges) reads that never re-derive:
+
+- `get`, `byState`, `statePartition`
+- `edgesByType`, `outgoingRelations`, `incomingRelations`
+- `orphans` (no **incoming**), `leaves` (no **outgoing**) — plus the unambiguous primitives
+  `notesWithNoIncoming` / `notesWithNoOutgoing`
+- `hubs(threshold)`, `byMaturity`
+- `unsourced` (claim-aware, #148), `claimsWithoutSources`, `sourcesByReferenceCount`
+
+!!! note "Terminology (spec FR-5)"
+    Here `orphan` = *no incoming* and `leaf` = *no outgoing*. The slip-box health view
+    (`classifyHealth`) currently uses the **inverted** convention. The unambiguous primitives are
+    exposed so the future health-view migration can map either naming explicitly, rather than
+    silently swapping columns.
+
+## Incremental-update contract
+
+The index exposes `status: "idle" | "building" | "ready"`. Build is **synchronous** (decision #4):
+it gathers snapshots via the metadata cache, derives ideas into the `KnowledgeModel`, and emits one
+`log` timing line. Each vault event mutates a **single** entry — no full rebuild:
+
+| Event | Model mutation |
+|---|---|
+| `create` / `modify` | `upsert(deriveIdea(snapshot))` (single-entry) |
+| `delete` | `remove(path)` — drops outgoing edges; incoming edges from others tolerate the missing target |
+| `rename(file, oldPath)` | `rename(oldPath, newPath)` — re-keys the entry and rewrites every edge referencing `oldPath` (the one O(edges) op decision #4 permits) |
+
+```mermaid
+sequenceDiagram
+    participant V as Vault event
+    participant K as KnowledgeIndex
+    participant S as snapshot (read-only)
+    participant M as KnowledgeModel
+    V->>K: modify(file)
+    K->>S: gatherSnapshot(file)  (metadata cache only)
+    S-->>K: IdeaSnapshot
+    K->>M: upsert(deriveIdea(snapshot))
+    Note over M: single-entry update<br/>adjacency + edges-by-type kept fresh
+```
+
+Events are registered through `plugin.registerEvent` (auto-removed on unload); the initial build
+runs on `onLayoutReady` and re-runs on the first metadata-cache `"resolved"` so `resolvedLinks` are
+complete.
+
+## Design decisions
+
+1. **Read-only, rebuilt in memory on load** — no cache file, **zero writes** to the vault.
+2. **Standalone inline-`key::` parser** — no Dataview dependency ("no lock-in").
+3. **Identity by vault path** — re-keyed on rename; a stable-ID mode can layer on later via #122.
+4. **Synchronous build + "building" state** — the query surface is O(edges), not O(vault);
+   chunked/async is deferred until profiling requires it.
+
+## Extension points (#146 / #147 / #148)
+
+Sibling issues register a `StateSchema`, `RelationSchema`, or `ClaimSchema` via
+`KnowledgeIndex.getInstance().registerSchemas({...})`. `deriveIdea` calls the registered parser or
+falls back to the documented default. The `Idea` shape and the query signatures stay fixed, so a new
+vocabulary becomes queryable **without** changing either.
+
+## Semantic relations (#147)
+
+`SemanticRelationSchema` (in the pure `src/architecture/knowledge/relations/`) turns a note's
+frontmatter and inline `key:: [[target]]` fields into typed, directed edges, so `[[links]]` gain
+meaning and `edgesByType` / `incomingRelations` / `outgoingRelations` answer questions like *"what
+contradicts this?"*.
+
+**Vocabulary** (fixed set; extensible in code, no settings editor yet): `supports`, `contradicts`,
+`expands`, `inspired-by`, `question`, `example`, `implements` — plus the plain `link` fallback for
+untyped links. A target that gets a semantic type is **not** also emitted as a `link` edge, and
+`(type, from, to)` duplicates collapse to one.
+
+**Hybrid parsing** (perf decision — the build stays synchronous and cache-only):
+
+| Source | When | How |
+|---|---|---|
+| Frontmatter (`supports: ["[[X]]"]`) | inside the synchronous build | free from the metadata cache; targets resolved via `getFirstLinkpathDest` into the snapshot's additive `resolvedTargets` |
+| Inline (`supports:: [[X]]`) | a **deferred pass after layout-ready** (`KnowledgeIndex.enrichInlineRelations`) | reads bodies via `cachedRead` (O(vault content)), so it never blocks load |
+
+The deferred inline pass is gated by the **`parseInlineRelations`** setting — **on by default on
+desktop, off on mobile** (resolved as `?? !Platform.isMobile`). It is read-only (zero writes),
+batched/yielding, and wraps each file in `try/catch`.
+
+Only the pure schema and vocabulary are Obsidian-free (guarded); link resolution and body reads live
+in the Obsidian-facing `snapshot.ts` / `KnowledgeIndex.ts`. Wikilink aliases and headings/blocks are
+stripped (`[[X|alias]]` / `[[X#h]]` → `X`); unresolved links are excluded.
+
+> **Capability note:** enabling inline parsing performs read-only body reads via the `Vault`
+> `cachedRead` facade. No writes, no network.
+
+## Claims & sources (#148)
+
+`ClaimSourceSchema` (in the pure `src/architecture/knowledge/claims/`) fills the `ClaimSchema` slot
+so `Idea.claims` is populated, which makes `maturitySignals.hasSources` and the `unsourced` query
+meaningful. It powers *"which ideas make a claim with no evidence?"* and feeds the research actions
+(#155).
+
+**Declaration convention — hybrid, gated by declaration:**
+
+| The note declares… | Result |
+|---|---|
+| explicit `claim` / `claim::` fields | those become claims, each carrying the note-level sources |
+| only `sources` / `source::` (no explicit claim) | one synthesized note-level claim (text = note basename) carrying those sources |
+| neither | `claims = []` — the note stays **out** of the claims accounting (index/MOC notes aren't flagged) |
+
+**Sources** are classified by kind (additive optional `Source.kind`): a `[[link]]` → `{ kind: "link",
+ref: <resolved path> }` (alias/heading stripped, unresolved excluded); free text (URL / DOI /
+citation) → `{ kind: "text", ref: <trimmed> }`. A source declared in both frontmatter and inline
+collapses to one (dedupe by resolved path / normalized text). Per-claim source binding is deferred —
+every claim on a note shares the note-level sources.
+
+Parsing is **hybrid**, reusing #147's infrastructure exactly: frontmatter claims/sources are read in
+the synchronous build; inline `claim::` / `source:: [[X]]` ride the **same** deferred, opt-in
+`parseInlineRelations` pass (one `cachedRead` per file — no second scan, no new setting). The pure
+schema is Obsidian-free (guarded); link resolution lives in `snapshot.ts` / `KnowledgeIndex.ts`.
+
+Claim-aware queries: `unsourced` = notes with `claims.length > 0 && !hasSources`;
+`claimsWithoutSources` gives the claim-granular view; `sourcesByReferenceCount` ranks sources by how
+many notes cite them.
+
+> **Capability note:** read-only, like the rest of the model — claims/sources are *derived* from
+> notes, never written. Authoring actions (attach source, extract claims) are #155.

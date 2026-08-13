@@ -1,0 +1,19 @@
+// In-canvas legibility for the visual workflow language (#151). Purely cosmetic accents toggled by
+// WorkflowLegibilityExtension onto canvas node / edge-label DOM — theme-aware (Obsidian CSS vars),
+// no layout impact. Removing this partial (or the extension) leaves the canvas visually default.
+
+// WHEN — a root step that triggers automatically on a vault event.
+.zettelkasten-flow__workflow-block-when {
+    box-shadow: inset 4px 0 0 0 var(--color-green, #3aa675);
+}
+
+// WAIT — a human-confirmation pause.
+.zettelkasten-flow__workflow-block-wait {
+    box-shadow: inset 4px 0 0 0 var(--color-orange, #e0a030);
+}
+
+// IF — a conditional edge (applied to the edge's label wrapper).
+.zettelkasten-flow__workflow-block-if {
+    outline: 1px dashed var(--color-purple, #a060c0);
+    border-radius: var(--radius-s);
+}

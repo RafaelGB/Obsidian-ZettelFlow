@@ -9,8 +9,11 @@ export { ZettelNode, ZettelNodeType } from './model/CanvasModel';
 export { MarkdownService } from './services/Markdown';
 export { ObsidianConfig } from './services/ObsidianConfig';
 export { VaultStateManager } from './services/VaultStateManager';
+export { DevelopmentJournal } from './journal/DevelopmentJournal';
+export { ConceptualTimeline } from './timeline/ConceptualTimeline';
 export { ObsidianNativeTypesManager } from './services/ObsidianNativeTypesManager';
 
 export { ObsidianPropertyType, isObsidianPropertyType } from './services/typing';
 
 export { Keyboard } from './services/Keyboard';
+export { activateSidebarView } from './services/ViewActivation';

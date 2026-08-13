@@ -70,7 +70,7 @@ export class ObsidianTypesModal extends Modal {
         "",
         ObsidianNativeTypesManager.AVAILABLE_TYPES[0],
         (value, type) => {
-          ObsidianNativeTypesManager.addType(value, type);
+          void ObsidianNativeTypesManager.addType(value, type);
         }
       )
     );
@@ -133,7 +133,7 @@ export class ObsidianTypesModal extends Modal {
     const tr = this.tbodyEl.createEl("tr", { cls: trClasses });
 
     // Name and type container
-    const nameAndTypeContainer = tr.createEl("div", {
+    const nameAndTypeContainer = tr.createDiv({
       cls: c("name-type-container"),
     });
     // Name
@@ -175,7 +175,7 @@ export class ObsidianTypesModal extends Modal {
       deleteBtn.addEventListener("click", () => {
         tr.remove();
         this.rows = this.rows.filter((r) => r.tr !== tr);
-        ObsidianNativeTypesManager.removeType(nameInput.value);
+        void ObsidianNativeTypesManager.removeType(nameInput.value);
       });
       this.rows.push({ tr, nameInput, typeSelect, editBtn, deleteBtn });
     } else {
@@ -200,6 +200,6 @@ export class ObsidianTypesModal extends Modal {
       this.filteredTypes = searchTypes;
     }
 
-    this.renderCards();
+    void this.renderCards();
   }
 }

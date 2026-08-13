@@ -4,21 +4,30 @@ import { v4 as uuid4 } from "uuid";
 
 export class StepBuilderMapper {
     public static StepBuilderInfo2StepSettings(info: StepBuilderInfo): StepSettings {
-        const { label, childrenHeader, targetFolder, root, optional, actions } = info;
-        return {
+        const { label, childrenHeader, targetFolder, root, optional, actions, phase, trigger, wait, onCreation } = info;
+        const settings: StepSettings = {
             root,
             actions,
             label,
             childrenHeader,
             targetFolder,
             optional
-        }
+        };
+        // Omit `phase` entirely when unset so a legacy/unphased step round-trips without the key.
+        if (phase !== undefined) settings.phase = phase;
+        // Preserve an event-driven trigger opaquely (no builder UI, but never drop it) — #150.
+        if (trigger !== undefined) settings.trigger = trigger;
+        // Preserve a WAIT marker — #151.
+        if (wait !== undefined) settings.wait = wait;
+        // Preserve Knowledge Pattern on-creation behavior opaquely — #170.
+        if (onCreation !== undefined) settings.onCreation = onCreation;
+        return settings;
     }
 
     public static StepBuilderInfo2CommunityStepSettings(info: StepBuilderInfo, origin: Partial<CommunityStepSettings>): CommunityStepSettings {
-        const { label, childrenHeader, targetFolder, root, optional, actions, title = "", description = "" } = info;
+        const { label, childrenHeader, targetFolder, root, optional, actions, phase, trigger, wait, onCreation, title = "", description = "" } = info;
         const { author = "You", id = uuid4() } = origin;
-        return {
+        const settings: CommunityStepSettings = {
             ...origin,
             template_type: "step",
             author,
@@ -31,18 +40,28 @@ export class StepBuilderMapper {
             childrenHeader,
             targetFolder,
             optional
-        }
+        };
+        if (phase !== undefined) settings.phase = phase;
+        if (trigger !== undefined) settings.trigger = trigger;
+        if (wait !== undefined) settings.wait = wait;
+        if (onCreation !== undefined) settings.onCreation = onCreation;
+        return settings;
     }
 
     public static StepSettings2PartialStepBuilderInfo(settings: StepSettings): Partial<Omit<StepBuilderInfo, "containerEl">> {
-        const { root, label, childrenHeader, targetFolder, optional, actions } = settings;
-        return {
+        const { root, label, childrenHeader, targetFolder, optional, actions, phase, trigger, wait, onCreation } = settings;
+        const info: Partial<Omit<StepBuilderInfo, "containerEl">> = {
             root,
             label,
             childrenHeader,
             targetFolder,
             optional,
             actions
-        }
+        };
+        if (phase !== undefined) info.phase = phase;
+        if (trigger !== undefined) info.trigger = trigger;
+        if (wait !== undefined) info.wait = wait;
+        if (onCreation !== undefined) info.onCreation = onCreation;
+        return info;
     }
 }

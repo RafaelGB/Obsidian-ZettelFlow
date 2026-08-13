@@ -11,6 +11,7 @@ import { numberSettingsReader } from "./NumberSettingsReader";
 export class NumberAction extends CustomZettelAction {
   private static ICON = "binary";
   id = "number";
+  category = "manipulation" as const;
 
   defaultAction = {
     type: this.id,
@@ -31,7 +32,9 @@ export class NumberAction extends CustomZettelAction {
     const { element, context } = info;
     const { key, zone, result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    log.debug(`Number action: ${key} ${zone} ${valueToSave}`);
+    log.debug(
+      `Number action: ${String(key)} ${String(zone)} ${String(valueToSave)}`
+    );
     if (TypeService.isString(key) && TypeService.isNumber(valueToSave)) {
       switch (zone) {
         case "body":

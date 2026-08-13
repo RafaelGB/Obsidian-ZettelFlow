@@ -90,11 +90,9 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={c("property-hooks-edit-button")}
-            title={
-              t(
-                isOpen ? "property_hooks_title" : "property_hooks_empty"
-              ) as string
-            }
+            title={t(
+              isOpen ? "property_hooks_title" : "property_hooks_empty"
+            )}
           >
             <Icon name={isOpen ? "up-chevron-glyph" : "down-chevron-glyph"} />
           </button>

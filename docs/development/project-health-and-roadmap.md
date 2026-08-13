@@ -19,13 +19,13 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 
 | # | Issue | Impact | Where |
 |---|---|---|---|
-| 1 | **`versions.json` missing** | Breaks a compliant release; Obsidian can't map versions → `minAppVersion` | repo root (referenced by `npm version`) |
-| 2 | **`version-bump.mjs` missing** | The `npm version` script fails | repo root |
+| 1 | ~~**`versions.json` missing**~~ — present; maps `2.11.0→1.7.2`, `2.12.0→1.13.1` | — | repo root |
+| 2 | ~~**`version-bump.mjs` missing**~~ — present; run by `npm version` | — | repo root |
 | 3 | **Thin tests** — a jest + TDD harness is now seeded (3 pure-logic suites); breadth is still low | Limited regression safety net | whole repo |
-| 4 | **Obsidian-rule backlog** — `eslint-plugin-obsidianmd` is now wired (advisory): **475 problems** to fix | Lower automated-review score until burned down | tooling |
-| 5 | **`innerHTML` usage (~8)** | Security/guideline flag; lowers score | `VariableTextProcessors`, `*Settings`, autocompletion |
+| 4 | ~~**Obsidian-rule backlog** (was 475 problems)~~ — **cleared and blocking, zero relaxations** (#85, #111, #112) | — | tooling |
+| 5 | ~~**`innerHTML` usage (~8)**~~ — 0 remaining; enforced by the blocking Obsidian lint | — | — |
 | 6 | **Widespread inline styles** (`el.style.*`) | `no-static-styles-assignment` violations | community/config modals |
-| 7 | **`log.error` silenced when logging off** | Hard to diagnose user issues | `Logger.ts` |
+| 7 | ~~**`log.error` silenced when logging off**~~ — errors always surface (wired in the constructor) | — | `Logger.ts` |
 | 8 | **`onunload` doesn't call `unloadComponents()`** | Component teardown skipped | `main.ts` |
 | 9 | **Canvas monkey-patching** of internal APIs | Fragile across Obsidian updates; manual-review flag | `canvas/CanvasPatcher` |
 | 10 | **Backend has no auth/CORS/health, dev-only posture** | Not production-ready | `backend/` |
@@ -39,11 +39,15 @@ Ordered by leverage. Each item is small enough to be a focused PR.
 
 ### Milestone 1 — Release & submission compliance (unblocks everything)
 
-- [ ] Restore `version-bump.mjs`; generate and commit `versions.json`.
+- [x] Restore `version-bump.mjs`; generate and commit `versions.json` (`2.11.0→1.7.2`,
+      `2.12.0→1.13.1`).
 - [x] Add `eslint-plugin-obsidianmd` + `eslint.config.mjs` + `npm run lint:obsidian`; run it in
-      CI (advisory). **Next:** burn down the 475-problem backlog, then flip CI to blocking.
-- [ ] Fix the `innerHTML` occurrences (`= "" → .empty()`; remove the HTML-string rewrite in
-      `VariableTextProcessors`).
+      CI. **Done (#85):** the 475-problem backlog is burned down to zero and the check is now
+      blocking (part of `npm run verify`, the pre-push hook and CI). Two larger best-practice
+      migrations are deferred with per-file rule relaxations: AbstractInputSuggest (#111) and the
+      declarative settings API (#112).
+- [x] Fix the `innerHTML` occurrences and inline `el.style.*` assignments — 0 remaining,
+      enforced by the blocking Obsidian lint.
 - [ ] Verify `releases.yml` attaches `main.js` / `manifest.json` / `styles.css` under a tag equal
       to `manifest.version`.
 

@@ -127,11 +127,33 @@
 
 .zettelkasten-flow__actions-list {
     display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Each cognitive-capability group: a header row + its cards wrapping in three columns (#152). */
+.zettelkasten-flow__actions-category-group {
+    display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-.zettelkasten-flow__actions-list>.zettelkasten-flow__actions-management-add-card {
+.zettelkasten-flow__actions-category-header {
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 4px;
+}
+
+.zettelkasten-flow__actions-category-emoji {
+    line-height: 1;
+}
+
+.zettelkasten-flow__actions-category-group>.zettelkasten-flow__actions-management-add-card {
     flex: 1 1 calc(33.333% - 10px);
     /* Tres columnas */
     max-width: calc(33.333% - 10px);
@@ -148,7 +170,7 @@
     }
 
         
-    .zettelkasten-flow__actions-list>.zettelkasten-flow__actions-management-add-card {
+    .zettelkasten-flow__actions-category-group>.zettelkasten-flow__actions-management-add-card {
         flex: 1 1 100%;
         max-width: 100%;
     }

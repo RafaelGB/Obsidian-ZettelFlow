@@ -2,7 +2,7 @@ import { FatalError, ObsidianApi, log } from "architecture";
 import { Flow, FlowNode, Flows } from "./typing";
 import { AllCanvasNodeData, CanvasData, CanvasFileData, CanvasGroupData, CanvasTextData } from "obsidian/canvas";
 import { FileService } from "../services/FileService";
-import { Notice, TFile } from "obsidian";
+import { Notice, TFile, parseYaml } from "obsidian";
 import { YamlService } from "../services/YamlService";
 import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
@@ -37,7 +37,7 @@ export class FlowsImpl implements Flows {
             throw new Error(`Canvas file ${canvasPath} not found`);
         }
         const content = await FileService.getContent(canvasFile);
-        const data: CanvasData = JSON.parse(content);
+        const data = JSON.parse(content) as CanvasData;
         const flow = new FlowImpl(data, canvasFile);
         this.flows.set(canvasFile.path, flow);
         log.info(`Flow ${canvasPath} loaded`);
@@ -66,13 +66,18 @@ export class FlowsImpl implements Flows {
 
 export class FlowImpl implements Flow {
     private nodes: Map<string, AllCanvasNodeData>;
+
+    get canvasPath(): string {
+        return this.file.path;
+    }
+
     constructor(public data: CanvasData, private file: TFile) {
         this.nodes = data.nodes
             .filter(node => node.type !== "link")
             .reduce((map, obj) => {
-                if (obj.type === "file" && obj.file.endsWith(".js")) {
-                    obj.extension = "js";
-                }
+                // Note: we intentionally do NOT stamp a synthetic `extension` field on the node.
+                // `.js` file nodes are detected from the TFile extension at use-time; mutating the
+                // persisted node object here would serialize a non-schema key back into the canvas.
                 map.set(obj.id, obj);
                 return map;
             }, new Map<string, AllCanvasNodeData>());
@@ -154,20 +159,24 @@ export class FlowImpl implements Flow {
     }
 
     rootNodes = async () => {
-        // Map nodes to check if they are root
+        // Map nodes to check if they are root.
+        // NOTE: iterate with for..of + await — a `forEach(async …)` would return
+        // before the awaited file-node branches push their result, silently dropping
+        // file-based root nodes (and leaking unhandled rejections).
         const rootNodes: FlowNode[] = [];
         const { nodes } = this.data;
-        nodes.forEach(async node => {
+        for (const node of nodes) {
             switch (node.type) {
                 case "text":
-                case "group":
+                case "group": {
                     const textNode = YamlService.instance(node.zettelflowConfig);
                     if (textNode.isRoot()) {
                         const flowNode = textNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
                     }
                     break;
-                case "file":
+                }
+                case "file": {
                     const file = await FileService.getFile(node.file);
                     if (!file) {
                         throw new FatalError(`File ${node.file} not found`);
@@ -176,15 +185,38 @@ export class FlowImpl implements Flow {
                     if (fileNode.equals("zettelFlowSettings.root", true)) {
                         const flowNode = fileNode.getZettelFlowSettings();
                         rootNodes.push(this.populateNode(node, flowNode));
+                    } else if (fileNode.isCacheMiss()) {
+                        // MetadataCache race / stale install: fall back to reading raw disk content
+                        const settings = await this.readSettingsFromDisk(file);
+                        if (settings?.root === true) {
+                            rootNodes.push(this.populateNode(node, settings));
+                        }
                     }
+                    break;
+                }
             }
-        });
+        }
         return rootNodes;
     }
 
-    private nodesFrom(edgeInfo: EdgeInfo[]): FlowNode[] {
+    private async readSettingsFromDisk(file: TFile): Promise<StepSettings | null> {
+        try {
+            const content = await FileService.getContent(file);
+            const match = content.match(/^---\n([\s\S]*?)\n---/);
+            if (!match) return null;
+            const parsed = parseYaml(match[1]) as Record<string, unknown>;
+            const settings = parsed.zettelFlowSettings as StepSettings | undefined;
+            return settings ?? null;
+        } catch {
+            return null;
+        }
+    }
+
+    private async nodesFrom(edgeInfo: EdgeInfo[]): Promise<FlowNode[]> {
+        // for..of + await (not forEach(async …)) so awaited file-node branches are
+        // actually included in the returned array — see the note on rootNodes.
         const flowNodes: FlowNode[] = [];
-        edgeInfo.forEach(async edge => {
+        for (const edge of edgeInfo) {
             const node = this.nodes.get(edge.key);
             if (node) {
                 switch (node.type) {
@@ -216,7 +248,7 @@ export class FlowImpl implements Flow {
                     }
                 }
             }
-        });
+        }
         return flowNodes;
     }
 
@@ -233,7 +265,7 @@ export class FlowImpl implements Flow {
 
     private async refresh() {
         const content = await FileService.getContent(this.file);
-        this.data = JSON.parse(content);
+        this.data = JSON.parse(content) as CanvasData;
     }
 
     private populateNode(data: CanvasTextData | CanvasFileData | CanvasGroupData, node: StepSettings, tooltip?: string): FlowNode {

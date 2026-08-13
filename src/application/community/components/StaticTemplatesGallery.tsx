@@ -50,7 +50,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
       }
     };
 
-    getData();
+    void getData();
   }, [targetSearchTerm, filter, plugin.settings]);
 
   // Filtrado usando useMemo
@@ -139,9 +139,11 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         }
         default: {
           // Handle unexpected template types
-          log.warn(`Unknown template type: ${template.template_type}`);
+          log.warn(`Unknown template type: ${String(template.template_type)}`);
           new Notice(
-            `Unknown template type: ${template.template_type}. Please check the console for details.`
+            `Unknown template type: ${String(
+              template.template_type
+            )}. Please check the console for details.`
           );
         }
       }
@@ -218,7 +220,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                   "community-templates-card",
                   `template-type-${template.template_type}`
                 )}
-                onClick={() => handleTemplateClick(template)}
+                onClick={() => { void handleTemplateClick(template); }}
               >
                 <span className={c("community-templates-card-type-badge")}>
                   {template.template_type}

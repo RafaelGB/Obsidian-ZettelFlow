@@ -1,5 +1,6 @@
 import ZettelFlow from "main";
 import { canvas } from "architecture/plugin/canvas";
+import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import {
@@ -17,7 +18,7 @@ import {
 } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
 
-import { valuesEqual, hasFrontmatterMutations } from "./utils/CompareUtils";
+import { hasFrontmatterMutations, copyFrontmatter, changedHookProperties } from "./utils/CompareUtils";
 import {
     isCanvasFile,
     isFolder,
@@ -31,7 +32,6 @@ import {
 import type {
     HookEvent,
     HooksConfig,
-    PropertiesHooksConfig,
 } from "./typing";
 
 /** Ajustable si ves muchos "changed" por tecleo. */
@@ -42,6 +42,13 @@ const FRONTMATTER_CACHE_TTL_MS = 60_000;
 export class VaultHooks {
     private debounceTimers: Map<string, number> = new Map();
     private revokeTimers: Map<string, number> = new Map();
+    /**
+     * Independent, copied frontmatter snapshot per file, used as the "previous" value when
+     * detecting property changes. Kept separate from Obsidian's metadata cache because that
+     * cache is mutated in place — reading it as "old" made every property look unchanged and
+     * was why property hooks never fired.
+     */
+    private lastFrontmatter: Map<string, Record<string, unknown>> = new Map();
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -93,7 +100,18 @@ export class VaultHooks {
     };
 
     private onRenameFolder(folder: TFolder, oldPath: string) {
-        const { foldersFlowsPath } = this.plugin.settings;
+        const settings = this.plugin.settings;
+        const { foldersFlowsPath } = settings;
+
+        // The scripts library is a *folder* path, so its rename arrives here (not in onRenameFile).
+        // Keep the setting in sync and refresh the `zf` script API so it reads from the new path.
+        if (oldPath === settings.jsLibraryFolderPath) {
+            settings.jsLibraryFolderPath = folder.path;
+            void this.plugin.saveSettings();
+            fnsManager.invalidateCache();
+            log.info("[VaultHooks] Renamed jsLibraryFolderPath.");
+        }
+
         const oldCanvas = canvasPathFromFolder(foldersFlowsPath, oldPath);
         const candidate = this.plugin.app.vault.getAbstractFileByPath(oldCanvas);
 
@@ -117,17 +135,15 @@ export class VaultHooks {
 
     private onRenameFile(file: TFile, oldPath: string) {
         const settings = this.plugin.settings;
+        this.lastFrontmatter.delete(oldPath);
 
         if (oldPath === settings.ribbonCanvas) {
             canvas.flows.delete(oldPath);
             settings.ribbonCanvas = file.path;
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Renombrado ribbonCanvas.");
-        } else if (oldPath === settings.jsLibraryFolderPath) {
-            settings.jsLibraryFolderPath = file.path;
-            this.plugin.saveSettings();
-            log.info("[VaultHooks] Renombrado jsLibraryFolderPath.");
         }
+        // jsLibraryFolderPath is a folder path, so its rename is handled in onRenameFolder.
     }
 
     /**
@@ -162,7 +178,8 @@ export class VaultHooks {
 
         if (folder.path === settings.jsLibraryFolderPath) {
             settings.jsLibraryFolderPath = "";
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
+            fnsManager.invalidateCache();
             log.info("[VaultHooks] Removed jsLibraryFolderPath.");
             return;
         }
@@ -176,8 +193,8 @@ export class VaultHooks {
 
         if (canvasFile instanceof TFile) {
             canvas.flows.delete(canvasFile.path);
-            this.plugin.app.vault
-                .delete(canvasFile)
+            this.plugin.app.fileManager
+                .trashFile(canvasFile)
                 .then(() =>
                     log.info(
                         `[VaultHooks] Eliminado canvas asociado a carpeta ${folder.path}: ${canvasFile.path}`
@@ -193,10 +210,11 @@ export class VaultHooks {
     };
 
     private onDeleteFile = (file: TFile) => {
+        this.lastFrontmatter.delete(file.path);
         if (file.path === this.plugin.settings.ribbonCanvas) {
             canvas.flows.delete(file.path);
             this.plugin.settings.ribbonCanvas = "";
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             log.info("[VaultHooks] Eliminado ribbonCanvas.");
         }
     };
@@ -237,6 +255,12 @@ export class VaultHooks {
 
         if (isMarkdownFile(file)) {
             VaultStateManager.INSTANCE.add(file);
+            // Seed the change-detection baseline with the current frontmatter so the first
+            // property edit after opening is detected as a change.
+            this.lastFrontmatter.set(
+                file.path,
+                copyFrontmatter(this.plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {})
+            );
             log.debug("[VaultHooks] Opened file:", file.path);
         }
     };
@@ -257,9 +281,11 @@ export class VaultHooks {
         if (previous) window.clearTimeout(previous);
 
         const handle = window.setTimeout(
-            () => this.processMetadataChange(file, cache).catch((e) => {
-                log.error("[VaultHooks] Error procesando metadata change:", e);
-            }),
+            () => {
+                this.processMetadataChange(file, cache).catch((e) => {
+                    log.error("[VaultHooks] Error procesando metadata change:", e);
+                });
+            },
             METADATA_DEBOUNCE_MS
         );
 
@@ -272,15 +298,19 @@ export class VaultHooks {
             folderFlowPath: "",
         };
 
-        const hooksEntries = Object.entries(
-            (hooksCfg.properties || {}) as PropertiesHooksConfig
-        );
+        const hooksEntries = Object.entries(hooksCfg.properties || {});
         if (!hooksEntries.length) return;
 
-        // Asegura servicio de frontmatter previo
+        // Service used only to WRITE any hook response mutations.
         const fmPrev = this.getOrCreateFrontmatterService(file);
-        const oldFrontmatter = fmPrev.getFrontmatter() ?? {};
-        const newFrontmatter: Record<string, unknown> = cache.frontmatter || {};
+        // Compare against our own copied snapshot, never the live metadata cache: Obsidian
+        // mutates getFileCache().frontmatter in place, which made old === new and stopped
+        // property hooks from ever firing.
+        const newFrontmatter: Record<string, unknown> = copyFrontmatter(cache.frontmatter ?? {});
+        const oldFrontmatter: Record<string, unknown> = this.lastFrontmatter.get(file.path) ?? newFrontmatter;
+        const changed = new Set(
+            changedHookProperties(hooksEntries.map(([property]) => property), oldFrontmatter, newFrontmatter)
+        );
 
         const dynamicFrontmatter: Record<string, Literal> = {};
         let event: HookEvent = {
@@ -301,20 +331,17 @@ export class VaultHooks {
 
         try {
             for (const [property, hookSettings] of hooksEntries) {
-                const oldValue = (oldFrontmatter as any)[property];
-                const newValue = (newFrontmatter as any)[property];
+                if (!changed.has(property)) continue;
 
-                if (!valuesEqual(oldValue, newValue)) {
-                    event.request = {
-                        oldValue,
-                        newValue,
-                        property,
-                        frontmatter: newFrontmatter,
-                    };
+                event.request = {
+                    oldValue: oldFrontmatter[property],
+                    newValue: newFrontmatter[property],
+                    property,
+                    frontmatter: newFrontmatter,
+                };
 
-                    event = await this.executeHook(hookSettings.script, event);
-                    log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
-                }
+                event = await this.executeHook(hookSettings.script, event);
+                log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
             }
 
             if (
@@ -347,6 +374,9 @@ export class VaultHooks {
         } finally {
             VaultStateManager.INSTANCE.processFinished(file.path);
 
+            // Remember the latest frontmatter so the next change diffs against it.
+            this.lastFrontmatter.set(file.path, newFrontmatter);
+
             // Revoke cache after processing. Cancel any previous timer.
             const previous = this.revokeTimers.get(file.path);
             if (previous) window.clearTimeout(previous);
@@ -369,7 +399,7 @@ export class VaultHooks {
         return svc.frontmatter;
     }
 
-    private async openFlowSelectorIfActive(flow: any) {
+    private async openFlowSelectorIfActive(flow: Flow) {
         const activeView =
             this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!activeView) return;
@@ -381,7 +411,12 @@ export class VaultHooks {
 
     private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
         try {
-            const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+            // The AsyncFunction constructor isn't exposed on the global scope; reach it via
+            // the prototype of an async function. Type it so the built function is callable.
+            const asyncProto = Object.getPrototypeOf(async function () { }) as {
+                constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
+            };
+            const AsyncFunction = asyncProto.constructor;
             const fnBody = `return (async () => {
         ${script}
         return event;
@@ -390,9 +425,11 @@ export class VaultHooks {
             const functions = await fnsManager.getFns();
             const scriptFn = new AsyncFunction("event", "zf", fnBody);
 
-            return await scriptFn(event, functions);
-        } catch (error: any) {
-            const msg = error?.message ?? String(error);
+            return (await scriptFn(event, functions)) as HookEvent;
+        } catch (error: unknown) {
+            const msg = error instanceof Error
+                ? error.message
+                : typeof error === "string" ? error : JSON.stringify(error);
             new Notice("Error executing global hook: " + msg);
             log.error("[VaultHooks] Error ejecutando script de hook:", error);
             throw error;

@@ -1,4 +1,4 @@
-import { CustomZettelAction, ExecuteInfo, fnsManager } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo, fnsManager, buildAsyncScriptFunction } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
 import { log } from "architecture";
 import { CodeElement } from "architecture/components/core";
@@ -6,6 +6,7 @@ import { scriptSettingsReader } from "./ScriptSettingsReader";
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
   id = "script";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: false,
@@ -23,20 +24,13 @@ export class ScriptAction extends CustomZettelAction {
       const { content, note, context } = info;
       const { code } = element;
 
-      const AsyncFunction = Object.getPrototypeOf(
-        async function () {}
-      ).constructor;
       const fnBody = `return (async () => {
         ${code}
       })(content, note, context, zf);`;
 
       const functions = await fnsManager.getFns();
-      const scriptFn = new AsyncFunction(
-        "element",
-        "content",
-        "note",
-        "context",
-        "zf",
+      const scriptFn = buildAsyncScriptFunction(
+        ["element", "content", "note", "context", "zf"],
         fnBody
       );
 

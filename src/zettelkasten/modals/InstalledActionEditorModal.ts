@@ -53,7 +53,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             title: t("remove_action_button_title")
         }, el => {
             el.addClass("mod-cta");
-            el.addEventListener("click", async (e) => {
+            el.addEventListener("click", (e) => {
                 e.stopPropagation();
                 new ConfirmModal(
                     this.plugin.app,
@@ -78,7 +78,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
                 // Save step to clipboard
-                navigator.clipboard.writeText(JSON.stringify(this.communityAction, null, 2))
+                void navigator.clipboard.writeText(JSON.stringify(this.communityAction, null, 2))
                 new Notice(t("action_copied_notice"));
             });
 
@@ -88,9 +88,10 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         // Show author and download count (if available)
         const { author, downloads } = this.communityAction;
         const authorEl = this.contentEl.createDiv({ cls: c("modal-author") });
-        authorEl.createEl("span", { text: `${t("template_author")}: ${author}` });
+        authorEl.createSpan({ text: `${t("template_author")}: ${author}` });
         if (downloads) {
-            authorEl.createEl("span", { text: `${t("template_downloads")}: ${downloads}` });
+            const downloadsText = typeof downloads === "string" ? downloads : JSON.stringify(downloads);
+            authorEl.createSpan({ text: `${t("template_downloads")}: ${downloadsText}` });
         }
 
         // Header with title and subtitle with the mode
@@ -110,7 +111,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
             .setName(t("action_description_label"))
             .setDesc(t("action_description_text"))
             .addTextArea((text) => {
-                text.inputEl.style.minWidth = "-webkit-fill-available";
+                text.inputEl.addClass(c("fill-available"));
                 text.inputEl.rows = 4;
                 text
                     .setPlaceholder(t("action_description_label"))
@@ -120,7 +121,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
                     })
             }
             );
-        descSetting.settingEl.style.display = 'block';
+        descSetting.settingEl.addClass(c("display-block"));
 
         const currentAction = actionsStore.getAction(this.communityAction.type);
         const detailsEl = this.contentEl.createDiv({ cls: c("modal-reader-general-section") });
@@ -142,7 +143,7 @@ export class InstalledActionEditorModal extends AbstractStepModal {
         } else {
             this.plugin.settings.installedTemplates.actions[this.communityAction.id] = this.communityAction;
         }
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.editCallback(this.communityAction, this.removed);
     }
 }

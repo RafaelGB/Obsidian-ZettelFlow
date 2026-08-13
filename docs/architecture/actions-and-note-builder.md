@@ -117,8 +117,14 @@ Outliers to know:
 - `title`, `targetFolder`, `uniquePrefixPattern`.
 - `paths: Map<number, string>` — chosen step-template `.md` paths, keyed by wizard position.
 - `savedActions: Map<number, FinalElement>` — configured actions + their results.
+- `links: string[]` — connection links chosen in the companion pane; appended to the body as
+  `[[wikilinks]]` at build time (`addLink`/`getLinks`, session-scoped).
 - `getFinalPath()` = `targetFolder/title.md`; `deletePos(pos)` prunes paths/actions at/after a
   position (used by back-navigation).
+- `lockTargetFolder(path)` — pins the note to a specific folder, preventing any per-step
+  `targetFolder` from overriding it. Used by the **Create note in current folder** setting
+  (`createInCurrentFolder` in `ZettelFlowSettings`): when enabled, the active file's parent
+  folder is locked in at wizard start and no step can change it.
 
 ## 5. The build pipeline — `NoteBuilder.ts`
 
@@ -132,7 +138,7 @@ Outliers to know:
   backed by a real file, also `processTypedFrontMatter` + `postProcess`.
 
 `buildNote()` — for each chosen step template: read its frontmatter (`addFrontMatter`) and body
-(`add`), then `manageElements()`.
+(`add`), then `manageElements()`, then `appendConnectionLinks()` (companion-pane links, if any).
 
 `manageElements()` — for each saved action element:
 `actionsStore.getAction(element.type).execute({ element, content, note, context })`, advancing
@@ -199,6 +205,49 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### The companion pane — live preview & connection suggestions
+
+On **desktop, in the creation flow** (ribbon → `SelectorMenuModal`), a **companion pane** renders
+beside the wizard (`application/components/noteBuilder/CompanionPane.tsx`). It gives the author a
+feedback loop (*what am I building?*) and nudges a link before the note is filed (*connect it*).
+On mobile, or in the editor/embedded flow, the wizard renders exactly as before — the pane is
+absent (`!Platform.isMobile && !modal.getMarkdownView()` gate in `SelectorMenu.tsx`).
+
+**Live preview.** The pane reproduces the note **in memory** — no vault file is created,
+modified, or deleted. The Obsidian-free pure function
+`assembleNotePreview` (`application/notes/previewAssembly.ts`) mirrors `NoteBuilder.buildNote()`:
+concatenate step-template bodies in position order, merge frontmatter (hoisting/de-duping `tags`),
+run `substituteContextTokens`, apply each captured action result by its `zone`
+(`body` → `{{key}}` replace, `frontmatter` → set, `context` → ignored for display), substitute
+`{{title}}`, and append any recorded connection links. The React side does the async file reads
+(`FrontmatterService.getContent`/`getFrontmatter`, cached per session), then calls the pure
+function and renders the result via `MarkdownService` (a YAML frontmatter block + the body).
+
+**Connection suggestions.** A second pure function
+`rankConnectionSuggestions` (`application/notes/connectionSuggestions.ts`) scores candidate notes
+(gathered from `metadataCache`) by shared tags and title-keyword overlap, returning a bounded,
+relevance-ordered top-N. Each suggestion opens the note on click; the **insert-link** control
+records the note on `NoteDTO` (`addLink`) via the store's `insertLink` action. Recorded links are
+appended to the body as `[[wikilinks]]` at build time (`NoteBuilder.appendConnectionLinks`) and
+are reflected live in the preview.
+
+**Re-render, performance, observability.** The `builder` object is mutated in place and never
+changes identity, so the pane subscribes to identity-changing store values — `position`, `title`,
+and a `linkVersion` counter — and reads builder data fresh. Assembly is **debounced ~300ms**
+(`window.setTimeout`), template reads are **session-cached**, and the candidate scan is bounded.
+Assembly logs its elapsed time (`log.debug`); a template-read failure surfaces a `Notice` and
+`log.error` and leaves the wizard fully usable. The pane always shows one of four states:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Empty: pane opens (no answers yet)
+    Empty --> Loading: first step answered / title typed
+    Loading --> Ready: assembled + suggestions ready
+    Loading --> Error: template read failed (Notice + log.error)
+    Ready --> Loading: step advances / title edited / link inserted
+    Error --> Loading: retry on next change
+```
+
 ## 7. Script action & the `zf` API
 
 `ScriptAction.execute` compiles the user's `code` into an `AsyncFunction` and calls it with
@@ -227,3 +276,39 @@ The **Dynamic Selector** uses a narrower script contract: called with only `zf`,
 See the step-by-step recipe in
 [Contributing & conventions](../development/contributing-and-conventions.md#adding-a-new-action),
 and the `new-action` harness skill which scaffolds the 4 files and the registration for you.
+
+## 9. Action categories (cognitive capabilities)
+
+Since #152 the action picker groups actions by **what they do to knowledge** rather than showing a
+flat list. There are five closed categories, rendered in this canonical order (emoji is decorative;
+the label is i18n, sentence case):
+
+| Category | Meaning |
+|---|---|
+| 📝 **Manipulation** | create / modify a note, add a property, tag, id, task, css class |
+| 🔗 **Relations** | create / remove / suggest a link between notes |
+| 🧠 **Knowledge** | extract concepts, find contradictions/duplicates, maturity *(actions land here with #153)* |
+| 🔍 **Research** | find / attach sources, extract & compare claims *(#155)* |
+| 🤖 **AI** | optional, provider-agnostic AI capabilities *(#156)* |
+
+**Built-in mapping (behavior-neutral — categorization changed nothing about how actions run):**
+Backlink → 🔗 Relations; every other built-in (Prompt, Number, Checkbox, Calendar, Selector,
+Dynamic selector, Tags, CSS classes, Task management, Script, Zettel ID) → 📝 Manipulation. The
+Knowledge / Research / AI groups ship **empty** and fill in as #153 / #155 / #156 land.
+
+**Declaring a category (third-party actions).** A category is an **optional** `category` field on
+`CustomZettelAction`:
+
+```ts
+export class MyAction extends CustomZettelAction {
+  id = "my-action";
+  category = "relations" as const; // optional — omit to stay uncategorized
+  // …
+}
+```
+
+Omitting it is fully supported (the #33 back-compat contract): the action still registers, runs, and
+appears in the picker under an **"Other"** group. **Empty groups are hidden**, so the uncategorized
+group only shows when at least one action has no category. The vocabulary, the canonical order, the
+grouping helper and the i18n label keys live in the pure, Obsidian-free
+`architecture/api/categories`.

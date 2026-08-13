@@ -11,11 +11,13 @@ import { log } from "architecture";
 import { Action } from "architecture/api";
 import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
+import { resolveOnCreationActions } from "application/patterns/resolveOnCreationActions";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   creationMode: true,
   title: "",
   position: 0,
+  linkVersion: 0,
   currentAction: "",
   previousSections: new Map(),
   previousArray: [],
@@ -34,6 +36,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   pbValue: 0,
   pbElements: 0,
   pbElementsDone: 0,
+  activeCanvasName: "",
+  activeStepName: "",
   actions: {
     /*
      * DIRECT ACTIONS
@@ -85,7 +89,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         }
         builder.note
           .addPath(node.path, position)
-          .setTargetFolder(node.targetFolder);
+          .setTargetFolder(node.targetFolder)
+          .addOnCreation(resolveOnCreationActions(node));
 
         return {
           builder,
@@ -149,6 +154,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         creationMode: true,
         title: "",
         position: 0,
+        linkVersion: 0,
         previousSections: new Map(),
         previousArray: [],
         invalidTitle: false,
@@ -166,11 +172,14 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         currentNode: undefined,
       });
     },
-    initPluginConfig: async (settings) => {
+    initPluginConfig: async (settings, currentFolder) => {
       set((state) => {
         const { builder } = state;
         if (settings.uniquePrefixEnabled) {
           builder.note.setPattern(settings.uniquePrefix);
+        }
+        if (currentFolder) {
+          builder.note.lockTargetFolder(currentFolder);
         }
         return {
           builder,
@@ -186,6 +195,16 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     setCurrentNode: (currentNode) => {
       set({ currentNode });
     },
+    setActiveContext: (activeCanvasName, activeStepName) => {
+      set({ activeCanvasName, activeStepName });
+    },
+    insertLink: (basename) =>
+      set((state) => {
+        const { builder, linkVersion } = state;
+        builder.note.addLink(basename);
+        // linkVersion changes identity so the companion pane re-assembles the preview (#127).
+        return { builder, linkVersion: linkVersion + 1 };
+      }),
     setIsCreationMode: (creationMode) => {
       set({ creationMode });
     },

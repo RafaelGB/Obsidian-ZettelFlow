@@ -22,7 +22,7 @@ export function Header() {
           actions.goPrevious();
         }}
       >
-        {"<"}
+        <Icon name="chevron-left" />
       </button>
       <p>{title}</p>
       {currentAction ? (

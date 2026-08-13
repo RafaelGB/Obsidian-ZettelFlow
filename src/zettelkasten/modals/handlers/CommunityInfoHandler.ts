@@ -1,5 +1,6 @@
 import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
+import { c } from "architecture";
 import { t } from "architecture/lang";
 import { AbstractStepModal } from "../AbstractStepModal";
 import { StepTitleHandler } from "./StepTitleHandler";
@@ -26,7 +27,7 @@ export class CommunityInfoHandler extends AbstractHandlerClass<AbstractStepModal
             .setName(t("action_description_label"))
             .setDesc(t("action_description_text"))
             .addTextArea((text) => {
-                text.inputEl.style.minWidth = "-webkit-fill-available";
+                text.inputEl.addClass(c("fill-available"));
                 text.inputEl.rows = 4;
                 text
                     .setPlaceholder(t("action_description_label"))
@@ -36,7 +37,7 @@ export class CommunityInfoHandler extends AbstractHandlerClass<AbstractStepModal
                     })
             }
             );
-        descSetting.settingEl.style.display = 'block';
+        descSetting.settingEl.addClass(c("display-block"));
         return this.goNext(modal);
     }
 

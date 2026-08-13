@@ -26,8 +26,32 @@ export class FileService {
         await ObsidianApi.workspace().openLinkText(path, "");
     }
 
+    /**
+     * Write a file, creating the parent folder if needed and overwriting when it already exists
+     * (idempotent). Uses the metadata-cache-backed `getAbstractFileByPath`/`getFileByPath` (never the
+     * Adapter API), then optionally opens it.
+     */
+    public static async writeFile(path: string, content: string, openAfter = true): Promise<TFile> {
+        const folder = path.substring(0, path.lastIndexOf(FileService.PATH_SEPARATOR));
+        if (folder && !ObsidianApi.vault().getAbstractFileByPath(folder)) {
+            await ObsidianApi.vault().createFolder(folder);
+        }
+        const existing = ObsidianApi.vault().getFileByPath(path);
+        let file: TFile;
+        if (existing instanceof TFile) {
+            await ObsidianApi.vault().modify(existing, content);
+            file = existing;
+        } else {
+            file = await ObsidianApi.vault().create(path, content);
+        }
+        if (openAfter) {
+            await FileService.openFile(path);
+        }
+        return file;
+    }
+
     public static async deleteFile(file: TFile): Promise<void> {
-        await ObsidianApi.vault().delete(file);
+        await ObsidianApi.fileManager().trashFile(file);
     }
 
     public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {
@@ -53,7 +77,7 @@ export class FileService {
         return await ObsidianApi.vault().cachedRead(file);
     }
 
-    public static async modify(file: TFile, content: string, options?: DataWriteOptions | undefined): Promise<void> {
+    public static async modify(file: TFile, content: string, options?: DataWriteOptions): Promise<void> {
         await ObsidianApi.vault().modify(file, content, options);
     }
 

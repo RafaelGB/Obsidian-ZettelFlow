@@ -9,9 +9,10 @@ import { cssClassesSettingsReader } from "./CssClassesSettingsReader";
 export class CssClassesAction extends CustomZettelAction {
   private static ICON = "view";
   id = "cssclasses";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
-    description: "Css Classes",
+    description: "CSS classes",
     hasUI: true,
     id: this.id,
   };

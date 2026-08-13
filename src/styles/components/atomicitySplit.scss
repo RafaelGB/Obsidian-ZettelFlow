@@ -1,0 +1,12 @@
+.zettelkasten-flow__atomicity-split-list {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    max-height: 20rem;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__atomicity-split-list .setting-item {
+    border-top: none;
+    padding: 0.35rem 0;
+}

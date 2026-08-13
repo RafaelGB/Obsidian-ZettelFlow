@@ -97,3 +97,9 @@ native property types via `ObsidianNativeTypesManager.getAllTypes()` and saves t
 A singleton (`architecture/plugin`) that (a) snapshots per-file frontmatter so property hooks can
 diff old vs new, and (b) exposes a **freeze** flag (`isFreezed` / `processStart` /
 `processFinished`) that hook handlers check to avoid reacting to the plugin's own writes.
+
+## See also
+
+[Event-driven workflows](event-driven-workflows.md) build on the same vault/metadata signals and
+the same `VaultStateManager` freeze state, but bind a whole **flow** (not just a script) to an
+event — off by default, throttled, and loop-guarded.

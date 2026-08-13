@@ -1,0 +1,112 @@
+.zettelkasten-flow__home {
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__home-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__home-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__home-refresh {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__home-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__home-greeting {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.zettelkasten-flow__home-greeting-hello {
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__home-thinking-days {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__home-next-session {
+    margin-bottom: 0.85rem;
+    padding: 0.5rem;
+    border: 1px solid var(--interactive-accent);
+    border-radius: 0.4rem;
+}
+
+.zettelkasten-flow__home-next-session-label {
+    cursor: pointer;
+    color: var(--text-accent);
+    font-weight: var(--font-semibold);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__home-next-session-label:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__home-next-session-reason {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.zettelkasten-flow__home-section {
+    margin-bottom: 0.75rem;
+}
+
+.zettelkasten-flow__home-section-title {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__home-section-empty {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+.zettelkasten-flow__home-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__home-row,
+.zettelkasten-flow__home-connection {
+    padding: 0.1rem 0;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__home-connection-sep {
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__home-note-name {
+    cursor: pointer;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__home-note-name:hover {
+    text-decoration: underline;
+}

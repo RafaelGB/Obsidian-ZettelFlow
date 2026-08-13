@@ -5,6 +5,8 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useEffect, useState } from "react";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { Icon } from "architecture/components/icon";
+import { buildAsyncScriptFunction, fnsManager } from "architecture/api";
+import { isStringTupleArray } from "../typing";
 
 export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
@@ -23,61 +25,41 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
       return;
     }
 
-    const AsyncFunction = Object.getPrototypeOf(
-      async function () {}
-    ).constructor;
-
     const fnBody = `return (async () => {
           ${code}
-        })(element);`;
+        })(zf);`;
 
     let isMounted = true;
 
-    try {
-      const scriptFn = new AsyncFunction("element", fnBody);
-
-      const fetchOptions = async () => {
-        try {
-          const result = await scriptFn(element);
-          if (
-            Array.isArray(result) &&
-            result.every(
-              (item) =>
-                Array.isArray(item) &&
-                item.length === 2 &&
-                typeof item[0] === "string" &&
-                typeof item[1] === "string"
-            )
-          ) {
-            const dynamicOptions: string[] = result.map(
-              ([key, _]: [string, string]) => key
-            );
-            if (isMounted) {
-              setAvailableOptions(dynamicOptions);
-              setSelectedOptions([]); // Inicialmente no hay selecciones
-              setError(null);
-            }
-          } else {
-            throw new Error("El formato de las opciones es inválido.");
-          }
-        } catch (err) {
-          console.error("Error al obtener las opciones dinámicas:", err);
+    const fetchOptions = async () => {
+      try {
+        // Mirror the single-selector mode: the user script receives the `zf` API, not the action.
+        const functions = await fnsManager.getFns();
+        const scriptFn = buildAsyncScriptFunction(["zf"], fnBody);
+        const result = await scriptFn(functions);
+        if (isStringTupleArray(result)) {
+          const dynamicOptions: string[] = result.map(([key]) => key);
           if (isMounted) {
-            setError("No se pudieron cargar las opciones.");
+            setAvailableOptions(dynamicOptions);
+            setSelectedOptions([]); // Inicialmente no hay selecciones
+            setError(null);
           }
-        } finally {
-          if (isMounted) {
-            setLoading(false);
-          }
+        } else {
+          throw new Error("El formato de las opciones es inválido.");
         }
-      };
+      } catch (err) {
+        console.error("Error al obtener las opciones dinámicas:", err);
+        if (isMounted) {
+          setError("No se pudieron cargar las opciones.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
 
-      fetchOptions();
-    } catch (err) {
-      console.error("Error al inicializar la función dinámica:", err);
-      setError("Error de inicialización.");
-      setLoading(false);
-    }
+    void fetchOptions();
 
     return () => {
       isMounted = false;

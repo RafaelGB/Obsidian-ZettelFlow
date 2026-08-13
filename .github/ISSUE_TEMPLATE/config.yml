@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions
+    about: Ask questions, share ideas, or get help using ZettelFlow.
+  - name: Documentation
+    url: https://rafaelgb.github.io/Obsidian-ZettelFlow/
+    about: ZettelFlow user and developer documentation.

@@ -20,8 +20,8 @@ export function ActionSelector(actionProps: ActionBuilderProps) {
     );
   }, []);
 
-  const element = actionsStore.getAction(action.type).component;
-  if (!element) {
+  const zettelAction = actionsStore.getAction(action.type);
+  if (!zettelAction.component) {
     return (
       <div key={"not-supported-action"}>Error: {action.type} not supported</div>
     );
@@ -29,7 +29,7 @@ export function ActionSelector(actionProps: ActionBuilderProps) {
 
   return (
     <div key={`action-step-${position}`}>
-      {element({ ...actionProps, callback: callbackMemo })}
+      {zettelAction.component({ ...actionProps, callback: callbackMemo })}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { promptSettingsReader } from "./PromptSettingsReader";
 export class PromptAction extends CustomZettelAction {
   private static ICON = "form-input";
   id = "prompt";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,
@@ -31,7 +32,9 @@ export class PromptAction extends CustomZettelAction {
     const { element, context } = info;
     const { key, zone, result, staticBehaviour, staticValue } = element;
     const valueToSave = staticBehaviour ? staticValue : result;
-    log.debug(`Prompt action: ${key} ${zone} ${valueToSave}`);
+    log.debug(
+      `Prompt action: ${String(key)} ${String(zone)} ${String(valueToSave)}`
+    );
     if (TypeService.isString(key) && TypeService.isString(valueToSave)) {
       switch (zone) {
         case "body":

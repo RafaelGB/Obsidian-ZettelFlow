@@ -19,8 +19,23 @@ export class ObsidianConfig {
         ],
         [
             "number", (literal: InformedLiteral): InformedLiteral => {
-                // Check if its float or int
-                return parseFloat(literal.toString());
+                // Check if its float or int. Narrow before stringifying so we never call
+                // Object's default `toString` (which would yield "[object Object]").
+                if (typeof literal === "number") {
+                    return literal;
+                }
+                if (typeof literal === "string") {
+                    return parseFloat(literal);
+                }
+                if (typeof literal === "boolean") {
+                    return parseFloat(literal.toString());
+                }
+                if (Array.isArray(literal)) {
+                    // Array.prototype.toString joins with "," — reproduce it explicitly.
+                    return parseFloat(literal.join(","));
+                }
+                // Plain objects have no numeric representation.
+                return NaN;
             }
         ],
         [
@@ -74,7 +89,7 @@ export class ObsidianConfig {
             log.error(`Canvas file not found: ${canvasFilePath}`);
             return;
         }
-        ObsidianApi.workspace().getLeaf(true).openFile(canvasFile);
+        void ObsidianApi.workspace().getLeaf(true).openFile(canvasFile);
         // Open file
 
         new Notice(`Canvas file opened: ${canvasFilePath}`);

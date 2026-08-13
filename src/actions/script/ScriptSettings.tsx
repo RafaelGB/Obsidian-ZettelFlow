@@ -1,4 +1,4 @@
-import { ActionSetting, fnsManager } from "architecture/api";
+import { ActionSetting, fnsManager, buildAsyncScriptFunction, errorMessage } from "architecture/api";
 import { t } from "architecture/lang";
 import { CodeElement, dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
@@ -66,14 +66,8 @@ export const scriptSettings: ActionSetting = (
       const mockContext: Record<string, unknown> = {};
       const mockContent: ContentDTO = new ContentDTO();
       const mockNote: NoteDTO = new NoteDTO();
-      const AsyncFunction = Object.getPrototypeOf(
-        async function () {}
-      ).constructor;
-      const scriptFn = new AsyncFunction(
-        "content",
-        "note",
-        "context",
-        "zf",
+      const scriptFn = buildAsyncScriptFunction(
+        ["content", "note", "context", "zf"],
         `
         return (async () => {
           ${userCode}
@@ -90,7 +84,7 @@ export const scriptSettings: ActionSetting = (
 
       return { output, error: null };
     } catch (error) {
-      return { output: null, error: error.message };
+      return { output: null, error: errorMessage(error) };
     }
   };
 
@@ -105,7 +99,7 @@ export const scriptSettings: ActionSetting = (
     outputDiv.empty();
 
     if (result.error) {
-      outputDiv.createEl("div", {
+      outputDiv.createDiv({
         text: `Error: ${result.error}`,
         cls: c("error-output"),
       });

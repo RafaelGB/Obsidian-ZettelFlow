@@ -92,7 +92,7 @@ export function backlinkDetails(modal: AbstractStepModal, action: Action, conten
                         .setValue(defaultHeading?.heading || "")
                         .onChange(async () => {
                             if (cb.inputEl.dataset.heading) {
-                                const heading: HeadingCache = JSON.parse(cb.inputEl.dataset.heading);
+                                const heading = JSON.parse(cb.inputEl.dataset.heading) as HeadingCache;
                                 action.defaultHeading = heading;
                             }
                         });

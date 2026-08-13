@@ -1,0 +1,110 @@
+.zettelkasten-flow__knowledge-dashboard {
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__knowledge-dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__knowledge-dashboard-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__knowledge-dashboard-refresh {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__knowledge-dashboard-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__knowledge-dashboard-panel {
+    margin-bottom: 0.85rem;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 0.4rem;
+}
+
+.zettelkasten-flow__knowledge-dashboard-panel-title {
+    margin: 0 0 0.35rem;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__knowledge-dashboard-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.4rem;
+}
+
+.zettelkasten-flow__knowledge-dashboard-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__knowledge-dashboard-metric-label {
+    color: var(--text-muted);
+    flex: 1;
+}
+
+.zettelkasten-flow__knowledge-dashboard-metric-value {
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__knowledge-dashboard-bar {
+    width: 2.5rem;
+    height: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__knowledge-dashboard-bar--low {
+    background-color: var(--color-green);
+}
+
+.zettelkasten-flow__knowledge-dashboard-bar--medium {
+    background-color: var(--color-yellow);
+}
+
+.zettelkasten-flow__knowledge-dashboard-bar--high {
+    background-color: var(--color-red);
+}
+
+.zettelkasten-flow__knowledge-dashboard-band {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__knowledge-dashboard-recommendation {
+    margin-top: 0.25rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__knowledge-dashboard-rec-label {
+    cursor: pointer;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__knowledge-dashboard-rec-label:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__knowledge-dashboard-rec-clear {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

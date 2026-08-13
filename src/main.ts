@@ -5,18 +5,42 @@ import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
 	BackLinkAction, CalendarAction, CheckboxAction,
 	CssClassesAction, DynamicSelectorAction, NumberAction, PromptAction, ScriptAction, SelectorAction,
-	TagsAction, TaskManagementAction
+	TagsAction, TaskManagementAction, ZettelIdAction,
+	DetectOrphanAction, CalculateMaturityAction, FindContradictionAction, FindUnansweredQuestionAction,
+	SuggestNextMoveAction, ThinkingSimulatorAction,
+	FindRelatedAction, SuggestLinkAction, CreateSemanticRelationAction,
+	ExtractClaimsAction, CompareClaimsAction, FindSourcesAction, AttachSourceAction,
+	SummarizeAction, ClassifyAction, GenerateQuestionsAction
 } from 'actions';
 import { log } from 'architecture';
+import { t } from 'architecture/lang';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
-import { allCanvasExtensions, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
+import { HistoryView } from 'architecture/components/core/historyView/HistoryView';
+import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/SlipboxHealthView';
+import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
+import { ThinkingHeatmapView } from 'architecture/components/core/thinkingHeatmap/ThinkingHeatmapView';
+import { DiscoveriesView } from 'architecture/components/core/discoveries/DiscoveriesView';
+import { KnowledgeMapView } from 'architecture/components/core/knowledgeMap/KnowledgeMapView';
+import { ConceptNavView } from 'architecture/components/core/conceptNav/ConceptNavView';
+import { OpenQuestionsView } from 'architecture/components/core/openQuestions/OpenQuestionsView';
+import { EvolutionTimelineView } from 'architecture/components/core/timeline/EvolutionTimelineView';
+import { EvidenceMapView } from 'architecture/components/core/evidenceMap/EvidenceMapView';
+import { KnowledgeDashboardView } from 'architecture/components/core/knowledgeDashboard/KnowledgeDashboardView';
+import { ZettelFlowHomeView } from 'architecture/components/core/home/ZettelFlowHomeView';
+import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
+import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
+import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
+import { ConceptualTimeline } from 'architecture/plugin/timeline/ConceptualTimeline';
+import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
 export default class ZettelFlow extends Plugin {
 	private canvasExtensions: CanvasExtension[] = [];
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
+		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
+		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		loadVariableTextProcessors(this);
 
 		loadPluginComponents(this);
@@ -24,14 +48,23 @@ export default class ZettelFlow extends Plugin {
 		this.registerViews();
 		this.registerActions();
 		Hooks.setup(this);
+		WorkflowEventEngine.setup(this);
 
 		new CanvasPatcher(this);
-		allCanvasExtensions.forEach((Extension: any) => {
+		allCanvasExtensions.forEach((Extension) => {
 			this.canvasExtensions.push(new Extension(this));
+		});
+
+		this.app.workspace.onLayoutReady(() => {
+			void repairBrokenExampleFlow(this).then(repaired => {
+				if (repaired) canvas.flows.delete(EXAMPLE_CANVAS_PATH);
+			});
 		});
 	}
 
 	onunload() {
+		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
+		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}
@@ -41,14 +74,19 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData(),
-		);
+		const loaded = (await this.loadData()) as Partial<ZettelFlowSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {}) as ZettelFlowSettings;
+
+		// Object.assign is shallow — patch nested objects so older saved data that
+		// predates a new sub-field still gets the correct default value.
+		this.settings.installedTemplates = {
+			steps: loaded?.installedTemplates?.steps ?? {},
+			actions: loaded?.installedTemplates?.actions ?? {},
+		};
+
 		// Remove clipboard template. This is not a setting that should be saved.
-		delete this.settings.communitySettings.clipboardTemplate;
-		this.saveSettings();
+		delete this.settings.communitySettings?.clipboardTemplate;
+		void this.saveSettings();
 		loadServicesThatRequireSettings(this.settings);
 	}
 
@@ -58,11 +96,23 @@ export default class ZettelFlow extends Plugin {
 
 	registerViews() {
 		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
+		this.registerView(HistoryView.NAME, (leaf) => new HistoryView(leaf, this));
+		this.registerView(SlipboxHealthView.NAME, (leaf) => new SlipboxHealthView(leaf));
+		this.registerView(ResurfaceView.NAME, (leaf) => new ResurfaceView(leaf));
+		this.registerView(ThinkingHeatmapView.NAME, (leaf) => new ThinkingHeatmapView(leaf));
+		this.registerView(DiscoveriesView.NAME, (leaf) => new DiscoveriesView(leaf));
+		this.registerView(KnowledgeMapView.NAME, (leaf) => new KnowledgeMapView(leaf));
+		this.registerView(ConceptNavView.NAME, (leaf) => new ConceptNavView(leaf));
+		this.registerView(OpenQuestionsView.NAME, (leaf) => new OpenQuestionsView(leaf));
+		this.registerView(EvolutionTimelineView.NAME, (leaf) => new EvolutionTimelineView(leaf));
+		this.registerView(EvidenceMapView.NAME, (leaf) => new EvidenceMapView(leaf));
+		this.registerView(KnowledgeDashboardView.NAME, (leaf) => new KnowledgeDashboardView(leaf));
+		this.registerView(ZettelFlowHomeView.NAME, (leaf) => new ZettelFlowHomeView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {
 			log.error("There was an error registering CodeView for Javascript files. Maybe another plugin is using the same extensions?", e);
-			new Notice("Error registering CodeView extension for ZettelFlow. Check the console for more information.");
+			new Notice(t('notice_codeview_registration_error'));
 		}
 	}
 
@@ -78,5 +128,22 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new CssClassesAction());
 		actionsStore.registerAction(new ScriptAction());
 		actionsStore.registerAction(new TaskManagementAction());
+		actionsStore.registerAction(new ZettelIdAction());
+		actionsStore.registerAction(new DetectOrphanAction());
+		actionsStore.registerAction(new CalculateMaturityAction());
+		actionsStore.registerAction(new FindContradictionAction());
+		actionsStore.registerAction(new FindUnansweredQuestionAction());
+		actionsStore.registerAction(new SuggestNextMoveAction());
+		actionsStore.registerAction(new ThinkingSimulatorAction());
+		actionsStore.registerAction(new FindRelatedAction());
+		actionsStore.registerAction(new SuggestLinkAction());
+		actionsStore.registerAction(new CreateSemanticRelationAction());
+		actionsStore.registerAction(new ExtractClaimsAction());
+		actionsStore.registerAction(new CompareClaimsAction());
+		actionsStore.registerAction(new FindSourcesAction());
+		actionsStore.registerAction(new AttachSourceAction());
+		actionsStore.registerAction(new SummarizeAction());
+		actionsStore.registerAction(new ClassifyAction());
+		actionsStore.registerAction(new GenerateQuestionsAction());
 	}
 }

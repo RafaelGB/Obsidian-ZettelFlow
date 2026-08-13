@@ -1,0 +1,47 @@
+.zettelkasten-flow__moc-builder-query,
+.zettelkasten-flow__moc-builder-manual {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__moc-builder-preview {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.zettelkasten-flow__moc-builder-preview-empty {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__moc-builder-preview-summary {
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__moc-builder-preview-heading {
+    margin: 0.25rem 0 0;
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.zettelkasten-flow__moc-builder-preview-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    max-height: 15rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.zettelkasten-flow__moc-builder-preview-item {
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}

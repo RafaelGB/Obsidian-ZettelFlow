@@ -2,7 +2,7 @@ import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "applicat
 import { ObsidianApi, PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
-import { ZettelFlowSettingsTab } from "config";
+import { ZettelFlowSettingsTab, ZettelFlowSettings } from "config";
 import ZettelFlow from "main";
 import { Notice } from "obsidian";
 export class SettingsTab extends PluginComponent {
@@ -18,7 +18,7 @@ export class SettingsTab extends PluginComponent {
             name: t('command_settings_open_canvas'),
             callback: () => {
                 if (this.plugin.settings.ribbonCanvas) {
-                    ObsidianApi.workspace().openLinkText(this.plugin.settings.ribbonCanvas, "");
+                    void ObsidianApi.workspace().openLinkText(this.plugin.settings.ribbonCanvas, "");
                 } else {
                     new Notice(t('notice_canvas_not_set'));
                 }
@@ -50,7 +50,11 @@ export class SettingsTab extends PluginComponent {
         });
     }
     private async legacyMigrateSettings() {
-        const settings = this.plugin.settings as any;
+        // Legacy shape: `propertyHooks` used to live at the settings root before it moved
+        // under `hooks.properties`. Type the migration access without unsafe any.
+        const settings = this.plugin.settings as ZettelFlowSettings & {
+            propertyHooks?: ZettelFlowSettings["hooks"]["properties"];
+        };
         if (settings.propertyHooks) {
             settings.hooks.properties = settings.propertyHooks;
             delete settings.propertyHooks;

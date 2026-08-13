@@ -5,12 +5,18 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { calendarSettings } from "./CalendarSettings";
 import { t } from "architecture/lang";
 import { TypeService } from "architecture/typing";
-import moment from "moment";
+import { moment as obsidianMoment } from "obsidian";
+import type MomentFn from "moment";
 import { calendarSettingsReader } from "./CalendarSettingsReader";
+
+// Obsidian bundles moment and re-exports it, but types it as a namespace; cast to the
+// callable moment signature (type-only import of 'moment' is allowed by the guidelines).
+const moment = obsidianMoment as unknown as typeof MomentFn;
 
 export class CalendarAction extends CustomZettelAction {
   private static ICON = "calendar-days";
   id = "calendar";
+  category = "manipulation" as const;
   defaultAction: Action = {
     type: this.id,
     hasUI: true,

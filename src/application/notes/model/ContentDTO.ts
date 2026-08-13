@@ -6,6 +6,7 @@ export class ContentDTO {
     private tags: string[] = [];
     private frontmatter: Record<string, Literal> = {};
     private content = "";
+    private modifications: Record<string, string> = {};
 
     public add(content: string): ContentDTO {
         this.content = this.content.concat(content);
@@ -16,6 +17,10 @@ export class ContentDTO {
         return this.content;
     }
 
+    public set(content: string): void {
+        this.content = content;
+    }
+
     /**
    * Substitutes at the content the key for the result (all of them)
    * 
@@ -24,12 +29,24 @@ export class ContentDTO {
    * @param result 
    */
     public modify(key: string, result: string) {
+        // Record the substitution so an editor flow can also apply it to the pre-existing
+        // note body (not just this DTO's template content) — see getModifications (#75).
+        this.modifications[key] = result;
         // Regular expression to find all the matches of {{key}} in the content and replace them with the result
         this.content = this.content.replace(
             new RegExp(`{{${key}}}`, "g"),
             result
         );
         log.debug(`ContentDTO: modified content with key: {{${key}}} and result: ${result}`);
+    }
+
+    /**
+     * The {{key}} -> value substitutions requested via {@link modify}. Used by the editor
+     * flow to replace placeholders that already exist in the note body, so body-zone actions
+     * (e.g. prompt) work when editing an existing note, not only when creating one.
+     */
+    public getModifications(): Record<string, string> {
+        return this.modifications;
     }
 
     public hasTags(): boolean {
@@ -87,5 +104,6 @@ export class ContentDTO {
         this.content = "";
         this.frontmatter = {};
         this.tags = [];
+        this.modifications = {};
     }
 }

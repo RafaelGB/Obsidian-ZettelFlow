@@ -124,6 +124,15 @@ On construction it waits for `workspace.onLayoutReady`, resolves a fully-loaded 
 - `CanvasView.setViewData` → on invalid JSON, repair with `tiny-jsonc` (tolerates trailing
   commas), then fire **`zettelflow-node-connection-drop-menu`**.
 
+### Programmatic canvas writes
+
+Programmatic saves (e.g. persisting a step's `zettelflowConfig`) do **not** go through the
+monkey-patched `getViewData`; they use `FlowImpl.save()` → `vault.modify` with the separate
+`canvasJsonFormatter`. That formatter pretty-prints `nodes`/`edges` one entry per line **and
+preserves every other top-level canvas key** so no canvas data is lost on save. The in-memory flow
+node map is built from a node's `TFile` extension at use-time — it never stamps a synthetic
+`extension` field onto the persisted node.
+
 ### `PatchHelper`
 
 A typed wrapper over `monkey-around`'s `around`. Every uninstaller is registered with
@@ -138,8 +147,8 @@ Both extend `CanvasExtension` (constructor stores `plugin`, calls `abstract init
 - **`EditStepCanvasExtension`** — listens to `canvas:popup-menu`; on a ZettelFlow canvas adds
   "Edit ZettelFlow Step" (single selection → `StepBuilderModal`) or "Copy Flow to Clipboard".
 - **`AddManagedStepExtension`** — listens to `zettelflow-node-connection-drop-menu`; adds
-  "Create Managed Step" (pick an installed step → creates a node with
-  `unknownData.zettelflowConfig`) and "Import Flow Data from Clipboard".
+  "Create Managed Step" (if templates are installed: pick one first; otherwise: blank step config)
+  → creates a node with `unknownData.zettelflowConfig`) and "Import Flow Data from Clipboard".
 
 All extensions gate on `CanvasHelper.isCanvasFlow(plugin)` — i.e. the active file is
 `ribbonCanvas` / `editorCanvas` or lives under `foldersFlowsPath` / `hooks.folderFlowPath`.

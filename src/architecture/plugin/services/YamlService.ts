@@ -15,7 +15,7 @@ export class YamlService {
                 label: "" // Add the 'label' property with an empty string value
             }
         } else {
-            this.yaml = parseYaml(yamlString)
+            this.yaml = parseYaml(yamlString) as StepSettings;
         }
     }
 

@@ -1,0 +1,87 @@
+.zettelkasten-flow__welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.zettelkasten-flow__welcome-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.zettelkasten-flow__welcome-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__welcome-tagline {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.zettelkasten-flow__welcome-what-is {
+    font-size: 0.9rem;
+    color: var(--text-normal);
+    max-width: 36rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.zettelkasten-flow__welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+}
+
+.zettelkasten-flow__welcome-btn {
+    padding: 0.5rem 1.125rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        border-color: var(--interactive-accent);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.zettelkasten-flow__welcome-btn--primary {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+
+    &:hover {
+        background: var(--interactive-accent-hover);
+        border-color: var(--interactive-accent-hover);
+    }
+}
+
+.zettelkasten-flow__welcome-footer {
+    font-size: 0.8rem;
+
+    a {
+        color: var(--link-color);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

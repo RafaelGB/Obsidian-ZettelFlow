@@ -47,7 +47,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
             canvas,
             {
                 id: "import-flow-data",
-                label: "Import Flow Data from Clipboard",
+                label: "Import flow data from clipboard",
                 icon: "layout-template"
             },
             () => GROUP_NODE_SIZE,
@@ -78,7 +78,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
         });
 
         delete this.plugin.settings.communitySettings.clipboardTemplate;
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         new Notice("Flow data imported from clipboard!");
     }
 
@@ -109,7 +109,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
             canvas,
             {
                 id: "create-managed-step",
-                label: "Create Managed Step",
+                label: "Create managed step",
                 icon: RibbonIcon.ID
             },
             () => GROUP_NODE_SIZE,
@@ -123,14 +123,25 @@ export default class AddManagedStepExtension extends CanvasExtension {
      * Handles the managed step creation process by first prompting the user to select a step,
      * then presenting node creation options based on the chosen step.
      *
+     * When no step templates are installed, skip the template picker and go directly to
+     * the node-type selection with a blank step configuration so the canvas is never left
+     * with an unusable empty modal.
+     *
      * @param {Canvas} canvas - The canvas where the node will be created.
      * @param {Position} pos - The position at which to create the node.
      */
     private handleManagedStepCreation(canvas: Canvas, pos: Position): void {
-        new UsedInstalledStepsModal(this.plugin, (step) => {
+        const installedSteps = this.plugin.settings.installedTemplates.steps;
+        const openNodeTypeModal = (step: StepSettings) => {
             const options: Option[] = this.getCreationOptions(canvas, pos, step);
             new OptionsModal(this.plugin.app, "Type of Canvas component", options).open();
-        }).open();
+        };
+
+        if (Object.keys(installedSteps).length > 0) {
+            new UsedInstalledStepsModal(this.plugin, openNodeTypeModal).open();
+        } else {
+            openNodeTypeModal({ root: false, actions: [], label: "" });
+        }
     }
 
     /**

@@ -117,8 +117,10 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
       }
     };
 
-    getData();
-  }, [skip, targetSearchTerm, filter, plugin.settings, hasMore, isLoading]);
+    void getData();
+    // `hasMore`/`isLoading` are read as in-effect guards only — including them in the deps caused
+    // the effect to re-fire every time it toggled `isLoading`, re-fetching page 0 in a loop.
+  }, [skip, targetSearchTerm, filter, plugin.settings]);
 
   // (3) Infinite scroll observer
   useEffect(() => {
@@ -253,7 +255,7 @@ export function CommunityTemplatesGallery(props: PluginComponentProps) {
                 `template-type-${template.template_type}`
               )}
               onClick={() => {
-                handleTemplateClick(template);
+                void handleTemplateClick(template);
               }}
             >
               <span className={c("community-templates-card-type-badge")}>

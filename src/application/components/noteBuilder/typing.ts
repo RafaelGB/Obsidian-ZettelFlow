@@ -64,11 +64,14 @@ export type NoteBuilderStateActions = {
     addAction: (element: Action, callbackResult: Literal) => void;
     addBackgroundAction: (action: Action) => void;
     addJsFile: (path: string) => Promise<void>;
-    initPluginConfig: (settings: ZettelFlowSettings) => Promise<void>;
+    initPluginConfig: (settings: ZettelFlowSettings, currentFolder?: string) => Promise<void>;
     reset: () => void;
     setActionWasTriggered: (triggered: boolean) => void;
     setEnableSkip: (enable: boolean) => void;
     setCurrentNode: (node: FlowNode) => void;
+    setActiveContext: (canvasName: string, stepName: string) => void;
+    // Companion pane: record a chosen connection link and bump the preview (#127)
+    insertLink: (basename: string) => void;
     // Progress bar actions
     pbFinishElement: () => void;
 }
@@ -83,12 +86,16 @@ export type NoteBuilderState = {
     section: SectionType;
     enableSkip: boolean;
     position: number;
+    /** Increments whenever a connection link is inserted, so the preview re-assembles (#127). */
+    linkVersion: number;
     pbValue: number;
     pbElements: number;
     pbElementsDone: number;
     header: HeaderType;
     builder: NoteBuilder;
     currentNode?: FlowNode;
+    activeCanvasName: string;
+    activeStepName: string;
     actionWasTriggered: boolean;
     actions: NoteBuilderStateActions;
     data: NoteBuilderStateInfo;

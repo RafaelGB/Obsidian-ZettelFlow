@@ -13,6 +13,7 @@ import { selectorSettingsReader } from "./SelectorSettingsReader";
 export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";
   id = "selector";
+  category = "manipulation" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,
@@ -57,7 +58,9 @@ export class SelectorAction extends CustomZettelAction {
           content.addFrontMatter({ [key]: result });
       }
     } else {
-      new Notice(`The result ${result} is not a string or an array of strings`);
+      new Notice(
+        `The result ${String(result)} is not a string or an array of strings`
+      );
     }
   }
 

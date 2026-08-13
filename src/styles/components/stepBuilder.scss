@@ -1,0 +1,23 @@
+.zettelkasten-flow__step-builder-body {
+    width: 100%;
+    min-height: 120px;
+    max-height: 40vh;
+    resize: vertical;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-small);
+    line-height: 1.5;
+    border-radius: var(--radius-s);
+    transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.zettelkasten-flow__step-builder-body:focus-visible {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__step-builder-body {
+        transition: none;
+    }
+}

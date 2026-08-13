@@ -16,6 +16,7 @@ export interface Flows {
 
 export interface Flow {
     data: CanvasData
+    readonly canvasPath: string
     editTextNode: (nodeId: string, text: string) => Promise<void>
     get: (nodeId: string) => Promise<FlowNode>
     childrensOf: (nodeId: string) => Promise<FlowNode[]>

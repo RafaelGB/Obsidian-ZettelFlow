@@ -1,7 +1,8 @@
+import { getLanguage } from 'obsidian';
 import { log } from 'architecture';
 import en from './locale/en';
 import es from './locale/es';
-export const OBSIDIAN_LOCALE = localStorage.getItem('language');
+export const OBSIDIAN_LOCALE = getLanguage();
 
 const localeMap: { [k: string]: Partial<typeof en> } = {
     en,

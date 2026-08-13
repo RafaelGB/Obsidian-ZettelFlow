@@ -40,6 +40,91 @@ export function normalizePath(path: string): string {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
 
+export function getLanguage(): string {
+  return "en";
+}
+
+export class SuggestModal<T> {
+  constructor(public app?: unknown) {}
+  setPlaceholder(_text: string): void {}
+  getSuggestions(_query: string): T[] {
+    return [];
+  }
+  renderSuggestion(_value: T, _el: unknown): void {}
+  onChooseSuggestion(_value: T): void {}
+  open(): void {}
+}
+
 export function requireApiVersion(_version: string): boolean {
   return true;
+}
+
+/** Mutable platform flag so tests can exercise the desktop/mobile default. */
+export const Platform = { isMobile: false };
+
+/**
+ * Minimal YAML parser covering the subset ZettelFlow uses:
+ *  - flat `key: value` (booleans, numbers, strings, quoted strings)
+ *  - one level of nested objects (`key:\n  nested: value`)
+ * Not a general YAML engine, but sufficient for FrontmatterService and
+ * YamlService tests (isRoot, getZettelFlowSettings, zettelFlowSettings.root).
+ */
+function parseScalar(raw: string): unknown {
+  if (raw === "true") return true;
+  if (raw === "false") return false;
+  if (raw !== "" && !Number.isNaN(Number(raw))) return Number(raw);
+  if (
+    (raw.startsWith("'") && raw.endsWith("'")) ||
+    (raw.startsWith('"') && raw.endsWith('"'))
+  ) {
+    return raw.slice(1, -1);
+  }
+  return raw;
+}
+
+export function parseYaml(yaml: string): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  if (!yaml) return result;
+  let currentKey: string | null = null;
+  let currentObj: Record<string, unknown> | null = null;
+
+  for (const rawLine of yaml.split("\n")) {
+    if (rawLine.trim() === "" || rawLine.trim().startsWith("#")) continue;
+    // Skip YAML list items (arrays not needed for these tests)
+    if (rawLine.trimStart().startsWith("-")) continue;
+
+    const indent = rawLine.length - rawLine.trimStart().length;
+    const line = rawLine.trim();
+    const separator = line.indexOf(":");
+    if (separator === -1) continue;
+
+    const key = line.slice(0, separator).trim();
+    const raw = line.slice(separator + 1).trim();
+
+    if (indent === 0) {
+      if (raw === "") {
+        // Start of nested object
+        currentKey = key;
+        currentObj = {};
+        result[currentKey] = currentObj;
+      } else {
+        currentKey = null;
+        currentObj = null;
+        result[key] = parseScalar(raw);
+      }
+    } else if (currentObj !== null) {
+      // Nested key (2-level only)
+      currentObj[key] = parseScalar(raw);
+    }
+  }
+  return result;
+}
+
+/** Minimal counterpart to `parseYaml` — serialises a flat record to `key: value` lines. */
+export function stringifyYaml(value: Record<string, unknown>): string {
+  if (!value) return "";
+  return Object.entries(value)
+    .map(([key, val]) => `${key}: ${String(val)}`)
+    .join("\n")
+    .concat("\n");
 }

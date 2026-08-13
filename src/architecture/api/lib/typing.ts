@@ -1,3 +1,5 @@
+import { Plugin } from "obsidian";
+
 /**
  * Functions and utilities from the Templater plugin
  */
@@ -10,6 +12,33 @@ export type TemplaterTools = {
  * API provided by the Dataview plugin
  */
 export type DataviewTools = Record<string, unknown>;
+
+/**
+ * Minimal shape of the Templater plugin instance that ZettelFlow relies on.
+ *
+ * Templater does not publish type definitions, so we describe only the nested
+ * `user_script_functions` generator we call to expose Templater user scripts.
+ */
+export interface TemplaterPlugin extends Plugin {
+    templater: {
+        functions_generator: {
+            user_functions: {
+                user_script_functions: {
+                    generate_object(): Promise<Record<string, unknown>>;
+                };
+            };
+        };
+    };
+}
+
+/**
+ * Minimal shape of the Dataview plugin instance that ZettelFlow relies on.
+ *
+ * Only the public `api` surface is described; it is forwarded as-is to scripts.
+ */
+export interface DataviewPlugin extends Plugin {
+    api: DataviewTools;
+}
 
 /**
  * External plugin tools integrated with ZettelFlow

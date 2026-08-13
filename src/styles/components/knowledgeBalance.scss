@@ -1,0 +1,46 @@
+.zettelkasten-flow__knowledge-balance {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__knowledge-balance-heading {
+    margin: 0 0 0.4rem;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__knowledge-balance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__knowledge-balance-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__knowledge-balance-label {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__knowledge-balance-value {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__knowledge-balance-note {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__knowledge-balance-suggestion {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-accent);
+    margin-top: 0.15rem;
+}

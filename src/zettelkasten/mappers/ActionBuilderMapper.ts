@@ -8,8 +8,8 @@ export class ActionBuilderMapper {
         const {
             // common
             type, hasUI, description, id,
-            // different 
-            title, downloads, author, // eslint-disable-line
+            // different (destructured only to omit these community-only fields from `action`)
+            title: _title, downloads: _downloads, author: _author,
             ...action } = communityAction;
 
         return {

@@ -21,6 +21,7 @@ module.exports = {
   moduleFileExtensions: ["ts", "tsx", "js", "json"],
   moduleNameMapper: {
     "^obsidian$": "<rootDir>/test/__mocks__/obsidian.ts",
+    "^uuid$": "<rootDir>/test/__mocks__/uuid.ts",
     "^architecture$": "<rootDir>/test/__mocks__/architecture.ts",
     "^architecture/plugin$": "<rootDir>/test/__mocks__/architecture-plugin.ts",
     "^architecture/(.*)$": "<rootDir>/src/architecture/$1",

@@ -1,20 +1,14 @@
 import { CommunityFlowData } from "application/community";
 import { Action } from "architecture/api";
-import { AbstractChain } from "architecture/patterns";
-import ZettelFlow from "main";
 import { StepSettings } from "zettelkasten";
-
-/**
- * Provides information required by the settings handler.
- */
-export type SettingsHandlerInfo = {
-    /** DOM element that acts as the container for settings UI */
-    containerEl: HTMLElement;
-    /** Instance of the main ZettelFlow plugin */
-    plugin: ZettelFlow;
-    /** Optional chain section for additional settings handling */
-    section?: AbstractChain<SettingsHandlerInfo>;
-};
+import type { HistoryEntry } from "application/notes/historyUtils";
+import {
+    DEFAULT_STATE_PROPERTY,
+    DEFAULT_CREATED_PROPERTY,
+    DEFAULT_LAST_REVIEWED_PROPERTY,
+} from "architecture/knowledge/lifecycle/states";
+import type { AiSettings } from "architecture/ai";
+import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
@@ -30,8 +24,6 @@ export interface ZettelFlowSettings {
     logLevel: string;
     /** Enable or disable the use of a unique prefix */
     uniquePrefixEnabled: boolean;
-    /** Enable or disable the generation of a table of contents */
-    tableOfContentEnabled: boolean;
     /** Format/string used as a unique prefix (e.g., "YYYYMMDDHHmmss") */
     uniquePrefix: string;
     /** Identifier for the ribbon canvas */
@@ -44,6 +36,12 @@ export interface ZettelFlowSettings {
     foldersFlowsPath: string;
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
+
+    /**
+     * Installed methodology packages (#174), keyed by package id → the owned file paths (the source
+     * of truth for a clean uninstall) and the installed version. Additive; empty by default.
+     */
+    installedPackages: Record<string, { paths: string[]; version: string }>;
     /** Community-specific settings */
     communitySettings: {
         /** Folder where Markdown templates are stored */
@@ -67,7 +65,71 @@ export interface ZettelFlowSettings {
 
     }
 
+    /** Note lifecycle (#146): configurable frontmatter property names (no lock-in). */
+    lifecycle: {
+        /** Property carrying the lifecycle state token (default "state"). */
+        stateProperty: string;
+        /** Property carrying the capture timestamp (default "created"). */
+        createdProperty: string;
+        /** Property carrying the last-reviewed timestamp (default "last-reviewed"). */
+        lastReviewedProperty: string;
+    };
+
+    /** Semantic relations (#147). */
+    relations: {
+        /**
+         * Parse inline `key:: [[X]]` relations by reading note bodies (a deferred pass). When
+         * unset, defaults to on for desktop and off for mobile (resolved at runtime).
+         */
+        parseInlineRelations?: boolean;
+    };
+
+    /** Event-driven workflows (#150). */
+    events: {
+        /**
+         * Master switch for event-driven execution. OFF by default: with it disabled no vault
+         * listeners are armed and no flow can fire on its own — behavior identical to today.
+         */
+        enabled: boolean;
+    };
+
+    /**
+     * Optional, provider-agnostic AI (#156). OFF by default: while `enabled` is false no AI action
+     * ever reaches the network. Bring-your-own OpenAI-compatible endpoint + key + model.
+     */
+    ai: AiSettings;
+
+    /**
+     * Development-event journal (#162), the data source for the thinking heatmap. ON by default:
+     * privacy-benign — a capped per-day count map only (no note paths, no content, no network).
+     */
+    journal: {
+        enabled: boolean;
+        /** `YYYY-MM-DD` → development-event count, pruned to the last ~year. */
+        counts: Record<string, number>;
+    };
+
+    /**
+     * Conceptual evolution timeline (#168). **OFF by default (opt-in)** — unlike the journal's
+     * path-free counts, this stores per-note lifecycle `state` + claim texts + timestamps, so it is
+     * consent-first: strictly **local** (never networked), **bounded** (per-note and total-notes
+     * caps), pruned on note delete/rename, and cleared when the user turns it off.
+     */
+    timeline: {
+        enabled: boolean;
+        /** Vault path → the note's conceptual snapshots, oldest→newest. */
+        snapshots: Record<string, Snapshot[]>;
+    };
+
+    /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
+    history: HistoryEntry[];
+    /** True once the first-launch welcome notice has been shown. */
+    hasSeenWelcome: boolean;
+    /** When true, new notes are created in the active file's folder instead of the step's targetFolder. */
+    createInCurrentFolder: boolean;
 }
+
+export type { HistoryEntry } from "application/notes/historyUtils";
 
 
 /**
@@ -131,14 +193,18 @@ export type InstalledTemplates = {
  */
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     loggerEnabled: false, // Logging is disabled by default.
+    logLevel: "info", // Default log level; must match a key of the logger's level record.
     uniquePrefixEnabled: false, // Unique prefix is disabled by default.
     uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
+    ribbonCanvas: "", // No ribbon canvas configured until the user picks one.
+    editorCanvas: "", // No editor canvas configured until the user picks one.
+    jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
-    tableOfContentEnabled: true, // Table of contents is enabled by default.
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.
     },
+    installedPackages: {}, // No methodology packages installed by default (#174).
     communitySettings: {
         url: "http://127.0.0.1:8000", // Default URL for community resources.
         markdownTemplateFolder: "_ZettelFlowMdTemplates", // Default folder for Markdown templates.
@@ -146,5 +212,18 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     hooks: {
         properties: {}, // No global hooks are defined by default.
         folderFlowPath: "_ZettelFlow/hooks" // Default folder for flow scripts.
-    }
+    },
+    lifecycle: {
+        stateProperty: DEFAULT_STATE_PROPERTY,
+        createdProperty: DEFAULT_CREATED_PROPERTY,
+        lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
+    },
+    relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
+    events: { enabled: false }, // Event-driven workflows are opt-in (#150).
+    ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
+    journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
+    timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
+    history: [],
+    hasSeenWelcome: false,
+    createInCurrentFolder: false,
 };

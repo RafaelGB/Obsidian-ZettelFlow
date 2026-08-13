@@ -54,5 +54,21 @@
     "title": "Daily Note Template",
     "description": "This is a template for daily notes",
     "author": "RafaelGB"
+  },
+  {
+    "id": "7c1e5a80-1b2c-4d3e-8f90-a1b2c3d4e5f6",
+    "template_type": "system",
+    "ref": "/docs/systems/academic-research.zftemplate",
+    "title": "Academic research",
+    "description": "Literature-to-permanent research: capture a literature note that is mined for claims, matched to sources, cross-checked and scored on creation, then synthesised into a connected permanent note. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "9d2f6b91-2c3d-4e4f-9a01-b2c3d4e5f6a7",
+    "template_type": "system",
+    "ref": "/docs/systems/zettelkasten-v2.zftemplate",
+    "title": "Zettelkasten v2",
+    "description": "The classic slip-box upgraded: fleeting, literature and permanent notes on one canvas, where the permanent note is related, cross-checked, link-suggested and maturity-scored on creation. Offline, no AI.",
+    "author": "ZettelFlow"
   }
 ]

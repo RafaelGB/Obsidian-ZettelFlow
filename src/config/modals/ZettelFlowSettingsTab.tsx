@@ -33,6 +33,7 @@ import { OpenQuestionsView } from "architecture/components/core/openQuestions/Op
 import { EvolutionTimelineView } from "architecture/components/core/timeline/EvolutionTimelineView";
 import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
 import { KnowledgeDashboardView } from "architecture/components/core/knowledgeDashboard/KnowledgeDashboardView";
+import { ZettelFlowHomeView } from "architecture/components/core/home/ZettelFlowHomeView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -62,6 +63,7 @@ const TOOLKIT_DOCS = {
     timeline: `${DOCS_BASE}development/evolution-timeline/`,
     evidenceMap: `${DOCS_BASE}development/evidence-map/`,
     dashboard: `${DOCS_BASE}development/knowledge-dashboard/`,
+    home: `${DOCS_BASE}development/zettelflow-home/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -621,6 +623,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.dashboard);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_home_name"),
+                        desc: t("settings_toolkit_home_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, ZettelFlowHomeView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.home);
                         },
                     },
                     {

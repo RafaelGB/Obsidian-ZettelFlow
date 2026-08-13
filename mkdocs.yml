@@ -80,6 +80,7 @@ nav:
       - 7.6 Spec-driven development: development/spec-driven-development.md
       - 7.7 Slip-box health dashboard: development/slipbox-health-dashboard.md
       - 7.8 Capabilities & privacy: development/capabilities-and-privacy.md
+      - 7.8.1 Mobile support: development/mobile-support.md
       - 7.10 Map of content builder: development/moc-builder.md
       - 7.11 Connection resurfacing: development/connection-resurfacing.md
       - 7.12 Atomicity split assist: development/atomicity-split.md

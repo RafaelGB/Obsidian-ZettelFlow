@@ -31,6 +31,9 @@ function basename(path: string): string {
  * `${prefix}${basename}`. Defensive — a canvas that is not parseable JSON (or has no `nodes`) is
  * returned unchanged. Pure & Obsidian-free; without this the authored (hardcoded) paths would only
  * resolve when the user keeps the exact folder the canvas was authored against (#215).
+ *
+ * Matches on basename only: systems ship flat, bare step filenames (enforced by `isUnsafeFilename`),
+ * so a step and its canvas node always agree on basename — there is no nesting to disambiguate.
  */
 function rewriteCanvasPaths(canvasContent: string, stepFilenames: ReadonlySet<string>, prefix: string): string {
     let data: unknown;
@@ -83,6 +86,22 @@ export function isUnsafeFilename(filename: unknown): boolean {
     return false;
 }
 
+/**
+ * Reduce an untrusted system `name` to a single safe folder segment for the default install location:
+ * no path separators, no `..` traversal, no leading dots. Returns `""` when nothing safe remains (the
+ * caller then falls back to the configured flows folder). Systems are remote content, so the
+ * auto-derived default folder must not let a crafted name steer writes outside the flows folder (#215).
+ */
+export function sanitizeFolderSegment(name: string): string {
+    if (typeof name !== "string") return "";
+    return name
+        .split(/[/\\]/) // break on any separator so subpaths/traversal cannot survive
+        .filter((seg) => seg && seg !== "." && seg !== "..") // drop empty and traversal segments
+        .join(" ")
+        .replace(/^\.+/, "") // no leading dots (dotfolders)
+        .trim();
+}
+
 /** The leading `---\n…\n---` frontmatter block of a note's content, or `null` if absent. */
 function frontmatterBlock(content: string): string | null {
     const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -111,6 +130,25 @@ export function validateSystemTemplate(template: ZfTemplate, knownActionTypes: R
     }
     if (isUnsafeFilename(template.canvas.filename)) {
         problems.push(`Canvas "${template.canvas.filename}" has an unsafe path`);
+    }
+    // The canvas must be parseable, and every markdown file-node must reference a shipped step —
+    // otherwise a broken/orphaned canvas installs clean and only fails at flow-load time (#215 review).
+    let canvasData: unknown = null;
+    try {
+        canvasData = JSON.parse(template.canvas.content);
+    } catch {
+        problems.push(`Canvas "${template.canvas.filename}" is not valid JSON`);
+    }
+    const nodes = (canvasData as { nodes?: unknown } | null)?.nodes;
+    if (Array.isArray(nodes)) {
+        const stepFilenames = new Set(template.steps.map((step) => step.filename));
+        for (const node of nodes) {
+            if (typeof node !== "object" || node === null) continue;
+            const fileNode = node as { type?: unknown; file?: unknown };
+            if (fileNode.type === "file" && typeof fileNode.file === "string" && fileNode.file.endsWith(".md") && !stepFilenames.has(basename(fileNode.file))) {
+                problems.push(`Canvas file-node "${fileNode.file}" has no matching step`);
+            }
+        }
     }
     for (const step of template.steps) {
         if (isUnsafeFilename(step.filename)) {

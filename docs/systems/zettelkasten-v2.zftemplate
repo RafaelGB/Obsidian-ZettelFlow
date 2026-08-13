@@ -1,11 +1,11 @@
 {
   "zfVersion": "1.0",
   "name": "Zettelkasten v2",
-  "description": "The classic slip-box, upgraded. Three note types on one canvas — fleeting, literature and permanent — where the permanent note carries the on-creation pattern: it is ranked against your graph (find related · find contradictions · suggest links) and scored for maturity the moment it is created. Repositions the original Zettelkasten inbox example. Offline, no AI.",
+  "description": "The classic slip-box, upgraded. Three independent note types on one canvas — fleeting, literature and permanent — each its own entry point. The permanent note carries the on-creation pattern: it is ranked against your graph (find related · find contradictions · suggest links) and scored for maturity the moment it is created. Repositions the original Zettelkasten inbox example. Offline, no AI.",
   "author": "ZettelFlow",
   "canvas": {
     "filename": "Zettelkasten v2.canvas",
-    "content": "{\"nodes\":[{\"id\":\"zk-fleet\",\"type\":\"file\",\"file\":\"Fleeting note.md\",\"x\":-720,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"zk-lit\",\"type\":\"file\",\"file\":\"Literature note.md\",\"x\":-180,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"zk-perm\",\"type\":\"file\",\"file\":\"Permanent note.md\",\"x\":360,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[{\"id\":\"zk-e1\",\"fromNode\":\"zk-fleet\",\"fromSide\":\"right\",\"toNode\":\"zk-lit\",\"toSide\":\"left\",\"label\":\"process\"},{\"id\":\"zk-e2\",\"fromNode\":\"zk-lit\",\"fromSide\":\"right\",\"toNode\":\"zk-perm\",\"toSide\":\"left\",\"label\":\"develop\"}]}"
+    "content": "{\"nodes\":[{\"id\":\"zk-fleet\",\"type\":\"file\",\"file\":\"Fleeting note.md\",\"x\":-720,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"zk-lit\",\"type\":\"file\",\"file\":\"Literature note.md\",\"x\":-180,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"zk-perm\",\"type\":\"file\",\"file\":\"Permanent note.md\",\"x\":360,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[]}"
   },
   "steps": [
     {

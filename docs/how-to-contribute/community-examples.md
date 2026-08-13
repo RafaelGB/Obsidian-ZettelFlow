@@ -30,8 +30,8 @@ Systems are whole **knowledge methodologies** shipped as a single [`.zftemplate`
 
 Shipped systems:
 
-- **Academic research** — literature-to-permanent: a literature note is mined for claims, matched to candidate sources, cross-checked for contradictions and scored on creation; then synthesised into a connected permanent note.
-- **Zettelkasten v2** — fleeting, literature and permanent notes on one canvas, where the permanent note carries the on-creation pattern (find related · find contradictions · suggest links · calculate maturity). This **supersedes the older "Zettelkasten Inbox" flow**, which remains available for back-compat.
+- **Academic research** — two entry points on one canvas: a literature note mined for claims, matched to candidate sources, cross-checked for contradictions and scored on creation; and a permanent note that lands already related, link-suggested and scored.
+- **Zettelkasten v2** — three independent note types on one canvas (fleeting, literature, permanent), each its own entry point, where the permanent note carries the on-creation pattern (find related · find contradictions · suggest links · calculate maturity). This **supersedes the older "Zettelkasten Inbox" flow**, which remains available for back-compat.
 
 To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**.
 

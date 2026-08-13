@@ -8,6 +8,7 @@ import { ZfTemplate } from "application/template/zfTemplate";
 import {
   planSystemInstall,
   validateSystemTemplate,
+  sanitizeFolderSegment,
   REGISTERED_ACTION_IDS,
 } from "./systemInstall";
 import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
@@ -35,8 +36,11 @@ export class CommunitySystemModal extends Modal {
     super(plugin.app);
     // Default install location is a per-system subfolder of the configured flows folder — keeps each
     // system's canvas + steps together and avoids cross-system filename collisions. Overridable below.
+    // The system name is remote/untrusted content, so it is sanitized to a single safe folder segment
+    // before use (a crafted name must not steer the default outside the flows folder). Overridable.
     const base = plugin.settings.foldersFlowsPath || "";
-    this.targetFolder = base ? `${base}/${template.name}` : template.name;
+    const segment = sanitizeFolderSegment(template.name);
+    this.targetFolder = segment ? (base ? `${base}/${segment}` : segment) : base;
   }
 
   onOpen(): void {

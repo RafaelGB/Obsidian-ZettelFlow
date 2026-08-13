@@ -3,6 +3,7 @@ import {
     planSystemInstall,
     validateSystemTemplate,
     isUnsafeFilename,
+    sanitizeFolderSegment,
     REGISTERED_ACTION_IDS,
 } from "application/community/systemInstall";
 import type { ZfTemplate } from "application/template/zfTemplate";
@@ -100,6 +101,26 @@ describe("validateSystemTemplate (#214, FR-7, AC-2)", () => {
         }
     });
 
+    it("flags a canvas file-node with no matching step", () => {
+        const orphan: ZfTemplate = {
+            ...template,
+            canvas: {
+                filename: "academic.canvas",
+                content: JSON.stringify({ nodes: [{ id: "x", type: "file", file: "Ghost.md" }], edges: [] }),
+            },
+        };
+        expect(validateSystemTemplate(orphan, REGISTERED_ACTION_IDS)).toEqual([
+            'Canvas file-node "Ghost.md" has no matching step',
+        ]);
+    });
+
+    it("flags an unparseable canvas", () => {
+        const broken: ZfTemplate = { ...template, canvas: { filename: "academic.canvas", content: "not json" } };
+        expect(validateSystemTemplate(broken, REGISTERED_ACTION_IDS)).toEqual([
+            'Canvas "academic.canvas" is not valid JSON',
+        ]);
+    });
+
     it("flags an unsafe canvas or step filename (path traversal) before any write", () => {
         const evil: ZfTemplate = {
             ...template,
@@ -123,5 +144,18 @@ describe("isUnsafeFilename (#214 hardening)", () => {
         for (const bad of ["../escape.md", "a/b.md", "a\\b.md", "/abs.md", "..", ".", "", "   ", "C:evil.md"]) {
             expect(isUnsafeFilename(bad)).toBe(true);
         }
+    });
+});
+
+describe("sanitizeFolderSegment (#215 review, untrusted system name)", () => {
+    it("keeps an ordinary system name", () => {
+        expect(sanitizeFolderSegment("Academic research")).toBe("Academic research");
+    });
+
+    it("strips separators and traversal so a crafted name cannot escape the flows folder", () => {
+        expect(sanitizeFolderSegment("../../.obsidian/plugins/x")).toBe("obsidian plugins x");
+        expect(sanitizeFolderSegment("a/b\\c")).toBe("a b c");
+        expect(sanitizeFolderSegment("..")).toBe("");
+        expect(sanitizeFolderSegment("   ")).toBe("");
     });
 });

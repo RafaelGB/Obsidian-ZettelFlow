@@ -5,9 +5,27 @@
 [![Total downloads](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge)](https://github.com/sponsors/RafaelGB)
 
-**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates, selectors, and more without you touching a template manually.
+> **Most plugins help you _write_. Almost none help you _think_.**
 
-> **[Full documentation →](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**
+**Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine
+that makes the knowledge inside it evolve** — it doesn't manage notes, it manages the *processes that
+transform knowledge*. It stands on **four pillars**:
+
+- 🌱 **Knowledge Lifecycle** — every idea has a state (fleeting → permanent → evergreen); ZettelFlow knows the phase and proposes the next move.
+- 🕸️ **Semantic Knowledge Graph** — relations with *meaning*: ask *"show me every idea that contradicts this"* and follow reasoning chains.
+- 🔭 **Knowledge Discovery** — surface the unexpected: connections you didn't know you'd made, ideas worth challenging, a book outline hiding in a folder.
+- 🩺 **Knowledge Health** — measure balance and richness, not volume: maturity, knowledge debt, a weekly review, a heatmap of ideas *developed*.
+
+**AI is one Action, never the product** — every pillar works fully with AI disabled. And **nothing is
+removed, only repositioned**: the canvas wizard you know is the engine's front end.
+
+> Read the **[manifesto →](https://rafaelgb.github.io/Obsidian-ZettelFlow/manifesto/)** · **[full documentation →](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**
+
+---
+
+### How it works, in one line
+
+**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates, selectors, and more without you touching a template manually. Each step is a piece of the cognitive engine; each note lands already related, cross-checked and scored.
 
 ---
 

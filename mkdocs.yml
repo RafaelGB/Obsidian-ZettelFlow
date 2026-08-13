@@ -11,6 +11,7 @@ plugins:
   - search
 nav:
   - 1. Home: index.md
+  - The manifesto: manifesto.md
   - 2. Actions:
       - 2.1 Prompt: actions/Prompt.md
       - 2.2 Number: actions/Number.md

@@ -68,6 +68,9 @@ const BAND_LABELS: Record<string, LocaleKey> = {
     high: "knowledge_dashboard_band_high",
 };
 
+/** The "all good" recommendations — shown as plain, non-navigating text (nothing to act on). */
+const POSITIVE_TOKENS: ReadonlySet<RecommendationToken> = new Set(["all-connected", "debt-clear", "all-clear"]);
+
 /**
  * **Knowledge dashboard** (#171): the *state of your knowledge system* as an ops console — three
  * panels (connectivity · knowledge debt · today), each with metrics and a **recommended next action**
@@ -177,10 +180,12 @@ export class KnowledgeDashboardView extends ItemView {
 
         const rec = panel.recommendation;
         const row = section.createDiv({ cls: c("knowledge-dashboard-recommendation") });
-        const label = row.createSpan({
-            text: t(RECOMMENDATION_LABELS[rec.token], String(rec.count)),
-            cls: c("knowledge-dashboard-rec-label"),
-        });
+        const text = t(RECOMMENDATION_LABELS[rec.token], String(rec.count));
+        if (POSITIVE_TOKENS.has(rec.token)) {
+            row.createSpan({ text, cls: c("knowledge-dashboard-rec-clear") });
+            return;
+        }
+        const label = row.createSpan({ text, cls: c("knowledge-dashboard-rec-label") });
         label.addEventListener("click", () => void activateSidebarView(this.app, RECOMMENDATION_TARGETS[rec.token]));
     }
 

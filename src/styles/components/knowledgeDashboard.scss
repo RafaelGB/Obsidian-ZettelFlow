@@ -103,3 +103,8 @@
 .zettelkasten-flow__knowledge-dashboard-rec-label:hover {
     text-decoration: underline;
 }
+
+.zettelkasten-flow__knowledge-dashboard-rec-clear {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

@@ -28,6 +28,11 @@ the five [starter flows](zettelkasten-starter-flows.md) (fleeting · literature 
   shared `_ZettelFlow/examples` / `steps` / `notes` folders, and never your notes — the tracked path
   list (stored in `settings.installedPackages`) is the exact source of truth.
 
+> The Zettelkasten package's files are the same flow files as the standalone
+> [starter flows](zettelkasten-starter-flows.md). If you installed those separately, uninstalling the
+> package reclaims those shared files too (recoverable from the system trash) — they are the package's
+> declared files.
+
 ## Out of scope (deferred)
 
 - **The backend app store** — browsing/installing packages from the community backend is a follow-up.

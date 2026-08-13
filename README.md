@@ -49,6 +49,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   neighbours (in **and** out), click one to re-focus — Learning → Memory → Spacing effect → Anki,
   no folders. Ships with headless **reasoning paths** that read the graph as an argument
   (supports → expands → example → implements). Read-only, offline.
+- **❓ Open questions** — every unanswered question in your vault, made first-class: each `question::`
+  with no answer yet, its asker(s), and the note most likely to answer it (ranked by shared graph
+  context). Read-only, offline — a live thread instead of a dead end.
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
 - **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
@@ -146,6 +149,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
 | **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
 | **Concept navigation** | Walk your vault by typed relation (in + out) — focus a note, click a neighbour to re-focus, no folders — plus argument-forward reasoning paths over the same graph. Read-only, offline. |
+| **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
 | **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |

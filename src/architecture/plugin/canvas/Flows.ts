@@ -17,9 +17,12 @@ type EdgeInfo = {
 
 export class FlowsImpl implements Flows {
     private flows: Map<string, Flow>;
+    /** The `.canvas` mtime each cached flow was loaded from — used to detect on-disk edits (#226). */
+    private mtimes: Map<string, number>;
 
     constructor() {
         this.flows = new Map();
+        this.mtimes = new Map();
     }
 
     get = (id: string) => {
@@ -40,26 +43,35 @@ export class FlowsImpl implements Flows {
         const data = JSON.parse(content) as CanvasData;
         const flow = new FlowImpl(data, canvasFile);
         this.flows.set(canvasFile.path, flow);
+        this.mtimes.set(canvasFile.path, canvasFile.stat.mtime);
         log.info(`Flow ${canvasPath} loaded`);
         return flow;
     }
 
     /**
-     * Search for the flow in the cache, if not found, add it to the cache.
-     * @param canvasPath 
-     * @returns 
+     * Return the cached flow, **reloading it if the `.canvas` changed on disk** since it was cached
+     * (#226). Previously the cache was never invalidated, so editing the canvas outside the plugin left
+     * the wizard running a stale flow until a node was edited through the plugin. Compares the file's
+     * current mtime to the one captured at load; a miss (or a changed mtime) reloads from disk.
      */
     update = async (canvasPath: string) => {
-        const flow = this.flows.get(canvasPath);
-        if (!flow) {
+        const cached = this.flows.get(canvasPath);
+        if (!cached) {
             log.info(`Flow ${canvasPath} not found, loading...`);
             return await this.add(canvasPath);
         }
-        return flow;
+        const file = ObsidianApi.vault().getFileByPath(canvasPath);
+        const currentMtime = file instanceof TFile ? file.stat.mtime : undefined;
+        if (currentMtime !== undefined && currentMtime !== this.mtimes.get(canvasPath)) {
+            log.info(`Flow ${canvasPath} changed on disk — reloading (#226)`);
+            return await this.add(canvasPath);
+        }
+        return cached;
     }
 
     delete = (id: string) => {
         log.info(`Cleaning flow ${id}`);
+        this.mtimes.delete(id);
         return this.flows.delete(id);
     }
 }

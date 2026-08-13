@@ -32,6 +32,8 @@ Shipped systems:
 
 - **Academic research** — two entry points on one canvas: a literature note mined for claims, matched to candidate sources, cross-checked for contradictions and scored on creation; and a permanent note that lands already related, link-suggested and scored.
 - **Zettelkasten v2** — three independent note types on one canvas (fleeting, literature, permanent), each its own entry point, where the permanent note carries the on-creation pattern (find related · find contradictions · suggest links · calculate maturity). This **supersedes the older "Zettelkasten Inbox" flow**, which remains available for back-compat.
+- **PARA v2** — Tiago Forte's PARA as four entry points (Project, Area, Resource, Archive); each lands a note in its PARA folder, tags it by category and connects it with find related. This **supersedes the older "PARA classify system" flow**, which remains available for back-compat.
+- **GTD** — Getting Things Done as three entry points (Inbox capture, Next action, Project), moving a thought from capture through clarify to a context-tagged next action.
 
 To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**.
 

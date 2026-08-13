@@ -63,6 +63,7 @@ nav:
       - 6.5 Community & backend: architecture/community-and-backend.md
       - 6.6 .zftemplate schema: architecture/zftemplate-schema.md
       - 6.7 Conditional edges: architecture/conditional-edges.md
+      - 6.7.1 Trigger conditions: architecture/trigger-conditions.md
       - 6.8 Knowledge model: architecture/knowledge-model.md
       - 6.9 Knowledge lifecycle: architecture/knowledge-lifecycle.md
       - 6.10 Workflow phases: architecture/workflow-phases.md

@@ -8,6 +8,7 @@ import {
     DEFAULT_LAST_REVIEWED_PROPERTY,
 } from "architecture/knowledge/lifecycle/states";
 import type { AiSettings } from "architecture/ai";
+import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
@@ -100,6 +101,18 @@ export interface ZettelFlowSettings {
         enabled: boolean;
         /** `YYYY-MM-DD` → development-event count, pruned to the last ~year. */
         counts: Record<string, number>;
+    };
+
+    /**
+     * Conceptual evolution timeline (#168). ON by default. Unlike the journal's path-free counts,
+     * this stores per-note lifecycle `state` + claim texts + timestamps — but strictly **local**
+     * (never networked), **bounded** (per-note and total-notes caps), **opt-out**, and pruned on
+     * note delete/rename.
+     */
+    timeline: {
+        enabled: boolean;
+        /** Vault path → the note's conceptual snapshots, oldest→newest. */
+        snapshots: Record<string, Snapshot[]>;
     };
 
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
@@ -202,6 +215,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     events: { enabled: false }, // Event-driven workflows are opt-in (#150).
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
+    timeline: { enabled: true, snapshots: {} }, // Conceptual evolution timeline on by default (#168).
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

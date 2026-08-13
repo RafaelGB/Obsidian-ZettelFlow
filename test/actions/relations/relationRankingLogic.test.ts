@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { rankRelated } from "actions/relations/relationRankingLogic";
+import { rankRelated, rankRelatedScored } from "actions/relations/relationRankingLogic";
 import { idea, buildModel } from "../knowledge/support/knowledgeFixture";
 
 /**
@@ -66,5 +66,29 @@ describe("rankRelated (#154, FR-2, AC-1, D4)", () => {
             idea("t.md", "permanent", []),
         ]);
         expect(rankRelated(tie, "s.md")).toEqual(["a.md", "b.md"]);
+    });
+});
+
+describe("rankRelatedScored (#167 — score-carrying variant)", () => {
+    it("returns {path,score} ordered score-desc then path-asc, with non-increasing score", () => {
+        const scored = rankRelatedScored(model, "source.md");
+        expect(scored).toEqual([
+            { path: "X.md", score: 6 },
+            { path: "Y.md", score: 3 },
+        ]);
+        for (let i = 1; i < scored.length; i++) {
+            expect(scored[i].score).toBeLessThanOrEqual(scored[i - 1].score);
+        }
+    });
+
+    it("honours the limit and returns [] for an unknown source", () => {
+        expect(rankRelatedScored(model, "source.md", { limit: 1 })).toEqual([{ path: "X.md", score: 6 }]);
+        expect(rankRelatedScored(model, "missing.md")).toEqual([]);
+    });
+
+    it("rankRelated is exactly rankRelatedScored's paths (single metric source)", () => {
+        expect(rankRelated(model, "source.md")).toEqual(
+            rankRelatedScored(model, "source.md").map((entry) => entry.path)
+        );
     });
 });

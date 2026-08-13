@@ -6,7 +6,7 @@
 ZettelFlow allows the community to share templates, flows, and actions to help users enhance their note-taking experience. The Community section provides pre-built resources that you can easily import and use in your own Obsidian vault.
 
 ## Types of Community Resources
-ZettelFlow offers four main types of community resources:
+ZettelFlow offers five main types of community resources:
 
 ### 1. Flows
 Flows are complete workflows designed to guide you through specific note-taking processes. These are particularly valuable because:
@@ -24,6 +24,16 @@ Actions are specific functions that can be performed within a step, such as addi
 
 ### 4. Markdown
 Markdown templates provide reusable text content that can be incorporated into your notes.
+
+### 5. Systems (one-click)
+Systems are whole **knowledge methodologies** shipped as a single [`.zftemplate`](../architecture/zftemplate-schema.md) bundle — a canvas plus its step notes. Unlike a flow (which you copy to the clipboard and paste onto a canvas), a system installs in **one click**: pick a folder and ZettelFlow writes the canvas and every step, then opens the canvas ready to run. Systems compose the cognitive capabilities — on creation a note is related, cross-checked, link-suggested and maturity-scored against your own graph — so you start from a real workflow, not a blank canvas.
+
+Shipped systems:
+
+- **Academic research** — literature-to-permanent: a literature note is mined for claims, matched to candidate sources, cross-checked for contradictions and scored on creation; then synthesised into a connected permanent note.
+- **Zettelkasten v2** — fleeting, literature and permanent notes on one canvas, where the permanent note carries the on-creation pattern (find related · find contradictions · suggest links · calculate maturity). This **supersedes the older "Zettelkasten Inbox" flow**, which remains available for back-compat.
+
+To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**.
 
 ## How to Access Community Resources
 1. Open Obsidian and make sure ZettelFlow is installed

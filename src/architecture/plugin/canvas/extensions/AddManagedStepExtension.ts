@@ -6,9 +6,13 @@ import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { OptionsModal, Option } from "architecture/components/settings";
 import { StepSettings } from "zettelkasten";
 import { Notice } from "obsidian";
+import { t } from "architecture/lang";
+import { ObsidianApi, log } from "architecture";
+import { FileService } from "architecture/plugin";
 
 const GROUP_NODE_SIZE = { width: 300, height: 300 };
 const TEXT_NODE_SIZE = { width: 300, height: 100 };
+const FILE_NODE_SIZE = { width: 400, height: 400 };
 
 /**
  * Extension that adds a managed step option to a ZettelFlow canvas.
@@ -153,14 +157,23 @@ export default class AddManagedStepExtension extends CanvasExtension {
      * @returns {Option[]} An array of options for creating either a Text or Group node.
      */
     private getCreationOptions(canvas: Canvas, pos: Position, step: StepSettings): Option[] {
-        // Helper function to save the step configuration in the node.
+        // Legacy inline config: stamp the step JSON onto the canvas node's own data (text/group nodes).
         const saveStepConfig = (node: CanvasNode): void => {
             node.unknownData.zettelflowConfig = JSON.stringify(step);
         };
 
         return [
             {
-                label: "Text",
+                // Canonical format (#238): a real `.md` step file carrying `zettelFlowSettings`
+                // frontmatter, referenced by a file node — the same format systems and export use, so
+                // it is hot-reloadable and shareable. Offered first.
+                label: t("managed_step_note_option"),
+                onSelect: async () => {
+                    await this.createFileStep(canvas, pos, step);
+                }
+            },
+            {
+                label: t("managed_step_text_option"),
                 onSelect: async () => {
                     const node = canvas.createTextNode({
                         pos,
@@ -171,7 +184,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
                 }
             },
             {
-                label: "Group",
+                label: t("managed_step_group_option"),
                 onSelect: async () => {
                     const node = canvas.createGroupNode({
                         pos,
@@ -182,5 +195,30 @@ export default class AddManagedStepExtension extends CanvasExtension {
                 }
             }
         ];
+    }
+
+    /**
+     * Create a step in the canonical **frontmatter** format (#238): write a `.md` file whose
+     * `zettelFlowSettings` frontmatter is the step config, then place a file node pointing at it. This
+     * is the format systems and `.zftemplate` export/import use — hot-reloadable (#226) and shareable —
+     * unlike the legacy inline `zettelflowConfig` on a text/group node.
+     */
+    private async createFileStep(canvas: Canvas, pos: Position, step: StepSettings): Promise<void> {
+        try {
+            const folder = this.plugin.settings.foldersFlowsPath || "_ZettelFlow/folders";
+            const base = (step.label?.trim() || "Step").replace(/[\\/:*?"<>|]/g, " ").trim() || "Step";
+            let path = `${folder}/${base}.md`;
+            for (let n = 2; await FileService.getFile(path, false); n++) {
+                path = `${folder}/${base} ${n}.md`;
+            }
+            const file = await FileService.createFile(path, `# ${step.label || base}\n`, false);
+            await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+                frontmatter.zettelFlowSettings = step;
+            });
+            canvas.createFileNode({ pos, size: FILE_NODE_SIZE, file });
+        } catch (error) {
+            log.error("ZettelFlow: could not create a frontmatter step", error);
+            new Notice(t("managed_step_note_error"));
+        }
     }
 }

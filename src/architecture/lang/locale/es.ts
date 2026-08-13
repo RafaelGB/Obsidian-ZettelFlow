@@ -528,6 +528,11 @@ export default {
     // Remove a relation command (#181)
     command_remove_relation: 'Eliminar una relación',
     ribbon_open_zettelflow: 'Abrir ZettelFlow',
+    // Creación de paso gestionado — formato canónico frontmatter vs inline heredado (#238)
+    managed_step_note_option: 'Nota — archivo con frontmatter (recomendado)',
+    managed_step_text_option: 'Tarjeta de texto (inline, heredado)',
+    managed_step_group_option: 'Grupo (inline, heredado)',
+    managed_step_note_error: 'No se pudo crear el archivo del paso. Revisa la consola para más detalles.',
     remove_relation_modal_title: 'Elige una relación para eliminar…',
     remove_relation_none: 'Esta nota no tiene relaciones tipadas que eliminar.',
     remove_relation_confirm_question: '¿Eliminar la relación {0} → [[{1}]] de "{2}"?',

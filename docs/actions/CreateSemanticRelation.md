@@ -24,6 +24,14 @@ the *typed* ones.)
 One typed frontmatter field, e.g. `supports: "[[Target]]"`, also exposed as `{{supports}}`. Feeding
 that field through the relation schema yields exactly one `Relation { type, from: note, to: target }`.
 
+## Interactive-only (#231 Phase 4)
+
+This action writes to a **fixed `target`** set in its own configuration, so it is meant for
+**interactive** use. It is a **no-op when authored into a shipped `.zftemplate` system's `onCreation`**
+— a template can't know the per-note target. In a system, capture the relation with a normal
+**prompt** (a `[[wikilink]]` field) or use the deterministic
+[`find-related`](FindRelated.md)/[`suggest-link`](SuggestLink.md) instead.
+
 ## Removing a relation (#181)
 
 To delete a relation you created, run the **Remove a relation** command (command palette) with the

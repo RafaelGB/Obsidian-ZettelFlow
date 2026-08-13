@@ -8,13 +8,12 @@ ZettelFlow allows the community to share templates, flows, and actions to help u
 ## Types of Community Resources
 ZettelFlow offers five main types of community resources:
 
-### 1. Flows
-Flows are complete workflows designed to guide you through specific note-taking processes. These are particularly valuable because:
-
-- Ready to use: No technical knowledge required
-- Time-saving: No need to build workflows from scratch
-- Best practice: Created by experienced users
-- Versatile: Available for many different note-taking scenarios
+### 1. Flows *(legacy — superseded by Systems)*
+Flows were complete workflows installed by copying to the clipboard and pasting onto a canvas. As of
+the **Systems Gallery**, this is superseded by one-click **[Systems](#5-systems-one-click)** (a canvas
+plus its steps, written in one click — no clipboard). The community browser now **leads with Systems**
+and hides the legacy *flow* tab; the flow install path still works for back-compat but is no longer the
+recommended way to adopt a workflow.
 
 ### 2. Steps
 Steps are individual components that can be added to your existing workflows. They represent a single action or decision point in a note creation process.

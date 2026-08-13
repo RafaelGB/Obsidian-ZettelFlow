@@ -25,11 +25,23 @@ describe("community catalog systems (#215, AC-3/AC-6, FR-9)", () => {
     const catalog = JSON.parse(readFileSync(CATALOG, "utf8")) as CatalogEntry[];
     const systems = catalog.filter((entry) => entry.template_type === "system");
 
-    it("ships at least the two flagship systems", () => {
-        expect(systems.length).toBeGreaterThanOrEqual(2);
+    it("ships the shipped systems", () => {
         const refs = systems.map((s) => s.ref);
-        expect(refs).toContain("/docs/systems/academic-research.zftemplate");
-        expect(refs).toContain("/docs/systems/zettelkasten-v2.zftemplate");
+        for (const ref of [
+            "/docs/systems/academic-research.zftemplate",
+            "/docs/systems/zettelkasten-v2.zftemplate",
+            "/docs/systems/para-v2.zftemplate",
+            "/docs/systems/gtd.zftemplate",
+        ]) {
+            expect(refs).toContain(ref);
+        }
+    });
+
+    it("has unique ids and refs across the whole catalog", () => {
+        const ids = catalog.map((entry) => entry.id);
+        expect(new Set(ids).size).toBe(ids.length);
+        const systemRefs = systems.map((s) => s.ref);
+        expect(new Set(systemRefs).size).toBe(systemRefs.length);
     });
 
     it("every system entry resolves to a valid .zftemplate with a sibling preview image", () => {

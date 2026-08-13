@@ -70,5 +70,21 @@
     "title": "Zettelkasten v2",
     "description": "The classic slip-box upgraded: three independent note types on one canvas — fleeting, literature and permanent, each its own entry point — where the permanent note is related, cross-checked, link-suggested and maturity-scored on creation. Offline, no AI.",
     "author": "ZettelFlow"
+  },
+  {
+    "id": "a4e8c2d1-3f5b-4a6c-8d7e-1f2a3b4c5d6e",
+    "template_type": "system",
+    "ref": "/docs/systems/para-v2.zftemplate",
+    "title": "PARA v2",
+    "description": "PARA as a note-creation system: four entry points — Project, Area, Resource, Archive — each landing a note in its PARA folder, tagged by category and connected with find-related on creation. Repositions the original PARA classify flow. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "b5f9d3e2-4a6c-5b7d-9e8f-2a3b4c5d6e7f",
+    "template_type": "system",
+    "ref": "/docs/systems/gtd.zftemplate",
+    "title": "GTD",
+    "description": "Getting Things Done as a note-creation system: Inbox capture, Next action and Project entry points that move a thought from capture through clarify to a context-tagged next action, connected with find-related on creation. Offline, no AI.",
+    "author": "ZettelFlow"
   }
 ]

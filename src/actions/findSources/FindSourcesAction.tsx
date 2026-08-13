@@ -29,7 +29,9 @@ export class FindSourcesAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/FindSources";
-    purpose = "Suggest existing vault sources for an under-sourced note.";
+    get purpose(): string {
+        return t("find_sources_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as ResearchActionElement;

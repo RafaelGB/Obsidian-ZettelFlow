@@ -15,7 +15,9 @@ export class SummarizeAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Summarize";
-    purpose = "Summarize the note being built with AI.";
+    get purpose(): string {
+        return t("summarize_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as AiActionElement;

@@ -1,6 +1,7 @@
 import { CustomZettelAction, ExecuteInfo, fnsManager, buildAsyncScriptFunction } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
 import { log } from "architecture";
+import { t } from "architecture/lang";
 import { CodeElement } from "architecture/components/core";
 import { scriptSettingsReader } from "./ScriptSettingsReader";
 export class ScriptAction extends CustomZettelAction {
@@ -16,7 +17,9 @@ export class ScriptAction extends CustomZettelAction {
   settingsReader = scriptSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script";
   // TODO: Translate this
-  purpose = "Run a JS script when the note is created/edited.";
+  get purpose(): string {
+    return t("script_purpose");
+  }
 
   async execute(info: ExecuteInfo) {
     try {

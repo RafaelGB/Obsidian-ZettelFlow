@@ -24,7 +24,9 @@ export class CreateSemanticRelationAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CreateSemanticRelation";
-    purpose = "Write a typed relation from this note to a target note.";
+    get purpose(): string {
+        return t("create_semantic_relation_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as RelationActionElement;

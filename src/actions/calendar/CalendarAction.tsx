@@ -26,7 +26,9 @@ export class CalendarAction extends CustomZettelAction {
   settingsReader = calendarSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Calendar";
   // TODO: Translate this
-  purpose = "Add a calendar (date/time) to your note.";
+  get purpose(): string {
+    return t("calendar_purpose");
+  }
 
   component(props: WrappedActionBuilderProps) {
     return <CalendarWrapper {...props} />;

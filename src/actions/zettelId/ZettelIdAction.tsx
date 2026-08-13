@@ -31,7 +31,9 @@ export class ZettelIdAction extends CustomZettelAction {
     settings = zettelIdSettings;
     settingsReader = zettelIdSettingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/ZettelId";
-    purpose = "Assign a unique Zettel ID (timestamp or Folgezettel) to the note being created.";
+    get purpose(): string {
+        return t("zettel_id_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const { content, note, element } = info;

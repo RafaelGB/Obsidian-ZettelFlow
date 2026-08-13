@@ -23,8 +23,9 @@ export class SelectorAction extends CustomZettelAction {
   settings = elementTypeSelectorSettings;
   settingsReader = selectorSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Selector";
-  purpose =
-    "Create multiple options to select from and add the selected one to the note.";
+  get purpose(): string {
+    return t("selector_purpose");
+  }
   component(props: WrappedActionBuilderProps) {
     const action = props.action as SelectorElement;
     const { multiple } = action;

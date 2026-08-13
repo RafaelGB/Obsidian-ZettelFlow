@@ -40,7 +40,9 @@ export class ThinkingSimulatorAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/ThinkingSimulator";
-    purpose = "Challenge this note with critical-thinking prompts adapted to its gaps.";
+    get purpose(): string {
+        return t("thinking_simulator_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as KnowledgeActionElement;

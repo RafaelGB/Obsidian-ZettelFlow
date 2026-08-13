@@ -25,7 +25,9 @@ export class ExtractClaimsAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/ExtractClaims";
-    purpose = "Surface the claims and sources a note declares.";
+    get purpose(): string {
+        return t("extract_claims_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as ResearchActionElement;

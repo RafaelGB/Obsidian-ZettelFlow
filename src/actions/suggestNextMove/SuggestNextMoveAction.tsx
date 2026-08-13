@@ -35,7 +35,9 @@ export class SuggestNextMoveAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/SuggestNextMove";
-    purpose = "Suggest the most useful next action to develop this note.";
+    get purpose(): string {
+        return t("suggest_next_move_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as KnowledgeActionElement;

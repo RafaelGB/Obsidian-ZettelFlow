@@ -25,7 +25,9 @@ export class CompareClaimsAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CompareClaims";
-    purpose = "Find notes whose claims agree with or contradict this note's claims.";
+    get purpose(): string {
+        return t("compare_claims_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as ResearchActionElement;

@@ -24,7 +24,9 @@ export class CalculateMaturityAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CalculateMaturity";
-    purpose = "Score how developed the note is (0-100) from state, links, sources and age.";
+    get purpose(): string {
+        return t("calculate_maturity_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as KnowledgeActionElement;

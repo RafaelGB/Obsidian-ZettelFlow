@@ -15,7 +15,9 @@ export class ClassifyAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Classify";
-    purpose = "Suggest topic tags for the note with AI.";
+    get purpose(): string {
+        return t("classify_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as AiActionElement;

@@ -21,8 +21,9 @@ export class CssClassesAction extends CustomZettelAction {
   settingsReader = cssClassesSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/CssClasses";
   // TODO: Translate this
-  purpose =
-    "Native Obsidian property to add CSS classes just for the note where it is added.";
+  get purpose(): string {
+    return t("cssclasses_purpose");
+  }
   component(props: WrappedActionBuilderProps) {
     return <CssClassesWrapper {...props} />;
   }

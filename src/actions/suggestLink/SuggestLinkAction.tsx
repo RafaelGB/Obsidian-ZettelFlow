@@ -27,7 +27,9 @@ export class SuggestLinkAction extends CustomZettelAction {
     settings = settings;
     settingsReader = settingsReader;
     link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/SuggestLink";
-    purpose = "Surface the top link suggestions for the note.";
+    get purpose(): string {
+        return t("suggest_link_purpose");
+    }
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as RelationActionElement;

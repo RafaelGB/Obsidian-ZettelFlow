@@ -370,6 +370,8 @@ export default {
     // Crear en carpeta actual
     create_in_current_folder_toggle_title: 'Crear nota en la carpeta actual',
     create_in_current_folder_toggle_description: 'Cuando está activo, las notas siempre se crean en la carpeta del archivo activo, ignorando la carpeta destino configurada en cada paso.',
+    open_home_on_startup_toggle_title: 'Abrir ZettelFlow Home al iniciar',
+    open_home_on_startup_toggle_description: 'Te recibe con la vista ZettelFlow Home cuando se abre Obsidian — tu puerta de entrada diaria. Activo en instalaciones nuevas; desactívalo para mantener tu disposición de inicio habitual.',
 
     // Incorporación
     onboarding_welcome_title: 'Bienvenido a ZettelFlow',

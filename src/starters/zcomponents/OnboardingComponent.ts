@@ -16,6 +16,8 @@ export class OnboardingComponent extends PluginComponent {
         if (this.plugin.settings.hasSeenWelcome) return;
         this.plugin.app.workspace.onLayoutReady(() => {
             this.plugin.settings.hasSeenWelcome = true;
+            // New users get Home as the daily front door on subsequent launches (#246 A2); overridable.
+            this.plugin.settings.openHomeOnStartup = true;
             void this.plugin.saveSettings();
             new WelcomeModal(this.plugin).open();
         });

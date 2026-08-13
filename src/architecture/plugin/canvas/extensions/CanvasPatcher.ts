@@ -115,9 +115,36 @@ export default class CanvasPatcher {
                 this.notifyCanvasUnavailable('the canvas view data methods were not found')
                 return
             }
+
+            // Canvases already open when Obsidian started rendered BEFORE this patch installed, so the
+            // injection events never fired for them and the plugin's canvas options never attached
+            // (#234). Re-fire them once, now, for every open canvas leaf. Safe: the patched setViewData
+            // fires these on every canvas change and the handlers are idempotent (addCardMenuOption
+            // removes any same-id element first; the restyle clears before re-applying).
+            await this.reapplyToOpenCanvases()
         } catch (e) {
             log.error("ZettelFlow: failed to initialize the canvas integration", e)
             new Notice(t('notice_canvas_patch_failed'))
+        }
+    }
+
+    /**
+     * Re-fire the canvas injection events for every currently-open canvas leaf, so canvases restored
+     * open at startup get the plugin's card-menu options and workflow styling without a manual
+     * reopen/restart (#234). Guarded per leaf — a single bad view never aborts the rest.
+     */
+    private async reapplyToOpenCanvases() {
+        const leaves = this.plugin.app.workspace.getLeavesOfType('canvas')
+        for (const leaf of leaves) {
+            try {
+                if (requireApiVersion('1.7.2')) await leaf.loadIfDeferred()
+                const canvas = (leaf.view as CanvasView)?.canvas
+                if (!canvas) continue
+                this.triggerWorkspaceEvent("zettelflow-node-connection-drop-menu", canvas)
+                this.triggerWorkspaceEvent("zettelflow-canvas-render", canvas)
+            } catch (e) {
+                log.warn("ZettelFlow: could not re-apply canvas options to an open canvas", e)
+            }
         }
     }
 

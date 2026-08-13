@@ -24,9 +24,10 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   // Estados
   const [searchTerm, setSearchTerm] = useState("");
   const [targetSearchTerm, setTargetSearchTerm] = useState("");
+  // Systems are the primary adoption path (#231 Phase 1): the browser leads with them.
   const [filter, setFilter] = useState<
     "all" | "step" | "action" | "markdown" | "flow" | "system"
-  >("all");
+  >("system");
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -64,7 +65,10 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         template.description.toLowerCase().includes(lowerCaseSearchTerm);
       const matchesFilter =
         filter === "all" || template.template_type === filter;
-      return matchesSearch && matchesFilter;
+      // Legacy "flow" entries are superseded by one-click systems (#231 Phase 1) — kept in the
+      // catalog for back-compat but hidden from the browser (consolidate & hide).
+      const isLegacyFlow = template.template_type === "flow";
+      return matchesSearch && matchesFilter && !isLegacyFlow;
     });
   }, [templates, targetSearchTerm, filter]);
 
@@ -187,7 +191,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           className={c("community-templates-search")}
         />
         <div className={c("community-templates-filters")}>
-          {(["all", "step", "action", "markdown", "flow", "system"] as const).map(
+          {(["system", "all", "step", "action", "markdown"] as const).map(
             (type) => {
               const classesToApply = [
                 "community-templates-filter-button",

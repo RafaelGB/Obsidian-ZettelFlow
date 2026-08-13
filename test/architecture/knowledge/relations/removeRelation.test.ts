@@ -59,4 +59,21 @@ describe("listRelationEdges (#181)", () => {
         expect(listRelationEdges({ title: "T", tags: ["x"] })).toEqual([]);
         expect(listRelationEdges(undefined)).toEqual([]);
     });
+
+    it("ignores a plain-string value under a relation-type key (question/example are also words)", () => {
+        // `question` and `example` are relation types AND ordinary frontmatter values; only wikilinks are edges.
+        expect(listRelationEdges({ question: "What is X?", example: "see the intro" })).toEqual([]);
+        expect(listRelationEdges({ supports: "[[Real]]", question: "not an edge" })).toEqual([
+            { relationType: "supports", target: "Real" },
+        ]);
+    });
+});
+
+describe("removeRelationField ignores non-wikilink values (#181 review)", () => {
+    it("never removes a plain-string value under a relation-type key", () => {
+        expect(removeRelationField({ question: "What is X?" }, "question", "What is X?")).toEqual({
+            frontmatter: { question: "What is X?" },
+            changed: false,
+        });
+    });
 });

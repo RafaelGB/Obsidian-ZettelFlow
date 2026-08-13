@@ -19,6 +19,15 @@ export interface RemoveRelationResult {
     changed: boolean;
 }
 
+/**
+ * A relation edge is only a value in `[[wikilink]]` form (as `create-semantic-relation` writes it).
+ * A plain string under a relation-type key — e.g. `question: "What is X?"`, since `question`/`example`
+ * are both relation types AND ordinary words — is NOT an edge and must never be listed or removed (#181).
+ */
+function isWikilinkValue(entry: unknown): entry is string {
+    return typeof entry === "string" && /\[\[.+?\]\]/.test(entry);
+}
+
 /** Every typed-relation edge present in a frontmatter object, in field-then-value order. */
 export function listRelationEdges(frontmatter: Record<string, unknown> | undefined): RelationEdge[] {
     if (!frontmatter) return [];
@@ -27,7 +36,7 @@ export function listRelationEdges(frontmatter: Record<string, unknown> | undefin
         const value = frontmatter[relationType];
         const values = Array.isArray(value) ? value : [value];
         for (const entry of values) {
-            if (typeof entry !== "string") continue;
+            if (!isWikilinkValue(entry)) continue;
             const target = stripWikilink(entry);
             if (target) edges.push({ relationType, target });
         }
@@ -50,7 +59,7 @@ export function removeRelationField(
     if (!wanted || !(relationType in frontmatter)) return { frontmatter, changed: false };
 
     const value = frontmatter[relationType];
-    const matches = (entry: unknown): boolean => typeof entry === "string" && stripWikilink(entry) === wanted;
+    const matches = (entry: unknown): boolean => isWikilinkValue(entry) && stripWikilink(entry) === wanted;
 
     if (Array.isArray(value)) {
         const kept = value.filter((entry) => !matches(entry));

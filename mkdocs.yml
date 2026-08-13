@@ -86,5 +86,6 @@ nav:
       - 7.21 Evidence map: development/evidence-map.md
       - 7.22 Knowledge patterns: development/knowledge-patterns.md
       - 7.23 Knowledge dashboard: development/knowledge-dashboard.md
+      - 7.24 ZettelFlow home: development/zettelflow-home.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

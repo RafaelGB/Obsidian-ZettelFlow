@@ -895,6 +895,16 @@ export default {
     ai_generate_questions_label: 'Generar preguntas',
     ai_generate_questions_desc: 'Genera preguntas abiertas que plantea la nota con IA.',
     ai_generate_questions_notice: 'Se han escrito {0} pregunta(s) con IA.',
+    // Acciones de IA de continuación (#184)
+    ai_challenge_idea_label: 'Cuestionar idea',
+    ai_challenge_idea_desc: 'Argumenta con IA en contra de la tesis de la nota para revelar sus puntos débiles.',
+    ai_challenge_idea_notice: 'Se ha escrito una objeción con IA.',
+    ai_synthesize_label: 'Sintetizar',
+    ai_synthesize_desc: 'Sintetiza con IA en un único resumen las notas que esta enlaza.',
+    ai_synthesize_notice: 'Se han sintetizado {0} nota(s) enlazada(s).',
+    ai_suggest_connections_label: 'Sugerir conexiones',
+    ai_suggest_connections_desc: 'Sugiere con IA notas que merece la pena enlazar (la versión con IA de sugerir enlace).',
+    ai_suggest_connections_notice: 'Se han escrito {0} sugerencia(s) de conexión con IA.',
     // Ajustes de IA (#156)
     settings_ai_heading: 'IA (opcional)',
     settings_ai_intro: 'La IA es una categoría de acciones opcional — el plugin funciona por completo con ella desactivada. Está desactivada por defecto.',
@@ -939,4 +949,7 @@ export default {
     summarize_purpose: 'Resume con IA la nota que se está construyendo.',
     classify_purpose: 'Sugiere con IA etiquetas de tema para la nota.',
     generate_questions_purpose: 'Genera con IA preguntas abiertas que plantea la nota.',
+    challenge_idea_purpose: 'Argumenta con IA en contra de la tesis de la nota para revelar sus puntos débiles.',
+    synthesize_purpose: 'Sintetiza con IA en un único resumen las notas que esta enlaza.',
+    suggest_connections_purpose: 'Sugiere con IA notas que merece la pena enlazar.',
 };

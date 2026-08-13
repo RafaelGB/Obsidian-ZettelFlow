@@ -10,7 +10,8 @@ import {
 	SuggestNextMoveAction, ThinkingSimulatorAction,
 	FindRelatedAction, SuggestLinkAction, CreateSemanticRelationAction,
 	ExtractClaimsAction, CompareClaimsAction, FindSourcesAction, AttachSourceAction,
-	SummarizeAction, ClassifyAction, GenerateQuestionsAction
+	SummarizeAction, ClassifyAction, GenerateQuestionsAction,
+	ChallengeIdeaAction, SynthesizeAction, SuggestConnectionsAction
 } from 'actions';
 import { log } from 'architecture';
 import { t } from 'architecture/lang';
@@ -145,5 +146,8 @@ export default class ZettelFlow extends Plugin {
 		actionsStore.registerAction(new SummarizeAction());
 		actionsStore.registerAction(new ClassifyAction());
 		actionsStore.registerAction(new GenerateQuestionsAction());
+		actionsStore.registerAction(new ChallengeIdeaAction());
+		actionsStore.registerAction(new SynthesizeAction());
+		actionsStore.registerAction(new SuggestConnectionsAction());
 	}
 }

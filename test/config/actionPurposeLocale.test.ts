@@ -32,11 +32,14 @@ const KEYS = [
     "summarize_purpose",
     "classify_purpose",
     "generate_questions_purpose",
+    "challenge_idea_purpose",
+    "synthesize_purpose",
+    "suggest_connections_purpose",
 ];
 
 describe("action purpose i18n parity (#187)", () => {
-    it("defines all 28 purpose keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(28);
+    it("defines all 31 purpose keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(31);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

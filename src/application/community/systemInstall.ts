@@ -17,6 +17,7 @@ export const REGISTERED_ACTION_IDS: ReadonlySet<string> = new Set([
     "suggest-next-move", "thinking-simulator", "find-related", "suggest-link",
     "create-semantic-relation", "extract-claims", "compare-claims", "find-sources",
     "attach-source", "summarize", "classify", "generate-questions",
+    "challenge-idea", "synthesize", "suggest-connections",
 ]);
 
 /** Last path segment of a vault path, handling both separators. Pure. */

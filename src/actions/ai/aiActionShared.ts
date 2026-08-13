@@ -84,6 +84,22 @@ export async function runAiAction(
     el: AiActionElement,
     spec: AiActionSpec
 ): Promise<void> {
+    await runAiActionFromPrompt(info, el, spec.buildPrompt(info.content.get()), spec);
+}
+
+/**
+ * Same gate/call/write path as {@link runAiAction} but for actions that build their prompt themselves
+ * (e.g. the multi-note `synthesize` #184, which gathers linked notes in its `execute`). Off ⇒ no
+ * network; unconfigured ⇒ Notice; failure ⇒ Notice with nothing written; success ⇒ DTO write + a
+ * silent-aware Notice. The prompt is built by the caller so an expensive gather only happens when the
+ * caller decides to (callers should still short-circuit before building an empty prompt).
+ */
+export async function runAiActionFromPrompt(
+    info: ExecuteInfo,
+    el: AiActionElement,
+    prompt: string,
+    spec: Pick<AiActionSpec, "transform" | "notice">
+): Promise<void> {
     const service = AiService.getInstance();
     const state = service.gate();
     if (state === "disabled") {
@@ -97,7 +113,6 @@ export async function runAiAction(
         return;
     }
 
-    const prompt = spec.buildPrompt(info.content.get());
     let raw: string;
     try {
         raw = await service.getProvider().complete(prompt);

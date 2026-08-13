@@ -895,6 +895,16 @@ export default {
     ai_generate_questions_label: 'Generate questions',
     ai_generate_questions_desc: 'Generate open questions the note raises with AI.',
     ai_generate_questions_notice: 'Wrote {0} AI question(s).',
+    // AI fast-follow (#184)
+    ai_challenge_idea_label: 'Challenge idea',
+    ai_challenge_idea_desc: "Argue against the note's thesis to surface its weak points, with AI.",
+    ai_challenge_idea_notice: 'Wrote an AI challenge.',
+    ai_synthesize_label: 'Synthesize',
+    ai_synthesize_desc: 'Synthesize the notes this one links into one summary, with AI.',
+    ai_synthesize_notice: 'Synthesized {0} linked note(s).',
+    ai_suggest_connections_label: 'Suggest connections',
+    ai_suggest_connections_desc: 'Suggest notes worth linking with AI (the AI counterpart to suggest link).',
+    ai_suggest_connections_notice: 'Wrote {0} AI connection suggestion(s).',
     // AI settings (#156)
     settings_ai_heading: 'AI (optional)',
     settings_ai_intro: 'AI is one optional action category — the whole plugin works with it off. It is off by default.',
@@ -939,4 +949,7 @@ export default {
     summarize_purpose: 'Summarize the note being built with AI.',
     classify_purpose: 'Suggest topic tags for the note with AI.',
     generate_questions_purpose: 'Generate open questions the note raises with AI.',
+    challenge_idea_purpose: "Argue against the note's thesis to surface its weak points, with AI.",
+    synthesize_purpose: 'Synthesize the notes this one links into one summary, with AI.',
+    suggest_connections_purpose: 'Suggest notes worth linking with AI.',
 };

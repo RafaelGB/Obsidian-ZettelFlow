@@ -18,12 +18,18 @@ const ACTION_FILES = [
     "src/actions/ai/SummarizeAction.tsx",
     "src/actions/ai/ClassifyAction.tsx",
     "src/actions/ai/GenerateQuestionsAction.tsx",
+    "src/actions/ai/ChallengeIdeaAction.tsx",
+    "src/actions/ai/SynthesizeAction.tsx",
+    "src/actions/ai/SuggestConnectionsAction.tsx",
 ];
 
 const REGISTERED_CLASSES = [
     "SummarizeAction",
     "ClassifyAction",
     "GenerateQuestionsAction",
+    "ChallengeIdeaAction",
+    "SynthesizeAction",
+    "SuggestConnectionsAction",
 ];
 
 const ALL_AI_SOURCES = [

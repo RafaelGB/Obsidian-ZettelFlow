@@ -27,3 +27,6 @@ export { AttachSourceAction } from './attachSource/AttachSourceAction';
 export { SummarizeAction } from './ai/SummarizeAction';
 export { ClassifyAction } from './ai/ClassifyAction';
 export { GenerateQuestionsAction } from './ai/GenerateQuestionsAction';
+export { ChallengeIdeaAction } from './ai/ChallengeIdeaAction';
+export { SynthesizeAction } from './ai/SynthesizeAction';
+export { SuggestConnectionsAction } from './ai/SuggestConnectionsAction';

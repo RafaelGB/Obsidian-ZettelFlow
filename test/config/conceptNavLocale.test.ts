@@ -12,13 +12,14 @@ const KEYS = [
     "concept_nav_entry_heading",
     "concept_nav_out_heading",
     "concept_nav_in_heading",
+    "concept_nav_back_button",
     "settings_toolkit_concept_nav_name",
     "settings_toolkit_concept_nav_desc",
 ];
 
 describe("concept navigation i18n parity (#166)", () => {
-    it("defines all 11 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(11);
+    it("defines all 12 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(12);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

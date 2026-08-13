@@ -27,6 +27,8 @@ export class ConceptNavView extends ItemView {
     private state: ViewState = "indexing";
     private model: KnowledgeModel | null = null;
     private focus: string | null = null;
+    /** Set when the user deliberately returns to the hub list — suppresses active-note re-seeding. */
+    private userChoseHubs = false;
     private neighbors: ConceptNeighbors | null = null;
     private entryHubs: string[] = [];
     private debounceTimer: number | undefined;
@@ -78,9 +80,10 @@ export class ConceptNavView extends ItemView {
             }
             const start = Date.now();
             this.model = index.getModel();
-            // Drop a focus whose note is gone; otherwise seed from the active note when unfocused.
+            // Drop a focus whose note is gone; otherwise seed from the active note when unfocused,
+            // unless the user deliberately went back to the hub list (then keep them there).
             if (this.focus && !this.model.get(this.focus)) this.focus = null;
-            if (!this.focus) {
+            if (!this.focus && !this.userChoseHubs) {
                 const active = this.app.workspace.getActiveFile();
                 if (active && this.model.get(active.path)) this.focus = active.path;
             }
@@ -107,6 +110,7 @@ export class ConceptNavView extends ItemView {
     /** Re-focus the pane on a note (the hub→neighbour walk) without re-reading the index. */
     private focusOn(path: string): void {
         this.focus = path;
+        this.userChoseHubs = false;
         if (this.model) {
             this.deriveState();
             this.render();
@@ -161,12 +165,13 @@ export class ConceptNavView extends ItemView {
         name.setAttribute("title", neighbors.focus);
         name.addEventListener("click", () => void this.app.workspace.openLinkText(neighbors.focus, "", false));
         const back = focusRow.createEl("button", {
-            text: t("concept_nav_entry_heading"),
+            text: t("concept_nav_back_button"),
             cls: c("concept-nav-back"),
-            attr: { "aria-label": t("concept_nav_entry_heading") },
+            attr: { "aria-label": t("concept_nav_back_button") },
         });
         back.addEventListener("click", () => {
             this.focus = null;
+            this.userChoseHubs = true;
             this.deriveState();
             this.render();
         });

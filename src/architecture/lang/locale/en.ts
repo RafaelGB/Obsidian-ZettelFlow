@@ -690,6 +690,7 @@ export default {
     concept_nav_entry_heading: 'Hubs',
     concept_nav_out_heading: 'Leads to',
     concept_nav_in_heading: 'Referenced by',
+    concept_nav_back_button: 'Back to hubs',
     settings_toolkit_concept_nav_name: 'Concept navigation',
     settings_toolkit_concept_nav_desc: 'Walk your notes by concept, like a Wikipedia you wrote.',
     // Relation actions (#154)

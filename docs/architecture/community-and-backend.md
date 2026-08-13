@@ -1,8 +1,8 @@
 # Community feature & backend
 
 ZettelFlow lets users **browse, preview, install and reuse** shareable building blocks —
-*actions*, *steps*, *markdown* notes and whole *flows*. This page covers the frontend community
-module and the optional FastAPI/MongoDB backend.
+*actions*, *steps*, *markdown* notes, whole *flows*, and complete *systems*. This page covers the
+frontend community module and the optional FastAPI/MongoDB backend.
 
 ## 1. Two data sources
 
@@ -11,7 +11,7 @@ is set in `communitySettings`:
 
 | Source | Component | Backing service | Supports |
 |---|---|---|---|
-| **Static** (default) | `StaticTemplatesGallery` | `raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/.../main` | steps, actions, **markdown, flows** |
+| **Static** (default) | `StaticTemplatesGallery` | `raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/.../main` | steps, actions, **markdown, flows, systems** |
 | **Dynamic** (token set) | `CommunityTemplatesGallery` | the FastAPI backend at `communitySettings.url` | steps, actions |
 
 ```ts
@@ -40,6 +40,13 @@ else                          render(<StaticTemplatesGallery/>);      // GitHub 
   clipboard" (stores the flow in `communitySettings.clipboardTemplate`), "Download flow files"
   (writes referenced markdown into the vault and rewrites node `file` paths), and renders the
   nodes (grouped by type) and edges.
+- **`CommunitySystemModal`** (#214) — previews a whole **system** shipped as the unified
+  [`.zftemplate`](zftemplate-schema.md) bundle: name, author, description, an optional
+  sibling preview image, and the list of files that will be written. "Install system" picks a
+  target folder (default `foldersFlowsPath`), then `planSystemInstall` + `FileService.writeFile`
+  create the canvas and every step note in one click (no clipboard, no manual paste) and open the
+  canvas. The pure planner/validator lives in `systemInstall.ts` (Obsidian-free, so it is
+  unit-testable and every shipped system is checked against the registered action ids).
 - **`ManageInstalledTemplatesModal`** — manages installed templates; "Add template from
   clipboard" imports `clipboardTemplate` into `installedTemplates`.
 - **`UsedInstalledStepsModal`** — a picker (`StepTemplatesSelector`) used to drop an installed
@@ -59,6 +66,7 @@ COMMUNITY_BASE_URL = "https://raw.githubusercontent.com/RafaelGB/Obsidian-Zettel
 | `fetchActionTemplate(ref)` | `${BASE}${ref}` | `CommunityAction` |
 | `fetchStepTemplate(ref)` | `${BASE}${ref}` | `CommunityStepSettings` |
 | `fetchFlowTemplate(ref)` | `${BASE}${ref}/flow.json` | `CommunityFlowData` |
+| `fetchSystemTemplate(ref)` | `${BASE}${ref}` | `ZfTemplate` (parsed `.zftemplate`) |
 | `fetchMarkdownTemplate(ref)` | `${BASE}${ref}` | raw markdown |
 
 The **dynamic** gallery has its own inline fetchers (in `CommunityTemplatesGallery.tsx`) hitting
@@ -75,6 +83,10 @@ search, All/Step/Action filters, and **infinite scroll** (`IntersectionObserver`
 - **Flows** — "Copy to clipboard" → `clipboardTemplate`; "Download flow files" writes the
   markdown and rewrites node paths; the clipboard flow is imported via
   `ManageInstalledTemplatesModal`.
+- **Systems** (#214) — the modern one-click path. `planSystemInstall` turns a `.zftemplate` into a
+  deterministic file list (canvas + steps under the chosen folder); the modal writes each with
+  `FileService.writeFile` and opens the canvas. No clipboard round-trip; the same unified format
+  the local export/import commands use.
 
 ## 3. Backend — `backend/`
 

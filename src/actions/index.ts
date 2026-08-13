@@ -16,6 +16,7 @@ export { CalculateMaturityAction } from './calculateMaturity/CalculateMaturityAc
 export { FindContradictionAction } from './findContradiction/FindContradictionAction';
 export { FindUnansweredQuestionAction } from './findUnansweredQuestion/FindUnansweredQuestionAction';
 export { SuggestNextMoveAction } from './suggestNextMove/SuggestNextMoveAction';
+export { ThinkingSimulatorAction } from './thinkingSimulator/ThinkingSimulatorAction';
 export { FindRelatedAction } from './findRelated/FindRelatedAction';
 export { SuggestLinkAction } from './suggestLink/SuggestLinkAction';
 export { CreateSemanticRelationAction } from './createSemanticRelation/CreateSemanticRelationAction';

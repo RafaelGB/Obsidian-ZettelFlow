@@ -30,11 +30,24 @@ const KEYS = [
     "knowledge_next_move_advance_state",
     "knowledge_next_move_complete",
     "knowledge_next_move_notice",
+    // Thinking simulator (#165)
+    "knowledge_action_thinking_label",
+    "knowledge_action_thinking_desc",
+    "knowledge_thinking_prompt_assume_false",
+    "knowledge_thinking_prompt_who_disagrees",
+    "knowledge_thinking_prompt_extreme_case",
+    "knowledge_thinking_prompt_hidden_assumption",
+    "knowledge_thinking_prompt_needs_evidence",
+    "knowledge_thinking_prompt_needs_counterpoint",
+    "knowledge_thinking_prompt_needs_example",
+    "knowledge_thinking_prompt_needs_connection",
+    "knowledge_thinking_prompt_needs_question",
+    "knowledge_thinking_notice",
 ];
 
-describe("knowledge action i18n parity (#153/#158, AC-8)", () => {
-    it("defines all 26 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(26);
+describe("knowledge action i18n parity (#153/#158/#165, AC-8)", () => {
+    it("defines all 38 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(38);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

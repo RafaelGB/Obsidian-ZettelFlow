@@ -1,0 +1,70 @@
+.zettelkasten-flow__evolution-timeline {
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__evolution-timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__evolution-timeline-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__evolution-timeline-refresh {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__evolution-timeline-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__evolution-timeline-entry {
+    margin-bottom: 0.75rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__evolution-timeline-date {
+    display: block;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-accent);
+    font-weight: var(--font-semibold);
+    margin-bottom: 0.15rem;
+}
+
+.zettelkasten-flow__evolution-timeline-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+    margin: 0.1rem 0;
+}
+
+.zettelkasten-flow__evolution-timeline-label {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__evolution-timeline-state {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__evolution-timeline-claims {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.zettelkasten-flow__evolution-timeline-claim {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+}

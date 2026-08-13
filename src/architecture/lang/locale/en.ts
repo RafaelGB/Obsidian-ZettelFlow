@@ -711,6 +711,17 @@ export default {
     open_questions_no_answer: 'No candidate answer found.',
     settings_toolkit_open_questions_name: 'Open questions',
     settings_toolkit_open_questions_desc: 'Every unanswered question in your vault, with candidate answers.',
+    // Evolution timeline view (#168)
+    evolution_timeline_view_title: 'Evolution timeline',
+    command_show_evolution_timeline: 'Show evolution timeline',
+    evolution_timeline_loading: 'Building the index…',
+    evolution_timeline_empty: 'No conceptual history yet for this note — it appears as the note evolves.',
+    evolution_timeline_error: 'Could not load the evolution timeline.',
+    evolution_timeline_refresh_button: 'Refresh',
+    evolution_timeline_state_label: 'State',
+    evolution_timeline_claims_label: 'Claims',
+    settings_toolkit_timeline_name: 'Evolution timeline',
+    settings_toolkit_timeline_desc: 'The conceptual history of a note — how its state and claims evolved.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

@@ -30,6 +30,7 @@ import { DiscoveriesView } from "architecture/components/core/discoveries/Discov
 import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
 import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptNavView";
 import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
+import { EvolutionTimelineView } from "architecture/components/core/timeline/EvolutionTimelineView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -56,6 +57,7 @@ const TOOLKIT_DOCS = {
     map: `${DOCS_BASE}development/living-knowledge-map/`,
     conceptNav: `${DOCS_BASE}development/concept-navigation/`,
     openQuestions: `${DOCS_BASE}development/open-questions/`,
+    timeline: `${DOCS_BASE}development/evolution-timeline/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -570,6 +572,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.openQuestions);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_timeline_name"),
+                        desc: t("settings_toolkit_timeline_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, EvolutionTimelineView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.timeline);
                         },
                     },
                     {

@@ -711,6 +711,17 @@ export default {
     open_questions_no_answer: 'No se ha encontrado ninguna respuesta candidata.',
     settings_toolkit_open_questions_name: 'Preguntas abiertas',
     settings_toolkit_open_questions_desc: 'Todas las preguntas sin responder de tu bóveda, con respuestas candidatas.',
+    // Vista de línea temporal de evolución (#168)
+    evolution_timeline_view_title: 'Línea temporal de evolución',
+    command_show_evolution_timeline: 'Mostrar línea temporal de evolución',
+    evolution_timeline_loading: 'Construyendo el índice…',
+    evolution_timeline_empty: 'Aún no hay historial conceptual de esta nota — aparece a medida que la nota evoluciona.',
+    evolution_timeline_error: 'No se ha podido cargar la línea temporal de evolución.',
+    evolution_timeline_refresh_button: 'Actualizar',
+    evolution_timeline_state_label: 'Estado',
+    evolution_timeline_claims_label: 'Afirmaciones',
+    settings_toolkit_timeline_name: 'Línea temporal de evolución',
+    settings_toolkit_timeline_desc: 'El historial conceptual de una nota — cómo evolucionaron su estado y sus afirmaciones.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

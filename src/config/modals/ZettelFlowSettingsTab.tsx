@@ -28,6 +28,7 @@ import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatma
 import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
 import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
 import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptNavView";
+import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -53,6 +54,7 @@ const TOOLKIT_DOCS = {
     discoveries: `${DOCS_BASE}development/morning-discovery/`,
     map: `${DOCS_BASE}development/living-knowledge-map/`,
     conceptNav: `${DOCS_BASE}development/concept-navigation/`,
+    openQuestions: `${DOCS_BASE}development/open-questions/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -551,6 +553,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.conceptNav);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_open_questions_name"),
+                        desc: t("settings_toolkit_open_questions_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, OpenQuestionsView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.openQuestions);
                         },
                     },
                     {

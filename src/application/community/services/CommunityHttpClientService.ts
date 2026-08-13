@@ -2,6 +2,7 @@ import { log } from "architecture";
 import { CommunityAction, CommunityStepSettings, StaticTemplateOptions } from "config";
 import { request } from "obsidian";
 import { CommunityFlowData } from "../typing";
+import { ZfTemplate, parseTemplate } from "application/template/zfTemplate";
 
 export const COMMUNITY_BASE_URL =
     "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
@@ -44,6 +45,16 @@ export async function fetchFlowTemplate(ref: string) {
         contentType: "application/json",
     });
     return JSON.parse(rawList) as CommunityFlowData;
+}
+
+export async function fetchSystemTemplate(ref: string): Promise<ZfTemplate> {
+    log.debug("Fetching system template", ref);
+    const raw = await request({
+        url: `${COMMUNITY_BASE_URL}${ref}`,
+        method: "GET",
+        contentType: "application/json",
+    });
+    return parseTemplate(raw);
 }
 
 export async function fetchMarkdownTemplate(ref: string) {

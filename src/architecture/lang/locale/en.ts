@@ -283,6 +283,15 @@ export default {
     template_download_flow_files: 'Download flow files',
     template_download_flow_title: 'Download templates associated to the flow into your vault',
 
+    // Community system modal (#214)
+    community_system_preview: 'System preview',
+    community_system_contents: 'What gets installed',
+    community_system_install_location: 'Install location',
+    community_system_install_location_desc: 'Folder where the canvas and its step notes will be created.',
+    community_system_install_button: 'Install system',
+    community_system_installed: 'system installed',
+    community_system_install_error: 'Could not install the system. Check the console for details.',
+
     // Community markdown modal
     remove_markdown_button: 'Remove',
     remove_markdown_button_title: 'Remove the markdown file',

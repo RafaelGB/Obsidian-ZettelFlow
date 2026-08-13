@@ -1,0 +1,16 @@
+{
+  "zfVersion": "1.0",
+  "name": "Seed system",
+  "description": "A minimal valid system exercised by the validity harness.",
+  "author": "ZettelFlow",
+  "canvas": {
+    "filename": "Seed.canvas",
+    "content": "{\"nodes\":[{\"id\":\"seed-step\",\"type\":\"file\",\"file\":\"_ZettelFlow/folders/Seed step.md\",\"x\":-175,\"y\":-80,\"width\":350,\"height\":160}],\"edges\":[]}"
+  },
+  "steps": [
+    {
+      "filename": "Seed step.md",
+      "content": "---\nzettelFlowSettings:\n  root: true\n  actions:\n    - type: prompt\n      hasUI: true\n      key: title\n      zone: context\n      label: Title\n      placeholder: Name the note...\n  label: Seed step\n  childrenHeader: ''\n---\n# {{title}}\n"
+    }
+  ]
+}

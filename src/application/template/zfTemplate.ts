@@ -32,14 +32,23 @@ export function parseTemplate(json: string): ZfTemplate {
     return parsed;
 }
 
-function isValidTemplate(value: unknown): value is ZfTemplate {
+/** A `.zftemplate` file entry is valid only when both `filename` and `content` are strings. */
+function isValidTemplateFile(value: unknown): value is ZfTemplateFile {
+    if (typeof value !== "object" || value === null) return false;
+    const file = value as Record<string, unknown>;
+    return typeof file.filename === "string" && typeof file.content === "string";
+}
+
+export function isValidTemplate(value: unknown): value is ZfTemplate {
     if (typeof value !== "object" || value === null) return false;
     const obj = value as Record<string, unknown>;
     return (
         typeof obj.zfVersion === "string" &&
         typeof obj.name === "string" &&
-        typeof obj.canvas === "object" &&
-        obj.canvas !== null &&
-        Array.isArray(obj.steps)
+        typeof obj.description === "string" &&
+        typeof obj.author === "string" &&
+        isValidTemplateFile(obj.canvas) &&
+        Array.isArray(obj.steps) &&
+        obj.steps.every(isValidTemplateFile)
     );
 }

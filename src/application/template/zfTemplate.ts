@@ -32,7 +32,7 @@ export function parseTemplate(json: string): ZfTemplate {
     return parsed;
 }
 
-function isValidTemplate(value: unknown): value is ZfTemplate {
+export function isValidTemplate(value: unknown): value is ZfTemplate {
     if (typeof value !== "object" || value === null) return false;
     const obj = value as Record<string, unknown>;
     return (

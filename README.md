@@ -36,6 +36,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   (connected / orphaned / unresolved), a knowledge-debt bar, and a "today" panel (to process ·
   contradictions · connections · open questions) — **every panel proposes a recommended next
   action**, one click from the surface to act on it. Read-only, offline.
+- **📦 Methodology packages** — an app store of knowledge *systems*: install the **Zettelkasten**
+  package and get all its flows (and their built-in patterns) in one go; remove it just as cleanly
+  (it trashes only its own files, never your notes). Atomic install, local, no network.
 - **🚀 Starter flows** — one-click, ready-made flows for the four classic note types
   (fleeting, literature, permanent, structure/MOC), plus a **Literature → Permanent** composed
   showcase that chains the cognitive actions (extract claims → find related → suggest connections →
@@ -165,6 +168,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
 | **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, and the deterministic next recommended session. Read-only, offline. |
 | **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
+| **Methodology packages** | Install a whole knowledge system as a unit — the reference **Zettelkasten** package bundles all its flows; atomic install + clean removal (trashes only its own files). Local, no network. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |

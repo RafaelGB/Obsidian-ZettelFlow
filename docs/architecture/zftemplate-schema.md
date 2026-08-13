@@ -51,3 +51,11 @@ A `.zftemplate` file is a plain JSON document that bundles a ZettelFlow canvas w
 | `ZettelFlow: Import .zftemplate` | Desktop only | Opens a file picker; installs the canvas and steps into a user-chosen vault folder |
 
 On conflict (files already exist), the user is prompted to overwrite or skip — no `confirm()` is used.
+
+## Community systems (#214)
+
+The same format powers the community **systems** gallery. A shipped system is a `.zftemplate` file
+listed in `docs/main_template.json` with `template_type: "system"`; the community browser's
+`CommunitySystemModal` fetches it, lets the user pick a folder, and writes the canvas + steps in one
+click (no clipboard). See [Community feature & backend](community-and-backend.md). Authoring guide:
+[Contribute a community system](../how-to-contribute/community-examples.md).

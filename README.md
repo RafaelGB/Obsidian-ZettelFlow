@@ -54,6 +54,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   (connected / orphaned / unresolved), a knowledge-debt bar, and a "today" panel (to process ·
   contradictions · connections · open questions) — **every panel proposes a recommended next
   action**, one click from the surface to act on it. Read-only, offline.
+- **🧩 Systems Gallery** — *somewhere to start.* Install a complete knowledge **system** in one click
+  from the community browser: pick a folder and ZettelFlow writes a ready-to-run canvas plus its step
+  notes (no clipboard, no manual paste). Seven shipped systems — **Academic research · Zettelkasten v2 ·
+  PARA v2 · GTD · Reading · Writing · Software architecture KB** — each composing the cognitive actions
+  on creation, so a new note lands already related, cross-checked and scored. Offline, no AI.
 - **📦 Methodology packages** — an app store of knowledge *systems*: install the **Zettelkasten**
   package and get all its flows (and their built-in patterns) in one go; remove it just as cleanly
   (it trashes only its own files, never your notes). Atomic install, local, no network.
@@ -205,6 +210,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
 | **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
+| **Community systems** | Install a whole knowledge system in one click — the community browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |
 | **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`). |

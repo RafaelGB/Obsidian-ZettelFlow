@@ -6,7 +6,7 @@
 ZettelFlow allows the community to share templates, flows, and actions to help users enhance their note-taking experience. The Community section provides pre-built resources that you can easily import and use in your own Obsidian vault.
 
 ## Types of Community Resources
-ZettelFlow offers four main types of community resources:
+ZettelFlow offers five main types of community resources:
 
 ### 1. Flows
 Flows are complete workflows designed to guide you through specific note-taking processes. These are particularly valuable because:
@@ -24,6 +24,21 @@ Actions are specific functions that can be performed within a step, such as addi
 
 ### 4. Markdown
 Markdown templates provide reusable text content that can be incorporated into your notes.
+
+### 5. Systems (one-click)
+Systems are whole **knowledge methodologies** shipped as a single [`.zftemplate`](../architecture/zftemplate-schema.md) bundle — a canvas plus its step notes. Unlike a flow (which you copy to the clipboard and paste onto a canvas), a system installs in **one click**: pick a folder and ZettelFlow writes the canvas and every step, then opens the canvas ready to run. Systems compose the cognitive capabilities — on creation a note is related, cross-checked, link-suggested and maturity-scored against your own graph — so you start from a real workflow, not a blank canvas.
+
+Shipped systems:
+
+- **Academic research** — two entry points on one canvas: a literature note mined for claims, matched to candidate sources, cross-checked for contradictions and scored on creation; and a permanent note that lands already related, link-suggested and scored.
+- **Zettelkasten v2** — three independent note types on one canvas (fleeting, literature, permanent), each its own entry point, where the permanent note carries the on-creation pattern (find related · find contradictions · suggest links · calculate maturity). This **supersedes the older "Zettelkasten Inbox" flow**, which remains available for back-compat.
+- **PARA v2** — Tiago Forte's PARA as four entry points (Project, Area, Resource, Archive); each lands a note in its PARA folder, tags it by category and connects it with find related. This **supersedes the older "PARA classify system" flow**, which remains available for back-compat.
+- **GTD** — Getting Things Done as three entry points (Inbox capture, Next action, Project), moving a thought from capture through clarify to a context-tagged next action.
+- **Reading** — turn reading into knowledge: a Reading source entry point captures highlights and mines them for claims and candidate sources; a Reading note entry point distills an insight and connects it.
+- **Writing** — from idea to finished draft: Draft (thesis + related source notes), Section (one point + suggested connections) and Review (surfaces contradictions to resolve) entry points.
+- **Software architecture KB** — a decision log: an ADR entry point records context/decision/consequences and checks new decisions against existing ones for contradictions; a Component entry point captures a component and its dependencies.
+
+To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**. See the full [Systems Gallery](systems-gallery.md) for the catalog of shipped systems and a guide to authoring your own.
 
 ## How to Access Community Resources
 1. Open Obsidian and make sure ZettelFlow is installed

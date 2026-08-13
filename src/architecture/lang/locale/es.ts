@@ -283,6 +283,15 @@ export default {
     template_download_flow_files: 'Descargar archivos del flujo',
     template_download_flow_title: 'Descarga en tu vault las plantillas asociadas al flujo',
 
+    // Community system modal (#214)
+    community_system_preview: 'Vista previa del sistema',
+    community_system_contents: 'Qué se instala',
+    community_system_install_location: 'Ubicación de instalación',
+    community_system_install_location_desc: 'Carpeta donde se crearán el canvas y las notas de sus pasos.',
+    community_system_install_button: 'Instalar sistema',
+    community_system_installed: 'sistema instalado',
+    community_system_install_error: 'No se pudo instalar el sistema. Revisa la consola para más detalles.',
+
     // Modal de markdown de la comunidad
     remove_markdown_button: 'Eliminar',
     remove_markdown_button_title: 'Eliminar el archivo markdown',

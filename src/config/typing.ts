@@ -163,9 +163,10 @@ export type StaticTemplateOptions = {
     /** Author of the template */
     author: string;
     /**
-     * Type of the template: can be "step", "action", or "markdown"
+     * Type of the template: a "step"/"action"/"markdown" fragment, a "flow" (clipboard paste), or a
+     * "system" — a `.zftemplate` bundle installed as a canvas + steps in one click (#214).
      */
-    template_type: "step" | "action" | "markdown" | "flow";
+    template_type: "step" | "action" | "markdown" | "flow" | "system";
 };
 
 /**

@@ -54,5 +54,61 @@
     "title": "Daily Note Template",
     "description": "This is a template for daily notes",
     "author": "RafaelGB"
+  },
+  {
+    "id": "7c1e5a80-1b2c-4d3e-8f90-a1b2c3d4e5f6",
+    "template_type": "system",
+    "ref": "/docs/systems/academic-research.zftemplate",
+    "title": "Academic research",
+    "description": "Literature-to-permanent research with two entry points: a literature note mined for claims, matched to sources, cross-checked and scored on creation, and a permanent note that lands already related, link-suggested and scored. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "9d2f6b91-2c3d-4e4f-9a01-b2c3d4e5f6a7",
+    "template_type": "system",
+    "ref": "/docs/systems/zettelkasten-v2.zftemplate",
+    "title": "Zettelkasten v2",
+    "description": "The classic slip-box upgraded: three independent note types on one canvas — fleeting, literature and permanent, each its own entry point — where the permanent note is related, cross-checked, link-suggested and maturity-scored on creation. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "a4e8c2d1-3f5b-4a6c-8d7e-1f2a3b4c5d6e",
+    "template_type": "system",
+    "ref": "/docs/systems/para-v2.zftemplate",
+    "title": "PARA v2",
+    "description": "PARA as a note-creation system: four entry points — Project, Area, Resource, Archive — each landing a note in its PARA folder, tagged by category and connected with find-related on creation. Repositions the original PARA classify flow. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "b5f9d3e2-4a6c-5b7d-9e8f-2a3b4c5d6e7f",
+    "template_type": "system",
+    "ref": "/docs/systems/gtd.zftemplate",
+    "title": "GTD",
+    "description": "Getting Things Done as a note-creation system: Inbox capture, Next action and Project entry points that move a thought from capture through clarify to a context-tagged next action, connected with find-related on creation. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "c6a0e4f3-5b7d-6c8e-af90-3b4c5d6e7f80",
+    "template_type": "system",
+    "ref": "/docs/systems/reading.zftemplate",
+    "title": "Reading",
+    "description": "Turn reading into knowledge: a Reading source entry point captures a book or article with its highlights and mines them for claims and candidate sources on creation; a Reading note entry point distills an insight and connects it to your graph. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "d7b1f5a4-6c8e-7d9f-b0a1-4c5d6e7f8091",
+    "template_type": "system",
+    "ref": "/docs/systems/writing.zftemplate",
+    "title": "Writing",
+    "description": "From idea to finished draft: a Draft entry point sets the thesis and pulls in related source notes, a Section entry point develops one point and suggests connections, and a Review entry point surfaces contradictions to resolve. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "e8c2a6b5-7d9f-8ea0-c1b2-5d6e7f809102",
+    "template_type": "system",
+    "ref": "/docs/systems/software-architecture-kb.zftemplate",
+    "title": "Software architecture KB",
+    "description": "A decision log for software architecture: an ADR entry point records context, decision and consequences and checks the new decision against existing ones for contradictions on creation; a Component entry point captures a component and its dependencies. Offline, no AI.",
+    "author": "ZettelFlow"
   }
 ]

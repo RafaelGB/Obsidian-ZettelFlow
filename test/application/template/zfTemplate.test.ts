@@ -46,6 +46,16 @@ describe("parseTemplate", () => {
         expect(() => parseTemplate(JSON.stringify(bad))).toThrow();
     });
 
+    it("throws when canvas.content is not a string", () => {
+        const bad = { zfVersion: "1.0", name: "T", description: "", author: "", canvas: { filename: "f.canvas", content: 42 }, steps: [] };
+        expect(() => parseTemplate(JSON.stringify(bad))).toThrow();
+    });
+
+    it("throws when a step entry is malformed", () => {
+        const bad = { zfVersion: "1.0", name: "T", description: "", author: "", canvas: CANVAS_FILE, steps: [{ filename: "s.md" }] };
+        expect(() => parseTemplate(JSON.stringify(bad))).toThrow();
+    });
+
     it("throws on non-object JSON", () => {
         expect(() => parseTemplate('"just a string"')).toThrow();
     });

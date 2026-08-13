@@ -121,7 +121,8 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **🔗 Relation actions** — actions that turn connection-making into a workflow step: **find
   related** and **suggest link** rank notes worth linking by shared graph context (co-citation +
   coupling), and **create semantic relation** writes a typed edge (supports, contradicts, …) to a
-  target note. Graph-structural, deterministic, offline.
+  target note. Graph-structural, deterministic, offline. To undo one, the **Remove a relation**
+  command lists the active note's typed relations and deletes the one you pick, after a confirmation.
 - **🔍 Research actions** — actions that make sourcing and claim-checking part of the workflow:
   **extract claims**, **compare claims** (surface notes that agree with or contradict yours),
   **find sources** (suggest existing vault sources for an under-sourced note), and **attach
@@ -209,6 +210,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
 | **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
+| **Remove a relation** | A command that lists the active note's typed relations and deletes the one you pick, after a confirmation naming the exact edge. Offline. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
 | **Community systems** | Install a whole knowledge system in one click — the community browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |

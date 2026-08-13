@@ -53,7 +53,9 @@ export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeMo
     const important = computeWeeklyReview(model, now).sections.find((section) => section.key === "important");
     const reviewDue = (important?.paths ?? []).slice(0, TOP_N);
 
-    const suggestedConnections = findDiscoveries(model).map((discovery) => ({ a: discovery.a, b: discovery.b }));
+    const suggestedConnections = findDiscoveries(model)
+        .slice(0, TOP_N)
+        .map((discovery) => ({ a: discovery.a, b: discovery.b }));
 
     return {
         thinkingDays,

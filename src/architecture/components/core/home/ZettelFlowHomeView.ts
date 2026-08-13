@@ -41,7 +41,7 @@ export class ZettelFlowHomeView extends ItemView {
     }
 
     getIcon(): string {
-        return "home";
+        return "house";
     }
 
     async onOpen(): Promise<void> {

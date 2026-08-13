@@ -7,12 +7,14 @@ import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
 import { CommunityFlowModal } from "../CommunityFlowModal";
+import { CommunitySystemModal } from "../CommunitySystemModal";
 import {
   fetchActionTemplate,
   fetchCommunityTemplates,
   fetchFlowTemplate,
   fetchMarkdownTemplate,
   fetchStepTemplate,
+  fetchSystemTemplate,
 } from "../services/CommunityHttpClientService";
 
 export function StaticTemplatesGallery(props: PluginComponentProps) {
@@ -23,7 +25,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [targetSearchTerm, setTargetSearchTerm] = useState("");
   const [filter, setFilter] = useState<
-    "all" | "step" | "action" | "markdown" | "flow"
+    "all" | "step" | "action" | "markdown" | "flow" | "system"
   >("all");
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +85,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   };
 
   const handleSetFilter = (
-    value: "all" | "step" | "action" | "markdown" | "flow"
+    value: "all" | "step" | "action" | "markdown" | "flow" | "system"
   ) => {
     setFilter(value);
   };
@@ -137,6 +139,11 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           new CommunityFlowModal(plugin, flow, template.ref, () => {}).open();
           break;
         }
+        case "system": {
+          const system = await fetchSystemTemplate(template.ref);
+          new CommunitySystemModal(plugin, system, template.ref).open();
+          break;
+        }
         default: {
           // Handle unexpected template types
           log.warn(`Unknown template type: ${String(template.template_type)}`);
@@ -158,7 +165,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
 
   // Mapping of filter types to CSS classes
   const FILTER_COLORS: Record<
-    "all" | "step" | "action" | "markdown" | "flow",
+    "all" | "step" | "action" | "markdown" | "flow" | "system",
     string
   > = {
     all: "template-type-all",
@@ -166,6 +173,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     action: "template-type-action",
     markdown: "template-type-markdown",
     flow: "template-type-flow",
+    system: "template-type-system",
   };
 
   return (
@@ -179,7 +187,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           className={c("community-templates-search")}
         />
         <div className={c("community-templates-filters")}>
-          {(["all", "step", "action", "markdown", "flow"] as const).map(
+          {(["all", "step", "action", "markdown", "flow", "system"] as const).map(
             (type) => {
               const classesToApply = [
                 "community-templates-filter-button",

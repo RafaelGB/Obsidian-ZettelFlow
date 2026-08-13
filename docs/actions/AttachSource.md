@@ -19,6 +19,15 @@ After re-index the model derives a claim carrying the source and reports the not
 Writing to an **existing foreign note** is out of scope for this action (it only writes the note
 being built).
 
+## Interactive-only (#231 Phase 4)
+
+This action reads a **fixed `source`** from its own configuration, so it is meant for **interactive**
+use (you set the source while building the note). It is a **no-op when authored into a shipped
+`.zftemplate` system's `onCreation`** — a template can't know the per-note source, so an empty value
+writes nothing. In a system, capture the source with a normal **prompt** (or use the deterministic
+[`find-sources`](FindSources.md) to suggest candidates). See the
+[Systems Gallery authoring guide](../how-to-contribute/systems-gallery.md).
+
 ## Capabilities
 
 File-system write of a single `source` frontmatter field on the note being built (the same surface

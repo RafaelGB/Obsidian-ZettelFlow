@@ -381,7 +381,7 @@ export default {
     onboarding_configure_canvas: 'Configure existing canvas',
     onboarding_example_created: 'Example flow created — canvas set as your flow canvas. Open the canvas to explore it.',
     onboarding_example_create_failed: 'Could not create the example flow. Check the console for details.',
-    onboarding_notice_msg: 'ZettelFlow is installed. Configure a canvas or create an example flow to get started.',
+    onboarding_notice_msg: 'ZettelFlow is installed. The quickest way to start is to install a ready-made system from the community browser — it writes a canvas and its steps in one click.',
     onboarding_notice_open_settings: 'Open settings',
     settings_get_started_title: 'Get started',
     settings_get_started_description: 'No canvas configured yet. Create an example flow to see ZettelFlow in action, or configure an existing canvas above.',

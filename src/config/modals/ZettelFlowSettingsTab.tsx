@@ -34,7 +34,6 @@ import { EvolutionTimelineView } from "architecture/components/core/timeline/Evo
 import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
 import { KnowledgeDashboardView } from "architecture/components/core/knowledgeDashboard/KnowledgeDashboardView";
 import { ZettelFlowHomeView } from "architecture/components/core/home/ZettelFlowHomeView";
-import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
 
@@ -83,19 +82,15 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                 visible: () => !plugin.settings.ribbonCanvas,
                 items: [
                     {
+                        // A3 (#246): a beginner's first move is to install a ready-made system — the one
+                        // adoption path — not to hand-build an example flow. Funnel to the Systems browser.
                         name: t("settings_get_started_description"),
                         render: (setting) => {
                             setting.addButton((btn) =>
                                 btn
-                                    .setButtonText(t("settings_get_started_button"))
+                                    .setButtonText(t("welcome_cta_browse"))
                                     .setCta()
-                                    .onClick(async () => {
-                                        const path = await createExampleFlow(plugin);
-                                        if (path) {
-                                            this.update();
-                                            await FileService.openFile(path);
-                                        }
-                                    })
+                                    .onClick(() => new CommunityTemplatesModal(plugin).open())
                             );
                         },
                     },

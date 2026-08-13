@@ -43,7 +43,7 @@ export class FindRelatedAction extends CustomZettelAction {
         }
         const related = rankRelated(model, path, { limit: el.limit ?? DEFAULT_LIMIT });
         writeKnowledgeResult(info, el, related.map((p) => `[[${p.replace(/\.md$/i, "")}]]`));
-        new Notice(t("relation_find_related_notice", String(related.length)));
+        if (!info.silent) new Notice(t("relation_find_related_notice", String(related.length)));
     }
 
     getIcon(): string {

@@ -10,7 +10,13 @@ export type ExecuteInfo = {
     element: FinalElement,
     content: ContentDTO,
     note: NoteDTO,
-    context: Record<string, Literal>
+    context: Record<string, Literal>,
+    /**
+     * True when the action runs headless as part of a note's on-creation pattern (#170/#201) rather
+     * than an interactive wizard step. Cognitive actions suppress their success `Notice` when set, so
+     * a pattern that runs several of them does not spray a stack of toasts. Absent ⇒ interactive.
+     */
+    silent?: boolean,
 }
 
 export type Action = {

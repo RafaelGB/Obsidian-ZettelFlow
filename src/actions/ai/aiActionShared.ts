@@ -109,5 +109,5 @@ export async function runAiAction(
 
     const value = spec.transform ? spec.transform(raw) : raw;
     writeKnowledgeResult(info, el, value);
-    new Notice(spec.notice(value));
+    if (!info.silent) new Notice(spec.notice(value)); // suppress in a headless pattern run (#201)
 }

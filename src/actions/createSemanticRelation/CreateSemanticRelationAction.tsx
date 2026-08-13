@@ -34,7 +34,7 @@ export class CreateSemanticRelationAction extends CustomZettelAction {
             return;
         }
         writeKnowledgeResult(info, { ...el, key: field.key }, field.value);
-        new Notice(t("relation_create_relation_notice", field.key));
+        if (!info.silent) new Notice(t("relation_create_relation_notice", field.key));
     }
 
     getIcon(): string {

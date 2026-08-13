@@ -41,7 +41,7 @@ export class FindContradictionAction extends CustomZettelAction {
         }
         const contradictions = findContradictions(model, path);
         writeKnowledgeResult(info, el, contradictions.map((p) => `[[${p.replace(/\.md$/i, "")}]]`));
-        new Notice(t("knowledge_find_contradiction_notice", String(contradictions.length)));
+        if (!info.silent) new Notice(t("knowledge_find_contradiction_notice", String(contradictions.length)));
     }
 
     getIcon(): string {

@@ -45,7 +45,7 @@ export class FindSourcesAction extends CustomZettelAction {
         }
         const candidates = findSources(model, path, { limit: el.limit ?? DEFAULT_LIMIT });
         writeKnowledgeResult(info, el, candidates.map(sourceToken));
-        new Notice(t("research_find_sources_notice", String(candidates.length)));
+        if (!info.silent) new Notice(t("research_find_sources_notice", String(candidates.length)));
     }
 
     getIcon(): string {

@@ -41,7 +41,7 @@ export class FindUnansweredQuestionAction extends CustomZettelAction {
         }
         const questions = findUnansweredQuestions(model, path);
         writeKnowledgeResult(info, el, questions.map((p) => `[[${p.replace(/\.md$/i, "")}]]`));
-        new Notice(t("knowledge_find_unanswered_question_notice", String(questions.length)));
+        if (!info.silent) new Notice(t("knowledge_find_unanswered_question_notice", String(questions.length)));
     }
 
     getIcon(): string {

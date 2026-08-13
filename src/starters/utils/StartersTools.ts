@@ -17,6 +17,7 @@ import { GenerateWeeklyReviewComponent } from "../zcomponents/GenerateWeeklyRevi
 import { ThinkingHeatmapComponent } from "../zcomponents/ThinkingHeatmapComponent";
 import { DiscoveriesComponent } from "../zcomponents/DiscoveriesComponent";
 import { KnowledgeMapComponent } from "../zcomponents/KnowledgeMapComponent";
+import { ConceptNavComponent } from "../zcomponents/ConceptNavComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
@@ -41,6 +42,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ThinkingHeatmapComponent(plugin));
     ZComponentsManager.registerComponent(new DiscoveriesComponent(plugin));
     ZComponentsManager.registerComponent(new KnowledgeMapComponent(plugin));
+    ZComponentsManager.registerComponent(new ConceptNavComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));

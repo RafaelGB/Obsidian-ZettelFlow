@@ -184,7 +184,7 @@ export class ConceptNavView extends ItemView {
                 lastDirection = group.direction;
             }
             const section = container.createDiv({ cls: c("concept-nav-group") });
-            section.createEl("span", { text: group.type, cls: c("concept-nav-type") });
+            section.createSpan({ text: group.type, cls: c("concept-nav-type") });
             const list = section.createDiv({ cls: c("concept-nav-list") });
             for (const target of group.targets) this.renderNavRow(list, target);
         }

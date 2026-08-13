@@ -27,6 +27,7 @@ import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
 import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
 import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
+import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptNavView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -51,6 +52,7 @@ const TOOLKIT_DOCS = {
     heatmap: `${DOCS_BASE}development/thinking-heatmap/`,
     discoveries: `${DOCS_BASE}development/morning-discovery/`,
     map: `${DOCS_BASE}development/living-knowledge-map/`,
+    conceptNav: `${DOCS_BASE}development/concept-navigation/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -534,6 +536,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.map);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_concept_nav_name"),
+                        desc: t("settings_toolkit_concept_nav_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, ConceptNavView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.conceptNav);
                         },
                     },
                     {

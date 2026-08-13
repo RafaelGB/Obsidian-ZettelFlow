@@ -22,6 +22,7 @@ import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceV
 import { ThinkingHeatmapView } from 'architecture/components/core/thinkingHeatmap/ThinkingHeatmapView';
 import { DiscoveriesView } from 'architecture/components/core/discoveries/DiscoveriesView';
 import { KnowledgeMapView } from 'architecture/components/core/knowledgeMap/KnowledgeMapView';
+import { ConceptNavView } from 'architecture/components/core/conceptNav/ConceptNavView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
@@ -93,6 +94,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(ThinkingHeatmapView.NAME, (leaf) => new ThinkingHeatmapView(leaf));
 		this.registerView(DiscoveriesView.NAME, (leaf) => new DiscoveriesView(leaf));
 		this.registerView(KnowledgeMapView.NAME, (leaf) => new KnowledgeMapView(leaf));
+		this.registerView(ConceptNavView.NAME, (leaf) => new ConceptNavView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

@@ -80,5 +80,6 @@ nav:
       - 7.15 Thinking heatmap: development/thinking-heatmap.md
       - 7.16 Morning discovery: development/morning-discovery.md
       - 7.17 Living knowledge map: development/living-knowledge-map.md
+      - 7.18 Concept navigation: development/concept-navigation.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

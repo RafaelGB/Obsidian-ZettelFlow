@@ -95,5 +95,6 @@ nav:
       - 7.24 ZettelFlow home: development/zettelflow-home.md
       - 7.25 Derived projects: development/derived-projects.md
       - 7.26 Methodology packages: development/methodology-packages.md
+      - 7.27 Friction audit (epic #231): development/friction-audit.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

@@ -47,6 +47,14 @@ export type StepSettings = {
      * straight through (back-compat). The only new block kind of the visual workflow language.
      */
     wait?: WaitSettings,
+    /**
+     * Optional **Knowledge Pattern** behavior (#170): an ordered list of `hasUI:false` actions the
+     * note-builder runs on note creation, after the note's structure is assembled and before the file
+     * is written — turning a static template into "structure + behavior". Additive & opt-in — absence
+     * means a plain static template (back-compat). Authored in frontmatter/YAML in v1 (no builder UI
+     * yet); the builder preserves it opaquely so an unrelated edit never drops it.
+     */
+    onCreation?: Action[],
 }
 
 export type ZettelFlowElement = {

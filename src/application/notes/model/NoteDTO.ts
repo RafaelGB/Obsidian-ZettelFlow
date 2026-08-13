@@ -11,6 +11,7 @@ export class NoteDTO {
     private uniquePrefixPattern = "";
     private targetFolder = "";
     private targetFolderLocked = false;
+    private onCreationActions: Action[] = [];
 
     public getFinalPath(): string {
         return this.getTargetFolder()
@@ -137,6 +138,20 @@ export class NoteDTO {
         if (basename && !this.links.includes(basename)) {
             this.links.push(basename);
         }
+        return this;
+    }
+
+    /**
+     * The Knowledge Pattern on-creation actions (#170) collected from every walked step, in walk
+     * order. Session-scoped (not tied to a step position) — the note-builder runs them as a block
+     * once the note's structure is assembled.
+     */
+    public getOnCreation(): Action[] {
+        return this.onCreationActions;
+    }
+
+    public addOnCreation(actions: Action[]): NoteDTO {
+        if (actions.length > 0) this.onCreationActions.push(...actions);
         return this;
     }
 

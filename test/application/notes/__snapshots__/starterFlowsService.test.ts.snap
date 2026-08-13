@@ -163,6 +163,29 @@ zettelFlowSettings:
       label: How does this connect to what you already know?
       placeholder: Link it to existing notes...
       staticBehaviour: false
+  onCreation:
+    - type: find-related
+      id: zf-perm-related
+      hasUI: false
+      key: related
+      zone: frontmatter
+      limit: 10
+    - type: find-contradiction
+      id: zf-perm-contradiction
+      hasUI: false
+      key: contradictions
+      zone: frontmatter
+    - type: suggest-link
+      id: zf-perm-suggest
+      hasUI: false
+      key: suggestedLinks
+      zone: frontmatter
+      limit: 5
+    - type: calculate-maturity
+      id: zf-perm-maturity
+      hasUI: false
+      key: maturity
+      zone: frontmatter
   targetFolder: _ZettelFlow/examples/notes
   childrenHeader: ''
   optional: false

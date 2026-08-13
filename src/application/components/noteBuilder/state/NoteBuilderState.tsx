@@ -11,6 +11,7 @@ import { log } from "architecture";
 import { Action } from "architecture/api";
 import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
+import { resolveOnCreationActions } from "application/patterns/resolveOnCreationActions";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   creationMode: true,
@@ -88,7 +89,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         }
         builder.note
           .addPath(node.path, position)
-          .setTargetFolder(node.targetFolder);
+          .setTargetFolder(node.targetFolder)
+          .addOnCreation(resolveOnCreationActions(node));
 
         return {
           builder,

@@ -146,6 +146,29 @@ describe("installStarterFlows — AC-3 type-appropriate content", () => {
         expect(content).toContain("connect");
     });
 
+    it("the permanent step ships the default Knowledge Pattern on-creation behavior (#170)", async () => {
+        const { vault } = makeVault();
+        await installStarterFlows(vault, ["permanent"]);
+        const content = createdContent(vault, STARTER_FLOW_PATHS.permanent.step);
+
+        // The interactive actions block is unchanged — still the three prompts, no cognitive double-run.
+        const actions = parseActionsBlock(content);
+        expect(actions.map((a) => a.type)).toEqual(["prompt", "prompt", "prompt"]);
+        expect(actions.map((a) => a.key)).toEqual(["title", "idea", "connect"]);
+
+        // The new on-creation block runs the four headless actions, in order.
+        const onCreation = parseBlock(content, "onCreation:");
+        expect(onCreation.map((a) => a.type)).toEqual([
+            "find-related", "find-contradiction", "suggest-link", "calculate-maturity",
+        ]);
+        expect(onCreation.map((a) => a.key)).toEqual([
+            "related", "contradictions", "suggestedLinks", "maturity",
+        ]);
+        expect(onCreation.every((a) => a.hasUI === "false")).toBe(true);
+        expect(onCreation[0].limit).toBe("10"); // find-related
+        expect(onCreation[2].limit).toBe("5"); // suggest-link
+    });
+
     it("every canvas is valid JSON and never contains zettelflowConfig", async () => {
         const { vault } = makeVault();
         await installStarterFlows(vault, ALL_TYPES);
@@ -211,8 +234,13 @@ describe("installStarterFlows — AC-6 partial mix", () => {
 
 /** Parse the `zettelFlowSettings.actions` list from an emitted step markdown. */
 function parseActionsBlock(content: string): Record<string, string>[] {
+    return parseBlock(content, "actions:");
+}
+
+/** Parse a `zettelFlowSettings.<blockKey>` action list (e.g. `actions:` or `onCreation:`). */
+function parseBlock(content: string, blockKey: string): Record<string, string>[] {
     const lines = content.split("\n");
-    const start = lines.findIndex((l) => l.trim() === "actions:");
+    const start = lines.findIndex((l) => l.trim() === blockKey);
     const entries: Record<string, string>[] = [];
     let current: Record<string, string> | null = null;
     for (let i = start + 1; i < lines.length; i++) {

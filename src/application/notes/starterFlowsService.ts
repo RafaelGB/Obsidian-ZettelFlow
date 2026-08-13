@@ -135,7 +135,8 @@ function buildComposedStepTemplate(
     label: string,
     phase: StepPhase,
     entries: ActionEntry[],
-    body: string
+    body: string,
+    onCreation?: ActionEntry[]
 ): string {
     const lines: string[] = [];
     lines.push("---");
@@ -146,6 +147,11 @@ function buildComposedStepTemplate(
     lines.push(`  phase: ${phase}`);
     lines.push("  actions:");
     for (const entry of entries) lines.push(...emitActionEntry(entry));
+    // Knowledge Pattern on-creation behavior (#170): headless actions run when a note is created.
+    if (onCreation && onCreation.length > 0) {
+        lines.push("  onCreation:");
+        for (const entry of onCreation) lines.push(...emitActionEntry(entry));
+    }
     lines.push(`  targetFolder: ${EXAMPLE_NOTES_FOLDER}`);
     lines.push("  childrenHeader: ''");
     lines.push("  optional: false");
@@ -156,7 +162,13 @@ function buildComposedStepTemplate(
 }
 
 /** Prompt-only builder (the four shipped flows). Maps each prompt to an entry and delegates. */
-function buildStepTemplate(label: string, prompts: PromptSpec[], body: string, phase: StepPhase): string {
+function buildStepTemplate(
+    label: string,
+    prompts: PromptSpec[],
+    body: string,
+    phase: StepPhase,
+    onCreation?: ActionEntry[]
+): string {
     const entries: ActionEntry[] = prompts.map((prompt) => ({
         kind: "prompt",
         id: prompt.id,
@@ -168,8 +180,20 @@ function buildStepTemplate(label: string, prompts: PromptSpec[], body: string, p
         placeholder: prompt.placeholder,
         staticBehaviour: false,
     }));
-    return buildComposedStepTemplate(label, phase, entries, body);
+    return buildComposedStepTemplate(label, phase, entries, body, onCreation);
 }
+
+/**
+ * The default **Permanent Note pattern** behavior (#170): on creation the note is ranked against the
+ * vault (find related · find contradictions · suggest links) and given an initial maturity score —
+ * so a permanent note lands already connected, cross-checked and scored. All headless (`hasUI:false`).
+ */
+const PERMANENT_ON_CREATION: ActionEntry[] = [
+    { kind: "cognitive", type: "find-related", id: "zf-perm-related", key: "related", zone: "frontmatter", limit: 10 },
+    { kind: "cognitive", type: "find-contradiction", id: "zf-perm-contradiction", key: "contradictions", zone: "frontmatter" },
+    { kind: "cognitive", type: "suggest-link", id: "zf-perm-suggest", key: "suggestedLinks", zone: "frontmatter", limit: 5 },
+    { kind: "cognitive", type: "calculate-maturity", id: "zf-perm-maturity", key: "maturity", zone: "frontmatter" },
+];
 
 /** File-type canvas nodes read their config from the step frontmatter — no zettelflowConfig here. */
 function buildCanvas(nodeId: string, stepPath: string): string {
@@ -285,7 +309,8 @@ const STEP_TEMPLATES: Record<StarterFlowType, string> = {
             },
         ],
         "# {{title}}\n\n{{idea}}\n\n## Connections\n\n{{connect}}\n",
-        "DEVELOP"
+        "DEVELOP",
+        PERMANENT_ON_CREATION
     ),
     moc: buildStepTemplate(
         "Structure note",

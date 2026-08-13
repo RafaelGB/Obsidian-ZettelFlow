@@ -27,6 +27,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
 
     /** View entries grouped by job; a separator is drawn between groups. Home leads. */
     private static readonly GROUPS: ViewEntry[][] = [
+        [{ command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" }],
         [{ command: "show-home", labelKey: "command_show_home", icon: "home" }],
         [
             { command: "show-knowledge-dashboard", labelKey: "command_show_knowledge_dashboard", icon: "layout-dashboard" },

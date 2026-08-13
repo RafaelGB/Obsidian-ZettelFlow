@@ -528,6 +528,9 @@ export default {
     // Remove a relation command (#181)
     command_remove_relation: 'Eliminar una relación',
     ribbon_open_zettelflow: 'Abrir ZettelFlow',
+    command_run_canvas_flow: 'Ejecutar el canvas actual como flujo',
+    run_canvas_flow_error: 'No se pudo ejecutar este canvas como flujo. Revisa la consola para más detalles.',
+    community_system_run_now: 'Ejecutar ahora',
     // Creación de paso gestionado — formato canónico frontmatter vs inline heredado (#238)
     managed_step_note_option: 'Nota — archivo con frontmatter (recomendado)',
     managed_step_text_option: 'Tarjeta de texto (inline, heredado)',

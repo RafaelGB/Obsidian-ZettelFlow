@@ -161,6 +161,11 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         control: { type: "toggle", key: "createInCurrentFolder" },
                     },
                     {
+                        name: t("open_home_on_startup_toggle_title"),
+                        desc: t("open_home_on_startup_toggle_description"),
+                        control: { type: "toggle", key: "openHomeOnStartup" },
+                    },
+                    {
                         name: t("unique_prefix_toggle_title"),
                         desc: t("unique_prefix_toggle_description"),
                         control: { type: "toggle", key: "uniquePrefixEnabled" },

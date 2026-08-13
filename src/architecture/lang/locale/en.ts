@@ -370,6 +370,8 @@ export default {
     // Create in current folder
     create_in_current_folder_toggle_title: 'Create note in current folder',
     create_in_current_folder_toggle_description: 'When enabled, notes are always created in the folder of the currently active file, ignoring each step\'s configured target folder.',
+    open_home_on_startup_toggle_title: 'Open ZettelFlow Home on startup',
+    open_home_on_startup_toggle_description: 'Greet you with the ZettelFlow Home view when Obsidian launches — your daily front door. On for new installs; turn it off to keep your usual startup layout.',
 
     // Onboarding
     onboarding_welcome_title: 'Welcome to ZettelFlow',

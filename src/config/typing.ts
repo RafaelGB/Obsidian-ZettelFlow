@@ -122,6 +122,8 @@ export interface ZettelFlowSettings {
     hasSeenWelcome: boolean;
     /** When true, new notes are created in the active file's folder instead of the step's targetFolder. */
     createInCurrentFolder: boolean;
+    /** When true, ZettelFlow Home opens automatically on launch (the "open ZettelFlow, not Obsidian" front door, #246 A2). */
+    openHomeOnStartup: boolean;
 }
 
 export type { HistoryEntry } from "application/notes/historyUtils";
@@ -221,4 +223,5 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,
+    openHomeOnStartup: false, // Off by default; first-run onboarding turns it on for new users (#246 A2).
 };

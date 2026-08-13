@@ -19,5 +19,12 @@ export class HomeComponent extends PluginComponent {
             name: t("command_show_home"),
             callback: () => void activateSidebarView(this.plugin.app, ZettelFlowHomeView.NAME),
         });
+        // "Open ZettelFlow, not Obsidian" (#246 A2): greet the user with Home on launch when enabled,
+        // unless a Home leaf is already restored open. Opt-in; first-run turns it on for new users.
+        this.plugin.app.workspace.onLayoutReady(() => {
+            if (!this.plugin.settings.openHomeOnStartup) return;
+            if (this.plugin.app.workspace.getLeavesOfType(ZettelFlowHomeView.NAME).length > 0) return;
+            void activateSidebarView(this.plugin.app, ZettelFlowHomeView.NAME);
+        });
     }
 }

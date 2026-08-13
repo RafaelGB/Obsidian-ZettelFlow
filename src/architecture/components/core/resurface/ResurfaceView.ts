@@ -1,14 +1,14 @@
-import { CachedMetadata, ItemView, MarkdownView, TFile, WorkspaceLeaf, getAllTags } from "obsidian";
+import { ItemView, MarkdownView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import {
-    ActiveNoteSignals,
     ResurfaceCandidate,
     ResurfaceReason,
     ResurfacedNote,
     pickDailySpark,
     rankResurfacedNotes,
 } from "application/notes/resurfaceRanking";
+import { buildResurfaceInputs } from "./resurfaceInputs";
 
 const THROTTLE_MS = 400;
 const SPARK_COUNT = 3;
@@ -82,9 +82,8 @@ export class ResurfaceView extends ItemView {
 
         try {
             const start = Date.now();
-            const resolved = this.app.metadataCache.resolvedLinks;
-            const backlinkIndex = this.buildBacklinkIndex(resolved);
-            this.candidates = this.buildCandidates(resolved, backlinkIndex);
+            const inputs = buildResurfaceInputs(this.app);
+            this.candidates = inputs.candidates;
 
             const activeFile = this.app.workspace.getActiveViewOfType(MarkdownView)?.file ?? null;
             this.activePath = activeFile ? activeFile.path : null;
@@ -95,7 +94,7 @@ export class ResurfaceView extends ItemView {
                 return;
             }
 
-            const active = this.buildActiveSignals(activeFile, resolved, backlinkIndex);
+            const active = inputs.buildActiveSignals(activeFile);
             this.ranked = rankResurfacedNotes({
                 active,
                 candidates: this.candidates,
@@ -121,56 +120,6 @@ export class ResurfaceView extends ItemView {
         this.sparkResults = pickDailySpark(this.candidates, Date.now(), SPARK_COUNT, exclude);
         this.state = "spark";
         this.render();
-    }
-
-    /** Build the signal bundle for the active note from the metadata cache. */
-    private buildActiveSignals(
-        file: TFile,
-        resolved: Record<string, Record<string, number>>,
-        backlinkIndex: Map<string, string[]>
-    ): ActiveNoteSignals {
-        return {
-            path: file.path,
-            tags: this.fileTags(this.app.metadataCache.getFileCache(file)),
-            outgoingLinks: Object.keys(resolved[file.path] ?? {}),
-            backlinks: backlinkIndex.get(file.path) ?? [],
-        };
-    }
-
-    /** Build ranking candidates for every markdown file (the active note is filtered by the ranker). */
-    private buildCandidates(
-        resolved: Record<string, Record<string, number>>,
-        backlinkIndex: Map<string, string[]>
-    ): ResurfaceCandidate[] {
-        const cache = this.app.metadataCache;
-        return this.app.vault.getMarkdownFiles().map((file) => ({
-            path: file.path,
-            basename: file.basename,
-            tags: this.fileTags(cache.getFileCache(file)),
-            outgoingLinks: Object.keys(resolved[file.path] ?? {}),
-            backlinks: backlinkIndex.get(file.path) ?? [],
-            lastOpenedOrModified: file.stat.mtime,
-        }));
-    }
-
-    /** Single-pass backlink index (target path → source paths) over the resolved-link graph. */
-    private buildBacklinkIndex(resolved: Record<string, Record<string, number>>): Map<string, string[]> {
-        const index = new Map<string, string[]>();
-        for (const source of Object.keys(resolved)) {
-            for (const target of Object.keys(resolved[source])) {
-                if (source === target) continue;
-                const sources = index.get(target);
-                if (sources) sources.push(source);
-                else index.set(target, [source]);
-            }
-        }
-        return index;
-    }
-
-    /** Tags for a file cache, with the leading `#` stripped so active/candidate sets align. */
-    private fileTags(cache: CachedMetadata | null): string[] {
-        if (!cache) return [];
-        return (getAllTags(cache) ?? []).map((tag) => (tag.startsWith("#") ? tag.slice(1) : tag));
     }
 
     render(): void {

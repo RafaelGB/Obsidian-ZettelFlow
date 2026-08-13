@@ -681,6 +681,7 @@ export default {
     settings_toolkit_heatmap_name: 'Thinking heatmap',
     settings_toolkit_heatmap_desc: 'A calendar heatmap of ideas developed over the last year.',
     // Morning discovery (#163)
+    discovery_view_title: 'Discovery',
     discoveries_view_title: 'Discoveries',
     command_show_discoveries: 'Show discoveries',
     discoveries_computing: 'Looking for surprising connections…',

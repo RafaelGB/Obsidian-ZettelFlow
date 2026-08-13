@@ -681,6 +681,7 @@ export default {
     settings_toolkit_heatmap_name: 'Mapa de calor del pensamiento',
     settings_toolkit_heatmap_desc: 'Un mapa de calor de calendario de las ideas desarrolladas en el último año.',
     // Descubrimiento matinal (#163)
+    discovery_view_title: 'Descubrimiento',
     discoveries_view_title: 'Descubrimientos',
     command_show_discoveries: 'Mostrar descubrimientos',
     discoveries_computing: 'Buscando conexiones sorprendentes…',

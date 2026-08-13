@@ -38,7 +38,7 @@ Shipped systems:
 - **Writing** — from idea to finished draft: Draft (thesis + related source notes), Section (one point + suggested connections) and Review (surfaces contradictions to resolve) entry points.
 - **Software architecture KB** — a decision log: an ADR entry point records context/decision/consequences and checks new decisions against existing ones for contradictions; a Component entry point captures a component and its dependencies.
 
-To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**.
+To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**. See the full [Systems Gallery](systems-gallery.md) for the catalog of shipped systems and a guide to authoring your own.
 
 ## How to Access Community Resources
 1. Open Obsidian and make sure ZettelFlow is installed

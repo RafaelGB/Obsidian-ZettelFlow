@@ -54,6 +54,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   (connected / orphaned / unresolved), a knowledge-debt bar, and a "today" panel (to process ·
   contradictions · connections · open questions) — **every panel proposes a recommended next
   action**, one click from the surface to act on it. Read-only, offline.
+- **🧩 Systems Gallery** — *somewhere to start.* Install a complete knowledge **system** in one click
+  from the community browser: pick a folder and ZettelFlow writes a ready-to-run canvas plus its step
+  notes (no clipboard, no manual paste). Seven shipped systems — **Academic research · Zettelkasten v2 ·
+  PARA v2 · GTD · Reading · Writing · Software architecture KB** — each composing the cognitive actions
+  on creation, so a new note lands already related, cross-checked and scored. Offline, no AI.
 - **📦 Methodology packages** — an app store of knowledge *systems*: install the **Zettelkasten**
   package and get all its flows (and their built-in patterns) in one go; remove it just as cleanly
   (it trashes only its own files, never your notes). Atomic install, local, no network.

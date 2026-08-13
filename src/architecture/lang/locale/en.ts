@@ -693,6 +693,18 @@ export default {
     concept_nav_back_button: 'Back to hubs',
     settings_toolkit_concept_nav_name: 'Concept navigation',
     settings_toolkit_concept_nav_desc: 'Walk your notes by concept, like a Wikipedia you wrote.',
+    // Open questions (#167)
+    open_questions_view_title: 'Open questions',
+    command_show_open_questions: 'Show open questions',
+    open_questions_indexing: 'Building the index…',
+    open_questions_empty: 'No open questions — every question has an answer, or none are asked yet.',
+    open_questions_error: 'Could not load open questions.',
+    open_questions_refresh_button: 'Refresh',
+    open_questions_asked_by: 'Asked by',
+    open_questions_proposed_answers: 'Might be answered by',
+    open_questions_no_answer: 'No candidate answer found.',
+    settings_toolkit_open_questions_name: 'Open questions',
+    settings_toolkit_open_questions_desc: 'Every unanswered question in your vault, with candidate answers.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

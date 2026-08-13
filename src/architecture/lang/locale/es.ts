@@ -693,6 +693,18 @@ export default {
     concept_nav_back_button: 'Volver a hubs',
     settings_toolkit_concept_nav_name: 'Navegación por conceptos',
     settings_toolkit_concept_nav_desc: 'Recorre tus notas por conceptos, como una Wikipedia que escribiste tú.',
+    // Preguntas abiertas (#167)
+    open_questions_view_title: 'Preguntas abiertas',
+    command_show_open_questions: 'Mostrar preguntas abiertas',
+    open_questions_indexing: 'Construyendo el índice…',
+    open_questions_empty: 'No hay preguntas abiertas — todas tienen respuesta, o aún no se ha planteado ninguna.',
+    open_questions_error: 'No se han podido cargar las preguntas abiertas.',
+    open_questions_refresh_button: 'Actualizar',
+    open_questions_asked_by: 'Planteada por',
+    open_questions_proposed_answers: 'Podría responderla',
+    open_questions_no_answer: 'No se ha encontrado ninguna respuesta candidata.',
+    settings_toolkit_open_questions_name: 'Preguntas abiertas',
+    settings_toolkit_open_questions_desc: 'Todas las preguntas sin responder de tu bóveda, con respuestas candidatas.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

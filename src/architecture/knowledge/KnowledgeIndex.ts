@@ -185,23 +185,22 @@ export class KnowledgeIndex {
         }
     }
 
-    /** Drop a deleted note's timeline (#168). Best-effort, gated, never breaks indexing. */
+    /**
+     * Drop a deleted note's timeline (#168). Best-effort, never breaks indexing. NOT gated on the
+     * toggle — cleanup must run even when recording is off, so opting out never orphans stored data.
+     */
     private pruneTimeline(path: string): void {
         try {
-            const timeline = ConceptualTimeline.getInstance();
-            if (!timeline.enabled()) return;
-            timeline.prune(path);
+            ConceptualTimeline.getInstance().prune(path);
         } catch (error) {
             log.error(`[KnowledgeIndex] conceptual timeline prune failed: ${error instanceof Error ? error.message : "unknown error"}`);
         }
     }
 
-    /** Follow a renamed note's timeline to its new path (#168). Best-effort, gated. */
+    /** Follow a renamed note's timeline to its new path (#168). Best-effort, ungated (housekeeping). */
     private rekeyTimeline(oldPath: string, newPath: string): void {
         try {
-            const timeline = ConceptualTimeline.getInstance();
-            if (!timeline.enabled()) return;
-            timeline.rekey(oldPath, newPath);
+            ConceptualTimeline.getInstance().rekey(oldPath, newPath);
         } catch (error) {
             log.error(`[KnowledgeIndex] conceptual timeline rekey failed: ${error instanceof Error ? error.message : "unknown error"}`);
         }

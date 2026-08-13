@@ -52,9 +52,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **❓ Open questions** — every unanswered question in your vault, made first-class: each `question::`
   with no answer yet, its asker(s), and the note most likely to answer it (ranked by shared graph
   context). Read-only, offline — a live thread instead of a dead end.
-- **🌱 Evolution timeline** — the *conceptual* history of an idea (not a text diff): a per-note
+- **🕰️ Evolution timeline** — the *conceptual* history of an idea (not a text diff): a per-note
   sequence of its lifecycle state + claims, captured only on meaningful change. Local, bounded,
-  opt-out — see how a claim evolved from "AI replaces us" to "AI is a copilot".
+  **opt-in** (it stores note content) — see how a claim evolved from "AI replaces us" to "AI is a copilot".
 - **✂️ Atomicity split assist** — turn a multi-topic note into linked atomic notes in one
   command, leaving the source as a hub.
 - **🌱 Note lifecycle states** — give every note a **state** (🌱 fleeting → 📝 literature →
@@ -153,7 +153,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
 | **Concept navigation** | Walk your vault by typed relation (in + out) — focus a note, click a neighbour to re-focus, no folders — plus argument-forward reasoning paths over the same graph. Read-only, offline. |
 | **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
-| **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. Local, bounded, opt-out. |
+| **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. Local, bounded, opt-in. |
 | **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |

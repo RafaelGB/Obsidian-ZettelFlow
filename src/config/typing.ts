@@ -104,10 +104,10 @@ export interface ZettelFlowSettings {
     };
 
     /**
-     * Conceptual evolution timeline (#168). ON by default. Unlike the journal's path-free counts,
-     * this stores per-note lifecycle `state` + claim texts + timestamps — but strictly **local**
-     * (never networked), **bounded** (per-note and total-notes caps), **opt-out**, and pruned on
-     * note delete/rename.
+     * Conceptual evolution timeline (#168). **OFF by default (opt-in)** — unlike the journal's
+     * path-free counts, this stores per-note lifecycle `state` + claim texts + timestamps, so it is
+     * consent-first: strictly **local** (never networked), **bounded** (per-note and total-notes
+     * caps), pruned on note delete/rename, and cleared when the user turns it off.
      */
     timeline: {
         enabled: boolean;
@@ -215,7 +215,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     events: { enabled: false }, // Event-driven workflows are opt-in (#150).
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
-    timeline: { enabled: true, snapshots: {} }, // Conceptual evolution timeline on by default (#168).
+    timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

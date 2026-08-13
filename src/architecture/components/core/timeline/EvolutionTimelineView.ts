@@ -6,7 +6,7 @@ import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 
 const DEBOUNCE_MS = 400;
 
-type ViewState = "loading" | "ready" | "empty" | "error";
+type ViewState = "loading" | "ready" | "empty" | "disabled" | "error";
 
 /**
  * **Evolution timeline** (#168): the conceptual history of the ACTIVE note — the sequence of its
@@ -34,7 +34,7 @@ export class EvolutionTimelineView extends ItemView {
     }
 
     getIcon(): string {
-        return "history";
+        return "milestone";
     }
 
     async onOpen(): Promise<void> {
@@ -60,8 +60,15 @@ export class EvolutionTimelineView extends ItemView {
 
     private recompute(): void {
         try {
+            const timeline = ConceptualTimeline.getInstance();
+            if (!timeline.enabled()) {
+                this.snapshots = [];
+                this.state = "disabled";
+                this.render();
+                return;
+            }
             const active = this.app.workspace.getActiveFile();
-            this.snapshots = active ? ConceptualTimeline.getInstance().snapshotsFor(active.path) : [];
+            this.snapshots = active ? timeline.snapshotsFor(active.path) : [];
             this.state = this.snapshots.length === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -86,6 +93,10 @@ export class EvolutionTimelineView extends ItemView {
 
         if (this.state === "loading") {
             container.createDiv({ cls: c("evolution-timeline-status"), text: t("evolution_timeline_loading") });
+            return;
+        }
+        if (this.state === "disabled") {
+            container.createDiv({ cls: c("evolution-timeline-status"), text: t("evolution_timeline_disabled") });
             return;
         }
         if (this.state === "error") {

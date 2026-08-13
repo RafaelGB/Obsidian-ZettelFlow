@@ -27,7 +27,11 @@ export function timelineSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem
                         toggle
                             .setValue(plugin.settings.timeline.enabled)
                             .onChange(async (value) => {
-                                plugin.settings.timeline = { ...plugin.settings.timeline, enabled: value };
+                                // Turning it off clears the stored snapshots — opting out erases the content store.
+                                plugin.settings.timeline = {
+                                    enabled: value,
+                                    snapshots: value ? plugin.settings.timeline.snapshots : {},
+                                };
                                 await plugin.saveSettings();
                             })
                     );

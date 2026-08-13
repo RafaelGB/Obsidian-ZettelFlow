@@ -8,6 +8,7 @@ const KEYS = [
     "command_show_evolution_timeline",
     "evolution_timeline_loading",
     "evolution_timeline_empty",
+    "evolution_timeline_disabled",
     "evolution_timeline_error",
     "evolution_timeline_refresh_button",
     "evolution_timeline_state_label",
@@ -23,8 +24,8 @@ const KEYS = [
 ];
 
 describe("evolution timeline i18n parity (#168)", () => {
-    it("defines all 15 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(15);
+    it("defines all 16 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(16);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

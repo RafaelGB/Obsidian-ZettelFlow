@@ -36,9 +36,12 @@ The store is bounded so it can't grow without limit:
 ## Privacy
 
 Fully **offline** — no network, no AI. Unlike the thinking journal's path-free day→count tally, the
-timeline necessarily stores **per-note lifecycle state, claim texts and timestamps**. This lives
-**only** in your vault's local plugin data (`data.json`), is **bounded** and **pruned on delete**, and
-is **opt-out** — toggle it off under *Settings → ZettelFlow → Evolution timeline* (constitution §VII).
+timeline necessarily stores **per-note lifecycle state, claim texts and timestamps**. Because it copies
+note *content* into your vault's local plugin data (`data.json`, which people often sync or commit), it
+is **off by default — opt in** under *Settings → ZettelFlow → Evolution timeline* (constitution §VII).
+Once enabled the store lives **only** locally, is **bounded** (per-note 20, total 200), is **pruned on
+delete** and **re-keyed on rename** (housekeeping runs even when the toggle is off), and turning the
+toggle **off clears everything already captured**.
 
 ## Architecture
 
@@ -51,7 +54,7 @@ evictOldestNotes(snapshots, maxNotes)            (pure, Obsidian-free, unit-test
 
 ConceptualTimeline (singleton, structural TimelineHost, mirrors DevelopmentJournal)
   KnowledgeIndex.upsert → capture(idea) · onDelete → prune · onRename → rekey
-  persists settings.timeline.snapshots (debounced), gated on the opt-out toggle
+  capture gated on the opt-in toggle; prune/rekey run ungated (housekeeping); saves debounced
 
 EvolutionTimelineView (ItemView) + EvolutionTimelineComponent (show-evolution-timeline, no hotkey)
   reads snapshotsFor(activeNotePath) → renders date · state · claims, oldest→newest; writes nothing

@@ -63,9 +63,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   the canvas so a flow reads as an arc of thinking.
 - **🧠 Knowledge actions** — actions that *reason about* your slip-box, not just write to a note:
   detect an **orphan**, **calculate maturity** (0–100 from state, links, sources and age), **find
-  contradictions**, **find unanswered questions**, and **suggest the next move** (a concrete
-  to-do: add a source, connect it, add an example, develop it) — deterministic, offline, over the
-  knowledge model. They feed the knowledge-health layer.
+  contradictions**, **find unanswered questions**, **suggest the next move** (a concrete
+  to-do: add a source, connect it, add an example, develop it), and run the **thinking simulator**
+  (critical-thinking prompts adapted to a note's gaps — *what if it's false? what evidence is
+  missing? what contradicts it?*) — deterministic, offline, over the knowledge model. They feed the
+  knowledge-health layer.
 - **🔗 Relation actions** — actions that turn connection-making into a workflow step: **find
   related** and **suggest link** rank notes worth linking by shared graph context (co-citation +
   coupling), and **create semantic relation** writes a typed edge (supports, contradicts, …) to a
@@ -128,7 +130,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
-| **27 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question, suggest next move — 🔗 relation actions — find related, suggest link, create semantic relation — 🔍 research actions — extract claims, compare claims, find sources, attach source — and 🤖 optional AI actions (off by default) — summarize, classify, generate questions. |
+| **28 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question, suggest next move, thinking simulator — 🔗 relation actions — find related, suggest link, create semantic relation — 🔍 research actions — extract claims, compare claims, find sources, attach source — and 🤖 optional AI actions (off by default) — summarize, classify, generate questions. |
 | **Conditional edges** | Label a canvas arrow `if: frontmatter.type === "meeting"` to branch the workflow at runtime. |
 | **Dynamic templates** | Use `{{title}}`, `{{date}}`, `{{frontmatter.key}}`, `{{canvas.name}}` in step body templates. |
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |

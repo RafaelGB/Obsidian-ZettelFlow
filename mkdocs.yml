@@ -77,7 +77,6 @@ nav:
       - 7.6 Spec-driven development: development/spec-driven-development.md
       - 7.7 Slip-box health dashboard: development/slipbox-health-dashboard.md
       - 7.8 Capabilities & privacy: development/capabilities-and-privacy.md
-      - 7.9 Zettelkasten starter flows: development/zettelkasten-starter-flows.md
       - 7.10 Map of content builder: development/moc-builder.md
       - 7.11 Connection resurfacing: development/connection-resurfacing.md
       - 7.12 Atomicity split assist: development/atomicity-split.md
@@ -94,7 +93,6 @@ nav:
       - 7.23 Knowledge dashboard: development/knowledge-dashboard.md
       - 7.24 ZettelFlow home: development/zettelflow-home.md
       - 7.25 Derived projects: development/derived-projects.md
-      - 7.26 Methodology packages: development/methodology-packages.md
       - 7.27 Friction audit (epic #231): development/friction-audit.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

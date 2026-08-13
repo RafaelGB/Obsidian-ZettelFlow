@@ -37,11 +37,6 @@ export interface ZettelFlowSettings {
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 
-    /**
-     * Installed methodology packages (#174), keyed by package id → the owned file paths (the source
-     * of truth for a clean uninstall) and the installed version. Additive; empty by default.
-     */
-    installedPackages: Record<string, { paths: string[]; version: string }>;
     /** Community-specific settings */
     communitySettings: {
         /** Folder where Markdown templates are stored */
@@ -205,7 +200,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.
     },
-    installedPackages: {}, // No methodology packages installed by default (#174).
     communitySettings: {
         url: "http://127.0.0.1:8000", // Default URL for community resources.
         markdownTemplateFolder: "_ZettelFlowMdTemplates", // Default folder for Markdown templates.

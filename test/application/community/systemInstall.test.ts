@@ -114,6 +114,22 @@ describe("validateSystemTemplate (#214, FR-7, AC-2)", () => {
         ]);
     });
 
+    it("flags a frontmatter value that would break real YAML parsing (leading [[ or @)", () => {
+        const wikilink = "---\nzettelFlowSettings:\n  root: true\n  actions:\n    - type: prompt\n      key: x\n      placeholder: [[a note]]...\n---\n";
+        const atSign = "---\nzettelFlowSettings:\n  root: true\n  actions:\n    - type: prompt\n      key: y\n      placeholder: @home, @work...\n---\n";
+        expect(validateSystemTemplate({ ...template, steps: [{ filename: "Wiki.md", content: wikilink }] }, REGISTERED_ACTION_IDS)).toEqual([
+            'Step "Wiki.md" has an unquoted YAML-unsafe value for "placeholder"',
+        ]);
+        expect(validateSystemTemplate({ ...template, steps: [{ filename: "At.md", content: atSign }] }, REGISTERED_ACTION_IDS)).toEqual([
+            'Step "At.md" has an unquoted YAML-unsafe value for "placeholder"',
+        ]);
+    });
+
+    it("accepts the same values once single-quoted", () => {
+        const quoted = "---\nzettelFlowSettings:\n  root: true\n  actions:\n    - type: prompt\n      key: x\n      placeholder: '[[a note]]...'\n---\n";
+        expect(validateSystemTemplate({ ...template, steps: [{ filename: "Ok.md", content: quoted }] }, REGISTERED_ACTION_IDS)).toEqual([]);
+    });
+
     it("flags an unparseable canvas", () => {
         const broken: ZfTemplate = { ...template, canvas: { filename: "academic.canvas", content: "not json" } };
         expect(validateSystemTemplate(broken, REGISTERED_ACTION_IDS)).toEqual([

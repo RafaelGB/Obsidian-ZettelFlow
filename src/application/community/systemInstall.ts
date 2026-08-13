@@ -117,10 +117,41 @@ function extractActionTypes(frontmatter: string): string[] {
     return types;
 }
 
+/** YAML indicator characters that must not start an unquoted plain scalar value. */
+const YAML_UNSAFE_LEAD: ReadonlySet<string> = new Set([
+    "[", "]", "{", "}", ",", "#", "&", "*", "!", "|", ">", "%", "@", "`",
+]);
+
+/**
+ * Frontmatter inline values that would break real YAML parsing if left unquoted — the failure the
+ * regex-structural checks miss. A value like `[[note]]...` or `@home...` silently invalidates the whole
+ * `zettelFlowSettings` block, so the engine drops the step as a flow root even though the JSON is fine
+ * (#217 review). Returns the offending `key`s; authors must single-quote such values. Obsidian-free —
+ * a targeted lint of the realistic authoring hazard, not a full YAML parse.
+ */
+function unsafeYamlValueKeys(frontmatter: string): string[] {
+    const keys: string[] = [];
+    for (const line of frontmatter.split("\n")) {
+        const match = line.match(/^\s*(?:-\s+)?([\w-]+):\s+(\S.*?)\s*$/);
+        if (!match) continue;
+        const [, key, value] = match;
+        if (value.startsWith("'") || value.startsWith('"')) continue; // already quoted → safe
+        const needsQuote =
+            YAML_UNSAFE_LEAD.has(value[0]) ||
+            value.startsWith("- ") ||
+            value.startsWith("? ") ||
+            value.includes(": ") ||
+            value.includes(" #");
+        if (needsQuote) keys.push(key);
+    }
+    return keys;
+}
+
 /**
  * Pure structural validator for a shipped system (#214, AC-2). Returns the list of problems (empty =
- * valid): a malformed bundle, a step with no `zettelFlowSettings:` frontmatter, or any action `type`
- * not in `knownActionTypes`. Obsidian-free — no YAML parse, just the load-bearing action-id invariant.
+ * valid): a malformed bundle, a step with no `zettelFlowSettings:` frontmatter, an action `type` not in
+ * `knownActionTypes`, an orphaned/unparseable canvas, an unsafe filename, or a frontmatter value that
+ * would break real YAML parsing (#217). Obsidian-free — a targeted structural lint, not a YAML parse.
  */
 export function validateSystemTemplate(template: ZfTemplate, knownActionTypes: ReadonlySet<string>): string[] {
     const problems: string[] = [];
@@ -163,6 +194,9 @@ export function validateSystemTemplate(template: ZfTemplate, knownActionTypes: R
             if (!knownActionTypes.has(type)) {
                 problems.push(`Step "${step.filename}" uses unknown action type "${type}"`);
             }
+        }
+        for (const key of unsafeYamlValueKeys(frontmatter)) {
+            problems.push(`Step "${step.filename}" has an unquoted YAML-unsafe value for "${key}"`);
         }
     }
     return problems;

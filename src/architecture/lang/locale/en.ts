@@ -528,6 +528,11 @@ export default {
     // Remove a relation command (#181)
     command_remove_relation: 'Remove a relation',
     ribbon_open_zettelflow: 'Open ZettelFlow',
+    // Managed step creation — canonical frontmatter format vs legacy inline (#238)
+    managed_step_note_option: 'Note — file with frontmatter (recommended)',
+    managed_step_text_option: 'Text card (inline, legacy)',
+    managed_step_group_option: 'Group (inline, legacy)',
+    managed_step_note_error: 'Could not create the step file. Check the console for details.',
     remove_relation_modal_title: 'Pick a relation to remove…',
     remove_relation_none: 'This note has no typed relations to remove.',
     remove_relation_confirm_question: 'Remove the relation {0} → [[{1}]] from "{2}"?',

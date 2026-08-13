@@ -1,0 +1,103 @@
+.zettelkasten-flow__evidence-map {
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__evidence-map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__evidence-map-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__evidence-map-refresh {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__evidence-map-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.5rem 0;
+}
+
+.zettelkasten-flow__evidence-map-section {
+    margin-bottom: 0.75rem;
+}
+
+.zettelkasten-flow__evidence-map-heading {
+    margin: 0 0 0.25rem;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__evidence-map-section-empty {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+}
+
+.zettelkasten-flow__evidence-map-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__evidence-map-row {
+    padding: 0.1rem 0;
+}
+
+.zettelkasten-flow__evidence-map-row-name {
+    cursor: pointer;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__evidence-map-row-name:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__evidence-map-evidence {
+    padding: 0.15rem 0;
+}
+
+.zettelkasten-flow__evidence-map-claim {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__evidence-map-meta {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__evidence-map-note {
+    cursor: pointer;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__evidence-map-note:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__evidence-map-source {
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__evidence-map-subsection {
+    margin: 0.25rem 0;
+}
+
+.zettelkasten-flow__evidence-map-sublabel {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    font-weight: var(--font-semibold);
+}

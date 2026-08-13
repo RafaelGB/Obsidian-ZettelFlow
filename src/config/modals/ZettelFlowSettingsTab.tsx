@@ -31,6 +31,7 @@ import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/Know
 import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptNavView";
 import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
 import { EvolutionTimelineView } from "architecture/components/core/timeline/EvolutionTimelineView";
+import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -58,6 +59,7 @@ const TOOLKIT_DOCS = {
     conceptNav: `${DOCS_BASE}development/concept-navigation/`,
     openQuestions: `${DOCS_BASE}development/open-questions/`,
     timeline: `${DOCS_BASE}development/evolution-timeline/`,
+    evidenceMap: `${DOCS_BASE}development/evidence-map/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -587,6 +589,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.timeline);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_evidence_map_name"),
+                        desc: t("settings_toolkit_evidence_map_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, EvidenceMapView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.evidenceMap);
                         },
                     },
                     {

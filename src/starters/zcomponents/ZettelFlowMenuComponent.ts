@@ -32,10 +32,9 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             { command: "show-knowledge-dashboard", labelKey: "command_show_knowledge_dashboard", icon: "layout-dashboard" },
             { command: "show-slipbox-health", labelKey: "command_show_slipbox_health", icon: "activity" },
         ],
-        [
-            { command: "show-discoveries", labelKey: "command_show_discoveries", icon: "sparkles" },
-            { command: "resurface-related-notes", labelKey: "command_resurface", icon: "history" },
-        ],
+        // Discovery is now one unified view (#231 Phase 3): surprising connections + notes related to
+        // the active note. The standalone resurface command still works but is no longer a menu entry.
+        [{ command: "show-discoveries", labelKey: "discovery_view_title", icon: "telescope" }],
         [
             { command: "show-knowledge-map", labelKey: "command_show_knowledge_map", icon: "network" },
             { command: "show-concept-nav", labelKey: "command_show_concept_nav", icon: "waypoints" },

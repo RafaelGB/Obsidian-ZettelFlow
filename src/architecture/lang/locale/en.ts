@@ -652,6 +652,12 @@ export default {
     settings_journal_enable_name: 'Record development events',
     settings_journal_enable_desc: 'Keep a per-day count of ideas developed (state advanced, source or connection added). On by default.',
     settings_journal_disclosure: 'Stored locally as day → count only — no note names, no content, no network.',
+    // Evolution timeline settings (#168)
+    settings_timeline_heading: 'Evolution timeline',
+    settings_timeline_intro: 'ZettelFlow keeps a per-note history of how an idea evolved — its lifecycle state and claim texts over time.',
+    settings_timeline_enable_name: 'Record conceptual snapshots',
+    settings_timeline_enable_desc: 'Capture a snapshot when a note changes state or claims meaningfully (not every keystroke). On by default.',
+    settings_timeline_disclosure: 'Stored locally per note — lifecycle state, claim texts and timestamps — bounded and pruned on delete; no network.',
     settings_toolkit_heatmap_name: 'Thinking heatmap',
     settings_toolkit_heatmap_desc: 'A calendar heatmap of ideas developed over the last year.',
     // Morning discovery (#163)

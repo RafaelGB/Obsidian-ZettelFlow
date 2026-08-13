@@ -652,6 +652,12 @@ export default {
     settings_journal_enable_name: 'Registrar eventos de desarrollo',
     settings_journal_enable_desc: 'Lleva un recuento diario de ideas desarrolladas (estado avanzado, fuente o conexión añadida). Activado por defecto.',
     settings_journal_disclosure: 'Se guarda en local solo como día → recuento — sin nombres de notas, sin contenido, sin red.',
+    // Ajustes de la línea temporal de evolución (#168)
+    settings_timeline_heading: 'Línea temporal de evolución',
+    settings_timeline_intro: 'ZettelFlow guarda por nota un historial de cómo evolucionó una idea — su estado de ciclo de vida y los textos de sus afirmaciones a lo largo del tiempo.',
+    settings_timeline_enable_name: 'Registrar instantáneas conceptuales',
+    settings_timeline_enable_desc: 'Captura una instantánea cuando una nota cambia de estado o de afirmaciones de forma significativa (no en cada pulsación). Activado por defecto.',
+    settings_timeline_disclosure: 'Se guarda en local por nota — estado del ciclo de vida, textos de afirmaciones y marcas de tiempo — acotado y purgado al borrar; sin red.',
     settings_toolkit_heatmap_name: 'Mapa de calor del pensamiento',
     settings_toolkit_heatmap_desc: 'Un mapa de calor de calendario de las ideas desarrolladas en el último año.',
     // Descubrimiento matinal (#163)

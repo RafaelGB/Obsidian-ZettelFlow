@@ -24,6 +24,7 @@ import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
+import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
 import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
 import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
@@ -452,6 +453,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             aiSettingsGroup(plugin),
             // ── Thinking journal (#162) ───────────────────────────────────────
             journalSettingsGroup(plugin),
+            timelineSettingsGroup(plugin),
             // ── Zettelkasten toolkit ──────────────────────────────────────────
             {
                 type: "group",

@@ -1,0 +1,16 @@
+{
+  "zfVersion": "1.0",
+  "name": "Daily journal",
+  "description": "A frictionless daily note: three highlights, gratitude and one thing for tomorrow, tagged and connected to related days and notes on creation. Offline, no AI.",
+  "author": "ZettelFlow",
+  "canvas": {
+    "filename": "Daily journal.canvas",
+    "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Daily.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"
+  },
+  "steps": [
+    {
+      "filename": "Daily.md",
+      "content": "---\nzettelFlowSettings:\n  root: true\n  label: Daily journal\n  phase: CAPTURE\n  actions:\n    - type: prompt\n      id: jr-title\n      description: Title\n      hasUI: true\n      key: title\n      zone: context\n      label: Title\n      placeholder: e.g. today's date or a headline...\n      staticBehaviour: false\n    - type: prompt\n      id: jr-highlights\n      description: Highlights\n      hasUI: true\n      key: highlights\n      zone: context\n      label: Highlights\n      placeholder: Up to three things worth remembering...\n      staticBehaviour: false\n    - type: prompt\n      id: jr-gratitude\n      description: Gratitude\n      hasUI: true\n      key: gratitude\n      zone: context\n      label: Gratitude\n      placeholder: One thing you're grateful for...\n      staticBehaviour: false\n    - type: prompt\n      id: jr-tomorrow\n      description: For tomorrow\n      hasUI: true\n      key: tomorrow\n      zone: context\n      label: For tomorrow\n      placeholder: The one thing that matters tomorrow...\n      staticBehaviour: false\n    - type: prompt\n      id: jr-type\n      hasUI: false\n      key: type\n      zone: frontmatter\n      staticBehaviour: true\n      staticValue: journal\n  onCreation:\n    - type: find-related\n      id: jr-related\n      hasUI: false\n      key: related\n      zone: frontmatter\n      limit: 8\n  targetFolder: Journal\n  childrenHeader: ''\n  optional: false\n---\n\n# {{title}}\n\n## Highlights\n\n{{highlights}}\n\n## Grateful for\n\n{{gratitude}}\n\n## For tomorrow\n\n{{tomorrow}}\n\n## Related\n\n{{related}}\n"
+    }
+  ]
+}

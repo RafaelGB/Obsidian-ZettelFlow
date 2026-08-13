@@ -37,8 +37,6 @@ import { ZettelFlowHomeView } from "architecture/components/core/home/ZettelFlow
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
-import { StarterFlowsModal } from "zettelkasten/modals/StarterFlowsModal";
-import { installReferencePackage } from "starters/zcomponents/MethodologyPackageComponent";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -52,7 +50,6 @@ const TOOLKIT_DOCS = {
     companion: `${DOCS_BASE}architecture/actions-and-note-builder/`,
     zettelId: `${DOCS_BASE}actions/ZettelId/`,
     health: `${DOCS_BASE}development/slipbox-health-dashboard/`,
-    starter: `${DOCS_BASE}development/zettelkasten-starter-flows/`,
     moc: `${DOCS_BASE}development/moc-builder/`,
     resurface: `${DOCS_BASE}development/connection-resurfacing/`,
     atomicity: `${DOCS_BASE}development/atomicity-split/`,
@@ -65,7 +62,6 @@ const TOOLKIT_DOCS = {
     evidenceMap: `${DOCS_BASE}development/evidence-map/`,
     dashboard: `${DOCS_BASE}development/knowledge-dashboard/`,
     home: `${DOCS_BASE}development/zettelflow-home/`,
-    packages: `${DOCS_BASE}development/methodology-packages/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -640,32 +636,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.home);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_starter_name"),
-                        desc: t("settings_toolkit_starter_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_install_button"))
-                                    .setCta()
-                                    .onClick(() => new StarterFlowsModal(plugin.app).open())
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.starter);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_packages_name"),
-                        desc: t("settings_toolkit_packages_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_install_button"))
-                                    .setCta()
-                                    .onClick(() => void installReferencePackage(plugin))
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.packages);
                         },
                     },
                     // Learn-more rows: features reached via the wizard / commands, doc link only.

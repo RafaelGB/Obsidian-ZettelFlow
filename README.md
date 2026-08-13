@@ -56,16 +56,12 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   action**, one click from the surface to act on it. Read-only, offline.
 - **🧩 Systems Gallery** — *somewhere to start.* Install a complete knowledge **system** in one click
   from the community browser: pick a folder and ZettelFlow writes a ready-to-run canvas plus its step
-  notes (no clipboard, no manual paste). Seven shipped systems — **Academic research · Zettelkasten v2 ·
-  PARA v2 · GTD · Reading · Writing · Software architecture KB** — each composing the cognitive actions
-  on creation, so a new note lands already related, cross-checked and scored. Offline, no AI.
-- **📦 Methodology packages** — an app store of knowledge *systems*: install the **Zettelkasten**
-  package and get all its flows (and their built-in patterns) in one go; remove it just as cleanly
-  (it trashes only its own files, never your notes). Atomic install, local, no network.
-- **🚀 Starter flows** — one-click, ready-made flows for the four classic note types
-  (fleeting, literature, permanent, structure/MOC), plus a **Literature → Permanent** composed
-  showcase that chains the cognitive actions (extract claims → find related → suggest connections →
-  identify contradictions → promote) into one runnable, fully-editable flow.
+  notes (no clipboard, no manual paste), then **Run now** to use it immediately. A dozen shipped
+  systems — **Academic research · Zettelkasten v2 · PARA v2 · GTD · Reading · Writing · Software
+  architecture KB · Meeting notes · Daily journal · Concept note · Decision journal · Inquiry** — each
+  composing the cognitive actions on creation, so a new note lands already related, cross-checked and
+  scored. Offline, no AI. This is the one way to adopt a workflow — it replaces the old starter-flow and
+  methodology-package installers.
 - **🗺️ Map-of-content builder** — gather notes by tag/folder into a MOC and refresh it safely;
   re-runs never touch your own prose.
 - **✨ Connection resurfacing** — "talk to your slip-box": for the note you're reading, see
@@ -133,8 +129,8 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   and **generate questions**. No bundled key, no telemetry; the note content is sent only to the
   endpoint you configure. See [AI provider setup](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/ai-provider-setup/).
 
-> New here? Run **Install Zettelkasten starter flows** from the command palette, or open
-> **Settings → ZettelFlow** to launch these tools.
+> New here? Open the **community browser** and install a **system** — it writes a ready-to-run canvas
+> and its steps, and offers **Run now**. Everything else lives under **Settings → ZettelFlow**.
 
 ---
 
@@ -192,7 +188,6 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
 | **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, and the deterministic next recommended session. Read-only, offline. |
 | **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
-| **Methodology packages** | Install a whole knowledge system as a unit — the reference **Zettelkasten** package bundles all its flows; atomic install + clean removal (trashes only its own files). Local, no network. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
@@ -201,7 +196,6 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
 | **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. Local, bounded, opt-in. |
 | **Evidence map** *(experimental)* | Compound thinking — a grounded synthesis of a note from your own graph (supports · contradicts · evidence · gaps), every row linked to its source note. No invented content, no AI. |
-| **Zettelkasten starter flows** | One-click install of ready-made flows for fleeting, literature, permanent and MOC notes, plus a **Literature → Permanent** composed showcase that chains the cognitive actions. |
 | **Map-of-content builder** | Gather notes by tag/folder into a MOC; re-runs update a managed region and keep your prose. |
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |
 | **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |

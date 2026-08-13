@@ -1,0 +1,16 @@
+{
+  "zfVersion": "1.0",
+  "name": "Decision journal",
+  "description": "Record a decision the way your future self will thank you for: the options you weighed, the rationale and a review date, stamped with a Zettel ID and checked against your earlier decisions for contradictions on creation. Offline, no AI.",
+  "author": "ZettelFlow",
+  "canvas": {
+    "filename": "Decision journal.canvas",
+    "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Decision.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"
+  },
+  "steps": [
+    {
+      "filename": "Decision.md",
+      "content": "---\nzettelFlowSettings:\n  root: true\n  label: Decision record\n  phase: DEVELOP\n  actions:\n    - type: prompt\n      id: dj-title\n      description: Decision\n      hasUI: true\n      key: title\n      zone: context\n      label: Decision\n      placeholder: What did you decide?...\n      staticBehaviour: false\n    - type: prompt\n      id: dj-options\n      description: Options considered\n      hasUI: true\n      key: options\n      zone: context\n      label: Options considered\n      placeholder: What else was on the table?...\n      staticBehaviour: false\n    - type: prompt\n      id: dj-rationale\n      description: Rationale\n      hasUI: true\n      key: rationale\n      zone: context\n      label: Rationale\n      placeholder: Why this one?...\n      staticBehaviour: false\n    - type: prompt\n      id: dj-review\n      description: Review on\n      hasUI: true\n      key: reviewDate\n      zone: frontmatter\n      label: Review on\n      placeholder: When should you revisit this? (YYYY-MM-DD)...\n      staticBehaviour: false\n    - type: prompt\n      id: dj-type\n      hasUI: false\n      key: type\n      zone: frontmatter\n      staticBehaviour: true\n      staticValue: decision\n    - type: zettel-id\n      id: dj-id\n      hasUI: false\n      strategy: timestamp\n      key: id\n      writeFrontmatter: true\n      writeFilename: false\n      timestampFormat: YYYYMMDDHHmm\n      relationship: child\n  onCreation:\n    - type: find-contradiction\n      id: dj-contra\n      hasUI: false\n      key: contradictions\n      zone: frontmatter\n    - type: find-related\n      id: dj-related\n      hasUI: false\n      key: related\n      zone: frontmatter\n      limit: 8\n  targetFolder: Decisions\n  childrenHeader: ''\n  optional: false\n---\n\n# {{title}}\n\n**Review on:** {{reviewDate}}\n\n## Options considered\n\n{{options}}\n\n## Rationale\n\n{{rationale}}\n\n## Conflicts with earlier decisions\n\n{{contradictions}}\n\n## Related\n\n{{related}}\n"
+    }
+  ]
+}

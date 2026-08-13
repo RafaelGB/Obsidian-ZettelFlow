@@ -110,5 +110,45 @@
     "title": "Software architecture KB",
     "description": "A decision log for software architecture: an ADR entry point records context, decision and consequences and checks the new decision against existing ones for contradictions on creation; a Component entry point captures a component and its dependencies. Offline, no AI.",
     "author": "ZettelFlow"
+  },
+  {
+    "id": "f9a1b2c3-1111-4a2b-8c3d-101112131401",
+    "template_type": "system",
+    "ref": "/docs/systems/meeting-notes.zftemplate",
+    "title": "Meeting notes",
+    "description": "Capture attendees, agenda, discussion and action items, tag it, stamp a stable Zettel ID, and link it to related meetings and projects on creation. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "f9a1b2c3-2222-4a2b-8c3d-101112131402",
+    "template_type": "system",
+    "ref": "/docs/systems/daily-journal.zftemplate",
+    "title": "Daily journal",
+    "description": "A frictionless daily note — highlights, gratitude and one thing for tomorrow — connected to related days and notes on creation. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "f9a1b2c3-3333-4a2b-8c3d-101112131403",
+    "template_type": "system",
+    "ref": "/docs/systems/concept-note.zftemplate",
+    "title": "Concept note",
+    "description": "Grow an evergreen concept: on creation it is ranked, cross-checked, link-suggested, maturity-scored, challenged with thinking prompts and given a recommended next move. The full knowledge treatment. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "f9a1b2c3-4444-4a2b-8c3d-101112131404",
+    "template_type": "system",
+    "ref": "/docs/systems/decision-journal.zftemplate",
+    "title": "Decision journal",
+    "description": "Record a decision with the options you weighed, the rationale and a review date; stamped with a Zettel ID and checked against your earlier decisions for contradictions on creation. Offline, no AI.",
+    "author": "ZettelFlow"
+  },
+  {
+    "id": "f9a1b2c3-5555-4a2b-8c3d-101112131405",
+    "template_type": "system",
+    "ref": "/docs/systems/inquiry.zftemplate",
+    "title": "Inquiry",
+    "description": "Start from a question, not an answer: on creation ZettelFlow surfaces your other open questions, related notes and the claims you're implicitly making. Offline, no AI.",
+    "author": "ZettelFlow"
   }
 ]

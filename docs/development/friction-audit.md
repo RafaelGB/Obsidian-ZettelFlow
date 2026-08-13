@@ -55,8 +55,8 @@ two modes of one Graph view (lower priority).
 |---|---|---|---|
 | Community **flow** tab | a flow, via **clipboard → paste on canvas** | 2-hop, clunky | **superseded by systems** |
 | Community **system** tab (#213) | a `.zftemplate` = canvas + steps, **one click** | one click | the canonical path |
-| `install-starter-flows` | the 4 classic note-type flows + a composed showcase | command | could be systems |
-| `install-methodology-package` | a bundle of flows (the Zettelkasten package) | command | overlaps systems |
+| ~~`install-starter-flows`~~ | the 4 classic note-type flows + a composed showcase | command | **removed** — superseded by systems |
+| ~~`install-methodology-package`~~ | a bundle of flows (the Zettelkasten package) | command | **removed** — superseded by systems |
 | `import-canvas-template` | a local `.zftemplate` from disk | command (desktop) | same format as systems |
 
 **Finding F5 (highest ROI — the #74 pain).** Five ways to "get a workflow." → Phase 1: **Systems Gallery

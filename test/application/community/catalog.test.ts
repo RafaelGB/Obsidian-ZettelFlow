@@ -35,6 +35,11 @@ describe("community catalog systems (#215, AC-3/AC-6, FR-9)", () => {
             "/docs/systems/reading.zftemplate",
             "/docs/systems/writing.zftemplate",
             "/docs/systems/software-architecture-kb.zftemplate",
+            "/docs/systems/meeting-notes.zftemplate",
+            "/docs/systems/daily-journal.zftemplate",
+            "/docs/systems/concept-note.zftemplate",
+            "/docs/systems/decision-journal.zftemplate",
+            "/docs/systems/inquiry.zftemplate",
         ]) {
             expect(refs).toContain(ref);
         }

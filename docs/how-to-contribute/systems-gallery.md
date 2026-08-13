@@ -30,6 +30,11 @@ Each system offers several **independent entry points** on one canvas — pick t
 | **Reading** | Reading source · Reading note | highlights mined for claims and candidate sources; insights connected to your graph |
 | **Writing** | Draft · Section · Review | drafts pull in related source notes; sections suggest connections; reviews surface contradictions |
 | **Software architecture KB** | Decision record (ADR) · Component | new decisions are checked against existing ones for contradictions and linked to related decisions |
+| **Meeting notes** | Meeting note | attendees/agenda/actions captured, tagged, stamped with a Zettel ID, linked to related meetings |
+| **Daily journal** | Daily journal | highlights · gratitude · tomorrow, connected to related days on creation |
+| **Concept note** | Concept note | the full treatment — related · contradictions · suggested links · maturity · thinking prompts · next move |
+| **Decision journal** | Decision record | options · rationale · review date, Zettel ID, checked against earlier decisions for contradictions |
+| **Inquiry** | Open question | surfaces your other open questions, related notes and the claims you're implicitly making |
 
 > Previews: each system shows a preview image in the browser. Previews currently ship as placeholders
 > pending final artwork (tracked in issue #223) — the system itself is fully functional regardless.

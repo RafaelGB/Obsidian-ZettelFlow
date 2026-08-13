@@ -49,10 +49,10 @@ but the two vocabularies never mix.
 In the step builder, the **Knowledge phase** dropdown assigns (or clears, via *Unphased*) a step's
 phase. It rides the existing save paths (canvas node config / file frontmatter) — no new storage.
 
-## Default phases of the starter flows
+## Default phases in the shipped systems
 
-The bundled [starter flows](../development/zettelkasten-starter-flows.md) ship a sensible primary
-phase each:
+The shipped [systems](../how-to-contribute/systems-gallery.md) label their steps with a sensible
+primary phase each:
 
 | Starter flow | Default phase |
 |---|---|

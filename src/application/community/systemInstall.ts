@@ -31,6 +31,21 @@ export function planSystemInstall(template: ZfTemplate, targetFolder: string): {
     return { files };
 }
 
+/**
+ * A canvas/step `filename` is safe only when it is a bare in-folder name: no path separator, no `.`/`..`
+ * segment, no drive-absolute prefix. Systems are **remote, untrusted, one-click-installed** content, so
+ * a crafted name like `../../.obsidian/plugins/x/main.js` must never reach the disk (#214 hardening).
+ */
+export function isUnsafeFilename(filename: unknown): boolean {
+    if (typeof filename !== "string") return true;
+    const name = filename.trim();
+    if (name === "") return true;
+    if (name.includes("/") || name.includes("\\")) return true; // no subpaths, traversal or leading-slash
+    if (name === "." || name === "..") return true;
+    if (/^[a-zA-Z]:/.test(name)) return true; // Windows drive-absolute (e.g. C:foo)
+    return false;
+}
+
 /** The leading `---\n…\n---` frontmatter block of a note's content, or `null` if absent. */
 function frontmatterBlock(content: string): string | null {
     const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -57,7 +72,13 @@ export function validateSystemTemplate(template: ZfTemplate, knownActionTypes: R
         problems.push("Not a valid .zftemplate: missing required fields");
         return problems;
     }
+    if (isUnsafeFilename(template.canvas.filename)) {
+        problems.push(`Canvas "${template.canvas.filename}" has an unsafe path`);
+    }
     for (const step of template.steps) {
+        if (isUnsafeFilename(step.filename)) {
+            problems.push(`Step "${step.filename}" has an unsafe path`);
+        }
         const frontmatter = frontmatterBlock(step.content);
         if (!frontmatter || !frontmatter.includes("zettelFlowSettings:")) {
             problems.push(`Step "${step.filename}" has no zettelFlowSettings frontmatter`);

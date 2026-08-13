@@ -205,6 +205,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
 | **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
+| **Community systems** | Install a whole knowledge system in one click — the community browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |
 | **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`). |

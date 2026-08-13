@@ -5,7 +5,11 @@ import { FileService } from "architecture/plugin";
 import { FolderSuggest } from "architecture/settings";
 import ZettelFlow from "main";
 import { ZfTemplate } from "application/template/zfTemplate";
-import { planSystemInstall } from "./systemInstall";
+import {
+  planSystemInstall,
+  validateSystemTemplate,
+  REGISTERED_ACTION_IDS,
+} from "./systemInstall";
 import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
 
 /**
@@ -20,6 +24,8 @@ export class CommunitySystemModal extends Modal {
     ".png"
   )}`;
   private objectUrl: string | null = null;
+  /** Set in `onClose`; guards the async image load against a close-before-fetch race. */
+  private disposed = false;
 
   constructor(
     plugin: ZettelFlow,
@@ -33,29 +39,10 @@ export class CommunitySystemModal extends Modal {
 
   onOpen(): void {
     this.modalEl.addClass(c("modal"));
-    void this.renderContent();
+    this.renderContent();
   }
 
-  /**
-   * Fetches the optional sibling preview image (`<id>.png`) as a Blob URL. Systems may ship without
-   * one (the author drops it in later), so a miss is expected — logged at debug, not surfaced.
-   */
-  private async fetchSystemImage(): Promise<string | null> {
-    try {
-      const response = await requestUrl({ url: this.imageUrl });
-      const buffer = response.arrayBuffer;
-      const mimeType =
-        response.headers["content-type"] ?? "application/octet-stream";
-      const blob = new Blob([buffer], { type: mimeType });
-      this.objectUrl = URL.createObjectURL(blob);
-      return this.objectUrl;
-    } catch (error) {
-      log.debug("No preview image for system:", this.imageUrl, error);
-      return null;
-    }
-  }
-
-  private async renderContent(): Promise<void> {
+  private renderContent(): void {
     this.contentEl.empty();
 
     // --- Header ---
@@ -71,21 +58,11 @@ export class CommunitySystemModal extends Modal {
     });
     infoSection.createEl("p", { text: this.template.description });
 
-    // --- Optional preview image ---
-    const imgUrl = await this.fetchSystemImage();
-    if (imgUrl) {
-      const imgSection = this.contentEl.createDiv({
-        cls: c("modal-reader-flow-image-section"),
-      });
-      imgSection.createEl("h3", { text: t("community_system_preview") });
-      const container = imgSection.createDiv({
-        cls: c("flow-image-container"),
-      });
-      const imgEl = container.createEl("img", {
-        attr: { src: imgUrl, alt: `${this.template.name} preview` },
-      });
-      imgEl.addClass(c("flow-image-fit"));
-    }
+    // --- Optional preview image (loaded asynchronously so install stays usable offline) ---
+    const imgSection = this.contentEl.createDiv({
+      cls: c("modal-reader-flow-image-section"),
+    });
+    void this.loadImage(imgSection);
 
     // --- What gets installed ---
     const contentsSection = this.contentEl.createDiv({
@@ -121,10 +98,47 @@ export class CommunitySystemModal extends Modal {
   }
 
   /**
-   * Writes every planned file (canvas first, then each step), opens the canvas, and closes the modal.
-   * Idempotent by way of {@link FileService.writeFile} (overwrite-in-place).
+   * Fetches the optional sibling preview image (`<id>.png`) and appends it. Systems may ship without
+   * one (the author drops it in later), so a miss is expected — logged at debug, not surfaced. Bails
+   * if the modal was closed while fetching, revoking the just-created object URL.
+   */
+  private async loadImage(section: HTMLDivElement): Promise<void> {
+    let objectUrl: string | null = null;
+    try {
+      const response = await requestUrl({ url: this.imageUrl });
+      const mimeType =
+        response.headers["content-type"] ?? "application/octet-stream";
+      const blob = new Blob([response.arrayBuffer], { type: mimeType });
+      objectUrl = URL.createObjectURL(blob);
+    } catch (error) {
+      log.debug("No preview image for system:", this.imageUrl, error);
+      return;
+    }
+    if (this.disposed) {
+      URL.revokeObjectURL(objectUrl);
+      return;
+    }
+    this.objectUrl = objectUrl;
+    section.createEl("h3", { text: t("community_system_preview") });
+    const container = section.createDiv({ cls: c("flow-image-container") });
+    const imgEl = container.createEl("img", {
+      attr: { src: objectUrl, alt: t("community_system_preview") },
+    });
+    imgEl.addClass(c("flow-image-fit"));
+  }
+
+  /**
+   * Validates the fetched (remote, untrusted) system, then writes every planned file (canvas first,
+   * then each step), opens the canvas, and closes the modal. Idempotent by way of
+   * {@link FileService.writeFile} (overwrite-in-place).
    */
   private async installSystem(): Promise<void> {
+    const problems = validateSystemTemplate(this.template, REGISTERED_ACTION_IDS);
+    if (problems.length > 0) {
+      log.error("Refusing to install invalid community system:", problems);
+      new Notice(t("community_system_install_error"));
+      return;
+    }
     try {
       const { files } = planSystemInstall(this.template, this.targetFolder);
       for (const file of files) {
@@ -142,6 +156,7 @@ export class CommunitySystemModal extends Modal {
   }
 
   onClose(): void {
+    this.disposed = true;
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.contentEl.empty();
   }

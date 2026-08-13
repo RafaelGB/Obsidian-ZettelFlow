@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import {
     planSystemInstall,
     validateSystemTemplate,
+    isUnsafeFilename,
     REGISTERED_ACTION_IDS,
 } from "application/community/systemInstall";
 import type { ZfTemplate } from "application/template/zfTemplate";
@@ -62,6 +63,31 @@ describe("validateSystemTemplate (#214, FR-7, AC-2)", () => {
     it("knows the cognitive action ids the epic shipped", () => {
         for (const id of ["calculate-maturity", "find-related", "extract-claims", "thinking-simulator"]) {
             expect(REGISTERED_ACTION_IDS.has(id)).toBe(true);
+        }
+    });
+
+    it("flags an unsafe canvas or step filename (path traversal) before any write", () => {
+        const evil: ZfTemplate = {
+            ...template,
+            canvas: { filename: "../../.obsidian/plugins/x/main.js", content: "{}" },
+            steps: [{ filename: "sub/Nested.md", content: stepContent }],
+        };
+        expect(validateSystemTemplate(evil, REGISTERED_ACTION_IDS)).toEqual([
+            'Canvas "../../.obsidian/plugins/x/main.js" has an unsafe path',
+            'Step "sub/Nested.md" has an unsafe path',
+        ]);
+    });
+});
+
+describe("isUnsafeFilename (#214 hardening)", () => {
+    it("accepts a bare in-folder filename", () => {
+        expect(isUnsafeFilename("Capture.md")).toBe(false);
+        expect(isUnsafeFilename("My system.canvas")).toBe(false);
+    });
+
+    it("rejects separators, traversal, drive-absolute and empties", () => {
+        for (const bad of ["../escape.md", "a/b.md", "a\\b.md", "/abs.md", "..", ".", "", "   ", "C:evil.md"]) {
+            expect(isUnsafeFilename(bad)).toBe(true);
         }
     });
 });

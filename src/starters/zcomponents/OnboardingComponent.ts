@@ -1,8 +1,12 @@
 import { PluginComponent } from "architecture";
-import { t } from "architecture/lang";
 import ZettelFlow from "main";
-import { Notice } from "obsidian";
+import { WelcomeModal } from "./WelcomeModal";
 
+/**
+ * First-run onboarding (#246 A1). On the first launch after install, open the {@link WelcomeModal},
+ * which funnels the user into the Systems Gallery — the one adoption path — for an immediate first win.
+ * Shown once (guarded by `hasSeenWelcome`), after layout is ready so the workspace is interactive.
+ */
 export class OnboardingComponent extends PluginComponent {
     constructor(private plugin: ZettelFlow) {
         super(plugin);
@@ -13,21 +17,7 @@ export class OnboardingComponent extends PluginComponent {
         this.plugin.app.workspace.onLayoutReady(() => {
             this.plugin.settings.hasSeenWelcome = true;
             void this.plugin.saveSettings();
-
-            if (this.plugin.settings.ribbonCanvas) return;
-
-            const notice = new Notice("", 0);
-            const frag = notice.messageEl.createDiv();
-            frag.createSpan({ text: t("onboarding_notice_msg") });
-            frag.createEl("br");
-            const btn = frag.createEl("button", {
-                text: t("onboarding_notice_open_settings"),
-            });
-            btn.addEventListener("click", () => {
-                this.plugin.app.setting.open();
-                this.plugin.app.setting.openTabById("zettelflow");
-                notice.hide();
-            });
+            new WelcomeModal(this.plugin).open();
         });
     }
 }

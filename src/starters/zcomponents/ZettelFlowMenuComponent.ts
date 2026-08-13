@@ -1,6 +1,7 @@
 import { Menu } from "obsidian";
 import { PluginComponent, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
+import { CommunityTemplatesModal } from "application/community";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -27,7 +28,10 @@ export class ZettelFlowMenuComponent extends PluginComponent {
 
     /** View entries grouped by job; a separator is drawn between groups. Home leads. */
     private static readonly GROUPS: ViewEntry[][] = [
-        [{ command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" }],
+        [
+            { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
+            { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },
+        ],
         [{ command: "show-home", labelKey: "command_show_home", icon: "home" }],
         [
             { command: "show-knowledge-dashboard", labelKey: "command_show_knowledge_dashboard", icon: "layout-dashboard" },
@@ -50,6 +54,13 @@ export class ZettelFlowMenuComponent extends PluginComponent {
     ];
 
     onLoad(): void {
+        // The community systems browser had no command of its own (only reachable via settings) — a
+        // discoverability gap. This makes it a first-class, funnel-able entry point (#246 A1).
+        this.plugin.addCommand({
+            id: "browse-systems",
+            name: t("command_browse_systems"),
+            callback: () => new CommunityTemplatesModal(this.plugin).open(),
+        });
         this.plugin.addRibbonIcon("brain-circuit", t("ribbon_open_zettelflow"), (evt: MouseEvent) => {
             const menu = new Menu();
             const prefix = `${this.plugin.manifest.id}:`;

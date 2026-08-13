@@ -508,6 +508,11 @@ export default {
     // Remove a relation command (#181)
     command_remove_relation: 'Remove a relation',
     ribbon_open_zettelflow: 'Open ZettelFlow',
+    command_browse_systems: 'Browse systems',
+    welcome_title: 'Welcome to ZettelFlow',
+    welcome_body: "ZettelFlow turns Obsidian's canvas into a note-creation workflow — and makes your knowledge evolve. The fastest way to start is to install a ready-made system (a canvas plus its steps) and run it: each note you create lands already related, cross-checked and scored.",
+    welcome_cta_browse: 'Browse systems to get started',
+    welcome_later: 'Maybe later',
     command_run_canvas_flow: 'Run the current canvas as a flow',
     run_canvas_flow_error: 'Could not run this canvas as a flow. Check the console for details.',
     community_system_run_now: 'Run now',

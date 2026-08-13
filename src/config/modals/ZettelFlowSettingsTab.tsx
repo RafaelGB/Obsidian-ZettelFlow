@@ -32,6 +32,7 @@ import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptN
 import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
 import { EvolutionTimelineView } from "architecture/components/core/timeline/EvolutionTimelineView";
 import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
+import { KnowledgeDashboardView } from "architecture/components/core/knowledgeDashboard/KnowledgeDashboardView";
 import { createExampleFlow } from "application/notes/onboardingService";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
@@ -60,6 +61,7 @@ const TOOLKIT_DOCS = {
     openQuestions: `${DOCS_BASE}development/open-questions/`,
     timeline: `${DOCS_BASE}development/evolution-timeline/`,
     evidenceMap: `${DOCS_BASE}development/evidence-map/`,
+    dashboard: `${DOCS_BASE}development/knowledge-dashboard/`,
 } as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -604,6 +606,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.evidenceMap);
+                        },
+                    },
+                    {
+                        name: t("settings_toolkit_dashboard_name"),
+                        desc: t("settings_toolkit_dashboard_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn
+                                    .setButtonText(t("settings_toolkit_open_button"))
+                                    .setCta()
+                                    .onClick(() =>
+                                        void activateSidebarView(plugin.app, KnowledgeDashboardView.NAME)
+                                    )
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.dashboard);
                         },
                     },
                     {

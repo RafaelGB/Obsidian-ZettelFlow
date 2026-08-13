@@ -39,6 +39,7 @@ nav:
       - 2.25 Classify: actions/Classify.md
       - 2.26 Generate questions: actions/GenerateQuestions.md
       - 2.27 Suggest next move: actions/SuggestNextMove.md
+      - 2.28 Thinking simulator: actions/ThinkingSimulator.md
   - 3. Vault Hooks:
       - 3.1 Property Hooks:
           - 3.1.1 Overview: vault-hooks/property-hooks/overview.md

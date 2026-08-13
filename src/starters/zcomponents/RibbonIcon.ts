@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Flow, canvas } from "architecture/plugin/canvas";
 import ZettelFlow from "main";
-import { addIcon } from "obsidian";
+import { addIcon, Notice } from "obsidian";
 import { SelectorMenuModal } from "zettelkasten";
 
 export class RibbonIcon extends PluginComponent {
@@ -43,6 +43,18 @@ export class RibbonIcon extends PluginComponent {
                 void this.ribbonIconCallback();
             }
         });
+        // Run the ACTIVE canvas as a flow — the direct way to use any installed system without wiring
+        // it into settings as the single ribbonCanvas. Hidden unless a `.canvas` is the active file.
+        this.plugin.addCommand({
+            id: 'run-canvas-flow',
+            name: t('command_run_canvas_flow'),
+            checkCallback: (checking: boolean) => {
+                const file = this.plugin.app.workspace.getActiveFile();
+                if (file?.extension !== 'canvas') return false;
+                if (!checking) void this.runCanvasFlow(file.path);
+                return true;
+            }
+        });
         log.info('RibbonIcon loaded');
     }
     private ribbonIconCallback = async () => {
@@ -51,5 +63,16 @@ export class RibbonIcon extends PluginComponent {
             flow = await canvas.flows.update(this.plugin.settings.ribbonCanvas);
         }
         new SelectorMenuModal(this.plugin.app, this.plugin, flow).open();
+    }
+
+    /** Launch the note-creation wizard for a specific canvas path (used by the run-canvas-flow command). */
+    private runCanvasFlow = async (canvasPath: string) => {
+        try {
+            const flow = await canvas.flows.update(canvasPath);
+            new SelectorMenuModal(this.plugin.app, this.plugin, flow).open();
+        } catch (error) {
+            log.error('ZettelFlow: could not run the canvas as a flow', error);
+            new Notice(t('run_canvas_flow_error'));
+        }
     }
 }

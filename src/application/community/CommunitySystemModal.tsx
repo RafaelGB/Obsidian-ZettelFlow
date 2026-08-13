@@ -1,5 +1,5 @@
 import { Modal, Notice, Setting, requestUrl } from "obsidian";
-import { c, log } from "architecture";
+import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
 import { FolderSuggest } from "architecture/settings";
@@ -29,7 +29,7 @@ export class CommunitySystemModal extends Modal {
   private disposed = false;
 
   constructor(
-    plugin: ZettelFlow,
+    private plugin: ZettelFlow,
     private template: ZfTemplate,
     private refUrl: string
   ) {
@@ -150,15 +150,31 @@ export class CommunitySystemModal extends Modal {
       for (const file of files) {
         await FileService.writeFile(file.path, file.content, false);
       }
-      new Notice(`${this.template.name} — ${t("community_system_installed")}`);
       this.close();
       if (files.length > 0) {
+        // Open the canvas and offer to run it immediately — so a system is usable the moment it lands,
+        // without wiring it into settings as the single ribbonCanvas (#231 / user feedback).
         await FileService.openFile(files[0].path);
       }
+      this.notifyInstalled();
     } catch (error) {
       log.error("Error installing community system:", error);
       new Notice(t("community_system_install_error"));
     }
+  }
+
+  /** Success notice with a "Run now" button that runs the just-opened canvas as a flow. */
+  private notifyInstalled(): void {
+    const notice = new Notice("", 0);
+    const message = notice.messageEl.createDiv();
+    message.createSpan({ text: `${this.template.name} — ${t("community_system_installed")}` });
+    message.createEl("br");
+    const run = message.createEl("button", { text: t("community_system_run_now") });
+    run.addClass("mod-cta");
+    run.addEventListener("click", () => {
+      ObsidianApi.executeCommandById(`${this.plugin.manifest.id}:run-canvas-flow`);
+      notice.hide();
+    });
   }
 
   onClose(): void {

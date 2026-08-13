@@ -527,6 +527,7 @@ export default {
     state_transition_error: 'Could not change the note state. Check the console for details.',
     // Remove a relation command (#181)
     command_remove_relation: 'Remove a relation',
+    ribbon_open_zettelflow: 'Open ZettelFlow',
     remove_relation_modal_title: 'Pick a relation to remove…',
     remove_relation_none: 'This note has no typed relations to remove.',
     remove_relation_confirm_question: 'Remove the relation {0} → [[{1}]] from "{2}"?',

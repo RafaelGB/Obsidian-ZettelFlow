@@ -31,6 +31,7 @@ import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent"
 import { KnowledgeIndexComponent } from "../zcomponents/KnowledgeIndexComponent";
 import { StateTransitionComponent } from "../zcomponents/StateTransitionComponent";
 import { RemoveRelationComponent } from "../zcomponents/RemoveRelationComponent";
+import { ZettelFlowMenuComponent } from "../zcomponents/ZettelFlowMenuComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -64,6 +65,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new KnowledgeIndexComponent(plugin));
     ZComponentsManager.registerComponent(new StateTransitionComponent(plugin));
     ZComponentsManager.registerComponent(new RemoveRelationComponent(plugin));
+    ZComponentsManager.registerComponent(new ZettelFlowMenuComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

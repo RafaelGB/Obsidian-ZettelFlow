@@ -63,3 +63,7 @@ A system is a single `.zftemplate` JSON bundle: a `canvas` (a real `.canvas`) pl
 6. **Validate.** `npm test` runs the validity harness (`shippedSystems.test.ts` + `catalog.test.ts`):
    every shipped system must parse, reference only registered non-AI actions, use YAML-safe frontmatter,
    and resolve its canvas file-nodes to real steps.
+7. **Publish.** The fastest in-app route: build the workflow on a canvas, run **ZettelFlow → Export
+   current canvas as .zftemplate** (also in the *Open ZettelFlow* ribbon menu), then submit it through
+   the community browser's **Add template** link. That closes the loop — your system in the gallery for
+   everyone.

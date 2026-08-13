@@ -791,6 +791,15 @@ export default {
     home_section_empty: 'Nothing here yet.',
     settings_toolkit_home_name: 'Home',
     settings_toolkit_home_desc: 'Your front door — the state of your mind at a glance, with the next session to continue.',
+    // Derived projects (#173)
+    derive_project_command_name: 'Derive project outline',
+    derive_project_title_suffix: 'project outline',
+    derive_project_misc_section: 'Other notes',
+    derive_project_not_ready: 'The knowledge index is still building — try again in a moment.',
+    derive_project_no_active_note: 'Open a note in the folder you want to outline first.',
+    derive_project_empty: 'No indexed notes in this folder to outline.',
+    derive_project_success: 'Outlined {0} notes into {1}.',
+    derive_project_error: 'Could not derive the project outline.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

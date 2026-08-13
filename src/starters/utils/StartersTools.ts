@@ -20,6 +20,7 @@ import { KnowledgeMapComponent } from "../zcomponents/KnowledgeMapComponent";
 import { ConceptNavComponent } from "../zcomponents/ConceptNavComponent";
 import { OpenQuestionsComponent } from "../zcomponents/OpenQuestionsComponent";
 import { EvolutionTimelineComponent } from "../zcomponents/EvolutionTimelineComponent";
+import { EvidenceMapComponent } from "../zcomponents/EvidenceMapComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
@@ -47,6 +48,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ConceptNavComponent(plugin));
     ZComponentsManager.registerComponent(new OpenQuestionsComponent(plugin));
     ZComponentsManager.registerComponent(new EvolutionTimelineComponent(plugin));
+    ZComponentsManager.registerComponent(new EvidenceMapComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));

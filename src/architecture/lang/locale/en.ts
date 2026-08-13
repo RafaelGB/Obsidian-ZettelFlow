@@ -680,6 +680,18 @@ export default {
     knowledge_map_member_count: '{0} notes',
     settings_toolkit_map_name: 'Knowledge map',
     settings_toolkit_map_desc: 'A living map of your hubs and the notes that orbit them.',
+    // Concept navigation (#166)
+    concept_nav_view_title: 'Concept navigation',
+    command_show_concept_nav: 'Show concept navigation',
+    concept_nav_indexing: 'Building the index…',
+    concept_nav_empty: 'No concepts to navigate yet — keep connecting your notes.',
+    concept_nav_error: 'Could not load concept navigation.',
+    concept_nav_refresh_button: 'Refresh',
+    concept_nav_entry_heading: 'Hubs',
+    concept_nav_out_heading: 'Leads to',
+    concept_nav_in_heading: 'Referenced by',
+    settings_toolkit_concept_nav_name: 'Concept navigation',
+    settings_toolkit_concept_nav_desc: 'Walk your notes by concept, like a Wikipedia you wrote.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

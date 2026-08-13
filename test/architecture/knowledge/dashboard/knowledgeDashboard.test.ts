@@ -49,4 +49,51 @@ describe("buildKnowledgeDashboard (#171, FR-1/FR-3, AC-1)", () => {
             ],
         });
     });
+
+    it("emits three panels, and every panel carries a recommendation (AC-2)", () => {
+        const dashboard = buildKnowledgeDashboard(model);
+        expect(dashboard.panels.map((panel) => panel.key)).toEqual(["connectivity", "debt", "today"]);
+        expect(dashboard.panels.every((panel) => panel.recommendation != null)).toBe(true);
+    });
+
+    it("yields a well-defined zeroed dashboard (still recommending) for an empty model (FR-5)", () => {
+        expect(buildKnowledgeDashboard(buildModel([]))).toEqual({
+            panels: [
+                {
+                    key: "connectivity",
+                    metrics: [
+                        { key: "connected", count: 0, percent: 0 },
+                        { key: "orphaned", count: 0, percent: 0 },
+                        { key: "unresolved", count: 0, percent: 0 },
+                    ],
+                    recommendation: { token: "all-connected", count: 0 },
+                },
+                {
+                    key: "debt",
+                    metrics: [{ key: "score", count: 0, band: "low" }],
+                    recommendation: { token: "debt-clear", count: 0 },
+                },
+                {
+                    key: "today",
+                    metrics: [
+                        { key: "process", count: 0 },
+                        { key: "contradictions", count: 0 },
+                        { key: "connections", count: 0 },
+                        { key: "questions", count: 0 },
+                    ],
+                    recommendation: { token: "all-clear", count: 0 },
+                },
+            ],
+        });
+    });
+
+    it("is deterministic, read-only, and never throws on a degenerate graph (AC-4)", () => {
+        const degenerate = buildModel([
+            idea("self.md", "permanent", [{ to: "self.md" }, { to: "gone.md" }]),
+        ]);
+        const before = degenerate.size();
+        expect(buildKnowledgeDashboard(degenerate)).toEqual(buildKnowledgeDashboard(degenerate));
+        expect(degenerate.size()).toBe(before);
+        expect(() => buildKnowledgeDashboard(degenerate)).not.toThrow();
+    });
 });

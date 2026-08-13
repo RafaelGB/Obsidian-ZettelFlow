@@ -82,5 +82,6 @@ nav:
       - 7.17 Living knowledge map: development/living-knowledge-map.md
       - 7.18 Concept navigation: development/concept-navigation.md
       - 7.19 Open questions: development/open-questions.md
+      - 7.20 Evolution timeline: development/evolution-timeline.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

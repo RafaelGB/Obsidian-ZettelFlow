@@ -100,6 +100,35 @@ describe("StepBuilderMapper — WAIT round-trip (#151, back-compat)", () => {
     });
 });
 
+describe("StepBuilderMapper — onCreation round-trip (#170, back-compat)", () => {
+    const onCreation = [{ type: "find-related", id: "find-related", hasUI: false, key: "related", zone: "frontmatter" }];
+
+    it("omits the onCreation key for a legacy static template", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        expect("onCreation" in settings).toBe(false);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect("onCreation" in back).toBe(false);
+    });
+
+    it("preserves the on-creation behavior opaquely both directions (no builder UI, but never dropped)", () => {
+        const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ onCreation }));
+        expect(settings.onCreation).toEqual(onCreation);
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings);
+        expect(back.onCreation).toEqual(onCreation);
+    });
+
+    it("two steps differing only by onCreation have deep-equal non-onCreation projections", () => {
+        const withBehavior = StepBuilderMapper.StepBuilderInfo2StepSettings(info({ onCreation }));
+        const without = StepBuilderMapper.StepBuilderInfo2StepSettings(info());
+        const strip = (s: StepSettings) => {
+            const { onCreation: oc, ...rest } = s;
+            void oc;
+            return rest;
+        };
+        expect(strip(withBehavior)).toEqual(strip(without));
+    });
+});
+
 describe("mergeStepSettingsIntoFrontmatter — clear-on-save (#149 phase, #151 wait)", () => {
     it("keeps a phase and a wait that the incoming settings carry", () => {
         const merged = mergeStepSettingsIntoFrontmatter(

@@ -800,6 +800,17 @@ export default {
     derive_project_empty: 'No hay notas indexadas en esta carpeta para esquematizar.',
     derive_project_success: 'Se han esquematizado {0} notas en {1}.',
     derive_project_error: 'No se ha podido derivar el esquema del proyecto.',
+    // Paquetes de metodología (#174)
+    command_install_methodology_package: 'Instalar el paquete de metodología Zettelkasten',
+    command_uninstall_methodology_package: 'Quitar el paquete de metodología Zettelkasten',
+    methodology_package_installed_notice: 'Se ha instalado el paquete {0} — {1} flujos.',
+    methodology_package_already_installed: 'El paquete {0} ya está instalado.',
+    methodology_package_removed_notice: 'Se ha quitado el paquete {0}.',
+    methodology_package_not_installed: 'El paquete {0} no está instalado.',
+    methodology_package_install_error: 'No se ha podido instalar el paquete de metodología.',
+    methodology_package_uninstall_error: 'No se ha podido quitar el paquete de metodología.',
+    settings_toolkit_packages_name: 'Paquetes de metodología',
+    settings_toolkit_packages_desc: 'Instala todo un sistema de conocimiento de una vez — el paquete Zettelkasten incluye todos sus flujos.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

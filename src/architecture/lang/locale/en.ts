@@ -800,6 +800,17 @@ export default {
     derive_project_empty: 'No indexed notes in this folder to outline.',
     derive_project_success: 'Outlined {0} notes into {1}.',
     derive_project_error: 'Could not derive the project outline.',
+    // Methodology packages (#174)
+    command_install_methodology_package: 'Install Zettelkasten methodology package',
+    command_uninstall_methodology_package: 'Remove Zettelkasten methodology package',
+    methodology_package_installed_notice: 'Installed the {0} package — {1} flows.',
+    methodology_package_already_installed: 'The {0} package is already installed.',
+    methodology_package_removed_notice: 'Removed the {0} package.',
+    methodology_package_not_installed: 'The {0} package is not installed.',
+    methodology_package_install_error: 'Could not install the methodology package.',
+    methodology_package_uninstall_error: 'Could not remove the methodology package.',
+    settings_toolkit_packages_name: 'Methodology packages',
+    settings_toolkit_packages_desc: 'Install a whole knowledge system at once — the Zettelkasten package bundles all its flows.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

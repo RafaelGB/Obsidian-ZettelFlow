@@ -24,6 +24,7 @@ import { EvidenceMapComponent } from "../zcomponents/EvidenceMapComponent";
 import { KnowledgeDashboardComponent } from "../zcomponents/KnowledgeDashboardComponent";
 import { HomeComponent } from "../zcomponents/HomeComponent";
 import { DeriveProjectComponent } from "../zcomponents/DeriveProjectComponent";
+import { MethodologyPackageComponent } from "../zcomponents/MethodologyPackageComponent";
 import { StarterFlowsComponent } from "../zcomponents/StarterFlowsComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
@@ -55,6 +56,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new KnowledgeDashboardComponent(plugin));
     ZComponentsManager.registerComponent(new HomeComponent(plugin));
     ZComponentsManager.registerComponent(new DeriveProjectComponent(plugin));
+    ZComponentsManager.registerComponent(new MethodologyPackageComponent(plugin));
     ZComponentsManager.registerComponent(new StarterFlowsComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));

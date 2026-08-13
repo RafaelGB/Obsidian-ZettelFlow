@@ -791,6 +791,15 @@ export default {
     home_section_empty: 'Aún no hay nada aquí.',
     settings_toolkit_home_name: 'Inicio',
     settings_toolkit_home_desc: 'Tu puerta de entrada — el estado de tu mente de un vistazo, con la próxima sesión que continuar.',
+    // Proyectos derivados (#173)
+    derive_project_command_name: 'Derivar esquema del proyecto',
+    derive_project_title_suffix: 'esquema del proyecto',
+    derive_project_misc_section: 'Otras notas',
+    derive_project_not_ready: 'El índice de conocimiento aún se está construyendo — inténtalo de nuevo en un momento.',
+    derive_project_no_active_note: 'Abre primero una nota de la carpeta que quieres esquematizar.',
+    derive_project_empty: 'No hay notas indexadas en esta carpeta para esquematizar.',
+    derive_project_success: 'Se han esquematizado {0} notas en {1}.',
+    derive_project_error: 'No se ha podido derivar el esquema del proyecto.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

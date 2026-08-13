@@ -22,6 +22,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   offline — the state of your mind at a glance.
 - **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
   suggested connections to existing notes so you can link before you file.
+- **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
+  one command clusters and orders them from the semantic graph into an outline (MOC) that links every
+  source note. It organizes what you already know — graph-derived, offline, no AI.
 - **🔑 Zettel ID action** — stamp every note with a stable unique identifier (sortable
   timestamp or Luhmann-style **Folgezettel** branching like `21 → 21a → 21a1`).
 - **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes,
@@ -161,6 +164,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
 | **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, and the deterministic next recommended session. Read-only, offline. |
+| **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |

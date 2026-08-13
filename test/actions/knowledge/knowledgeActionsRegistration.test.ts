@@ -12,6 +12,7 @@ const ACTION_FILES = [
     "src/actions/findContradiction/FindContradictionAction.tsx",
     "src/actions/findUnansweredQuestion/FindUnansweredQuestionAction.tsx",
     "src/actions/suggestNextMove/SuggestNextMoveAction.tsx",
+    "src/actions/thinkingSimulator/ThinkingSimulatorAction.tsx",
 ];
 
 const LOGIC_FILES = [
@@ -20,6 +21,7 @@ const LOGIC_FILES = [
     "src/actions/findContradiction/findContradictionLogic.ts",
     "src/actions/findUnansweredQuestion/findUnansweredQuestionLogic.ts",
     "src/actions/suggestNextMove/nextMoveLogic.ts",
+    "src/actions/thinkingSimulator/thinkingSimulatorLogic.ts",
 ];
 
 const ALL_KNOWLEDGE_SOURCES = [
@@ -34,6 +36,7 @@ const REGISTERED_CLASSES = [
     "FindContradictionAction",
     "FindUnansweredQuestionAction",
     "SuggestNextMoveAction",
+    "ThinkingSimulatorAction",
 ];
 
 describe("knowledge action guardrails (#153, AC-2/AC-3/AC-4)", () => {

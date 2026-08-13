@@ -9,6 +9,7 @@ import { TFile, moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderStateActions } from "application/components/noteBuilder/typing";
+import { runOnCreationActions } from "application/patterns/runOnCreationActions";
 
 // Obsidian bundles moment and re-exports it, but types it as a namespace; cast to the
 // callable moment signature (type-only import of 'moment' is allowed by the guidelines).
@@ -123,7 +124,21 @@ export class NoteBuilder {
     }
     this.applyContextTokens();
     await this.manageElements();
+    await this.runOnCreation();
     this.appendConnectionLinks();
+  }
+
+  /**
+   * Run the Knowledge Pattern on-creation actions (#170) collected from the walked steps, as a block,
+   * after the note's structure is assembled and before the file is written — so their results land in
+   * `content`. Best-effort per action, reusing the standard `execute(info)` pipeline.
+   */
+  private async runOnCreation(): Promise<void> {
+    await runOnCreationActions(
+      this.note.getOnCreation(),
+      { content: this.content, note: this.note, context: this.context },
+      (type) => actionsStore.getAction(type)
+    );
   }
 
   /**

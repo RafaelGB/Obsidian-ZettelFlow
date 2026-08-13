@@ -23,7 +23,7 @@ export async function runOnCreationActions(
             const impl = getAction(action.type);
             if (!impl) continue;
             await impl.execute({
-                element: { ...action, result: null } as ExecuteInfo["element"],
+                element: { ...action, result: null },
                 content: ctx.content,
                 note: ctx.note,
                 context: ctx.context,

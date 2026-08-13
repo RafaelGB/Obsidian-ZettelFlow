@@ -9,6 +9,16 @@ describe("NoteDTO", () => {
     expect(n.getFinalPath()).toBe("Notes/Inbox/My Note.md");
   });
 
+  it("collects on-creation pattern actions in walk order (#170)", () => {
+    const n = new NoteDTO();
+    expect(n.getOnCreation()).toEqual([]);
+    const a = { type: "find-related", id: "find-related", hasUI: false } as any;
+    const b = { type: "calculate-maturity", id: "calculate-maturity", hasUI: false } as any;
+    const c = { type: "suggest-link", id: "suggest-link", hasUI: false } as any;
+    n.addOnCreation([a, b]).addOnCreation([]).addOnCreation([c]);
+    expect(n.getOnCreation()).toEqual([a, b, c]);
+  });
+
   it("strips a trailing slash from the target folder", () => {
     const n = new NoteDTO();
     n.setTargetFolder("Notes/").setTitle("t");

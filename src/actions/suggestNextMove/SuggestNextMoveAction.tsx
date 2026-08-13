@@ -54,7 +54,7 @@ export class SuggestNextMoveAction extends CustomZettelAction {
             ? moves.map((move) => t(MOVE_LABELS[move]))
             : [t("knowledge_next_move_complete")];
         writeKnowledgeResult(info, el, value);
-        new Notice(
+        if (!info.silent) new Notice(
             moves.length > 0
                 ? t("knowledge_next_move_notice", String(moves.length))
                 : t("knowledge_next_move_complete")

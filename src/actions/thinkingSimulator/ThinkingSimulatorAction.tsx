@@ -57,7 +57,7 @@ export class ThinkingSimulatorAction extends CustomZettelAction {
         const prompts = criticalThinkingPrompts(model, path);
         const value = prompts.map((prompt) => t(PROMPT_LABELS[prompt]));
         writeKnowledgeResult(info, el, value);
-        new Notice(t("knowledge_thinking_notice", String(prompts.length)));
+        if (!info.silent) new Notice(t("knowledge_thinking_notice", String(prompts.length)));
     }
 
     getIcon(): string {

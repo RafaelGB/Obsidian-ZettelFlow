@@ -43,7 +43,7 @@ export class SuggestLinkAction extends CustomZettelAction {
         }
         const suggestions = rankRelated(model, path, { limit: el.limit ?? DEFAULT_LIMIT });
         writeKnowledgeResult(info, el, suggestions.map((p) => `[[${p.replace(/\.md$/i, "")}]]`));
-        new Notice(t("relation_suggest_link_notice", String(suggestions.length)));
+        if (!info.silent) new Notice(t("relation_suggest_link_notice", String(suggestions.length)));
     }
 
     getIcon(): string {

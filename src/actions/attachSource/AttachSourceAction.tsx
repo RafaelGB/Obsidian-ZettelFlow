@@ -30,7 +30,7 @@ export class AttachSourceAction extends CustomZettelAction {
             return;
         }
         writeKnowledgeResult(info, { ...el, key: field.key }, field.value);
-        new Notice(t("research_attach_source_notice", field.value));
+        if (!info.silent) new Notice(t("research_attach_source_notice", field.value));
     }
 
     getIcon(): string {

@@ -28,6 +28,8 @@ export async function runOnCreationActions(
                 content: ctx.content,
                 note: ctx.note,
                 context: ctx.context,
+                // Headless pattern run — cognitive actions suppress their success Notice (#201).
+                silent: true,
             });
         } catch (error) {
             log.error(

@@ -46,7 +46,7 @@ export class ExtractClaimsAction extends CustomZettelAction {
         }
         const serialized = serializeClaims(idea.claims);
         writeKnowledgeResult(info, el, serialized);
-        new Notice(t("research_extract_claims_notice", String(serialized.claim.length)));
+        if (!info.silent) new Notice(t("research_extract_claims_notice", String(serialized.claim.length)));
     }
 
     getIcon(): string {

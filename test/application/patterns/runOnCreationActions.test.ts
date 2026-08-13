@@ -50,4 +50,10 @@ describe("runOnCreationActions (#170, FR-3, AC-1)", () => {
         expect(received[0].note).toBe(ctx.note);
         expect(received[0].context).toBe(ctx.context);
     });
+
+    it("marks the run as silent so headless actions suppress their Notice (#201)", async () => {
+        const received: ExecuteInfo[] = [];
+        await runOnCreationActions([action("a")], ctx, () => ({ execute: (info) => void received.push(info) }));
+        expect(received[0].silent).toBe(true);
+    });
 });

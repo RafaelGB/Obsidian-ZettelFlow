@@ -43,7 +43,7 @@ export class CompareClaimsAction extends CustomZettelAction {
         const agreeingLinks = toNoteLinks(agreeing);
         const contradictingLinks = toNoteLinks(contradicting);
         writeKnowledgeResult(info, el, { agreeing: agreeingLinks, contradicting: contradictingLinks });
-        new Notice(
+        if (!info.silent) new Notice(
             t("research_compare_claims_notice", String(agreeingLinks.length), String(contradictingLinks.length))
         );
     }

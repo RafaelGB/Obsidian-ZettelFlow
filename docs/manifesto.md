@@ -64,6 +64,22 @@ The engineering shape follows the philosophy in five layers — **Knowledge Mode
 Knowledge State → Experience → Community Gallery** — mapped feature-by-feature in the
 [reposition map](architecture/reposition-map.md).
 
+## Easy to use, hard to master
+
+The best tools meet you where you are. A newcomer should be productive in **five minutes** — install a
+system, create a note, watch it land already connected, cross-checked and scored — without reading a
+manual. That is the **on-ramp**: ZettelFlow does the thinking-work *for* you until you're ready to do it
+yourself.
+
+And there should always be another level. Compose your own workflows, program conditions and events,
+author and share systems, ask your own knowledge graph questions — the ceiling rises as far as your
+practice does. That is the **summit**: mastery that changes how you think.
+
+> **Easy to use, hard to master.**
+
+This is how ZettelFlow becomes the **organizational reference for Obsidian** — for the curious beginner
+and the devoted practitioner alike. One tool, from your first note to a second brain.
+
 ## For the few who will love it
 
 This is not a feature list; it is an **identity**. ZettelFlow is not trying to be something everyone

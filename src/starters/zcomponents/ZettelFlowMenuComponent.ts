@@ -31,6 +31,9 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         [
             { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
             { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },
+            // Close the creator loop (#246 B2): turn the current canvas into a shareable .zftemplate
+            // system, ready to contribute via the community browser's "Add template" link. Desktop only.
+            { command: "export-canvas-template", labelKey: "command_export_canvas_template", icon: "package-plus" },
         ],
         [{ command: "show-home", labelKey: "command_show_home", icon: "home" }],
         [

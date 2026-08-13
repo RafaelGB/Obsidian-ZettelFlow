@@ -26,6 +26,7 @@ import { ConceptNavView } from 'architecture/components/core/conceptNav/ConceptN
 import { OpenQuestionsView } from 'architecture/components/core/openQuestions/OpenQuestionsView';
 import { EvolutionTimelineView } from 'architecture/components/core/timeline/EvolutionTimelineView';
 import { EvidenceMapView } from 'architecture/components/core/evidenceMap/EvidenceMapView';
+import { KnowledgeDashboardView } from 'architecture/components/core/knowledgeDashboard/KnowledgeDashboardView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
@@ -104,6 +105,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(OpenQuestionsView.NAME, (leaf) => new OpenQuestionsView(leaf));
 		this.registerView(EvolutionTimelineView.NAME, (leaf) => new EvolutionTimelineView(leaf));
 		this.registerView(EvidenceMapView.NAME, (leaf) => new EvidenceMapView(leaf));
+		this.registerView(KnowledgeDashboardView.NAME, (leaf) => new KnowledgeDashboardView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

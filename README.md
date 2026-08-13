@@ -25,6 +25,10 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   (unreferenced · dangling · unsourced · open questions) each one click from a fix, and a
   **Knowledge balance** read-out — what your slip-box is made of (references · questions · examples ·
   conclusions · concepts) with balance nudges — so knowledge-debt never piles up unseen.
+- **📊 Knowledge dashboard** — the *state of your system* as an ops console: connectivity %
+  (connected / orphaned / unresolved), a knowledge-debt bar, and a "today" panel (to process ·
+  contradictions · connections · open questions) — **every panel proposes a recommended next
+  action**, one click from the surface to act on it. Read-only, offline.
 - **🚀 Starter flows** — one-click, ready-made flows for the four classic note types
   (fleeting, literature, permanent, structure/MOC), plus a **Literature → Permanent** composed
   showcase that chains the cognitive actions (extract claims → find related → suggest connections →
@@ -151,6 +155,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Companion pane** | Live note preview + connection suggestions while the wizard runs — link before you file. |
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
+| **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |

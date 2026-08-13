@@ -24,9 +24,11 @@ import { DiscoveriesView } from 'architecture/components/core/discoveries/Discov
 import { KnowledgeMapView } from 'architecture/components/core/knowledgeMap/KnowledgeMapView';
 import { ConceptNavView } from 'architecture/components/core/conceptNav/ConceptNavView';
 import { OpenQuestionsView } from 'architecture/components/core/openQuestions/OpenQuestionsView';
+import { EvolutionTimelineView } from 'architecture/components/core/timeline/EvolutionTimelineView';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
+import { ConceptualTimeline } from 'architecture/plugin/timeline/ConceptualTimeline';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
 export default class ZettelFlow extends Plugin {
@@ -35,6 +37,7 @@ export default class ZettelFlow extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
+		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		loadVariableTextProcessors(this);
 
 		loadPluginComponents(this);
@@ -58,6 +61,7 @@ export default class ZettelFlow extends Plugin {
 
 	onunload() {
 		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
+		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}
@@ -97,6 +101,7 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(KnowledgeMapView.NAME, (leaf) => new KnowledgeMapView(leaf));
 		this.registerView(ConceptNavView.NAME, (leaf) => new ConceptNavView(leaf));
 		this.registerView(OpenQuestionsView.NAME, (leaf) => new OpenQuestionsView(leaf));
+		this.registerView(EvolutionTimelineView.NAME, (leaf) => new EvolutionTimelineView(leaf));
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

@@ -9,6 +9,7 @@ import { extractWikilinks, isSemanticRelationType } from "./relations";
 import { isClaimOrSourceKey, isSourceKey } from "./claims";
 import { detectDevelopmentEvents } from "./journal/developmentEvents";
 import { DevelopmentJournal } from "architecture/plugin/journal/DevelopmentJournal";
+import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 
 export type KnowledgeIndexStatus = "idle" | "building" | "ready";
 
@@ -81,11 +82,15 @@ export class KnowledgeIndex {
     }
 
     public onDelete(file: TAbstractFile): void {
-        if (this.isMarkdown(file)) this.model.remove(file.path);
+        if (!this.isMarkdown(file)) return;
+        this.model.remove(file.path);
+        this.pruneTimeline(file.path);
     }
 
     public onRename(file: TAbstractFile, oldPath: string): void {
-        if (this.isMarkdown(file)) this.model.rename(oldPath, file.path);
+        if (!this.isMarkdown(file)) return;
+        this.model.rename(oldPath, file.path);
+        this.rekeyTimeline(oldPath, file.path);
     }
 
     /**
@@ -162,6 +167,43 @@ export class KnowledgeIndex {
         this.model.upsert(deriveIdea(gatherSnapshot(file), this.schemas));
         log.debug(`[KnowledgeIndex] upsert ${file.path}`);
         this.recordDevelopment(file.path, before);
+        this.recordTimeline(file.path);
+    }
+
+    /**
+     * Capture a conceptual snapshot of this note (#168) at the same choke point as the journal.
+     * Best-effort, gated on the opt-out toggle; wrapped so a timeline failure never breaks indexing.
+     */
+    private recordTimeline(path: string): void {
+        try {
+            const timeline = ConceptualTimeline.getInstance();
+            if (!timeline.enabled()) return;
+            const after = this.model.get(path);
+            if (after) timeline.capture(after, Date.now());
+        } catch (error) {
+            log.error(`[KnowledgeIndex] conceptual timeline failed: ${error instanceof Error ? error.message : "unknown error"}`);
+        }
+    }
+
+    /**
+     * Drop a deleted note's timeline (#168). Best-effort, never breaks indexing. NOT gated on the
+     * toggle — cleanup must run even when recording is off, so opting out never orphans stored data.
+     */
+    private pruneTimeline(path: string): void {
+        try {
+            ConceptualTimeline.getInstance().prune(path);
+        } catch (error) {
+            log.error(`[KnowledgeIndex] conceptual timeline prune failed: ${error instanceof Error ? error.message : "unknown error"}`);
+        }
+    }
+
+    /** Follow a renamed note's timeline to its new path (#168). Best-effort, ungated (housekeeping). */
+    private rekeyTimeline(oldPath: string, newPath: string): void {
+        try {
+            ConceptualTimeline.getInstance().rekey(oldPath, newPath);
+        } catch (error) {
+            log.error(`[KnowledgeIndex] conceptual timeline rekey failed: ${error instanceof Error ? error.message : "unknown error"}`);
+        }
     }
 
     /**

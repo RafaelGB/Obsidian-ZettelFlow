@@ -652,6 +652,12 @@ export default {
     settings_journal_enable_name: 'Record development events',
     settings_journal_enable_desc: 'Keep a per-day count of ideas developed (state advanced, source or connection added). On by default.',
     settings_journal_disclosure: 'Stored locally as day → count only — no note names, no content, no network.',
+    // Evolution timeline settings (#168)
+    settings_timeline_heading: 'Evolution timeline',
+    settings_timeline_intro: 'ZettelFlow keeps a per-note history of how an idea evolved — its lifecycle state and claim texts over time.',
+    settings_timeline_enable_name: 'Record conceptual snapshots',
+    settings_timeline_enable_desc: 'Capture a snapshot when a note changes state or claims meaningfully (not every keystroke). Off by default — it stores note content, so it is opt-in; turning it off clears what was captured.',
+    settings_timeline_disclosure: 'Stored locally per note — lifecycle state, claim texts and timestamps — bounded and pruned on delete; no network.',
     settings_toolkit_heatmap_name: 'Thinking heatmap',
     settings_toolkit_heatmap_desc: 'A calendar heatmap of ideas developed over the last year.',
     // Morning discovery (#163)
@@ -705,6 +711,18 @@ export default {
     open_questions_no_answer: 'No candidate answer found.',
     settings_toolkit_open_questions_name: 'Open questions',
     settings_toolkit_open_questions_desc: 'Every unanswered question in your vault, with candidate answers.',
+    // Evolution timeline view (#168)
+    evolution_timeline_view_title: 'Evolution timeline',
+    command_show_evolution_timeline: 'Show evolution timeline',
+    evolution_timeline_loading: 'Building the index…',
+    evolution_timeline_empty: 'No conceptual history yet for this note — it appears as the note evolves.',
+    evolution_timeline_disabled: 'The evolution timeline is off. Turn it on under settings → ZettelFlow → evolution timeline to record how your notes evolve.',
+    evolution_timeline_error: 'Could not load the evolution timeline.',
+    evolution_timeline_refresh_button: 'Refresh',
+    evolution_timeline_state_label: 'State',
+    evolution_timeline_claims_label: 'Claims',
+    settings_toolkit_timeline_name: 'Evolution timeline',
+    settings_toolkit_timeline_desc: 'The conceptual history of a note — how its state and claims evolved.',
     // Relation actions (#154)
     relation_find_related_label: 'Find related',
     relation_find_related_desc: 'Rank notes worth linking by shared graph context (co-citation and coupling).',

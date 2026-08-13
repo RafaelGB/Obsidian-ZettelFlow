@@ -652,6 +652,12 @@ export default {
     settings_journal_enable_name: 'Registrar eventos de desarrollo',
     settings_journal_enable_desc: 'Lleva un recuento diario de ideas desarrolladas (estado avanzado, fuente o conexión añadida). Activado por defecto.',
     settings_journal_disclosure: 'Se guarda en local solo como día → recuento — sin nombres de notas, sin contenido, sin red.',
+    // Ajustes de la línea temporal de evolución (#168)
+    settings_timeline_heading: 'Línea temporal de evolución',
+    settings_timeline_intro: 'ZettelFlow guarda por nota un historial de cómo evolucionó una idea — su estado de ciclo de vida y los textos de sus afirmaciones a lo largo del tiempo.',
+    settings_timeline_enable_name: 'Registrar instantáneas conceptuales',
+    settings_timeline_enable_desc: 'Captura una instantánea cuando una nota cambia de estado o de afirmaciones de forma significativa (no en cada pulsación). Desactivado por defecto — guarda contenido de la nota, así que es opcional; al desactivarlo se borra lo capturado.',
+    settings_timeline_disclosure: 'Se guarda en local por nota — estado del ciclo de vida, textos de afirmaciones y marcas de tiempo — acotado y purgado al borrar; sin red.',
     settings_toolkit_heatmap_name: 'Mapa de calor del pensamiento',
     settings_toolkit_heatmap_desc: 'Un mapa de calor de calendario de las ideas desarrolladas en el último año.',
     // Descubrimiento matinal (#163)
@@ -705,6 +711,18 @@ export default {
     open_questions_no_answer: 'No se ha encontrado ninguna respuesta candidata.',
     settings_toolkit_open_questions_name: 'Preguntas abiertas',
     settings_toolkit_open_questions_desc: 'Todas las preguntas sin responder de tu bóveda, con respuestas candidatas.',
+    // Vista de línea temporal de evolución (#168)
+    evolution_timeline_view_title: 'Línea temporal de evolución',
+    command_show_evolution_timeline: 'Mostrar línea temporal de evolución',
+    evolution_timeline_loading: 'Construyendo el índice…',
+    evolution_timeline_empty: 'Aún no hay historial conceptual de esta nota — aparece a medida que la nota evoluciona.',
+    evolution_timeline_disabled: 'La línea temporal de evolución está desactivada. Actívala en ajustes → ZettelFlow → línea temporal de evolución para registrar cómo evolucionan tus notas.',
+    evolution_timeline_error: 'No se ha podido cargar la línea temporal de evolución.',
+    evolution_timeline_refresh_button: 'Actualizar',
+    evolution_timeline_state_label: 'Estado',
+    evolution_timeline_claims_label: 'Afirmaciones',
+    settings_toolkit_timeline_name: 'Línea temporal de evolución',
+    settings_toolkit_timeline_desc: 'El historial conceptual de una nota — cómo evolucionaron su estado y sus afirmaciones.',
     // Acciones de relaciones (#154)
     relation_find_related_label: 'Buscar relacionadas',
     relation_find_related_desc: 'Ordena las notas que vale la pena enlazar por contexto de grafo compartido (co-citación y acoplamiento).',

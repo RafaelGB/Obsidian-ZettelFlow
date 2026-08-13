@@ -54,7 +54,9 @@ nav:
       - 4.1 Community examples: how-to-contribute/community-examples.md
       - 4.2 Systems gallery: how-to-contribute/systems-gallery.md
       - 4.3 Wiki: how-to-contribute/Wiki.md
-  - 5. API: api/ZettelFlowAPI.md
+  - 5. API:
+      - 5.1 Reference: api/ZettelFlowAPI.md
+      - 5.2 Cookbook: api/cookbook.md
   - 6. Architecture:
       - 6.1 Overview: architecture/overview.md
       - 6.2 Plugin core: architecture/plugin-core.md

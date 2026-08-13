@@ -32,6 +32,40 @@ describe("planSystemInstall (#214, FR-6, AC-1)", () => {
         expect(planSystemInstall(template, "/").files[0].path).toBe("academic.canvas");
         expect(planSystemInstall(template, "").files[1].path).toBe("Capture.md");
     });
+
+    it("rewrites canvas file-node paths to the install folder so references resolve", () => {
+        const withNodes: ZfTemplate = {
+            ...template,
+            canvas: {
+                filename: "academic.canvas",
+                content: JSON.stringify({
+                    nodes: [
+                        { id: "a", type: "file", file: "_ZettelFlow/folders/Capture.md", x: 0, y: 0, width: 350, height: 160 },
+                        { id: "b", type: "text", text: "## note" },
+                        { id: "c", type: "file", file: "somewhere/Unrelated.md", x: 1, y: 1, width: 350, height: 160 },
+                    ],
+                    edges: [],
+                }),
+            },
+        };
+        const canvas = JSON.parse(planSystemInstall(withNodes, "Systems/Academic").files[0].content) as {
+            nodes: Array<{ id: string; file?: string }>;
+        };
+        // The step file-node is repointed under the chosen folder…
+        expect(canvas.nodes[0].file).toBe("Systems/Academic/Capture.md");
+        // …a file-node that is not a shipped step is left untouched…
+        expect(canvas.nodes[2].file).toBe("somewhere/Unrelated.md");
+        // …and at the vault root the step node loses the folder prefix entirely.
+        const atRoot = JSON.parse(planSystemInstall(withNodes, "/").files[0].content) as {
+            nodes: Array<{ file?: string }>;
+        };
+        expect(atRoot.nodes[0].file).toBe("Capture.md");
+    });
+
+    it("leaves an unparseable canvas untouched (defensive)", () => {
+        const broken: ZfTemplate = { ...template, canvas: { filename: "x.canvas", content: "not json" } };
+        expect(planSystemInstall(broken, "F").files[0].content).toBe("not json");
+    });
 });
 
 describe("validateSystemTemplate (#214, FR-7, AC-2)", () => {

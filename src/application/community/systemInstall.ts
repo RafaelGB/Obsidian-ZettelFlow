@@ -19,14 +19,51 @@ export const REGISTERED_ACTION_IDS: ReadonlySet<string> = new Set([
     "attach-source", "summarize", "classify", "generate-questions",
 ]);
 
+/** Last path segment of a vault path, handling both separators. Pure. */
+function basename(path: string): string {
+    const idx = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
+    return idx >= 0 ? path.slice(idx + 1) : path;
+}
+
+/**
+ * Repoint the canvas' file-node paths to the install folder so a system installed anywhere resolves:
+ * every `type:"file"` node whose basename matches a shipped step filename is rewritten to
+ * `${prefix}${basename}`. Defensive — a canvas that is not parseable JSON (or has no `nodes`) is
+ * returned unchanged. Pure & Obsidian-free; without this the authored (hardcoded) paths would only
+ * resolve when the user keeps the exact folder the canvas was authored against (#215).
+ */
+function rewriteCanvasPaths(canvasContent: string, stepFilenames: ReadonlySet<string>, prefix: string): string {
+    let data: unknown;
+    try {
+        data = JSON.parse(canvasContent);
+    } catch {
+        return canvasContent;
+    }
+    const nodes = (data as { nodes?: unknown } | null)?.nodes;
+    if (!Array.isArray(nodes)) return canvasContent;
+    let changed = false;
+    for (const node of nodes) {
+        if (typeof node !== "object" || node === null) continue;
+        const fileNode = node as { type?: unknown; file?: unknown };
+        if (fileNode.type === "file" && typeof fileNode.file === "string" && stepFilenames.has(basename(fileNode.file))) {
+            fileNode.file = `${prefix}${basename(fileNode.file)}`;
+            changed = true;
+        }
+    }
+    return changed ? JSON.stringify(data) : canvasContent;
+}
+
 /**
  * Pure install plan for a `.zftemplate` system (#214): the canvas first, then every step, each written
- * under `targetFolder`. Deterministic, read-only, Obsidian-free — the Obsidian shell writes these via
- * the sanctioned `FileService.writeFile`.
+ * under `targetFolder`. The canvas' file-node paths are rewritten to the install folder so its step
+ * references resolve wherever the system is installed (#215). Deterministic, read-only, Obsidian-free —
+ * the Obsidian shell writes these via the sanctioned `FileService.writeFile`.
  */
 export function planSystemInstall(template: ZfTemplate, targetFolder: string): { files: PlannedFile[] } {
     const prefix = targetFolder === "/" || targetFolder === "" ? "" : `${targetFolder}/`;
-    const files: PlannedFile[] = [{ path: `${prefix}${template.canvas.filename}`, content: template.canvas.content }];
+    const stepFilenames = new Set(template.steps.map((step) => step.filename));
+    const canvasContent = rewriteCanvasPaths(template.canvas.content, stepFilenames, prefix);
+    const files: PlannedFile[] = [{ path: `${prefix}${template.canvas.filename}`, content: canvasContent }];
     for (const step of template.steps) files.push({ path: `${prefix}${step.filename}`, content: step.content });
     return { files };
 }

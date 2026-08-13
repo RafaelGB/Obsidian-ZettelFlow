@@ -33,8 +33,10 @@ export class CommunitySystemModal extends Modal {
     private refUrl: string
   ) {
     super(plugin.app);
-    // Default install location is the configured flows folder; the user can override it below.
-    this.targetFolder = plugin.settings.foldersFlowsPath || "";
+    // Default install location is a per-system subfolder of the configured flows folder — keeps each
+    // system's canvas + steps together and avoids cross-system filename collisions. Overridable below.
+    const base = plugin.settings.foldersFlowsPath || "";
+    this.targetFolder = base ? `${base}/${template.name}` : template.name;
   }
 
   onOpen(): void {

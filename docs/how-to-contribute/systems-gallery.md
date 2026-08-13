@@ -31,8 +31,8 @@ Each system offers several **independent entry points** on one canvas — pick t
 | **Writing** | Draft · Section · Review | drafts pull in related source notes; sections suggest connections; reviews surface contradictions |
 | **Software architecture KB** | Decision record (ADR) · Component | new decisions are checked against existing ones for contradictions and linked to related decisions |
 
-> Previews: each system shows a preview image in the browser. Some previews are placeholders pending
-> final artwork — the system itself is fully functional regardless.
+> Previews: each system shows a preview image in the browser. Previews currently ship as placeholders
+> pending final artwork (tracked in issue #223) — the system itself is fully functional regardless.
 
 ## Author your own system
 

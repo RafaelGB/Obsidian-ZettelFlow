@@ -24,6 +24,16 @@ the *typed* ones.)
 One typed frontmatter field, e.g. `supports: "[[Target]]"`, also exposed as `{{supports}}`. Feeding
 that field through the relation schema yields exactly one `Relation { type, from: note, to: target }`.
 
+## Removing a relation (#181)
+
+To delete a relation you created, run the **Remove a relation** command (command palette) with the
+note active. It lists the note's typed relations, and after a **confirmation naming the exact edge**
+(`type → [[target]]`) removes the one you pick from the note's frontmatter — deleting the key when its
+last value goes. A missing edge is a safe no-op. It is a command (not a wizard action) because it is
+the only *destructive* relation operation and mutates a pre-existing note; the confirmation is its
+safety guard. Offline, no AI. v1 handles typed frontmatter relations (inline body `[[links]]` are out
+of scope).
+
 ## Capabilities
 
 File-system write of a single typed frontmatter field (the same surface as every action). **No

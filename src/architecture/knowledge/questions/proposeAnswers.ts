@@ -34,5 +34,6 @@ export function proposeAnswers(
     if (incomingRelations(model, questionPath, "supports").length > 0) return [];
 
     const limit = opts.limit ?? DEFAULT_LIMIT;
-    return rankRelatedScored(model, questionPath, { limit }).map(({ path, score }) => ({ path, score }));
+    // ScoredRelated is structurally an AnswerCandidate; rankRelatedScored returns fresh objects.
+    return rankRelatedScored(model, questionPath, { limit });
 }

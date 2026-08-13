@@ -36,6 +36,17 @@ main.ts (Plugin)
  → hooks/        vault hooks: folder automation + property hooks + context-menu integrations
 ```
 
+**The five layers (the organizing principle, epic #144).** Conceptually the code is understood as
+**Knowledge Model** (the pure `architecture/knowledge/` idea graph) → **Workflow Engine** (canvas →
+note: `main.ts`/`starters`, `architecture/api`, `actions`, `application/notes` engine + `zettelkasten`
++ `architecture/plugin` canvas/services + `hooks`) → **Knowledge State** (analyses over the model:
+`architecture/knowledge/{debt,review,balance,discovery,map,traverse,questions,timeline,synthesis,dashboard,home,projects,journal}`)
+→ **Experience** (`architecture/components/core` views + `config` settings UX) → **Community Gallery**
+(`application/{community,packages}` + starter flows), over a cross-cutting **Foundation**
+(`lang`/`styles`/`monitoring`/`ai`/`plugin` facade). Every capability has one home layer; the full
+inventory is [`docs/architecture/reposition-map.md`](docs/architecture/reposition-map.md). The `src/`
+folders are being repositioned to match, incrementally — nothing is deleted or renamed.
+
 Full detail: [`docs/architecture/overview.md`](docs/architecture/overview.md) and the pages it
 links (plugin core, actions & note builder, vault hooks, community & backend).
 

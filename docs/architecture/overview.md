@@ -4,6 +4,15 @@
 > [Home](../index.md). This section explains how the plugin is built so you (or an AI
 > assistant driving the [harness](../development/getting-started.md)) can extend it safely.
 
+## The five layers (the organizing principle)
+
+As of the Knowledge OS epic (#144), the codebase is understood as **five layers** (plus a
+cross-cutting **Foundation**): **Knowledge Model** (the pure idea graph) → **Workflow Engine** (canvas
+→ note) → **Knowledge State** (analyses over the model) → **Experience** (views, dashboards, Home) →
+**Community Gallery** (sharing whole systems). Every capability has one home layer — the full
+inventory is the [reposition map](reposition-map.md). The `src/` folders are being repositioned to
+match, incrementally and without deleting or renaming any feature.
+
 ## What ZettelFlow is, technically
 
 ZettelFlow is an **Obsidian plugin** that turns a native **Canvas** file into a directed

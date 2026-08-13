@@ -62,6 +62,7 @@ nav:
       - 6.9 Knowledge lifecycle: architecture/knowledge-lifecycle.md
       - 6.10 Workflow phases: architecture/workflow-phases.md
       - 6.11 Event-driven & visual workflows: architecture/event-driven-workflows.md
+      - 6.12 Reposition map (feature → layer): architecture/reposition-map.md
   - 7. Development:
       - 7.1 Getting started: development/getting-started.md
       - 7.2 Contributing & conventions: development/contributing-and-conventions.md

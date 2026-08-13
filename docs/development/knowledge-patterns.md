@@ -4,8 +4,9 @@ A template describes a note's **structure** — its fields and body. A **Knowled
 **behavior**: an ordered list of actions that run when a note is created from it. *Structure + behavior.*
 
 The shipped **Permanent Note** pattern isn't just Claim / Evidence / Connections / Questions fields —
-on creation it runs **find related · find contradictions · suggest links · calculate maturity**, so a
-new permanent note lands already connected, cross-checked and scored.
+on creation it runs **find related · find contradictions · suggest links · calculate maturity** against
+your existing graph, writing each result into the note's frontmatter. (See *A note on timing* below for
+what a brand-new note receives on its very first pass.)
 
 ## How it works
 
@@ -61,11 +62,13 @@ the `trigger` field (#150).
 ## A note on timing
 
 On-creation actions run **before** the new note's own file exists, so the graph-based actions rank it
-against the **already-indexed** vault (they no-op gracefully if the index isn't ready). That is the
-intended "land already connected" behavior — the new note is not yet in the index for its own pass.
+against the **already-indexed** vault, and the new note is not yet a node in that graph. In practice a
+*brand-new* note's first pass often writes empty result properties (`related: []`, etc.) — the values
+fill in once the vault re-indexes and the pattern is run again. Re-running the pattern automatically
+after the note is indexed is a planned follow-up.
 
 ## Try it
 
 Install the starter flows (Settings → ZettelFlow → Zettelkasten toolkit → *Starter flows*), then build
-a note from the **Permanent note** flow: its frontmatter will carry `related`, `contradictions`,
-`suggestedLinks` and `maturity`, filled from your existing graph.
+a note from the **Permanent note** flow: its frontmatter will carry the pattern's result properties
+(`related`, `contradictions`, `suggestedLinks`, `maturity`), computed against your existing graph.

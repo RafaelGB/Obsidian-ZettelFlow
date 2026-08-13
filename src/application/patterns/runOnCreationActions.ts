@@ -10,8 +10,9 @@ export type ActionLookup = (type: string) => { execute(info: ExecuteInfo): void 
 /**
  * Run a Knowledge Pattern's on-creation actions (#170) in declared order, reusing the standard
  * `execute(info)` pipeline. Best-effort: each action is wrapped so one failure is logged and never
- * aborts the build or the remaining actions (mirrors `KnowledgeIndex.recordDevelopment`). Unknown
- * action types are skipped.
+ * aborts the build or the remaining actions (mirrors `KnowledgeIndex.recordDevelopment`). An action
+ * the lookup can't resolve is skipped when the lookup returns undefined (e.g. an injected/test store);
+ * the production `ActionsStore` throws instead, which the same per-action catch absorbs.
  */
 export async function runOnCreationActions(
     actions: Action[],

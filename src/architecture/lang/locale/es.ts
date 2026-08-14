@@ -590,6 +590,7 @@ export default {
     // Action selector redesign (#256)
     action_suggest_row_label: 'Sugerido para este paso',
     action_card_docs_link_label: 'Abrir documentación',
+    action_search_placeholder: 'Buscar acciones…',
     // Usability epic (#258)
     flow_warning_notice: 'Advertencia: ',
     flow_fatal_hint: 'Abre el canvas para revisar el nodo destacado.',

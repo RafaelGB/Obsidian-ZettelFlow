@@ -590,6 +590,7 @@ export default {
     // Action selector redesign (#256)
     action_suggest_row_label: 'Suggested for this step',
     action_card_docs_link_label: 'Open documentation',
+    action_search_placeholder: 'Search actions…',
     // Usability epic (#258)
     flow_warning_notice: 'Warning: ',
     flow_fatal_hint: 'Open the canvas to review the highlighted node.',

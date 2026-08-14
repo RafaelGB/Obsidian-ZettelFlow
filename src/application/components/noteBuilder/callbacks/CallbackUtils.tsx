@@ -163,12 +163,12 @@ export async function manageElement(
         if (error instanceof ZettelError) {
           switch (error.getType()) {
             case ZettelError.WARNING_TYPE: {
-              new Notice(`Warning error: ${error.message}`);
+              new Notice(t("flow_warning_notice") + error.message, 5000);
               manageWarningError(actions, error);
             }
             // falls through
             case ZettelError.FATAL_TYPE: {
-              new Notice(`Fatal error: ${error.message}`);
+              new Notice(error.message + "\n" + t("flow_fatal_hint"));
               manageFatalError(actions, error);
               break;
             }
@@ -230,7 +230,8 @@ function manageWarningError(
 ) {
   switch (error.getCode()) {
     default: {
-      log.warn("Unknown fatal error");
+      new Notice(t("flow_warning_notice") + error.message, 5000);
+      log.error(error);
     }
   }
 }

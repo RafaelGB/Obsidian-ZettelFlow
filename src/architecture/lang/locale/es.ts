@@ -590,6 +590,20 @@ export default {
     // Action selector redesign (#256)
     action_suggest_row_label: 'Sugerido para este paso',
     action_card_docs_link_label: 'Abrir documentación',
+    // Usability epic (#258)
+    flow_warning_notice: 'Advertencia: ',
+    flow_fatal_hint: 'Abre el canvas para revisar el nodo destacado.',
+    canvas_empty_state_message: 'Este canvas no tiene pasos de flujo todavía.',
+    canvas_empty_state_cta_create: 'Crear un paso',
+    canvas_empty_state_cta_browse: 'Explorar sistemas',
+    condition_editor_title: 'Editar condición',
+    condition_editor_save: 'Guardar',
+    condition_editor_cancel: 'Cancelar',
+    condition_editor_vocabulary_heading: 'Campos disponibles',
+    condition_editor_examples_heading: 'Ejemplos',
+    condition_editor_insert: 'Insertar',
+    script_editor_available_vars_heading: 'Variables disponibles',
+    navbar_steps_completed: 'pasos completados',
     // Knowledge actions (#153)
     knowledge_action_orphan_label: 'Detectar huérfana',
     knowledge_action_orphan_desc: 'Marca si la nota no tiene enlaces entrantes ni salientes (una huérfana).',

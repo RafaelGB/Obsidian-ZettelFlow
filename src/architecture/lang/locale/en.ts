@@ -590,6 +590,20 @@ export default {
     // Action selector redesign (#256)
     action_suggest_row_label: 'Suggested for this step',
     action_card_docs_link_label: 'Open documentation',
+    // Usability epic (#258)
+    flow_warning_notice: 'Warning: ',
+    flow_fatal_hint: 'Open the canvas to review the highlighted node.',
+    canvas_empty_state_message: 'This canvas has no workflow steps yet.',
+    canvas_empty_state_cta_create: 'Create a step',
+    canvas_empty_state_cta_browse: 'Browse systems',
+    condition_editor_title: 'Edit condition',
+    condition_editor_save: 'Save',
+    condition_editor_cancel: 'Cancel',
+    condition_editor_vocabulary_heading: 'Available fields',
+    condition_editor_examples_heading: 'Examples',
+    condition_editor_insert: 'Insert',
+    script_editor_available_vars_heading: 'Available variables',
+    navbar_steps_completed: 'steps completed',
     // Knowledge actions (#153)
     knowledge_action_orphan_label: 'Detect orphan',
     knowledge_action_orphan_desc: 'Flag whether the note has no incoming or outgoing links (an orphan).',

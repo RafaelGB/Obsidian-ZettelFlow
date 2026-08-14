@@ -1,5 +1,5 @@
 import { t } from "architecture/lang";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   NoteBuilderType,
@@ -23,6 +23,12 @@ export function NavBar(props: NoteBuilderType) {
     store.builder.note.getPaths(),
     store.builder.note.getElements(),
   ]);
+
+  const [stepsCompleted, setStepsCompleted] = useState(0);
+  useEffect(() => {
+    const total = savedPaths.size + savedElements.size;
+    setStepsCompleted((prev) => Math.max(prev, total));
+  }, [savedPaths.size, savedElements.size]);
 
   return (
     <div className={c("navbar")}>
@@ -59,6 +65,11 @@ export function NavBar(props: NoteBuilderType) {
           </button>
         )}
       </div>
+      {stepsCompleted > 0 && (
+        <span className={c("navbar_step_counter")}>
+          {stepsCompleted} {t("navbar_steps_completed")}
+        </span>
+      )}
       <div className={c("navbar_icons")}>
         <Badge content={savedPaths.size}>
           <Icon name={RibbonIcon.TEMPLATE} />

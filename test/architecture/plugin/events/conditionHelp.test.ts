@@ -44,3 +44,25 @@ describe("sanityCheckCondition (#246 B1)", () => {
         expect(check.error).toContain("===");
     });
 });
+
+describe("sanityCheckCondition modal regression guard (#258 AC-2, AC-3, FR-3)", () => {
+    it("flags unbalanced parens (missing close paren)", () => {
+        const check = sanityCheckCondition("event.notePath.startsWith('foo'");
+        expect(check.ok).toBe(false);
+        expect(check.error).toBe("unbalanced brackets");
+    });
+
+    it("flags bare = as assignment error and mentions ===", () => {
+        const check = sanityCheckCondition("event.property = 'status'");
+        expect(check.ok).toBe(false);
+        expect(check.error).toContain("===");
+    });
+
+    it("accepts a valid === expression without blocking", () => {
+        expect(sanityCheckCondition("event.tag === 'idea'")).toEqual({ ok: true });
+    });
+
+    it("has at least 2 non-empty CONDITION_EXAMPLES ready to insert", () => {
+        expect(CONDITION_EXAMPLES.filter((e) => e.condition !== "").length).toBeGreaterThanOrEqual(2);
+    });
+});

@@ -41,22 +41,22 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     min-width: 100%;
     margin-top: 20px;
-    min-height: 300px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     transition: opacity 0.3s, max-height 0.3s;
 }
 
 .zettelkasten-flow__actions-management-add-menu {
     opacity: 0;
     max-height: 0;
+    overflow: hidden;
     display: none;
 }
 
-.zettelkasten-flow__actions-management-add-menu-show{
+.zettelkasten-flow__actions-management-add-menu-show {
     opacity: 1;
-    max-height: 1000px;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
 .zettelkasten-flow__actions-management-add-menu-search {

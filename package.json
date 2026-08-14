@@ -4,6 +4,7 @@
   "description": "A plugin for Obsidian that allows you to create and manage notes in a ZettelFlow-like way.",
   "main": "main.js",
   "scripts": {
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "dev": "node esbuild.config.mjs",
     "dev:vault": "node esbuild.config.mjs vault",
     "deploy:vault": "node scripts/deploy-vault.mjs",

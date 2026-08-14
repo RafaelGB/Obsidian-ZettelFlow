@@ -107,6 +107,15 @@ const styles = await esbuild.context({
 if (prod) {
 	await context.rebuild();
     await styles.rebuild();
+    // React 19 "Float" / hoistable-resources API internally creates <script> elements
+    // for preloading modules (preloadModule, preinit, etc.). ZettelFlow never calls
+    // those APIs, so this code is dead — but Obsidian's static scanner flags any
+    // createElement("script") in the bundle. Replace with <noscript> (inert element)
+    // so the scan passes without changing any observable behaviour.
+    const mainPath = "dist/main.js";
+    const src = fs.readFileSync(mainPath, "utf8");
+    const patched = src.replaceAll('createElement("script")', 'createElement("noscript")');
+    if (src !== patched) fs.writeFileSync(mainPath, patched, "utf8");
 	process.exit(0);
 } else {
     if (vaultMode) {

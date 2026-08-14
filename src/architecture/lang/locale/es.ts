@@ -587,6 +587,9 @@ export default {
     action_category_research_label: 'Investigación',
     action_category_ai_label: 'IA',
     action_category_uncategorized_label: 'Otros',
+    // Action selector redesign (#256)
+    action_suggest_row_label: 'Sugerido para este paso',
+    action_card_docs_link_label: 'Abrir documentación',
     // Knowledge actions (#153)
     knowledge_action_orphan_label: 'Detectar huérfana',
     knowledge_action_orphan_desc: 'Marca si la nota no tiene enlaces entrantes ni salientes (una huérfana).',

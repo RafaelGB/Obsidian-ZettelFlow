@@ -587,6 +587,9 @@ export default {
     action_category_research_label: 'Research',
     action_category_ai_label: 'AI',
     action_category_uncategorized_label: 'Other',
+    // Action selector redesign (#256)
+    action_suggest_row_label: 'Suggested for this step',
+    action_card_docs_link_label: 'Open documentation',
     // Knowledge actions (#153)
     knowledge_action_orphan_label: 'Detect orphan',
     knowledge_action_orphan_desc: 'Flag whether the note has no incoming or outgoing links (an orphan).',

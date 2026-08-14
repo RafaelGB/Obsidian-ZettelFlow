@@ -1,3 +1,4 @@
+/* ── Add button ── */
 .zettelkasten-flow__actions-management-add {
     position: relative;
     display: flex;
@@ -12,7 +13,7 @@
 .zettelkasten-flow__actions-management-add-button {
     color: var(--text-normal);
     width: 35px;
-    height: 35;
+    height: 35px;
     border: none;
     border-radius: 50%;
     display: flex;
@@ -33,16 +34,18 @@
     transform: rotate(45deg);
 }
 
+/* ── Selector panel — hidden / shown states ── */
 .zettelkasten-flow__actions-management-add-menu,
 .zettelkasten-flow__actions-management-add-menu-show {
     background-color: var(--background-secondary);
-    padding: 15px;
+    padding: 12px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     min-width: 100%;
     margin-top: 20px;
     display: flex;
     flex-direction: column;
+    gap: 8px;
     transition: opacity 0.3s, max-height 0.3s;
 }
 
@@ -55,83 +58,185 @@
 
 .zettelkasten-flow__actions-management-add-menu-show {
     opacity: 1;
-    max-height: 70vh;
+    max-height: 340px;
     overflow-y: auto;
 }
 
+/* ── Search input ── */
 .zettelkasten-flow__actions-management-add-menu-search {
     width: 100%;
-    padding: 10px;
+    padding: 6px 10px;
     border-radius: 5px;
     border: 1px solid var(--background-modifier-border);
-    margin-bottom: 10px;
-    font-size: 16px;
+    font-size: 14px;
 }
 
-.zettelkasten-flow__actions-management-add-card-custom {
-    background-color: var(--background-modifier-active);
-}
-
-.zettelkasten-flow__actions-management-add-card {
-    background-color: var(--background-secondary);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+/* ── Category tab strip ── */
+.zettelkasten-flow__action-tab-strip {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 4px;
+    scrollbar-width: none;
+    transition: opacity 0.2s;
+}
+
+.zettelkasten-flow__action-tab-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.zettelkasten-flow__action-tab-strip--search-mode {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__action-tab {
+    display: flex;
     align-items: center;
-    margin-bottom: 10px;
-    flex: 1;
-    border: 1px solid var(--background-modifier-border);
-    padding: 1rem;
-    margin-bottom: 1rem;
+    gap: 4px;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+    background: none;
     cursor: pointer;
-}
-
-.zettelkasten-flow__actions-management-add-card:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.zettelkasten-flow__actions-management-add-card-icon {
-    margin-bottom: 10px;
-}
-
-.zettelkasten-flow__actions-management-add-card-header {
-    width: 100%;
-    text-align: center;
-}
-
-.zettelkasten-flow__actions-management-add-card-header label {
-    font-weight: bold;
-    font-size: 18px;
-}
-
-.zettelkasten-flow__actions-management-add-card-link {
-    text-decoration: none;
-    color: var(--text-accent);
-    font-size: 14px;
-    margin-top: 5px;
-    display: inline-block;
-}
-
-.zettelkasten-flow__actions-management-add-card-body {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-muted);
-    text-align: center;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.zettelkasten-flow__action-tab:hover {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__action-tab--active {
+    color: var(--text-normal);
+    border-bottom-color: var(--color-accent);
+    font-weight: 600;
+}
+
+/* ── Chip grid ── */
+.zettelkasten-flow__actions-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    overflow: visible;
+}
+
+/* ── Individual chip ── */
+.zettelkasten-flow__action-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 44px;
+    max-height: 80px;
+    padding: 0 8px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+    cursor: pointer;
+    font-size: 12px;
+    overflow: visible;
+    transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+.zettelkasten-flow__action-chip:hover {
+    background-color: var(--background-modifier-hover);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.zettelkasten-flow__action-chip-label {
     overflow: hidden;
     text-overflow: ellipsis;
-    max-height: 3em;
-    line-height: 1.5em;
+    white-space: nowrap;
+    flex: 1;
 }
 
+/* Template chip visual differentiation */
+.zettelkasten-flow__actions-management-add-card-custom.zettelkasten-flow__action-chip {
+    background-color: var(--background-modifier-active);
+    border-style: dashed;
+}
+
+/* ── Tooltip ── */
+.zettelkasten-flow__action-chip-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 0;
+    z-index: 100;
+    min-width: 200px;
+    max-width: 280px;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+.zettelkasten-flow__action-chip:hover .zettelkasten-flow__action-chip-tooltip {
+    display: block;
+}
+
+.zettelkasten-flow__action-chip-tooltip--open {
+    display: block;
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__action-chip-tooltip-purpose {
+    font-size: 12px;
+    color: var(--text-normal);
+    margin: 0 0 6px 0;
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__action-chip-tooltip-link {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--text-accent);
+    text-decoration: none;
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__action-chip-tooltip-link:hover {
+    text-decoration: underline;
+}
+
+/* ── Smart suggest row ── */
+.zettelkasten-flow__action-suggest-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__action-suggest-row-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Responsive: narrow panels ── */
+@media (max-width: 500px) {
+    .zettelkasten-flow__actions-chip-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ── Legacy card styles (kept for backwards compat, not rendered by ActionChip) ── */
 .zettelkasten-flow__actions-list {
     display: flex;
     flex-direction: column;
     gap: 14px;
 }
 
-/* Each cognitive-capability group: a header row + its cards wrapping in three columns (#152). */
 .zettelkasten-flow__actions-category-group {
     display: flex;
     flex-wrap: wrap;
@@ -151,27 +256,4 @@
 
 .zettelkasten-flow__actions-category-emoji {
     line-height: 1;
-}
-
-.zettelkasten-flow__actions-category-group>.zettelkasten-flow__actions-management-add-card {
-    flex: 1 1 calc(33.333% - 10px);
-    /* Tres columnas */
-    max-width: calc(33.333% - 10px);
-    /* Tres columnas */
-}
-
-@media (max-width: 600px) {
-    .zettelkasten-flow__actions-management-add {
-        flex-direction: column;
-    }
-
-    .zettelkasten-flow__actions-list {
-        flex-direction: column;
-    }
-
-        
-    .zettelkasten-flow__actions-category-group>.zettelkasten-flow__actions-management-add-card {
-        flex: 1 1 100%;
-        max-width: 100%;
-    }
 }

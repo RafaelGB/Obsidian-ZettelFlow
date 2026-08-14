@@ -176,7 +176,11 @@ export function ActionsManagement(props: ActionsManagementProps) {
           ))}
         </SortableContext>
       </DndContext>
-      <ActionAddMenu modal={modal} onChange={handleAddAction} />
+      <ActionAddMenu
+        modal={modal}
+        onChange={handleAddAction}
+        existingActionIds={actionsState.map((a) => a.type)}
+      />
     </>
   );
 }

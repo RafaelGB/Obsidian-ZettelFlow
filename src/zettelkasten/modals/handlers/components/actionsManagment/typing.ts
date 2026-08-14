@@ -15,7 +15,8 @@ export type ActionAccordionProps = {
 
 export type ActionAddMenuProps = {
     modal: AbstractStepModal,
-    onChange: (value: string | null, isTemplate: boolean) => void
+    onChange: (value: string | null, isTemplate: boolean) => void,
+    existingActionIds?: string[],
 };
 
 export type ActionCardInfo = {

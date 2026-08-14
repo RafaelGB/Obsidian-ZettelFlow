@@ -1,18 +1,19 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { ActionAddMenuProps, ActionCardInfo } from "./typing";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { actionsStore, groupActionsByCategory, CATEGORY_EMOJI, CATEGORY_LABEL_KEY } from "architecture/api";
+import {
+  actionsStore,
+  ACTION_CATEGORIES,
+  CATEGORY_EMOJI,
+  CATEGORY_LABEL_KEY,
+} from "architecture/api";
+import type { ActionCategory } from "architecture/api/categories/categories";
 import { Icon } from "architecture/components/icon";
+import { getSuggestedActions } from "./getSuggestedActions";
 
-/**
- * ActionAddMenu component renders a button that toggles the action selector menu.
- *
- * @param props - ActionAddMenuProps including the modal and onChange callback.
- * @returns The add action menu interface.
- */
 export function ActionAddMenu(props: ActionAddMenuProps) {
-  const { onChange } = props;
+  const { onChange, existingActionIds } = props;
   const [display, setDisplay] = useState(false);
 
   return (
@@ -36,6 +37,7 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
       >
         <ActionCardsMenu
           modal={props.modal}
+          existingActionIds={existingActionIds}
           onChange={(value, isTemplate) => {
             setDisplay(false);
             onChange(value, isTemplate);
@@ -46,18 +48,10 @@ export function ActionAddMenu(props: ActionAddMenuProps) {
   );
 }
 
-/**
- * ActionCardsMenu renders the list of available actions for selection.
- *
- * @param props - Contains modal and onChange callback.
- * @returns The searchable list of action cards.
- */
 function ActionCardsMenu(props: ActionAddMenuProps) {
-  const { onChange, modal } = props;
-  // Guard: installedTemplates.actions may be absent in settings saved by older versions
+  const { onChange, modal, existingActionIds = [] } = props;
   const actions = modal.getPlugin().settings.installedTemplates?.actions ?? {};
 
-  // Build the list of action cards by merging built-in and template actions.
   const actionsMemo: ActionCardInfo[] = useMemo(() => {
     const array: ActionCardInfo[] = [];
     actionsStore.getActionsKeys().forEach((key) => {
@@ -72,7 +66,6 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
       });
     });
     Object.values(actions).forEach((action) => {
-      // Skip template actions whose type no longer exists in the registry
       if (!actionsStore.getActionsKeys().includes(action.type)) return;
       const baseAction = actionsStore.getAction(action.type);
       array.push({
@@ -81,106 +74,190 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
         purpose: action.description,
         id: action.id,
         isTemplate: true,
-        // A template inherits its base action type's category (#152, FR-8).
         category: baseAction.category,
       });
     });
     return array;
   }, []);
 
-  const [filteredCards, setFilteredCards] = useState(actionsMemo);
+  const [activeTab, setActiveTab] = useState<ActionCategory>("manipulation");
+  const preSearchTab = useRef<ActionCategory>("manipulation");
+  const [searchTerm, setSearchTerm] = useState("");
+  const isSearching = searchTerm.length > 0;
+
+  const filteredCards = useMemo(() => {
+    if (isSearching) {
+      const lower = searchTerm.toLowerCase();
+      return actionsMemo.filter(
+        (card) =>
+          card.label.toLowerCase().includes(lower) ||
+          (card.purpose ?? "").toLowerCase().includes(lower)
+      );
+    }
+    return actionsMemo.filter((card) => card.category === activeTab);
+  }, [actionsMemo, searchTerm, activeTab, isSearching]);
+
+  const suggestedCards = useMemo(
+    () => getSuggestedActions(existingActionIds, actionsMemo),
+    [existingActionIds, actionsMemo]
+  );
+
+  const handleSearch = (value: string) => {
+    if (value.length > 0 && !isSearching) {
+      preSearchTab.current = activeTab;
+    }
+    if (value.length === 0 && isSearching) {
+      setActiveTab(preSearchTab.current);
+    }
+    setSearchTerm(value);
+  };
+
+  const handleChipClick = (card: ActionCardInfo) => {
+    onChange(card.id, card.isTemplate || false);
+  };
 
   return (
     <>
-      <input
-        className={c("actions-management-add-menu-search")}
-        type="text"
-        placeholder="Search actions"
-        onChange={(e) => {
-          const value = e.target.value.toLowerCase();
-          setFilteredCards(
-            value === ""
-              ? actionsMemo
-              : actionsMemo.filter(
-                  (card) =>
-                    card.label.toLowerCase().includes(value) ||
-                    (card.purpose ?? "").toLowerCase().includes(value)
-                )
-          );
-        }}
-      />
-      <div className={c("actions-list")}>
-        {groupActionsByCategory(filteredCards).map((group) => (
-          <div
-            key={group.category ?? "uncategorized"}
-            className={c("actions-category-group")}
-          >
-            <div className={c("actions-category-header")}>
-              {group.category && (
-                <span className={c("actions-category-emoji")} aria-hidden="true">
-                  {CATEGORY_EMOJI[group.category]}
-                </span>
-              )}
-              <label>
-                {group.category
-                  ? t(CATEGORY_LABEL_KEY[group.category])
-                  : t("action_category_uncategorized_label")}
-              </label>
-            </div>
-            {group.items.map((card) => (
-              <ActionCard
+      {suggestedCards.length > 0 && (
+        <div className={c("action-suggest-row")}>
+          <span className={c("action-suggest-row-label")}>
+            {t("action_suggest_row_label")}
+          </span>
+          <div className={c("actions-chip-grid")}>
+            {suggestedCards.map((card) => (
+              <ActionChip
                 key={card.id}
                 card={card}
-                trigger={() => {
-                  setFilteredCards(actionsMemo);
-                  onChange(card.id, card.isTemplate || false);
-                }}
+                trigger={() => handleChipClick(card)}
               />
             ))}
           </div>
+        </div>
+      )}
+      <CategoryTabStrip
+        activeTab={activeTab}
+        isSearching={isSearching}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          setSearchTerm("");
+        }}
+      />
+      <input
+        className={c("actions-management-add-menu-search")}
+        type="text"
+        placeholder={t("action_category_uncategorized_label")}
+        value={searchTerm}
+        onChange={(e) => handleSearch(e.target.value)}
+      />
+      <div className={c("actions-chip-grid")}>
+        {filteredCards.map((card) => (
+          <ActionChip
+            key={card.id}
+            card={card}
+            trigger={() => handleChipClick(card)}
+          />
         ))}
       </div>
     </>
   );
 }
 
-/**
- * ActionCard represents a single action option in the add menu.
- *
- * @param props - Contains the action card info and a trigger callback.
- * @returns A clickable action card.
- */
-function ActionCard(props: { card: ActionCardInfo; trigger: () => void }) {
-  const { card } = props;
+function CategoryTabStrip(props: {
+  activeTab: ActionCategory;
+  isSearching: boolean;
+  onTabChange: (tab: ActionCategory) => void;
+}) {
+  const { activeTab, isSearching, onTabChange } = props;
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) => {
+    const tabs = ACTION_CATEGORIES;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      onTabChange(tabs[(index + 1) % tabs.length]);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      onTabChange(tabs[(index - 1 + tabs.length) % tabs.length]);
+    }
+  };
+
   return (
     <div
       className={
+        isSearching
+          ? c("action-tab-strip", "action-tab-strip--search-mode")
+          : c("action-tab-strip")
+      }
+      role="tablist"
+    >
+      {ACTION_CATEGORIES.map((cat, index) => (
+        <button
+          key={cat}
+          role="tab"
+          aria-selected={!isSearching && activeTab === cat}
+          className={
+            !isSearching && activeTab === cat
+              ? c("action-tab", "action-tab--active")
+              : c("action-tab")
+          }
+          onClick={() => onTabChange(cat)}
+          onKeyDown={(e) => handleKeyDown(e, index)}
+        >
+          <span aria-hidden="true">{CATEGORY_EMOJI[cat]}</span>
+          <span>{t(CATEGORY_LABEL_KEY[cat])}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ActionChip(props: { card: ActionCardInfo; trigger: () => void }) {
+  const { card } = props;
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className={
         card.isTemplate
-          ? c(
-              "actions-management-add-card",
-              "actions-management-add-card-custom"
-            )
-          : c("actions-management-add-card")
+          ? c("action-chip", "actions-management-add-card-custom")
+          : c("action-chip")
       }
       onClick={() => props.trigger()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          props.trigger();
+        }
+      }}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        setTooltipOpen((prev) => !prev);
+      }}
     >
-      <div className={c("actions-management-add-card-icon")}>
-        <Icon name={card.icon} />
-      </div>
-      <div className={c("actions-management-add-card-header")}>
-        <label>{card.label}</label>
-      </div>
-      <div className={c("actions-management-add-card-body")}>
-        <label>{card.purpose}</label>
-      </div>
-      <a
-        href={card.link}
-        title={`${card.label} documentation`}
-        className={c("actions-management-add-card-link")}
-        onClick={(e) => e.stopPropagation()}
+      <Icon name={card.icon} />
+      <span className={c("action-chip-label")}>{card.label}</span>
+      <div
+        className={
+          tooltipOpen
+            ? c("action-chip-tooltip", "action-chip-tooltip--open")
+            : c("action-chip-tooltip")
+        }
       >
-        <Icon name="info" />
-      </a>
+        <p className={c("action-chip-tooltip-purpose")}>{card.purpose}</p>
+        {card.link && (
+          <a
+            href={card.link}
+            className={c("action-chip-tooltip-link")}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {t("action_card_docs_link_label")}
+          </a>
+        )}
+      </div>
     </div>
   );
 }

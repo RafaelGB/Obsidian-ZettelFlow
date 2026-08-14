@@ -65,3 +65,36 @@ primary phase each:
 
 Grouping **actions** by cognitive category (Manipulation / Relations / Knowledge / Research / AI) is
 a separate concern — see #152. In #149, an action→phase mapping is guidance only, not code.
+
+## Action selector — redesigned UI (#256)
+
+When configuring a step you add actions via the **"+" button** at the bottom of the step builder.
+The selector panel has three layered components:
+
+### Category tabs
+
+A horizontal strip of five tabs in canonical order — 📝 Manipulation, 🔗 Relations, 🧠 Knowledge,
+🔍 Research, 🤖 AI — sits at the top of the panel. The default active tab is **Manipulation**.
+Clicking a tab filters the chip grid to show only that category's actions. Arrow-key navigation
+moves focus between tabs; Enter/Space activates.
+
+Entering a search term disables tab filtering: all matching actions from every category are shown
+in a flat list and the tab strip fades to indicate search mode. Clearing the field restores the
+previously active tab.
+
+### Compact action chips
+
+Each action is displayed as a compact chip (icon + label, ≤ 80 px tall) arranged in a 4-column
+grid on panels ≥ 500 px wide and a 2-column grid on narrower panels. Hovering a chip (or tapping
+on mobile) reveals a tooltip with the action's full description and, when available, a link to
+its documentation page. Clicking the chip adds the action to the step and closes the selector.
+
+Template actions (installed from the community browser) are visually differentiated with a dashed
+border.
+
+### Smart suggest row (#256 FR-14–FR-17)
+
+When the step already has one or more actions added, a **"Suggested for this step"** row appears
+above the tab strip. It shows up to three complementary action chips derived from a static
+affinity map (for example, adding a *Prompt* action surfaces *Create semantic relation*). The row
+is absent when there are no existing actions or when the affinity map yields no new suggestions.

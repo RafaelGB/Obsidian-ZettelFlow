@@ -142,16 +142,30 @@ method to exist), `patchObjectPrototype`, `patchPrototype`, and `tryPatchWorkspa
 
 ### Canvas extensions (`allCanvasExtensions`)
 
-Both extend `CanvasExtension` (constructor stores `plugin`, calls `abstract init()`):
+All extend `CanvasExtension` (constructor stores `plugin`, calls `abstract init()`). Every extension
+gates on `CanvasHelper.isCanvasFlow(plugin)` — i.e. the active file is `ribbonCanvas` /
+`editorCanvas` or lives under `foldersFlowsPath` / `hooks.folderFlowPath`. All canvas internals
+are **feature-detected**: absent maps/elements log a `log.warn` and skip silently — the flow
+still runs.
 
 - **`EditStepCanvasExtension`** — listens to `canvas:popup-menu`; on a ZettelFlow canvas adds
   "Edit ZettelFlow Step" (single selection → `StepBuilderModal`) or "Copy Flow to Clipboard".
 - **`AddManagedStepExtension`** — listens to `zettelflow-node-connection-drop-menu`; adds
   "Create Managed Step" (if templates are installed: pick one first; otherwise: blank step config)
   → creates a node with `unknownData.zettelflowConfig`) and "Import Flow Data from Clipboard".
-
-All extensions gate on `CanvasHelper.isCanvasFlow(plugin)` — i.e. the active file is
-`ribbonCanvas` / `editorCanvas` or lives under `foldersFlowsPath` / `hooks.folderFlowPath`.
+- **`WorkflowLegibilityExtension`** — listens to `zettelflow-canvas-render`; toggles `c()` CSS
+  classes on node/edge DOM to badge WAIT nodes, annotate trigger roots, and colour `if:` edges.
+  Purely cosmetic — does not affect execution or storage.
+- **`ConditionEditorExtension`** (#258) — listens to `canvas:popup-menu`; adds an "Edit condition"
+  button when exactly **one edge** is selected (distinguished via the undocumented `canvas.edges`
+  Map, defensively feature-detected). Opens `ConditionEditorModal` which mounts a CodeMirror
+  editor pre-populated with the current `if: <expr>` label, shows live `sanityCheckCondition`
+  warnings, the `CONDITION_FIELDS` vocabulary table, and insert-ready `CONDITION_EXAMPLES`. On
+  save, writes `if: <expr>` to `edge.label` and calls `canvas.requestSave()`.
+- **`EmptyStateExtension`** (#258) — listens to `zettelflow-canvas-render`; injects a guide panel
+  into `canvas.wrapperEl` when the canvas has zero ZettelFlow step nodes. Panel offers two CTAs:
+  "Browse systems" → `CommunityTemplatesModal`. Auto-dismisses once a step node is detected.
+  Torn down cleanly via `plugin.register(() => removePanel())`.
 
 ### Flow model — `Canvas.ts` / `Flows.ts`
 

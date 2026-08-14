@@ -58,8 +58,8 @@
 
 .zettelkasten-flow__actions-management-add-menu-show {
     opacity: 1;
-    max-height: 340px;
-    overflow-y: auto;
+    max-height: 70vh;
+    overflow: hidden;
 }
 
 /* ── Search input ── */
@@ -69,6 +69,8 @@
     border-radius: 5px;
     border: 1px solid var(--background-modifier-border);
     font-size: 14px;
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 /* ── Category tab strip ── */
@@ -77,8 +79,11 @@
     flex-direction: row;
     overflow-x: auto;
     flex-wrap: nowrap;
+    flex-shrink: 0;
     gap: 4px;
     scrollbar-width: none;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 2px;
     transition: opacity 0.2s;
 }
 
@@ -117,12 +122,19 @@
     font-weight: 600;
 }
 
+/* ── Scrollable chip body (only this area scrolls, tabs/search stay fixed) ── */
+.zettelkasten-flow__action-selector-chip-body {
+    flex: 1;
+    min-height: 80px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 /* ── Chip grid ── */
 .zettelkasten-flow__actions-chip-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 6px;
-    overflow: visible;
 }
 
 /* ── Individual chip ── */
@@ -139,7 +151,6 @@
     background-color: var(--background-primary);
     cursor: pointer;
     font-size: 12px;
-    overflow: visible;
     transition: background-color 0.15s, box-shadow 0.15s;
 }
 
@@ -165,7 +176,7 @@
 .zettelkasten-flow__action-chip-tooltip {
     display: none;
     position: absolute;
-    bottom: calc(100% + 4px);
+    top: calc(100% + 4px);
     left: 0;
     z-index: 100;
     min-width: 200px;

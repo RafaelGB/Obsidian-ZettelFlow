@@ -134,6 +134,13 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
           </div>
         </div>
       )}
+      <input
+        className={c("actions-management-add-menu-search")}
+        type="text"
+        placeholder={t("action_search_placeholder")}
+        value={searchTerm}
+        onChange={(e) => handleSearch(e.target.value)}
+      />
       <CategoryTabStrip
         activeTab={activeTab}
         isSearching={isSearching}
@@ -142,21 +149,16 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
           setSearchTerm("");
         }}
       />
-      <input
-        className={c("actions-management-add-menu-search")}
-        type="text"
-        placeholder={t("action_category_uncategorized_label")}
-        value={searchTerm}
-        onChange={(e) => handleSearch(e.target.value)}
-      />
-      <div className={c("actions-chip-grid")}>
-        {filteredCards.map((card) => (
-          <ActionChip
-            key={card.id}
-            card={card}
-            trigger={() => handleChipClick(card)}
-          />
-        ))}
+      <div className={c("action-selector-chip-body")}>
+        <div className={c("actions-chip-grid")}>
+          {filteredCards.map((card) => (
+            <ActionChip
+              key={card.id}
+              card={card}
+              trigger={() => handleChipClick(card)}
+            />
+          ))}
+        </div>
       </div>
     </>
   );

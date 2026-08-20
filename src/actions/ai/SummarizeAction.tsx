@@ -11,6 +11,7 @@ export class SummarizeAction extends CustomZettelAction {
     private static ICON = "sparkles";
     id = "summarize";
     category = "ai" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "summary", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

@@ -17,6 +17,7 @@ export class SuggestConnectionsAction extends CustomZettelAction {
     private static ICON = "spline";
     id = "suggest-connections";
     category = "ai" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "suggestedConnections", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

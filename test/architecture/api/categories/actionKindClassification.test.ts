@@ -55,6 +55,13 @@ function declaredKind(source: string): string | undefined {
     return source.match(/kind\s*=\s*"(command|query)"/)?.[1];
 }
 
+/** The declared `category = "…"` class field. */
+function declaredCategory(source: string): string | undefined {
+    return source.match(/category\s*=\s*"([a-z-]+)"/)?.[1];
+}
+
+const AI_ACTIONS = Object.keys(EXPECTED).filter((rel) => rel.startsWith("ai/"));
+
 describe("built-in action kind classification (#265, FR-2/FR-3, AC-2/AC-4)", () => {
     it("every DECLARED kind is a valid token and matches the locked classification", () => {
         for (const [rel, expected] of Object.entries(EXPECTED)) {
@@ -80,5 +87,37 @@ describe("built-in action kind classification (#265, FR-2/FR-3, AC-2/AC-4)", () 
         const expectedClasses = Object.keys(EXPECTED).map((rel) => rel.split("/")[1]);
         expect(expectedClasses.length).toBe(31);
         for (const cls of expectedClasses) expect(registered).toContain(cls);
+    });
+
+    it("classification is total: every one of the 31 built-ins declares exactly the locked kind (AC-2)", () => {
+        for (const [rel, expected] of Object.entries(EXPECTED)) {
+            expect(declaredKind(actionSrc(rel))).toBe(expected);
+        }
+    });
+
+    it("the counts are 14 commands / 17 queries (AC-4)", () => {
+        const kinds = Object.keys(EXPECTED).map((rel) => declaredKind(actionSrc(rel)));
+        expect(kinds.filter((k) => k === "command").length).toBe(14);
+        expect(kinds.filter((k) => k === "query").length).toBe(17);
+    });
+
+    it("the 6 AI actions are queries, the network-bound subset, excluded from the pure knowledge layer (AC-7)", () => {
+        expect(AI_ACTIONS.length).toBe(6);
+        for (const rel of AI_ACTIONS) {
+            expect(declaredKind(actionSrc(rel))).toBe("query");
+            expect(rel.startsWith("ai/")).toBe(true); // lives under src/actions/ai, not architecture/knowledge
+        }
+    });
+
+    it("category stays consistent with kind where it maps cleanly (manipulation⟹command, knowledge/ai⟹query)", () => {
+        for (const rel of Object.keys(EXPECTED)) {
+            const src = actionSrc(rel);
+            const kind = declaredKind(src);
+            const category = declaredCategory(src);
+            if (category === "manipulation") expect(kind).toBe("command");
+            if (category === "knowledge") expect(kind).toBe("query");
+            if (category === "ai") expect(kind).toBe("query");
+            // relations / research are legitimately mixed — not constrained.
+        }
     });
 });

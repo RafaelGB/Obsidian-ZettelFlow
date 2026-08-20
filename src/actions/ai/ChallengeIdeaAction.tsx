@@ -11,6 +11,7 @@ export class ChallengeIdeaAction extends CustomZettelAction {
     private static ICON = "swords";
     id = "challenge-idea";
     category = "ai" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "challenge", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

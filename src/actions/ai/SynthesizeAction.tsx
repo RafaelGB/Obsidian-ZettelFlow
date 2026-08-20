@@ -19,6 +19,7 @@ export class SynthesizeAction extends CustomZettelAction {
     private static ICON = "combine";
     id = "synthesize";
     category = "ai" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "synthesis", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

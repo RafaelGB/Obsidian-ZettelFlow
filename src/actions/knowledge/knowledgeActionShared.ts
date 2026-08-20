@@ -1,7 +1,5 @@
 import { Setting } from "obsidian";
-import { Action, ActionSetting, ActionSettingReader, ExecuteInfo } from "architecture/api";
-import { KnowledgeIndex } from "architecture/knowledge";
-import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
+import { Action, ActionSetting, ActionSettingReader } from "architecture/api";
 import { navbarAction } from "architecture/components/settings";
 import { t } from "architecture/lang";
 import type { KnowledgeActionElement } from "zettelkasten";
@@ -10,10 +8,14 @@ type LocaleKey = Parameters<typeof t>[0];
 
 /**
  * Shared plumbing for the #153 🧠 knowledge actions (all `hasUI:false` compute-and-write bundles): a
- * common authoring form (result property + zone + optional target note), the read-only reader, the
- * ready-model guard, target resolution, and result writing. Keeps each action class thin over its
- * pure logic. Deterministic & offline — reads the #145 `KnowledgeIndex`, writes only the result.
+ * common authoring form (result property + zone + optional target note) and the read-only reader.
+ * The execution core (ready-model guard, target resolution, result writing) lives UI-free in
+ * `./knowledgeActionCore` and is **re-exported here** so existing importers are unchanged (#264).
  */
+
+// The execution helpers are re-exported so every existing importer keeps its path; the definitions
+// live in knowledgeActionCore (no UI import) so the #264 seam/adapter can load without the modal graph.
+export { readyModel, resolveTargetPath, writeKnowledgeResult } from "./knowledgeActionCore";
 
 /** Build the `settings`/`settingsReader` pair for a knowledge action from its i18n name/desc keys. */
 export function makeKnowledgeSettings(
@@ -70,31 +72,4 @@ function knowledgeSettingsForm(contentEl: HTMLElement, action: Action, readonly:
                     action.target = value;
                 })
         );
-}
-
-/** The knowledge model when the index is ready, else `null` (the action then safely no-ops). */
-export function readyModel(): KnowledgeModel | null {
-    const index = KnowledgeIndex.getInstance();
-    if (index.status !== "ready") return null;
-    return index.getModel();
-}
-
-/** The note to analyze: the configured `target`, else the note being built (may not be indexed yet). */
-export function resolveTargetPath(info: ExecuteInfo, el: KnowledgeActionElement): string | null {
-    const configured = el.target?.trim();
-    if (configured) return configured;
-    const building = info.note.getFinalPath();
-    return building && building.length > 0 ? building : null;
-}
-
-/** Write a knowledge action's result to the configured zone, and always expose it as `{{key}}`. */
-export function writeKnowledgeResult(
-    info: ExecuteInfo,
-    el: KnowledgeActionElement,
-    value: unknown
-): void {
-    const key = el.key;
-    if (!key) return;
-    if (el.zone !== "context") info.content.addFrontMatter({ [key]: value });
-    info.context[key] = value;
 }

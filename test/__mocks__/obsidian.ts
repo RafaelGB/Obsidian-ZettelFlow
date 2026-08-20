@@ -59,6 +59,69 @@ export function requireApiVersion(_version: string): boolean {
   return true;
 }
 
+// UI-surface stubs — enough for modules that build settings/suggesters to *load* under jest
+// (they are never rendered in unit tests). The real classes come from Obsidian at runtime.
+export class AbstractInputSuggest<T> {
+  constructor(_app?: unknown, _inputEl?: unknown) {}
+  getSuggestions(_query: string): T[] {
+    return [];
+  }
+  renderSuggestion(_value: T, _el: unknown): void {}
+  selectSuggestion(_value: T): void {}
+  setValue(_value: string): this {
+    return this;
+  }
+  onSelect(_cb: unknown): this {
+    return this;
+  }
+}
+
+/** Chainable no-op stub of Obsidian's declarative Setting builder. */
+export class Setting {
+  constructor(_containerEl?: unknown) {}
+  setName(): this {
+    return this;
+  }
+  setDesc(): this {
+    return this;
+  }
+  setHeading(): this {
+    return this;
+  }
+  setClass(): this {
+    return this;
+  }
+  setDisabled(): this {
+    return this;
+  }
+  addText(): this {
+    return this;
+  }
+  addTextArea(): this {
+    return this;
+  }
+  addToggle(): this {
+    return this;
+  }
+  addDropdown(): this {
+    return this;
+  }
+  addButton(): this {
+    return this;
+  }
+  addExtraButton(): this {
+    return this;
+  }
+  addSlider(): this {
+    return this;
+  }
+  then(): this {
+    return this;
+  }
+}
+
+export function setIcon(_el: unknown, _icon: string): void {}
+
 /** Mutable platform flag so tests can exercise the desktop/mobile default. */
 export const Platform = { isMobile: false };
 

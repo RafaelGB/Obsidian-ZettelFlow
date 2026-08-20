@@ -1,5 +1,6 @@
+import { ObsidianApi } from "architecture";
 import type { Action } from "architecture/api";
-import type { TFile } from "obsidian";
+import type { TFile, EventRef } from "obsidian";
 
 /**
  * Runs a note's on-creation pattern once the note is indexed and writes the graph-computed keys back
@@ -34,8 +35,18 @@ export class PostIndexRerun {
     public arm(file: TFile, actions: Action[], enabled: boolean, runner: PatternRerunner): void {
         if (!enabled) return;
         if (actions.length === 0) return;
-        // Armed path implemented next (T4–T6): one-shot metadata-resolve listener + timeout + guard.
-        void file;
-        void runner;
+
+        const target = file.path;
+        const metadataCache = ObsidianApi.metadataCache();
+        // One-shot, per-path readiness signal — NOT the global "resolved" rebuild event. Fires when
+        // this note's links are resolved; gated on the note actually being in `resolvedLinks`.
+        const ref: EventRef = metadataCache.on("resolve", (resolved: TFile) => {
+            if (resolved.path !== target) return;
+            if (!metadataCache.resolvedLinks[target]) return;
+            // Unsubscribe the instant it fires, so the re-run's own write (which re-indexes the note
+            // and fires "resolve" again) reaches no handler — the loop guard (FR-3, AC-2/AC-5).
+            metadataCache.offref(ref);
+            void runner(file, actions);
+        });
     }
 }

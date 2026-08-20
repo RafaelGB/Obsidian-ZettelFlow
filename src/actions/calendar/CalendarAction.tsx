@@ -17,6 +17,7 @@ export class CalendarAction extends CustomZettelAction {
   private static ICON = "calendar-days";
   id = "calendar";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction: Action = {
     type: this.id,
     hasUI: true,

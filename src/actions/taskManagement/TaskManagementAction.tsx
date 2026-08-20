@@ -12,6 +12,7 @@ export class TaskManagementAction extends CustomZettelAction {
   private static ICON = "list-checks";
   id = "task-management";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     description: "Task management",

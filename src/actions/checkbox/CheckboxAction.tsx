@@ -12,6 +12,7 @@ export class CheckboxAction extends CustomZettelAction {
   private static ICON = "check-square";
   id = "checkbox";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

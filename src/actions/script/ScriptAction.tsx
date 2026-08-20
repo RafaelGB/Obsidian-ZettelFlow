@@ -8,6 +8,7 @@ export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
   id = "script";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     hasUI: false,

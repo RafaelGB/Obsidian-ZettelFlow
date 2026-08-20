@@ -14,6 +14,7 @@ export class SelectorAction extends CustomZettelAction {
   private static ICON = "square-mouse-pointer";
   id = "selector";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

@@ -8,10 +8,10 @@ import type { Literal } from "architecture/plugin/model/FrontmatterModel";
  * (current frontmatter + the offline `KnowledgeModel`), and a **result sink**.
  *
  * §XI boundary: this module is pure and offline. It imports `KnowledgeModel` by **deep path** (never
- * the `architecture/knowledge` barrel, which re-exports the obsidian-importing `KnowledgeIndex`), no
- * `obsidian`, no `NoteDTO`/`ContentDTO`, no `KnowledgeIndex`. The model is **injected** by the
- * engine-side adapter (`actions/knowledge/knowledgeContextAdapter`), so the type never reaches for a
- * singleton — which is what keeps it testable with no live vault.
+ * the `architecture/knowledge` barrel, which re-exports the platform-coupled `KnowledgeIndex`), and
+ * pulls in no platform API, no `NoteDTO`/`ContentDTO`, no `KnowledgeIndex`. The model is **injected**
+ * by the engine-side adapter (`actions/knowledge/knowledgeContextAdapter`), so the type never reaches
+ * for a singleton — which is what keeps it testable with no live vault.
  */
 
 /** Writes a result to the note: frontmatter zones reach frontmatter, all zones mirror to `{{key}}`. */

@@ -691,6 +691,9 @@ export default {
     settings_timeline_enable_name: 'Record conceptual snapshots',
     settings_timeline_enable_desc: 'Capture a snapshot when a note changes state or claims meaningfully (not every keystroke). Off by default — it stores note content, so it is opt-in; turning it off clears what was captured.',
     settings_timeline_disclosure: 'Stored locally per note — lifecycle state, claim texts and timestamps — bounded and pruned on delete; no network.',
+    settings_patterns_heading: 'Knowledge patterns',
+    settings_patterns_enable_name: 'Re-run a pattern after the note is indexed',
+    settings_patterns_enable_desc: "Run a note's on-creation pattern once more after the vault indexes it, so graph results (related, contradictions, maturity) fill in on the first pass. On by default; writes only the pattern's own keys.",
     settings_toolkit_heatmap_name: 'Thinking heatmap',
     settings_toolkit_heatmap_desc: 'A calendar heatmap of ideas developed over the last year.',
     // Morning discovery (#163)

@@ -116,6 +116,17 @@ export interface ZettelFlowSettings {
         snapshots: Record<string, Snapshot[]>;
     };
 
+    /**
+     * Knowledge Patterns (#170/#200). When `rerunOnIndex` is on, a note created from a pattern with
+     * on-creation actions has that pattern re-run once **after** the vault indexes the note, so graph
+     * results (related, contradictions, maturity …) fill in on the first pass. ON by default: offline,
+     * writes only the pattern's own declared keys, and a one-click toggle for anyone who objects to a
+     * second write to a just-created note.
+     */
+    patterns: {
+        rerunOnIndex: boolean;
+    };
+
     /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
     history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
@@ -220,6 +231,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
     timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
+    patterns: { rerunOnIndex: true }, // Post-index pattern re-run on by default (#200); offline, own keys only.
     history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,

@@ -62,10 +62,26 @@ the `trigger` field (#150).
 ## A note on timing
 
 On-creation actions run **before** the new note's own file exists, so the graph-based actions rank it
-against the **already-indexed** vault, and the new note is not yet a node in that graph. In practice a
-*brand-new* note's first pass often writes empty result properties (`related: []`, etc.) — the values
-fill in once the vault re-indexes and the pattern is run again. Re-running the pattern automatically
-after the note is indexed is a planned follow-up.
+against the **already-indexed** vault, and the new note is not yet a node in that graph. On that first
+pass a *brand-new* note's result properties (`related`, `contradictions`, `maturity`, …) are often
+empty — the note is not yet in the graph.
+
+To close that gap, ZettelFlow **re-runs the pattern once, automatically, after the note is indexed**
+(#200). The re-run:
+
+- fires **exactly once** per note creation, only when the note becomes indexed with its links
+  resolved — it waits up to **~5 seconds** and then **gives up silently** (a debug log line, no
+  notice) if indexing is slow;
+- is a strict **one-shot from the create path** — it is never wired to later edits, and a per-note
+  guard means its own frontmatter write cannot re-trigger it (one create ⇒ at most one re-run);
+- writes **only the pattern's own declared keys** back into the note; every other frontmatter key you
+  or another action set is preserved untouched;
+- is **offline** — it reads only the local knowledge index, makes no network call, and adds no new
+  capability.
+
+It is **on by default**. To disable it — for example if you object to a second automatic write to a
+just-created note — turn off *Settings → ZettelFlow → Knowledge patterns → Re-run a pattern after the
+note is indexed*; behaviour is then identical to the build-time-only pass.
 
 ## Try it
 

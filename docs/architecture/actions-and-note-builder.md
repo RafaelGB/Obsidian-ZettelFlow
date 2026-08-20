@@ -351,3 +351,30 @@ appears in the picker under an **"Other"** group. **Empty groups are hidden**, s
 group only shows when at least one action has no category. The vocabulary, the canonical order, the
 grouping helper and the i18n label keys live in the pure, Obsidian-free
 `architecture/api/categories`.
+
+### Kind — command vs query (the primary axis, #265)
+
+> Epic [#262](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/262) Phase 3.
+
+`category` groups the picker by *topic*; **`kind` is the primary taxonomy axis** — *what the action
+does to the Knowledge Model*, over the [KnowledgeContext seam](#the-knowledgecontext-seam-xi-boundary):
+
+| Kind | Meaning | Contract |
+|---|---|---|
+| **`command`** | **mutates** knowledge | creates/changes a note, relation, source, property, id, task or backlink |
+| **`query`** | **observes** knowledge | derives a value from the model and writes **only** through the context sink — no other mutation |
+
+The 31 built-ins split **14 commands / 17 queries** (11 offline queries + **6 AI network queries**
+under `src/actions/ai/**`, which are query-shaped but call `AiService`, so they are fenced out of the
+offline/pure §XI layer). `kind` and `category` are **single-sourced, not parallel**: `kind` is
+primary, `category` a validated facet — `manipulation ⟹ command` and `knowledge`/`ai ⟹ query`, while
+`relations` and `research` legitimately contain both.
+
+The marker types (`ActionKind`, `KnowledgeQuery`, `KnowledgeCommand`) live in the pure, Obsidian-free
+`architecture/knowledge/taxonomy/actionKind` (deep-imported, never via the knowledge barrel).
+
+**Contributor rule:** every action declares exactly one `kind` beside its `category`
+(`kind = "query" as const;`). A source-level test
+(`test/architecture/api/categories/actionKindClassification.test.ts`) enforces that all 31 built-ins
+are classified, totally and disjointly — it reads the sources with `fs` (it never imports the
+React-coupled action modules).

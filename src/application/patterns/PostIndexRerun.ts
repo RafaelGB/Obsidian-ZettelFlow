@@ -19,6 +19,9 @@ export type PatternRerunner = (file: TFile, actions: Action[]) => Promise<void>;
  */
 export class PostIndexRerun {
     private static _instance: PostIndexRerun;
+    /** Paths already armed — the re-entrancy guard. Marked at arm time so neither the re-run's own
+     * write nor any later edit can re-arm the note (FR-3, AC-5). Never cleared: one create ⇒ one arm. */
+    private readonly handled = new Set<string>();
 
     public static getInstance(): PostIndexRerun {
         if (!PostIndexRerun._instance) {
@@ -37,6 +40,11 @@ export class PostIndexRerun {
         if (actions.length === 0) return;
 
         const target = file.path;
+        // Re-entrancy guard: mark the path terminal before arming, so the re-run's own write cannot
+        // re-arm it and a later edit cannot start a second re-run (FR-3, AC-5).
+        if (this.handled.has(target)) return;
+        this.handled.add(target);
+
         const metadataCache = ObsidianApi.metadataCache();
         // One-shot, per-path readiness signal — NOT the global "resolved" rebuild event. Fires when
         // this note's links are resolved; gated on the note actually being in `resolvedLinks`.

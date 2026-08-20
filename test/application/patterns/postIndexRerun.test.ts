@@ -121,3 +121,35 @@ describe("PostIndexRerun.arm — one-shot resolve → run once, then offref (#20
         expect(metadataCache.liveHandlers()).toBe(1);
     });
 });
+
+describe("PostIndexRerun.arm — re-entrancy guard (#200, FR-3, AC-5)", () => {
+    it("is idempotent per path — a re-arm after the re-run ran does nothing", () => {
+        const path = "guard/Note.md";
+        const runner = jest.fn(async () => undefined);
+        const inst = PostIndexRerun.getInstance();
+
+        inst.arm(file(path), [action("find-related")], true, runner);
+        resolvePath(metadataCache, path);
+        expect(runner).toHaveBeenCalledTimes(1);
+
+        // The re-run's own write (or any later user edit) re-enters the create path? It must not
+        // re-arm: a second arm for the same path registers no new listener and never re-runs.
+        inst.arm(file(path), [action("find-related")], true, runner);
+        expect(metadataCache.on).toHaveBeenCalledTimes(1);
+        resolvePath(metadataCache, path);
+        expect(runner).toHaveBeenCalledTimes(1);
+    });
+
+    it("registers only one listener when armed twice before the note resolves", () => {
+        const path = "guard-early/Note.md";
+        const runner = jest.fn(async () => undefined);
+        const inst = PostIndexRerun.getInstance();
+
+        inst.arm(file(path), [action("find-related")], true, runner);
+        inst.arm(file(path), [action("find-related")], true, runner);
+
+        expect(metadataCache.on).toHaveBeenCalledTimes(1);
+        resolvePath(metadataCache, path);
+        expect(runner).toHaveBeenCalledTimes(1);
+    });
+});

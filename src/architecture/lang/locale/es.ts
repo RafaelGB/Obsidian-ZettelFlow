@@ -691,6 +691,9 @@ export default {
     settings_timeline_enable_name: 'Registrar instantáneas conceptuales',
     settings_timeline_enable_desc: 'Captura una instantánea cuando una nota cambia de estado o de afirmaciones de forma significativa (no en cada pulsación). Desactivado por defecto — guarda contenido de la nota, así que es opcional; al desactivarlo se borra lo capturado.',
     settings_timeline_disclosure: 'Se guarda en local por nota — estado del ciclo de vida, textos de afirmaciones y marcas de tiempo — acotado y purgado al borrar; sin red.',
+    settings_patterns_heading: 'Patrones de conocimiento',
+    settings_patterns_enable_name: 'Reejecutar un patrón tras indexar la nota',
+    settings_patterns_enable_desc: 'Vuelve a ejecutar el patrón de creación de una nota una vez que la bóveda la indexa, para que los resultados del grafo (relacionadas, contradicciones, madurez) se rellenen en la primera pasada. Activado por defecto; solo escribe las claves propias del patrón.',
     settings_toolkit_heatmap_name: 'Mapa de calor del pensamiento',
     settings_toolkit_heatmap_desc: 'Un mapa de calor de calendario de las ideas desarrolladas en el último año.',
     // Descubrimiento matinal (#163)

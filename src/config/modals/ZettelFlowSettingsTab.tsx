@@ -25,6 +25,7 @@ import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksM
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
+import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
 import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
 import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
 import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
@@ -460,6 +461,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             // ── Thinking journal (#162) ───────────────────────────────────────
             journalSettingsGroup(plugin),
             timelineSettingsGroup(plugin),
+            // ── Knowledge patterns (#200) ─────────────────────────────────────
+            patternsSettingsGroup(plugin),
             // ── Zettelkasten toolkit ──────────────────────────────────────────
             {
                 type: "group",

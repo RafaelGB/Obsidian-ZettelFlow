@@ -14,6 +14,7 @@ import { conceptNeighbors } from "architecture/knowledge/traverse/conceptNeighbo
 import { buildEvidenceMap, EvidenceMap } from "architecture/knowledge/synthesis/evidenceMap";
 import { buildHeatmapGrid } from "architecture/knowledge/journal/heatmap";
 import { deriveOutline } from "architecture/knowledge/projects/deriveOutline";
+import { deriveRecommendations, RECOMMENDATION_REASONS, COMMAND_ACTION_IDS } from "architecture/knowledge/state/recommendation";
 
 describe("Knowledge State projection surface (#266, FR-1/FR-2, AC-5)", () => {
     it("re-exports the projection entry points by identity (the facade wraps nothing)", () => {
@@ -30,6 +31,12 @@ describe("Knowledge State projection surface (#266, FR-1/FR-2, AC-5)", () => {
         expect(state.buildEvidenceMap).toBe(buildEvidenceMap);
         expect(state.buildHeatmapGrid).toBe(buildHeatmapGrid);
         expect(state.deriveOutline).toBe(deriveOutline);
+    });
+
+    it("re-exports the KnowledgeRecommendation primitive (#267)", () => {
+        expect(state.deriveRecommendations).toBe(deriveRecommendations);
+        expect(state.RECOMMENDATION_REASONS).toBe(RECOMMENDATION_REASONS);
+        expect(state.COMMAND_ACTION_IDS).toBe(COMMAND_ACTION_IDS);
     });
 
     it("the entry points satisfy the StateProjection<Params, Result> contract (compile-only)", () => {

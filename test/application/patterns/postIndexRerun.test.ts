@@ -185,3 +185,30 @@ describe("PostIndexRerun.arm — bounded timeout give-up (#200, FR-2, AC-7)", ()
         expect(runner).toHaveBeenCalledTimes(1);
     });
 });
+
+describe("PostIndexRerun.arm — plugin lifecycle & error safety (#200, §3.2)", () => {
+    it("registers the listener and a timeout teardown with the plugin so unload cleans them up", () => {
+        const registerEvent = jest.fn();
+        const register = jest.fn();
+        __setMockObsidianApi({ ownPlugin: { registerEvent, register } });
+
+        PostIndexRerun.getInstance().arm(file("lifecycle/Note.md"), [action("find-related")], true, jest.fn(async () => undefined));
+
+        const ref = metadataCache.on.mock.results[0].value;
+        expect(registerEvent).toHaveBeenCalledWith(ref);
+        expect(register).toHaveBeenCalledTimes(1);
+    });
+
+    it("swallows a rejecting runner without an unhandled rejection", async () => {
+        const errorSpy = jest.spyOn(log, "error");
+        const runner = jest.fn(async () => { throw new Error("boom"); });
+
+        PostIndexRerun.getInstance().arm(file("rejects/Note.md"), [action("find-related")], true, runner);
+        resolvePath(metadataCache, "rejects/Note.md");
+        expect(runner).toHaveBeenCalledTimes(1);
+
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(errorSpy).toHaveBeenCalledTimes(1);
+    });
+});

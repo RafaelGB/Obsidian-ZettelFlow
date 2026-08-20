@@ -49,6 +49,7 @@ export class PostIndexRerun {
         this.handled.add(target);
 
         const metadataCache = ObsidianApi.metadataCache();
+        const plugin = ObsidianApi.getOwnPlugin();
         let timeout: number;
         // One-shot, per-path readiness signal — NOT the global "resolved" rebuild event. Fires when
         // this note's links are resolved; gated on the note actually being in `resolvedLinks`.
@@ -59,8 +60,16 @@ export class PostIndexRerun {
             // and fires "resolve" again) reaches no handler — the loop guard (FR-3, AC-2/AC-5).
             metadataCache.offref(ref);
             window.clearTimeout(timeout);
-            void runner(file, actions);
+            // Best-effort: a runner rejection (note deleted mid-window, write error) is logged, never
+            // an unhandled rejection — consistent with the feature's silent, best-effort intent.
+            runner(file, actions).catch((error) =>
+                log.error(`[patterns] post-index re-run failed for "${target}": ${error instanceof Error ? error.message : "unknown error"}`)
+            );
         });
+        // Register with the plugin so an unload inside the wait window cleans both up (§3.2): the
+        // listener is auto-`offref`'d and the pending timer cleared, so nothing writes post-unload.
+        plugin.registerEvent(ref);
+        plugin.register(() => window.clearTimeout(timeout));
         // Bounded give-up: if the note never reaches indexed-with-resolved-links, stop waiting so the
         // arming always terminates. Silent (a debug line only, no Notice) and unsubscribes (FR-2, AC-7).
         timeout = window.setTimeout(() => {

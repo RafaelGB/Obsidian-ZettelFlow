@@ -16,7 +16,7 @@ import {
     BalanceSuggestion,
     KnowledgeBalance,
 } from "architecture/knowledge/balance/knowledgeBalance";
-import { classifyHealth, HealthNote, HealthResult } from "./classifyHealth";
+import { classifyHealth, HealthNote, HealthResult } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

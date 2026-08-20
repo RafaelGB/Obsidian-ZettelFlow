@@ -31,3 +31,4 @@ export * from "architecture/knowledge/synthesis/evidenceMap";
 export * from "architecture/knowledge/journal/heatmap";
 export * from "architecture/knowledge/projects/deriveOutline";
 export type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
+export * from "./classifyHealth";

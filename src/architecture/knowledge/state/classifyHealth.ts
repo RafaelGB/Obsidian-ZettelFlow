@@ -1,3 +1,9 @@
+// NOTE(#268): classifyHealth reads the raw Obsidian link graph (resolvedLinks) passed in by the view,
+// NOT the KnowledgeModel — whose out-edges also include semantic relations. Unifying health onto the
+// model would change the displayed orphan/dead-end numbers, so that unification is deferred to the
+// Health view-collapse (#268). Relocated here verbatim (#266) so the calculator lives in the pure
+// Knowledge State layer, not the Experience/view layer — same inputs, same numbers.
+
 export type HealthNote = {
     path: string;
     basename: string;

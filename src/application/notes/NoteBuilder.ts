@@ -10,6 +10,9 @@ import type MomentFn from "moment";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderStateActions } from "application/components/noteBuilder/typing";
 import { runOnCreationActions } from "application/patterns/runOnCreationActions";
+import { PostIndexRerun } from "application/patterns/PostIndexRerun";
+import { computeOnCreationDelta, mergeFrontmatterDelta } from "application/patterns/postIndexRerunCore";
+import type { Literal } from "architecture/plugin";
 
 // Obsidian bundles moment and re-exports it, but types it as a namespace; cast to the
 // callable moment signature (type-only import of 'moment' is allowed by the guidelines).
@@ -82,6 +85,11 @@ export class NoteBuilder {
         .processTypedFrontMatter(this.content);
       await this.postProcess(generatedFile);
 
+      // Re-run the note's on-creation pattern once, after the vault indexes it, so graph results
+      // land on the first pass (#200). Fire-and-forget from the create path only — never wired to a
+      // vault modify/create event; all timing/guarding lives in PostIndexRerun.
+      this.armPostIndexRerun(generatedFile);
+
       log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${JSON.stringify(this.note.getPaths())}, elements: ${JSON.stringify(this.note.getElements())}`)
 
       return generatedFile.path;
@@ -139,6 +147,31 @@ export class NoteBuilder {
       { content: this.content, note: this.note, context: this.context },
       (type) => actionsStore.getAction(type)
     );
+  }
+
+  /**
+   * Arm the one-shot post-index re-run (#200) for the just-created note. Delegates all timing and
+   * loop-guarding to {@link PostIndexRerun}; the runner it injects re-runs the note's on-creation
+   * actions against the now-indexed vault and merges only their declared keys back into the file's
+   * frontmatter — existing user keys survive (FR-4). No-op when the note carries no on-creation
+   * pattern or when the setting is off (default on, defensive for pre-#200 saved settings).
+   */
+  private armPostIndexRerun(file: TFile): void {
+    const onCreation = this.note.getOnCreation();
+    if (onCreation.length === 0) return;
+    const enabled = ObsidianApi.getOwnPlugin().settings.patterns?.rerunOnIndex ?? true;
+    PostIndexRerun.getInstance().arm(file, onCreation, enabled, async (createdFile, actions) => {
+      const service = FrontmatterService.instance(createdFile);
+      const current = service.getFrontmatter() as Record<string, Literal>;
+      const delta = await computeOnCreationDelta(
+        current,
+        actions,
+        (type) => actionsStore.getAction(type),
+        createdFile.path
+      );
+      if (Object.keys(delta).length === 0) return;
+      await service.setProperties(mergeFrontmatterDelta(current, delta));
+    });
   }
 
   /**

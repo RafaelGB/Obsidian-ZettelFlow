@@ -67,6 +67,45 @@ Each action folder (`src/actions/<name>/`) contains:
 - `*Settings.ts(x)` — the **design-time** config UI (Obsidian `Setting` rows and/or React).
 - `*SettingsReader.ts` — the read-only config view (used in community previews).
 
+### The KnowledgeContext seam (§XI boundary)
+
+> Epic [#262](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/262) Phase 2 (#264).
+
+Knowledge and relation actions conceptually operate on the **Knowledge Model**, not on a `Note`.
+The **KnowledgeContext** seam names the *only three* concerns those actions touch, so an action can
+run unchanged during creation, review, from Home, Discovery, a condition or a workflow:
+
+| Concern | What it is | Backed today by |
+|---|---|---|
+| **Identity** | the note/idea under operation — `el.target` or the built note's path, or `null` | `resolveTargetPath(info, el)` |
+| **Model view** | the note's current frontmatter + the offline `KnowledgeModel` (or `null` when the index isn't ready) | `content.getFrontmatter()` + `readyModel()` |
+| **Sink** | `write(key, value, zone)` — frontmatter for any zone that isn't `context`, always mirrored to `{{key}}` | `writeKnowledgeResult(info, el, value)` |
+
+```mermaid
+flowchart LR
+    Info["ExecuteInfo (wizard-shaped)"] -->|fromExecuteInfo| Ctx["KnowledgeContext (pure)"]
+    Ctx --> Id["identity"]
+    Ctx --> Model["model (injected)"]
+    Ctx --> Sink["write(key,value,zone)"]
+```
+
+**Placement rule (the hardened boundary):**
+
+- The **pure type** lives in the Knowledge layer at `src/architecture/knowledge/context/KnowledgeContext.ts`.
+  It is offline and platform-free — **§XI**: it imports no platform API, no `NoteDTO`/`ContentDTO`, no
+  `KnowledgeIndex`. **Gotcha:** import `KnowledgeModel` by its **deep path**
+  (`architecture/knowledge/model/KnowledgeModel`), never the `architecture/knowledge` barrel, which
+  re-exports the platform-coupled `KnowledgeIndex`. A grep gate
+  (`test/architecture/knowledge/pure-is-obsidian-free.test.ts`) enforces this over `context/`.
+- The **adapter** `fromExecuteInfo(info)` lives on the engine/actions side at
+  `src/actions/knowledge/knowledgeContextAdapter.ts`. It is the **only** place that resolves the model
+  from `KnowledgeIndex` (via `readyModel()`) and injects it into the context, so the pure type never
+  reaches for a singleton. The execution helpers it composes live UI-free in
+  `src/actions/knowledge/knowledgeActionCore.ts` (re-exported by `knowledgeActionShared.ts`).
+
+`find-related` is the first action migrated to read identity/model/sink through the seam; the rest
+follow as the epic splits actions into Commands vs Queries (Phase 3).
+
 ## 2. Zones — where a value goes
 
 Most actions route their value by a `zone` config field:

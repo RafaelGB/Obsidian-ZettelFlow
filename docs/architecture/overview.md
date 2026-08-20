@@ -110,6 +110,11 @@ NoteBuilder.build()
 New note opens
 ```
 
+Knowledge and relation actions increasingly operate on the **Knowledge Model via a typed
+[`KnowledgeContext`](actions-and-note-builder.md#the-knowledgecontext-seam-xi-boundary) seam, not on a
+`Note`** — a §XI-hardened boundary introduced by epic #262 Phase 2, so the same capability can run
+during creation, review, or from any surface.
+
 Two cross-cutting engines run alongside the wizard:
 
 - **Canvas patcher** (`architecture/plugin/canvas`) — monkey-patches the Canvas view so the

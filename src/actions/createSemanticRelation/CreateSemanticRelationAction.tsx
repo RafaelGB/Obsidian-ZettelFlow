@@ -20,6 +20,7 @@ export class CreateSemanticRelationAction extends CustomZettelAction {
     private static ICON = "waypoints";
     id = "create-semantic-relation";
     category = "relations" as const;
+    kind = "command" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, relationType: SEMANTIC_RELATION_TYPES[0], target: "", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
-import { __setMockObsidianApi } from "architecture";
+import { __setMockObsidianApi, log } from "architecture";
 import { PostIndexRerun } from "application/patterns/PostIndexRerun";
 import type { Action } from "architecture/api";
 import type { TFile } from "obsidian";
@@ -150,6 +150,38 @@ describe("PostIndexRerun.arm — re-entrancy guard (#200, FR-3, AC-5)", () => {
 
         expect(metadataCache.on).toHaveBeenCalledTimes(1);
         resolvePath(metadataCache, path);
+        expect(runner).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("PostIndexRerun.arm — bounded timeout give-up (#200, FR-2, AC-7)", () => {
+    it("gives up silently after the timeout, writing nothing and leaving no dangling listener", () => {
+        const path = "timeout/Note.md";
+        const runner = jest.fn(async () => undefined);
+        const debugSpy = jest.spyOn(log, "debug");
+
+        PostIndexRerun.getInstance().arm(file(path), [action("find-related")], true, runner);
+        expect(metadataCache.liveHandlers()).toBe(1);
+
+        jest.advanceTimersByTime(6000);
+
+        expect(runner).not.toHaveBeenCalled();
+        expect(metadataCache.liveHandlers()).toBe(0);
+        expect(debugSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("clears the timeout once the note resolves — no give-up after a successful re-run", () => {
+        const path = "cleared/Note.md";
+        const runner = jest.fn(async () => undefined);
+        const debugSpy = jest.spyOn(log, "debug");
+
+        PostIndexRerun.getInstance().arm(file(path), [action("find-related")], true, runner);
+        resolvePath(metadataCache, path);
+        expect(runner).toHaveBeenCalledTimes(1);
+
+        jest.advanceTimersByTime(6000);
+
+        expect(debugSpy).not.toHaveBeenCalled();
         expect(runner).toHaveBeenCalledTimes(1);
     });
 });

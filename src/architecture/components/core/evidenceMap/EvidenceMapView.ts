@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { EvidenceEntry, EvidenceMap, buildEvidenceMap } from "architecture/knowledge/synthesis/evidenceMap";
+import { EvidenceEntry, EvidenceMap, buildEvidenceMap } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

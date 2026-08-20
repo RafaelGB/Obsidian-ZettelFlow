@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
-import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
+import type { Snapshot } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

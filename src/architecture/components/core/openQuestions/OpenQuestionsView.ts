@@ -1,10 +1,8 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { KnowledgeIndex } from "architecture/knowledge";
-import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
-import { OpenQuestion, openQuestions } from "architecture/knowledge/questions/openQuestions";
-import { proposeAnswers } from "architecture/knowledge/questions/proposeAnswers";
+import { KnowledgeIndex, type KnowledgeModel } from "architecture/knowledge";
+import { OpenQuestion, openQuestions, proposeAnswers } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

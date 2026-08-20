@@ -37,6 +37,11 @@ architecture it now stands for — the **five layers** of the Knowledge OS (epic
 
 ## Knowledge State — analyses *over* the model
 
+The State layer now has a **named single surface** the Experience layer imports:
+`architecture/knowledge/state` — a pure facade re-exporting every projection as
+`StateProjection<Params, Result> = (model, params?) => Result` (#266, epic #262 Phase 4). See
+[Knowledge state (projections)](knowledge-state.md).
+
 | Capability | Today's path |
 |---|---|
 | Health: debt · review · balance | `architecture/knowledge/{debt,review,balance}` (#159/#160/#161) |

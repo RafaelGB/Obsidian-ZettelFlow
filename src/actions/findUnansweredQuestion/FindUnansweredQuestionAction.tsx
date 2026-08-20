@@ -21,6 +21,7 @@ export class FindUnansweredQuestionAction extends CustomZettelAction {
     private static ICON = "circle-help";
     id = "find-unanswered-question";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "unanswered-questions", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

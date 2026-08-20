@@ -20,6 +20,7 @@ export class CalculateMaturityAction extends CustomZettelAction {
     private static ICON = "gauge";
     id = "calculate-maturity";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "maturity", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

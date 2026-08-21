@@ -1,71 +1,70 @@
 import { Menu } from "obsidian";
 import { PluginComponent, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
+import { activateSurface } from "architecture/plugin";
 import { CommunityTemplatesModal } from "application/community";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
 
-interface ViewEntry {
-    /** The `show-*` command id (without the plugin prefix). */
+interface MenuEntry {
+    /** The command id (without the plugin prefix) the entry runs. */
     command: string;
-    /** i18n key of the entry's label — reuses the command's own name key (no duplication). */
+    /** i18n key of the entry's label. */
     labelKey: LocaleKey;
     icon: string;
 }
 
 /**
- * One discoverable front door (#231 Phase 2). ZettelFlow's ~12 views were reachable *only* through the
- * command palette (audit finding F1); this adds a single ribbon menu that lists them, grouped, so a
- * user has one obvious place to open Home, the health views, discovery, the graph, and the rest.
- * Additive & consolidate-and-hide — no view is removed; labels reuse the existing command name keys and
- * execution goes through the sanctioned {@link ObsidianApi} command runner.
+ * The single all-in-one ribbon button (#231 Phase 2, #271, #272): one obvious front door. Its menu
+ * leads with **Create note**, then the system-adoption actions, then the **four surfaces** (Home ·
+ * Health · Discovery · Graph) — the ~12 former per-view entries are now modes inside those surfaces.
+ * Additive & consolidate-and-hide: every capability is still reachable; execution goes through the
+ * sanctioned command runner / {@link activateSurface}.
  */
 export class ZettelFlowMenuComponent extends PluginComponent {
     constructor(private plugin: ZettelFlow) {
         super(plugin);
     }
 
-    /** View entries grouped by job; a separator is drawn between groups. Home leads. */
-    private static readonly GROUPS: ViewEntry[][] = [
-        // The all-in-one button leads with note creation (#271) — the former dedicated ribbon icon is
-        // gone; users who want a one-click create bind a hotkey to the `open-workflow` command.
+    /** Menu entries grouped by job; a separator is drawn between groups. Create note leads. */
+    private static readonly GROUPS: MenuEntry[][] = [
         [{ command: "open-workflow", labelKey: "menu_create_note", icon: "file-plus" }],
         [
             { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
             { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },
-            // Close the creator loop (#246 B2): turn the current canvas into a shareable .zftemplate
-            // system, ready to contribute via the community browser's "Add template" link. Desktop only.
             { command: "export-canvas-template", labelKey: "command_export_canvas_template", icon: "package-plus" },
         ],
-        [{ command: "show-home", labelKey: "command_show_home", icon: "home" }],
         [
-            { command: "show-knowledge-dashboard", labelKey: "command_show_knowledge_dashboard", icon: "layout-dashboard" },
-            { command: "show-slipbox-health", labelKey: "command_show_slipbox_health", icon: "activity" },
+            { command: "show-home", labelKey: "command_show_home", icon: "house" },
+            { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
+            { command: "show-discovery", labelKey: "command_show_discovery", icon: "telescope" },
+            { command: "show-graph", labelKey: "command_show_graph", icon: "network" },
         ],
-        // Discovery is now one unified view (#231 Phase 3): surprising connections + notes related to
-        // the active note. The standalone resurface command still works but is no longer a menu entry.
-        [{ command: "show-discoveries", labelKey: "discovery_view_title", icon: "telescope" }],
-        [
-            { command: "show-knowledge-map", labelKey: "command_show_knowledge_map", icon: "network" },
-            { command: "show-concept-nav", labelKey: "command_show_concept_nav", icon: "waypoints" },
-        ],
-        [
-            { command: "show-open-questions", labelKey: "command_show_open_questions", icon: "help-circle" },
-            { command: "show-evolution-timeline", labelKey: "command_show_evolution_timeline", icon: "git-commit-horizontal" },
-            { command: "show-thinking-heatmap", labelKey: "command_show_thinking_heatmap", icon: "flame" },
-            { command: "show-evidence-map", labelKey: "command_show_evidence_map", icon: "scale" },
-        ],
-        [{ command: "show-notes-history", labelKey: "command_show_history", icon: "clock" }],
     ];
 
     onLoad(): void {
-        // The community systems browser had no command of its own (only reachable via settings) — a
-        // discoverability gap. This makes it a first-class, funnel-able entry point (#246 A1).
+        // The community systems browser as a first-class, funnel-able command (#246 A1).
         this.plugin.addCommand({
             id: "browse-systems",
             name: t("command_browse_systems"),
             callback: () => new CommunityTemplatesModal(this.plugin).open(),
+        });
+        // The three surface-opening commands (#272); `show-home` lives in HomeComponent.
+        this.plugin.addCommand({
+            id: "show-health",
+            name: t("command_show_health"),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-health"),
+        });
+        this.plugin.addCommand({
+            id: "show-discovery",
+            name: t("command_show_discovery"),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-discovery"),
+        });
+        this.plugin.addCommand({
+            id: "show-graph",
+            name: t("command_show_graph"),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-graph"),
         });
         this.plugin.addRibbonIcon("brain-circuit", t("ribbon_open_zettelflow"), (evt: MouseEvent) => {
             const menu = new Menu();

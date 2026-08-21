@@ -76,3 +76,10 @@ export function defaultMode(surfaceViewType: string): string | null {
     const surface = SURFACES.find((s) => s.viewType === surfaceViewType);
     return surface ? surface.modes[0].id : null;
 }
+
+/** The surface definition for a view type; throws if the type is not a known surface. */
+export function surfaceByType(surfaceViewType: string): Surface {
+    const surface = SURFACES.find((s) => s.viewType === surfaceViewType);
+    if (!surface) throw new Error(`[surface] unknown surface "${surfaceViewType}"`);
+    return surface;
+}

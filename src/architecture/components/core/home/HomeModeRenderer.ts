@@ -4,7 +4,9 @@ import { t } from "architecture/lang";
 import { DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { HomeModel, buildHome } from "architecture/knowledge/state";
+import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 
 const DEBOUNCE_MS = 400;
 
@@ -24,6 +26,7 @@ function basename(path: string): string {
 export class HomeModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private home: HomeModel | null = null;
+    private recommendations: KnowledgeRecommendation[] = [];
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -63,6 +66,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const counts = DevelopmentJournal.getInstance().dailyCounts();
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
+            this.recommendations = topRecommendations(model);
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -105,11 +109,36 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             cls: c("home-thinking-days"),
         });
 
+        this.renderRecommendations(container);
         this.renderNextSession(container, this.home.nextSession);
         this.renderNoteSection(container, "home_section_new_ideas", this.home.newIdeas);
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
         this.renderConnections(container, this.home.suggestedConnections);
+    }
+
+    /** The "What to do next" section (#273): top recommendations, each row navigating to its target. */
+    private renderRecommendations(container: HTMLElement): void {
+        const section = container.createDiv({ cls: c("home-section") });
+        section.createEl("h5", { text: t("home_section_recommendations"), cls: c("home-section-title") });
+
+        if (isAllCaughtUp(this.recommendations)) {
+            section.createDiv({ cls: c("home-recommendation-clear"), text: t("home_recommendation_reason_all-clear") });
+            return;
+        }
+
+        const list = section.createDiv({ cls: c("home-list") });
+        for (const rec of this.recommendations) {
+            if (rec.reason === "all-clear") continue;
+            const row = list.createDiv({ cls: c("home-recommendation") });
+            row.createSpan({ text: t(REASON_LABEL_KEYS[rec.reason]), cls: c("home-recommendation-reason") });
+            if (rec.target.length > 0) {
+                const target = rec.target[0];
+                const name = row.createSpan({ text: basename(target), cls: c("home-note-name") });
+                name.setAttribute("title", target);
+                name.addEventListener("click", () => void this.app.workspace.openLinkText(target, "", false));
+            }
+        }
     }
 
     private renderNextSession(container: HTMLElement, session: HomeModel["nextSession"]): void {

@@ -58,6 +58,11 @@ export abstract class ModeHostView extends ItemView {
         }
     }
 
+    /** Re-render the active mode (e.g. after external data changed). No-op before the shell is built. */
+    refresh(): void {
+        if (this.bodyEl && this.activeMode) void this.showMode(this.activeMode);
+    }
+
     private hasMode(modeId: string): boolean {
         return this.surface.modes.some((m) => m.id === modeId);
     }

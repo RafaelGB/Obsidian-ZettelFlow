@@ -28,6 +28,9 @@ export class ZettelFlowMenuComponent extends PluginComponent {
 
     /** View entries grouped by job; a separator is drawn between groups. Home leads. */
     private static readonly GROUPS: ViewEntry[][] = [
+        // The all-in-one button leads with note creation (#271) — the former dedicated ribbon icon is
+        // gone; users who want a one-click create bind a hotkey to the `open-workflow` command.
+        [{ command: "open-workflow", labelKey: "menu_create_note", icon: "file-plus" }],
         [
             { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
             { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },

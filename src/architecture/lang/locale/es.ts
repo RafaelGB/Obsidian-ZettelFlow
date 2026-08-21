@@ -510,6 +510,7 @@ export default {
     // Remove a relation command (#181)
     command_remove_relation: 'Eliminar una relación',
     ribbon_open_zettelflow: 'Abrir ZettelFlow',
+    menu_create_note: 'Crear nota',
     command_browse_systems: 'Explorar sistemas',
     welcome_title: 'Te damos la bienvenida a ZettelFlow',
     welcome_body: 'ZettelFlow convierte el canvas de Obsidian en un flujo de creación de notas — y hace que tu conocimiento evolucione. La forma más rápida de empezar es instalar un sistema listo para usar (un canvas y sus pasos) y ejecutarlo: cada nota que creas nace ya relacionada, contrastada y puntuada.',

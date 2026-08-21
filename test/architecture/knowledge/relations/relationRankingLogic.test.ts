@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { rankRelated, rankRelatedScored } from "actions/relations/relationRankingLogic";
-import { idea, buildModel } from "../knowledge/support/knowledgeFixture";
+import { rankRelated, rankRelatedScored } from "architecture/knowledge/relations/relationRankingLogic";
+import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 /**
  * Graph shape (all plain `link` edges):

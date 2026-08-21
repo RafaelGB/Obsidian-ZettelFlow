@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { RelationActionElement } from "zettelkasten";
-import { rankRelated } from "../relations/relationRankingLogic";
+import { rankRelated } from "architecture/knowledge/relations/relationRankingLogic";
 import { makeRelationRankingSettings } from "../relations/relationActionShared";
 import { fromExecuteInfo } from "../knowledge/knowledgeContextAdapter";
 

@@ -14,7 +14,7 @@ const ACTION_FILES = [
 ];
 
 const LOGIC_FILES = [
-    "src/actions/relations/relationRankingLogic.ts",
+    "src/architecture/knowledge/relations/relationRankingLogic.ts",
     "src/actions/createSemanticRelation/createSemanticRelationLogic.ts",
 ];
 

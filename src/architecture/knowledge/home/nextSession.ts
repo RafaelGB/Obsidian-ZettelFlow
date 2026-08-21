@@ -1,5 +1,5 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
-import { STATE_FACTOR } from "actions/calculateMaturity/maturityLogic";
+import { STATE_FACTOR } from "architecture/knowledge/derive/maturityLogic";
 
 /** The single most valuable note to work on next (#172). */
 export interface NextSession {

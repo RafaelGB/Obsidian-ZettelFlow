@@ -1,5 +1,5 @@
 import type { Idea } from "../model/Idea";
-import { STATE_FACTOR } from "actions/calculateMaturity/maturityLogic";
+import { STATE_FACTOR } from "architecture/knowledge/derive/maturityLogic";
 
 /** A unit of *thinking* — an idea being developed, not merely created (#162). */
 export type DevelopmentEventType = "state-advanced" | "source-added" | "connection-added";

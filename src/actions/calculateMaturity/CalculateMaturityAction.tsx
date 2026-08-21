@@ -2,7 +2,7 @@ import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeActionElement } from "zettelkasten";
-import { computeMaturity } from "./maturityLogic";
+import { computeMaturity } from "architecture/knowledge/derive/maturityLogic";
 import {
     makeKnowledgeSettings,
     readyModel,

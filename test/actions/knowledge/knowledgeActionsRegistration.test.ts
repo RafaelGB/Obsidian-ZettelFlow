@@ -17,7 +17,7 @@ const ACTION_FILES = [
 
 const LOGIC_FILES = [
     "src/actions/detectOrphan/detectOrphanLogic.ts",
-    "src/actions/calculateMaturity/maturityLogic.ts",
+    "src/architecture/knowledge/derive/maturityLogic.ts",
     "src/actions/findContradiction/findContradictionLogic.ts",
     "src/actions/findUnansweredQuestion/findUnansweredQuestionLogic.ts",
     "src/actions/suggestNextMove/nextMoveLogic.ts",

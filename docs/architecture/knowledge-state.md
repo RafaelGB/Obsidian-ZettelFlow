@@ -43,6 +43,37 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `buildHeatmapGrid` | `HeatmapGrid` | Thinking heatmap |
 | `deriveOutline` | `Outline` | Projects / synthesis |
 | `classifyHealth` | `HealthResult` | Health (orphans / dead-ends) |
+| `deriveRecommendations` | `KnowledgeRecommendation[]` | Home / Health / Discovery (via #268) |
+
+## The recommendation pipeline — `Query → State → Recommendation → Command`
+
+*Every metric proposes an action* (the manifesto). The last leg of the pipeline is one primitive,
+`KnowledgeRecommendation` (#267, `architecture/knowledge/state/recommendation.ts`):
+
+```ts
+interface KnowledgeRecommendation {
+    reason: RecommendationReason;      // closed why-union (add-source, connect, resolve-contradiction, …)
+    target: string[];                  // the note path(s) it concerns; empty = vault-wide
+    command: CommandActionId | null;   // the kind:"command" action that resolves it, or null (no built-in yet)
+    priority: number;                  // urgency in [0,1]
+}
+```
+
+`deriveRecommendations(model)` is a **pure projection** (offline, deterministic, §XI obsidian-free)
+that composes the debt / balance / discovery / question / state signals into one prioritized list.
+
+**One primitive unifies six vocabularies.** Before #267 each surface invented its own "next-step"
+tokens — dashboard `RecommendationToken`, debt `RemediationToken`, balance `BalanceSuggestion`,
+review `ReviewAction`, home `NextSession.reason`, and the action-layer `NextMoveToken`. Pure
+`from*` mappers collapse every one of their cases onto a single `RecommendationReason`, proven by a
+coverage test — so the whole system speaks one recommendation language.
+
+**`command` is a declarative pointer**, not an invocation: it names a `kind:"command"` action id
+(Phase 3) — `add-source → attach-source`, `connect → create-semantic-relation` — or `null` when no
+built-in command applies yet. Actually *running* a recommendation's command from a view (via the
+#264 `KnowledgeContext`), and rendering recommendation widgets on Home/Health/Discovery, is deferred
+to the view-collapse phase (#268). The dashboard keeps its current per-panel presentation unchanged;
+Phase 5 delivers the primitive + the unification, not new displayed output.
 
 ## A deferred unification (#268)
 

@@ -1,7 +1,6 @@
 import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { ObsidianApi } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
     computeKnowledgeDebt,
@@ -92,38 +91,34 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
         this.registerEvent(this.app.vault.on("delete", debounced));
     }
 
-    async recompute(): Promise<void> {
-        this.state = "indexing";
-        this.render();
-
+    recompute(): void {
         try {
-            const cache = ObsidianApi.metadataCache();
-            const resolved = cache.resolvedLinks;
-            const unresolvedLinks = (cache as unknown as { unresolvedLinks: Record<string, Record<string, number>> }).unresolvedLinks ?? {};
-            const markdownPaths = this.app.vault.getMarkdownFiles().map((f) => f.path);
+            const index = KnowledgeIndex.getInstance();
+            // Health, debt and balance all read the same model — wait until it is built (no fallback).
+            if (index.status !== "ready") {
+                this.state = "indexing";
+                this.result = null;
+                this.debt = null;
+                this.balance = null;
+                this.render();
+                return;
+            }
 
-            this.result = classifyHealth({ resolvedLinks: resolved, unresolvedLinks, markdownPaths });
+            const model = index.getModel();
+            this.result = classifyHealth(model);
             this.state = (this.result.orphans.length === 0 && this.result.deadEnds.length === 0)
                 ? "empty"
                 : "ready";
-
-            const index = KnowledgeIndex.getInstance();
-            if (index.status === "ready") {
-                const model = index.getModel();
-                this.debt = computeKnowledgeDebt(model);
-                this.balance = computeKnowledgeBalance(model);
-            } else {
-                this.debt = null;
-                this.balance = null;
-            }
+            this.debt = computeKnowledgeDebt(model);
+            this.balance = computeKnowledgeBalance(model);
 
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +
                 `scanned=${this.result.totalScanned}, ` +
                 `orphans=${this.result.orphans.length}, ` +
                 `dead-ends=${this.result.deadEnds.length}, ` +
-                `debt=${this.debt ? this.debt.score : "n/a"}, ` +
-                `balance=${this.balance ? this.balance.total : "n/a"}`
+                `debt=${this.debt.score}, ` +
+                `balance=${this.balance.total}`
             );
         } catch (err) {
             this.state = "error";

@@ -1,8 +1,9 @@
-// NOTE(#268): classifyHealth reads the raw Obsidian link graph (resolvedLinks) passed in by the view,
-// NOT the KnowledgeModel — whose out-edges also include semantic relations. Unifying health onto the
-// model would change the displayed orphan/dead-end numbers, so that unification is deferred to the
-// Health view-collapse (#268). Relocated here verbatim (#266) so the calculator lives in the pure
-// Knowledge State layer, not the Experience/view layer — same inputs, same numbers.
+import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
+
+// Health derives from the KnowledgeModel's typed edges (#274): the model's out/in adjacency includes
+// raw wikilinks AND semantic relations (`up::`, `supports`, inline `key:: [[X]]`), so a note connected
+// only semantically is no longer a false orphan/dead-end. (Superseded the raw-`resolvedLinks` scan that
+// #266 relocated here verbatim.) Pure and offline — no `obsidian` import, unit-tested with no vault.
 
 export type HealthNote = {
     path: string;
@@ -16,41 +17,28 @@ export type HealthResult = {
     durationMs: number;
 };
 
-export type LinkGraph = {
-    resolvedLinks: Record<string, Record<string, number>>;
-    unresolvedLinks: Record<string, Record<string, number>>;
-    markdownPaths: string[];
-};
-
-export function classifyHealth(graph: LinkGraph): HealthResult {
+/**
+ * Classify every idea in the model: an **orphan** has no outgoing edge, a **dead-end** has no incoming
+ * edge (self-edges excluded). Deterministic, read-only, never throws.
+ */
+export function classifyHealth(model: KnowledgeModel): HealthResult {
     const start = Date.now();
-    const { resolvedLinks, markdownPaths } = graph;
-
-    // Build backlink index: target path → set of source paths
-    const backlinks = new Map<string, Set<string>>();
-    for (const sourcePath of markdownPaths) {
-        const targets = resolvedLinks[sourcePath] ?? {};
-        for (const targetPath of Object.keys(targets)) {
-            if (!backlinks.has(targetPath)) backlinks.set(targetPath, new Set());
-            backlinks.get(targetPath)!.add(sourcePath);
-        }
-    }
-
     const orphans: HealthNote[] = [];
     const deadEnds: HealthNote[] = [];
 
-    for (const path of markdownPaths) {
-        const outgoing = Object.keys(resolvedLinks[path] ?? {}).filter((p) => p !== path);
-        const incoming = backlinks.get(path) ?? new Set();
-        const basename = path.split("/").pop()?.replace(/\.md$/, "") ?? path;
+    for (const idea of model.all()) {
+        const path = idea.path;
+        const outgoing = model.outNeighbors(path).filter((p) => p !== path);
+        const incoming = model.inNeighbors(path).filter((p) => p !== path);
+        const basename = path.split("/").pop()?.replace(/\.md$/i, "") ?? path;
         if (outgoing.length === 0) orphans.push({ path, basename });
-        if (incoming.size === 0) deadEnds.push({ path, basename });
+        if (incoming.length === 0) deadEnds.push({ path, basename });
     }
 
     return {
         orphans,
         deadEnds,
-        totalScanned: markdownPaths.length,
+        totalScanned: model.size(),
         durationMs: Date.now() - start,
     };
 }

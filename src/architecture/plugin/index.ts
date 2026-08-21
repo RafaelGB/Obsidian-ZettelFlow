@@ -16,4 +16,4 @@ export { ObsidianNativeTypesManager } from './services/ObsidianNativeTypesManage
 export { ObsidianPropertyType, isObsidianPropertyType } from './services/typing';
 
 export { Keyboard } from './services/Keyboard';
-export { activateSidebarView } from './services/ViewActivation';
+export { activateSidebarView, activateSurface } from './services/ViewActivation';

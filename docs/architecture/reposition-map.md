@@ -20,6 +20,17 @@ architecture it now stands for — the **five layers** of the Knowledge OS (epic
 | Lifecycle states | `architecture/knowledge/lifecycle` |
 | The Obsidian→model feed (index service + snapshot) | `architecture/knowledge/{KnowledgeIndex,snapshot}` |
 
+**Inward-only boundary (epic #262 Phase 6, #209).** The pure Knowledge layer imports **only inward** —
+never `application`/`zettelkasten`/`hooks`/`config`/`starters`/`actions`/`architecture/components`/
+`architecture/plugin`/`architecture/api`/`obsidian` (the one allowed exception is the zero-import type
+`architecture/plugin/model/FrontmatterModel`). This is enforced by
+`test/architecture/knowledge/pure-respects-direction.test.ts` (alongside the obsidian-free grep). To
+make it hold, four pure "query" logics that had drifted into `actions/` were repositioned back into
+Knowledge — `maturityLogic → derive`, `relationRankingLogic → relations`, and
+`findContradictionLogic`/`findUnansweredQuestionLogic → query` — so their owning actions now import
+them from Knowledge (the correct engine→knowledge direction), with zero behaviour change. The
+`KnowledgeIndex`/`snapshot` root adapters legitimately touch Obsidian and stay outside the pure gate.
+
 ## Workflow Engine — turning a canvas into a note
 
 | Capability | Today's path |

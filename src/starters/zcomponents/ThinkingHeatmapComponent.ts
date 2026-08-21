@@ -1,8 +1,7 @@
 import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { activateSidebarView } from "architecture/plugin";
-import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
+import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
 
 /** Registers the `show-thinking-heatmap` command (#162), opening the heatmap sidebar view. No hotkey. */
 export class ThinkingHeatmapComponent extends PluginComponent {
@@ -17,7 +16,7 @@ export class ThinkingHeatmapComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-thinking-heatmap",
             name: t("command_show_thinking_heatmap"),
-            callback: () => void activateSidebarView(this.plugin.app, ThinkingHeatmapView.NAME),
+            callback: () => openSurfaceForCommand(this.plugin.app, "show-thinking-heatmap"),
         });
     }
 }

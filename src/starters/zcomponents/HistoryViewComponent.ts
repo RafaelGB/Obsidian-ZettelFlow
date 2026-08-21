@@ -1,9 +1,9 @@
 import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { HistoryView } from "architecture/components/core/historyView/HistoryView";
-import { activateSidebarView } from "architecture/plugin";
+import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
 
+/** Registers the `show-notes-history` command (#272): opens the Home surface at its Recent mode. */
 export class HistoryViewComponent extends PluginComponent {
     constructor(plugin: ZettelFlow) {
         super(plugin);
@@ -16,11 +16,7 @@ export class HistoryViewComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-notes-history",
             name: t("command_show_history"),
-            callback: () => void this.activateView(),
+            callback: () => openSurfaceForCommand(this.plugin.app, "show-notes-history"),
         });
-    }
-
-    private async activateView(): Promise<void> {
-        await activateSidebarView(this.plugin.app, HistoryView.NAME);
     }
 }

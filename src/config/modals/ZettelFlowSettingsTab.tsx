@@ -26,17 +26,6 @@ import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
-import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
-import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
-import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
-import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptNavView";
-import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
-import { EvolutionTimelineView } from "architecture/components/core/timeline/EvolutionTimelineView";
-import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
-import { KnowledgeDashboardView } from "architecture/components/core/knowledgeDashboard/KnowledgeDashboardView";
-import { ZettelFlowHomeView } from "architecture/components/core/home/ZettelFlowHomeView";
-import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
-import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -485,7 +474,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, SlipboxHealthView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-slipbox-health")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.health);
@@ -500,7 +489,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, ResurfaceView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-resurface")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.resurface);
@@ -515,7 +504,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, ThinkingHeatmapView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-thinking-heatmap")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.heatmap);
@@ -530,7 +519,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, DiscoveriesView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-discoveries")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.discoveries);
@@ -545,7 +534,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, KnowledgeMapView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-knowledge-map")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.map);
@@ -560,7 +549,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, ConceptNavView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-concept-nav")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.conceptNav);
@@ -575,7 +564,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, OpenQuestionsView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-open-questions")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.openQuestions);
@@ -590,7 +579,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, EvolutionTimelineView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-evolution-timeline")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.timeline);
@@ -605,7 +594,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, EvidenceMapView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-evidence-map")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.evidenceMap);
@@ -620,7 +609,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, KnowledgeDashboardView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-knowledge-dashboard")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.dashboard);
@@ -635,7 +624,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setButtonText(t("settings_toolkit_open_button"))
                                     .setCta()
                                     .onClick(() =>
-                                        void activateSidebarView(plugin.app, ZettelFlowHomeView.NAME)
+                                        void activateSidebarView(plugin.app, "zettelflow-home")
                                     )
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.home);

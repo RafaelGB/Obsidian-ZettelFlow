@@ -1,5 +1,4 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { activateSurface } from "architecture/plugin";
 import { LEGACY_VIEW_TARGETS } from "./legacyTargets";
 
 /**
@@ -27,10 +26,12 @@ export class LegacyRedirectView extends ItemView {
 
     async onOpen(): Promise<void> {
         const target = LEGACY_VIEW_TARGETS[this.redirectType];
-        // Defer so the workspace has finished restoring before we open the surface and drop this leaf.
+        if (!target) return;
+        // Transform this very leaf into the surface (no flash, no orphan tab): a restored/pinned
+        // old-type leaf becomes the surface it now lives in. Deferred so the workspace finishes
+        // restoring first.
         window.setTimeout(() => {
-            if (target) void activateSurface(this.app, target.surface, target.mode);
-            this.leaf.detach();
+            void this.leaf.setViewState({ type: target.surface, state: { mode: target.mode }, active: true });
         }, 0);
     }
 }

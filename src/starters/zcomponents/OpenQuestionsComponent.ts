@@ -1,8 +1,7 @@
 import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { activateSidebarView } from "architecture/plugin";
-import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
+import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
 
 /** Registers the `show-open-questions` command (#167), opening the open-questions view. No hotkey. */
 export class OpenQuestionsComponent extends PluginComponent {
@@ -17,7 +16,7 @@ export class OpenQuestionsComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-open-questions",
             name: t("command_show_open_questions"),
-            callback: () => void activateSidebarView(this.plugin.app, OpenQuestionsView.NAME),
+            callback: () => openSurfaceForCommand(this.plugin.app, "show-open-questions"),
         });
     }
 }

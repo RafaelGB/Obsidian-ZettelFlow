@@ -1,8 +1,7 @@
 import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { activateSidebarView } from "architecture/plugin";
-import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
+import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
 
 /** Registers the `show-evidence-map` command (#169), opening the evidence-map view. No hotkey. */
 export class EvidenceMapComponent extends PluginComponent {
@@ -17,7 +16,7 @@ export class EvidenceMapComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-evidence-map",
             name: t("command_show_evidence_map"),
-            callback: () => void activateSidebarView(this.plugin.app, EvidenceMapView.NAME),
+            callback: () => openSurfaceForCommand(this.plugin.app, "show-evidence-map"),
         });
     }
 }

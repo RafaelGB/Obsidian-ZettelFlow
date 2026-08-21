@@ -1,8 +1,7 @@
 import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { activateSidebarView } from "architecture/plugin";
-import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
+import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
 
 export class ResurfaceComponent extends PluginComponent {
     constructor(plugin: ZettelFlow) {
@@ -16,7 +15,7 @@ export class ResurfaceComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "resurface-related-notes",
             name: t("command_resurface"),
-            callback: () => void activateSidebarView(this.plugin.app, ResurfaceView.NAME),
+            callback: () => openSurfaceForCommand(this.plugin.app, "resurface-related-notes"),
         });
     }
 }

@@ -138,7 +138,7 @@ export function deriveRecommendations(model: KnowledgeModel): KnowledgeRecommend
     }
 
     // Fleeting notes to process.
-    const fleeting = byState(model, "fleeting" as never).map((i) => i.path).sort();
+    const fleeting = byState(model, "fleeting").map((i) => i.path).sort();
     if (fleeting.length > 0) out.push(rec("process-ideas", fleeting));
 
     // Vault-wide composition suggestions (add-examples / ask-questions / add-sources).

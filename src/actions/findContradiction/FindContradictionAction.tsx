@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { KnowledgeActionElement } from "zettelkasten";
-import { findContradictions } from "./findContradictionLogic";
+import { findContradictions } from "architecture/knowledge/query/findContradictionLogic";
 import {
     makeKnowledgeSettings,
     readyModel,

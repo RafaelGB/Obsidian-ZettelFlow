@@ -1,5 +1,5 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
-import { findContradictions } from "actions/findContradiction/findContradictionLogic";
+import { findContradictions } from "architecture/knowledge/query/findContradictionLogic";
 
 /**
  * The fixed vocabulary of critical-thinking prompts the simulator can raise for a note (#165).

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { findContradictions } from "actions/findContradiction/findContradictionLogic";
-import { idea, buildModel } from "./support/knowledgeFixture";
+import { findContradictions } from "architecture/knowledge/query/findContradictionLogic";
+import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 const model = buildModel([
     // a ↔ b mutual contradiction (dedup), c contradicts a, d *supports* a (must be ignored)

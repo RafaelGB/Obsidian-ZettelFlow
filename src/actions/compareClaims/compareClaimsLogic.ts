@@ -1,5 +1,5 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
-import { findContradictions } from "../findContradiction/findContradictionLogic";
+import { findContradictions } from "architecture/knowledge/query/findContradictionLogic";
 
 /** One matched claim, paired with the path of the note that owns it. */
 export interface ClaimMatch {

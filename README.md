@@ -143,7 +143,7 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 
 1. **Design** — Create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
 2. **Configure** — Right-click any canvas node → *Edit ZettelFlow step* to add actions (prompt, calendar, selector, tags…).
-3. **Run** — Click the ribbon icon (or use the command) to open the wizard. ZettelFlow walks the canvas graph and builds the note.
+3. **Run** — Click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to the *Open workflow* command). ZettelFlow walks the canvas graph and builds the note.
 
 ![Canvas example](docs/resources/readme/Canvas-Sample.png)
 ![Wizard demo](docs/resources/readme/demogif.gif)
@@ -155,16 +155,16 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 **Fastest path:**
 
 1. Install **ZettelFlow** from the Obsidian community plugin browser.
-2. Click the ZettelFlow ribbon icon (or run *Open ZettelFlow* from the command palette).
+2. Click the ZettelFlow ribbon button (or run *Open ZettelFlow* from the command palette).
 3. On the welcome screen, click **Create example flow** — ZettelFlow creates a sample canvas, sets it as your flow canvas, and opens it.
-4. Click the ribbon icon again to run your first wizard.
+4. Click the ribbon button → **Create note** to run your first wizard.
 
 **Manual path (build your own flow):**
 
 1. Create a `.canvas` file (e.g. `flows/daily-note.canvas`).
 2. In **Settings → ZettelFlow**, set that canvas as the "new notes canvas".
 3. Add a note file to the canvas, right-click it → *Create managed step*, enable **Root**.
-4. Click the ribbon icon — your first wizard run.
+4. Click the ribbon button → **Create note** — your first wizard run.
 
 Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [Discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).
 

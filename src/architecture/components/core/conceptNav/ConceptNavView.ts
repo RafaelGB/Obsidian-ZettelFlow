@@ -1,10 +1,8 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { KnowledgeIndex } from "architecture/knowledge";
-import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
-import { ConceptNeighbors, conceptNeighbors } from "architecture/knowledge/traverse/conceptNeighbors";
-import { hubs } from "architecture/knowledge/query/queries";
+import { KnowledgeIndex, knowledgeQueries, type KnowledgeModel } from "architecture/knowledge";
+import { ConceptNeighbors, conceptNeighbors } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 
@@ -102,7 +100,7 @@ export class ConceptNavView extends ItemView {
             this.neighbors = conceptNeighbors(this.model, this.focus);
             this.state = "focused";
         } else {
-            this.entryHubs = hubs(this.model).map((hub) => hub.path).sort();
+            this.entryHubs = knowledgeQueries.hubs(this.model).map((hub) => hub.path).sort();
             this.state = this.entryHubs.length === 0 ? "empty" : "entry";
         }
     }

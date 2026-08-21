@@ -68,6 +68,7 @@ nav:
       - 6.7.1 Trigger conditions: architecture/trigger-conditions.md
       - 6.8 Knowledge model: architecture/knowledge-model.md
       - 6.9 Knowledge lifecycle: architecture/knowledge-lifecycle.md
+      - 6.9.1 Knowledge state (projections): architecture/knowledge-state.md
       - 6.10 Workflow phases: architecture/workflow-phases.md
       - 6.11 Event-driven & visual workflows: architecture/event-driven-workflows.md
       - 6.12 Reposition map (feature → layer): architecture/reposition-map.md

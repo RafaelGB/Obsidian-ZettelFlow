@@ -10,6 +10,7 @@ export class TagsAction extends CustomZettelAction {
   private static ICON = "price-tag-glyph";
   id = "tags";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     description: "Add tags to the note",

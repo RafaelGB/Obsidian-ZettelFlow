@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { RelationActionElement } from "zettelkasten";
-import { rankRelated } from "../relations/relationRankingLogic";
+import { rankRelated } from "architecture/knowledge/relations/relationRankingLogic";
 import {
     makeRelationRankingSettings,
     readyModel,
@@ -23,6 +23,7 @@ export class SuggestLinkAction extends CustomZettelAction {
     private static ICON = "link";
     id = "suggest-link";
     category = "relations" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "suggestedLinks", zone: "frontmatter", limit: DEFAULT_LIMIT };
     settings = settings;
     settingsReader = settingsReader;

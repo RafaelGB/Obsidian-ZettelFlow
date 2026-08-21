@@ -12,6 +12,7 @@ export class NumberAction extends CustomZettelAction {
   private static ICON = "binary";
   id = "number";
   category = "manipulation" as const;
+  kind = "command" as const;
 
   defaultAction = {
     type: this.id,

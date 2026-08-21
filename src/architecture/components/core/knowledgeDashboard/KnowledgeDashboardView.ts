@@ -9,7 +9,7 @@ import {
     Metric,
     RecommendationToken,
     buildKnowledgeDashboard,
-} from "architecture/knowledge/dashboard/knowledgeDashboard";
+} from "architecture/knowledge/state";
 import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
 import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
 import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";

@@ -89,6 +89,19 @@ Run these and triage each hit:
 - **`onunload`** only clears the action store; confirm no leaked resources (most are covered
   by Obsidian's `register*` auto-teardown).
 
+### Phase 6 — The transformation gate (constitution §XI)
+
+Beyond the linter, judge the change against the design gate:
+
+- **Transformation.** Ask "what knowledge transformation does this enable?" Flag surface that
+  doesn't transform/connect/evaluate/discover/advance knowledge as secondary.
+- **No net complexity.** The change removes/merges a command, view, setting or path, or hardens a
+  boundary — it doesn't *only* add. Rising net surface is a finding.
+- **Boundaries.** The Knowledge layer (`architecture/knowledge`, future `knowledge/`) imports **no**
+  `obsidian` and makes no network/AI call; derived metrics are queries over the model, not new
+  dashboard features. Existing `.zftemplate` systems and saved settings still work; no command/view
+  removed without an alias.
+
 ## Output format
 
 Produce a prioritized report: (1) blocking submission issues (missing `versions.json`,

@@ -14,6 +14,7 @@ export class GenerateQuestionsAction extends CustomZettelAction {
     private static ICON = "help-circle";
     id = "generate-questions";
     category = "ai" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "questions", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

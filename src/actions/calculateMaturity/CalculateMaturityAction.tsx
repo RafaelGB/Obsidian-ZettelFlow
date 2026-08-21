@@ -2,7 +2,7 @@ import { Action, CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeActionElement } from "zettelkasten";
-import { computeMaturity } from "./maturityLogic";
+import { computeMaturity } from "architecture/knowledge/derive/maturityLogic";
 import {
     makeKnowledgeSettings,
     readyModel,
@@ -20,6 +20,7 @@ export class CalculateMaturityAction extends CustomZettelAction {
     private static ICON = "gauge";
     id = "calculate-maturity";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "maturity", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

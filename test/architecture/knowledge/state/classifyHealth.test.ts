@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { classifyHealth, LinkGraph } from "architecture/components/core/slipboxHealth/classifyHealth";
+import { classifyHealth, LinkGraph } from "architecture/knowledge/state";
 
 function makeGraph(
     links: Record<string, string[]>,

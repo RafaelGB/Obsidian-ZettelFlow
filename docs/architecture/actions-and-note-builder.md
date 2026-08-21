@@ -67,6 +67,45 @@ Each action folder (`src/actions/<name>/`) contains:
 - `*Settings.ts(x)` — the **design-time** config UI (Obsidian `Setting` rows and/or React).
 - `*SettingsReader.ts` — the read-only config view (used in community previews).
 
+### The KnowledgeContext seam (§XI boundary)
+
+> Epic [#262](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/262) Phase 2 (#264).
+
+Knowledge and relation actions conceptually operate on the **Knowledge Model**, not on a `Note`.
+The **KnowledgeContext** seam names the *only three* concerns those actions touch, so an action can
+run unchanged during creation, review, from Home, Discovery, a condition or a workflow:
+
+| Concern | What it is | Backed today by |
+|---|---|---|
+| **Identity** | the note/idea under operation — `el.target` or the built note's path, or `null` | `resolveTargetPath(info, el)` |
+| **Model view** | the note's current frontmatter + the offline `KnowledgeModel` (or `null` when the index isn't ready) | `content.getFrontmatter()` + `readyModel()` |
+| **Sink** | `write(key, value, zone)` — frontmatter for any zone that isn't `context`, always mirrored to `{{key}}` | `writeKnowledgeResult(info, el, value)` |
+
+```mermaid
+flowchart LR
+    Info["ExecuteInfo (wizard-shaped)"] -->|fromExecuteInfo| Ctx["KnowledgeContext (pure)"]
+    Ctx --> Id["identity"]
+    Ctx --> Model["model (injected)"]
+    Ctx --> Sink["write(key,value,zone)"]
+```
+
+**Placement rule (the hardened boundary):**
+
+- The **pure type** lives in the Knowledge layer at `src/architecture/knowledge/context/KnowledgeContext.ts`.
+  It is offline and platform-free — **§XI**: it imports no platform API, no `NoteDTO`/`ContentDTO`, no
+  `KnowledgeIndex`. **Gotcha:** import `KnowledgeModel` by its **deep path**
+  (`architecture/knowledge/model/KnowledgeModel`), never the `architecture/knowledge` barrel, which
+  re-exports the platform-coupled `KnowledgeIndex`. A grep gate
+  (`test/architecture/knowledge/pure-is-obsidian-free.test.ts`) enforces this over `context/`.
+- The **adapter** `fromExecuteInfo(info)` lives on the engine/actions side at
+  `src/actions/knowledge/knowledgeContextAdapter.ts`. It is the **only** place that resolves the model
+  from `KnowledgeIndex` (via `readyModel()`) and injects it into the context, so the pure type never
+  reaches for a singleton. The execution helpers it composes live UI-free in
+  `src/actions/knowledge/knowledgeActionCore.ts` (re-exported by `knowledgeActionShared.ts`).
+
+`find-related` is the first action migrated to read identity/model/sink through the seam; the rest
+follow as the epic splits actions into Commands vs Queries (Phase 3).
+
 ## 2. Zones — where a value goes
 
 Most actions route their value by a `zone` config field:
@@ -312,3 +351,30 @@ appears in the picker under an **"Other"** group. **Empty groups are hidden**, s
 group only shows when at least one action has no category. The vocabulary, the canonical order, the
 grouping helper and the i18n label keys live in the pure, Obsidian-free
 `architecture/api/categories`.
+
+### Kind — command vs query (the primary axis, #265)
+
+> Epic [#262](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/262) Phase 3.
+
+`category` groups the picker by *topic*; **`kind` is the primary taxonomy axis** — *what the action
+does to the Knowledge Model*, over the [KnowledgeContext seam](#the-knowledgecontext-seam-xi-boundary):
+
+| Kind | Meaning | Contract |
+|---|---|---|
+| **`command`** | **mutates** knowledge | creates/changes a note, relation, source, property, id, task or backlink |
+| **`query`** | **observes** knowledge | derives a value from the model and writes **only** through the context sink — no other mutation |
+
+The 31 built-ins split **14 commands / 17 queries** (11 offline queries + **6 AI network queries**
+under `src/actions/ai/**`, which are query-shaped but call `AiService`, so they are fenced out of the
+offline/pure §XI layer). `kind` and `category` are **single-sourced, not parallel**: `kind` is
+primary, `category` a validated facet — `manipulation ⟹ command` and `knowledge`/`ai ⟹ query`, while
+`relations` and `research` legitimately contain both.
+
+The marker types (`ActionKind`, `KnowledgeQuery`, `KnowledgeCommand`) live in the pure, Obsidian-free
+`architecture/knowledge/taxonomy/actionKind` (deep-imported, never via the knowledge barrel).
+
+**Contributor rule:** every action declares exactly one `kind` beside its `category`
+(`kind = "query" as const;`). A source-level test
+(`test/architecture/api/categories/actionKindClassification.test.ts`) enforces that all 31 built-ins
+are classified, totally and disjointly — it reads the sources with `fs` (it never imports the
+React-coupled action modules).

@@ -3,13 +3,9 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { RelationActionElement } from "zettelkasten";
-import { rankRelated } from "../relations/relationRankingLogic";
-import {
-    makeRelationRankingSettings,
-    readyModel,
-    resolveTargetPath,
-    writeKnowledgeResult,
-} from "../relations/relationActionShared";
+import { rankRelated } from "architecture/knowledge/relations/relationRankingLogic";
+import { makeRelationRankingSettings } from "../relations/relationActionShared";
+import { fromExecuteInfo } from "../knowledge/knowledgeContextAdapter";
 
 const DEFAULT_LIMIT = 10;
 
@@ -23,6 +19,7 @@ export class FindRelatedAction extends CustomZettelAction {
     private static ICON = "share-2";
     id = "find-related";
     category = "relations" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "related", zone: "frontmatter", limit: DEFAULT_LIMIT };
     settings = settings;
     settingsReader = settingsReader;
@@ -33,18 +30,18 @@ export class FindRelatedAction extends CustomZettelAction {
 
     async execute(info: ExecuteInfo) {
         const el = info.element as unknown as RelationActionElement;
-        const model = readyModel();
-        if (!model) {
+        // Operate on the Knowledge Model via the #264 seam, not on `info.note`/`content`/`context`.
+        const ctx = fromExecuteInfo(info);
+        if (!ctx.model) {
             log.debug("[find-related] knowledge index not ready — skipping");
             return;
         }
-        const path = resolveTargetPath(info, el);
-        if (!path) {
+        if (!ctx.identity) {
             log.debug("[find-related] no source note — skipping");
             return;
         }
-        const related = rankRelated(model, path, { limit: el.limit ?? DEFAULT_LIMIT });
-        writeKnowledgeResult(info, el, related.map((p) => `[[${p.replace(/\.md$/i, "")}]]`));
+        const related = rankRelated(ctx.model, ctx.identity, { limit: el.limit ?? DEFAULT_LIMIT });
+        ctx.write(el.key, related.map((p) => `[[${p.replace(/\.md$/i, "")}]]`), el.zone);
         if (!info.silent) new Notice(t("relation_find_related_notice", String(related.length)));
     }
 

@@ -1,5 +1,5 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
-import { STATE_FACTOR } from "actions/calculateMaturity/maturityLogic";
+import { STATE_FACTOR } from "architecture/knowledge/derive/maturityLogic";
 
 /** The fixed, ordered vocabulary of concrete next moves an idea can be nudged toward (#158). */
 export type NextMoveToken = "add-source" | "connect" | "add-example" | "advance-state";

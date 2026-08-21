@@ -1,6 +1,6 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { incomingRelations } from "../query/queries";
-import { rankRelatedScored } from "actions/relations/relationRankingLogic";
+import { rankRelatedScored } from "architecture/knowledge/relations/relationRankingLogic";
 
 /** A note proposed as an answer to an open question, with its relatedness score (#167). */
 export interface AnswerCandidate {

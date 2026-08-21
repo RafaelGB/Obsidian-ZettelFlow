@@ -73,3 +73,21 @@ merges the branch — put `Closes #N` (one per addressed issue) in the **PR body
 commit message to close an issue (feature-branch commits don't trigger auto-close, and closing
 before merge marks work shipped that isn't). The stage-5 "issue closed" gate means "listed in the
 PR's `Closes` set", realised when the PR merges.
+
+## XI. Consolidation over expansion — the transformation gate
+
+The manifesto is the design gate: *ZettelFlow does not manage notes; it manages the processes that
+**transform knowledge**.* Every change answers **"what knowledge transformation does it enable?"**
+— if it does not transform, connect, evaluate, discover or advance knowledge, it is secondary.
+
+Three invariants make this enforceable, not aspirational:
+
+- **No net complexity.** A change **removes or merges** surface (a command, view, setting, path) or
+  **hardens a boundary** — it does not *only* add. Consolidation is the default; new top-level
+  surface is the exception that must justify itself against this gate.
+- **No visible breakage** (consolidate & hide). Existing `.zftemplate` systems keep loading, saved
+  settings keep working, and no command or view disappears without an alias.
+- **Knowledge is offline and platform-free.** The Knowledge layer (`architecture/knowledge`, and the
+  future `knowledge/` home) **never imports `obsidian`** and makes no network/AI call. Derived
+  metrics are **queries over the model, not invented dashboard features** — *metrics are
+  consequences, not inventions*.

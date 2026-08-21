@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { computeMaturity, MATURITY_WEIGHTS } from "actions/calculateMaturity/maturityLogic";
-import { idea, buildModel } from "./support/knowledgeFixture";
+import { computeMaturity, MATURITY_WEIGHTS } from "architecture/knowledge/derive/maturityLogic";
+import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 const NOW = 1_700_000_000_000;
 const DAY = 86_400_000;

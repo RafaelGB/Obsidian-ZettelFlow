@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { DevelopmentJournal } from "architecture/plugin";
-import { buildHeatmapGrid, DayCell } from "architecture/knowledge/journal/heatmap";
+import { buildHeatmapGrid, DayCell } from "architecture/knowledge/state";
 
 type ViewState = "ready" | "empty" | "error";
 

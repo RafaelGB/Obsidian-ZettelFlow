@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { KnowledgeActionElement } from "zettelkasten";
-import { findUnansweredQuestions } from "./findUnansweredQuestionLogic";
+import { findUnansweredQuestions } from "architecture/knowledge/query/findUnansweredQuestionLogic";
 import {
     makeKnowledgeSettings,
     readyModel,
@@ -21,6 +21,7 @@ export class FindUnansweredQuestionAction extends CustomZettelAction {
     private static ICON = "circle-help";
     id = "find-unanswered-question";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "unanswered-questions", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

@@ -1,5 +1,6 @@
 import { Literal } from "architecture/plugin";
 import { ActionCategory } from "./categories";
+import type { ActionKind } from "architecture/knowledge/taxonomy/actionKind";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
 import { TFile } from "obsidian";
@@ -43,6 +44,8 @@ export interface ICustomZettelAction {
     id: string;
     /** Optional cognitive-capability category (#152); absent ⇒ uncategorized. */
     category?: ActionCategory;
+    /** Command/Query classification (#265) — primary taxonomy axis; command mutates, query observes. */
+    kind?: ActionKind;
     component(props: WrappedActionBuilderProps): JSX.Element;
     settings: ActionSetting;
     execute(info: ExecuteInfo): Promise<void>;

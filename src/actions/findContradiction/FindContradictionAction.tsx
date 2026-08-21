@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { KnowledgeActionElement } from "zettelkasten";
-import { findContradictions } from "./findContradictionLogic";
+import { findContradictions } from "architecture/knowledge/query/findContradictionLogic";
 import {
     makeKnowledgeSettings,
     readyModel,
@@ -21,6 +21,7 @@ export class FindContradictionAction extends CustomZettelAction {
     private static ICON = "swords";
     id = "find-contradiction";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "contradictions", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

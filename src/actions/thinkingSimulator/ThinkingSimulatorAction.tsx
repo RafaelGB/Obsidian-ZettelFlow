@@ -36,6 +36,7 @@ export class ThinkingSimulatorAction extends CustomZettelAction {
     private static ICON = "brain-circuit";
     id = "thinking-simulator";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "thinkingPrompts", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

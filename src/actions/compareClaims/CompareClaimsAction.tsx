@@ -21,6 +21,7 @@ export class CompareClaimsAction extends CustomZettelAction {
     private static ICON = "scale";
     id = "compare-claims";
     category = "research" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "claimComparison", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

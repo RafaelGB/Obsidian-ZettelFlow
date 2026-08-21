@@ -44,11 +44,19 @@ are in `CLAUDE.md`.
 5. **ZettelFlow specifics.** The canvas monkey-patching (`architecture/plugin/canvas`) is a
    manual-review risk — check patched methods stay guarded and uninstalled on unload. `log.error`
    is silenced when logging is off. `onunload` doesn't call `unloadComponents()`.
+6. **The transformation gate (constitution §XI).** Ask **"what knowledge transformation does this
+   change enable?"** — if it doesn't transform, connect, evaluate, discover or advance knowledge,
+   flag it as secondary. Check **net complexity does not rise**: the change removes/merges surface
+   (a command, view, setting, path) or hardens a boundary, not *only* adds. Check the two
+   load-bearing boundaries: the Knowledge layer (`architecture/knowledge`, future `knowledge/`) must
+   **not import `obsidian`** and must make no network/AI call, and derived metrics are queries over
+   the model, not new dashboard features. Flag any silent breakage of existing `.zftemplate`
+   systems, saved settings, or a removed command/view without an alias.
 
 ## Output
 
 Report **prioritized, file-anchored** findings (most severe first): for each, give the category
-(security / lifecycle / styling / commands / manifest / mobile / polish), the `file:line`, a
+(security / lifecycle / styling / commands / manifest / mobile / transformation / polish), the `file:line`, a
 one-sentence description of the problem, and the exact fix. Separate **blocking** issues (fail
 submission or the automated review) from **score** issues (guideline violations) from **nits**.
 End with a one-line verdict: would this change raise, hold, or lower the quality score. Be

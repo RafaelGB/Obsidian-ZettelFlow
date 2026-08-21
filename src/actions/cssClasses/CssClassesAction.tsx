@@ -10,6 +10,7 @@ export class CssClassesAction extends CustomZettelAction {
   private static ICON = "view";
   id = "cssclasses";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     description: "CSS classes",

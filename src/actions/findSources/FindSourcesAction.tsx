@@ -25,6 +25,7 @@ export class FindSourcesAction extends CustomZettelAction {
     private static ICON = "book-marked";
     id = "find-sources";
     category = "research" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "candidateSources", zone: "frontmatter", limit: DEFAULT_LIMIT };
     settings = settings;
     settingsReader = settingsReader;

@@ -31,6 +31,7 @@ export class SuggestNextMoveAction extends CustomZettelAction {
     private static ICON = "compass";
     id = "suggest-next-move";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "nextMoves", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

@@ -3,7 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome } from "architecture/knowledge/home/home";
+import { HomeModel, buildHome } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

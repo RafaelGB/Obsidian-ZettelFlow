@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { buildKnowledgeMap, Cluster, KnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
+import { buildKnowledgeMap, Cluster, KnowledgeMap } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

@@ -17,6 +17,7 @@ export class ZettelIdAction extends CustomZettelAction {
     private static ICON = "fingerprint";
     id = "zettel-id";
     category = "manipulation" as const;
+    kind = "command" as const;
     defaultAction: Action = {
         type: this.id,
         hasUI: false,

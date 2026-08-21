@@ -11,6 +11,7 @@ export class ClassifyAction extends CustomZettelAction {
     private static ICON = "tags";
     id = "classify";
     category = "ai" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "classification", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

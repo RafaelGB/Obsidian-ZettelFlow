@@ -20,6 +20,7 @@ export class DetectOrphanAction extends CustomZettelAction {
     private static ICON = "unlink";
     id = "detect-orphan";
     category = "knowledge" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "orphan", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

@@ -2,7 +2,7 @@ import { ItemView, MarkdownView, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { Discovery, findDiscoveries } from "architecture/knowledge/discovery/discoveries";
+import { Discovery, findDiscoveries } from "architecture/knowledge/state";
 import { ResurfacedNote, rankResurfacedNotes } from "application/notes/resurfaceRanking";
 import { buildResurfaceInputs } from "../resurface/resurfaceInputs";
 

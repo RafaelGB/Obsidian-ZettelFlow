@@ -16,6 +16,7 @@ export class AttachSourceAction extends CustomZettelAction {
     private static ICON = "paperclip";
     id = "attach-source";
     category = "research" as const;
+    kind = "command" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, source: "", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

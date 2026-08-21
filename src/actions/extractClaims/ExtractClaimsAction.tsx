@@ -21,6 +21,7 @@ export class ExtractClaimsAction extends CustomZettelAction {
     private static ICON = "quote";
     id = "extract-claims";
     category = "research" as const;
+    kind = "query" as const;
     defaultAction: Action = { type: this.id, hasUI: false, id: this.id, key: "claims", zone: "frontmatter" };
     settings = settings;
     settingsReader = settingsReader;

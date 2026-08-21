@@ -1,8 +1,8 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import type { Source } from "../model/Idea";
 import { incomingRelations, outgoingRelations } from "../query/queries";
-import { findContradictions } from "actions/findContradiction/findContradictionLogic";
-import { findUnansweredQuestions } from "actions/findUnansweredQuestion/findUnansweredQuestionLogic";
+import { findContradictions } from "architecture/knowledge/query/findContradictionLogic";
+import { findUnansweredQuestions } from "architecture/knowledge/query/findUnansweredQuestionLogic";
 
 /** The relation that backs a position (#147). */
 const SUPPORTS = "supports";

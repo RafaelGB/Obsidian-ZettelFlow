@@ -12,6 +12,7 @@ export class PromptAction extends CustomZettelAction {
   private static ICON = "form-input";
   id = "prompt";
   category = "manipulation" as const;
+  kind = "command" as const;
   defaultAction = {
     type: this.id,
     hasUI: true,

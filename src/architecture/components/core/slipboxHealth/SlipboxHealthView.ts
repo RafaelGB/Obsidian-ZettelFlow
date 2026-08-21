@@ -9,14 +9,14 @@ import {
     DebtCategory,
     DebtCategoryKey,
     KnowledgeDebt,
-} from "architecture/knowledge/debt/knowledgeDebt";
-import {
     computeKnowledgeBalance,
     CompositionBucket,
     BalanceSuggestion,
     KnowledgeBalance,
-} from "architecture/knowledge/balance/knowledgeBalance";
-import { classifyHealth, HealthNote, HealthResult } from "./classifyHealth";
+    classifyHealth,
+    HealthNote,
+    HealthResult,
+} from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 400;
 

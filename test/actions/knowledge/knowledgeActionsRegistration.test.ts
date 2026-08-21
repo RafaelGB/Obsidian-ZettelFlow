@@ -19,7 +19,7 @@ const LOGIC_FILES = [
     "src/actions/detectOrphan/detectOrphanLogic.ts",
     "src/architecture/knowledge/derive/maturityLogic.ts",
     "src/architecture/knowledge/query/findContradictionLogic.ts",
-    "src/actions/findUnansweredQuestion/findUnansweredQuestionLogic.ts",
+    "src/architecture/knowledge/query/findUnansweredQuestionLogic.ts",
     "src/actions/suggestNextMove/nextMoveLogic.ts",
     "src/actions/thinkingSimulator/thinkingSimulatorLogic.ts",
 ];

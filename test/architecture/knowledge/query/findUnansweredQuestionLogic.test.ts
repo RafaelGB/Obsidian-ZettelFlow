@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { findUnansweredQuestions } from "actions/findUnansweredQuestion/findUnansweredQuestionLogic";
-import { idea, buildModel } from "./support/knowledgeFixture";
+import { findUnansweredQuestions } from "architecture/knowledge/query/findUnansweredQuestionLogic";
+import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 const model = buildModel([
     // note asks q1 (unanswered) and q2 (answered by a supports edge into it)

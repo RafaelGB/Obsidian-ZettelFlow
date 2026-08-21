@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { KnowledgeActionElement } from "zettelkasten";
-import { findUnansweredQuestions } from "./findUnansweredQuestionLogic";
+import { findUnansweredQuestions } from "architecture/knowledge/query/findUnansweredQuestionLogic";
 import {
     makeKnowledgeSettings,
     readyModel,

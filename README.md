@@ -45,6 +45,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   source note. It organizes what you already know — graph-derived, offline, no AI.
 - **🔑 Zettel ID action** — stamp every note with a stable unique identifier (sortable
   timestamp or Luhmann-style **Folgezettel** branching like `21 → 21a → 21a1`).
+> **One front door, four surfaces.** The panels below live in **four surfaces** — **Home**, **Health**,
+> **Discovery** and **Graph** — each with modes behind a segmented control, opened from a single
+> ribbon button and as normal Obsidian tabs. Nothing is lost; every panel is a mode. See
+> [The four surfaces](https://rafaelgb.github.io/Obsidian-ZettelFlow/architecture/surfaces/).
+
 - **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes,
   a **Knowledge Debt score** (0–100) with a severity bar and a per-category drill-down
   (unreferenced · dangling · unsourced · open questions) each one click from a fix, and a

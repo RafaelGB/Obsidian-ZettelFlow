@@ -1,9 +1,11 @@
-import { App } from "obsidian";
+import { App, Platform } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { activateSurface } from "architecture/plugin";
 import {
     build3DGraph,
+    capGraph3D,
     filterGraph3D,
     Graph3DData,
     Graph3DFilter,
@@ -23,6 +25,16 @@ const DEBOUNCE_MS = 600;
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number };
 
+/** True when the runtime can render WebGL (desktop with a working context). */
+function webglAvailable(): boolean {
+    try {
+        const canvas = document.createElement("canvas");
+        return !!(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+    } catch {
+        return false;
+    }
+}
+
 /**
  * The **3D** mode of the Graph surface (#280) — an interactive 3D force-directed graph of the
  * `KnowledgeModel`: orbit/zoom, hover for a label, click a node to open its note; nodes coloured by
@@ -33,6 +45,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private data: Graph3DData = { nodes: [], links: [] };
     private displayed: Graph3DData = { nodes: [], links: [] };
+    private capped = false;
     private filter: Graph3DFilter = {};
     private overlay: OverlayKind | null = null;
     private graph: ForceGraph3DInstance | null = null;
@@ -79,7 +92,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.render();
                 return;
             }
-            this.data = build3DGraph(index.getModel());
+            const full = build3DGraph(index.getModel());
+            this.data = capGraph3D(full); // level-of-detail for large vaults (#280 S5)
+            this.capped = this.data.nodes.length < full.nodes.length;
             this.state = this.data.nodes.length === 0 ? "empty" : "ready";
             this.render();
         } catch (error) {
@@ -91,8 +106,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private render(): void {
         if (this.state === "ready") {
-            if (this.graph) this.applyGraphData();
-            else void this.mountGraph();
+            if (!Platform.isMobile && webglAvailable()) {
+                if (this.graph) this.applyGraphData();
+                else void this.mountGraph();
+            } else {
+                this.renderFallback(); // mobile / no WebGL → point to the 2D Map (#280 S5)
+            }
             return;
         }
         // Any non-ready state tears down the WebGL graph and shows a plain message.
@@ -147,12 +166,30 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    /** Push the current (filtered) data into the live graph and refresh the legend. */
+    /** Push the current (filtered) data into the live graph and refresh the legend + capped hint. */
     private applyGraphData(): void {
         if (!this.graph) return;
         this.displayed = filterGraph3D(this.data, this.filter);
         this.graph.graphData(this.displayed);
         this.renderLegend();
+        this.renderCappedHint();
+    }
+
+    /** Mobile / no-WebGL fallback (#280 S5): a message + a button to open the 2D Map mode instead. */
+    private renderFallback(): void {
+        this.teardownGraph();
+        this.container.empty();
+        const panel = this.container.createDiv({ cls: c("graph3d-message") });
+        panel.createEl("p", { text: t("graph3d_fallback_message") });
+        const btn = panel.createEl("button", { text: t("graph3d_fallback_open_map"), cls: "mod-cta" });
+        this.registerDomEvent(btn, "click", () => void activateSurface(this.app, "zettelflow-graph", "map"));
+    }
+
+    /** When the graph was capped for performance, note that only the most-connected notes are shown. */
+    private renderCappedHint(): void {
+        if (!this.wrapperEl) return;
+        this.wrapperEl.querySelector("." + c("graph3d-hint"))?.remove();
+        if (this.capped) this.wrapperEl.createDiv({ cls: c("graph3d-hint"), text: t("graph3d_capped_hint") });
     }
 
     // ── Toolbar (S3): search-to-focus + filter by state ────────────────────────

@@ -112,6 +112,26 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
     return { nodes, links };
 }
 
+/** Default cap on rendered nodes (#280 S5) — keeps large vaults responsive; see {@link capGraph3D}. */
+export const GRAPH3D_MAX_NODES = 600;
+
+/**
+ * Cap the graph to the `max` most-connected nodes (level-of-detail for large vaults, #280 S5). When the
+ * graph already fits, it is returned unchanged. Otherwise the top `max` nodes by `val` (degree, then id
+ * for determinism) are kept and links are pruned to surviving endpoints. Pure; never mutates the input.
+ */
+export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): Graph3DData {
+    if (data.nodes.length <= max) return data;
+    const nodes = [...data.nodes]
+        .sort((a, b) => b.val - a.val || byStr(a.id, b.id))
+        .slice(0, max);
+    const kept = new Set(nodes.map((node) => node.id));
+    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
+    // Re-sort kept nodes by id so the capped output keeps the stable ordering callers expect.
+    nodes.sort((a, b) => byStr(a.id, b.id));
+    return { nodes, links };
+}
+
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
 export type OverlayKind = "orphans" | "dead-ends" | "contradictions";
 export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions"];

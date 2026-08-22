@@ -1,10 +1,12 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     build3DGraph,
+    capGraph3D,
     filterGraph3D,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     type Graph3DData,
+    type Graph3DNode,
 } from "architecture/knowledge/map/graph3d";
 import { buildModel, idea } from "../../../actions/knowledge/support/knowledgeFixture";
 
@@ -144,5 +146,25 @@ describe("discovery-lens flags & overlays (#280 S4)", () => {
         const node = build3DGraph(model).nodes[0];
         expect(OVERLAY_SPECS.orphans.matches(node)).toBe(true);
         expect(OVERLAY_SPECS.contradictions.matches(node)).toBe(false);
+    });
+});
+
+describe("capGraph3D (#280 S5)", () => {
+    const node = (id: string, val: number): Graph3DNode => ({
+        id, name: id, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false,
+    });
+    const data: Graph3DData = {
+        nodes: [node("A", 3), node("B", 2), node("C", 1)],
+        links: [{ source: "A", target: "C", type: "link" }],
+    };
+
+    it("returns the graph unchanged when it fits under the cap", () => {
+        expect(capGraph3D(data, 10)).toEqual(data);
+    });
+
+    it("keeps the most-connected nodes and prunes links to dropped nodes", () => {
+        const out = capGraph3D(data, 2);
+        expect(out.nodes.map((n) => n.id).sort()).toEqual(["A", "B"]); // C (lowest val) dropped
+        expect(out.links).toEqual([]); // A->C pruned
     });
 });

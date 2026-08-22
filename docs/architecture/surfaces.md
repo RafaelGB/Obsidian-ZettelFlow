@@ -19,7 +19,7 @@ four surfaces. Note creation is no longer its own ribbon icon.
 | **Home** | Home · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + Notes history |
 | **Health** | Health · Dashboard · Timeline · Momentum | Slip-box health + Knowledge dashboard + Evolution timeline + Thinking heatmap |
 | **Discovery** | Connections · Forgotten · Questions · Challenges | Discovery + Resurface + Open questions + Evidence map |
-| **Graph** | Map · Navigate | Living knowledge map + Concept navigation (*Reasoning* is a deferred mode) |
+| **Graph** | Map · Navigate · 3D | Living knowledge map + Concept navigation + **[3D knowledge graph](../development/graph-3d.md)** (#280); *Reasoning* deferred |
 
 Every mode reuses the retired view's rendering **verbatim** — same numbers, same behaviour — mounted
 inside the surface as a `KnowledgeModeRenderer` (an Obsidian `Component`, so its listeners are cleaned

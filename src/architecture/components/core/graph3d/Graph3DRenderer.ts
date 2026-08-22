@@ -198,9 +198,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
         const search = toolbar.createEl("input", { cls: c("graph3d-search"), type: "search" });
         search.placeholder = t("graph3d_search_placeholder");
+        search.setAttribute("aria-label", t("graph3d_search_placeholder"));
         this.registerDomEvent(search, "input", () => this.focusByName(search.value));
 
         const select = toolbar.createEl("select", { cls: c("graph3d-state-filter") });
+        select.setAttribute("aria-label", t("graph3d_filter_all_states"));
         select.createEl("option", { text: t("graph3d_filter_all_states"), value: "" });
         for (const state of this.uniqueStates()) select.createEl("option", { text: state, value: state });
         this.registerDomEvent(select, "change", () => {
@@ -210,6 +212,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
         // Discovery lens (#280 S4): highlight an actionable class of note in space.
         const overlay = toolbar.createEl("select", { cls: c("graph3d-overlay-filter") });
+        overlay.setAttribute("aria-label", t("graph3d_overlay_none"));
         overlay.createEl("option", { text: t("graph3d_overlay_none"), value: "" });
         for (const kind of OVERLAY_KINDS) {
             overlay.createEl("option", { text: t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0]), value: kind });
@@ -218,6 +221,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.overlay = (overlay.value || null) as OverlayKind | null;
             this.applyOverlay();
         });
+
+        // Camera preset (#280 S6): re-frame the whole graph.
+        const fit = toolbar.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
+        fit.setAttribute("aria-label", t("graph3d_fit_view"));
+        this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 20));
     }
 
     /** Apply the active discovery-lens overlay: highlight matching nodes, dim the rest; none ⇒ cluster color. */

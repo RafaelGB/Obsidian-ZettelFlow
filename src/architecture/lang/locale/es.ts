@@ -542,6 +542,7 @@ export default {
     graph3d_fallback_message: 'El grafo 3D necesita escritorio con aceleración gráfica.',
     graph3d_fallback_open_map: 'Abrir el mapa 2D',
     graph3d_capped_hint: 'Mostrando las notas más conectadas.',
+    graph3d_fit_view: 'Ajustar vista',
     command_explore_in_3d: 'Explorar la nota activa en 3D',
     command_show_health: 'Ver salud',
     command_show_discovery: 'Ver descubrimiento',

@@ -542,6 +542,7 @@ export default {
     graph3d_fallback_message: '3D graph needs a desktop with graphics acceleration.',
     graph3d_fallback_open_map: 'Open the 2D map',
     graph3d_capped_hint: 'Showing the most-connected notes.',
+    graph3d_fit_view: 'Fit view',
     command_explore_in_3d: 'Explore the active note in 3D',
     command_show_health: 'Show health',
     command_show_discovery: 'Show discovery',

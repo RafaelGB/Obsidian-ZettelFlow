@@ -1,5 +1,5 @@
 import { t } from "architecture/lang";
-import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
+import { type KnowledgeModel } from "architecture/knowledge";
 import {
     deriveRecommendations,
     KnowledgeRecommendation,

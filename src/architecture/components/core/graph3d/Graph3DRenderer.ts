@@ -5,8 +5,11 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { activateSurface } from "architecture/plugin";
 import {
     build3DGraph,
+    buildAdjacency,
     capGraph3D,
+    DEFAULT_STATE_COLOR_VAR,
     filterGraph3D,
+    graph3dStats,
     Graph3DData,
     Graph3DFilter,
     Graph3DNode,
@@ -14,6 +17,7 @@ import {
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
+    STATE_COLOR_VARS,
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
@@ -22,8 +26,14 @@ import { consumeGraph3DFocus } from "./graph3dFocus";
 import type { ForceGraph3DInstance } from "3d-force-graph";
 
 const DEBOUNCE_MS = 600;
+const DIM_NODE = "rgba(125, 128, 138, 0.10)";
+const DIM_LINK = "rgba(125, 128, 138, 0.04)";
 type ViewState = "indexing" | "ready" | "empty" | "error";
+type ColorMode = "state" | "cluster";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number };
+type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
+
+const linkEndId = (end: string | LiveNode): string => (typeof end === "object" ? end.id ?? "" : end);
 
 /** True when the runtime can render WebGL (desktop with a working context). */
 function webglAvailable(): boolean {
@@ -36,18 +46,22 @@ function webglAvailable(): boolean {
 }
 
 /**
- * The **3D** mode of the Graph surface (#280) — an interactive 3D force-directed graph of the
- * `KnowledgeModel`: orbit/zoom, hover for a label, click a node to open its note; nodes coloured by
- * cluster and links by relation type (S2); a toolbar to search-to-focus and filter by state (S3). The
- * `3d-force-graph` library (three.js) is imported lazily on first render and torn down on close.
+ * The **3D** mode of the Graph surface (#280) — an immersive, force-directed knowledge graph. What sets
+ * it apart from a plain link graph: nodes coloured by **maturity** (knowledge state) or cluster, links
+ * coloured by **relation type** with flowing particles, glow (bloom), **hover-to-focus a neighbourhood**,
+ * and a **discovery lens** (orphans / dead-ends / contradictions with live counts). Read-only: click a
+ * node to open it. The `3d-force-graph` library is imported lazily and torn down on close.
  */
 export class Graph3DRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private data: Graph3DData = { nodes: [], links: [] };
     private displayed: Graph3DData = { nodes: [], links: [] };
+    private adjacency = new Map<string, Set<string>>();
     private capped = false;
     private filter: Graph3DFilter = {};
+    private colorMode: ColorMode = "state";
     private overlay: OverlayKind | null = null;
+    private hoverNodes: Set<string> | null = null;
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
@@ -56,13 +70,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private disposed = false;
     private pendingFocusPath: string | null = null;
     private readonly colorCache = new Map<string, string>();
+    private readonly colorButtons = new Map<ColorMode, HTMLElement>();
+    private readonly lensChips = new Map<OverlayKind, HTMLElement>();
 
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
     }
 
     onload(): void {
-        this.pendingFocusPath = consumeGraph3DFocus(); // a deep-link may have asked us to fly to a note
+        this.pendingFocusPath = consumeGraph3DFocus();
         this.registerVaultListeners();
         this.recompute();
     }
@@ -95,6 +111,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             const full = build3DGraph(index.getModel());
             this.data = capGraph3D(full); // level-of-detail for large vaults (#280 S5)
             this.capped = this.data.nodes.length < full.nodes.length;
+            this.adjacency = buildAdjacency(this.data);
             this.state = this.data.nodes.length === 0 ? "empty" : "ready";
             this.render();
         } catch (error) {
@@ -114,7 +131,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             }
             return;
         }
-        // Any non-ready state tears down the WebGL graph and shows a plain message.
         this.teardownGraph();
         this.container.empty();
         const messageKey =
@@ -128,7 +144,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private async mountGraph(): Promise<void> {
         try {
             const { default: ForceGraph3D } = await import("3d-force-graph");
-            if (this.disposed || this.state !== "ready") return; // mode switched/closed while importing
+            if (this.disposed || this.state !== "ready") return;
 
             this.container.empty();
             this.wrapperEl = this.container.createDiv({ cls: c("graph3d") });
@@ -136,25 +152,30 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.graphEl = this.wrapperEl.createDiv({ cls: c("graph3d-canvas") });
 
             const graph = new ForceGraph3D(this.graphEl)
-                .backgroundColor("rgba(0,0,0,0)")
+                .backgroundColor(this.varColor("--background-primary") || "#0b0e14")
                 .nodeLabel("name")
                 .nodeVal("val")
-                .nodeOpacity(0.9)
-                .nodeAutoColorBy("group") // color nodes by their cluster (#280 S2)
-                .linkColor((link) => this.relationColor((link as { type?: string }).type))
-                .linkOpacity(0.4)
-                .linkWidth(0.8)
-                .linkDirectionalArrowLength(3.5)
+                .nodeOpacity(0.92)
+                .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
+                .linkColor((link) => this.computeLinkColor(link as LiveLink))
+                .linkWidth((link) => this.computeLinkWidth(link as LiveLink))
+                .linkOpacity(0.5)
+                .linkDirectionalArrowLength(3)
                 .linkDirectionalArrowRelPos(1)
+                .linkDirectionalParticles(2)
+                .linkDirectionalParticleWidth(1.4)
+                .linkDirectionalParticleSpeed(0.006)
+                .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
                 .onNodeClick((node) => {
                     const id = (node as LiveNode).id;
                     if (typeof id === "string") void this.app.workspace.openLinkText(id, "", false);
                 })
+                .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.flyToPendingFocus());
             this.graph = graph;
             this.applyGraphData();
-            this.applyOverlay();
             this.applySize();
+            void this.addBloom(); // glow post-processing — the visual "wow" (guarded)
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
             this.resizeObserver.observe(this.container);
@@ -163,6 +184,20 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (this.disposed) return;
             this.container.empty();
             this.container.createDiv({ cls: c("graph3d-message"), text: t("graph3d_state_error") });
+        }
+    }
+
+    /** Add an UnrealBloom pass so nodes/links glow against the dark background. Best-effort. */
+    private async addBloom(): Promise<void> {
+        try {
+            const { UnrealBloomPass } = await import("three/examples/jsm/postprocessing/UnrealBloomPass.js");
+            if (this.disposed || !this.graph) return;
+            // UnrealBloomPass only reads resolution.x/.y, so a plain point avoids importing three directly.
+            const resolution = { x: this.container.clientWidth || 400, y: this.container.clientHeight || 400 };
+            const bloom = new UnrealBloomPass(resolution, 1.1, 0.55, 0.05);
+            (this.graph.postProcessingComposer() as { addPass(pass: unknown): void }).addPass(bloom);
+        } catch (error) {
+            log.warn("[Graph3D] bloom post-processing unavailable — continuing without glow", error);
         }
     }
 
@@ -175,24 +210,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.renderCappedHint();
     }
 
-    /** Mobile / no-WebGL fallback (#280 S5): a message + a button to open the 2D Map mode instead. */
-    private renderFallback(): void {
-        this.teardownGraph();
-        this.container.empty();
-        const panel = this.container.createDiv({ cls: c("graph3d-message") });
-        panel.createEl("p", { text: t("graph3d_fallback_message") });
-        const btn = panel.createEl("button", { text: t("graph3d_fallback_open_map"), cls: "mod-cta" });
-        this.registerDomEvent(btn, "click", () => void activateSurface(this.app, "zettelflow-graph", "map"));
-    }
-
-    /** When the graph was capped for performance, note that only the most-connected notes are shown. */
-    private renderCappedHint(): void {
-        if (!this.wrapperEl) return;
-        this.wrapperEl.querySelector("." + c("graph3d-hint"))?.remove();
-        if (this.capped) this.wrapperEl.createDiv({ cls: c("graph3d-hint"), text: t("graph3d_capped_hint") });
-    }
-
-    // ── Toolbar (S3): search-to-focus + filter by state ────────────────────────
+    // ── Toolbar ────────────────────────────────────────────────────────────────
     private buildToolbar(parent: HTMLElement): void {
         const toolbar = parent.createDiv({ cls: c("graph3d-toolbar") });
 
@@ -201,51 +219,71 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         search.setAttribute("aria-label", t("graph3d_search_placeholder"));
         this.registerDomEvent(search, "input", () => this.focusByName(search.value));
 
-        const select = toolbar.createEl("select", { cls: c("graph3d-state-filter") });
-        select.setAttribute("aria-label", t("graph3d_filter_all_states"));
-        select.createEl("option", { text: t("graph3d_filter_all_states"), value: "" });
-        for (const state of this.uniqueStates()) select.createEl("option", { text: state, value: state });
-        this.registerDomEvent(select, "change", () => {
-            this.filter = { ...this.filter, state: select.value };
-            this.applyGraphData();
-        });
+        // Color-by: a segmented toggle — Maturity (knowledge state) vs Cluster.
+        const colorGroup = toolbar.createDiv({ cls: c("graph3d-segmented") });
+        this.addColorButton(colorGroup, "state", t("graph3d_color_state"));
+        this.addColorButton(colorGroup, "cluster", t("graph3d_color_cluster"));
 
-        // Discovery lens (#280 S4): highlight an actionable class of note in space.
-        const overlay = toolbar.createEl("select", { cls: c("graph3d-overlay-filter") });
-        overlay.setAttribute("aria-label", t("graph3d_overlay_none"));
-        overlay.createEl("option", { text: t("graph3d_overlay_none"), value: "" });
-        for (const kind of OVERLAY_KINDS) {
-            overlay.createEl("option", { text: t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0]), value: kind });
-        }
-        this.registerDomEvent(overlay, "change", () => {
-            this.overlay = (overlay.value || null) as OverlayKind | null;
-            this.applyOverlay();
-        });
+        // Discovery lens: toggle chips with live counts.
+        const stats = graph3dStats(this.data);
+        const counts: Record<OverlayKind, number> = {
+            "orphans": stats.orphans,
+            "dead-ends": stats.deadEnds,
+            "contradictions": stats.contradictions,
+        };
+        for (const kind of OVERLAY_KINDS) this.addLensChip(toolbar, kind, counts[kind]);
 
-        // Camera preset (#280 S6): re-frame the whole graph.
         const fit = toolbar.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
         fit.setAttribute("aria-label", t("graph3d_fit_view"));
         this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 20));
     }
 
-    /** Apply the active discovery-lens overlay: highlight matching nodes, dim the rest; none ⇒ cluster color. */
-    private applyOverlay(): void {
-        if (!this.graph) return;
-        if (!this.overlay) {
-            this.graph.nodeAutoColorBy("group").linkOpacity(0.4);
-            return;
+    private addColorButton(group: HTMLElement, mode: ColorMode, label: string): void {
+        const key = mode === "state" ? "graph3d_color_state" : "graph3d_color_cluster";
+        const btn = group.createEl("button", { cls: c("graph3d-seg-btn"), text: label });
+        btn.setAttribute("aria-label", t(key));
+        btn.toggleClass(c("graph3d-seg-btn--active"), this.colorMode === mode);
+        this.colorButtons.set(mode, btn);
+        this.registerDomEvent(btn, "click", () => {
+            this.colorMode = mode;
+            for (const [m, el] of this.colorButtons) el.toggleClass(c("graph3d-seg-btn--active"), m === mode);
+            this.refreshPaint();
+        });
+    }
+
+    private addLensChip(toolbar: HTMLElement, kind: OverlayKind, count: number): void {
+        const label = `${t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0])} (${count})`;
+        const chip = toolbar.createEl("button", { cls: c("graph3d-chip"), text: label });
+        chip.setAttribute("aria-label", label);
+        if (count === 0) chip.setAttribute("disabled", "true");
+        this.lensChips.set(kind, chip);
+        this.registerDomEvent(chip, "click", () => this.toggleOverlay(kind));
+    }
+
+    private toggleOverlay(kind: OverlayKind): void {
+        this.overlay = this.overlay === kind ? null : kind;
+        for (const [k, el] of this.lensChips) el.toggleClass(c("graph3d-chip--active"), k === this.overlay);
+        this.refreshPaint();
+    }
+
+    // ── Focus / hover ────────────────────────────────────────────────────────────
+    private onHover(id: string | null): void {
+        if (!id) {
+            if (!this.hoverNodes) return;
+            this.hoverNodes = null;
+        } else {
+            this.hoverNodes = new Set<string>([id, ...(this.adjacency.get(id) ?? [])]);
         }
-        const spec = OVERLAY_SPECS[this.overlay];
-        const highlight = getComputedStyle(document.body).getPropertyValue(spec.colorVar).trim() || "#e0a030";
-        const dim = "rgba(136, 136, 136, 0.15)";
-        this.graph.nodeColor((node) => (spec.matches(node as unknown as Graph3DNode) ? highlight : dim)).linkOpacity(0.1);
+        this.refreshPaint();
     }
 
-    private uniqueStates(): string[] {
-        return [...new Set(this.data.nodes.map((node) => node.state).filter((s) => s))].sort();
+    private clearFocus(): void {
+        this.hoverNodes = null;
+        this.overlay = null;
+        for (const el of this.lensChips.values()) el.removeClass(c("graph3d-chip--active"));
+        this.refreshPaint();
     }
 
-    /** Fly the camera to the first displayed node whose name matches the query (no filtering). */
     private focusByName(query: string): void {
         const q = query.trim().toLowerCase();
         if (!q) return;
@@ -260,33 +298,66 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.focusNode(path);
     }
 
-    /** Move the camera to orbit a node by its path (id), if it's in the live graph with coordinates. */
     private focusNode(path: string): void {
         if (!this.graph) return;
         const nodes = (this.graph.graphData() as { nodes: LiveNode[] }).nodes;
         const node = nodes.find((n) => n.id === path);
         if (!node || node.x === undefined) return;
         const x = node.x, y = node.y ?? 0, z = node.z ?? 0;
-        const distance = 120;
-        const ratio = 1 + distance / (Math.hypot(x, y, z) || 1);
+        const ratio = 1 + 120 / (Math.hypot(x, y, z) || 1);
         this.graph.cameraPosition({ x: x * ratio, y: y * ratio, z: z * ratio }, { x, y, z }, 1200);
     }
 
-    private applySize(): void {
+    /** Re-evaluate the paint accessors (colour depends on mode / overlay / hover state). */
+    private refreshPaint(): void {
         if (!this.graph) return;
-        const width = this.container.clientWidth || 400;
-        const height = this.container.clientHeight || 400;
-        this.graph.width(width).height(height);
+        this.graph
+            .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
+            .linkColor((link) => this.computeLinkColor(link as LiveLink))
+            .linkWidth((link) => this.computeLinkWidth(link as LiveLink));
     }
 
-    /** Resolve a relation type to a concrete color, reading Obsidian's palette var (cached). */
+    // ── Paint ─────────────────────────────────────────────────────────────────
+    private computeNodeColor(node: Graph3DNode & LiveNode): string {
+        if (this.overlay) {
+            return OVERLAY_SPECS[this.overlay].matches(node) ? this.varColor(OVERLAY_SPECS[this.overlay].colorVar) : DIM_NODE;
+        }
+        if (this.hoverNodes && !this.hoverNodes.has(node.id ?? "")) return DIM_NODE;
+        return this.baseNodeColor(node);
+    }
+
+    private baseNodeColor(node: Graph3DNode): string {
+        if (this.colorMode === "state") return this.varColor(STATE_COLOR_VARS[node.state] ?? DEFAULT_STATE_COLOR_VAR);
+        return node.group < 0 ? "#8a8f98" : `hsl(${(node.group * 67) % 360}, 65%, 62%)`;
+    }
+
+    private computeLinkColor(link: LiveLink): string {
+        if (this.overlay) return DIM_LINK;
+        if (this.hoverNodes) {
+            const lit = this.hoverNodes.has(linkEndId(link.source)) && this.hoverNodes.has(linkEndId(link.target));
+            return lit ? this.relationColor(link.type) : DIM_LINK;
+        }
+        return this.relationColor(link.type);
+    }
+
+    private computeLinkWidth(link: LiveLink): number {
+        if (!this.hoverNodes) return 0.8;
+        const lit = this.hoverNodes.has(linkEndId(link.source)) && this.hoverNodes.has(linkEndId(link.target));
+        return lit ? 2.5 : 0.4;
+    }
+
+    /** Resolve a CSS palette var to a concrete colour (cached). */
+    private varColor(varName: string): string {
+        const cached = this.colorCache.get(varName);
+        if (cached) return cached;
+        const value = getComputedStyle(document.body).getPropertyValue(varName).trim() || "#888888";
+        this.colorCache.set(varName, value);
+        return value;
+    }
+
     private relationColor(type: string | undefined): string {
         const key = type && RELATION_COLOR_VARS[type] ? type : "link";
-        const cached = this.colorCache.get(key);
-        if (cached) return cached;
-        const value = getComputedStyle(document.body).getPropertyValue(RELATION_COLOR_VARS[key]).trim() || "#888888";
-        this.colorCache.set(key, value);
-        return value;
+        return this.varColor(RELATION_COLOR_VARS[key]);
     }
 
     private relationLabel(type: string): string {
@@ -294,7 +365,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         return t(("relation_type_" + type.replace(/-/g, "_")) as Parameters<typeof t>[0]);
     }
 
-    /** Render (or refresh) the relation-type legend for the types present in the displayed graph. */
     private renderLegend(): void {
         if (!this.wrapperEl) return;
         this.wrapperEl.querySelector("." + c("graph3d-legend"))?.remove();
@@ -312,9 +382,32 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
+    private renderCappedHint(): void {
+        if (!this.wrapperEl) return;
+        this.wrapperEl.querySelector("." + c("graph3d-hint"))?.remove();
+        if (this.capped) this.wrapperEl.createDiv({ cls: c("graph3d-hint"), text: t("graph3d_capped_hint") });
+    }
+
+    private renderFallback(): void {
+        this.teardownGraph();
+        this.container.empty();
+        const panel = this.container.createDiv({ cls: c("graph3d-message") });
+        panel.createEl("p", { text: t("graph3d_fallback_message") });
+        const btn = panel.createEl("button", { text: t("graph3d_fallback_open_map"), cls: "mod-cta" });
+        this.registerDomEvent(btn, "click", () => void activateSurface(this.app, "zettelflow-graph", "map"));
+    }
+
+    private applySize(): void {
+        if (!this.graph) return;
+        this.graph.width(this.container.clientWidth || 400).height(this.container.clientHeight || 400);
+    }
+
     private teardownGraph(): void {
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
+        this.colorButtons.clear();
+        this.lensChips.clear();
+        this.hoverNodes = null;
         if (this.graph) {
             try {
                 this.graph._destructor();

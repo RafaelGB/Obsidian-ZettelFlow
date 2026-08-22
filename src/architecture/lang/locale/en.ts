@@ -535,6 +535,8 @@ export default {
     graph3d_relation_link: 'Link',
     graph3d_search_placeholder: 'Search notes…',
     graph3d_filter_all_states: 'All states',
+    graph3d_color_cluster: 'Cluster',
+    graph3d_color_state: 'Maturity',
     graph3d_overlay_none: 'No overlay',
     graph3d_overlay_orphans: 'Orphans',
     graph3d_overlay_dead_ends: 'Dead ends',

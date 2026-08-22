@@ -1,8 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     build3DGraph,
+    buildAdjacency,
     capGraph3D,
     filterGraph3D,
+    graph3dStats,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     type Graph3DData,
@@ -166,5 +168,26 @@ describe("capGraph3D (#280 S5)", () => {
         const out = capGraph3D(data, 2);
         expect(out.nodes.map((n) => n.id).sort()).toEqual(["A", "B"]); // C (lowest val) dropped
         expect(out.links).toEqual([]); // A->C pruned
+    });
+});
+
+describe("graph3dStats & buildAdjacency (#280 iteration)", () => {
+    it("counts orphans, dead-ends and contradictions", () => {
+        const model = buildModel([
+            idea("A.md", "seed", [{ to: "B.md", type: "contradicts" }]),
+            idea("B.md", "seed", [{ to: "C.md" }]),
+            idea("C.md", "seed", []),
+        ]);
+        const stats = graph3dStats(build3DGraph(model));
+        expect(stats.orphans).toBe(1); // C
+        expect(stats.deadEnds).toBe(1); // A
+        expect(stats.contradictions).toBe(2); // A + B
+    });
+
+    it("builds undirected adjacency for hover highlighting", () => {
+        const model = buildModel([idea("A.md", "seed", [{ to: "B.md" }]), idea("B.md", "seed", [])]);
+        const adj = buildAdjacency(build3DGraph(model));
+        expect([...(adj.get("A.md") ?? [])]).toEqual(["B.md"]);
+        expect([...(adj.get("B.md") ?? [])]).toEqual(["A.md"]); // undirected
     });
 });

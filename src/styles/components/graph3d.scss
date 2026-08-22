@@ -53,15 +53,62 @@
     pointer-events: none; // the bar area lets orbit/zoom through; the inputs re-enable themselves
 }
 
+// Toolbar controls re-enable pointer events (the bar itself is pass-through).
 .zettelkasten-flow__graph3d-search,
-.zettelkasten-flow__graph3d-state-filter,
-.zettelkasten-flow__graph3d-overlay-filter {
-    pointer-events: auto;
-    max-width: 14em;
-}
-
+.zettelkasten-flow__graph3d-segmented,
+.zettelkasten-flow__graph3d-seg-btn,
+.zettelkasten-flow__graph3d-chip,
 .zettelkasten-flow__graph3d-fit {
     pointer-events: auto;
+}
+
+.zettelkasten-flow__graph3d-search {
+    max-width: 12em;
+}
+
+// Color-by segmented toggle (maturity vs cluster).
+.zettelkasten-flow__graph3d-segmented {
+    display: inline-flex;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
+}
+
+.zettelkasten-flow__graph3d-seg-btn {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    padding: var(--size-2-1) var(--size-4-2);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-seg-btn--active {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+// Discovery-lens chips (with live counts).
+.zettelkasten-flow__graph3d-chip {
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-l);
+    padding: var(--size-2-1) var(--size-4-2);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__graph3d-chip:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.zettelkasten-flow__graph3d-chip--active {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
 }
 
 // ── Relation-type legend (S2) ──────────────────────────────────────────────

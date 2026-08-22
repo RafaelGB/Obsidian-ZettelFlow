@@ -112,6 +112,54 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
     return { nodes, links };
 }
 
+/**
+ * Knowledge-**state** → colour var (#280 iteration): a maturity ramp from raw (red) through developing
+ * (yellow) to permanent/evergreen (green/cyan). This is the differentiator over a plain link graph —
+ * the 3D view can show *how mature your thinking is* at a glance. Unknown states fall back to muted.
+ */
+export const STATE_COLOR_VARS: Record<string, string> = {
+    fleeting: "--color-red",
+    literature: "--color-orange",
+    developing: "--color-yellow",
+    permanent: "--color-green",
+    evergreen: "--color-cyan",
+    archived: "--text-faint",
+};
+export const DEFAULT_STATE_COLOR_VAR = "--text-muted";
+
+/** Aggregate discovery counts for the lens chips (#280 iteration). */
+export interface Graph3DStats {
+    orphans: number;
+    deadEnds: number;
+    contradictions: number;
+}
+
+/** Count the discovery-lens categories across the graph. Pure. */
+export function graph3dStats(data: Graph3DData): Graph3DStats {
+    let orphans = 0, deadEnds = 0, contradictions = 0;
+    for (const node of data.nodes) {
+        if (node.orphan) orphans++;
+        if (node.deadEnd) deadEnds++;
+        if (node.contradiction) contradictions++;
+    }
+    return { orphans, deadEnds, contradictions };
+}
+
+/** Undirected adjacency (id → neighbour ids) for hover-neighbourhood highlighting. Pure. */
+export function buildAdjacency(data: Graph3DData): Map<string, Set<string>> {
+    const adjacency = new Map<string, Set<string>>();
+    const link = (a: string, b: string) => {
+        const set = adjacency.get(a) ?? new Set<string>();
+        set.add(b);
+        adjacency.set(a, set);
+    };
+    for (const edge of data.links) {
+        link(edge.source, edge.target);
+        link(edge.target, edge.source);
+    }
+    return adjacency;
+}
+
 /** Default cap on rendered nodes (#280 S5) — keeps large vaults responsive; see {@link capGraph3D}. */
 export const GRAPH3D_MAX_NODES = 600;
 

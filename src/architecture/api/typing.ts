@@ -2,7 +2,7 @@ import { Literal } from "architecture/plugin";
 import { ActionCategory } from "./categories";
 import type { ActionKind } from "architecture/knowledge/taxonomy/actionKind";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
-import { ContentDTO, FinalElement, NoteDTO } from "application/notes"
+import { ContentDTO, FinalElement, NotePersistence } from "application/notes"
 import { TFile } from "obsidian";
 import { JSX } from "react";
 import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
@@ -10,7 +10,7 @@ import { AbstractStepModal } from "zettelkasten/modals/AbstractStepModal";
 export type ExecuteInfo = {
     element: FinalElement,
     content: ContentDTO,
-    note: NoteDTO,
+    note: NotePersistence,
     context: Record<string, Literal>,
     /**
      * True when the action runs headless as part of a note's on-creation pattern (#170/#201) rather

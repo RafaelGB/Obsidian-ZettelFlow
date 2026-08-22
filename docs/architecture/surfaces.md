@@ -16,7 +16,7 @@ four surfaces. Note creation is no longer its own ribbon icon.
 
 | Surface | Modes | Folds in (former views) |
 |---|---|---|
-| **Home** | Home · Recent | ZettelFlow Home + Notes history |
+| **Home** | Home · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + Notes history |
 | **Health** | Health · Dashboard · Timeline · Momentum | Slip-box health + Knowledge dashboard + Evolution timeline + Thinking heatmap |
 | **Discovery** | Connections · Forgotten · Questions · Challenges | Discovery + Resurface + Open questions + Evidence map |
 | **Graph** | Map · Navigate | Living knowledge map + Concept navigation (*Reasoning* is a deferred mode) |

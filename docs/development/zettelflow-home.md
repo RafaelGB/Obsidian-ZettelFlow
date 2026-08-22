@@ -24,6 +24,13 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
 - **Suggested connections** — the top [morning discoveries](morning-discovery.md) (#163): unlinked
   notes that share context.
 
+- **What to do next** *(#273)* — the top ~5 [`KnowledgeRecommendation`](../architecture/knowledge-state.md)s
+  by priority (`resolve a contradiction`, `add a source`, `connect this idea`, …), each derived purely
+  from the model. A row with a target note is **click-to-navigate** (opens that note); a vault-wide
+  suggestion (add examples / ask questions) is an insight line with no click; when there's nothing
+  actionable it shows **"you're all caught up"**. This is *navigation, not execution* — clicking never
+  writes; running a recommendation's command from Home is a deferred follow-up.
+
 Every note is one click from opening. Home **writes nothing** and is fully **offline**.
 
 ## The "next session" heuristic

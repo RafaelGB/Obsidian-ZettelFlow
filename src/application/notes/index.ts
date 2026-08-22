@@ -6,6 +6,9 @@ export { ContentDTO } from './model/ContentDTO';
 
 export { NoteDTO } from './model/NoteDTO';
 
+export { notePersistenceForPath } from './model/NotePersistence';
+export type { NotePersistence } from './model/NotePersistence';
+
 export { assembleNotePreview } from './previewAssembly';
 export type {
     AssembleNotePreviewInput,

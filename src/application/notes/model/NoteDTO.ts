@@ -2,8 +2,9 @@ import { FinalElement } from "../typing";
 import { log } from "architecture";
 import { Action } from "architecture/api";
 import { FileService } from "architecture/plugin";
+import type { NotePersistence } from "./NotePersistence";
 
-export class NoteDTO {
+export class NoteDTO implements NotePersistence {
     private title = "";
     private paths = new Map<number, string>();
     private savedActions = new Map<number, FinalElement>();

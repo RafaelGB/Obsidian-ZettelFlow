@@ -1,8 +1,7 @@
 import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { activateSidebarView } from "architecture/plugin";
-import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
+import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
 
 export class SlipboxHealthViewComponent extends PluginComponent {
     constructor(plugin: ZettelFlow) {
@@ -16,7 +15,7 @@ export class SlipboxHealthViewComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-slipbox-health",
             name: t("command_show_slipbox_health"),
-            callback: () => void activateSidebarView(this.plugin.app, SlipboxHealthView.NAME),
+            callback: () => openSurfaceForCommand(this.plugin.app, "show-slipbox-health"),
         });
     }
 }

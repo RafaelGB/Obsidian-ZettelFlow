@@ -1,4 +1,4 @@
-import { ItemView, MarkdownView, WorkspaceLeaf } from "obsidian";
+import { App, MarkdownView } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import {
@@ -8,7 +8,8 @@ import {
     pickDailySpark,
     rankResurfacedNotes,
 } from "application/notes/resurfaceRanking";
-import { buildResurfaceInputs } from "./resurfaceInputs";
+import { buildResurfaceInputs } from "architecture/components/core/resurface/resurfaceInputs";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const THROTTLE_MS = 400;
 const SPARK_COUNT = 3;
@@ -16,18 +17,11 @@ const SPARK_COUNT = 3;
 type ViewState = "no-active-note" | "ranking" | "ready" | "no-relations" | "spark" | "error";
 
 /**
- * Connection resurfacing sidebar (Feature 6, "talk to your slip-box"). Given the active markdown
- * note, surfaces a bounded, ranked list of older/related notes worth revisiting — each with a
- * plain-language reason and one-click open + insert-link. Refreshes (throttled) as the active note
- * changes; also offers an on-demand "daily spark" biased toward notes not touched in a while.
- *
- * Structure mirrors {@link ../slipboxHealth/SlipboxHealthView}: an ItemView with explicit states,
- * throttled recompute registered via `this.registerEvent`, a pure ranking module split out
- * ({@link ../../../../application/notes/resurfaceRanking}), and `c()`/`createEl` rendering.
+ * The **Forgotten** mode of the Discovery surface (#272, formerly `ResurfaceView`): given the active
+ * note, a bounded ranked list of older/related notes worth revisiting — each with a plain-language
+ * reason and one-click open + insert-link — plus an on-demand "daily spark". Render byte-identical.
  */
-export class ResurfaceView extends ItemView {
-    static readonly NAME = "zettelflow-resurface";
-
+export class ResurfaceRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "no-active-note";
     private ranked: ResurfacedNote[] = [];
     private sparkResults: ResurfaceCandidate[] = [];
@@ -35,37 +29,20 @@ export class ResurfaceView extends ItemView {
     private activePath: string | null = null;
     private throttleTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return ResurfaceView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("resurface_view_title");
-    }
-
-    getIcon(): string {
-        return "sparkles";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerWorkspaceListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.throttleTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
-    /**
-     * Recompute only on active-note change (active-leaf-change + file-open), throttled so a burst
-     * of changes recomputes at most once. Editing a note's body is deliberately NOT a trigger — it
-     * does not change the active note's tags/links in a way we resurface on.
-     */
     private registerWorkspaceListeners(): void {
         const throttled = () => {
             window.clearTimeout(this.throttleTimer);
@@ -123,10 +100,10 @@ export class ResurfaceView extends ItemView {
     }
 
     render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
+        const host = this.container;
+        host.empty();
 
-        const container = contentEl.createDiv({ cls: c("resurface") });
+        const container = host.createDiv({ cls: c("resurface") });
 
         const header = container.createDiv({ cls: c("resurface-header") });
         header.createEl("h4", { text: t("resurface_view_title"), cls: c("resurface-title") });
@@ -135,13 +112,13 @@ export class ResurfaceView extends ItemView {
             cls: c("resurface-refresh-button"),
             attr: { "aria-label": t("resurface_refresh_button") },
         });
-        refreshBtn.addEventListener("click", () => this.recompute());
+        this.registerDomEvent(refreshBtn, "click", () => this.recompute());
         const sparkBtn = header.createEl("button", {
             text: t("resurface_spark_button"),
             cls: c("resurface-spark-button"),
             attr: { "aria-label": t("resurface_spark_button") },
         });
-        sparkBtn.addEventListener("click", () => this.showDailySpark());
+        this.registerDomEvent(sparkBtn, "click", () => this.showDailySpark());
 
         switch (this.state) {
             case "ranking":
@@ -190,7 +167,7 @@ export class ResurfaceView extends ItemView {
         const main = row.createDiv({ cls: c("resurface-item-main") });
         const nameEl = main.createSpan({ text: basename, cls: c("resurface-item-name") });
         nameEl.setAttribute("title", path);
-        nameEl.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
+        this.registerDomEvent(nameEl, "click", () => void this.app.workspace.openLinkText(path, "", false));
         if (reason) {
             main.createSpan({ text: reason, cls: c("resurface-item-reason") });
         }
@@ -201,24 +178,22 @@ export class ResurfaceView extends ItemView {
             cls: c("resurface-open-button"),
             attr: { "aria-label": t("resurface_open") },
         });
-        openBtn.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
+        this.registerDomEvent(openBtn, "click", () => void this.app.workspace.openLinkText(path, "", false));
 
         const insertBtn = actions.createEl("button", {
             text: t("resurface_insert_link"),
             cls: c("resurface-insert-button"),
             attr: { "aria-label": t("resurface_insert_link") },
         });
-        insertBtn.addEventListener("click", () => this.insertLink(basename));
+        this.registerDomEvent(insertBtn, "click", () => this.insertLink(basename));
     }
 
-    /** Insert a `[[basename]]` wikilink into the active editor at the cursor. Guards when none. */
     private insertLink(basename: string): void {
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
         view.editor.replaceSelection(`[[${basename}]]`);
     }
 
-    /** Build the plain-language reason line from the ranked reasons. */
     private reasonText(reasons: ResurfaceReason[]): string {
         return reasons.map((reason) => this.reasonPhrase(reason)).join(" · ");
     }
@@ -231,7 +206,6 @@ export class ResurfaceView extends ItemView {
         if (reason.kind === "backlink") {
             return t("resurface_reason_backlink");
         }
-        // "link": direct link (empty shared) vs shared outgoing target.
         return reason.shared.length > 0 ? t("resurface_reason_shared_link") : t("resurface_reason_link");
     }
 }

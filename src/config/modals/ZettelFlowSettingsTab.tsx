@@ -5,7 +5,7 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
-import { FILE_EXTENSIONS, FileService, activateSidebarView } from "architecture/plugin";
+import { FILE_EXTENSIONS, FileService, activateSurface } from "architecture/plugin";
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager } from "architecture/api";
@@ -26,17 +26,6 @@ import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
-import { ThinkingHeatmapView } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapView";
-import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
-import { KnowledgeMapView } from "architecture/components/core/knowledgeMap/KnowledgeMapView";
-import { ConceptNavView } from "architecture/components/core/conceptNav/ConceptNavView";
-import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
-import { EvolutionTimelineView } from "architecture/components/core/timeline/EvolutionTimelineView";
-import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
-import { KnowledgeDashboardView } from "architecture/components/core/knowledgeDashboard/KnowledgeDashboardView";
-import { ZettelFlowHomeView } from "architecture/components/core/home/ZettelFlowHomeView";
-import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
-import { ResurfaceView } from "architecture/components/core/resurface/ResurfaceView";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -475,170 +464,49 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             setting.setClass(c("toolkit-intro"));
                         },
                     },
-                    // Launchers: open the sidebar views / modal without the command palette.
+                    // Launchers: open the four surfaces (#272) without the command palette.
                     {
-                        name: t("settings_toolkit_health_name"),
+                        name: t("surface_home_title"),
+                        desc: t("settings_toolkit_home_desc"),
+                        render: (setting) => {
+                            setting.addButton((btn) =>
+                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
+                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-home"))
+                            );
+                            addDocsButton(setting, TOOLKIT_DOCS.home);
+                        },
+                    },
+                    {
+                        name: t("surface_health_title"),
                         desc: t("settings_toolkit_health_desc"),
                         render: (setting) => {
                             setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, SlipboxHealthView.NAME)
-                                    )
+                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
+                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-health"))
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.health);
                         },
                     },
                     {
-                        name: t("settings_toolkit_resurface_name"),
-                        desc: t("settings_toolkit_resurface_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, ResurfaceView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.resurface);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_heatmap_name"),
-                        desc: t("settings_toolkit_heatmap_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, ThinkingHeatmapView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.heatmap);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_discoveries_name"),
+                        name: t("surface_discovery_title"),
                         desc: t("settings_toolkit_discoveries_desc"),
                         render: (setting) => {
                             setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, DiscoveriesView.NAME)
-                                    )
+                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
+                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-discovery"))
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.discoveries);
                         },
                     },
                     {
-                        name: t("settings_toolkit_map_name"),
+                        name: t("surface_graph_title"),
                         desc: t("settings_toolkit_map_desc"),
                         render: (setting) => {
                             setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, KnowledgeMapView.NAME)
-                                    )
+                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
+                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-graph"))
                             );
                             addDocsButton(setting, TOOLKIT_DOCS.map);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_concept_nav_name"),
-                        desc: t("settings_toolkit_concept_nav_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, ConceptNavView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.conceptNav);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_open_questions_name"),
-                        desc: t("settings_toolkit_open_questions_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, OpenQuestionsView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.openQuestions);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_timeline_name"),
-                        desc: t("settings_toolkit_timeline_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, EvolutionTimelineView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.timeline);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_evidence_map_name"),
-                        desc: t("settings_toolkit_evidence_map_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, EvidenceMapView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.evidenceMap);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_dashboard_name"),
-                        desc: t("settings_toolkit_dashboard_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, KnowledgeDashboardView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.dashboard);
-                        },
-                    },
-                    {
-                        name: t("settings_toolkit_home_name"),
-                        desc: t("settings_toolkit_home_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("settings_toolkit_open_button"))
-                                    .setCta()
-                                    .onClick(() =>
-                                        void activateSidebarView(plugin.app, ZettelFlowHomeView.NAME)
-                                    )
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.home);
                         },
                     },
                     // Learn-more rows: features reached via the wizard / commands, doc link only.

@@ -17,18 +17,12 @@ import { log } from 'architecture';
 import { t } from 'architecture/lang';
 import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
-import { HistoryView } from 'architecture/components/core/historyView/HistoryView';
-import { SlipboxHealthView } from 'architecture/components/core/slipboxHealth/SlipboxHealthView';
-import { ResurfaceView } from 'architecture/components/core/resurface/ResurfaceView';
-import { ThinkingHeatmapView } from 'architecture/components/core/thinkingHeatmap/ThinkingHeatmapView';
-import { DiscoveriesView } from 'architecture/components/core/discoveries/DiscoveriesView';
-import { KnowledgeMapView } from 'architecture/components/core/knowledgeMap/KnowledgeMapView';
-import { ConceptNavView } from 'architecture/components/core/conceptNav/ConceptNavView';
-import { OpenQuestionsView } from 'architecture/components/core/openQuestions/OpenQuestionsView';
-import { EvolutionTimelineView } from 'architecture/components/core/timeline/EvolutionTimelineView';
-import { EvidenceMapView } from 'architecture/components/core/evidenceMap/EvidenceMapView';
-import { KnowledgeDashboardView } from 'architecture/components/core/knowledgeDashboard/KnowledgeDashboardView';
-import { ZettelFlowHomeView } from 'architecture/components/core/home/ZettelFlowHomeView';
+import { HomeSurfaceView } from 'architecture/components/core/surface/HomeSurfaceView';
+import { HealthSurfaceView } from 'architecture/components/core/surface/HealthSurfaceView';
+import { DiscoverySurfaceView } from 'architecture/components/core/surface/DiscoverySurfaceView';
+import { GraphSurfaceView } from 'architecture/components/core/surface/GraphSurfaceView';
+import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
+import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
@@ -97,18 +91,15 @@ export default class ZettelFlow extends Plugin {
 
 	registerViews() {
 		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
-		this.registerView(HistoryView.NAME, (leaf) => new HistoryView(leaf, this));
-		this.registerView(SlipboxHealthView.NAME, (leaf) => new SlipboxHealthView(leaf));
-		this.registerView(ResurfaceView.NAME, (leaf) => new ResurfaceView(leaf));
-		this.registerView(ThinkingHeatmapView.NAME, (leaf) => new ThinkingHeatmapView(leaf));
-		this.registerView(DiscoveriesView.NAME, (leaf) => new DiscoveriesView(leaf));
-		this.registerView(KnowledgeMapView.NAME, (leaf) => new KnowledgeMapView(leaf));
-		this.registerView(ConceptNavView.NAME, (leaf) => new ConceptNavView(leaf));
-		this.registerView(OpenQuestionsView.NAME, (leaf) => new OpenQuestionsView(leaf));
-		this.registerView(EvolutionTimelineView.NAME, (leaf) => new EvolutionTimelineView(leaf));
-		this.registerView(EvidenceMapView.NAME, (leaf) => new EvidenceMapView(leaf));
-		this.registerView(KnowledgeDashboardView.NAME, (leaf) => new KnowledgeDashboardView(leaf));
-		this.registerView(ZettelFlowHomeView.NAME, (leaf) => new ZettelFlowHomeView(leaf));
+		// The four consolidated surfaces (#272, epic #268 Phase 7).
+		this.registerView("zettelflow-home", (leaf) => new HomeSurfaceView(leaf, this));
+		this.registerView("zettelflow-health", (leaf) => new HealthSurfaceView(leaf));
+		this.registerView("zettelflow-discovery", (leaf) => new DiscoverySurfaceView(leaf));
+		this.registerView("zettelflow-graph", (leaf) => new GraphSurfaceView(leaf));
+		// Back-compat: the 11 retired view types redirect a restored/pinned leaf to its surface + mode.
+		for (const legacyType of Object.keys(LEGACY_VIEW_TARGETS)) {
+			this.registerView(legacyType, (leaf) => new LegacyRedirectView(leaf, legacyType));
+		}
 		try {
 			this.registerExtensions(CodeView.EXTENSIONS, CodeView.NAME);
 		} catch (e) {

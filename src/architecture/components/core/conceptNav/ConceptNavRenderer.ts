@@ -1,8 +1,9 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex, knowledgeQueries, type KnowledgeModel } from "architecture/knowledge";
 import { ConceptNeighbors, conceptNeighbors } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
 
@@ -14,47 +15,31 @@ function basename(path: string): string {
 }
 
 /**
- * **Concept navigation** (#166): walk the vault like a wiki you wrote. A focus note shows its typed
- * neighbours (outgoing and incoming); clicking one **re-focuses** the pane on it. With no focus it
- * seeds from the active indexed note, else the vault's hubs. Auto-updates via debounced listeners
- * (mirroring the knowledge-map pane). Read-only — `createEl`/`c()` only; no innerHTML/inline styles.
+ * The **Navigate** mode of the Graph surface (#272, formerly `ConceptNavView`, #166): walk the vault
+ * like a wiki you wrote — a focus note shows its typed neighbours; clicking one re-focuses the pane.
+ * With no focus it seeds from the active note, else the vault's hubs. Read-only; render byte-identical.
  */
-export class ConceptNavView extends ItemView {
-    static readonly NAME = "zettelflow-concept-nav";
-
+export class ConceptNavRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private model: KnowledgeModel | null = null;
     private focus: string | null = null;
-    /** Set when the user deliberately returns to the hub list — suppresses active-note re-seeding. */
     private userChoseHubs = false;
     private neighbors: ConceptNeighbors | null = null;
     private entryHubs: string[] = [];
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return ConceptNavView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("concept_nav_view_title");
-    }
-
-    getIcon(): string {
-        return "waypoints";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -78,8 +63,6 @@ export class ConceptNavView extends ItemView {
             }
             const start = Date.now();
             this.model = index.getModel();
-            // Drop a focus whose note is gone; otherwise seed from the active note when unfocused,
-            // unless the user deliberately went back to the hub list (then keep them there).
             if (this.focus && !this.model.get(this.focus)) this.focus = null;
             if (!this.focus && !this.userChoseHubs) {
                 const active = this.app.workspace.getActiveFile();
@@ -105,7 +88,6 @@ export class ConceptNavView extends ItemView {
         }
     }
 
-    /** Re-focus the pane on a note (the hub→neighbour walk) without re-reading the index. */
     private focusOn(path: string): void {
         this.focus = path;
         this.userChoseHubs = false;
@@ -116,9 +98,9 @@ export class ConceptNavView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("concept-nav") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("concept-nav") });
 
         const header = container.createDiv({ cls: c("concept-nav-header") });
         header.createEl("h4", { text: t("concept_nav_view_title"), cls: c("concept-nav-title") });

@@ -1,50 +1,37 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 import type { Snapshot } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
 
 type ViewState = "loading" | "ready" | "empty" | "disabled" | "error";
 
 /**
- * **Evolution timeline** (#168): the conceptual history of the ACTIVE note — the sequence of its
- * lifecycle state + claim texts captured on meaningful change, oldest→newest. Reads the persisted
- * {@link ConceptualTimeline} snapshots; writes nothing. Auto-updates on note switch / edit via
- * debounced listeners. `createEl`/`c()` only; no innerHTML/inline styles.
+ * The **Timeline** mode of the Health surface (#272, formerly `EvolutionTimelineView`, #168): the
+ * conceptual history of the ACTIVE note — its lifecycle state + claim texts captured on meaningful
+ * change, oldest→newest. Reads persisted {@link ConceptualTimeline} snapshots; writes nothing.
+ * Auto-updates on note switch / edit via debounced listeners. Render byte-identical to the old view.
  */
-export class EvolutionTimelineView extends ItemView {
-    static readonly NAME = "zettelflow-evolution-timeline";
-
+export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "loading";
     private snapshots: Snapshot[] = [];
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return EvolutionTimelineView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("evolution_timeline_view_title");
-    }
-
-    getIcon(): string {
-        return "milestone";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -78,9 +65,9 @@ export class EvolutionTimelineView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("evolution-timeline") });
+        const root = this.container;
+        root.empty();
+        const container = root.createDiv({ cls: c("evolution-timeline") });
 
         const header = container.createDiv({ cls: c("evolution-timeline-header") });
         header.createEl("h4", { text: t("evolution_timeline_view_title"), cls: c("evolution-timeline-title") });
@@ -89,7 +76,7 @@ export class EvolutionTimelineView extends ItemView {
             cls: c("evolution-timeline-refresh"),
             attr: { "aria-label": t("evolution_timeline_refresh_button") },
         });
-        refresh.addEventListener("click", () => this.recompute());
+        this.registerDomEvent(refresh, "click", () => this.recompute());
 
         if (this.state === "loading") {
             container.createDiv({ cls: c("evolution-timeline-status"), text: t("evolution_timeline_loading") });

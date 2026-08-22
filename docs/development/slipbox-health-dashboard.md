@@ -21,13 +21,17 @@ existing leaf instead of opening a second one.
 
 ## Note classification
 
-A single in-memory pass over `metadataCache.resolvedLinks` is performed per recompute:
+A single pass over the **KnowledgeModel's typed edges** is performed per recompute (#274):
 
-- **Orphan** — the note has zero outgoing links (self-links excluded).
-- **Dead-end** — no other note in the vault links to it.
+- **Orphan** — the note has zero outgoing edges (self-edges excluded).
+- **Dead-end** — no other note points an edge at it.
 - A note may be both.
 
-No file content is read during classification; the scan uses only the already-indexed link graph.
+The model's edges include **semantic relations** (`up::`, `supports`, inline `key:: [[X]]`) on top of
+raw wikilinks — so a note connected only semantically is **not** flagged. This is an intended change
+from the earlier raw-`resolvedLinks` scan: orphan/dead-end counts drop for vaults that use relations,
+and are unchanged for pure-wikilink vaults. Read-only, offline; classification waits for the index to
+be `ready`.
 
 ## Actions
 
@@ -90,11 +94,11 @@ classification is from model signals only (no note-body NLP).
 ```
 SlipboxHealthView (ItemView)
   registers debounced vault/cache listeners
-  recompute() → classifyHealth(LinkGraph) → HealthResult
+  recompute() → classifyHealth(model) → HealthResult
   render() → 4 UI states (createEl/empty, c() classes, t() i18n)
 
 classifyHealth.ts (pure, no Obsidian imports, unit-tested)
-  builds backlink index from resolvedLinks in a single pass
+  scans the model's in/out edges in a single pass
   returns { orphans, deadEnds, totalScanned, durationMs }
 
 SlipboxHealthViewComponent (PluginComponent)

@@ -36,8 +36,9 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 
 - **🏠 ZettelFlow Home** — *open ZettelFlow, not Obsidian.* A single front door: a greeting and
   "you've been thinking for N days", your new ideas, main concepts, notes that deserve a review,
-  suggested connections, and the **next recommended session** ("Continue *Spring Events*"). Read-only,
-  offline — the state of your mind at a glance.
+  suggested connections, a **"what to do next"** list of prioritized recommendations (click to jump to
+  the note), and the **next recommended session** ("Continue *Spring Events*"). Read-only, offline —
+  the state of your mind at a glance.
 - **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
   suggested connections to existing notes so you can link before you file.
 - **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
@@ -45,6 +46,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   source note. It organizes what you already know — graph-derived, offline, no AI.
 - **🔑 Zettel ID action** — stamp every note with a stable unique identifier (sortable
   timestamp or Luhmann-style **Folgezettel** branching like `21 → 21a → 21a1`).
+> **One front door, four surfaces.** The panels below live in **four surfaces** — **Home**, **Health**,
+> **Discovery** and **Graph** — each with modes behind a segmented control, opened from a single
+> ribbon button and as normal Obsidian tabs. Nothing is lost; every panel is a mode. See
+> [The four surfaces](https://rafaelgb.github.io/Obsidian-ZettelFlow/architecture/surfaces/).
+
 - **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes,
   a **Knowledge Debt score** (0–100) with a severity bar and a per-category drill-down
   (unreferenced · dangling · unsourced · open questions) each one click from a fix, and a
@@ -143,7 +149,7 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 
 1. **Design** — Create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
 2. **Configure** — Right-click any canvas node → *Edit ZettelFlow step* to add actions (prompt, calendar, selector, tags…).
-3. **Run** — Click the ribbon icon (or use the command) to open the wizard. ZettelFlow walks the canvas graph and builds the note.
+3. **Run** — Click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to the *Open workflow* command). ZettelFlow walks the canvas graph and builds the note.
 
 ![Canvas example](docs/resources/readme/Canvas-Sample.png)
 ![Wizard demo](docs/resources/readme/demogif.gif)
@@ -155,16 +161,16 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 **Fastest path:**
 
 1. Install **ZettelFlow** from the Obsidian community plugin browser.
-2. Click the ZettelFlow ribbon icon (or run *Open ZettelFlow* from the command palette).
+2. Click the ZettelFlow ribbon button (or run *Open ZettelFlow* from the command palette).
 3. On the welcome screen, click **Create example flow** — ZettelFlow creates a sample canvas, sets it as your flow canvas, and opens it.
-4. Click the ribbon icon again to run your first wizard.
+4. Click the ribbon button → **Create note** to run your first wizard.
 
 **Manual path (build your own flow):**
 
 1. Create a `.canvas` file (e.g. `flows/daily-note.canvas`).
 2. In **Settings → ZettelFlow**, set that canvas as the "new notes canvas".
 3. Add a note file to the canvas, right-click it → *Create managed step*, enable **Root**.
-4. Click the ribbon icon — your first wizard run.
+4. Click the ribbon button → **Create note** — your first wizard run.
 
 Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [Discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).
 
@@ -186,7 +192,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
-| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, and the deterministic next recommended session. Read-only, offline. |
+| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, a **"what to do next"** prioritized recommendation list (click to navigate), and the deterministic next recommended session. Read-only, offline. |
 | **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |

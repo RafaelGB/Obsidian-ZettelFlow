@@ -1,0 +1,47 @@
+// Surface shell + segmented mode control (#272, epic #268 Phase 7). Uses Obsidian theme variables
+// only — no hardcoded colours — so it inherits light/dark themes.
+.zettelkasten-flow__surface {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+
+    .zettelkasten-flow__surface-modes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--size-2-1);
+        padding: var(--size-4-2) var(--size-4-3);
+        border-bottom: 1px solid var(--background-modifier-border);
+        position: sticky;
+        top: 0;
+        background-color: var(--background-primary);
+        z-index: 1;
+    }
+
+    .zettelkasten-flow__surface-mode-tab {
+        padding: var(--size-2-2) var(--size-4-2);
+        border-radius: var(--radius-s);
+        background-color: transparent;
+        color: var(--text-muted);
+        border: none;
+        cursor: pointer;
+        font-size: var(--font-ui-small);
+
+        &:hover {
+            background-color: var(--background-modifier-hover);
+            color: var(--text-normal);
+        }
+
+        &.zettelkasten-flow__surface-mode-tab--active {
+            background-color: var(--background-modifier-active-hover);
+            color: var(--text-accent);
+            font-weight: var(--font-semibold);
+        }
+    }
+
+    .zettelkasten-flow__surface-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+}

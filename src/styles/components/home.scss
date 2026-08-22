@@ -110,3 +110,23 @@
 .zettelkasten-flow__home-note-name:hover {
     text-decoration: underline;
 }
+
+// "What to do next" recommendation rows (#273).
+.zettelkasten-flow__home-recommendation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    align-items: baseline;
+    padding: var(--size-2-1) 0;
+
+    .zettelkasten-flow__home-recommendation-reason {
+        font-weight: var(--font-semibold);
+        color: var(--text-accent);
+    }
+}
+
+.zettelkasten-flow__home-recommendation-clear {
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--size-2-1) 0;
+}

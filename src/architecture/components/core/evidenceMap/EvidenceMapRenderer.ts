@@ -1,8 +1,9 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { EvidenceEntry, EvidenceMap, buildEvidenceMap } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
 
@@ -14,41 +15,27 @@ function basename(path: string): string {
 }
 
 /**
- * **Evidence map** (#169, experimental): a transparent, grounded synthesis of the ACTIVE note from
- * your own graph — what supports it, what contradicts it, the sourced evidence, and the gaps. Every
- * row links to a real note; nothing is invented, no AI. Read-only; `createEl`/`c()` only.
+ * The **Challenges** mode of the Discovery surface (#272, formerly `EvidenceMapView`, #169): a grounded
+ * synthesis of the ACTIVE note from your own graph — what supports it, what contradicts it, the sourced
+ * evidence and the gaps. Read-only, no AI; render byte-identical to the old view.
  */
-export class EvidenceMapView extends ItemView {
-    static readonly NAME = "zettelflow-evidence-map";
-
+export class EvidenceMapRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private map: EvidenceMap | null = null;
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return EvidenceMapView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("evidence_map_view_title");
-    }
-
-    getIcon(): string {
-        return "scale";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -100,9 +87,9 @@ export class EvidenceMapView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("evidence-map") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("evidence-map") });
 
         const header = container.createDiv({ cls: c("evidence-map-header") });
         header.createEl("h4", { text: t("evidence_map_view_title"), cls: c("evidence-map-title") });
@@ -111,7 +98,7 @@ export class EvidenceMapView extends ItemView {
             cls: c("evidence-map-refresh"),
             attr: { "aria-label": t("evidence_map_refresh_button") },
         });
-        refresh.addEventListener("click", () => this.recompute());
+        this.registerDomEvent(refresh, "click", () => this.recompute());
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("evidence-map-status"), text: t("evidence_map_indexing") });
@@ -161,7 +148,7 @@ export class EvidenceMapView extends ItemView {
             const meta = row.createDiv({ cls: c("evidence-map-meta") });
             const note = meta.createSpan({ text: basename(entry.note), cls: c("evidence-map-note") });
             note.setAttribute("title", entry.note);
-            note.addEventListener("click", () => void this.app.workspace.openLinkText(entry.note, "", false));
+            this.registerDomEvent(note, "click", () => void this.app.workspace.openLinkText(entry.note, "", false));
             meta.createSpan({ text: ` · ${entry.source.ref}`, cls: c("evidence-map-source") });
         }
     }
@@ -193,6 +180,6 @@ export class EvidenceMapView extends ItemView {
         const row = list.createDiv({ cls: c("evidence-map-row") });
         const name = row.createSpan({ text: basename(path), cls: c("evidence-map-row-name") });
         name.setAttribute("title", path);
-        name.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
+        this.registerDomEvent(name, "click", () => void this.app.workspace.openLinkText(path, "", false));
     }
 }

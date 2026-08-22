@@ -18,9 +18,11 @@ Counted from source on `main`: `addCommand` ids, `registerView` names, the commu
 
 | Surface | Count | Reality |
 |---|---|---|
-| Ribbon | 1 | "Create a new Zettel Note" — runs the note-creation flow only. |
-| Sidebar views | 13 | Each opened by a `show-*` command. **No ribbon/menu entry** — command-palette-only. |
+| Ribbon | 1 | One all-in-one **"Open ZettelFlow"** button; its menu leads with **Create note** and lists the surfaces (#271). Note-creation is also a hotkey-bindable command (`open-workflow`). |
+| Sidebar views | 13 | Reachable from the one ribbon menu (#231) and each `show-*` command; opened as main-area **tabs** (#270). |
 | Commands | ~23 | ~12 are just `show-<a-view>`; the rest are actions + install paths. |
+
+> **Update (#268 Phase 7):** the two ribbon icons were unified into one all-in-one button (#271), views now open as normal tabs (#270), and the ~12 sidebar views are being collapsed into 4 surfaces with modes (#272). This section describes the pre-consolidation baseline.
 
 **Finding F1.** The 13 views have *no discoverable entry point* — a user must know 12 command names.
 → Phase 2: **Home** becomes the front door that surfaces/links them.

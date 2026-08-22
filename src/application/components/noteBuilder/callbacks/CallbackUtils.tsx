@@ -9,7 +9,7 @@ import { ObsidianApi } from "architecture";
 import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
-import { HistoryView } from "architecture/components/core/historyView/HistoryView";
+import { recordHistory } from "architecture/components/core/historyView/recordHistory";
 import { evaluateEdgeGate, EvalContext } from "application/notes/conditionEvaluator";
 import { isWaitNode, WaitMachine } from "architecture/plugin/workflow";
 import { WaitPromptModal } from "zettelkasten/modals/WaitPromptModal";
@@ -151,7 +151,7 @@ export async function manageElement(
       .then(async (path) => {
         actions.setActiveContext("", "");
         if (!modal.isEditor()) {
-          HistoryView.record(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
+          recordHistory(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
             ? info.flow.canvasPath
             : "");
           void FileService.openFile(path);

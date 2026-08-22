@@ -1,8 +1,9 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex, type KnowledgeModel } from "architecture/knowledge";
 import { OpenQuestion, openQuestions, proposeAnswers } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
 
@@ -14,43 +15,28 @@ function basename(path: string): string {
 }
 
 /**
- * **Open questions** (#167): lists every unanswered question across the vault — its asker(s) and the
- * notes most likely to answer it (the #154 relatedness heuristic). Read-only: rows open notes, the
- * proposed `supports` link is shown but not written. Auto-updates via debounced listeners (mirroring
- * the concept-navigation pane). `createEl`/`c()` only; no innerHTML/inline styles.
+ * The **Questions** mode of the Discovery surface (#272, formerly `OpenQuestionsView`, #167): every
+ * unanswered question across the vault — its asker(s) and the notes most likely to answer it. Read-only;
+ * render byte-identical to the old view.
  */
-export class OpenQuestionsView extends ItemView {
-    static readonly NAME = "zettelflow-open-questions";
-
+export class OpenQuestionsRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private model: KnowledgeModel | null = null;
     private questions: OpenQuestion[] = [];
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return OpenQuestionsView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("open_questions_view_title");
-    }
-
-    getIcon(): string {
-        return "circle-help";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -85,9 +71,9 @@ export class OpenQuestionsView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("open-questions") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("open-questions") });
 
         const header = container.createDiv({ cls: c("open-questions-header") });
         header.createEl("h4", { text: t("open_questions_view_title"), cls: c("open-questions-title") });
@@ -96,7 +82,7 @@ export class OpenQuestionsView extends ItemView {
             cls: c("open-questions-refresh"),
             attr: { "aria-label": t("open_questions_refresh_button") },
         });
-        refresh.addEventListener("click", () => this.recompute());
+        this.registerDomEvent(refresh, "click", () => this.recompute());
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("open-questions-status"), text: t("open_questions_indexing") });
@@ -119,7 +105,7 @@ export class OpenQuestionsView extends ItemView {
         const title = section.createEl("h5", { cls: c("open-questions-q") });
         const name = title.createSpan({ text: basename(question.path), cls: c("open-questions-q-name") });
         name.setAttribute("title", question.path);
-        name.addEventListener("click", () => void this.app.workspace.openLinkText(question.path, "", false));
+        this.registerDomEvent(name, "click", () => void this.app.workspace.openLinkText(question.path, "", false));
 
         const asked = section.createDiv({ cls: c("open-questions-line") });
         asked.createSpan({ text: t("open_questions_asked_by"), cls: c("open-questions-label") });
@@ -140,6 +126,6 @@ export class OpenQuestionsView extends ItemView {
     private renderRef(list: HTMLElement, path: string): void {
         const name = list.createSpan({ text: basename(path), cls: c("open-questions-ref") });
         name.setAttribute("title", path);
-        name.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
+        this.registerDomEvent(name, "click", () => void this.app.workspace.openLinkText(path, "", false));
     }
 }

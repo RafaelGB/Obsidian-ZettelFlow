@@ -1,7 +1,6 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { ObsidianApi } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
     computeKnowledgeDebt,
@@ -17,6 +16,7 @@ import {
     HealthNote,
     HealthResult,
 } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
 
@@ -52,39 +52,31 @@ const BALANCE_SUGGESTIONS: Record<BalanceSuggestion, LocaleKey> = {
 
 type ViewState = "indexing" | "ready" | "empty" | "error";
 
-export class SlipboxHealthView extends ItemView {
-    static readonly NAME = "zettelflow-slipbox-health";
-
+/**
+ * The **Health** mode of the Health surface (#272, formerly `SlipboxHealthView`): orphan/dead-end
+ * scan + the #159 Knowledge Debt score with one-click fixes + the #161 Knowledge balance read-out.
+ * Render byte-identical to the old view; only the `ItemView` shell was dropped so it mounts inside the
+ * surface. Debounced auto-refresh on vault change.
+ */
+export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private result: HealthResult | null = null;
     private debt: KnowledgeDebt | null = null;
     private balance: KnowledgeBalance | null = null;
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return SlipboxHealthView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("slipbox_health_view_title");
-    }
-
-    getIcon(): string {
-        return "stethoscope";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
-        await this.recompute();
+        void this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -99,38 +91,34 @@ export class SlipboxHealthView extends ItemView {
         this.registerEvent(this.app.vault.on("delete", debounced));
     }
 
-    async recompute(): Promise<void> {
-        this.state = "indexing";
-        this.render();
-
+    recompute(): void {
         try {
-            const cache = ObsidianApi.metadataCache();
-            const resolved = cache.resolvedLinks;
-            const unresolvedLinks = (cache as unknown as { unresolvedLinks: Record<string, Record<string, number>> }).unresolvedLinks ?? {};
-            const markdownPaths = this.app.vault.getMarkdownFiles().map((f) => f.path);
+            const index = KnowledgeIndex.getInstance();
+            // Health, debt and balance all read the same model — wait until it is built (no fallback).
+            if (index.status !== "ready") {
+                this.state = "indexing";
+                this.result = null;
+                this.debt = null;
+                this.balance = null;
+                this.render();
+                return;
+            }
 
-            this.result = classifyHealth({ resolvedLinks: resolved, unresolvedLinks, markdownPaths });
+            const model = index.getModel();
+            this.result = classifyHealth(model);
             this.state = (this.result.orphans.length === 0 && this.result.deadEnds.length === 0)
                 ? "empty"
                 : "ready";
-
-            const index = KnowledgeIndex.getInstance();
-            if (index.status === "ready") {
-                const model = index.getModel();
-                this.debt = computeKnowledgeDebt(model);
-                this.balance = computeKnowledgeBalance(model);
-            } else {
-                this.debt = null;
-                this.balance = null;
-            }
+            this.debt = computeKnowledgeDebt(model);
+            this.balance = computeKnowledgeBalance(model);
 
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +
                 `scanned=${this.result.totalScanned}, ` +
                 `orphans=${this.result.orphans.length}, ` +
                 `dead-ends=${this.result.deadEnds.length}, ` +
-                `debt=${this.debt ? this.debt.score : "n/a"}, ` +
-                `balance=${this.balance ? this.balance.total : "n/a"}`
+                `debt=${this.debt.score}, ` +
+                `balance=${this.balance.total}`
             );
         } catch (err) {
             this.state = "error";
@@ -141,10 +129,10 @@ export class SlipboxHealthView extends ItemView {
     }
 
     render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
+        const host = this.container;
+        host.empty();
 
-        const container = contentEl.createDiv({ cls: c("slipbox-health") });
+        const container = host.createDiv({ cls: c("slipbox-health") });
 
         // Header
         const header = container.createDiv({ cls: c("slipbox-health-header") });
@@ -154,7 +142,7 @@ export class SlipboxHealthView extends ItemView {
             cls: c("slipbox-health-refresh-button"),
             attr: { "aria-label": t("slipbox_health_refresh_button") },
         });
-        refreshBtn.addEventListener("click", () => void this.recompute());
+        this.registerDomEvent(refreshBtn, "click", () => void this.recompute());
 
         // State rendering
         switch (this.state) {
@@ -209,8 +197,6 @@ export class SlipboxHealthView extends ItemView {
             cls: [c("knowledge-debt-bar-fill"), c(`knowledge-debt-bar-fill--${severityBucket(this.debt.score)}`)].join(" "),
         });
 
-        // Gate the "clean" message on real emptiness, not the rounded score: a tiny amount of debt
-        // in a large vault can round to 0 yet still have fixable notes worth surfacing.
         if (this.debt.categories.every((category) => category.count === 0)) {
             section.createDiv({ cls: c("knowledge-debt-clean"), text: t("knowledge_debt_clean") });
             return;
@@ -237,7 +223,7 @@ export class SlipboxHealthView extends ItemView {
         const basename = path.split("/").pop()?.replace(/\.md$/i, "") ?? path;
         const nameEl = row.createSpan({ text: basename, cls: c("knowledge-debt-item-name") });
         nameEl.setAttribute("title", path);
-        nameEl.addEventListener("click", () => {
+        this.registerDomEvent(nameEl, "click", () => {
             void this.app.workspace.openLinkText(path, "", false);
         });
         const openBtn = row.createEl("button", {
@@ -245,7 +231,7 @@ export class SlipboxHealthView extends ItemView {
             cls: c("knowledge-debt-open-button"),
             attr: { "aria-label": t("slipbox_health_connect_now") },
         });
-        openBtn.addEventListener("click", () => {
+        this.registerDomEvent(openBtn, "click", () => {
             void this.app.workspace.openLinkText(path, "", false);
         });
     }
@@ -254,7 +240,6 @@ export class SlipboxHealthView extends ItemView {
         if (!this.result) return;
         const { orphans, deadEnds, totalScanned } = this.result;
 
-        // Summary
         const summary = container.createDiv({ cls: c("slipbox-health-summary") });
         summary.createSpan({ text: t("slipbox_health_scanned", String(totalScanned)), cls: c("slipbox-health-summary-total") });
         summary.createSpan({ text: ` · `, cls: c("slipbox-health-summary-sep") });
@@ -284,7 +269,7 @@ export class SlipboxHealthView extends ItemView {
 
         const nameEl = row.createSpan({ text: note.basename, cls: c("slipbox-health-item-name") });
         nameEl.setAttribute("title", note.path);
-        nameEl.addEventListener("click", () => {
+        this.registerDomEvent(nameEl, "click", () => {
             void this.app.workspace.openLinkText(note.path, "", false);
         });
 
@@ -293,7 +278,7 @@ export class SlipboxHealthView extends ItemView {
             cls: c("slipbox-health-connect-button"),
             attr: { "aria-label": t("slipbox_health_connect_now") },
         });
-        connectBtn.addEventListener("click", () => {
+        this.registerDomEvent(connectBtn, "click", () => {
             void this.app.workspace.openLinkText(note.path, "", false);
         });
     }

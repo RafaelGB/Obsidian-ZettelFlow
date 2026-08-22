@@ -42,7 +42,7 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `computeWeeklyReview` | `WeeklyReview` | Review |
 | `buildHeatmapGrid` | `HeatmapGrid` | Thinking heatmap |
 | `deriveOutline` | `Outline` | Projects / synthesis |
-| `classifyHealth` | `HealthResult` | Health (orphans / dead-ends) |
+| `classifyHealth` | `HealthResult` | Health (orphans / dead-ends, over the model's edges) |
 | `deriveRecommendations` | `KnowledgeRecommendation[]` | Home / Health / Discovery (via #268) |
 
 ## The recommendation pipeline — `Query → State → Recommendation → Command`
@@ -75,11 +75,11 @@ built-in command applies yet. Actually *running* a recommendation's command from
 to the view-collapse phase (#268). The dashboard keeps its current per-panel presentation unchanged;
 Phase 5 delivers the primitive + the unification, not new displayed output.
 
-## A deferred unification (#268)
+## Health derives from the model (#274)
 
-`classifyHealth` currently reads the **raw Obsidian link graph** (`resolvedLinks`, assembled by the
-Health view and passed in), whereas the model's out-edges also include semantic relations. Unifying
-health onto the model would change the displayed orphan/dead-end numbers, so it is deferred to the
-Health view-collapse (#268). Phase 4 relocated `classifyHealth` into the State surface **verbatim**
-(same inputs, same numbers) — see the `NOTE(#268)` header in
-`architecture/knowledge/state/classifyHealth.ts`.
+`classifyHealth(model)` classifies each idea over the **model's typed edges** — an **orphan** has no
+outgoing edge, a **dead-end** has no incoming edge (self-edges excluded). Because the model's edges
+include semantic relations (`up::`, `supports`, inline `key:: [[X]]`) on top of raw wikilinks, a note
+connected only semantically is no longer a false orphan/dead-end. This is an **intended number change**
+vs the earlier raw-`resolvedLinks` classifier: counts drop for vaults that use relations, and are
+identical for pure-wikilink vaults.

@@ -1,9 +1,12 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { HomeModel, buildHome } from "architecture/knowledge/state";
+import type { KnowledgeRecommendation } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 
 const DEBOUNCE_MS = 400;
 
@@ -16,42 +19,28 @@ function basename(path: string): string {
 }
 
 /**
- * **ZettelFlow Home** (#172): the narrative front door — a greeting, "you've been thinking for N days",
- * your new ideas, main concepts, notes that deserve a review, suggested connections, and the next
- * recommended session. Composes the pure {@link buildHome} over the live model + the #162 journal.
- * Read-only; `createEl`/`c()` only, no innerHTML/inline styles.
+ * The **Home** mode of the Home surface (#272, formerly `ZettelFlowHomeView`, #172): the narrative
+ * front door — greeting, thinking days, new ideas, main concepts, review-due, suggested connections
+ * and the next session. Composes the pure {@link buildHome}. Read-only; render byte-identical.
  */
-export class ZettelFlowHomeView extends ItemView {
-    static readonly NAME = "zettelflow-home";
-
+export class HomeModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private home: HomeModel | null = null;
+    private recommendations: KnowledgeRecommendation[] = [];
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return ZettelFlowHomeView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("home_view_title");
-    }
-
-    getIcon(): string {
-        return "house";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -77,6 +66,7 @@ export class ZettelFlowHomeView extends ItemView {
             const counts = DevelopmentJournal.getInstance().dailyCounts();
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
+            this.recommendations = topRecommendations(model);
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -86,9 +76,9 @@ export class ZettelFlowHomeView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("home") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("home") });
 
         const header = container.createDiv({ cls: c("home-header") });
         header.createEl("h4", { text: t("home_view_title"), cls: c("home-title") });
@@ -119,11 +109,36 @@ export class ZettelFlowHomeView extends ItemView {
             cls: c("home-thinking-days"),
         });
 
+        this.renderRecommendations(container);
         this.renderNextSession(container, this.home.nextSession);
         this.renderNoteSection(container, "home_section_new_ideas", this.home.newIdeas);
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
         this.renderConnections(container, this.home.suggestedConnections);
+    }
+
+    /** The "What to do next" section (#273): top recommendations, each row navigating to its target. */
+    private renderRecommendations(container: HTMLElement): void {
+        const section = container.createDiv({ cls: c("home-section") });
+        section.createEl("h5", { text: t("home_section_recommendations"), cls: c("home-section-title") });
+
+        if (isAllCaughtUp(this.recommendations)) {
+            section.createDiv({ cls: c("home-recommendation-clear"), text: t("home_recommendation_reason_all-clear") });
+            return;
+        }
+
+        const list = section.createDiv({ cls: c("home-list") });
+        for (const rec of this.recommendations) {
+            if (rec.reason === "all-clear") continue;
+            const row = list.createDiv({ cls: c("home-recommendation") });
+            row.createSpan({ text: t(REASON_LABEL_KEYS[rec.reason]), cls: c("home-recommendation-reason") });
+            if (rec.target.length > 0) {
+                const target = rec.target[0];
+                const name = row.createSpan({ text: basename(target), cls: c("home-note-name") });
+                name.setAttribute("title", target);
+                name.addEventListener("click", () => void this.app.workspace.openLinkText(target, "", false));
+            }
+        }
     }
 
     private renderNextSession(container: HTMLElement, session: HomeModel["nextSession"]): void {

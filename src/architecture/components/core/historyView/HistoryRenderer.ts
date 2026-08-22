@@ -1,41 +1,32 @@
-import { App, ItemView, WorkspaceLeaf, moment as obsidianMoment } from "obsidian";
+import { moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import ZettelFlow from "main";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { appendHistory, clearHistory, HistoryEntry } from "application/notes/historyUtils";
+import { clearHistory, HistoryEntry } from "application/notes/historyUtils";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
-export class HistoryView extends ItemView {
-    static readonly NAME = "zettelflow-history";
-
-    constructor(leaf: WorkspaceLeaf, private plugin: ZettelFlow) {
-        super(leaf);
+/**
+ * The **Recent** mode of the Home surface (#272, formerly `HistoryView`): recently built notes with
+ * quick-open links and a clear-history action. Render byte-identical to the old view.
+ */
+export class HistoryRenderer extends KnowledgeModeRenderer {
+    constructor(container: HTMLElement, private readonly plugin: ZettelFlow) {
+        super(container);
     }
 
-    getViewType(): string {
-        return HistoryView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("history_view_title");
-    }
-
-    getIcon(): string {
-        return "history";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.render();
     }
 
-    async onClose(): Promise<void> {
-        this.contentEl.empty();
+    onunload(): void {
+        this.container.empty();
     }
 
     render(): void {
-        const { contentEl } = this;
+        const contentEl = this.container;
         contentEl.empty();
 
         const header = contentEl.createDiv({ cls: c("history-header") });
@@ -44,7 +35,7 @@ export class HistoryView extends ItemView {
             text: t("history_clear_button"),
             cls: c("history-clear-button"),
         });
-        clearBtn.addEventListener("click", () => {
+        this.registerDomEvent(clearBtn, "click", () => {
             this.plugin.settings.history = clearHistory();
             void this.plugin.saveSettings();
             this.render();
@@ -66,19 +57,20 @@ export class HistoryView extends ItemView {
     }
 
     private renderEntry(container: HTMLElement, entry: HistoryEntry): void {
+        const app = this.plugin.app;
         const row = container.createDiv({ cls: c("history-entry") });
 
         const info = row.createDiv({ cls: c("history-entry-info") });
-        const noteFile = this.app.vault.getAbstractFileByPath(entry.notePath);
+        const noteFile = app.vault.getAbstractFileByPath(entry.notePath);
         const noteName = entry.notePath.split("/").pop()?.replace(/\.md$/, "") ?? entry.notePath;
         const noteEl = info.createSpan({ cls: c("history-note-name"), text: noteName });
         if (!noteFile) noteEl.addClass(c("history-missing"));
         noteEl.setAttribute("title", noteFile ? entry.notePath : t("history_file_not_found"));
         noteEl.addEventListener("click", () => {
-            if (noteFile) void this.app.workspace.openLinkText(entry.notePath, "", false);
+            if (noteFile) void app.workspace.openLinkText(entry.notePath, "", false);
         });
 
-        const canvasFile = this.app.vault.getAbstractFileByPath(entry.canvasPath);
+        const canvasFile = app.vault.getAbstractFileByPath(entry.canvasPath);
         const canvasName = entry.canvasPath.split("/").pop()?.replace(/\.[^.]+$/, "") ?? entry.canvasPath;
         const canvasEl = info.createSpan({
             cls: c("history-canvas-name"),
@@ -87,25 +79,12 @@ export class HistoryView extends ItemView {
         if (!canvasFile) canvasEl.addClass(c("history-missing"));
         canvasEl.setAttribute("title", canvasFile ? entry.canvasPath : t("history_file_not_found"));
         canvasEl.addEventListener("click", () => {
-            if (canvasFile) void this.app.workspace.openLinkText(entry.canvasPath, "", false);
+            if (canvasFile) void app.workspace.openLinkText(entry.canvasPath, "", false);
         });
 
         row.createDiv({
             cls: c("history-timestamp"),
             text: moment(entry.createdAt).fromNow(),
-        });
-    }
-
-    /** Record a new note in history and refresh any open HistoryView leaf. */
-    static record(app: App, plugin: ZettelFlow, notePath: string, canvasPath: string): void {
-        plugin.settings.history = appendHistory(plugin.settings.history ?? [], {
-            notePath,
-            canvasPath,
-            createdAt: Date.now(),
-        });
-        void plugin.saveSettings();
-        app.workspace.getLeavesOfType(HistoryView.NAME).forEach((leaf) => {
-            (leaf.view as HistoryView).render();
         });
     }
 }

@@ -1,8 +1,9 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { buildKnowledgeMap, Cluster, KnowledgeMap } from "architecture/knowledge/state";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
 
@@ -14,41 +15,26 @@ function basename(path: string): string {
 }
 
 /**
- * A **living knowledge map** (#164): detects your hubs and shows the notes that orbit each one, and
- * auto-updates as the vault changes via debounced listeners (mirroring the slip-box health pane).
- * Read-only — rows just open notes. `createEl`/`c()` only; no innerHTML/inline styles.
+ * The **Map** mode of the Graph surface (#272, formerly `KnowledgeMapView`, #164): detects your hubs
+ * and the notes orbiting each one, auto-updating as the vault changes. Read-only; render byte-identical.
  */
-export class KnowledgeMapView extends ItemView {
-    static readonly NAME = "zettelflow-knowledge-map";
-
+export class KnowledgeMapRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private map: KnowledgeMap | null = null;
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return KnowledgeMapView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("knowledge_map_view_title");
-    }
-
-    getIcon(): string {
-        return "network";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -81,9 +67,9 @@ export class KnowledgeMapView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("knowledge-map") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("knowledge-map") });
 
         const header = container.createDiv({ cls: c("knowledge-map-header") });
         header.createEl("h4", { text: t("knowledge_map_view_title"), cls: c("knowledge-map-title") });
@@ -92,8 +78,7 @@ export class KnowledgeMapView extends ItemView {
             cls: c("knowledge-map-refresh"),
             attr: { "aria-label": t("knowledge_map_refresh_button") },
         });
-        // Plain listener on a per-render element: it's GC'd with the node on the next empty()
-        // (registerDomEvent would retain each detached node until onClose across recomputes).
+        // Plain listener on a per-render element: it's GC'd with the node on the next empty().
         refresh.addEventListener("click", () => this.recompute());
 
         if (this.state === "indexing") {

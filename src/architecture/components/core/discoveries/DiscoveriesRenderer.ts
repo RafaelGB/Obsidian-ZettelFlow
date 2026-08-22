@@ -1,10 +1,11 @@
-import { ItemView, MarkdownView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { App, MarkdownView, Notice, TFile } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { Discovery, findDiscoveries } from "architecture/knowledge/state";
 import { ResurfacedNote, rankResurfacedNotes } from "application/notes/resurfaceRanking";
-import { buildResurfaceInputs } from "../resurface/resurfaceInputs";
+import { buildResurfaceInputs } from "architecture/components/core/resurface/resurfaceInputs";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 type ViewState = "computing" | "ready" | "none" | "error";
 
@@ -16,49 +17,32 @@ function basename(path: string): string {
 }
 
 /**
- * The 🔭 morning-discovery pane (#163): surfaces up to three unlinked note pairs that share graph
- * context, each one click from being related. **Accept** writes an `expands` relation from note a to
- * note b via the sanctioned `fileManager.processFrontMatter` (dedup-append); **dismiss** hides the
- * pair for the session. `createEl`/`c()` only — no innerHTML/inline styles.
+ * The **Connections** mode of the Discovery surface (#272, formerly `DiscoveriesView`, #163): up to
+ * three unlinked note pairs that share graph context, each one click from being related, plus a
+ * "related to the active note" section (#231 Phase 3). Render byte-identical to the old view.
  */
-export class DiscoveriesView extends ItemView {
-    static readonly NAME = "zettelflow-discoveries";
-
+export class DiscoveriesRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "computing";
     private discoveries: Discovery[] = [];
     private readonly dismissed = new Set<string>();
-    // The "related to the active note" section (#231 Phase 3 — merged from the resurface view).
     private related: ResurfacedNote[] = [];
     private relatedActivePath: string | null = null;
     private throttleTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return DiscoveriesView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("discovery_view_title");
-    }
-
-    getIcon(): string {
-        return "telescope";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerWorkspaceListeners();
         this.refresh();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.throttleTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
-    /** Recompute the related section (throttled) as the active note changes. */
     private registerWorkspaceListeners(): void {
         const throttled = () => {
             window.clearTimeout(this.throttleTimer);
@@ -72,7 +56,6 @@ export class DiscoveriesView extends ItemView {
         return `${discovery.a}::${discovery.b}`;
     }
 
-    /** Recompute both sections and render once. */
     private refresh(): void {
         this.computeDiscoveries();
         this.computeRelated();
@@ -95,7 +78,6 @@ export class DiscoveriesView extends ItemView {
         }
     }
 
-    /** The "related to the active note" section (#231 Phase 3) — reuses the pure resurface ranker. */
     private computeRelated(): void {
         try {
             const activeFile = this.app.workspace.getActiveViewOfType(MarkdownView)?.file ?? null;
@@ -119,9 +101,9 @@ export class DiscoveriesView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("discoveries") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("discoveries") });
 
         const header = container.createDiv({ cls: c("discoveries-header") });
         header.createEl("h4", { text: t("discovery_view_title"), cls: c("discoveries-title") });
@@ -136,7 +118,6 @@ export class DiscoveriesView extends ItemView {
         this.renderRelated(container);
     }
 
-    /** Section 1 — surprising vault-wide connections (the original morning-discovery pane). */
     private renderDiscoveries(container: HTMLElement): void {
         container.createEl("h5", { text: t("discoveries_view_title"), cls: c("discoveries-section-heading") });
         if (this.state === "computing") {
@@ -155,7 +136,6 @@ export class DiscoveriesView extends ItemView {
         for (const discovery of this.discoveries) this.renderCard(list, discovery);
     }
 
-    /** Section 2 — notes related to the active note (merged resurface surface, #231 Phase 3). */
     private renderRelated(container: HTMLElement): void {
         container.createEl("h5", { text: t("resurface_view_title"), cls: c("discoveries-section-heading") });
         if (!this.relatedActivePath) {
@@ -210,7 +190,6 @@ export class DiscoveriesView extends ItemView {
             const link = `[[${basename(discovery.b)}]]`;
             await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
                 const existing = frontmatter.expands;
-                // Add-only, never overwrite a user's existing value (any type is preserved).
                 if (Array.isArray(existing)) {
                     if (!existing.includes(link)) existing.push(link);
                 } else if (existing === undefined || existing === null || existing === "") {
@@ -220,7 +199,6 @@ export class DiscoveriesView extends ItemView {
                 }
             });
             new Notice(t("discoveries_accepted_notice"));
-            // The model re-indexes asynchronously; dismiss for the session so it can't re-appear now.
             this.dismissed.add(this.key(discovery));
             this.refresh();
         } catch (error) {

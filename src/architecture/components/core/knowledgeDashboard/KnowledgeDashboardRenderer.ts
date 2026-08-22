@@ -1,7 +1,7 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { activateSidebarView } from "architecture/plugin";
+import { activateSurface } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
     DashboardModel,
@@ -10,27 +10,25 @@ import {
     RecommendationToken,
     buildKnowledgeDashboard,
 } from "architecture/knowledge/state";
-import { SlipboxHealthView } from "architecture/components/core/slipboxHealth/SlipboxHealthView";
-import { OpenQuestionsView } from "architecture/components/core/openQuestions/OpenQuestionsView";
-import { EvidenceMapView } from "architecture/components/core/evidenceMap/EvidenceMapView";
-import { DiscoveriesView } from "architecture/components/core/discoveries/DiscoveriesView";
+import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import type { SurfaceTarget } from "architecture/components/core/surface/legacyTargets";
 
 const DEBOUNCE_MS = 400;
 
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type LocaleKey = Parameters<typeof t>[0];
 
-/** Each recommendation opens the surface where the user acts on it. Exhaustive by the Record type (AC-6). */
-const RECOMMENDATION_TARGETS: Record<RecommendationToken, string> = {
-    "connect-orphans": SlipboxHealthView.NAME,
-    "all-connected": SlipboxHealthView.NAME,
-    "reduce-debt": SlipboxHealthView.NAME,
-    "debt-clear": SlipboxHealthView.NAME,
-    "process-ideas": SlipboxHealthView.NAME,
-    "resolve-contradictions": EvidenceMapView.NAME,
-    "answer-questions": OpenQuestionsView.NAME,
-    "make-connections": DiscoveriesView.NAME,
-    "all-clear": OpenQuestionsView.NAME,
+/** Each recommendation opens the surface + mode where the user acts on it (#272). */
+const RECOMMENDATION_TARGETS: Record<RecommendationToken, SurfaceTarget> = {
+    "connect-orphans": { surface: "zettelflow-health", mode: "health" },
+    "all-connected": { surface: "zettelflow-health", mode: "health" },
+    "reduce-debt": { surface: "zettelflow-health", mode: "health" },
+    "debt-clear": { surface: "zettelflow-health", mode: "health" },
+    "process-ideas": { surface: "zettelflow-health", mode: "health" },
+    "resolve-contradictions": { surface: "zettelflow-discovery", mode: "challenges" },
+    "answer-questions": { surface: "zettelflow-discovery", mode: "questions" },
+    "make-connections": { surface: "zettelflow-discovery", mode: "connections" },
+    "all-clear": { surface: "zettelflow-discovery", mode: "questions" },
 };
 
 const RECOMMENDATION_LABELS: Record<RecommendationToken, LocaleKey> = {
@@ -72,42 +70,28 @@ const BAND_LABELS: Record<string, LocaleKey> = {
 const POSITIVE_TOKENS: ReadonlySet<RecommendationToken> = new Set(["all-connected", "debt-clear", "all-clear"]);
 
 /**
- * **Knowledge dashboard** (#171): the *state of your knowledge system* as an ops console — three
- * panels (connectivity · knowledge debt · today), each with metrics and a **recommended next action**
- * that opens the surface to act on it. Reads live from the model (AC-1); writes nothing.
- * `createEl`/`c()` only, no innerHTML/inline styles.
+ * The **Dashboard** mode of the Health surface (#272, formerly `KnowledgeDashboardView`, #171): the
+ * state of your knowledge system as an ops console — three panels (connectivity · debt · today), each
+ * with metrics and a next-action that opens the surface + mode to act on it. Reads live; writes
+ * nothing. Render byte-identical to the old view.
  */
-export class KnowledgeDashboardView extends ItemView {
-    static readonly NAME = "zettelflow-knowledge-dashboard";
-
+export class KnowledgeDashboardRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private dashboard: DashboardModel | null = null;
     private debounceTimer: number | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
+    constructor(container: HTMLElement, private readonly app: App) {
+        super(container);
     }
 
-    getViewType(): string {
-        return KnowledgeDashboardView.NAME;
-    }
-
-    getDisplayText(): string {
-        return t("knowledge_dashboard_view_title");
-    }
-
-    getIcon(): string {
-        return "layout-dashboard";
-    }
-
-    async onOpen(): Promise<void> {
+    onload(): void {
         this.registerVaultListeners();
         this.recompute();
     }
 
-    async onClose(): Promise<void> {
+    onunload(): void {
         window.clearTimeout(this.debounceTimer);
-        this.contentEl.empty();
+        this.container.empty();
     }
 
     private registerVaultListeners(): void {
@@ -142,9 +126,9 @@ export class KnowledgeDashboardView extends ItemView {
     }
 
     private render(): void {
-        const { contentEl } = this;
-        contentEl.empty();
-        const container = contentEl.createDiv({ cls: c("knowledge-dashboard") });
+        const host = this.container;
+        host.empty();
+        const container = host.createDiv({ cls: c("knowledge-dashboard") });
 
         const header = container.createDiv({ cls: c("knowledge-dashboard-header") });
         header.createEl("h4", { text: t("knowledge_dashboard_view_title"), cls: c("knowledge-dashboard-title") });
@@ -153,7 +137,7 @@ export class KnowledgeDashboardView extends ItemView {
             cls: c("knowledge-dashboard-refresh"),
             attr: { "aria-label": t("knowledge_dashboard_refresh_button") },
         });
-        refresh.addEventListener("click", () => this.recompute());
+        this.registerDomEvent(refresh, "click", () => this.recompute());
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("knowledge-dashboard-status"), text: t("knowledge_dashboard_indexing") });
@@ -186,7 +170,8 @@ export class KnowledgeDashboardView extends ItemView {
             return;
         }
         const label = row.createSpan({ text, cls: c("knowledge-dashboard-rec-label") });
-        label.addEventListener("click", () => void activateSidebarView(this.app, RECOMMENDATION_TARGETS[rec.token]));
+        const target = RECOMMENDATION_TARGETS[rec.token];
+        this.registerDomEvent(label, "click", () => void activateSurface(this.app, target.surface, target.mode));
     }
 
     private renderMetric(container: HTMLElement, metric: Metric): void {

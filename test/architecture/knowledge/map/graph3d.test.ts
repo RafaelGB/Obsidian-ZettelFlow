@@ -46,4 +46,24 @@ describe("build3DGraph (#280 S1)", () => {
     it("returns an empty graph for an empty model", () => {
         expect(build3DGraph(buildModel([]))).toEqual({ nodes: [], links: [] });
     });
+
+    it("carries each node's state and a cluster group (-1 when it orbits no hub)", () => {
+        const model = buildModel([idea("A.md", "permanent", [{ to: "B.md" }]), idea("B.md", "seed", [])]);
+        const graph = build3DGraph(model);
+        const a = graph.nodes.find((n) => n.id === "A.md");
+        expect(a?.state).toBe("permanent");
+        expect(a?.group).toBe(-1); // no hub in a 2-note graph
+    });
+
+    it("preserves each link's relation type (plain link vs typed relation)", () => {
+        const model = buildModel([
+            idea("A.md", "seed", [{ to: "B.md", type: "supports" }, { to: "C.md" }]),
+            idea("B.md", "seed", []),
+            idea("C.md", "seed", []),
+        ]);
+        const graph = build3DGraph(model);
+        const byPair = Object.fromEntries(graph.links.map((l) => [`${l.source}->${l.target}`, l.type]));
+        expect(byPair["A.md->B.md"]).toBe("supports");
+        expect(byPair["A.md->C.md"]).toBe("link");
+    });
 });

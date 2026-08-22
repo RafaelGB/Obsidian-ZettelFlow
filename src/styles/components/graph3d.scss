@@ -1,0 +1,66 @@
+// The 3D knowledge-graph mode (#280). The WebGL canvas fills the surface body; the relation-type
+// legend and (S3) the toolbar float over it. Link/legend colors come from Obsidian's `--color-*`
+// palette so the WebGL links (read at runtime by the renderer) and these swatches never drift.
+
+.zettelkasten-flow__graph3d {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 24em;
+}
+
+.zettelkasten-flow__graph3d-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 24em;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__graph3d-message {
+    padding: var(--size-4-6);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+// ── Relation-type legend (S2) ──────────────────────────────────────────────
+.zettelkasten-flow__graph3d-legend {
+    position: absolute;
+    left: var(--size-4-2);
+    bottom: var(--size-4-2);
+    z-index: 1;
+    pointer-events: none; // never steal orbit/zoom from the canvas
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    padding: var(--size-4-2);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    max-width: 12em;
+}
+
+.zettelkasten-flow__graph3d-legend-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__graph3d-swatch {
+    flex: 0 0 auto;
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    background-color: var(--text-faint);
+}
+
+// Per-relation colors — the single source of truth shared with the WebGL links (see Graph3DRenderer).
+.zettelkasten-flow__graph3d-swatch--link { background-color: var(--text-faint); }
+.zettelkasten-flow__graph3d-swatch--supports { background-color: var(--color-green); }
+.zettelkasten-flow__graph3d-swatch--contradicts { background-color: var(--color-red); }
+.zettelkasten-flow__graph3d-swatch--expands { background-color: var(--color-blue); }
+.zettelkasten-flow__graph3d-swatch--inspired-by { background-color: var(--color-cyan); }
+.zettelkasten-flow__graph3d-swatch--question { background-color: var(--color-purple); }
+.zettelkasten-flow__graph3d-swatch--example { background-color: var(--color-orange); }
+.zettelkasten-flow__graph3d-swatch--implements { background-color: var(--color-yellow); }

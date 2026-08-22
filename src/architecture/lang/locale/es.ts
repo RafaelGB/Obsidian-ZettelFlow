@@ -531,6 +531,8 @@ export default {
     graph3d_state_indexing: 'Construyendo el grafo 3D…',
     graph3d_state_empty: 'Aún no hay notas que mostrar.',
     graph3d_state_error: 'No se pudo cargar el grafo 3D.',
+    graph3d_legend_title: 'Relaciones',
+    graph3d_relation_link: 'Enlace',
     command_show_health: 'Ver salud',
     command_show_discovery: 'Ver descubrimiento',
     command_show_graph: 'Ver grafo',

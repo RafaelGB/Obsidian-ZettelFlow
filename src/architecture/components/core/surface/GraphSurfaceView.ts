@@ -1,5 +1,4 @@
 import { ModeHostView } from "./ModeHostView";
-import { surfaceByType, Surface } from "./surfaceRegistry";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { KnowledgeMapRenderer } from "architecture/components/core/knowledgeMap/KnowledgeMapRenderer";
 import { ConceptNavRenderer } from "architecture/components/core/conceptNav/ConceptNavRenderer";
@@ -10,7 +9,9 @@ import { ConceptNavRenderer } from "architecture/components/core/conceptNav/Conc
  * Each mode reuses the retired view's renderer verbatim.
  */
 export class GraphSurfaceView extends ModeHostView {
-    protected readonly surface: Surface = surfaceByType("zettelflow-graph");
+    getViewType(): string {
+        return "zettelflow-graph";
+    }
 
     getIcon(): string {
         return "network";

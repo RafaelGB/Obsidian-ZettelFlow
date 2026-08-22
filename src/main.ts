@@ -38,10 +38,14 @@ export default class ZettelFlow extends Plugin {
 		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		loadVariableTextProcessors(this);
 
-		loadPluginComponents(this);
-
+		// Register the core views + actions FIRST. If a UI component fails while loading, the
+		// surfaces must already be registered — an unregistered surface view type renders as
+		// Obsidian's "plugin no longer active" placeholder, which used to break every surface when
+		// a single component threw before this ran. Components (ribbon/menu/commands) load after.
 		this.registerViews();
 		this.registerActions();
+
+		loadPluginComponents(this);
 		Hooks.setup(this);
 		WorkflowEventEngine.setup(this);
 

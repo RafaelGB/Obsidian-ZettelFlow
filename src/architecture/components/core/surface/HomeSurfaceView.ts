@@ -1,7 +1,6 @@
 import { WorkspaceLeaf } from "obsidian";
 import ZettelFlow from "main";
 import { ModeHostView } from "./ModeHostView";
-import { surfaceByType, Surface } from "./surfaceRegistry";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { HomeModeRenderer } from "architecture/components/core/home/HomeModeRenderer";
 import { HistoryRenderer } from "architecture/components/core/historyView/HistoryRenderer";
@@ -12,10 +11,12 @@ import { HistoryRenderer } from "architecture/components/core/historyView/Histor
  * Recent mode can read/clear `plugin.settings.history`.
  */
 export class HomeSurfaceView extends ModeHostView {
-    protected readonly surface: Surface = surfaceByType("zettelflow-home");
-
     constructor(leaf: WorkspaceLeaf, private readonly plugin: ZettelFlow) {
         super(leaf);
+    }
+
+    getViewType(): string {
+        return "zettelflow-home";
     }
 
     getIcon(): string {

@@ -1,7 +1,7 @@
 import { ItemView, ViewStateResult } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import type { Surface } from "./surfaceRegistry";
+import { surfaceByType, type Surface } from "./surfaceRegistry";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -14,19 +14,25 @@ type LocaleKey = Parameters<typeof t>[0];
  * command targeting a specific mode — restores it.
  */
 export abstract class ModeHostView extends ItemView {
-    /** The surface definition (view type, title, ordered modes) — set as a field by the subclass. */
-    protected abstract readonly surface: Surface;
+    /**
+     * The surface's registered view type. **Must return a literal — it may not read an instance field.**
+     * Obsidian's `ItemView` base calls `getViewType()` from inside its own constructor (during the
+     * subclass `super()` call), before any subclass field initializer has run; a field-backed value
+     * would still be `undefined` at that point and crash ("Cannot read properties of undefined").
+     */
+    abstract getViewType(): string;
     /** Build the renderer for a mode id, rendering into `container`. */
     protected abstract createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer;
+
+    /** The surface definition (title, ordered modes), derived from the construction-safe view type. */
+    protected get surface(): Surface {
+        return surfaceByType(this.getViewType());
+    }
 
     private activeMode = "";
     private bodyEl: HTMLElement | null = null;
     private current: KnowledgeModeRenderer | null = null;
     private readonly tabButtons = new Map<string, HTMLElement>();
-
-    getViewType(): string {
-        return this.surface.viewType;
-    }
 
     getDisplayText(): string {
         return t(this.surface.titleKey as LocaleKey);

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "@jest/globals";
-import { build3DGraph, filterGraph3D, type Graph3DData } from "architecture/knowledge/map/graph3d";
+import {
+    build3DGraph,
+    filterGraph3D,
+    OVERLAY_KINDS,
+    OVERLAY_SPECS,
+    type Graph3DData,
+} from "architecture/knowledge/map/graph3d";
 import { buildModel, idea } from "../../../actions/knowledge/support/knowledgeFixture";
 
 /**
@@ -106,5 +112,37 @@ describe("filterGraph3D (#280 S3)", () => {
         const before = JSON.stringify(data);
         filterGraph3D(data, { state: "seed" });
         expect(JSON.stringify(data)).toBe(before);
+    });
+});
+
+describe("discovery-lens flags & overlays (#280 S4)", () => {
+    it("flags orphans (no out-edges), dead-ends (no in-edges) and contradictions", () => {
+        const model = buildModel([
+            idea("A.md", "seed", [{ to: "B.md", type: "contradicts" }]), // A: has out (not orphan), no in (dead-end), contradiction
+            idea("B.md", "seed", [{ to: "C.md" }]),                        // B: out+in, contradiction (target of A)
+            idea("C.md", "seed", []),                                      // C: in, no out → orphan
+        ]);
+        const byId = Object.fromEntries(build3DGraph(model).nodes.map((n) => [n.id, n]));
+
+        expect(byId["C.md"].orphan).toBe(true);
+        expect(byId["A.md"].orphan).toBe(false);
+        expect(byId["A.md"].deadEnd).toBe(true);
+        expect(byId["C.md"].deadEnd).toBe(false);
+        expect(byId["A.md"].contradiction).toBe(true);
+        expect(byId["B.md"].contradiction).toBe(true);
+        expect(byId["C.md"].contradiction).toBe(false);
+    });
+
+    it("every overlay kind has a spec with a label, colour var and a working predicate", () => {
+        for (const kind of OVERLAY_KINDS) {
+            const spec = OVERLAY_SPECS[kind];
+            expect(typeof spec.labelKey).toBe("string");
+            expect(spec.colorVar.startsWith("--")).toBe(true);
+            expect(typeof spec.matches).toBe("function");
+        }
+        const model = buildModel([idea("Solo.md", "seed", [])]); // orphan + dead-end
+        const node = build3DGraph(model).nodes[0];
+        expect(OVERLAY_SPECS.orphans.matches(node)).toBe(true);
+        expect(OVERLAY_SPECS.contradictions.matches(node)).toBe(false);
     });
 });

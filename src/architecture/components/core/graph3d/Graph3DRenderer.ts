@@ -2,7 +2,17 @@ import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { build3DGraph, filterGraph3D, Graph3DData, Graph3DFilter, RELATION_COLOR_VARS } from "architecture/knowledge/state";
+import {
+    build3DGraph,
+    filterGraph3D,
+    Graph3DData,
+    Graph3DFilter,
+    Graph3DNode,
+    OverlayKind,
+    OVERLAY_KINDS,
+    OVERLAY_SPECS,
+    RELATION_COLOR_VARS,
+} from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
 // Type-only import — erased at compile time, so the heavy WebGL library is pulled in *lazily* via the
@@ -24,6 +34,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private data: Graph3DData = { nodes: [], links: [] };
     private displayed: Graph3DData = { nodes: [], links: [] };
     private filter: Graph3DFilter = {};
+    private overlay: OverlayKind | null = null;
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
@@ -123,6 +134,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .onEngineStop(() => this.flyToPendingFocus());
             this.graph = graph;
             this.applyGraphData();
+            this.applyOverlay();
             this.applySize();
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
@@ -158,6 +170,30 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.filter = { ...this.filter, state: select.value };
             this.applyGraphData();
         });
+
+        // Discovery lens (#280 S4): highlight an actionable class of note in space.
+        const overlay = toolbar.createEl("select", { cls: c("graph3d-overlay-filter") });
+        overlay.createEl("option", { text: t("graph3d_overlay_none"), value: "" });
+        for (const kind of OVERLAY_KINDS) {
+            overlay.createEl("option", { text: t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0]), value: kind });
+        }
+        this.registerDomEvent(overlay, "change", () => {
+            this.overlay = (overlay.value || null) as OverlayKind | null;
+            this.applyOverlay();
+        });
+    }
+
+    /** Apply the active discovery-lens overlay: highlight matching nodes, dim the rest; none ⇒ cluster color. */
+    private applyOverlay(): void {
+        if (!this.graph) return;
+        if (!this.overlay) {
+            this.graph.nodeAutoColorBy("group").linkOpacity(0.4);
+            return;
+        }
+        const spec = OVERLAY_SPECS[this.overlay];
+        const highlight = getComputedStyle(document.body).getPropertyValue(spec.colorVar).trim() || "#e0a030";
+        const dim = "rgba(136, 136, 136, 0.15)";
+        this.graph.nodeColor((node) => (spec.matches(node as unknown as Graph3DNode) ? highlight : dim)).linkOpacity(0.1);
     }
 
     private uniqueStates(): string[] {

@@ -11,6 +11,10 @@ export interface Graph3DNode {
     group: number;
     /** The idea's workflow state (for optional coloring / filtering). */
     state: string;
+    /** Discovery-lens flags (#280 S4): no outgoing edges / no incoming edges / in a `contradicts` relation. */
+    orphan: boolean;
+    deadEnd: boolean;
+    contradiction: boolean;
 }
 
 /** A directed, typed link between two existing nodes (source/target are vault paths). */
@@ -68,6 +72,17 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
         for (const member of cluster.members) groupOf.set(member, index);
     });
 
+    // Both endpoints of any in-model `contradicts` relation are flagged for the discovery lens (#280 S4).
+    const contradicted = new Set<string>();
+    for (const idea of ideas) {
+        for (const relation of idea.relations) {
+            if (relation.type === "contradicts" && ids.has(relation.to)) {
+                contradicted.add(idea.path);
+                contradicted.add(relation.to);
+            }
+        }
+    }
+
     const nodes: Graph3DNode[] = ideas
         .map((idea) => ({
             id: idea.path,
@@ -75,6 +90,9 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             val: Math.max(1, idea.maturitySignals.degree),
             group: groupOf.get(idea.path) ?? -1,
             state: idea.state,
+            orphan: model.outNeighbors(idea.path).length === 0,
+            deadEnd: model.inNeighbors(idea.path).length === 0,
+            contradiction: contradicted.has(idea.path),
         }))
         .sort((a, b) => byStr(a.id, b.id));
 
@@ -93,6 +111,26 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
 
     return { nodes, links };
 }
+
+/** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
+export type OverlayKind = "orphans" | "dead-ends" | "contradictions";
+export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions"];
+
+export interface OverlaySpec {
+    /** i18n label key for the toggle option. */
+    labelKey: string;
+    /** Obsidian CSS colour var used to highlight matching nodes (dims the rest). */
+    colorVar: string;
+    /** Whether a node belongs to this overlay. */
+    matches: (node: Graph3DNode) => boolean;
+}
+
+/** Overlay kind → its label, highlight colour and match predicate. Pure; shared by the renderer. */
+export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
+    "orphans": { labelKey: "graph3d_overlay_orphans", colorVar: "--color-orange", matches: (n) => n.orphan },
+    "dead-ends": { labelKey: "graph3d_overlay_dead_ends", colorVar: "--color-yellow", matches: (n) => n.deadEnd },
+    "contradictions": { labelKey: "graph3d_overlay_contradictions", colorVar: "--color-red", matches: (n) => n.contradiction },
+};
 
 /** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */
 export interface Graph3DFilter {

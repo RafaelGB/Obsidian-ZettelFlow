@@ -1,5 +1,4 @@
 import { ModeHostView } from "./ModeHostView";
-import { surfaceByType, Surface } from "./surfaceRegistry";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { SlipboxHealthRenderer } from "architecture/components/core/slipboxHealth/SlipboxHealthRenderer";
 import { KnowledgeDashboardRenderer } from "architecture/components/core/knowledgeDashboard/KnowledgeDashboardRenderer";
@@ -12,7 +11,9 @@ import { ThinkingHeatmapRenderer } from "architecture/components/core/thinkingHe
  * development heatmap). Each mode reuses the retired view's renderer verbatim.
  */
 export class HealthSurfaceView extends ModeHostView {
-    protected readonly surface: Surface = surfaceByType("zettelflow-health");
+    getViewType(): string {
+        return "zettelflow-health";
+    }
 
     getIcon(): string {
         return "stethoscope";

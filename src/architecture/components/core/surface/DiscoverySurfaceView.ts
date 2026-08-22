@@ -1,5 +1,4 @@
 import { ModeHostView } from "./ModeHostView";
-import { surfaceByType, Surface } from "./surfaceRegistry";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { DiscoveriesRenderer } from "architecture/components/core/discoveries/DiscoveriesRenderer";
 import { ResurfaceRenderer } from "architecture/components/core/resurface/ResurfaceRenderer";
@@ -12,7 +11,9 @@ import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/Ev
  * Challenges (evidence map). Each mode reuses the retired view's renderer verbatim.
  */
 export class DiscoverySurfaceView extends ModeHostView {
-    protected readonly surface: Surface = surfaceByType("zettelflow-discovery");
+    getViewType(): string {
+        return "zettelflow-discovery";
+    }
 
     getIcon(): string {
         return "telescope";

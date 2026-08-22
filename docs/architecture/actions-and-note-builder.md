@@ -51,12 +51,17 @@ type Action = {
 type ExecuteInfo = {
   element: FinalElement;          // the configured action + its runtime `result`
   content: ContentDTO;            // note body / frontmatter / tags accumulator
-  note:    NoteDTO;               // title, folder, template paths, saved actions
+  note:    NotePersistence;       // the note's persistence/representation view (path + title + folder)
   context: Record<string, Literal>; // ephemeral bag shared between actions
 };
 ```
 
 `FinalElement = { result: Literal } & Action`.
+
+Since epic [#268](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/268) S6 (#275), the action
+(and user-script) boundary sees the note as **`NotePersistence`**, not the wizard-shaped `NoteDTO` —
+see [The note DTOs](#4-the-note-dtos). Knowledge **domain** access (identity, model, relation writes)
+does not go through `note`; it flows through the [KnowledgeContext seam](#the-knowledgecontext-seam-xi-boundary).
 
 ### The 4-file convention
 
@@ -106,6 +111,14 @@ flowchart LR
 `find-related` is the first action migrated to read identity/model/sink through the seam; the rest
 follow as the epic splits actions into Commands vs Queries (Phase 3).
 
+**Note → persistence inversion (#268 S6, #275).** With the domain flowing through this seam, the note
+handed to an action no longer needs to be the wizard builder. `ExecuteInfo.note` is typed
+[`NotePersistence`](#4-the-note-dtos) — only the note's destination path, title and target folder —
+so neither an action nor the user-script sandbox (which receives `note` directly) can reach the
+builder's wizard-flow methods. `NoteDTO` `implements NotePersistence` and stays the note-builder's
+private object; the headless post-index re-run builds its stand-in with the pure
+`notePersistenceForPath(path)` factory instead of casting a fake `NoteDTO`.
+
 ## 2. Zones — where a value goes
 
 Most actions route their value by a `zone` config field:
@@ -151,7 +164,11 @@ Outliers to know:
   zone); `addFrontMatter(fm)` merges frontmatter (hoisting any `tags` field into `addTags`);
   `addTags`/`addTag` de-dupe.
 
-**`NoteDTO`** (`application/notes/model/NoteDTO.ts`) — metadata + work list:
+**`NoteDTO`** (`application/notes/model/NoteDTO.ts`) — the note-builder's private metadata + work list.
+Only its **persistence/representation** view — the `NotePersistence` interface
+(`application/notes/model/NotePersistence.ts`): `getFinalPath`, `getTitle`/`setTitle`,
+`getTargetFolder`/`setTargetFolder` — crosses the action/script boundary (`ExecuteInfo.note`, #275).
+The wizard-flow members below stay internal to the note-builder (`builder.note.*`):
 
 - `title`, `targetFolder`, `uniquePrefixPattern`.
 - `paths: Map<number, string>` — chosen step-template `.md` paths, keyed by wizard position.

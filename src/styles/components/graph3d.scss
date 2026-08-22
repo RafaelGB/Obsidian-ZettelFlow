@@ -111,6 +111,42 @@
     border-color: var(--interactive-accent);
 }
 
+// ── Zoom controls: +/− buttons around a draggable vertical slider (bottom-right) ──
+.zettelkasten-flow__graph3d-zoom {
+    position: absolute;
+    right: var(--size-4-2);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: var(--size-4-2);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__graph3d-zoom-btn {
+    width: 1.9em;
+    height: 1.9em;
+    padding: 0;
+    font-size: var(--font-ui-medium);
+    line-height: 1;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-zoom-slider {
+    // A vertical slider (map-style); Obsidian runs on Chromium so vertical writing-mode is supported.
+    writing-mode: vertical-lr;
+    direction: rtl; // top = zoom in
+    width: 1.4em;
+    height: 8em;
+    cursor: pointer;
+}
+
 // ── Relation-type legend (S2) ──────────────────────────────────────────────
 .zettelkasten-flow__graph3d-legend {
     position: absolute;

@@ -72,6 +72,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private readonly colorCache = new Map<string, string>();
     private readonly colorButtons = new Map<ColorMode, HTMLElement>();
     private readonly lensChips = new Map<OverlayKind, HTMLElement>();
+    private zoomSlider: HTMLInputElement | null = null;
 
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
@@ -152,7 +153,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.graphEl = this.wrapperEl.createDiv({ cls: c("graph3d-canvas") });
 
             const graph = new ForceGraph3D(this.graphEl)
-                .backgroundColor(this.varColor("--background-primary") || "#0b0e14")
+                .backgroundColor("#0b0e14") // fixed dark "space" so colours + particles pop (immersive)
                 .nodeLabel("name")
                 .nodeVal("val")
                 .nodeOpacity(0.92)
@@ -173,9 +174,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.flyToPendingFocus());
             this.graph = graph;
+            this.buildZoomControls(this.wrapperEl);
             this.applyGraphData();
             this.applySize();
-            void this.addBloom(); // glow post-processing — the visual "wow" (guarded)
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
             this.resizeObserver.observe(this.container);
@@ -184,20 +185,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (this.disposed) return;
             this.container.empty();
             this.container.createDiv({ cls: c("graph3d-message"), text: t("graph3d_state_error") });
-        }
-    }
-
-    /** Add an UnrealBloom pass so nodes/links glow against the dark background. Best-effort. */
-    private async addBloom(): Promise<void> {
-        try {
-            const { UnrealBloomPass } = await import("three/examples/jsm/postprocessing/UnrealBloomPass.js");
-            if (this.disposed || !this.graph) return;
-            // UnrealBloomPass only reads resolution.x/.y, so a plain point avoids importing three directly.
-            const resolution = { x: this.container.clientWidth || 400, y: this.container.clientHeight || 400 };
-            const bloom = new UnrealBloomPass(resolution, 1.1, 0.55, 0.05);
-            (this.graph.postProcessingComposer() as { addPass(pass: unknown): void }).addPass(bloom);
-        } catch (error) {
-            log.warn("[Graph3D] bloom post-processing unavailable — continuing without glow", error);
         }
     }
 
@@ -264,6 +251,44 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.overlay = this.overlay === kind ? null : kind;
         for (const [k, el] of this.lensChips) el.toggleClass(c("graph3d-chip--active"), k === this.overlay);
         this.refreshPaint();
+    }
+
+    // ── Zoom controls (buttons + draggable slider) ──────────────────────────────
+    private buildZoomControls(parent: HTMLElement): void {
+        const panel = parent.createDiv({ cls: c("graph3d-zoom") });
+
+        const zoomIn = panel.createEl("button", { cls: c("graph3d-zoom-btn"), text: "+" });
+        zoomIn.setAttribute("aria-label", t("graph3d_zoom_in"));
+        this.registerDomEvent(zoomIn, "click", () => this.nudgeZoom(10));
+
+        const slider = panel.createEl("input", { cls: c("graph3d-zoom-slider"), type: "range" });
+        slider.min = "1";
+        slider.max = "100";
+        slider.value = "50";
+        slider.setAttribute("aria-label", t("graph3d_zoom_label"));
+        this.zoomSlider = slider;
+        this.registerDomEvent(slider, "input", () => this.applyZoomFromSlider());
+
+        const zoomOut = panel.createEl("button", { cls: c("graph3d-zoom-btn"), text: "−" });
+        zoomOut.setAttribute("aria-label", t("graph3d_zoom_out"));
+        this.registerDomEvent(zoomOut, "click", () => this.nudgeZoom(-10));
+    }
+
+    private nudgeZoom(delta: number): void {
+        if (!this.zoomSlider) return;
+        this.zoomSlider.value = String(Math.max(1, Math.min(100, Number(this.zoomSlider.value) + delta)));
+        this.applyZoomFromSlider();
+    }
+
+    /** Map the slider (higher = closer) to a camera distance from the centre and fly there. */
+    private applyZoomFromSlider(): void {
+        if (!this.graph || !this.zoomSlider) return;
+        const MIN = 60, MAX = 1400;
+        const distance = MAX - (Number(this.zoomSlider.value) / 100) * (MAX - MIN);
+        const cam = this.graph.cameraPosition();
+        const current = Math.hypot(cam.x, cam.y, cam.z) || 1;
+        const factor = distance / current;
+        this.graph.cameraPosition({ x: cam.x * factor, y: cam.y * factor, z: cam.z * factor }, undefined, 150);
     }
 
     // ── Focus / hover ────────────────────────────────────────────────────────────
@@ -407,6 +432,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.resizeObserver = null;
         this.colorButtons.clear();
         this.lensChips.clear();
+        this.zoomSlider = null;
         this.hoverNodes = null;
         if (this.graph) {
             try {

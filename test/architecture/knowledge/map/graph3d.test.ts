@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { build3DGraph } from "architecture/knowledge/map/graph3d";
+import { build3DGraph, filterGraph3D, type Graph3DData } from "architecture/knowledge/map/graph3d";
 import { buildModel, idea } from "../../../actions/knowledge/support/knowledgeFixture";
 
 /**
@@ -65,5 +65,46 @@ describe("build3DGraph (#280 S1)", () => {
         const byPair = Object.fromEntries(graph.links.map((l) => [`${l.source}->${l.target}`, l.type]));
         expect(byPair["A.md->B.md"]).toBe("supports");
         expect(byPair["A.md->C.md"]).toBe("link");
+    });
+});
+
+describe("filterGraph3D (#280 S3)", () => {
+    const data: Graph3DData = {
+        nodes: [
+            { id: "Zettel/Alpha.md", name: "Alpha", val: 1, group: 0, state: "seed" },
+            { id: "Zettel/Beta.md", name: "Beta", val: 1, group: 0, state: "permanent" },
+            { id: "Refs/Gamma.md", name: "Gamma", val: 1, group: -1, state: "seed" },
+        ],
+        links: [
+            { source: "Zettel/Alpha.md", target: "Zettel/Beta.md", type: "link" },
+            { source: "Zettel/Beta.md", target: "Refs/Gamma.md", type: "supports" },
+        ],
+    };
+
+    it("matches everything for an empty filter", () => {
+        expect(filterGraph3D(data, {})).toEqual(data);
+    });
+
+    it("filters by name query and drops links to removed nodes", () => {
+        const out = filterGraph3D(data, { query: "et" }); // Beta only ("et" not in Alpha/Gamma... Alpha has no 'et')
+        expect(out.nodes.map((n) => n.name).sort()).toEqual(["Beta"]);
+        expect(out.links).toEqual([]); // both links touch a removed node
+    });
+
+    it("filters by state", () => {
+        const out = filterGraph3D(data, { state: "seed" });
+        expect(out.nodes.map((n) => n.name).sort()).toEqual(["Alpha", "Gamma"]);
+    });
+
+    it("filters by folder prefix", () => {
+        const out = filterGraph3D(data, { folder: "Zettel/" });
+        expect(out.nodes.map((n) => n.name).sort()).toEqual(["Alpha", "Beta"]);
+        expect(out.links.map((l) => l.type)).toEqual(["link"]); // Alpha->Beta survives; Beta->Gamma dropped
+    });
+
+    it("does not mutate the input", () => {
+        const before = JSON.stringify(data);
+        filterGraph3D(data, { state: "seed" });
+        expect(JSON.stringify(data)).toBe(before);
     });
 });

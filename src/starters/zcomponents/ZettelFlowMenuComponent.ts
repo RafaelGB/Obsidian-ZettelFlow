@@ -2,6 +2,7 @@ import { Menu } from "obsidian";
 import { PluginComponent, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
+import { requestGraph3DFocus } from "architecture/components/core/graph3d/graph3dFocus";
 import { CommunityTemplatesModal } from "application/community";
 import ZettelFlow from "main";
 
@@ -65,6 +66,20 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             id: "show-graph",
             name: t("command_show_graph"),
             callback: () => void activateSurface(this.plugin.app, "zettelflow-graph"),
+        });
+        // Deep-link: open the Graph surface at the 3D mode and fly to the active note (#280 S3).
+        this.plugin.addCommand({
+            id: "explore-in-3d",
+            name: t("command_explore_in_3d"),
+            checkCallback: (checking: boolean) => {
+                const file = this.plugin.app.workspace.getActiveFile();
+                if (!file || file.extension !== "md") return false;
+                if (!checking) {
+                    requestGraph3DFocus(file.path);
+                    void activateSurface(this.plugin.app, "zettelflow-graph", "3d");
+                }
+                return true;
+            },
         });
         this.plugin.addRibbonIcon("brain-circuit", t("ribbon_open_zettelflow"), (evt: MouseEvent) => {
             const menu = new Menu();

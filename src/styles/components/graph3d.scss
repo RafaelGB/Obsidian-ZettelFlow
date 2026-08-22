@@ -22,6 +22,25 @@
     text-align: center;
 }
 
+// ── Toolbar: search-to-focus + state filter (S3) ───────────────────────────
+.zettelkasten-flow__graph3d-toolbar {
+    position: absolute;
+    top: var(--size-4-2);
+    left: var(--size-4-2);
+    right: var(--size-4-2);
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    pointer-events: none; // the bar area lets orbit/zoom through; the inputs re-enable themselves
+}
+
+.zettelkasten-flow__graph3d-search,
+.zettelkasten-flow__graph3d-state-filter {
+    pointer-events: auto;
+    max-width: 14em;
+}
+
 // ── Relation-type legend (S2) ──────────────────────────────────────────────
 .zettelkasten-flow__graph3d-legend {
     position: absolute;

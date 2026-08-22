@@ -93,3 +93,35 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
 
     return { nodes, links };
 }
+
+/** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */
+export interface Graph3DFilter {
+    /** Case-insensitive substring match on the node name. */
+    query?: string;
+    /** Exact match on the idea state. */
+    state?: string;
+    /** Path prefix (folder) match on the node id. */
+    folder?: string;
+}
+
+/**
+ * Pure filter over {@link Graph3DData} (#280 S3): keeps nodes matching every provided criterion, then
+ * keeps only links whose **both** endpoints survive. Blank/absent criteria match everything. Never
+ * mutates the input.
+ */
+export function filterGraph3D(data: Graph3DData, filter: Graph3DFilter): Graph3DData {
+    const query = (filter.query ?? "").trim().toLowerCase();
+    const state = (filter.state ?? "").trim();
+    const folder = (filter.folder ?? "").trim();
+
+    const nodes = data.nodes.filter((node) => {
+        if (query && !node.name.toLowerCase().includes(query)) return false;
+        if (state && node.state !== state) return false;
+        if (folder && !node.id.startsWith(folder)) return false;
+        return true;
+    });
+    const kept = new Set(nodes.map((node) => node.id));
+    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
+
+    return { nodes, links };
+}

@@ -1,36 +1,50 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { ZComponentsManager } from "starters/services/ZComponentsManager";
+import { PluginComponent, log } from "architecture";
 
-// PluginComponent is used only as a type in the manager, so importing it here stays light.
-type FakeComponent = { onLoad: () => void; onUnload: () => void };
+/**
+ * Regression (#268 view-registration bug): a single component whose `onLoad` throws must NOT abort
+ * loading the rest — the unguarded `forEach` used to bubble up to `Plugin.onload`, leaving the
+ * surfaces unregistered so every surface rendered as Obsidian's "plugin no longer active" placeholder.
+ */
+class FakeComponent extends PluginComponent {
+    constructor(private readonly run: () => void, private readonly onDown: () => void = () => undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        super(undefined as any);
+    }
+    onLoad(): void { this.run(); }
+    onUnload(): void { this.onDown(); }
+}
 
-describe("ZComponentsManager", () => {
-  beforeEach(() => {
-    // Ensure a clean registry (the manager is a module-level singleton).
-    ZComponentsManager.unloadComponents();
-  });
+describe("ZComponentsManager isolates a failing component", () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        ZComponentsManager.unloadComponents(); // reset the singleton's list between tests
+    });
 
-  it("runs onUnload on every registered component and clears the registry", () => {
-    const a: FakeComponent = { onLoad: jest.fn(), onUnload: jest.fn() };
-    const b: FakeComponent = { onLoad: jest.fn(), onUnload: jest.fn() };
+    it("loads every other component when one onLoad throws, and logs the failure", () => {
+        jest.spyOn(log, "error").mockImplementation(() => undefined);
+        const loaded: string[] = [];
+        ZComponentsManager.registerComponent(new FakeComponent(() => loaded.push("a")));
+        ZComponentsManager.registerComponent(new FakeComponent(() => { throw new Error("boom"); }));
+        ZComponentsManager.registerComponent(new FakeComponent(() => loaded.push("c")));
 
-    ZComponentsManager.registerComponent(a as unknown as never);
-    ZComponentsManager.registerComponent(b as unknown as never);
+        expect(() => ZComponentsManager.loadComponents()).not.toThrow();
 
-    ZComponentsManager.unloadComponents();
+        expect(loaded).toEqual(["a", "c"]);
+        expect(log.error).toHaveBeenCalledTimes(1);
+    });
 
-    expect(a.onUnload).toHaveBeenCalledTimes(1);
-    expect(b.onUnload).toHaveBeenCalledTimes(1);
+    it("unloads every other component when one onUnload throws", () => {
+        jest.spyOn(log, "error").mockImplementation(() => undefined);
+        const down: string[] = [];
+        ZComponentsManager.registerComponent(new FakeComponent(() => undefined, () => down.push("a")));
+        ZComponentsManager.registerComponent(new FakeComponent(() => undefined, () => { throw new Error("boom"); }));
+        ZComponentsManager.registerComponent(new FakeComponent(() => undefined, () => down.push("c")));
 
-    (a.onUnload as ReturnType<typeof jest.fn>).mockClear();
-    ZComponentsManager.unloadComponents();
-    expect(a.onUnload).not.toHaveBeenCalled();
-  });
+        expect(() => ZComponentsManager.unloadComponents()).not.toThrow();
 
-  it("runs onLoad on every registered component", () => {
-    const a: FakeComponent = { onLoad: jest.fn(), onUnload: jest.fn() };
-    ZComponentsManager.registerComponent(a as unknown as never);
-    ZComponentsManager.loadComponents();
-    expect(a.onLoad).toHaveBeenCalledTimes(1);
-  });
+        expect(down).toEqual(["a", "c"]);
+        expect(log.error).toHaveBeenCalledTimes(1);
+    });
 });

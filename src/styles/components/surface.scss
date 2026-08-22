@@ -45,3 +45,17 @@
         overflow-y: auto;
     }
 }
+
+// The 3D graph mode (#280 S1) fills the surface body; the WebGL canvas sizes to this element.
+.zettelkasten-flow__graph3d-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 24em;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__graph3d-message {
+    padding: var(--size-4-6);
+    color: var(--text-muted);
+    text-align: center;
+}

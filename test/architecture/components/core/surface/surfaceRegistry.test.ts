@@ -13,16 +13,19 @@ describe("surface registry (#272, AC-1/AC-6)", () => {
         ]);
     });
 
-    it("hosts the 12 retired views, each exactly once", () => {
-        const sources = SURFACES.flatMap((s) => s.modes.map((m) => m.sourceView));
+    it("hosts the 12 retired views, each exactly once (net-new modes have no sourceView)", () => {
+        const sources = SURFACES.flatMap((s) => s.modes.map((m) => m.sourceView)).filter(
+            (s): s is string => s !== undefined
+        );
         expect(sources).toHaveLength(12);
         expect(new Set(sources).size).toBe(12);
     });
 
-    it("locateSourceView resolves every source to its (surface, mode); defaultMode is the first mode", () => {
+    it("locateSourceView resolves every retired source to its (surface, mode); defaultMode is the first mode", () => {
         for (const surface of SURFACES) {
             expect(defaultMode(surface.viewType)).toBe(surface.modes[0].id);
             for (const mode of surface.modes) {
+                if (!mode.sourceView) continue; // net-new modes (e.g. Graph 3D) fold no retired view
                 expect(locateSourceView(mode.sourceView)).toEqual({ surface: surface.viewType, mode: mode.id });
             }
         }

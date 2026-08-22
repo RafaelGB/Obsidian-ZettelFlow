@@ -2,6 +2,7 @@ import { ModeHostView } from "./ModeHostView";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { KnowledgeMapRenderer } from "architecture/components/core/knowledgeMap/KnowledgeMapRenderer";
 import { ConceptNavRenderer } from "architecture/components/core/conceptNav/ConceptNavRenderer";
+import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
 
 /**
  * The **Graph** surface (#272) — one destination for exploring the shape of your knowledge, with
@@ -21,6 +22,8 @@ export class GraphSurfaceView extends ModeHostView {
         switch (modeId) {
             case "navigate":
                 return new ConceptNavRenderer(container, this.app);
+            case "3d":
+                return new Graph3DRenderer(container, this.app);
             case "map":
             default:
                 return new KnowledgeMapRenderer(container, this.app);

@@ -1,7 +1,7 @@
 import type { Literal } from "architecture/plugin";
 import type { Action } from "architecture/api";
-import type { NoteDTO } from "application/notes/model/NoteDTO";
 import { ContentDTO } from "application/notes/model/ContentDTO";
+import { notePersistenceForPath } from "application/notes/model/NotePersistence";
 import { runOnCreationActions, ActionLookup } from "application/patterns/runOnCreationActions";
 
 /**
@@ -30,9 +30,9 @@ export async function computeOnCreationDelta(
     content.addFrontMatter({ ...currentFrontmatter });
     const context: Record<string, Literal> = {};
     // The on-creation (knowledge) actions read only `note.getFinalPath()` to rank the note against
-    // the graph (see resolveTargetPath). A minimal stand-in keeps the core pure and byte-correct for
-    // any vault path, without reconstructing a NoteDTO from folder + title.
-    const note = { getFinalPath: () => notePath } as unknown as NoteDTO;
+    // the graph (see resolveTargetPath). A path-backed NotePersistence keeps the core pure and
+    // byte-correct for any vault path, without reconstructing a NoteDTO from folder + title.
+    const note = notePersistenceForPath(notePath);
 
     await runOnCreationActions(actions, { content, note, context }, getAction);
 

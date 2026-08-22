@@ -1,0 +1,3490 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../plugin-core/">
+      
+      
+        <link rel="next" href="../vault-hooks-internals/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>6.3 Actions & note builder - ZettelFlow</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#actions-note-builder" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ZettelFlow" class="md-header__button md-logo" aria-label="ZettelFlow" data-md-component="logo">
+      
+  <img src="../../resources/obsidian.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ZettelFlow
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              6.3 Actions & note builder
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ZettelFlow" class="md-nav__button md-logo" aria-label="ZettelFlow" data-md-component="logo">
+      
+  <img src="../../resources/obsidian.png" alt="logo">
+
+    </a>
+    ZettelFlow
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    1. Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../manifesto/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    The manifesto
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    2. Actions
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            2. Actions
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.1 Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Number/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.2 Number
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Checkbox/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.3 Checkbox
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Calendar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.4 Calendar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Selector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.5 Selector
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/DynamicSelector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.6 Dynamic Selector
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.7 Tags
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Backlink/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.8 Backlink
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/CssClasses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.9 CssClasses
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/TaskManagement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.10 TaskManagement
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Script/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.11 Script
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/ZettelId/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.12 Zettel ID
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/DetectOrphan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.13 Detect orphan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/CalculateMaturity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.14 Calculate maturity
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/FindContradiction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.15 Find contradiction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/FindUnansweredQuestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.16 Find unanswered question
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/FindRelated/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.17 Find related
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/SuggestLink/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.18 Suggest link
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/CreateSemanticRelation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.19 Create semantic relation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/ExtractClaims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.20 Extract claims
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/CompareClaims/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.21 Compare claims
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/FindSources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.22 Find sources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/AttachSource/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.23 Attach source
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Summarize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.24 Summarize
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Classify/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.25 Classify
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/GenerateQuestions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.26 Generate questions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/SuggestNextMove/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.27 Suggest next move
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/ThinkingSimulator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.28 Thinking simulator
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/ChallengeIdea/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.29 Challenge idea
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/Synthesize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.30 Synthesize
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../actions/SuggestConnections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2.31 Suggest connections
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    3. Vault Hooks
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            3. Vault Hooks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    3.1 Property Hooks
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            3.1 Property Hooks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault-hooks/property-hooks/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3.1.1 Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault-hooks/property-hooks/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3.1.2 Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault-hooks/property-hooks/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3.1.3 Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault-hooks/OnCreate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3.2 Folder Automation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    4. How to Contribute
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            4. How to Contribute
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to-contribute/community-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    4.1 Community examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to-contribute/systems-gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    4.2 Systems gallery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../how-to-contribute/Wiki/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    4.3 Wiki
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    5. API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            5. API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ZettelFlowAPI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    5.1 Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    5.2 Cookbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    6. Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            6. Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.1 Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../surfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.1.1 The four surfaces
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.2 Plugin core
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    6.3 Actions & note builder
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.3 Actions & note builder
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-action-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. The action contract
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The action contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-what-runs-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lifecycle — what runs when
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-types-architectureapitypingts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key types (architecture/api/typing.ts)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-4-file-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      The 4-file convention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-knowledgecontext-seam-xi-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      The KnowledgeContext seam (§XI boundary)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-zones-where-a-value-goes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Zones — where a value goes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-11-built-in-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. The 11 built-in actions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-note-dtos" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. The note DTOs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-build-pipeline-notebuilderts" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. The build pipeline — NoteBuilder.ts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-wizard-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. The wizard — state machine
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. The wizard — state machine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      The store
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-three-selectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      The three selectors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-transitions-callbackscallbackutilstsx" class="md-nav__link">
+    <span class="md-ellipsis">
+      The transitions (callbacks/CallbackUtils.tsx)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-end sequence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-companion-pane-live-preview-connection-suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      The companion pane — live preview &amp; connection suggestions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-script-action-the-zf-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Script action &amp; the zf API
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-adding-a-new-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Adding a new action
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-action-categories-cognitive-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Action categories (cognitive capabilities)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Action categories (cognitive capabilities)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kind-command-vs-query-the-primary-axis-265" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kind — command vs query (the primary axis, #265)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault-hooks-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.4 Vault hooks internals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community-and-backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.5 Community & backend
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../zftemplate-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.6 .zftemplate schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conditional-edges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.7 Conditional edges
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trigger-conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.7.1 Trigger conditions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.8 Knowledge model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.9 Knowledge lifecycle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.9.1 Knowledge state (projections)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflow-phases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.10 Workflow phases
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-driven-workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.11 Event-driven & visual workflows
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reposition-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6.12 Reposition map (feature → layer)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    7. Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            7. Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.1 Getting started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing-and-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.2 Contributing & conventions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/testing-and-guardrails/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.3 Testing & guardrails
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/obsidian-review-and-scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.4 Obsidian review & scoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/project-health-and-roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.5 Project health & roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/spec-driven-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.6 Spec-driven development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/slipbox-health-dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.7 Slip-box health dashboard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/capabilities-and-privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.8 Capabilities & privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/mobile-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.8.1 Mobile support
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/moc-builder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.10 Map of content builder
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/connection-resurfacing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.11 Connection resurfacing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/atomicity-split/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.12 Atomicity split assist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/ai-provider-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.13 AI provider setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/second-brain-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.14 Second-brain review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/thinking-heatmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.15 Thinking heatmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/morning-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.16 Morning discovery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/living-knowledge-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.17 Living knowledge map
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/concept-navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.18 Concept navigation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/open-questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.19 Open questions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/evolution-timeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.20 Evolution timeline
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/evidence-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.21 Evidence map
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/knowledge-patterns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.22 Knowledge patterns
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/knowledge-dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.23 Knowledge dashboard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/zettelflow-home/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.24 ZettelFlow home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/derived-projects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7.25 Derived projects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../7.27 Friction audit (epic" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    None
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-action-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. The action contract
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. The action contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-what-runs-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lifecycle — what runs when
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-types-architectureapitypingts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key types (architecture/api/typing.ts)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-4-file-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      The 4-file convention
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-knowledgecontext-seam-xi-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      The KnowledgeContext seam (§XI boundary)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-zones-where-a-value-goes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Zones — where a value goes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-11-built-in-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. The 11 built-in actions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-note-dtos" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. The note DTOs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-build-pipeline-notebuilderts" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. The build pipeline — NoteBuilder.ts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-wizard-state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. The wizard — state machine
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. The wizard — state machine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      The store
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-three-selectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      The three selectors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-transitions-callbackscallbackutilstsx" class="md-nav__link">
+    <span class="md-ellipsis">
+      The transitions (callbacks/CallbackUtils.tsx)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-end sequence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-companion-pane-live-preview-connection-suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      The companion pane — live preview &amp; connection suggestions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-script-action-the-zf-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Script action &amp; the zf API
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-adding-a-new-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Adding a new action
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-action-categories-cognitive-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Action categories (cognitive capabilities)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Action categories (cognitive capabilities)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kind-command-vs-query-the-primary-axis-265" class="md-nav__link">
+    <span class="md-ellipsis">
+      Kind — command vs query (the primary axis, #265)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="actions-note-builder">Actions &amp; note builder</h1>
+<p>This is the functional heart of ZettelFlow: the <strong>action abstraction</strong>, how each action
+contributes to the generated note, and the <strong>wizard state machine</strong> that drives note creation.</p>
+<h2 id="1-the-action-contract">1. The action contract</h2>
+<p>Every action implements <code>ICustomZettelAction</code> (<code>architecture/api/typing.ts</code>) and extends the
+abstract base <code>CustomZettelAction</code> (<code>architecture/api/CustomZettelAction.tsx</code>):</p>
+<pre><code class="language-ts">interface ICustomZettelAction {
+  id: string;
+  component(props: WrappedActionBuilderProps): JSX.Element; // build-time UI
+  settings: ActionSetting;                                  // design-time config UI
+  execute(info: ExecuteInfo): Promise&lt;void&gt;;                // contribute to the note
+  postProcess(info: ExecuteInfo, file: TFile): Promise&lt;void&gt;;
+  getIcon(): string;
+  getLabel(): string;
+}
+</code></pre>
+<p>The base class adds four abstract members: <code>defaultAction: Action</code>,
+<code>settingsReader: ActionSettingReader</code> (read-only config view), <code>link: string</code> (doc URL),
+<code>purpose: string</code> (one-line description). <code>component</code>, <code>execute</code>, and <code>postProcess</code> have empty
+default implementations, so an action overrides only what it needs.</p>
+<h3 id="lifecycle-what-runs-when">Lifecycle — what runs when</h3>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Phase</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code>, <code>defaultAction</code></td>
+<td>registration / step editor</td>
+<td>store key + the config template cloned by <code>getDefaultActionInfo</code></td>
+</tr>
+<tr>
+<td><code>settings(contentEl, modal, action, disableNavbar?)</code></td>
+<td><strong>design time</strong> (step editor)</td>
+<td>render the config UI that mutates the <code>action</code> object</td>
+</tr>
+<tr>
+<td><code>settingsReader(contentEl, action)</code></td>
+<td>design time</td>
+<td>read-only preview of the config</td>
+</tr>
+<tr>
+<td><code>component(props)</code></td>
+<td><strong>build time</strong> (wizard)</td>
+<td>the React UI the user fills in; calls <code>props.callback(value)</code></td>
+</tr>
+<tr>
+<td><code>execute(info)</code></td>
+<td><strong>build</strong></td>
+<td>write the action's contribution into <code>ContentDTO</code> / <code>context</code></td>
+</tr>
+<tr>
+<td><code>postProcess(info, file)</code></td>
+<td><strong>after file write</strong></td>
+<td>side effects needing the real <code>TFile</code> (e.g. backlinks)</td>
+</tr>
+<tr>
+<td><code>getIcon()</code>, <code>getLabel()</code>, <code>link</code>, <code>purpose</code></td>
+<td>menus / docs</td>
+<td>presentation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="key-types-architectureapitypingts">Key types (<code>architecture/api/typing.ts</code>)</h3>
+<pre><code class="language-ts">type Action = {
+  type: string;        // &quot;prompt&quot;, &quot;script&quot;, …
+  id: string;
+  description?: string;
+  hasUI?: boolean;     // true → renders a wizard step; false → background action
+  [key: string]: Literal;  // arbitrary per-action config
+};
+
+type ExecuteInfo = {
+  element: FinalElement;          // the configured action + its runtime `result`
+  content: ContentDTO;            // note body / frontmatter / tags accumulator
+  note:    NotePersistence;       // the note's persistence/representation view (path + title + folder)
+  context: Record&lt;string, Literal&gt;; // ephemeral bag shared between actions
+};
+</code></pre>
+<p><code>FinalElement = { result: Literal } &amp; Action</code>.</p>
+<p>Since epic <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/268">#268</a> S6 (#275), the action
+(and user-script) boundary sees the note as <strong><code>NotePersistence</code></strong>, not the wizard-shaped <code>NoteDTO</code> —
+see <a href="#4-the-note-dtos">The note DTOs</a>. Knowledge <strong>domain</strong> access (identity, model, relation writes)
+does not go through <code>note</code>; it flows through the <a href="#the-knowledgecontext-seam-xi-boundary">KnowledgeContext seam</a>.</p>
+<h3 id="the-4-file-convention">The 4-file convention</h3>
+<p>Each action folder (<code>src/actions/&lt;name&gt;/</code>) contains:</p>
+<ul>
+<li><code>*Action.tsx</code> — the <code>CustomZettelAction</code> subclass (registration + <code>execute</code>/<code>postProcess</code>).</li>
+<li><code>*Component.tsx</code> — the <strong>build-time</strong> React UI (skipped for background actions).</li>
+<li><code>*Settings.ts(x)</code> — the <strong>design-time</strong> config UI (Obsidian <code>Setting</code> rows and/or React).</li>
+<li><code>*SettingsReader.ts</code> — the read-only config view (used in community previews).</li>
+</ul>
+<h3 id="the-knowledgecontext-seam-xi-boundary">The KnowledgeContext seam (§XI boundary)</h3>
+<blockquote>
+<p>Epic <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/262">#262</a> Phase 2 (#264).</p>
+</blockquote>
+<p>Knowledge and relation actions conceptually operate on the <strong>Knowledge Model</strong>, not on a <code>Note</code>.
+The <strong>KnowledgeContext</strong> seam names the <em>only three</em> concerns those actions touch, so an action can
+run unchanged during creation, review, from Home, Discovery, a condition or a workflow:</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>What it is</th>
+<th>Backed today by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Identity</strong></td>
+<td>the note/idea under operation — <code>el.target</code> or the built note's path, or <code>null</code></td>
+<td><code>resolveTargetPath(info, el)</code></td>
+</tr>
+<tr>
+<td><strong>Model view</strong></td>
+<td>the note's current frontmatter + the offline <code>KnowledgeModel</code> (or <code>null</code> when the index isn't ready)</td>
+<td><code>content.getFrontmatter()</code> + <code>readyModel()</code></td>
+</tr>
+<tr>
+<td><strong>Sink</strong></td>
+<td><code>write(key, value, zone)</code> — frontmatter for any zone that isn't <code>context</code>, always mirrored to <code>{{key}}</code></td>
+<td><code>writeKnowledgeResult(info, el, value)</code></td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-mermaid">flowchart LR
+    Info[&quot;ExecuteInfo (wizard-shaped)&quot;] --&gt;|fromExecuteInfo| Ctx[&quot;KnowledgeContext (pure)&quot;]
+    Ctx --&gt; Id[&quot;identity&quot;]
+    Ctx --&gt; Model[&quot;model (injected)&quot;]
+    Ctx --&gt; Sink[&quot;write(key,value,zone)&quot;]
+</code></pre>
+<p><strong>Placement rule (the hardened boundary):</strong></p>
+<ul>
+<li>The <strong>pure type</strong> lives in the Knowledge layer at <code>src/architecture/knowledge/context/KnowledgeContext.ts</code>.
+  It is offline and platform-free — <strong>§XI</strong>: it imports no platform API, no <code>NoteDTO</code>/<code>ContentDTO</code>, no
+  <code>KnowledgeIndex</code>. <strong>Gotcha:</strong> import <code>KnowledgeModel</code> by its <strong>deep path</strong>
+  (<code>architecture/knowledge/model/KnowledgeModel</code>), never the <code>architecture/knowledge</code> barrel, which
+  re-exports the platform-coupled <code>KnowledgeIndex</code>. A grep gate
+  (<code>test/architecture/knowledge/pure-is-obsidian-free.test.ts</code>) enforces this over <code>context/</code>.</li>
+<li>The <strong>adapter</strong> <code>fromExecuteInfo(info)</code> lives on the engine/actions side at
+  <code>src/actions/knowledge/knowledgeContextAdapter.ts</code>. It is the <strong>only</strong> place that resolves the model
+  from <code>KnowledgeIndex</code> (via <code>readyModel()</code>) and injects it into the context, so the pure type never
+  reaches for a singleton. The execution helpers it composes live UI-free in
+  <code>src/actions/knowledge/knowledgeActionCore.ts</code> (re-exported by <code>knowledgeActionShared.ts</code>).</li>
+</ul>
+<p><code>find-related</code> is the first action migrated to read identity/model/sink through the seam; the rest
+follow as the epic splits actions into Commands vs Queries (Phase 3).</p>
+<p><strong>Note → persistence inversion (#268 S6, #275).</strong> With the domain flowing through this seam, the note
+handed to an action no longer needs to be the wizard builder. <code>ExecuteInfo.note</code> is typed
+<a href="#4-the-note-dtos"><code>NotePersistence</code></a> — only the note's destination path, title and target folder —
+so neither an action nor the user-script sandbox (which receives <code>note</code> directly) can reach the
+builder's wizard-flow methods. <code>NoteDTO</code> <code>implements NotePersistence</code> and stays the note-builder's
+private object; the headless post-index re-run builds its stand-in with the pure
+<code>notePersistenceForPath(path)</code> factory instead of casting a fake <code>NoteDTO</code>.</p>
+<h2 id="2-zones-where-a-value-goes">2. Zones — where a value goes</h2>
+<p>Most actions route their value by a <code>zone</code> config field:</p>
+<ul>
+<li><strong><code>frontmatter</code></strong> (default) → <code>content.addFrontMatter({ [key]: value })</code> → a YAML property.</li>
+<li><strong><code>body</code></strong> → <code>content.modify(key, value)</code> → replaces <code>{{key}}</code> placeholders in the merged
+  step-template body.</li>
+<li><strong><code>context</code></strong> → <code>context[key] = value</code> → <strong>not written</strong> to the note; a shared bag so later
+  actions and scripts can read earlier values.</li>
+</ul>
+<h2 id="3-the-11-built-in-actions">3. The 11 built-in actions</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th><code>type</code> (class)</th>
+<th>Icon</th>
+<th><code>hasUI</code></th>
+<th>Build-time UI</th>
+<th>Writes</th>
+<th>Key config</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>prompt</code> (PromptAction)</td>
+<td><code>form-input</code></td>
+<td>✅</td>
+<td>text area</td>
+<td>string → zone</td>
+<td>zone, key, label, placeholder, static toggle/value</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>number</code> (NumberAction)</td>
+<td><code>binary</code></td>
+<td>✅</td>
+<td>number input</td>
+<td>number → zone</td>
+<td>zone, key, static</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>checkbox</code> (CheckboxAction)</td>
+<td><code>check-square</code></td>
+<td>✅</td>
+<td>checkbox</td>
+<td>boolean → zone</td>
+<td>zone, key, static</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>selector</code> (SelectorAction)</td>
+<td><code>square-mouse-pointer</code></td>
+<td>✅</td>
+<td>single/multi select</td>
+<td>string(s) → zone</td>
+<td>zone, key, options (dnd list), <code>multiple</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>dynamic-selector</code> (DynamicSelectorAction)</td>
+<td><code>square-dashed-mouse-pointer</code></td>
+<td>✅</td>
+<td>select from script output</td>
+<td>option(s) → zone</td>
+<td>zone, key, script <code>code</code> returning <code>[label,value][]</code>, <code>multiple</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>calendar</code> (CalendarAction)</td>
+<td><code>calendar-days</code></td>
+<td>✅</td>
+<td>date/time picker</td>
+<td>moment-formatted date → zone</td>
+<td>key, zone, <code>enableTime</code>, <code>format</code>, static</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>backlink</code> (BackLinkAction)</td>
+<td><code>links-coming-in</code></td>
+<td>✅</td>
+<td>target/heading picker</td>
+<td><strong>nothing here</strong> — inserts <code>[[thisNote]]</code> into <em>another</em> file via <code>postProcess</code></td>
+<td>defaultFile, insertPattern (<code>{{wikilink}}</code>), defaultHeading</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>tags</code> (TagsAction)</td>
+<td><code>price-tag-glyph</code></td>
+<td>✅</td>
+<td>tag list</td>
+<td>frontmatter <code>tags</code></td>
+<td>tags list, static</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>cssclasses</code> (CssClassesAction)</td>
+<td><code>view</code></td>
+<td>✅</td>
+<td>class list</td>
+<td>frontmatter <code>cssclasses</code></td>
+<td>classes list, static</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>script</code> (ScriptAction)</td>
+<td><code>code-glyph</code></td>
+<td>❌</td>
+<td>none (background)</td>
+<td>anything, imperatively</td>
+<td>CodeMirror JS editor + debug runner</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>task-management</code> (TaskManagementAction)</td>
+<td><code>list-checks</code></td>
+<td>❌</td>
+<td>none (background)</td>
+<td>rolled-over tasks → body</td>
+<td>initialFolder, regex, rolloverHeader, prefix/suffix, key, recursive</td>
+</tr>
+</tbody>
+</table>
+<p>Outliers to know:</p>
+<ul>
+<li><strong>BackLink</strong> overrides <code>postProcess</code> (not <code>execute</code>): it resolves the target file/heading and
+  calls <code>EditService.instance(target).insertBacklink(...)</code>. <code>{{wikilink}}</code> becomes
+  <code>[[source.basename]]</code>.</li>
+<li><strong>TaskManagement</strong> scans files in <code>initialFolder</code>, extracts unfinished <code>- [ ]</code> todos under
+  <code>rolloverHeader</code>, <strong>removes them from the source files</strong>, and appends them to the new note.</li>
+<li><strong>Script</strong> is the imperative escape hatch — it receives the live DTOs and mutates them
+  directly (see §6).</li>
+</ul>
+<h2 id="4-the-note-dtos">4. The note DTOs</h2>
+<p><strong><code>ContentDTO</code></strong> (<code>application/notes/model/ContentDTO.ts</code>) — the note accumulator:</p>
+<ul>
+<li><code>content: string</code> (body), <code>frontmatter: Record&lt;string, Literal&gt;</code>, <code>tags: string[]</code>.</li>
+<li><code>add(str)</code> appends body; <code>modify(key, result)</code> replaces <code>{{key}}</code> in the body (the <code>body</code>
+  zone); <code>addFrontMatter(fm)</code> merges frontmatter (hoisting any <code>tags</code> field into <code>addTags</code>);
+  <code>addTags</code>/<code>addTag</code> de-dupe.</li>
+</ul>
+<p><strong><code>NoteDTO</code></strong> (<code>application/notes/model/NoteDTO.ts</code>) — the note-builder's private metadata + work list.
+Only its <strong>persistence/representation</strong> view — the <code>NotePersistence</code> interface
+(<code>application/notes/model/NotePersistence.ts</code>): <code>getFinalPath</code>, <code>getTitle</code>/<code>setTitle</code>,
+<code>getTargetFolder</code>/<code>setTargetFolder</code> — crosses the action/script boundary (<code>ExecuteInfo.note</code>, #275).
+The wizard-flow members below stay internal to the note-builder (<code>builder.note.*</code>):</p>
+<ul>
+<li><code>title</code>, <code>targetFolder</code>, <code>uniquePrefixPattern</code>.</li>
+<li><code>paths: Map&lt;number, string&gt;</code> — chosen step-template <code>.md</code> paths, keyed by wizard position.</li>
+<li><code>savedActions: Map&lt;number, FinalElement&gt;</code> — configured actions + their results.</li>
+<li><code>links: string[]</code> — connection links chosen in the companion pane; appended to the body as
+  <code>[[wikilinks]]</code> at build time (<code>addLink</code>/<code>getLinks</code>, session-scoped).</li>
+<li><code>getFinalPath()</code> = <code>targetFolder/title.md</code>; <code>deletePos(pos)</code> prunes paths/actions at/after a
+  position (used by back-navigation).</li>
+<li><code>lockTargetFolder(path)</code> — pins the note to a specific folder, preventing any per-step
+  <code>targetFolder</code> from overriding it. Used by the <strong>Create note in current folder</strong> setting
+  (<code>createInCurrentFolder</code> in <code>ZettelFlowSettings</code>): when enabled, the active file's parent
+  folder is locked in at wizard start and no step can change it.</li>
+</ul>
+<h2 id="5-the-build-pipeline-notebuilderts">5. The build pipeline — <code>NoteBuilder.ts</code></h2>
+<p><code>build(modal, actions)</code> branches on <code>modal.isEditor()</code>:</p>
+<ul>
+<li><strong>New note</strong> — <code>buildNewNote()</code>: freeze the vault → compute the filename (optional date
+  prefix) → <code>buildNote()</code> → guard empty title → <code>FileService.createFile(finalPath, body)</code> →
+  <code>FrontmatterService.processTypedFrontMatter</code> → <code>postProcess(file)</code>. On error it deletes the
+  half-created file and defrosts the vault.</li>
+<li><strong>Editor / embedded</strong> — <code>buildEditor()</code>: <code>buildNote()</code> → <code>modal.onEditorBuild(body)</code>; if
+  backed by a real file, also <code>processTypedFrontMatter</code> + <code>postProcess</code>.</li>
+</ul>
+<p><code>buildNote()</code> — for each chosen step template: read its frontmatter (<code>addFrontMatter</code>) and body
+(<code>add</code>), then <code>manageElements()</code>, then <code>appendConnectionLinks()</code> (companion-pane links, if any).</p>
+<p><code>manageElements()</code> — for each saved action element:
+<code>actionsStore.getAction(element.type).execute({ element, content, note, context })</code>, advancing
+the progress bar.</p>
+<p><code>postProcess()</code> — a second pass calling each action's <code>postProcess(info, file)</code> (backlinks land
+here), then triggers Templater's <code>replace-in-file-templater</code> command after ~1 s.</p>
+<p><strong>Typed frontmatter write</strong> — <code>FrontmatterService.processTypedFrontMatter</code> writes
+<code>content.getTags()</code> into <code>frontmatter.tags</code> and coerces every value to the property's native
+Obsidian type via <code>ObsidianConfig.parseType(...)</code>, using <code>fileManager().processFrontMatter</code>.</p>
+<h2 id="6-the-wizard-state-machine">6. The wizard — state machine</h2>
+<h3 id="the-store">The store</h3>
+<p><code>useNoteBuilderStore</code> (<code>application/components/noteBuilder/state/NoteBuilderState.tsx</code>) is the one
+Zustand store (created via <code>createWithEqualityFn</code> from <code>zustand/traditional</code>). Key state:
+<code>position</code> (wizard index + Map key), <code>section</code> (current React element + color), <code>header</code>,
+<code>previousSections</code> + <code>previousArray</code> (back-navigation stack), <code>builder</code> (the DTOs), progress-bar
+fields, <code>currentAction</code>/<code>currentNode</code>, <code>enableSkip</code>. Mutators include <code>setTitle</code>,
+<code>manageNodeInfo</code>, <code>addAction</code>, <code>addBackgroundAction</code>, <code>addJsFile</code>, <code>build</code>, <code>reset</code>, <code>goPrevious</code>,
+<code>setSectionElement</code>.</p>
+<h3 id="the-three-selectors">The three selectors</h3>
+<p>Each is a <code>&lt;Select&gt;</code> wrapper: <strong><code>RootSelector</code></strong> (options from <code>flow.rootNodes()</code>),
+<strong><code>ElementSelector</code></strong> (a node's children), <strong><code>ActionSelector</code></strong> (renders
+<code>actionsStore.getAction(type).component</code>).</p>
+<h3 id="the-transitions-callbackscallbackutilstsx">The transitions (<code>callbacks/CallbackUtils.tsx</code>)</h3>
+<ul>
+<li><strong><code>nextElement</code></strong> — <code>flow.get(selected)</code> → set current node; if it has untriggered actions →
+  <code>manageAction(node, 0)</code>, else → <code>manageElement(node)</code>.</li>
+<li><strong><code>manageAction(node, …, position)</code></strong> — if <code>position &gt;= actions.length</code> → <code>nextElement</code>
+  (descend to children); else if <code>action.hasUI</code> → render <code>ActionSelector</code> and pause for input;
+  else → <code>addBackgroundAction</code> and recurse to <code>position+1</code> (no UI).</li>
+<li><strong><code>manageElement(node, …)</code></strong> — record the node's template path/folder (or <code>addJsFile</code> for a
+  <code>.js</code> step), then look at <code>childrensOf(node.id)</code>: <strong>&gt;1</strong> → render <code>ElementSelector</code> (branch);
+  <strong>1</strong> → auto-advance <code>nextElement(child)</code>; <strong>0 (leaf)</strong> → show <code>ProgressBar</code> and call
+  <code>actions.build(modal)</code>.</li>
+<li><strong><code>setSelectionElementAction</code></strong> — the "advance" primitive: optionally snapshots the current
+  section onto the back stack, then sets <code>position+1</code> and the new section.</li>
+<li><strong><code>goPreviousAction</code></strong> — pops the back stack, restores the saved section, and
+  <code>builder.note.deletePos(previousPosition)</code> so the DTO forgets later steps.</li>
+</ul>
+<h3 id="end-to-end-sequence">End-to-end sequence</h3>
+<pre><code>RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─► nextElement
+  nextElement: flow.get(node)
+    ├─ node has actions &amp; !triggered ─► manageAction(node, 0)
+    │     ├─ hasUI     ─► ActionSelector (component) ─user submits─► callbackActionBuilder
+    │     │                                              addAction(result); manageAction(pos+1)
+    │     └─ background ─► addBackgroundAction; manageAction(pos+1)
+    │     (exhausted)  ─► nextElement(node.id)   # descend to children
+    └─ else ─► manageElement(node)
+          manageNodeInfo (template path + folder)
+          childrensOf(node):
+            &gt;1 ─► ElementSelector ─► callbackElementBuilder ─► nextElement(child)
+            =1 ─► nextElement(child)          # auto
+             0 ─► ProgressBar ─► builder.build(modal)
+                     buildNote → execute each action → createFile
+                     → processTypedFrontMatter → postProcess → open note
+</code></pre>
+<h3 id="the-companion-pane-live-preview-connection-suggestions">The companion pane — live preview &amp; connection suggestions</h3>
+<p>On <strong>desktop, in the creation flow</strong> (ribbon → <code>SelectorMenuModal</code>), a <strong>companion pane</strong> renders
+beside the wizard (<code>application/components/noteBuilder/CompanionPane.tsx</code>). It gives the author a
+feedback loop (<em>what am I building?</em>) and nudges a link before the note is filed (<em>connect it</em>).
+On mobile, or in the editor/embedded flow, the wizard renders exactly as before — the pane is
+absent (<code>!Platform.isMobile &amp;&amp; !modal.getMarkdownView()</code> gate in <code>SelectorMenu.tsx</code>).</p>
+<p><strong>Live preview.</strong> The pane reproduces the note <strong>in memory</strong> — no vault file is created,
+modified, or deleted. The Obsidian-free pure function
+<code>assembleNotePreview</code> (<code>application/notes/previewAssembly.ts</code>) mirrors <code>NoteBuilder.buildNote()</code>:
+concatenate step-template bodies in position order, merge frontmatter (hoisting/de-duping <code>tags</code>),
+run <code>substituteContextTokens</code>, apply each captured action result by its <code>zone</code>
+(<code>body</code> → <code>{{key}}</code> replace, <code>frontmatter</code> → set, <code>context</code> → ignored for display), substitute
+<code>{{title}}</code>, and append any recorded connection links. The React side does the async file reads
+(<code>FrontmatterService.getContent</code>/<code>getFrontmatter</code>, cached per session), then calls the pure
+function and renders the result via <code>MarkdownService</code> (a YAML frontmatter block + the body).</p>
+<p><strong>Connection suggestions.</strong> A second pure function
+<code>rankConnectionSuggestions</code> (<code>application/notes/connectionSuggestions.ts</code>) scores candidate notes
+(gathered from <code>metadataCache</code>) by shared tags and title-keyword overlap, returning a bounded,
+relevance-ordered top-N. Each suggestion opens the note on click; the <strong>insert-link</strong> control
+records the note on <code>NoteDTO</code> (<code>addLink</code>) via the store's <code>insertLink</code> action. Recorded links are
+appended to the body as <code>[[wikilinks]]</code> at build time (<code>NoteBuilder.appendConnectionLinks</code>) and
+are reflected live in the preview.</p>
+<p><strong>Re-render, performance, observability.</strong> The <code>builder</code> object is mutated in place and never
+changes identity, so the pane subscribes to identity-changing store values — <code>position</code>, <code>title</code>,
+and a <code>linkVersion</code> counter — and reads builder data fresh. Assembly is <strong>debounced ~300ms</strong>
+(<code>window.setTimeout</code>), template reads are <strong>session-cached</strong>, and the candidate scan is bounded.
+Assembly logs its elapsed time (<code>log.debug</code>); a template-read failure surfaces a <code>Notice</code> and
+<code>log.error</code> and leaves the wizard fully usable. The pane always shows one of four states:</p>
+<pre><code class="language-mermaid">stateDiagram-v2
+    [*] --&gt; Empty: pane opens (no answers yet)
+    Empty --&gt; Loading: first step answered / title typed
+    Loading --&gt; Ready: assembled + suggestions ready
+    Loading --&gt; Error: template read failed (Notice + log.error)
+    Ready --&gt; Loading: step advances / title edited / link inserted
+    Error --&gt; Loading: retry on next change
+</code></pre>
+<h2 id="7-script-action-the-zf-api">7. Script action &amp; the <code>zf</code> API</h2>
+<p><code>ScriptAction.execute</code> compiles the user's <code>code</code> into an <code>AsyncFunction</code> and calls it with
+<code>(element, content, note, context, zf)</code>, where <code>zf = await fnsManager.getFns()</code>:</p>
+<pre><code class="language-ts">type ZettelFlowApp = {
+  external: { tp?: TemplaterTools; dv?: DataviewTools }; // Templater &amp; Dataview if installed
+  internal: {
+    vault: { resolveTFolder(path), obtainFilesFrom(folder, extensions) };
+    user:  Record&lt;basename, defaultExport&gt;; // every .js under jsLibraryFolderPath
+  };
+};
+</code></pre>
+<p>The <strong>editor</strong> is CodeMirror 6 via <code>dispatchEditor</code> (<code>components/core/codeView/editor/</code>), with
+<code>javascript()</code>, folding, bracket matching, and a ZettelFlow <strong>autocomplete</strong> driven by a
+<code>CompletionTree</code> (<code>note.*</code>, <code>content.*</code>, <code>context</code>) described in <code>NoteFns.ts</code> / <code>ContentFns.ts</code>.
+The settings panel also has a <strong>debug runner</strong> that executes the script against mock DTOs.</p>
+<p>The <strong>Dynamic Selector</strong> uses a narrower script contract: called with only <code>zf</code>, it must
+<strong>return <code>[label, value][]</code> tuples</strong>, which become the selectable options.</p>
+<h2 id="8-adding-a-new-action">8. Adding a new action</h2>
+<p>See the step-by-step recipe in
+<a href="../../development/contributing-and-conventions/#adding-a-new-action">Contributing &amp; conventions</a>,
+and the <code>new-action</code> harness skill which scaffolds the 4 files and the registration for you.</p>
+<h2 id="9-action-categories-cognitive-capabilities">9. Action categories (cognitive capabilities)</h2>
+<p>Since #152 the action picker groups actions by <strong>what they do to knowledge</strong> rather than showing a
+flat list. There are five closed categories, rendered in this canonical order (emoji is decorative;
+the label is i18n, sentence case):</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📝 <strong>Manipulation</strong></td>
+<td>create / modify a note, add a property, tag, id, task, css class</td>
+</tr>
+<tr>
+<td>🔗 <strong>Relations</strong></td>
+<td>create / remove / suggest a link between notes</td>
+</tr>
+<tr>
+<td>🧠 <strong>Knowledge</strong></td>
+<td>extract concepts, find contradictions/duplicates, maturity <em>(actions land here with #153)</em></td>
+</tr>
+<tr>
+<td>🔍 <strong>Research</strong></td>
+<td>find / attach sources, extract &amp; compare claims <em>(#155)</em></td>
+</tr>
+<tr>
+<td>🤖 <strong>AI</strong></td>
+<td>optional, provider-agnostic AI capabilities <em>(#156)</em></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Built-in mapping (behavior-neutral — categorization changed nothing about how actions run):</strong>
+Backlink → 🔗 Relations; every other built-in (Prompt, Number, Checkbox, Calendar, Selector,
+Dynamic selector, Tags, CSS classes, Task management, Script, Zettel ID) → 📝 Manipulation. The
+Knowledge / Research / AI groups ship <strong>empty</strong> and fill in as #153 / #155 / #156 land.</p>
+<p><strong>Declaring a category (third-party actions).</strong> A category is an <strong>optional</strong> <code>category</code> field on
+<code>CustomZettelAction</code>:</p>
+<pre><code class="language-ts">export class MyAction extends CustomZettelAction {
+  id = &quot;my-action&quot;;
+  category = &quot;relations&quot; as const; // optional — omit to stay uncategorized
+  // …
+}
+</code></pre>
+<p>Omitting it is fully supported (the #33 back-compat contract): the action still registers, runs, and
+appears in the picker under an <strong>"Other"</strong> group. <strong>Empty groups are hidden</strong>, so the uncategorized
+group only shows when at least one action has no category. The vocabulary, the canonical order, the
+grouping helper and the i18n label keys live in the pure, Obsidian-free
+<code>architecture/api/categories</code>.</p>
+<h3 id="kind-command-vs-query-the-primary-axis-265">Kind — command vs query (the primary axis, #265)</h3>
+<blockquote>
+<p>Epic <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/262">#262</a> Phase 3.</p>
+</blockquote>
+<p><code>category</code> groups the picker by <em>topic</em>; <strong><code>kind</code> is the primary taxonomy axis</strong> — <em>what the action
+does to the Knowledge Model</em>, over the <a href="#the-knowledgecontext-seam-xi-boundary">KnowledgeContext seam</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Meaning</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>command</code></strong></td>
+<td><strong>mutates</strong> knowledge</td>
+<td>creates/changes a note, relation, source, property, id, task or backlink</td>
+</tr>
+<tr>
+<td><strong><code>query</code></strong></td>
+<td><strong>observes</strong> knowledge</td>
+<td>derives a value from the model and writes <strong>only</strong> through the context sink — no other mutation</td>
+</tr>
+</tbody>
+</table>
+<p>The 31 built-ins split <strong>14 commands / 17 queries</strong> (11 offline queries + <strong>6 AI network queries</strong>
+under <code>src/actions/ai/**</code>, which are query-shaped but call <code>AiService</code>, so they are fenced out of the
+offline/pure §XI layer). <code>kind</code> and <code>category</code> are <strong>single-sourced, not parallel</strong>: <code>kind</code> is
+primary, <code>category</code> a validated facet — <code>manipulation ⟹ command</code> and <code>knowledge</code>/<code>ai ⟹ query</code>, while
+<code>relations</code> and <code>research</code> legitimately contain both.</p>
+<p>The marker types (<code>ActionKind</code>, <code>KnowledgeQuery</code>, <code>KnowledgeCommand</code>) live in the pure, Obsidian-free
+<code>architecture/knowledge/taxonomy/actionKind</code> (deep-imported, never via the knowledge barrel).</p>
+<p><strong>Contributor rule:</strong> every action declares exactly one <code>kind</code> beside its <code>category</code>
+(<code>kind = "query" as const;</code>). A source-level test
+(<code>test/architecture/api/categories/actionKindClassification.test.ts</code>) enforces that all 31 built-ins
+are classified, totally and disjointly — it reads the sources with <code>fs</code> (it never imports the
+React-coupled action modules).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../../extra_javascript/navigationInstant.js"></script>
+      
+    
+  </body>
+</html>

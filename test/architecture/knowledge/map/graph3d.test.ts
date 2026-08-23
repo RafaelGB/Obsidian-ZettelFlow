@@ -8,6 +8,7 @@ import {
     graph3dStats,
     graph3dTimeRange,
     graph3dUpToTime,
+    shortestPath,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     type Graph3DData,
@@ -193,6 +194,19 @@ describe("graph3dStats & buildAdjacency (#280 iteration)", () => {
         const adj = buildAdjacency(build3DGraph(model));
         expect([...(adj.get("A.md") ?? [])]).toEqual(["B.md"]);
         expect([...(adj.get("B.md") ?? [])]).toEqual(["A.md"]); // undirected
+    });
+
+    it("finds the shortest path between two notes (and [] when unreachable)", () => {
+        const model = buildModel([
+            idea("A.md", "seed", [{ to: "B.md" }]),
+            idea("B.md", "seed", [{ to: "C.md" }]),
+            idea("C.md", "seed", []),
+            idea("Island.md", "seed", []),
+        ]);
+        const adj = buildAdjacency(build3DGraph(model));
+        expect(shortestPath(adj, "A.md", "C.md")).toEqual(["A.md", "B.md", "C.md"]);
+        expect(shortestPath(adj, "A.md", "A.md")).toEqual(["A.md"]);
+        expect(shortestPath(adj, "A.md", "Island.md")).toEqual([]);
     });
 });
 

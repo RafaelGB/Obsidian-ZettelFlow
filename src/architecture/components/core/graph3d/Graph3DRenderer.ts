@@ -20,6 +20,7 @@ import {
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
     RELATION_COLORS,
+    shortestPath,
     STATE_COLOR_VARS,
     STATE_COLORS,
 } from "architecture/knowledge/state";
@@ -69,6 +70,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private overlay: OverlayKind | null = null;
     private hoverId: string | null = null;
     private pinnedId: string | null = null;
+    private readonly hiddenRelations = new Set<string>();
+    private pathMode = false;
+    private pathFrom: string | null = null;
+    private pathNodes: Set<string> | null = null;
+    private pathEdges: Set<string> | null = null;
+    private pathBtn: HTMLElement | null = null;
     private timeCursor: number | null = null;
     private timelapseTimer: number | undefined;
     private lastClick = { id: "", at: 0 };
@@ -196,9 +203,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink))
                 .linkDirectionalParticleWidth(2)
                 .linkDirectionalParticleSpeed(0.008)
+                .linkVisibility((link) => !this.hiddenRelations.has((link as LiveLink).type ?? "link"))
                 .cooldownTime(9000) // settle the simulation sooner → less sustained CPU
                 .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
                 .onNodeClick((node) => this.onClick((node as LiveNode).id))
+                .onLinkClick((link) => this.onLinkClick(link as LiveLink))
                 .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.onEngineSettled());
             this.graph = graph;
@@ -311,6 +320,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const stats = graph3dStats(this.data);
         const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions };
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
+
+        const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
+        path.setAttribute("aria-pressed", "false");
+        this.pathBtn = path;
+        this.registerDomEvent(path, "click", () => this.togglePathMode());
 
         const fit = controls.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
         fit.setAttribute("aria-label", t("graph3d_fit_view"));
@@ -450,9 +464,52 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.refreshPaint();
     }
 
+    private togglePathMode(): void {
+        this.pathMode = !this.pathMode;
+        this.pathBtn?.toggleClass(c("graph3d-chip--active"), this.pathMode);
+        this.pathBtn?.setAttribute("aria-pressed", this.pathMode ? "true" : "false");
+        this.pathFrom = null;
+        this.pathNodes = null;
+        this.pathEdges = null;
+        this.refreshPaint();
+        this.updateStatus();
+    }
+
+    /** In path mode, first click sets the start; the second highlights the shortest path to it. */
+    private pickPathNode(id: string): void {
+        if (this.pathFrom === null) {
+            this.pathFrom = id;
+            this.pathNodes = new Set([id]);
+            this.pathEdges = new Set();
+        } else {
+            const path = shortestPath(this.adjacency, this.pathFrom, id);
+            this.pathNodes = new Set(path.length ? path : [this.pathFrom, id]);
+            this.pathEdges = new Set();
+            for (let i = 0; i < path.length - 1; i++) this.pathEdges.add(this.edgeKey(path[i], path[i + 1]));
+            if (path.length && this.graph) this.graph.zoomToFit(800, 40, (n) => this.pathNodes?.has((n as LiveNode).id ?? "") ?? false);
+            this.pathFrom = null;
+        }
+        this.hoverId = null;
+        this.pinnedId = null;
+        this.refreshPaint();
+        this.updateStatus();
+    }
+
+    /** Clicking a link opens both endpoints (source here, target in a split) so you see the connection. */
+    private onLinkClick(link: LiveLink): void {
+        const source = endId(link.source);
+        const target = endId(link.target);
+        if (source) void this.app.workspace.openLinkText(source, "", false);
+        if (target && target !== source) void this.app.workspace.openLinkText(target, "", "split");
+    }
+
     /** Single click pins a neighbourhood (and flies to it); a quick second click opens the note. */
     private onClick(id: string | undefined): void {
         if (typeof id !== "string") return;
+        if (this.pathMode) {
+            this.pickPathNode(id);
+            return;
+        }
         const now = Date.now();
         if (this.lastClick.id === id && now - this.lastClick.at < 350) {
             void this.app.workspace.openLinkText(id, "", false);
@@ -471,6 +528,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.hoverId = null;
         this.pinnedId = null;
         this.overlay = null;
+        this.pathFrom = null;
+        this.pathNodes = null;
+        this.pathEdges = null;
         for (const el of this.lensChips.values()) {
             el.removeClass(c("graph3d-chip--active"));
             el.setAttribute("aria-pressed", "false");
@@ -509,7 +569,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
             .linkColor((link) => this.computeLinkColor(link as LiveLink))
             .linkWidth((link) => this.computeLinkWidth(link as LiveLink))
-            .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink));
+            .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink))
+            .linkVisibility((link) => !this.hiddenRelations.has((link as LiveLink).type ?? "link"));
     }
 
     // ── Paint ─────────────────────────────────────────────────────────────────
@@ -517,6 +578,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (this.overlay) {
             return OVERLAY_SPECS[this.overlay].matches(node) ? this.varColor(OVERLAY_SPECS[this.overlay].colorVar) : DIM_NODE;
         }
+        if (this.pathNodes) return this.pathNodes.has(node.id ?? "") ? this.baseNodeColor(node) : DIM_NODE;
         const focus = this.activeFocus();
         if (focus && !focus.has(node.id ?? "")) return DIM_NODE;
         return this.baseNodeColor(node);
@@ -529,22 +591,29 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private computeLinkColor(link: LiveLink): string {
         if (this.overlay) return DIM_LINK;
+        if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? this.relationColor(link.type) : DIM_LINK;
         const focus = this.activeFocus();
         if (focus) return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? this.relationColor(link.type) : DIM_LINK;
         return this.relationColor(link.type);
     }
 
     private computeLinkWidth(link: LiveLink): number {
+        if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? 4 : 0.4;
         const focus = this.activeFocus();
         if (!focus) return 1.6; // bold by default so connections read clearly
         return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 3.5 : 0.5;
     }
 
-    /** Particle count per link — animate a few on small graphs; concentrate on the focus; none when dense. */
+    /** Particle count per link — path/focus links animate; a few on small graphs; none when dense. */
     private particlesFor(link: LiveLink): number {
+        if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? 4 : 0;
         const focus = this.activeFocus();
         if (focus) return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 3 : 0;
         return this.displayed.links.length <= 200 ? 1 : 0;
+    }
+
+    private edgeKey(a: string, b: string): string {
+        return a < b ? `${a}|${b}` : `${b}|${a}`;
     }
 
     private varColor(varName: string): string {
@@ -575,6 +644,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             const pinned = this.displayed.nodes.find((n) => n.id === this.pinnedId);
             if (pinned) parts.push(`▸ ${pinned.name}`);
         }
+        if (this.pathMode) parts.push(t("graph3d_path_mode"));
         if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
         if (this.capped) parts.push(t("graph3d_capped_hint"));
         this.statusEl.setText(parts.join("  ·  "));
@@ -604,11 +674,22 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (types.length > 0) {
             legend.createEl("div", { cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
             for (const type of types) {
-                const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+                const row = legend.createDiv({ cls: c("graph3d-legend-row", "graph3d-legend-row--clickable") });
+                row.toggleClass(c("graph3d-legend-row--hidden"), this.hiddenRelations.has(type));
+                row.setAttribute("aria-label", this.relationLabel(type));
                 row.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--" + type) });
                 row.createSpan({ text: this.relationLabel(type) });
+                this.registerDomEvent(row, "click", () => this.toggleRelation(type));
             }
         }
+    }
+
+    /** Toggle a relation type's visibility from the legend (click a relation to show only what you want). */
+    private toggleRelation(type: string): void {
+        if (this.hiddenRelations.has(type)) this.hiddenRelations.delete(type);
+        else this.hiddenRelations.add(type);
+        this.refreshPaint();
+        this.renderLegend();
     }
 
     private renderFallback(): void {
@@ -635,9 +716,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.zoomSlider = null;
         this.timeSlider = null;
         this.playBtn = null;
+        this.pathBtn = null;
         this.statusEl = null;
         this.hoverId = null;
         this.pinnedId = null;
+        this.pathNodes = null;
+        this.pathEdges = null;
+        this.pathFrom = null;
         if (this.graph) {
             try {
                 this.graph._destructor();

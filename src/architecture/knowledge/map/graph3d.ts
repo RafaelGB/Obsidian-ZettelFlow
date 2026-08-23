@@ -175,6 +175,34 @@ export function graph3dStats(data: Graph3DData): Graph3DStats {
     return { orphans, deadEnds, contradictions };
 }
 
+/**
+ * Breadth-first **shortest path** between two notes over the undirected adjacency (#280 iteration) —
+ * the sequence of ids from `from` to `to` inclusive, or `[]` when unreachable. Pure.
+ */
+export function shortestPath(adjacency: Map<string, Set<string>>, from: string, to: string): string[] {
+    if (from === to) return [from];
+    const prev = new Map<string, string>();
+    const seen = new Set<string>([from]);
+    const queue: string[] = [from];
+    while (queue.length > 0) {
+        const current = queue.shift() as string;
+        for (const next of adjacency.get(current) ?? []) {
+            if (seen.has(next)) continue;
+            seen.add(next);
+            prev.set(next, current);
+            queue.push(next);
+        }
+    }
+    if (!prev.has(to)) return [];
+    const path = [to];
+    let cursor = to;
+    while (prev.has(cursor)) {
+        cursor = prev.get(cursor) as string;
+        path.push(cursor);
+    }
+    return path.reverse();
+}
+
 /** Undirected adjacency (id → neighbour ids) for hover-neighbourhood highlighting. Pure. */
 export function buildAdjacency(data: Graph3DData): Map<string, Set<string>> {
     const adjacency = new Map<string, Set<string>>();

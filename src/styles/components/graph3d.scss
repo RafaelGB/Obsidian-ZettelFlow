@@ -223,6 +223,17 @@
     gap: var(--size-4-1);
 }
 
+// Relation rows are clickable to toggle that relation's visibility (#280 iteration).
+.zettelkasten-flow__graph3d-legend-row--clickable {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-legend-row--hidden {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
 .zettelkasten-flow__graph3d-swatch {
     flex: 0 0 auto;
     width: 0.8em;

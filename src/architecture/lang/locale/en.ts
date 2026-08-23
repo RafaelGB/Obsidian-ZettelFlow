@@ -557,6 +557,7 @@ export default {
     graph3d_timelapse_play: 'Play time-lapse',
     graph3d_timelapse_pause: 'Pause',
     graph3d_spread_label: 'Spread',
+    graph3d_path_mode: 'Path',
     command_explore_in_3d: 'Explore the active note in 3D',
     command_show_health: 'Show health',
     command_show_discovery: 'Show discovery',

@@ -4,7 +4,10 @@ import {
     buildAdjacency,
     capGraph3D,
     filterGraph3D,
+    graph3dSignature,
     graph3dStats,
+    graph3dTimeRange,
+    graph3dUpToTime,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     type Graph3DData,
@@ -79,11 +82,12 @@ describe("build3DGraph (#280 S1)", () => {
 });
 
 describe("filterGraph3D (#280 S3)", () => {
+    const base = { group: 0, orphan: false, deadEnd: false, contradiction: false, created: 0 };
     const data: Graph3DData = {
         nodes: [
-            { id: "Zettel/Alpha.md", name: "Alpha", val: 1, group: 0, state: "seed" },
-            { id: "Zettel/Beta.md", name: "Beta", val: 1, group: 0, state: "permanent" },
-            { id: "Refs/Gamma.md", name: "Gamma", val: 1, group: -1, state: "seed" },
+            { ...base, id: "Zettel/Alpha.md", name: "Alpha", val: 1, state: "seed" },
+            { ...base, id: "Zettel/Beta.md", name: "Beta", val: 1, state: "permanent" },
+            { ...base, id: "Refs/Gamma.md", name: "Gamma", val: 1, group: -1, state: "seed" },
         ],
         links: [
             { source: "Zettel/Alpha.md", target: "Zettel/Beta.md", type: "link" },
@@ -153,7 +157,7 @@ describe("discovery-lens flags & overlays (#280 S4)", () => {
 
 describe("capGraph3D (#280 S5)", () => {
     const node = (id: string, val: number): Graph3DNode => ({
-        id, name: id, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false,
+        id, name: id, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created: 0,
     });
     const data: Graph3DData = {
         nodes: [node("A", 3), node("B", 2), node("C", 1)],
@@ -189,5 +193,32 @@ describe("graph3dStats & buildAdjacency (#280 iteration)", () => {
         const adj = buildAdjacency(build3DGraph(model));
         expect([...(adj.get("A.md") ?? [])]).toEqual(["B.md"]);
         expect([...(adj.get("B.md") ?? [])]).toEqual(["A.md"]); // undirected
+    });
+});
+
+describe("graph3dSignature & time-lapse (#280 iteration)", () => {
+    it("signature is stable for the same shape and changes when a node or link is added", () => {
+        const a = build3DGraph(buildModel([idea("A.md", "seed", [{ to: "B.md" }]), idea("B.md", "seed", [])]));
+        const aAgain = build3DGraph(buildModel([idea("B.md", "seed", []), idea("A.md", "seed", [{ to: "B.md" }])]));
+        const bigger = build3DGraph(buildModel([idea("A.md", "seed", [{ to: "B.md" }]), idea("B.md", "seed", []), idea("C.md", "seed", [])]));
+        expect(graph3dSignature(a)).toBe(graph3dSignature(aAgain)); // order-independent
+        expect(graph3dSignature(a)).not.toBe(graph3dSignature(bigger));
+    });
+
+    it("time range + up-to-time reveal nodes progressively by creation", () => {
+        const model = buildModel([
+            idea("Old.md", "seed", [{ to: "New.md" }], { created: 1000 }),
+            idea("New.md", "seed", [], { created: 5000 }),
+        ]);
+        const data = build3DGraph(model);
+        expect(graph3dTimeRange(data)).toEqual({ min: 1000, max: 5000 });
+
+        const early = graph3dUpToTime(data, 2000);
+        expect(early.nodes.map((n) => n.id)).toEqual(["Old.md"]);
+        expect(early.links).toEqual([]); // New.md not revealed yet
+
+        const late = graph3dUpToTime(data, 5000);
+        expect(late.nodes.map((n) => n.id).sort()).toEqual(["New.md", "Old.md"]);
+        expect(late.links.length).toBe(1);
     });
 });

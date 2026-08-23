@@ -1,19 +1,18 @@
-// The 3D knowledge-graph mode (#280). The WebGL canvas fills the surface body; the relation-type
-// legend and (S3) the toolbar float over it. Link/legend colors come from Obsidian's `--color-*`
-// palette so the WebGL links (read at runtime by the renderer) and these swatches never drift.
+// The 3D knowledge-graph mode (#280). The WebGL canvas fills the surface; the top bar (controls +
+// status), the legend, the time-lapse and the zoom float over it. Node/link colours come from
+// Obsidian's `--color-*` palette so the WebGL and these swatches never drift.
 
 .zettelkasten-flow__graph3d {
     position: relative;
     width: 100%;
     height: 100%;
     min-height: 24em;
+    overflow: hidden;
 }
 
 .zettelkasten-flow__graph3d-canvas {
-    width: 100%;
-    height: 100%;
-    min-height: 24em;
-    overflow: hidden;
+    position: absolute;
+    inset: 0;
 }
 
 .zettelkasten-flow__graph3d-message {
@@ -26,36 +25,50 @@
     }
 }
 
-// "Showing the most-connected notes" note when the graph is capped for performance (S5).
-.zettelkasten-flow__graph3d-hint {
+// ── Top bar: controls + a persistent status line ────────────────────────────
+.zettelkasten-flow__graph3d-topbar {
     position: absolute;
-    right: var(--size-4-2);
-    bottom: var(--size-4-2);
-    z-index: 1;
-    pointer-events: none;
-    padding: var(--size-2-1) var(--size-4-2);
-    background-color: var(--background-secondary);
-    border-radius: var(--radius-s);
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding: var(--size-4-2);
+    pointer-events: none; // the bar area passes clicks through; controls re-enable themselves
+    background: linear-gradient(to bottom, rgba(11, 14, 20, 0.85), rgba(11, 14, 20, 0));
 }
 
-// ── Toolbar: search-to-focus + state filter (S3) ───────────────────────────
-.zettelkasten-flow__graph3d-toolbar {
-    position: absolute;
-    top: var(--size-4-2);
-    left: var(--size-4-2);
-    right: var(--size-4-2);
-    z-index: 1;
+.zettelkasten-flow__graph3d-controls {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: var(--size-4-2);
-    pointer-events: none; // the bar area lets orbit/zoom through; the inputs re-enable themselves
 }
 
-// Toolbar controls re-enable pointer events (the bar itself is pass-through).
+.zettelkasten-flow__graph3d-group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__graph3d-group-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__graph3d-status {
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
 .zettelkasten-flow__graph3d-search,
-.zettelkasten-flow__graph3d-segmented,
 .zettelkasten-flow__graph3d-seg-btn,
 .zettelkasten-flow__graph3d-chip,
 .zettelkasten-flow__graph3d-fit {
@@ -63,7 +76,7 @@
 }
 
 .zettelkasten-flow__graph3d-search {
-    max-width: 12em;
+    max-width: 11em;
 }
 
 // Color-by segmented toggle (maturity vs cluster).
@@ -72,6 +85,7 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     overflow: hidden;
+    pointer-events: auto;
 }
 
 .zettelkasten-flow__graph3d-seg-btn {
@@ -98,35 +112,64 @@
     padding: var(--size-2-1) var(--size-4-2);
     cursor: pointer;
     font-size: var(--font-ui-smaller);
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    &.zettelkasten-flow__graph3d-chip--active {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+        border-color: var(--interactive-accent);
+    }
 }
 
-.zettelkasten-flow__graph3d-chip:disabled {
-    opacity: 0.4;
-    cursor: default;
-}
-
-.zettelkasten-flow__graph3d-chip--active {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
-}
-
-// ── Zoom controls: +/− buttons around a draggable vertical slider (bottom-right) ──
-.zettelkasten-flow__graph3d-zoom {
+// ── Bottom bar: time-lapse (centre) + zoom (right) ──────────────────────────
+.zettelkasten-flow__graph3d-bottombar {
     position: absolute;
-    right: var(--size-4-2);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: var(--size-4-4);
+    padding: var(--size-4-2) var(--size-4-3);
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(11, 14, 20, 0.85), rgba(11, 14, 20, 0));
+}
+
+.zettelkasten-flow__graph3d-timelapse,
+.zettelkasten-flow__graph3d-zoom {
+    display: flex;
     align-items: center;
-    gap: var(--size-4-1);
-    padding: var(--size-4-2);
+    gap: var(--size-4-2);
+    padding: var(--size-2-1) var(--size-4-2);
     background-color: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-m);
     pointer-events: auto;
+}
+
+.zettelkasten-flow__graph3d-timelapse {
+    flex: 1 1 auto;
+    max-width: 26em;
+}
+
+.zettelkasten-flow__graph3d-zoom {
+    margin-left: auto; // push zoom to the right edge
+}
+
+.zettelkasten-flow__graph3d-play {
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-time-slider {
+    flex: 1 1 auto;
+    cursor: pointer;
 }
 
 .zettelkasten-flow__graph3d-zoom-btn {
@@ -139,21 +182,17 @@
 }
 
 .zettelkasten-flow__graph3d-zoom-slider {
-    // A vertical slider (map-style); Obsidian runs on Chromium so vertical writing-mode is supported.
-    writing-mode: vertical-lr;
-    direction: rtl; // top = zoom in
-    width: 1.4em;
-    height: 8em;
+    width: 7em; // horizontal slider — reliable and roomy
     cursor: pointer;
 }
 
-// ── Relation-type legend (S2) ──────────────────────────────────────────────
+// ── Legend (bottom-left): node-colour mode + relation types ─────────────────
 .zettelkasten-flow__graph3d-legend {
     position: absolute;
     left: var(--size-4-2);
-    bottom: var(--size-4-2);
+    bottom: 4em; // clear of the bottom bar
     z-index: 1;
-    pointer-events: none; // never steal orbit/zoom from the canvas
+    pointer-events: none;
     display: flex;
     flex-direction: column;
     gap: var(--size-2-1);
@@ -164,6 +203,12 @@
     font-size: var(--font-ui-smaller);
     color: var(--text-muted);
     max-width: 12em;
+}
+
+.zettelkasten-flow__graph3d-legend-title {
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+    margin-top: var(--size-2-1);
 }
 
 .zettelkasten-flow__graph3d-legend-row {
@@ -180,7 +225,7 @@
     background-color: var(--text-faint);
 }
 
-// Per-relation colors — the single source of truth shared with the WebGL links (see Graph3DRenderer).
+// Relation-type colours — shared with the WebGL links (see Graph3DRenderer).
 .zettelkasten-flow__graph3d-swatch--link { background-color: var(--text-faint); }
 .zettelkasten-flow__graph3d-swatch--supports { background-color: var(--color-green); }
 .zettelkasten-flow__graph3d-swatch--contradicts { background-color: var(--color-red); }
@@ -189,3 +234,11 @@
 .zettelkasten-flow__graph3d-swatch--question { background-color: var(--color-purple); }
 .zettelkasten-flow__graph3d-swatch--example { background-color: var(--color-orange); }
 .zettelkasten-flow__graph3d-swatch--implements { background-color: var(--color-yellow); }
+
+// Knowledge-state (maturity) colours — shared with the node colours in maturity mode.
+.zettelkasten-flow__graph3d-swatch--state-fleeting { background-color: var(--color-red); }
+.zettelkasten-flow__graph3d-swatch--state-literature { background-color: var(--color-orange); }
+.zettelkasten-flow__graph3d-swatch--state-developing { background-color: var(--color-yellow); }
+.zettelkasten-flow__graph3d-swatch--state-permanent { background-color: var(--color-green); }
+.zettelkasten-flow__graph3d-swatch--state-evergreen { background-color: var(--color-cyan); }
+.zettelkasten-flow__graph3d-swatch--state-archived { background-color: var(--text-faint); }

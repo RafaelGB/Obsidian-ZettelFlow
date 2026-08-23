@@ -22,15 +22,28 @@ Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). 
 - Data comes purely from the offline `KnowledgeModel` via the Knowledge State surface
   (`build3DGraph`), so the WebGL view is a thin shell over tested data.
 
+A persistent **status line** in the top bar always tells you what you're looking at — the active
+colour mode, how many notes are shown, and any lens / pinned note / time-lapse in effect.
+
 ## Interacting
 
-- **Orbit / zoom / pan** with the mouse; **hover** a node to **focus its neighbourhood** (its links
-  and neighbours light up, everything else dims); **click** a node to open it; **click empty space** to
-  reset.
-- **Search** (toolbar) flies the camera to the first matching note.
-- **Fit view** re-frames the whole graph.
+- **Orbit / pan** with the mouse; **hover** a node to preview its neighbourhood (its links and
+  neighbours light up, everything else dims).
+- **Click** a node to **pin** that neighbourhood (it stays focused and the camera flies to it);
+  **double-click** to **open** the note; **click empty space** to clear the focus.
+- **Search** (top bar) flies the camera to the first matching note.
+- **Zoom** with the bottom-right control (− / slider / +) or the mouse wheel; **Fit view** re-frames
+  the whole graph.
 - **Explore the active note in 3D** — a command that opens Graph → 3D and flies straight to the note
   you're in.
+- Updates are **incremental**: while the vault indexes, new notes join the graph and existing ones
+  keep their positions — the layout never resets.
+
+## Time-lapse
+
+Press **Play** (bottom bar) to watch the graph **grow over time** — notes appear in creation order —
+or drag the time slider to scrub to any point in your thinking history. Slide back to the end (or it
+finishes) to show the whole graph again.
 
 ## Discovery lens
 

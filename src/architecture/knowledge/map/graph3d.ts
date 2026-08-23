@@ -15,6 +15,8 @@ export interface Graph3DNode {
     orphan: boolean;
     deadEnd: boolean;
     contradiction: boolean;
+    /** Creation timestamp (ms) — drives the time-lapse; 0 when unknown. */
+    created: number;
 }
 
 /** A directed, typed link between two existing nodes (source/target are vault paths). */
@@ -93,6 +95,7 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             orphan: model.outNeighbors(idea.path).length === 0,
             deadEnd: model.inNeighbors(idea.path).length === 0,
             contradiction: contradicted.has(idea.path),
+            created: idea.created ?? 0,
         }))
         .sort((a, b) => byStr(a.id, b.id));
 
@@ -229,5 +232,38 @@ export function filterGraph3D(data: Graph3DData, filter: Graph3DFilter): Graph3D
     const kept = new Set(nodes.map((node) => node.id));
     const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
 
+    return { nodes, links };
+}
+
+/**
+ * A stable content signature of the graph's *shape* (sorted node ids + sorted link keys), so the view
+ * can skip a full re-layout when an index update didn't actually change the graph (#280 stability).
+ */
+export function graph3dSignature(data: Graph3DData): string {
+    const nodes = data.nodes.map((n) => n.id).sort().join("|");
+    const links = data.links.map((l) => `${l.source}>${l.target}:${l.type}`).sort().join("|");
+    return `${data.nodes.length}#${nodes}##${data.links.length}#${links}`;
+}
+
+/** Min/max creation timestamp across nodes with a known `created` (ignores 0). Empty ⇒ both 0. */
+export function graph3dTimeRange(data: Graph3DData): { min: number; max: number } {
+    let min = Infinity, max = 0;
+    for (const node of data.nodes) {
+        if (node.created > 0) {
+            if (node.created < min) min = node.created;
+            if (node.created > max) max = node.created;
+        }
+    }
+    return Number.isFinite(min) ? { min, max } : { min: 0, max: 0 };
+}
+
+/**
+ * The graph as it existed up to `cursor` (ms) — nodes created at/before the cursor (unknown `created`
+ * of 0 always shown as pre-existing), with links between surviving nodes. Powers the time-lapse.
+ */
+export function graph3dUpToTime(data: Graph3DData, cursor: number): Graph3DData {
+    const nodes = data.nodes.filter((node) => node.created === 0 || node.created <= cursor);
+    const kept = new Set(nodes.map((node) => node.id));
+    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
     return { nodes, links };
 }

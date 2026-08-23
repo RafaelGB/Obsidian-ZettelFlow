@@ -9,9 +9,11 @@ import {
     capGraph3D,
     DEFAULT_STATE_COLOR_VAR,
     filterGraph3D,
+    graph3dSignature,
     graph3dStats,
+    graph3dTimeRange,
+    graph3dUpToTime,
     Graph3DData,
-    Graph3DFilter,
     Graph3DNode,
     OverlayKind,
     OVERLAY_KINDS,
@@ -21,21 +23,20 @@ import {
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
-// Type-only import — erased at compile time, so the heavy WebGL library is pulled in *lazily* via the
-// dynamic import() in mountGraph(), never at plugin load (#280 S1, FR-4).
+// Type-only import — erased at compile time, so the WebGL library loads lazily in mountGraph().
 import type { ForceGraph3DInstance } from "3d-force-graph";
 
-const DEBOUNCE_MS = 600;
-const DIM_NODE = "rgba(125, 128, 138, 0.10)";
-const DIM_LINK = "rgba(125, 128, 138, 0.04)";
+const DEBOUNCE_MS = 700;
+const DIM_NODE = "rgba(120, 124, 135, 0.10)";
+const DIM_LINK = "rgba(120, 124, 135, 0.04)";
+const TIMELAPSE_MS = 9000;
+const TIMELAPSE_STEPS = 48;
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type ColorMode = "state" | "cluster";
-type LiveNode = { id?: string; x?: number; y?: number; z?: number };
+type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
+const endId = (end: string | LiveNode): string => (typeof end === "object" ? end.id ?? "" : end);
 
-const linkEndId = (end: string | LiveNode): string => (typeof end === "object" ? end.id ?? "" : end);
-
-/** True when the runtime can render WebGL (desktop with a working context). */
 function webglAvailable(): boolean {
     try {
         const canvas = document.createElement("canvas");
@@ -46,25 +47,31 @@ function webglAvailable(): boolean {
 }
 
 /**
- * The **3D** mode of the Graph surface (#280) — an immersive, force-directed knowledge graph. What sets
- * it apart from a plain link graph: nodes coloured by **maturity** (knowledge state) or cluster, links
- * coloured by **relation type** with flowing particles, glow (bloom), **hover-to-focus a neighbourhood**,
- * and a **discovery lens** (orphans / dead-ends / contradictions with live counts). Read-only: click a
- * node to open it. The `3d-force-graph` library is imported lazily and torn down on close.
+ * The **3D** mode of the Graph surface (#280) — an immersive knowledge graph that earns opening over
+ * the native graph: nodes coloured by **maturity** (knowledge state) or cluster, links by relation type
+ * with flowing particles; **hover to preview** and **click to pin** a neighbourhood; a **discovery lens**
+ * (orphans/dead-ends/contradictions with counts); a **time-lapse** of how your thinking grew; and a
+ * persistent status line so you always know what you're looking at. Updates **incrementally** (surviving
+ * nodes keep their positions) so indexing never resets the layout. Read-only; double-click opens a note.
  */
 export class Graph3DRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private data: Graph3DData = { nodes: [], links: [] };
     private displayed: Graph3DData = { nodes: [], links: [] };
     private adjacency = new Map<string, Set<string>>();
+    private dataSignature = "";
     private capped = false;
-    private filter: Graph3DFilter = {};
     private colorMode: ColorMode = "state";
     private overlay: OverlayKind | null = null;
-    private hoverNodes: Set<string> | null = null;
+    private hoverId: string | null = null;
+    private pinnedId: string | null = null;
+    private timeCursor: number | null = null;
+    private timelapseTimer: number | undefined;
+    private lastClick = { id: "", at: 0 };
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
+    private statusEl: HTMLElement | null = null;
     private resizeObserver: ResizeObserver | null = null;
     private debounceTimer: number | undefined;
     private disposed = false;
@@ -73,6 +80,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private readonly colorButtons = new Map<ColorMode, HTMLElement>();
     private readonly lensChips = new Map<OverlayKind, HTMLElement>();
     private zoomSlider: HTMLInputElement | null = null;
+    private timeSlider: HTMLInputElement | null = null;
+    private playBtn: HTMLElement | null = null;
 
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
@@ -87,6 +96,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     onunload(): void {
         this.disposed = true;
         window.clearTimeout(this.debounceTimer);
+        window.clearInterval(this.timelapseTimer);
         this.teardownGraph();
         this.container.empty();
     }
@@ -110,10 +120,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 return;
             }
             const full = build3DGraph(index.getModel());
-            this.data = capGraph3D(full); // level-of-detail for large vaults (#280 S5)
-            this.capped = this.data.nodes.length < full.nodes.length;
-            this.adjacency = buildAdjacency(this.data);
-            this.state = this.data.nodes.length === 0 ? "empty" : "ready";
+            const next = capGraph3D(full);
+            const signature = graph3dSignature(next);
+            // Skip when the shape is unchanged (indexing "resolved" fires repeatedly) — no needless reflow.
+            if (this.graph && this.state === "ready" && signature === this.dataSignature) return;
+            this.dataSignature = signature;
+            this.data = next;
+            this.capped = next.nodes.length < full.nodes.length;
+            this.adjacency = buildAdjacency(next);
+            this.state = next.nodes.length === 0 ? "empty" : "ready";
             this.render();
         } catch (error) {
             log.error("[Graph3D] failed to compute the graph", error);
@@ -128,17 +143,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 if (this.graph) this.applyGraphData();
                 else void this.mountGraph();
             } else {
-                this.renderFallback(); // mobile / no WebGL → point to the 2D Map (#280 S5)
+                this.renderFallback();
             }
             return;
         }
         this.teardownGraph();
         this.container.empty();
-        const messageKey =
-            this.state === "indexing" ? "graph3d_state_indexing"
-                : this.state === "empty" ? "graph3d_state_empty"
-                    : "graph3d_state_error";
-        this.container.createDiv({ cls: c("graph3d-message"), text: t(messageKey) });
+        const key = this.state === "indexing" ? "graph3d_state_indexing" : this.state === "empty" ? "graph3d_state_empty" : "graph3d_state_error";
+        this.container.createDiv({ cls: c("graph3d-message"), text: t(key) });
     }
 
     /** Lazily import the WebGL library and mount the graph; degrades to an error message on failure. */
@@ -149,13 +161,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
             this.container.empty();
             this.wrapperEl = this.container.createDiv({ cls: c("graph3d") });
-            this.buildToolbar(this.wrapperEl);
+            this.buildTopBar(this.wrapperEl);
             this.graphEl = this.wrapperEl.createDiv({ cls: c("graph3d-canvas") });
+            this.buildBottomBar(this.wrapperEl);
 
             const graph = new ForceGraph3D(this.graphEl)
-                .backgroundColor("#0b0e14") // fixed dark "space" so colours + particles pop (immersive)
+                .backgroundColor("#0b0e14")
                 .nodeLabel("name")
                 .nodeVal("val")
+                .nodeRelSize(4)
                 .nodeOpacity(0.92)
                 .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
                 .linkColor((link) => this.computeLinkColor(link as LiveLink))
@@ -167,14 +181,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .linkDirectionalParticleWidth(1.4)
                 .linkDirectionalParticleSpeed(0.006)
                 .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
-                .onNodeClick((node) => {
-                    const id = (node as LiveNode).id;
-                    if (typeof id === "string") void this.app.workspace.openLinkText(id, "", false);
-                })
+                .onNodeClick((node) => this.onClick((node as LiveNode).id))
                 .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.flyToPendingFocus());
             this.graph = graph;
-            this.buildZoomControls(this.wrapperEl);
             this.applyGraphData();
             this.applySize();
 
@@ -188,60 +198,87 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    /** Push the current (filtered) data into the live graph and refresh the legend + capped hint. */
-    private applyGraphData(): void {
-        if (!this.graph) return;
-        this.displayed = filterGraph3D(this.data, this.filter);
-        this.graph.graphData(this.displayed);
-        this.renderLegend();
-        this.renderCappedHint();
+    /** The base data for the current time cursor (whole graph, or up to the time-lapse cursor). */
+    private baseData(): Graph3DData {
+        return this.timeCursor === null ? this.data : graph3dUpToTime(this.data, this.timeCursor);
     }
 
-    // ── Toolbar ────────────────────────────────────────────────────────────────
-    private buildToolbar(parent: HTMLElement): void {
-        const toolbar = parent.createDiv({ cls: c("graph3d-toolbar") });
+    /** Push the current data into the live graph — preserving survivors' positions so it never resets. */
+    private applyGraphData(): void {
+        if (!this.graph) return;
+        this.displayed = filterGraph3D(this.baseData(), {});
+        this.preservePositions(this.displayed);
+        this.graph.graphData(this.displayed);
+        this.renderLegend();
+        this.updateStatus();
+    }
 
-        const search = toolbar.createEl("input", { cls: c("graph3d-search"), type: "search" });
+    /** Seed surviving nodes at their current live coordinates so an update adds/removes without reflow. */
+    private preservePositions(next: Graph3DData): void {
+        if (!this.graph) return;
+        const live = (this.graph.graphData() as { nodes: LiveNode[] }).nodes;
+        const byId = new Map<string, LiveNode>();
+        for (const node of live) if (node.id) byId.set(node.id, node);
+        for (const node of next.nodes as unknown as LiveNode[]) {
+            const prev = node.id ? byId.get(node.id) : undefined;
+            if (prev && prev.x !== undefined) {
+                node.x = prev.x; node.y = prev.y; node.z = prev.z;
+                node.vx = prev.vx; node.vy = prev.vy; node.vz = prev.vz;
+            }
+        }
+    }
+
+    // ── Top bar: search · color · lens · fit · status ───────────────────────────
+    private buildTopBar(parent: HTMLElement): void {
+        const bar = parent.createDiv({ cls: c("graph3d-topbar") });
+        const controls = bar.createDiv({ cls: c("graph3d-controls") });
+
+        const search = controls.createEl("input", { cls: c("graph3d-search"), type: "search" });
         search.placeholder = t("graph3d_search_placeholder");
         search.setAttribute("aria-label", t("graph3d_search_placeholder"));
         this.registerDomEvent(search, "input", () => this.focusByName(search.value));
 
-        // Color-by: a segmented toggle — Maturity (knowledge state) vs Cluster.
-        const colorGroup = toolbar.createDiv({ cls: c("graph3d-segmented") });
-        this.addColorButton(colorGroup, "state", t("graph3d_color_state"));
-        this.addColorButton(colorGroup, "cluster", t("graph3d_color_cluster"));
+        const colorGroup = controls.createDiv({ cls: c("graph3d-group") });
+        colorGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_color") });
+        const segmented = colorGroup.createDiv({ cls: c("graph3d-segmented") });
+        this.addColorButton(segmented, "state", t("graph3d_color_state"));
+        this.addColorButton(segmented, "cluster", t("graph3d_color_cluster"));
 
-        // Discovery lens: toggle chips with live counts.
+        const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
+        lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
         const stats = graph3dStats(this.data);
-        const counts: Record<OverlayKind, number> = {
-            "orphans": stats.orphans,
-            "dead-ends": stats.deadEnds,
-            "contradictions": stats.contradictions,
-        };
-        for (const kind of OVERLAY_KINDS) this.addLensChip(toolbar, kind, counts[kind]);
+        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions };
+        for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
 
-        const fit = toolbar.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
+        const fit = controls.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
         fit.setAttribute("aria-label", t("graph3d_fit_view"));
-        this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 20));
+        this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 24));
+
+        this.statusEl = bar.createDiv({ cls: c("graph3d-status") });
     }
 
     private addColorButton(group: HTMLElement, mode: ColorMode, label: string): void {
-        const key = mode === "state" ? "graph3d_color_state" : "graph3d_color_cluster";
         const btn = group.createEl("button", { cls: c("graph3d-seg-btn"), text: label });
-        btn.setAttribute("aria-label", t(key));
         btn.toggleClass(c("graph3d-seg-btn--active"), this.colorMode === mode);
+        btn.setAttribute("aria-pressed", this.colorMode === mode ? "true" : "false");
         this.colorButtons.set(mode, btn);
         this.registerDomEvent(btn, "click", () => {
             this.colorMode = mode;
-            for (const [m, el] of this.colorButtons) el.toggleClass(c("graph3d-seg-btn--active"), m === mode);
+            for (const [m, el] of this.colorButtons) {
+                el.toggleClass(c("graph3d-seg-btn--active"), m === mode);
+                el.setAttribute("aria-pressed", m === mode ? "true" : "false");
+            }
             this.refreshPaint();
+            this.renderLegend();
+            this.updateStatus();
         });
     }
 
-    private addLensChip(toolbar: HTMLElement, kind: OverlayKind, count: number): void {
+    private addLensChip(group: HTMLElement, kind: OverlayKind, count: number): void {
         const label = `${t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0])} (${count})`;
-        const chip = toolbar.createEl("button", { cls: c("graph3d-chip"), text: label });
+        const chip = group.createEl("button", { cls: c("graph3d-chip"), text: label });
         chip.setAttribute("aria-label", label);
+        chip.setAttribute("aria-pressed", "false");
         if (count === 0) chip.setAttribute("disabled", "true");
         this.lensChips.set(kind, chip);
         this.registerDomEvent(chip, "click", () => this.toggleOverlay(kind));
@@ -249,38 +286,78 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private toggleOverlay(kind: OverlayKind): void {
         this.overlay = this.overlay === kind ? null : kind;
-        for (const [k, el] of this.lensChips) el.toggleClass(c("graph3d-chip--active"), k === this.overlay);
+        for (const [k, el] of this.lensChips) {
+            const active = k === this.overlay;
+            el.toggleClass(c("graph3d-chip--active"), active);
+            el.setAttribute("aria-pressed", active ? "true" : "false");
+        }
         this.refreshPaint();
+        this.updateStatus();
     }
 
-    // ── Zoom controls (buttons + draggable slider) ──────────────────────────────
-    private buildZoomControls(parent: HTMLElement): void {
-        const panel = parent.createDiv({ cls: c("graph3d-zoom") });
+    // ── Bottom bar: time-lapse (left/centre) + zoom (right) ─────────────────────
+    private buildBottomBar(parent: HTMLElement): void {
+        const bar = parent.createDiv({ cls: c("graph3d-bottombar") });
 
-        const zoomIn = panel.createEl("button", { cls: c("graph3d-zoom-btn"), text: "+" });
-        zoomIn.setAttribute("aria-label", t("graph3d_zoom_in"));
-        this.registerDomEvent(zoomIn, "click", () => this.nudgeZoom(10));
+        const timelapse = bar.createDiv({ cls: c("graph3d-timelapse") });
+        this.playBtn = timelapse.createEl("button", { cls: c("graph3d-play"), text: t("graph3d_timelapse_play") });
+        this.registerDomEvent(this.playBtn, "click", () => this.toggleTimelapse());
+        const time = timelapse.createEl("input", { cls: c("graph3d-time-slider"), type: "range" });
+        time.min = "0"; time.max = "100"; time.value = "100";
+        time.setAttribute("aria-label", t("graph3d_timelapse_play"));
+        this.timeSlider = time;
+        this.registerDomEvent(time, "input", () => this.scrubTime(Number(time.value)));
 
-        const slider = panel.createEl("input", { cls: c("graph3d-zoom-slider"), type: "range" });
-        slider.min = "1";
-        slider.max = "100";
-        slider.value = "50";
+        const zoom = bar.createDiv({ cls: c("graph3d-zoom") });
+        const zoomOut = zoom.createEl("button", { cls: c("graph3d-zoom-btn"), text: "−" });
+        zoomOut.setAttribute("aria-label", t("graph3d_zoom_out"));
+        this.registerDomEvent(zoomOut, "click", () => this.nudgeZoom(-12));
+        const slider = zoom.createEl("input", { cls: c("graph3d-zoom-slider"), type: "range" });
+        slider.min = "1"; slider.max = "100"; slider.value = "50";
         slider.setAttribute("aria-label", t("graph3d_zoom_label"));
         this.zoomSlider = slider;
         this.registerDomEvent(slider, "input", () => this.applyZoomFromSlider());
-
-        const zoomOut = panel.createEl("button", { cls: c("graph3d-zoom-btn"), text: "−" });
-        zoomOut.setAttribute("aria-label", t("graph3d_zoom_out"));
-        this.registerDomEvent(zoomOut, "click", () => this.nudgeZoom(-10));
+        const zoomIn = zoom.createEl("button", { cls: c("graph3d-zoom-btn"), text: "+" });
+        zoomIn.setAttribute("aria-label", t("graph3d_zoom_in"));
+        this.registerDomEvent(zoomIn, "click", () => this.nudgeZoom(12));
     }
 
+    // ── Time-lapse ──────────────────────────────────────────────────────────────
+    private scrubTime(value: number): void {
+        const { min, max } = graph3dTimeRange(this.data);
+        this.timeCursor = value >= 100 || max === 0 ? null : min + (value / 100) * (max - min);
+        this.applyGraphData();
+    }
+
+    private toggleTimelapse(): void {
+        if (this.timelapseTimer !== undefined) {
+            this.stopTimelapse();
+            return;
+        }
+        if (this.playBtn) this.playBtn.setText(t("graph3d_timelapse_pause"));
+        let step = 0;
+        this.timelapseTimer = window.setInterval(() => {
+            step++;
+            const value = Math.min(100, (step / TIMELAPSE_STEPS) * 100);
+            if (this.timeSlider) this.timeSlider.value = String(value);
+            this.scrubTime(value);
+            if (value >= 100) this.stopTimelapse();
+        }, TIMELAPSE_MS / TIMELAPSE_STEPS);
+    }
+
+    private stopTimelapse(): void {
+        window.clearInterval(this.timelapseTimer);
+        this.timelapseTimer = undefined;
+        if (this.playBtn) this.playBtn.setText(t("graph3d_timelapse_play"));
+    }
+
+    // ── Zoom ────────────────────────────────────────────────────────────────────
     private nudgeZoom(delta: number): void {
         if (!this.zoomSlider) return;
         this.zoomSlider.value = String(Math.max(1, Math.min(100, Number(this.zoomSlider.value) + delta)));
         this.applyZoomFromSlider();
     }
 
-    /** Map the slider (higher = closer) to a camera distance from the centre and fly there. */
     private applyZoomFromSlider(): void {
         if (!this.graph || !this.zoomSlider) return;
         const MIN = 60, MAX = 1400;
@@ -291,22 +368,46 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.graph.cameraPosition({ x: cam.x * factor, y: cam.y * factor, z: cam.z * factor }, undefined, 150);
     }
 
-    // ── Focus / hover ────────────────────────────────────────────────────────────
+    // ── Focus / hover / pin ──────────────────────────────────────────────────────
+    private activeFocus(): Set<string> | null {
+        const anchor = this.pinnedId ?? this.hoverId;
+        if (!anchor) return null;
+        return new Set<string>([anchor, ...(this.adjacency.get(anchor) ?? [])]);
+    }
+
     private onHover(id: string | null): void {
-        if (!id) {
-            if (!this.hoverNodes) return;
-            this.hoverNodes = null;
-        } else {
-            this.hoverNodes = new Set<string>([id, ...(this.adjacency.get(id) ?? [])]);
-        }
+        if (this.pinnedId) return; // pinned focus wins over hover
+        this.hoverId = id;
         this.refreshPaint();
     }
 
-    private clearFocus(): void {
-        this.hoverNodes = null;
-        this.overlay = null;
-        for (const el of this.lensChips.values()) el.removeClass(c("graph3d-chip--active"));
+    /** Single click pins a neighbourhood (and flies to it); a quick second click opens the note. */
+    private onClick(id: string | undefined): void {
+        if (typeof id !== "string") return;
+        const now = Date.now();
+        if (this.lastClick.id === id && now - this.lastClick.at < 350) {
+            void this.app.workspace.openLinkText(id, "", false);
+            this.lastClick = { id: "", at: 0 };
+            return;
+        }
+        this.lastClick = { id, at: now };
+        this.pinnedId = this.pinnedId === id ? null : id;
+        this.hoverId = null;
+        if (this.pinnedId) this.focusNode(this.pinnedId);
         this.refreshPaint();
+        this.updateStatus();
+    }
+
+    private clearFocus(): void {
+        this.hoverId = null;
+        this.pinnedId = null;
+        this.overlay = null;
+        for (const el of this.lensChips.values()) {
+            el.removeClass(c("graph3d-chip--active"));
+            el.setAttribute("aria-pressed", "false");
+        }
+        this.refreshPaint();
+        this.updateStatus();
     }
 
     private focusByName(query: string): void {
@@ -333,7 +434,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.graph.cameraPosition({ x: x * ratio, y: y * ratio, z: z * ratio }, { x, y, z }, 1200);
     }
 
-    /** Re-evaluate the paint accessors (colour depends on mode / overlay / hover state). */
     private refreshPaint(): void {
         if (!this.graph) return;
         this.graph
@@ -347,7 +447,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (this.overlay) {
             return OVERLAY_SPECS[this.overlay].matches(node) ? this.varColor(OVERLAY_SPECS[this.overlay].colorVar) : DIM_NODE;
         }
-        if (this.hoverNodes && !this.hoverNodes.has(node.id ?? "")) return DIM_NODE;
+        const focus = this.activeFocus();
+        if (focus && !focus.has(node.id ?? "")) return DIM_NODE;
         return this.baseNodeColor(node);
     }
 
@@ -358,20 +459,17 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private computeLinkColor(link: LiveLink): string {
         if (this.overlay) return DIM_LINK;
-        if (this.hoverNodes) {
-            const lit = this.hoverNodes.has(linkEndId(link.source)) && this.hoverNodes.has(linkEndId(link.target));
-            return lit ? this.relationColor(link.type) : DIM_LINK;
-        }
+        const focus = this.activeFocus();
+        if (focus) return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? this.relationColor(link.type) : DIM_LINK;
         return this.relationColor(link.type);
     }
 
     private computeLinkWidth(link: LiveLink): number {
-        if (!this.hoverNodes) return 0.8;
-        const lit = this.hoverNodes.has(linkEndId(link.source)) && this.hoverNodes.has(linkEndId(link.target));
-        return lit ? 2.5 : 0.4;
+        const focus = this.activeFocus();
+        if (!focus) return 0.8;
+        return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 2.5 : 0.4;
     }
 
-    /** Resolve a CSS palette var to a concrete colour (cached). */
     private varColor(varName: string): string {
         const cached = this.colorCache.get(varName);
         if (cached) return cached;
@@ -390,27 +488,50 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         return t(("relation_type_" + type.replace(/-/g, "_")) as Parameters<typeof t>[0]);
     }
 
+    // ── Status + legend ──────────────────────────────────────────────────────────
+    private updateStatus(): void {
+        if (!this.statusEl) return;
+        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_cluster");
+        const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
+        if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
+        if (this.pinnedId) {
+            const pinned = this.displayed.nodes.find((n) => n.id === this.pinnedId);
+            if (pinned) parts.push(`▸ ${pinned.name}`);
+        }
+        if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
+        if (this.capped) parts.push(t("graph3d_capped_hint"));
+        this.statusEl.setText(parts.join("  ·  "));
+    }
+
     private renderLegend(): void {
         if (!this.wrapperEl) return;
         this.wrapperEl.querySelector("." + c("graph3d-legend"))?.remove();
-        const types = [...new Set(this.displayed.links.map((link) => link.type))]
-            .filter((type) => RELATION_COLOR_VARS[type])
-            .sort();
-        if (types.length === 0) return;
-
         const legend = this.wrapperEl.createDiv({ cls: c("graph3d-legend") });
-        legend.createEl("div", { cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
-        for (const type of types) {
-            const row = legend.createDiv({ cls: c("graph3d-legend-row") });
-            row.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--" + type) });
-            row.createSpan({ text: this.relationLabel(type) });
-        }
-    }
 
-    private renderCappedHint(): void {
-        if (!this.wrapperEl) return;
-        this.wrapperEl.querySelector("." + c("graph3d-hint"))?.remove();
-        if (this.capped) this.wrapperEl.createDiv({ cls: c("graph3d-hint"), text: t("graph3d_capped_hint") });
+        // Node colour legend — reflects the active mode so the user knows what colours mean.
+        legend.createEl("div", { cls: c("graph3d-legend-title"), text: t("graph3d_legend_nodes") });
+        if (this.colorMode === "state") {
+            const states = [...new Set(this.displayed.nodes.map((n) => n.state).filter((s) => s))].sort();
+            for (const stateName of states) {
+                const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+                const known = STATE_COLOR_VARS[stateName] !== undefined;
+                row.createSpan({ cls: known ? c("graph3d-swatch", "graph3d-swatch--state-" + stateName) : c("graph3d-swatch") });
+                row.createSpan({ text: stateName });
+            }
+        } else {
+            legend.createDiv({ cls: c("graph3d-legend-row") }).createSpan({ text: t("graph3d_legend_cluster") });
+        }
+
+        // Relation (link) legend for the types present.
+        const types = [...new Set(this.displayed.links.map((l) => l.type))].filter((tp) => RELATION_COLOR_VARS[tp]).sort();
+        if (types.length > 0) {
+            legend.createEl("div", { cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
+            for (const type of types) {
+                const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+                row.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--" + type) });
+                row.createSpan({ text: this.relationLabel(type) });
+            }
+        }
     }
 
     private renderFallback(): void {
@@ -430,10 +551,16 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private teardownGraph(): void {
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
+        window.clearInterval(this.timelapseTimer);
+        this.timelapseTimer = undefined;
         this.colorButtons.clear();
         this.lensChips.clear();
         this.zoomSlider = null;
-        this.hoverNodes = null;
+        this.timeSlider = null;
+        this.playBtn = null;
+        this.statusEl = null;
+        this.hoverId = null;
+        this.pinnedId = null;
         if (this.graph) {
             try {
                 this.graph._destructor();

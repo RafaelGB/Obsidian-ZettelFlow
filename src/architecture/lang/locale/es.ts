@@ -556,6 +556,7 @@ export default {
     graph3d_legend_cluster: 'Por clúster',
     graph3d_timelapse_play: 'Reproducir evolución',
     graph3d_timelapse_pause: 'Pausar',
+    graph3d_spread_label: 'Dispersión',
     command_explore_in_3d: 'Explorar la nota activa en 3D',
     command_show_health: 'Ver salud',
     command_show_discovery: 'Ver descubrimiento',

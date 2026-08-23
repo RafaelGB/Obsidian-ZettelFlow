@@ -142,6 +142,7 @@
 }
 
 .zettelkasten-flow__graph3d-timelapse,
+.zettelkasten-flow__graph3d-spread,
 .zettelkasten-flow__graph3d-zoom {
     display: flex;
     align-items: center;
@@ -155,7 +156,12 @@
 
 .zettelkasten-flow__graph3d-timelapse {
     flex: 1 1 auto;
-    max-width: 26em;
+    max-width: 24em;
+}
+
+.zettelkasten-flow__graph3d-spread-slider {
+    width: 6em;
+    cursor: pointer;
 }
 
 .zettelkasten-flow__graph3d-zoom {

@@ -16,8 +16,9 @@ Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). 
       is at a glance.*
     - **Cluster** — by the hub each note orbits (from the living knowledge map).
 - **Links** are typed relations, **coloured by type** (plain link, supports, contradicts, expands,
-  inspired-by, question, example, implements) with directional arrows and **flowing particles**. A
-  compact **legend** lists the relation types present.
+  inspired-by, question, example, implements), rendered **bold** with directional arrows and **flowing
+  particles** so connections are the focus. A compact **legend** lists the relation types present.
+- The most-connected **hub notes carry always-on labels**; every node shows its name on hover.
 - Nodes and links **glow** (bloom) against a dark space — an immersive look, not a flat diagram.
 - Data comes purely from the offline `KnowledgeModel` via the Knowledge State surface
   (`build3DGraph`), so the WebGL view is a thin shell over tested data.
@@ -33,7 +34,9 @@ colour mode, how many notes are shown, and any lens / pinned note / time-lapse i
   **double-click** to **open** the note; **click empty space** to clear the focus.
 - **Search** (top bar) flies the camera to the first matching note.
 - **Zoom** with the bottom-right control (− / slider / +) or the mouse wheel; **Fit view** re-frames
-  the whole graph.
+  the whole graph. Opening the mode **auto-fits** to show the entire graph.
+- **Spread** (bottom bar) tightens or loosens the layout live, so you can pull clusters together until
+  the connections read clearly.
 - **Explore the active note in 3D** — a command that opens Graph → 3D and flies straight to the note
   you're in.
 - Updates are **incremental**: while the vault indexes, new notes join the graph and existing ones

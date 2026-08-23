@@ -35,7 +35,9 @@ type ViewState = "indexing" | "ready" | "empty" | "error";
 type ColorMode = "state" | "cluster";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
+type LabelSprite = { position: { set(x: number, y: number, z: number): void } };
 const endId = (end: string | LiveNode): string => (typeof end === "object" ? end.id ?? "" : end);
+const HUB_LABEL_COUNT = 18;
 
 function webglAvailable(): boolean {
     try {
@@ -68,6 +70,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private timeCursor: number | null = null;
     private timelapseTimer: number | undefined;
     private lastClick = { id: "", at: 0 };
+    private hubIds = new Set<string>();
+    private hasFitted = false;
+    private spread = 35;
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
@@ -128,6 +133,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.data = next;
             this.capped = next.nodes.length < full.nodes.length;
             this.adjacency = buildAdjacency(next);
+            this.hubIds = new Set([...next.nodes].sort((a, b) => b.val - a.val).slice(0, HUB_LABEL_COUNT).map((n) => n.id));
             this.state = next.nodes.length === 0 ? "empty" : "ready";
             this.render();
         } catch (error) {
@@ -157,6 +163,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private async mountGraph(): Promise<void> {
         try {
             const { default: ForceGraph3D } = await import("3d-force-graph");
+            // Labels for hub nodes — best-effort; a failure never blanks the graph (spheres still render).
+            let SpriteText: (new (text?: string, textHeight?: number, color?: string) => LabelSprite) | null = null;
+            try {
+                SpriteText = (await import("three-spritetext")).default as unknown as typeof SpriteText;
+            } catch (error) {
+                log.warn("[Graph3D] labels unavailable (three-spritetext)", error);
+            }
             if (this.disposed || this.state !== "ready") return;
 
             this.container.empty();
@@ -169,22 +182,26 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .backgroundColor("#0b0e14")
                 .nodeLabel("name")
                 .nodeVal("val")
-                .nodeRelSize(4)
-                .nodeOpacity(0.92)
+                .nodeRelSize(5)
+                .nodeResolution(12)
+                .nodeOpacity(1)
                 .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
                 .linkColor((link) => this.computeLinkColor(link as LiveLink))
                 .linkWidth((link) => this.computeLinkWidth(link as LiveLink))
-                .linkOpacity(0.5)
-                .linkDirectionalArrowLength(3)
+                .linkOpacity(0.85)
+                .linkCurvature(0.12)
+                .linkDirectionalArrowLength(3.5)
                 .linkDirectionalArrowRelPos(1)
-                .linkDirectionalParticles(2)
-                .linkDirectionalParticleWidth(1.4)
-                .linkDirectionalParticleSpeed(0.006)
+                .linkDirectionalParticles(3)
+                .linkDirectionalParticleWidth(2)
+                .linkDirectionalParticleSpeed(0.008)
                 .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
                 .onNodeClick((node) => this.onClick((node as LiveNode).id))
                 .onBackgroundClick(() => this.clearFocus())
-                .onEngineStop(() => this.flyToPendingFocus());
+                .onEngineStop(() => this.onEngineSettled());
             this.graph = graph;
+            if (SpriteText) this.attachHubLabels(graph, SpriteText);
+            this.tightenLayout(graph);
             this.applyGraphData();
             this.applySize();
 
@@ -225,6 +242,49 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 node.x = prev.x; node.y = prev.y; node.z = prev.z;
                 node.vx = prev.vx; node.vy = prev.vy; node.vz = prev.vz;
             }
+        }
+    }
+
+    /** Persistent labels for the most-connected notes (readable structure without hovering). */
+    private attachHubLabels(graph: ForceGraph3DInstance, SpriteText: new (t?: string, h?: number, c?: string) => LabelSprite): void {
+        graph.nodeThreeObjectExtend(true).nodeThreeObject(((node: unknown) => {
+            const gn = node as Graph3DNode & LiveNode;
+            if (!this.hubIds.has(gn.id ?? "")) return undefined;
+            const sprite = new SpriteText(gn.name, 6, "#e8eaed");
+            sprite.position.set(0, Math.sqrt(gn.val) * 4 + 7, 0);
+            return sprite;
+        }) as never);
+    }
+
+    /** Pull the layout tighter so clusters read as clusters and links stay short + visible. */
+    private tightenLayout(graph: ForceGraph3DInstance): void {
+        const charge = graph.d3Force("charge") as { strength?(s: number): unknown } | undefined;
+        charge?.strength?.(this.chargeStrength());
+        const link = graph.d3Force("link") as { distance?(d: number): unknown } | undefined;
+        link?.distance?.(38);
+    }
+
+    private chargeStrength(): number {
+        return -(8 + (this.spread / 100) * 80); // lower spread → weaker repulsion → tighter graph
+    }
+
+    private applySpread(value: number): void {
+        this.spread = value;
+        if (!this.graph) return;
+        const charge = this.graph.d3Force("charge") as { strength?(s: number): unknown } | undefined;
+        charge?.strength?.(this.chargeStrength());
+        this.graph.d3ReheatSimulation();
+    }
+
+    /** On the first layout settle, frame the whole graph; otherwise honour a pending deep-link focus. */
+    private onEngineSettled(): void {
+        if (this.pendingFocusPath) {
+            this.flyToPendingFocus();
+            return;
+        }
+        if (!this.hasFitted) {
+            this.graph?.zoomToFit(700, 60);
+            this.hasFitted = true;
         }
     }
 
@@ -307,6 +367,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         time.setAttribute("aria-label", t("graph3d_timelapse_play"));
         this.timeSlider = time;
         this.registerDomEvent(time, "input", () => this.scrubTime(Number(time.value)));
+
+        const spreadBox = bar.createDiv({ cls: c("graph3d-spread") });
+        spreadBox.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_spread_label") });
+        const spread = spreadBox.createEl("input", { cls: c("graph3d-spread-slider"), type: "range" });
+        spread.min = "0"; spread.max = "100"; spread.value = String(this.spread);
+        spread.setAttribute("aria-label", t("graph3d_spread_label"));
+        this.registerDomEvent(spread, "input", () => this.applySpread(Number(spread.value)));
 
         const zoom = bar.createDiv({ cls: c("graph3d-zoom") });
         const zoomOut = zoom.createEl("button", { cls: c("graph3d-zoom-btn"), text: "−" });
@@ -466,8 +533,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private computeLinkWidth(link: LiveLink): number {
         const focus = this.activeFocus();
-        if (!focus) return 0.8;
-        return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 2.5 : 0.4;
+        if (!focus) return 1.6; // bold by default so connections read clearly
+        return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 3.5 : 0.5;
     }
 
     private varColor(varName: string): string {

@@ -39,7 +39,7 @@ type ViewState = "indexing" | "ready" | "empty" | "error";
 type ColorMode = "state" | "cluster";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
-type LabelSprite = { position: { set(x: number, y: number, z: number): void } };
+type LabelSprite = THREE.Sprite; // three-spritetext's SpriteText extends three's Sprite (an Object3D)
 const endId = (end: string | LiveNode): string => (typeof end === "object" ? end.id ?? "" : end);
 const HUB_LABEL_COUNT = 18;
 
@@ -86,6 +86,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private three: typeof THREE | null = null;
     private glowTexture: THREE.CanvasTexture | null = null;
     private hullMeshes: THREE.Mesh[] = [];
+    private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
+    private readonly proximityLabels = new Map<string, LabelSprite>();
+    private proximityTimer: number | undefined;
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
@@ -221,10 +224,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.onEngineSettled());
             this.graph = graph;
+            this.spriteTextCtor = SpriteText;
             if (SpriteText) this.attachHubDecorations(graph, SpriteText);
             this.tightenLayout(graph);
             this.applyGraphData();
             this.applySize();
+            if (SpriteText && this.three) {
+                this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
+            }
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
             this.resizeObserver.observe(this.container);
@@ -285,7 +292,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             const label = new SpriteText(gn.name, 6, "#e8eaed");
             label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
             if (group && three) {
-                group.add(label as unknown as THREE.Object3D);
+                group.add(label);
                 return group;
             }
             return label;
@@ -353,6 +360,56 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             mesh.material.dispose();
         }
         this.hullMeshes = [];
+    }
+
+    /** Proximity labels (#280): show names for the nearest non-hub nodes so they fade in as you zoom in. */
+    private updateProximityLabels(): void {
+        const three = this.three;
+        const Ctor = this.spriteTextCtor;
+        if (!three || !Ctor || !this.graph) return;
+        const THRESHOLD = 90, MAX = 18;
+        const cam = this.graph.cameraPosition();
+        const scene = this.graph.scene();
+        const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
+
+        const near: (Graph3DNode & LiveNode)[] = [];
+        for (const node of live) {
+            if (!node.id || node.x === undefined || this.hubIds.has(node.id)) continue;
+            const d = Math.hypot(node.x - cam.x, (node.y ?? 0) - cam.y, (node.z ?? 0) - cam.z);
+            if (d < THRESHOLD) near.push(node);
+        }
+        near.sort((a, b) => this.camDist(a, cam) - this.camDist(b, cam));
+        const keep = near.slice(0, MAX);
+        const keepIds = new Set(keep.map((n) => n.id ?? ""));
+
+        for (const [id, sprite] of this.proximityLabels) {
+            if (!keepIds.has(id)) {
+                scene.remove(sprite);
+                this.proximityLabels.delete(id);
+            }
+        }
+        for (const node of keep) {
+            const id = node.id;
+            let sprite = this.proximityLabels.get(id);
+            if (!sprite) {
+                sprite = new Ctor(node.name, 5, "#c7ccd6");
+                this.proximityLabels.set(id, sprite);
+                scene.add(sprite);
+            }
+            sprite.position.set(node.x ?? 0, (node.y ?? 0) + 6, node.z ?? 0);
+        }
+    }
+
+    private camDist(node: LiveNode, cam: { x: number; y: number; z: number }): number {
+        return Math.hypot((node.x ?? 0) - cam.x, (node.y ?? 0) - cam.y, (node.z ?? 0) - cam.z);
+    }
+
+    private clearProximityLabels(): void {
+        if (this.graph) {
+            const scene = this.graph.scene();
+            for (const sprite of this.proximityLabels.values()) scene.remove(sprite);
+        }
+        this.proximityLabels.clear();
     }
 
     /** Pull the layout tighter so clusters read as clusters and links stay short + visible. */
@@ -800,13 +857,17 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.resizeObserver = null;
         window.clearInterval(this.timelapseTimer);
         this.timelapseTimer = undefined;
+        window.clearInterval(this.proximityTimer);
+        this.proximityTimer = undefined;
         if (this.graph && this.three) {
             try {
+                this.clearProximityLabels();
                 this.disposeHulls(this.graph.scene());
             } catch (error) {
-                log.warn("[Graph3D] error disposing hulls", error);
+                log.warn("[Graph3D] error disposing graph decorations", error);
             }
         }
+        this.spriteTextCtor = null;
         this.glowTexture = null;
         this.three = null;
         this.colorButtons.clear();

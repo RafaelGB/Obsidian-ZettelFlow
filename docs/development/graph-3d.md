@@ -18,7 +18,9 @@ Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). 
 - **Links** are typed relations, **coloured by type** (plain link, supports, contradicts, expands,
   inspired-by, question, example, implements), rendered **bold** with directional arrows and **flowing
   particles** so connections are the focus. A compact **legend** lists the relation types present.
-- The most-connected **hub notes carry always-on labels**; every node shows its name on hover.
+- The most-connected **hub notes carry always-on labels** and a soft **glow**; other names **fade in
+  as you zoom toward them** (and any node shows its name on hover).
+- Each cluster sits inside a faint translucent **hull** so its grouping reads at a glance.
 - Nodes and links **glow** (bloom) against a dark space — an immersive look, not a flat diagram.
 - Data comes purely from the offline `KnowledgeModel` via the Knowledge State surface
   (`build3DGraph`), so the WebGL view is a thin shell over tested data.
@@ -39,6 +41,10 @@ colour mode, how many notes are shown, and any lens / pinned note / time-lapse i
   the connections read clearly.
 - **Explore the active note in 3D** — a command that opens Graph → 3D and flies straight to the note
   you're in.
+- **Relation filter** — click a relation in the legend to show/hide that kind of link.
+- **Click a link** to open both of its notes (source here, target in a split).
+- **Path mode** — toggle it, click two notes, and the **shortest path** between them lights up with the
+  camera framing it.
 - Updates are **incremental**: while the vault indexes, new notes join the graph and existing ones
   keep their positions — the layout never resets.
 

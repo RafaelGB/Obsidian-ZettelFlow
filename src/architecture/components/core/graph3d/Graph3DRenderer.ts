@@ -7,7 +7,7 @@ import {
     build3DGraph,
     buildAdjacency,
     capGraph3D,
-    DEFAULT_STATE_COLOR_VAR,
+    DEFAULT_STATE_COLOR,
     filterGraph3D,
     graph3dSignature,
     graph3dStats,
@@ -19,7 +19,9 @@ import {
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
+    RELATION_COLORS,
     STATE_COLOR_VARS,
+    STATE_COLORS,
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
@@ -183,18 +185,18 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .nodeLabel("name")
                 .nodeVal("val")
                 .nodeRelSize(5)
-                .nodeResolution(12)
+                .nodeResolution(8) // lower-poly spheres for performance
                 .nodeOpacity(1)
                 .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
                 .linkColor((link) => this.computeLinkColor(link as LiveLink))
                 .linkWidth((link) => this.computeLinkWidth(link as LiveLink))
                 .linkOpacity(0.85)
-                .linkCurvature(0.12)
                 .linkDirectionalArrowLength(3.5)
                 .linkDirectionalArrowRelPos(1)
-                .linkDirectionalParticles(3)
+                .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink))
                 .linkDirectionalParticleWidth(2)
                 .linkDirectionalParticleSpeed(0.008)
+                .cooldownTime(9000) // settle the simulation sooner → less sustained CPU
                 .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
                 .onNodeClick((node) => this.onClick((node as LiveNode).id))
                 .onBackgroundClick(() => this.clearFocus())
@@ -506,7 +508,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.graph
             .nodeColor((node) => this.computeNodeColor(node as Graph3DNode & LiveNode))
             .linkColor((link) => this.computeLinkColor(link as LiveLink))
-            .linkWidth((link) => this.computeLinkWidth(link as LiveLink));
+            .linkWidth((link) => this.computeLinkWidth(link as LiveLink))
+            .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink));
     }
 
     // ── Paint ─────────────────────────────────────────────────────────────────
@@ -520,8 +523,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private baseNodeColor(node: Graph3DNode): string {
-        if (this.colorMode === "state") return this.varColor(STATE_COLOR_VARS[node.state] ?? DEFAULT_STATE_COLOR_VAR);
-        return node.group < 0 ? "#8a8f98" : `hsl(${(node.group * 67) % 360}, 65%, 62%)`;
+        if (this.colorMode === "state") return STATE_COLORS[node.state] ?? DEFAULT_STATE_COLOR;
+        return node.group < 0 ? "#9aa4b8" : `hsl(${(node.group * 67) % 360}, 70%, 66%)`;
     }
 
     private computeLinkColor(link: LiveLink): string {
@@ -537,6 +540,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 3.5 : 0.5;
     }
 
+    /** Particle count per link — animate a few on small graphs; concentrate on the focus; none when dense. */
+    private particlesFor(link: LiveLink): number {
+        const focus = this.activeFocus();
+        if (focus) return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 3 : 0;
+        return this.displayed.links.length <= 200 ? 1 : 0;
+    }
+
     private varColor(varName: string): string {
         const cached = this.colorCache.get(varName);
         if (cached) return cached;
@@ -546,8 +556,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private relationColor(type: string | undefined): string {
-        const key = type && RELATION_COLOR_VARS[type] ? type : "link";
-        return this.varColor(RELATION_COLOR_VARS[key]);
+        const key = type && RELATION_COLORS[type] ? type : "link";
+        return RELATION_COLORS[key];
     }
 
     private relationLabel(type: string): string {

@@ -228,23 +228,23 @@
     width: 0.8em;
     height: 0.8em;
     border-radius: 50%;
-    background-color: var(--text-faint);
+    background-color: #cbd5e1;
 }
 
-// Relation-type colours — shared with the WebGL links (see Graph3DRenderer).
-.zettelkasten-flow__graph3d-swatch--link { background-color: var(--text-faint); }
-.zettelkasten-flow__graph3d-swatch--supports { background-color: var(--color-green); }
-.zettelkasten-flow__graph3d-swatch--contradicts { background-color: var(--color-red); }
-.zettelkasten-flow__graph3d-swatch--expands { background-color: var(--color-blue); }
-.zettelkasten-flow__graph3d-swatch--inspired-by { background-color: var(--color-cyan); }
-.zettelkasten-flow__graph3d-swatch--question { background-color: var(--color-purple); }
-.zettelkasten-flow__graph3d-swatch--example { background-color: var(--color-orange); }
-.zettelkasten-flow__graph3d-swatch--implements { background-color: var(--color-yellow); }
+// Relation-type colours — the exact hex the WebGL links use (see RELATION_COLORS in graph3d.ts).
+.zettelkasten-flow__graph3d-swatch--link { background-color: #8b93a7; }
+.zettelkasten-flow__graph3d-swatch--supports { background-color: #4ade80; }
+.zettelkasten-flow__graph3d-swatch--contradicts { background-color: #f87171; }
+.zettelkasten-flow__graph3d-swatch--expands { background-color: #60a5fa; }
+.zettelkasten-flow__graph3d-swatch--inspired-by { background-color: #22d3ee; }
+.zettelkasten-flow__graph3d-swatch--question { background-color: #c084fc; }
+.zettelkasten-flow__graph3d-swatch--example { background-color: #fb923c; }
+.zettelkasten-flow__graph3d-swatch--implements { background-color: #facc15; }
 
-// Knowledge-state (maturity) colours — shared with the node colours in maturity mode.
-.zettelkasten-flow__graph3d-swatch--state-fleeting { background-color: var(--color-red); }
-.zettelkasten-flow__graph3d-swatch--state-literature { background-color: var(--color-orange); }
-.zettelkasten-flow__graph3d-swatch--state-developing { background-color: var(--color-yellow); }
-.zettelkasten-flow__graph3d-swatch--state-permanent { background-color: var(--color-green); }
-.zettelkasten-flow__graph3d-swatch--state-evergreen { background-color: var(--color-cyan); }
-.zettelkasten-flow__graph3d-swatch--state-archived { background-color: var(--text-faint); }
+// Knowledge-state (maturity) colours — the exact hex the nodes use (see STATE_COLORS in graph3d.ts).
+.zettelkasten-flow__graph3d-swatch--state-fleeting { background-color: #f87171; }
+.zettelkasten-flow__graph3d-swatch--state-literature { background-color: #fb923c; }
+.zettelkasten-flow__graph3d-swatch--state-developing { background-color: #facc15; }
+.zettelkasten-flow__graph3d-swatch--state-permanent { background-color: #4ade80; }
+.zettelkasten-flow__graph3d-swatch--state-evergreen { background-color: #22d3ee; }
+.zettelkasten-flow__graph3d-swatch--state-archived { background-color: #94a3b8; }

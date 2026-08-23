@@ -130,6 +130,33 @@ export const STATE_COLOR_VARS: Record<string, string> = {
 };
 export const DEFAULT_STATE_COLOR_VAR = "--text-muted";
 
+/**
+ * Concrete colours tuned for the 3D view's **fixed dark background** (#280 iteration). Theme text vars
+ * like `--text-faint` are near-black on dark themes, so links/nodes must not use them here — these hex
+ * values stay legible (and subtle for plain links) whatever the user's theme. The `*_VARS` maps still
+ * drive the legend swatches (kept in sync by `graph3d.scss`).
+ */
+export const RELATION_COLORS: Record<string, string> = {
+    link: "#8b93a7",        // subtle steel-grey for plain wikilinks (the majority)
+    supports: "#4ade80",
+    contradicts: "#f87171",
+    expands: "#60a5fa",
+    "inspired-by": "#22d3ee",
+    question: "#c084fc",
+    example: "#fb923c",
+    implements: "#facc15",
+};
+
+export const STATE_COLORS: Record<string, string> = {
+    fleeting: "#f87171",
+    literature: "#fb923c",
+    developing: "#facc15",
+    permanent: "#4ade80",
+    evergreen: "#22d3ee",
+    archived: "#94a3b8",
+};
+export const DEFAULT_STATE_COLOR = "#cbd5e1";
+
 /** Aggregate discovery counts for the lens chips (#280 iteration). */
 export interface Graph3DStats {
     orphans: number;

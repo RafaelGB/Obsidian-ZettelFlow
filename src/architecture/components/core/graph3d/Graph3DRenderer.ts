@@ -26,8 +26,9 @@ import {
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
-// Type-only import — erased at compile time, so the WebGL library loads lazily in mountGraph().
+// Type-only imports — erased at compile time, so the WebGL libraries load lazily in mountGraph().
 import type { ForceGraph3DInstance } from "3d-force-graph";
+import type * as THREE from "three";
 
 const DEBOUNCE_MS = 700;
 const DIM_NODE = "rgba(120, 124, 135, 0.10)";
@@ -44,7 +45,7 @@ const HUB_LABEL_COUNT = 18;
 
 function webglAvailable(): boolean {
     try {
-        const canvas = document.createElement("canvas");
+        const canvas = createEl("canvas");
         return !!(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
     } catch {
         return false;
@@ -82,6 +83,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private hubIds = new Set<string>();
     private hasFitted = false;
     private spread = 35;
+    private three: typeof THREE | null = null;
+    private glowTexture: THREE.CanvasTexture | null = null;
+    private hullMeshes: THREE.Mesh[] = [];
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
@@ -172,12 +176,18 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private async mountGraph(): Promise<void> {
         try {
             const { default: ForceGraph3D } = await import("3d-force-graph");
-            // Labels for hub nodes — best-effort; a failure never blanks the graph (spheres still render).
+            // Labels + glow/hull geometry — best-effort; a failure never blanks the graph (spheres remain).
             let SpriteText: (new (text?: string, textHeight?: number, color?: string) => LabelSprite) | null = null;
             try {
-                SpriteText = (await import("three-spritetext")).default as unknown as typeof SpriteText;
+                SpriteText = (await import("three-spritetext")).default;
             } catch (error) {
                 log.warn("[Graph3D] labels unavailable (three-spritetext)", error);
+            }
+            try {
+                this.three = await import("three");
+                this.glowTexture = this.makeGlowTexture(this.three);
+            } catch (error) {
+                log.warn("[Graph3D] glow/hulls unavailable (three)", error);
             }
             if (this.disposed || this.state !== "ready") return;
 
@@ -211,7 +221,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.onEngineSettled());
             this.graph = graph;
-            if (SpriteText) this.attachHubLabels(graph, SpriteText);
+            if (SpriteText) this.attachHubDecorations(graph, SpriteText);
             this.tightenLayout(graph);
             this.applyGraphData();
             this.applySize();
@@ -256,15 +266,93 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    /** Persistent labels for the most-connected notes (readable structure without hovering). */
-    private attachHubLabels(graph: ForceGraph3DInstance, SpriteText: new (t?: string, h?: number, c?: string) => LabelSprite): void {
+    /** Hub decorations: a soft additive **glow** + a persistent **label** on the most-connected notes. */
+    private attachHubDecorations(graph: ForceGraph3DInstance, SpriteText: new (t?: string, h?: number, c?: string) => LabelSprite): void {
         graph.nodeThreeObjectExtend(true).nodeThreeObject(((node: unknown) => {
             const gn = node as Graph3DNode & LiveNode;
             if (!this.hubIds.has(gn.id ?? "")) return undefined;
-            const sprite = new SpriteText(gn.name, 6, "#e8eaed");
-            sprite.position.set(0, Math.sqrt(gn.val) * 4 + 7, 0);
-            return sprite;
+            const three = this.three;
+            const group = three ? new three.Group() : null;
+            if (three && group && this.glowTexture) {
+                const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
+                material.opacity = 0.5;
+                material.color.set(this.clusterHue(gn.group));
+                const glow = new three.Sprite(material);
+                const size = Math.sqrt(gn.val) * 7 + 16;
+                glow.scale.set(size, size, 1);
+                group.add(glow);
+            }
+            const label = new SpriteText(gn.name, 6, "#e8eaed");
+            label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
+            if (group && three) {
+                group.add(label as unknown as THREE.Object3D);
+                return group;
+            }
+            return label;
         }) as never);
+    }
+
+    /** A soft radial-gradient texture used for the additive hub glow. */
+    private makeGlowTexture(three: typeof THREE): THREE.CanvasTexture {
+        const size = 64;
+        const canvas = createEl("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+            const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+            gradient.addColorStop(0, "rgba(255,255,255,1)");
+            gradient.addColorStop(0.3, "rgba(255,255,255,0.45)");
+            gradient.addColorStop(1, "rgba(255,255,255,0)");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+        }
+        return new three.CanvasTexture(canvas);
+    }
+
+    private clusterHue(group: number): string {
+        return group < 0 ? "#9aa4b8" : `hsl(${(group * 67) % 360}, 70%, 62%)`;
+    }
+
+    /** Translucent "hull" bubbles around each cluster, rebuilt when the layout settles (#280). */
+    private rebuildHulls(): void {
+        const three = this.three;
+        if (!three || !this.graph) return;
+        const scene = this.graph.scene();
+        this.disposeHulls(scene);
+        const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
+        const byGroup = new Map<number, (Graph3DNode & LiveNode)[]>();
+        for (const node of live) {
+            if (node.group < 0 || node.x === undefined) continue;
+            const arr = byGroup.get(node.group) ?? [];
+            arr.push(node);
+            byGroup.set(node.group, arr);
+        }
+        let made = 0;
+        for (const [group, nodes] of byGroup) {
+            if (nodes.length < 4 || made >= 12) continue; // only real clusters; cap for performance
+            let cx = 0, cy = 0, cz = 0;
+            for (const n of nodes) { cx += n.x ?? 0; cy += n.y ?? 0; cz += n.z ?? 0; }
+            const k = nodes.length; cx /= k; cy /= k; cz /= k;
+            let radius = 0;
+            for (const n of nodes) radius = Math.max(radius, Math.hypot((n.x ?? 0) - cx, (n.y ?? 0) - cy, (n.z ?? 0) - cz));
+            const material = new three.MeshBasicMaterial({ color: new three.Color(this.clusterHue(group)), transparent: true, side: three.BackSide, depthWrite: false });
+            material.opacity = 0.06;
+            const mesh = new three.Mesh(new three.SphereGeometry(radius + 10, 16, 12), material);
+            mesh.position.set(cx, cy, cz);
+            scene.add(mesh);
+            this.hullMeshes.push(mesh);
+            made++;
+        }
+    }
+
+    private disposeHulls(scene: THREE.Scene): void {
+        for (const mesh of this.hullMeshes) {
+            scene.remove(mesh);
+            mesh.geometry.dispose();
+            mesh.material.dispose();
+        }
+        this.hullMeshes = [];
     }
 
     /** Pull the layout tighter so clusters read as clusters and links stay short + visible. */
@@ -289,6 +377,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     /** On the first layout settle, frame the whole graph; otherwise honour a pending deep-link focus. */
     private onEngineSettled(): void {
+        this.rebuildHulls(); // cluster bubbles need settled positions
         if (this.pendingFocusPath) {
             this.flyToPendingFocus();
             return;
@@ -656,7 +745,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const legend = this.wrapperEl.createDiv({ cls: c("graph3d-legend") });
 
         // Node colour legend — reflects the active mode so the user knows what colours mean.
-        legend.createEl("div", { cls: c("graph3d-legend-title"), text: t("graph3d_legend_nodes") });
+        legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_nodes") });
         if (this.colorMode === "state") {
             const states = [...new Set(this.displayed.nodes.map((n) => n.state).filter((s) => s))].sort();
             for (const stateName of states) {
@@ -672,7 +761,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         // Relation (link) legend for the types present.
         const types = [...new Set(this.displayed.links.map((l) => l.type))].filter((tp) => RELATION_COLOR_VARS[tp]).sort();
         if (types.length > 0) {
-            legend.createEl("div", { cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
+            legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
             for (const type of types) {
                 const row = legend.createDiv({ cls: c("graph3d-legend-row", "graph3d-legend-row--clickable") });
                 row.toggleClass(c("graph3d-legend-row--hidden"), this.hiddenRelations.has(type));
@@ -711,6 +800,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.resizeObserver = null;
         window.clearInterval(this.timelapseTimer);
         this.timelapseTimer = undefined;
+        if (this.graph && this.three) {
+            try {
+                this.disposeHulls(this.graph.scene());
+            } catch (error) {
+                log.warn("[Graph3D] error disposing hulls", error);
+            }
+        }
+        this.glowTexture = null;
+        this.three = null;
         this.colorButtons.clear();
         this.lensChips.clear();
         this.zoomSlider = null;

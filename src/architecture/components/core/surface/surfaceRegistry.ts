@@ -55,9 +55,10 @@ export const SURFACES: readonly Surface[] = [
         viewType: "zettelflow-graph",
         titleKey: "surface_graph_title",
         modes: [
+            // 3D is the default (first) mode — the Graph surface leads with it (#280).
+            { id: "3d", labelKey: "surface_mode_3d" },
             { id: "map", sourceView: "zettelflow-knowledge-map", labelKey: "surface_mode_map" },
             { id: "navigate", sourceView: "zettelflow-concept-nav", labelKey: "surface_mode_navigate" },
-            { id: "3d", labelKey: "surface_mode_3d" },
         ],
     },
 ];

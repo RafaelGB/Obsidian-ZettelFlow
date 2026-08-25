@@ -13,6 +13,21 @@
 .zettelkasten-flow__graph3d-canvas {
     position: absolute;
     inset: 0;
+    z-index: 0;
+}
+
+// The 3D canvas is always a fixed dark "space", so floating controls are styled light-on-dark
+// (independent of the Obsidian theme) — otherwise theme greys blend into the background and vanish.
+%graph3d-control {
+    color: #e6e9ef;
+    background-color: rgba(38, 44, 60, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(56, 63, 82, 0.95);
+    }
 }
 
 .zettelkasten-flow__graph3d-message {
@@ -31,13 +46,13 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 2;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: var(--size-4-1);
+    gap: var(--size-4-2);
     padding: var(--size-4-2);
     pointer-events: none; // the bar area passes clicks through; controls re-enable themselves
-    background: linear-gradient(to bottom, rgba(11, 14, 20, 0.85), rgba(11, 14, 20, 0));
+    background: linear-gradient(to bottom, rgba(11, 14, 20, 0.94), rgba(11, 14, 20, 0));
 }
 
 .zettelkasten-flow__graph3d-controls {
@@ -54,7 +69,7 @@
 }
 
 .zettelkasten-flow__graph3d-group-label {
-    color: var(--text-muted);
+    color: #aeb6c4;
     font-size: var(--font-ui-smaller);
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -62,10 +77,10 @@
 }
 
 .zettelkasten-flow__graph3d-status {
-    color: var(--text-normal);
+    color: #dfe3ea;
     font-size: var(--font-ui-smaller);
     pointer-events: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .zettelkasten-flow__graph3d-search,
@@ -77,40 +92,43 @@
 
 .zettelkasten-flow__graph3d-search {
     max-width: 11em;
+    color: #e6e9ef;
+    background-color: rgba(38, 44, 60, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__graph3d-fit,
+.zettelkasten-flow__graph3d-play,
+.zettelkasten-flow__graph3d-zoom-btn {
+    @extend %graph3d-control;
+    padding: var(--size-2-1) var(--size-4-2);
 }
 
 // Color-by segmented toggle (maturity vs cluster).
 .zettelkasten-flow__graph3d-segmented {
     display: inline-flex;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    overflow: hidden;
+    gap: 2px;
     pointer-events: auto;
 }
 
 .zettelkasten-flow__graph3d-seg-btn {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    background-color: var(--background-secondary);
-    color: var(--text-muted);
+    @extend %graph3d-control;
     padding: var(--size-2-1) var(--size-4-2);
-    cursor: pointer;
-}
+    font-size: var(--font-ui-smaller);
 
-.zettelkasten-flow__graph3d-seg-btn--active {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
+    &.zettelkasten-flow__graph3d-seg-btn--active {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+        border-color: var(--interactive-accent);
+    }
 }
 
 // Discovery-lens chips (with live counts).
 .zettelkasten-flow__graph3d-chip {
-    background-color: var(--background-secondary);
-    color: var(--text-muted);
-    border: 1px solid var(--background-modifier-border);
+    @extend %graph3d-control;
     border-radius: var(--radius-l);
     padding: var(--size-2-1) var(--size-4-2);
-    cursor: pointer;
     font-size: var(--font-ui-smaller);
 
     &:disabled {
@@ -131,14 +149,14 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 2;
+    z-index: 10;
     display: flex;
     justify-content: center;
     align-items: flex-end;
     gap: var(--size-4-4);
     padding: var(--size-4-2) var(--size-4-3);
     pointer-events: none;
-    background: linear-gradient(to top, rgba(11, 14, 20, 0.85), rgba(11, 14, 20, 0));
+    background: linear-gradient(to top, rgba(11, 14, 20, 0.94), rgba(11, 14, 20, 0));
 }
 
 .zettelkasten-flow__graph3d-timelapse,
@@ -148,8 +166,8 @@
     align-items: center;
     gap: var(--size-4-2);
     padding: var(--size-2-1) var(--size-4-2);
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
+    background-color: rgba(15, 18, 26, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-m);
     pointer-events: auto;
 }
@@ -197,22 +215,22 @@
     position: absolute;
     left: var(--size-4-2);
     bottom: 4em; // clear of the bottom bar
-    z-index: 1;
+    z-index: 9;
     pointer-events: none;
     display: flex;
     flex-direction: column;
     gap: var(--size-2-1);
     padding: var(--size-4-2);
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
+    background-color: rgba(15, 18, 26, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-s);
     font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
+    color: #c7ccd6;
     max-width: 12em;
 }
 
 .zettelkasten-flow__graph3d-legend-title {
-    color: var(--text-normal);
+    color: #e6e9ef;
     font-weight: var(--font-semibold);
     margin-top: var(--size-2-1);
 }

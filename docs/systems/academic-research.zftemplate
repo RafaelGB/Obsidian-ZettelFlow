@@ -3,6 +3,7 @@
   "name": "Academic research",
   "description": "A literature-to-permanent research workflow with two entry points on one canvas. A literature note is, on creation, mined for claims, matched to candidate sources, cross-checked for contradictions and scored for maturity; a permanent note lands already related, link-suggested and scored. Offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "hard",
   "canvas": {
     "filename": "Academic research.canvas",
     "content": "{\"nodes\":[{\"id\":\"acad-lit\",\"type\":\"file\",\"file\":\"Literature note.md\",\"x\":-440,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"acad-perm\",\"type\":\"file\",\"file\":\"Permanent note.md\",\"x\":120,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[]}"

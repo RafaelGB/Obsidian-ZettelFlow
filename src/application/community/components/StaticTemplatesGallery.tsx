@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Notice } from "obsidian";
 import { c, log } from "architecture";
+import { t } from "architecture/lang";
 import { StaticTemplateOptions } from "config";
+import { resolveSystemDifficulty } from "../systemDifficulty";
 import { PluginComponentProps } from "../typing";
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
@@ -225,6 +227,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         ) : filteredTemplates.length > 0 ? (
           filteredTemplates.map((template) => {
             const installed = isTemplateInstalled(template);
+            const difficulty = resolveSystemDifficulty(template);
             return (
               <div
                 key={template.id}
@@ -237,6 +240,16 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                 <span className={c("community-templates-card-type-badge")}>
                   {template.template_type}
                 </span>
+                {difficulty && (
+                  <span
+                    className={c(
+                      "community-templates-card-difficulty",
+                      `community-templates-card-difficulty--${difficulty}`
+                    )}
+                  >
+                    {t(`system_difficulty_${difficulty}`)}
+                  </span>
+                )}
                 <h3 className={c("community-templates-card-title")}>
                   {template.title}{" "}
                   {installed && (

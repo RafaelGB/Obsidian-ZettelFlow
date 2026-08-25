@@ -3,6 +3,7 @@
   "name": "Reading",
   "description": "Turn reading into knowledge: a Reading source entry point captures a book or article with its highlights and, on creation, mines them for claims and matches candidate sources; a Reading note entry point distills an insight and connects it to your graph. Two independent entry points, offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "medium",
   "canvas": {
     "filename": "Reading.canvas",
     "content": "{\"nodes\":[{\"id\":\"read-0\",\"type\":\"file\",\"file\":\"Reading source.md\",\"x\":-600,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"read-1\",\"type\":\"file\",\"file\":\"Reading note.md\",\"x\":-280,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[]}"

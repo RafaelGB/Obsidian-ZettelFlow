@@ -3,6 +3,7 @@
   "name": "Writing",
   "description": "Take a piece from idea to finished draft: a Draft entry point sets the thesis and pulls in related source notes, a Section entry point develops one point and suggests connections, and a Review entry point surfaces contradictions to resolve. Three independent entry points, offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "medium",
   "canvas": {
     "filename": "Writing.canvas",
     "content": "{\"nodes\":[{\"id\":\"write-0\",\"type\":\"file\",\"file\":\"Draft.md\",\"x\":-600,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"write-1\",\"type\":\"file\",\"file\":\"Section.md\",\"x\":-280,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"write-2\",\"type\":\"file\",\"file\":\"Review.md\",\"x\":40,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[]}"

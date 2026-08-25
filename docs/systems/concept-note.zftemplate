@@ -3,6 +3,7 @@
   "name": "Concept note",
   "description": "Grow an evergreen concept: define it, say why it matters and give an example, get a stable Zettel ID, and on creation have it ranked, cross-checked, link-suggested, maturity-scored, challenged with thinking prompts and given a recommended next move. Offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "easy",
   "canvas": {
     "filename": "Concept note.canvas",
     "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Concept.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"

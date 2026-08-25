@@ -3,6 +3,7 @@
   "name": "Decision journal",
   "description": "Record a decision the way your future self will thank you for: the options you weighed, the rationale and a review date, stamped with a Zettel ID and checked against your earlier decisions for contradictions on creation. Offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "medium",
   "canvas": {
     "filename": "Decision journal.canvas",
     "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Decision.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"

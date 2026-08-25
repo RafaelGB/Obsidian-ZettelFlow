@@ -3,6 +3,7 @@
   "name": "PARA v2",
   "description": "Tiago Forte's PARA as a note-creation system: four independent entry points on one canvas — Project, Area, Resource, Archive — each landing a note in its PARA folder, tagged with its category and connected to your graph with find-related on creation. Repositions the original PARA classify flow. Offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "hard",
   "canvas": {
     "filename": "PARA v2.canvas",
     "content": "{\"nodes\":[{\"id\":\"para-0\",\"type\":\"file\",\"file\":\"Project.md\",\"x\":-600,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"para-1\",\"type\":\"file\",\"file\":\"Area.md\",\"x\":-280,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"para-2\",\"type\":\"file\",\"file\":\"Resource.md\",\"x\":40,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"para-3\",\"type\":\"file\",\"file\":\"Archive.md\",\"x\":360,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[]}"

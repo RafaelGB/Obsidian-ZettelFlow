@@ -3,6 +3,7 @@
   "name": "Daily journal",
   "description": "A frictionless daily note: three highlights, gratitude and one thing for tomorrow, tagged and connected to related days and notes on creation. Offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "easy",
   "canvas": {
     "filename": "Daily journal.canvas",
     "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Daily.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"

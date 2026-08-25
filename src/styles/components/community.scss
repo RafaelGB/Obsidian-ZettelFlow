@@ -146,6 +146,23 @@
     background-color: var(--color-purple);
 }
 
+/* Difficulty badge (#285), stacked under the type badge for systems. */
+.zettelkasten-flow__community-templates-card-difficulty {
+    position: absolute;
+    top: 2.7rem;
+    right: 1rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-on-accent);
+}
+
+.zettelkasten-flow__community-templates-card-difficulty--easy { background-color: var(--color-green); }
+.zettelkasten-flow__community-templates-card-difficulty--medium { background-color: var(--color-orange); }
+.zettelkasten-flow__community-templates-card-difficulty--hard { background-color: var(--color-red); }
+
 /* Icon in the top-right corner */
 .zettelkasten-flow__community-templates-card-icon {
     position: absolute;

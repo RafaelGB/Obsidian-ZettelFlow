@@ -3,6 +3,7 @@
   "name": "Software architecture KB",
   "description": "A decision log for software architecture: an ADR entry point records context, decision and consequences and, on creation, checks the new decision against existing ones for contradictions and surfaces related decisions; a Component entry point captures a component and its dependencies. Relations are captured with find related, suggest links and a supersedes link. Two independent entry points, offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "hard",
   "canvas": {
     "filename": "Software architecture KB.canvas",
     "content": "{\"nodes\":[{\"id\":\"arch-0\",\"type\":\"file\",\"file\":\"Decision record.md\",\"x\":-600,\"y\":-110,\"width\":350,\"height\":220},{\"id\":\"arch-1\",\"type\":\"file\",\"file\":\"Component.md\",\"x\":-280,\"y\":-110,\"width\":350,\"height\":220}],\"edges\":[]}"

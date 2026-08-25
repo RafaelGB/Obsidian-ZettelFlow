@@ -14,6 +14,7 @@ A `.zftemplate` file is a plain JSON document that bundles a ZettelFlow canvas w
 | `author` | string | ✓ | Creator name or identifier |
 | `canvas` | `ZfTemplateFile` | ✓ | The canvas file |
 | `steps` | `ZfTemplateFile[]` | ✓ | Associated step files (may be empty) |
+| `difficulty` | `"easy" \| "medium" \| "hard"` | — | Optional gallery badge (#285). Signals how much a system asks of a new user; omit to hide the badge |
 
 ## ZfTemplateFile
 

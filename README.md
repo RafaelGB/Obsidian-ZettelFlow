@@ -35,10 +35,14 @@ ZettelFlow is more than a note templater — it is a full **Zettelkasten workflo
 canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 
 - **🏠 ZettelFlow Home** — *open ZettelFlow, not Obsidian.* A single front door: a greeting and
-  "you've been thinking for N days", your new ideas, main concepts, notes that deserve a review,
-  suggested connections, a **"what to do next"** list of prioritized recommendations (click to jump to
-  the note), and the **next recommended session** ("Continue *Spring Events*"). Read-only, offline —
-  the state of your mind at a glance.
+  "you've been thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting
+  notes ready to develop") that jumps straight to the latest capture, your new ideas, main concepts,
+  notes that deserve a review, suggested connections, a **"what to do next"** list of prioritized
+  recommendations (click to jump to the note), and the **next recommended session** ("Continue *Spring
+  Events*"). Read-only, offline — the state of your mind at a glance.
+- **⚡ Quick capture** — *from thought to note in one keystroke.* A command opens a single title
+  prompt and writes a **fleeting note** to your Inbox — no canvas, no wizard, the fastest path to a
+  first note. Home then nudges you to develop it later. Works on mobile; bind your own hotkey.
 - **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
   suggested connections to existing notes so you can link before you file.
 - **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
@@ -62,12 +66,15 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   action**, one click from the surface to act on it. Read-only, offline.
 - **🧩 Systems Gallery** — *somewhere to start.* Install a complete knowledge **system** in one click
   from the community browser: pick a folder and ZettelFlow writes a ready-to-run canvas plus its step
-  notes (no clipboard, no manual paste), then **Run now** to use it immediately. A dozen shipped
-  systems — **Academic research · Zettelkasten v2 · PARA v2 · GTD · Reading · Writing · Software
-  architecture KB · Meeting notes · Daily journal · Concept note · Decision journal · Inquiry** — each
-  composing the cognitive actions on creation, so a new note lands already related, cross-checked and
-  scored. Offline, no AI. This is the one way to adopt a workflow — it replaces the old starter-flow and
-  methodology-package installers.
+  notes (no clipboard, no manual paste), then **Run now** to use it immediately. Every system carries a
+  **difficulty badge** (easy · medium · hard) so you can start where you're comfortable and grow into
+  the richer ones. Start with the **🎓 ZettelFlow tour** — a three-step guided system that teaches the
+  whole workflow while you build a real note. A dozen shipped systems — **Academic research ·
+  Zettelkasten v2 · PARA v2 · GTD · Reading · Writing · Software architecture KB · Meeting notes ·
+  Daily journal · Concept note · Decision journal · Inquiry** — each composing the cognitive actions on
+  creation (the medium/hard ones wire up the full relation · research · maturity pipeline), so a new
+  note lands already related, cross-checked and scored. Offline, no AI. This is the one way to adopt a
+  workflow — it replaces the old starter-flow and methodology-package installers.
 - **🗺️ Map-of-content builder** — gather notes by tag/folder into a MOC and refresh it safely;
   re-runs never touch your own prose.
 - **✨ Connection resurfacing** — "talk to your slip-box": for the note you're reading, see
@@ -197,7 +204,8 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
-| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", new ideas, main concepts, notes that deserve a review, suggested connections, a **"what to do next"** prioritized recommendation list (click to navigate), and the deterministic next recommended session. Read-only, offline. |
+| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting notes ready to develop" → jump to the latest), new ideas, main concepts, notes that deserve a review, suggested connections, a **"what to do next"** prioritized recommendation list (click to navigate), and the deterministic next recommended session. Read-only, offline. |
+| **Quick capture** | A command opens a single title prompt and writes a fleeting note to your Inbox — the fastest path from a thought to a note (no canvas, no wizard). Mobile-friendly; bind your own hotkey. Home nudges you to develop it later. |
 | **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |
@@ -218,7 +226,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
 | **Remove a relation** | A command that lists the active note's typed relations and deletes the one you pick, after a confirmation naming the exact edge. Offline. |
 | **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
-| **Community systems** | Install a whole knowledge system in one click — the community browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). |
+| **Community systems** | Install a whole knowledge system in one click — the community browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). Each system shows a **difficulty badge** (easy / medium / hard); a **ZettelFlow tour** system teaches the full workflow while you build a real note. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |
 | **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`). |

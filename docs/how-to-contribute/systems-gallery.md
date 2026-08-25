@@ -20,21 +20,25 @@ Everything is **offline** (no network, no AI) and additive (nothing in your vaul
 ## Shipped systems
 
 Each system offers several **independent entry points** on one canvas — pick the note type you want to create.
+Every system carries a **difficulty badge** in the browser — *easy* (a light workflow, few actions), *medium*
+(more steps and the relation/research actions), *hard* (the full pipeline). Start easy and grow into the richer
+systems; the on-creation cognitive work scales with the difficulty.
 
-| System | Entry points | What lands on creation |
-|---|---|---|
-| **Academic research** | Literature note · Permanent note | claims extracted · candidate sources · contradictions flagged · maturity scored → connected permanent notes |
-| **Zettelkasten v2** | Fleeting · Literature · Permanent | the permanent note is related, cross-checked, link-suggested and maturity-scored (the on-creation pattern) |
-| **PARA v2** | Project · Area · Resource · Archive | each note lands in its PARA folder, tagged by category and connected with *find related* |
-| **GTD** | Inbox capture · Next action · Project | a thought moves from capture to a context-tagged next action, connected with *find related* |
-| **Reading** | Reading source · Reading note | highlights mined for claims and candidate sources; insights connected to your graph |
-| **Writing** | Draft · Section · Review | drafts pull in related source notes; sections suggest connections; reviews surface contradictions |
-| **Software architecture KB** | Decision record (ADR) · Component | new decisions are checked against existing ones for contradictions and linked to related decisions |
-| **Meeting notes** | Meeting note | attendees/agenda/actions captured, tagged, stamped with a Zettel ID, linked to related meetings |
-| **Daily journal** | Daily journal | highlights · gratitude · tomorrow, connected to related days on creation |
-| **Concept note** | Concept note | the full treatment — related · contradictions · suggested links · maturity · thinking prompts · next move |
-| **Decision journal** | Decision record | options · rationale · review date, Zettel ID, checked against earlier decisions for contradictions |
-| **Inquiry** | Open question | surfaces your other open questions, related notes and the claims you're implicitly making |
+| System | Difficulty | Entry points | What lands on creation |
+|---|---|---|---|
+| **🎓 ZettelFlow tour** | easy | Guided note | a three-step guided walkthrough that teaches capture → develop → connect while you build a real note — the fastest way to learn the whole workflow |
+| **Concept note** | easy | Concept note | the full treatment — related · contradictions · suggested links · maturity · thinking prompts · next move |
+| **Daily journal** | easy | Daily journal | highlights · gratitude · tomorrow, connected to related days on creation |
+| **Meeting notes** | easy | Meeting note | attendees/agenda/actions captured, tagged, stamped with a Zettel ID, linked to related meetings |
+| **Inquiry** | easy | Open question | surfaces your other open questions, related notes and the claims you're implicitly making |
+| **Reading** | medium | Reading source · Reading note | highlights mined for claims and candidate sources; insights connected to your graph |
+| **GTD** | medium | Inbox capture · Next action · Project | a thought moves from capture to a context-tagged next action, connected with *find related* |
+| **Writing** | medium | Draft · Section · Review | drafts pull in related source notes; sections suggest connections; reviews surface contradictions |
+| **Zettelkasten v2** | medium | Fleeting · Literature · Permanent | the permanent note is related, cross-checked, link-suggested and maturity-scored (the on-creation pattern) |
+| **Decision journal** | medium | Decision record | options · rationale · review date, Zettel ID, checked against earlier decisions for contradictions |
+| **Academic research** | hard | Literature note · Permanent note | claims extracted · candidate sources · contradictions flagged · maturity scored → connected permanent notes |
+| **PARA v2** | hard | Project · Area · Resource · Archive | each note lands in its PARA folder, tagged by category and connected with *find related* |
+| **Software architecture KB** | hard | Decision record (ADR) · Component | new decisions are checked against existing ones for contradictions and linked to related decisions |
 
 > Previews: each system shows a preview image in the browser. Previews currently ship as placeholders
 > pending final artwork (tracked in issue #223) — the system itself is fully functional regardless.
@@ -58,12 +62,15 @@ A system is a single `.zftemplate` JSON bundle: a `canvas` (a real `.canvas`) pl
    with `find-related`/`suggest-link` and a plain wikilink prompt instead.
 4. **Quote YAML-unsafe values.** A prompt `placeholder`/`label` that starts with `[[`, `@`, `{`, `*`
    (or contains `: `) must be single-quoted, or the frontmatter fails to parse and the step is dropped.
-5. **Catalog it.** Add the `.zftemplate` under `docs/systems/`, a sibling `<id>.png` preview, and a
+5. **Declare a difficulty.** Set a top-level `"difficulty": "easy" | "medium" | "hard"` on the bundle so
+   the gallery shows the right badge — *easy* for a light workflow, *medium* once you add relation/research
+   actions, *hard* for the full on-creation pipeline. Optional; omit it and the badge is simply hidden.
+6. **Catalog it.** Add the `.zftemplate` under `docs/systems/`, a sibling `<id>.png` preview, and a
    `template_type: "system"` row to `docs/main_template.json` (`ref` = the `.zftemplate` path).
-6. **Validate.** `npm test` runs the validity harness (`shippedSystems.test.ts` + `catalog.test.ts`):
+7. **Validate.** `npm test` runs the validity harness (`shippedSystems.test.ts` + `catalog.test.ts`):
    every shipped system must parse, reference only registered non-AI actions, use YAML-safe frontmatter,
    and resolve its canvas file-nodes to real steps.
-7. **Publish.** The fastest in-app route: build the workflow on a canvas, run **ZettelFlow → Export
+8. **Publish.** The fastest in-app route: build the workflow on a canvas, run **ZettelFlow → Export
    current canvas as .zftemplate** (also in the *Open ZettelFlow* ribbon menu), then submit it through
    the community browser's **Add template** link. That closes the loop — your system in the gallery for
    everyone.

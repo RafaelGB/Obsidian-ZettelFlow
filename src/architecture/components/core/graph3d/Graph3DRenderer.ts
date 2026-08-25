@@ -72,6 +72,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private readonly hiddenNodes = new Set<string>();
     private fullscreen = false;
     private fullscreenBtn: HTMLElement | null = null;
+    private lite = false;
+    private liteBtn: HTMLElement | null = null;
     private pathMode = false;
     private pathFrom: string | null = null;
     private pathNodes: Set<string> | null = null;
@@ -324,7 +326,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     /** Translucent "hull" bubbles around each cluster, rebuilt when the layout settles (#280). */
     private rebuildHulls(): void {
         const three = this.three;
-        if (!three || !this.graph) return;
+        if (!three || !this.graph || this.lite) return;
         const scene = this.graph.scene();
         this.disposeHulls(scene);
         const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
@@ -366,7 +368,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private updateProximityLabels(): void {
         const three = this.three;
         const Ctor = this.spriteTextCtor;
-        if (!three || !Ctor || !this.graph) return;
+        if (!three || !Ctor || !this.graph || this.lite) return;
         const THRESHOLD = 90, MAX = 18;
         const cam = this.graph.cameraPosition();
         const scene = this.graph.scene();
@@ -482,7 +484,29 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.fullscreenBtn = full;
         this.registerDomEvent(full, "click", () => this.toggleFullscreen());
 
+        const lite = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_lite") });
+        lite.setAttribute("aria-pressed", "false");
+        this.liteBtn = lite;
+        this.registerDomEvent(lite, "click", () => this.toggleLite());
+
         this.statusEl = bar.createDiv({ cls: c("graph3d-status") });
+    }
+
+    /** Lite mode: drop the per-frame effects (particles, hulls, proximity labels) for maximum FPS. */
+    private toggleLite(): void {
+        this.lite = !this.lite;
+        this.liteBtn?.toggleClass(c("graph3d-chip--active"), this.lite);
+        this.liteBtn?.setAttribute("aria-pressed", this.lite ? "true" : "false");
+        if (this.lite) {
+            if (this.graph && this.three) {
+                try { this.disposeHulls(this.graph.scene()); } catch (error) { log.warn("[Graph3D] hull dispose", error); }
+            }
+            this.clearProximityLabels();
+        } else {
+            this.rebuildHulls();
+        }
+        this.refreshPaint();
+        this.updateStatus();
     }
 
     /** Expand the graph to fill the whole window (immersive) and back. */
@@ -798,6 +822,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     /** Particle count per link — path/focus links animate; a few on small graphs; none when dense. */
     private particlesFor(link: LiveLink): number {
+        if (this.lite) return 0;
         if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? 4 : 0;
         const focus = this.activeFocus();
         if (focus) return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? 3 : 0;
@@ -838,6 +863,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
         if (this.pathMode) parts.push(t("graph3d_path_mode"));
         if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
+        if (this.lite) parts.push(t("graph3d_lite"));
         this.statusEl.setText(parts.join("  ·  "));
     }
 
@@ -921,6 +947,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.pathBtn = null;
         this.fullscreenBtn = null;
         this.fullscreen = false;
+        this.liteBtn = null;
         this.statusEl = null;
         this.hoverId = null;
         this.pinnedId = null;

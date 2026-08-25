@@ -563,6 +563,7 @@ export default {
     graph3d_menu_pin: 'Fijar foco',
     graph3d_menu_path: 'Empezar ruta aquí',
     graph3d_menu_hide: 'Ocultar nodo',
+    graph3d_lite: 'Ligero',
     command_explore_in_3d: 'Explorar la nota activa en 3D',
     command_show_health: 'Ver salud',
     command_show_discovery: 'Ver descubrimiento',

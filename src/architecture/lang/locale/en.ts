@@ -563,6 +563,7 @@ export default {
     graph3d_menu_pin: 'Pin focus',
     graph3d_menu_path: 'Start path here',
     graph3d_menu_hide: 'Hide node',
+    graph3d_lite: 'Lite',
     command_explore_in_3d: 'Explore the active note in 3D',
     command_show_health: 'Show health',
     command_show_discovery: 'Show discovery',

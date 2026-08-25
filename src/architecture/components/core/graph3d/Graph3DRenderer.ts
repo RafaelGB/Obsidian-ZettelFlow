@@ -1,4 +1,4 @@
-import { App, Platform } from "obsidian";
+import { App, Menu, Platform, setIcon } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -69,6 +69,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private hoverId: string | null = null;
     private pinnedId: string | null = null;
     private readonly hiddenRelations = new Set<string>();
+    private readonly hiddenNodes = new Set<string>();
+    private fullscreen = false;
+    private fullscreenBtn: HTMLElement | null = null;
     private pathMode = false;
     private pathFrom: string | null = null;
     private pathNodes: Set<string> | null = null;
@@ -211,10 +214,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink))
                 .linkDirectionalParticleWidth(2)
                 .linkDirectionalParticleSpeed(0.008)
-                .linkVisibility((link) => !this.hiddenRelations.has((link as LiveLink).type ?? "link"))
+                .nodeVisibility((node) => !this.hiddenNodes.has((node as LiveNode).id ?? ""))
+                .linkVisibility((link) => this.isLinkVisible(link as LiveLink))
                 .cooldownTime(9000) // settle the simulation sooner → less sustained CPU
                 .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
                 .onNodeClick((node) => this.onClick((node as LiveNode).id))
+                .onNodeRightClick((node, evt) => this.onNodeRightClick((node as LiveNode).id, evt))
                 .onLinkClick((link) => this.onLinkClick(link as LiveLink))
                 .onBackgroundClick(() => this.clearFocus())
                 .onEngineStop(() => this.onEngineSettled());
@@ -229,7 +234,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             }
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
-            this.resizeObserver.observe(this.container);
+            this.resizeObserver.observe(this.wrapperEl);
         } catch (error) {
             log.error("[Graph3D] could not initialize the 3D graph (WebGL unavailable?)", error);
             if (this.disposed) return;
@@ -471,7 +476,21 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         fit.setAttribute("aria-label", t("graph3d_fit_view"));
         this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 24));
 
+        const full = controls.createEl("button", { cls: c("graph3d-fit") });
+        setIcon(full, "maximize");
+        full.setAttribute("aria-label", t("graph3d_fullscreen"));
+        this.fullscreenBtn = full;
+        this.registerDomEvent(full, "click", () => this.toggleFullscreen());
+
         this.statusEl = bar.createDiv({ cls: c("graph3d-status") });
+    }
+
+    /** Expand the graph to fill the whole window (immersive) and back. */
+    private toggleFullscreen(): void {
+        this.fullscreen = !this.fullscreen;
+        this.wrapperEl?.toggleClass(c("graph3d--fullscreen"), this.fullscreen);
+        if (this.fullscreenBtn) setIcon(this.fullscreenBtn, this.fullscreen ? "minimize" : "maximize");
+        window.setTimeout(() => this.applySize(), 60);
     }
 
     private addColorButton(group: HTMLElement, mode: ColorMode, label: string): void {
@@ -644,6 +663,37 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (target && target !== source) void this.app.workspace.openLinkText(target, "", "split");
     }
 
+    private isLinkVisible(link: LiveLink): boolean {
+        if (this.hiddenRelations.has(link.type ?? "link")) return false;
+        return !this.hiddenNodes.has(endId(link.source)) && !this.hiddenNodes.has(endId(link.target));
+    }
+
+    /** Right-click a node → a context menu: open · pin focus · start a path · hide. */
+    private onNodeRightClick(id: string | undefined, evt: MouseEvent): void {
+        if (typeof id !== "string") return;
+        const menu = new Menu();
+        menu.addItem((item) => item.setTitle(t("graph3d_menu_open")).setIcon("file").onClick(() => void this.app.workspace.openLinkText(id, "", false)));
+        menu.addItem((item) => item.setTitle(t("graph3d_menu_pin")).setIcon("pin").onClick(() => {
+            this.pinnedId = id;
+            this.hoverId = null;
+            this.focusNode(id);
+            this.refreshPaint();
+            this.updateStatus();
+        }));
+        menu.addItem((item) => item.setTitle(t("graph3d_menu_path")).setIcon("route").onClick(() => {
+            this.pathMode = true;
+            this.pathBtn?.toggleClass(c("graph3d-chip--active"), true);
+            this.pathBtn?.setAttribute("aria-pressed", "true");
+            this.pathFrom = null;
+            this.pickPathNode(id);
+        }));
+        menu.addItem((item) => item.setTitle(t("graph3d_menu_hide")).setIcon("eye-off").onClick(() => {
+            this.hiddenNodes.add(id);
+            this.refreshPaint();
+        }));
+        menu.showAtMouseEvent(evt);
+    }
+
     /** Single click pins a neighbourhood (and flies to it); a quick second click opens the note. */
     private onClick(id: string | undefined): void {
         if (typeof id !== "string") return;
@@ -711,7 +761,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             .linkColor((link) => this.computeLinkColor(link as LiveLink))
             .linkWidth((link) => this.computeLinkWidth(link as LiveLink))
             .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink))
-            .linkVisibility((link) => !this.hiddenRelations.has((link as LiveLink).type ?? "link"));
+            .nodeVisibility((node) => !this.hiddenNodes.has((node as LiveNode).id ?? ""))
+            .linkVisibility((link) => this.isLinkVisible(link as LiveLink));
     }
 
     // ── Paint ─────────────────────────────────────────────────────────────────
@@ -840,7 +891,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private applySize(): void {
         if (!this.graph) return;
-        this.graph.width(this.container.clientWidth || 400).height(this.container.clientHeight || 400);
+        const el = this.wrapperEl ?? this.container; // in fullscreen the wrapper is the sized element
+        this.graph.width(el.clientWidth || 400).height(el.clientHeight || 400);
     }
 
     private teardownGraph(): void {
@@ -867,6 +919,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.timeSlider = null;
         this.playBtn = null;
         this.pathBtn = null;
+        this.fullscreenBtn = null;
+        this.fullscreen = false;
         this.statusEl = null;
         this.hoverId = null;
         this.pinnedId = null;

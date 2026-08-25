@@ -10,6 +10,14 @@
     overflow: hidden;
 }
 
+// Immersive / fullscreen (#280): the graph fills the whole window.
+.zettelkasten-flow__graph3d--fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-modal, 100);
+    background-color: #0b0e14;
+}
+
 .zettelkasten-flow__graph3d-canvas {
     position: absolute;
     inset: 0;

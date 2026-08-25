@@ -1,5 +1,5 @@
 export {
-    CommunityTemplateOptions, StaticTemplateOptions, CommunityStepSettings, CommunityAction,
+    CommunityTemplateOptions, StaticTemplateOptions, SystemDifficulty, CommunityStepSettings, CommunityAction,
     InstalledTemplates, ZettelFlowSettings, DEFAULT_SETTINGS, HistoryEntry
 } from './typing';
 

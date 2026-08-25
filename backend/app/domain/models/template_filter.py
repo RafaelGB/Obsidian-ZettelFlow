@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class PageInfo(BaseModel):
     """
@@ -19,6 +19,8 @@ class TemplateItem(BaseModel):
     downloads: int
     author: str
     type: str
+    # Onboarding difficulty for "system" templates (easy | medium | hard), shown as a gallery badge (#285).
+    difficulty: Optional[str] = None
 
     class Config:
         underscore_attrs_are_private = False

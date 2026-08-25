@@ -175,7 +175,12 @@ export type StaticTemplateOptions = {
      * "system" — a `.zftemplate` bundle installed as a canvas + steps in one click (#214).
      */
     template_type: "step" | "action" | "markdown" | "flow" | "system";
+    /** For systems: how much a newcomer takes on — shown as a badge in the gallery. */
+    difficulty?: SystemDifficulty;
 };
+
+/** A system's onboarding difficulty (shown as a gallery badge). */
+export type SystemDifficulty = "easy" | "medium" | "hard";
 
 /**
  * Combines StepSettings with community template options.

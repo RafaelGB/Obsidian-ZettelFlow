@@ -3,6 +3,7 @@
   "name": "Inquiry",
   "description": "Start from a question, not an answer: capture what you want to know, why it matters and your current thinking; on creation ZettelFlow surfaces your other open questions, related notes and the claims you're implicitly making. Offline, no AI.",
   "author": "ZettelFlow",
+  "difficulty": "easy",
   "canvas": {
     "filename": "Inquiry.canvas",
     "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Inquiry.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"

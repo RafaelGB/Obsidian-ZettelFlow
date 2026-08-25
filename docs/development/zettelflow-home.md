@@ -14,6 +14,13 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
 
 - **Greeting + "you've been thinking for N days"** — the count of distinct days you developed an idea,
   from the private [development journal](thinking-heatmap.md) (#162).
+- **3D-graph teaser** *(#285)* — a one-click card ("see the shape of your thinking") that opens the
+  [Graph surface → 3D mode](../architecture/surfaces.md): the eye-catching hook right where the
+  first-run flow lands a new user.
+- **Growth nudge** *(#285)* — when fleeting notes are waiting, "N fleeting notes ready to develop" with
+  a one-click jump to the latest capture — the loop that turns quick captures into permanent notes.
+  Silent when the inbox is empty. Counts `state: fleeting` notes from the model (`fleetingCount` /
+  `fleetingReady` on `buildHome`).
 - **Next session** *(the headline)* — the single most valuable note to continue, from the
   `nextSession` heuristic below. "Continue *Spring Events*".
 - **New ideas** — notes created in the last 7 days, newest first.
@@ -53,7 +60,8 @@ nextSession(model)                                (pure, Obsidian-free, unit-tes
   → { path, reason: "develop-hub" } | null        argmax of degree·(1−STATE_FACTOR), path tie-break
 
 buildHome(model, { thinkingDays, now })           (pure, Obsidian-free, unit-tested)
-  → { thinkingDays, newIdeas, mainConcepts, reviewDue, suggestedConnections, nextSession }
+  → { thinkingDays, newIdeas, mainConcepts, reviewDue, suggestedConnections, nextSession,
+      fleetingCount, fleetingReady }
   composes computeWeeklyReview (#160), findDiscoveries (#163), hubs/created, nextSession
 
 ZettelFlowHomeView (ItemView) + HomeComponent (show-home command, no hotkey)

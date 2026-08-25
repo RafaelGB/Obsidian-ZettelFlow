@@ -6,6 +6,7 @@ import type { StaticTemplateOptions, SystemDifficulty } from "config";
  * the `.zftemplate` sources also declare `difficulty`, which wins once the catalog serves it.
  */
 export const SYSTEM_DIFFICULTY: Record<string, SystemDifficulty> = {
+    "zettelflow tour": "easy",
     "concept note": "easy",
     "daily journal": "easy",
     "meeting notes": "easy",

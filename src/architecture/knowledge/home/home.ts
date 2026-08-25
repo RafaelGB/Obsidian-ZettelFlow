@@ -15,6 +15,10 @@ export interface HomeModel {
     reviewDue: string[];
     suggestedConnections: { a: string; b: string }[];
     nextSession: NextSession | null;
+    /** How many fleeting notes are waiting to be developed — the #285 growth nudge. */
+    fleetingCount: number;
+    /** Up to TOP_N fleeting notes, newest first — the nudge links straight to the first one. */
+    fleetingReady: string[];
 }
 
 export interface BuildHomeOptions {
@@ -57,6 +61,11 @@ export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeMo
         .slice(0, TOP_N)
         .map((discovery) => ({ a: discovery.a, b: discovery.b }));
 
+    const fleeting = all
+        .filter((idea) => idea.state === "fleeting")
+        .sort((a, b) => b.created - a.created || byPath(a.path, b.path));
+    const fleetingReady = fleeting.slice(0, TOP_N).map((idea) => idea.path);
+
     return {
         thinkingDays,
         newIdeas,
@@ -64,5 +73,7 @@ export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeMo
         reviewDue,
         suggestedConnections,
         nextSession: nextSession(model),
+        fleetingCount: fleeting.length,
+        fleetingReady,
     };
 }

@@ -1,0 +1,298 @@
+// The 3D knowledge-graph mode (#280). The WebGL canvas fills the surface; the top bar (controls +
+// status), the legend, the time-lapse and the zoom float over it. Node/link colours come from
+// Obsidian's `--color-*` palette so the WebGL and these swatches never drift.
+
+.zettelkasten-flow__graph3d {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 24em;
+    overflow: hidden;
+}
+
+// Immersive / fullscreen (#280): the graph fills the whole window.
+.zettelkasten-flow__graph3d--fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-modal, 100);
+    background-color: #0b0e14;
+}
+
+.zettelkasten-flow__graph3d-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+// The 3D canvas is always a fixed dark "space", so floating controls are styled light-on-dark
+// (independent of the Obsidian theme) — otherwise theme greys blend into the background and vanish.
+%graph3d-control {
+    color: #e6e9ef;
+    background-color: rgba(38, 44, 60, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(56, 63, 82, 0.95);
+    }
+}
+
+.zettelkasten-flow__graph3d-message {
+    padding: var(--size-4-6);
+    color: var(--text-muted);
+    text-align: center;
+
+    .mod-cta {
+        margin-top: var(--size-4-3);
+    }
+}
+
+// ── Top bar: controls + a persistent status line ────────────────────────────
+.zettelkasten-flow__graph3d-topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    padding: var(--size-4-2);
+    pointer-events: none; // the bar area passes clicks through; controls re-enable themselves
+    background: linear-gradient(to bottom, rgba(11, 14, 20, 0.94), rgba(11, 14, 20, 0));
+}
+
+.zettelkasten-flow__graph3d-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__graph3d-group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__graph3d-group-label {
+    color: #aeb6c4;
+    font-size: var(--font-ui-smaller);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__graph3d-status {
+    color: #dfe3ea;
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.zettelkasten-flow__graph3d-search,
+.zettelkasten-flow__graph3d-seg-btn,
+.zettelkasten-flow__graph3d-chip,
+.zettelkasten-flow__graph3d-fit {
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__graph3d-search {
+    max-width: 11em;
+    color: #e6e9ef;
+    background-color: rgba(38, 44, 60, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__graph3d-fit,
+.zettelkasten-flow__graph3d-play,
+.zettelkasten-flow__graph3d-zoom-btn {
+    @extend %graph3d-control;
+    padding: var(--size-2-1) var(--size-4-2);
+}
+
+// Color-by segmented toggle (maturity vs cluster).
+.zettelkasten-flow__graph3d-segmented {
+    display: inline-flex;
+    gap: 2px;
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__graph3d-seg-btn {
+    @extend %graph3d-control;
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+
+    &.zettelkasten-flow__graph3d-seg-btn--active {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+        border-color: var(--interactive-accent);
+    }
+}
+
+// Discovery-lens chips (with live counts).
+.zettelkasten-flow__graph3d-chip {
+    @extend %graph3d-control;
+    border-radius: var(--radius-l);
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    &.zettelkasten-flow__graph3d-chip--active {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+        border-color: var(--interactive-accent);
+    }
+}
+
+// ── Bottom bar: time-lapse (centre) + zoom (right) ──────────────────────────
+.zettelkasten-flow__graph3d-bottombar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: var(--size-4-4);
+    padding: var(--size-4-2) var(--size-4-3);
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(11, 14, 20, 0.94), rgba(11, 14, 20, 0));
+}
+
+.zettelkasten-flow__graph3d-timelapse,
+.zettelkasten-flow__graph3d-spread,
+.zettelkasten-flow__graph3d-zoom {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-2-1) var(--size-4-2);
+    background-color: rgba(15, 18, 26, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-m);
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__graph3d-timelapse {
+    flex: 1 1 auto;
+    max-width: 24em;
+}
+
+.zettelkasten-flow__graph3d-spread-slider {
+    width: 6em;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-zoom {
+    margin-left: auto; // push zoom to the right edge
+}
+
+.zettelkasten-flow__graph3d-play {
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-time-slider {
+    flex: 1 1 auto;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-zoom-btn {
+    width: 1.9em;
+    height: 1.9em;
+    padding: 0;
+    font-size: var(--font-ui-medium);
+    line-height: 1;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-zoom-slider {
+    width: 7em; // horizontal slider — reliable and roomy
+    cursor: pointer;
+}
+
+// ── Legend (bottom-left): node-colour mode + relation types ─────────────────
+.zettelkasten-flow__graph3d-legend {
+    position: absolute;
+    left: var(--size-4-2);
+    bottom: 4em; // clear of the bottom bar
+    z-index: 9;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    padding: var(--size-4-2);
+    background-color: rgba(15, 18, 26, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-smaller);
+    color: #c7ccd6;
+    max-width: 12em;
+}
+
+.zettelkasten-flow__graph3d-legend-title {
+    color: #e6e9ef;
+    font-weight: var(--font-semibold);
+    margin-top: var(--size-2-1);
+}
+
+.zettelkasten-flow__graph3d-legend-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+// Relation rows are clickable to toggle that relation's visibility (#280 iteration).
+.zettelkasten-flow__graph3d-legend-row--clickable {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph3d-legend-row--hidden {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.zettelkasten-flow__graph3d-swatch {
+    flex: 0 0 auto;
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+}
+
+// Node-kind icons in the legend (match the in-graph markers).
+.zettelkasten-flow__graph3d-kind-icon {
+    flex: 0 0 auto;
+    width: 0.9em;
+    text-align: center;
+    font-weight: var(--font-bold);
+}
+
+.zettelkasten-flow__graph3d-kind-icon--question { color: #fbbf24; }
+.zettelkasten-flow__graph3d-kind-icon--source { color: #22d3ee; }
+
+// Relation-type colours — the exact hex the WebGL links use (see RELATION_COLORS in graph3d.ts).
+.zettelkasten-flow__graph3d-swatch--link { background-color: #8b93a7; }
+.zettelkasten-flow__graph3d-swatch--supports { background-color: #4ade80; }
+.zettelkasten-flow__graph3d-swatch--contradicts { background-color: #f87171; }
+.zettelkasten-flow__graph3d-swatch--expands { background-color: #60a5fa; }
+.zettelkasten-flow__graph3d-swatch--inspired-by { background-color: #22d3ee; }
+.zettelkasten-flow__graph3d-swatch--question { background-color: #c084fc; }
+.zettelkasten-flow__graph3d-swatch--example { background-color: #fb923c; }
+.zettelkasten-flow__graph3d-swatch--implements { background-color: #facc15; }
+
+// Knowledge-state (maturity) colours — the exact hex the nodes use (see STATE_COLORS in graph3d.ts).
+.zettelkasten-flow__graph3d-swatch--state-fleeting { background-color: #f87171; }
+.zettelkasten-flow__graph3d-swatch--state-literature { background-color: #fb923c; }
+.zettelkasten-flow__graph3d-swatch--state-developing { background-color: #facc15; }
+.zettelkasten-flow__graph3d-swatch--state-permanent { background-color: #4ade80; }
+.zettelkasten-flow__graph3d-swatch--state-evergreen { background-color: #22d3ee; }
+.zettelkasten-flow__graph3d-swatch--state-archived { background-color: #94a3b8; }

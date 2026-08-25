@@ -19,10 +19,11 @@ describe("legacy back-compat targets (#272, AC-2)", () => {
         for (const type of types) expect(isValidTarget(LEGACY_VIEW_TARGETS[type])).toBe(true);
     });
 
-    it("every non-default mode is reachable by at least one alias command", () => {
+    it("every retired-view-backed mode is reachable by at least one alias command", () => {
         const aliasedModes = new Set(Object.values(LEGACY_OPEN_TARGETS).map((t) => `${t.surface}:${t.mode}`));
         for (const surface of SURFACES) {
             for (const mode of surface.modes) {
+                if (!mode.sourceView) continue; // net-new modes (e.g. Graph 3D) have no retired alias command
                 expect(aliasedModes.has(`${surface.viewType}:${mode.id}`)).toBe(true);
             }
         }

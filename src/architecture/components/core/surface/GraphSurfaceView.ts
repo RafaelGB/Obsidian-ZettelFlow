@@ -1,12 +1,11 @@
 import { ModeHostView } from "./ModeHostView";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
-import { KnowledgeMapRenderer } from "architecture/components/core/knowledgeMap/KnowledgeMapRenderer";
-import { ConceptNavRenderer } from "architecture/components/core/conceptNav/ConceptNavRenderer";
+import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
 
 /**
- * The **Graph** surface (#272) — one destination for exploring the shape of your knowledge, with
- * modes: Map (hubs + clusters) · Navigate (walk typed neighbours). Reasoning is a deferred mode.
- * Each mode reuses the retired view's renderer verbatim.
+ * The **Graph** surface (#272, #280) — an immersive **3D knowledge graph** of your slip-box. The
+ * retired 2D Map/Navigate modes were folded away; the surface is 3D-only, and the old `show-knowledge-map`
+ * / `show-concept-nav` aliases open this 3D mode (see legacyTargets).
  */
 export class GraphSurfaceView extends ModeHostView {
     getViewType(): string {
@@ -17,13 +16,7 @@ export class GraphSurfaceView extends ModeHostView {
         return "network";
     }
 
-    protected createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer {
-        switch (modeId) {
-            case "navigate":
-                return new ConceptNavRenderer(container, this.app);
-            case "map":
-            default:
-                return new KnowledgeMapRenderer(container, this.app);
-        }
+    protected createRenderer(_modeId: string, container: HTMLElement): KnowledgeModeRenderer {
+        return new Graph3DRenderer(container, this.app);
     }
 }

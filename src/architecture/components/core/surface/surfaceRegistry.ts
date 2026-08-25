@@ -7,8 +7,8 @@
 export interface SurfaceMode {
     /** Stable mode id, used in the view state for deep-linking. */
     id: string;
-    /** The retired view's type this mode reuses verbatim (its renderer). */
-    sourceView: string;
+    /** The retired view's type this mode reuses verbatim (its renderer); absent for net-new modes. */
+    sourceView?: string;
     /** i18n key of the mode's label in the segmented control (sentence case). */
     labelKey: string;
 }
@@ -54,9 +54,10 @@ export const SURFACES: readonly Surface[] = [
     {
         viewType: "zettelflow-graph",
         titleKey: "surface_graph_title",
+        // The Graph surface is 3D-only (#280 direction); the retired 2D Map/Navigate view types are
+        // repointed to the 3D mode in legacyTargets so their alias commands still work.
         modes: [
-            { id: "map", sourceView: "zettelflow-knowledge-map", labelKey: "surface_mode_map" },
-            { id: "navigate", sourceView: "zettelflow-concept-nav", labelKey: "surface_mode_navigate" },
+            { id: "3d", labelKey: "surface_mode_3d" },
         ],
     },
 ];

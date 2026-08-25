@@ -33,6 +33,37 @@
     margin-bottom: 0.75rem;
 }
 
+// The 3D-graph teaser (#285 S2) — the eye-catching hook on Home.
+.zettelkasten-flow__home-graph-teaser {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.9rem;
+    border-radius: var(--radius-m);
+    color: #e8eaf2;
+    background: radial-gradient(120% 140% at 15% 0%, #22305a 0%, #121a33 55%, #0b0e14 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.zettelkasten-flow__home-graph-teaser-title {
+    font-weight: var(--font-bold);
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__home-graph-teaser-sub {
+    color: #aeb6c4;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__home-graph-teaser-btn {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    cursor: pointer;
+}
+
 .zettelkasten-flow__home-greeting-hello {
     font-size: var(--font-ui-small);
     color: var(--text-normal);

@@ -888,6 +888,9 @@ export default {
     settings_toolkit_dashboard_desc: 'Una consola de operaciones para tu slip-box — conectividad, deuda y hoy, cada uno con una acción.',
     // Inicio de ZettelFlow (#172)
     home_view_title: 'Inicio',
+    home_graph_teaser_title: 'Ve la forma de tu pensamiento',
+    home_graph_teaser_sub: 'Explora tus notas como una constelación 3D viva.',
+    home_graph_teaser_cta: 'Abrir el grafo 3D',
     command_show_home: 'Mostrar inicio',
     home_indexing: 'Construyendo el índice…',
     home_empty: 'Tu inicio se completa a medida que construyes tu slip-box — empieza a capturar ideas.',

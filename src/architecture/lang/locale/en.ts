@@ -888,6 +888,9 @@ export default {
     settings_toolkit_dashboard_desc: 'An ops console for your slip-box — connectivity, debt and today, each with a next action.',
     // ZettelFlow Home (#172)
     home_view_title: 'Home',
+    home_graph_teaser_title: 'See the shape of your thinking',
+    home_graph_teaser_sub: 'Explore your notes as a living 3D constellation.',
+    home_graph_teaser_cta: 'Open the 3D graph',
     command_show_home: 'Show home',
     home_indexing: 'Building the index…',
     home_empty: 'Your home fills in as you build your slip-box — start capturing ideas.',

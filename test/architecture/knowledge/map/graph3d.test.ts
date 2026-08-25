@@ -38,6 +38,18 @@ describe("build3DGraph (#280 S1)", () => {
         ]);
     });
 
+    it("classifies each node's kind: question (has a question relation) > source (has sources) > note", () => {
+        const model = buildModel([
+            idea("Q.md", "seed", [{ to: "A.md", type: "question" }], { hasSources: true }), // question wins over source
+            idea("S.md", "seed", [], { hasSources: true }),
+            idea("A.md", "seed", []),
+        ]);
+        const byId = Object.fromEntries(build3DGraph(model).nodes.map((n) => [n.id, n.kind]));
+        expect(byId["Q.md"]).toBe("question");
+        expect(byId["S.md"]).toBe("source");
+        expect(byId["A.md"]).toBe("note");
+    });
+
     it("gives each node a display name (basename) and a size (degree)", () => {
         const model = buildModel([idea("Notes/Idea one.md", "seed", [{ to: "Notes/Idea two.md" }]), idea("Notes/Idea two.md", "seed", [])]);
 
@@ -83,7 +95,7 @@ describe("build3DGraph (#280 S1)", () => {
 });
 
 describe("filterGraph3D (#280 S3)", () => {
-    const base = { group: 0, orphan: false, deadEnd: false, contradiction: false, created: 0 };
+    const base = { group: 0, orphan: false, deadEnd: false, contradiction: false, created: 0, kind: "note" as const };
     const data: Graph3DData = {
         nodes: [
             { ...base, id: "Zettel/Alpha.md", name: "Alpha", val: 1, state: "seed" },
@@ -158,7 +170,7 @@ describe("discovery-lens flags & overlays (#280 S4)", () => {
 
 describe("capGraph3D (#280 S5)", () => {
     const node = (id: string, val: number): Graph3DNode => ({
-        id, name: id, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created: 0,
+        id, name: id, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created: 0, kind: "note",
     });
     const data: Graph3DData = {
         nodes: [node("A", 3), node("B", 2), node("C", 1)],

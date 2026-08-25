@@ -17,7 +17,12 @@ export interface Graph3DNode {
     contradiction: boolean;
     /** Creation timestamp (ms) — drives the time-lapse; 0 when unknown. */
     created: number;
+    /** Note kind for shape/icon differentiation (#280): a question, a source note, or a plain note. */
+    kind: NodeKind;
 }
+
+/** A note's kind for visual differentiation in the 3D graph. */
+export type NodeKind = "note" | "question" | "source";
 
 /** A directed, typed link between two existing nodes (source/target are vault paths). */
 export interface Graph3DLink {
@@ -86,7 +91,7 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
     }
 
     const nodes: Graph3DNode[] = ideas
-        .map((idea) => ({
+        .map((idea): Graph3DNode => ({
             id: idea.path,
             name: basename(idea.path),
             val: Math.max(1, idea.maturitySignals.degree),
@@ -96,6 +101,9 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             deadEnd: model.inNeighbors(idea.path).length === 0,
             contradiction: contradicted.has(idea.path),
             created: idea.created ?? 0,
+            kind: idea.relations.some((r) => r.type === "question")
+                ? "question"
+                : idea.maturitySignals.hasSources ? "source" : "note",
         }))
         .sort((a, b) => byStr(a.id, b.id));
 

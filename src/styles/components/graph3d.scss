@@ -268,6 +268,17 @@
     background-color: #cbd5e1;
 }
 
+// Node-kind icons in the legend (match the in-graph markers).
+.zettelkasten-flow__graph3d-kind-icon {
+    flex: 0 0 auto;
+    width: 0.9em;
+    text-align: center;
+    font-weight: var(--font-bold);
+}
+
+.zettelkasten-flow__graph3d-kind-icon--question { color: #fbbf24; }
+.zettelkasten-flow__graph3d-kind-icon--source { color: #22d3ee; }
+
 // Relation-type colours — the exact hex the WebGL links use (see RELATION_COLORS in graph3d.ts).
 .zettelkasten-flow__graph3d-swatch--link { background-color: #8b93a7; }
 .zettelkasten-flow__graph3d-swatch--supports { background-color: #4ade80; }

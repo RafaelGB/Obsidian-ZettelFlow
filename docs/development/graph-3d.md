@@ -21,6 +21,8 @@ Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). 
 - The most-connected **hub notes carry always-on labels** and a soft **glow**; other names **fade in
   as you zoom toward them** (and any node shows its name on hover).
 - Each cluster sits inside a faint translucent **hull** so its grouping reads at a glance.
+- Notes are **marked by kind** — `?` for open **questions**, `◆` for **sourced** notes — so types stand
+  out (see the legend).
 - Nodes and links **glow** (bloom) against a dark space — an immersive look, not a flat diagram.
 - Data comes purely from the offline `KnowledgeModel` via the Knowledge State surface
   (`build3DGraph`), so the WebGL view is a thin shell over tested data.

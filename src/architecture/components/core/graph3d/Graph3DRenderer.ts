@@ -227,7 +227,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .onEngineStop(() => this.onEngineSettled());
             this.graph = graph;
             this.spriteTextCtor = SpriteText;
-            if (SpriteText) this.attachHubDecorations(graph, SpriteText);
+            if (SpriteText) this.attachNodeDecorations(graph, SpriteText);
             this.tightenLayout(graph);
             this.applyGraphData();
             this.applySize();
@@ -275,14 +275,25 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    /** Hub decorations: a soft additive **glow** + a persistent **label** on the most-connected notes. */
-    private attachHubDecorations(graph: ForceGraph3DInstance, SpriteText: new (t?: string, h?: number, c?: string) => LabelSprite): void {
+    /** Node decorations: hub **glow** + **label** on the most-connected notes, and a **type icon**
+     *  (`?` question, `◆` source) so kinds of note read at a glance. */
+    private attachNodeDecorations(graph: ForceGraph3DInstance, SpriteText: new (t?: string, h?: number, c?: string) => LabelSprite): void {
         graph.nodeThreeObjectExtend(true).nodeThreeObject(((node: unknown) => {
             const gn = node as Graph3DNode & LiveNode;
-            if (!this.hubIds.has(gn.id ?? "")) return undefined;
+            const isHub = this.hubIds.has(gn.id ?? "");
+            const icon = gn.kind === "question" ? "?" : gn.kind === "source" ? "◆" : "";
+            if (!isHub && !icon) return undefined;
             const three = this.three;
-            const group = three ? new three.Group() : null;
-            if (three && group && this.glowTexture) {
+            if (!three) {
+                if (isHub) {
+                    const label = new SpriteText(gn.name, 6, "#e8eaed");
+                    label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
+                    return label;
+                }
+                return undefined;
+            }
+            const group = new three.Group();
+            if (isHub && this.glowTexture) {
                 const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
                 material.opacity = 0.5;
                 material.color.set(this.clusterHue(gn.group));
@@ -291,13 +302,18 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 glow.scale.set(size, size, 1);
                 group.add(glow);
             }
-            const label = new SpriteText(gn.name, 6, "#e8eaed");
-            label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
-            if (group && three) {
+            if (isHub) {
+                const label = new SpriteText(gn.name, 6, "#e8eaed");
+                label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
                 group.add(label);
-                return group;
             }
-            return label;
+            if (icon) {
+                const offset = Math.sqrt(gn.val) * 3 + 5;
+                const iconSprite = new SpriteText(icon, 6, gn.kind === "question" ? "#fbbf24" : "#22d3ee");
+                iconSprite.position.set(offset, offset, 0);
+                group.add(iconSprite);
+            }
+            return group;
         }) as never);
     }
 
@@ -886,6 +902,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             legend.createDiv({ cls: c("graph3d-legend-row") }).createSpan({ text: t("graph3d_legend_cluster") });
         }
 
+        // Node-kind icons present (question / source).
+        const kinds = new Set(this.displayed.nodes.map((n) => n.kind));
+        if (kinds.has("question") || kinds.has("source")) {
+            legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_types") });
+            if (kinds.has("question")) this.legendKindRow(legend, "question", "?", "graph3d_kind_question");
+            if (kinds.has("source")) this.legendKindRow(legend, "source", "◆", "graph3d_kind_source");
+        }
+
         // Relation (link) legend for the types present.
         const types = [...new Set(this.displayed.links.map((l) => l.type))].filter((tp) => RELATION_COLOR_VARS[tp]).sort();
         if (types.length > 0) {
@@ -899,6 +923,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.registerDomEvent(row, "click", () => this.toggleRelation(type));
             }
         }
+    }
+
+    private legendKindRow(legend: HTMLElement, kind: string, glyph: string, labelKey: Parameters<typeof t>[0]): void {
+        const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+        row.createSpan({ cls: c("graph3d-kind-icon", "graph3d-kind-icon--" + kind), text: glyph });
+        row.createSpan({ text: t(labelKey) });
     }
 
     /** Toggle a relation type's visibility from the legend (click a relation to show only what you want). */

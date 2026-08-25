@@ -891,6 +891,8 @@ export default {
     home_graph_teaser_title: 'Ve la forma de tu pensamiento',
     home_graph_teaser_sub: 'Explora tus notas como una constelación 3D viva.',
     home_graph_teaser_cta: 'Abrir el grafo 3D',
+    home_nudge_fleeting: '{0} notas fugaces listas para desarrollar',
+    home_nudge_develop: 'Desarrollar la última',
     command_quick_capture: 'Captura rápida de una idea fugaz',
     quick_capture_title: 'Captura rápida',
     quick_capture_placeholder: '¿Qué tienes en mente?',

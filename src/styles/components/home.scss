@@ -64,6 +64,31 @@
     cursor: pointer;
 }
 
+// Growth nudge (#285 S4): fleeting notes waiting to be developed.
+.zettelkasten-flow__home-nudge {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--radius-m);
+    background-color: var(--background-secondary-alt);
+    border-left: 3px solid var(--interactive-accent);
+}
+
+.zettelkasten-flow__home-nudge-text {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__home-nudge-cta {
+    margin-left: auto;
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+}
+
 .zettelkasten-flow__home-greeting-hello {
     font-size: var(--font-ui-small);
     color: var(--text-normal);

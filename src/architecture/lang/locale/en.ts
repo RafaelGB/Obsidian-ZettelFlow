@@ -891,6 +891,8 @@ export default {
     home_graph_teaser_title: 'See the shape of your thinking',
     home_graph_teaser_sub: 'Explore your notes as a living 3D constellation.',
     home_graph_teaser_cta: 'Open the 3D graph',
+    home_nudge_fleeting: '{0} fleeting notes ready to develop',
+    home_nudge_develop: 'Develop the latest',
     command_quick_capture: 'Quick-capture a fleeting idea',
     quick_capture_title: 'Quick capture',
     quick_capture_placeholder: 'What’s on your mind?',

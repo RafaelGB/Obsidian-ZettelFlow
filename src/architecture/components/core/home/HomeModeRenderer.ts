@@ -109,6 +109,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             cls: c("home-thinking-days"),
         });
 
+        this.renderGrowthNudge(container);
         this.renderGraphTeaser(container);
         this.renderRecommendations(container);
         this.renderNextSession(container, this.home.nextSession);
@@ -116,6 +117,25 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
         this.renderConnections(container, this.home.suggestedConnections);
+    }
+
+    /**
+     * The growth nudge (#285 S4): when fleeting notes are waiting, surface the count and a one-click
+     * jump to develop the latest — the loop that turns quick captures into permanent notes. Silent
+     * when the inbox is empty (nothing to nudge).
+     */
+    private renderGrowthNudge(container: HTMLElement): void {
+        if (!this.home || this.home.fleetingCount === 0) return;
+        const nudge = container.createDiv({ cls: c("home-nudge") });
+        nudge.createSpan({
+            cls: c("home-nudge-text"),
+            text: t("home_nudge_fleeting", String(this.home.fleetingCount)),
+        });
+        const first = this.home.fleetingReady[0];
+        if (!first) return;
+        const cta = nudge.createEl("button", { cls: c("home-nudge-cta"), text: t("home_nudge_develop") });
+        cta.setAttribute("aria-label", t("home_nudge_develop"));
+        cta.addEventListener("click", () => void this.app.workspace.openLinkText(first, "", false));
     }
 
     /** The 3D-graph teaser (#285 S2): the eye-catching hook — one click into the Graph 3D mode. */

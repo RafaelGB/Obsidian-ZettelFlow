@@ -10,8 +10,8 @@ describe("surface i18n keys (#272)", () => {
     const enMap = en as Record<string, string>;
     const esMap = es as Record<string, string>;
 
-    it("references 4 titles + 13 mode labels (Graph gained the net-new 3D mode, #280)", () => {
-        expect(KEYS).toHaveLength(17);
+    it("references 4 titles + 11 mode labels (Graph is 3D-only, #280)", () => {
+        expect(KEYS).toHaveLength(15);
     });
 
     it("defines every surface/mode key in both en and es, non-empty", () => {

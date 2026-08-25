@@ -2,11 +2,9 @@ import { App, Platform } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { activateSurface } from "architecture/plugin";
 import {
     build3DGraph,
     buildAdjacency,
-    capGraph3D,
     DEFAULT_STATE_COLOR,
     filterGraph3D,
     graph3dSignature,
@@ -66,7 +64,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private displayed: Graph3DData = { nodes: [], links: [] };
     private adjacency = new Map<string, Set<string>>();
     private dataSignature = "";
-    private capped = false;
     private colorMode: ColorMode = "state";
     private overlay: OverlayKind | null = null;
     private hoverId: string | null = null;
@@ -140,14 +137,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.render();
                 return;
             }
-            const full = build3DGraph(index.getModel());
-            const next = capGraph3D(full);
+            const next = build3DGraph(index.getModel()); // show every indexed note (no cap, #280 direction)
             const signature = graph3dSignature(next);
             // Skip when the shape is unchanged (indexing "resolved" fires repeatedly) — no needless reflow.
             if (this.graph && this.state === "ready" && signature === this.dataSignature) return;
             this.dataSignature = signature;
             this.data = next;
-            this.capped = next.nodes.length < full.nodes.length;
             this.adjacency = buildAdjacency(next);
             this.hubIds = new Set([...next.nodes].sort((a, b) => b.val - a.val).slice(0, HUB_LABEL_COUNT).map((n) => n.id));
             this.state = next.nodes.length === 0 ? "empty" : "ready";
@@ -792,7 +787,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
         if (this.pathMode) parts.push(t("graph3d_path_mode"));
         if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
-        if (this.capped) parts.push(t("graph3d_capped_hint"));
         this.statusEl.setText(parts.join("  ·  "));
     }
 
@@ -841,10 +835,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private renderFallback(): void {
         this.teardownGraph();
         this.container.empty();
-        const panel = this.container.createDiv({ cls: c("graph3d-message") });
-        panel.createEl("p", { text: t("graph3d_fallback_message") });
-        const btn = panel.createEl("button", { text: t("graph3d_fallback_open_map"), cls: "mod-cta" });
-        this.registerDomEvent(btn, "click", () => void activateSurface(this.app, "zettelflow-graph", "map"));
+        this.container.createDiv({ cls: c("graph3d-message"), text: t("graph3d_fallback_message") });
     }
 
     private applySize(): void {

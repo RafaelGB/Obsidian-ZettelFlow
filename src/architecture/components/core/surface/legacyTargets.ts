@@ -42,10 +42,18 @@ const REDIRECT_VIEW_TYPES = [
     "zettelflow-concept-nav",
 ];
 
+// The retired 2D Graph views (#280): the surface is now 3D-only, so their aliases open the 3D mode.
+const RETIRED_TO_GRAPH_3D: Record<string, SurfaceTarget> = {
+    "zettelflow-knowledge-map": { surface: "zettelflow-graph", mode: "3d" },
+    "zettelflow-concept-nav": { surface: "zettelflow-graph", mode: "3d" },
+};
+
 function resolve(sourceView: string): SurfaceTarget {
     const located = locateSourceView(sourceView);
-    if (!located) throw new Error(`[surface] no surface hosts the view "${sourceView}"`);
-    return located;
+    if (located) return located;
+    const retired = RETIRED_TO_GRAPH_3D[sourceView];
+    if (retired) return retired;
+    throw new Error(`[surface] no surface hosts the view "${sourceView}"`);
 }
 
 /** Retired opener command id → (surface, mode) it should now open. */

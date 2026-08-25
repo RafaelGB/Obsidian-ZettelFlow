@@ -11,9 +11,8 @@ const readCore = (rel: string) => readFileSync(join(SRC, rel), "utf8");
  * (navigates via openLinkText, never writes).
  */
 describe("Graph 3D mode wiring (#280 S1)", () => {
-    it("GraphSurfaceView maps the 3d mode to Graph3DRenderer", () => {
+    it("GraphSurfaceView builds the Graph3DRenderer (the surface is 3D-only)", () => {
         const src = readCore("surface/GraphSurfaceView.ts");
-        expect(src).toMatch(/case\s+"3d":/);
         expect(src).toMatch(/new\s+Graph3DRenderer\(/);
     });
 

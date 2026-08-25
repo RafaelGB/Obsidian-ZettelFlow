@@ -13,12 +13,14 @@ describe("surface registry (#272, AC-1/AC-6)", () => {
         ]);
     });
 
-    it("hosts the 12 retired views, each exactly once (net-new modes have no sourceView)", () => {
+    it("hosts the retired views as modes, each exactly once (net-new modes have no sourceView)", () => {
+        // 10 retired views survive as modes; the 2 retired Graph views (knowledge-map/concept-nav) now
+        // redirect to the 3D mode via legacyTargets rather than being modes (#280 — Graph is 3D-only).
         const sources = SURFACES.flatMap((s) => s.modes.map((m) => m.sourceView)).filter(
             (s): s is string => s !== undefined
         );
-        expect(sources).toHaveLength(12);
-        expect(new Set(sources).size).toBe(12);
+        expect(sources).toHaveLength(10);
+        expect(new Set(sources).size).toBe(10);
     });
 
     it("locateSourceView resolves every retired source to its (surface, mode); defaultMode is the first mode", () => {

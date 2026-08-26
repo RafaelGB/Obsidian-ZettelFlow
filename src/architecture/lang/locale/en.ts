@@ -342,7 +342,17 @@ export default {
     community_templates_type_step: 'Step',
     community_templates_type_action: 'Action',
     community_templates_type_template: 'Template',
+    community_templates_type_system: 'System',
+    community_templates_type_markdown: 'Markdown',
     community_templates_author: 'Author',
+    // Static gallery polish (#294 S5)
+    community_templates_loading: 'Loading templates…',
+    community_templates_installed: 'Installed',
+    community_templates_view_repo: 'View in repo',
+    community_templates_difficulty_label: 'Difficulty',
+    community_templates_difficulty_any: 'Any',
+    community_templates_unknown_type: 'Unknown template type — check the console for details.',
+    community_templates_open_failed: 'Failed to open “{0}”. Check the console for details.',
     // Community hub (#294)
     community_hub_tab_browse: 'Browse',
     community_hub_tab_contribute: 'Contribute',

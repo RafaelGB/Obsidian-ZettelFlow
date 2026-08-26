@@ -147,6 +147,19 @@
     gap: 0.5rem;
 }
 
+/* Difficulty filter row (#294 S5) */
+.zettelkasten-flow__community-templates-difficulty-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__community-templates-difficulty-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
 /* Filter button base styling */
 .zettelkasten-flow__community-templates-filter-button {
     padding: 0.5rem 1rem;

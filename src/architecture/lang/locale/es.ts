@@ -342,7 +342,17 @@ export default {
     community_templates_type_step: 'Paso',
     community_templates_type_action: 'Acción',
     community_templates_type_template: 'Plantilla',
+    community_templates_type_system: 'Sistema',
+    community_templates_type_markdown: 'Markdown',
     community_templates_author: 'Autor',
+    // Mejoras de la galería estática (#294 S5)
+    community_templates_loading: 'Cargando plantillas…',
+    community_templates_installed: 'Instalado',
+    community_templates_view_repo: 'Ver en el repositorio',
+    community_templates_difficulty_label: 'Dificultad',
+    community_templates_difficulty_any: 'Cualquiera',
+    community_templates_unknown_type: 'Tipo de plantilla desconocido: revisa la consola para más detalles.',
+    community_templates_open_failed: 'No se pudo abrir «{0}». Revisa la consola para más detalles.',
     // Comunidad — hub (#294)
     community_hub_tab_browse: 'Explorar',
     community_hub_tab_contribute: 'Contribuir',

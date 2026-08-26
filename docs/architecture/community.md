@@ -31,8 +31,10 @@ entries are kept for back-compat but hidden from the browser). `ref` is a repo-r
 
 ### Modals
 
-- **`CommunityTemplatesModal`** — shell; renders a navbar (with an "Add template" link to a GitHub
-  issue form) and mounts the static gallery.
+- **`CommunityTemplatesModal`** — the Hub shell (#294): tabs the static gallery (Browse), the
+  Contribute and Learn panels, and Installed management. Browse (`StaticTemplatesGallery`) leads with
+  systems, searches title/description/**author**, filters by type **and difficulty** (easy/medium/hard),
+  and each card links to the author's GitHub profile and to the source file in the repo.
 - **`CommunityActionModal`** — preview of a single action (icon/label + rendered markdown
   description + `settingsReader`). Install toggles `settings.installedTemplates.actions[id]`.
 - **`CommunityStepModal`** — preview of a step (metadata + each action via `settingsReader`);

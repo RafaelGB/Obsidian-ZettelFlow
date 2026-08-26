@@ -344,6 +344,12 @@ export default {
     community_templates_type_action: 'Acción',
     community_templates_type_template: 'Plantilla',
     community_templates_author: 'Autor',
+    // Comunidad — hub (#294)
+    community_hub_tab_browse: 'Explorar',
+    community_hub_tab_contribute: 'Contribuir',
+    community_hub_tab_learn: 'Aprender',
+    community_hub_tab_installed: 'Instalados',
+    community_hub_placeholder: 'Muy pronto…',
     // Componente de backlink
     backlink_select_file: 'Selecciona un archivo',
     backlink_select_heading: 'Selecciona un encabezado',

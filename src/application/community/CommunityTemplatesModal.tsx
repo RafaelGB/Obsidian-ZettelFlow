@@ -3,7 +3,7 @@ import ZettelFlow from "main";
 import { Modal } from "obsidian";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
-import { StaticTemplatesGallery } from "./components/StaticTemplatesGallery";
+import { CommunityHub } from "./components/CommunityHub";
 import { t } from "architecture/lang";
 
 export class CommunityTemplatesModal extends Modal {
@@ -35,8 +35,8 @@ export class CommunityTemplatesModal extends Modal {
 
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);
-    // The community gallery is fully static (GitHub-backed) — always the static gallery, no backend.
-    this.root.render(<StaticTemplatesGallery plugin={this.plugin} />);
+    // The community gallery is fully static (GitHub-backed) — the Hub tabs it, no backend.
+    this.root.render(<CommunityHub plugin={this.plugin} />);
   }
 
   onClose(): void {

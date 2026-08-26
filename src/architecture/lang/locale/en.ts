@@ -344,6 +344,12 @@ export default {
     community_templates_type_action: 'Action',
     community_templates_type_template: 'Template',
     community_templates_author: 'Author',
+    // Community hub (#294)
+    community_hub_tab_browse: 'Browse',
+    community_hub_tab_contribute: 'Contribute',
+    community_hub_tab_learn: 'Learn',
+    community_hub_tab_installed: 'Installed',
+    community_hub_placeholder: 'Coming up next…',
     // Backlink component
     backlink_select_file: 'Select a file',
     backlink_select_heading: 'Select a heading',

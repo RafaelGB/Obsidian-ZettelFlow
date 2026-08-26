@@ -1,3 +1,45 @@
+/* Community Hub (#294): tabbed shell over the static gallery. */
+.zettelkasten-flow__community-hub {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__community-hub-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__community-hub-tab {
+    padding: 0.4rem 0.9rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-s) var(--radius-s) 0 0;
+    background-color: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__community-hub-tab:hover {
+    color: var(--text-normal);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__community-hub-tab.is-active {
+    color: var(--text-accent);
+    border-bottom-color: var(--interactive-accent);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__community-hub-placeholder {
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+}
+
 /* Container for the gallery (reuse if you already have it) */
 .zettelkasten-flow__community-templates-gallery {
     padding: 1rem;

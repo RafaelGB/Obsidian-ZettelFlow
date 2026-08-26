@@ -607,34 +607,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             },
                         },
                     },
-                    {
-                        name: t("community_url_title"),
-                        desc: t("community_url_description"),
-                        render: (setting) => {
-                            setting
-                                .addText((text) =>
-                                    text
-                                        .setPlaceholder(t("community_url_placeholder"))
-                                        .setValue(plugin.settings.communitySettings.url)
-                                        .onChange(async (value) => {
-                                            plugin.settings.communitySettings.url = value;
-                                            await plugin.saveSettings();
-                                        })
-                                )
-                                .addButton((btn) =>
-                                    btn
-                                        .setClass("mod-cta")
-                                        .setButtonText(t("reset_to_default"))
-                                        .setIcon("reset")
-                                        .onClick(async () => {
-                                            plugin.settings.communitySettings.url =
-                                                DEFAULT_SETTINGS.communitySettings!.url!;
-                                            await plugin.saveSettings();
-                                            this.update();
-                                        })
-                                );
-                        },
-                    },
                 ],
             },
         ];

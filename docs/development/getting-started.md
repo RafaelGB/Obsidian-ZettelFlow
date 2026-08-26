@@ -7,7 +7,6 @@ How to set up, build, run, and iterate on ZettelFlow.
 - **Node.js** (CI uses Node 23; any recent LTS ≥ 18 works locally).
 - **npm** (the repo ships a lockfile-friendly `package.json`).
 - An **Obsidian vault** for testing. The plugin targets `minAppVersion 1.13.1`.
-- *(Optional)* **Docker + Docker Compose** for the community backend (`backend/`).
 
 ## Install
 
@@ -77,14 +76,12 @@ npm run test:coverage  # coverage report
 
 When adding a feature, write tests first (TDD). See the [`tdd` skill](../../.claude/skills/) and [Testing & guardrails](testing-and-guardrails.md) for the full workflow.
 
-## Running the community backend (optional)
+## Community gallery
 
-```bash
-# from repo root — create a .env with MONGO_INITDB_ROOT_USERNAME / _PASSWORD / _DATABASE first
-docker compose up --build
-```
-
-This starts MongoDB (`:27017`) and a FastAPI app (`:8000`, hot-reload). Point the plugin at it via **Settings → Developer → Community URL** and optionally set a token. See [Community & backend](../architecture/community-and-backend.md).
+Nothing to run — the community gallery is [fully static](../architecture/community.md): it reads the
+catalog `docs/main_template.json` and its payloads from GitHub raw. Contributions go through GitHub
+(the [Add a template](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=ADD_TEMPLATE.yaml)
+issue form + a PR under `docs/`).
 
 ## Docs site
 

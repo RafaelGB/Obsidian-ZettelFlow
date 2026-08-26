@@ -77,7 +77,7 @@ The State layer now has a **named single surface** the Experience layer imports:
 
 | Capability | Today's path |
 |---|---|
-| Community browser + backend client | `application/community/*`, `backend/` |
+| Community browser (static, GitHub-backed) | `application/community/*` |
 | Starter flows | `application/notes/starterFlowsService`, `starters/zcomponents/StarterFlowsComponent` (#157) |
 | Methodology packages | `application/packages`, `starters/zcomponents/MethodologyPackageComponent` (#174) |
 | Onboarding · template export/share | `application/notes/onboardingService`, `architecture/share`, `TemplateExportComponent` |

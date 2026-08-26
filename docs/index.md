@@ -65,7 +65,7 @@ Canvas file          ZettelFlow wizard          Note in your vault
 | Dynamic template variables | [Actions & note builder →](architecture/actions-and-note-builder.md) |
 | Live preview in step builder | [Actions & note builder →](architecture/actions-and-note-builder.md) |
 | Vault hooks (folder / property) | [Vault hooks →](vault-hooks/OnCreate.md) |
-| Community templates browser | [Community & backend →](architecture/community-and-backend.md) |
+| Community templates browser | [Community gallery →](architecture/community.md) |
 | `.zftemplate` export/import | [.zftemplate schema →](architecture/zftemplate-schema.md) |
 | Notes history sidebar | [Architecture overview →](architecture/overview.md) |
 | Active flow status widget | [Architecture overview →](architecture/overview.md) |

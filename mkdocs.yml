@@ -63,7 +63,7 @@ nav:
       - 6.2 Plugin core: architecture/plugin-core.md
       - 6.3 Actions & note builder: architecture/actions-and-note-builder.md
       - 6.4 Vault hooks internals: architecture/vault-hooks-internals.md
-      - 6.5 Community & backend: architecture/community-and-backend.md
+      - 6.5 Community gallery: architecture/community.md
       - 6.6 .zftemplate schema: architecture/zftemplate-schema.md
       - 6.7 Conditional edges: architecture/conditional-edges.md
       - 6.7.1 Trigger conditions: architecture/trigger-conditions.md

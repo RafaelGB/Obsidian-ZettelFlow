@@ -442,6 +442,7 @@ export default {
     slipbox_health_deadend_count: '{0} dead-ends',
     slipbox_health_orphans_heading: 'Orphans (no outgoing links)',
     slipbox_health_deadends_heading: 'Dead-ends (nothing links here)',
+    slipbox_health_more: '…and {0} more',
     slipbox_health_connect_now: 'Open note',
     command_build_moc: 'Build or update a map of content',
     moc_modal_title: 'Build a map of content',

@@ -91,6 +91,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
     private proximityTimer: number | undefined;
+    private lastRevision = -1;
+    private visibilityObserver: IntersectionObserver | null = null;
     private graph: ForceGraph3DInstance | null = null;
     private wrapperEl: HTMLElement | null = null;
     private graphEl: HTMLElement | null = null;
@@ -142,7 +144,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.render();
                 return;
             }
-            const next = build3DGraph(index.getModel()); // show every indexed note (no cap, #280 direction)
+            const model = index.getModel();
+            // Fast path (#302 S4): the model hasn't changed since our last build — skip the whole
+            // O(n) projection. `resolved` fires far more often than the graph actually changes.
+            const revision = model.revision();
+            if (this.graph && this.state === "ready" && revision === this.lastRevision) return;
+            this.lastRevision = revision;
+            const next = build3DGraph(model); // show every indexed note (no cap, #280 direction)
             const signature = graph3dSignature(next);
             // Skip when the shape is unchanged (indexing "resolved" fires repeatedly) — no needless reflow.
             if (this.graph && this.state === "ready" && signature === this.dataSignature) return;
@@ -237,11 +245,35 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
             this.resizeObserver.observe(this.wrapperEl);
+
+            // Stop burning CPU/GPU when this tab is hidden in a background split (#302 S4): pause the
+            // WebGL render loop and the proximity-label interval until it's on screen again.
+            const canLabel = SpriteText != null && this.three != null;
+            this.visibilityObserver = new IntersectionObserver((entries) => {
+                this.setActive(entries.some((entry) => entry.isIntersecting), canLabel);
+            });
+            this.visibilityObserver.observe(this.wrapperEl);
         } catch (error) {
             log.error("[Graph3D] could not initialize the 3D graph (WebGL unavailable?)", error);
             if (this.disposed) return;
             this.container.empty();
             this.container.createDiv({ cls: c("graph3d-message"), text: t("graph3d_state_error") });
+        }
+    }
+
+    /** Pause/resume the render loop + proximity interval when the tab is hidden/shown (#302 S4). */
+    private setActive(active: boolean, canLabel: boolean): void {
+        if (!this.graph) return;
+        const anim = this.graph as unknown as { pauseAnimation?: () => void; resumeAnimation?: () => void };
+        if (active) {
+            anim.resumeAnimation?.();
+            if (canLabel && this.proximityTimer === undefined) {
+                this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
+            }
+        } else {
+            anim.pauseAnimation?.();
+            window.clearInterval(this.proximityTimer);
+            this.proximityTimer = undefined;
         }
     }
 
@@ -954,6 +986,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private teardownGraph(): void {
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
+        this.visibilityObserver?.disconnect();
+        this.visibilityObserver = null;
         window.clearInterval(this.timelapseTimer);
         this.timelapseTimer = undefined;
         window.clearInterval(this.proximityTimer);

@@ -53,27 +53,23 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   // Ref para debouncing en búsqueda
   const searchTimeoutRef = useRef<number | null>(null);
 
-  // Reinicia las plantillas al cambiar el término o el filtro
-  useEffect(() => {
-    setTemplates([]);
-  }, [targetSearchTerm, filter]);
-
-  // Carga de datos
+  // Load the catalog once on mount — search and filters are entirely client-side, so a filter/tab
+  // change must never refetch the catalog (#302 S5).
   useEffect(() => {
     const getData = async () => {
       try {
         setIsLoading(true);
         const response = await fetchCommunityTemplates();
-        setTemplates((prev) => [...prev, ...response]);
+        setTemplates(response);
       } catch (error) {
         log.error("Error fetching community templates:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
     void getData();
-  }, [targetSearchTerm, filter, plugin.settings]);
+    // Mount-only fetch; search/filtering is client-side, so no filter dep is needed here.
+  }, []);
 
   // Filtrado usando useMemo
   const filteredTemplates = useMemo(() => {

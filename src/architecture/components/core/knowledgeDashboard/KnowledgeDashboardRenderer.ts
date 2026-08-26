@@ -78,6 +78,7 @@ const POSITIVE_TOKENS: ReadonlySet<RecommendationToken> = new Set(["all-connecte
 export class KnowledgeDashboardRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private dashboard: DashboardModel | null = null;
+    private lastRevision = -1;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -104,7 +105,7 @@ export class KnowledgeDashboardRenderer extends KnowledgeModeRenderer {
         this.registerEvent(this.app.vault.on("delete", debounced));
     }
 
-    private recompute(): void {
+    private recompute(force = false): void {
         try {
             const index = KnowledgeIndex.getInstance();
             if (index.status !== "ready") {
@@ -115,6 +116,10 @@ export class KnowledgeDashboardRenderer extends KnowledgeModeRenderer {
             }
             const start = Date.now();
             const model = index.getModel();
+            // Skip the ~6 model passes when nothing changed since the last build (#302 S1).
+            const revision = model.revision();
+            if (!force && this.state === "ready" && this.dashboard && revision === this.lastRevision) return;
+            this.lastRevision = revision;
             this.dashboard = buildKnowledgeDashboard(model);
             this.state = model.size() === 0 ? "empty" : "ready";
             log.debug(`[KnowledgeDashboard] ${this.dashboard.panels.length} panels in ${Date.now() - start}ms`);
@@ -137,7 +142,7 @@ export class KnowledgeDashboardRenderer extends KnowledgeModeRenderer {
             cls: c("knowledge-dashboard-refresh"),
             attr: { "aria-label": t("knowledge_dashboard_refresh_button") },
         });
-        this.registerDomEvent(refresh, "click", () => this.recompute());
+        this.registerDomEvent(refresh, "click", () => this.recompute(true));
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("knowledge-dashboard-status"), text: t("knowledge_dashboard_indexing") });

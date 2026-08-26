@@ -15,8 +15,8 @@ import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
 
 /**
  * Modal for a community **system** (#214): a `.zftemplate` bundle installed as a canvas + step notes
- * in one click. Mirrors {@link CommunityFlowModal} but consumes the unified `.zftemplate` format and
- * writes real files through {@link FileService.writeFile} instead of the clipboard-paste dance.
+ * in one click. Consumes the unified `.zftemplate` format and writes real files through
+ * {@link FileService.writeFile} (no clipboard-paste dance).
  */
 export class CommunitySystemModal extends Modal {
   private targetFolder: string;

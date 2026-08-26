@@ -28,12 +28,10 @@ function authorProfileUrl(author: string): string | null {
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
-import { CommunityFlowModal } from "../CommunityFlowModal";
 import { CommunitySystemModal } from "../CommunitySystemModal";
 import {
   fetchActionTemplate,
   fetchCommunityTemplates,
-  fetchFlowTemplate,
   fetchMarkdownTemplate,
   fetchStepTemplate,
   fetchSystemTemplate,
@@ -158,11 +156,6 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
             template.description,
             filename
           ).open();
-          break;
-        }
-        case "flow": {
-          const flow = await fetchFlowTemplate(template.ref);
-          new CommunityFlowModal(plugin, flow, template.ref, () => {}).open();
           break;
         }
         case "system": {

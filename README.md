@@ -225,8 +225,8 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
 | **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |
 | **Remove a relation** | A command that lists the active note's typed relations and deletes the one you pick, after a confirmation naming the exact edge. Offline. |
-| **Community templates** | Browse, install, and share flows, steps, and actions from the community browser. |
-| **Community systems** | Install a whole knowledge system in one click — the community browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). Each system shows a **difficulty badge** (easy / medium / hard); a **ZettelFlow tour** system teaches the full workflow while you build a real note. |
+| **Community Hub** | A tabbed community browser — **Browse** (systems, steps, actions; search + type/difficulty filters, linkable authors), **Contribute** (share your canvas as a system, suggest an idea, report a bug with your environment pre-filled, or open Discussions — all via GitHub, no account), **Learn** (curated links to the docs guides + manifesto), and **Installed**. Fully static and GitHub-backed — no server to run. |
+| **Community systems** | Install a whole knowledge system in one click — the browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). Each system shows a **difficulty badge** (easy / medium / hard); a **ZettelFlow tour** system teaches the full workflow while you build a real note. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |
 | **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`). |

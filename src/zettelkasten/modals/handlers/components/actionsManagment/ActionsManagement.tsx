@@ -18,7 +18,6 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { v7 as uuid7 } from "uuid";
 import { ActionAddMenu } from "./ActionAddMenu";
 import { ActionBuilderMapper } from "zettelkasten/mappers/ActionBuilderMapper";
 import { log } from "architecture";
@@ -156,7 +155,8 @@ export function ActionsManagement(props: ActionsManagementProps) {
         >
           {actionsState.map((action, index) => (
             <ActionAccordion
-              key={action.id || uuid7()}
+              // Stable key so an id-less row isn't remounted (losing focus) on every render (#303 S4).
+              key={action.id || `action-${index}`}
               modal={modal}
               action={action}
               index={index}

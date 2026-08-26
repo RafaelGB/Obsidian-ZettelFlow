@@ -64,12 +64,10 @@ describe("four-surface consolidation (#272, AC-3/AC-4)", () => {
     });
 
     it("all 12 retired opener commands still exist as aliases (no visible breakage)", () => {
-        const components = [
-            "HomeComponent", "SlipboxHealthViewComponent", "KnowledgeDashboardComponent",
-            "EvolutionTimelineComponent", "ThinkingHeatmapComponent", "DiscoveriesComponent",
-            "ResurfaceComponent", "OpenQuestionsComponent", "EvidenceMapComponent",
-            "KnowledgeMapComponent", "ConceptNavComponent", "HistoryViewComponent",
-        ].map((name) => read(`src/starters/zcomponents/${name}.ts`)).join("\n");
+        // The 11 pure openers are consolidated into SurfaceCommandsComponent; Home keeps its own (#303 S3).
+        const components = ["HomeComponent", "SurfaceCommandsComponent"]
+            .map((name) => read(`src/starters/zcomponents/${name}.ts`))
+            .join("\n");
         for (const id of ALIAS_COMMANDS) {
             expect(components.includes(`"${id}"`)).toBe(true);
         }

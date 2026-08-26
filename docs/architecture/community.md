@@ -84,8 +84,18 @@ GET-only, against the GitHub-raw base (uses Obsidian's `request()`):
 ## 3. Contributing to the gallery
 
 Because the catalog is just files in the repo, **all contribution flows through GitHub** — there is
-nothing to POST to. To add a system, open the **[Add a template](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=ADD_TEMPLATE.yaml)**
-issue form; a maintainer adds the `.zftemplate` under `docs/systems/` and a row in
-`docs/main_template.json` on `main`. See the [Systems Gallery guide](../how-to-contribute/systems-gallery.md)
-for authoring details, and [Community examples](../how-to-contribute/community-examples.md) for the
+nothing to POST to. The Hub's **Contribute** tab (#294) opens the right prefilled GitHub flow from
+inside Obsidian:
+
+- **Share your system** — exports the active canvas to a `.zftemplate` and opens the
+  [Add a template](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=ADD_TEMPLATE.yaml)
+  issue form with the bundle prefilled (or, if the bundle is too large for the URL, downloads the
+  `.zftemplate` and opens the form with a paste hint).
+- **Suggest an idea** / **Report a bug** — open the feature-request / bug-report forms (the bug form
+  arrives with your plugin version, Obsidian version and platform filled in).
+- **Ask or discuss** — opens GitHub Discussions.
+
+A maintainer then adds the `.zftemplate` under `docs/systems/` and a row in `docs/main_template.json`
+on `main`. See the [Systems Gallery guide](../how-to-contribute/systems-gallery.md) for authoring
+details, and [Community examples](../how-to-contribute/community-examples.md) for the
 step/action/markdown formats.

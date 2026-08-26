@@ -16,22 +16,8 @@ export class CommunityTemplatesModal extends Modal {
     this.modalEl.addClass(c("modal"));
 
     const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
-
     navbar.createEl("h2", { text: t("modals_community_templates_title") });
-    const navbarButtonGroup = navbar.createDiv({
-      cls: c("navbar-button-group"),
-    });
-    // Link to add a new template to the community gallery via GitHub Issue
-    navbarButtonGroup.createEl(
-      "a",
-      {
-        href: "https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=ADD_TEMPLATE.yaml",
-        text: t("modals_community_templates_add_template"),
-      },
-      (el) => {
-        el.addClass("mod-cta");
-      }
-    );
+    // Contributing now lives in the Hub's Contribute tab (#294 S3) — no navbar link needed.
 
     const child = this.contentEl.createDiv();
     this.root = createRoot(child);

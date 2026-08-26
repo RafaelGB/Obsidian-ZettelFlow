@@ -46,6 +46,7 @@ body:
       label: What type of template are you submitting?
       multiple: false
       options:
+        - System
         - Flow
         - Step
         - Action

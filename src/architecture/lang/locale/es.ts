@@ -1,7 +1,6 @@
 export default {
     command_open_manage_templates: 'Abrir gestión de plantillas',
     command_open_community_templates: 'Abrir plantillas de la comunidad',
-    modals_community_templates_add_template: 'Añadir plantilla',
     modals_community_templates_title: 'Plantillas de la comunidad',
     markdown_templates_folder_title: 'Carpeta de plantillas de Markdown',
     markdown_templates_folder_description: 'Establece la carpeta donde se guardan las plantillas de Markdown cuando las instalas desde el navegador de la comunidad',
@@ -350,6 +349,19 @@ export default {
     community_hub_tab_learn: 'Aprender',
     community_hub_tab_installed: 'Instalados',
     community_hub_placeholder: 'Muy pronto…',
+    // Comunidad — Contribuir (#294 S3)
+    community_contribute_intro: 'Ayuda a crecer a la comunidad: todo ocurre en GitHub.',
+    community_contribute_share_title: 'Comparte tu sistema',
+    community_contribute_share_desc: 'Exporta el lienzo actual y abre un envío con el paquete precargado.',
+    community_contribute_share_prefill_desc: 'Sistema exportado del lienzo «{0}».',
+    community_contribute_share_downloaded: 'Tu sistema se descargó como archivo .zftemplate: pega su contenido en el formulario.',
+    community_contribute_share_paste_hint: 'Tu sistema era demasiado grande para precargarlo. Abre el archivo .zftemplate descargado y pega su contenido en el campo JSON de abajo.',
+    community_contribute_idea_title: 'Sugiere una idea',
+    community_contribute_idea_desc: 'Propón una nueva capacidad o mejora.',
+    community_contribute_bug_title: 'Reporta un fallo',
+    community_contribute_bug_desc: 'Abre un informe de fallo con tu entorno ya rellenado.',
+    community_contribute_discuss_title: 'Pregunta o debate',
+    community_contribute_discuss_desc: 'Haz una pregunta o comparte una idea en Discussions.',
     // Componente de backlink
     backlink_select_file: 'Selecciona un archivo',
     backlink_select_heading: 'Selecciona un encabezado',

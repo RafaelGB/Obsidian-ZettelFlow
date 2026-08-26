@@ -1,7 +1,6 @@
 export default {
     command_open_manage_templates: 'Open manage templates',
     command_open_community_templates: 'Open community templates',
-    modals_community_templates_add_template: 'Add template',
     modals_community_templates_title: 'Community templates',
     markdown_templates_folder_title: 'Markdown templates folder',
     markdown_templates_folder_description: 'Set the folder where the markdown templates are stored when you install them from the community browser',
@@ -350,6 +349,19 @@ export default {
     community_hub_tab_learn: 'Learn',
     community_hub_tab_installed: 'Installed',
     community_hub_placeholder: 'Coming up next…',
+    // Community hub — Contribute (#294 S3)
+    community_contribute_intro: 'Help the community grow — everything happens on GitHub.',
+    community_contribute_share_title: 'Share your system',
+    community_contribute_share_desc: 'Export the current canvas and open a submission with the bundle prefilled.',
+    community_contribute_share_prefill_desc: 'System exported from the canvas “{0}”.',
+    community_contribute_share_downloaded: 'Your system was downloaded as a .zftemplate file — paste its contents into the form.',
+    community_contribute_share_paste_hint: 'Your system was too large to prefill. Open the downloaded .zftemplate file and paste its contents into the JSON field below.',
+    community_contribute_idea_title: 'Suggest an idea',
+    community_contribute_idea_desc: 'Propose a new capability or improvement.',
+    community_contribute_bug_title: 'Report a bug',
+    community_contribute_bug_desc: 'Open a bug report with your environment filled in.',
+    community_contribute_discuss_title: 'Ask or discuss',
+    community_contribute_discuss_desc: 'Ask a question or share an idea in Discussions.',
     // Backlink component
     backlink_select_file: 'Select a file',
     backlink_select_heading: 'Select a heading',

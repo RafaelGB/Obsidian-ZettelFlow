@@ -37,14 +37,10 @@ export interface ZettelFlowSettings {
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 
-    /** Community-specific settings */
+    /** Community-specific settings. The gallery is fully static (GitHub-backed) — no backend. */
     communitySettings: {
         /** Folder where Markdown templates are stored */
         markdownTemplateFolder: string;
-        /** URL for the community service */
-        url: string;
-        /** Optional authentication token for community resources */
-        token?: string;
         /**
          * Optional default clipboard template,
          * can be either a step or an action.
@@ -219,7 +215,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         actions: {}  // No action templates are installed by default.
     },
     communitySettings: {
-        url: "http://127.0.0.1:8000", // Default URL for community resources.
         markdownTemplateFolder: "_ZettelFlowMdTemplates", // Default folder for Markdown templates.
     },
     hooks: {

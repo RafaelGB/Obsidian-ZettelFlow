@@ -72,11 +72,11 @@ Substitutes `{{key}}` with the active file's frontmatter, three ways:
 `ZettelFlowSettings` fields: `loggerEnabled`, `logLevel`, `uniquePrefixEnabled`,
 `tableOfContentEnabled`, `uniquePrefix`, `ribbonCanvas`, `editorCanvas`, `jsLibraryFolderPath`,
 `foldersFlowsPath`, `installedTemplates` (`{ steps, actions }`), `communitySettings`
-(`{ markdownTemplateFolder, url, token?, clipboardTemplate? }`), and `hooks`
+(`{ markdownTemplateFolder, clipboardTemplate? }`), and `hooks`
 (`{ properties: Record<string, {script}>, folderFlowPath }`).
 
 `DEFAULT_SETTINGS` notable defaults: `foldersFlowsPath: "_ZettelFlow/folders"`,
-`hooks.folderFlowPath: "_ZettelFlow/hooks"`, `communitySettings.url: "http://127.0.0.1:8000"`,
+`hooks.folderFlowPath: "_ZettelFlow/hooks"`,
 `communitySettings.markdownTemplateFolder: "_ZettelFlowMdTemplates"`,
 `uniquePrefix: "YYYYMMDDHHmmss"`.
 
@@ -89,7 +89,7 @@ Substitutes `{{key}}` with the active file's frontmatter, three ways:
 |---|---|---|
 | **General** | `handlers/GeneralSectionSettings.ts` | community browser, ribbon/editor canvas selectors, folders-flow + markdown-templates + scripts folders, unique-prefix toggle/pattern |
 | **Hooks** | `handlers/HooksSectionSettings.ts` | property→script hooks (React `PropertyHooksManager`), folder-flow path |
-| **Developer** | `handlers/DeveloperSectionSettings.ts` | logger toggle + level, community backend URL/token |
+| **Developer** | `handlers/DeveloperSectionSettings.ts` | logger toggle + level |
 
 Each section is an `AbstractChain<SettingsHandlerInfo>` (`before`/`after`/`refresh`) built as a
 module-level singleton. `SettingsHandlerInfo = { containerEl, plugin, section? }`.

@@ -2,7 +2,7 @@
 
 Version: **1.0**
 
-A `.zftemplate` file is a plain JSON document that bundles a ZettelFlow canvas with its associated step files so users can share workflows offline, without the community backend.
+A `.zftemplate` file is a plain JSON document that bundles a ZettelFlow canvas with its associated step files so users can share workflows offline, as a single portable file.
 
 ## Top-level fields
 
@@ -58,5 +58,5 @@ On conflict (files already exist), the user is prompted to overwrite or skip —
 The same format powers the community **systems** gallery. A shipped system is a `.zftemplate` file
 listed in `docs/main_template.json` with `template_type: "system"`; the community browser's
 `CommunitySystemModal` fetches it, lets the user pick a folder, and writes the canvas + steps in one
-click (no clipboard). See [Community feature & backend](community-and-backend.md). Authoring guide:
+click (no clipboard). See [Community gallery](community.md). Authoring guide:
 [Contribute a community system](../how-to-contribute/community-examples.md).

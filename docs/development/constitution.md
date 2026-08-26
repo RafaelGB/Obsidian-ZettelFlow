@@ -50,8 +50,8 @@ gracefully with a user `Notice` when internals change, and uninstalls its patche
 
 ## VII. Disclose capabilities honestly
 
-The plugin's capabilities (file-system access, optional network calls to the community backend,
-script execution) are disclosed in the README/docs. A change that adds a new capability discloses
+The plugin's capabilities (file-system access, opt-in read-only fetches from the static community
+gallery, script execution) are disclosed in the README/docs. A change that adds a new capability discloses
 it in the same change. No hidden telemetry, no remote code execution, no auto-updating code.
 
 ## VIII. Documentation ships with the change

@@ -25,7 +25,6 @@ It is a **monorepo** with two independent deliverables:
 | Part | Path | Stack | Ships to |
 |---|---|---|---|
 | **The plugin** (the product) | `src/`, `manifest.json`, `esbuild.config.mjs` | TypeScript, React 19, Zustand 5, CodeMirror 6, esbuild + Dart Sass | Obsidian community directory (`dist/main.js`, `manifest.json`, `dist/styles.css`) |
-| **Community backend** (optional) | `backend/`, `docker-compose.yml`, `containers/` | Python 3.11, FastAPI, Pydantic v2, MongoDB (hexagonal architecture) | A server the user points the plugin at |
 | **Docs** (this site) | `docs/`, `mkdocs.yml` | MkDocs Material | GitHub Pages on push to `main` |
 
 ## Technology stack (plugin)
@@ -131,7 +130,7 @@ Two cross-cutting engines run alongside the wizard:
 | Understand bootstrap, settings, ActionsStore, canvas patching, logging, i18n | [Plugin core](plugin-core.md) |
 | Add or understand an action / how the note is assembled | [Actions & note builder](actions-and-note-builder.md) |
 | Understand folder automation & property hooks | [Vault hooks internals](vault-hooks-internals.md) |
-| Understand the community feature and the FastAPI backend | [Community & backend](community-and-backend.md) |
+| Understand the static community gallery | [Community gallery](community.md) |
 | Set up a dev environment and build/test/release | [Getting started](../development/getting-started.md) |
 | Follow conventions / add a new action step by step | [Contributing & conventions](../development/contributing-and-conventions.md) |
 | Understand the Obsidian score and how we maximise it | [Obsidian review & scoring](../development/obsidian-review-and-scoring.md) |

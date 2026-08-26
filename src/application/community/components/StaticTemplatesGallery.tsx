@@ -2,9 +2,29 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Notice } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { StaticTemplateOptions } from "config";
+import { StaticTemplateOptions, SystemDifficulty } from "config";
 import { resolveSystemDifficulty } from "../systemDifficulty";
+import { REPO_URL } from "../githubContribute";
 import { PluginComponentProps } from "../typing";
+
+type TemplateFilter = "all" | "step" | "action" | "markdown" | "flow" | "system";
+type DifficultyFilter = "all" | SystemDifficulty;
+
+/** Filter type → its button label i18n key. */
+const FILTER_LABEL_KEYS: Record<TemplateFilter, Parameters<typeof t>[0]> = {
+  all: "community_templates_filter_all",
+  system: "community_templates_type_system",
+  step: "community_templates_type_step",
+  action: "community_templates_type_action",
+  markdown: "community_templates_type_markdown",
+  flow: "community_templates_type_template",
+};
+
+/** GitHub handles have no spaces; a free-text author name is shown as plain text instead of a link. */
+function authorProfileUrl(author: string): string | null {
+  const handle = author.trim();
+  return handle.length > 0 && !/\s/.test(handle) ? `https://github.com/${handle}` : null;
+}
 import { CommunityActionModal } from "../CommunityActionModal";
 import { CommunityStepModal } from "../CommunityStepModal";
 import { CommunityMarkdownModal } from "../CommunityMarkdownModal";
@@ -27,9 +47,8 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [targetSearchTerm, setTargetSearchTerm] = useState("");
   // Systems are the primary adoption path (#231 Phase 1): the browser leads with them.
-  const [filter, setFilter] = useState<
-    "all" | "step" | "action" | "markdown" | "flow" | "system"
-  >("system");
+  const [filter, setFilter] = useState<TemplateFilter>("system");
+  const [difficulty, setDifficulty] = useState<DifficultyFilter>("all");
   const [templates, setTemplates] = useState<StaticTemplateOptions[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -64,15 +83,18 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     return templates.filter((template) => {
       const matchesSearch =
         template.title.toLowerCase().includes(lowerCaseSearchTerm) ||
-        template.description.toLowerCase().includes(lowerCaseSearchTerm);
+        template.description.toLowerCase().includes(lowerCaseSearchTerm) ||
+        template.author.toLowerCase().includes(lowerCaseSearchTerm);
       const matchesFilter =
         filter === "all" || template.template_type === filter;
+      const matchesDifficulty =
+        difficulty === "all" || resolveSystemDifficulty(template) === difficulty;
       // Legacy "flow" entries are superseded by one-click systems (#231 Phase 1) — kept in the
       // catalog for back-compat but hidden from the browser (consolidate & hide).
       const isLegacyFlow = template.template_type === "flow";
-      return matchesSearch && matchesFilter && !isLegacyFlow;
+      return matchesSearch && matchesFilter && matchesDifficulty && !isLegacyFlow;
     });
-  }, [templates, targetSearchTerm, filter]);
+  }, [templates, targetSearchTerm, filter, difficulty]);
 
   // Limpieza del timeout al desmontar
   useEffect(() => {
@@ -90,9 +112,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     }, 400);
   };
 
-  const handleSetFilter = (
-    value: "all" | "step" | "action" | "markdown" | "flow" | "system"
-  ) => {
+  const handleSetFilter = (value: TemplateFilter) => {
     setFilter(value);
   };
 
@@ -153,27 +173,17 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         default: {
           // Handle unexpected template types
           log.warn(`Unknown template type: ${String(template.template_type)}`);
-          new Notice(
-            `Unknown template type: ${String(
-              template.template_type
-            )}. Please check the console for details.`
-          );
+          new Notice(t("community_templates_unknown_type"));
         }
       }
     } catch (error) {
       log.error(`Error processing ${template.template_type} template:`, error);
-      // Could show a notification to the user here
-      new Notice(
-        `Failed to open ${template.title}. Check the console for details.`
-      );
+      new Notice(t("community_templates_open_failed", template.title));
     }
   };
 
   // Mapping of filter types to CSS classes
-  const FILTER_COLORS: Record<
-    "all" | "step" | "action" | "markdown" | "flow" | "system",
-    string
-  > = {
+  const FILTER_COLORS: Record<TemplateFilter, string> = {
     all: "template-type-all",
     step: "template-type-step",
     action: "template-type-action",
@@ -187,10 +197,11 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
       <div className={c("community-templates-controls")}>
         <input
           type="text"
-          placeholder="Search by title, description or author..."
+          placeholder={t("community_templates_search_placeholder")}
           value={searchTerm}
           onChange={handleSearchChange}
           className={c("community-templates-search")}
+          aria-label={t("community_templates_search_placeholder")}
         />
         <div className={c("community-templates-filters")}>
           {(["system", "all", "step", "action", "markdown"] as const).map(
@@ -208,10 +219,9 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                   key={type}
                   onClick={() => handleSetFilter(type)}
                   className={c(...classesToApply)}
+                  aria-pressed={filter === type}
                 >
-                  {type === "all"
-                    ? "All"
-                    : type.charAt(0).toUpperCase() + type.slice(1)}
+                  {t(FILTER_LABEL_KEYS[type])}
                 </button>
               );
             }
@@ -219,15 +229,38 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         </div>
       </div>
 
+      <div className={c("community-templates-difficulty-filter")}>
+        <span className={c("community-templates-difficulty-label")}>
+          {t("community_templates_difficulty_label")}
+        </span>
+        {(["all", "easy", "medium", "hard"] as const).map((level) => (
+          <button
+            key={level}
+            onClick={() => setDifficulty(level)}
+            aria-pressed={difficulty === level}
+            className={
+              difficulty === level
+                ? c("community-templates-filter-button", "is-active")
+                : c("community-templates-filter-button")
+            }
+          >
+            {level === "all"
+              ? t("community_templates_difficulty_any")
+              : t(`system_difficulty_${level}`)}
+          </button>
+        ))}
+      </div>
+
       <div className={c("community-templates-list")}>
         {isLoading ? (
           <div className={c("community-templates-loading")}>
-            Cargando plantillas...
+            {t("community_templates_loading")}
           </div>
         ) : filteredTemplates.length > 0 ? (
           filteredTemplates.map((template) => {
             const installed = isTemplateInstalled(template);
-            const difficulty = resolveSystemDifficulty(template);
+            const cardDifficulty = resolveSystemDifficulty(template);
+            const authorUrl = authorProfileUrl(template.author);
             return (
               <div
                 key={template.id}
@@ -238,23 +271,23 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                 onClick={() => { void handleTemplateClick(template); }}
               >
                 <span className={c("community-templates-card-type-badge")}>
-                  {template.template_type}
+                  {t(FILTER_LABEL_KEYS[template.template_type])}
                 </span>
-                {difficulty && (
+                {cardDifficulty && (
                   <span
                     className={c(
                       "community-templates-card-difficulty",
-                      `community-templates-card-difficulty--${difficulty}`
+                      `community-templates-card-difficulty--${cardDifficulty}`
                     )}
                   >
-                    {t(`system_difficulty_${difficulty}`)}
+                    {t(`system_difficulty_${cardDifficulty}`)}
                   </span>
                 )}
                 <h3 className={c("community-templates-card-title")}>
                   {template.title}{" "}
                   {installed && (
                     <span className={c("community-templates-card-subtitle")}>
-                      (Installed)
+                      ({t("community_templates_installed")})
                     </span>
                   )}
                 </h3>
@@ -262,14 +295,35 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                   {template.description}
                 </p>
                 <small className={c("community-templates-card-meta")}>
-                  Author: {template.author}
+                  {t("community_templates_author")}:{" "}
+                  {authorUrl ? (
+                    <a
+                      href={authorUrl}
+                      target="_blank"
+                      rel="noopener"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {template.author}
+                    </a>
+                  ) : (
+                    template.author
+                  )}
+                  {" · "}
+                  <a
+                    href={`${REPO_URL}/blob/main${template.ref}`}
+                    target="_blank"
+                    rel="noopener"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t("community_templates_view_repo")}
+                  </a>
                 </small>
               </div>
             );
           })
         ) : (
           <div className={c("community-templates-empty")}>
-            No se encontraron plantillas.
+            {t("community_templates_no_matching")}
           </div>
         )}
       </div>

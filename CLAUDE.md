@@ -13,9 +13,9 @@ canvas graph (root → steps → actions) and generates a note by merging step t
 each step's **actions**. It's a monorepo:
 
 - `src/` + `manifest.json` — **the plugin** (the product).
-- `backend/` + `docker-compose.yml` — an **optional** FastAPI/MongoDB service for community
-  templates.
-- `docs/` + `mkdocs.yml` — the MkDocs Material site (GitHub Pages).
+- `docs/` + `mkdocs.yml` — the MkDocs Material site (GitHub Pages). The community gallery is
+  **fully static**: `docs/main_template.json` + `docs/systems/*.zftemplate` served over GitHub raw
+  (no backend — #294).
 
 Current version: `2.12.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
 
@@ -31,7 +31,7 @@ main.ts (Plugin)
      components/  core (CodeView = CodeMirror .js editor, search), settings modals
      monitoring/  Logger, custom exceptions   ·   patterns/ AbstractChain   ·   lang/ i18n (en/es)   ·   styles/ c() prefixer
  → actions/      11 built-in actions, each a 4-file bundle (Action/Component/Settings/SettingsReader)
- → application/  notes/ (NoteBuilder + ContentDTO + NoteDTO), components/noteBuilder (Zustand wizard), community/ (browser + backend client)
+ → application/  notes/ (NoteBuilder + ContentDTO + NoteDTO), components/noteBuilder (Zustand wizard), community/ (static GitHub-backed gallery)
  → zettelkasten/ step/flow editor modals (StepBuilderModal, SelectorMenuModal, installed editors)
  → hooks/        vault hooks: folder automation + property hooks + context-menu integrations
 ```
@@ -48,7 +48,7 @@ inventory is [`docs/architecture/reposition-map.md`](docs/architecture/repositio
 folders are being repositioned to match, incrementally — nothing is deleted or renamed.
 
 Full detail: [`docs/architecture/overview.md`](docs/architecture/overview.md) and the pages it
-links (plugin core, actions & note builder, vault hooks, community & backend).
+links (plugin core, actions & note builder, vault hooks, the static community gallery).
 
 ## Commands
 
@@ -63,7 +63,6 @@ links (plugin core, actions & note builder, vault hooks, community & backend).
 | Test — TDD (blocking) | `npm test` / `npm run test:watch` / `npm run test:coverage` |
 | Verify all (pre-push + CI) | `npm run verify` |
 | Obsidian-guideline lint (blocking) | `npm run lint:obsidian` — clean (0), part of `verify`/CI |
-| Backend (optional) | `docker compose up --build` (needs a root `.env`) |
 | Docs preview | `mkdocs serve` |
 
 Build output (`dist/`) is git-ignored. Releases are cut by **pushing a git tag**

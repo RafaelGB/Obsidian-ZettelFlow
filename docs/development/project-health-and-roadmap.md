@@ -28,7 +28,7 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 | 7 | ~~**`log.error` silenced when logging off**~~ — errors always surface (wired in the constructor) | — | `Logger.ts` |
 | 8 | **`onunload` doesn't call `unloadComponents()`** | Component teardown skipped | `main.ts` |
 | 9 | **Canvas monkey-patching** of internal APIs | Fragile across Obsidian updates; manual-review flag | `canvas/CanvasPatcher` |
-| 10 | **Backend has no auth/CORS/health, dev-only posture** | Not production-ready | `backend/` |
+| 10 | ~~**Backend has no auth/CORS/health, dev-only posture**~~ — backend removed (#294); the community gallery is fully static | — | — |
 | 11 | **`es.ts` locale behind `en.ts`** | Missing Spanish strings fall back to English | `architecture/lang/locale` |
 
 See [Obsidian review & scoring](obsidian-review-and-scoring.md) for how #1–#6 map to the score.
@@ -66,12 +66,10 @@ Ordered by leverage. Each item is small enough to be a focused PR.
 - [ ] Audit commands (ids/names), settings headings, and sentence-case all UI strings; complete
       `es.ts`.
 
-### Milestone 4 — Backend productionization (only if the dynamic source is promoted)
+### Milestone 4 — Community gallery
 
-- [ ] Add auth (validate the plugin `token`), CORS, and a `/health` route.
-- [ ] Split docs deps out of `backend/requirements.txt`; drop `--reload` for prod.
-- [ ] Enforce response models (replace `response_model=Dict`).
-- [ ] Remove the vestigial empty `interfaces/api/routers/` package.
+- [x] **Backend removed (#294).** The community gallery is fully static (GitHub-backed); there is no
+      FastAPI/MongoDB service to run or maintain. Contributions flow through GitHub (issue form + PR).
 
 ### Milestone 5 — Product "new life"
 

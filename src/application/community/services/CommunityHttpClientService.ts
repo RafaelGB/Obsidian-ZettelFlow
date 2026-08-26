@@ -1,7 +1,6 @@
 import { log } from "architecture";
 import { CommunityAction, CommunityStepSettings, StaticTemplateOptions } from "config";
 import { request } from "obsidian";
-import { CommunityFlowData } from "../typing";
 import { ZfTemplate, parseTemplate } from "application/template/zfTemplate";
 
 export const COMMUNITY_BASE_URL =
@@ -35,16 +34,6 @@ export async function fetchStepTemplate(ref: string) {
         contentType: "application/json",
     });
     return JSON.parse(rawList) as CommunityStepSettings;
-}
-
-export async function fetchFlowTemplate(ref: string) {
-    log.debug("Fetching flow template", ref);
-    const rawList = await request({
-        url: `${COMMUNITY_BASE_URL}${ref}/flow.json`,
-        method: "GET",
-        contentType: "application/json",
-    });
-    return JSON.parse(rawList) as CommunityFlowData;
 }
 
 export async function fetchSystemTemplate(ref: string): Promise<ZfTemplate> {

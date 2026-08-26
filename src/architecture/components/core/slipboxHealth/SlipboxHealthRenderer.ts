@@ -19,6 +19,8 @@ import {
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
+/** Cap the DOM rows per health section (#302 S5): a huge vault can have thousands of orphans. */
+const MAX_HEALTH_ROWS = 200;
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -61,6 +63,7 @@ type ViewState = "indexing" | "ready" | "empty" | "error";
 export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private result: HealthResult | null = null;
+    private lastRevision = -1;
     private debt: KnowledgeDebt | null = null;
     private balance: KnowledgeBalance | null = null;
     private debounceTimer: number | undefined;
@@ -91,7 +94,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
         this.registerEvent(this.app.vault.on("delete", debounced));
     }
 
-    recompute(): void {
+    recompute(force = false): void {
         try {
             const index = KnowledgeIndex.getInstance();
             // Health, debt and balance all read the same model — wait until it is built (no fallback).
@@ -105,6 +108,12 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
             }
 
             const model = index.getModel();
+            // Nothing changed since the last scan — skip classify/debt/balance (#302 S1).
+            const revision = model.revision();
+            if (!force && this.result && (this.state === "ready" || this.state === "empty") && revision === this.lastRevision) {
+                return;
+            }
+            this.lastRevision = revision;
             this.result = classifyHealth(model);
             this.state = (this.result.orphans.length === 0 && this.result.deadEnds.length === 0)
                 ? "empty"
@@ -142,7 +151,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
             cls: c("slipbox-health-refresh-button"),
             attr: { "aria-label": t("slipbox_health_refresh_button") },
         });
-        this.registerDomEvent(refreshBtn, "click", () => void this.recompute());
+        this.registerDomEvent(refreshBtn, "click", () => void this.recompute(true));
 
         // State rendering
         switch (this.state) {
@@ -259,8 +268,15 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
         const section = container.createDiv({ cls: c("slipbox-health-section") });
         section.createEl("h5", { text: heading, cls: c("slipbox-health-section-heading") });
         const list = section.createDiv({ cls: c("slipbox-health-list") });
-        for (const note of notes) {
+        const shown = notes.slice(0, MAX_HEALTH_ROWS);
+        for (const note of shown) {
             this.renderNoteRow(list, note, itemCls);
+        }
+        if (notes.length > shown.length) {
+            section.createDiv({
+                cls: c("slipbox-health-more"),
+                text: t("slipbox_health_more", String(notes.length - shown.length)),
+            });
         }
     }
 

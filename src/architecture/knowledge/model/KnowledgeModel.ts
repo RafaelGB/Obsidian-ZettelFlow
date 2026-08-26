@@ -9,20 +9,33 @@ import type { Idea, Relation } from "./Idea";
  * Pure and Obsidian-free — the {@link KnowledgeIndex} service feeds it derived {@link Idea}s.
  */
 export class KnowledgeModel {
+    private static readonly EMPTY: ReadonlySet<string> = new Set<string>();
     private readonly ideas = new Map<string, Idea>();
     private readonly outAdj = new Map<string, Set<string>>();
     private readonly inAdj = new Map<string, Set<string>>();
     private readonly edgesByTypeIdx = new Map<string, Relation[]>();
+    private rev = 0;
+
+    /**
+     * Monotonic revision, bumped on every mutation (#302). Lets a surface skip a full recompute when
+     * the model hasn't changed since it last read it — the `resolved` event fires far more often than
+     * the graph actually changes.
+     */
+    revision(): number {
+        return this.rev;
+    }
 
     /** Replace the whole graph (initial build). */
     build(ideas: Idea[]): void {
         this.ideas.clear();
         for (const idea of ideas) this.ideas.set(idea.path, idea);
         this.reindex();
+        this.rev++;
     }
 
     /** Insert or replace a single idea (create/modify), updating only the affected entries. */
     upsert(idea: Idea): void {
+        this.rev++;
         const existing = this.ideas.get(idea.path);
         const oldTargets = existing ? [...(this.outAdj.get(idea.path) ?? [])] : [];
         if (existing) this.detach(existing);
@@ -43,6 +56,7 @@ export class KnowledgeModel {
         this.detach(existing);
         this.ideas.delete(path);
         for (const target of oldTargets) this.recomputeSignals(target);
+        this.rev++;
     }
 
     /**
@@ -64,6 +78,7 @@ export class KnowledgeModel {
             this.ideas.set(newPath, moving);
         }
         this.reindex();
+        this.rev++;
     }
 
     // ── read accessors ────────────────────────────────────────────────
@@ -81,6 +96,21 @@ export class KnowledgeModel {
     }
     inNeighbors(path: string): string[] {
         return [...(this.inAdj.get(path) ?? [])];
+    }
+    /**
+     * Allocation-free views of the adjacency for hot loops (#302). The returned set is the model's own
+     * incrementally-maintained index — read-only; never mutate it. Prefer these over
+     * {@link outNeighbors}/{@link inNeighbors} where you only iterate or test membership.
+     */
+    outNeighborSet(path: string): ReadonlySet<string> {
+        return this.outAdj.get(path) ?? KnowledgeModel.EMPTY;
+    }
+    inNeighborSet(path: string): ReadonlySet<string> {
+        return this.inAdj.get(path) ?? KnowledgeModel.EMPTY;
+    }
+    /** O(1) directed-edge test (`from → to`) — no array allocation (#302). */
+    hasEdge(from: string, to: string): boolean {
+        return this.outAdj.get(from)?.has(to) ?? false;
     }
     edgesOfType(type: string): Relation[] {
         return [...(this.edgesByTypeIdx.get(type) ?? [])];

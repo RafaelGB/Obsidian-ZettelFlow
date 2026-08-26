@@ -32,6 +32,7 @@ export function buildKnowledgeMap(model: KnowledgeModel, opts: BuildKnowledgeMap
     const threshold = opts.hubThreshold ?? DEFAULT_HUB_THRESHOLD;
     const hubIdeas = hubs(model, threshold);
     const hubPaths = new Set(hubIdeas.map((hub) => hub.path));
+    const hubDegree = new Map(hubIdeas.map((hub) => [hub.path, hub.maturitySignals.degree]));
     const members = new Map<string, string[]>();
     for (const hub of hubIdeas) members.set(hub.path, []);
 
@@ -39,20 +40,25 @@ export function buildKnowledgeMap(model: KnowledgeModel, opts: BuildKnowledgeMap
 
     for (const idea of model.all()) {
         if (hubPaths.has(idea.path)) continue; // hubs are centers, never members
-        const out = new Set(model.outNeighbors(idea.path));
-        const incoming = new Set(model.inNeighbors(idea.path));
+        // Only the note's own adjacent hubs matter — O(degree), not O(hubs) (#302 S3). Strength is the
+        // Set-membership count (one for an out-link, one for an in-link), matching the prior semantics.
+        const strengthByHub = new Map<string, number>();
+        for (const to of model.outNeighborSet(idea.path)) {
+            if (hubPaths.has(to)) strengthByHub.set(to, (strengthByHub.get(to) ?? 0) + 1);
+        }
+        for (const from of model.inNeighborSet(idea.path)) {
+            if (hubPaths.has(from)) strengthByHub.set(from, (strengthByHub.get(from) ?? 0) + 1);
+        }
 
         let best: { hub: string; strength: number; degree: number } | undefined;
-        for (const hub of hubIdeas) {
-            const strength = (out.has(hub.path) ? 1 : 0) + (incoming.has(hub.path) ? 1 : 0);
-            if (strength === 0) continue;
-            const degree = hub.maturitySignals.degree;
+        for (const [hub, strength] of strengthByHub) {
+            const degree = hubDegree.get(hub) ?? 0;
             const better =
                 !best ||
                 strength > best.strength ||
                 (strength === best.strength && degree > best.degree) ||
-                (strength === best.strength && degree === best.degree && hub.path < best.hub);
-            if (better) best = { hub: hub.path, strength, degree };
+                (strength === best.strength && degree === best.degree && hub < best.hub);
+            if (better) best = { hub, strength, degree };
         }
 
         if (best) {

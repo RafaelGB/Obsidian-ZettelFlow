@@ -442,6 +442,7 @@ export default {
     slipbox_health_deadend_count: '{0} callejones sin salida',
     slipbox_health_orphans_heading: 'Huérfanas (sin enlaces de salida)',
     slipbox_health_deadends_heading: 'Callejones sin salida (nada enlaza aquí)',
+    slipbox_health_more: '…y {0} más',
     slipbox_health_connect_now: 'Abrir nota',
     command_build_moc: 'Crear o actualizar un mapa de contenido',
     moc_modal_title: 'Crear un mapa de contenido',

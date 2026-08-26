@@ -32,6 +32,31 @@ describe("KnowledgeModel — incremental single-entry updates (AC-2)", () => {
         expect(model.get("c.md")?.maturitySignals.inDegree).toBe(1);
     });
 
+    it("exposes allocation-free adjacency views + O(1) hasEdge (#302)", () => {
+        const model = new KnowledgeModel();
+        model.build([deriveIdea(snap("a.md", ["b.md", "c.md"])), deriveIdea(snap("b.md")), deriveIdea(snap("c.md"))]);
+        expect([...model.outNeighborSet("a.md")].sort()).toEqual(["b.md", "c.md"]);
+        expect([...model.inNeighborSet("b.md")]).toEqual(["a.md"]);
+        expect(model.hasEdge("a.md", "b.md")).toBe(true);
+        expect(model.hasEdge("b.md", "a.md")).toBe(false);
+        expect(model.hasEdge("a.md", "missing.md")).toBe(false);
+        // The empty view for an unknown node is safe to iterate.
+        expect([...model.outNeighborSet("nope.md")]).toEqual([]);
+    });
+
+    it("bumps revision on every mutation, not on no-op removes (#302)", () => {
+        const model = new KnowledgeModel();
+        model.build([deriveIdea(snap("a.md"))]);
+        const r0 = model.revision();
+        model.upsert(deriveIdea(snap("b.md", ["a.md"])));
+        expect(model.revision()).toBeGreaterThan(r0);
+        const r1 = model.revision();
+        model.remove("missing.md"); // no-op — nothing changed
+        expect(model.revision()).toBe(r1);
+        model.remove("b.md");
+        expect(model.revision()).toBeGreaterThan(r1);
+    });
+
     it("remove drops outgoing edges but tolerates dangling incoming ones (FR-9)", () => {
         const model = new KnowledgeModel();
         model.build([deriveIdea(snap("a.md", ["b.md"])), deriveIdea(snap("b.md", ["a.md"]))]);

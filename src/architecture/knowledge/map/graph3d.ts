@@ -97,8 +97,8 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             val: Math.max(1, idea.maturitySignals.degree),
             group: groupOf.get(idea.path) ?? -1,
             state: idea.state,
-            orphan: model.outNeighbors(idea.path).length === 0,
-            deadEnd: model.inNeighbors(idea.path).length === 0,
+            orphan: model.outNeighborSet(idea.path).size === 0,
+            deadEnd: model.inNeighborSet(idea.path).size === 0,
             contradiction: contradicted.has(idea.path),
             created: idea.created ?? 0,
             kind: idea.relations.some((r) => r.type === "question")

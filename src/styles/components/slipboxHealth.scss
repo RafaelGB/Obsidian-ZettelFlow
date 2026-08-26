@@ -72,6 +72,14 @@
     gap: 0.2rem;
 }
 
+// Overflow line when a section is capped (#302 S5).
+.zettelkasten-flow__slipbox-health-more {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+    padding: 0.2rem 0;
+}
+
 .zettelkasten-flow__slipbox-health-item {
     display: flex;
     align-items: center;

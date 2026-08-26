@@ -4,6 +4,8 @@ import { log } from "architecture";
 import { navbarAction } from "architecture/components/settings";
 import { t } from "architecture/lang";
 import { AiService } from "architecture/ai/AiService";
+import { aiMaxInputChars, capText } from "architecture/ai/aiGate";
+import { sanitizeAiText } from "architecture/ai/promptSafety";
 import type { AiActionElement } from "zettelkasten";
 import { writeKnowledgeResult } from "../knowledge/knowledgeActionShared";
 
@@ -107,22 +109,34 @@ export async function runAiActionFromPrompt(
         log.debug("[ai] disabled — skipping");
         return;
     }
+    const config = service.config();
+    // Automation guard (#301 S2): during a headless on-creation / post-index run, never make a silent
+    // network call unless the user has explicitly opted in. AI fires only on a user-driven build.
+    if (info.silent && !config.allowInAutomations) {
+        log.debug("[ai] automation run — skipping (not allowed in automations)");
+        return;
+    }
     if (state === "unconfigured") {
         log.error("[ai] provider not configured — skipping");
         new Notice(t("ai_not_configured_notice"));
         return;
     }
 
+    // Bound the payload sent to the model (#301 S1).
+    const capped = capText(prompt, aiMaxInputChars(config));
+
     let raw: string;
     try {
-        raw = await service.getProvider().complete(prompt);
+        raw = await service.getProvider().complete(capped);
     } catch (error) {
         log.error(`[ai] request failed: ${error instanceof Error ? error.message : "unknown error"}`);
         new Notice(t("ai_request_failed_notice"));
         return;
     }
 
-    const value = spec.transform ? spec.transform(raw) : raw;
+    // Sanitise a raw text completion before it lands in a note (#301 S4); parsed (transform) outputs
+    // are already structured/validated by their action.
+    const value = spec.transform ? spec.transform(raw) : sanitizeAiText(raw);
     writeKnowledgeResult(info, el, value);
     if (!info.silent) new Notice(spec.notice(value)); // suppress in a headless pattern run (#201)
 }

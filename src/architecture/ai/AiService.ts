@@ -20,6 +20,11 @@ export class AiService {
         return ObsidianApi.getOwnPlugin().settings.ai;
     }
 
+    /** The current AI settings (read-only use) — for input/output caps and the automations gate (#301). */
+    public config(): AiSettings {
+        return this.settings();
+    }
+
     /** The current gate state — `disabled` (off), `unconfigured`, or `ready`. */
     public gate(): AiGateState {
         return aiGateDecision(this.settings());

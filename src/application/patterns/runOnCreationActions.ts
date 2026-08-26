@@ -5,7 +5,15 @@ import type { Action, ExecuteInfo } from "architecture/api";
 export type OnCreationContext = Pick<ExecuteInfo, "content" | "note" | "context">;
 
 /** Resolves a registered action implementation for a type (e.g. the `ActionsStore`). */
-export type ActionLookup = (type: string) => { execute(info: ExecuteInfo): void | Promise<void> } | undefined;
+export type ActionLookup = (
+    type: string
+) => { execute(info: ExecuteInfo): void | Promise<void>; category?: string } | undefined;
+
+/** Options for {@link runOnCreationActions}. */
+export interface RunOnCreationOptions {
+    /** Action categories to skip (e.g. `["ai"]` on the post-index re-run, so AI never double-fires — #301 S2). */
+    skipCategories?: string[];
+}
 
 /**
  * Run a Knowledge Pattern's on-creation actions (#170) in declared order, reusing the standard
@@ -17,12 +25,15 @@ export type ActionLookup = (type: string) => { execute(info: ExecuteInfo): void 
 export async function runOnCreationActions(
     actions: Action[],
     ctx: OnCreationContext,
-    getAction: ActionLookup
+    getAction: ActionLookup,
+    options: RunOnCreationOptions = {}
 ): Promise<void> {
+    const skip = new Set(options.skipCategories ?? []);
     for (const action of actions) {
         try {
             const impl = getAction(action.type);
             if (!impl) continue;
+            if (impl.category && skip.has(impl.category)) continue;
             await impl.execute({
                 element: { ...action, result: null },
                 content: ctx.content,

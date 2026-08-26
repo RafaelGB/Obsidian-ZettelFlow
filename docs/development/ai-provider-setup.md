@@ -14,6 +14,8 @@ AI disabled — every other feature is deterministic and offline. When you opt i
    - OpenRouter — `https://openrouter.ai/api/v1/chat/completions`
    - LM Studio (local) — `http://localhost:1234/v1/chat/completions`
    - Ollama (local, OpenAI-compat) — `http://localhost:11434/v1/chat/completions`
+   The endpoint **must be `https`** (plain `http` is accepted only for `localhost`/`127.0.0.1`), so
+   note content is never POSTed to an unexpected or insecure host (#301).
 3. **Model** — the model name your provider expects (e.g. `gpt-4o-mini`).
 4. **API key** — your provider key. Stored in this vault's plugin data (`.obsidian/plugins/zettelflow/data.json`),
    sent **only** as a `Bearer` header to the endpoint above, and **never logged**.
@@ -21,11 +23,27 @@ AI disabled — every other feature is deterministic and offline. When you opt i
 Any of endpoint / model / key left blank means the provider is not usable, and AI actions no-op with
 a clear notice.
 
+### Guardrails (#301)
+
+- **Allow AI in automations** — *off by default*. With it off, AI actions **never fire on their own**
+  during on-creation patterns or the post-index re-run; they run only when *you* drive a build. Even
+  when on, an AI action never fires **twice** for the same note (it is excluded from the post-index
+  re-run).
+- **Max input characters** — the note content sent per request is bounded (default 12000) and
+  truncated if longer, so a huge note (or many linked notes) can't send an unbounded payload.
+- **Max output tokens** — the requested completion length is bounded (default 800) via `max_tokens`.
+- **Prompt-injection hardening** — the task is sent as a `system` message and the note content is
+  wrapped in `<note-content>` tags labelled as data, so text like "ignore previous instructions"
+  inside a note is treated as content, not a command.
+- **Safe output** — a text completion is sanitised (template tokens neutralised, length bounded)
+  before it is written into a note.
+
 ## What is sent, and where
 
-When you run an AI action, ZettelFlow sends the **content of the note being built** as the prompt to
-the **single endpoint you configured** — and nothing else. There is **no telemetry, no bundled key,
-no default endpoint, and no second endpoint**. See [Capabilities & privacy](capabilities-and-privacy.md).
+When you run an AI action, ZettelFlow sends the **(bounded) content of the note being built** as the
+prompt to the **single https endpoint you configured** — and nothing else. There is **no telemetry,
+no bundled key, no default endpoint, and no second endpoint**. See
+[Capabilities & privacy](capabilities-and-privacy.md).
 
 ## The actions
 

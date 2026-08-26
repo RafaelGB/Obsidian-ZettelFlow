@@ -8,6 +8,42 @@ export interface AiSettings {
     apiKey: string;
     /** Model name passed to the provider. */
     model: string;
+    /**
+     * Max characters of prompt content sent per request (#301 S1). Bounds cost/latency so a huge
+     * note (or many linked notes) can't send an unbounded payload. Falls back to the default.
+     */
+    maxInputChars?: number;
+    /** Max completion tokens requested (#301 S1) — sent as `max_tokens`. Falls back to the default. */
+    maxOutputTokens?: number;
+    /**
+     * Allow AI actions to fire during **automations** (on-creation patterns / post-index re-run)
+     * (#301 S2). Off by default: with it off, AI actions never make a silent network call on note
+     * creation — they run only when you drive a build yourself.
+     */
+    allowInAutomations?: boolean;
+}
+
+/** Default cap on prompt content sent per request when the user hasn't set one (#301 S1). */
+export const DEFAULT_AI_MAX_INPUT_CHARS = 12_000;
+/** Default cap on requested completion tokens when the user hasn't set one (#301 S1). */
+export const DEFAULT_AI_MAX_OUTPUT_TOKENS = 800;
+
+/** The effective input-char cap for the given settings (never below 500). */
+export function aiMaxInputChars(ai: AiSettings): number {
+    const value = ai.maxInputChars ?? DEFAULT_AI_MAX_INPUT_CHARS;
+    return Number.isFinite(value) && value >= 500 ? value : DEFAULT_AI_MAX_INPUT_CHARS;
+}
+
+/** The effective completion-token cap for the given settings (never below 16). */
+export function aiMaxOutputTokens(ai: AiSettings): number {
+    const value = ai.maxOutputTokens ?? DEFAULT_AI_MAX_OUTPUT_TOKENS;
+    return Number.isFinite(value) && value >= 16 ? value : DEFAULT_AI_MAX_OUTPUT_TOKENS;
+}
+
+/** Truncate `text` to `maxChars`, appending a visible marker when cut. Pure. */
+export function capText(text: string, maxChars: number): string {
+    if (text.length <= maxChars) return text;
+    return `${text.slice(0, maxChars)}\n\n[…truncated by ZettelFlow to fit the AI input limit]`;
 }
 
 /** The three observable states of the AI gate. */

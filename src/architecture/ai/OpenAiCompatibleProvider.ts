@@ -1,7 +1,8 @@
 import { requestUrl } from "obsidian";
 import { AiProvider } from "./AiProvider";
-import type { AiSettings } from "./aiGate";
+import { aiMaxOutputTokens, type AiSettings } from "./aiGate";
 import { buildChatRequestBody, parseChatCompletion } from "./openaiCompatibleLogic";
+import { AI_SYSTEM_GUARD, isEndpointAllowed } from "./promptSafety";
 
 /** Bound each request so a hung/misconfigured endpoint fails with a clear error instead of pending. */
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -25,6 +26,14 @@ export class OpenAiCompatibleProvider implements AiProvider {
     constructor(private readonly settings: AiSettings) {}
 
     async complete(prompt: string): Promise<string> {
+        // Never POST note content to a non-https (or non-loopback-http) endpoint (#301 S5).
+        if (!isEndpointAllowed(this.settings.endpoint)) {
+            throw new Error("AI endpoint must be an https URL (or http on localhost)");
+        }
+        const body = buildChatRequestBody(this.settings.model, prompt, {
+            maxTokens: aiMaxOutputTokens(this.settings),
+            system: AI_SYSTEM_GUARD,
+        });
         const response = await withTimeout(
             requestUrl({
                 url: this.settings.endpoint,
@@ -33,7 +42,7 @@ export class OpenAiCompatibleProvider implements AiProvider {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${this.settings.apiKey}`,
                 },
-                body: JSON.stringify(buildChatRequestBody(this.settings.model, prompt)),
+                body: JSON.stringify(body),
                 throw: false,
             }),
             REQUEST_TIMEOUT_MS

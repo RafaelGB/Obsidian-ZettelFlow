@@ -56,4 +56,19 @@ describe("runOnCreationActions (#170, FR-3, AC-1)", () => {
         await runOnCreationActions([action("a")], ctx, () => ({ execute: (info) => void received.push(info) }));
         expect(received[0].silent).toBe(true);
     });
+
+    it("skips actions whose category is in skipCategories (#301 S2 — AI never re-fires post-index)", async () => {
+        const calls: string[] = [];
+        const impls: Record<string, { execute: () => void; category?: string }> = {
+            related: { execute: () => void calls.push("related"), category: "relations" },
+            summarize: { execute: () => void calls.push("summarize"), category: "ai" },
+        };
+        await runOnCreationActions(
+            [action("related"), action("summarize")],
+            ctx,
+            (type) => impls[type],
+            { skipCategories: ["ai"] }
+        );
+        expect(calls).toEqual(["related"]);
+    });
 });

@@ -8,7 +8,7 @@ describe("challenge-idea logic (#184)", () => {
         expect(prompt.toLowerCase()).toContain("argue against");
     });
 
-    it("trims the surrounding whitespace of the note content", () => {
-        expect(buildChallengePrompt("  x  ").endsWith("x")).toBe(true);
+    it("trims and delimits the note content (#301 S3)", () => {
+        expect(buildChallengePrompt("  x  ")).toContain("<note-content>\nx\n</note-content>");
     });
 });

@@ -10,11 +10,37 @@ export class AiResponseError extends Error {
 export interface ChatRequestBody {
     model: string;
     messages: { role: string; content: string }[];
+    max_tokens?: number;
 }
 
-/** Pure builder for a single-user-message chat request (#156, FR-2). Obsidian-free. */
-export function buildChatRequestBody(model: string, prompt: string): ChatRequestBody {
-    return { model, messages: [{ role: "user", content: prompt }] };
+/** Options bounding/hardening a chat request (#301). */
+export interface ChatRequestOptions {
+    /** Sent as `max_tokens` to bound completion cost (#301 S1). */
+    maxTokens?: number;
+    /** A `system` message that asserts task authority over untrusted note content (#301 S3). */
+    system?: string;
+}
+
+/**
+ * Pure builder for a chat request (#156, FR-2). When a `system` guard is provided it is sent as a
+ * separate `system` role so instructions embedded in the (untrusted) note content can't override the
+ * task (#301 S3); a `maxTokens` bound is sent as `max_tokens` (#301 S1). Obsidian-free.
+ */
+export function buildChatRequestBody(
+    model: string,
+    prompt: string,
+    options: ChatRequestOptions = {}
+): ChatRequestBody {
+    const messages: { role: string; content: string }[] = [];
+    if (options.system && options.system.length > 0) {
+        messages.push({ role: "system", content: options.system });
+    }
+    messages.push({ role: "user", content: prompt });
+    const body: ChatRequestBody = { model, messages };
+    if (typeof options.maxTokens === "number" && options.maxTokens > 0) {
+        body.max_tokens = options.maxTokens;
+    }
+    return body;
 }
 
 /**

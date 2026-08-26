@@ -34,7 +34,9 @@ export async function computeOnCreationDelta(
     // byte-correct for any vault path, without reconstructing a NoteDTO from folder + title.
     const note = notePersistenceForPath(notePath);
 
-    await runOnCreationActions(actions, { content, note, context }, getAction);
+    // AI actions don't depend on the index, so they run only on the initial on-creation pass — never
+    // re-fired here, so an AI-bearing pattern can't make a second network call per note (#301 S2).
+    await runOnCreationActions(actions, { content, note, context }, getAction, { skipCategories: ["ai"] });
 
     const produced = content.getFrontmatter();
     const delta: Record<string, Literal> = {};

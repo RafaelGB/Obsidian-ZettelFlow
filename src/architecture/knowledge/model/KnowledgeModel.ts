@@ -9,6 +9,7 @@ import type { Idea, Relation } from "./Idea";
  * Pure and Obsidian-free — the {@link KnowledgeIndex} service feeds it derived {@link Idea}s.
  */
 export class KnowledgeModel {
+    private static readonly EMPTY: ReadonlySet<string> = new Set<string>();
     private readonly ideas = new Map<string, Idea>();
     private readonly outAdj = new Map<string, Set<string>>();
     private readonly inAdj = new Map<string, Set<string>>();
@@ -81,6 +82,21 @@ export class KnowledgeModel {
     }
     inNeighbors(path: string): string[] {
         return [...(this.inAdj.get(path) ?? [])];
+    }
+    /**
+     * Allocation-free views of the adjacency for hot loops (#302). The returned set is the model's own
+     * incrementally-maintained index — read-only; never mutate it. Prefer these over
+     * {@link outNeighbors}/{@link inNeighbors} where you only iterate or test membership.
+     */
+    outNeighborSet(path: string): ReadonlySet<string> {
+        return this.outAdj.get(path) ?? KnowledgeModel.EMPTY;
+    }
+    inNeighborSet(path: string): ReadonlySet<string> {
+        return this.inAdj.get(path) ?? KnowledgeModel.EMPTY;
+    }
+    /** O(1) directed-edge test (`from → to`) — no array allocation (#302). */
+    hasEdge(from: string, to: string): boolean {
+        return this.outAdj.get(from)?.has(to) ?? false;
     }
     edgesOfType(type: string): Relation[] {
         return [...(this.edgesByTypeIdx.get(type) ?? [])];

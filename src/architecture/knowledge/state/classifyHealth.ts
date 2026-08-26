@@ -26,13 +26,17 @@ export function classifyHealth(model: KnowledgeModel): HealthResult {
     const orphans: HealthNote[] = [];
     const deadEnds: HealthNote[] = [];
 
+    // True when the set has any neighbour other than the note itself (self-loops don't count) — #302.
+    const hasNonSelf = (set: ReadonlySet<string>, self: string): boolean => {
+        for (const p of set) if (p !== self) return true;
+        return false;
+    };
+
     for (const idea of model.all()) {
         const path = idea.path;
-        const outgoing = model.outNeighbors(path).filter((p) => p !== path);
-        const incoming = model.inNeighbors(path).filter((p) => p !== path);
         const basename = path.split("/").pop()?.replace(/\.md$/i, "") ?? path;
-        if (outgoing.length === 0) orphans.push({ path, basename });
-        if (incoming.length === 0) deadEnds.push({ path, basename });
+        if (!hasNonSelf(model.outNeighborSet(path), path)) orphans.push({ path, basename });
+        if (!hasNonSelf(model.inNeighborSet(path), path)) deadEnds.push({ path, basename });
     }
 
     return {

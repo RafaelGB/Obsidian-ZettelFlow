@@ -102,6 +102,7 @@ nav:
       - 7.28 3D knowledge graph: development/graph-3d.md
       - 7.29 Quick capture: development/quick-capture.md
       - 7.30 Canvas integration: development/canvas-integration.md
+      - 7.31 Cultivate (thinking sessions): development/cultivate.md
       - 7.27 Friction audit (epic #231): development/friction-audit.md
 extra_javascript:
   - "extra_javascript/navigationInstant.js"

@@ -43,6 +43,12 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **⚡ Quick capture** — *from thought to note in one keystroke.* A command opens a single title
   prompt and writes a **fleeting note** to your Inbox — no canvas, no wizard, the fastest path to a
   first note. Home then nudges you to develop it later. Works on mobile; bind your own hotkey.
+- **🌱 Cultivate** — *make one idea evolve.* A guided **thinking session** picks your highest-leverage
+  idea and walks you through small, real moves on it — **connect** an unlinked neighbour, **challenge**
+  it with its contradiction, capture a **question**, **advance** its lifecycle state, **add a source** —
+  each a one-click operation on the note. The session refines live as you go, and the metric (degree,
+  maturity, state) is a *consequence* of the work. Offline; AI is never required. This is the engine
+  that makes knowledge *evolve*, not just get stored.
 - **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
   suggested connections to existing notes so you can link before you file.
 - **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
@@ -206,6 +212,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
 | **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting notes ready to develop" → jump to the latest), new ideas, main concepts, notes that deserve a review, suggested connections, a **"what to do next"** prioritized recommendation list (click to navigate), and the deterministic next recommended session. Read-only, offline. |
 | **Quick capture** | A command opens a single title prompt and writes a fleeting note to your Inbox — the fastest path from a thought to a note (no canvas, no wizard). Mobile-friendly; bind your own hotkey. Home nudges you to develop it later. |
+| **Cultivate (thinking sessions)** | A guided session that takes your highest-leverage idea and walks you through real moves on it — connect · challenge · question · advance state · add a source — each a one-click operation. The session refines live; the maturity/degree/state delta is a consequence of the work. Offline; AI optional. Home surface → Cultivate mode (or the `cultivate` command / ribbon). |
 | **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |
 | **Second-brain review** | A command that generates a weekly review note — ideas created, orphans, forgotten ideas, important-but-unreviewed — each with a next action. |
 | **Thinking heatmap** | A GitHub-style calendar of ideas *developed* (state advanced, source/connection added) over the last year, fed by a private on-by-default local journal (day → count only). |

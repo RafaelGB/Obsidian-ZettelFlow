@@ -21,8 +21,6 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
   a one-click jump to the latest capture — the loop that turns quick captures into permanent notes.
   Silent when the inbox is empty. Counts `state: fleeting` notes from the model (`fleetingCount` /
   `fleetingReady` on `buildHome`).
-- **Next session** *(the headline)* — the single most valuable note to continue, from the
-  `nextSession` heuristic below. "Continue *Spring Events*".
 - **New ideas** — notes created in the last 7 days, newest first.
 - **Main concepts** — your best-connected notes (`degree` descending).
 - **Deserves a review** — the [weekly review](weekly-review.md)'s *stale-important* section: hubs
@@ -40,7 +38,7 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
 
 Every note is one click from opening. Home **writes nothing** and is fully **offline**.
 
-## The "next session" heuristic
+## The "next session" heuristic (now behind Cultivate)
 
 `nextSession(model)` picks the highest-**leverage** note: one that is well-connected but
 under-developed, where a working session pays off most.
@@ -49,20 +47,19 @@ under-developed, where a working session pays off most.
 score(note) = degree × (1 − STATE_FACTOR[state])
 ```
 
-The note with the maximum score wins (ties broken by path); a vault with no connected, under-developed
-note (empty / all-isolated / all-evergreen) yields **no** next session. It is pure and
-**deterministic** — unit-tested with exact fixtures (that's AC-2).
+The note with the maximum score wins (ties broken by path). **As of #313 this no longer renders as a
+separate Home widget** — "what to work on next" is centralized in [Cultivate](cultivate.md), whose
+`selectCultivationTarget` reuses this heuristic to pick the idea you act on (and it also surfaces in
+the "what to do next" recommendations as the `develop-hub` reason). The function remains pure and
+**deterministic** — unit-tested with exact fixtures.
 
 ## Architecture
 
 ```
-nextSession(model)                                (pure, Obsidian-free, unit-tested)
-  → { path, reason: "develop-hub" } | null        argmax of degree·(1−STATE_FACTOR), path tie-break
-
 buildHome(model, { thinkingDays, now })           (pure, Obsidian-free, unit-tested)
-  → { thinkingDays, newIdeas, mainConcepts, reviewDue, suggestedConnections, nextSession,
+  → { thinkingDays, newIdeas, mainConcepts, reviewDue, suggestedConnections,
       fleetingCount, fleetingReady }
-  composes computeWeeklyReview (#160), findDiscoveries (#163), hubs/created, nextSession
+  composes computeWeeklyReview (#160), findDiscoveries (#163), hubs/created
 
 ZettelFlowHomeView (ItemView) + HomeComponent (show-home command, no hotkey)
   reads DevelopmentJournal.dailyCounts() → thinkingDays, then buildHome(model, {thinkingDays, now})

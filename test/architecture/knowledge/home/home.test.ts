@@ -34,7 +34,6 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
                 { a: "n1.md", b: "n3.md" },
                 { a: "n1.md", b: "n4.md" },
             ],
-            nextSession: { path: "hub.md", reason: "develop-hub" },
             fleetingCount: 3,
             fleetingReady: ["recent1.md", "recent2.md", "old.md"],
         });
@@ -47,7 +46,6 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
             mainConcepts: [],
             reviewDue: [],
             suggestedConnections: [],
-            nextSession: null,
             fleetingCount: 0,
             fleetingReady: [],
         });

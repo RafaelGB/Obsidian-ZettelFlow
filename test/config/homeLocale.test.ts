@@ -13,15 +13,12 @@ const KEYS = [
     // greeting (2)
     "home_greeting",
     "home_thinking_days",
-    // sections (5)
+    // sections (4)
     "home_section_new_ideas",
     "home_section_main_concepts",
     "home_section_review_due",
     "home_section_suggested_connections",
-    "home_section_next_session",
-    // content (3)
-    "home_next_session_continue",
-    "home_next_session_reason_develop_hub",
+    // content (1) — "next session" widget removed (#313); "what to work on next" lives in Cultivate
     "home_section_empty",
     // toolkit (2)
     "settings_toolkit_home_name",
@@ -29,8 +26,8 @@ const KEYS = [
 ];
 
 describe("home i18n parity (#172)", () => {
-    it("defines all 18 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(18);
+    it("defines all 15 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(15);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

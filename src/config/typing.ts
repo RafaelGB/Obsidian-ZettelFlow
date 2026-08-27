@@ -34,6 +34,12 @@ export interface ZettelFlowSettings {
     jsLibraryFolderPath: string;
     /** Path to the folder where flows are stored */
     foldersFlowsPath: string;
+    /**
+     * Path prefixes to exclude from the knowledge system (#311). Notes under any of these (config,
+     * templates, other vault tooling) never enter the index, so they drop out of every mechanism —
+     * graph, health, discovery, cultivate, home. Folder-boundary "starts with" match. Default: none.
+     */
+    excludedPaths: string[];
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 
@@ -210,6 +216,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     editorCanvas: "", // No editor canvas configured until the user picks one.
     jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
+    excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.

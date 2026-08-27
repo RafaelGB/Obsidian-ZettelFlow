@@ -94,6 +94,32 @@ describe("KnowledgeIndex service", () => {
         expect(index.getModel().get("renamed.md")).toBeUndefined();
     });
 
+    it("excludes notes under a configured excluded path from the model (#311)", () => {
+        wire([file("ideas/a.md"), file("templates/t.md"), file("templates.md")]);
+        __setMockObsidianApi({
+            ownPlugin: {
+                registerEvent: () => undefined,
+                register: () => undefined,
+                settings: { excludedPaths: ["templates"] },
+            },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.build();
+
+        expect(index.getModel().get("ideas/a.md")).toBeDefined();
+        expect(index.getModel().get("templates/t.md")).toBeUndefined();
+        expect(index.getModel().get("templates.md")).toBeUndefined();
+        expect(index.inScope("ideas/a.md")).toBe(true);
+        expect(index.inScope("templates/t.md")).toBe(false);
+
+        // An out-of-scope create/modify never enters the model.
+        index.onCreate(file("templates/new.md"));
+        expect(index.getModel().get("templates/new.md")).toBeUndefined();
+
+        // Reset the own-plugin stub so later tests exclude nothing.
+        __setMockObsidianApi({ ownPlugin: { registerEvent: () => undefined, register: () => undefined } });
+    });
+
     it("ignores non-markdown files", () => {
         wire([]);
         const index = KnowledgeIndex.getInstance();

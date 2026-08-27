@@ -163,6 +163,10 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
 
 ## Working agreements
 
+- **Design by subtraction (a core principle — see the [manifesto](docs/manifesto.md)).** Prefer
+  removing or centralizing over adding. If a new capability overlaps an existing one, **empower one**
+  instead of shipping both; keep the product minimal and comprehensible. An addition must earn its
+  place against the cost of complexity. When in doubt, subtract.
 - Prefer editing existing patterns over inventing new ones — actions, settings handlers, and
   modals each have an established shape; match it.
 - **Docs are a blocking exit criterion for every implementation.** When you finish a feature or

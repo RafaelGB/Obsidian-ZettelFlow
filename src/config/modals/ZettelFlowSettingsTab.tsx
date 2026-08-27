@@ -10,6 +10,7 @@ import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEng
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { parseExcludedPathsInput, excludedPathsToText } from "architecture/knowledge/scope/knowledgeScope";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -32,6 +33,8 @@ const moment = obsidianMoment as unknown as typeof MomentFn;
 
 // Debounce the (expensive) index re-register + rebuild when the user edits the state property name.
 let lifecycleRebuildTimer: number | undefined;
+// Debounce the index rebuild when the user edits the excluded-paths list (#311).
+let scopeRebuildTimer: number | undefined;
 
 // Documentation base + per-feature pages surfaced from the Zettelkasten toolkit settings group.
 const DOCS_BASE = "https://rafaelgb.github.io/Obsidian-ZettelFlow/";
@@ -236,6 +239,40 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                             value;
                                         await plugin.saveSettings();
                                     });
+                            });
+                        },
+                    },
+                ],
+            },
+            // ── Knowledge lifecycle ───────────────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_scope_heading"),
+                items: [
+                    {
+                        name: t("settings_scope_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    {
+                        name: t("settings_excluded_paths_name"),
+                        desc: t("settings_excluded_paths_desc"),
+                        render: (setting) => {
+                            setting.addTextArea((area) => {
+                                area
+                                    .setPlaceholder(t("settings_excluded_paths_placeholder"))
+                                    .setValue(excludedPathsToText(plugin.settings.excludedPaths ?? []))
+                                    .onChange(async (value) => {
+                                        plugin.settings.excludedPaths = parseExcludedPathsInput(value);
+                                        await plugin.saveSettings();
+                                        if (scopeRebuildTimer) window.clearTimeout(scopeRebuildTimer);
+                                        // Rebuild the index once editing settles, so the new scope takes effect everywhere.
+                                        scopeRebuildTimer = window.setTimeout(() => {
+                                            KnowledgeIndex.getInstance().build();
+                                        }, 600);
+                                    });
+                                area.inputEl.rows = 4;
                             });
                         },
                     },

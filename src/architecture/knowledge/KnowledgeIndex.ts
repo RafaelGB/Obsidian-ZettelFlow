@@ -8,6 +8,7 @@ import { parseInlineFields } from "./parse/inlineFields";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
 import { isClaimOrSourceKey, isSourceKey } from "./claims";
 import { detectDevelopmentEvents } from "./journal/developmentEvents";
+import { isPathExcluded } from "./scope/knowledgeScope";
 import { DevelopmentJournal } from "architecture/plugin/journal/DevelopmentJournal";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 
@@ -61,16 +62,34 @@ export class KnowledgeIndex {
         this.schemas = { ...this.schemas, ...schemas };
     }
 
+    /** The configured out-of-scope path prefixes (#311) — notes here are not part of the thinking system. */
+    private excludedPaths(): readonly string[] {
+        try {
+            return ObsidianApi.getOwnPlugin()?.settings?.excludedPaths ?? [];
+        } catch {
+            return []; // before settings are wired (or in tests), nothing is excluded
+        }
+    }
+
+    /** Whether a note counts as knowledge (#311): everything except the configured excluded paths. */
+    public inScope(path: string): boolean {
+        return !isPathExcluded(path, this.excludedPaths());
+    }
+
     /** Rebuild the whole index from the vault. Synchronous, read-only (decisions #1 & #4). */
     public build(): void {
         this.currentStatus = "building";
         const start = Date.now();
-        const ideas: Idea[] = ObsidianApi.vault()
-            .getMarkdownFiles()
-            .map((file) => deriveIdea(gatherSnapshot(file), this.schemas));
+        const all = ObsidianApi.vault().getMarkdownFiles();
+        // The single scope filter (#311): excluded notes never become ideas, so they drop out of every
+        // downstream mechanism (graph, health, discovery, cultivate, home) at once.
+        const inScope = all.filter((file) => this.inScope(file.path));
+        const ideas: Idea[] = inScope.map((file) => deriveIdea(gatherSnapshot(file), this.schemas));
         this.model.build(ideas);
         this.currentStatus = "ready";
-        log.debug(`[KnowledgeIndex] built ${ideas.length} ideas in ${Date.now() - start}ms`);
+        log.debug(
+            `[KnowledgeIndex] built ${ideas.length} ideas (${all.length - inScope.length} excluded) in ${Date.now() - start}ms`
+        );
     }
 
     public onCreate(file: TAbstractFile): void {
@@ -89,6 +108,16 @@ export class KnowledgeIndex {
 
     public onRename(file: TAbstractFile, oldPath: string): void {
         if (!this.isMarkdown(file)) return;
+        // Honour scope across the move (#311): dropping/adding the note as it leaves/enters scope.
+        if (!this.inScope(file.path)) {
+            this.model.remove(oldPath);
+            this.pruneTimeline(oldPath);
+            return;
+        }
+        if (!this.inScope(oldPath)) {
+            this.upsert(file); // entered scope from an excluded path → index it fresh
+            return;
+        }
         this.model.rename(oldPath, file.path);
         this.rekeyTimeline(oldPath, file.path);
     }
@@ -130,6 +159,7 @@ export class KnowledgeIndex {
         const files = vault.getMarkdownFiles();
         let enriched = 0;
         for (const file of files) {
+            if (!this.inScope(file.path)) continue; // #311: excluded notes are not enriched either
             try {
                 const body = await vault.cachedRead(file);
                 const inlineFields = parseInlineFields(body);
@@ -163,6 +193,11 @@ export class KnowledgeIndex {
     }
 
     private upsert(file: TFile): void {
+        // Out-of-scope note (#311): make sure it isn't in the model, then stop — it isn't knowledge.
+        if (!this.inScope(file.path)) {
+            this.model.remove(file.path);
+            return;
+        }
         const before = this.model.get(file.path);
         this.model.upsert(deriveIdea(gatherSnapshot(file), this.schemas));
         log.debug(`[KnowledgeIndex] upsert ${file.path}`);

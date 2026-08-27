@@ -64,6 +64,28 @@ The engineering shape follows the philosophy in five layers — **Knowledge Mode
 Knowledge State → Experience → Community Gallery** — mapped feature-by-feature in the
 [reposition map](architecture/reposition-map.md).
 
+## Design by subtraction
+
+Repositioning is only half of the discipline. The other half is **subtraction**: the plugin is
+designed by *removing*, not accumulating. Power comes from **fewer, deeper capabilities**, not more
+shallow ones.
+
+- **When two features resemble each other, we don't ship both — we centralize and empower one.** One
+  strong home for each idea beats two half-overlapping ones the user has to tell apart. (This is why
+  the ~12 views became **four surfaces**, the community became one **static gallery**, and the whole
+  system consolidated around **one engine** rather than a pile of features.)
+- **Every addition must earn its place against the cost of complexity.** A feature that makes the
+  product harder to hold in your head is a net loss, even if it "works".
+- **Keep the thinking system uncluttered.** Config, templates and other vault tooling aren't
+  knowledge — you can [exclude those paths](development/knowledge-scope.md) so they leave the graph,
+  the health checks, discovery and everything else. Less noise, sharper signal.
+
+> **If it can be centralized, centralize it. If it can be removed, remove it. Stay minimal and
+> comprehensible — that is the feature.**
+
+Subtraction is what keeps ZettelFlow *easy to use, hard to master* instead of *hard to use, easy to
+abandon*. Minimalism here is not a lack of ambition; it is the ambition.
+
 ## Easy to use, hard to master
 
 The best tools meet you where you are. A newcomer should be productive in **five minutes** — install a

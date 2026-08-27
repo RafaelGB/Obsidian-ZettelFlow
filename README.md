@@ -227,6 +227,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Connection resurfacing** | Ranked older/related notes for the active note, with a daily-spark serendipity surface. |
 | **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |
 | **Note lifecycle states** | Classify notes by phase (fleeting → … → archived) and change state with a validated command; state lives in configurable frontmatter (no lock-in). |
+| **Knowledge scope** | Exclude config/template/tooling folders from the thinking system — one simple list of path prefixes. Notes under an excluded path never enter the index, so they drop out of the graph, health, discovery, Cultivate and Home all at once. |
 | **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
 | **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |

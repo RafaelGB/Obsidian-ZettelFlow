@@ -1,7 +1,6 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { computeWeeklyReview } from "../review/weeklyReview";
 import { findDiscoveries } from "../discovery/discoveries";
-import { NextSession, nextSession } from "./nextSession";
 
 const DAY_MS = 86_400_000;
 const NEW_IDEAS_WINDOW_MS = 7 * DAY_MS;
@@ -14,7 +13,6 @@ export interface HomeModel {
     mainConcepts: string[];
     reviewDue: string[];
     suggestedConnections: { a: string; b: string }[];
-    nextSession: NextSession | null;
     /** How many fleeting notes are waiting to be developed — the #285 growth nudge. */
     fleetingCount: number;
     /** Up to TOP_N fleeting notes, newest first — the nudge links straight to the first one. */
@@ -34,8 +32,9 @@ const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
  * Pure ZettelFlow Home aggregate (#172, AC-1). Composes existing State-layer functions into the
  * home widgets: `newIdeas` (created in the last 7 days, newest first), `mainConcepts` (best-connected
  * notes), `reviewDue` (the #160 weekly review's stale-important hubs), `suggestedConnections` (the
- * #163 discoveries), and the new `nextSession` heuristic — plus the `thinkingDays` echoed from the
- * journal. Deterministic, read-only, never throws; an empty model yields a well-defined empty home.
+ * #163 discoveries) and `fleeting` (the #285 growth nudge) — plus the `thinkingDays` echoed from the
+ * journal. "What to work on next" is centralized in Cultivate (#313), not a separate widget here.
+ * Deterministic, read-only, never throws; an empty model yields a well-defined empty home.
  * Obsidian-free (the view supplies `thinkingDays`/`now`).
  */
 export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeModel {
@@ -72,7 +71,6 @@ export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeMo
         mainConcepts,
         reviewDue,
         suggestedConnections,
-        nextSession: nextSession(model),
         fleetingCount: fleeting.length,
         fleetingReady,
     };

@@ -36,10 +36,10 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 
 - **🏠 ZettelFlow Home** — *open ZettelFlow, not Obsidian.* A single front door: a greeting and
   "you've been thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting
-  notes ready to develop") that jumps straight to the latest capture, your new ideas, main concepts,
-  notes that deserve a review, suggested connections, a **"what to do next"** list of prioritized
-  recommendations (click to jump to the note), and the **next recommended session** ("Continue *Spring
-  Events*"). Read-only, offline — the state of your mind at a glance.
+  notes ready to develop") that jumps straight to the latest capture, a **Cultivate** on-ramp
+  (act on your next idea), your new ideas, main concepts, notes that deserve a review, suggested
+  connections, and a **"what to do next"** list of prioritized recommendations (click to jump to the
+  note). Read-only, offline — the state of your mind at a glance.
 - **⚡ Quick capture** — *from thought to note in one keystroke.* A command opens a single title
   prompt and writes a **fleeting note** to your Inbox — no canvas, no wizard, the fastest path to a
   first note. Home then nudges you to develop it later. Works on mobile; bind your own hotkey.
@@ -210,7 +210,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
 | **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
 | **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
-| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting notes ready to develop" → jump to the latest), new ideas, main concepts, notes that deserve a review, suggested connections, a **"what to do next"** prioritized recommendation list (click to navigate), and the deterministic next recommended session. Read-only, offline. |
+| **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting notes ready to develop" → jump to the latest), a **Cultivate** on-ramp (act on your next idea), new ideas, main concepts, notes that deserve a review, suggested connections, and a **"what to do next"** prioritized recommendation list (click to navigate). Read-only, offline. |
 | **Quick capture** | A command opens a single title prompt and writes a fleeting note to your Inbox — the fastest path from a thought to a note (no canvas, no wizard). Mobile-friendly; bind your own hotkey. Home nudges you to develop it later. |
 | **Cultivate (thinking sessions)** | A guided session that takes your highest-leverage idea and walks you through real moves on it — connect · challenge · question · advance state · add a source — each a one-click operation. The session refines live; the maturity/degree/state delta is a consequence of the work. Offline; AI optional. Home surface → Cultivate mode (or the `cultivate` command / ribbon). |
 | **Derived projects** | Turn a folder of notes into an ordered book/course/article outline (MOC) — clustered and sequenced from the semantic graph, linking every source note. Graph-derived, offline, no AI. |

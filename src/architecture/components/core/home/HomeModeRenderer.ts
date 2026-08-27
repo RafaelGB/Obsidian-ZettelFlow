@@ -115,7 +115,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderCultivateTeaser(container);
         this.renderGraphTeaser(container);
         this.renderRecommendations(container);
-        this.renderNextSession(container, this.home.nextSession);
         this.renderNoteSection(container, "home_section_new_ideas", this.home.newIdeas);
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
@@ -193,22 +192,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 name.addEventListener("click", () => void this.app.workspace.openLinkText(target, "", false));
             }
         }
-    }
-
-    private renderNextSession(container: HTMLElement, session: HomeModel["nextSession"]): void {
-        const section = container.createDiv({ cls: c("home-next-session") });
-        section.createEl("h5", { text: t("home_section_next_session"), cls: c("home-section-title") });
-        if (!session) {
-            section.createDiv({ cls: c("home-section-empty"), text: t("home_section_empty") });
-            return;
-        }
-        const label = section.createSpan({
-            text: t("home_next_session_continue", basename(session.path)),
-            cls: c("home-next-session-label"),
-        });
-        label.setAttribute("title", session.path);
-        label.addEventListener("click", () => void this.app.workspace.openLinkText(session.path, "", false));
-        section.createDiv({ cls: c("home-next-session-reason"), text: t("home_next_session_reason_develop_hub") });
     }
 
     private renderNoteSection(container: HTMLElement, headingKey: LocaleKey, paths: string[]): void {

@@ -1,4 +1,3 @@
-import { CommunityFlowData } from "application/community";
 import { Action } from "architecture/api";
 import { StepSettings } from "zettelkasten";
 import type { HistoryEntry } from "application/notes/historyUtils";
@@ -51,7 +50,7 @@ export interface ZettelFlowSettings {
          * Optional default clipboard template,
          * can be either a step or an action.
          */
-        clipboardTemplate?: CommunityStepSettings | CommunityAction | CommunityFlowData;
+        clipboardTemplate?: CommunityStepSettings | CommunityAction;
     };
     hooks: {
         /** Global hooks that will be executed on property changes on current file */
@@ -173,10 +172,10 @@ export type StaticTemplateOptions = {
     /** Author of the template */
     author: string;
     /**
-     * Type of the template: a "step"/"action"/"markdown" fragment, a "flow" (clipboard paste), or a
-     * "system" — a `.zftemplate` bundle installed as a canvas + steps in one click (#214).
+     * Type of the template: a "step"/"action"/"markdown" fragment, or a "system" — a `.zftemplate`
+     * bundle installed as a canvas + steps in one click (#214).
      */
-    template_type: "step" | "action" | "markdown" | "flow" | "system";
+    template_type: "step" | "action" | "markdown" | "system";
     /** For systems: how much a newcomer takes on — shown as a badge in the gallery. */
     difficulty?: SystemDifficulty;
 };

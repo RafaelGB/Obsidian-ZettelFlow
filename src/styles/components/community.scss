@@ -229,10 +229,6 @@
     border-left: 4px solid var(--background-modifier-border);
 }
 
-.zettelkasten-flow__template-type-flow {
-    border-left: 4px solid var(--code-keyword);
-}
-
 .zettelkasten-flow__template-type-system {
     border-left: 4px solid var(--color-purple);
 }
@@ -260,10 +256,6 @@
 
 .zettelkasten-flow__template-type-markdown .zettelkasten-flow__community-templates-card-type-badge {
     background-color: var(--background-modifier-border);
-}
-
-.zettelkasten-flow__template-type-flow .zettelkasten-flow__community-templates-card-type-badge {
-    background-color: var(--code-keyword);
 }
 
 .zettelkasten-flow__template-type-system .zettelkasten-flow__community-templates-card-type-badge {

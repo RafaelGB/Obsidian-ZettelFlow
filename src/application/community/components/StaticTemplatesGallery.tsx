@@ -7,7 +7,7 @@ import { resolveSystemDifficulty } from "../systemDifficulty";
 import { REPO_URL } from "../githubContribute";
 import { PluginComponentProps } from "../typing";
 
-type TemplateFilter = "all" | "step" | "action" | "markdown" | "flow" | "system";
+type TemplateFilter = "all" | "step" | "action" | "markdown" | "system";
 type DifficultyFilter = "all" | SystemDifficulty;
 
 /** Filter type → its button label i18n key. */
@@ -17,7 +17,6 @@ const FILTER_LABEL_KEYS: Record<TemplateFilter, Parameters<typeof t>[0]> = {
   step: "community_templates_type_step",
   action: "community_templates_type_action",
   markdown: "community_templates_type_markdown",
-  flow: "community_templates_type_template",
 };
 
 /** GitHub handles have no spaces; a free-text author name is shown as plain text instead of a link. */
@@ -83,10 +82,7 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
         filter === "all" || template.template_type === filter;
       const matchesDifficulty =
         difficulty === "all" || resolveSystemDifficulty(template) === difficulty;
-      // Legacy "flow" entries are superseded by one-click systems (#231 Phase 1) — kept in the
-      // catalog for back-compat but hidden from the browser (consolidate & hide).
-      const isLegacyFlow = template.template_type === "flow";
-      return matchesSearch && matchesFilter && matchesDifficulty && !isLegacyFlow;
+      return matchesSearch && matchesFilter && matchesDifficulty;
     });
   }, [templates, targetSearchTerm, filter, difficulty]);
 
@@ -177,7 +173,6 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
     step: "template-type-step",
     action: "template-type-action",
     markdown: "template-type-markdown",
-    flow: "template-type-flow",
     system: "template-type-system",
   };
 

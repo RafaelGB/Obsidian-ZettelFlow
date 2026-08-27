@@ -113,3 +113,16 @@ export function selectCultivationTarget(
     }
     return null;
 }
+
+/**
+ * How many ideas still have development headroom (#309 S4): everything that isn't already `evergreen`
+ * or `archived` — the pool a Cultivate session draws from. A consequence of the model, for the Home
+ * on-ramp count. Pure.
+ */
+export function readyToCultivate(model: KnowledgeModel): number {
+    let count = 0;
+    for (const idea of model.all()) {
+        if (idea.state !== "evergreen" && idea.state !== "archived") count++;
+    }
+    return count;
+}

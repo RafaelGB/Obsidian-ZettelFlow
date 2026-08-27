@@ -38,6 +38,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         ],
         [
             { command: "show-home", labelKey: "command_show_home", icon: "house" },
+            { command: "cultivate", labelKey: "command_cultivate", icon: "sprout" },
             { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
             { command: "show-discovery", labelKey: "command_show_discovery", icon: "telescope" },
             { command: "show-graph", labelKey: "command_show_graph", icon: "network" },
@@ -66,6 +67,12 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             id: "show-graph",
             name: t("command_show_graph"),
             callback: () => void activateSurface(this.plugin.app, "zettelflow-graph"),
+        });
+        // Start a guided thinking session on the Home surface's Cultivate mode (#309 S4).
+        this.plugin.addCommand({
+            id: "cultivate",
+            name: t("command_cultivate"),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-home", "cultivate"),
         });
         // Deep-link: open the Graph surface at the 3D mode and fly to the active note (#280 S3).
         this.plugin.addCommand({

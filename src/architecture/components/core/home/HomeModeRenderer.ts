@@ -3,7 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome } from "architecture/knowledge/state";
+import { HomeModel, buildHome, readyToCultivate } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
@@ -27,6 +27,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private home: HomeModel | null = null;
     private recommendations: KnowledgeRecommendation[] = [];
+    private cultivateCount = 0;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -67,6 +68,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
             this.recommendations = topRecommendations(model);
+            this.cultivateCount = readyToCultivate(model);
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -110,6 +112,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         });
 
         this.renderGrowthNudge(container);
+        this.renderCultivateTeaser(container);
         this.renderGraphTeaser(container);
         this.renderRecommendations(container);
         this.renderNextSession(container, this.home.nextSession);
@@ -117,6 +120,26 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
         this.renderConnections(container, this.home.suggestedConnections);
+    }
+
+    /**
+     * The Cultivate on-ramp (#309 S4): a one-click start of a guided thinking session on the
+     * highest-leverage idea, with the count of ideas that still have development headroom.
+     */
+    private renderCultivateTeaser(container: HTMLElement): void {
+        if (this.cultivateCount === 0) return;
+        const teaser = container.createDiv({ cls: c("home-cultivate-teaser") });
+        teaser.createDiv({ cls: c("home-cultivate-teaser-title"), text: t("home_cultivate_teaser_title") });
+        teaser.createDiv({
+            cls: c("home-cultivate-teaser-sub"),
+            text: t("home_cultivate_teaser_sub", String(this.cultivateCount)),
+        });
+        const btn = teaser.createEl("button", {
+            cls: c("home-cultivate-teaser-btn"),
+            text: t("home_cultivate_teaser_cta"),
+        });
+        btn.setAttribute("aria-label", t("home_cultivate_teaser_cta"));
+        btn.addEventListener("click", () => void activateSurface(this.app, "zettelflow-home", "cultivate"));
     }
 
     /**

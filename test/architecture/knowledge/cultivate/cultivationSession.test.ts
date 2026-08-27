@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import {
     buildCultivationSession,
     selectCultivationTarget,
+    readyToCultivate,
 } from "architecture/knowledge/cultivate/cultivationSession";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
@@ -60,5 +61,18 @@ describe("selectCultivationTarget (#309 S1)", () => {
         expect(target).not.toBeNull();
         expect(model.get(target!)).toBeDefined();
         expect(selectCultivationTarget(buildModel([]))).toBeNull();
+    });
+});
+
+describe("readyToCultivate (#309 S4)", () => {
+    it("counts every non-evergreen, non-archived idea", () => {
+        const m = buildModel([
+            idea("a.md", "fleeting", []),
+            idea("b.md", "permanent", []),
+            idea("c.md", "evergreen", []),
+            idea("d.md", "archived", []),
+        ]);
+        expect(readyToCultivate(m)).toBe(2); // a + b
+        expect(readyToCultivate(buildModel([]))).toBe(0);
     });
 });

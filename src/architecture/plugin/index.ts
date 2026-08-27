@@ -3,6 +3,7 @@ export { YamlService } from './services/YamlService';
 export { EditService } from './services/EditService';
 
 export { FrontmatterService } from './services/FrontmatterService';
+export { CultivationService } from './services/CultivationService';
 export { Literal } from './model/FrontmatterModel';
 export { ZettelNode, ZettelNodeType } from './model/CanvasModel';
 

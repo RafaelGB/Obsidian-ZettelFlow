@@ -3,6 +3,7 @@ import ZettelFlow from "main";
 import { ModeHostView } from "./ModeHostView";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { HomeModeRenderer } from "architecture/components/core/home/HomeModeRenderer";
+import { CultivateModeRenderer } from "architecture/components/core/cultivate/CultivateModeRenderer";
 import { HistoryRenderer } from "architecture/components/core/historyView/HistoryRenderer";
 
 /**
@@ -25,6 +26,8 @@ export class HomeSurfaceView extends ModeHostView {
 
     protected createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer {
         switch (modeId) {
+            case "cultivate":
+                return new CultivateModeRenderer(container, this.plugin);
             case "recent":
                 return new HistoryRenderer(container, this.plugin);
             case "home":

@@ -4,7 +4,7 @@ import { rankRelated } from "../relations/relationRankingLogic";
 import { findContradictions } from "../query/findContradictionLogic";
 import { computeMaturity } from "../derive/maturityLogic";
 import { allowedTargets } from "../lifecycle/machine";
-import { FALLBACK_STATE, isLifecycleState, type LifecycleState } from "../lifecycle/states";
+import { FALLBACK_STATE, isLifecycleState, STATE_EMOJI, STATE_LABEL_KEY, type LifecycleState } from "../lifecycle/states";
 import { byState } from "../query/queries";
 import { nextSession } from "../home/nextSession";
 
@@ -24,11 +24,15 @@ export interface CultivationMove {
     candidates?: string[];
     /** advance: the proposed next lifecycle state. */
     proposedState?: LifecycleState;
+    /** advance: the i18n key for the proposed state's label (so the view needs no lifecycle import). */
+    proposedStateLabelKey?: string;
 }
 
 export interface CultivationSession {
     path: string;
     state: IdeaState;
+    /** Display-ready emoji for the current state (so the Experience view needs no lifecycle import). */
+    stateEmoji: string;
     degree: number;
     /** #158 maturity at the start of the session, or null if unindexed — the "before" of before/after. */
     maturity: number | null;
@@ -66,13 +70,16 @@ export function buildCultivationSession(model: KnowledgeModel, path: string, now
 
     const targets = allowedTargets(asLifecycleState(idea.state));
     const proposedState = targets.find((target) => target !== "archived") ?? targets[0];
-    if (proposedState) moves.push({ kind: "advance", proposedState });
+    if (proposedState) {
+        moves.push({ kind: "advance", proposedState, proposedStateLabelKey: STATE_LABEL_KEY[proposedState] });
+    }
 
     if (!idea.maturitySignals.hasSources) moves.push({ kind: "source" });
 
     return {
         path,
         state: idea.state,
+        stateEmoji: STATE_EMOJI[asLifecycleState(idea.state)] ?? "",
         degree: idea.maturitySignals.degree,
         maturity: computeMaturity(model, path, now),
         moves,
@@ -82,16 +89,27 @@ export function buildCultivationSession(model: KnowledgeModel, path: string, now
 /**
  * Pick the highest-leverage idea to cultivate now (#309, S1): the `nextSession` heuristic
  * (well-connected yet under-developed), then the newest fleeting note, then the best-connected note.
- * Returns `null` for an empty model. Deterministic.
+ * `exclude` skips notes already cultivated this sitting (the "another idea" action). Returns `null`
+ * for an empty model or when everything is excluded. Deterministic.
  */
-export function selectCultivationTarget(model: KnowledgeModel): string | null {
-    const next = nextSession(model);
-    if (next) return next.path;
-
+export function selectCultivationTarget(
+    model: KnowledgeModel,
+    exclude: ReadonlySet<string> = new Set()
+): string | null {
     const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-    const fleeting = byState(model, "fleeting").sort((a, b) => b.created - a.created || byPath(a.path, b.path));
-    if (fleeting.length > 0) return fleeting[0].path;
+    const ranked: string[] = [];
 
-    const all = model.all().sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || byPath(a.path, b.path));
-    return all.length > 0 ? all[0].path : null;
+    const next = nextSession(model);
+    if (next) ranked.push(next.path);
+    for (const idea of byState(model, "fleeting").sort((a, b) => b.created - a.created || byPath(a.path, b.path))) {
+        ranked.push(idea.path);
+    }
+    for (const idea of model.all().sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || byPath(a.path, b.path))) {
+        ranked.push(idea.path);
+    }
+
+    for (const path of ranked) {
+        if (!exclude.has(path) && model.get(path)) return path;
+    }
+    return null;
 }

@@ -31,6 +31,7 @@ export * from "architecture/knowledge/traverse/conceptNeighbors";
 export * from "architecture/knowledge/synthesis/evidenceMap";
 export * from "architecture/knowledge/journal/heatmap";
 export * from "architecture/knowledge/projects/deriveOutline";
+export * from "architecture/knowledge/cultivate/cultivationSession";
 export type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 export * from "./classifyHealth";
 export * from "./recommendation";

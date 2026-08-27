@@ -1,0 +1,123 @@
+// Cultivate — thinking sessions (#309).
+.zettelkasten-flow__cultivate {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.zettelkasten-flow__cultivate-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.zettelkasten-flow__cultivate-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__cultivate-another {
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__cultivate-status,
+.zettelkasten-flow__cultivate-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__cultivate-target {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-m);
+    background: radial-gradient(120% 140% at 15% 0%, #1d3a2b 0%, #14261d 60%, #0e1712 100%);
+    color: #e8f2ec;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.zettelkasten-flow__cultivate-target-name {
+    cursor: pointer;
+    font-weight: var(--font-bold);
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__cultivate-target-name:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__cultivate-target-meta {
+    color: #a9c4b6;
+    font-size: var(--font-ui-smaller);
+    margin-top: 0.15rem;
+}
+
+.zettelkasten-flow__cultivate-moves {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.zettelkasten-flow__cultivate-move {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--background-modifier-border);
+    border-left: 3px solid var(--interactive-accent);
+    border-radius: var(--radius-m);
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__cultivate-move-title {
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__cultivate-move-desc {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.35rem;
+}
+
+.zettelkasten-flow__cultivate-move-hint {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+    margin-bottom: 0.35rem;
+}
+
+.zettelkasten-flow__cultivate-candidate {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.15rem 0;
+}
+
+.zettelkasten-flow__cultivate-candidate-name {
+    cursor: pointer;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__cultivate-candidate-name:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__cultivate-candidate-btn,
+.zettelkasten-flow__cultivate-advance-btn,
+.zettelkasten-flow__cultivate-input-btn {
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__cultivate-input-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.zettelkasten-flow__cultivate-input {
+    flex: 1;
+    font-size: var(--font-ui-smaller);
+}

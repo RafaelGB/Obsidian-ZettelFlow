@@ -28,6 +28,7 @@ export const SURFACES: readonly Surface[] = [
         titleKey: "surface_home_title",
         modes: [
             { id: "home", sourceView: "zettelflow-home", labelKey: "surface_mode_home" },
+            { id: "cultivate", labelKey: "surface_mode_cultivate" },
             { id: "recent", sourceView: "zettelflow-history", labelKey: "surface_mode_recent" },
         ],
     },

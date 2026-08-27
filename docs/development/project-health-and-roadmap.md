@@ -27,7 +27,7 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 | 6 | **Widespread inline styles** (`el.style.*`) | `no-static-styles-assignment` violations | community/config modals |
 | 7 | ~~**`log.error` silenced when logging off**~~ — errors always surface (wired in the constructor) | — | `Logger.ts` |
 | 8 | **`onunload` doesn't call `unloadComponents()`** | Component teardown skipped | `main.ts` |
-| 9 | **Canvas monkey-patching** of internal APIs | Fragile across Obsidian updates; manual-review flag | `canvas/CanvasPatcher` |
+| 9 | **Canvas monkey-patching** of internal APIs — now **guarded** (#304): fails soft on missing methods, catches runtime throws and falls back to the original, reports once + a self-check log | Fragile across Obsidian updates, but no longer a hard break | `canvas/CanvasPatcher`, `canvas/…/CanvasPatchStatus` |
 | 10 | ~~**Backend has no auth/CORS/health, dev-only posture**~~ — backend removed (#294); the community gallery is fully static | — | — |
 | 11 | **`es.ts` locale behind `en.ts`** | Missing Spanish strings fall back to English | `architecture/lang/locale` |
 

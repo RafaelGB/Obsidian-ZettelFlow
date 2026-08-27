@@ -2,15 +2,26 @@ import ZettelFlow from "main";
 import { Notice, requireApiVersion } from "obsidian";
 import { CanvasView, PopupMenu } from "obsidian/canvas";
 import PatchHelper from "./utils/PatchHelper";
+import { CanvasPatchStatus } from "./utils/CanvasPatchStatus";
 import { log } from "architecture";
 import { t } from "architecture/lang";
 import JSONSS from "json-stable-stringify"
 import JSONC from "tiny-jsonc"
 
 export default class CanvasPatcher {
+    /** Which patches attached vs. degraded (#304); shows a single Notice on the first degrade. */
+    private readonly status = new CanvasPatchStatus(() => this.notifyDegradedOnce());
+    private noticeShown = false;
 
     constructor(private plugin: ZettelFlow) {
         void this.patch();
+    }
+
+    /** Show the "canvas integration partially unavailable" Notice at most once per session (#304 S2). */
+    private notifyDegradedOnce() {
+        if (this.noticeShown) return;
+        this.noticeShown = true;
+        new Notice(t('notice_canvas_patch_failed'));
     }
 
     public async patch() {
@@ -57,13 +68,22 @@ export default class CanvasPatcher {
                 const menuPatched = PatchHelper.patchPrototype<PopupMenu>(this.plugin, canvasView.canvas.menu, {
                     render: (next: () => void) => function (this: PopupMenu) {
                         const result = next.call(this);
-                        that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
-                        next.call(this) // Re-Center the popup menu
+                        // Our additions run inside Obsidian's render loop — a throw here would break the
+                        // menu, so degrade gracefully to the original render instead (#304 S2).
+                        try {
+                            that.triggerWorkspaceEvent("canvas:popup-menu", this.canvas);
+                            next.call(this) // Re-Center the popup menu
+                        } catch (e) {
+                            log.error("ZettelFlow: canvas popup-menu enhancement failed at runtime", e)
+                            that.status.markDegraded("popup-menu-render")
+                        }
                         return result;
                     }
                 });
+                this.status[menuPatched ? "markAttached" : "markDegraded"]("popup-menu")
                 if (!menuPatched) log.warn("ZettelFlow: could not patch the canvas popup menu (internals changed)")
             } else {
+                this.status.markDegraded("popup-menu")
                 log.warn("ZettelFlow: canvas popup menu not found; skipping that patch")
             }
 
@@ -102,19 +122,27 @@ export default class CanvasPatcher {
                         result = next.call(this, json)
                     }
 
-                    that.triggerWorkspaceEvent("zettelflow-node-connection-drop-menu", this.canvas)
-                    // Signal a canvas (re)render so the workflow-legibility extension can re-apply
-                    // its cosmetic block-kind styling (#151). Guarded: reuses this already-guarded
-                    // patch, adds no new patched method.
-                    that.triggerWorkspaceEvent("zettelflow-canvas-render", this.canvas)
+                    // A throwing event handler must not corrupt the save (setViewData) itself — the data
+                    // is already written; the enhancements are best-effort (#304 S2).
+                    try {
+                        that.triggerWorkspaceEvent("zettelflow-node-connection-drop-menu", this.canvas)
+                        // Signal a canvas (re)render so the workflow-legibility extension can re-apply
+                        // its cosmetic block-kind styling (#151).
+                        that.triggerWorkspaceEvent("zettelflow-canvas-render", this.canvas)
+                    } catch (e) {
+                        log.error("ZettelFlow: canvas render enhancement failed at runtime", e)
+                        that.status.markDegraded("view-render-events")
+                    }
                     return result
                 })
             })
 
             if (!viewPatched) {
+                this.status.markDegraded("view-data")
                 this.notifyCanvasUnavailable('the canvas view data methods were not found')
                 return
             }
+            this.status.markAttached("view-data")
 
             // Canvases already open when Obsidian started rendered BEFORE this patch installed, so the
             // injection events never fired for them and the plugin's canvas options never attached
@@ -122,9 +150,12 @@ export default class CanvasPatcher {
             // fires these on every canvas change and the handlers are idempotent (addCardMenuOption
             // removes any same-id element first; the restyle clears before re-applying).
             await this.reapplyToOpenCanvases()
+
+            // Self-check (#304 S3): a single line reporting which patches attached vs. degraded.
+            log.info(`ZettelFlow: ${this.status.describe()}`)
         } catch (e) {
             log.error("ZettelFlow: failed to initialize the canvas integration", e)
-            new Notice(t('notice_canvas_patch_failed'))
+            this.notifyDegradedOnce()
         }
     }
 
@@ -150,7 +181,8 @@ export default class CanvasPatcher {
 
     private notifyCanvasUnavailable(reason: string) {
         log.error(`ZettelFlow: canvas integration unavailable — ${reason}. Obsidian's canvas internals may have changed.`)
-        new Notice(t('notice_canvas_patch_failed'))
+        this.status.markDegraded("canvas-view")
+        this.notifyDegradedOnce()
     }
 
     private triggerWorkspaceEvent(event: string, ...args: unknown[]) {

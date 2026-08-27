@@ -1,21 +1,5 @@
 [
   {
-    "id": "01965897-6e31-7f4b-9cbb-c0b9e140c9ca",
-    "template_type": "flow",
-    "ref": "/docs/flows/zettelkasten_inbox",
-    "title": "Zettelkasten Inbox",
-    "description": "This flow is used to create notes following the Zettelkasten system",
-    "author": "RafaelGB"
-  },
-  {
-    "id": "29e67386-84d6-4538-98ae-6457c750b622",
-    "template_type": "flow",
-    "ref": "/docs/flows/para_system",
-    "title": "PARA classify system",
-    "description": "This flow is used to classify notes in the PARA system.",
-    "author": "RafaelGB"
-  },
-  {
     "id": "3ac7462e-cd9e-4781-93a1-80e82c150352",
     "template_type": "step",
     "ref": "/docs/steps/community/add_contact.json",

@@ -1,7 +1,7 @@
 # Community gallery (static)
 
 ZettelFlow lets users **browse, preview, install and reuse** shareable building blocks —
-*actions*, *steps*, *markdown* notes, whole *flows*, and complete *systems*. The gallery is **fully
+*actions*, *steps*, *markdown* notes, and complete *systems*. The gallery is **fully
 static**: it reads a catalog and its payloads straight from the repo over GitHub raw. There is **no
 backend** to run — no server, no database, no accounts, no network writes from the plugin.
 
@@ -17,15 +17,14 @@ COMMUNITY_BASE_URL = "https://raw.githubusercontent.com/RafaelGB/Obsidian-Zettel
 ```
 
 Each catalog row is a `StaticTemplateOptions`: `{ id, template_type, ref, title, description, author,
-difficulty? }`, where `template_type ∈ step | action | markdown | flow | system` (legacy `flow`
-entries are kept for back-compat but hidden from the browser). `ref` is a repo-relative path:
+difficulty? }`, where `template_type ∈ step | action | markdown | system`. `ref` is a repo-relative
+path:
 
 | `template_type` | `ref` resolves to | Fetched as |
 |---|---|---|
 | **system** | `/docs/systems/<name>.zftemplate` (+ optional sibling `<name>.png`) | parsed `.zftemplate` |
 | **step / action** | `/docs/steps/community/*.json` | JSON |
 | **markdown** | `/docs/steps/markdown/*.md` | text/plain |
-| **flow** *(legacy)* | `/docs/flows/<name>/flow.json` | JSON |
 
 ## 2. Frontend module — `src/application/community/`
 
@@ -42,9 +41,6 @@ entries are kept for back-compat but hidden from the browser). `ref` is a repo-r
   `InstalledStepEditorModal`.
 - **`CommunityMarkdownModal`** — preview of a markdown template; Download writes the note into
   `communitySettings.markdownTemplateFolder` (Remove deletes it).
-- **`CommunityFlowModal`** *(legacy)* — previews a whole flow (fetches `image.png`), "Copy to
-  clipboard" (stores the flow in `communitySettings.clipboardTemplate`), "Download flow files"
-  (writes referenced markdown into the vault and rewrites node `file` paths).
 - **`CommunitySystemModal`** (#214) — previews a whole **system** shipped as the unified
   [`.zftemplate`](zftemplate-schema.md) bundle: name, author, description, an optional sibling
   preview image, and the list of files that will be written. "Install system" picks a target folder
@@ -66,7 +62,6 @@ GET-only, against the GitHub-raw base (uses Obsidian's `request()`):
 | `fetchCommunityTemplates()` | `${BASE}/docs/main_template.json` | `StaticTemplateOptions[]` |
 | `fetchActionTemplate(ref)` | `${BASE}${ref}` | `CommunityAction` |
 | `fetchStepTemplate(ref)` | `${BASE}${ref}` | `CommunityStepSettings` |
-| `fetchFlowTemplate(ref)` | `${BASE}${ref}/flow.json` | `CommunityFlowData` |
 | `fetchSystemTemplate(ref)` | `${BASE}${ref}` | `ZfTemplate` (parsed `.zftemplate`) |
 | `fetchMarkdownTemplate(ref)` | `${BASE}${ref}` | raw markdown |
 
@@ -77,8 +72,6 @@ GET-only, against the GitHub-raw base (uses Obsidian's `request()`):
   become canvas nodes (`node.unknownData.zettelflowConfig`) or are edited via
   `InstalledStepEditorModal`.
 - **Markdown** — written as a real note into `markdownTemplateFolder`.
-- **Flows** *(legacy)* — "Copy to clipboard" → `clipboardTemplate`; "Download flow files" writes
-  the markdown and rewrites node paths; imported via `ManageInstalledTemplatesModal`.
 - **Systems** (#214) — the modern one-click path. `planSystemInstall` turns a `.zftemplate` into a
   deterministic file list (canvas + steps under the chosen folder); the modal writes each with
   `FileService.writeFile` and opens the canvas.

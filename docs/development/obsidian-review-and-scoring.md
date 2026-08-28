@@ -196,6 +196,26 @@ Current state of this repository against the checklist (audit date: 2026‑07‑
 6. Keep the canvas patcher defensive and documented; add a disclosure of capabilities
    (file system access) ahead of Obsidian's disclosure labels.
 
+## Launch-readiness snapshot (#316, E1)
+
+A pre-launch self-audit against the checklist above (this is the reference the
+`obsidian-plugin-quality` skill re-runs before each release):
+
+| Area | Status |
+|---|---|
+| **Security & DOM** — `innerHTML`, HTML-string rewrites | ✅ 0 remaining; enforced by the blocking `lint:obsidian` |
+| **Styling** — inline `el.style.*` | ✅ 0 remaining; enforced by the lint |
+| **Resource management** — `onunload` teardown | ✅ `main.onunload` unloads components + flushes journal/timeline + unregisters actions (test-verified) |
+| **Commands & settings** — ids/names, sentence-case | ✅ command ids kebab-case + unique (test); settings via the declarative API |
+| **Vault/workspace API** — `Vault`/`FileManager`, no `app` globals, path-normalised | ✅ writes go through `FileService`/`FrontmatterService`; canvas patching is guarded (#304) |
+| **i18n** — en/es parity | ✅ full parity, enforced by `localeParity.test.ts` |
+| **Capabilities disclosure** | ✅ [Capabilities & privacy](capabilities-and-privacy.md): FS access, opt-in read-only community fetch, opt-in https AI endpoint, script execution; adopt Obsidian's machine-readable disclosure labels when the format ships |
+| **Submission** — `versions.json`, tag == `manifest.version`, three artifacts | ✅ `versions.json` present; the release workflow **fails if the tag ≠ `manifest.version`** and attaches `main.js`/`manifest.json`/`styles.css` (#316) |
+| **Network / telemetry** | ✅ no telemetry; the only outbound calls are the opt-in community fetches (read-only) and the opt-in AI endpoint |
+
+Remaining pre-launch items live in the other launch epics: **mobile & cross-platform** + a11y
+(#319, E4) and the write-path **safety net** (#317, E2).
+
 ## Sources
 
 - [The future of Obsidian plugins — obsidian.md](https://obsidian.md/blog/future-of-plugins/)

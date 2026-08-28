@@ -1,50 +1,42 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { ZComponentsManager } from "starters/services/ZComponentsManager";
-import { PluginComponent, log } from "architecture";
+import { log } from "architecture";
+import type { PluginComponent } from "architecture";
 
-/**
- * Regression (#268 view-registration bug): a single component whose `onLoad` throws must NOT abort
- * loading the rest — the unguarded `forEach` used to bubble up to `Plugin.onload`, leaving the
- * surfaces unregistered so every surface rendered as Obsidian's "plugin no longer active" placeholder.
- */
-class FakeComponent extends PluginComponent {
-    constructor(private readonly run: () => void, private readonly onDown: () => void = () => undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        super(undefined as any);
-    }
-    onLoad(): void { this.run(); }
-    onUnload(): void { this.onDown(); }
+/** A minimal component: the manager only calls onLoad()/onUnload(). */
+function fake(calls: string[], name: string, throwOnUnload = false): PluginComponent {
+    return {
+        onLoad: () => void calls.push(`load:${name}`),
+        onUnload: () => {
+            calls.push(`unload:${name}`);
+            if (throwOnUnload) throw new Error("boom");
+        },
+    } as unknown as PluginComponent;
 }
 
-describe("ZComponentsManager isolates a failing component", () => {
+describe("ZComponentsManager teardown (#316 S4)", () => {
     beforeEach(() => {
         jest.restoreAllMocks();
-        ZComponentsManager.unloadComponents(); // reset the singleton's list between tests
+        ZComponentsManager.unloadComponents(); // reset the singleton's registry
     });
 
-    it("loads every other component when one onLoad throws, and logs the failure", () => {
-        jest.spyOn(log, "error").mockImplementation(() => undefined);
-        const loaded: string[] = [];
-        ZComponentsManager.registerComponent(new FakeComponent(() => loaded.push("a")));
-        ZComponentsManager.registerComponent(new FakeComponent(() => { throw new Error("boom"); }));
-        ZComponentsManager.registerComponent(new FakeComponent(() => loaded.push("c")));
+    it("unloads every component, isolates a throwing onUnload, and clears the registry", () => {
+        const errSpy = jest.spyOn(log, "error").mockImplementation(() => undefined);
+        const calls: string[] = [];
+        ZComponentsManager.registerComponent(fake(calls, "a"));
+        ZComponentsManager.registerComponent(fake(calls, "b", true)); // throws on unload
+        ZComponentsManager.registerComponent(fake(calls, "c"));
 
-        expect(() => ZComponentsManager.loadComponents()).not.toThrow();
+        ZComponentsManager.loadComponents();
+        ZComponentsManager.unloadComponents();
 
-        expect(loaded).toEqual(["a", "c"]);
-        expect(log.error).toHaveBeenCalledTimes(1);
-    });
+        // Every component loaded and unloaded, in order; the throwing one did not abort the rest.
+        expect(calls).toEqual(["load:a", "load:b", "load:c", "unload:a", "unload:b", "unload:c"]);
+        expect(errSpy).toHaveBeenCalledTimes(1); // the throwing component was logged, not rethrown
 
-    it("unloads every other component when one onUnload throws", () => {
-        jest.spyOn(log, "error").mockImplementation(() => undefined);
-        const down: string[] = [];
-        ZComponentsManager.registerComponent(new FakeComponent(() => undefined, () => down.push("a")));
-        ZComponentsManager.registerComponent(new FakeComponent(() => undefined, () => { throw new Error("boom"); }));
-        ZComponentsManager.registerComponent(new FakeComponent(() => undefined, () => down.push("c")));
-
-        expect(() => ZComponentsManager.unloadComponents()).not.toThrow();
-
-        expect(down).toEqual(["a", "c"]);
-        expect(log.error).toHaveBeenCalledTimes(1);
+        // The registry is cleared — a second unload does nothing (no leaked listeners on re-enable).
+        calls.length = 0;
+        ZComponentsManager.unloadComponents();
+        expect(calls).toEqual([]);
     });
 });

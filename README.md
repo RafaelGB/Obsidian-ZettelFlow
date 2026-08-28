@@ -61,15 +61,13 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 > ribbon button and as normal Obsidian tabs. Nothing is lost; every panel is a mode. See
 > [The four surfaces](https://rafaelgb.github.io/Obsidian-ZettelFlow/architecture/surfaces/).
 
-- **🩺 Slip-box health dashboard** — a sidebar that surfaces **orphan** and **dead-end** notes,
-  a **Knowledge Debt score** (0–100) with a severity bar and a per-category drill-down
-  (unreferenced · dangling · unsourced · open questions) each one click from a fix, and a
-  **Knowledge balance** read-out — what your slip-box is made of (references · questions · examples ·
-  conclusions · concepts) with balance nudges — so knowledge-debt never piles up unseen.
-- **📊 Knowledge dashboard** — the *state of your system* as an ops console: connectivity %
-  (connected / orphaned / unresolved), a knowledge-debt bar, and a "today" panel (to process ·
-  contradictions · connections · open questions) — **every panel proposes a recommended next
-  action**, one click from the surface to act on it. Read-only, offline.
+- **🩺 Slip-box health** — *one home for the state of your system.* Connectivity % (connected /
+  orphaned / unresolved) and a **"today"** panel (to process · contradictions · connections · open
+  questions, each with a next action); a **Knowledge Debt score** (0–100) with a severity bar and a
+  per-category drill-down (unreferenced · dangling · unsourced · open questions) each one click from a
+  fix; a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts)
+  with nudges; and the **orphan** / **dead-end** lists. Read-only, offline — so knowledge-debt never
+  piles up unseen. *(The former standalone "dashboard" is folded in here.)*
 - **🧩 Systems Gallery** — *somewhere to start.* Install a complete knowledge **system** in one click
   from the community browser: pick a folder and ZettelFlow writes a ready-to-run canvas plus its step
   notes (no clipboard, no manual paste), then **Run now** to use it immediately. Every system carries a
@@ -208,8 +206,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Live body preview** | See the rendered note body while editing a step's template (desktop). |
 | **Companion pane** | Live note preview + connection suggestions while the wizard runs — link before you file. |
 | **Zettel ID action** | Stable unique IDs per note: sortable timestamp or Folgezettel branching (`21 → 21a → 21a1`). |
-| **Slip-box health** | Sidebar dashboard surfacing orphan (no outgoing links) and dead-end (no backlinks) notes, a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, and a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with balance nudges. |
-| **Knowledge dashboard** | An ops console for the state of your system — connectivity % · knowledge debt · today (to process, contradictions, connections, open questions) — where every panel proposes a recommended next action. Read-only, offline. |
+| **Slip-box health** | One home for the state of your system: connectivity % + a "today" panel (to process · contradictions · connections · open questions, each with a next action), a **Knowledge Debt score** (unreferenced · dangling · unsourced · open questions) with a drill-down and one-click fixes, a **Knowledge balance** read-out (references · questions · examples · conclusions · concepts) with nudges, and the orphan/dead-end lists. Read-only, offline. |
 | **ZettelFlow Home** | The IDE-style front door: greeting + "thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting notes ready to develop" → jump to the latest), a **Cultivate** on-ramp (act on your next idea), new ideas, main concepts, notes that deserve a review, suggested connections, and a **"what to do next"** prioritized recommendation list (click to navigate). Read-only, offline. |
 | **Quick capture** | A command opens a single title prompt and writes a fleeting note to your Inbox — the fastest path from a thought to a note (no canvas, no wizard). Mobile-friendly; bind your own hotkey. Home nudges you to develop it later. |
 | **Cultivate (thinking sessions)** | A guided session that takes your highest-leverage idea and walks you through real moves on it — connect · challenge · question · advance state · add a source — each a one-click operation. The session refines live; the maturity/degree/state delta is a consequence of the work. Offline; AI optional. Home surface → Cultivate mode (or the `cultivate` command / ribbon). |

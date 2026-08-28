@@ -594,7 +594,6 @@ export default {
     cultivate_source_notice: 'Source added.',
     cultivate_apply_failed: 'Could not apply that move.',
     surface_mode_health: 'Health',
-    surface_mode_dashboard: 'Dashboard',
     surface_mode_timeline: 'Timeline',
     surface_mode_momentum: 'Momentum',
     surface_mode_connections: 'Connections',
@@ -932,13 +931,8 @@ export default {
     evidence_map_section_empty: 'None',
     settings_toolkit_evidence_map_name: 'Evidence map',
     settings_toolkit_evidence_map_desc: 'Experimental — a grounded synthesis of a note from your own graph: supports, contradicts, evidence, gaps.',
-    // Knowledge dashboard (#171)
-    knowledge_dashboard_view_title: 'Knowledge dashboard',
+    // Knowledge dashboard panels (#171) — merged into the Health mode (#314)
     command_show_knowledge_dashboard: 'Show knowledge dashboard',
-    knowledge_dashboard_indexing: 'Building the index…',
-    knowledge_dashboard_empty: 'No notes yet — your dashboard fills in as you build your slip-box.',
-    knowledge_dashboard_error: 'Could not build the knowledge dashboard.',
-    knowledge_dashboard_refresh_button: 'Refresh',
     knowledge_dashboard_panel_connectivity: 'Connectivity',
     knowledge_dashboard_panel_debt: 'Knowledge debt',
     knowledge_dashboard_panel_today: 'Today',
@@ -962,8 +956,6 @@ export default {
     knowledge_dashboard_rec_process_ideas: 'Process {0} fleeting note(s)',
     knowledge_dashboard_rec_make_connections: 'Make {0} suggested connection(s)',
     knowledge_dashboard_rec_all_clear: 'All clear — nothing pending.',
-    settings_toolkit_dashboard_name: 'Knowledge dashboard',
-    settings_toolkit_dashboard_desc: 'An ops console for your slip-box — connectivity, debt and today, each with a next action.',
     // ZettelFlow Home (#172)
     home_view_title: 'Home',
     home_graph_teaser_title: 'See the shape of your thinking',

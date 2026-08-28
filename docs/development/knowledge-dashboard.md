@@ -4,11 +4,16 @@ A DataviewJS dashboard shows *a query with your notes*. The **Knowledge dashboar
 of your knowledge system* — an ops console. It reads live from the knowledge model and, crucially,
 **every panel proposes a recommended next action** (no dead dashboards).
 
+> **Merged into Slip-box health (#314).** The dashboard is no longer a separate mode — its
+> connectivity and "today" panels are folded into the **[Health](slipbox-health-dashboard.md)** mode
+> (Health surface), alongside the debt drill-down, balance and orphan/dead-end lists. One home for
+> "the state of your system." The `Show knowledge dashboard` command still exists as an alias that
+> opens Health.
+
 ## Opening it
 
-Run **"Show knowledge dashboard"** from the command palette, or click **Open** next to *Knowledge
-dashboard* in **Settings → ZettelFlow → Zettelkasten toolkit**. It updates automatically (debounced)
-as the vault changes.
+Open the **Health** surface (ribbon → *Health*, or the retained **"Show knowledge dashboard"**
+command). It updates automatically (debounced) as the vault changes.
 
 ## The three panels
 

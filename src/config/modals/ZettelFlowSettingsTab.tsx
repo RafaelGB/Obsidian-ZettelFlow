@@ -52,7 +52,6 @@ const TOOLKIT_DOCS = {
     openQuestions: `${DOCS_BASE}development/open-questions/`,
     timeline: `${DOCS_BASE}development/evolution-timeline/`,
     evidenceMap: `${DOCS_BASE}development/evidence-map/`,
-    dashboard: `${DOCS_BASE}development/knowledge-dashboard/`,
     home: `${DOCS_BASE}development/zettelflow-home/`,
 } as const;
 

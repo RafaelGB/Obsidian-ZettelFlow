@@ -594,7 +594,6 @@ export default {
     cultivate_source_notice: 'Fuente añadida.',
     cultivate_apply_failed: 'No se pudo aplicar ese movimiento.',
     surface_mode_health: 'Salud',
-    surface_mode_dashboard: 'Panel',
     surface_mode_timeline: 'Cronología',
     surface_mode_momentum: 'Impulso',
     surface_mode_connections: 'Conexiones',
@@ -932,13 +931,8 @@ export default {
     evidence_map_section_empty: 'Ninguno',
     settings_toolkit_evidence_map_name: 'Mapa de evidencia',
     settings_toolkit_evidence_map_desc: 'Experimental — una síntesis fundamentada de una nota a partir de tu propio grafo: apoyos, contradicciones, evidencia, carencias.',
-    // Panel de conocimiento (#171)
-    knowledge_dashboard_view_title: 'Panel de conocimiento',
+    // Paneles del panel de conocimiento (#171) — fusionados en el modo Salud (#314)
     command_show_knowledge_dashboard: 'Mostrar panel de conocimiento',
-    knowledge_dashboard_indexing: 'Construyendo el índice…',
-    knowledge_dashboard_empty: 'Aún no hay notas — tu panel se completa a medida que construyes tu slip-box.',
-    knowledge_dashboard_error: 'No se ha podido construir el panel de conocimiento.',
-    knowledge_dashboard_refresh_button: 'Actualizar',
     knowledge_dashboard_panel_connectivity: 'Conectividad',
     knowledge_dashboard_panel_debt: 'Deuda de conocimiento',
     knowledge_dashboard_panel_today: 'Hoy',
@@ -962,8 +956,6 @@ export default {
     knowledge_dashboard_rec_process_ideas: 'Procesa {0} nota(s) fugaz(ces)',
     knowledge_dashboard_rec_make_connections: 'Haz {0} conexión(es) sugerida(s)',
     knowledge_dashboard_rec_all_clear: 'Todo en orden — nada pendiente.',
-    settings_toolkit_dashboard_name: 'Panel de conocimiento',
-    settings_toolkit_dashboard_desc: 'Una consola de operaciones para tu slip-box — conectividad, deuda y hoy, cada uno con una acción.',
     // Inicio de ZettelFlow (#172)
     home_view_title: 'Inicio',
     home_graph_teaser_title: 'Ve la forma de tu pensamiento',

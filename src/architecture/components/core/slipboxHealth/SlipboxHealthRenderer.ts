@@ -1,6 +1,7 @@
 import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
+import { activateSurface } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
     computeKnowledgeDebt,
@@ -15,14 +16,60 @@ import {
     classifyHealth,
     HealthNote,
     HealthResult,
+    buildKnowledgeDashboard,
+    DashboardModel,
+    DashboardPanel,
+    Metric,
+    RecommendationToken,
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import type { SurfaceTarget } from "architecture/components/core/surface/legacyTargets";
 
 const DEBOUNCE_MS = 400;
 /** Cap the DOM rows per health section (#302 S5): a huge vault can have thousands of orphans. */
 const MAX_HEALTH_ROWS = 200;
 
 type LocaleKey = Parameters<typeof t>[0];
+
+// ── system panels (#314): the connectivity + "today" panels, merged in from the retired Dashboard ──
+const RECOMMENDATION_TARGETS: Record<RecommendationToken, SurfaceTarget> = {
+    "connect-orphans": { surface: "zettelflow-health", mode: "health" },
+    "all-connected": { surface: "zettelflow-health", mode: "health" },
+    "reduce-debt": { surface: "zettelflow-health", mode: "health" },
+    "debt-clear": { surface: "zettelflow-health", mode: "health" },
+    "process-ideas": { surface: "zettelflow-health", mode: "health" },
+    "resolve-contradictions": { surface: "zettelflow-discovery", mode: "challenges" },
+    "answer-questions": { surface: "zettelflow-discovery", mode: "questions" },
+    "make-connections": { surface: "zettelflow-discovery", mode: "connections" },
+    "all-clear": { surface: "zettelflow-discovery", mode: "questions" },
+};
+const RECOMMENDATION_LABELS: Record<RecommendationToken, LocaleKey> = {
+    "connect-orphans": "knowledge_dashboard_rec_connect_orphans",
+    "all-connected": "knowledge_dashboard_rec_all_connected",
+    "reduce-debt": "knowledge_dashboard_rec_reduce_debt",
+    "debt-clear": "knowledge_dashboard_rec_debt_clear",
+    "resolve-contradictions": "knowledge_dashboard_rec_resolve_contradictions",
+    "answer-questions": "knowledge_dashboard_rec_answer_questions",
+    "process-ideas": "knowledge_dashboard_rec_process_ideas",
+    "make-connections": "knowledge_dashboard_rec_make_connections",
+    "all-clear": "knowledge_dashboard_rec_all_clear",
+};
+const PANEL_LABELS: Record<DashboardPanel["key"], LocaleKey> = {
+    connectivity: "knowledge_dashboard_panel_connectivity",
+    debt: "knowledge_dashboard_panel_debt",
+    today: "knowledge_dashboard_panel_today",
+};
+const METRIC_LABELS: Record<string, LocaleKey> = {
+    connected: "knowledge_dashboard_metric_connected",
+    orphaned: "knowledge_dashboard_metric_orphaned",
+    unresolved: "knowledge_dashboard_metric_unresolved",
+    process: "knowledge_dashboard_metric_process",
+    contradictions: "knowledge_dashboard_metric_contradictions",
+    connections: "knowledge_dashboard_metric_connections",
+    questions: "knowledge_dashboard_metric_questions",
+};
+/** The "all good" recommendations — shown as plain, non-navigating text. */
+const POSITIVE_TOKENS: ReadonlySet<RecommendationToken> = new Set(["all-connected", "debt-clear", "all-clear"]);
 
 /** Self-describing debt-category labels/descriptions (#159, avoids the older orphan/dead-end wording). */
 const DEBT_LABELS: Record<DebtCategoryKey, LocaleKey> = {
@@ -55,10 +102,10 @@ const BALANCE_SUGGESTIONS: Record<BalanceSuggestion, LocaleKey> = {
 type ViewState = "indexing" | "ready" | "empty" | "error";
 
 /**
- * The **Health** mode of the Health surface (#272, formerly `SlipboxHealthView`): orphan/dead-end
- * scan + the #159 Knowledge Debt score with one-click fixes + the #161 Knowledge balance read-out.
- * Render byte-identical to the old view; only the `ItemView` shell was dropped so it mounts inside the
- * surface. Debounced auto-refresh on vault change.
+ * The **Health** mode of the Health surface — the single home for the state of your knowledge system
+ * (#314, merging in the retired Dashboard): the connectivity + "today" panels, the #159 Knowledge Debt
+ * score with one-click fixes, the #161 Knowledge balance read-out, and the orphan/dead-end lists.
+ * Reads live; writes nothing. Debounced auto-refresh on vault change.
  */
 export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
@@ -66,6 +113,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
     private lastRevision = -1;
     private debt: KnowledgeDebt | null = null;
     private balance: KnowledgeBalance | null = null;
+    private dashboard: DashboardModel | null = null;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -103,6 +151,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 this.result = null;
                 this.debt = null;
                 this.balance = null;
+                this.dashboard = null;
                 this.render();
                 return;
             }
@@ -120,6 +169,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 : "ready";
             this.debt = computeKnowledgeDebt(model);
             this.balance = computeKnowledgeBalance(model);
+            this.dashboard = buildKnowledgeDashboard(model);
 
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +
@@ -163,15 +213,54 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 break;
             case "empty":
                 container.createDiv({ cls: c("slipbox-health-status"), text: t("slipbox_health_all_connected") });
+                this.renderSystemPanels(container);
                 this.renderDebtSection(container);
                 this.renderBalanceSection(container);
                 break;
             case "ready":
-                this.renderResults(container);
+                this.renderSummary(container);
+                this.renderSystemPanels(container);
                 this.renderDebtSection(container);
                 this.renderBalanceSection(container);
+                this.renderLists(container);
                 break;
         }
+    }
+
+    /** Connectivity + "today" panels (#314): the ops-console overview, merged in from the Dashboard.
+     *  Debt is rendered by the richer drill-down section below, so its panel is skipped here. */
+    private renderSystemPanels(container: HTMLElement): void {
+        if (!this.dashboard) return;
+        for (const panel of this.dashboard.panels) {
+            if (panel.key === "debt") continue;
+            this.renderPanel(container, panel);
+        }
+    }
+
+    private renderPanel(container: HTMLElement, panel: DashboardPanel): void {
+        const section = container.createDiv({ cls: c("knowledge-dashboard-panel") });
+        section.createEl("h5", { text: t(PANEL_LABELS[panel.key]), cls: c("knowledge-dashboard-panel-title") });
+
+        const metrics = section.createDiv({ cls: c("knowledge-dashboard-metrics") });
+        for (const metric of panel.metrics) this.renderMetric(metrics, metric);
+
+        const rec = panel.recommendation;
+        const row = section.createDiv({ cls: c("knowledge-dashboard-recommendation") });
+        const text = t(RECOMMENDATION_LABELS[rec.token], String(rec.count));
+        if (POSITIVE_TOKENS.has(rec.token)) {
+            row.createSpan({ text, cls: c("knowledge-dashboard-rec-clear") });
+            return;
+        }
+        const label = row.createSpan({ text, cls: c("knowledge-dashboard-rec-label") });
+        const target = RECOMMENDATION_TARGETS[rec.token];
+        this.registerDomEvent(label, "click", () => void activateSurface(this.app, target.surface, target.mode));
+    }
+
+    private renderMetric(container: HTMLElement, metric: Metric): void {
+        const row = container.createDiv({ cls: c("knowledge-dashboard-metric") });
+        row.createSpan({ text: t(METRIC_LABELS[metric.key] ?? "knowledge_dashboard_metric_score"), cls: c("knowledge-dashboard-metric-label") });
+        const value = metric.percent !== undefined ? `${metric.count} (${metric.percent}%)` : String(metric.count);
+        row.createSpan({ text: value, cls: c("knowledge-dashboard-metric-value") });
     }
 
     private renderBalanceSection(container: HTMLElement): void {
@@ -245,17 +334,20 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
         });
     }
 
-    private renderResults(container: HTMLElement): void {
+    private renderSummary(container: HTMLElement): void {
         if (!this.result) return;
         const { orphans, deadEnds, totalScanned } = this.result;
-
         const summary = container.createDiv({ cls: c("slipbox-health-summary") });
         summary.createSpan({ text: t("slipbox_health_scanned", String(totalScanned)), cls: c("slipbox-health-summary-total") });
         summary.createSpan({ text: ` · `, cls: c("slipbox-health-summary-sep") });
         summary.createSpan({ text: t("slipbox_health_orphan_count", String(orphans.length)), cls: c("slipbox-health-summary-orphans") });
         summary.createSpan({ text: ` · `, cls: c("slipbox-health-summary-sep") });
         summary.createSpan({ text: t("slipbox_health_deadend_count", String(deadEnds.length)), cls: c("slipbox-health-summary-deadends") });
+    }
 
+    private renderLists(container: HTMLElement): void {
+        if (!this.result) return;
+        const { orphans, deadEnds } = this.result;
         if (orphans.length > 0) {
             this.renderSection(container, t("slipbox_health_orphans_heading"), orphans, "slipbox-health-orphan");
         }

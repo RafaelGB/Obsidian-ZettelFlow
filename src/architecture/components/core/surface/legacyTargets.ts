@@ -42,16 +42,18 @@ const REDIRECT_VIEW_TYPES = [
     "zettelflow-concept-nav",
 ];
 
-// The retired 2D Graph views (#280): the surface is now 3D-only, so their aliases open the 3D mode.
-const RETIRED_TO_GRAPH_3D: Record<string, SurfaceTarget> = {
+// Retired modes whose source view no longer hosts a mode, mapped to where they live now:
+// the 2D Graph views open the 3D mode (#280); the Dashboard merged into Health (#314).
+const RETIRED_TARGETS: Record<string, SurfaceTarget> = {
     "zettelflow-knowledge-map": { surface: "zettelflow-graph", mode: "3d" },
     "zettelflow-concept-nav": { surface: "zettelflow-graph", mode: "3d" },
+    "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "health" },
 };
 
 function resolve(sourceView: string): SurfaceTarget {
     const located = locateSourceView(sourceView);
     if (located) return located;
-    const retired = RETIRED_TO_GRAPH_3D[sourceView];
+    const retired = RETIRED_TARGETS[sourceView];
     if (retired) return retired;
     throw new Error(`[surface] no surface hosts the view "${sourceView}"`);
 }

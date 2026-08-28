@@ -2,14 +2,11 @@ import { describe, it, expect } from "@jest/globals";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
+// The dashboard panels/metrics/recommendations are now rendered by the Health mode (#314); its own
+// chrome + toolkit keys were removed with the standalone renderer, so only these live keys remain.
 const KEYS = [
-    // chrome (6)
-    "knowledge_dashboard_view_title",
+    // command alias (1) — still registered as a Health redirect
     "command_show_knowledge_dashboard",
-    "knowledge_dashboard_indexing",
-    "knowledge_dashboard_empty",
-    "knowledge_dashboard_error",
-    "knowledge_dashboard_refresh_button",
     // panels (3)
     "knowledge_dashboard_panel_connectivity",
     "knowledge_dashboard_panel_debt",
@@ -37,14 +34,11 @@ const KEYS = [
     "knowledge_dashboard_rec_process_ideas",
     "knowledge_dashboard_rec_make_connections",
     "knowledge_dashboard_rec_all_clear",
-    // toolkit (2)
-    "settings_toolkit_dashboard_name",
-    "settings_toolkit_dashboard_desc",
 ];
 
 describe("knowledge dashboard i18n parity (#171)", () => {
-    it("defines all 31 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(31);
+    it("defines all 24 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(24);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

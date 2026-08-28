@@ -16,10 +16,10 @@ four surfaces. Note creation is no longer its own ribbon icon.
 
 | Surface | Modes | Folds in (former views) |
 |---|---|---|
-| **Home** | Home · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + Notes history |
-| **Health** | Health · Dashboard · Timeline · Momentum | Slip-box health + Knowledge dashboard + Evolution timeline + Thinking heatmap |
+| **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + Notes history |
+| **Health** | Health · Timeline · Momentum | Slip-box health **+ the knowledge dashboard folded in** (#314) + Evolution timeline + Thinking heatmap |
 | **Discovery** | Connections · Forgotten · Questions · Challenges | Discovery + Resurface + Open questions + Evidence map |
-| **Graph** | Map · Navigate · 3D | Living knowledge map + Concept navigation + **[3D knowledge graph](../development/graph-3d.md)** (#280); *Reasoning* deferred |
+| **Graph** | 3D | **[3D knowledge graph](../development/graph-3d.md)** (#280, 3D-only); the retired 2D map / concept-nav redirect here |
 
 Every mode reuses the retired view's rendering **verbatim** — same numbers, same behaviour — mounted
 inside the surface as a `KnowledgeModeRenderer` (an Obsidian `Component`, so its listeners are cleaned

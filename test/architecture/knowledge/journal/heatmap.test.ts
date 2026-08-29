@@ -4,11 +4,30 @@ import {
     levelForCount,
     pruneCounts,
     toDayKey,
+    developmentStreak,
 } from "architecture/knowledge/journal/heatmap";
 
 const DAY = 86_400_000;
 const NOW = Date.UTC(2026, 7, 12, 12, 0, 0); // 2026-08-12 midday UTC
 const key = (offset: number) => toDayKey(NOW - offset * DAY);
+
+describe("developmentStreak (#318 S2)", () => {
+    it("counts consecutive active days ending today", () => {
+        const counts = { [key(0)]: 2, [key(1)]: 1, [key(2)]: 3 }; // today + 2 back
+        expect(developmentStreak(counts, NOW)).toBe(3);
+    });
+
+    it("an empty today does not break the streak (counts from yesterday)", () => {
+        const counts = { [key(1)]: 1, [key(2)]: 1 }; // nothing today
+        expect(developmentStreak(counts, NOW)).toBe(2);
+    });
+
+    it("a full missed day resets the streak", () => {
+        const counts = { [key(2)]: 5, [key(3)]: 5 }; // gap at yesterday + today
+        expect(developmentStreak(counts, NOW)).toBe(0);
+        expect(developmentStreak({}, NOW)).toBe(0);
+    });
+});
 
 describe("levelForCount (#162)", () => {
     it("bands counts at the documented thresholds", () => {

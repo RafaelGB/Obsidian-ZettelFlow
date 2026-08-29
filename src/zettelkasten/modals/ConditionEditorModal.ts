@@ -1,4 +1,5 @@
 import { App, Modal, Setting } from "obsidian";
+import { EditorView } from "@codemirror/view";
 import { Canvas, CanvasEdge } from "obsidian/canvas";
 import { dispatchEditor } from "architecture/components/core";
 import {
@@ -6,8 +7,14 @@ import {
     CONDITION_EXAMPLES,
     sanityCheckCondition,
 } from "architecture/plugin/events/conditionHelp";
+import {
+    CONDITION_OPERATORS,
+    buildConditionExpression,
+} from "architecture/plugin/events/conditionBuilder";
 import { t } from "architecture/lang";
-import { log } from "architecture";
+import { c, log } from "architecture";
+
+type LocaleKey = Parameters<typeof t>[0];
 
 /**
  * Guided condition editor for ZettelFlow canvas edges (#258).
@@ -19,6 +26,8 @@ export class ConditionEditorModal extends Modal {
     private edge: CanvasEdge;
     private canvas: Canvas;
     private expr: string;
+    private editorView?: EditorView;
+    private warningEl!: HTMLElement;
 
     constructor(app: App, edge: CanvasEdge, canvas: Canvas) {
         super(app);
@@ -33,15 +42,17 @@ export class ConditionEditorModal extends Modal {
 
         // ── Code editor ──────────────────────────────────────────────────
         const editorEl = contentEl.createDiv();
-        const warningEl = contentEl.createEl("p", { cls: "zettelkasten-flow__condition-warning" });
+        this.warningEl = contentEl.createEl("p", { cls: "zettelkasten-flow__condition-warning" });
 
-        dispatchEditor(editorEl, this.expr, (update) => {
+        this.editorView = dispatchEditor(editorEl, this.expr, (update) => {
             if (update.docChanged) {
                 this.expr = update.state.doc.toString();
-                const check = sanityCheckCondition(this.expr);
-                warningEl.textContent = check.ok ? "" : (check.error ?? "");
+                this.showSanity();
             }
         });
+
+        // ── Guided builder (#235, #318 S5) ────────────────────────────────
+        this.renderBuilder(contentEl);
 
         // ── Vocabulary table ──────────────────────────────────────────────
         const vocabHeading = contentEl.createEl("h6");
@@ -71,10 +82,7 @@ export class ConditionEditorModal extends Modal {
                     text: t("condition_editor_insert"),
                     cls: "zettelkasten-flow__condition-insert-btn",
                 });
-                insertBtn.addEventListener("click", () => {
-                    this.expr = example.condition;
-                    warningEl.textContent = "";
-                });
+                insertBtn.addEventListener("click", () => this.setExpr(example.condition));
             }
         }
 
@@ -98,6 +106,72 @@ export class ConditionEditorModal extends Modal {
             .addButton((btn) =>
                 btn.setButtonText(t("condition_editor_cancel")).onClick(() => this.close())
             );
+    }
+
+    /**
+     * The guided composer: field · operator · value pickers that emit a valid expression via the pure
+     * {@link buildConditionExpression}, so a non-programmer never types JS. A value-less operator hides
+     * the value box; an invalid clause shows the builder's reason instead of writing broken code.
+     */
+    private renderBuilder(contentEl: HTMLElement): void {
+        contentEl.createEl("h6", { text: t("condition_builder_heading") });
+        const row = contentEl.createDiv({ cls: c("condition-builder") });
+
+        let field = CONDITION_FIELDS[0]?.accessor ?? "";
+        let operatorId = CONDITION_OPERATORS[0].id;
+        let value = "";
+
+        const fieldSelect = row.createEl("select", { cls: c("condition-builder-field") });
+        fieldSelect.setAttribute("aria-label", t("condition_builder_field"));
+        for (const f of CONDITION_FIELDS) fieldSelect.createEl("option", { value: f.accessor, text: f.accessor });
+        fieldSelect.addEventListener("change", () => (field = fieldSelect.value));
+
+        const opSelect = row.createEl("select", { cls: c("condition-builder-operator") });
+        opSelect.setAttribute("aria-label", t("condition_builder_operator"));
+        for (const op of CONDITION_OPERATORS) {
+            opSelect.createEl("option", { value: op.id, text: t(`condition_op_${op.id}` as LocaleKey) });
+        }
+
+        const valueInput = row.createEl("input", { type: "text", cls: c("condition-builder-value") });
+        valueInput.placeholder = t("condition_builder_value");
+        valueInput.setAttribute("aria-label", t("condition_builder_value"));
+        valueInput.addEventListener("input", () => (value = valueInput.value));
+
+        const syncValueVisibility = () => {
+            const op = CONDITION_OPERATORS.find((o) => o.id === opSelect.value);
+            valueInput.toggleClass(c("is-hidden"), !(op?.takesValue ?? true));
+        };
+        opSelect.addEventListener("change", () => {
+            operatorId = opSelect.value;
+            syncValueVisibility();
+        });
+        syncValueVisibility();
+
+        const addBtn = row.createEl("button", { text: t("condition_builder_insert"), cls: c("condition-builder-insert-btn") });
+        addBtn.addEventListener("click", () => {
+            const built = buildConditionExpression({ field, operator: operatorId, value });
+            if (!built.ok || !built.expression) {
+                this.warningEl.textContent = built.error ?? "";
+                return;
+            }
+            this.setExpr(built.expression);
+        });
+    }
+
+    /** Replace the editor's content (and `this.expr`) with `next`, then refresh the sanity feedback. */
+    private setExpr(next: string): void {
+        this.expr = next;
+        const view = this.editorView;
+        if (view) {
+            view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: next } });
+        }
+        this.showSanity();
+    }
+
+    /** Show the current expression's sanity-check reason (or clear it when the expression is fine). */
+    private showSanity(): void {
+        const check = sanityCheckCondition(this.expr);
+        this.warningEl.textContent = check.ok ? "" : (check.error ?? "");
     }
 
     onClose(): void {

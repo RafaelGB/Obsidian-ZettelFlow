@@ -1,0 +1,17 @@
+// Guided condition builder — field · operator · value pickers (#235, #318 S5).
+.zettelkasten-flow__condition-builder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__condition-builder-value {
+    flex: 1;
+    min-width: 8rem;
+}
+
+.zettelkasten-flow__condition-builder-insert-btn {
+    cursor: pointer;
+}

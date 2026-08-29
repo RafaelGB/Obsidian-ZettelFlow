@@ -37,13 +37,18 @@ cycle-safe (never revisits a note on a path), depth-bounded (default 5 steps), d
 Obsidian-free. Counter-argument (`contradicts`), open `question`, `inspired-by` and plain `link`
 edges are deliberately excluded so a path reads as a single line of reasoning — challenging an idea
 is the job of [find contradiction](../actions/FindContradiction.md) and the
-[thinking simulator](../actions/ThinkingSimulator.md). This function is a tested, documented
-foundation; a dedicated argument-path view is a likely follow-up.
+[thinking simulator](../actions/ThinkingSimulator.md).
+
+**Surfaced (#318 S4).** The command **Trace reasoning paths from the active note** opens a read-only lens
+that lists every argument chain leaving the note, each relation labelled (`supports → expands → …`) and
+every note clickable to open it. The lens only reads the model through the Knowledge State barrel and
+never writes.
 
 ## Out of scope (for now)
 
-Read-only navigation only — no graph-canvas rendering, no path pinning/bookmarking, no configurable
-hub threshold or forward-relation set, and no argument-path rendering surface yet.
+Read-only navigation only — no graph-canvas rendering, no path pinning/bookmarking, and no configurable
+hub threshold or forward-relation set. Reasoning paths are now surfaced as a note lens (#318 S4); a
+graph-overlay rendering is still a possible follow-up.
 
 ## Architecture
 

@@ -1,0 +1,81 @@
+// Ask your graph — the deterministic semantic query surface (#318 S3).
+.zettelkasten-flow__ask-graph-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__ask-graph-bar {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.zettelkasten-flow__ask-graph-input {
+    flex: 1;
+    min-width: 12rem;
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__ask-graph-run,
+.zettelkasten-flow__ask-graph-save {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__ask-graph-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 0.35rem 0;
+}
+
+.zettelkasten-flow__ask-graph-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__ask-graph-result {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.15rem 0;
+}
+
+.zettelkasten-flow__ask-graph-result-name {
+    cursor: pointer;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__ask-graph-result-meta {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__ask-graph-example-query,
+.zettelkasten-flow__ask-graph-saved-query {
+    cursor: pointer;
+    margin-left: 0.4rem;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__ask-graph-saved-item,
+.zettelkasten-flow__ask-graph-example {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.zettelkasten-flow__ask-graph-saved-delete {
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+}

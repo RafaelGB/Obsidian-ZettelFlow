@@ -4,6 +4,7 @@ import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
 import { requestGraph3DFocus } from "architecture/components/core/graph3d/graph3dFocus";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
+import { AskGraphModal } from "zettelkasten/modals/AskGraphModal";
 import { CommunityTemplatesModal } from "application/community";
 import ZettelFlow from "main";
 
@@ -40,6 +41,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         [
             { command: "show-home", labelKey: "command_show_home", icon: "house" },
             { command: "cultivate", labelKey: "command_cultivate", icon: "sprout" },
+            { command: "ask-your-graph", labelKey: "command_ask_graph", icon: "search" },
             { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
             { command: "show-discovery", labelKey: "command_show_discovery", icon: "telescope" },
             { command: "show-graph", labelKey: "command_show_graph", icon: "network" },
@@ -88,6 +90,12 @@ export class ZettelFlowMenuComponent extends PluginComponent {
                 }
                 return true;
             },
+        });
+        // Ask your graph — the deterministic semantic query surface (#318 S3).
+        this.plugin.addCommand({
+            id: "ask-your-graph",
+            name: t("command_ask_graph"),
+            callback: () => new AskGraphModal(this.plugin).open(),
         });
         // Trace the argument-forward reasoning chains leaving the active note (#166, #318 S4).
         this.plugin.addCommand({

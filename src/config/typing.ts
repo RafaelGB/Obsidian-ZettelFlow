@@ -44,6 +44,8 @@ export interface ZettelFlowSettings {
      * connect/challenge/question/advance/source. Undefined = all (the default recipe).
      */
     cultivateMoves?: string[];
+    /** Saved "ask your graph" queries (#318 S3) — persisted so a useful query can be re-run. */
+    savedGraphQueries?: string[];
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 

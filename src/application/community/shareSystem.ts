@@ -51,7 +51,8 @@ export async function buildActiveCanvasTemplate(plugin: ZettelFlow): Promise<Act
 export function downloadTemplate(name: string, json: string): void {
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const anchor = activeDocument.createEl("a");
+    // Native createElement (detached) — Obsidian's createEl would append to the document and throw.
+    const anchor = activeDocument.createElement("a");
     anchor.href = url;
     anchor.setAttr("download", `${name}.zftemplate`);
     anchor.click();

@@ -343,6 +343,8 @@ export default {
     property_hooks_test_result_set: 'Establecería:',
     property_hooks_test_result_remove: 'Eliminaría:',
     property_hooks_test_result_flow: 'Dispararía el flujo: {0}',
+    property_hooks_render_error: 'El panel de hooks tuvo un error. Tus hooks están a salvo — recarga para continuar.',
+    property_hooks_reload: 'Recargar hooks',
     // Plantillas de pasos
     step_templates_select_step: 'Selecciona un paso',
     step_templates_search_placeholder: 'Buscar por título, descripción o autor...',

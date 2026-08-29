@@ -31,7 +31,7 @@ export function ContributeTab(props: PluginComponentProps) {
   const shareSystem = async () => {
     const built = await buildActiveCanvasTemplate(plugin);
     if (!built) {
-      new Notice(t("export_template_no_canvas"));
+      new Notice(t("community_contribute_share_no_canvas"), 6000);
       return;
     }
     const inlineUrl = newIssueUrl("ADD_TEMPLATE.yaml", {
@@ -97,8 +97,10 @@ export function ContributeTab(props: PluginComponentProps) {
             <span className={c("community-contribute-card-icon")} aria-hidden="true">
               {card.icon}
             </span>
-            <span className={c("community-contribute-card-title")}>{t(card.titleKey)}</span>
-            <span className={c("community-contribute-card-desc")}>{t(card.descKey)}</span>
+            <span className={c("community-contribute-card-body")}>
+              <span className={c("community-contribute-card-title")}>{t(card.titleKey)}</span>
+              <span className={c("community-contribute-card-desc")}>{t(card.descKey)}</span>
+            </span>
           </button>
         ))}
       </div>

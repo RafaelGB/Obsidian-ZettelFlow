@@ -264,39 +264,6 @@
     margin-top: 12px;
 }
 
-.zettelkasten-flow__property-hook-cancel-button,
-.zettelkasten-flow__property-hook-save-button {
-    padding: 4px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: var(--font-ui-small);
-    border: 1px solid var(--background-modifier-border);
-}
-
-.zettelkasten-flow__property-hook-cancel-button {
-    background-color: var(--background-secondary);
-    color: var(--text-normal);
-}
-
-.zettelkasten-flow__property-hook-save-button {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
-}
-
-.zettelkasten-flow__property-hook-cancel-button:hover {
-    background-color: var(--background-secondary-alt);
-}
-
-.zettelkasten-flow__property-hook-save-button:hover {
-    background-color: var(--interactive-accent-hover);
-}
-
-.zettelkasten-flow__property-hook-save-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 /* Property Selector dropdown */
 .zettelkasten-flow__property-hook-selector {
     background-color: var(--background-primary);
@@ -330,17 +297,6 @@
     cursor: pointer;
     font-size: var(--font-ui-small);
     border: 1px solid var(--background-modifier-border);
-}
-
-/* CodeEditor special styles */
-.zettelkasten-flow__property-hooks-code-editor {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    height: 150px;
-    overflow: auto;
-    font-family: var(--font-monospace);
-    line-height: 1.5;
-    font-size: var(--font-ui-small);
 }
 
 /* ===== ObsidianTypesModal – Cards UI ===== */

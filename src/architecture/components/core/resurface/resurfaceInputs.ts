@@ -1,5 +1,6 @@
 import { App, CachedMetadata, TFile, getAllTags } from "obsidian";
 import { ActiveNoteSignals, ResurfaceCandidate } from "application/notes/resurfaceRanking";
+import { KnowledgeIndex } from "architecture/knowledge";
 
 /**
  * Impure gathering for connection resurfacing — turns Obsidian's metadata cache into the pure
@@ -66,14 +67,19 @@ function buildResurfaceInputsUncached(app: App): ResurfaceInputs {
     const backlinkIndex = buildBacklinkIndex(resolved);
     const cache = app.metadataCache;
 
-    const candidates: ResurfaceCandidate[] = app.vault.getMarkdownFiles().map((file) => ({
-        path: file.path,
-        basename: file.basename,
-        tags: fileTags(cache.getFileCache(file)),
-        outgoingLinks: Object.keys(resolved[file.path] ?? {}),
-        backlinks: backlinkIndex.get(file.path) ?? [],
-        lastOpenedOrModified: file.stat.mtime,
-    }));
+    // Honour knowledge scope (#311): excluded/system notes must never be resurfaced as "forgotten".
+    const index = KnowledgeIndex.getInstance();
+    const candidates: ResurfaceCandidate[] = app.vault
+        .getMarkdownFiles()
+        .filter((file) => index.inScope(file.path))
+        .map((file) => ({
+            path: file.path,
+            basename: file.basename,
+            tags: fileTags(cache.getFileCache(file)),
+            outgoingLinks: Object.keys(resolved[file.path] ?? {}),
+            backlinks: backlinkIndex.get(file.path) ?? [],
+            lastOpenedOrModified: file.stat.mtime,
+        }));
 
     const buildActiveSignals = (file: TFile): ActiveNoteSignals => ({
         path: file.path,

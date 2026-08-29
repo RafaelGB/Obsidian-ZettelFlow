@@ -26,9 +26,16 @@ Each line is a **folder-boundary "starts with"** match. `templates` excludes `te
 trailing slashes and back-slashes are normalised, blanks and duplicates dropped. Editing the list
 rebuilds the index automatically.
 
-Suggested entries: your template folder, and ZettelFlow's own scaffolding (`_ZettelFlow`,
-`_ZettelFlowMdTemplates`) if you don't consider those notes part of your slip-box. Nothing is
-excluded by default — you opt in.
+Suggested entries: your template folder, and any other tooling you don't consider part of your
+slip-box.
+
+## System folders are excluded automatically
+
+ZettelFlow's **own machinery** is never part of your thinking, so it is excluded **automatically** —
+you don't have to list it. That covers the flows folder (`foldersFlowsPath`, default
+`_ZettelFlow/folders`), the hook-flow folder (`hooks.folderFlowPath`, default `_ZettelFlow/hooks`)
+and the `zf` JS library folder (`jsLibraryFolderPath`). Their step notes and scripts therefore never
+get indexed, cultivated, or counted anywhere. Your manual list is merged on top of these.
 
 ## Notes
 
@@ -39,6 +46,7 @@ excluded by default — you opt in.
 ## Architecture
 
 The pure predicate lives in `architecture/knowledge/scope/knowledgeScope.ts`
-(`isPathExcluded` / `normalizeExcludedPaths`), applied at the single boundary in
-`KnowledgeIndex` (`build` / `upsert` / `enrichInlineRelations` / `onRename`). Settings:
-`ZettelFlowSettings.excludedPaths`.
+(`isPathExcluded` / `normalizeExcludedPaths`), with `scopeExcludedPaths(settings)` merging the user's
+`excludedPaths` with the auto-excluded system folders. It is applied at the single boundary in
+`KnowledgeIndex.inScope` (`build` / `upsert` / `enrichInlineRelations` / `onRename`). Settings:
+`ZettelFlowSettings.excludedPaths` (+ `foldersFlowsPath`, `hooks.folderFlowPath`, `jsLibraryFolderPath`).

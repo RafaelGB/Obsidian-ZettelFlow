@@ -8,7 +8,7 @@ import { parseInlineFields } from "./parse/inlineFields";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
 import { isClaimOrSourceKey, isSourceKey } from "./claims";
 import { detectDevelopmentEvents } from "./journal/developmentEvents";
-import { isPathExcluded } from "./scope/knowledgeScope";
+import { isPathExcluded, scopeExcludedPaths, type ScopeSettings } from "./scope/knowledgeScope";
 import { DevelopmentJournal } from "architecture/plugin/journal/DevelopmentJournal";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 
@@ -62,16 +62,21 @@ export class KnowledgeIndex {
         this.schemas = { ...this.schemas, ...schemas };
     }
 
-    /** The configured out-of-scope path prefixes (#311) — notes here are not part of the thinking system. */
+    /**
+     * The out-of-scope path prefixes (#311, extended): the user's `excludedPaths` **plus** ZettelFlow's
+     * own managed system folders (flows, hook flows, JS library), which are auto-excluded so system notes
+     * are never treated as knowledge.
+     */
     private excludedPaths(): readonly string[] {
         try {
-            return ObsidianApi.getOwnPlugin()?.settings?.excludedPaths ?? [];
+            const settings = ObsidianApi.getOwnPlugin()?.settings as ScopeSettings | undefined;
+            return settings ? scopeExcludedPaths(settings) : [];
         } catch {
             return []; // before settings are wired (or in tests), nothing is excluded
         }
     }
 
-    /** Whether a note counts as knowledge (#311): everything except the configured excluded paths. */
+    /** Whether a note counts as knowledge (#311): everything except the excluded (user + system) paths. */
     public inScope(path: string): boolean {
         return !isPathExcluded(path, this.excludedPaths());
     }

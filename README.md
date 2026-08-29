@@ -231,7 +231,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Atomicity split** | Split a multi-topic note into linked atomic notes, leaving the source as an index/hub. |
 | **Note lifecycle states** | Classify notes by phase (fleeting → … → archived) and change state with a validated command; state lives in configurable frontmatter (no lock-in). |
 | **Knowledge scope** | Exclude config/template/tooling folders from the thinking system — one simple list of path prefixes. Notes under an excluded path never enter the index, so they drop out of the graph, health, discovery, Cultivate and Home all at once. |
-| **Vault hooks** | Trigger flows automatically on folder creation events or frontmatter property changes. |
+| **Vault hooks** | Run a script automatically on folder-creation events or frontmatter property changes. Property hooks now have a cleaner manager: **enable/disable** each hook, give it a **description**, gate it with a **run condition** (`event.newValue === 'done'`), and **test it on the active note** (a dry-run that previews the changes without writing). |
 | **Event-driven workflows** | Let a flow react to vault events (note created/modified, a property or tag change) instead of only running on demand — off by default, throttled, and loop-guarded. |
 | **Visual workflow language** | Compose a reactive flow on the canvas: WHEN a vault event happens, IF a condition holds, run an ACTION, then WAIT for your confirmation — human-in-the-loop pauses, off by default and loop-guarded. |
 | **Action picker by capability** | The action picker groups actions by cognitive capability (Manipulation · Relations · Knowledge · Research · AI) instead of a flat list. |

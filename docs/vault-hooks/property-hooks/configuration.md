@@ -11,17 +11,43 @@ Property hooks can be configured through the ZettelFlow settings panel. You can 
 
 ## Adding a New Property Hook
 
-1. Click the "Add Hook" button
-2. Select a property from the dropdown menu (this shows all available frontmatter property types in your vault)
-3. Click "Add Hook" to confirm
+1. Click the **Add hook** button
+2. Select a property from the search (this shows all available frontmatter property types in your vault)
+3. Click **Add** to confirm — the new hook appears in the list, already expanded, ready to edit
 
 ## Editing a Property Hook
 
-Once you've added a hook, you can expand it to edit:
+Once you've added a hook, expand it to edit:
 
 1. Click the expand button (down arrow) on the hook
-2. Write your JavaScript code in the editor
-3. Click "Save Hook" when done
+2. (Optional) Give it a **Description** — a human label shown in the list instead of the raw property name
+3. (Optional) Set a **Run condition** — see below
+4. Write your JavaScript code in the editor
+5. Click **Save hook** when done
+
+## Enable / disable, describe, and condition
+
+Each hook now carries a few extra controls (all optional and persisted):
+
+- **Enabled toggle** (in the hook's header) — pause a hook without deleting it. A disabled hook is dimmed,
+  marked *Paused*, and is skipped by the runtime.
+- **Description** — a friendly label so a list of hooks reads clearly.
+- **Run condition** — a small `zf` expression evaluated **before** the script runs; the hook only runs when
+  it holds. Leave it blank to always run. The condition references the change event:
+  `event.property`, `event.oldValue`, `event.newValue`, `event.notePath`. Example insert-buttons and a live
+  sanity check are provided. For the full vocabulary see
+  [Trigger conditions](../../architecture/trigger-conditions.md).
+
+    ```js
+    event.newValue === 'done'                                   // only when the value becomes "done"
+    event.property === 'status' && event.newValue === 'done'    // explicit property + value
+    ```
+
+## Test on the active note (dry run)
+
+Inside a hook's editor, **Test on active note** runs the hook (condition + script) against the note you have
+open and shows exactly what it *would* set, remove, or trigger — **without writing anything**. Use it to
+author a hook safely before you rely on it.
 
 ## Script Environment
 

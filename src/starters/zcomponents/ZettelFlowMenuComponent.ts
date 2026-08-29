@@ -3,6 +3,7 @@ import { PluginComponent, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
 import { requestGraph3DFocus } from "architecture/components/core/graph3d/graph3dFocus";
+import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import { CommunityTemplatesModal } from "application/community";
 import ZettelFlow from "main";
 
@@ -85,6 +86,17 @@ export class ZettelFlowMenuComponent extends PluginComponent {
                     requestGraph3DFocus(file.path);
                     void activateSurface(this.plugin.app, "zettelflow-graph", "3d");
                 }
+                return true;
+            },
+        });
+        // Trace the argument-forward reasoning chains leaving the active note (#166, #318 S4).
+        this.plugin.addCommand({
+            id: "explore-reasoning-paths",
+            name: t("command_explore_reasoning_paths"),
+            checkCallback: (checking: boolean) => {
+                const file = this.plugin.app.workspace.getActiveFile();
+                if (!file || file.extension !== "md") return false;
+                if (!checking) new ReasoningPathsModal(this.plugin.app, file.path).open();
                 return true;
             },
         });

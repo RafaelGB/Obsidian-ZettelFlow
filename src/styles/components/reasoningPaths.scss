@@ -1,0 +1,54 @@
+// Reasoning paths — the argument-forward chains leaving a note (#166, #318 S4).
+.zettelkasten-flow__reasoning-paths-start {
+    margin-bottom: 0.4rem;
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__reasoning-paths-intro,
+.zettelkasten-flow__reasoning-paths-status {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__reasoning-paths-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__reasoning-paths-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--background-modifier-border);
+    border-left: 3px solid var(--interactive-accent);
+    border-radius: var(--radius-m);
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__reasoning-paths-note {
+    cursor: pointer;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reasoning-paths-note:hover {
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__reasoning-paths-rel {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+
+    &::before {
+        content: "→ ";
+        font-style: normal;
+    }
+}

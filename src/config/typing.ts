@@ -12,6 +12,12 @@ import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
     script: string;
+    /** Whether the hook is active (#327 S3). Undefined = enabled (back-compat). */
+    enabled?: boolean;
+    /** Optional human-readable label shown in the settings list (#327 S3). */
+    description?: string;
+    /** Optional `zf` condition; the hook runs only when it holds (#327 S4). Blank = always. */
+    condition?: string;
 };
 /**
  * Main settings interface for the ZettelFlow plugin.

@@ -4,6 +4,7 @@ import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { SelectorMenuModal } from "zettelkasten";
 import {
+    App,
     CachedMetadata,
     MarkdownView,
     Notice,
@@ -17,6 +18,7 @@ import {
     VaultStateManager,
 } from "architecture/plugin";
 import { fnsManager } from "architecture/api";
+import { evaluateBindingCondition } from "architecture/plugin/events/condition";
 
 import { hasFrontmatterMutations, copyFrontmatter, changedHookProperties } from "./utils/CompareUtils";
 import {
@@ -32,7 +34,24 @@ import {
 import type {
     HookEvent,
     HooksConfig,
+    HookResponse,
+    HookSettings,
 } from "./typing";
+
+/** Outcome of a hook dry-run (#327 S5): what a real property change *would* do, without writing. */
+export type HookDryRunResult =
+    | { status: "ran"; response: HookResponse }
+    | { status: "skipped" }
+    | { status: "no-file" }
+    | { status: "error"; message: string };
+
+/** Reach the (otherwise hidden) `AsyncFunction` constructor via an async function's prototype. */
+function asyncFunctionCtor(): new (...args: string[]) => (...args: unknown[]) => Promise<unknown> {
+    const proto = Object.getPrototypeOf(async function () { }) as {
+        constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
+    };
+    return proto.constructor;
+}
 
 /** Ajustable si ves muchos "changed" por tecleo. */
 const METADATA_DEBOUNCE_MS = 60;
@@ -52,6 +71,42 @@ export class VaultHooks {
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
+    }
+
+    /**
+     * Dry-run a hook against the **active note** without writing (#327 S5). Simulates the property having
+     * just changed to its current value, evaluates the optional condition, runs the script, and returns
+     * the mutations it *would* apply. Read-only: it never touches the vault.
+     */
+    public static async dryRun(app: App, property: string, settings: HookSettings): Promise<HookDryRunResult> {
+        const file = app.workspace.getActiveFile();
+        if (!file || file.extension !== "md") return { status: "no-file" };
+
+        const frontmatter = copyFrontmatter(app.metadataCache.getFileCache(file)?.frontmatter ?? {});
+        const newValue = frontmatter[property];
+        try {
+            const zf = await fnsManager.getFns();
+            const AsyncFunction = asyncFunctionCtor();
+
+            const condition = settings.condition?.trim();
+            if (condition) {
+                const ctx = { event: "property.changed", notePath: file.path, property, oldValue: undefined, newValue };
+                const condFn = new AsyncFunction("event", "zf", `return (${condition});`);
+                const passes = await condFn(ctx, zf);
+                if (!passes) return { status: "skipped" };
+            }
+
+            const event: HookEvent = {
+                file,
+                request: { oldValue: undefined, newValue, property, frontmatter },
+                response: { frontmatter: {}, removeProperties: [] },
+            };
+            const scriptFn = new AsyncFunction("event", "zf", `return (async () => {\n${settings.script}\n return event;\n})(event, zf);`);
+            const result = (await scriptFn(event, zf)) as HookEvent;
+            return { status: "ran", response: result.response };
+        } catch (error) {
+            return { status: "error", message: error instanceof Error ? error.message : String(error) };
+        }
     }
 
     constructor(private plugin: ZettelFlow) {
@@ -332,6 +387,8 @@ export class VaultHooks {
         try {
             for (const [property, hookSettings] of hooksEntries) {
                 if (!changed.has(property)) continue;
+                // A disabled hook is paused, not deleted (#327 S3).
+                if (hookSettings.enabled === false) continue;
 
                 event.request = {
                     oldValue: oldFrontmatter[property],
@@ -339,6 +396,19 @@ export class VaultHooks {
                     property,
                     frontmatter: newFrontmatter,
                 };
+
+                // Optional run condition (#327 S4): skip the script when it does not hold.
+                const passes = await this.evaluateHookCondition(hookSettings.condition, {
+                    event: "property.changed",
+                    notePath: file.path,
+                    property,
+                    oldValue: oldFrontmatter[property],
+                    newValue: newFrontmatter[property],
+                });
+                if (!passes) {
+                    log.debug(`[VaultHooks] Hook for "${property}" skipped by its condition.`);
+                    continue;
+                }
 
                 event = await this.executeHook(hookSettings.script, event);
                 log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
@@ -407,6 +477,24 @@ export class VaultHooks {
         new SelectorMenuModal(this.plugin.app, this.plugin, flow, activeView)
             .enableEditor(true)
             .open();
+    }
+
+    /**
+     * Evaluate a hook's optional run condition (#327 S4). Blank/absent → always runs. The condition is a
+     * `zf` expression evaluated against a change-event context bound to `event` (mirroring the guided
+     * condition help vocabulary: `event.property`, `event.oldValue`, `event.newValue`, `event.notePath`).
+     * Reuses {@link evaluateBindingCondition}, so a throw is contained → the hook is safely skipped.
+     */
+    private evaluateHookCondition(condition: string | undefined, ctx: unknown): Promise<boolean> {
+        return evaluateBindingCondition(condition, ctx, async (script, context) => {
+            const asyncProto = Object.getPrototypeOf(async function () { }) as {
+                constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
+            };
+            const AsyncFunction = asyncProto.constructor;
+            const zf = await fnsManager.getFns();
+            const fn = new AsyncFunction("event", "zf", `return (${script});`);
+            return fn(context, zf);
+        });
     }
 
     private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {

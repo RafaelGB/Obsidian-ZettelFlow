@@ -33,22 +33,64 @@
     font-size: var(--font-ui-medium);
 }
 
-.zettelkasten-flow__property-hooks-add-button {
-    display: flex;
+/* Unified button system for the hooks manager. Icon + label always sit side by side with a gap, so the
+   injected SVG can never overlap the text (the old `mod-cta` buttons had no flex/gap → overlap). */
+.zettelkasten-flow__property-hooks-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-radius: 4px;
+    justify-content: center;
+    gap: 6px;
+    min-height: 30px;
     padding: 4px 10px;
     font-size: var(--font-ui-small);
-    border: none;
+    line-height: 1;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background-color: var(--interactive-normal);
+    color: var(--text-normal);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+
+    .zettelkasten-flow__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    &:hover {
+        background-color: var(--interactive-hover);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 }
 
-.zettelkasten-flow__property-hooks-add-button:hover {
-    background-color: var(--interactive-accent-hover);
+.zettelkasten-flow__property-hooks-btn--cta {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+
+    &:hover {
+        background-color: var(--interactive-accent-hover);
+    }
+}
+
+.zettelkasten-flow__property-hooks-icon-btn {
+    padding: 4px;
+    width: 30px;
+}
+
+.zettelkasten-flow__property-hooks-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .zettelkasten-flow__property-hooks-empty {
@@ -73,16 +115,18 @@
     transition: transform 0.2s ease, opacity 0.2s ease, height 0.3s ease;
 }
 
-/* Animation classes */
+/* Animation classes. The item is visible by default; the entrance is purely decorative and can never
+   leave a row hidden (no default opacity:0, no animation-fill-mode:forwards on entrance). */
 .zettelkasten-flow__property-hooks-item.entrance {
-    opacity: 0;
-    transform: translateY(-20px);
-    animation: slide-in 0.3s ease forwards;
+    animation: slide-in 0.25s ease;
 }
 
 .zettelkasten-flow__property-hooks-item.exit {
-    opacity: 1;
-    animation: slide-out 0.3s ease forwards;
+    animation: slide-out 0.25s ease forwards;
+}
+
+.zettelkasten-flow__property-hooks-item--disabled {
+    opacity: 0.6;
 }
 
 @keyframes slide-in {
@@ -154,37 +198,14 @@
     white-space: nowrap;
 }
 
-.zettelkasten-flow__property-hooks-edit-button,
-.zettelkasten-flow__property-hooks-delete-button {
-    background-color: transparent;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    padding: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-    height: 24px;
-    width: 24px;
-    flex-shrink: 0;
-}
-
-.zettelkasten-flow__property-hooks-edit-button {
-    color: var(--text-normal);
-}
-
 .zettelkasten-flow__property-hooks-delete-button {
     color: var(--text-error);
-}
 
-.zettelkasten-flow__property-hooks-edit-button:hover {
-    background-color: var(--interactive-hover);
-}
-
-.zettelkasten-flow__property-hooks-delete-button:hover {
-    background-color: var(--background-modifier-error);
-    color: white;
+    &:hover {
+        background-color: var(--background-modifier-error);
+        border-color: var(--background-modifier-error);
+        color: var(--text-on-accent);
+    }
 }
 
 .zettelkasten-flow__property-hooks-drag-handle {
@@ -193,9 +214,22 @@
     padding: 2px;
     display: flex;
     align-items: center;
-    height: 24px;
+    height: 28px;
     width: 24px;
     flex-shrink: 0;
+}
+
+/* Native-looking on/off switch for the per-hook enabled toggle. */
+.zettelkasten-flow__property-hooks-toggle {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+
+    input {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+    }
 }
 
 .zettelkasten-flow__property-hooks-drag-handle:active {
@@ -514,4 +548,103 @@
     .zettelkasten-flow__cards>tbody {
         grid-template-columns: 1fr;
     }
+}
+/* ===== Property hooks — new fields (#327 S2/S3/S4/S5) ===== */
+
+.zettelkasten-flow__property-hooks-item-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.zettelkasten-flow__property-hooks-item-subtitle {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__property-hooks-paused-badge {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    background-color: var(--background-modifier-border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.zettelkasten-flow__property-hook-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 500;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__property-hook-label-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.zettelkasten-flow__property-hook-doc-link {
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__property-hook-text-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__property-hook-warning {
+    color: var(--text-error);
+    font-size: var(--font-ui-smaller);
+    margin: 0.35rem 0 0;
+}
+
+.zettelkasten-flow__property-hook-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 0.5rem;
+}
+
+.zettelkasten-flow__property-hook-example-btn {
+    font-size: var(--font-ui-smaller);
+    padding: 3px 8px;
+}
+
+.zettelkasten-flow__property-hook-editor-spacer {
+    flex: 1;
+}
+
+.zettelkasten-flow__property-hook-test-result {
+    margin: 0.5rem 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    background-color: var(--background-secondary);
+    border-left: 3px solid var(--interactive-accent);
+    font-size: var(--font-ui-smaller);
+
+    ul {
+        margin: 0.25rem 0 0;
+        padding-left: 1.1rem;
+    }
+}
+
+.zettelkasten-flow__property-hook-test-result--error {
+    border-left-color: var(--text-error);
+    color: var(--text-error);
 }

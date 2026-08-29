@@ -6,7 +6,6 @@ import ZettelFlow from "main";
 import { PropertyHookSettings } from "config/typing";
 import { log } from "architecture";
 import { Icon } from "architecture/components/icon";
-import { v7 as uuid7 } from "uuid";
 import {
   DndContext,
   closestCenter,
@@ -24,36 +23,47 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { PropertyHookAccordion } from "./PropertyHookAccordion";
 import { Search } from "architecture/components/core";
 import { ObsidianTypesModal } from "config";
+import { VaultHooks, HookDryRunResult } from "hooks/VaultHooks";
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
 }
 
+/** One ordered hook: the property it fires on + its settings. The array *is* the source of truth. */
+interface HookItem {
+  property: string;
+  settings: PropertyHookSettings;
+}
+
+function toItems(record: Record<string, PropertyHookSettings> | undefined): HookItem[] {
+  return Object.entries(record || {}).map(([property, settings]) => ({
+    property,
+    settings: settings ?? { script: "" },
+  }));
+}
+
+/**
+ * The property-hooks manager (#327). A single ordered `items` array is the source of truth — the old
+ * split `hooks`/`hookOrder` state could desync and blank the list. Adding a hook appends + auto-opens
+ * it; every mutation persists atomically. Each hook can be paused, described, gated by a condition, and
+ * dry-run against the active note.
+ */
 export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
 }) => {
-  const { properties } = plugin.settings.hooks;
-
-  // State variables
-  const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>(
-    {}
+  const [items, setItems] = useState<HookItem[]>(() =>
+    toItems(plugin.settings.hooks.properties)
   );
-  const [hooks, setHooks] = useState<Record<string, PropertyHookSettings>>(
-    properties || {}
-  );
-  const [hookOrder, setHookOrder] = useState<string[]>(
-    Object.keys(properties || [])
-  );
+  const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [isAddingHook, setIsAddingHook] = useState(false);
   const [selectedNewProperty, setSelectedNewProperty] = useState("");
+  const [newlyAdded, setNewlyAdded] = useState<string | null>(null);
 
-  // Setup dndkit sensors with a minimum activation distance
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   useEffect(() => {
-    // Load all property types from Obsidian config
     const loadPropertyTypes = async () => {
       const types = await ObsidianNativeTypesManager.getAllTypes();
       setPropertyTypes(types);
@@ -61,50 +71,33 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
     void loadPropertyTypes();
   }, []);
 
-  const saveHooks = async (newHooks: Record<string, PropertyHookSettings>) => {
-    plugin.settings.hooks.properties = newHooks;
-    await plugin.saveSettings();
-    log.debug("Hooks saved:", newHooks);
+  /** The single write path: update state + settings + persist together, so they can never desync. */
+  const persist = (next: HookItem[]) => {
+    setItems(next);
+    const record: Record<string, PropertyHookSettings> = {};
+    next.forEach((item) => (record[item.property] = item.settings));
+    plugin.settings.hooks.properties = record;
+    void plugin.saveSettings();
+    log.debug("Hooks saved:", record);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = hookOrder.findIndex(
-        (property) => property === active.id
-      );
-      const newIndex = hookOrder.findIndex((property) => property === over.id);
-
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newHookOrder = arrayMove(hookOrder, oldIndex, newIndex);
-        setHookOrder(newHookOrder);
-
-        // Rebuild the hooks object in the new order
-        const orderedHooks: Record<string, PropertyHookSettings> = {};
-        newHookOrder.forEach((property) => {
-          orderedHooks[property] = hooks[property];
-        });
-
-        setHooks(orderedHooks);
-        plugin.settings.hooks.properties = orderedHooks;
-        void plugin.saveSettings();
-      }
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((i) => i.property === active.id);
+    const newIndex = items.findIndex((i) => i.property === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      persist(arrayMove(items, oldIndex, newIndex));
     }
   };
 
-  const handleAddHook = () => {
-    setIsAddingHook(true);
+  const handleAddHookConfirm = () => {
+    const property = selectedNewProperty;
+    if (!property || items.some((i) => i.property === property)) return;
+    persist([...items, { property, settings: { script: "", enabled: true } }]);
+    setNewlyAdded(property);
+    setIsAddingHook(false);
     setSelectedNewProperty("");
-  };
-
-  const handleAddHookConfirm = async () => {
-    if (selectedNewProperty) {
-      hooks[selectedNewProperty] = { script: "" };
-      setHooks({ ...hooks });
-      setHookOrder([...hookOrder, selectedNewProperty]);
-      await saveHooks(hooks);
-      setIsAddingHook(false);
-    }
   };
 
   const handleAddHookCancel = () => {
@@ -112,26 +105,28 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
     setSelectedNewProperty("");
   };
 
-  const handleSaveHook = async (property: string, script: string) => {
-    hooks[property] = { script };
-    setHooks({ ...hooks });
-    await saveHooks(hooks);
+  const updateHook = (property: string, patch: Partial<PropertyHookSettings>) => {
+    persist(
+      items.map((i) =>
+        i.property === property ? { property, settings: { ...i.settings, ...patch } } : i
+      )
+    );
   };
 
-  const handleDeleteHook = async (property: string) => {
-    delete hooks[property];
-    setHooks({ ...hooks });
-    setHookOrder(hookOrder.filter((p) => p !== property));
-    await saveHooks(hooks);
+  const deleteHook = (property: string) => {
+    persist(items.filter((i) => i.property !== property));
+    if (newlyAdded === property) setNewlyAdded(null);
   };
 
-  // Get available properties (excluding ones that already have hooks)
-  const existingHookProperties = Object.keys(hooks);
+  const testHook = (property: string, settings: PropertyHookSettings): Promise<HookDryRunResult> =>
+    VaultHooks.dryRun(plugin.app, property, settings);
+
+  // Available properties: those without a hook yet, labelled with their type.
+  const existing = new Set(items.map((i) => i.property));
   const availableProperties: Record<string, string> = Object.keys(propertyTypes)
-    .filter((prop) => !existingHookProperties.includes(prop))
+    .filter((prop) => !existing.has(prop))
     .reduce((acc: Record<string, string>, prop) => {
-      const keyToDisplay = `${prop} (${propertyTypes[prop]})`;
-      acc[keyToDisplay] = prop;
+      acc[`${prop} (${propertyTypes[prop]})`] = prop;
       return acc;
     }, {});
 
@@ -139,33 +134,34 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
     <div className={c("property-hooks-manager")}>
       <div className={c("property-hooks-header")}>
         <button
-          className={c("property-hooks-add-button")}
-          onClick={handleAddHook}
+          className={c("property-hooks-btn", "property-hooks-btn--cta")}
+          onClick={() => {
+            setIsAddingHook(true);
+            setSelectedNewProperty("");
+          }}
         >
           <Icon name="plus" />
-          {t("property_hooks_add_button")}
+          <span>{t("property_hooks_add_button")}</span>
         </button>
-        <div className={c("navbar-button-group")}>
+        <div className={c("property-hooks-btn-group")}>
           <button
-            className={"mod-cta"}
+            className={c("property-hooks-btn")}
             title={t("types_modal_native_properties_edit_button_title")}
+            aria-label={t("types_modal_native_properties_edit_button_title")}
             onClick={() => {
-              void plugin.app.workspace.revealLeaf(
-                plugin.app.workspace.getLeavesOfType("all-properties")[0]
-              );
+              const leaf = plugin.app.workspace.getLeavesOfType("all-properties")[0];
+              if (leaf) void plugin.app.workspace.revealLeaf(leaf);
               Keyboard.closeAllModalsByEsc();
             }}
           >
             <Icon name="archive" />
           </button>
           <button
-            className={"mod-cta"}
-            onClick={() => {
-              new ObsidianTypesModal(plugin).open();
-            }}
+            className={c("property-hooks-btn")}
+            onClick={() => new ObsidianTypesModal(plugin).open()}
           >
             <Icon name="ManageTypes" />
-            {t("manage_types_button")}
+            <span>{t("manage_types_button")}</span>
           </button>
         </div>
       </div>
@@ -175,27 +171,28 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           <Search
             options={availableProperties}
             onChange={(value) => {
-              if (!value) return;
-              if (!propertyTypes[value]) return;
+              if (!value || !propertyTypes[value]) return;
               setSelectedNewProperty(value);
             }}
-            placeholder="Select a type"
+            placeholder={t("property_hooks_select_placeholder")}
           />
           <div className={c("property-hook-selector-buttons")}>
-            <button onClick={() => { void handleAddHookConfirm(); }}>
-              {t("property_hooks_add_button")}
+            <button
+              className={c("property-hooks-btn", "property-hooks-btn--cta")}
+              disabled={!selectedNewProperty}
+              onClick={handleAddHookConfirm}
+            >
+              {t("property_hooks_add_confirm")}
             </button>
-            <button onClick={handleAddHookCancel}>
+            <button className={c("property-hooks-btn")} onClick={handleAddHookCancel}>
               {t("property_hooks_cancel_button")}
             </button>
           </div>
         </div>
       )}
 
-      {hookOrder.length === 0 ? (
-        <div className={c("property-hooks-empty")}>
-          {t("property_hooks_empty")}
-        </div>
+      {items.length === 0 ? (
+        <div className={c("property-hooks-empty")}>{t("property_hooks_empty")}</div>
       ) : (
         <DndContext
           sensors={sensors}
@@ -204,18 +201,20 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           modifiers={[restrictToVerticalAxis]}
         >
           <SortableContext
-            items={hookOrder}
+            items={items.map((i) => i.property)}
             strategy={verticalListSortingStrategy}
           >
             <div className={c("property-hooks-list")}>
-              {hookOrder.map((property) => (
+              {items.map((item) => (
                 <PropertyHookAccordion
-                  key={property || uuid7()}
-                  property={property}
-                  propertyType={propertyTypes[property] || "unknown"}
-                  script={hooks[property].script || ""}
-                  onSave={(script) => { void handleSaveHook(property, script); }}
-                  onDelete={() => { void handleDeleteHook(property); }}
+                  key={item.property}
+                  property={item.property}
+                  propertyType={propertyTypes[item.property] || "unknown"}
+                  settings={item.settings}
+                  defaultOpen={item.property === newlyAdded}
+                  onChange={(patch) => updateHook(item.property, patch)}
+                  onDelete={() => deleteHook(item.property)}
+                  onTest={(settings) => testHook(item.property, settings)}
                 />
               ))}
             </div>

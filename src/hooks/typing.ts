@@ -24,6 +24,12 @@ export interface HookEvent {
 export interface HookSettings {
     /** Código JS/TS async del usuario que muta `event` y lo devuelve. */
     script: string;
+    /** Whether the hook is active (#327 S3). `undefined` = enabled (back-compat). */
+    enabled?: boolean;
+    /** Optional human-readable label for the settings list (#327 S3). */
+    description?: string;
+    /** Optional `zf` condition; the hook runs only when it holds (#327 S4). Blank = always. */
+    condition?: string;
 }
 
 export type PropertiesHooksConfig = Record<string, HookSettings>;

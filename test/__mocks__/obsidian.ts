@@ -122,8 +122,37 @@ export class Setting {
 
 export function setIcon(_el: unknown, _icon: string): void {}
 
-/** Mutable platform flag so tests can exercise the desktop/mobile default. */
-export const Platform = { isMobile: false };
+/** Mutable platform flags so tests can exercise the desktop/mobile default + the bug-report mapping. */
+export const Platform = {
+  isMobile: false,
+  isAndroidApp: false,
+  isIosApp: false,
+  isMacOS: false,
+  isWin: true,
+  isLinux: false,
+};
+
+/** The running Obsidian API version (bug-report env, #301). */
+export const apiVersion = "1.13.1";
+
+/** Response shape a test can return from a mocked `requestUrl`. */
+export interface RequestUrlResponse {
+  status: number;
+  json: unknown;
+  text?: string;
+}
+
+// Settable `requestUrl` so AI-provider tests inject a fake without a real network call (#317 E2).
+let _requestUrl: (opts: unknown) => Promise<RequestUrlResponse> = async () => ({ status: 200, json: {} });
+export function __setRequestUrl(fn: (opts: unknown) => Promise<RequestUrlResponse>): void {
+  _requestUrl = fn;
+}
+export function requestUrl(opts: unknown): Promise<RequestUrlResponse> {
+  return _requestUrl(opts);
+}
+export function request(_opts: unknown): Promise<string> {
+  return Promise.resolve("");
+}
 
 /**
  * Minimal YAML parser covering the subset ZettelFlow uses:

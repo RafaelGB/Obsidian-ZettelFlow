@@ -43,8 +43,8 @@ jobs:
       - name: Lint (oxlint)
         run: npm run lint
 
-      - name: Unit tests (jest)
-        run: npm test
+      - name: Unit tests + coverage floor (jest)
+        run: npm run test:coverage
 
       - name: Obsidian guideline lint (blocking)
         run: npm run lint:obsidian

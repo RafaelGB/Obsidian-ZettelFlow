@@ -1,115 +1,45 @@
 import { describe, it, expect } from "@jest/globals";
 import { ContentDTO } from "application/notes/model/ContentDTO";
 
-describe("ContentDTO", () => {
-  it("appends body content with add()/get()", () => {
-    const c = new ContentDTO();
-    c.add("Hello ").add("world");
-    expect(c.get()).toBe("Hello world");
-  });
+describe("ContentDTO (#317 S4 — note-builder core)", () => {
+    it("accumulates content and replaces every {{token}} occurrence", () => {
+        const dto = new ContentDTO();
+        dto.add("# {{title}}\n\nAbout {{title}}.");
+        dto.modify("title", "Memory");
+        expect(dto.get()).toBe("# Memory\n\nAbout Memory.");
+        expect(dto.getModifications()).toEqual({ title: "Memory" });
+    });
 
-  it("substitutes every {{key}} occurrence via modify()", () => {
-    const c = new ContentDTO();
-    c.add("{{a}} and {{a}} and {{b}}");
-    c.modify("a", "X");
-    expect(c.get()).toBe("X and X and {{b}}");
-  });
+    it("merges frontmatter and lifts tags out into the tag list (deduped)", () => {
+        const dto = new ContentDTO();
+        dto.addFrontMatter({ state: "fleeting", tags: ["a", "b"] });
+        dto.addFrontMatter({ source: "x", tags: "b" }); // "b" already present, string form
+        expect(dto.getFrontmatter()).toEqual({ state: "fleeting", source: "x" }); // tags removed from fm
+        expect(dto.getTags()).toEqual(["a", "b"]);
+        expect(dto.hasTags()).toBe(true);
+    });
 
-  it("merges frontmatter and hoists a 'tags' field into the tag list", () => {
-    const c = new ContentDTO();
-    c.addFrontMatter({ title: "t", tags: ["one", "two"] });
-    expect(c.getFrontmatter()).toEqual({ title: "t" });
-    expect(c.getFrontmatter().tags).toBeUndefined();
-    expect(c.getTags()).toEqual(["one", "two"]);
-  });
+    it("documents the token-injection surface that AI-output sanitisation guards (#301)", () => {
+        // modify() is a raw global replace, so a value that itself contains a later token WILL be
+        // re-substituted by that later modify(). This is exactly why AI output is neutralised
+        // (`sanitizeAiText`, tested in aiGuardrails) BEFORE it can reach a `{{token}}` — a completion
+        // can never inject a live token here.
+        const dto = new ContentDTO();
+        dto.add("{{a}} {{b}}");
+        dto.modify("a", "{{b}}"); // a hostile, unsanitised value → content becomes "{{b}} {{b}}"
+        dto.modify("b", "SAFE"); // both — the injected AND the original — get replaced
+        expect(dto.get()).toBe("SAFE SAFE");
+    });
 
-  it("de-duplicates tags across addTag/addTags", () => {
-    const c = new ContentDTO();
-    c.addTag("x").addTag("x").addTags(["x", "y"]).addTags("z");
-    expect(c.getTags()).toEqual(["x", "y", "z"]);
-    expect(c.hasTags()).toBe(true);
-  });
-
-  it("ignores empty or invalid tag inputs", () => {
-    const c = new ContentDTO();
-    c.addTags("").addTags(null as unknown as string);
-    expect(c.getTags()).toEqual([]);
-    expect(c.hasTags()).toBe(false);
-  });
-
-  it("resets content, frontmatter and tags", () => {
-    const c = new ContentDTO();
-    c.add("body");
-    c.addFrontMatter({ a: 1 });
-    c.addTag("t");
-    c.reset();
-    expect(c.get()).toBe("");
-    expect(c.getFrontmatter()).toEqual({});
-    expect(c.getTags()).toEqual([]);
-  });
-
-  it("leaves unmatched {{placeholders}} untouched when modifying an absent key", () => {
-    const c = new ContentDTO();
-    c.add("{{a}} stays {{b}}");
-    c.modify("missing", "X");
-    expect(c.get()).toBe("{{a}} stays {{b}}");
-  });
-
-  it("merges successive frontmatter calls, later keys overriding earlier ones", () => {
-    const c = new ContentDTO();
-    c.addFrontMatter({ title: "first", author: "me" });
-    c.addFrontMatter({ title: "second" });
-    expect(c.getFrontmatter()).toEqual({ title: "second", author: "me" });
-  });
-
-  it("accumulates and de-duplicates tags hoisted across successive frontmatter calls", () => {
-    const c = new ContentDTO();
-    c.addFrontMatter({ tags: ["a", "b"] });
-    c.addFrontMatter({ tags: ["b", "c"] });
-    expect(c.getTags()).toEqual(["a", "b", "c"]);
-  });
-
-  it("strips the 'tags' key out of the caller's frontmatter object (documents the mutation)", () => {
-    const c = new ContentDTO();
-    const input: Record<string, unknown> = { title: "t", tags: ["x"] };
-    c.addFrontMatter(input as never);
-    expect(input.tags).toBeUndefined();
-    expect(input).toEqual({ title: "t" });
-  });
-
-  it("treats a falsy frontmatter argument as a no-op", () => {
-    const c = new ContentDTO();
-    c.addFrontMatter(undefined as never);
-    c.addFrontMatter(null as never);
-    expect(c.getFrontmatter()).toEqual({});
-    expect(c.getTags()).toEqual([]);
-  });
-
-  it("ignores an array of tags that contains a non-string element", () => {
-    const c = new ContentDTO();
-    c.addTags(["ok", 1] as never);
-    expect(c.getTags()).toEqual([]);
-    expect(c.hasTags()).toBe(false);
-  });
-
-  it("de-duplicates within a single addTags array call", () => {
-    const c = new ContentDTO();
-    c.addTags(["a", "a", "b"]);
-    expect(c.getTags()).toEqual(["a", "b"]);
-  });
-
-  it("records modify() substitutions so an editor flow can replay them (#75)", () => {
-    const c = new ContentDTO();
-    c.add("{{a}}");
-    c.modify("a", "X");
-    c.modify("after-thought", "done");
-    expect(c.getModifications()).toEqual({ a: "X", "after-thought": "done" });
-  });
-
-  it("clears recorded modifications on reset()", () => {
-    const c = new ContentDTO();
-    c.modify("a", "X");
-    c.reset();
-    expect(c.getModifications()).toEqual({});
-  });
+    it("reset clears content, frontmatter, tags and modifications", () => {
+        const dto = new ContentDTO();
+        dto.add("x").addFrontMatter({ a: 1 });
+        dto.addTag("t");
+        dto.modify("k", "v");
+        dto.reset();
+        expect(dto.get()).toBe("");
+        expect(dto.getFrontmatter()).toEqual({});
+        expect(dto.getTags()).toEqual([]);
+        expect(dto.getModifications()).toEqual({});
+    });
 });

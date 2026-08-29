@@ -8,12 +8,12 @@ import { AI_SYSTEM_GUARD, isEndpointAllowed } from "./promptSafety";
 const REQUEST_TIMEOUT_MS = 30_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-    return Promise.race([
-        promise,
-        new Promise<T>((_resolve, reject) =>
-            window.setTimeout(() => reject(new Error(`AI request timed out after ${ms}ms`)), ms)
-        ),
-    ]);
+    let timer: number | undefined;
+    const timeout = new Promise<T>((_resolve, reject) => {
+        timer = window.setTimeout(() => reject(new Error(`AI request timed out after ${ms}ms`)), ms);
+    });
+    // Clear the timer once the request settles so it never lingers (harmless in prod, a leak in tests).
+    return Promise.race([promise, timeout]).finally(() => window.clearTimeout(timer));
 }
 
 /**

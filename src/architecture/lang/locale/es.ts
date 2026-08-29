@@ -1,7 +1,7 @@
 export default {
     command_open_manage_templates: 'Abrir gestión de plantillas',
     command_open_community_templates: 'Abrir plantillas de la comunidad',
-    modals_community_templates_title: 'Plantillas de la comunidad',
+    modals_community_templates_title: 'Comunidad',
     markdown_templates_folder_title: 'Carpeta de plantillas de Markdown',
     markdown_templates_folder_description: 'Establece la carpeta donde se guardan las plantillas de Markdown cuando las instalas desde el navegador de la comunidad',
     markdown_templates_folder_placeholder: 'Selecciona una carpeta...',
@@ -365,6 +365,7 @@ export default {
     community_templates_loading: 'Cargando plantillas…',
     community_templates_installed: 'Instalado',
     community_templates_view_repo: 'Ver en el repositorio',
+    community_templates_type_label: 'Tipo',
     community_templates_difficulty_label: 'Dificultad',
     community_templates_difficulty_any: 'Cualquiera',
     community_templates_unknown_type: 'Tipo de plantilla desconocido: revisa la consola para más detalles.',
@@ -393,7 +394,8 @@ export default {
     // Comunidad — Contribuir (#294 S3)
     community_contribute_intro: 'Ayuda a crecer a la comunidad: todo ocurre en GitHub.',
     community_contribute_share_title: 'Comparte tu sistema',
-    community_contribute_share_desc: 'Exporta el lienzo actual y abre un envío con el paquete precargado.',
+    community_contribute_share_desc: 'Exporta el lienzo que tengas abierto y abre un envío precargado — abre antes un lienzo de ZettelFlow.',
+    community_contribute_share_no_canvas: 'Abre primero un lienzo de ZettelFlow (o define un lienzo de cinta en ajustes) y compártelo desde aquí.',
     community_contribute_share_prefill_desc: 'Sistema exportado del lienzo «{0}».',
     community_contribute_share_downloaded: 'Tu sistema se descargó como archivo .zftemplate: pega su contenido en el formulario.',
     community_contribute_share_paste_hint: 'Tu sistema era demasiado grande para precargarlo. Abre el archivo .zftemplate descargado y pega su contenido en el campo JSON de abajo.',

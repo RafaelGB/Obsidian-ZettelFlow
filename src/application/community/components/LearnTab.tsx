@@ -47,8 +47,10 @@ export function LearnTab(_props: PluginComponentProps) {
             <span className={c("community-learn-card-icon")} aria-hidden="true">
               {guide.icon}
             </span>
-            <span className={c("community-learn-card-title")}>{t(guide.titleKey)}</span>
-            <span className={c("community-learn-card-desc")}>{t(guide.descKey)}</span>
+            <span className={c("community-learn-card-body")}>
+              <span className={c("community-learn-card-title")}>{t(guide.titleKey)}</span>
+              <span className={c("community-learn-card-desc")}>{t(guide.descKey)}</span>
+            </span>
           </a>
         ))}
       </div>

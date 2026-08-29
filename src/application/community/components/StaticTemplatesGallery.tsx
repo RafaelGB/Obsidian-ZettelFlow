@@ -187,52 +187,53 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
           className={c("community-templates-search")}
           aria-label={t("community_templates_search_placeholder")}
         />
-        <div className={c("community-templates-filters")}>
-          {(["system", "all", "step", "action", "markdown"] as const).map(
-            (type) => {
-              const classesToApply = [
-                "community-templates-filter-button",
-                FILTER_COLORS[type],
-              ];
-              if (filter === type)
-                classesToApply.push(
-                  "community-templates-filter-button-is-active"
-                );
-              return (
+
+        <div className={c("community-templates-filter-bar")}>
+          <div className={c("community-templates-filter-group")}>
+            <span className={c("community-templates-filter-label")}>
+              {t("community_templates_type_label")}
+            </span>
+            <div className={c("community-templates-filter-buttons")}>
+              {(["system", "all", "step", "action", "markdown"] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => handleSetFilter(type)}
-                  className={c(...classesToApply)}
+                  className={c(
+                    "community-templates-filter-button",
+                    FILTER_COLORS[type],
+                    ...(filter === type ? ["is-active"] : [])
+                  )}
                   aria-pressed={filter === type}
                 >
                   {t(FILTER_LABEL_KEYS[type])}
                 </button>
-              );
-            }
-          )}
-        </div>
-      </div>
+              ))}
+            </div>
+          </div>
 
-      <div className={c("community-templates-difficulty-filter")}>
-        <span className={c("community-templates-difficulty-label")}>
-          {t("community_templates_difficulty_label")}
-        </span>
-        {(["all", "easy", "medium", "hard"] as const).map((level) => (
-          <button
-            key={level}
-            onClick={() => setDifficulty(level)}
-            aria-pressed={difficulty === level}
-            className={
-              difficulty === level
-                ? c("community-templates-filter-button", "is-active")
-                : c("community-templates-filter-button")
-            }
-          >
-            {level === "all"
-              ? t("community_templates_difficulty_any")
-              : t(`system_difficulty_${level}`)}
-          </button>
-        ))}
+          <div className={c("community-templates-filter-group")}>
+            <span className={c("community-templates-filter-label")}>
+              {t("community_templates_difficulty_label")}
+            </span>
+            <div className={c("community-templates-filter-buttons")}>
+              {(["all", "easy", "medium", "hard"] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setDifficulty(level)}
+                  aria-pressed={difficulty === level}
+                  className={c(
+                    "community-templates-filter-button",
+                    ...(difficulty === level ? ["is-active"] : [])
+                  )}
+                >
+                  {level === "all"
+                    ? t("community_templates_difficulty_any")
+                    : t(`system_difficulty_${level}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className={c("community-templates-list")}>
@@ -254,19 +255,21 @@ export function StaticTemplatesGallery(props: PluginComponentProps) {
                 )}
                 onClick={() => { void handleTemplateClick(template); }}
               >
-                <span className={c("community-templates-card-type-badge")}>
-                  {t(FILTER_LABEL_KEYS[template.template_type])}
-                </span>
-                {cardDifficulty && (
-                  <span
-                    className={c(
-                      "community-templates-card-difficulty",
-                      `community-templates-card-difficulty--${cardDifficulty}`
-                    )}
-                  >
-                    {t(`system_difficulty_${cardDifficulty}`)}
+                <div className={c("community-templates-card-header")}>
+                  <span className={c("community-templates-card-type-badge")}>
+                    {t(FILTER_LABEL_KEYS[template.template_type])}
                   </span>
-                )}
+                  {cardDifficulty && (
+                    <span
+                      className={c(
+                        "community-templates-card-difficulty",
+                        `community-templates-card-difficulty--${cardDifficulty}`
+                      )}
+                    >
+                      {t(`system_difficulty_${cardDifficulty}`)}
+                    </span>
+                  )}
+                </div>
                 <h3 className={c("community-templates-card-title")}>
                   {template.title}{" "}
                   {installed && (

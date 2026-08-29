@@ -7,6 +7,7 @@ import {
     GRAPH_QUERY_EXAMPLES,
     GRAPH_QUERY_PREDICATES,
 } from "architecture/knowledge/state";
+import { makeActivatable } from "architecture/components/core/a11y";
 import type ZettelFlow from "main";
 
 function basename(path: string): string {
@@ -88,7 +89,7 @@ export class AskGraphModal extends Modal {
             const row = this.resultsEl.createDiv({ cls: c("ask-graph-result") });
             const name = row.createSpan({ cls: c("ask-graph-result-name"), text: basename(match.path) });
             name.setAttribute("title", match.path);
-            name.addEventListener("click", () => {
+            makeActivatable(name, () => {
                 void this.app.workspace.openLinkText(match.path, "", false);
                 this.close();
             });
@@ -119,7 +120,7 @@ export class AskGraphModal extends Modal {
         for (const query of saved) {
             const li = list.createEl("li", { cls: c("ask-graph-saved-item") });
             const label = li.createEl("code", { cls: c("ask-graph-saved-query"), text: query });
-            label.addEventListener("click", () => this.setQuery(query));
+            makeActivatable(label, () => this.setQuery(query));
             const del = li.createEl("button", { cls: c("ask-graph-saved-delete"), text: t("ask_graph_delete") });
             del.setAttribute("aria-label", t("ask_graph_delete"));
             del.addEventListener("click", () => void this.deleteSaved(query));
@@ -140,7 +141,7 @@ export class AskGraphModal extends Modal {
             const li = list.createEl("li", { cls: c("ask-graph-example") });
             li.createSpan({ cls: c("ask-graph-example-label"), text: example.label });
             const code = li.createEl("code", { cls: c("ask-graph-example-query"), text: example.query });
-            code.addEventListener("click", () => this.setQuery(example.query));
+            makeActivatable(code, () => this.setQuery(example.query));
         }
     }
 

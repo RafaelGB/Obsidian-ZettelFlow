@@ -6,6 +6,7 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { HomeModel, buildHome, readyToCultivate, developmentStreak } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { makeActivatable } from "architecture/components/core/a11y";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 
 const DEBOUNCE_MS = 400;
@@ -197,7 +198,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 const target = rec.target[0];
                 const name = row.createSpan({ text: basename(target), cls: c("home-note-name") });
                 name.setAttribute("title", target);
-                name.addEventListener("click", () => void this.app.workspace.openLinkText(target, "", false));
+                makeActivatable(name, () => void this.app.workspace.openLinkText(target, "", false));
             }
         }
     }
@@ -237,6 +238,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private renderInlineNote(parent: HTMLElement, path: string): void {
         const name = parent.createSpan({ text: basename(path), cls: c("home-note-name") });
         name.setAttribute("title", path);
-        name.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
+        makeActivatable(name, () => void this.app.workspace.openLinkText(path, "", false));
     }
 }

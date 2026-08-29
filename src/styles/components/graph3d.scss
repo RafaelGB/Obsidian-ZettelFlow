@@ -296,3 +296,56 @@
 .zettelkasten-flow__graph3d-swatch--state-permanent { background-color: #4ade80; }
 .zettelkasten-flow__graph3d-swatch--state-evergreen { background-color: #22d3ee; }
 .zettelkasten-flow__graph3d-swatch--state-archived { background-color: #94a3b8; }
+
+// Navigable list fallback on mobile / no-WebGL (#319 S2). Rows are real buttons: keyboard-operable,
+// with a 44px touch target, hubs first.
+.zettelkasten-flow__graph3d-fallback {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.5rem;
+}
+
+.zettelkasten-flow__graph3d-fallback-note {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__graph3d-fallback-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.zettelkasten-flow__graph3d-fallback-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 44px; // comfortable touch target
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--background-modifier-border);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__graph3d-fallback-name {
+    flex: 1;
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__graph3d-fallback-meta {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__graph3d-fallback-flag--orphan { color: var(--text-faint); }
+.zettelkasten-flow__graph3d-fallback-flag--contradiction { color: #f87171; }

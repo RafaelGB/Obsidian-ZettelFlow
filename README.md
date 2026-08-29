@@ -240,7 +240,8 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Community systems** | Install a whole knowledge system in one click — the browser fetches a `.zftemplate` bundle and writes its canvas + step notes to a folder (no clipboard). Each system shows a **difficulty badge** (easy / medium / hard); a **ZettelFlow tour** system teaches the full workflow while you build a real note. |
 | **.zftemplate export/import** | Bundle a canvas and its step files into a single portable file to share with others. |
 | **Notes history** | Sidebar leaf showing recently built notes with quick-open links. |
-| **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`). |
+| **Mobile support** | Works on iOS and Android (`isDesktopOnly: false`) — the core loop (capture → cultivate → advance → health) is touch-friendly, and the 3D graph degrades to a **navigable list** (hubs first, each note one tap) instead of a blank. |
+| **Accessibility** | Keyboard-operable surfaces — the segmented tabs are a WAI-ARIA tablist with arrow-key navigation, note names activate with Enter/Space, focus is always visible, and `prefers-reduced-motion` quiets the graph animation. |
 
 ---
 

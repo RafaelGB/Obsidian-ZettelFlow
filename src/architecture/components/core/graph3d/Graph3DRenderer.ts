@@ -50,6 +50,15 @@ function webglAvailable(): boolean {
     }
 }
 
+/** Whether the user asked the OS to minimize animation (#319 S4) — the graph then settles instantly. */
+function prefersReducedMotion(): boolean {
+    try {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+        return false;
+    }
+}
+
 /**
  * The **3D** mode of the Graph surface (#280) — an immersive knowledge graph that earns opening over
  * the native graph: nodes coloured by **maturity** (knowledge state) or cluster, links by relation type
@@ -208,6 +217,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.graphEl = this.wrapperEl.createDiv({ cls: c("graph3d-canvas") });
             this.buildBottomBar(this.wrapperEl);
 
+            const reduced = prefersReducedMotion();
             const graph = new ForceGraph3D(this.graphEl)
                 .backgroundColor("#0b0e14")
                 .nodeLabel("name")
@@ -221,12 +231,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .linkOpacity(0.85)
                 .linkDirectionalArrowLength(3.5)
                 .linkDirectionalArrowRelPos(1)
-                .linkDirectionalParticles((link) => this.particlesFor(link as LiveLink))
+                .linkDirectionalParticles((link) => (reduced ? 0 : this.particlesFor(link as LiveLink)))
                 .linkDirectionalParticleWidth(2)
                 .linkDirectionalParticleSpeed(0.008)
                 .nodeVisibility((node) => !this.hiddenNodes.has((node as LiveNode).id ?? ""))
                 .linkVisibility((link) => this.isLinkVisible(link as LiveLink))
-                .cooldownTime(9000) // settle the simulation sooner → less sustained CPU
+                // Reduced-motion (#319 S4): settle almost instantly instead of a long animated warmup.
+                .cooldownTime(reduced ? 200 : 9000)
+                .warmupTicks(reduced ? 120 : 0)
                 .onNodeHover((node) => this.onHover((node as LiveNode | null)?.id ?? null))
                 .onNodeClick((node) => this.onClick((node as LiveNode).id))
                 .onNodeRightClick((node, evt) => this.onNodeRightClick((node as LiveNode).id, evt))
@@ -971,10 +983,45 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.renderLegend();
     }
 
+    /**
+     * The mobile / no-WebGL fallback (#319 S2). Rather than a dead-end message, render a **navigable
+     * list** of the same model: every note ranked by connectivity (hubs first) with its live connection
+     * count and lens flags, each row a keyboard-operable button that opens the note. Mobile users still
+     * see the *shape* of their thinking (the hubs float to the top) and can walk it.
+     */
     private renderFallback(): void {
         this.teardownGraph();
         this.container.empty();
-        this.container.createDiv({ cls: c("graph3d-message"), text: t("graph3d_fallback_message") });
+        const root = this.container.createDiv({ cls: c("graph3d-fallback") });
+        root.createDiv({ cls: c("graph3d-fallback-note"), text: t("graph3d_fallback_message") });
+
+        const nodes = [...this.data.nodes].sort(
+            (a, b) => (this.connectionCount(b.id) - this.connectionCount(a.id)) || a.name.localeCompare(b.name)
+        );
+        if (nodes.length === 0) {
+            root.createDiv({ cls: c("graph3d-message"), text: t("graph3d_state_empty") });
+            return;
+        }
+        const list = root.createDiv({ cls: c("graph3d-fallback-list") });
+        list.setAttribute("role", "list");
+        for (const node of nodes) {
+            const row = list.createEl("button", { cls: c("graph3d-fallback-row") });
+            row.setAttribute("role", "listitem");
+            row.setAttribute("aria-label", node.name);
+            if (node.orphan) row.createSpan({ cls: c("graph3d-fallback-flag", "graph3d-fallback-flag--orphan"), text: "○", attr: { "aria-hidden": "true" } });
+            if (node.contradiction) row.createSpan({ cls: c("graph3d-fallback-flag", "graph3d-fallback-flag--contradiction"), text: "⚡", attr: { "aria-hidden": "true" } });
+            row.createSpan({ cls: c("graph3d-fallback-name"), text: node.name });
+            row.createSpan({
+                cls: c("graph3d-fallback-meta"),
+                text: t("graph3d_fallback_connections", String(this.connectionCount(node.id))),
+            });
+            this.registerDomEvent(row, "click", () => void this.app.workspace.openLinkText(node.id, "", false));
+        }
+    }
+
+    /** Live neighbour count (both directions) for a node, from the paint adjacency. */
+    private connectionCount(id: string): number {
+        return this.adjacency.get(id)?.size ?? 0;
     }
 
     private applySize(): void {

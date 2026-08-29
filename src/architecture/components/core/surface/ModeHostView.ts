@@ -33,6 +33,7 @@ export abstract class ModeHostView extends ItemView {
     private bodyEl: HTMLElement | null = null;
     private current: KnowledgeModeRenderer | null = null;
     private readonly tabButtons = new Map<string, HTMLElement>();
+    private tabOrder: string[] = [];
 
     getDisplayText(): string {
         return t(this.surface.titleKey as LocaleKey);
@@ -81,25 +82,54 @@ export abstract class ModeHostView extends ItemView {
         tabs.setAttribute("role", "tablist");
         tabs.setAttribute("aria-label", t(this.surface.titleKey as LocaleKey));
         this.tabButtons.clear();
+        this.tabOrder = [];
+        const viewType = this.getViewType();
         for (const mode of this.surface.modes) {
             const btn = tabs.createEl("button", {
                 text: t(mode.labelKey as LocaleKey),
                 cls: c("surface-mode-tab"),
             });
+            btn.id = `zf-tab-${viewType}-${mode.id}`;
             btn.setAttribute("role", "tab");
+            btn.setAttribute("aria-controls", `zf-panel-${viewType}`);
+            btn.setAttribute("tabindex", "-1"); // roving; the active tab becomes 0 in showMode
             this.registerDomEvent(btn, "click", () => void this.showMode(mode.id));
+            this.registerDomEvent(btn, "keydown", (evt) => this.onTabKeydown(evt, mode.id));
             this.tabButtons.set(mode.id, btn);
+            this.tabOrder.push(mode.id);
         }
         this.bodyEl = root.createDiv({ cls: c("surface-body") });
+        this.bodyEl.id = `zf-panel-${viewType}`;
+        this.bodyEl.setAttribute("role", "tabpanel");
+        this.bodyEl.setAttribute("tabindex", "0");
+    }
+
+    /** Arrow/Home/End keyboard navigation across the tablist (WAI-ARIA automatic activation). */
+    private onTabKeydown(evt: KeyboardEvent, modeId: string): void {
+        const index = this.tabOrder.indexOf(modeId);
+        if (index === -1 || this.tabOrder.length === 0) return;
+        let next: number | null = null;
+        if (evt.key === "ArrowRight" || evt.key === "ArrowDown") next = (index + 1) % this.tabOrder.length;
+        else if (evt.key === "ArrowLeft" || evt.key === "ArrowUp") next = (index - 1 + this.tabOrder.length) % this.tabOrder.length;
+        else if (evt.key === "Home") next = 0;
+        else if (evt.key === "End") next = this.tabOrder.length - 1;
+        if (next === null) return;
+        evt.preventDefault();
+        const nextId = this.tabOrder[next];
+        this.tabButtons.get(nextId)?.focus();
+        void this.showMode(nextId);
     }
 
     private async showMode(modeId: string): Promise<void> {
         if (!this.bodyEl) return;
         this.activeMode = modeId;
         for (const [id, btn] of this.tabButtons) {
-            btn.toggleClass(c("surface-mode-tab--active"), id === modeId);
-            btn.setAttribute("aria-selected", id === modeId ? "true" : "false");
+            const active = id === modeId;
+            btn.toggleClass(c("surface-mode-tab--active"), active);
+            btn.setAttribute("aria-selected", active ? "true" : "false");
+            btn.setAttribute("tabindex", active ? "0" : "-1"); // roving tabindex
         }
+        this.bodyEl.setAttribute("aria-labelledby", `zf-tab-${this.getViewType()}-${modeId}`);
         if (this.current) {
             this.removeChild(this.current);
             this.current = null;

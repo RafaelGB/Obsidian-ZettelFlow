@@ -1,13 +1,16 @@
 import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { CultivationService } from "architecture/plugin";
+import { CultivationService, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import {
     buildCultivationSession,
     selectCultivationTarget,
+    cultivationQueue,
+    developmentStreak,
     type CultivationMove,
+    type CultivationMoveKind,
     type CultivationSession,
 } from "architecture/knowledge/state";
 
@@ -28,6 +31,8 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private session: CultivationSession | null = null;
     private targetPath: string | null = null;
+    private queueCount = 0;
+    private streak = 0;
     private readonly visited = new Set<string>();
     private debounceTimer: number | undefined;
 
@@ -80,7 +85,10 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             if (!this.targetPath || !model.get(this.targetPath)) {
                 this.targetPath = selectCultivationTarget(model, this.visited) ?? selectCultivationTarget(model);
             }
-            this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now()) : null;
+            const recipe = this.plugin.settings.cultivateMoves as CultivationMoveKind[] | undefined;
+            this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now(), recipe) : null;
+            this.queueCount = cultivationQueue(model, this.visited, 99).length;
+            this.streak = developmentStreak(DevelopmentJournal.getInstance().dailyCounts(), Date.now());
             this.state = this.session ? "ready" : "empty";
         } catch (error) {
             this.state = "error";
@@ -117,6 +125,10 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         }
 
         root.createDiv({ cls: c("cultivate-intro"), text: t("cultivate_intro") });
+        const momentum: string[] = [];
+        if (this.streak > 0) momentum.push(t("cultivate_streak", String(this.streak)));
+        if (this.queueCount > 0) momentum.push(t("cultivate_queue", String(this.queueCount)));
+        if (momentum.length > 0) root.createDiv({ cls: c("cultivate-momentum"), text: momentum.join(" · ") });
         this.renderTarget(root, this.session);
         const list = root.createDiv({ cls: c("cultivate-moves") });
         for (const move of this.session.moves) this.renderMove(list, move);

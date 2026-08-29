@@ -39,6 +39,13 @@ export interface ZettelFlowSettings {
      * graph, health, discovery, cultivate, home. Folder-boundary "starts with" match. Default: none.
      */
     excludedPaths: string[];
+    /**
+     * Which Cultivate moves a thinking session includes (#318 S1) — a subset of
+     * connect/challenge/question/advance/source. Undefined = all (the default recipe).
+     */
+    cultivateMoves?: string[];
+    /** Saved "ask your graph" queries (#318 S3) — persisted so a useful query can be re-run. */
+    savedGraphQueries?: string[];
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 

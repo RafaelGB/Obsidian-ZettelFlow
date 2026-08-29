@@ -3,6 +3,7 @@ import {
     buildCultivationSession,
     selectCultivationTarget,
     readyToCultivate,
+    cultivationQueue,
 } from "architecture/knowledge/cultivate/cultivationSession";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
@@ -52,6 +53,24 @@ describe("buildCultivationSession (#309 S1)", () => {
 
     it("returns null for an unknown path", () => {
         expect(buildCultivationSession(model, "missing.md", NOW)).toBeNull();
+    });
+
+    it("honors a recipe — only the enabled moves appear, in canonical order (#318 S1)", () => {
+        const only = buildCultivationSession(model, "a.md", NOW, ["question", "advance"]);
+        expect(only!.moves.map((m) => m.kind)).toEqual(["question", "advance"]);
+        // an empty recipe falls back to the full ritual
+        const full = buildCultivationSession(model, "a.md", NOW, []);
+        expect(full!.moves.map((m) => m.kind)).toEqual(["connect", "challenge", "question", "advance", "source"]);
+    });
+});
+
+describe("cultivationQueue (#318 S2)", () => {
+    it("returns the ranked queue, honoring limit and exclude", () => {
+        const q = cultivationQueue(model, new Set(), 2);
+        expect(q.length).toBe(2);
+        for (const p of q) expect(model.get(p)).toBeDefined();
+        const target = selectCultivationTarget(model)!;
+        expect(cultivationQueue(model, new Set([target]))).not.toContain(target);
     });
 });
 

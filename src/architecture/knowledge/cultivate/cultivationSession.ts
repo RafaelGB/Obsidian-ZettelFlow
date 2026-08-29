@@ -52,29 +52,43 @@ function asLifecycleState(state: IdeaState): LifecycleState {
  * next valid lifecycle state), **source** (only when the note is unsourced). Only actionable moves are
  * kept, so the session is exactly "what to do on this idea now". Returns `null` for an unknown path.
  */
-export function buildCultivationSession(model: KnowledgeModel, path: string, now: number): CultivationSession | null {
+/** The full ritual order — the default recipe when the user hasn't customised it (#318 S1). */
+export const ALL_CULTIVATION_MOVES: readonly CultivationMoveKind[] = ["connect", "challenge", "question", "advance", "source"];
+
+export function buildCultivationSession(
+    model: KnowledgeModel,
+    path: string,
+    now: number,
+    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES
+): CultivationSession | null {
     const idea = model.get(path);
     if (!idea) return null;
 
+    const enabled = new Set(recipe.length > 0 ? recipe : ALL_CULTIVATION_MOVES);
     const moves: CultivationMove[] = [];
 
-    const related = rankRelated(model, path, { limit: CONNECT_LIMIT });
-    if (related.length > 0) moves.push({ kind: "connect", candidates: related });
-
-    const contradictions = findContradictions(model, path);
-    // Challenge is always offered: if contradictions exist show them, otherwise invite a counterpoint.
-    moves.push({ kind: "challenge", candidates: contradictions });
-
-    // A question can always be raised.
-    moves.push({ kind: "question" });
-
-    const targets = allowedTargets(asLifecycleState(idea.state));
-    const proposedState = targets.find((target) => target !== "archived") ?? targets[0];
-    if (proposedState) {
-        moves.push({ kind: "advance", proposedState, proposedStateLabelKey: STATE_LABEL_KEY[proposedState] });
+    if (enabled.has("connect")) {
+        const related = rankRelated(model, path, { limit: CONNECT_LIMIT });
+        if (related.length > 0) moves.push({ kind: "connect", candidates: related });
     }
 
-    if (!idea.maturitySignals.hasSources) moves.push({ kind: "source" });
+    if (enabled.has("challenge")) {
+        // Challenge is always offered: if contradictions exist show them, otherwise invite a counterpoint.
+        moves.push({ kind: "challenge", candidates: findContradictions(model, path) });
+    }
+
+    // A question can always be raised.
+    if (enabled.has("question")) moves.push({ kind: "question" });
+
+    if (enabled.has("advance")) {
+        const targets = allowedTargets(asLifecycleState(idea.state));
+        const proposedState = targets.find((target) => target !== "archived") ?? targets[0];
+        if (proposedState) {
+            moves.push({ kind: "advance", proposedState, proposedStateLabelKey: STATE_LABEL_KEY[proposedState] });
+        }
+    }
+
+    if (enabled.has("source") && !idea.maturitySignals.hasSources) moves.push({ kind: "source" });
 
     return {
         path,
@@ -92,26 +106,50 @@ export function buildCultivationSession(model: KnowledgeModel, path: string, now
  * `exclude` skips notes already cultivated this sitting (the "another idea" action). Returns `null`
  * for an empty model or when everything is excluded. Deterministic.
  */
+function rankCultivationCandidates(model: KnowledgeModel): string[] {
+    const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+    const ranked: string[] = [];
+    const seen = new Set<string>();
+    const push = (path: string) => {
+        if (!seen.has(path)) {
+            seen.add(path);
+            ranked.push(path);
+        }
+    };
+
+    const next = nextSession(model);
+    if (next) push(next.path);
+    for (const idea of byState(model, "fleeting").sort((a, b) => b.created - a.created || byPath(a.path, b.path))) push(idea.path);
+    for (const idea of model.all().sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || byPath(a.path, b.path))) push(idea.path);
+    return ranked;
+}
+
 export function selectCultivationTarget(
     model: KnowledgeModel,
     exclude: ReadonlySet<string> = new Set()
 ): string | null {
-    const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-    const ranked: string[] = [];
-
-    const next = nextSession(model);
-    if (next) ranked.push(next.path);
-    for (const idea of byState(model, "fleeting").sort((a, b) => b.created - a.created || byPath(a.path, b.path))) {
-        ranked.push(idea.path);
-    }
-    for (const idea of model.all().sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || byPath(a.path, b.path))) {
-        ranked.push(idea.path);
-    }
-
-    for (const path of ranked) {
+    for (const path of rankCultivationCandidates(model)) {
         if (!exclude.has(path) && model.get(path)) return path;
     }
     return null;
+}
+
+/**
+ * The cultivation **queue** (#318 S2): the highest-leverage ideas due for development, most-leverage
+ * first, excluding notes already cultivated this sitting. Deterministic. The "another idea" action
+ * walks this list; Home shows its size.
+ */
+export function cultivationQueue(
+    model: KnowledgeModel,
+    exclude: ReadonlySet<string> = new Set(),
+    limit = 5
+): string[] {
+    const out: string[] = [];
+    for (const path of rankCultivationCandidates(model)) {
+        if (!exclude.has(path) && model.get(path)) out.push(path);
+        if (out.length >= limit) break;
+    }
+    return out;
 }
 
 /**

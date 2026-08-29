@@ -8,6 +8,20 @@ throws or is invalid is caught and the trigger is safely skipped — it can neve
 This page is the reference the in-app help draws from (epic #246, B1). The pure vocabulary, examples and
 sanity check live in `src/architecture/plugin/events/conditionHelp.ts`.
 
+## Build one without writing code
+
+You never have to hand-write the script. The condition editor (open it from a canvas *IF* edge) ships a
+**guided builder** — pick a **field**, an **operator**, and a **value**, press *Insert into editor*, and a
+valid expression appears in the code box. A non-programmer can compose a correct condition end-to-end; an
+incomplete or nonsensical clause (a missing value, a non-numeric value for a numeric operator) is caught
+with a plain message instead of emitting broken code. The composer is the pure, unit-tested
+`buildConditionExpression` in `src/architecture/plugin/events/conditionBuilder.ts`, so the string it emits
+is exactly what the runtime evaluator runs.
+
+The operators offered: *equals*, *does not equal*, *contains*, *starts with*, *ends with*, *greater than*,
+*less than*, *is empty*, *is not empty*. String values are safely quoted (no expression injection); the
+ordering operators require a number.
+
 ## What you can reference
 
 The event being tested is available as `event`:

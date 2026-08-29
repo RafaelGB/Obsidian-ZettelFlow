@@ -10,6 +10,7 @@ import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEng
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
 import { parseExcludedPathsInput, excludedPathsToText } from "architecture/knowledge/scope/knowledgeScope";
 import {
     DEFAULT_STATE_PROPERTY,
@@ -350,6 +351,35 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             );
                         },
                     },
+                ],
+            },
+            // ── Cultivate (thinking sessions) ─────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_cultivate_heading"),
+                items: [
+                    {
+                        name: t("settings_cultivate_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    ...ALL_CULTIVATION_MOVES.map((kind) => ({
+                        name: t(`cultivate_move_${kind}_title` as Parameters<typeof t>[0]),
+                        desc: t(`cultivate_move_${kind}_desc` as Parameters<typeof t>[0]),
+                        render: (setting: Setting) => {
+                            const current = plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
+                            setting.addToggle((toggle) =>
+                                toggle.setValue(current.includes(kind)).onChange(async (value) => {
+                                    const base = plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
+                                    const next = value ? [...new Set([...base, kind])] : base.filter((m) => m !== kind);
+                                    // Keep the canonical order so the session reads predictably.
+                                    plugin.settings.cultivateMoves = ALL_CULTIVATION_MOVES.filter((m) => next.includes(m));
+                                    await plugin.saveSettings();
+                                })
+                            );
+                        },
+                    })),
                 ],
             },
             // ── Semantic relations ────────────────────────────────────────────

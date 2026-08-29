@@ -53,8 +53,11 @@
 @use 'components/settingsToolkit.scss';
 @use 'components/resurface.scss';
 @use 'components/mocBuilder.scss';
+@use 'components/reasoningPaths.scss';
+@use 'components/askGraph.scss';
 @use 'components/atomicitySplit.scss';
 @use 'components/workflowCanvas.scss';
+@use 'components/conditionBuilder.scss';
 @use 'components/surface.scss';
 @use 'components/graph3d.scss';
 

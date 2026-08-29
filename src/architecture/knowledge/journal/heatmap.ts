@@ -22,6 +22,22 @@ export function toDayKey(ts: number): string {
     return new Date(ts).toISOString().slice(0, 10);
 }
 
+/**
+ * The current **development streak** (#318 S2): consecutive days ending today with at least one
+ * development event. A still-empty *today* does not break the streak (it counts back from yesterday),
+ * so momentum is only lost after a full missed day. Pure and deterministic.
+ */
+export function developmentStreak(counts: Record<string, number>, now: number): number {
+    let cursor = now;
+    if (!counts[toDayKey(now)]) cursor -= DAY_MS; // today not logged yet — count from yesterday
+    let streak = 0;
+    while ((counts[toDayKey(cursor)] ?? 0) > 0) {
+        streak++;
+        cursor -= DAY_MS;
+    }
+    return streak;
+}
+
 /** Intensity band for a day's development-event count: 0 · 1–2 · 3–5 · 6–9 · 10+. */
 export function levelForCount(count: number): 0 | 1 | 2 | 3 | 4 {
     if (count <= 0) return 0;

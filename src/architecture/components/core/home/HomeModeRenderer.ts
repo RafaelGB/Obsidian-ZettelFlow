@@ -3,7 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome, readyToCultivate } from "architecture/knowledge/state";
+import { HomeModel, buildHome, readyToCultivate, developmentStreak } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
@@ -28,6 +28,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private home: HomeModel | null = null;
     private recommendations: KnowledgeRecommendation[] = [];
     private cultivateCount = 0;
+    private streak = 0;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -69,6 +70,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
             this.recommendations = topRecommendations(model);
             this.cultivateCount = readyToCultivate(model);
+            this.streak = developmentStreak(counts, Date.now());
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -133,6 +135,12 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             cls: c("home-cultivate-teaser-sub"),
             text: t("home_cultivate_teaser_sub", String(this.cultivateCount)),
         });
+        if (this.streak > 0) {
+            teaser.createDiv({
+                cls: c("home-cultivate-teaser-streak"),
+                text: t("home_cultivate_teaser_streak", String(this.streak)),
+            });
+        }
         const btn = teaser.createEl("button", {
             cls: c("home-cultivate-teaser-btn"),
             text: t("home_cultivate_teaser_cta"),

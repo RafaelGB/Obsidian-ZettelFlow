@@ -4,9 +4,29 @@ import {
     isPathExcluded,
     parseExcludedPathsInput,
     excludedPathsToText,
+    scopeExcludedPaths,
 } from "architecture/knowledge/scope/knowledgeScope";
 
 describe("knowledgeScope (#311)", () => {
+    it("scopeExcludedPaths auto-excludes ZettelFlow's system folders alongside the user list", () => {
+        const paths = scopeExcludedPaths({
+            excludedPaths: ["templates"],
+            foldersFlowsPath: "_ZettelFlow/folders",
+            jsLibraryFolderPath: "_ZettelFlow/scripts",
+            hooks: { folderFlowPath: "_ZettelFlow/hooks" },
+        });
+        expect(paths).toEqual(["templates", "_ZettelFlow/folders", "_ZettelFlow/scripts", "_ZettelFlow/hooks"]);
+        // A flow step note and a hook script are out of scope even though the user never listed them.
+        expect(isPathExcluded("_ZettelFlow/folders/step.md", paths)).toBe(true);
+        expect(isPathExcluded("_ZettelFlow/hooks/on-create.canvas", paths)).toBe(true);
+        expect(isPathExcluded("ideas/real-note.md", paths)).toBe(false);
+    });
+
+    it("scopeExcludedPaths tolerates missing/blank system settings", () => {
+        expect(scopeExcludedPaths({})).toEqual([]);
+        expect(scopeExcludedPaths({ excludedPaths: ["a"], foldersFlowsPath: "", jsLibraryFolderPath: undefined })).toEqual(["a"]);
+    });
+
     it("normalises prefixes (slashes, trim, dedupe, drop empty)", () => {
         expect(normalizeExcludedPaths(["  templates/ ", "\\config\\", "templates", "", "  "])).toEqual([
             "templates",

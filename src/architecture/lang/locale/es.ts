@@ -728,7 +728,7 @@ export default {
     settings_scope_heading: 'Ámbito del conocimiento',
     settings_scope_intro: 'Mantén la configuración, plantillas y otras herramientas del vault fuera del sistema de pensamiento. Las notas bajo una ruta excluida no entran en el índice, así que desaparecen de todos los mecanismos a la vez: grafo, salud, descubrimiento, cultivar e inicio.',
     settings_excluded_paths_name: 'Rutas excluidas',
-    settings_excluded_paths_desc: 'Una ruta de carpeta por línea. Se excluye toda nota cuya ruta empiece por ella (coincidencia a nivel de carpeta), p. ej. templates o _ZettelFlow.',
+    settings_excluded_paths_desc: 'Una ruta de carpeta por línea. Se excluye toda nota cuya ruta empiece por ella (coincidencia a nivel de carpeta), p. ej. templates o _ZettelFlow. Las carpetas propias de ZettelFlow (flujos, hooks, librería JS) se excluyen siempre de forma automática.',
     settings_excluded_paths_placeholder: 'templates\n_ZettelFlow',
     settings_lifecycle_heading: 'Ciclo de vida del conocimiento',
     settings_lifecycle_intro: 'Clasifica las notas por su estado del ciclo de vida y cambia su fase con un comando validado. El estado vive en frontmatter plano y configurable, sin lock-in.',

@@ -728,7 +728,7 @@ export default {
     settings_scope_heading: 'Knowledge scope',
     settings_scope_intro: 'Keep config, templates and other vault tooling out of the thinking system. Notes under an excluded path never enter the index, so they drop out of every mechanism at once — graph, health, discovery, cultivate and home.',
     settings_excluded_paths_name: 'Excluded paths',
-    settings_excluded_paths_desc: 'One folder path per line. Every note whose path starts with it is excluded (folder-boundary match), e.g. templates or _ZettelFlow.',
+    settings_excluded_paths_desc: 'One folder path per line. Every note whose path starts with it is excluded (folder-boundary match), e.g. templates or _ZettelFlow. ZettelFlow\'s own system folders (flows, hooks, JS library) are always excluded automatically.',
     settings_excluded_paths_placeholder: 'templates\n_ZettelFlow',
     settings_lifecycle_heading: 'Knowledge lifecycle',
     settings_lifecycle_intro: 'Classify notes by lifecycle state and change their phase with a validated command. The state lives in plain, configurable frontmatter — no lock-in.',

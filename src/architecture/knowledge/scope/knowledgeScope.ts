@@ -33,6 +33,34 @@ export function isPathExcluded(path: string, prefixes: readonly string[]): boole
     return false;
 }
 
+/**
+ * The scope-relevant slice of the plugin settings (kept minimal so this module stays config-free). The
+ * folders here are ZettelFlow's own machinery — flow canvases and their step notes, hook flow scripts, the
+ * JS library — never the user's own thinking, so they are excluded automatically.
+ */
+export interface ScopeSettings {
+    excludedPaths?: readonly string[];
+    /** Folder where folder-automation flow canvases (and their step notes) live. */
+    foldersFlowsPath?: string;
+    /** Folder holding the user's `zf` JS library. */
+    jsLibraryFolderPath?: string;
+    /** Folder for hook-triggered flow canvases. */
+    hooks?: { folderFlowPath?: string };
+}
+
+/**
+ * Every excluded prefix that defines the thinking system's scope (#311, extended): the user's own
+ * excluded paths **plus** ZettelFlow's managed system folders, which are auto-excluded so system notes
+ * are never indexed, cultivated, or counted anywhere. Deterministic and normalised.
+ */
+export function scopeExcludedPaths(settings: ScopeSettings): string[] {
+    const system = [settings.foldersFlowsPath, settings.jsLibraryFolderPath, settings.hooks?.folderFlowPath];
+    return normalizeExcludedPaths([
+        ...(settings.excludedPaths ?? []),
+        ...system.filter((p): p is string => typeof p === "string"),
+    ]);
+}
+
 /** Split a textarea value (one prefix per line) into a normalised prefix list. */
 export function parseExcludedPathsInput(text: string): string[] {
     return normalizeExcludedPaths(text.split(/\r?\n/));

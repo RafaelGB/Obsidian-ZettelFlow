@@ -277,3 +277,31 @@
 .zettelkasten-flow__root-selector-status--error {
     color: var(--text-error);
 }
+/*****************
+*   ACCESSIBILITY (#319 E4)
+******************/
+
+/* Visible focus ring for our custom clickable widgets (buttons + role-bearing spans/rows). */
+[class^="zettelkasten-flow__"]:focus-visible,
+[class*=" zettelkasten-flow__"]:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
+}
+
+/* Segmented surface tabs: comfortable touch target for mobile + selected emphasis. */
+.zettelkasten-flow__surface-mode-tab {
+    min-height: 40px;
+    cursor: pointer;
+}
+
+/* Honor the OS "reduce motion" preference for our own transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+    [class^="zettelkasten-flow__"],
+    [class*=" zettelkasten-flow__"] {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -212,9 +212,9 @@ A pre-launch self-audit against the checklist above (this is the reference the
 | **Capabilities disclosure** | ✅ [Capabilities & privacy](capabilities-and-privacy.md): FS access, opt-in read-only community fetch, opt-in https AI endpoint, script execution; adopt Obsidian's machine-readable disclosure labels when the format ships |
 | **Submission** — `versions.json`, tag == `manifest.version`, three artifacts | ✅ `versions.json` present; the release workflow **fails if the tag ≠ `manifest.version`** and attaches `main.js`/`manifest.json`/`styles.css` (#316) |
 | **Network / telemetry** | ✅ no telemetry; the only outbound calls are the opt-in community fetches (read-only) and the opt-in AI endpoint |
+| **Mobile & accessibility** (#319, E4) | ✅ core-loop touch targets; graph degrades to a navigable list on mobile; WAI-ARIA tablist + keyboard nav; `makeActivatable` note links; focus rings; `prefers-reduced-motion`; guardrail test + [matrix doc](mobile-and-accessibility.md). Remaining lens sweep + device walkthrough tracked in #325 |
 
-Remaining pre-launch items live in the other launch epics: **mobile & cross-platform** + a11y
-(#319, E4) and the write-path **safety net** (#317, E2).
+Remaining pre-launch item lives in the last launch epic: **design by subtraction** (#320, E5).
 
 ## Sources
 

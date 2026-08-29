@@ -2,6 +2,7 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { reasoningPaths, type Path } from "architecture/knowledge/state";
+import { makeActivatable } from "architecture/components/core/a11y";
 import { App, Modal } from "obsidian";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -70,7 +71,7 @@ export class ReasoningPathsModal extends Modal {
     private renderNote(row: HTMLElement, path: string): void {
         const link = row.createSpan({ cls: c("reasoning-paths-note"), text: basename(path) });
         link.setAttribute("title", path);
-        link.addEventListener("click", () => {
+        makeActivatable(link, () => {
             void this.app.workspace.openLinkText(path, "", false);
             this.close();
         });

@@ -4,6 +4,7 @@ import { t } from "architecture/lang";
 import { CultivationService, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { makeActivatable } from "architecture/components/core/a11y";
 import {
     buildCultivationSession,
     selectCultivationTarget,
@@ -141,7 +142,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             text: `${session.stateEmoji} ${basename(session.path)}`.trim(),
         });
         name.setAttribute("title", session.path);
-        name.addEventListener("click", () => void this.app.workspace.openLinkText(session.path, "", false));
+        makeActivatable(name, () => void this.app.workspace.openLinkText(session.path, "", false));
         const maturity = session.maturity === null ? "—" : session.maturity.toFixed(2);
         card.createDiv({
             cls: c("cultivate-target-meta"),
@@ -179,7 +180,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             const row = body.createDiv({ cls: c("cultivate-candidate") });
             const link = row.createSpan({ cls: c("cultivate-candidate-name"), text: basename(candidate) });
             link.setAttribute("title", candidate);
-            link.addEventListener("click", () => void this.app.workspace.openLinkText(candidate, "", false));
+            makeActivatable(link, () => void this.app.workspace.openLinkText(candidate, "", false));
             const btn = row.createEl("button", { cls: c("cultivate-candidate-btn"), text: t("cultivate_link_button") });
             btn.addEventListener("click", () => void this.linkNote(candidate));
         }
@@ -191,7 +192,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
                 const row = body.createDiv({ cls: c("cultivate-candidate") });
                 const link = row.createSpan({ cls: c("cultivate-candidate-name"), text: basename(path) });
                 link.setAttribute("title", path);
-                link.addEventListener("click", () => void this.app.workspace.openLinkText(path, "", false));
+                makeActivatable(link, () => void this.app.workspace.openLinkText(path, "", false));
             }
         } else {
             body.createDiv({ cls: c("cultivate-move-hint"), text: t("cultivate_no_contradictions") });

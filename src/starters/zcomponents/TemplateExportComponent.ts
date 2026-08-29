@@ -79,7 +79,8 @@ export class TemplateExportComponent extends PluginComponent {
         const json = JSON.stringify(template, null, 2);
         const blob = new Blob([json], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        const anchor = activeDocument.createEl("a");
+        // Native createElement (detached) — Obsidian's createEl would append to the document and throw.
+        const anchor = activeDocument.createElement("a");
         anchor.href = url;
         anchor.setAttr("download", `${name}.zftemplate`);
         anchor.click();
@@ -88,7 +89,7 @@ export class TemplateExportComponent extends PluginComponent {
     }
 
     private pickAndImport(): void {
-        const input = activeDocument.createEl("input");
+        const input = activeDocument.createElement("input");
         input.type = "file";
         input.accept = ".zftemplate";
         input.addEventListener("change", () => {

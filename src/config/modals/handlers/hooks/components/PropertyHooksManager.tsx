@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { c } from "architecture";
+import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { Keyboard, ObsidianNativeTypesManager } from "architecture/plugin";
 import ZettelFlow from "main";
 import { PropertyHookSettings } from "config/typing";
-import { log } from "architecture";
 import { Icon } from "architecture/components/icon";
 import {
   DndContext,
@@ -14,46 +13,38 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { PropertyHookAccordion } from "./PropertyHookAccordion";
+import { HookErrorBoundary } from "./HookErrorBoundary";
 import { Search } from "architecture/components/core";
 import { ObsidianTypesModal } from "config";
 import { VaultHooks, HookDryRunResult } from "hooks/VaultHooks";
+import {
+  HookItem,
+  toItems,
+  toRecord,
+  addHook,
+  updateHook as updateHookItem,
+  deleteHook as deleteHookItem,
+  reorderHooks,
+} from "../hookItems";
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
 }
 
-/** One ordered hook: the property it fires on + its settings. The array *is* the source of truth. */
-interface HookItem {
-  property: string;
-  settings: PropertyHookSettings;
-}
-
-function toItems(record: Record<string, PropertyHookSettings> | undefined): HookItem[] {
-  return Object.entries(record || {}).map(([property, settings]) => ({
-    property,
-    settings: settings ?? { script: "" },
-  }));
-}
-
 /**
  * The property-hooks manager (#327). A single ordered `items` array is the source of truth — the old
- * split `hooks`/`hookOrder` state could desync and blank the list. Adding a hook appends + auto-opens
- * it; every mutation persists atomically. Each hook can be paused, described, gated by a condition, and
- * dry-run against the active note.
+ * split `hooks`/`hookOrder` state could desync and blank the list. All mutations go through the pure,
+ * unit-tested {@link hookItems} operations; adding a hook appends + auto-opens it; every mutation persists
+ * atomically and defensively. Wrapped in a `HookErrorBoundary` at the mount site so a render throw can
+ * never silently wipe the panel.
  */
 export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
 }) => {
-  const [items, setItems] = useState<HookItem[]>(() =>
-    toItems(plugin.settings.hooks.properties)
-  );
+  const [items, setItems] = useState<HookItem[]>(() => toItems(plugin.settings.hooks.properties));
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
   const [isAddingHook, setIsAddingHook] = useState(false);
   const [selectedNewProperty, setSelectedNewProperty] = useState("");
@@ -65,36 +56,42 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
   useEffect(() => {
     const loadPropertyTypes = async () => {
-      const types = await ObsidianNativeTypesManager.getAllTypes();
-      setPropertyTypes(types);
+      try {
+        setPropertyTypes(await ObsidianNativeTypesManager.getAllTypes());
+      } catch (error) {
+        log.error("[PropertyHooks] could not load property types", error);
+        setPropertyTypes({});
+      }
     };
     void loadPropertyTypes();
   }, []);
 
-  /** The single write path: update state + settings + persist together, so they can never desync. */
+  /** The single write path: update React state + persist, atomically and defensively. */
   const persist = (next: HookItem[]) => {
     setItems(next);
-    const record: Record<string, PropertyHookSettings> = {};
-    next.forEach((item) => (record[item.property] = item.settings));
-    plugin.settings.hooks.properties = record;
-    void plugin.saveSettings();
-    log.debug("Hooks saved:", record);
+    try {
+      plugin.settings.hooks.properties = toRecord(next);
+      void plugin.saveSettings();
+      log.debug("[PropertyHooks] saved", next.length, "hook(s)");
+    } catch (error) {
+      log.error("[PropertyHooks] failed to persist hooks", error);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = items.findIndex((i) => i.property === active.id);
-    const newIndex = items.findIndex((i) => i.property === over.id);
-    if (oldIndex !== -1 && newIndex !== -1) {
-      persist(arrayMove(items, oldIndex, newIndex));
-    }
+    const from = items.findIndex((i) => i.property === active.id);
+    const to = items.findIndex((i) => i.property === over.id);
+    const next = reorderHooks(items, from, to);
+    if (next !== items) persist(next);
   };
 
   const handleAddHookConfirm = () => {
     const property = selectedNewProperty;
-    if (!property || items.some((i) => i.property === property)) return;
-    persist([...items, { property, settings: { script: "", enabled: true } }]);
+    const next = addHook(items, property);
+    if (next === items) return; // blank or duplicate — nothing added
+    persist(next);
     setNewlyAdded(property);
     setIsAddingHook(false);
     setSelectedNewProperty("");
@@ -106,15 +103,11 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   };
 
   const updateHook = (property: string, patch: Partial<PropertyHookSettings>) => {
-    persist(
-      items.map((i) =>
-        i.property === property ? { property, settings: { ...i.settings, ...patch } } : i
-      )
-    );
+    persist(updateHookItem(items, property, patch));
   };
 
   const deleteHook = (property: string) => {
-    persist(items.filter((i) => i.property !== property));
+    persist(deleteHookItem(items, property));
     if (newlyAdded === property) setNewlyAdded(null);
   };
 
@@ -206,16 +199,18 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           >
             <div className={c("property-hooks-list")}>
               {items.map((item) => (
-                <PropertyHookAccordion
-                  key={item.property}
-                  property={item.property}
-                  propertyType={propertyTypes[item.property] || "unknown"}
-                  settings={item.settings}
-                  defaultOpen={item.property === newlyAdded}
-                  onChange={(patch) => updateHook(item.property, patch)}
-                  onDelete={() => deleteHook(item.property)}
-                  onTest={(settings) => testHook(item.property, settings)}
-                />
+                // Per-row boundary: a crash in one hook row can never blank the others (#327 hardening).
+                <HookErrorBoundary key={item.property}>
+                  <PropertyHookAccordion
+                    property={item.property}
+                    propertyType={propertyTypes[item.property] || "unknown"}
+                    settings={item.settings}
+                    defaultOpen={item.property === newlyAdded}
+                    onChange={(patch) => updateHook(item.property, patch)}
+                    onDelete={() => deleteHook(item.property)}
+                    onTest={(settings) => testHook(item.property, settings)}
+                  />
+                </HookErrorBoundary>
               ))}
             </div>
           </SortableContext>

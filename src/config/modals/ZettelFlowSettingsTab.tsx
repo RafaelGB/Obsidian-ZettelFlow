@@ -24,6 +24,7 @@ import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "applicat
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
+import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
@@ -612,8 +613,14 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                 cls: c("property-hooks-container"),
                             });
                             const root = createRoot(container);
-                            root.render(<PropertyHooksManager plugin={plugin} />);
-                            return () => root.unmount();
+                            root.render(
+                                <HookErrorBoundary>
+                                    <PropertyHooksManager plugin={plugin} />
+                                </HookErrorBoundary>
+                            );
+                            // Defer unmount so React isn't torn down synchronously mid-commit if Obsidian
+                            // tears the row down during an update (avoids "unmount while rendering").
+                            return () => window.setTimeout(() => root.unmount(), 0);
                         },
                     },
                     {

@@ -343,6 +343,8 @@ export default {
     property_hooks_test_result_set: 'Would set:',
     property_hooks_test_result_remove: 'Would remove:',
     property_hooks_test_result_flow: 'Would trigger flow: {0}',
+    property_hooks_render_error: 'The hooks panel hit an error. Your hooks are safe — reload to continue.',
+    property_hooks_reload: 'Reload hooks',
     // Step templates
     step_templates_select_step: 'Select a step',
     step_templates_search_placeholder: 'Search by title, description or author...',

@@ -10,6 +10,8 @@ const MANAGER = read("src", "config", "modals", "handlers", "hooks", "components
 const ACCORDION = read("src", "config", "modals", "handlers", "hooks", "components", "PropertyHookAccordion.tsx");
 const RUNTIME = read("src", "hooks", "VaultHooks.ts");
 const TYPING = read("src", "config", "typing.ts");
+const SETTINGS_TAB = read("src", "config", "modals", "ZettelFlowSettingsTab.tsx");
+const CODE_EDITOR = read("src", "config", "modals", "handlers", "hooks", "components", "CodeEditor.tsx");
 
 /**
  * Property-hooks manager invariants (#327). These lock the fixes so they can't regress: a single ordered
@@ -23,16 +25,33 @@ describe("property hooks manager (#327 S1)", () => {
         expect(MANAGER).toContain("HookItem[]");
     });
 
-    it("persists atomically (state + settings + save in one path) and guards missing entries", () => {
+    it("persists atomically through one guarded write path, via the pure ops", () => {
         expect(MANAGER).toContain("const persist = (next: HookItem[])");
-        expect(MANAGER).toContain("plugin.settings.hooks.properties = record");
+        expect(MANAGER).toContain("plugin.settings.hooks.properties = toRecord(next)");
         expect(MANAGER).toContain("plugin.saveSettings()");
-        expect(MANAGER).toMatch(/settings: settings \?\? \{ script: "" \}/); // guarded mapping
+        expect(MANAGER).toMatch(/from "\.\.\/hookItems"/); // mutations delegated to the tested pure ops
     });
 
     it("appends and auto-opens a newly added hook", () => {
         expect(MANAGER).toContain("setNewlyAdded");
         expect(MANAGER).toContain("defaultOpen={item.property === newlyAdded}");
+    });
+});
+
+describe("property hooks resilience (#327 hardening)", () => {
+    it("wraps the manager in an error boundary so a render throw can't blank the panel", () => {
+        expect(SETTINGS_TAB).toContain("HookErrorBoundary");
+        expect(SETTINGS_TAB).toMatch(/<HookErrorBoundary>[\s\S]*PropertyHooksManager[\s\S]*<\/HookErrorBoundary>/);
+    });
+
+    it("wraps each hook row in its own boundary so one bad row can't blank the others", () => {
+        expect(MANAGER).toMatch(/<HookErrorBoundary key=\{item\.property\}>[\s\S]*PropertyHookAccordion/);
+    });
+
+    it("hardens the CodeMirror editor with a try/catch + textarea fallback", () => {
+        expect(CODE_EDITOR).toContain("try {");
+        expect(CODE_EDITOR).toContain("setFailed(true)");
+        expect(CODE_EDITOR).toContain("textarea");
     });
 });
 

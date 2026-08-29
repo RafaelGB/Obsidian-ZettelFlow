@@ -40,5 +40,16 @@ module.exports = {
     "^main$": "<rootDir>/src/main.ts",
   },
   collectCoverageFrom: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts"],
+  // A ratcheting coverage FLOOR (#317 E2, S8) — set just below the measured level so a regression
+  // fails CI (`npm run test:coverage`). Raise these as more behavioral tests land; never a target to
+  // game, only a floor that must not drop. Measured at epic close: stmts 85 / branch 77 / func 80 / lines 86.
+  coverageThreshold: {
+    global: {
+      statements: 83,
+      branches: 75,
+      functions: 78,
+      lines: 84,
+    },
+  },
   clearMocks: true,
 };

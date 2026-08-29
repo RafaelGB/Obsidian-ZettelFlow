@@ -70,8 +70,30 @@ from advisory (`continue-on-error: true`) to blocking. See
 `npm run typecheck` runs `tsc -noEmit -skipLibCheck` — the same gate the `release` script uses.
 esbuild does the actual bundling; `tsc` only type-checks. **Blocking.**
 
-## Adding coverage as you go
+## The coverage floor (#317, E2)
 
-`npm run test:coverage` collects from `src/**`. There is no enforced threshold yet; add one in
-`jest.config.js` (`coverageThreshold`) once coverage is meaningful, and make it a blocking CI
-step. Treat each closed score issue as an opportunity to add the tests that lock in the fix.
+`npm run test:coverage` collects from `src/**` and enforces a **ratcheting coverage floor** set in
+`jest.config.js` (`coverageThreshold.global`). CI runs `test:coverage`, so a regression that drops
+coverage below the floor **fails the build**.
+
+The policy — deliberately, not vanity:
+
+- It is a **floor, not a target.** We chase *behavioral* tests of the risky, user-affecting paths
+  (the write paths, the note-builder, the AI path), each with a named failure scenario — not a 100%
+  number to game.
+- **Raise the floor as tests land**, never lower it. The current values (stmts 83 / branch 75 /
+  func 78 / lines 84) sit just below the measured level.
+
+## The write-path harness (#317, E2)
+
+`test/support/harness.ts` (`wireHarness`) gives a test an **in-memory Obsidian** whose
+`FileService` / `FrontmatterService` calls actually round-trip (one shared `frontmatter` object per
+file, so a write is visible to a later read). Use it for any vault-mutating path — e.g. the Cultivate
+writes, quick-capture, lifecycle transitions. The AI provider is tested with a settable
+`requestUrl` (`__setRequestUrl` in the obsidian mock) so **no test makes a real network call**.
+
+> **Import services by their file path** in tests (e.g. `architecture/plugin/services/FileService`),
+> not the `architecture/plugin` barrel — the barrel is a jest mock and a cyclic import can surface a
+> service as `undefined`.
+
+Treat each closed score issue as an opportunity to add the tests that lock in the fix.

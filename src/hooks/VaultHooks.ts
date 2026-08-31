@@ -17,7 +17,7 @@ import {
     Literal,
     VaultStateManager,
 } from "architecture/plugin";
-import { fnsManager } from "architecture/api";
+import { buildAsyncScriptFunction, fnsManager } from "architecture/api";
 import { evaluateBindingCondition } from "architecture/plugin/events/condition";
 
 import { hasFrontmatterMutations, copyFrontmatter, changedHookProperties } from "./utils/CompareUtils";
@@ -44,14 +44,6 @@ export type HookDryRunResult =
     | { status: "skipped" }
     | { status: "no-file" }
     | { status: "error"; message: string };
-
-/** Reach the (otherwise hidden) `AsyncFunction` constructor via an async function's prototype. */
-function asyncFunctionCtor(): new (...args: string[]) => (...args: unknown[]) => Promise<unknown> {
-    const proto = Object.getPrototypeOf(async function () { }) as {
-        constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
-    };
-    return proto.constructor;
-}
 
 /** Ajustable si ves muchos "changed" por tecleo. */
 const METADATA_DEBOUNCE_MS = 60;
@@ -86,12 +78,11 @@ export class VaultHooks {
         const newValue = frontmatter[property];
         try {
             const zf = await fnsManager.getFns();
-            const AsyncFunction = asyncFunctionCtor();
 
             const condition = settings.condition?.trim();
             if (condition) {
                 const ctx = { event: "property.changed", notePath: file.path, property, oldValue: undefined, newValue };
-                const condFn = new AsyncFunction("event", "zf", `return (${condition});`);
+                const condFn = buildAsyncScriptFunction(["event", "zf"], `return (${condition});`);
                 const passes = await condFn(ctx, zf);
                 if (!passes) return { status: "skipped" };
             }
@@ -101,7 +92,7 @@ export class VaultHooks {
                 request: { oldValue: undefined, newValue, property, frontmatter },
                 response: { frontmatter: {}, removeProperties: [] },
             };
-            const scriptFn = new AsyncFunction("event", "zf", `return (async () => {\n${settings.script}\n return event;\n})(event, zf);`);
+            const scriptFn = buildAsyncScriptFunction(["event", "zf"], `return (async () => {\n${settings.script}\n return event;\n})(event, zf);`);
             const result = (await scriptFn(event, zf)) as HookEvent;
             return { status: "ran", response: result.response };
         } catch (error) {
@@ -487,31 +478,21 @@ export class VaultHooks {
      */
     private evaluateHookCondition(condition: string | undefined, ctx: unknown): Promise<boolean> {
         return evaluateBindingCondition(condition, ctx, async (script, context) => {
-            const asyncProto = Object.getPrototypeOf(async function () { }) as {
-                constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
-            };
-            const AsyncFunction = asyncProto.constructor;
             const zf = await fnsManager.getFns();
-            const fn = new AsyncFunction("event", "zf", `return (${script});`);
+            const fn = buildAsyncScriptFunction(["event", "zf"], `return (${script});`);
             return fn(context, zf);
         });
     }
 
     private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
         try {
-            // The AsyncFunction constructor isn't exposed on the global scope; reach it via
-            // the prototype of an async function. Type it so the built function is callable.
-            const asyncProto = Object.getPrototypeOf(async function () { }) as {
-                constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
-            };
-            const AsyncFunction = asyncProto.constructor;
             const fnBody = `return (async () => {
         ${script}
         return event;
       })(event, zf);`;
 
             const functions = await fnsManager.getFns();
-            const scriptFn = new AsyncFunction("event", "zf", fnBody);
+            const scriptFn = buildAsyncScriptFunction(["event", "zf"], fnBody);
 
             return (await scriptFn(event, functions)) as HookEvent;
         } catch (error: unknown) {

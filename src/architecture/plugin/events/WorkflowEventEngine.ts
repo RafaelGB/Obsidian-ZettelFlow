@@ -3,7 +3,7 @@ import { CachedMetadata, EventRef, TAbstractFile, TFile } from "obsidian";
 import { log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
 import { FileService, FILE_EXTENSIONS, VaultStateManager } from "architecture/plugin";
-import { fnsManager } from "architecture/api";
+import { buildAsyncScriptFunction, fnsManager } from "architecture/api";
 import { SelectorMenuModal } from "zettelkasten";
 import { buildBindings, type FlowTriggerSource, type WorkflowBinding } from "./bindings";
 import { deriveFrontmatterEvents } from "./derive";
@@ -178,13 +178,9 @@ export class WorkflowEventEngine {
 
     /** Evaluate a binding condition as a `zf` script (same evaluator as hooks / the Script action). */
     private runScript = async (script: string, ctx: unknown): Promise<unknown> => {
-        const asyncProto = Object.getPrototypeOf(async function () {}) as {
-            constructor: new (...args: string[]) => (...args: unknown[]) => Promise<unknown>;
-        };
-        const AsyncFunction = asyncProto.constructor;
         const fnBody = `return (async () => {\n${script}\n})();`;
         const functions = await fnsManager.getFns();
-        const scriptFn = new AsyncFunction("event", "zf", fnBody);
+        const scriptFn = buildAsyncScriptFunction(["event", "zf"], fnBody);
         return await scriptFn(ctx, functions);
     };
 

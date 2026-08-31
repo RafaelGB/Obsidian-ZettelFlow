@@ -12,10 +12,14 @@ export function errorMessage(error: unknown): string {
 export type AsyncScriptFunction = (...args: unknown[]) => Promise<unknown>;
 
 /**
- * Build an async function from a user-provided script body, the way the note-builder
- * actions and vault hooks run JS. The AsyncFunction constructor isn't exposed on the
- * global scope, so it is reached through the prototype of an async function. Typing it
- * here keeps every call site free of unsafe `any`.
+ * Build an async function from a user-provided script body — the **single** place ZettelFlow
+ * constructs runtime code (#340). The Script action, dynamic selectors, vault hooks and
+ * workflow-event conditions all route through here, so the dynamic-execution capability the
+ * Obsidian scan reports has exactly one home to disclose and one place to audit.
+ *
+ * The AsyncFunction constructor is not exposed globally, so it is reached through the prototype
+ * of an async function. Typing it here keeps every call site free of unsafe `any`.
+ * A guardrail test fails the build if a second site starts building functions on its own.
  */
 export function buildAsyncScriptFunction(argNames: string[], body: string): AsyncScriptFunction {
     const asyncProto = Object.getPrototypeOf(async function () { }) as {

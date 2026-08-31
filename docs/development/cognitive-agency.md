@@ -72,6 +72,16 @@ This is not a technicality. A "cognitive surrender score" would be exactly the m
 gamified thing epic #335 exists to avoid — the right question is never *"how much did the user do?"*
 but *"has their understanding changed?"*
 
+## The other half: your own readings
+
+AI proposals fill the record with `origin: "ai"`. [Cultivate](cultivate.md) fills it with
+`origin: "derived"` (#338): when a move asks for your reading before revealing its own and you answer,
+that is a judgement too — `challenged` when you argued against your own idea, `confirmed` when you
+committed a prediction about it.
+
+Skipping the prompt records nothing. Between the two origins, the record can finally distinguish an
+idea that *grew* from one you actually *reasoned about* — which is what #339 projects.
+
 ## Where it lives
 
 | Layer | Module |

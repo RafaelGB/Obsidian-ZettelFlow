@@ -51,6 +51,12 @@ export interface ZettelFlowSettings {
      * connect/challenge/question/advance/source. Undefined = all (the default recipe).
      */
     cultivateMoves?: string[];
+    /**
+     * **Deliberate friction** (#338, epic #335): connect / challenge / source ask for your own reading
+     * before revealing theirs. ON by default — the manifesto describes this as what the product does,
+     * not as an option. Undefined reads as on, so an install predating the setting still gets it.
+     */
+    cultivateFriction?: boolean;
     /** Saved "ask your graph" queries (#318 S3) — persisted so a useful query can be re-run. */
     savedGraphQueries?: string[];
     /** Installed templates divided into steps and actions */
@@ -258,6 +264,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         createdProperty: DEFAULT_CREATED_PROPERTY,
         lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
+    cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
     events: { enabled: false }, // Event-driven workflows are opt-in (#150).
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).

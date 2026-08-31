@@ -32,6 +32,35 @@ state the next state is proposed. The header shows the idea's **degree** and **m
 before/after is a *consequence* of the moves, never an invented score. Advancing a state (or adding a
 source/connection) also records a **development event** for the [thinking heatmap](thinking-heatmap.md).
 
+## Ask before revealing
+
+> [#338](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/338), epic
+> [#335](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/335). On by default; one toggle in
+> **Settings → Cultivate** turns it off.
+
+Three of the five moves used to hand you their answer first — connect listed related notes, challenge
+listed contradictions, source announced the gap. A session could *organise* an idea without ever
+transforming it. So those three now ask a question before they reveal anything:
+
+| Move | It asks | Recorded when you answer |
+|---|---|---|
+| **Connect** | *What do you expect this idea to be related to?* | `confirmed` |
+| **Challenge** | *What is the strongest argument against this idea?* | `challenged` |
+| **Add a source** | *What evidence would you expect to find if this were true?* | `confirmed` |
+
+**Question** and **advance** deliberately get none: a question already *is* your own thought, and
+advancing a lifecycle state is a decision you are already making. Friction goes only where the system
+would otherwise answer for you — that is what makes it *deliberate* rather than a confirmation dialog.
+
+**Reveal** needs something written — that is the commitment — and records the answer in the
+[judgement record](cognitive-agency.md). **Skip** reveals the move and records **nothing**: a skip is
+not a judgement, and you can always skip.
+
+Nothing here writes to your note. On **challenge**, what you wrote pre-fills the existing counterpoint
+field so your thinking is not thrown away and you can still save it with one click; on the other two it
+stays ephemeral rather than adding note noise. A different idea is a different session, so the prompts
+come back.
+
 ## Principles
 
 - **Offline-first.** Every move is graph-derived. The optional AI actions (challenge-idea, synthesize)

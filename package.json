@@ -16,7 +16,7 @@
     "typecheck": "tsc -noEmit -skipLibCheck",
     "lint": "oxlint ./src",
     "lint:fix": "oxlint ./src --fix",
-    "lint:obsidian": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:obsidian": "eslint \"src/**/*.{ts,tsx}\" --max-warnings 0",
     "verify": "npm run typecheck && npm run lint && npm run lint:obsidian && npm test",
     "prepare": "husky",
     "commitlint": "commitlint --edit"

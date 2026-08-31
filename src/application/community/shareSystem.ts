@@ -51,9 +51,9 @@ export async function buildActiveCanvasTemplate(plugin: ZettelFlow): Promise<Act
 export function downloadTemplate(name: string, json: string): void {
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    // Native createElement (detached) — Obsidian's createEl would append to the document and throw.
-    const anchor = activeDocument.createElement("a");
-    anchor.href = url;
+    // Detached on purpose: the global createEl builds a parentless element, unlike
+    // activeDocument.createEl, which appends to the document and throws.
+    const anchor = createEl("a", { href: url });
     anchor.setAttr("download", `${name}.zftemplate`);
     anchor.click();
     URL.revokeObjectURL(url);

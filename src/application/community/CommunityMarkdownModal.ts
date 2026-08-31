@@ -25,14 +25,13 @@ export class CommunityMarkdownModal extends Modal {
         this.contentEl.empty();
         const mdTemplateFolder = this.plugin.settings.communitySettings.markdownTemplateFolder;
 
-        const span = activeDocument.createElement("span", {});
         // Header with title and subtitle with the mode
         const navbar = this.contentEl.createDiv({ cls: c("modal-navbar") });
 
         navbar.createEl("h2", { text: this.title })
         navbar.createEl("p", { text: this.description });
         // Separator
-        navbar.appendChild(span);
+        navbar.createSpan();
 
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
 

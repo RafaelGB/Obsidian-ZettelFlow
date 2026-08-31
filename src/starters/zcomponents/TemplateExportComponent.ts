@@ -6,6 +6,7 @@ import { FileService } from "architecture/plugin";
 import { FolderSuggest } from "architecture/settings";
 import { ConfirmModal } from "architecture/components/settings";
 import { buildTemplate, parseTemplate, ZfTemplate } from "application/template/zfTemplate";
+import { downloadTemplate } from "application/community/shareSystem";
 
 export class TemplateExportComponent extends PluginComponent {
     constructor(plugin: ZettelFlow) {
@@ -76,22 +77,13 @@ export class TemplateExportComponent extends PluginComponent {
         const name = canvasFile.basename;
         const template = buildTemplate(name, "", "", { filename: canvasFile.name, content: canvasContent }, steps);
 
-        const json = JSON.stringify(template, null, 2);
-        const blob = new Blob([json], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        // Native createElement (detached) — Obsidian's createEl would append to the document and throw.
-        const anchor = activeDocument.createElement("a");
-        anchor.href = url;
-        anchor.setAttr("download", `${name}.zftemplate`);
-        anchor.click();
-        URL.revokeObjectURL(url);
+        downloadTemplate(name, JSON.stringify(template, null, 2));
         new Notice(t("export_template_success"));
     }
 
     private pickAndImport(): void {
-        const input = activeDocument.createElement("input");
-        input.type = "file";
-        input.accept = ".zftemplate";
+        // Detached on purpose (see downloadTemplate): the global helper adds no parent.
+        const input = createEl("input", { type: "file", attr: { accept: ".zftemplate" } });
         input.addEventListener("change", () => {
             const file = input.files?.[0];
             if (!file) return;

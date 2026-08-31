@@ -38,7 +38,6 @@ export class InstalledStepEditorModal extends AbstractStepModal {
     }
 
     onOpen(): void {
-        const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
         // Header with title and subtitle with the mode
         const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
@@ -46,7 +45,7 @@ export class InstalledStepEditorModal extends AbstractStepModal {
         navbar.createEl("h2", { text: t("installed_step_editor_title") })
 
         // Separator
-        navbar.appendChild(span);
+        navbar.createSpan();
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
 
         // Add Uninstall button

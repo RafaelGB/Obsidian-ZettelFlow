@@ -49,3 +49,14 @@ DevelopmentJournal (runtime singleton, host injected at load)
 ThinkingHeatmapView (ItemView) + ThinkingHeatmapComponent (command, no hotkey)
   intensity is a --l0…--l4 CSS class (theme-aware), each cell aria-labelled + focusable
 ```
+
+## What this is *not*
+
+The heatmap counts **development events** — notes you connected, sourced, advanced. It is a history of
+what you did.
+
+It is deliberately **not** the same thing as the Cultivate/Home **streak**, which since
+[#339](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/339) counts days you *exercised judgement*
+(see [cognitive agency](cognitive-agency.md)). The streak is the momentum signal, so it had to stop
+rewarding mere activity; the heatmap is a record, and rewriting it would have discarded a year of real
+data to add no insight. Two questions, two answers, both stated plainly.

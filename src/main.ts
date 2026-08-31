@@ -26,6 +26,7 @@ import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacy
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
+import { JudgementLog } from 'architecture/plugin/judgement/JudgementLog';
 import { ConceptualTimeline } from 'architecture/plugin/timeline/ConceptualTimeline';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 
@@ -36,6 +37,7 @@ export default class ZettelFlow extends Plugin {
 		await this.loadSettings();
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
+		JudgementLog.getInstance().init(this); // #336: wire the judgement record to settings.
 		loadVariableTextProcessors(this);
 
 		// Register the core views + actions FIRST. If a UI component fails while loading, the
@@ -64,6 +66,7 @@ export default class ZettelFlow extends Plugin {
 	onunload() {
 		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.
+		JudgementLog.getInstance().flush(); // #336: persist any pending verdict.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}

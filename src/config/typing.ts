@@ -8,6 +8,7 @@ import {
 } from "architecture/knowledge/lifecycle/states";
 import type { AiSettings } from "architecture/ai";
 import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
+import type { Judgement } from "architecture/knowledge/judgement";
 
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
@@ -131,6 +132,18 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * The **judgement record** (#336, epic #335) — the data behind *cognitive agency*. ON by default:
+     * unlike the timeline it stores **no content**, only locale-free descriptors (a note path, a short
+     * subject id, an origin and a verdict), strictly local, bounded and never networked. Off would ship
+     * the whole chapter dead, since #337/#338/#339 have nothing to read without it.
+     */
+    judgements: {
+        enabled: boolean;
+        /** The bounded chronological log, oldest→newest. */
+        log: Judgement[];
+    };
+
+    /**
      * Knowledge Patterns (#170/#200). When `rerunOnIndex` is on, a note created from a pattern with
      * on-creation actions has that pattern re-run once **after** the vault indexes the note, so graph
      * results (related, contradictions, maturity …) fill in on the first pass. ON by default: offline,
@@ -250,6 +263,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
     timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
+    judgements: { enabled: true, log: [] }, // Judgement record on by default (#336); descriptors only, no content.
     patterns: { rerunOnIndex: true }, // Post-index pattern re-run on by default (#200); offline, own keys only.
     history: [],
     hasSeenWelcome: false,

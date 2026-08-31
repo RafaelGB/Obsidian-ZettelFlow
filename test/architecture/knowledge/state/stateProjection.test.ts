@@ -15,6 +15,7 @@ import { buildEvidenceMap, EvidenceMap } from "architecture/knowledge/synthesis/
 import { buildHeatmapGrid } from "architecture/knowledge/journal/heatmap";
 import { deriveOutline } from "architecture/knowledge/projects/deriveOutline";
 import { deriveRecommendations, RECOMMENDATION_REASONS, COMMAND_ACTION_IDS } from "architecture/knowledge/state/recommendation";
+import { agencySignals, judgementDays, judgementsFor, lastJudgementFor, recordJudgement } from "architecture/knowledge/judgement";
 
 describe("Knowledge State projection surface (#266, FR-1/FR-2, AC-5)", () => {
     it("re-exports the projection entry points by identity (the facade wraps nothing)", () => {
@@ -37,6 +38,14 @@ describe("Knowledge State projection surface (#266, FR-1/FR-2, AC-5)", () => {
         expect(state.deriveRecommendations).toBe(deriveRecommendations);
         expect(state.RECOMMENDATION_REASONS).toBe(RECOMMENDATION_REASONS);
         expect(state.COMMAND_ACTION_IDS).toBe(COMMAND_ACTION_IDS);
+    });
+
+    it("re-exports the judgement record and its projections (#336)", () => {
+        expect(state.recordJudgement).toBe(recordJudgement);
+        expect(state.judgementsFor).toBe(judgementsFor);
+        expect(state.lastJudgementFor).toBe(lastJudgementFor);
+        expect(state.agencySignals).toBe(agencySignals);
+        expect(state.judgementDays).toBe(judgementDays);
     });
 
     it("the entry points satisfy the StateProjection<Params, Result> contract (compile-only)", () => {

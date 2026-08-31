@@ -83,3 +83,20 @@ sourced from the model — click a chip to toggle it:
   the `3d` mode; the deep-link handoff is `graph3dFocus.ts`.
 - Styles: `styles/components/graph3d.scss` — legend/toolbar colours share Obsidian's `--color-*`
   palette with the WebGL links so they never drift.
+
+## Why three.js stays (a settled decision)
+
+The 3D stack (`three` + `3d-force-graph` and friends) is **1,458 kB — 58.6%** of the plugin bundle,
+measured with an esbuild metafile in [#340](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/340).
+That number is known and accepted. **The graph is 3D, always** — there is no plan to swap it for a 2D
+canvas renderer, and proposals to do so should be declined rather than re-measured:
+
+- The Graph surface is **3D-only** since #280; the flat Map and Navigate views were deliberately retired
+  into it. Dropping the renderer would remove one of the four surfaces, not a mode.
+- Seeing the *shape* of your thinking in space is the visible payoff of the semantic graph. A flat
+  diagram is what every other plugin already gives you.
+- The weight costs nothing in the Obsidian review: the scan lists the dependency's base64 usage under
+  **Disclosures**, not Warnings — it is
+  [documented](capabilities-and-privacy.md), not penalised.
+
+Bundle weight is a real cost, and it is paid on purpose.

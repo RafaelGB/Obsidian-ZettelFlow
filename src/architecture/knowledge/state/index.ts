@@ -8,6 +8,11 @@ import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel
  * (`architecture/components/core/*`) consume this facade instead of deep per-analysis imports, so
  * there is one home for "what the model says" and no view re-derives a metric a projection owns.
  *
+ * One exception to "projection of the model": the **judgement record** (#336) is *recorded* state, not
+ * derived state — its projections read the persisted log, taking `(history, path)` instead of `(model)`.
+ * It lives here because this barrel is the single door to what the State layer knows, and a view must
+ * never deep-import it either.
+ *
  * §XI: this module stays obsidian-free (guarded by `pure-is-obsidian-free.test.ts` over `state/`).
  */
 
@@ -34,6 +39,7 @@ export * from "architecture/knowledge/synthesis/evidenceMap";
 export * from "architecture/knowledge/journal/heatmap";
 export * from "architecture/knowledge/projects/deriveOutline";
 export * from "architecture/knowledge/cultivate/cultivationSession";
+export * from "architecture/knowledge/judgement";
 export type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 export * from "./classifyHealth";
 export * from "./recommendation";

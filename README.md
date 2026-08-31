@@ -16,7 +16,7 @@ transform knowledge*. It stands on **four pillars**:
 - 🔭 **Knowledge Discovery** — surface the unexpected: connections you didn't know you'd made, ideas worth challenging, a book outline hiding in a folder.
 - 🩺 **Knowledge Health** — measure balance and richness, not volume: maturity, knowledge debt, a weekly review, a heatmap of ideas *developed*.
 
-**AI is one Action, never the product** — every pillar works fully with AI disabled. And **nothing is
+**AI is one Action, never the product** — every pillar works fully with AI disabled, and when it is on it **proposes, never commits**: you accept, edit or reject every suggestion. And **nothing is
 removed, only repositioned**: the canvas wizard you know is the engine's front end.
 
 > Read the **[manifesto →](https://rafaelgb.github.io/Obsidian-ZettelFlow/manifesto/)** · **[full documentation →](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**
@@ -150,7 +150,7 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   **extract claims**, **compare claims** (surface notes that agree with or contradict yours),
   **find sources** (suggest existing vault sources for an under-sourced note), and **attach
   source**. Over the claims-and-sources model, deterministic and offline.
-- **🤖 AI actions — optional, off by default** — AI is *one action category, never the core*: the
+- **🤖 AI actions — optional, off by default** — AI is *one action category, never the core*, and it **never writes for you** — every completion is a proposal you accept, edit or reject. The
   whole plugin works fully with AI disabled. Opt in with your own OpenAI-compatible provider
   (endpoint + key + model — OpenAI, OpenRouter, LM Studio, Ollama…) to **summarize**, **classify**,
   and **generate questions**. No bundled key, no telemetry; the note content is sent only to the

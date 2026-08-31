@@ -1,7 +1,7 @@
 {
 	"id": "zettelflow",
 	"name": "ZettelFlow",
-	"version": "3.0.1",
+	"version": "3.1.0",
 	"minAppVersion": "1.13.1",
 	"description": "Turn a Canvas into a guided note-creation workflow, then grow your notes into a connected, self-checking knowledge system.",
 	"author": "RafaelGB",

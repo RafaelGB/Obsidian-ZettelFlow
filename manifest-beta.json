@@ -1,10 +1,10 @@
 {
-  "id": "zettelflow",
-  "name": "ZettelFlow",
-  "version": "3.0.1",
-  "minAppVersion": "1.13.1",
-  "description": "Helps you to create and manage your notes in a Zettelkasten way via Canvas.",
-  "author": "RafaelGB",
-  "fundingUrl": "https://www.buymeacoffee.com/5tsytn22v9Z",
-  "isDesktopOnly": false
+	"id": "zettelflow",
+	"name": "ZettelFlow",
+	"version": "3.1.0",
+	"minAppVersion": "1.13.1",
+	"description": "Turn a Canvas into a guided note-creation workflow, then grow your notes into a connected, self-checking knowledge system.",
+	"author": "RafaelGB",
+	"fundingUrl": "https://www.buymeacoffee.com/5tsytn22v9Z",
+	"isDesktopOnly": false
 }

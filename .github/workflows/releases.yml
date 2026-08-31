@@ -42,7 +42,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
+          # Publish the curated house-format notes when present (RELEASE_NOTES.md, rewritten
+          # each release); fall back to auto-generated so a tag never fails for lack of them.
+          if [ -f RELEASE_NOTES.md ]; then
+            notes=(--notes-file RELEASE_NOTES.md)
+          else
+            notes=(--generate-notes)
+          fi
           gh release create "$TAG" \
             --title "$TAG" \
-            --generate-notes \
+            "${notes[@]}" \
             dist/main.js manifest.json dist/styles.css

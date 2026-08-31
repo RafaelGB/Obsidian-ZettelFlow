@@ -7,6 +7,10 @@ on:
 
 permissions:
   contents: write
+  # Provenance attestations for the three release artifacts (#340): the Community-hub scan
+  # flags their absence, and the build is already byte-for-byte reproducible.
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -36,6 +40,14 @@ jobs:
             echo "::error::Tag '$tag' does not equal manifest.version '$version'. Tag with the manifest version."
             exit 1
           fi
+
+      - name: Attest build provenance for the release artifacts
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/main.js
+            dist/styles.css
+            manifest.json
 
       - name: Create GitHub release with the three artifacts
         env:

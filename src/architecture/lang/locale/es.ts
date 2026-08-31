@@ -906,6 +906,11 @@ export default {
     settings_journal_enable_name: 'Registrar eventos de desarrollo',
     settings_journal_enable_desc: 'Lleva un recuento diario de ideas desarrolladas (estado avanzado, fuente o conexión añadida). Activado por defecto.',
     settings_journal_disclosure: 'Se guarda en local solo como día → recuento — sin nombres de notas, sin contenido, sin red.',
+    settings_judgements_heading: 'Registro de decisiones',
+    settings_judgements_intro: 'ZettelFlow recuerda las decisiones que tomas sobre tus propias ideas, para poder distinguir una idea que ha crecido de una sobre la que de verdad has razonado.',
+    settings_judgements_enable_name: 'Registrar mis decisiones',
+    settings_judgements_enable_desc: 'Activado por defecto. Al desactivarlo dejan de guardarse registros nuevos; no cambia nada más.',
+    settings_judgements_disclosure: 'Solo local: un registro acotado con la ruta de la nota, una etiqueta corta y si aceptaste, editaste, rechazaste, confirmaste o desafiaste. Nunca el contenido de la nota, nunca la salida de la IA, nunca por red.',
     // Ajustes de la línea temporal de evolución (#168)
     settings_timeline_heading: 'Línea temporal de evolución',
     settings_timeline_intro: 'ZettelFlow guarda por nota un historial de cómo evolucionó una idea — su estado de ciclo de vida y los textos de sus afirmaciones a lo largo del tiempo.',

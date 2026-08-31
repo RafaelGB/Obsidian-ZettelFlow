@@ -3,6 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import {
     computeKnowledgeDebt,
     severityBucket,
@@ -18,6 +19,8 @@ import {
     HealthResult,
     buildKnowledgeDashboard,
     DashboardModel,
+    unexaminedIdeas,
+    UnexaminedIdea,
     DashboardPanel,
     Metric,
     RecommendationToken,
@@ -114,6 +117,8 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
     private debt: KnowledgeDebt | null = null;
     private balance: KnowledgeBalance | null = null;
     private dashboard: DashboardModel | null = null;
+    /** Ideas that grew structurally with no verdict on them (#339). */
+    private unexamined: UnexaminedIdea[] = [];
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -152,6 +157,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 this.debt = null;
                 this.balance = null;
                 this.dashboard = null;
+                this.unexamined = [];
                 this.render();
                 return;
             }
@@ -170,6 +176,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
             this.debt = computeKnowledgeDebt(model);
             this.balance = computeKnowledgeBalance(model);
             this.dashboard = buildKnowledgeDashboard(model);
+            this.unexamined = unexaminedIdeas(model, JudgementLog.getInstance().entries(), { limit: 5 });
 
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +
@@ -222,6 +229,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 this.renderSystemPanels(container);
                 this.renderDebtSection(container);
                 this.renderBalanceSection(container);
+                this.renderAgencySection(container);
                 this.renderLists(container);
                 break;
         }
@@ -368,6 +376,31 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
             section.createDiv({
                 cls: c("slipbox-health-more"),
                 text: t("slipbox_health_more", String(notes.length - shown.length)),
+            });
+        }
+    }
+
+    /**
+     * **Cognitive agency** (#339): the ideas that grew without your judgement. It names *ideas* and
+     * invites a move — there is no score, no ratio and no grade, because the question is whether your
+     * understanding changed, never how much you did.
+     */
+    private renderAgencySection(container: HTMLElement): void {
+        if (this.unexamined.length === 0) return; // nothing to say is better than an empty scoreboard
+        const section = container.createDiv({ cls: c("slipbox-health-section") });
+        section.createEl("h5", { text: t("agency_heading"), cls: c("slipbox-health-section-heading") });
+        section.createDiv({ cls: c("slipbox-health-section-intro"), text: t("agency_intro") });
+
+        const list = section.createDiv({ cls: c("slipbox-health-list") });
+        for (const entry of this.unexamined) {
+            const row = list.createDiv({ cls: [c("slipbox-health-item"), c("slipbox-health-item--agency")].join(" ") });
+            const name = row.createSpan({
+                text: (entry.path.split("/").pop() ?? entry.path).replace(/.md$/i, ""),
+                cls: c("slipbox-health-item-name"),
+            });
+            name.setAttribute("title", entry.path);
+            this.registerDomEvent(name, "click", () => {
+                void this.app.workspace.openLinkText(entry.path, "", false);
             });
         }
     }

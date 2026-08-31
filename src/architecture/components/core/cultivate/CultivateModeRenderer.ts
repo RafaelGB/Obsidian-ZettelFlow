@@ -1,7 +1,7 @@
 import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { CultivationService, DevelopmentJournal } from "architecture/plugin";
+import { CultivationService } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
@@ -96,7 +96,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             const recipe = this.plugin.settings.cultivateMoves as CultivationMoveKind[] | undefined;
             this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now(), recipe, { friction: this.plugin.settings.cultivateFriction ?? true }) : null;
             this.queueCount = cultivationQueue(model, this.visited, 99).length;
-            this.streak = developmentStreak(DevelopmentJournal.getInstance().dailyCounts(), Date.now());
+            this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
             this.state = this.session ? "ready" : "empty";
         } catch (error) {
             this.state = "error";

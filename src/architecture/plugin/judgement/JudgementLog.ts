@@ -1,5 +1,6 @@
 import {
     recordJudgement,
+    judgementDays,
     sanitizeJudgementLog,
     type Judgement,
 } from "architecture/knowledge/judgement";
@@ -53,6 +54,16 @@ export class JudgementLog {
     /** The persisted log, sanitised — always a well-formed array, even from a corrupt blob. */
     public entries(): Judgement[] {
         return sanitizeJudgementLog(this.host?.settings.judgements?.log);
+    }
+
+    /**
+     * Verdicts per UTC day — **the** definition of a judgement day (#339). The development streak reads
+     * this instead of the journal's event tally, so momentum measures days you exercised judgement
+     * rather than days something merely happened. Mirrors `DevelopmentJournal.dailyCounts()` so the swap
+     * is obvious at the call site, and lives here so Home and Cultivate cannot drift apart.
+     */
+    public dailyCounts(): Record<string, number> {
+        return judgementDays(this.entries());
     }
 
     /**

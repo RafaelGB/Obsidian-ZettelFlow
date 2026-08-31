@@ -3,6 +3,8 @@ import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt"
 import { computeKnowledgeBalance } from "architecture/knowledge/balance/knowledgeBalance";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
 import { byState, edgesByType } from "architecture/knowledge/query/queries";
+import { unexaminedIdeas } from "architecture/knowledge/judgement/unexamined";
+import type { Judgement } from "architecture/knowledge/judgement/Judgement";
 
 /**
  * The **`KnowledgeRecommendation` primitive** (#267, epic #262 Phase 5) — the one shape for
@@ -25,6 +27,7 @@ export const RECOMMENDATION_REASONS = [
     "connect",
     "answer-question",
     "advance-state",
+    "re-engage",
     "develop-hub",
     "process-ideas",
     "review-note",
@@ -61,6 +64,7 @@ export const REASON_COMMAND: Record<RecommendationReason, CommandActionId | null
     "connect": "create-semantic-relation",
     "answer-question": null,
     "advance-state": null,
+    "re-engage": null, // the move is to cultivate the idea, which no single action id covers
     "develop-hub": null,
     "process-ideas": null,
     "review-note": null,
@@ -77,6 +81,7 @@ const REASON_PRIORITY: Record<RecommendationReason, number> = {
     "connect": 0.7,
     "answer-question": 0.6,
     "advance-state": 0.55,
+    "re-engage": 0.52, // below advancing a state, above processing the inbox
     "process-ideas": 0.5,
     "develop-hub": 0.5,
     "review-note": 0.45,
@@ -117,7 +122,14 @@ function reasonForDebtCategory(key: string): RecommendationReason {
  * Derive the vault's recommendations from the model — deterministic, offline, read-only, never throws.
  * Empty model ⇒ `[]`. Sorted by priority desc, then reason order, then target for a stable order.
  */
-export function deriveRecommendations(model: KnowledgeModel): KnowledgeRecommendation[] {
+export function deriveRecommendations(
+    model: KnowledgeModel,
+    /**
+     * The judgement record (#336). Optional: with no history there is nothing to say about agency, so
+     * every existing caller keeps its exact behaviour.
+     */
+    history?: readonly Judgement[]
+): KnowledgeRecommendation[] {
     const out: KnowledgeRecommendation[] = [];
 
     // Debt categories (unsourced → add-source, unreferenced/dangling → connect, open-question → answer).
@@ -140,6 +152,13 @@ export function deriveRecommendations(model: KnowledgeModel): KnowledgeRecommend
     // Fleeting notes to process.
     const fleeting = byState(model, "fleeting").map((i) => i.path).sort();
     if (fleeting.length > 0) out.push(rec("process-ideas", fleeting));
+
+    // Ideas that grew structurally while you never ruled on them (#339). Names the ideas, never a
+    // grade about the user.
+    if (history) {
+        const unexamined = unexaminedIdeas(model, history).map((entry) => entry.path);
+        if (unexamined.length > 0) out.push(rec("re-engage", unexamined));
+    }
 
     // Vault-wide composition suggestions (add-examples / ask-questions / add-sources).
     for (const suggestion of computeKnowledgeBalance(model).suggestions) {

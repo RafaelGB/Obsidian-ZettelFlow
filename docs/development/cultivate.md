@@ -61,6 +61,14 @@ field so your thinking is not thrown away and you can still save it with one cli
 stays ephemeral rather than adding note noise. A different idea is a different session, so the prompts
 come back.
 
+## Momentum
+
+The session header shows a **streak** and the size of the cultivation queue. Since
+[#339](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/339) the streak counts **days you
+exercised judgement** — a verdict on an AI proposal, or an answered friction prompt — not days something
+happened in the vault. Momentum here means thinking, not activity. See
+[cognitive agency](cognitive-agency.md).
+
 ## Principles
 
 - **Offline-first.** Every move is graph-derived. The optional AI actions (challenge-idea, synthesize)

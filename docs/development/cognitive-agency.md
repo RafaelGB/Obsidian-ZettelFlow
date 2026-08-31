@@ -82,6 +82,41 @@ committed a prediction about it.
 Skipping the prompt records nothing. Between the two origins, the record can finally distinguish an
 idea that *grew* from one you actually *reasoned about* — which is what #339 projects.
 
+## What the record finally lets the system say
+
+> [#339](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/339). The read side.
+
+`unexaminedIdeas` names the ideas that have **gained structure but carry no verdict at all** — neither
+an AI proposal you ruled on nor a friction prompt you answered. That is the sentence this whole chapter
+exists to make sayable:
+
+> *“This idea grew structurally, but you have barely exercised judgement on it.”*
+
+It appears in two places you already know, and nowhere new:
+
+- **Home** — as a row in the existing *what to do next* list, under the reason **grew without your
+  judgement**. Not a new widget.
+- **Health** — as one more section in the existing surface. Not a new view.
+
+An idea only qualifies once it is **well connected** (degree ≥ 3). A brand-new note nobody has ruled on
+is not neglected, it is *new* — without that floor a fresh vault would open as a list of failures.
+
+### The streak changed meaning
+
+The development streak now counts **days you exercised judgement**, not days something happened. It was
+the one signal in the product that rewarded mere activity, so it is exactly the one that had to change.
+One definition (`JudgementLog.dailyCounts()`) feeds both Home and Cultivate, so they cannot drift.
+
+The [thinking heatmap](thinking-heatmap.md) deliberately did **not** follow: it is a *history* of what
+you developed, not a reward mechanic, and switching it would have thrown away a year of journal data to
+add no insight. The two answer different questions and say so.
+
+### Still no score
+
+Everything above returns **ideas**, never a number about you — no ratio, no percentage, no
+examined-vs-total pair a reader could turn into a grade. Tests pin the absence of `score`, `ratio` and
+`grade` from these shapes. The signal names an idea and invites a move; it never grades **you**.
+
 ## Where it lives
 
 | Layer | Module |

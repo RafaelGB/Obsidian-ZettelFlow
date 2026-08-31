@@ -1,3 +1,4 @@
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
@@ -69,9 +70,9 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const counts = DevelopmentJournal.getInstance().dailyCounts();
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
-            this.recommendations = topRecommendations(model);
+            this.recommendations = topRecommendations(model, undefined, JudgementLog.getInstance().entries());
             this.cultivateCount = readyToCultivate(model);
-            this.streak = developmentStreak(counts, Date.now());
+            this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";

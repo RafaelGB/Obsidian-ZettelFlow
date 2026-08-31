@@ -1,0 +1,23 @@
+// The §XII proposal modal (#337): machine-written text asking to be committed.
+// Deliberately plain — the text is the subject, the buttons are the decision.
+.zettelkasten-flow__proposal-modal {
+    max-width: 42rem;
+}
+
+.zettelkasten-flow__proposal-intro {
+    color: var(--text-muted);
+    margin-block: 0 var(--size-4-2);
+}
+
+.zettelkasten-flow__proposal-text {
+    width: 100%;
+    resize: vertical;
+    font-family: var(--font-text);
+    line-height: var(--line-height-normal);
+}
+
+.zettelkasten-flow__proposal-hint {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    margin-block: var(--size-4-2) 0;
+}

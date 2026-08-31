@@ -84,6 +84,25 @@ but *"has their understanding changed?"*
 reference** on a no-op — a malformed entry, or an exact repeat of the last one, so recording twice is
 idempotent. A corrupt persisted blob degrades to an empty log instead of throwing.
 
+## Where the record fills up: AI proposals
+
+The first thing that writes to the record is the AI category (#337). Every completion is shown as a
+**proposal** before it can reach a note:
+
+| You do this | Written | Recorded |
+|---|---|---|
+| Accept it unchanged | the completion | `accepted` |
+| Edit it, then accept | **your** text | `modified` |
+| Reject it | nothing | `rejected` |
+| Dismiss the dialog | nothing | **nothing** — a dismissal is not a verdict |
+
+The reviewed text is the unit of decision, so an action that parses its output (questions, labels)
+parses *your edit* the same way it would have parsed the model's.
+
+And because an automation has nobody to ask, **AI never runs headless at all**. The old
+*Allow AI in automations* toggle was removed in #337 rather than kept as a hole in the principle: it
+would have authorised paying for a completion that could never be written.
+
 ## What comes next
 
 Nothing reads the log yet. It is the foundation for the rest of epic #335:

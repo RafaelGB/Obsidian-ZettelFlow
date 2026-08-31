@@ -25,10 +25,15 @@ a clear notice.
 
 ### Guardrails (#301)
 
-- **Allow AI in automations** — *off by default*. With it off, AI actions **never fire on their own**
-  during on-creation patterns or the post-index re-run; they run only when *you* drive a build. Even
-  when on, an AI action never fires **twice** for the same note (it is excluded from the post-index
-  re-run).
+- **Nothing is written without your verdict** (#337, [constitution §XII](constitution.md)). Every
+  completion is shown to you as a **proposal** you can accept, edit or reject. Accepting unchanged
+  text records `accepted`; accepting an edit records `modified`; rejecting writes nothing. Dismissing
+  the dialog writes nothing *and* records nothing — a dismissal is not a verdict. See
+  [cognitive agency](cognitive-agency.md).
+- **AI never runs in automations.** It fires only on a build *you* drive — never during an
+  on-creation pattern or the post-index re-run. There is no setting to change this: an automation has
+  nobody to ask for a verdict, so a call there could only cost you money for something that can never
+  be written. (This replaces the old *Allow AI in automations* toggle, removed in #337.)
 - **Max input characters** — the note content sent per request is bounded (default 12000) and
   truncated if longer, so a huge note (or many linked notes) can't send an unbounded payload.
 - **Max output tokens** — the requested completion length is bounded (default 800) via `max_tokens`.

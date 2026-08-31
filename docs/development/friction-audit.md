@@ -9,6 +9,13 @@
 > it; almost nothing is deleted."* Nothing below is a proposal to delete a capability — only to expose
 > one obvious path and tuck duplicates out of the way.
 
+>
+> **Two different "frictions" — do not confuse them.** This page is about **operational friction**:
+> duplicated paths, unclear entry points, steps that cost the user effort for no thinking in return. That
+> kind is removed. **Deliberate (cognitive) friction** — asking for your reading before the system reveals
+> its own — is the opposite: it is *added* on purpose where judgement is at stake
+> ([constitution §XII](constitution.md), [manifesto](../manifesto.md)).
+
 ## Method
 
 Counted from source on `main`: `addCommand` ids, `registerView` names, the community catalog types,

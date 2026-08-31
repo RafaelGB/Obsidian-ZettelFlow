@@ -17,7 +17,7 @@ each step's **actions**. It's a monorepo:
   **fully static**: `docs/main_template.json` + `docs/systems/*.zftemplate` served over GitHub raw
   (no backend — #294).
 
-Current version: `2.12.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
+Current version: `3.1.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
 
 ## Architecture in 60 seconds
 
@@ -103,7 +103,7 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 ## Known gaps (don't be surprised)
 
 - **`versions.json` and `version-bump.mjs` are present** — `npm version <x.y.z>` bumps
-  `manifest.json` and records the `version → minAppVersion` map. Current release line: `2.12.0`.
+  `manifest.json` and records the `version → minAppVersion` map. Current release line: `3.1.0`.
 - **Tests are only seeded** — a jest + TDD harness now exists (pure-logic suites); breadth must
   grow (tracked by issues).
 - `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). All
@@ -163,6 +163,12 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
 
 ## Working agreements
 
+- **Cognitive agency (the meta-principle — see the [manifesto](docs/manifesto.md)).** ZettelFlow removes
+  *mechanical* work and protects *cognitive* work. Mechanical output (a gathered list, a derived metric)
+  writes freely; **interpretive** output (a conclusion, counterargument, synthesis, proposed connection —
+  AI or heuristic) reaches the vault **only through an explicit human accept/modify/reject**, and the
+  verdict is recorded. This is [constitution §XII](docs/development/constitution.md) and it is a review
+  gate, not a preference.
 - **Design by subtraction (a core principle — see the [manifesto](docs/manifesto.md)).** Prefer
   removing or centralizing over adding. If a new capability overlaps an existing one, **empower one**
   instead of shipping both; keep the product minimal and comprehensible. An addition must earn its

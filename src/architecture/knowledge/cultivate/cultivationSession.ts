@@ -7,6 +7,7 @@ import { allowedTargets } from "../lifecycle/machine";
 import { FALLBACK_STATE, isLifecycleState, STATE_EMOJI, STATE_LABEL_KEY, type LifecycleState } from "../lifecycle/states";
 import { byState } from "../query/queries";
 import { nextSession } from "../home/nextSession";
+import type { JudgementVerdict } from "../judgement";
 
 /**
  * The pure model of a **Cultivate** thinking session (#309): repositions the existing per-note
@@ -18,6 +19,33 @@ import { nextSession } from "../home/nextSession";
 /** A single cognitive move offered on the target idea. */
 export type CultivationMoveKind = "connect" | "challenge" | "question" | "advance" | "source";
 
+/**
+ * **Deliberate friction** (#338, epic #335): a move that would otherwise hand you its answer first
+ * asks for *your* reading before it reveals its own. Not a tax and not a confirmation dialog — it goes
+ * only where judgement is at stake, and it is always skippable.
+ */
+export interface MoveFriction {
+    /** i18n key of the question asked before the reveal. */
+    promptKey: string;
+    /**
+     * What answering it records about the idea (#336). Part of the pure descriptor rather than a
+     * renderer choice, because it names what *you did to the idea*: argued against it, or committed a
+     * prediction about it.
+     */
+    verdict: JudgementVerdict;
+}
+
+/**
+ * The moves that reveal an answer, and the question each asks first. `question` and `advance` are
+ * deliberately absent: a question already *is* your own thought, and advancing a lifecycle state is a
+ * decision you are already making — there is nothing to withhold.
+ */
+export const FRICTION_PROMPTS: Partial<Record<CultivationMoveKind, MoveFriction>> = {
+    connect: { promptKey: "cultivate_friction_connect", verdict: "confirmed" },
+    challenge: { promptKey: "cultivate_friction_challenge", verdict: "challenged" },
+    source: { promptKey: "cultivate_friction_source", verdict: "confirmed" },
+};
+
 export interface CultivationMove {
     kind: CultivationMoveKind;
     /** connect: related notes to link; challenge: notes that contradict this one. */
@@ -26,6 +54,8 @@ export interface CultivationMove {
     proposedState?: LifecycleState;
     /** advance: the i18n key for the proposed state's label (so the view needs no lifecycle import). */
     proposedStateLabelKey?: string;
+    /** #338: ask for the user's reading before revealing this move's own answer. Absent when off. */
+    friction?: MoveFriction;
 }
 
 export interface CultivationSession {
@@ -59,7 +89,8 @@ export function buildCultivationSession(
     model: KnowledgeModel,
     path: string,
     now: number,
-    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES
+    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES,
+    opts: { friction?: boolean } = {}
 ): CultivationSession | null {
     const idea = model.get(path);
     if (!idea) return null;
@@ -89,6 +120,15 @@ export function buildCultivationSession(
     }
 
     if (enabled.has("source") && !idea.maturitySignals.hasSources) moves.push({ kind: "source" });
+
+    // One pass at the end: with friction off no move is touched at all, so a session is identical to
+    // the pre-#338 one (AC-2) rather than merely equivalent.
+    if (opts.friction) {
+        for (const move of moves) {
+            const friction = FRICTION_PROMPTS[move.kind];
+            if (friction) move.friction = friction;
+        }
+    }
 
     return {
         path,

@@ -365,6 +365,20 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             setting.setClass(c("readable-setting-item"));
                         },
                     },
+                    {
+                        name: t("settings_cultivate_friction_name"),
+                        desc: t("settings_cultivate_friction_desc"),
+                        render: (setting: Setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.cultivateFriction ?? true)
+                                    .onChange(async (value) => {
+                                        plugin.settings.cultivateFriction = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
                     ...ALL_CULTIVATION_MOVES.map((kind) => ({
                         name: t(`cultivate_move_${kind}_title` as Parameters<typeof t>[0]),
                         desc: t(`cultivate_move_${kind}_desc` as Parameters<typeof t>[0]),

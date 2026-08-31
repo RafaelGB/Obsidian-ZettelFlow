@@ -127,3 +127,29 @@
     flex: 1;
     font-size: var(--font-ui-smaller);
 }
+
+// Deliberate friction (#338): the question you answer before the move reveals its own answer.
+// Visually quiet — this is a pause, not an alarm.
+.zettelkasten-flow__cultivate-friction-prompt {
+    font-style: italic;
+    color: var(--text-normal);
+    margin-block-end: var(--size-4-2);
+}
+
+.zettelkasten-flow__cultivate-friction-input {
+    width: 100%;
+    resize: vertical;
+    font-family: var(--font-text);
+}
+
+.zettelkasten-flow__cultivate-friction-actions {
+    display: flex;
+    gap: var(--size-4-2);
+    margin-block-start: var(--size-4-2);
+}
+
+.zettelkasten-flow__cultivate-friction-skip {
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+}

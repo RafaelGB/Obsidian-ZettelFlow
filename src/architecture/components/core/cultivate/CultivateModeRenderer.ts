@@ -5,6 +5,7 @@ import { CultivationService, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import {
     buildCultivationSession,
     selectCultivationTarget,
@@ -35,6 +36,10 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     private queueCount = 0;
     private streak = 0;
     private readonly visited = new Set<string>();
+    /** Moves whose friction prompt has been answered or skipped this session (#338). */
+    private readonly revealed = new Set<CultivationMoveKind>();
+    /** What the user wrote at the prompt, so `challenge` can pre-fill the counterpoint field. */
+    private readonly frictionAnswers = new Map<CultivationMoveKind, string>();
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly plugin: ZettelFlow) {
@@ -63,6 +68,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     /** Move to a fresh, not-yet-cultivated idea. */
     private anotherIdea(): void {
+        this.forgetFriction();
         if (this.targetPath) this.visited.add(this.targetPath);
         this.targetPath = null;
         this.recompute();
@@ -85,9 +91,10 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             // Keep the current target across recomputes so applying a move refines the session in place.
             if (!this.targetPath || !model.get(this.targetPath)) {
                 this.targetPath = selectCultivationTarget(model, this.visited) ?? selectCultivationTarget(model);
+                this.forgetFriction();
             }
             const recipe = this.plugin.settings.cultivateMoves as CultivationMoveKind[] | undefined;
-            this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now(), recipe) : null;
+            this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now(), recipe, { friction: this.plugin.settings.cultivateFriction ?? true }) : null;
             this.queueCount = cultivationQueue(model, this.visited, 99).length;
             this.streak = developmentStreak(DevelopmentJournal.getInstance().dailyCounts(), Date.now());
             this.state = this.session ? "ready" : "empty";
@@ -156,6 +163,12 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         card.createDiv({ cls: c("cultivate-move-desc"), text: t(`cultivate_move_${move.kind}_desc`) });
         const body = card.createDiv({ cls: c("cultivate-move-body") });
 
+        // #338: a move that would hand you its answer asks for yours first. Always skippable.
+        if (move.friction && !this.revealed.has(move.kind)) {
+            this.renderFriction(body, move);
+            return;
+        }
+
         switch (move.kind) {
             case "connect":
                 this.renderConnect(body, move.candidates ?? []);
@@ -197,7 +210,75 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         } else {
             body.createDiv({ cls: c("cultivate-move-hint"), text: t("cultivate_no_contradictions") });
         }
-        this.renderTextMove(body, "cultivate_counterpoint_placeholder", (text) => this.addCounterpoint(text));
+        this.renderTextMove(body, "cultivate_counterpoint_placeholder", (text) => this.addCounterpoint(text), this.frictionAnswers.get("challenge"));
+    }
+
+    /**
+     * The friction phase (#338): the question, a box for your reading, and two ways out. `Reveal`
+     * needs text — that is the commitment — and records a judgement; `Skip` reveals and records
+     * **nothing**, because a skip is not a judgement (the same rule #337 applies to a dismissed
+     * proposal). Nothing here writes to the note.
+     */
+    private renderFriction(body: HTMLElement, move: CultivationMove): void {
+        const friction = move.friction;
+        if (!friction) return;
+        const prompt = t(friction.promptKey as Parameters<typeof t>[0]);
+
+        body.createDiv({ cls: c("cultivate-friction-prompt"), text: prompt });
+        const area = body.createEl("textarea", {
+            cls: c("cultivate-friction-input"),
+            attr: { rows: "3", "aria-label": prompt },
+        });
+        area.placeholder = t("cultivate_friction_placeholder");
+        area.value = this.frictionAnswers.get(move.kind) ?? "";
+
+        const actions = body.createDiv({ cls: c("cultivate-friction-actions") });
+        const reveal = actions.createEl("button", {
+            cls: c("cultivate-friction-reveal"),
+            text: t("cultivate_friction_reveal"),
+        });
+        reveal.disabled = area.value.trim().length === 0;
+        area.addEventListener("input", () => {
+            reveal.disabled = area.value.trim().length === 0;
+        });
+        reveal.addEventListener("click", () => this.answerFriction(move, area.value.trim()));
+
+        const skip = actions.createEl("button", {
+            cls: c("cultivate-friction-skip"),
+            text: t("cultivate_friction_skip"),
+        });
+        skip.addEventListener("click", () => this.skipFriction(move));
+    }
+
+    /** Your reading is committed: record it as a judgement (#336) and open the move. */
+    private answerFriction(move: CultivationMove, text: string): void {
+        if (!text || !move.friction) return;
+        this.frictionAnswers.set(move.kind, text);
+        if (this.session) {
+            JudgementLog.getInstance().record({
+                path: this.session.path,
+                subject: `friction:${move.kind}`,
+                origin: "derived",
+                verdict: move.friction.verdict,
+            });
+        }
+        this.reveal(move.kind);
+    }
+
+    /** Skipping is always allowed, and records nothing. */
+    private skipFriction(move: CultivationMove): void {
+        this.reveal(move.kind);
+    }
+
+    private reveal(kind: CultivationMoveKind): void {
+        this.revealed.add(kind);
+        this.render();
+    }
+
+    /** A different idea is a different session, so its prompts come back. */
+    private forgetFriction(): void {
+        this.revealed.clear();
+        this.frictionAnswers.clear();
     }
 
     private renderAdvance(body: HTMLElement, move: CultivationMove): void {
@@ -212,11 +293,12 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     }
 
     /** A one-line text input + add button, shared by question / source / counterpoint. */
-    private renderTextMove(body: HTMLElement, placeholderKey: Parameters<typeof t>[0], apply: (text: string) => Promise<void>): void {
+    private renderTextMove(body: HTMLElement, placeholderKey: Parameters<typeof t>[0], apply: (text: string) => Promise<void>, initial?: string): void {
         const row = body.createDiv({ cls: c("cultivate-input-row") });
         const input = row.createEl("input", { type: "text", cls: c("cultivate-input") });
         input.placeholder = t(placeholderKey);
         input.setAttribute("aria-label", t(placeholderKey));
+        if (initial) input.value = initial;
         const submit = () => {
             const text = input.value.trim();
             if (!text) return;

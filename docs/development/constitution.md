@@ -91,3 +91,26 @@ Three invariants make this enforceable, not aspirational:
   future `knowledge/` home) **never imports `obsidian`** and makes no network/AI call. Derived
   metrics are **queries over the model, not invented dashboard features** — *metrics are
   consequences, not inventions*.
+
+## XII. Never write a judgement the user did not make
+
+The manifesto's meta-principle is **cognitive agency**: ZettelFlow removes *mechanical* work and
+protects *cognitive* work. **Mechanical** output — a gathered list, a derived metric, a structural
+projection — may be written freely. **Interpretive** output — an interpretation, conclusion,
+counterargument, synthesis or proposed connection, whether produced by AI or by a heuristic — reaches
+the vault **only through an explicit human verdict** (accept / modify / reject). Machine text is
+*proposed*, never *committed*.
+
+Two consequences a reviewer can check on a diff:
+
+- **No silent interpretive write.** An action that produces interpretive output and writes it with no
+  decision point is rejected — inside a wizard build *and* inside an automation. The AI gate (#301)
+  bounds cost and automation; it does not grant agency.
+- **The verdict is data, not just an effect.** A human decision is recorded (the judgement record), so
+  *cognitive agency* stays a **consequence of the model** like every other metric (§XI) — never an
+  invented score.
+
+**Deliberate friction** — asking for the user's reading before revealing the system's — is a design
+tool, not a tax: applied only where judgement is genuinely at stake, never as a generic confirmation
+dialog. It is the opposite of the *operational* friction removed by the
+[friction audit](friction-audit.md); §XI still applies, so a friction step must not add net surface.

@@ -24,6 +24,51 @@ life:
 CAPTURE → CLASSIFY → PROCESS → CONNECT → DEVELOP → REVIEW → CONSOLIDATE
 ```
 
+## Cognitive agency (the meta-principle)
+
+The four pillars below say **what** ZettelFlow builds. This says **why** it exists.
+
+Every tool that touches knowledge work now offers the same bargain: hand over the thinking, keep the
+output. Take it often enough and something erodes quietly — not your notes, your **judgement**.
+Delegating a *mechanical* task is strategic and good; the loss begins when the tool takes over the
+**evaluation** and you stop exercising the metacognitive agency that made the knowledge yours. That is
+**cognitive surrender**, and it is the failure mode ZettelFlow is built against.
+
+> **ZettelFlow removes mechanical work. It protects cognitive work.**
+
+This is not an anti-AI stance, and not a demand that you do everything by hand. Automating *"gather
+every idea that contradicts this one"* is pure gain. Automating *"and here is what you should conclude"*
+is the loss. The line is exact:
+
+| ZettelFlow does this | ZettelFlow never does this |
+|---|---|
+| Gathers the evidence | Decides what the evidence means |
+| Surfaces the contradiction | Resolves it for you |
+| Notices the missing source | Invents the justification |
+| Proposes a connection | Commits it without your verdict |
+| Shows you the argument you built | Writes the argument you didn't |
+
+The mechanism is **deliberate friction**: at the moments where judgement is actually at stake, the
+system asks for *your* reading before it reveals its own. Not to slow you down — to keep the reasoning
+yours. And because judgement is the scarce resource, it is the thing worth measuring: **cognitive
+agency** is a consequence of the model like every other metric, the answer to *"has my understanding
+changed, or has my vault just grown?"*
+
+```
+                         COGNITIVE AGENCY
+             keep the human intellectually in the loop
+                                │
+            ┌───────────────────┼───────────────────┐
+            ↓                   ↓                   ↓
+        Lifecycle             Graph             Discovery
+            └───────────────────┼───────────────────┘
+                                ↓
+                             Health
+```
+
+> **Obsidian stores your thoughts. ZettelFlow connects them, challenges them and makes them evolve —
+> but it never thinks for you.**
+
 ## The four pillars (the soul)
 
 - 🌱 **Knowledge Lifecycle** — every idea has a state (fleeting → literature → permanent → developing
@@ -43,6 +88,8 @@ Knowledge debt is a natural byproduct of doing the work — never an arbitrary n
 
 - **"Obsidian + AI"** — competing with a thousand tools. **AI is one Action, never the product.** The
   system works fully — every pillar, every dashboard — for a user who never enables AI.
+- **An answer machine.** A tool that hands you conclusions trains you to stop reaching them. ZettelFlow
+  gathers, proposes and challenges — the verdict is always yours.
 - **"Another plugin to create Zettelkasten notes."** That ceiling is too low.
 - A generic manager that pleases everyone and marks no one.
 
@@ -90,8 +137,10 @@ abandon*. Minimalism here is not a lack of ambition; it is the ambition.
 
 The best tools meet you where you are. A newcomer should be productive in **five minutes** — install a
 system, create a note, watch it land already connected, cross-checked and scored — without reading a
-manual. That is the **on-ramp**: ZettelFlow does the thinking-work *for* you until you're ready to do it
-yourself.
+manual. That is the **on-ramp**: ZettelFlow does the *mechanical* work for you from the first minute —
+the scaffolding, the gathering, the cross-checking — so that what is left for you is the judgement. It
+never does the judgement work for you, at any level: a beginner is not a user who thinks less, only a
+user with more scaffolding.
 
 And there should always be another level. Compose your own workflows, program conditions and events,
 author and share systems, ask your own knowledge graph questions — the ceiling rises as far as your

@@ -27,6 +27,7 @@ import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksM
 import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
+import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
 
@@ -530,6 +531,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             aiSettingsGroup(plugin),
             // ── Thinking journal (#162) ───────────────────────────────────────
             journalSettingsGroup(plugin),
+            judgementSettingsGroup(plugin),
             timelineSettingsGroup(plugin),
             // ── Knowledge patterns (#200) ─────────────────────────────────────
             patternsSettingsGroup(plugin),

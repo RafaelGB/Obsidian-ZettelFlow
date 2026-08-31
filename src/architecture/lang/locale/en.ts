@@ -906,6 +906,11 @@ export default {
     settings_journal_enable_name: 'Record development events',
     settings_journal_enable_desc: 'Keep a per-day count of ideas developed (state advanced, source or connection added). On by default.',
     settings_journal_disclosure: 'Stored locally as day → count only — no note names, no content, no network.',
+    settings_judgements_heading: 'Judgement record',
+    settings_judgements_intro: 'ZettelFlow remembers the decisions you make on your own ideas, so it can tell an idea that grew from one you actually reasoned about.',
+    settings_judgements_enable_name: 'Record my decisions',
+    settings_judgements_enable_desc: 'On by default. Turning it off stops new records; nothing else changes.',
+    settings_judgements_disclosure: 'Local only: a bounded log of a note path, a short label, and whether you accepted, edited, rejected, confirmed or challenged. Never note content, never AI output, never networked.',
     // Evolution timeline settings (#168)
     settings_timeline_heading: 'Evolution timeline',
     settings_timeline_intro: 'ZettelFlow keeps a per-note history of how an idea evolved — its lifecycle state and claim texts over time.',

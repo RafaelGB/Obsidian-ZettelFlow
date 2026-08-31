@@ -48,7 +48,6 @@ export class StepBuilderModal extends AbstractStepModal {
 
     onOpen(): void {
         VaultStateManager.INSTANCE.freeze();
-        const span = activeDocument.createElement("span", {});
         this.modalEl.addClass(c("modal"));
         // Header with title and subtitle with the mode
         const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
@@ -56,7 +55,7 @@ export class StepBuilderModal extends AbstractStepModal {
         navbar.createEl("h2", { text: t("step_builder_title") })
 
         // Separator
-        navbar.appendChild(span);
+        navbar.createSpan();
 
         const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
 

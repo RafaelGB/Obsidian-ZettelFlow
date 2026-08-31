@@ -26,8 +26,7 @@ export class ManageInstalledTemplatesModal extends Modal {
     navbar.createEl("h2", { text: t("manage_installed_templates_title") });
 
     // Separator
-    const span = activeDocument.createElement("span", {});
-    navbar.appendChild(span);
+    navbar.createSpan();
 
     const navbarButtonGroup = navbar.createDiv({
       cls: c("navbar-button-group"),

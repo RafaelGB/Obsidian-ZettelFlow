@@ -10,10 +10,10 @@ export function Search<T>(props: SearchType<T>) {
   // Refs
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Initial detached placeholder. Use native `createElement` here — Obsidian's `createEl` helper appends
-  // the node to its receiver, so building a "ul" on the document appended a second element to the document
-  // and threw "appendChild: Only one element on document allowed", unmounting the React tree (#327).
-  const listRef = useRef<HTMLUListElement>(activeDocument.createElement("ul"));
+  // Initial detached placeholder. The global `createEl` builds a parentless node; the *document*
+  // helper appends to its receiver, which once put a second element on the document and threw
+  // "appendChild: Only one element on document allowed", unmounting the React tree (#327).
+  const listRef = useRef<HTMLUListElement>(createEl("ul"));
   // States
   const [value, setValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");

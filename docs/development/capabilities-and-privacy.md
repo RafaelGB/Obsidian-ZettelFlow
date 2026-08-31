@@ -11,8 +11,16 @@ telemetry** and transmits **no personal data or vault contents**.
 | **File system (vault)** | Always | Read your Canvas flow files; create and edit notes as the output of a flow; install community templates into your vault. | Obsidian's `Vault` API and `FileManager` — no hardcoded `.obsidian` paths, path-normalised, desktop **and** mobile. |
 | **Network** | Opt-in | Only the **community templates** browser: read-only `GET`s that fetch example flows/steps/actions/systems and preview images from the static ZettelFlow community catalog on GitHub raw. No backend, no account, no uploads. | `request`/`requestUrl` in `src/application/community/`. No requests are made unless you open the community browser. |
 | **AI provider (external)** | Opt-in, off by default | The optional **🤖 AI action category** (`summarize`, `classify`, `generate-questions`, …). When you enable it and run an AI action, the **(length-bounded) note content** is sent to the single **https** OpenAI-compatible endpoint **you configure** to get a completion back. AI never fires on its own in automations unless you opt in. | `requestUrl` in `src/architecture/ai/OpenAiCompatibleProvider.ts` only. No bundled key, no default endpoint, no other endpoint, no telemetry. Off by default; input/output are capped and the endpoint must be https (or localhost). See [AI provider setup](ai-provider-setup.md). |
-| **Script execution** | Opt-in | The **Script** action and JavaScript step files execute **JavaScript you author** as part of a flow. | The `.js` code editor (`CodeView`) and the script action. Runs with the plugin's vault access — run only scripts you trust. |
-| **Clipboard** | No | — | ZettelFlow does not read or write the system clipboard. |
+| **Clipboard** | On your click | **Writes only, never reads.** The “copy” buttons put a step / action / canvas-node configuration on the clipboard as JSON so you can paste it elsewhere or share it. | `navigator.clipboard.writeText` in the step, action and canvas-node editors. Nothing is ever read from your clipboard, and nothing is copied unless you press a copy button. |
+| **Vault enumeration** | Always | Lists every markdown file **path** in the vault to build the offline knowledge model that every analysis reads (health, discovery, the graph, Cultivate). | `vault.getMarkdownFiles()` via the `ObsidianApi` facade. Paths and metadata only, all local, no network. You can keep folders out of it entirely with the [knowledge scope](knowledge-scope.md). |
+| **Dynamic code execution** | Opt-in | Runs the JavaScript **you** author: the Script action, dynamic selectors, vault hooks and workflow-event conditions. | Built in exactly **one** module, `architecture/api/lib/FnConstructor.ts` (a guardrail test fails the build if a second site appears). No remote code is ever fetched or executed — only code stored in your own vault or settings. |
+
+## What the automated scan sees that is not ours
+
+Obsidian's Community-hub scan reports **runtime base64 encode/decode**. That call does not come from
+ZettelFlow code — there is no `atob`/`btoa` anywhere in `src/`. It comes from the bundled 3D graph
+library (`3d-force-graph`, which vendors three.js loaders) used by the graph view. It decodes assets
+the library ships with; it does not encode anything about your vault, and it makes no request.
 
 ## No telemetry
 

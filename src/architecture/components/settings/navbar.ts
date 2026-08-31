@@ -14,14 +14,13 @@ export function navbarAction(
     modal: AbstractStepModal,
     disableNavbar: boolean = false
 ): void {
-    const span = activeDocument.createElement("span", {});
     // Header with title and subtitle with the mode
     const navbar = contentEl.createDiv({ cls: c("modal-navbar") });
 
     navbar.createEl("h2", { text: name })
     navbar.createEl("p", { text: description });
     // Separator
-    navbar.appendChild(span);
+    navbar.createSpan();
 
     if (disableNavbar) return;
 

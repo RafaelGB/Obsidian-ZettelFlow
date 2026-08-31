@@ -250,8 +250,10 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. The plugin uses these capabilities:
 
 - **File system (vault).** Reads canvas flow files and creates/edits notes (e.g. the **Change note state** command writes a single lifecycle property to the active note). All access goes through Obsidian's `Vault` / `FrontmatterService` API — never a hardcoded path. Works on desktop and mobile.
-- **Network — optional, community feature only.** If (and only if) you open the community templates browser, ZettelFlow fetches example flows from the ZettelFlow community source. Nothing is sent unless you use this feature.
-- **Script execution.** The Script action and JavaScript step files run **JavaScript you write** as part of a flow. This code runs with the plugin's access to your vault — only run scripts you trust.
+- **Vault enumeration.** ZettelFlow lists every markdown file **path** to build the offline knowledge model that health, discovery, the graph and Cultivate all read. Paths and metadata only, all local — and you can keep folders out of it with the knowledge scope.
+- **Network — two opt-in paths, nothing until you use them.** The **community gallery** does read-only `GET`s of the static catalog on GitHub (no backend, no account, no uploads), and the optional **AI provider** sends length-bounded note content to the single https endpoint *you* configure. Both are off until you open the browser or enable AI.
+- **Dynamic code execution.** The Script action, dynamic selectors, vault hooks and workflow-event conditions run **JavaScript you write**, with the plugin's access to your vault — only run scripts you trust. No remote code is ever fetched or executed, and every runtime function is built in one audited module.
+- **Clipboard — write only.** The “copy” buttons put a step or action configuration on your clipboard as JSON. ZettelFlow never *reads* your clipboard.
 
 See [Capabilities & privacy](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/capabilities-and-privacy/) for full details.
 

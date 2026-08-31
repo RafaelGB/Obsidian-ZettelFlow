@@ -9,8 +9,8 @@ const KEYS = [
 ];
 
 describe("Home recommendation i18n (#273, AC-1/AC-6)", () => {
-    it("references the section title + one label per reason (13 keys)", () => {
-        expect(KEYS).toHaveLength(13);
+    it("references the section title + one label per reason (14 keys)", () => {
+        expect(KEYS).toHaveLength(14);
     });
 
     it("defines every key in both en and es, non-empty (sentence case)", () => {

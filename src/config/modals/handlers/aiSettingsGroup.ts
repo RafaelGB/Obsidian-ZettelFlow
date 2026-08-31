@@ -81,20 +81,6 @@ export function aiSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem {
                 },
             },
             {
-                name: t("settings_ai_automations_name"),
-                desc: t("settings_ai_automations_desc"),
-                render: (setting) => {
-                    setting.addToggle((toggle) =>
-                        toggle
-                            .setValue(plugin.settings.ai.allowInAutomations ?? false)
-                            .onChange(async (value) => {
-                                plugin.settings.ai = { ...plugin.settings.ai, allowInAutomations: value };
-                                await plugin.saveSettings();
-                            })
-                    );
-                },
-            },
-            {
                 name: t("settings_ai_max_input_name"),
                 desc: t("settings_ai_max_input_desc"),
                 render: (setting) => {

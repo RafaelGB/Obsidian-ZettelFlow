@@ -15,12 +15,6 @@ export interface AiSettings {
     maxInputChars?: number;
     /** Max completion tokens requested (#301 S1) — sent as `max_tokens`. Falls back to the default. */
     maxOutputTokens?: number;
-    /**
-     * Allow AI actions to fire during **automations** (on-creation patterns / post-index re-run)
-     * (#301 S2). Off by default: with it off, AI actions never make a silent network call on note
-     * creation — they run only when you drive a build yourself.
-     */
-    allowInAutomations?: boolean;
 }
 
 /** Default cap on prompt content sent per request when the user hasn't set one (#301 S1). */

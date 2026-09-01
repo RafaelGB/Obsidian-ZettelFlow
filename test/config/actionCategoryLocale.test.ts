@@ -4,13 +4,12 @@ import es from "architecture/lang/locale/es";
 import { ACTION_CATEGORIES, CATEGORY_LABEL_KEY } from "architecture/api/categories/categories";
 
 describe("action category i18n parity (#152, AC-6)", () => {
-    const keys = [
-        ...ACTION_CATEGORIES.map((category) => CATEGORY_LABEL_KEY[category]),
-        "action_category_uncategorized_label",
-    ];
+    // Derived from the source vocabulary, not a hand-copied list — which is why this one survives
+    // while its ten hand-maintained siblings were retired (#320).
+    const keys = ACTION_CATEGORIES.map((category) => CATEGORY_LABEL_KEY[category]);
 
-    it("defines all six category keys in both en and es, non-empty", () => {
-        expect(keys.length).toBe(6);
+    it("defines a label for every category in both en and es, non-empty", () => {
+        expect(keys.length).toBe(ACTION_CATEGORIES.length);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of keys) {

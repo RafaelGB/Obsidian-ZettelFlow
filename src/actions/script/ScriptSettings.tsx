@@ -1,10 +1,18 @@
-import { ActionSetting, fnsManager, buildAsyncScriptFunction, errorMessage } from "architecture/api";
+import {
+  ActionSetting,
+  fnsManager,
+  buildAsyncScriptFunction,
+  errorMessage,
+  SCRIPT_ACTION_BINDINGS,
+  bindingNames,
+  bindingArgs,
+} from "architecture/api";
 import { t } from "architecture/lang";
 import { CodeElement, dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
 import { ScriptResult } from "actions";
 import { ContentDTO, NoteDTO } from "application/notes";
-import { c } from "architecture";
+import { c, ObsidianApi } from "architecture";
 import { navbarAction } from "architecture/components/settings";
 import { scriptActionAutocomplete } from "./extensions/autoconfiguration/ScriptStepAutocomplete";
 
@@ -39,17 +47,17 @@ export const scriptSettings: ActionSetting = (
   });
 
   new Setting(debugContainer)
-    .setName("Debug script")
-    .setDesc("Run the script with mock data and view the result.")
+    .setName(t("script_debug_name"))
+    .setDesc(t("script_debug_description"))
     .addButton((button) => {
-      button.setButtonText("Run").setCta();
+      button.setButtonText(t("script_debug_run")).setCta();
       button.onClick(async () => {
         const result = await executeUserScript(scriptAction.code);
         displayScriptResult(debugContainer, result);
       });
     })
     .addButton((button) => {
-      button.setButtonText("Clear output");
+      button.setButtonText(t("script_debug_clear"));
       button.onClick(() => {
         clearScriptOutput(debugContainer);
       });
@@ -59,27 +67,28 @@ export const scriptSettings: ActionSetting = (
     cls: "output-container",
   });
 
-  // Función para ejecutar el script con datos mock
+  // A debug run must see exactly what the real run sees, so both derive their signature from
+  // SCRIPT_ACTION_BINDINGS. They used to disagree: `element` was in scope at runtime but not here.
   const executeUserScript = async (userCode: string): Promise<ScriptResult> => {
     try {
-      const functions = await fnsManager.getFns();
-      const mockContext: Record<string, unknown> = {};
-      const mockContent: ContentDTO = new ContentDTO();
-      const mockNote: NoteDTO = new NoteDTO();
       const scriptFn = buildAsyncScriptFunction(
-        ["content", "note", "context", "zf"],
+        bindingNames(SCRIPT_ACTION_BINDINGS),
         `
         return (async () => {
           ${userCode}
-        })(content, note, context, zf);
+        })();
       `
       );
 
       const output = await scriptFn(
-        mockContent,
-        mockNote,
-        mockContext,
-        functions
+        ...bindingArgs(SCRIPT_ACTION_BINDINGS, {
+          element: scriptAction,
+          content: new ContentDTO(),
+          note: new NoteDTO(),
+          context: {},
+          zf: await fnsManager.getFns(),
+          app: ObsidianApi.globalApp(),
+        })
       );
 
       return { output, error: null };
@@ -100,12 +109,12 @@ export const scriptSettings: ActionSetting = (
 
     if (result.error) {
       outputDiv.createDiv({
-        text: `Error: ${result.error}`,
+        text: t("script_debug_error", result.error),
         cls: c("error-output"),
       });
     } else {
       outputDiv.createEl("pre", {
-        text: `Output:\n${JSON.stringify(result.output, null, 2)}`,
+        text: t("script_debug_output", JSON.stringify(result.output, null, 2)),
         cls: c("success-output"),
       });
     }

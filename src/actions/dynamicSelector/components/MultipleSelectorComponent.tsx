@@ -1,11 +1,17 @@
-import { c } from "architecture";
+import { c, log, ObsidianApi } from "architecture";
 import { SelectableSearch } from "architecture/components/core";
 import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useEffect, useState } from "react";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { Icon } from "architecture/components/icon";
-import { buildAsyncScriptFunction, fnsManager } from "architecture/api";
+import {
+  buildAsyncScriptFunction,
+  fnsManager,
+  DYNAMIC_SELECTOR_BINDINGS,
+  bindingNames,
+  bindingArgs,
+} from "architecture/api";
 import { isStringTupleArray } from "../typing";
 
 export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
@@ -27,30 +33,37 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
 
     const fnBody = `return (async () => {
           ${code}
-        })(zf);`;
+        })();`;
 
     let isMounted = true;
 
     const fetchOptions = async () => {
       try {
-        // Mirror the single-selector mode: the user script receives the `zf` API, not the action.
-        const functions = await fnsManager.getFns();
-        const scriptFn = buildAsyncScriptFunction(["zf"], fnBody);
-        const result = await scriptFn(functions);
+        // Both selector modes share one binding contract, so a script written for one runs in the other.
+        const scriptFn = buildAsyncScriptFunction(
+          bindingNames(DYNAMIC_SELECTOR_BINDINGS),
+          fnBody
+        );
+        const result = await scriptFn(
+          ...bindingArgs(DYNAMIC_SELECTOR_BINDINGS, {
+            zf: await fnsManager.getFns(),
+            app: ObsidianApi.globalApp(),
+          })
+        );
         if (isStringTupleArray(result)) {
           const dynamicOptions: string[] = result.map(([key]) => key);
           if (isMounted) {
             setAvailableOptions(dynamicOptions);
-            setSelectedOptions([]); // Inicialmente no hay selecciones
+            setSelectedOptions([]);
             setError(null);
           }
         } else {
-          throw new Error("El formato de las opciones es inválido.");
+          throw new Error(t("dynamic_selector_invalid_result"));
         }
       } catch (err) {
-        console.error("Error al obtener las opciones dinámicas:", err);
+        log.error("Error obtaining dynamic options", err);
         if (isMounted) {
-          setError("No se pudieron cargar las opciones.");
+          setError(t("dynamic_selector_error"));
         }
       } finally {
         if (isMounted) {
@@ -70,7 +83,7 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
     return (
       <div className={c("loading")}>
         <Icon name="spinner" className={c("loading-icon")} />
-        Cargando opciones...
+        {t("dynamic_selector_loading")}
       </div>
     );
   }

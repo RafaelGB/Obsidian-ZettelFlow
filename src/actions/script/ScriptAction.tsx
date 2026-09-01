@@ -1,9 +1,8 @@
-import { CustomZettelAction, ExecuteInfo, fnsManager, buildAsyncScriptFunction } from "architecture/api";
+import { CustomZettelAction, ExecuteInfo } from "architecture/api";
 import { scriptSettings } from "./ScriptSettings";
-import { log } from "architecture";
 import { t } from "architecture/lang";
-import { CodeElement } from "architecture/components/core";
 import { scriptSettingsReader } from "./ScriptSettingsReader";
+import { runScriptAction } from "./scriptActionCore";
 export class ScriptAction extends CustomZettelAction {
   private static ICON = "code-glyph";
   id = "script";
@@ -17,31 +16,12 @@ export class ScriptAction extends CustomZettelAction {
   settings = scriptSettings;
   settingsReader = scriptSettingsReader;
   link = "https://rafaelgb.github.io/Obsidian-ZettelFlow/actions/Script";
-  // TODO: Translate this
   get purpose(): string {
     return t("script_purpose");
   }
 
   async execute(info: ExecuteInfo) {
-    try {
-      const element = info.element as CodeElement;
-      const { content, note, context } = info;
-      const { code } = element;
-
-      const fnBody = `return (async () => {
-        ${code}
-      })(content, note, context, zf);`;
-
-      const functions = await fnsManager.getFns();
-      const scriptFn = buildAsyncScriptFunction(
-        ["element", "content", "note", "context", "zf"],
-        fnBody
-      );
-
-      await scriptFn(element, content, note, context, functions);
-    } catch (error) {
-      log.error(`Error executing script: ${error}`);
-    }
+    await runScriptAction(info);
   }
 
   getIcon(): string {

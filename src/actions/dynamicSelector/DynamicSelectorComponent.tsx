@@ -2,7 +2,15 @@ import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useEffect, useMemo, useState } from "react";
 import { OptionType, Select } from "application/components/select";
 import { DynamicSelectorElement } from "zettelkasten/typing";
-import { fnsManager, buildAsyncScriptFunction } from "architecture/api";
+import {
+  fnsManager,
+  buildAsyncScriptFunction,
+  DYNAMIC_SELECTOR_BINDINGS,
+  bindingNames,
+  bindingArgs,
+} from "architecture/api";
+import { log, ObsidianApi } from "architecture";
+import { t } from "architecture/lang";
 import { isStringTupleArray } from "./typing";
 
 export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
@@ -15,13 +23,20 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   const [error, setError] = useState<string | null>(null);
 
   const resultMemo = useMemo(async () => {
-    const functions = await fnsManager.getFns();
     const fnBody = `return (async () => {
           ${code}
-        })(zf);`;
-    const scriptFn = buildAsyncScriptFunction(["zf"], fnBody);
+        })();`;
+    const scriptFn = buildAsyncScriptFunction(
+      bindingNames(DYNAMIC_SELECTOR_BINDINGS),
+      fnBody
+    );
 
-    return await scriptFn(functions);
+    return await scriptFn(
+      ...bindingArgs(DYNAMIC_SELECTOR_BINDINGS, {
+        zf: await fnsManager.getFns(),
+        app: ObsidianApi.globalApp(),
+      })
+    );
   }, []);
 
   useEffect(() => {
@@ -54,14 +69,12 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
             setError(null);
           }
         } else {
-          throw new Error("The script must return an array of tuples.");
+          throw new Error(t("dynamic_selector_invalid_result"));
         }
       } catch (err) {
-        console.error("Error obtaining dynamic options", err);
+        log.error("Error obtaining dynamic options", err);
         if (isMounted) {
-          setError(
-            "There was an error obtaining the dynamic options. Please check the script / console for more information."
-          );
+          setError(t("dynamic_selector_error"));
         }
       } finally {
         if (isMounted) {
@@ -78,11 +91,11 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   }, []); // Arreglo de dependencias vacío para ejecutar solo una vez
 
   if (loading) {
-    return <div>Loading options...</div>;
+    return <div>{t("dynamic_selector_loading")}</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>{error}</div>;
   }
 
   return (

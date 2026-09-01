@@ -17,7 +17,17 @@ import {
     Literal,
     VaultStateManager,
 } from "architecture/plugin";
-import { buildAsyncScriptFunction, fnsManager } from "architecture/api";
+import {
+    buildAsyncScriptFunction,
+    errorMessage,
+    fnsManager,
+    sharedScriptValues,
+    HOOK_BINDINGS,
+    CONDITION_BINDINGS,
+    bindingNames,
+    bindingArgs,
+} from "architecture/api";
+import { t } from "architecture/lang";
 import { evaluateBindingCondition } from "architecture/plugin/events/condition";
 
 import { hasFrontmatterMutations, copyFrontmatter, changedHookProperties } from "./utils/CompareUtils";
@@ -77,13 +87,13 @@ export class VaultHooks {
         const frontmatter = copyFrontmatter(app.metadataCache.getFileCache(file)?.frontmatter ?? {});
         const newValue = frontmatter[property];
         try {
-            const zf = await fnsManager.getFns();
+            const shared = await sharedScriptValues();
 
             const condition = settings.condition?.trim();
             if (condition) {
                 const ctx = { event: "property.changed", notePath: file.path, property, oldValue: undefined, newValue };
-                const condFn = buildAsyncScriptFunction(["event", "zf"], `return (${condition});`);
-                const passes = await condFn(ctx, zf);
+                const condFn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), `return (${condition});`);
+                const passes = await condFn(...bindingArgs(CONDITION_BINDINGS, { event: ctx, ...shared }));
                 if (!passes) return { status: "skipped" };
             }
 
@@ -92,8 +102,11 @@ export class VaultHooks {
                 request: { oldValue: undefined, newValue, property, frontmatter },
                 response: { frontmatter: {}, removeProperties: [] },
             };
-            const scriptFn = buildAsyncScriptFunction(["event", "zf"], `return (async () => {\n${settings.script}\n return event;\n})(event, zf);`);
-            const result = (await scriptFn(event, zf)) as HookEvent;
+            const scriptFn = buildAsyncScriptFunction(
+                bindingNames(HOOK_BINDINGS),
+                `return (async () => {\n${settings.script}\n return event;\n})();`
+            );
+            const result = (await scriptFn(...bindingArgs(HOOK_BINDINGS, { event, ...shared }))) as HookEvent;
             return { status: "ran", response: result.response };
         } catch (error) {
             return { status: "error", message: error instanceof Error ? error.message : String(error) };
@@ -478,9 +491,8 @@ export class VaultHooks {
      */
     private evaluateHookCondition(condition: string | undefined, ctx: unknown): Promise<boolean> {
         return evaluateBindingCondition(condition, ctx, async (script, context) => {
-            const zf = await fnsManager.getFns();
-            const fn = buildAsyncScriptFunction(["event", "zf"], `return (${script});`);
-            return fn(context, zf);
+            const fn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), `return (${script});`);
+            return fn(...bindingArgs(CONDITION_BINDINGS, { event: context, ...(await sharedScriptValues()) }));
         });
     }
 
@@ -489,18 +501,17 @@ export class VaultHooks {
             const fnBody = `return (async () => {
         ${script}
         return event;
-      })(event, zf);`;
+      })();`;
 
-            const functions = await fnsManager.getFns();
-            const scriptFn = buildAsyncScriptFunction(["event", "zf"], fnBody);
+            const scriptFn = buildAsyncScriptFunction(bindingNames(HOOK_BINDINGS), fnBody);
 
-            return (await scriptFn(event, functions)) as HookEvent;
+            return (await scriptFn(
+                ...bindingArgs(HOOK_BINDINGS, { event, ...(await sharedScriptValues()) })
+            )) as HookEvent;
         } catch (error: unknown) {
-            const msg = error instanceof Error
-                ? error.message
-                : typeof error === "string" ? error : JSON.stringify(error);
-            new Notice("Error executing global hook: " + msg);
-            log.error("[VaultHooks] Error ejecutando script de hook:", error);
+            const msg = errorMessage(error);
+            new Notice(t("property_hooks_script_error_notice", msg));
+            log.error("[VaultHooks] Error executing hook script:", error);
             throw error;
         }
     }

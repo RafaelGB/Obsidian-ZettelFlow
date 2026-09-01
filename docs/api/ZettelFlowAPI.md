@@ -84,7 +84,18 @@ const result = zf.external.tp.user.myScript();
 
 ## Common Context Variables
 
-These variables are available in both Scripts and Hooks contexts:
+Every scripting surface binds `zf` and `app`. What else is in scope depends on where your code runs:
+
+| Surface | Variables |
+|---|---|
+| [Script action](../actions/Script.md) | `element`, `content`, `note`, `context`, `zf`, `app` |
+| [Dynamic Selector](../actions/DynamicSelector.md) | `zf`, `app` |
+| [Property hook](../vault-hooks/property-hooks/configuration.md) script | `event`, `zf`, `app` |
+| Run conditions (hook, canvas edge, workflow trigger) | `event`, `zf`, `app` |
+
+These lists come from one binding contract in the source, which is also what the editors advertise and
+what the **Run** / dry-run buttons execute against — so an editor cannot offer you a variable that is
+not really there.
 
 ### `note`
 

@@ -37,6 +37,16 @@ describe("the declarations are written inside the configured folder, or nowhere 
             expect(typeDeclarationPath(folder)?.endsWith(`/${TYPES_FILENAME}`)).toBe(true);
         }
     });
+
+    /**
+     * `normalizePath` collapses separators but does not resolve `..`, so this has to be rejected here
+     * rather than assumed away — the same bar `systemInstall.isUnsafeFilename` sets for remote content.
+     */
+    it("refuses a folder that would traverse out of where it was pointed", () => {
+        for (const folder of ["../escape", "a/../../b", "./here", "a/./b", "..", "."]) {
+            expect(`${folder} → ${typeDeclarationPath(folder)}`).toBe(`${folder} → null`);
+        }
+    });
 });
 
 describe("what only this vault knows is read from the live API (#352, FR-2)", () => {

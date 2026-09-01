@@ -167,39 +167,10 @@ The `obsidian-plugin-quality` harness skill automates this audit; see
 
 ## 6. ZettelFlow compliance snapshot
 
-Current state of this repository against the checklist (audit date: 2026‑07‑31). See the
-`obsidian-plugin-quality` skill for the live, re‑runnable version.
-
-| Area | Status | Notes |
-|---|---|---|
-| DOM helpers (`createEl`/`registerEvent`) | ✅ Good | Used extensively across the codebase. |
-| Central logging | ✅ Good | `console.*` is wrapped in `src/architecture/monitoring/Logger.ts`. |
-| `innerHTML` usage | ⚠️ Fix | ~8 occurrences; most are `= ""` (→ use `el.empty()`); one rewrites HTML in `starters/services/VariableTextProcessors.ts`. |
-| Inline styles (`el.style.*`) | ⚠️ Fix | Widespread (e.g. `CommunityFlowModal`, `ObsidianTypesModal`) — migrate to CSS classes. |
-| Official linter | ⚠️ Adopt | Project uses `oxlint` + a legacy `.eslintrc.js`; add `eslint-plugin-obsidianmd`. |
-| `versions.json` | ❌ Missing | Referenced by `npm version` but not present — blocks a compliant release. |
-| `version-bump.mjs` | ❌ Missing | Referenced by the `version` script but not present. |
-| Canvas monkey‑patching | ⚠️ Review | `architecture/plugin/canvas` patches internal Canvas APIs via `monkey-around`; document the risk and guard against API changes. |
-| `.js` extension registration | ⚠️ Review | `CodeView` registers the `js` extension; already wrapped in try/catch — keep it defensive. |
-
-## 7. Action plan to maximise the score
-
-1. Add `eslint-plugin-obsidianmd` + `eslint.config.mjs` and an `npm run lint:obsidian`
-   script; fail CI on violations.
-2. Replace every `x.innerHTML = ""` with `x.empty()`; remove the HTML‑string rewrite in
-   `VariableTextProcessors`.
-3. Migrate inline `el.style.*` assignments to CSS classes in `src/styles/`.
-4. Restore `version-bump.mjs` and generate/commit `versions.json`; verify the release
-   workflow attaches `main.js`, `manifest.json`, `styles.css` under a tag equal to
-   `manifest.version`.
-5. Audit commands (ids/names), settings headings and sentence‑case UI strings.
-6. Keep the canvas patcher defensive and documented; add a disclosure of capabilities
-   (file system access) ahead of Obsidian's disclosure labels.
-
-## Launch-readiness snapshot (#316, E1)
-
-A pre-launch self-audit against the checklist above (this is the reference the
-`obsidian-plugin-quality` skill re-runs before each release):
+The **single** record of where this repository stands against the checklist above, re-run by the
+`obsidian-plugin-quality` skill before each release. It replaced a second, older snapshot that sat
+forty lines higher and contradicted it on every row — two accounts of the same thing is one too many,
+and the stale one is always the one somebody quotes.
 
 | Area | Status |
 |---|---|

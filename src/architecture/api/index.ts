@@ -30,3 +30,9 @@ export type { ScriptExample } from './bindings/scriptExamples';
 export { ZfVault, ZfVaultImpl } from './lib/vault/service/ZfVault';
 
 export { ZfScripts } from './lib/scripts/service/ZfScripts';
+
+export { generateTypeDeclarations } from './types/generateTypes';
+export type { DynamicNamespaces } from './types/generateTypes';
+export { generateReference, GENERATED_HEADER } from './types/generateReference';
+export { writeTypeDeclarations, typeDeclarationPath, dynamicNamespaces, TYPES_FILENAME } from './types/typeDeclarationFile';
+export type { WriteTypesResult } from './types/typeDeclarationFile';

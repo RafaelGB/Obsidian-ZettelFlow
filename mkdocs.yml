@@ -57,6 +57,7 @@ nav:
   - 5. API:
       - 5.1 Reference: api/ZettelFlowAPI.md
       - 5.2 Cookbook: api/cookbook.md
+      - 5.3 Generated reference: api/reference.md
   - 6. Architecture:
       - 6.1 Overview: architecture/overview.md
       - 6.1.1 The four surfaces: architecture/surfaces.md

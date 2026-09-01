@@ -84,6 +84,27 @@ The policy — deliberately, not vanity:
 - **Raise the floor as tests land**, never lower it. The current values (stmts 83 / branch 75 /
   func 78 / lines 84) sit just below the measured level.
 
+## Generated artefacts (#352)
+
+Two files are **produced from the `zf` API manifest**, not written by hand:
+
+| Artefact | Where |
+|---|---|
+| The API reference page | `docs/api/reference.md` |
+| The script type declarations | written into the user's JS-library folder, on demand |
+
+`generatedContract.test.ts` regenerates the reference from the manifest and asserts the committed file
+matches, so code and docs cannot disagree without failing `npm run verify`. When you change a member's
+signature or summary, regenerate rather than editing the page:
+
+```bash
+UPDATE_API_DOCS=1 npx jest generatedContract
+```
+
+The same suite hands the generated `.d.ts` to the **real TypeScript compiler** in strict mode. A
+declaration that referenced a type it never declared would autocomplete happily and then show an error
+in a file ZettelFlow wrote into the user's vault — so it is checked, not assumed.
+
 ## The write-path harness (#317, E2)
 
 `test/support/harness.ts` (`wireHarness`) gives a test an **in-memory Obsidian** whose

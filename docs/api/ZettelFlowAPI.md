@@ -24,6 +24,14 @@ newer namespaces sit at the top level. Nothing moved — every existing script k
 > errors are flagged inline in the gutter as you type, and the Script action and Dynamic Selector ship
 > **insertable examples** so you never face an empty editor.
 
+> **Editing library scripts outside Obsidian?** Settings → Developer → *Script type declarations*
+> writes a `zettelflow.d.ts` into your scripts folder, so VS Code (or any editor) knows `zf` —
+> including the functions **you** wrote and the integrations **you** installed. Regenerate it after
+> adding a script or updating the plugin.
+>
+> Every member, with its exact signature, is listed in the
+> [generated reference](reference.md) — produced from the plugin's manifest, not written by hand.
+
 ## Knowledge (`zf.knowledge`)
 
 ZettelFlow models your vault as a graph of ideas and runs a set of pure, offline analyses over it —

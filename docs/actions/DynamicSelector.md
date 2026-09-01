@@ -15,6 +15,20 @@ Configuring the Dynamic Selector Component involves defining scripts that genera
 ## Writing the Script
 To generate dynamic options, you'll need to write a JavaScript script that returns an array of string tuples. Each tuple represents a key-value pair for the selector options.
 
+### Available variables
+
+An options script receives two variables:
+
+| Variable | What it is |
+|---|---|
+| `zf` | The [ZettelFlow script API](../api/ZettelFlowAPI.md). |
+| `app` | Obsidian's own API. |
+
+Unlike the [Script action](Script.md), an options script gets no `note` or `content`: it runs *before*
+you pick anything, so there is nothing to write to yet. Both selector modes — single and multiple —
+share this contract, so a script written for one runs unchanged in the other, and the **Run** button in
+settings executes it with exactly the same bindings as the real run.
+
 ### Script Example:
 ```javascript
 const testFolders = app.vault.getAllFolders();

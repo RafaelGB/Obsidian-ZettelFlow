@@ -2,7 +2,7 @@ import { log } from "architecture";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { ZfScripts, ZfVault } from "architecture/api";
 import { DataviewPlugin, TemplaterPlugin, TemplaterTools, ZettelFlowApp, ZfExternalTools, ZfInternalTools } from "./typing";
-import { Notice } from "obsidian";
+import { App, Notice } from "obsidian";
 
 export function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -27,6 +27,15 @@ export function buildAsyncScriptFunction(argNames: string[], body: string): Asyn
     };
     const AsyncFunction = asyncProto.constructor;
     return new AsyncFunction(...argNames, body);
+}
+
+/**
+ * The two values every scripting surface binds, resolved together (#349). Sourced from the
+ * {@link ObsidianApi} facade rather than the deprecated `window.app` global that user scripts used to
+ * reach by accident — so plugin code honours the convention while the script keeps its escape hatch.
+ */
+export async function sharedScriptValues(): Promise<{ zf: ZettelFlowApp; app: App }> {
+    return { zf: await fnsManager.getFns(), app: ObsidianApi.globalApp() };
 }
 
 async function buildExternalTools(): Promise<ZfExternalTools> {

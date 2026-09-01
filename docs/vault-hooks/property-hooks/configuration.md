@@ -66,6 +66,11 @@ When writing your hook script, you have access to these variables:
 
 - `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
 
+- `app`: Obsidian's own API. [See the official documentation](https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts).
+
+The **run condition** receives the same `zf` and `app`, alongside its own flat `event` shape
+(`event.property`, `event.oldValue`, `event.newValue`, `event.notePath`).
+
 ## Saving Updated Frontmatter
 
 To update frontmatter properties as a result of your hook, add them to the `event.response.frontmatter` object:

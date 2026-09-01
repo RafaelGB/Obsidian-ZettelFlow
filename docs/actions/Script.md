@@ -2,6 +2,26 @@
 Executes a JavaScript script when the workflow is run. Configure the script with the code editor displayed in the settings of the action. 
 
 ## Available variables
+
+A Script action receives exactly these six variables, in this order:
+
+| Variable | What it is |
+|---|---|
+| `element` | The action's own configuration. |
+| `content` | The note body and frontmatter under construction. |
+| `note` | The note's title and target folder. |
+| `context` | A scratch object shared between the steps of one run. |
+| `zf` | The [ZettelFlow script API](../api/ZettelFlowAPI.md). |
+| `app` | Obsidian's own API. |
+
+They come from a single binding contract (`SCRIPT_ACTION_BINDINGS`), which is also what the editor's
+*Available variables* list and the **Debug script** run read — so what you see while authoring is what
+you get at runtime.
+
+!!! tip "A failing script is never silent"
+    If your script throws, ZettelFlow shows a notice with the error and records it in the plugin log.
+    It used to fail quietly and let the note be created as if the step had worked.
+
 ### `note`
 Functionalities related with the file of the note.
 
@@ -42,6 +62,9 @@ Example:
 ```javascript
 context.myVariable = "Hello world!";
 ```
+
+### `element`
+The action's own configuration — for a Script action, `element.code` is the script you are reading.
 
 ### `app`
 Obsidian API functionalities. [See the official documentation](https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts).

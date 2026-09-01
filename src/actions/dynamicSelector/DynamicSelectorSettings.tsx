@@ -1,5 +1,14 @@
 import { t } from "architecture/lang";
-import { Action, ActionSetting, fnsManager, buildAsyncScriptFunction, errorMessage } from "architecture/api";
+import {
+  Action,
+  ActionSetting,
+  buildAsyncScriptFunction,
+  errorMessage,
+  sharedScriptValues,
+  DYNAMIC_SELECTOR_BINDINGS,
+  bindingNames,
+  bindingArgs,
+} from "architecture/api";
 import { ViewUpdate } from "@codemirror/view";
 import { dispatchEditor } from "architecture/components/core";
 import { Setting } from "obsidian";
@@ -87,12 +96,10 @@ export function dynamicSelectorDetails(
 
   // Create debug settings
   new Setting(debugContainer)
-    .setName("Debug script")
-    .setDesc(
-      "Run the script with a test input and verify if it works as expected."
-    )
+    .setName(t("script_debug_name"))
+    .setDesc(t("script_debug_description"))
     .addButton((button) => {
-      button.setDisabled(readonly).setButtonText("Run");
+      button.setDisabled(readonly).setButtonText(t("script_debug_run"));
       button.setCta(); // Set as the main call to action (optional)
       button.onClick(async () => {
         // Execute the script with the provided input
@@ -105,7 +112,7 @@ export function dynamicSelectorDetails(
     .addButton((button) => {
       button
         .setDisabled(readonly)
-        .setButtonText("Clear output")
+        .setButtonText(t("script_debug_clear"))
         .onClick(() => {
           clearScriptOutput(debugContainer);
         });
@@ -134,7 +141,6 @@ export function dynamicSelectorDetails(
    */
   const executeUserScript = async (userCode: string): Promise<ScriptResult> => {
     try {
-      const functions = await fnsManager.getFns();
       // Prepare the function body
       const fnBody = `
         return (async () => {
@@ -142,15 +148,18 @@ export function dynamicSelectorDetails(
         })();
       `;
 
-      // Instantiate and execute the user's code
-      const scriptFn = buildAsyncScriptFunction(["zf"], fnBody);
-      const output = await scriptFn(functions);
+      // Same binding contract as the real run, so a script that works here works there.
+      const scriptFn = buildAsyncScriptFunction(
+        bindingNames(DYNAMIC_SELECTOR_BINDINGS),
+        fnBody
+      );
+      const output = await scriptFn(
+        ...bindingArgs(DYNAMIC_SELECTOR_BINDINGS, await sharedScriptValues())
+      );
 
       // Validate the output format
       if (!isStringTupleArray(output)) {
-        throw new Error(
-          "The script must return an array of tuples. Example: [['key1', 'label1'], ['key2', 'label2']]"
-        );
+        throw new Error(t("dynamic_selector_invalid_result"));
       }
 
       return { output, error: null };
@@ -183,7 +192,7 @@ export function dynamicSelectorDetails(
     // Display the result or error
     if (result.error) {
       outputDiv.createDiv({
-        text: `Error: ${result.error}`,
+        text: t("script_debug_error", result.error),
         cls: c("error-output"),
       });
     } else {
@@ -194,7 +203,7 @@ export function dynamicSelectorDetails(
           : JSON.stringify(result.output, null, 2);
 
       outputDiv.createEl("pre", {
-        text: `Output:\n${formattedOutput}`,
+        text: t("script_debug_output", formattedOutput),
         cls: c("success-output"),
       });
     }

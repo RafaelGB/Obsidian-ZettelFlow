@@ -96,11 +96,36 @@ describe("the verdict path is the only door to the AI write (#337)", () => {
 });
 
 describe("the retired automations setting is gone everywhere (#337, T3)", () => {
-    it("leaves no reference in src/", () => {
+    /**
+     * One site is allowed and required: `loadSettings` deletes the key so it does not sit in a user's
+     * `data.json` forever, implying a switch that no longer exists (#320). Everywhere else, a mention
+     * would mean something still reads, writes or offers it.
+     */
+    const MIGRATION = join("src", "main.ts");
+
+    it("is referenced nowhere but the migration that deletes it", () => {
         const offenders: string[] = [];
         for (const file of actionFiles(join(ROOT, "src"))) {
+            if (file.endsWith(MIGRATION)) continue;
             if (/allowInAutomations|settings_ai_automations/.test(readFileSync(file, "utf8"))) offenders.push(file);
         }
         expect(offenders).toEqual([]);
+    });
+
+    it("only ever deletes it there — never reads or writes it", () => {
+        const main = readFileSync(join(ROOT, MIGRATION), "utf8");
+        const mentions = main
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.includes("allowInAutomations") && !line.startsWith("//"));
+
+        expect(mentions).toHaveLength(1);
+        expect(mentions[0].startsWith("delete ")).toBe(true);
+    });
+
+    it("keeps its locale keys retired", () => {
+        for (const file of actionFiles(join(ROOT, "src"))) {
+            expect(readFileSync(file, "utf8")).not.toContain("settings_ai_automations");
+        }
     });
 });

@@ -88,6 +88,12 @@ export default class ZettelFlow extends Plugin {
 
 		// Remove clipboard template. This is not a setting that should be saved.
 		delete this.settings.communitySettings?.clipboardTemplate;
+
+		// `ai.allowInAutomations` was retired in #337: §XII forbids writing a completion nobody ruled
+		// on, and an automation has nobody to ask — so the toggle could only authorise paying for a
+		// call that could never be written. Drop the dead key rather than let it sit in data.json
+		// forever, quietly implying a switch that no longer exists.
+		delete (this.settings.ai as Partial<Record<"allowInAutomations", unknown>>).allowInAutomations;
 		void this.saveSettings();
 		loadServicesThatRequireSettings(this.settings);
 	}

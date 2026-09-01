@@ -1,4 +1,4 @@
-import { Modal, Notice, Setting, requestUrl } from "obsidian";
+import { ButtonComponent, Modal, Notice, Setting, requestUrl } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
@@ -117,8 +117,24 @@ export class CommunitySystemModal extends Modal {
         });
       });
 
-    // --- Install button ---
+    // --- Acknowledgement, then the install button it unlocks ---
+    // Built in that order because a Setting appends to contentEl as it is constructed: creating the
+    // acknowledgement inside the button's callback put the toggle *below* the button it gates.
+    let installButton: ButtonComponent | null = null;
+
+    if (!this.codeAcknowledged) {
+      new Setting(this.contentEl)
+        .setName(t("community_system_code_ack"))
+        .addToggle((toggle) => {
+          toggle.setValue(false).onChange((value) => {
+            this.codeAcknowledged = value;
+            installButton?.setDisabled(!value);
+          });
+        });
+    }
+
     new Setting(this.contentEl).addButton((btn) => {
+      installButton = btn;
       btn
         .setButtonText(t("community_system_install_button"))
         .setCta()
@@ -126,18 +142,6 @@ export class CommunitySystemModal extends Modal {
         .onClick(() => {
           void this.installSystem();
         });
-
-      if (!this.codeAcknowledged) {
-        // The acknowledgement lives beside the button it unlocks, so the two read as one decision.
-        new Setting(this.contentEl)
-          .setName(t("community_system_code_ack"))
-          .addToggle((toggle) => {
-            toggle.setValue(false).onChange((value) => {
-              this.codeAcknowledged = value;
-              btn.setDisabled(!value);
-            });
-          });
-      }
     });
   }
 

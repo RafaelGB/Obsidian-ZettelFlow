@@ -60,5 +60,8 @@ export class DevelopmentJournal {
     public flush(): void {
         window.clearTimeout(this.saveTimer);
         void this.host?.saveSettings();
+        // Only ever called from `onunload`: drop the plugin reference so this static
+        // singleton does not outlive the plugin it was wired to across a disable/enable.
+        this.host = null;
     }
 }

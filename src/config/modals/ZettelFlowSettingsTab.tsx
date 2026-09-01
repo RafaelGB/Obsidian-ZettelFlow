@@ -1,5 +1,5 @@
 import ZettelFlow from "main";
-import { moment as obsidianMoment, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
@@ -8,7 +8,7 @@ import { FileSuggest, FolderSuggest } from "architecture/settings";
 import { FILE_EXTENSIONS, FileService, activateSurface } from "architecture/plugin";
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
-import { fnsManager } from "architecture/api";
+import { fnsManager, writeTypeDeclarations } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
 import { parseExcludedPathsInput, excludedPathsToText } from "architecture/knowledge/scope/knowledgeScope";
@@ -222,6 +222,24 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                         // Rebuild the `zf` script API so it reads from the new folder.
                                         fnsManager.invalidateCache();
                                     });
+                            });
+                        },
+                    },
+                    {
+                        name: t("generate_types_name"),
+                        desc: t("generate_types_description"),
+                        render: (setting) => {
+                            setting.addButton((button) => {
+                                button.setButtonText(t("generate_types_button")).onClick(async () => {
+                                    const result = await writeTypeDeclarations();
+                                    if (result.status === "written") {
+                                        new Notice(t("generate_types_written", result.path));
+                                    } else if (result.status === "no-folder") {
+                                        new Notice(t("generate_types_no_folder"));
+                                    } else {
+                                        new Notice(t("generate_types_failed", result.message));
+                                    }
+                                });
                             });
                         },
                     },

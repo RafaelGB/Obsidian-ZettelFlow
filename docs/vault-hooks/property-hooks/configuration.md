@@ -58,6 +58,7 @@ When writing your hook script, you have access to these variables:
     - `oldValue`: The previous value of the property
     - `newValue`: The new value of the property
     - `property`: The name of the property that changed
+    - `frontmatter`: The note's **full current frontmatter**, so a hook can read properties other than the one that changed
   - `file`: The TFile object representing the current file
   - `response`: Object where you can set new frontmatter values
     - `frontmatter`: Record of property/value pairs to update/add to the frontmatter

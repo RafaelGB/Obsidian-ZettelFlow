@@ -284,6 +284,9 @@ export default {
 
     // Community system modal (#214)
     community_system_preview: 'System preview',
+    community_system_code_heading: 'This system runs code',
+    community_system_code_desc: 'These steps carry JavaScript that ZettelFlow will run with access to your vault. Read it before installing, and only install systems you trust.',
+    community_system_code_ack: 'I understand this system runs code',
     community_system_contents: 'What gets installed',
     community_system_install_location: 'Install location',
     community_system_install_location_desc: 'Folder where the canvas and its step notes will be created.',

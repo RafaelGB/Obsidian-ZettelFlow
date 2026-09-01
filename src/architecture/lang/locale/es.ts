@@ -284,6 +284,9 @@ export default {
 
     // Community system modal (#214)
     community_system_preview: 'Vista previa del sistema',
+    community_system_code_heading: 'Este sistema ejecuta código',
+    community_system_code_desc: 'Estos pasos llevan JavaScript que ZettelFlow ejecutará con acceso a tu almacén. Léelo antes de instalar e instala solo sistemas en los que confíes.',
+    community_system_code_ack: 'Entiendo que este sistema ejecuta código',
     community_system_contents: 'Qué se instala',
     community_system_install_location: 'Ubicación de instalación',
     community_system_install_location_desc: 'Carpeta donde se crearán el canvas y las notas de sus pasos.',

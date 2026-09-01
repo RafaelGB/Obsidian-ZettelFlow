@@ -2,7 +2,11 @@ export { CustomZettelAction } from './CustomZettelAction';
 export * from './categories';
 export { actionsStore } from './store/ActionsStore';
 export { ExecuteInfo, Action, ActionSetting, ActionSettingReader } from './typing';
-export { fnsManager, buildAsyncScriptFunction, errorMessage, sharedScriptValues } from './lib/FnConstructor';
+export { fnsManager, buildAsyncScriptFunction, errorMessage, sharedScriptValues, describeApi } from './lib/FnConstructor';
+export type { ApiMemberDoc } from './lib/LibModule';
+export { ZfKnowledge, INDEX_NOT_READY } from './lib/knowledge/service/ZfKnowledge';
+export { knowledgeApi, NOT_EXPOSED } from './lib/knowledge/knowledgeApi';
+export type { KnowledgeApiDeps, KnowledgeMember } from './lib/knowledge/knowledgeApi';
 export type { AsyncScriptFunction } from './lib/FnConstructor';
 
 export {

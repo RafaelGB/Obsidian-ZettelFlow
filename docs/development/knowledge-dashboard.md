@@ -45,9 +45,10 @@ morning discoveries, or slip-box health.
 
 ## DataviewJS interop
 
-This ships as a native sidebar view; the existing DataviewJS (`dv`) interop is untouched. Exposing a
-read-only `zf.dashboard()` to DataviewJS (so you can embed these metrics in a note) is a planned
-follow-up — the pure aggregate is already the single source.
+This ships as a native sidebar view; the existing DataviewJS (`dv`) interop is untouched. The read-only
+accessor this page used to list as a planned follow-up now exists as
+**[`zf.knowledge.dashboard()`](../api/ZettelFlowAPI.md)** (#350) — the same pure aggregate, callable
+from any Script action, hook or dynamic selector, so you can embed these metrics in a note yourself.
 
 ## Architecture
 

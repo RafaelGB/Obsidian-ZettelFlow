@@ -55,6 +55,58 @@ You don't always need a script — ZettelFlow surfaces the graph directly:
   `question::`; the **Evidence map** synthesizes a note from its own graph — all read-only, offline,
   reachable from the *Open ZettelFlow* ribbon menu.
 
+## Ask ZettelFlow's own analyses
+
+`zf.knowledge` gives your script the projections the plugin runs on itself — the model is already
+bound, so there is nothing to pass.
+
+**Stamp a new note with what the vault currently needs.** Script action:
+
+```javascript
+if (!zf.knowledge.ready()) return;              // the index rebuilds on load
+
+const debt = zf.knowledge.debt();
+const neglected = zf.knowledge.unexamined({ limit: 3 });
+
+content.addFrontMatter({
+  vault_debt: debt.score,                              // 0–100; 0 is clean
+  needs_my_judgement: neglected.map(idea => idea.path),
+});
+```
+
+**Offer only the notes that contradict this one.** Dynamic selector:
+
+```javascript
+const evidence = zf.knowledge.evidence("ideas/atomicity.md");
+return evidence.contradicts.map(path => [path, path]);
+```
+
+**Route a note by how connected it already is.** Property hook:
+
+```javascript
+const { groups } = zf.knowledge.neighbors(event.file.path);
+const degree = groups.reduce((sum, group) => sum + group.targets.length, 0);
+
+event.response.frontmatter.hub = degree >= 5;
+return event;
+```
+
+## Ask a model, and keep the last word
+
+`zf.ai.propose` uses the provider you configured and shows you the answer before it goes anywhere.
+It returns your text, or `null` if you rejected or dismissed it.
+
+```javascript
+if (!zf.ai.available()) return;
+
+const summary = await zf.ai.propose(
+  "Summarise this note in one sentence:\n" + content.get(),
+  { path: note.getFinalPath(), subject: "one-line-summary" }
+);
+
+if (summary) content.addFrontMatter({ summary });   // only what you accepted
+```
+
 ## Integrate Templater / Dataview
 
 ```javascript
@@ -62,5 +114,5 @@ const tp = zf.external.tp;      // Templater (if installed)
 const dv = zf.external.dv;      // Dataview (if installed)
 ```
 
-See the [API reference](ZettelFlowAPI.md) for the full `zf.internal` / `zf.external` surface and the
-`.js` editor's `zf.` / `app.` autocomplete.
+See the [API reference](ZettelFlowAPI.md) for the full surface and the `.js` editor's `zf.` / `app.`
+autocomplete.

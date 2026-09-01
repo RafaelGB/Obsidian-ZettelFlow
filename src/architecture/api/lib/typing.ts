@@ -61,11 +61,19 @@ export type ZfInternalTools = {
 }
 
 /**
- * The complete ZettelFlow API
+ * The complete ZettelFlow API.
+ *
+ * `internal` / `external` are the original split and stay exactly as they were — every existing script
+ * keeps working. The capabilities added in #350 take top-level namespaces instead, because that split
+ * describes ZettelFlow's own layering rather than anything a script author cares about.
  */
 export type ZettelFlowApp = {
     /** External plugin integrations */
     external: ZfExternalTools;
     /** Internal ZettelFlow functionality */
     internal: ZfInternalTools;
+    /** The Knowledge State projections, with the live model already bound (#350). */
+    knowledge: Record<string, unknown>;
+    /** The §XII-safe path to the configured AI provider (#350). */
+    ai: Record<string, unknown>;
 }

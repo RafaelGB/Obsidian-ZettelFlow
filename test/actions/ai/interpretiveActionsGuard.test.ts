@@ -60,10 +60,33 @@ describe("every interpretive action goes through a verdict (#337, §XII)", () =>
 describe("the verdict path is the only door to the AI write (#337)", () => {
     const core = readFileSync(join(ROOT, "src", "actions", "ai", "aiActionCore.ts"), "utf8");
 
+    /**
+     * `proposeCompletion` was factored out in #350 so `zf.ai.propose` shares this exact path rather than
+     * getting a second, quieter one. The invariant is unchanged and now spans two functions: the
+     * proposal step returns `null` unless a verdict was given, and the write step refuses both that
+     * `null` and a rejection before it reaches the writer.
+     */
+    const proposalStart = core.indexOf("export async function proposeCompletion");
+    /** The function that writes, isolated from the one that proposes. */
+    const writePath = core.slice(core.indexOf("export async function runAiActionFromPrompt"), proposalStart);
+    /** The shared proposal path. */
+    const proposalPath = core.slice(proposalStart);
+
     it("writes only after a verdict, and never on a rejection", () => {
-        expect(core).toMatch(/if \(!outcome\) return;/);
-        expect(core).toMatch(/if \(outcome\.verdict === "rejected"\) return;/);
-        expect(core.indexOf("deps.review(")).toBeLessThan(core.indexOf("writeKnowledgeResult("));
+        expect(writePath).toMatch(/if \(!outcome \|\| outcome\.verdict === "rejected"\) return;/);
+        expect(writePath.indexOf("proposeCompletion(")).toBeLessThan(writePath.indexOf("writeKnowledgeResult("));
+    });
+
+    it("puts every completion to the user before it becomes an outcome", () => {
+        // A dismissal is not a verdict, so it yields nothing to write and records nothing.
+        expect(proposalPath).toMatch(/if \(!outcome\) return null;/);
+        expect(proposalPath.indexOf("getProvider().complete(")).toBeLessThan(proposalPath.indexOf("deps.review("));
+        expect(proposalPath.indexOf("deps.review(")).toBeLessThan(proposalPath.indexOf("deps.record("));
+    });
+
+    it("keeps one shared proposal path, so zf.ai.propose cannot get a quieter one (#350)", () => {
+        expect(core).toMatch(/export async function proposeCompletion\(/);
+        expect(writePath).not.toMatch(/getProvider\(\)\.complete\(/);
     });
 
     it("never runs during an automation, with no setting able to re-enable it", () => {

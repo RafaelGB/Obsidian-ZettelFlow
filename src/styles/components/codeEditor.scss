@@ -17,25 +17,49 @@
     color: var(--text-normal);
 }
 
-.zettelkasten-flow__cm-completion-container {
+.zettelkasten-flow__cm-hover {
+    max-width: 420px;
+    padding: 6px 8px;
     display: flex;
-    align-items: center;
-    width: 100%;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.zettelkasten-flow__cm-completion-badge {
-    margin-right: 6px;
-    font-size: 1.1em;
-    color: var(--text-accent, var(--text-muted));
+.zettelkasten-flow__cm-hover-signature {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-accent, var(--text-normal));
+    white-space: pre-wrap;
 }
 
-.zettelkasten-flow__cm-cm-completion-label {
-    flex-grow: 1;
-    font-weight: bold;
-}
-
-.zettelkasten-flow__cm-completion-type {
-    margin-left: 6px;
+.zettelkasten-flow__cm-hover-summary {
     font-size: 0.9em;
     color: var(--text-muted);
+}
+
+.zettelkasten-flow__script-examples {
+    font-size: 0.9em;
+
+    summary {
+        cursor: pointer;
+        color: var(--text-muted);
+    }
+}
+
+.zettelkasten-flow__script-examples-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 4px 0 0;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 2px 0;
+    }
+}
+
+.zettelkasten-flow__script-example-label {
+    flex-grow: 1;
+    color: var(--text-normal);
 }

@@ -22,6 +22,18 @@ you get at runtime.
     If your script throws, ZettelFlow shows a notice with the error and records it in the plugin log.
     It used to fail quietly and let the note be created as if the step had worked.
 
+## Help while you write
+
+The editor is aware of this exact surface:
+
+- **Completions** come from the live objects above, so `zf.knowledge.`, `content.` and your own
+  `zf.internal.user.` scripts all list what is really there.
+- **Hover** a member for its signature, and for the documented `zf` surface, what it answers.
+- **Syntax errors** appear in the gutter as you type, rather than as a notice halfway through a run.
+- **Examples** under the editor insert a working starting point — including one that reads the
+  [knowledge model](../api/ZettelFlowAPI.md) and one that asks a model for a proposal you rule on.
+- **Debug script** runs your code with mock data and the *same* bindings the real run uses.
+
 ### `note`
 Functionalities related with the file of the note.
 

@@ -63,6 +63,13 @@ export const CONDITION_BINDINGS: readonly ScriptBinding[] = [
     APP,
 ];
 
+/**
+ * A `.js` file in the library folder is a CommonJS module, so nothing is *injected* into it — it
+ * receives whatever its caller passes. `zf` and `app` are what every caller has, so they are what its
+ * editor offers.
+ */
+export const LIBRARY_SCRIPT_BINDINGS: readonly ScriptBinding[] = [ZF, APP];
+
 /** The formal parameter names, in order, for {@link buildAsyncScriptFunction}. */
 export function bindingNames(bindings: readonly ScriptBinding[]): string[] {
     return bindings.map((binding) => binding.name);

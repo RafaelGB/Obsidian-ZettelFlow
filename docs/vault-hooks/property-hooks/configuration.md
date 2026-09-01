@@ -71,6 +71,9 @@ When writing your hook script, you have access to these variables:
 The **run condition** receives the same `zf` and `app`, alongside its own flat `event` shape
 (`event.property`, `event.oldValue`, `event.newValue`, `event.notePath`).
 
+The script editor completes `event.`, `zf.` and `app.` from the live objects, shows a member's
+signature on hover, and flags syntax errors in the gutter as you type.
+
 ## Saving Updated Frontmatter
 
 To update frontmatter properties as a result of your hook, add them to the `event.response.frontmatter` object:

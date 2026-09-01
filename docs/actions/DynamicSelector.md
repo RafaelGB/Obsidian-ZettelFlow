@@ -29,6 +29,9 @@ you pick anything, so there is nothing to write to yet. Both selector modes — 
 share this contract, so a script written for one runs unchanged in the other, and the **Run** button in
 settings executes it with exactly the same bindings as the real run.
 
+The editor completes `zf.` and `app.` from the live objects, hovers show signatures, syntax errors are
+flagged in the gutter, and the **Examples** list under the editor inserts a working starting point.
+
 ### Script Example:
 ```javascript
 const testFolders = app.vault.getAllFolders();

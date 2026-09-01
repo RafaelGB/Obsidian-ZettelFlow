@@ -9,6 +9,7 @@ import {
   planSystemInstall,
   validateSystemTemplate,
   sanitizeFolderSegment,
+  executableCodeSites,
   REGISTERED_ACTION_IDS,
 } from "./systemInstall";
 import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
@@ -27,6 +28,11 @@ export class CommunitySystemModal extends Modal {
   private objectUrl: string | null = null;
   /** Set in `onClose`; guards the async image load against a close-before-fetch race. */
   private disposed = false;
+  /**
+   * Whether the user has acknowledged that this system ships runnable code. Starts `true` for the
+   * systems that carry none, so nothing gains friction where there is nothing to disclose (#353).
+   */
+  private codeAcknowledged = true;
 
   constructor(
     private plugin: ZettelFlow,
@@ -81,6 +87,25 @@ export class CommunitySystemModal extends Modal {
       list.createEl("li", { text: step.filename });
     }
 
+    // --- Executable code disclosure (#353) ---
+    // Systems are remote content installed in one click, and `script` is a legitimate action — so the
+    // install must say that code comes with it, not refuse it.
+    const codeSites = executableCodeSites(this.template);
+    if (codeSites.length > 0) {
+      this.codeAcknowledged = false;
+      const codeSection = this.contentEl.createDiv({
+        cls: c("system-code-disclosure"),
+      });
+      codeSection.createEl("h3", { text: t("community_system_code_heading") });
+      codeSection.createEl("p", { text: t("community_system_code_desc") });
+      const codeList = codeSection.createEl("ul", { cls: c("flow-nodes-list") });
+      for (const site of codeSites) {
+        codeList.createEl("li", {
+          text: `${site.filename} — ${site.actionType}`,
+        });
+      }
+    }
+
     // --- Install location ---
     new Setting(this.contentEl)
       .setName(t("community_system_install_location"))
@@ -97,9 +122,22 @@ export class CommunitySystemModal extends Modal {
       btn
         .setButtonText(t("community_system_install_button"))
         .setCta()
+        .setDisabled(!this.codeAcknowledged)
         .onClick(() => {
           void this.installSystem();
         });
+
+      if (!this.codeAcknowledged) {
+        // The acknowledgement lives beside the button it unlocks, so the two read as one decision.
+        new Setting(this.contentEl)
+          .setName(t("community_system_code_ack"))
+          .addToggle((toggle) => {
+            toggle.setValue(false).onChange((value) => {
+              this.codeAcknowledged = value;
+              btn.setDisabled(!value);
+            });
+          });
+      }
     });
   }
 

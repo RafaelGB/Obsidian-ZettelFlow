@@ -134,5 +134,13 @@
     "title": "Inquiry",
     "description": "Start from a question, not an answer: on creation ZettelFlow surfaces your other open questions, related notes and the claims you're implicitly making. Offline, no AI.",
     "author": "ZettelFlow"
+  },
+  {
+    "id": "f9a1b2c3-5555-4a2b-8c3d-101112131406",
+    "template_type": "system",
+    "ref": "/docs/systems/weekly-focus.zftemplate",
+    "title": "Weekly focus",
+    "description": "Choose one idea to actually think about this week, picked from the ones that grew without your judgement, and stamp the state of your vault so next week has something to compare against. Uses the scripting API; offline, no AI.",
+    "author": "ZettelFlow"
   }
 ]

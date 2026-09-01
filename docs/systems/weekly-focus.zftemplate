@@ -1,0 +1,17 @@
+{
+  "zfVersion": "3.1.0",
+  "name": "Weekly focus",
+  "description": "Choose one idea to actually think about this week, picked from the ones that grew without your judgement, and stamp the state of your vault so next week has something to compare against. Uses the scripting API; offline, no AI.",
+  "author": "ZettelFlow",
+  "difficulty": "hard",
+  "canvas": {
+    "filename": "Weekly focus.canvas",
+    "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Weekly focus.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":260}],\"edges\":[]}"
+  },
+  "steps": [
+    {
+      "filename": "Weekly focus.md",
+      "content": "---\nzettelFlowSettings:\n  root: true\n  label: Weekly focus\n  phase: DEVELOP\n  actions:\n  - type: prompt\n    id: wf-title\n    description: Week\n    hasUI: true\n    key: title\n    zone: context\n    label: Week\n    placeholder: \"e.g. 2026-W36\"\n    staticBehaviour: false\n  - type: dynamic-selector\n    id: wf-focus\n    description: Idea to focus on\n    hasUI: true\n    key: focus\n    zone: frontmatter\n    multiple: false\n    code: |\n      // Offer the ideas that grew structurally but carry no judgement of yours.\n      // No built-in action can do this: it joins the graph with the judgement record.\n      if (!zf.knowledge.ready()) return [];\n\n      const neglected = zf.knowledge.unexamined({ limit: 10 });\n      if (neglected.length === 0) {\n        return [[\"none\", \"Nothing is waiting — pick your own\"]];\n      }\n\n      return neglected.map((idea) => {\n        const name = idea.path.split(\"/\").pop().replace(/\\.md$/, \"\");\n        return [idea.path, name + \"  (\" + idea.degree + \" links)\"];\n      });\n  - type: script\n    id: wf-stamp\n    description: Stamp this week's state of the vault\n    hasUI: false\n    code: |\n      // Record what the vault looked like when you set this focus, so next week's note has\n      // something to compare against rather than a vague memory.\n      if (!zf.knowledge.ready()) return;\n\n      const debt = zf.knowledge.debt();\n      const waiting = zf.knowledge.unexamined({ limit: 5 });\n\n      content.addFrontMatter({\n        type: \"weekly-focus\",\n        vault_debt: debt.score,\n        vault_notes: debt.total,\n        ready_to_cultivate: zf.knowledge.readyToCultivate(),\n      });\n\n      if (waiting.length > 0) {\n        const lines = [\"\", \"## Grew without your judgement\", \"\"];\n        for (const idea of waiting) {\n          lines.push(\"- [[\" + idea.path + \"]]\");\n        }\n        content.add(lines.join(\"\\n\") + \"\\n\");\n      }\n  onCreation:\n  - type: find-related\n    id: wf-related\n    hasUI: false\n    key: related\n    zone: frontmatter\n    limit: 5\n  targetFolder: Reviews\n  childrenHeader: ''\n  optional: false\n---\n\n# {{title}}\n\n## The idea I am giving attention to\n\n[[{{focus}}]]\n\nWhy this one, and what I expect to change about it:\n\n## What I actually concluded\n\n## Related\n\n{{related}}\n"
+    }
+  ]
+}

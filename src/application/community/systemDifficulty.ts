@@ -19,6 +19,7 @@ export const SYSTEM_DIFFICULTY: Record<string, SystemDifficulty> = {
     "academic research": "hard",
     "para v2": "hard",
     "software architecture kb": "hard",
+    "weekly focus": "hard",
 };
 
 /** The difficulty to show for a system: its own field, else the built-in fallback, else none. Pure. */

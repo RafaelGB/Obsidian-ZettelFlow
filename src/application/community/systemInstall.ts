@@ -109,12 +109,88 @@ function frontmatterBlock(content: string): string | null {
     return match ? match[1] : null;
 }
 
+/**
+ * The action types whose configuration carries **JavaScript ZettelFlow will run** (#353).
+ *
+ * Deliberately just these two. A conditional canvas edge (`if: …`) looks like code but is read by a
+ * pure parser with no `eval` or `Function` (`application/notes/conditionEvaluator`), so listing it here
+ * would be alarmist — and a disclosure nobody can trust is worse than none.
+ */
+export const CODE_CARRYING_ACTION_IDS: ReadonlySet<string> = new Set(["script", "dynamic-selector"]);
+
+/** One place in a system where installing it would put runnable code in the vault. */
+export interface ExecutableCodeSite {
+    /** The step that carries it. */
+    filename: string;
+    /** The action type carrying the code. */
+    actionType: string;
+}
+
+/**
+ * The executable-code surfaces of a system (#353). Systems are **remote, one-click-installed** content:
+ * `"script"` is a registered action id, so a `.zftemplate` may legitimately ship JavaScript — but until
+ * now the install told you what a system *did* and never that it *ran code*.
+ *
+ * A script is legitimate; an **undisclosed** script is not. So this reports rather than rejects, and
+ * {@link validateSystemTemplate} still accepts a scripted system as valid.
+ *
+ * Pure & Obsidian-free, and deterministic in step order.
+ */
+export function executableCodeSites(template: ZfTemplate): ExecutableCodeSite[] {
+    const sites: ExecutableCodeSite[] = [];
+    if (!isValidTemplate(template)) return sites;
+
+    for (const step of template.steps) {
+        const frontmatter = frontmatterBlock(step.content);
+        if (!frontmatter) continue;
+        const seen = new Set<string>();
+        for (const type of extractActionTypes(frontmatter)) {
+            if (!CODE_CARRYING_ACTION_IDS.has(type) || seen.has(type)) continue;
+            seen.add(type);
+            sites.push({ filename: step.filename, actionType: type });
+        }
+    }
+    return sites;
+}
+
+/**
+ * Drop the *contents* of every YAML block scalar, keeping the lines themselves out of the structural
+ * checks below (#353).
+ *
+ * Those checks are line regexes, and a `script` action's `code:` block is arbitrary JavaScript — a line
+ * like `type: "weekly-focus",` inside it would otherwise be read as an action declaration, and a line
+ * containing `: ` as a YAML hazard. Both are false, and both would reject a perfectly valid system.
+ * A real YAML parse is not available here (§XI: this module stays dependency-free), so the block bodies
+ * are skipped by indentation, which is exactly how YAML delimits them.
+ */
+function stripBlockScalars(frontmatter: string): string {
+    const kept: string[] = [];
+    let blockIndent: number | null = null;
+
+    for (const line of frontmatter.split("\n")) {
+        const indent = line.length - line.trimStart().length;
+        if (blockIndent !== null) {
+            // Blank lines and anything indented past the key belong to the block.
+            if (line.trim() === "" || indent > blockIndent) continue;
+            blockIndent = null;
+        }
+        const opener = line.match(/^(\s*)(?:-\s+)?[\w-]+:\s+[|>][+-]?\d*\s*$/);
+        if (opener) {
+            blockIndent = opener[1].length;
+            kept.push(line);
+            continue;
+        }
+        kept.push(line);
+    }
+    return kept.join("\n");
+}
+
 /** Every action `type` declared in a frontmatter block (structural, no YAML dependency). */
 function extractActionTypes(frontmatter: string): string[] {
     const types: string[] = [];
     const pattern = /^\s*-?\s*type:\s*["']?([\w-]+)/gm;
     let match: RegExpExecArray | null;
-    while ((match = pattern.exec(frontmatter)) !== null) types.push(match[1]);
+    while ((match = pattern.exec(stripBlockScalars(frontmatter))) !== null) types.push(match[1]);
     return types;
 }
 
@@ -130,13 +206,23 @@ const YAML_UNSAFE_LEAD: ReadonlySet<string> = new Set([
  * (#217 review). Returns the offending `key`s; authors must single-quote such values. Obsidian-free —
  * a targeted lint of the realistic authoring hazard, not a full YAML parse.
  */
+/**
+ * A YAML **block scalar** indicator (`|`, `>`, optionally with a chomping and/or indentation
+ * indicator: `|-`, `>+`, `|2`). Valid YAML, and the only sane way to write multi-line JavaScript in a
+ * step — so the hazard check must not mistake it for an unquoted plain scalar (#353). Before this,
+ * shipping a community system containing a `script` action was impossible: authoring one required a
+ * block scalar, and the harness rejected every block scalar as malformed.
+ */
+const YAML_BLOCK_SCALAR = /^[|>][+-]?\d*$|^[|>]\d*[+-]?$/;
+
 function unsafeYamlValueKeys(frontmatter: string): string[] {
     const keys: string[] = [];
-    for (const line of frontmatter.split("\n")) {
+    for (const line of stripBlockScalars(frontmatter).split("\n")) {
         const match = line.match(/^\s*(?:-\s+)?([\w-]+):\s+(\S.*?)\s*$/);
         if (!match) continue;
         const [, key, value] = match;
         if (value.startsWith("'") || value.startsWith('"')) continue; // already quoted → safe
+        if (YAML_BLOCK_SCALAR.test(value)) continue; // a literal/folded block, not a plain scalar
         const needsQuote =
             YAML_UNSAFE_LEAD.has(value[0]) ||
             value.startsWith("- ") ||

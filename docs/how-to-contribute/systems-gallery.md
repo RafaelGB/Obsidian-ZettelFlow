@@ -38,10 +38,35 @@ systems; the on-creation cognitive work scales with the difficulty.
 | **Decision journal** | medium | Decision record | options · rationale · review date, Zettel ID, checked against earlier decisions for contradictions |
 | **Academic research** | hard | Literature note · Permanent note | claims extracted · candidate sources · contradictions flagged · maturity scored → connected permanent notes |
 | **PARA v2** | hard | Project · Area · Resource · Archive | each note lands in its PARA folder, tagged by category and connected with *find related* |
+| **Weekly focus** | hard | Weekly focus | **the scripting showcase** — picks this week's idea from the ones that grew without your judgement and stamps the vault's state so next week has something to compare against; uses [`zf.knowledge`](../api/ZettelFlowAPI.md) |
 | **Software architecture KB** | hard | Decision record (ADR) · Component | new decisions are checked against existing ones for contradictions and linked to related decisions |
 
 > Previews: each system shows a preview image in the browser. Previews currently ship as placeholders
 > pending final artwork (tracked in issue #223) — the system itself is fully functional regardless.
+
+## Systems that run code
+
+A system may ship a **Script** or **Dynamic selector** action, and those carry JavaScript that
+ZettelFlow runs with access to your vault. Because systems install in one click from a remote catalog,
+the install modal **says so before writing anything**: it names the steps that carry code and asks you
+to acknowledge it. A system built from stock actions gains no extra step — there is nothing to disclose.
+
+Conditional canvas edges (`if: …`) are *not* in that category: they are read by a pure parser with no
+`eval`, so they are never reported as executable code.
+
+If you author one, write the code as a YAML block scalar:
+
+```yaml
+  - type: script
+    id: my-stamp
+    hasUI: false
+    code: |
+      if (!zf.knowledge.ready()) return;
+      content.addFrontMatter({ vault_debt: zf.knowledge.debt().score });
+```
+
+**Weekly focus** is the shipped example: it picks this week's idea from the ones that grew without your
+judgement, using [`zf.knowledge`](../api/ZettelFlowAPI.md) — something no stock action can do.
 
 ## Author your own system
 

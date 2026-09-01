@@ -185,3 +185,30 @@ describe("the shipped gallery discloses what it ships (#353, AC-4)", () => {
         expect(["easy", "medium", "hard"]).toContain(load(name).difficulty);
     });
 });
+
+describe("the acknowledgement is placed where it reads as one decision (#320)", () => {
+    /**
+     * An Obsidian `Setting` appends to its container as it is constructed, so building the
+     * acknowledgement inside the install button's callback put the toggle *below* the button it gates
+     * — while the comment claimed it sat beside it.
+     */
+    it("builds the acknowledgement before the install button", () => {
+        const modal = readFileSync(
+            join(ROOT, "src", "application", "community", "CommunitySystemModal.tsx"),
+            "utf8"
+        );
+
+        expect(modal.indexOf("community_system_code_ack")).toBeLessThan(
+            modal.indexOf("community_system_install_button")
+        );
+    });
+
+    it("keeps a reference to the button rather than nesting the toggle inside it", () => {
+        const modal = readFileSync(
+            join(ROOT, "src", "application", "community", "CommunitySystemModal.tsx"),
+            "utf8"
+        );
+
+        expect(modal).toContain("installButton?.setDisabled(");
+    });
+});

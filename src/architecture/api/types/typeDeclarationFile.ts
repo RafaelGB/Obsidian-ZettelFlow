@@ -17,11 +17,19 @@ export const TYPES_FILENAME = "zettelflow.d.ts";
  * in *this* vault: the functions the user wrote, and whichever integrations they installed.
  */
 
-/** Where the declarations belong, or `null` when no library folder is configured. */
+/**
+ * Where the declarations belong, or `null` when no library folder is configured — or when the
+ * configured folder contains a traversal segment.
+ *
+ * `normalizePath` collapses separators; it does **not** resolve or reject `..`, so a folder of
+ * `../foo` would have written outside the vault-relative location the user configured. This is the
+ * user's own setting rather than remote content, so it is not the `systemInstall` threat model — but
+ * that module sets the bar for this codebase and there is no reason to sit below it.
+ */
 export function typeDeclarationPath(jsLibraryFolderPath: string): string | null {
     const folder = (jsLibraryFolderPath ?? "").trim().replace(/^\/+|\/+$/g, "");
     if (folder === "") return null;
-    // The folder is the user's own setting; normalising keeps the write inside it regardless.
+    if (folder.split(/[/\\]/).some((segment) => segment === "." || segment === "..")) return null;
     return normalizePath(`${folder}/${TYPES_FILENAME}`);
 }
 

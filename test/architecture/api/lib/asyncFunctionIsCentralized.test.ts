@@ -10,8 +10,14 @@ const FN_CONSTRUCTOR = join("architecture", "api", "lib", "FnConstructor.ts");
  * The Obsidian Community-hub scan flags **dynamic code execution** (#340). It is a real, headline
  * capability here — the Script action, dynamic selectors, vault hooks and workflow-event conditions
  * all run user JS — so it cannot be removed. What it *can* be is **stated precisely**: exactly one
- * module reaches the hidden `AsyncFunction` constructor, so the disclosure names one place and a
- * reviewer has one place to audit (constitution §VII, and §XI: one home per job).
+ * module reaches a function constructor, so the disclosure names one place and a reviewer has one
+ * place to audit (constitution §VII, and §XI: one home per job).
+ *
+ * This guardrail used to match `async function` only, while `ZfScripts` built a **synchronous**
+ * `Function` to wrap library modules — so it passed while the claim in the user-facing capability
+ * disclosure was false, and one grep for `Object.getPrototypeOf(function` disproved it (#320). It now
+ * matches either form: a guardrail that only checks the half you remembered is worse than none,
+ * because it converts an unchecked claim into a checked-looking one.
  */
 function sourceFiles(dir: string): string[] {
     const out: string[] = [];
@@ -30,18 +36,18 @@ describe("AsyncFunction construction is centralized (#340)", () => {
         expect(files.length).toBeGreaterThan(100);
     });
 
-    it("reaches the AsyncFunction constructor in FnConstructor only", () => {
+    it("reaches a function constructor in FnConstructor only, sync or async", () => {
         const offenders = files
-            .filter((file) => /Object\.getPrototypeOf\(\s*async function/.test(readFileSync(file, "utf8")))
+            .filter((file) => /Object\.getPrototypeOf\(\s*(async\s+)?function/.test(readFileSync(file, "utf8")))
             .map((file) => relative(SRC, file).split(sep).join("/"));
 
         expect(offenders).toEqual([FN_CONSTRUCTOR.split(sep).join("/")]);
     });
 
-    it("builds runtime scripts through buildAsyncScriptFunction only", () => {
+    it("builds runtime scripts through the two exported builders only", () => {
         const offenders = files
             .filter((file) => !file.endsWith(FN_CONSTRUCTOR))
-            .filter((file) => /new AsyncFunction\(/.test(readFileSync(file, "utf8")))
+            .filter((file) => /new (Async)?Function\(/.test(readFileSync(file, "utf8")))
             .map((file) => relative(SRC, file).split(sep).join("/"));
 
         expect(offenders).toEqual([]);

@@ -7,7 +7,8 @@ export type { ApiMemberDoc } from './lib/LibModule';
 export { ZfKnowledge, INDEX_NOT_READY } from './lib/knowledge/service/ZfKnowledge';
 export { knowledgeApi, NOT_EXPOSED } from './lib/knowledge/knowledgeApi';
 export type { KnowledgeApiDeps, KnowledgeMember } from './lib/knowledge/knowledgeApi';
-export type { AsyncScriptFunction } from './lib/FnConstructor';
+export { buildSyncScriptFunction } from './lib/FnConstructor';
+export type { AsyncScriptFunction, SyncScriptFunction } from './lib/FnConstructor';
 
 export {
     SCRIPT_ACTION_BINDINGS,

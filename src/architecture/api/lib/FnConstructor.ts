@@ -1,3 +1,16 @@
+/**
+ * This module is the **only** place in ZettelFlow that reaches a function constructor (#340, #320).
+ *
+ * Neither `Function` nor `AsyncFunction` is exposed globally, so both are reached through the prototype
+ * of a literal function. Keeping that in one module gives the dynamic-execution capability the Obsidian
+ * scan reports exactly one home to disclose and one place to audit, and keeps every call site free of
+ * unsafe `any`. A guardrail test fails the build if a second site starts building functions on its own.
+ *
+ * That was previously true of *async* functions only, while `ZfScripts` quietly built a synchronous one
+ * to wrap library modules — so the "exactly one module" claim the capability disclosure makes to users
+ * could be disproved with a single grep. Both go through here now.
+ */
+
 import { log } from "architecture";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { ZfScripts, ZfVault } from "architecture/api";
@@ -14,22 +27,39 @@ export function errorMessage(error: unknown): string {
 /** An async function built at runtime from a user-provided script body. */
 export type AsyncScriptFunction = (...args: unknown[]) => Promise<unknown>;
 
+/** A synchronous function built at runtime — the CommonJS wrapper around a library script. */
+export type SyncScriptFunction = (...args: unknown[]) => unknown;
+
 /**
- * Build an async function from a user-provided script body — the **single** place ZettelFlow
- * constructs runtime code (#340). The Script action, dynamic selectors, vault hooks and
- * workflow-event conditions all route through here, so the dynamic-execution capability the
- * Obsidian scan reports has exactly one home to disclose and one place to audit.
- *
- * The AsyncFunction constructor is not exposed globally, so it is reached through the prototype
- * of an async function. Typing it here keeps every call site free of unsafe `any`.
- * A guardrail test fails the build if a second site starts building functions on its own.
+ * Build an async function from a user-provided script body. The Script action, dynamic selectors,
+ * vault hooks and workflow-event conditions all route through here.
  */
 export function buildAsyncScriptFunction(argNames: string[], body: string): AsyncScriptFunction {
-    const asyncProto = Object.getPrototypeOf(async function () { }) as {
+    const asyncProto = Object.getPrototypeOf(async function () { /* probe */ }) as {
         constructor: new (...args: string[]) => AsyncScriptFunction;
     };
     const AsyncFunction = asyncProto.constructor;
     return new AsyncFunction(...argNames, body);
+}
+
+/**
+ * Build a synchronous function from a user-provided body — the CommonJS wrapper
+ * (`require`, `module`, `exports`) that loads a `.js` file from the user's library folder.
+ *
+ * A separate entry point from {@link buildAsyncScriptFunction} because a module body is executed for
+ * its exports rather than awaited for a result; the same home, because it is the same capability.
+ *
+ * The two probes are written out rather than shared through a helper on purpose: the guardrail below
+ * recognises a construction site by the `Object.getPrototypeOf(function` literal, and hiding that
+ * behind a helper cost it the ability to see *any* site. Three lines of duplication are worth less
+ * than a check that works.
+ */
+export function buildSyncScriptFunction(argNames: string[], body: string): SyncScriptFunction {
+    const syncProto = Object.getPrototypeOf(function () { /* probe */ }) as {
+        constructor: new (...args: string[]) => SyncScriptFunction;
+    };
+    const SyncFunction = syncProto.constructor;
+    return new SyncFunction(...argNames, body);
 }
 
 /**

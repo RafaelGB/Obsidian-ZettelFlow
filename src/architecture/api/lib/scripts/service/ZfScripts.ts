@@ -3,6 +3,7 @@ import { LibModule } from "../../LibModule";
 import { App, Notice, TFile } from "obsidian";
 import { ZfVault } from "../../vault/service/ZfVault";
 import { log } from "architecture";
+import { buildSyncScriptFunction } from "../../FnConstructor";
 
 export class ZfScripts extends LibModule {
     name = "user";
@@ -44,13 +45,10 @@ export class ZfScripts extends LibModule {
             exports: exp
         };
 
-        // Wrap the user script as a CommonJS module. We build it with the Function
-        // constructor (reached through a function's prototype) rather than eval: it runs in
-        // the global scope with no access to this closure — both safer and lint-clean.
-        const fnProto = Object.getPrototypeOf(function () { /* probe */ }) as {
-            constructor: new (...args: string[]) => (require: unknown, module: unknown, exports: unknown) => void;
-        };
-        const wrapping_fn = new fnProto.constructor("require", "module", "exports", file_content);
+        // Wrap the user script as a CommonJS module, through the one module that builds runtime code
+        // (#320). It runs in the global scope with no access to this closure — safer than `eval`, and
+        // it keeps the "exactly one home" the capability disclosure promises actually true.
+        const wrapping_fn = buildSyncScriptFunction(["require", "module", "exports"], file_content);
         wrapping_fn(req, mod, exp);
         const formula_function = exp['default'] || mod.exports;
 

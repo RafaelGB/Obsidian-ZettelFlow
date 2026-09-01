@@ -4,17 +4,17 @@ import {
   buildAsyncScriptFunction,
   errorMessage,
   SCRIPT_ACTION_BINDINGS,
+  SCRIPT_ACTION_EXAMPLES,
   bindingNames,
   bindingArgs,
 } from "architecture/api";
 import { t } from "architecture/lang";
-import { CodeElement, dispatchEditor } from "architecture/components/core";
+import { CodeElement, dispatchEditor, renderExamplesList } from "architecture/components/core";
 import { Setting } from "obsidian";
 import { ScriptResult } from "actions";
 import { ContentDTO, NoteDTO } from "application/notes";
 import { c, ObsidianApi } from "architecture";
 import { navbarAction } from "architecture/components/settings";
-import { scriptActionAutocomplete } from "./extensions/autoconfiguration/ScriptStepAutocomplete";
 
 export const scriptSettings: ActionSetting = (
   contentEl,
@@ -31,7 +31,7 @@ export const scriptSettings: ActionSetting = (
   const editorEl = contentEl.createDiv();
   editorEl.id = "script-editor";
 
-  dispatchEditor(
+  const editorView = dispatchEditor(
     editorEl,
     code,
     (update) => {
@@ -39,8 +39,10 @@ export const scriptSettings: ActionSetting = (
         scriptAction.code = update.state.doc.toString();
       }
     },
-    [scriptActionAutocomplete]
+    SCRIPT_ACTION_BINDINGS
   );
+
+  renderExamplesList(contentEl, SCRIPT_ACTION_EXAMPLES, () => editorView);
   // Contenedor para resultados de depuración
   const debugContainer = contentEl.createDiv({
     cls: "debug-container",

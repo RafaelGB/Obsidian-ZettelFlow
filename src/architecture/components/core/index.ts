@@ -25,5 +25,5 @@ export { ProgressBarType } from './progressbar/typing'
 
 export { CodeView } from './codeView/CodeView'
 export { dispatchEditor } from './codeView/editor/Dispatcher'
-export { Completion, CompletionTree, CompletionLeaf, CompletionNode } from './codeView/editor/extensions/autoconfiguration/typing'
+export { renderExamplesList } from './codeView/editor/ExamplesList'
 export { CodeElement } from './codeView/typing'

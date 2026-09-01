@@ -14,10 +14,15 @@ The ZettelFlow API is organized into four sections:
 `internal` / `external` describe ZettelFlow's own layering rather than anything you care about, so the
 newer namespaces sit at the top level. Nothing moved — every existing script keeps working.
 
-> **Editor autocomplete.** In the `.js` script editor, typing `zf.` / `app.` triggers
-> ZettelFlow-aware completions (badged ✨): `zf.internal.vault`, `zf.internal.user`,
-> `zf.external.tp`/`dv`, and the common `app.*` members. They are prioritised above the editor's
-> default JavaScript suggestions.
+> **The editor knows this API — by reading it, not by copying it.** Completions are built from the
+> **live object your script will receive**, so they cannot offer something that is not there. That
+> means `zf.internal.user.` lists *your own* library scripts by name, `zf.external.dv.` lists
+> Dataview's real API if you have it installed, and every editor offers exactly the variables *its*
+> surface injects — no more, no less.
+>
+> Hovering a member shows its signature and, for the documented `zf` surface, what it answers. Syntax
+> errors are flagged inline in the gutter as you type, and the Script action and Dynamic Selector ship
+> **insertable examples** so you never face an empty editor.
 
 ## Knowledge (`zf.knowledge`)
 

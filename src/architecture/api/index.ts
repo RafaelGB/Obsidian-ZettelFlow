@@ -14,10 +14,18 @@ export {
     DYNAMIC_SELECTOR_BINDINGS,
     HOOK_BINDINGS,
     CONDITION_BINDINGS,
+    LIBRARY_SCRIPT_BINDINGS,
     bindingNames,
     bindingArgs,
 } from './bindings/scriptBindings';
 export type { ScriptBinding } from './bindings/scriptBindings';
+export {
+    SCRIPT_ACTION_EXAMPLES,
+    DYNAMIC_SELECTOR_EXAMPLES,
+    HOOK_EXAMPLES,
+    ALL_SCRIPT_EXAMPLES,
+} from './bindings/scriptExamples';
+export type { ScriptExample } from './bindings/scriptExamples';
 
 export { ZfVault, ZfVaultImpl } from './lib/vault/service/ZfVault';
 

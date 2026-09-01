@@ -6,11 +6,12 @@ import {
   errorMessage,
   sharedScriptValues,
   DYNAMIC_SELECTOR_BINDINGS,
+  DYNAMIC_SELECTOR_EXAMPLES,
   bindingNames,
   bindingArgs,
 } from "architecture/api";
 import { ViewUpdate } from "@codemirror/view";
-import { dispatchEditor } from "architecture/components/core";
+import { dispatchEditor, renderExamplesList } from "architecture/components/core";
 import { Setting } from "obsidian";
 import { DynamicSelectorElement } from "zettelkasten/typing";
 import { ScriptResult, isStringTupleArray } from "./typing";
@@ -87,7 +88,14 @@ export function dynamicSelectorDetails(
   };
 
   // Initialize the code editor with the current code
-  dispatchEditor(editorEl, code, handleEditorUpdate);
+  const editorView = dispatchEditor(
+    editorEl,
+    code,
+    handleEditorUpdate,
+    DYNAMIC_SELECTOR_BINDINGS
+  );
+
+  renderExamplesList(contentEl, DYNAMIC_SELECTOR_EXAMPLES, () => editorView);
 
   // Create a container for debugging functionality
   const debugContainer = contentEl.createDiv({

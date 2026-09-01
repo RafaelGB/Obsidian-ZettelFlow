@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { c, log } from "architecture";
 import { EditorView } from "codemirror";
 import { dispatchEditor } from "architecture/components/core";
-import { hookAutocomplete } from "../extensions/autoconfiguration/HookAutocomplete";
+import { HOOK_BINDINGS } from "architecture/api";
 
 interface CodeEditorProps {
   value: string;
@@ -35,7 +35,7 @@ export const CodeEditor = ({ value, onChange }: CodeEditorProps) => {
             onChange(update.state.doc.toString());
           }
         },
-        [hookAutocomplete]
+        HOOK_BINDINGS
       );
       viewRef.current = view;
     } catch (error) {

@@ -4,15 +4,86 @@ This document describes the API provided by ZettelFlow that can be used in Scrip
 
 ## Overview
 
-The ZettelFlow API is organized into two main sections:
+The ZettelFlow API is organized into four sections:
 
-- **Internal API** (`zf.internal`): Native functionalities provided by ZettelFlow
-- **External API** (`zf.external`): Integrations with other plugins
+- **Knowledge** (`zf.knowledge`): the analyses ZettelFlow runs on your vault, callable from your code
+- **AI** (`zf.ai`): the configured model, behind a proposal you rule on
+- **Internal API** (`zf.internal`): native vault helpers and your own library scripts
+- **External API** (`zf.external`): integrations with other plugins
+
+`internal` / `external` describe ZettelFlow's own layering rather than anything you care about, so the
+newer namespaces sit at the top level. Nothing moved — every existing script keeps working.
 
 > **Editor autocomplete.** In the `.js` script editor, typing `zf.` / `app.` triggers
 > ZettelFlow-aware completions (badged ✨): `zf.internal.vault`, `zf.internal.user`,
 > `zf.external.tp`/`dv`, and the common `app.*` members. They are prioritised above the editor's
 > default JavaScript suggestions.
+
+## Knowledge (`zf.knowledge`)
+
+ZettelFlow models your vault as a graph of ideas and runs a set of pure, offline analyses over it —
+the same ones behind Home, Health, the dashboard and the recommendations. `zf.knowledge` hands your
+code those analyses **with the live model already bound**, so you call `zf.knowledge.debt()`, never
+`debt(model)`.
+
+```javascript
+// Everything you have connected but never ruled on.
+const neglected = zf.knowledge.unexamined({ limit: 10 });
+
+// The same "what to do next" list the Home surface shows.
+const next = zf.knowledge.recommendations();
+
+// Embed vault metrics in the note being built.
+content.addFrontMatter({
+    vault_notes: zf.knowledge.model().size(),
+    ready_to_cultivate: zf.knowledge.readyToCultivate(),
+});
+```
+
+| Member | Answers |
+|---|---|
+| `ready()` · `model()` | Whether the index is built; the raw idea graph for questions no projection answers. |
+| `dashboard()` · `balance()` · `debt()` · `health()` | Vault-wide metrics. |
+| `review(now?, windowDays?)` | What changed, stalled and matured recently. |
+| `discoveries(opts?)` · `map(opts?)` | Unlinked pairs that co-occur; clusters and hubs. |
+| `openQuestions()` · `proposeAnswers(path)` | Unanswered questions, and notes that could answer one. |
+| `neighbors(path)` · `reasoningPaths(start, opts?)` · `query(source, now?)` | Graph traversal. |
+| `evidence(path)` · `outline(paths, opts?)` | What supports/contradicts an idea; an outline from a set of notes. |
+| `recommendations()` · `cultivationQueue(exclude?, limit?)` · `readyToCultivate()` | What to do next. |
+| `unexamined(opts?)` · `agency(path)` · `judgements(path)` · `lastJudgement(path)` | The [judgement record](../development/cognitive-agency.md). |
+
+!!! warning "Check `ready()` on startup"
+    The index rebuilds in memory when Obsidian loads. A projection called before it finishes **throws**
+    rather than returning an empty result — an empty answer would be indistinguishable from *"your
+    vault really is empty"*, which is the worst lie a knowledge tool can tell.
+
+!!! info "Read the whole model, write only your note"
+    `zf.knowledge` is entirely read-only. Your script still writes the way it always did — through
+    `content`, `note`, or a hook's `event.response`. Nothing here can modify your vault.
+
+## AI (`zf.ai`)
+
+`zf.ai` reuses the provider you already configured in settings — no API key duplicated into a script —
+and routes every completion through the same **proposal** as the built-in AI actions.
+
+```javascript
+const answer = await zf.ai.propose("Summarise this note in one sentence:\n" + content.get(), {
+    path: note.getFinalPath(),
+    subject: "one-line-summary",
+});
+if (answer) content.addFrontMatter({ summary: answer });
+```
+
+| Member | Behaviour |
+|---|---|
+| `available()` | Whether a provider is enabled and configured. |
+| `propose(prompt, opts?)` | Shows the completion for you to accept, edit or reject. Returns your text, or `null` if you rejected or dismissed it. |
+
+There is deliberately **no** "just give me the completion" variant. A model's output reaches your vault
+only through a verdict you gave, and that verdict is recorded — see
+[constitution §XII](../development/constitution.md). This is not a restriction on your script: it could
+always call any HTTP endpoint itself. It is the path that happens to be both the easiest and the
+correct one.
 
 ## Internal API
 

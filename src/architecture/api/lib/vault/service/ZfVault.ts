@@ -8,9 +8,19 @@ export class ZfVaultImpl extends LibModule implements IZfVault {
     public name: "vault";
 
     create_static_functions(): Promise<void> {
-        this.static_functions.set("resolveTFolder", this.resolveTFolder.bind(this));
-        this.static_functions.set("obtainFilesFrom", this.obtainFilesFrom.bind(this));
+        this.register("resolveTFolder", this.resolveTFolder.bind(this), {
+            signature: "(path: string) => TFolder",
+            summary: "Resolve a vault path to its folder, walking up until one exists.",
+        });
+        this.register("obtainFilesFrom", this.obtainFilesFrom.bind(this), {
+            signature: '(folder: TFolder, extensions?: string[]) => TFile[]',
+            summary: "Every file under a folder, recursively, filtered by extension and sorted by name.",
+        });
         return Promise.resolve();
+    }
+
+    protected namespace(): string {
+        return "zf.internal.vault";
     }
 
     resolveTFolder(path: string): TFolder {

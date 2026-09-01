@@ -81,17 +81,51 @@ export async function runAiActionFromPrompt(
         return;
     }
 
+    const outcome = await proposeCompletion(
+        prompt,
+        { subject: el.type, path: info.note.getFinalPath() },
+        deps
+    );
+    if (!outcome || outcome.verdict === "rejected") return;
+
+    // The reviewed text is the unit of decision, so an edited proposal is parsed like an accepted one.
+    const value = spec.transform ? spec.transform(outcome.text) : outcome.text;
+    writeKnowledgeResult(info, el, value);
+    new Notice(spec.notice(value));
+}
+
+/** What a proposal is about: the thing judged, and the idea it concerns. */
+export interface ProposalSubject {
+    /** Short, locale-free descriptor of what was judged — an action id, or a script's own label. */
+    subject: string;
+    /** The note the verdict is about. Without one there is no idea to record a judgement against. */
+    path?: string | null;
+}
+
+/**
+ * **The** §XII path (#337, generalised in #350): gate → cap → call → sanitise → put it to the user →
+ * record the verdict. Returns the reviewed text and how it was judged, or `null` when there was nothing
+ * to judge (disabled, misconfigured, request failed) or the user dismissed the dialog.
+ *
+ * Every AI action and `zf.ai.propose` share this one implementation, so a script cannot reach the
+ * provider by an easier route that skips the verdict. It never writes: writing is the caller's job.
+ */
+export async function proposeCompletion(
+    prompt: string,
+    about: ProposalSubject,
+    deps: AiActionDeps = defaultDeps
+): Promise<{ verdict: "accepted" | "modified" | "rejected"; text: string } | null> {
     const service = AiService.getInstance();
     const state = service.gate();
     if (state === "disabled") {
         // Silent no-op: these actions auto-run in a flow, so a per-build notice would be noise.
         log.debug("[ai] disabled — skipping");
-        return;
+        return null;
     }
     if (state === "unconfigured") {
         log.error("[ai] provider not configured — skipping");
         new Notice(t("ai_not_configured_notice"));
-        return;
+        return null;
     }
 
     // Bound the payload sent to the model (#301 S1).
@@ -103,22 +137,18 @@ export async function runAiActionFromPrompt(
     } catch (error) {
         log.error(`[ai] request failed: ${error instanceof Error ? error.message : "unknown error"}`);
         new Notice(t("ai_request_failed_notice"));
-        return;
+        return null;
     }
 
     // Sanitise before it is even shown (#301 S4): what the user reviews is exactly what would land.
     const proposed = sanitizeAiText(raw);
-    const outcome = await deps.review({ actionId: el.type, text: proposed });
-    if (!outcome) return; // dismissed — nothing written, nothing recorded
+    const outcome = await deps.review({ actionId: about.subject, text: proposed });
+    if (!outcome) return null; // dismissed — nothing written, nothing recorded
 
-    const path = info.note.getFinalPath();
-    if (path) {
-        deps.record({ path, subject: el.type, origin: "ai", verdict: outcome.verdict });
+    if (about.path) {
+        // `origin: "ai"` records where the *proposal* came from, not who invoked it — a completion
+        // requested from a user's own script is still the model's suggestion, judged by them.
+        deps.record({ path: about.path, subject: about.subject, origin: "ai", verdict: outcome.verdict });
     }
-    if (outcome.verdict === "rejected") return;
-
-    // The reviewed text is the unit of decision, so an edited proposal is parsed like an accepted one.
-    const value = spec.transform ? spec.transform(outcome.text) : outcome.text;
-    writeKnowledgeResult(info, el, value);
-    new Notice(spec.notice(value));
+    return outcome;
 }

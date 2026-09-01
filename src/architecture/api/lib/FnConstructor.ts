@@ -2,6 +2,9 @@ import { log } from "architecture";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { ZfScripts, ZfVault } from "architecture/api";
 import { DataviewPlugin, TemplaterPlugin, TemplaterTools, ZettelFlowApp, ZfExternalTools, ZfInternalTools } from "./typing";
+import { ZfKnowledge } from "./knowledge/service/ZfKnowledge";
+import { ZfAi } from "./ai/service/ZfAi";
+import type { ApiMemberDoc } from "./LibModule";
 import { App, Notice } from "obsidian";
 
 export function errorMessage(error: unknown): string {
@@ -89,12 +92,35 @@ async function buildInternalTools(): Promise<ZfInternalTools> {
 }
 
 async function buildTools(): Promise<ZettelFlowApp> {
+    const app = ObsidianApi.globalApp();
+
+    const knowledge = new ZfKnowledge(app);
+    await knowledge.init();
+
+    const ai = new ZfAi(app);
+    await ai.init();
+
     const fns: ZettelFlowApp = {
         external: await buildExternalTools(),
-        internal: await buildInternalTools()
+        internal: await buildInternalTools(),
+        knowledge: await knowledge.generate_object(),
+        ai: await ai.generate_object(),
     };
+    apiManifest = [...ZfVault().describe(), ...knowledge.describe(), ...ai.describe()];
     return fns;
 };
+
+/**
+ * The documented shape of the built API (#350) — one description per member, produced by the same
+ * `register` calls that produce the callables, so the manifest and the object cannot disagree.
+ * Populated when `zf` is built; the editor and the type generator read it.
+ */
+let apiManifest: ApiMemberDoc[] = [];
+
+/** The manifest of the currently built API. Empty until `fnsManager.getFns()` has resolved once. */
+export function describeApi(): ApiMemberDoc[] {
+    return apiManifest;
+}
 
 
 class FnsManager {

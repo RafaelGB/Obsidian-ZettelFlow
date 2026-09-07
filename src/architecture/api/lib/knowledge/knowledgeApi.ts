@@ -99,6 +99,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     shortestPath: "operates on 3D graph adjacency, not the model",
     buildCultivationSession: "an interactive session with deliberate friction; not a pure answer",
     selectCultivationTarget: "internal to the cultivation session",
+    timelineEvents: "merges the timeline + judgement log for the Evolution timeline view, not a model answer",
 };
 
 /** Build the `zf.knowledge` member table against live accessors. */

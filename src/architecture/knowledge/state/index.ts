@@ -41,5 +41,6 @@ export * from "architecture/knowledge/projects/deriveOutline";
 export * from "architecture/knowledge/cultivate/cultivationSession";
 export * from "architecture/knowledge/judgement";
 export type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
+export * from "architecture/knowledge/timeline/timelineEvents";
 export * from "./classifyHealth";
 export * from "./recommendation";

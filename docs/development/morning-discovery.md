@@ -36,6 +36,26 @@ There is no generic "related" type in the [semantic vocabulary](../architecture/
 Dismissals are **session-only** — a dismissed pair may return next time you open the pane; an
 accepted pair does not (it's now linked). A persisted dismissed-pair set is a possible follow-up.
 
+## Continuous discovery (#365, D5)
+
+Discovery is not only a pane you open — it is **continuous**. The [Home](zettelflow-home.md) surface
+registers vault listeners and, on **every** change (a note created, saved, renamed or deleted), re-runs
+the same heuristic discovery and recommendation projections. So a connection that becomes possible the
+moment you save a note is already waiting the next time you glance at Home — you never have to go looking.
+
+Two invariants hold, and a guardrail test pins them:
+
+- **Never AI.** The continuous path is `findDiscoveries` / `deriveRecommendations` / `buildHome` — pure,
+  offline model queries. No completion is requested in the background; AI stays a deliberate, *foreground*
+  Action ([#337](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/337),
+  [constitution §XII](constitution.md)). A test asserts the whole Home path imports no AI provider and
+  calls nothing that reaches one.
+- **Never a silent write.** Continuous discovery only *proposes* — it surfaces connections and next
+  moves; committing any of them stays the same judgement-gated action the pane makes above.
+
+There is deliberately **no parallel background engine, no badge, and no on/off toggle**: continuous
+discovery is a property of the Home surface refreshing, not a new feature bolted on (design by subtraction).
+
 ## Architecture
 
 ```

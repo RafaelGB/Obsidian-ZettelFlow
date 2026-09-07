@@ -8,6 +8,7 @@ import { sanitizeAiText } from "architecture/ai/promptSafety";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { ProposalModal } from "architecture/components/core/proposal/ProposalModal";
 import { JudgementLog, type JudgementEntry } from "architecture/plugin/judgement/JudgementLog";
+import { withReasoning, type JudgementConfidence } from "architecture/knowledge/judgement";
 import type { AiActionElement } from "zettelkasten";
 import { writeKnowledgeResult } from "../knowledge/knowledgeActionCore";
 
@@ -30,11 +31,22 @@ export interface AiActionSpec {
     notice(value: unknown): string;
 }
 
+/** How the user judged a proposal: the verdict, the text to write, and an optional reasoned trace (#361, D1). */
+export interface ReviewedProposal {
+    verdict: "accepted" | "modified" | "rejected";
+    /** The text to write. Empty for a rejection. */
+    text: string;
+    /** Optional short rationale the user gave with the verdict — recorded, never written to the note. */
+    note?: string;
+    /** Optional how-sure marker the user attached to the verdict. */
+    confidence?: JudgementConfidence;
+}
+
 /** Puts a proposal to the user. Resolves `null` when they dismiss it — a dismissal is not a verdict. */
 export type ProposalReview = (proposal: {
     actionId: string;
     text: string;
-}) => Promise<{ verdict: "accepted" | "modified" | "rejected"; text: string } | null>;
+}) => Promise<ReviewedProposal | null>;
 
 /** The two collaborators the write path needs, injectable so the real path is testable offline. */
 export interface AiActionDeps {
@@ -114,7 +126,7 @@ export async function proposeCompletion(
     prompt: string,
     about: ProposalSubject,
     deps: AiActionDeps = defaultDeps
-): Promise<{ verdict: "accepted" | "modified" | "rejected"; text: string } | null> {
+): Promise<ReviewedProposal | null> {
     const service = AiService.getInstance();
     const state = service.gate();
     if (state === "disabled") {
@@ -147,8 +159,15 @@ export async function proposeCompletion(
 
     if (about.path) {
         // `origin: "ai"` records where the *proposal* came from, not who invoked it — a completion
-        // requested from a user's own script is still the model's suggestion, judged by them.
-        deps.record({ path: about.path, subject: about.subject, origin: "ai", verdict: outcome.verdict });
+        // requested from a user's own script is still the model's suggestion, judged by them. The
+        // rationale/confidence ride along only when the user gave them (#361, D1).
+        deps.record(
+            withReasoning(
+                { path: about.path, subject: about.subject, origin: "ai", verdict: outcome.verdict },
+                outcome.note,
+                outcome.confidence
+            )
+        );
     }
     return outcome;
 }

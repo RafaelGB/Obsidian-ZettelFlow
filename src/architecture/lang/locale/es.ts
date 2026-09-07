@@ -1141,6 +1141,14 @@ export default {
     proposal_save_edit: 'Guardar mi versión',
     proposal_reject: 'Rechazar',
     proposal_recorded_hint: 'No se escribe nada hasta que aceptas. Tu decisión queda registrada en cualquier caso.',
+    proposal_rationale_label: 'Por qué (opcional)',
+    proposal_rationale_desc: 'Una frase sobre tu razonamiento. Se registra con tu veredicto — nunca se escribe en la nota.',
+    proposal_rationale_placeholder: 'Tu razonamiento — una frase basta',
+    proposal_confidence_label: '¿Cómo de seguro estás?',
+    confidence_unset: 'Sin especificar',
+    confidence_low: 'Baja',
+    confidence_medium: 'Media',
+    confidence_high: 'Alta',
 
     // Propósitos de las acciones (#187) — la descripción de una línea que se muestra en el selector de acciones.
     prompt_purpose: 'Añade texto como propiedad/contexto/cuerpo a la nota.',

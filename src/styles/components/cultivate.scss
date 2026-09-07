@@ -142,6 +142,19 @@
     font-family: var(--font-text);
 }
 
+// The optional how-sure marker on a friction reading (#361, D1).
+.zettelkasten-flow__cultivate-friction-confidence {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-block-start: var(--size-4-2);
+}
+
+.zettelkasten-flow__cultivate-friction-confidence-label {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
 .zettelkasten-flow__cultivate-friction-actions {
     display: flex;
     gap: var(--size-4-2);

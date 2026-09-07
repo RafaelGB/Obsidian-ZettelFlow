@@ -3,6 +3,7 @@ import {
     JUDGEMENT_ORIGINS,
     JUDGEMENT_VERDICTS,
     type Judgement,
+    type JudgementConfidence,
     type JudgementOrigin,
     type JudgementVerdict,
 } from "./Judgement";
@@ -41,6 +42,13 @@ export interface AgencySignals {
     byOrigin: Record<JudgementOrigin, number>;
     /** When the idea was last ruled on, or `null` if never. */
     lastAt: number | null;
+    /**
+     * Whether any judgement on this idea carried a written rationale (#361, D1). A *reasoned* verdict is
+     * a richer signal than a bare one — but its absence is still an unknown, never a mark against you.
+     */
+    hasRationale: boolean;
+    /** The confidence attached to the **most recent** judgement, or `null` when it carried none (#361, D1). */
+    lastConfidence: JudgementConfidence | null;
 }
 
 function zeroed<K extends string>(keys: readonly K[]): Record<K, number> {
@@ -61,6 +69,8 @@ export function agencySignals(history: readonly Judgement[], path: string): Agen
         byVerdict: zeroed(JUDGEMENT_VERDICTS),
         byOrigin: zeroed(JUDGEMENT_ORIGINS),
         lastAt: null,
+        hasRationale: false,
+        lastConfidence: null,
     };
 
     for (const entry of history) {
@@ -68,7 +78,11 @@ export function agencySignals(history: readonly Judgement[], path: string): Agen
         signals.total++;
         signals.byVerdict[entry.verdict]++;
         signals.byOrigin[entry.origin]++;
-        if (signals.lastAt === null || entry.at > signals.lastAt) signals.lastAt = entry.at;
+        if (entry.note !== undefined) signals.hasRationale = true;
+        if (signals.lastAt === null || entry.at > signals.lastAt) {
+            signals.lastAt = entry.at;
+            signals.lastConfidence = entry.confidence ?? null;
+        }
     }
     return signals;
 }

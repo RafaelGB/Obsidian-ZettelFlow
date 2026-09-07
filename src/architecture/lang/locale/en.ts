@@ -1140,6 +1140,14 @@ export default {
     proposal_save_edit: 'Save my edit',
     proposal_reject: 'Reject',
     proposal_recorded_hint: 'Nothing is written until you accept. Your verdict is recorded either way.',
+    proposal_rationale_label: 'Why (optional)',
+    proposal_rationale_desc: 'A sentence on your reasoning. Recorded with your verdict — never written to the note.',
+    proposal_rationale_placeholder: 'Your reasoning — a sentence is enough',
+    proposal_confidence_label: 'How sure are you?',
+    confidence_unset: 'Not specified',
+    confidence_low: 'Low',
+    confidence_medium: 'Medium',
+    confidence_high: 'High',
 
     // Action purposes (#187) — the one-line description shown in the action picker card.
     prompt_purpose: 'Add text as property/context/body to the note.',

@@ -80,6 +80,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     isJudgement: "type guard, not a projection",
     sanitizeJudgementLog: "persistence concern, owned by JudgementLog",
     recordJudgement: "a write; scripts read the model and write only their own note",
+    withReasoning: "a write helper that attaches rationale/confidence to a judgement, not a projection",
     recordDay: "a write into the journal counts",
     pruneCounts: "internal journal maintenance",
     developmentStreak: "momentum signal owned by the Home/Cultivate surfaces",

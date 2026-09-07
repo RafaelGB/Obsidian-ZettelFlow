@@ -89,6 +89,35 @@ describe("agencySignals (#336, AC-1 — a well-defined unknown, never a score)",
     });
 });
 
+describe("agencySignals — rationale + confidence (#361, D1)", () => {
+    it("reports hasRationale=false when no judgement carried a note", () => {
+        expect(agencySignals([j()], A).hasRationale).toBe(false);
+    });
+
+    it("reports hasRationale=true when any judgement for that path carried a note", () => {
+        const log = [j({ at: T0 }), j({ at: T0 + 1, note: "because the source is weak" })];
+        expect(agencySignals(log, A).hasRationale).toBe(true);
+    });
+
+    it("a note on another path does not set hasRationale", () => {
+        expect(agencySignals([j({ path: B, note: "elsewhere" })], A).hasRationale).toBe(false);
+    });
+
+    it("lastConfidence is null when the idea was never ruled on", () => {
+        expect(agencySignals([], A).lastConfidence).toBeNull();
+    });
+
+    it("lastConfidence is the confidence of the most recent judgement", () => {
+        const log = [j({ at: T0, confidence: "low" }), j({ at: T0 + DAY, confidence: "high" })];
+        expect(agencySignals(log, A).lastConfidence).toBe("high");
+    });
+
+    it("lastConfidence is null when the most recent judgement omitted confidence", () => {
+        const log = [j({ at: T0, confidence: "high" }), j({ at: T0 + DAY })];
+        expect(agencySignals(log, A).lastConfidence).toBeNull();
+    });
+});
+
 describe("judgementDays (#336, the tally S4 reframes the streak onto)", () => {
     it("is empty for an empty log", () => {
         expect(judgementDays([])).toEqual({});

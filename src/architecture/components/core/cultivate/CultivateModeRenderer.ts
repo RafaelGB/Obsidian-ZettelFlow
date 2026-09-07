@@ -11,9 +11,12 @@ import {
     selectCultivationTarget,
     cultivationQueue,
     developmentStreak,
+    JUDGEMENT_CONFIDENCES,
+    withReasoning,
     type CultivationMove,
     type CultivationMoveKind,
     type CultivationSession,
+    type JudgementConfidence,
 } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 500;
@@ -232,6 +235,21 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         area.placeholder = t("cultivate_friction_placeholder");
         area.value = this.frictionAnswers.get(move.kind) ?? "";
 
+        // Optional how-sure marker on your reading (#361, D1) — an unset value records no confidence.
+        const confidenceRow = body.createDiv({ cls: c("cultivate-friction-confidence") });
+        confidenceRow.createSpan({
+            cls: c("cultivate-friction-confidence-label"),
+            text: t("proposal_confidence_label"),
+        });
+        const confidence = confidenceRow.createEl("select", {
+            cls: c("cultivate-friction-confidence-select"),
+            attr: { "aria-label": t("proposal_confidence_label") },
+        });
+        confidence.createEl("option", { text: t("confidence_unset"), value: "" });
+        for (const level of JUDGEMENT_CONFIDENCES) {
+            confidence.createEl("option", { text: t(`confidence_${level}` as Parameters<typeof t>[0]), value: level });
+        }
+
         const actions = body.createDiv({ cls: c("cultivate-friction-actions") });
         const reveal = actions.createEl("button", {
             cls: c("cultivate-friction-reveal"),
@@ -241,7 +259,13 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         area.addEventListener("input", () => {
             reveal.disabled = area.value.trim().length === 0;
         });
-        reveal.addEventListener("click", () => this.answerFriction(move, area.value.trim()));
+        reveal.addEventListener("click", () =>
+            this.answerFriction(
+                move,
+                area.value.trim(),
+                confidence.value ? (confidence.value as JudgementConfidence) : undefined
+            )
+        );
 
         const skip = actions.createEl("button", {
             cls: c("cultivate-friction-skip"),
@@ -250,17 +274,26 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         skip.addEventListener("click", () => this.skipFriction(move));
     }
 
-    /** Your reading is committed: record it as a judgement (#336) and open the move. */
-    private answerFriction(move: CultivationMove, text: string): void {
+    /**
+     * Your reading is committed: record it as a judgement (#336) — the reading itself is the rationale
+     * and the how-sure marker rides along when given (#361, D1) — and open the move.
+     */
+    private answerFriction(move: CultivationMove, text: string, confidence?: JudgementConfidence): void {
         if (!text || !move.friction) return;
         this.frictionAnswers.set(move.kind, text);
         if (this.session) {
-            JudgementLog.getInstance().record({
-                path: this.session.path,
-                subject: `friction:${move.kind}`,
-                origin: "derived",
-                verdict: move.friction.verdict,
-            });
+            JudgementLog.getInstance().record(
+                withReasoning(
+                    {
+                        path: this.session.path,
+                        subject: `friction:${move.kind}`,
+                        origin: "derived",
+                        verdict: move.friction.verdict,
+                    },
+                    text,
+                    confidence
+                )
+            );
         }
         this.reveal(move.kind);
     }

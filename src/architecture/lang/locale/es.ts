@@ -645,6 +645,8 @@ export default {
     reasoning_paths_intro: '{0} líneas de razonamiento parten de aquí — sigue una para ver cómo se construye el argumento.',
     reasoning_paths_indexing: 'Construyendo el modelo de conocimiento…',
     reasoning_paths_empty: 'Aún no sale de esta nota ninguna cadena argumental. Enlaza una idea que apoye, amplíe, ejemplifique o implemente.',
+    reasoning_paths_extend_title: 'Amplía el argumento',
+    reasoning_paths_extend_intro: 'El siguiente enlace lo eliges tú — una razón, un contraargumento, un ejemplo o una respuesta. Estas notas relacionadas son candidatas; añade la que el argumento necesite.',
     reasoning_paths_rel_supports: 'apoya',
     reasoning_paths_rel_expands: 'amplía',
     reasoning_paths_rel_example: 'ejemplo',

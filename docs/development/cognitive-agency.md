@@ -65,6 +65,10 @@ All pure, all offline, all reachable through the Knowledge State barrel:
   (`lastConfidence`).
 - `judgementDays(history)` — verdicts per UTC day, reusing the heatmap's own day key so the two
   definitions of "a day" cannot drift.
+- `trajectory(model, history, now)` (#364) — every well-connected idea placed on an *advancing / steady
+  / stalled* spectrum by how recently you ruled on it: the read side of *"is this idea moving, or has it
+  stalled?"*. A stalled idea grew but carries no recent verdict; `unexaminedIdeas` (never ruled on) is
+  its `lastMovementAt: null` extreme. Queryable from a script as `zf.knowledge.trajectory()`. Still no score.
 
 ### There is no score
 

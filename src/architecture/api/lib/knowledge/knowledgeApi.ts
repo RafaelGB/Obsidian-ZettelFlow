@@ -22,6 +22,7 @@ import {
     lastJudgementFor,
     agencySignals,
     unexaminedIdeas,
+    trajectory,
 } from "architecture/knowledge/state";
 
 /**
@@ -219,6 +220,12 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(path: string) => Judgement | null",
             summary: "The most recent verdict on one idea, or null.",
             call: (path: string) => lastJudgementFor(history(), path),
+        },
+        trajectory: {
+            signature: "(now?: number, opts?: TrajectoryOptions) => IdeaTrajectory[]",
+            summary: "Which important ideas are advancing, steady or stalled by how recently you ruled on them.",
+            call: (now?: number, opts?: Parameters<typeof trajectory>[3]) =>
+                trajectory(model(), history(), now ?? Date.now(), opts),
         },
     };
 }

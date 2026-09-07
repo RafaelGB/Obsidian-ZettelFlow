@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { suggestNextMoves, NEXT_MOVE_TOKENS } from "actions/suggestNextMove/nextMoveLogic";
+import { suggestNextMoves, NEXT_MOVE_TOKENS } from "architecture/knowledge/state/nextMoveLogic";
 import { idea, buildModel } from "./support/knowledgeFixture";
 
 describe("suggestNextMoves (#158, FR-2/FR-3/FR-4, AC-1, AC-2)", () => {

@@ -20,7 +20,7 @@ const LOGIC_FILES = [
     "src/architecture/knowledge/derive/maturityLogic.ts",
     "src/architecture/knowledge/query/findContradictionLogic.ts",
     "src/architecture/knowledge/query/findUnansweredQuestionLogic.ts",
-    "src/actions/suggestNextMove/nextMoveLogic.ts",
+    "src/architecture/knowledge/state/nextMoveLogic.ts",
     "src/actions/thinkingSimulator/thinkingSimulatorLogic.ts",
 ];
 

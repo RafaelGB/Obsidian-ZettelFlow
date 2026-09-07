@@ -4,7 +4,7 @@ import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { ResearchActionElement } from "zettelkasten";
 import type { Source } from "architecture/knowledge/model/Idea";
-import { findSources } from "./findSourcesLogic";
+import { findSources } from "architecture/knowledge/query/findSourcesLogic";
 import {
     makeResearchSettings,
     readyModel,

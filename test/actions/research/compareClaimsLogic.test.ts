@@ -4,7 +4,7 @@ import {
     normalize,
     hasNegation,
     stripNegation,
-} from "actions/compareClaims/compareClaimsLogic";
+} from "architecture/knowledge/query/compareClaimsLogic";
 import { ideaWithClaims, buildModel } from "./support/researchFixture";
 
 describe("compareClaims helpers (#155, FR-3, D4)", () => {

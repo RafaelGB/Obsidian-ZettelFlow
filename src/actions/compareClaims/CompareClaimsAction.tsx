@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { ResearchActionElement } from "zettelkasten";
-import { compareClaims, ClaimMatch } from "./compareClaimsLogic";
+import { compareClaims, ClaimMatch } from "architecture/knowledge/query/compareClaimsLogic";
 import {
     makeResearchSettings,
     readyModel,

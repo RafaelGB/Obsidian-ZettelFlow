@@ -58,6 +58,10 @@ describe("pure Knowledge layer imports only inward (#209, epic #262 Phase 6, §X
         expect(files.length).toBeGreaterThan(0);
     });
 
+    it("keeps the query + state homes in the scanned set, so relocated rankings stay guarded (#366, D6)", () => {
+        expect(PURE_DIRS).toEqual(expect.arrayContaining(["query", "state"]));
+    });
+
     it("never imports an outer layer (application/zettelkasten/hooks/config/starters/actions/components/plugin/api/obsidian)", () => {
         const offenders: string[] = [];
         for (const file of files) {

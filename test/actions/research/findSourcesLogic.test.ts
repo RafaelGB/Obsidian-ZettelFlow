@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { findSources } from "actions/findSources/findSourcesLogic";
+import { findSources } from "architecture/knowledge/query/findSourcesLogic";
 import { ideaWithClaims, buildModel } from "./support/researchFixture";
 
 const src = (ref: string) => ({ ref, kind: "text" as const });

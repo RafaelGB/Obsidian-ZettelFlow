@@ -24,6 +24,19 @@ Capture happens at the `KnowledgeIndex.upsert` choke point (every create/modify)
 [thinking journal](thinking-heatmap.md) uses, so it catches claim edits that don't change state. A
 bulk startup rebuild records nothing.
 
+## Cognitive milestones — the living timeline (#362)
+
+The timeline also shows *when you exercised judgement*, not only when the note changed. Each
+[judgement](cognitive-agency.md) about the active note — a verdict on an AI proposal, or a Cultivate
+friction move you answered — appears on the **same axis** as the snapshots, marked with the accent
+colour and carrying its verdict, its optional confidence, and its rationale (on hover). A **"only my
+judgements"** toggle isolates the cognitive milestones from the structural snapshots.
+
+The merge is a pure projection, `timelineEvents(snapshots, judgements)`: it interleaves the two logs by
+time (a snapshot before a judgement on a tie) and reads only what it is given, so a note you never ruled
+on renders exactly the pre-#362 timeline. Judgement events are read from the always-local judgement log
+and honour the same [knowledge scope](knowledge-scope.md) — no extra content is stored for them.
+
 ## Bounds and pruning
 
 The store is bounded so it can't grow without limit:
@@ -56,6 +69,11 @@ ConceptualTimeline (singleton, structural TimelineHost, mirrors DevelopmentJourn
   KnowledgeIndex.upsert → capture(idea) · onDelete → prune · onRename → rekey
   capture gated on the opt-in toggle; prune/rekey run ungated (housekeeping); saves debounced
 
-EvolutionTimelineView (ItemView) + EvolutionTimelineComponent (show-evolution-timeline, no hotkey)
-  reads snapshotsFor(activeNotePath) → renders date · state · claims, oldest→newest; writes nothing
+timelineEvents(snapshots, judgements)             (pure, Obsidian-free, unit-tested)
+  → TimelineEvent[]   interleave snapshots (#168) + judgements (#336) by time; snapshot-before-judgement tie-break
+
+EvolutionTimelineRenderer (Timeline mode of the Health surface)
+  reads snapshotsFor(path) + judgementsFor(log, path) → timelineEvents(...) → renders snapshots and
+  cognitive milestones (verdict · confidence · rationale) oldest→newest, with an "only my judgements"
+  filter; writes nothing
 ```

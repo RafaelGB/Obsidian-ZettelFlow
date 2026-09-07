@@ -68,3 +68,34 @@
     font-size: var(--font-ui-smaller);
     color: var(--text-normal);
 }
+
+.zettelkasten-flow__evolution-timeline-refresh + .zettelkasten-flow__evolution-timeline-filter {
+    margin-inline-start: 0.35rem;
+}
+
+.zettelkasten-flow__evolution-timeline-filter {
+    font-size: var(--font-ui-smaller);
+}
+
+// A cognitive milestone (#362, D2): a verdict on the same axis as the structural snapshots, marked
+// with the accent so the moments you *reasoned* stand out from the moments the note merely changed.
+.zettelkasten-flow__evolution-timeline-judgement {
+    border-left-color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__evolution-timeline-verdict {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__evolution-timeline-confidence {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__evolution-timeline-note {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    font-style: italic;
+}

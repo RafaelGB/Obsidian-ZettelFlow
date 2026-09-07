@@ -2,7 +2,14 @@ import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
-import type { Snapshot } from "architecture/knowledge/state";
+import {
+    timelineEvents,
+    judgementsFor,
+    type Snapshot,
+    type TimelineEvent,
+    type Judgement,
+} from "architecture/knowledge/state";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 
 const DEBOUNCE_MS = 400;
@@ -17,7 +24,9 @@ type ViewState = "loading" | "ready" | "empty" | "disabled" | "error";
  */
 export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "loading";
-    private snapshots: Snapshot[] = [];
+    private events: TimelineEvent[] = [];
+    /** Show only the cognitive milestones (judgements), hiding the structural snapshots (#362, D2). */
+    private cognitiveOnly = false;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -49,14 +58,18 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         try {
             const timeline = ConceptualTimeline.getInstance();
             if (!timeline.enabled()) {
-                this.snapshots = [];
+                this.events = [];
                 this.state = "disabled";
                 this.render();
                 return;
             }
             const active = this.app.workspace.getActiveFile();
-            this.snapshots = active ? timeline.snapshotsFor(active.path) : [];
-            this.state = this.snapshots.length === 0 ? "empty" : "ready";
+            const snapshots = active ? timeline.snapshotsFor(active.path) : [];
+            // The judgement log is scope-filtered and path-exact; an idea with no verdicts adds nothing,
+            // so a note that was never ruled on renders exactly the pre-#362 timeline.
+            const judgements = active ? judgementsFor(JudgementLog.getInstance().entries(), active.path) : [];
+            this.events = timelineEvents(snapshots, judgements);
+            this.state = this.events.length === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
             log.error(`[EvolutionTimeline] recompute failed: ${error instanceof Error ? error.message : "unknown error"}`);
@@ -78,6 +91,19 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         });
         this.registerDomEvent(refresh, "click", () => this.recompute());
 
+        // The filter appears only once there is a cognitive milestone to isolate, so a snapshots-only
+        // note keeps the pre-#362 header.
+        if (this.state === "ready" && this.events.some((event) => event.kind === "judgement")) {
+            const filter = header.createEl("button", {
+                text: this.cognitiveOnly ? t("evolution_timeline_filter_all") : t("evolution_timeline_filter_cognitive"),
+                cls: c("evolution-timeline-filter"),
+            });
+            this.registerDomEvent(filter, "click", () => {
+                this.cognitiveOnly = !this.cognitiveOnly;
+                this.render();
+            });
+        }
+
         if (this.state === "loading") {
             container.createDiv({ cls: c("evolution-timeline-status"), text: t("evolution_timeline_loading") });
             return;
@@ -95,7 +121,34 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             return;
         }
 
-        for (const snapshot of this.snapshots) this.renderSnapshot(container, snapshot);
+        const events = this.cognitiveOnly ? this.events.filter((event) => event.kind === "judgement") : this.events;
+        for (const event of events) {
+            if (event.kind === "snapshot" && event.snapshot) this.renderSnapshot(container, event.snapshot);
+            else if (event.kind === "judgement" && event.judgement) this.renderJudgement(container, event.judgement);
+        }
+    }
+
+    /** A cognitive milestone (#362, D2): the verdict, its confidence, and the rationale on hover. */
+    private renderJudgement(container: HTMLElement, judgement: Judgement): void {
+        const entry = container.createDiv({ cls: [c("evolution-timeline-entry"), c("evolution-timeline-judgement")] });
+        entry.createSpan({ text: new Date(judgement.at).toLocaleDateString(), cls: c("evolution-timeline-date") });
+
+        const line = entry.createDiv({ cls: c("evolution-timeline-line") });
+        line.createSpan({ text: t("evolution_timeline_judgement_label"), cls: c("evolution-timeline-label") });
+        line.createSpan({
+            text: t(`judgement_verdict_${judgement.verdict}` as Parameters<typeof t>[0]),
+            cls: c("evolution-timeline-verdict"),
+        });
+        if (judgement.confidence) {
+            line.createSpan({
+                text: t(`confidence_${judgement.confidence}` as Parameters<typeof t>[0]),
+                cls: c("evolution-timeline-confidence"),
+            });
+        }
+        if (judgement.note) {
+            const noteLine = entry.createDiv({ cls: c("evolution-timeline-line") });
+            noteLine.createSpan({ text: judgement.note, cls: c("evolution-timeline-note"), attr: { title: judgement.note } });
+        }
     }
 
     private renderSnapshot(container: HTMLElement, snapshot: Snapshot): void {

@@ -1,12 +1,17 @@
 import { App, Modal, Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { c } from "architecture";
+import { JUDGEMENT_CONFIDENCES, withReasoning, type JudgementConfidence } from "architecture/knowledge/state";
 
 /** What the user decided about a proposal. `null` (dismissal) is deliberately not a verdict. */
 export interface ProposalOutcome {
     verdict: "accepted" | "modified" | "rejected";
     /** The text to write. Empty for a rejection. */
     text: string;
+    /** Optional short rationale the user gave with the verdict (#361, D1) — recorded, never written. */
+    note?: string;
+    /** Optional how-sure marker the user attached to the verdict (#361, D1). */
+    confidence?: JudgementConfidence;
 }
 
 /**
@@ -27,6 +32,9 @@ export class ProposalModal extends Modal {
     private outcome: ProposalOutcome | null = null;
     private resolve: ((outcome: ProposalOutcome | null) => void) | null = null;
     private acceptLabel: HTMLElement | null = null;
+    /** Optional reasoning captured at the verdict moment (#361, D1) — both empty by default. */
+    private rationale = "";
+    private confidence: JudgementConfidence | undefined;
 
     constructor(app: App, private readonly title: string, proposed: string) {
         super(app);
@@ -59,6 +67,31 @@ export class ProposalModal extends Modal {
             this.current = textarea.value;
             this.refreshAcceptLabel();
         });
+
+        // Optional: capture *why* you ruled, at the moment you rule (#361, D1). Never required — an
+        // empty rationale and an unset confidence record exactly as a bare verdict did before. Built with
+        // the same plain `createEl` the proposed-text box uses, so the reasoning row reads as one piece.
+        contentEl.createEl("label", { text: t("proposal_rationale_label"), cls: c("proposal-reason-label") });
+        contentEl.createEl("p", { text: t("proposal_rationale_desc"), cls: c("proposal-reason-desc") });
+        const rationale = contentEl.createEl("textarea", {
+            cls: c("proposal-reason-input"),
+            attr: { rows: "2", placeholder: t("proposal_rationale_placeholder"), "aria-label": t("proposal_rationale_label") },
+        });
+        rationale.addEventListener("input", () => (this.rationale = rationale.value));
+
+        const confidenceRow = contentEl.createDiv({ cls: c("proposal-confidence") });
+        confidenceRow.createEl("label", { text: t("proposal_confidence_label"), cls: c("proposal-confidence-label") });
+        const confidence = confidenceRow.createEl("select", {
+            cls: c("proposal-confidence-select"),
+            attr: { "aria-label": t("proposal_confidence_label") },
+        });
+        confidence.createEl("option", { text: t("confidence_unset"), value: "" });
+        for (const level of JUDGEMENT_CONFIDENCES) {
+            confidence.createEl("option", { text: t(`confidence_${level}` as Parameters<typeof t>[0]), value: level });
+        }
+        confidence.addEventListener("change", () =>
+            (this.confidence = confidence.value ? (confidence.value as JudgementConfidence) : undefined)
+        );
 
         new Setting(contentEl)
             .addButton((btn) => {
@@ -99,7 +132,7 @@ export class ProposalModal extends Modal {
     }
 
     private finish(outcome: ProposalOutcome): void {
-        this.outcome = outcome;
+        this.outcome = withReasoning(outcome, this.rationale, this.confidence);
         this.close();
     }
 }

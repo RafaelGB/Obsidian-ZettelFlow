@@ -36,10 +36,12 @@ One decision you made about one idea:
 | `subject` | A **short, locale-free descriptor** of what was judged — an action id (`challenge-idea`), a cultivation move (`connect`), a relation (`supports:ideas/atomicity.md`). |
 | `origin` | Where the proposal came from: `ai`, `derived` (a deterministic projection) or `human` (your own initiative). |
 | `verdict` | `accepted` · `modified` · `rejected` · `confirmed` · `challenged`. |
-| `note` | An optional short remark. Omitted when blank. |
+| `note` | An optional short **rationale**, captured at the verdict moment — the reasoning you type on an AI proposal, or the reading you commit on a Cultivate friction move. Omitted when blank. |
+| `confidence` | An optional **how-sure** marker — `low` · `medium` · `high`. Omitted when you did not say (#361). |
 
-Both `origin` and `verdict` are **closed unions**, so a verdict always means one of a fixed set of
-things and the i18n layer maps them to text.
+`origin`, `verdict` and `confidence` are **closed unions**, so each always means one of a fixed set of
+things and the i18n layer maps them to text. `note` and `confidence` are always optional: a bare verdict
+records exactly as it did before them.
 
 ## What it deliberately does not store
 
@@ -58,7 +60,9 @@ accrues judgements either.
 All pure, all offline, all reachable through the Knowledge State barrel:
 
 - `judgementsFor(history, path)` / `lastJudgementFor(history, path)` — the verdicts on one idea.
-- `agencySignals(history, path)` — counts by verdict and by origin, plus when it was last ruled on.
+- `agencySignals(history, path)` — counts by verdict and by origin, when it was last ruled on, whether
+  any verdict carried a rationale (`hasRationale`) and the confidence of the most recent one
+  (`lastConfidence`).
 - `judgementDays(history)` — verdicts per UTC day, reusing the heatmap's own day key so the two
   definitions of "a day" cannot drift.
 
@@ -79,8 +83,10 @@ AI proposals fill the record with `origin: "ai"`. [Cultivate](cultivate.md) fill
 that is a judgement too — `challenged` when you argued against your own idea, `confirmed` when you
 committed a prediction about it.
 
-Skipping the prompt records nothing. Between the two origins, the record can finally distinguish an
-idea that *grew* from one you actually *reasoned about* — which is what #339 projects.
+Skipping the prompt records nothing. The reading you commit is stored as the judgement's `note`, so the
+record keeps not just *that* you reasoned but *what* you reasoned; an optional confidence selector rides
+along on both surfaces (#361). Between the two origins, the record can finally distinguish an idea that
+*grew* from one you actually *reasoned about* — which is what #339 projects.
 
 ## What the record finally lets the system say
 

@@ -21,3 +21,36 @@
     font-size: var(--font-ui-smaller);
     margin-block: var(--size-4-2) 0;
 }
+
+// The optional reasoning capture (#361, D1): why you ruled, and how sure — never required.
+.zettelkasten-flow__proposal-reason-label,
+.zettelkasten-flow__proposal-confidence-label {
+    display: block;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    margin-block: var(--size-4-3) var(--size-4-1);
+}
+
+.zettelkasten-flow__proposal-reason-desc {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    margin-block: 0 var(--size-4-1);
+}
+
+.zettelkasten-flow__proposal-reason-input {
+    width: 100%;
+    resize: vertical;
+    min-height: 3rem;
+    font-family: var(--font-text);
+}
+
+.zettelkasten-flow__proposal-confidence {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-block-start: var(--size-4-2);
+
+    .zettelkasten-flow__proposal-confidence-label {
+        margin-block: 0;
+    }
+}

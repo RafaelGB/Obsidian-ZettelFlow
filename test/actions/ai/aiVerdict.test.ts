@@ -58,6 +58,22 @@ describe("agency-aware AI: the model proposes, the user commits (#337, §XII)", 
         ]);
     });
 
+    it("records the user's rationale and confidence when the verdict carries them (#361, D1)", async () => {
+        const { info } = fakeInfo();
+        const { recorded, dep } = deps({ verdict: "accepted", text: "keep", note: "the source is weak", confidence: "high" });
+
+        await runAiActionFromPrompt(info, el, "prompt", spec, dep);
+
+        expect(recorded[0]).toEqual({
+            path: NOTE,
+            subject: "challenge-idea",
+            origin: "ai",
+            verdict: "accepted",
+            note: "the source is weak",
+            confidence: "high",
+        });
+    });
+
     it("writes the completion when it is accepted", async () => {
         const { info, frontmatter } = fakeInfo();
         const { recorded, dep } = deps({ verdict: "accepted", text: "This idea assumes atomicity is always desirable." });

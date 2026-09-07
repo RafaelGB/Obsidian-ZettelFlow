@@ -22,6 +22,13 @@ export type JudgementOrigin = (typeof JUDGEMENT_ORIGINS)[number];
 export const JUDGEMENT_VERDICTS = ["accepted", "modified", "rejected", "confirmed", "challenged"] as const;
 export type JudgementVerdict = (typeof JUDGEMENT_VERDICTS)[number];
 
+/**
+ * How sure the user was when they ruled (#361, D1). Locale-free — the i18n layer maps these to text.
+ * Optional everywhere: a verdict given without one is the norm, never a gap to fill.
+ */
+export const JUDGEMENT_CONFIDENCES = ["low", "medium", "high"] as const;
+export type JudgementConfidence = (typeof JUDGEMENT_CONFIDENCES)[number];
+
 /** One recorded human decision about one idea. */
 export interface Judgement {
     /** When the verdict was given. */
@@ -38,6 +45,11 @@ export interface Judgement {
     verdict: JudgementVerdict;
     /** Optional short user remark. Omitted when blank. */
     note?: string;
+    /**
+     * Optional how-sure marker (#361, D1). Omitted when the user did not say. This is the only
+     * *interpretation* the record carries about the verdict itself, and it is never required.
+     */
+    confidence?: JudgementConfidence;
 }
 
 /** Keep at most this many judgements (drop oldest on overflow), like every other persisted list. */
@@ -45,6 +57,7 @@ export const DEFAULT_MAX_JUDGEMENTS = 500;
 
 const ORIGINS = new Set<string>(JUDGEMENT_ORIGINS);
 const VERDICTS = new Set<string>(JUDGEMENT_VERDICTS);
+const CONFIDENCES = new Set<string>(JUDGEMENT_CONFIDENCES);
 
 /** Whether an unknown value is a well-formed {@link Judgement}. Never throws. */
 export function isJudgement(value: unknown): value is Judgement {
@@ -61,7 +74,9 @@ export function isJudgement(value: unknown): value is Judgement {
         ORIGINS.has(candidate.origin) &&
         typeof candidate.verdict === "string" &&
         VERDICTS.has(candidate.verdict) &&
-        (candidate.note === undefined || typeof candidate.note === "string")
+        (candidate.note === undefined || typeof candidate.note === "string") &&
+        (candidate.confidence === undefined ||
+            (typeof candidate.confidence === "string" && CONFIDENCES.has(candidate.confidence)))
     );
 }
 
@@ -76,6 +91,7 @@ function normalize(entry: Judgement): Judgement {
         verdict: entry.verdict,
     };
     if (note) clean.note = note;
+    if (entry.confidence) clean.confidence = entry.confidence;
     return clean;
 }
 
@@ -112,6 +128,25 @@ export function recordJudgement(
     const maxLen = opts.maxLen ?? DEFAULT_MAX_JUDGEMENTS;
     const next = [...history, clean];
     return next.length > maxLen ? next.slice(next.length - maxLen) : next;
+}
+
+/**
+ * Attach an optional rationale + confidence to a base record (#361, D1), **omitting each** when the note
+ * is blank or the confidence unset — so a bare verdict stays byte-identical to a pre-D1 one. The one home
+ * for the "reasoning rides along only when the user gave it" rule, shared by the AI proposal path and the
+ * Cultivate friction path so the two cannot drift. Pure; never mutates `base`.
+ */
+export function withReasoning<T extends object>(
+    base: T,
+    note: string | undefined,
+    confidence: JudgementConfidence | undefined
+): T & { note?: string; confidence?: JudgementConfidence } {
+    const trimmed = note?.trim();
+    return {
+        ...base,
+        ...(trimmed ? { note: trimmed } : {}),
+        ...(confidence ? { confidence } : {}),
+    };
 }
 
 /**

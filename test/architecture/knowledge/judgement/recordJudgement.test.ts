@@ -3,6 +3,7 @@ import {
     DEFAULT_MAX_JUDGEMENTS,
     recordJudgement,
     sanitizeJudgementLog,
+    withReasoning,
     type Judgement,
 } from "architecture/knowledge/judgement";
 
@@ -97,6 +98,22 @@ describe("recordJudgement (#336, FR-6)", () => {
         const [recorded] = recordJudgement([], entry({ note: "the counterexample stands" }));
         expect(recorded.note).toBe("the counterexample stands");
     });
+
+    it("keeps a valid confidence (#361, D1)", () => {
+        const [recorded] = recordJudgement([], entry({ confidence: "high" }));
+        expect(recorded.confidence).toBe("high");
+    });
+
+    it("omits the confidence field entirely when none is given — a legacy-shaped record (#361, D1)", () => {
+        const [recorded] = recordJudgement([], entry());
+        expect("confidence" in recorded).toBe(false);
+    });
+
+    it("returns the same reference for a confidence outside the closed set (#361, D1)", () => {
+        const history = [entry()];
+        const bogus = entry({ confidence: "certain" as Judgement["confidence"] });
+        expect(recordJudgement(history, bogus)).toBe(history);
+    });
 });
 
 describe("sanitizeJudgementLog (#336, AC-5)", () => {
@@ -112,7 +129,47 @@ describe("sanitizeJudgementLog (#336, AC-5)", () => {
         expect(sanitizeJudgementLog(raw)).toEqual([entry(), entry({ at: T0 + 1, verdict: "accepted" })]);
     });
 
+    it("round-trips a rich record (confidence + note) through record → sanitize unchanged (#361, D1)", () => {
+        const recorded = recordJudgement([], entry({ confidence: "high", note: "the counterexample stands" }));
+        expect(sanitizeJudgementLog(recorded)).toEqual(recorded);
+    });
+
+    it("still validates a legacy entry that has neither note nor confidence (#361, D1)", () => {
+        expect(sanitizeJudgementLog([entry()])).toEqual([entry()]);
+    });
+
     it("never throws", () => {
         expect(() => sanitizeJudgementLog([{ at: "soon" }, Symbol("x")])).not.toThrow();
+    });
+});
+
+describe("withReasoning (#361, D1) — the one home for optional rationale + confidence", () => {
+    const base = { path: "ideas/atomicity.md", subject: "connect", origin: "derived", verdict: "confirmed" } as const;
+
+    it("attaches a trimmed note when it has text", () => {
+        expect(withReasoning(base, "  because the source is weak  ", undefined)).toEqual({
+            ...base,
+            note: "because the source is weak",
+        });
+    });
+
+    it("omits the note when it is blank or undefined", () => {
+        expect(withReasoning(base, "   ", undefined)).toEqual(base);
+        expect(withReasoning(base, undefined, undefined)).toEqual(base);
+    });
+
+    it("attaches confidence when set and omits it when undefined", () => {
+        expect(withReasoning(base, undefined, "high")).toEqual({ ...base, confidence: "high" });
+        expect(withReasoning(base, undefined, undefined)).toEqual(base);
+    });
+
+    it("attaches both together", () => {
+        expect(withReasoning(base, "why", "low")).toEqual({ ...base, note: "why", confidence: "low" });
+    });
+
+    it("never mutates the base record", () => {
+        const copy = { ...base };
+        withReasoning(copy, "x", "high");
+        expect(copy).toEqual(base);
     });
 });

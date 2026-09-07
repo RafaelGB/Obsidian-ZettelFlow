@@ -3,7 +3,7 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { Notice } from "obsidian";
 import { KnowledgeActionElement } from "zettelkasten";
-import { NextMoveToken, suggestNextMoves } from "./nextMoveLogic";
+import { NextMoveToken, suggestNextMoves } from "architecture/knowledge/state/nextMoveLogic";
 import {
     makeKnowledgeSettings,
     readyModel,

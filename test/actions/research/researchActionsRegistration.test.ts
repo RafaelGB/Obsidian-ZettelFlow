@@ -16,8 +16,8 @@ const ACTION_FILES = [
 
 const LOGIC_FILES = [
     "src/actions/extractClaims/extractClaimsLogic.ts",
-    "src/actions/compareClaims/compareClaimsLogic.ts",
-    "src/actions/findSources/findSourcesLogic.ts",
+    "src/architecture/knowledge/query/compareClaimsLogic.ts",
+    "src/architecture/knowledge/query/findSourcesLogic.ts",
     "src/actions/attachSource/attachSourceLogic.ts",
 ];
 

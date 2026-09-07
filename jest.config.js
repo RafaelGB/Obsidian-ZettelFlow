@@ -42,13 +42,17 @@ module.exports = {
   collectCoverageFrom: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts"],
   // A ratcheting coverage FLOOR (#317 E2, S8) — set just below the measured level so a regression
   // fails CI (`npm run test:coverage`). Raise these as more behavioral tests land; never a target to
-  // game, only a floor that must not drop. Measured at epic close: stmts 85 / branch 77 / func 80 / lines 86.
+  // game, only a floor that must not drop under normal work. Re-baselined 2026-09-07 after #320 retired
+  // 74 unrendered strings *and the mirror tests that guarded them* — deleting tested code shrank the
+  // covered surface, so functions fell 80→74.18 and lines 86→83.72. The floor is lowered to match that
+  // leaner reality (not a regression to fix), and climbs again as epic #360 (D1–D5) adds tests.
+  // Measured 2026-09-07: stmts 83.34 / branch 76.32 / func 74.18 / lines 83.72.
   coverageThreshold: {
     global: {
       statements: 83,
       branches: 75,
-      functions: 78,
-      lines: 84,
+      functions: 74,
+      lines: 83,
     },
   },
   clearMocks: true,

@@ -6,9 +6,10 @@ and other tooling are just files that happen to live next to your thinking. **Kn
 
 ## What it does
 
-Add path prefixes under **Settings → ZettelFlow → Knowledge scope → Excluded paths** (one per line).
-Every note whose path is under one of them **never enters the index** — so it drops out of *every*
-mechanism at once:
+Add folders under **Settings → ZettelFlow → Knowledge scope → Excluded folders**. It is a small CRUD:
+each excluded folder is one row with a remove button, and you add a new one from a **folder
+autosuggest** (add/remove, no free-text list). Every note whose path is under an excluded folder
+**never enters the index** — so it drops out of *every* mechanism at once:
 
 - the **3D graph** and the living knowledge map
 - **slip-box health**, knowledge debt and balance
@@ -21,13 +22,17 @@ needs to know about the setting.
 
 ## How matching works
 
-Each line is a **folder-boundary "starts with"** match. `templates` excludes `templates/note.md`,
+Each entry is a **folder-boundary "starts with"** match. `templates` excludes `templates/note.md`,
 `templates/sub/deep.md` and the note `templates.md` — but **not** `templates-other/…`. Leading/
-trailing slashes and back-slashes are normalised, blanks and duplicates dropped. Editing the list
-rebuilds the index automatically.
+trailing slashes and back-slashes are normalised, values are **Unicode-normalised to NFC**, and blanks
+and duplicates dropped. Adding or removing a folder rebuilds the index **and refreshes any open Home /
+Cultivate surface immediately**.
 
-Suggested entries: your template folder, and any other tooling you don't consider part of your
-slip-box.
+Because you add folders from the autosuggest, the stored value is the **exact** `folder.path` Obsidian
+uses — which is what fixes a class of silent no-ops (#374): a folder named with emoji, spaces or
+accents typed into a free-text box rarely byte-matches the real path (variation selectors, ZWJ,
+Unicode form), so the old open-list exclusion matched nothing. Picking the folder removes that gap
+entirely; the NFC step covers any remaining accented-name mismatch.
 
 ## System folders are excluded automatically
 

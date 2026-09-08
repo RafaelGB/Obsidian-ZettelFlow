@@ -5,6 +5,7 @@ import { LifecycleStateSchema } from "architecture/knowledge/lifecycle";
 import { SemanticRelationSchema } from "architecture/knowledge/relations";
 import { ClaimSourceSchema } from "architecture/knowledge/claims";
 import * as Q from "architecture/knowledge/query/queries";
+import { cultivationQueue } from "architecture/knowledge/state";
 import { TFile } from "obsidian";
 
 function file(path: string): TFile {
@@ -117,6 +118,31 @@ describe("KnowledgeIndex service", () => {
         expect(index.getModel().get("templates/new.md")).toBeUndefined();
 
         // Reset the own-plugin stub so later tests exclude nothing.
+        __setMockObsidianApi({ ownPlugin: { registerEvent: () => undefined, register: () => undefined } });
+    });
+
+    it("keeps an excluded emoji/spaced folder out of the model AND the cultivate queue (#374)", () => {
+        wire([file("ideas/a.md"), file("🧮 Bases/table.md"), file("📔 Mi diario/2026.md")]);
+        __setMockObsidianApi({
+            ownPlugin: {
+                registerEvent: () => undefined,
+                register: () => undefined,
+                settings: { excludedPaths: ["🧮 Bases", "📔 Mi diario"] },
+            },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.build();
+        const model = index.getModel();
+
+        expect(model.get("ideas/a.md")).toBeDefined();
+        expect(model.get("🧮 Bases/table.md")).toBeUndefined();
+        expect(model.get("📔 Mi diario/2026.md")).toBeUndefined();
+        // The user's report: excluded folders must not reach Cultivate either. cultivationQueue reads
+        // model.all(), so an out-of-scope note cannot appear in it.
+        const queue = cultivationQueue(model, new Set<string>());
+        expect(queue).not.toContain("🧮 Bases/table.md");
+        expect(queue).not.toContain("📔 Mi diario/2026.md");
+
         __setMockObsidianApi({ ownPlugin: { registerEvent: () => undefined, register: () => undefined } });
     });
 

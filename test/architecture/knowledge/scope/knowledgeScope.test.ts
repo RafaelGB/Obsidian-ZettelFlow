@@ -55,4 +55,19 @@ describe("knowledgeScope (#311)", () => {
         expect(parsed).toEqual(["templates", "config"]);
         expect(excludedPathsToText(parsed)).toBe("templates\nconfig");
     });
+
+    it("matches across Unicode normalization forms, and on emoji/spaced folders (#374)", () => {
+        // The classic silent no-op: a prefix stored in one Unicode form (NFD) never matched an
+        // equal-looking path in another (NFC). Both are normalised to NFC now, so they match.
+        const prefixNFD = "Café".normalize("NFD");
+        const pathNFC = "Café/nota.md".normalize("NFC");
+        expect(prefixNFD).not.toBe("Café".normalize("NFC")); // the two forms really differ
+        expect(isPathExcluded(pathNFC, [prefixNFD])).toBe(true);
+        expect(normalizeExcludedPaths([prefixNFD])).toEqual(["Café".normalize("NFC")]);
+
+        // Exact emoji/space folder paths — what the folder picker stores — always match.
+        expect(isPathExcluded("🧮 Bases/x.md", ["🧮 Bases"])).toBe(true);
+        expect(isPathExcluded("🧑🏼‍💻 Mis proyectos/nota.md", ["🧑🏼‍💻 Mis proyectos"])).toBe(true);
+        expect(isPathExcluded("📔 Mi diario/2026.md", ["📔 Mi diario"])).toBe(true);
+    });
 });

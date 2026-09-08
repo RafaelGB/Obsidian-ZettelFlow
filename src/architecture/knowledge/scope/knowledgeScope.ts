@@ -5,12 +5,16 @@
  * discovery, cultivate, home — because they never become an idea. One filter, by subtraction. Pure.
  */
 
-/** Normalise raw prefixes: unify slashes, trim, strip leading/trailing `/`, drop empties, dedupe. */
+/**
+ * Normalise raw prefixes: unify slashes, trim, strip leading/trailing `/`, **Unicode-normalise to NFC**,
+ * drop empties, dedupe. The NFC step (#374) is what makes an accented or emoji folder name match: a value
+ * typed or pasted in one Unicode form (NFD) otherwise never equals the same-looking vault path in another.
+ */
 export function normalizeExcludedPaths(raw: readonly string[]): string[] {
     const seen = new Set<string>();
     const out: string[] = [];
     for (const entry of raw) {
-        const p = entry.replace(/\\/g, "/").trim().replace(/^\/+/, "").replace(/\/+$/, "");
+        const p = entry.replace(/\\/g, "/").trim().replace(/^\/+/, "").replace(/\/+$/, "").normalize("NFC");
         if (p.length === 0 || seen.has(p)) continue;
         seen.add(p);
         out.push(p);
@@ -24,7 +28,7 @@ export function normalizeExcludedPaths(raw: readonly string[]): string[] {
  * normalised here, so callers can pass raw settings values.
  */
 export function isPathExcluded(path: string, prefixes: readonly string[]): boolean {
-    const normalizedPath = path.replace(/\\/g, "/").replace(/^\/+/, "");
+    const normalizedPath = path.replace(/\\/g, "/").replace(/^\/+/, "").normalize("NFC");
     for (const prefix of normalizeExcludedPaths(prefixes)) {
         if (normalizedPath === prefix || normalizedPath === `${prefix}.md` || normalizedPath.startsWith(`${prefix}/`)) {
             return true;

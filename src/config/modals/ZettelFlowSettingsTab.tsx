@@ -1,5 +1,5 @@
 import ZettelFlow from "main";
-import { moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { App, moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
@@ -11,7 +11,8 @@ import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager, writeTypeDeclarations } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
-import { parseExcludedPathsInput, excludedPathsToText } from "architecture/knowledge/scope/knowledgeScope";
+import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { ModeHostView } from "architecture/components/core/surface/ModeHostView";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -38,6 +39,18 @@ const moment = obsidianMoment as unknown as typeof MomentFn;
 let lifecycleRebuildTimer: number | undefined;
 // Debounce the index rebuild when the user edits the excluded-paths list (#311).
 let scopeRebuildTimer: number | undefined;
+
+/**
+ * Refresh any open knowledge surface (Home / Cultivate / Timeline / Health, and the Graph) after a scope
+ * change (#374), so an exclusion takes effect on-screen immediately — not only on the next vault event.
+ */
+function refreshKnowledgeSurfaces(app: App): void {
+    for (const type of ["zettelflow-home", "zettelflow-graph"]) {
+        app.workspace.getLeavesOfType(type).forEach((leaf) => {
+            if (leaf.view instanceof ModeHostView) leaf.view.refresh();
+        });
+    }
+}
 
 // Documentation base + per-feature pages surfaced from the Zettelkasten toolkit settings group.
 const DOCS_BASE = "https://rafaelgb.github.io/Obsidian-ZettelFlow/";
@@ -279,21 +292,74 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         name: t("settings_excluded_paths_name"),
                         desc: t("settings_excluded_paths_desc"),
                         render: (setting) => {
-                            setting.addTextArea((area) => {
-                                area
-                                    .setPlaceholder(t("settings_excluded_paths_placeholder"))
-                                    .setValue(excludedPathsToText(plugin.settings.excludedPaths ?? []))
-                                    .onChange(async (value) => {
-                                        plugin.settings.excludedPaths = parseExcludedPathsInput(value);
-                                        await plugin.saveSettings();
-                                        if (scopeRebuildTimer) window.clearTimeout(scopeRebuildTimer);
-                                        // Rebuild the index once editing settles, so the new scope takes effect everywhere.
-                                        scopeRebuildTimer = window.setTimeout(() => {
-                                            KnowledgeIndex.getInstance().build();
-                                        }, 600);
+                            // A folder-picker CRUD (#374): each row is one excluded folder, added from a
+                            // vault-folder autosuggest so the stored value is the *exact* `folder.path` —
+                            // no typo, case or emoji-encoding mismatch can silently make an exclusion no-op.
+                            setting.setClass(c("excluded-paths-setting-item"));
+                            const list = setting.settingEl.createDiv({ cls: c("excluded-paths-list") });
+                            const draft = { value: "" };
+
+                            const apply = async () => {
+                                await plugin.saveSettings();
+                                if (scopeRebuildTimer) window.clearTimeout(scopeRebuildTimer);
+                                // Reindex once editing settles, then refresh open surfaces so the change shows now.
+                                scopeRebuildTimer = window.setTimeout(() => {
+                                    KnowledgeIndex.getInstance().build();
+                                    refreshKnowledgeSurfaces(plugin.app);
+                                }, 300);
+                            };
+
+                            const renderRows = () => {
+                                list.empty();
+                                const paths = plugin.settings.excludedPaths ?? [];
+                                if (paths.length === 0) {
+                                    list.createDiv({
+                                        cls: c("excluded-paths-empty"),
+                                        text: t("settings_excluded_paths_empty"),
                                     });
-                                area.inputEl.rows = 4;
-                            });
+                                }
+                                for (const path of paths) {
+                                    new Setting(list)
+                                        .setClass(c("excluded-paths-row"))
+                                        .setName(path)
+                                        .addExtraButton((btn) =>
+                                            btn
+                                                .setIcon("trash")
+                                                .setTooltip(t("settings_excluded_paths_remove"))
+                                                .onClick(async () => {
+                                                    plugin.settings.excludedPaths = (plugin.settings.excludedPaths ?? []).filter(
+                                                        (p) => p !== path
+                                                    );
+                                                    await apply();
+                                                    renderRows();
+                                                })
+                                        );
+                                }
+                                new Setting(list)
+                                    .setClass(c("excluded-paths-add"))
+                                    .addSearch((cb) => {
+                                        new FolderSuggest(cb.inputEl);
+                                        cb.setPlaceholder(t("settings_excluded_paths_placeholder"))
+                                            .setValue(draft.value)
+                                            .onChange((value) => (draft.value = value));
+                                    })
+                                    .addButton((btn) =>
+                                        btn
+                                            .setButtonText(t("settings_excluded_paths_add"))
+                                            .setCta()
+                                            .onClick(async () => {
+                                                if (draft.value.trim().length === 0) return;
+                                                plugin.settings.excludedPaths = normalizeExcludedPaths([
+                                                    ...(plugin.settings.excludedPaths ?? []),
+                                                    draft.value,
+                                                ]);
+                                                draft.value = "";
+                                                await apply();
+                                                renderRows();
+                                            })
+                                    );
+                            };
+                            renderRows();
                         },
                     },
                 ],

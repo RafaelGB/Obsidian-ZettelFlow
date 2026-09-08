@@ -8,3 +8,41 @@
 .zettelkasten-flow__toolkit-group .setting-item-control {
     gap: 0.4rem;
 }
+
+// Excluded-folders CRUD (#374): one row per excluded folder, a folder-picker add row, clear separation.
+.zettelkasten-flow__excluded-paths-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-block-start: 0.5rem;
+    width: 100%;
+}
+
+.zettelkasten-flow__excluded-paths-empty {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    padding-block: 0.25rem;
+}
+
+.zettelkasten-flow__excluded-paths-row {
+    border-top: none;
+    padding-block: 0.35rem;
+    border-radius: var(--radius-s);
+    background: var(--background-secondary);
+    padding-inline: 0.5rem;
+
+    .setting-item-name {
+        font-family: var(--font-monospace);
+        font-size: var(--font-ui-smaller);
+    }
+}
+
+.zettelkasten-flow__excluded-paths-add {
+    border-top: none;
+    padding-block-start: 0.5rem;
+    gap: 0.4rem;
+
+    .setting-item-control {
+        gap: 0.4rem;
+    }
+}

@@ -39,6 +39,12 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(RENDERER).toMatch(/metadataCache\.on\("resolved"/);
     });
 
+    it("offers result lenses — a list and a table (#323 G3)", () => {
+        expect(RENDERER).toContain("ask-graph-lens");
+        expect(RENDERER).toContain("renderTable(");
+        expect(RENDERER).toMatch(/ask_graph_col_/);
+    });
+
     it("is read-only — never imports a write path or mutates the vault", () => {
         expect(RENDERER).not.toMatch(/FileService|FrontmatterService|CultivationService/);
         expect(RENDERER).not.toMatch(/\.(modify|createFile|process[Ff]rontMatter)\(/);

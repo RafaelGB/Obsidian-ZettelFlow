@@ -79,3 +79,38 @@
     cursor: pointer;
     font-size: var(--font-ui-smaller);
 }
+
+// Result lenses (#323, G3): the list/table toggle and the table lens.
+.zettelkasten-flow__ask-graph-lenses {
+    display: flex;
+    gap: 0.3rem;
+    margin-block: 0.4rem;
+}
+
+.zettelkasten-flow__ask-graph-lens {
+    font-size: var(--font-ui-smaller);
+    padding: 0.15rem 0.5rem;
+}
+
+.zettelkasten-flow__ask-graph-lens--active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.zettelkasten-flow__ask-graph-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-ui-smaller);
+
+    th,
+    td {
+        text-align: left;
+        padding: 0.2rem 0.4rem;
+        border-bottom: 1px solid var(--background-modifier-border);
+    }
+
+    th {
+        color: var(--text-muted);
+        font-weight: var(--font-semibold);
+    }
+}

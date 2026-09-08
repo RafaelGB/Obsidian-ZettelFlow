@@ -16,7 +16,7 @@ const LOCALE_DIR = join("architecture", "lang", "locale");
  *
  * Adding a prefix here is how you *keep* a key; it should be a deliberate, rare act.
  */
-const COMPOSED_PREFIXES = ["condition_op_", "cultivate_move_", "system_difficulty_", "confidence_", "judgement_verdict_"];
+const COMPOSED_PREFIXES = ["condition_op_", "cultivate_move_", "system_difficulty_", "confidence_", "judgement_verdict_", "ask_graph_lens_", "ask_graph_col_"];
 
 function sourceFiles(dir: string): string[] {
     const out: string[] = [];

@@ -63,7 +63,8 @@ State barrel. It reads only the `KnowledgeModel` — offline, read-only, and it 
 ## Scope
 
 This ships the deterministic engine, the extended predicate set (incl. `incoming:` and `folder:`, #323 G1)
-and a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2). Still tracked
-under #323: result lenses (list/table, [reasoning paths](concept-navigation.md#reasoning-paths)), richer
-saved-query management (name / reorder / pin-to-Home) and a guided term builder. Embeddings / RAG / vector
+a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2) and **result
+lenses** — a plain list or a **table** (note · state · degree · sources), #323 G3. Still tracked under
+#323: a [reasoning-paths](concept-navigation.md#reasoning-paths) lens, richer saved-query management
+(name / reorder / pin-to-Home) and a guided term builder. Embeddings / RAG / vector
 search are intentionally out of scope (the manifesto: a query stays deterministic and offline).

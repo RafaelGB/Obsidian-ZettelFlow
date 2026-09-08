@@ -36,6 +36,13 @@ export class KnowledgeIndex {
     private readonly model = new KnowledgeModel();
     private schemas: KnowledgeSchemas = {};
     private currentStatus: KnowledgeIndexStatus = "idle";
+    /**
+     * The live settings host, injected at {@link bootstrap} (#374). Scope is read from **here** rather
+     * than `ObsidianApi.getOwnPlugin()`, because `app.plugins.getPlugin(id)` can return `undefined` while
+     * the plugin is still enabling/reloading — which made `excludedPaths()` silently return `[]` and every
+     * exclusion a no-op (notes from excluded folders kept showing up in Cultivate and everywhere else).
+     */
+    private settingsHost: { settings: ScopeSettings } | null = null;
 
     private constructor() {
         // singleton
@@ -67,9 +74,19 @@ export class KnowledgeIndex {
      * own managed system folders (flows, hook flows, JS library), which are auto-excluded so system notes
      * are never treated as knowledge.
      */
+    /**
+     * Inject the settings host (#374). Called by {@link bootstrap} with the live plugin; also lets scope
+     * be exercised in a unit test without a running app.
+     */
+    public useSettingsHost(host: { settings: ScopeSettings } | null): void {
+        this.settingsHost = host;
+    }
+
     private excludedPaths(): readonly string[] {
         try {
-            const settings = ObsidianApi.getOwnPlugin()?.settings as ScopeSettings | undefined;
+            // Prefer the injected host; fall back to the global lookup only when the index was never
+            // bootstrapped (e.g. an isolated test). The injected reference is what makes this reliable.
+            const settings: ScopeSettings | undefined = this.settingsHost?.settings ?? ObsidianApi.getOwnPlugin()?.settings;
             return settings ? scopeExcludedPaths(settings) : [];
         } catch {
             return []; // before settings are wired (or in tests), nothing is excluded
@@ -132,6 +149,8 @@ export class KnowledgeIndex {
      * registered through `plugin.registerEvent`, so they are removed automatically on unload.
      */
     public bootstrap(plugin: Plugin, opts: KnowledgeIndexBootstrapOptions = {}): void {
+        // Read scope from the plugin we are handed, not a global registry lookup that isn't ready yet (#374).
+        this.useSettingsHost(plugin as unknown as { settings: ScopeSettings });
         const vault = ObsidianApi.vault();
         plugin.registerEvent(vault.on("create", (file) => this.onCreate(file)));
         plugin.registerEvent(vault.on("modify", (file) => this.onModify(file)));

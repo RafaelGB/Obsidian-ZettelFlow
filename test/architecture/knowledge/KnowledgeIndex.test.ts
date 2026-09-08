@@ -146,6 +146,25 @@ describe("KnowledgeIndex service", () => {
         __setMockObsidianApi({ ownPlugin: { registerEvent: () => undefined, register: () => undefined } });
     });
 
+    it("reads scope from the injected host even when the global plugin lookup is empty (#374)", () => {
+        // The runtime bug: during enable/reload, app.plugins.getPlugin(id) returns a plugin with no scope
+        // settings, so excludedPaths() used to fall back to [] and nothing was excluded. The host wired at
+        // bootstrap fixes it — here getOwnPlugin has no excludedPaths, but the injected host does.
+        wire([file("ideas/a.md"), file("🧮 Bases/x.md")]);
+        __setMockObsidianApi({
+            ownPlugin: { registerEvent: () => undefined, register: () => undefined, settings: {} },
+        });
+        const index = KnowledgeIndex.getInstance();
+        index.useSettingsHost({ settings: { excludedPaths: ["🧮 Bases"] } });
+        index.build();
+
+        expect(index.getModel().get("ideas/a.md")).toBeDefined();
+        expect(index.getModel().get("🧮 Bases/x.md")).toBeUndefined();
+
+        index.useSettingsHost(null);
+        __setMockObsidianApi({ ownPlugin: { registerEvent: () => undefined, register: () => undefined } });
+    });
+
     it("ignores non-markdown files", () => {
         wire([]);
         const index = KnowledgeIndex.getInstance();

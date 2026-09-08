@@ -6,7 +6,9 @@ the manifesto draws: *"show me every idea that contradicts this"* is a question 
 thinking**, and it is exactly what a Dataview query cannot answer. It is **deterministic** — a query is a
 set of predicates, never a natural-language prompt, and AI is never involved.
 
-Open it with the **Ask your graph** command (or the ribbon → *Ask your graph*).
+Open it with the **Ask your graph** command (or the ribbon menu). It opens as a **persistent tab** in
+the Discovery surface — the *Ask your graph* mode — so a query and its results stay open beside the note
+you're editing and **recompute live** as the vault changes.
 
 ## The query language
 
@@ -50,8 +52,8 @@ runGraphQuery(model, source, now)                    (pure, Obsidian-free, unit-
   → { matches: Idea[], error? }                       DNF of predicate terms; deterministic sort
   parses: state / relation[:target] / incoming[:source] / folder / degree cmp / hub / orphan / leaf / unsourced / older-/newer-than / about / !neg
 
-AskGraphModal (command: ask-your-graph)
-  reads the KnowledgeIndex model → runGraphQuery(query)
+AskGraphRenderer — the "Ask your graph" mode of the Discovery surface (command: ask-your-graph)
+  reads the KnowledgeIndex model → runGraphQuery(query); recomputes live on vault change
   examples + predicate help + saved queries (settings.savedGraphQueries)
 ```
 
@@ -60,7 +62,8 @@ State barrel. It reads only the `KnowledgeModel` — offline, read-only, and it 
 
 ## Scope
 
-This ships the deterministic query engine and a run-and-save surface. A dedicated **Ask-your-graph mode**
-(a persistent surface tab, result lenses including [reasoning paths](concept-navigation.md#reasoning-paths),
-richer saved-query management, `concept:` predicates) is tracked as a follow-up epic (#323). Embeddings / RAG /
-vector search are intentionally out of scope (the manifesto: a query stays deterministic and offline).
+This ships the deterministic engine, the extended predicate set (incl. `incoming:` and `folder:`, #323 G1)
+and a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2). Still tracked
+under #323: result lenses (list/table, [reasoning paths](concept-navigation.md#reasoning-paths)), richer
+saved-query management (name / reorder / pin-to-Home) and a guided term builder. Embeddings / RAG / vector
+search are intentionally out of scope (the manifesto: a query stays deterministic and offline).

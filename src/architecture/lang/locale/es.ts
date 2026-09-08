@@ -602,6 +602,7 @@ export default {
     surface_mode_forgotten: 'Olvidadas',
     surface_mode_questions: 'Preguntas',
     surface_mode_challenges: 'Retos',
+    surface_mode_ask: 'Pregunta al grafo',
     surface_mode_3d: '3D',
     graph3d_state_indexing: 'Construyendo el grafo 3D…',
     graph3d_state_empty: 'Aún no hay notas que mostrar.',

@@ -51,6 +51,31 @@ describe("runGraphQuery (#318 S3)", () => {
         expect(notOrphan).not.toContain("alpha.md"); // alpha is an orphan
     });
 
+    it("queries by incoming typed relation — the mirror of relation: (#323)", () => {
+        expect(paths("incoming:supports")).toEqual(["beta.md"]); // alpha supports beta
+        expect(paths("incoming:contradicts")).toEqual(["gamma.md"]); // alpha contradicts gamma
+        expect(paths("incoming:contradicts:alpha")).toEqual(["gamma.md"]);
+        expect(paths("incoming:contradicts:nope")).toEqual([]);
+        expect(runGraphQuery(model, "incoming:", NOW).error).toBeTruthy();
+    });
+
+    it("queries by folder, folder-boundary aware and Unicode/case tolerant (#323)", () => {
+        const m = buildModel([
+            idea("Projects/a.md", "permanent", []),
+            idea("Projects/sub/b.md", "permanent", []),
+            idea("Projects.md", "permanent", []), // a note named like the folder — NOT under it
+            idea("Projects-other/c.md", "permanent", []), // sibling sharing the prefix — NOT matched
+            idea("ideas/d.md", "permanent", []),
+            idea("🧮 Bases/e.md", "permanent", []),
+        ]);
+        const p = (q: string) => runGraphQuery(m, q, NOW).matches.map((x) => x.path).sort();
+        expect(p("folder:Projects")).toEqual(["Projects/a.md", "Projects/sub/b.md"]);
+        expect(p("folder:projects")).toEqual(["Projects/a.md", "Projects/sub/b.md"]); // case-insensitive
+        expect(p("folder:ideas")).toEqual(["ideas/d.md"]);
+        expect(p("folder:🧮 Bases")).toEqual(["🧮 Bases/e.md"]); // emoji/space folder
+        expect(runGraphQuery(m, "folder:", NOW).error).toBeTruthy();
+    });
+
     it("a blank query matches nothing (the surface asks for intent)", () => {
         expect(runGraphQuery(model, "   ", NOW)).toEqual({ matches: [] });
     });

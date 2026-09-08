@@ -19,6 +19,8 @@ A blank query matches nothing — the surface asks for intent.
 | `state:<value>` | notes in a lifecycle state, e.g. `state:permanent` |
 | `relation:<type>` | notes with an outgoing typed edge, e.g. `relation:contradicts` |
 | `relation:<type>:<target>` | …pointing at a note whose name/path contains `<target>`, e.g. `relation:supports:decisionA` |
+| `incoming:<type>[:<source>]` | notes with an **incoming** typed edge — the mirror of `relation:`, e.g. `incoming:contradicts` (notes *something contradicts*) |
+| `folder:<path>` | notes under a folder, e.g. `folder:Projects` (folder-boundary match, case- and Unicode-tolerant) |
 | `degree>=<n>` | connectivity — also `<=`, `>`, `<`, `=` (e.g. `degree>=5`) |
 | `hub` | a well-connected note (degree ≥ 5) |
 | `orphan` | nothing links to it (no incoming edges) |
@@ -46,7 +48,7 @@ A useful query can be **saved** (persisted in settings) and re-run from the *Sav
 ```
 runGraphQuery(model, source, now)                    (pure, Obsidian-free, unit-tested)
   → { matches: Idea[], error? }                       DNF of predicate terms; deterministic sort
-  parses: state / relation[:target] / degree cmp / hub / orphan / leaf / unsourced / older-/newer-than / about / !neg
+  parses: state / relation[:target] / incoming[:source] / folder / degree cmp / hub / orphan / leaf / unsourced / older-/newer-than / about / !neg
 
 AskGraphModal (command: ask-your-graph)
   reads the KnowledgeIndex model → runGraphQuery(query)

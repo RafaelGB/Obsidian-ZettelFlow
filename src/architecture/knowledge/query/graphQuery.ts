@@ -1,5 +1,6 @@
 import type { Idea } from "../model/Idea";
 import type { KnowledgeModel } from "../model/KnowledgeModel";
+import { incomingRelations } from "./queries";
 
 /**
  * **Ask your graph** (#318 S3) — a composable, *deterministic* query over the semantic graph and the
@@ -37,6 +38,7 @@ export const GRAPH_QUERY_EXAMPLES: readonly GraphQueryExample[] = [
     { label: "Hubs that contradict something", query: "hub AND relation:contradicts" },
     { label: "Ideas that support one note but contradict another", query: "relation:supports AND relation:contradicts" },
     { label: "Fleeting or still-unsourced ideas", query: "state:fleeting OR unsourced" },
+    { label: "Notes something contradicts", query: "incoming:contradicts" },
 ];
 
 /** A predicate token and what it selects — the referenceable vocabulary for the builder + the docs. */
@@ -48,6 +50,8 @@ export interface GraphQueryPredicate {
 export const GRAPH_QUERY_PREDICATES: readonly GraphQueryPredicate[] = [
     { token: "state:<value>", note: "notes in a lifecycle state, e.g. state:permanent" },
     { token: "relation:<type>[:<target>]", note: "notes with an outgoing typed edge, e.g. relation:supports or relation:contradicts:ideaA" },
+    { token: "incoming:<type>[:<source>]", note: "notes with an incoming typed edge — the mirror of relation:, e.g. incoming:contradicts (notes something contradicts)" },
+    { token: "folder:<path>", note: "notes under a folder, e.g. folder:Projects (folder-boundary match)" },
     { token: "degree>=<n>", note: "connectivity — also <=, >, <, = (e.g. degree>=5)" },
     { token: "hub", note: "a well-connected note (degree ≥ 5)" },
     { token: "orphan", note: "nothing links to it (no incoming edges)" },
@@ -130,6 +134,27 @@ function parseTerm(raw: string): { predicate?: Predicate; error?: string } {
             const n = Number(arg);
             if (!Number.isFinite(n)) return { error: "newer-than: needs a number of days" };
             return negate(negated, (idea, _m, now) => idea.created > 0 && now - idea.created <= n * DAY_MS);
+        }
+        case "incoming": {
+            if (!arg) return { error: "incoming: needs a type" };
+            const sep = arg.indexOf(":");
+            const type = (sep === -1 ? arg : arg.slice(0, sep)).toLowerCase();
+            const source = (sep === -1 ? "" : arg.slice(sep + 1).trim()).toLowerCase();
+            return negate(negated, (idea, model) =>
+                incomingRelations(model, idea.path).some(
+                    (r) =>
+                        r.type.toLowerCase() === type &&
+                        (source === "" || basename(r.from).toLowerCase().includes(source) || r.from.toLowerCase().includes(source))
+                )
+            );
+        }
+        case "folder": {
+            if (!arg) return { error: "folder: needs a path" };
+            const folder = arg.replace(/\\/g, "/").replace(/^\/+/, "").replace(/\/+$/, "").normalize("NFC").toLowerCase();
+            if (folder === "") return { error: "folder: needs a path" };
+            return negate(negated, (idea) =>
+                idea.path.replace(/\\/g, "/").normalize("NFC").toLowerCase().startsWith(`${folder}/`)
+            );
         }
         case "unsourced":
             return negate(negated, (idea) => idea.claims.length > 0 && !idea.maturitySignals.hasSources);

@@ -49,6 +49,7 @@ export const SURFACES: readonly Surface[] = [
             { id: "forgotten", sourceView: "zettelflow-resurface", labelKey: "surface_mode_forgotten" },
             { id: "questions", sourceView: "zettelflow-open-questions", labelKey: "surface_mode_questions" },
             { id: "challenges", sourceView: "zettelflow-evidence-map", labelKey: "surface_mode_challenges" },
+            { id: "ask", labelKey: "surface_mode_ask" },
         ],
     },
     {

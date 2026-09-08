@@ -4,6 +4,7 @@ import { DiscoveriesRenderer } from "architecture/components/core/discoveries/Di
 import { ResurfaceRenderer } from "architecture/components/core/resurface/ResurfaceRenderer";
 import { OpenQuestionsRenderer } from "architecture/components/core/openQuestions/OpenQuestionsRenderer";
 import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/EvidenceMapRenderer";
+import { AskGraphRenderer } from "architecture/components/core/askGraph/AskGraphRenderer";
 
 /**
  * The **Discovery** surface (#272) — one destination for finding what to explore next, with modes:
@@ -27,6 +28,8 @@ export class DiscoverySurfaceView extends ModeHostView {
                 return new OpenQuestionsRenderer(container, this.app);
             case "challenges":
                 return new EvidenceMapRenderer(container, this.app);
+            case "ask":
+                return new AskGraphRenderer(container, this.app);
             case "connections":
             default:
                 return new DiscoveriesRenderer(container, this.app);

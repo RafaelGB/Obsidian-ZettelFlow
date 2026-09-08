@@ -52,7 +52,11 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             window.clearTimeout(this.debounceTimer);
             this.debounceTimer = window.setTimeout(() => this.recompute(), DEBOUNCE_MS);
         };
+        // Continuous discovery (#365, D5): every vault change re-runs the heuristic recommendations and
+        // suggested connections — a note you just saved can surface a connection before you look for it.
+        // `create` is explicit so a brand-new note triggers a pass without waiting on metadata resolution.
         this.registerEvent(this.app.metadataCache.on("resolved", debounced));
+        this.registerEvent(this.app.vault.on("create", debounced));
         this.registerEvent(this.app.vault.on("rename", debounced));
         this.registerEvent(this.app.vault.on("delete", debounced));
     }
@@ -70,7 +74,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const counts = DevelopmentJournal.getInstance().dailyCounts();
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
-            this.recommendations = topRecommendations(model, undefined, JudgementLog.getInstance().entries());
+            this.recommendations = topRecommendations(model, undefined, JudgementLog.getInstance().entries());
             this.cultivateCount = readyToCultivate(model);
             this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
             this.state = model.size() === 0 ? "empty" : "ready";

@@ -645,6 +645,8 @@ export default {
     reasoning_paths_intro: '{0} lines of reasoning start here — follow one to see how the argument builds.',
     reasoning_paths_indexing: 'Building the knowledge model…',
     reasoning_paths_empty: 'No argument-forward chains leave this note yet. Link an idea it supports, expands, exemplifies or implements.',
+    reasoning_paths_extend_title: 'Extend the argument',
+    reasoning_paths_extend_intro: 'The next link is yours to choose — a reason, a counter, an example or a response. These related notes are candidates; add the one the argument needs.',
     reasoning_paths_rel_supports: 'supports',
     reasoning_paths_rel_expands: 'expands',
     reasoning_paths_rel_example: 'example',

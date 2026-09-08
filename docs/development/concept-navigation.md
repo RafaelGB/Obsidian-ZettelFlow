@@ -44,6 +44,16 @@ that lists every argument chain leaving the note, each relation labelled (`suppo
 every note clickable to open it. The lens only reads the model through the Knowledge State barrel and
 never writes.
 
+### Extend the argument (#363, D3)
+
+The lens also **proposes the next link**. `proposeReasoningLinks(model, start)` ranks the notes most
+related to the active note by shared graph context (`rankRelatedScored`) that are **not already in its
+reasoning chain** — genuinely new branches to weigh. They appear under *Extend the argument* with the
+role vocabulary spelled out — a **reason** (`supports`), a **counter** (`contradicts`), an **example**
+(`example`) or a **response** (`supports`). Crucially this only *proposes*: which role a link plays, and
+whether to add it at all, stays your verdict ([constitution §XII](constitution.md)) — the lens still
+writes nothing, and you commit the link through the normal, judgement-gated relation flow.
+
 ## Out of scope (for now)
 
 Read-only navigation only — no graph-canvas rendering, no path pinning/bookmarking, and no configurable

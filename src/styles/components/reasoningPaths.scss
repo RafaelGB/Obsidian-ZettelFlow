@@ -52,3 +52,27 @@
         font-style: normal;
     }
 }
+
+// Extend the argument (#363, D3): proposed next links, read-only — the role is the user's to choose.
+.zettelkasten-flow__reasoning-paths-extend-title {
+    margin-block: var(--size-4-4) var(--size-4-1);
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__reasoning-paths-extend-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-block-end: var(--size-4-2);
+}
+
+.zettelkasten-flow__reasoning-paths-extend-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reasoning-paths-extend-item {
+    padding-inline-start: var(--size-4-2);
+    border-inline-start: 2px solid var(--background-modifier-border);
+}

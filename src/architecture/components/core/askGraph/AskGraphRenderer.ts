@@ -2,7 +2,7 @@ import { App } from "obsidian";
 import { c, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { runGraphQuery, GRAPH_QUERY_EXAMPLES, GRAPH_QUERY_PREDICATES } from "architecture/knowledge/state";
+import { runGraphQuery, GRAPH_QUERY_EXAMPLES, GRAPH_QUERY_PREDICATES, type GraphQueryResult } from "architecture/knowledge/state";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { addSavedQuery, removeSavedQuery } from "./savedQueries";
@@ -12,6 +12,11 @@ function basename(path: string): string {
 }
 
 const DEBOUNCE_MS = 400;
+
+/** The result lenses (#323, G3): the same match set as a plain list or a structured table. */
+const LENSES = ["list", "table"] as const;
+type ResultLens = (typeof LENSES)[number];
+type Matches = GraphQueryResult["matches"];
 
 /**
  * **Ask your graph** as a first-class **surface mode** (#323, promotes the #318 S3 modal): a persistent
@@ -27,6 +32,8 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private resultsEl: HTMLElement | null = null;
     private savedEl: HTMLElement | null = null;
     private debounceTimer: number | undefined;
+    private lens: ResultLens = "list";
+    private readonly lensButtons = new Map<ResultLens, HTMLElement>();
 
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
@@ -67,6 +74,19 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         const saveBtn = bar.createEl("button", { text: t("ask_graph_save"), cls: c("ask-graph-save") });
         this.registerDomEvent(saveBtn, "click", () => void this.save());
 
+        // Result lenses (#323, G3): the same matches as a list or a structured table.
+        const lensBar = root.createDiv({ cls: c("ask-graph-lenses") });
+        this.lensButtons.clear();
+        for (const lens of LENSES) {
+            const btn = lensBar.createEl("button", {
+                text: t(`ask_graph_lens_${lens}` as Parameters<typeof t>[0]),
+                cls: c("ask-graph-lens"),
+            });
+            btn.toggleClass(c("ask-graph-lens--active"), this.lens === lens);
+            this.registerDomEvent(btn, "click", () => this.setLens(lens));
+            this.lensButtons.set(lens, btn);
+        }
+
         this.statusEl = root.createDiv({ cls: c("ask-graph-status") });
         this.resultsEl = root.createDiv({ cls: c("ask-graph-results") });
         this.savedEl = root.createDiv({ cls: c("ask-graph-saved") });
@@ -80,6 +100,16 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.query = next;
         if (this.input) this.input.value = next;
         this.run();
+    }
+
+    private setLens(lens: ResultLens): void {
+        this.lens = lens;
+        for (const [id, btn] of this.lensButtons) btn.toggleClass(c("ask-graph-lens--active"), id === lens);
+        this.run();
+    }
+
+    private openNote(path: string): void {
+        void this.app.workspace.openLinkText(path, "", false);
     }
 
     private run(): void {
@@ -104,16 +134,42 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             return;
         }
         this.statusEl.textContent = t("ask_graph_result_count", String(result.matches.length));
-        for (const match of result.matches) {
+        if (this.lens === "table") this.renderTable(result.matches);
+        else this.renderList(result.matches);
+    }
+
+    /** The list lens: one row per match, opening in place (persistent — the tab stays open). */
+    private renderList(matches: Matches): void {
+        if (!this.resultsEl) return;
+        for (const match of matches) {
             const row = this.resultsEl.createDiv({ cls: c("ask-graph-result") });
             const name = row.createSpan({ cls: c("ask-graph-result-name"), text: basename(match.path) });
             name.setAttribute("title", match.path);
-            // Persistent: open the note in place, keep the query tab open (unlike the modal).
-            makeActivatable(name, () => void this.app.workspace.openLinkText(match.path, "", false));
+            makeActivatable(name, () => this.openNote(match.path));
             row.createSpan({
                 cls: c("ask-graph-result-meta"),
                 text: `${match.state} · ${match.maturitySignals.degree}`,
             });
+        }
+    }
+
+    /** The table lens (#323, G3): note · state · degree · sources, for scanning a result set structurally. */
+    private renderTable(matches: Matches): void {
+        if (!this.resultsEl) return;
+        const table = this.resultsEl.createEl("table", { cls: c("ask-graph-table") });
+        const headRow = table.createEl("thead").createEl("tr");
+        for (const col of ["note", "state", "degree", "sources"] as const) {
+            headRow.createEl("th", { text: t(`ask_graph_col_${col}` as Parameters<typeof t>[0]) });
+        }
+        const tbody = table.createEl("tbody");
+        for (const match of matches) {
+            const tr = tbody.createEl("tr", { cls: c("ask-graph-table-row") });
+            const name = tr.createEl("td").createSpan({ cls: c("ask-graph-result-name"), text: basename(match.path) });
+            name.setAttribute("title", match.path);
+            makeActivatable(name, () => this.openNote(match.path));
+            tr.createEl("td", { text: match.state });
+            tr.createEl("td", { text: String(match.maturitySignals.degree) });
+            tr.createEl("td", { text: match.maturitySignals.hasSources ? "✓" : "—" });
         }
     }
 

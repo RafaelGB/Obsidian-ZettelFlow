@@ -75,8 +75,34 @@
     gap: 0.5rem;
 }
 
+.zettelkasten-flow__ask-graph-saved-item {
+    justify-content: space-between;
+}
+
+// Richer saved queries (#323, G4): rename / reorder / pin-to-Home / delete controls per row.
+.zettelkasten-flow__ask-graph-saved-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.zettelkasten-flow__ask-graph-saved-rename,
+.zettelkasten-flow__ask-graph-saved-up,
+.zettelkasten-flow__ask-graph-saved-down,
+.zettelkasten-flow__ask-graph-saved-pin,
 .zettelkasten-flow__ask-graph-saved-delete {
     cursor: pointer;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__ask-graph-saved-pin--on {
+    color: var(--text-accent);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__ask-graph-saved-rename-input {
+    flex: 1;
+    font-family: var(--font-monospace);
     font-size: var(--font-ui-smaller);
 }
 

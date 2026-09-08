@@ -25,12 +25,20 @@ export async function activateSidebarView(app: App, viewType: string): Promise<v
  * Opens a ZettelFlow **surface** (#272) at an optional **mode**, or reveals+re-modes the existing
  * surface leaf. The mode is passed through the view state so the surface's `setState` switches to it —
  * this is how the retired `show-*` alias commands and dashboard jumps deep-link to a specific mode.
+ * `extraState` rides along in the same payload so a caller can deep-link mode-specific data — e.g. a
+ * Home pinned card opening *Ask your graph* pre-filled with its query (#323 G4).
  */
-export async function activateSurface(app: App, surfaceViewType: string, mode?: string): Promise<void> {
+export async function activateSurface(
+    app: App,
+    surfaceViewType: string,
+    mode?: string,
+    extraState?: Record<string, unknown>
+): Promise<void> {
     const { workspace } = app;
     const existing = workspace.getLeavesOfType(surfaceViewType);
     const leaf = existing.length > 0 ? existing[0] : workspace.getLeaf("tab");
     if (!leaf) return;
-    await leaf.setViewState({ type: surfaceViewType, active: true, state: mode ? { mode } : undefined });
+    const state = mode || extraState ? { ...(mode ? { mode } : {}), ...extraState } : undefined;
+    await leaf.setViewState({ type: surfaceViewType, active: true, state });
     void workspace.revealLeaf(leaf);
 }

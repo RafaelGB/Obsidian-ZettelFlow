@@ -63,8 +63,20 @@ State barrel. It reads only the `KnowledgeModel` — offline, read-only, and it 
 ## Scope
 
 This ships the deterministic engine, the extended predicate set (incl. `incoming:` and `folder:`, #323 G1)
-a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2) and **result
-lenses** — a plain list or a **table** (note · state · degree · sources), #323 G3. Still tracked under
-#323: a [reasoning-paths](concept-navigation.md#reasoning-paths) lens, richer saved-query management
-(name / reorder / pin-to-Home) and a guided term builder. Embeddings / RAG / vector
-search are intentionally out of scope (the manifesto: a query stays deterministic and offline).
+a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2), **result
+lenses** — a plain list or a **table** (note · state · degree · sources), #323 G3 — and **richer saved
+queries** (#323 G4): each saved query can be **named**, **reordered**, and **pinned to Home**, where it
+becomes a live *"N notes match …"* card that deep-links back into the query, pre-filled. Still tracked
+under #323: a [reasoning-paths](concept-navigation.md#reasoning-paths) lens and a guided term builder.
+Embeddings / RAG / vector search are intentionally out of scope (the manifesto: a query stays
+deterministic and offline).
+
+### Saved queries
+
+A useful query is **saved** from the query bar and re-run from the *Saved queries* list. Each saved
+query carries an optional **name** (rename inline), an **order** (move up / down), and a **pin** state.
+A pinned query surfaces on **Home** as a live count — mechanical output, no judgement written
+([constitution §XII](constitution.md)) — and clicking it reopens *Ask your graph* on that query. The
+list persists in `settings.savedGraphQueries` as `SavedGraphQuery` objects (`{ query, name?, pinned? }`);
+an install predating the enrichment stored bare strings, which migrate transparently on read
+(`normalizeSavedQueries`).

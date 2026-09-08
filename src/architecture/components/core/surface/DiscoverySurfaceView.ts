@@ -20,7 +20,7 @@ export class DiscoverySurfaceView extends ModeHostView {
         return "telescope";
     }
 
-    protected createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer {
+    protected createRenderer(modeId: string, container: HTMLElement, state?: Record<string, unknown>): KnowledgeModeRenderer {
         switch (modeId) {
             case "forgotten":
                 return new ResurfaceRenderer(container, this.app);
@@ -29,7 +29,7 @@ export class DiscoverySurfaceView extends ModeHostView {
             case "challenges":
                 return new EvidenceMapRenderer(container, this.app);
             case "ask":
-                return new AskGraphRenderer(container, this.app);
+                return new AskGraphRenderer(container, this.app, typeof state?.query === "string" ? state.query : undefined);
             case "connections":
             default:
                 return new DiscoveriesRenderer(container, this.app);

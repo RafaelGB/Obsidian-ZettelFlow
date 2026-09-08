@@ -10,6 +10,16 @@ import type { AiSettings } from "architecture/ai";
 import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 import type { Judgement } from "architecture/knowledge/judgement";
 
+/**
+ * A saved "ask your graph" query (#323 G4). `query` is the identity (the predicate text); `name`
+ * is an optional human label; `pinned` surfaces it on Home as a live "N notes match …" card.
+ */
+export interface SavedGraphQuery {
+    query: string;
+    name?: string;
+    pinned?: boolean;
+}
+
 export type PropertyHookSettings = {
     /** Script to execute when the property changes */
     script: string;
@@ -57,8 +67,12 @@ export interface ZettelFlowSettings {
      * not as an option. Undefined reads as on, so an install predating the setting still gets it.
      */
     cultivateFriction?: boolean;
-    /** Saved "ask your graph" queries (#318 S3) — persisted so a useful query can be re-run. */
-    savedGraphQueries?: string[];
+    /**
+     * Saved "ask your graph" queries (#318 S3; enriched #323 G4). A useful query can be named,
+     * reordered and pinned to Home. Persisted as {@link SavedGraphQuery} objects; a bare string is
+     * the legacy shape and is migrated transparently on read (`normalizeSavedQueries`).
+     */
+    savedGraphQueries?: (string | SavedGraphQuery)[];
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 

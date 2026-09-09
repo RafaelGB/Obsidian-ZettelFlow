@@ -65,7 +65,7 @@ When writing your hook script, you have access to these variables:
     - `removeProperties`: Array of properties to delete from the frontmatter
     - `flowToTrigger`: Canvas name to trigger (if applicable). It must be avaliable in the vault inside the path defined in the ZettelFlow settings panel - hooks section. It can only be initialized once and will be triggered when the all hooks are finished.
 
-- `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
+- `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../../api/ZettelFlowAPI.md).
 
 - `app`: Obsidian's own API. [See the official documentation](https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts).
 

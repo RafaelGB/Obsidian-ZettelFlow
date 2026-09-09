@@ -1,10 +1,10 @@
 # ZettelFlow constitution
 
 The **non-negotiables** every spec, plan and change must honor. This is the top gate of the
-[Spec-Driven Development pipeline](README.md): a `spec.md` or `plan.md` that violates a principle
+[Spec-Driven Development pipeline](spec-driven-development.md): a `spec.md` or `plan.md` that violates a principle
 is rejected at review, not at merge. It restates — it does not replace — the conventions in
-[`CLAUDE.md`](../CLAUDE.md) and the scoring rules in
-[`docs/development/obsidian-review-and-scoring.md`](../docs/development/obsidian-review-and-scoring.md).
+[`CLAUDE.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/CLAUDE.md) and the scoring rules in
+[Obsidian review & scoring](obsidian-review-and-scoring.md).
 
 Amend this file only through a spec of its own (`specs/NNNN-constitution-*/`). Keep it short; if a
 rule needs a paragraph of nuance, link the doc that owns it.

@@ -4,7 +4,7 @@
 > **automated reviews** and a **source‑code quality score** for every plugin and theme.
 > This page explains how that system works and how ZettelFlow reaches (and keeps) the
 > maximum score. It is the reference behind the `obsidian-plugin-quality` harness skill
-> and the `obsidian-plugin-reviewer` agent (see [`CLAUDE.md`](../../CLAUDE.md)).
+> and the `obsidian-plugin-reviewer` agent (see [`CLAUDE.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/CLAUDE.md)).
 
 ## 1. Why Obsidian now scores plugins
 
@@ -163,7 +163,7 @@ export default defineConfig([
 
 Then wire an `npm run lint:obsidian` script and run it in CI on every PR and release.
 The `obsidian-plugin-quality` harness skill automates this audit; see
-[`CLAUDE.md`](../../CLAUDE.md).
+[`CLAUDE.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/CLAUDE.md).
 
 ## 6. ZettelFlow compliance snapshot
 

@@ -74,7 +74,7 @@ npm run test:watch     # watch mode
 npm run test:coverage  # coverage report
 ```
 
-When adding a feature, write tests first (TDD). See the [`tdd` skill](../../.claude/skills/) and [Testing & guardrails](testing-and-guardrails.md) for the full workflow.
+When adding a feature, write tests first (TDD). See the [`tdd` skill](https://github.com/RafaelGB/Obsidian-ZettelFlow/tree/main/.claude/skills) and [Testing & guardrails](testing-and-guardrails.md) for the full workflow.
 
 ## Community gallery
 

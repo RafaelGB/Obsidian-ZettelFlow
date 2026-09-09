@@ -61,6 +61,22 @@ Press **Play** (bottom bar) to watch the graph **grow over time** — notes appe
 or drag the time slider to scrub to any point in your thinking history. Slide back to the end (or it
 finishes) to show the whole graph again.
 
+## Share your universe (export)
+
+The **share** button (top bar) captures your graph so you can post it (#386):
+
+- **Save image** — frames the whole graph (`zoomToFit`), forces a render (the WebGL buffer is cleared
+  per frame), and captures a **PNG**.
+- **Record time-lapse clip** — records the growth animation to a short **WebM** clip. Offered only when
+  the device can record (feature-detected via `MediaRecorder`); WebM is the browser-native format —
+  there is no bundled MP4/GIF encoder.
+
+A small **accessible dialog** (keyboard-operable, ARIA-labelled) previews the capture and lets you edit
+the file name; **Save to vault** writes it to your attachment folder through the **Vault API** (never
+the Adapter, never a server). Export lives only on the WebGL top bar, so the mobile / no-WebGL fallback
+shows nothing to export. The capture util (`components/core/export/`) is graph-agnostic and reused by
+the evolution **idea card** (#387).
+
 ## Discovery lens
 
 Toolbar **chips** (with live counts) highlight an actionable class of note in space and dim the rest,

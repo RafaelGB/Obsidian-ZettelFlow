@@ -25,6 +25,9 @@ import {
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
 import { environmentEnabled, starfieldPositions, haloSpec } from "./graph3dEnvironment";
+import { buildExportBaseName } from "../export/exportFilename";
+import { canvasToPngBlob, pickVideoMimeType, recordCanvasWebm } from "../export/mediaCapture";
+import { ExportShareModal } from "../export/ExportShareModal";
 // Type-only imports — erased at compile time, so the WebGL libraries load lazily in mountGraph().
 import type { ForceGraph3DInstance } from "3d-force-graph";
 import type * as THREE from "three";
@@ -104,6 +107,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private starfield: THREE.Points | null = null;
     private bloomPass: { enabled: boolean; dispose?(): void } | null = null;
     private reducedMotion = false;
+    private activeRecorder: MediaRecorder | null = null;
     private hullMeshes: THREE.Mesh[] = [];
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
@@ -456,6 +460,78 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.starfield = null;
     }
 
+    // ── A3 (#386): "share your universe" — export the view ───────────────────────
+    /** Offer an image or a time-lapse clip (clip only when the device can record WebM). */
+    private openExportMenu(evt: MouseEvent): void {
+        const menu = new Menu();
+        menu.addItem((item) => item.setTitle(t("graph3d_export_png")).setIcon("image").onClick(() => void this.exportImage()));
+        if (pickVideoMimeType()) {
+            menu.addItem((item) => item.setTitle(t("graph3d_export_clip")).setIcon("video").onClick(() => void this.exportClip()));
+        }
+        menu.showAtMouseEvent(evt);
+    }
+
+    /** Frame the whole graph, then capture the live canvas to a PNG and open the share dialog. */
+    private async exportImage(): Promise<void> {
+        const canvas = this.captureCanvas();
+        if (!canvas || !this.graph) return;
+        try {
+            this.graph.zoomToFit(700, 40); // frame every cluster before the capture
+            await this.settle(800); // let the fit animation finish
+            const blob = await canvasToPngBlob(canvas, () => this.forceRender());
+            new ExportShareModal(this.app, { blob, baseName: buildExportBaseName("universe", new Date()), kind: "image" }).open();
+        } catch (error) {
+            log.error("[Graph3D] image export failed", error);
+        }
+    }
+
+    /** Record the time-lapse from the start into a short WebM clip, then open the share dialog. */
+    private async exportClip(): Promise<void> {
+        const canvas = this.captureCanvas();
+        const mimeType = pickVideoMimeType();
+        if (!canvas || !mimeType) return;
+        try {
+            if (this.timeSlider) this.timeSlider.value = "0";
+            this.scrubTime(0);
+            if (this.timelapseTimer === undefined) this.toggleTimelapse(); // play the growth
+            const blob = await recordCanvasWebm(canvas, {
+                durationMs: TIMELAPSE_MS + 600,
+                mimeType,
+                onRecorder: (recorder) => (this.activeRecorder = recorder),
+            });
+            this.activeRecorder = null;
+            new ExportShareModal(this.app, { blob, baseName: buildExportBaseName("universe-timelapse", new Date()), kind: "video" }).open();
+        } catch (error) {
+            this.activeRecorder = null;
+            log.error("[Graph3D] clip recording failed", error);
+        }
+    }
+
+    private captureCanvas(): HTMLCanvasElement | null {
+        return (this.graphEl?.querySelector("canvas") as HTMLCanvasElement | null) ?? null;
+    }
+
+    private settle(ms: number): Promise<void> {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    /** Force a synchronous WebGL re-render before reading the canvas (the buffer is cleared per frame). */
+    private forceRender(): void {
+        const g = this.graph as unknown as {
+            renderer?: () => { render(scene: unknown, camera: unknown): void } | undefined;
+            scene?: () => unknown;
+            camera?: () => unknown;
+        };
+        try {
+            const renderer = g.renderer?.();
+            const scene = g.scene?.();
+            const camera = g.camera?.();
+            if (renderer && scene && camera) renderer.render(scene, camera);
+        } catch (error) {
+            log.warn("[Graph3D] forceRender unavailable", error);
+        }
+    }
+
     /** A soft radial-gradient texture used for the additive hub glow. */
     private makeGlowTexture(three: typeof THREE): THREE.CanvasTexture {
         const size = 64;
@@ -638,6 +714,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         full.setAttribute("aria-label", t("graph3d_fullscreen"));
         this.fullscreenBtn = full;
         this.registerDomEvent(full, "click", () => this.toggleFullscreen());
+
+        // A3 (#386): "share your universe" — export the view as an image or a time-lapse clip.
+        const share = controls.createEl("button", { cls: c("graph3d-fit") });
+        setIcon(share, "share-2");
+        share.setAttribute("aria-label", t("graph3d_export"));
+        this.registerDomEvent(share, "click", (evt) => this.openExportMenu(evt));
 
         const lite = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_lite") });
         lite.setAttribute("aria-pressed", "false");
@@ -1135,6 +1217,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private teardownGraph(): void {
+        // A3 (#386): stop any in-flight time-lapse recording before the canvas goes away.
+        if (this.activeRecorder && this.activeRecorder.state !== "inactive") {
+            try { this.activeRecorder.stop(); } catch (error) { log.warn("[Graph3D] recorder stop", error); }
+        }
+        this.activeRecorder = null;
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
         this.visibilityObserver?.disconnect();

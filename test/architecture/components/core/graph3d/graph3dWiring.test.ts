@@ -66,3 +66,36 @@ describe("Graph 3D immersive environment (A1, #384)", () => {
         expect(src).toMatch(/disposeStarfield\(\)/);
     });
 });
+
+/**
+ * A3 (#386) — export / share: the graph is framed before capture, the save routes through the Vault
+ * facade (never the Adapter), and the share modal builds DOM without innerHTML.
+ */
+describe("Graph 3D export / share (A3, #386)", () => {
+    const renderer = readCore("graph3d/Graph3DRenderer.ts");
+    const save = readCore("export/saveExport.ts");
+    const modal = readCore("export/ExportShareModal.ts");
+
+    it("frames all clusters before capturing (zoomToFit in the export path)", () => {
+        expect(renderer).toMatch(/exportImage/);
+        expect(renderer).toMatch(/zoomToFit\(/);
+    });
+
+    it("saves through the Vault facade (createBinary via FileService), never the Adapter API", () => {
+        expect(save).toMatch(/writeBinaryFile/);
+        expect(save).not.toMatch(/\.adapter\b/);
+        expect(save).not.toMatch(/\bapp\./); // no global app
+    });
+
+    it("records clips as WebM only (browser-native), no MP4/GIF encoder bundled", () => {
+        const capture = readCore("export/mediaCapture.ts");
+        expect(capture).toMatch(/video\/webm/);
+        expect(capture).not.toMatch(/video\/mp4/);
+    });
+
+    it("the share modal builds DOM without innerHTML and revokes its object URL", () => {
+        expect(modal).not.toMatch(/innerHTML/);
+        expect(modal).toMatch(/createEl\(/);
+        expect(modal).toMatch(/revokeObjectURL/);
+    });
+});

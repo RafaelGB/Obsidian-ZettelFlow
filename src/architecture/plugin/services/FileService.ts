@@ -50,6 +50,24 @@ export class FileService {
         return file;
     }
 
+    /**
+     * Write a **binary** file (e.g. an exported PNG/WebM, #386), creating the parent folder if needed
+     * and overwriting when it already exists. Uses the metadata-cache-backed `getAbstractFileByPath`
+     * (never the Adapter API), then `createBinary`/`modifyBinary`.
+     */
+    public static async writeBinaryFile(path: string, data: ArrayBuffer): Promise<TFile> {
+        const folder = path.substring(0, path.lastIndexOf(FileService.PATH_SEPARATOR));
+        if (folder && !ObsidianApi.vault().getAbstractFileByPath(folder)) {
+            await ObsidianApi.vault().createFolder(folder);
+        }
+        const existing = ObsidianApi.vault().getFileByPath(path);
+        if (existing instanceof TFile) {
+            await ObsidianApi.vault().modifyBinary(existing, data);
+            return existing;
+        }
+        return await ObsidianApi.vault().createBinary(path, data);
+    }
+
     public static async deleteFile(file: TFile): Promise<void> {
         await ObsidianApi.fileManager().trashFile(file);
     }

@@ -1,113 +1,214 @@
 site_name: ZettelFlow
+site_description: Turn an Obsidian Canvas into a guided note-creation workflow.
 repo_url: https://github.com/RafaelGB/Obsidian-ZettelFlow
+repo_name: RafaelGB/Obsidian-ZettelFlow
 edit_uri: edit/main/docs/
+
 theme:
   name: material
-  navigation.instant: true
+  language: en
   logo: resources/obsidian.png
+  favicon: resources/obsidian.png
   icon:
     repo: fontawesome/brands/github-alt
+  font:
+    text: Inter
+    code: JetBrains Mono
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+
+extra_css:
+  - stylesheets/extra.css
+
 plugins:
   - search
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      zoomable: true
+      draggable: true
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RafaelGB/Obsidian-ZettelFlow
+      name: ZettelFlow on GitHub
+
 nav:
-  - 1. Home: index.md
-  - The manifesto: manifesto.md
-  - 2. Actions:
-      - 2.1 Prompt: actions/Prompt.md
-      - 2.2 Number: actions/Number.md
-      - 2.3 Checkbox: actions/Checkbox.md
-      - 2.4 Calendar: actions/Calendar.md
-      - 2.5 Selector: actions/Selector.md
-      - 2.6 Dynamic Selector: actions/DynamicSelector.md
-      - 2.7 Tags: actions/Tags.md
-      - 2.8 Backlink: actions/Backlink.md
-      - 2.9 CssClasses: actions/CssClasses.md
-      - 2.10 TaskManagement: actions/TaskManagement.md
-      - 2.11 Script: actions/Script.md
-      - 2.12 Zettel ID: actions/ZettelId.md
-      - 2.13 Detect orphan: actions/DetectOrphan.md
-      - 2.14 Calculate maturity: actions/CalculateMaturity.md
-      - 2.15 Find contradiction: actions/FindContradiction.md
-      - 2.16 Find unanswered question: actions/FindUnansweredQuestion.md
-      - 2.17 Find related: actions/FindRelated.md
-      - 2.18 Suggest link: actions/SuggestLink.md
-      - 2.19 Create semantic relation: actions/CreateSemanticRelation.md
-      - 2.20 Extract claims: actions/ExtractClaims.md
-      - 2.21 Compare claims: actions/CompareClaims.md
-      - 2.22 Find sources: actions/FindSources.md
-      - 2.23 Attach source: actions/AttachSource.md
-      - 2.24 Summarize: actions/Summarize.md
-      - 2.25 Classify: actions/Classify.md
-      - 2.26 Generate questions: actions/GenerateQuestions.md
-      - 2.27 Suggest next move: actions/SuggestNextMove.md
-      - 2.28 Thinking simulator: actions/ThinkingSimulator.md
-      - 2.29 Challenge idea: actions/ChallengeIdea.md
-      - 2.30 Synthesize: actions/Synthesize.md
-      - 2.31 Suggest connections: actions/SuggestConnections.md
-  - 3. Vault Hooks:
-      - 3.1 Property Hooks:
-          - 3.1.1 Overview: vault-hooks/property-hooks/overview.md
-          - 3.1.2 Configuration: vault-hooks/property-hooks/configuration.md
-          - 3.1.3 Examples: vault-hooks/property-hooks/examples.md
-      - 3.2 Folder Automation: vault-hooks/OnCreate.md
-  - 4. How to Contribute:
-      - 4.1 Community examples: how-to-contribute/community-examples.md
-      - 4.2 Systems gallery: how-to-contribute/systems-gallery.md
-      - 4.3 Wiki: how-to-contribute/Wiki.md
-  - 5. API:
-      - 5.1 Reference: api/ZettelFlowAPI.md
-      - 5.2 Cookbook: api/cookbook.md
-      - 5.3 Generated reference: api/reference.md
-  - 6. Architecture:
-      - 6.1 Overview: architecture/overview.md
-      - 6.1.1 The four surfaces: architecture/surfaces.md
-      - 6.2 Plugin core: architecture/plugin-core.md
-      - 6.3 Actions & note builder: architecture/actions-and-note-builder.md
-      - 6.4 Vault hooks internals: architecture/vault-hooks-internals.md
-      - 6.5 Community gallery: architecture/community.md
-      - 6.6 .zftemplate schema: architecture/zftemplate-schema.md
-      - 6.7 Conditional edges: architecture/conditional-edges.md
-      - 6.7.1 Trigger conditions: architecture/trigger-conditions.md
-      - 6.8 Knowledge model: architecture/knowledge-model.md
-      - 6.9 Knowledge lifecycle: architecture/knowledge-lifecycle.md
-      - 6.9.1 Knowledge state (projections): architecture/knowledge-state.md
-      - 6.10 Workflow phases: architecture/workflow-phases.md
-      - 6.11 Event-driven & visual workflows: architecture/event-driven-workflows.md
-      - 6.12 Reposition map (feature → layer): architecture/reposition-map.md
-  - 7. Development:
-      - 7.1 Getting started: development/getting-started.md
-      - 7.2 Contributing & conventions: development/contributing-and-conventions.md
-      - 7.3 Testing & guardrails: development/testing-and-guardrails.md
-      - 7.4 Obsidian review & scoring: development/obsidian-review-and-scoring.md
-      - 7.5 Project health & roadmap: development/project-health-and-roadmap.md
-      - 7.6 Spec-driven development: development/spec-driven-development.md
-      - 7.7 Slip-box health dashboard: development/slipbox-health-dashboard.md
-      - 7.8 Capabilities & privacy: development/capabilities-and-privacy.md
-      - 7.8.1 Mobile support: development/mobile-support.md
-      - 7.10 Map of content builder: development/moc-builder.md
-      - 7.11 Connection resurfacing: development/connection-resurfacing.md
-      - 7.12 Atomicity split assist: development/atomicity-split.md
-      - 7.13 AI provider setup: development/ai-provider-setup.md
-      - 7.14 Second-brain review: development/second-brain-review.md
-      - 7.15 Thinking heatmap: development/thinking-heatmap.md
-      - 7.16 Morning discovery: development/morning-discovery.md
-      - 7.17 Living knowledge map: development/living-knowledge-map.md
-      - 7.18 Concept navigation: development/concept-navigation.md
-      - 7.19 Open questions: development/open-questions.md
-      - 7.20 Evolution timeline: development/evolution-timeline.md
-      - 7.21 Evidence map: development/evidence-map.md
-      - 7.22 Knowledge patterns: development/knowledge-patterns.md
-      - 7.23 Knowledge dashboard: development/knowledge-dashboard.md
-      - 7.24 ZettelFlow home: development/zettelflow-home.md
-      - 7.25 Derived projects: development/derived-projects.md
-      - 7.28 3D knowledge graph: development/graph-3d.md
-      - 7.29 Quick capture: development/quick-capture.md
-      - 7.30 Canvas integration: development/canvas-integration.md
-      - 7.31 Cultivate (thinking sessions): development/cultivate.md
-      - 7.32 Knowledge scope (excluded paths): development/knowledge-scope.md
-      - 7.33 Ask your graph: development/ask-your-graph.md
-      - 7.34 Mobile & accessibility: development/mobile-and-accessibility.md
-      - 7.35 Cognitive agency (judgement record): development/cognitive-agency.md
-      - 7.27 Friction audit (epic #231): development/friction-audit.md
-extra_javascript:
-  - "extra_javascript/navigationInstant.js"
+  - Home: index.md
+  - Get started:
+      - Getting started: development/getting-started.md
+      - AI provider setup: development/ai-provider-setup.md
+      - Knowledge scope (excluded paths): development/knowledge-scope.md
+      - Capabilities & privacy: development/capabilities-and-privacy.md
+      - Mobile & accessibility: development/mobile-and-accessibility.md
+      - Mobile support: development/mobile-support.md
+  - Actions:
+      - Form actions:
+          - Prompt: actions/Prompt.md
+          - Number: actions/Number.md
+          - Checkbox: actions/Checkbox.md
+          - Calendar: actions/Calendar.md
+          - Selector: actions/Selector.md
+          - Dynamic Selector: actions/DynamicSelector.md
+          - Tags: actions/Tags.md
+          - Backlink: actions/Backlink.md
+          - CSS classes: actions/CssClasses.md
+          - Task management: actions/TaskManagement.md
+          - Script: actions/Script.md
+          - Zettel ID: actions/ZettelId.md
+      - Knowledge actions:
+          - Detect orphan: actions/DetectOrphan.md
+          - Calculate maturity: actions/CalculateMaturity.md
+          - Find related: actions/FindRelated.md
+          - Find contradiction: actions/FindContradiction.md
+          - Find unanswered question: actions/FindUnansweredQuestion.md
+          - Suggest link: actions/SuggestLink.md
+          - Suggest connections: actions/SuggestConnections.md
+          - Suggest next move: actions/SuggestNextMove.md
+          - Create semantic relation: actions/CreateSemanticRelation.md
+          - Extract claims: actions/ExtractClaims.md
+          - Compare claims: actions/CompareClaims.md
+          - Find sources: actions/FindSources.md
+          - Attach source: actions/AttachSource.md
+          - Summarize: actions/Summarize.md
+          - Classify: actions/Classify.md
+          - Generate questions: actions/GenerateQuestions.md
+          - Thinking simulator: actions/ThinkingSimulator.md
+          - Challenge idea: actions/ChallengeIdea.md
+          - Synthesize: actions/Synthesize.md
+  - Knowledge tools:
+      - Capture & organize:
+          - Quick capture: development/quick-capture.md
+          - ZettelFlow home: development/zettelflow-home.md
+          - Map of content builder: development/moc-builder.md
+          - Derived projects: development/derived-projects.md
+      - Explore & navigate:
+          - Living knowledge map: development/living-knowledge-map.md
+          - Concept navigation: development/concept-navigation.md
+          - 3D knowledge graph: development/graph-3d.md
+          - Ask your graph: development/ask-your-graph.md
+          - Canvas integration: development/canvas-integration.md
+      - Review & analyze:
+          - Slip-box health dashboard: development/slipbox-health-dashboard.md
+          - Knowledge dashboard: development/knowledge-dashboard.md
+          - Second-brain review: development/second-brain-review.md
+          - Thinking heatmap: development/thinking-heatmap.md
+          - Evolution timeline: development/evolution-timeline.md
+          - Evidence map: development/evidence-map.md
+          - Knowledge patterns: development/knowledge-patterns.md
+          - Open questions: development/open-questions.md
+          - Connection resurfacing: development/connection-resurfacing.md
+          - Atomicity split assist: development/atomicity-split.md
+          - Morning discovery: development/morning-discovery.md
+      - Think & cultivate:
+          - Cultivate (thinking sessions): development/cultivate.md
+          - Cognitive agency (judgement record): development/cognitive-agency.md
+  - Automation:
+      - Property hooks:
+          - Overview: vault-hooks/property-hooks/overview.md
+          - Configuration: vault-hooks/property-hooks/configuration.md
+          - Examples: vault-hooks/property-hooks/examples.md
+      - Folder automation: vault-hooks/OnCreate.md
+  - Scripting & API:
+      - Reference: api/ZettelFlowAPI.md
+      - Cookbook: api/cookbook.md
+      - Generated reference: api/reference.md
+  - Community:
+      - Systems gallery: how-to-contribute/systems-gallery.md
+      - Community examples: how-to-contribute/community-examples.md
+      - Wiki: how-to-contribute/Wiki.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - The four surfaces: architecture/surfaces.md
+      - Plugin core: architecture/plugin-core.md
+      - Actions & note builder: architecture/actions-and-note-builder.md
+      - Vault hooks internals: architecture/vault-hooks-internals.md
+      - Community gallery: architecture/community.md
+      - .zftemplate schema: architecture/zftemplate-schema.md
+      - Conditional edges: architecture/conditional-edges.md
+      - Trigger conditions: architecture/trigger-conditions.md
+      - Knowledge model: architecture/knowledge-model.md
+      - Knowledge lifecycle: architecture/knowledge-lifecycle.md
+      - Knowledge state (projections): architecture/knowledge-state.md
+      - Workflow phases: architecture/workflow-phases.md
+      - Event-driven & visual workflows: architecture/event-driven-workflows.md
+      - Reposition map (feature → layer): architecture/reposition-map.md
+  - Contributing:
+      - Contributing & conventions: development/contributing-and-conventions.md
+      - Testing & guardrails: development/testing-and-guardrails.md
+      - Spec-driven development: development/spec-driven-development.md
+      - Constitution: development/constitution.md
+      - Obsidian review & scoring: development/obsidian-review-and-scoring.md
+      - Project health & roadmap: development/project-health-and-roadmap.md
+      - "Friction audit (epic #231)": development/friction-audit.md
+  - Manifesto: manifesto.md

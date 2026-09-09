@@ -23,7 +23,7 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
   `fleetingReady` on `buildHome`).
 - **New ideas** — notes created in the last 7 days, newest first.
 - **Main concepts** — your best-connected notes (`degree` descending).
-- **Deserves a review** — the [weekly review](weekly-review.md)'s *stale-important* section: hubs
+- **Deserves a review** — the [weekly review](second-brain-review.md)'s *stale-important* section: hubs
   (`degree ≥ 5`) untouched for 30+ days. *(Genuinely stale hubs are rare — this is empty on a young
   vault, by design.)*
 - **Suggested connections** — the top [morning discoveries](morning-discovery.md) (#163): unlinked

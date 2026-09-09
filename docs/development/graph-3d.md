@@ -23,7 +23,12 @@ Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). 
 - Each cluster sits inside a faint translucent **hull** so its grouping reads at a glance.
 - Notes are **marked by kind** — `?` for open **questions**, `◆` for **sourced** notes — so types stand
   out (see the legend).
-- Nodes and links **glow** (bloom) against a dark space — an immersive look, not a flat diagram.
+- An immersive **"Knowledge Galaxy" environment** (#384): a subtle **starfield** backdrop with a depth
+  vignette, **cluster-hued glow halos** on hubs *and* other well-connected notes, and best-effort
+  **selective bloom** so the graph reads as a living space, not a flat diagram. The environment is
+  purely additive — it never blocks the base render, and a post-processing failure degrades to lit
+  spheres rather than a blank canvas. It follows the **Lite** control and OS **reduced-motion**, and is
+  absent on mobile / no-WebGL (which use the navigable-list fallback).
 - Data comes purely from the offline `KnowledgeModel` via the Knowledge State surface
   (`build3DGraph`), so the WebGL view is a thin shell over tested data.
 
@@ -73,12 +78,18 @@ sourced from the model — click a chip to toggle it:
   responsive layout; a hint notes when the view is capped.
 - On **mobile** or when **WebGL is unavailable**, the mode degrades to a message with a button that
   opens the 2D **Map** instead of failing.
+- The immersive **environment** (starfield, non-hub halos, selective bloom) is disabled under
+  **Lite** mode and OS **reduced-motion**, and never runs on mobile / no-WebGL — Lite stays the
+  guaranteed FPS escape hatch. Selective bloom loads lazily and best-effort; a failure never blanks
+  the graph.
 
 ## Where it lives
 
 - Pure projection: `architecture/knowledge/map/graph3d.ts` (`build3DGraph`, `filterGraph3D`,
   `capGraph3D`, `graph3dStats`, `buildAdjacency`, `OVERLAY_SPECS`, `STATE_COLOR_VARS`,
   `RELATION_COLOR_VARS`) — Obsidian-free, unit-tested.
+- Pure environment math: `architecture/components/core/graph3d/graph3dEnvironment.ts`
+  (`environmentEnabled`, `starfieldPositions`, `haloSpec`) — Obsidian-free, unit-tested (#384).
 - View: `architecture/components/core/graph3d/Graph3DRenderer.ts`, mounted by `GraphSurfaceView` for
   the `3d` mode; the deep-link handoff is `graph3dFocus.ts`.
 - Styles: `styles/components/graph3d.scss` — legend/toolbar colours share Obsidian's `--color-*`

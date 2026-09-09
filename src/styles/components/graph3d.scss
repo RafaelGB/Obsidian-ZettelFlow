@@ -24,6 +24,25 @@
     z-index: 0;
 }
 
+// Immersive "Knowledge Galaxy" environment (#384): a radial depth vignette so the starfield recedes
+// into space around the graph. Pure CSS gradient (no inline styles); the class is only present when the
+// environment is enabled (never under reduced-motion, Lite, or on mobile/no-WebGL). The media query is
+// belt-and-suspenders since the class is already gated off under reduced motion.
+.zettelkasten-flow__graph3d--immersive .zettelkasten-flow__graph3d-canvas::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(11, 14, 20, 0) 55%, rgba(5, 7, 12, 0.55) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__graph3d--immersive .zettelkasten-flow__graph3d-canvas::after {
+        background: none;
+    }
+}
+
 // The 3D canvas is always a fixed dark "space", so floating controls are styled light-on-dark
 // (independent of the Obsidian theme) — otherwise theme greys blend into the background and vanish.
 %graph3d-control {

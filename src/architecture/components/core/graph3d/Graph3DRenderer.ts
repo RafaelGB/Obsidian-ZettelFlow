@@ -24,6 +24,7 @@ import {
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
+import { environmentEnabled, starfieldPositions, haloSpec } from "./graph3dEnvironment";
 // Type-only imports — erased at compile time, so the WebGL libraries load lazily in mountGraph().
 import type { ForceGraph3DInstance } from "3d-force-graph";
 import type * as THREE from "three";
@@ -33,6 +34,10 @@ const DIM_NODE = "rgba(120, 124, 135, 0.10)";
 const DIM_LINK = "rgba(120, 124, 135, 0.04)";
 const TIMELAPSE_MS = 9000;
 const TIMELAPSE_STEPS = 48;
+// A1 (#384) — the immersive starfield: a single Points cloud on a shell wrapping the graph.
+const STAR_COUNT = 1400;
+const STAR_INNER_RADIUS = 320;
+const STAR_OUTER_RADIUS = 900;
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type ColorMode = "state" | "cluster";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
@@ -96,6 +101,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private spread = 35;
     private three: typeof THREE | null = null;
     private glowTexture: THREE.CanvasTexture | null = null;
+    private starfield: THREE.Points | null = null;
+    private bloomPass: { enabled: boolean; dispose?(): void } | null = null;
+    private reducedMotion = false;
     private hullMeshes: THREE.Mesh[] = [];
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
@@ -218,6 +226,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.buildBottomBar(this.wrapperEl);
 
             const reduced = prefersReducedMotion();
+            this.reducedMotion = reduced;
             const graph = new ForceGraph3D(this.graphEl)
                 .backgroundColor("#0b0e14")
                 .nodeLabel("name")
@@ -247,10 +256,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 .onEngineStop(() => this.onEngineSettled());
             this.graph = graph;
             this.spriteTextCtor = SpriteText;
-            if (SpriteText) this.attachNodeDecorations(graph, SpriteText);
+            if (SpriteText) this.attachNodeDecorations(graph);
             this.tightenLayout(graph);
             this.applyGraphData();
             this.applySize();
+            // A1 (#384): the immersive environment is purely additive and follows the env gate — it
+            // never blocks or blanks the base render above.
+            this.buildEnvironment();
+            void this.applyBloom();
+            this.wrapperEl?.toggleClass(c("graph3d--immersive"), this.envEnabled());
             if (SpriteText && this.three) {
                 this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
             }
@@ -319,46 +333,127 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    /** Node decorations: hub **glow** + **label** on the most-connected notes, and a **type icon**
-     *  (`?` question, `◆` source) so kinds of note read at a glance. */
-    private attachNodeDecorations(graph: ForceGraph3DInstance, SpriteText: new (t?: string, h?: number, c?: string) => LabelSprite): void {
-        graph.nodeThreeObjectExtend(true).nodeThreeObject(((node: unknown) => {
-            const gn = node as Graph3DNode & LiveNode;
-            const isHub = this.hubIds.has(gn.id ?? "");
-            const icon = gn.kind === "question" ? "?" : gn.kind === "source" ? "◆" : "";
-            if (!isHub && !icon) return undefined;
-            const three = this.three;
-            if (!three) {
-                if (isHub) {
-                    const label = new SpriteText(gn.name, 6, "#e8eaed");
-                    label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
-                    return label;
-                }
-                return undefined;
-            }
-            const group = new three.Group();
-            if (isHub && this.glowTexture) {
-                const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
-                material.opacity = 0.5;
-                material.color.set(this.clusterHue(gn.group));
-                const glow = new three.Sprite(material);
-                const size = Math.sqrt(gn.val) * 7 + 16;
-                glow.scale.set(size, size, 1);
-                group.add(glow);
-            }
+    /** Node decorations: a cluster-hued **glow halo** (hubs always; other meaningful nodes only in the
+     *  immersive environment, #384), a **label** on hubs, and a **type icon** (`?` question, `◆`
+     *  source). The per-node builder is reused by {@link refreshDecorations} when Lite toggles. */
+    private attachNodeDecorations(graph: ForceGraph3DInstance): void {
+        graph.nodeThreeObjectExtend(true).nodeThreeObject(((node: unknown) => this.buildNodeObject(node)) as never);
+    }
+
+    /** Re-evaluate every node's decorations (e.g. after Lite toggles the non-hub halos on/off). */
+    private refreshDecorations(): void {
+        if (this.graph && this.spriteTextCtor) {
+            this.graph.nodeThreeObject(((node: unknown) => this.buildNodeObject(node)) as never);
+        }
+    }
+
+    /** Build the three.js decoration object for one node (glow halo + hub label + kind icon). */
+    private buildNodeObject(node: unknown): THREE.Object3D | undefined {
+        const SpriteText = this.spriteTextCtor;
+        if (!SpriteText) return undefined;
+        const gn = node as Graph3DNode & LiveNode;
+        const isHub = this.hubIds.has(gn.id ?? "");
+        const icon = gn.kind === "question" ? "?" : gn.kind === "source" ? "◆" : "";
+        const three = this.three;
+        // Hubs always glow; non-hub halos appear only in the immersive environment (dropped in Lite).
+        const halo = three && this.glowTexture && (isHub || this.envEnabled()) ? haloSpec(gn.val, isHub) : null;
+        if (!isHub && !icon && !halo) return undefined;
+        if (!three) {
             if (isHub) {
                 const label = new SpriteText(gn.name, 6, "#e8eaed");
                 label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
-                group.add(label);
+                return label;
             }
-            if (icon) {
-                const offset = Math.sqrt(gn.val) * 3 + 5;
-                const iconSprite = new SpriteText(icon, 6, gn.kind === "question" ? "#fbbf24" : "#22d3ee");
-                iconSprite.position.set(offset, offset, 0);
-                group.add(iconSprite);
+            return undefined;
+        }
+        const group = new three.Group();
+        if (halo && this.glowTexture) {
+            const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
+            material.opacity = halo.opacity;
+            material.color.set(this.clusterHue(gn.group));
+            const glow = new three.Sprite(material);
+            glow.scale.set(halo.scale, halo.scale, 1);
+            group.add(glow);
+        }
+        if (isHub) {
+            const label = new SpriteText(gn.name, 6, "#e8eaed");
+            label.position.set(0, Math.sqrt(gn.val) * 4 + 8, 0);
+            group.add(label);
+        }
+        if (icon) {
+            const offset = Math.sqrt(gn.val) * 3 + 5;
+            const iconSprite = new SpriteText(icon, 6, gn.kind === "question" ? "#fbbf24" : "#22d3ee");
+            iconSprite.position.set(offset, offset, 0);
+            group.add(iconSprite);
+        }
+        return group;
+    }
+
+    // ── A1 (#384): the immersive "Knowledge Galaxy" environment ─────────────────
+    /** Whether the additive environment (starfield + non-hub halos + bloom) should run right now. */
+    private envEnabled(): boolean {
+        return environmentEnabled({ reduced: this.reducedMotion, lite: this.lite, webgl: true, mobile: Platform.isMobile });
+    }
+
+    /** Build the additive starfield backdrop — one `Points` draw call. Best-effort; never blanks the graph. */
+    private buildEnvironment(): void {
+        const three = this.three;
+        if (!three || !this.graph || this.starfield || !this.envEnabled()) return;
+        try {
+            const positions = starfieldPositions(STAR_COUNT, STAR_INNER_RADIUS, STAR_OUTER_RADIUS, Math.random);
+            const geometry = new three.BufferGeometry();
+            geometry.setAttribute("position", new three.BufferAttribute(positions, 3));
+            const material = new three.PointsMaterial({
+                size: 1.6,
+                color: new three.Color("#cbd5e1"),
+                transparent: true,
+                opacity: 0.65,
+                sizeAttenuation: true,
+                depthWrite: false,
+                blending: three.AdditiveBlending,
+            });
+            const points = new three.Points(geometry, material);
+            this.starfield = points;
+            this.graph.scene().add(points);
+        } catch (error) {
+            log.warn("[Graph3D] starfield unavailable", error);
+        }
+    }
+
+    /** Selective bloom via the library's post-processing composer — best-effort and defensive across
+     *  library updates. A failure degrades to lit spheres (the base render already ran), never a blank. */
+    private async applyBloom(): Promise<void> {
+        const three = this.three;
+        if (!three || !this.graph || this.bloomPass || !this.envEnabled()) return;
+        try {
+            const { UnrealBloomPass } = await import("three/examples/jsm/postprocessing/UnrealBloomPass.js");
+            if (this.disposed || !this.graph) return;
+            const composer = (this.graph as unknown as {
+                postProcessingComposer?: () => { addPass(pass: unknown): void } | undefined;
+            }).postProcessingComposer?.();
+            if (!composer) return;
+            const width = this.wrapperEl?.clientWidth || 400;
+            const height = this.wrapperEl?.clientHeight || 400;
+            // Conservative strength/radius/threshold so bloom accents hubs without washing out light themes.
+            const pass = new UnrealBloomPass(new three.Vector2(width, height), 0.7, 0.6, 0.65);
+            composer.addPass(pass);
+            this.bloomPass = pass; // UnrealBloomPass structurally satisfies { enabled; dispose? }
+        } catch (error) {
+            log.warn("[Graph3D] selective bloom unavailable", error);
+        }
+    }
+
+    private disposeStarfield(): void {
+        if (this.starfield && this.graph && this.three) {
+            try {
+                this.graph.scene().remove(this.starfield);
+                this.starfield.geometry.dispose();
+                this.starfield.material.dispose();
+            } catch (error) {
+                log.warn("[Graph3D] error disposing starfield", error);
             }
-            return group;
-        }) as never);
+        }
+        this.starfield = null;
     }
 
     /** A soft radial-gradient texture used for the additive hub glow. */
@@ -562,9 +657,18 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 try { this.disposeHulls(this.graph.scene()); } catch (error) { log.warn("[Graph3D] hull dispose", error); }
             }
             this.clearProximityLabels();
+            // A1 (#384): drop the immersive environment for maximum FPS.
+            this.disposeStarfield();
+            if (this.bloomPass) this.bloomPass.enabled = false;
         } else {
             this.rebuildHulls();
+            // A1 (#384): bring the immersive environment back (idempotent + env-gated).
+            this.buildEnvironment();
+            if (this.bloomPass) this.bloomPass.enabled = true;
+            else void this.applyBloom();
         }
+        this.wrapperEl?.toggleClass(c("graph3d--immersive"), this.envEnabled());
+        this.refreshDecorations(); // re-evaluate non-hub halos for the new Lite state
         this.refreshPaint();
         this.updateStatus();
     }
@@ -1043,10 +1147,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             try {
                 this.clearProximityLabels();
                 this.disposeHulls(this.graph.scene());
+                this.disposeStarfield();
             } catch (error) {
                 log.warn("[Graph3D] error disposing graph decorations", error);
             }
         }
+        this.starfield = null;
+        this.bloomPass = null; // the pass is destroyed with the graph's composer in _destructor()
         this.spriteTextCtor = null;
         this.glowTexture = null;
         this.three = null;

@@ -28,7 +28,7 @@
 
     Jump straight to what you need:
 
-    - [Actions reference](actions/Prompt.md) — all 11 built-in actions
+    - [Actions reference](actions/Prompt.md) — form actions + knowledge actions
     - [Conditional edges](architecture/conditional-edges.md) — branch flows at runtime
     - [Dynamic variables](architecture/actions-and-note-builder.md) — `{{title}}`, `{{frontmatter.*}}`, `{{canvas.name}}`
     - [.zftemplate](architecture/zftemplate-schema.md) — export and share complete flows
@@ -59,7 +59,7 @@ Canvas file          ZettelFlow wizard          Note in your vault
 |---|---|
 | Guided first-run with example flow | [Getting started →](development/getting-started.md) |
 | Systems Gallery (one-click) | [Systems gallery →](how-to-contribute/systems-gallery.md) |
-| 11 built-in actions | [Actions →](actions/Prompt.md) |
+| Built-in actions (form + knowledge) | [Actions →](actions/Prompt.md) |
 | Canvas-native workflow engine | [Architecture overview →](architecture/overview.md) |
 | Conditional edges (`if: expr`) | [Conditional edges →](architecture/conditional-edges.md) |
 | Dynamic template variables | [Actions & note builder →](architecture/actions-and-note-builder.md) |

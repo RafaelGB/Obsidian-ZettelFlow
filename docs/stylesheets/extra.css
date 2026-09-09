@@ -1,0 +1,73 @@
+/* ZettelFlow docs — minimalist brand refinements.
+   Everything here is intentionally light-touch: brand colour, a comfortable
+   reading measure, and softer surfaces. No layout rewrites. */
+
+:root {
+  /* Refined Obsidian-violet, warmer than the stock deep-purple. */
+  --md-primary-fg-color:        #6b4ffb;
+  --md-primary-fg-color--light: #8a72ff;
+  --md-primary-fg-color--dark:  #4b32d6;
+  --md-accent-fg-color:         #7c5cff;
+  --md-default-font-feature-settings: "kern", "liga";
+}
+
+/* Dark scheme: soften the violet so it reads calm on slate. */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #8a72ff;
+  --md-accent-fg-color:         #a78bfa;
+  --md-hue: 250;
+}
+
+/* Comfortable reading measure — wide enough for tables, not sprawling. */
+.md-grid {
+  max-width: 68rem;
+}
+
+/* Sticky tabs: a touch more weight, less shout. */
+.md-tabs {
+  font-weight: 500;
+}
+.md-tabs__link {
+  opacity: 0.85;
+}
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  opacity: 1;
+}
+
+/* Softer surfaces: tables, admonitions, details, code. */
+.md-typeset table:not([class]) {
+  border-radius: 0.4rem;
+  overflow: hidden;
+}
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 0.5rem;
+  border-left-width: 0.2rem;
+}
+.md-typeset code {
+  border-radius: 0.3rem;
+}
+.md-typeset pre > code {
+  border-radius: 0.4rem;
+}
+
+/* Headings: a little more air, lighter tracking. */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.md-typeset h2 {
+  font-weight: 600;
+  margin-top: 2.2em;
+  letter-spacing: -0.005em;
+}
+
+/* Logo + search breathing room. */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.4rem;
+}
+.md-search__form {
+  border-radius: 0.5rem;
+}

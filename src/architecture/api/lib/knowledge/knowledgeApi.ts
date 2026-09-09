@@ -98,6 +98,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     filterGraph3D: "3D graph view helper",
     buildAdjacency: "3D graph view helper",
     shortestPath: "operates on 3D graph adjacency, not the model",
+    tourStops: "3D graph camera-tour choreography, not a model answer",
     buildCultivationSession: "an interactive session with deliberate friction; not a pure answer",
     selectCultivationTarget: "internal to the cultivation session",
     timelineEvents: "merges the timeline + judgement log for the Evolution timeline view, not a model answer",

@@ -99,3 +99,27 @@ describe("Graph 3D export / share (A3, #386)", () => {
         expect(modal).toMatch(/revokeObjectURL/);
     });
 });
+
+/**
+ * A2 (#385) — cinematic tour: derived from the pure `tourStops`, strictly optional and interruptible,
+ * respects reduced-motion, and leaves no lingering timer after teardown.
+ */
+describe("Graph 3D cinematic tour (A2, #385)", () => {
+    const src = readCore("graph3d/Graph3DRenderer.ts");
+
+    it("derives the flight from the pure tourStops helper", () => {
+        expect(src).toMatch(/tourStops\(/);
+    });
+
+    it("respects reduced-motion (instant cuts)", () => {
+        expect(src).toMatch(/reducedMotion\s*\?\s*0\s*:/); // focusNode duration 0 under reduced motion
+    });
+
+    it("cancels on direct interaction (an interaction path calls stopTour)", () => {
+        expect(src).toMatch(/"pointerdown"[\s\S]{0,60}stopTour\(/);
+    });
+
+    it("clears the tour timer on teardown (no lingering timer)", () => {
+        expect(src).toMatch(/clearTimeout\(this\.tourTimer\)/);
+    });
+});

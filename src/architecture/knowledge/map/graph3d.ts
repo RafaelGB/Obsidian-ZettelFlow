@@ -330,3 +330,51 @@ export function graph3dUpToTime(data: Graph3DData, cursor: number): Graph3DData 
     const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
     return { nodes, links };
 }
+
+/** A single stop in the cinematic tour (#385) — the note the camera flies to. */
+export interface TourStop {
+    id: string;
+    name: string;
+}
+
+/** Options for {@link tourStops}. */
+export interface TourOptions {
+    /** Maximum number of stops in the tour. */
+    maxStops?: number;
+}
+
+/** Default cap on tour stops — a watchable flight, not the whole vault. */
+export const TOUR_MAX_STOPS = 12;
+
+/**
+ * The ordered list of notes a **cinematic tour** (#385) flies through — a **pure, deterministic**
+ * function of the graph so the choreography is unit-testable (the camera flight itself is manual).
+ * Roughly half the stops are the **hubs** (highest `val` = degree), the rest the **most-recent** notes
+ * (highest `created`); the two are merged, **deduplicated** (a note that is both appears once) and
+ * **capped** at `maxStops`. Every ordering ties break by `name` then `id`, so the same graph always
+ * yields the same tour. An empty graph yields no stops.
+ */
+export function tourStops(data: Graph3DData, opts: TourOptions = {}): TourStop[] {
+    const max = opts.maxStops ?? TOUR_MAX_STOPS;
+    if (max <= 0 || data.nodes.length === 0) return [];
+
+    const byVal = [...data.nodes].sort((a, b) => b.val - a.val || byStr(a.name, b.name) || byStr(a.id, b.id));
+    const byRecent = [...data.nodes]
+        .filter((node) => node.created > 0)
+        .sort((a, b) => b.created - a.created || byStr(a.name, b.name) || byStr(a.id, b.id));
+
+    const ordered: Graph3DNode[] = [];
+    const seen = new Set<string>();
+    const push = (node: Graph3DNode): void => {
+        if (seen.has(node.id)) return;
+        seen.add(node.id);
+        ordered.push(node);
+    };
+
+    const hubQuota = Math.ceil(max / 2);
+    for (let i = 0; i < byVal.length && ordered.length < hubQuota; i++) push(byVal[i]); // top hubs first
+    for (let i = 0; i < byRecent.length && ordered.length < max; i++) push(byRecent[i]); // then recent
+    for (let i = 0; i < byVal.length && ordered.length < max; i++) push(byVal[i]); // fill any remainder
+
+    return ordered.slice(0, max).map((node) => ({ id: node.id, name: node.name }));
+}

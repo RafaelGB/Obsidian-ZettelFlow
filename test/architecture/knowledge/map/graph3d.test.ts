@@ -9,6 +9,7 @@ import {
     graph3dTimeRange,
     graph3dUpToTime,
     shortestPath,
+    tourStops,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     type Graph3DData,
@@ -246,5 +247,50 @@ describe("graph3dSignature & time-lapse (#280 iteration)", () => {
         const late = graph3dUpToTime(data, 5000);
         expect(late.nodes.map((n) => n.id).sort()).toEqual(["New.md", "Old.md"]);
         expect(late.links.length).toBe(1);
+    });
+});
+
+/**
+ * #385 — `tourStops` is the pure, deterministic ordered stop list behind the cinematic tour. The
+ * camera flight is manual-verify; this is the unit-testable seam (given nodes → ordered stops).
+ */
+describe("tourStops (#385)", () => {
+    const gnode = (id: string, val: number, created: number, name = id): Graph3DNode => ({
+        id, name, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created, kind: "note",
+    });
+    const data = (nodes: Graph3DNode[]): Graph3DData => ({ nodes, links: [] });
+
+    it("returns [] for an empty graph", () => {
+        expect(tourStops(data([]))).toEqual([]);
+    });
+
+    it("orders hub stops by val (degree) descending", () => {
+        const stops = tourStops(data([gnode("a", 1, 0), gnode("b", 9, 0), gnode("c", 5, 0)]), { maxStops: 4 });
+        expect(stops.map((s) => s.id)).toEqual(["b", "c", "a"]);
+    });
+
+    it("is deterministic and stable — equal val ties break by name then id", () => {
+        const nodes = [gnode("z", 3, 0, "Alpha"), gnode("y", 3, 0, "Alpha"), gnode("x", 3, 0, "Beta")];
+        const first = tourStops(data(nodes)).map((s) => s.id);
+        expect(tourStops(data(nodes)).map((s) => s.id)).toEqual(first); // same input ⇒ same output
+        expect(first).toEqual(["y", "z", "x"]); // Alpha before Beta (name), y before z (id)
+    });
+
+    it("includes most-recent notes by created descending", () => {
+        const nodes = [gnode("hub", 20, 1, "Hub"), gnode("old", 1, 100, "Old"), gnode("new", 1, 900, "New")];
+        const ids = tourStops(data(nodes), { maxStops: 4 }).map((s) => s.id);
+        expect(ids).toContain("new");
+        expect(ids.indexOf("new")).toBeLessThan(ids.indexOf("old"));
+    });
+
+    it("deduplicates — a note that is both a hub and recent appears once", () => {
+        const nodes = [gnode("both", 50, 999, "Both"), gnode("b", 2, 5, "B"), gnode("c", 1, 4, "C")];
+        const ids = tourStops(data(nodes), { maxStops: 6 }).map((s) => s.id);
+        expect(ids.filter((id) => id === "both")).toHaveLength(1);
+    });
+
+    it("caps the stop count at maxStops", () => {
+        const nodes = Array.from({ length: 30 }, (_, i) => gnode(`n${i}`, 30 - i, i, `N${i}`));
+        expect(tourStops(data(nodes), { maxStops: 5 })).toHaveLength(5);
     });
 });

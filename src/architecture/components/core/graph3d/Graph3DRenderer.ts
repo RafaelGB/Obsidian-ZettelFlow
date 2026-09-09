@@ -19,6 +19,7 @@ import {
     RELATION_COLOR_VARS,
     RELATION_COLORS,
     shortestPath,
+    tourStops,
     STATE_COLOR_VARS,
     STATE_COLORS,
 } from "architecture/knowledge/state";
@@ -108,6 +109,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private bloomPass: { enabled: boolean; dispose?(): void } | null = null;
     private reducedMotion = false;
     private activeRecorder: MediaRecorder | null = null;
+    private tourActive = false;
+    private tourTimer: number | undefined;
+    private tourIndex = 0;
+    private tourStopIds: string[] = [];
+    private tourBtn: HTMLElement | null = null;
     private hullMeshes: THREE.Mesh[] = [];
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
@@ -283,6 +289,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.setActive(entries.some((entry) => entry.isIntersecting), canLabel);
             });
             this.visibilityObserver.observe(this.wrapperEl);
+
+            // A2 (#385): any direct interaction cancels an active cinematic tour.
+            this.registerDomEvent(this.graphEl, "pointerdown", () => this.stopTour());
+            this.registerDomEvent(this.graphEl, "wheel", () => this.stopTour());
+            this.registerDomEvent(this.graphEl, "keydown", () => this.stopTour());
         } catch (error) {
             log.error("[Graph3D] could not initialize the 3D graph (WebGL unavailable?)", error);
             if (this.disposed) return;
@@ -300,10 +311,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (canLabel && this.proximityTimer === undefined) {
                 this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
             }
+            if (this.tourActive && this.tourTimer === undefined) this.advanceTour(); // resume the tour on screen
         } else {
             anim.pauseAnimation?.();
             window.clearInterval(this.proximityTimer);
             this.proximityTimer = undefined;
+            window.clearTimeout(this.tourTimer); // pause the tour while off-screen
+            this.tourTimer = undefined;
         }
     }
 
@@ -721,6 +735,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         share.setAttribute("aria-label", t("graph3d_export"));
         this.registerDomEvent(share, "click", (evt) => this.openExportMenu(evt));
 
+        // A2 (#385): a one-click cinematic tour that flies through your hubs and most-recent notes.
+        const tour = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_tour_play") });
+        tour.setAttribute("aria-pressed", "false");
+        this.tourBtn = tour;
+        this.registerDomEvent(tour, "click", () => this.toggleTour());
+
         const lite = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_lite") });
         lite.setAttribute("aria-pressed", "false");
         this.liteBtn = lite;
@@ -1014,14 +1034,56 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.focusNode(path);
     }
 
-    private focusNode(path: string): void {
+    private focusNode(path: string, durationMs = 1200): void {
         if (!this.graph) return;
         const nodes = (this.graph.graphData() as { nodes: LiveNode[] }).nodes;
         const node = nodes.find((n) => n.id === path);
         if (!node || node.x === undefined) return;
         const x = node.x, y = node.y ?? 0, z = node.z ?? 0;
         const ratio = 1 + 120 / (Math.hypot(x, y, z) || 1);
-        this.graph.cameraPosition({ x: x * ratio, y: y * ratio, z: z * ratio }, { x, y, z }, 1200);
+        this.graph.cameraPosition({ x: x * ratio, y: y * ratio, z: z * ratio }, { x, y, z }, durationMs);
+    }
+
+    // ── A2 (#385): the cinematic tour ────────────────────────────────────────────
+    private toggleTour(): void {
+        if (this.tourActive) this.stopTour();
+        else this.startTour();
+    }
+
+    /** Begin a cinematic flight through the hubs + most-recent notes (pure {@link tourStops}). */
+    private startTour(): void {
+        if (!this.graph) return;
+        this.tourStopIds = tourStops(this.displayed).map((stop) => stop.id);
+        if (this.tourStopIds.length === 0) return; // nothing to fly to (empty graph)
+        this.tourActive = true;
+        this.tourIndex = 0;
+        this.tourBtn?.toggleClass(c("graph3d-chip--active"), true);
+        this.tourBtn?.setAttribute("aria-pressed", "true");
+        this.tourBtn?.setText(t("graph3d_tour_stop"));
+        this.advanceTour();
+        this.updateStatus();
+    }
+
+    /** Fly to the next stop, then schedule the following one (instant cuts under reduced-motion). */
+    private advanceTour(): void {
+        if (!this.tourActive || !this.graph || this.tourStopIds.length === 0) return;
+        const id = this.tourStopIds[this.tourIndex % this.tourStopIds.length];
+        this.focusNode(id, this.reducedMotion ? 0 : 1200);
+        this.tourIndex++;
+        const dwell = this.reducedMotion ? 500 : 2600;
+        window.clearTimeout(this.tourTimer);
+        this.tourTimer = window.setTimeout(() => this.advanceTour(), dwell);
+    }
+
+    private stopTour(): void {
+        if (!this.tourActive && this.tourTimer === undefined) return;
+        this.tourActive = false;
+        window.clearTimeout(this.tourTimer);
+        this.tourTimer = undefined;
+        this.tourBtn?.toggleClass(c("graph3d-chip--active"), false);
+        this.tourBtn?.setAttribute("aria-pressed", "false");
+        this.tourBtn?.setText(t("graph3d_tour_play"));
+        this.updateStatus();
     }
 
     private refreshPaint(): void {
@@ -1108,6 +1170,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (pinned) parts.push(`▸ ${pinned.name}`);
         }
         if (this.pathMode) parts.push(t("graph3d_path_mode"));
+        if (this.tourActive) parts.push(t("graph3d_status_tour"));
         if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
         if (this.lite) parts.push(t("graph3d_lite"));
         this.statusEl.setText(parts.join("  ·  "));
@@ -1222,6 +1285,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             try { this.activeRecorder.stop(); } catch (error) { log.warn("[Graph3D] recorder stop", error); }
         }
         this.activeRecorder = null;
+        // A2 (#385): stop any running cinematic tour.
+        window.clearTimeout(this.tourTimer);
+        this.tourTimer = undefined;
+        this.tourActive = false;
+        this.tourStopIds = [];
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
         this.visibilityObserver?.disconnect();
@@ -1250,6 +1318,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.timeSlider = null;
         this.playBtn = null;
         this.pathBtn = null;
+        this.tourBtn = null;
         this.fullscreenBtn = null;
         this.fullscreen = false;
         this.liteBtn = null;

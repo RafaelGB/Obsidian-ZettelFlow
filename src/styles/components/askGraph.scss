@@ -106,6 +106,32 @@
     font-size: var(--font-ui-smaller);
 }
 
+// Guided term builder (#323, G4/G5): field · comparison · value pickers that compose a valid term.
+.zettelkasten-flow__ask-graph-builder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.zettelkasten-flow__ask-graph-builder-value {
+    flex: 1;
+    min-width: 8rem;
+}
+
+.zettelkasten-flow__ask-graph-builder-negate {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__ask-graph-builder-add {
+    cursor: pointer;
+}
+
 // Result lenses (#323, G3): the list/table toggle and the table lens.
 .zettelkasten-flow__ask-graph-lenses {
     display: flex;

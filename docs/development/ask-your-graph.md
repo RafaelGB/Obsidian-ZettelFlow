@@ -54,7 +54,11 @@ runGraphQuery(model, source, now)                    (pure, Obsidian-free, unit-
 
 AskGraphRenderer — the "Ask your graph" mode of the Discovery surface (command: ask-your-graph)
   reads the KnowledgeIndex model → runGraphQuery(query); recomputes live on vault change
-  examples + predicate help + saved queries (settings.savedGraphQueries)
+  list / table lenses · guided term builder (buildGraphTerm) · examples · predicate help
+  saved queries (settings.savedGraphQueries: named / reorderable / pinned)
+
+buildGraphTerm(selection) + savedQueries ops    (pure, Obsidian-free, unit-tested)
+  {field, comparison?, value?, negate?} → a valid term  ·  add/rename/move/pin/normalize
 ```
 
 The engine lives in `src/architecture/knowledge/query/graphQuery.ts` and is re-exported from the Knowledge
@@ -64,12 +68,23 @@ State barrel. It reads only the `KnowledgeModel` — offline, read-only, and it 
 
 This ships the deterministic engine, the extended predicate set (incl. `incoming:` and `folder:`, #323 G1)
 a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2), **result
-lenses** — a plain list or a **table** (note · state · degree · sources), #323 G3 — and **richer saved
+lenses** — a plain list or a **table** (note · state · degree · sources), #323 G3 — **richer saved
 queries** (#323 G4): each saved query can be **named**, **reordered**, and **pinned to Home**, where it
-becomes a live *"N notes match …"* card that deep-links back into the query, pre-filled. Still tracked
-under #323: a [reasoning-paths](concept-navigation.md#reasoning-paths) lens and a guided term builder.
-Embeddings / RAG / vector search are intentionally out of scope (the manifesto: a query stays
-deterministic and offline).
+becomes a live *"N notes match …"* card that deep-links back into the query, pre-filled — and a **guided
+term builder** (#323 G5) that composes a valid term from field / comparison / value pickers, so a
+non-writer never has to memorise the grammar. Still tracked under #323: a
+[reasoning-paths](concept-navigation.md#reasoning-paths) lens. Embeddings / RAG / vector search are
+intentionally out of scope (the manifesto: a query stays deterministic and offline).
+
+### Guided term builder
+
+Don't want to memorise the grammar? The **Build a term** row composes one for you: pick a **field**
+(`state`, `relation`, `degree`, `hub`, …), an optional **comparison** (for `degree`) and **value**,
+tick **negate** to prepend `!`, and **Add term** appends a valid predicate to the query with `AND`.
+A value-less field hides the value box; `degree` reveals the comparison box; an invalid selection
+shows the reason in the status line instead of writing a broken term. The composer is the pure,
+unit-tested `buildGraphTerm` (`graphTermBuilder.ts`) — it mirrors the [#235 condition
+builder](../architecture/trigger-conditions.md) and only ever emits terms the engine parses.
 
 ### Saved queries
 

@@ -59,6 +59,12 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-discovery", "ask"/);
     });
 
+    it("offers a guided term builder — field / comparison / value pickers (#323 G5)", () => {
+        expect(RENDERER).toContain("buildGraphTerm");
+        expect(RENDERER).toContain("ask-graph-builder");
+        expect(RENDERER).toMatch(/ask_graph_field_/);
+    });
+
     it("is read-only — never imports a write path or mutates the vault", () => {
         expect(RENDERER).not.toMatch(/FileService|FrontmatterService|CultivationService/);
         expect(RENDERER).not.toMatch(/\.(modify|createFile|process[Ff]rontMatter)\(/);

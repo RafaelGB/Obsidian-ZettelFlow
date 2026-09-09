@@ -15,6 +15,7 @@ import {
     normalizeSavedQueries,
     savedQueryLabel,
 } from "./savedQueries";
+import { GRAPH_TERM_FIELDS, GRAPH_TERM_COMPARISONS, buildGraphTerm } from "./graphTermBuilder";
 
 function basename(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
@@ -98,6 +99,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             this.lensButtons.set(lens, btn);
         }
 
+        this.renderBuilder(root);
         this.statusEl = root.createDiv({ cls: c("ask-graph-status") });
         this.resultsEl = root.createDiv({ cls: c("ask-graph-results") });
         this.savedEl = root.createDiv({ cls: c("ask-graph-saved") });
@@ -105,6 +107,64 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.renderExamples(root);
         this.renderPredicateHelp(root);
         this.run();
+    }
+
+    /**
+     * The guided term builder (#323 G5, mirrors the #235 condition builder): field · comparison · value
+     * pickers that emit a valid term via the pure {@link buildGraphTerm} and append it to the query with
+     * `AND`, so a non-writer composes a query from menus. A value-less field hides the value box; `degree`
+     * reveals the comparison box; an invalid selection shows the builder's reason in the status line.
+     */
+    private renderBuilder(root: HTMLElement): void {
+        root.createEl("h6", { text: t("ask_graph_builder_heading") });
+        const row = root.createDiv({ cls: c("ask-graph-builder") });
+
+        const fieldSelect = row.createEl("select", { cls: c("ask-graph-builder-field") });
+        fieldSelect.setAttribute("aria-label", t("ask_graph_builder_field"));
+        for (const field of GRAPH_TERM_FIELDS) {
+            fieldSelect.createEl("option", {
+                value: field.id,
+                text: t(`ask_graph_field_${field.id}` as Parameters<typeof t>[0]),
+            });
+        }
+
+        const cmpSelect = row.createEl("select", { cls: c("ask-graph-builder-comparison") });
+        cmpSelect.setAttribute("aria-label", t("ask_graph_builder_comparison"));
+        for (const cmp of GRAPH_TERM_COMPARISONS) cmpSelect.createEl("option", { value: cmp, text: cmp });
+
+        const valueInput = row.createEl("input", { type: "text", cls: c("ask-graph-builder-value") });
+        valueInput.placeholder = t("ask_graph_builder_value");
+        valueInput.setAttribute("aria-label", t("ask_graph_builder_value"));
+
+        const negateLabel = row.createEl("label", { cls: c("ask-graph-builder-negate") });
+        const negateInput = negateLabel.createEl("input", { type: "checkbox" });
+        negateLabel.createSpan({ text: t("ask_graph_builder_negate") });
+
+        const sync = () => {
+            const field = GRAPH_TERM_FIELDS.find((candidate) => candidate.id === fieldSelect.value);
+            cmpSelect.toggleClass(c("is-hidden"), !(field?.comparison ?? false));
+            valueInput.toggleClass(c("is-hidden"), (field?.value ?? "text") === "none");
+        };
+        this.registerDomEvent(fieldSelect, "change", sync);
+        sync();
+
+        const addBtn = row.createEl("button", { text: t("ask_graph_builder_add"), cls: c("ask-graph-builder-add") });
+        this.registerDomEvent(addBtn, "click", () => {
+            const built = buildGraphTerm({
+                field: fieldSelect.value,
+                comparison: cmpSelect.value,
+                value: valueInput.value,
+                negate: negateInput.checked,
+            });
+            if (!built.ok || !built.term) {
+                if (this.statusEl) this.statusEl.textContent = built.error ?? "";
+                return;
+            }
+            const current = this.query.trim();
+            this.setQuery(current === "" ? built.term : `${current} AND ${built.term}`);
+            valueInput.value = "";
+            negateInput.checked = false;
+        });
     }
 
     private setQuery(next: string): void {

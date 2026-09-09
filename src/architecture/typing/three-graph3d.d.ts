@@ -61,4 +61,45 @@ declare module "three" {
         geometry: SphereGeometry;
     }
     export class Scene extends Object3D { }
+
+    // A1 (#384) — the immersive starfield backdrop is a single `Points` object (one draw call).
+    export class Vector2 {
+        constructor(x?: number, y?: number);
+        x: number;
+        y: number;
+    }
+    export class BufferAttribute {
+        constructor(array: ArrayLike<number>, itemSize: number);
+    }
+    export class BufferGeometry {
+        setAttribute(name: string, attribute: BufferAttribute): this;
+        dispose(): void;
+    }
+    export class PointsMaterial {
+        constructor(params?: Record<string, unknown>);
+        color: Color;
+        opacity: number;
+        size: number;
+        dispose(): void;
+    }
+    export class Points extends Object3D {
+        constructor(geometry?: BufferGeometry, material?: PointsMaterial);
+        geometry: BufferGeometry;
+        material: PointsMaterial;
+    }
+}
+
+// A1 (#384) — best-effort selective bloom. `three` ships no resolvable types for the examples/jsm
+// post-processing passes; we load this one lazily via `import(...)` inside a try/catch, so only the
+// surface we touch is declared. A load/wire failure degrades to lit spheres, never a blank graph.
+declare module "three/examples/jsm/postprocessing/UnrealBloomPass.js" {
+    import type { Vector2 } from "three";
+    export class UnrealBloomPass {
+        constructor(resolution: Vector2, strength: number, radius: number, threshold: number);
+        enabled: boolean;
+        strength: number;
+        radius: number;
+        threshold: number;
+        dispose?(): void;
+    }
 }

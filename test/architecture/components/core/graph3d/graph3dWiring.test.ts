@@ -33,3 +33,36 @@ describe("Graph 3D mode wiring (#280 S1)", () => {
         expect(src).not.toMatch(/^import\s+\{[^}]*\}\s+from\s+["']3d-force-graph["']/m); // (value) named import
     });
 });
+
+/**
+ * A1 (#384) — the immersive "Knowledge Galaxy" environment is additive, gated, and best-effort: it is
+ * built behind `environmentEnabled()`, bloom loads lazily, and a bloom failure never blanks the graph.
+ */
+describe("Graph 3D immersive environment (A1, #384)", () => {
+    const src = readCore("graph3d/Graph3DRenderer.ts");
+
+    it("gates the environment behind environmentEnabled()", () => {
+        expect(src).toMatch(/environmentEnabled\(/);
+    });
+
+    it("loads selective bloom lazily (dynamic import), never as a static import", () => {
+        expect(src).toMatch(/import\(\s*["'][^"']*UnrealBloomPass[^"']*["']\s*\)/);
+        expect(src).not.toMatch(/^import\s+.*UnrealBloomPass/m);
+    });
+
+    it("makes selective bloom best-effort — a failed bloom load is caught and logged, not thrown", () => {
+        expect(src).toMatch(/import\([^)]*UnrealBloomPass[^)]*\)/); // the lazy load
+        expect(src).toMatch(/selective bloom unavailable/); // the catch-block log.warn — proves it degrades
+    });
+
+    it("keeps the base render path independent of the environment (applyGraphData before env)", () => {
+        // applyGraphData()/applySize() drive the visible graph and run before buildEnvironment()/applyBloom(),
+        // so a starfield/bloom failure can never blank the nodes and links.
+        expect(src).toMatch(/this\.applyGraphData\(\);\s*this\.applySize\(\);/);
+        expect(src).toMatch(/this\.applyGraphData\(\);[\s\S]*this\.buildEnvironment\(\);/);
+    });
+
+    it("disposes the starfield on teardown (no GPU leak)", () => {
+        expect(src).toMatch(/disposeStarfield\(\)/);
+    });
+});

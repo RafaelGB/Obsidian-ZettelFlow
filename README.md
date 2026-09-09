@@ -111,7 +111,8 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   Galaxy**: your slip-box as a 3D force-directed graph over a starfield, notes sized by connectivity,
   cluster-hued glow halos, links coloured by relation type; search-to-focus, filter by state, and a
   **discovery lens** that lights up orphans, dead-ends and contradictions in space. Click a node to
-  open it. Read-only, offline; respects reduced-motion, and degrades to the 2D map on mobile.
+  open it, take a **cinematic tour** through your hubs, or **export** the view to a PNG / WebM clip to
+  share. Read-only, offline; respects reduced-motion, and degrades to the 2D map on mobile.
   (Graph surface → 3D mode.)
 - **❓ Open questions** — every unanswered question in your vault, made first-class: each `question::`
   with no answer yet, its asker(s), and the note most likely to answer it (ranked by shared graph
@@ -227,7 +228,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
 | **Concept navigation** | Walk your vault by typed relation (in + out) — focus a note, click a neighbour to re-focus, no folders. A **Trace reasoning paths** command opens a read-only lens of the argument chains leaving a note (`supports → expands → example → implements`), each note clickable. Offline. |
 | **Ask your graph** | A deterministic query surface over your slip-box's *meaning and structure* (not frontmatter/tags like Dataview, and never AI): compose predicates — `state:`, `relation:supports/contradicts`, `incoming:`, `folder:`, `degree>=`, `orphan`, `unsourced`, `older-than:` … — with `AND`/`OR` to answer *"orphaned permanents older than 30 days that contradict X"*. Results open on click as a list or table; compose terms from menus with the guided builder; save a query to **name / reorder / pin it to Home**. Read-only, offline. |
-| **3D knowledge graph** | An immersive **Knowledge Galaxy** — an interactive 3D force-directed graph of your slip-box over a starfield (Graph surface → 3D): nodes sized by connectivity and coloured by cluster with cluster-hued glow halos, links coloured by relation type; search-to-focus, state filter, and a discovery lens for orphans · dead-ends · contradictions. **Share your universe** — export the view to a PNG or the time-lapse to a WebM clip. Read-only, offline; respects reduced-motion and Lite mode; 2D-map fallback on mobile. |
+| **3D knowledge graph** | An immersive **Knowledge Galaxy** — an interactive 3D force-directed graph of your slip-box over a starfield (Graph surface → 3D): nodes sized by connectivity and coloured by cluster with cluster-hued glow halos, links coloured by relation type; search-to-focus, state filter, and a discovery lens for orphans · dead-ends · contradictions. A one-click **cinematic tour** flies through your hubs; **share your universe** by exporting the view to a PNG or the time-lapse to a WebM clip. Read-only, offline; respects reduced-motion and Lite mode; 2D-map fallback on mobile. |
 | **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
 | **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. Local, bounded, opt-in. |
 | **Evidence map** *(experimental)* | Compound thinking — a grounded synthesis of a note from your own graph (supports · contradicts · evidence · gaps), every row linked to its source note. No invented content, no AI. |

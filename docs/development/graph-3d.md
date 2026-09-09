@@ -52,6 +52,11 @@ colour mode, how many notes are shown, and any lens / pinned note / time-lapse i
 - **Click a link** to open both of its notes (source here, target in a split).
 - **Path mode** — toggle it, click two notes, and the **shortest path** between them lights up with the
   camera framing it.
+- **Guided tour** (#385) — one click flies the camera on a **cinematic tour** through your hubs and
+  most-recent notes (a deterministic, pure stop list). It is strictly optional and **any drag, wheel,
+  click or key cancels it**; it honours `prefers-reduced-motion` (instant cuts, no drift), pauses when
+  the tab is off-screen, and is not offered in the no-WebGL / mobile list fallback. This is a graph
+  *showcase* flight, not an onboarding walkthrough.
 - Updates are **incremental**: while the vault indexes, new notes join the graph and existing ones
   keep their positions — the layout never resets.
 

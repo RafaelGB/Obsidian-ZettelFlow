@@ -368,3 +368,32 @@
 
 .zettelkasten-flow__graph3d-fallback-flag--orphan { color: var(--text-faint); }
 .zettelkasten-flow__graph3d-fallback-flag--contradiction { color: #f87171; }
+
+// ── Share / export dialog (#386) ────────────────────────────────────────────
+.zettelkasten-flow__graph3d-export-desc {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    margin-top: 0;
+}
+
+.zettelkasten-flow__graph3d-export-preview {
+    display: flex;
+    justify-content: center;
+    padding: var(--size-4-2);
+    margin: var(--size-4-2) 0;
+    background-color: #0b0e14; // preview the graph on its own dark space, whatever the theme
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+}
+
+.zettelkasten-flow__graph3d-export-media {
+    max-width: 100%;
+    max-height: 40vh;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__graph3d-export-status {
+    min-height: 1.2em;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

@@ -21,8 +21,16 @@ export abstract class ModeHostView extends ItemView {
      * would still be `undefined` at that point and crash ("Cannot read properties of undefined").
      */
     abstract getViewType(): string;
-    /** Build the renderer for a mode id, rendering into `container`. */
-    protected abstract createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer;
+    /**
+     * Build the renderer for a mode id, rendering into `container`. `state` carries the view-state
+     * payload from the deep-link that requested this mode (e.g. a pre-filled query, #323 G4); most
+     * modes ignore it.
+     */
+    protected abstract createRenderer(
+        modeId: string,
+        container: HTMLElement,
+        state?: Record<string, unknown>
+    ): KnowledgeModeRenderer;
 
     /** The surface definition (title, ordered modes), derived from the construction-safe view type. */
     protected get surface(): Surface {
@@ -34,6 +42,8 @@ export abstract class ModeHostView extends ItemView {
     private current: KnowledgeModeRenderer | null = null;
     private readonly tabButtons = new Map<string, HTMLElement>();
     private tabOrder: string[] = [];
+    /** The deep-link payload for the next mode build, consumed once so a manual tab switch is clean. */
+    private pendingState: Record<string, unknown> | null = null;
 
     getDisplayText(): string {
         return t(this.surface.titleKey as LocaleKey);
@@ -58,8 +68,10 @@ export abstract class ModeHostView extends ItemView {
 
     async setState(state: unknown, result: ViewStateResult): Promise<void> {
         await super.setState(state, result);
-        const mode = (state as { mode?: unknown } | null)?.mode;
+        const payload = (state as Record<string, unknown> | null) ?? null;
+        const mode = payload?.mode;
         if (typeof mode === "string" && this.hasMode(mode)) {
+            this.pendingState = payload; // handed to the renderer once, then cleared
             if (this.bodyEl) await this.showMode(mode);
             else this.activeMode = mode; // shell not built yet — onOpen will honour it
         }
@@ -135,7 +147,9 @@ export abstract class ModeHostView extends ItemView {
             this.current = null;
         }
         this.bodyEl.empty();
-        this.current = this.createRenderer(modeId, this.bodyEl);
+        const state = this.pendingState ?? undefined;
+        this.pendingState = null; // one-shot: a later manual tab switch builds without it
+        this.current = this.createRenderer(modeId, this.bodyEl, state);
         this.addChild(this.current); // triggers the renderer's onload() → renders into bodyEl
     }
 }

@@ -1,14 +1,18 @@
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { App } from "obsidian";
-import { c, log } from "architecture";
+import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome, readyToCultivate, developmentStreak } from "architecture/knowledge/state";
+import { HomeModel, buildHome, readyToCultivate, developmentStreak, runGraphQuery } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
+import { pinnedQueries, savedQueryLabel } from "architecture/components/core/askGraph/savedQueries";
+
+/** A pinned "ask your graph" query resolved against the current model (#323 G4). */
+type PinnedQueryCard = { label: string; query: string; count: number };
 
 const DEBOUNCE_MS = 400;
 
@@ -31,6 +35,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private recommendations: KnowledgeRecommendation[] = [];
     private cultivateCount = 0;
     private streak = 0;
+    private pinnedCards: PinnedQueryCard[] = [];
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -67,6 +72,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             if (index.status !== "ready") {
                 this.state = "indexing";
                 this.home = null;
+                this.pinnedCards = [];
                 this.render();
                 return;
             }
@@ -77,6 +83,12 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             this.recommendations = topRecommendations(model, undefined, JudgementLog.getInstance().entries());
             this.cultivateCount = readyToCultivate(model);
             this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
+            // Pinned "ask your graph" queries (#323 G4): resolve each against the live model so Home
+            // shows a current "N notes match …" card that deep-links back into the query.
+            this.pinnedCards = pinnedQueries(ObsidianApi.getOwnPlugin()?.settings.savedGraphQueries).map((entry) => {
+                const result = runGraphQuery(model, entry.query);
+                return { label: savedQueryLabel(entry), query: entry.query, count: result.error ? 0 : result.matches.length };
+            });
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -122,6 +134,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderGrowthNudge(container);
         this.renderCultivateTeaser(container);
         this.renderGraphTeaser(container);
+        this.renderPinnedQueries(container);
         this.renderRecommendations(container);
         this.renderNoteSection(container, "home_section_new_ideas", this.home.newIdeas);
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
@@ -172,6 +185,29 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         const cta = nudge.createEl("button", { cls: c("home-nudge-cta"), text: t("home_nudge_develop") });
         cta.setAttribute("aria-label", t("home_nudge_develop"));
         cta.addEventListener("click", () => void this.app.workspace.openLinkText(first, "", false));
+    }
+
+    /**
+     * Pinned "ask your graph" queries (#323 G4): each saved query the user pinned becomes a live
+     * "N notes match …" card that deep-links back into the *Ask your graph* mode, pre-filled. Silent
+     * when nothing is pinned. Mechanical output (a count) — no judgement written (manifesto §XII).
+     */
+    private renderPinnedQueries(container: HTMLElement): void {
+        if (this.pinnedCards.length === 0) return;
+        const section = container.createDiv({ cls: c("home-section") });
+        section.createEl("h5", { text: t("home_section_pinned_queries"), cls: c("home-section-title") });
+        const list = section.createDiv({ cls: c("home-list") });
+        for (const card of this.pinnedCards) {
+            const row = list.createDiv({ cls: c("home-pinned-query") });
+            const label = row.createSpan({
+                text: t("home_pinned_query_count", String(card.count), card.label),
+                cls: c("home-pinned-query-label"),
+            });
+            label.setAttribute("title", card.query);
+            makeActivatable(label, () =>
+                void activateSurface(this.app, "zettelflow-discovery", "ask", { query: card.query })
+            );
+        }
     }
 
     /** The 3D-graph teaser (#285 S2): the eye-catching hook — one click into the Graph 3D mode. */

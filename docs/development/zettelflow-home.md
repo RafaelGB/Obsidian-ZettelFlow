@@ -28,6 +28,10 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
   vault, by design.)*
 - **Suggested connections** — the top [morning discoveries](morning-discovery.md) (#163): unlinked
   notes that share context.
+- **Pinned queries** *(#323 G4)* — any [*Ask your graph*](ask-your-graph.md) query you **pinned** shows
+  here as a live *"N notes match …"* card, resolved against the current model on every recompute.
+  Clicking it reopens *Ask your graph* on that query, pre-filled. A count is mechanical output — no
+  judgement is written ([constitution §XII](constitution.md)). Silent when nothing is pinned.
 
 - **What to do next** *(#273)* — the top ~5 [`KnowledgeRecommendation`](../architecture/knowledge-state.md)s
   by priority (`resolve a contradiction`, `add a source`, `connect this idea`, …), each derived purely

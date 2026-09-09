@@ -199,3 +199,19 @@
     font-style: italic;
     padding: var(--size-2-1) 0;
 }
+
+// Pinned "ask your graph" queries (#323 G4): a live "N notes match …" card per pinned query.
+.zettelkasten-flow__home-pinned-query {
+    display: flex;
+    align-items: baseline;
+    padding: var(--size-2-1) 0;
+}
+
+.zettelkasten-flow__home-pinned-query-label {
+    cursor: pointer;
+    color: var(--text-accent);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

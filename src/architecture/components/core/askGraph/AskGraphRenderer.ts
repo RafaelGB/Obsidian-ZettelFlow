@@ -5,7 +5,16 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { runGraphQuery, GRAPH_QUERY_EXAMPLES, GRAPH_QUERY_PREDICATES, type GraphQueryResult } from "architecture/knowledge/state";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
-import { addSavedQuery, removeSavedQuery } from "./savedQueries";
+import type { SavedGraphQuery } from "config";
+import {
+    addSavedQuery,
+    removeSavedQuery,
+    renameSavedQuery,
+    moveSavedQuery,
+    togglePinnedQuery,
+    normalizeSavedQueries,
+    savedQueryLabel,
+} from "./savedQueries";
 
 function basename(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
@@ -35,8 +44,10 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private lens: ResultLens = "list";
     private readonly lensButtons = new Map<ResultLens, HTMLElement>();
 
-    constructor(container: HTMLElement, private readonly app: App) {
+    constructor(container: HTMLElement, private readonly app: App, initialQuery?: string) {
         super(container);
+        // Deep-link from a Home pinned card (#323 G4): open pre-filled and run immediately.
+        if (initialQuery && initialQuery.trim() !== "") this.query = initialQuery.trim();
     }
 
     onload(): void {
@@ -173,37 +184,86 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    private async save(): Promise<void> {
+    private savedQueries(): SavedGraphQuery[] {
+        return normalizeSavedQueries(ObsidianApi.getOwnPlugin()?.settings.savedGraphQueries);
+    }
+
+    /** Apply a pure list transform, persist it, and re-render — the one write path for saved queries. */
+    private async mutateSaved(transform: (list: SavedGraphQuery[]) => SavedGraphQuery[]): Promise<void> {
         const plugin = ObsidianApi.getOwnPlugin();
         if (!plugin) return;
-        plugin.settings.savedGraphQueries = addSavedQuery(plugin.settings.savedGraphQueries ?? [], this.query);
+        plugin.settings.savedGraphQueries = transform(this.savedQueries());
         await plugin.saveSettings();
         this.renderSaved();
     }
 
-    private async deleteSaved(query: string): Promise<void> {
-        const plugin = ObsidianApi.getOwnPlugin();
-        if (!plugin) return;
-        plugin.settings.savedGraphQueries = removeSavedQuery(plugin.settings.savedGraphQueries ?? [], query);
-        await plugin.saveSettings();
-        this.renderSaved();
+    private save(): void {
+        void this.mutateSaved((list) => addSavedQuery(list, this.query));
     }
 
     private renderSaved(): void {
         if (!this.savedEl) return;
         this.savedEl.empty();
-        const saved = ObsidianApi.getOwnPlugin()?.settings.savedGraphQueries ?? [];
+        const saved = this.savedQueries();
         if (saved.length === 0) return;
         this.savedEl.createEl("h6", { text: t("ask_graph_saved_heading") });
         const list = this.savedEl.createEl("ul", { cls: c("ask-graph-saved-list") });
-        for (const query of saved) {
-            const li = list.createEl("li", { cls: c("ask-graph-saved-item") });
-            const label = li.createEl("code", { cls: c("ask-graph-saved-query"), text: query });
-            makeActivatable(label, () => this.setQuery(query));
-            const del = li.createEl("button", { cls: c("ask-graph-saved-delete"), text: t("ask_graph_delete") });
-            del.setAttribute("aria-label", t("ask_graph_delete"));
-            this.registerDomEvent(del, "click", () => void this.deleteSaved(query));
-        }
+        for (const entry of saved) this.renderSavedRow(list, entry);
+    }
+
+    /** One saved-query row: run it, rename, reorder, pin-to-Home (#323 G4), delete. */
+    private renderSavedRow(list: HTMLElement, entry: SavedGraphQuery): void {
+        const li = list.createEl("li", { cls: c("ask-graph-saved-item") });
+        const label = li.createEl("code", {
+            cls: c("ask-graph-saved-query"),
+            text: savedQueryLabel(entry),
+        });
+        label.setAttribute("title", entry.query);
+        makeActivatable(label, () => this.setQuery(entry.query));
+
+        const actions = li.createDiv({ cls: c("ask-graph-saved-actions") });
+        this.savedAction(actions, "ask_graph_rename", "ask-graph-saved-rename", () => this.renameSaved(entry, label));
+        this.savedAction(actions, "ask_graph_move_up", "ask-graph-saved-up", () =>
+            void this.mutateSaved((l) => moveSavedQuery(l, entry.query, "up"))
+        );
+        this.savedAction(actions, "ask_graph_move_down", "ask-graph-saved-down", () =>
+            void this.mutateSaved((l) => moveSavedQuery(l, entry.query, "down"))
+        );
+        this.savedAction(actions, entry.pinned ? "ask_graph_unpin" : "ask_graph_pin", "ask-graph-saved-pin", () =>
+            void this.mutateSaved((l) => togglePinnedQuery(l, entry.query))
+        ).toggleClass(c("ask-graph-saved-pin--on"), entry.pinned === true);
+        this.savedAction(actions, "ask_graph_delete", "ask-graph-saved-delete", () =>
+            void this.mutateSaved((l) => removeSavedQuery(l, entry.query))
+        );
+    }
+
+    private savedAction(parent: HTMLElement, labelKey: Parameters<typeof t>[0], cls: string, onClick: () => void): HTMLElement {
+        const btn = parent.createEl("button", { cls: c(cls), text: t(labelKey) });
+        btn.setAttribute("aria-label", t(labelKey));
+        this.registerDomEvent(btn, "click", onClick);
+        return btn;
+    }
+
+    /** Inline rename: swap the label for a text field, commit on Enter/blur, cancel on Escape. */
+    private renameSaved(entry: SavedGraphQuery, label: HTMLElement): void {
+        const input = createEl("input", { type: "text", cls: c("ask-graph-saved-rename-input") });
+        input.value = savedQueryLabel(entry);
+        input.setAttribute("aria-label", t("ask_graph_rename"));
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        let done = false;
+        const commit = (save: boolean) => {
+            if (done) return;
+            done = true;
+            if (save) void this.mutateSaved((l) => renameSavedQuery(l, entry.query, input.value));
+            else this.renderSaved();
+        };
+        this.registerDomEvent(input, "keydown", (evt) => {
+            if (evt.key === "Enter") commit(true);
+            else if (evt.key === "Escape") commit(false);
+        });
+        this.registerDomEvent(input, "blur", () => commit(true));
     }
 
     private renderExamples(root: HTMLElement): void {

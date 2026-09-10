@@ -1,4 +1,8 @@
 export default {
+    community_system_installing: 'Instalando archivos verificados…',
+    community_system_install_conflict: 'Un destino contiene contenido diferente. No se sobrescribió nada. Elige otra carpeta o inspecciona el sistema existente.',
+    community_system_install_partial: 'La instalación puede ser parcial. Se conservó el contenido existente. Reintenta en la misma carpeta para verificar los archivos completos y crear solo los que faltan.',
+    community_system_install_retry: 'Reintentar instalación',
     inquiry_title: 'Trabaja en tu propia pregunta',
     inquiry_start: 'Empezar con mi material',
     inquiry_resume: 'Retomar mi investigación',

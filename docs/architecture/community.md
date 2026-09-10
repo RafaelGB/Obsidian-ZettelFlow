@@ -7,6 +7,19 @@ backend** to run — no server, no database, no accounts, no network writes from
 
 ## 1. One data source — the static catalog
 
+### Installation without overwriting customizations (#401)
+
+The existing system installer preflights every planned destination. Exact unchanged files are reused;
+different/customized content blocks the install before new writes. Races and I/O failures can still
+leave a partial installation: retry in the same folder to verify completed files and create only
+missing ones. No automatic overwrite, deletion or claim of an atomic multi-file transaction. Busy
+submissions are ignored, code acknowledgement is preserved, and Run now is offered only after all
+files are verified. For a deliberately different system version, choose a new folder.
+
+The tour stays optional and uses its three existing entry points. Its description guides users back
+to Home's own-material inquiry with their resulting note. Installed/customized copies are never
+silently upgraded. Direct purpose-led use needs no gallery download or system installation.
+
 The browser reads a single catalog, `docs/main_template.json`, from GitHub raw and resolves each
 entry's `ref` against the same base. Everything is offline-friendly (a plain `GET`) and versioned
 with the repo.

@@ -1,4 +1,8 @@
 export default {
+    community_system_installing: 'Installing verified files…',
+    community_system_install_conflict: 'A destination contains different content. Nothing was overwritten. Choose another folder or inspect your existing system.',
+    community_system_install_partial: 'Installation may be partial. Existing content was preserved. Retry in the same folder to verify completed files and create only missing ones.',
+    community_system_install_retry: 'Retry installation',
     inquiry_title: 'Work on your own question',
     inquiry_start: 'Start with my material',
     inquiry_resume: 'Resume my inquiry',

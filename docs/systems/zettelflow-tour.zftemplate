@@ -1,7 +1,7 @@
 {
   "zfVersion": "1.0",
   "name": "ZettelFlow tour",
-  "description": "Learn ZettelFlow by using it: three one-click entry points — capture an idea, add a source, ask a question — that teach the whole capture → develop → connect loop while producing real notes. Each note explains what just happened and runs the full on-creation knowledge suite (find related, maturity, orphans, next move, claims, questions). Start here. Offline, no AI.",
+  "description": "Optional guided practice with your own material: capture an idea, add a source, or ask a question through three independent entry points. Then return to Home → Start with my material and choose the note you created to explore your purpose, write a provisional response and save progress. Recorded sources, links and maturity do not prove understanding or resolve your question; you decide what is sufficient for now. The installed system runs offline with no AI.",
   "author": "ZettelFlow",
   "difficulty": "easy",
   "canvas": {

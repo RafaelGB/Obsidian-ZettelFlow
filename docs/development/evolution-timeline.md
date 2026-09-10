@@ -37,6 +37,20 @@ time (a snapshot before a judgement on a tie) and reads only what it is given, s
 on renders exactly the pre-#362 timeline. Judgement events are read from the always-local judgement log
 and honour the same [knowledge scope](knowledge-scope.md) — no extra content is stored for them.
 
+## Shareable idea card (#387)
+
+The **Share this idea** button (Timeline header, shown once there is history) turns the timeline into a
+single **before→after image** you can post — *"how my idea X grew"*:
+
+- A pure `buildIdeaCard` composes the card from **already-accepted data only** — the first vs current
+  snapshot (state + claim counts), the recorded judgement milestones, the note's current link count
+  (degree) and its trajectory direction. It **writes nothing** and adds **no new interpretation** (§XII).
+- The card is painted onto a canvas (`paintIdeaCard`) and handed to the **A3 export dialog** (#386), which
+  previews it and saves a PNG to your attachment folder through the Vault API. No server, no upload.
+
+Because it presents only the current snapshot's link count, the card shows **links now** (an absolute
+fact) rather than a fabricated link delta — the timeline stores claim history, not link history.
+
 ## Bounds and pruning
 
 The store is bounded so it can't grow without limit:

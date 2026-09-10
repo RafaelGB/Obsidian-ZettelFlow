@@ -84,6 +84,22 @@ describe("agency-aware AI: the model proposes, the user commits (#337, §XII)", 
         expect(recorded[0].verdict).toBe("accepted");
     });
 
+    it("records the verdict before it writes to the note (record-before-adoption, §XII #401 T8)", async () => {
+        const { info } = fakeInfo();
+        const order: string[] = [];
+        const original = info.content.addFrontMatter;
+        info.content.addFrontMatter = (o: Record<string, unknown>) => { order.push("write"); original(o); };
+        const dep: AiActionDeps = {
+            review: async () => ({ verdict: "accepted", text: "kept" }),
+            record: () => order.push("record"),
+        };
+
+        await runAiActionFromPrompt(info, el, "prompt", spec, dep);
+
+        // The judgement is durably recorded first; only then does the accepted text reach the note.
+        expect(order).toEqual(["record", "write"]);
+    });
+
     it("writes the user's text, not the model's, when it is edited", async () => {
         const { info, frontmatter } = fakeInfo();
         const { dep, recorded } = deps({ verdict: "modified", text: "my own counterargument" });

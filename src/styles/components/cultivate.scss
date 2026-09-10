@@ -1,3 +1,84 @@
+// Purpose-led work shares Cultivate, with stable editors and touch-sized native controls.
+.zettelkasten-flow__inquiry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: var(--size-4-3);
+    overflow-wrap: anywhere;
+
+    h3,
+    p {
+        margin-block: var(--size-4-1);
+    }
+
+    button {
+        min-height: 2.75rem;
+        white-space: normal;
+    }
+
+    button:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: 2px;
+    }
+}
+
+.zettelkasten-flow__inquiry-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    font-weight: var(--font-medium);
+
+    textarea,
+    input,
+    select {
+        width: 100%;
+        max-width: 100%;
+        font: inherit;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 5rem;
+    }
+}
+
+.zettelkasten-flow__inquiry-actions,
+.zettelkasten-flow__inquiry-reference {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__inquiry-reference {
+    padding: var(--size-4-2);
+    margin-block: var(--size-4-2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+
+    span,
+    p {
+        flex-basis: 100%;
+    }
+}
+
+.zettelkasten-flow__inquiry-help {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+// The start/ordinary on-ramp buttons live outside `.inquiry` (cultivate header, home teaser), so the
+// touch target from `.inquiry button` doesn't reach them — size them here too (#319 / #401 FR-22).
+.zettelkasten-flow__inquiry-onramp {
+    min-height: 2.75rem;
+    cursor: pointer;
+}
+
 // Cultivate — thinking sessions (#309).
 .zettelkasten-flow__cultivate {
     padding: 0.5rem;

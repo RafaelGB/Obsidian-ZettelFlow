@@ -17,9 +17,12 @@ import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
 /**
  * Modal for a community **system** (#214): a `.zftemplate` bundle installed as a canvas + step notes
  * in one click. Consumes the unified `.zftemplate` format and writes real files through
- * {@link FileService.writeFile} (no clipboard-paste dance).
+ * {@link FileService.createFilesOnce} (no clipboard-paste dance or customized-file overwrite).
  */
 export class CommunitySystemModal extends Modal {
+  private installing = false;
+  private installButton: ButtonComponent | null = null;
+  private installStatus: HTMLElement | null = null;
   private targetFolder: string;
   private imageUrl = `${COMMUNITY_BASE_URL}${this.refUrl.replace(
     /\.zftemplate$/,
@@ -113,7 +116,7 @@ export class CommunitySystemModal extends Modal {
       .addSearch((cb) => {
         new FolderSuggest(cb.inputEl);
         cb.setValue(this.targetFolder).onChange((value) => {
-          this.targetFolder = value;
+          if (!this.installing) this.targetFolder = value;
         });
       });
 
@@ -135,6 +138,7 @@ export class CommunitySystemModal extends Modal {
 
     new Setting(this.contentEl).addButton((btn) => {
       installButton = btn;
+      this.installButton = btn;
       btn
         .setButtonText(t("community_system_install_button"))
         .setCta()
@@ -143,6 +147,7 @@ export class CommunitySystemModal extends Modal {
           void this.installSystem();
         });
     });
+    this.installStatus = this.contentEl.createDiv({ attr: { role: 'status', 'aria-live': 'polite' } });
   }
 
   /**
@@ -178,9 +183,10 @@ export class CommunitySystemModal extends Modal {
   /**
    * Validates the fetched (remote, untrusted) system, then writes every planned file (canvas first,
    * then each step), opens the canvas, and closes the modal. Idempotent by way of
-   * {@link FileService.writeFile} (overwrite-in-place).
+  * {@link FileService.createFilesOnce}: exact retries are safe, customized files are preserved.
    */
   private async installSystem(): Promise<void> {
+    if (this.installing || !this.codeAcknowledged) return;
     const problems = validateSystemTemplate(this.template, REGISTERED_ACTION_IDS);
     if (problems.length > 0) {
       log.error("Refusing to install invalid community system:", problems);
@@ -188,10 +194,17 @@ export class CommunitySystemModal extends Modal {
       return;
     }
     try {
+      this.installing = true; this.installButton?.setDisabled(true);
+      this.installStatus?.setText(t('community_system_installing'));
       const { files } = planSystemInstall(this.template, this.targetFolder);
-      for (const file of files) {
-        await FileService.writeFile(file.path, file.content, false);
+      const result = await FileService.createFilesOnce(this.app.vault, files);
+      if (result !== 'complete') {
+        const message = t(result === 'conflict' ? 'community_system_install_conflict' : 'community_system_install_partial');
+        this.installStatus?.setText(message); new Notice(message);
+        this.installButton?.setButtonText(t('community_system_install_retry'));
+        return;
       }
+      if (this.disposed) return;
       this.close();
       if (files.length > 0) {
         // Open the canvas and offer to run it immediately — so a system is usable the moment it lands,
@@ -199,9 +212,11 @@ export class CommunitySystemModal extends Modal {
         await FileService.openFile(files[0].path);
       }
       this.notifyInstalled();
-    } catch (error) {
-      log.error("Error installing community system:", error);
+    } catch {
+      log.error("Community system installation failed");
       new Notice(t("community_system_install_error"));
+    } finally {
+      this.installing = false; this.installButton?.setDisabled(!this.codeAcknowledged);
     }
   }
 

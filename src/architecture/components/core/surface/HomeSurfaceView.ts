@@ -24,10 +24,10 @@ export class HomeSurfaceView extends ModeHostView {
         return "house";
     }
 
-    protected createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer {
+    protected createRenderer(modeId: string, container: HTMLElement, state?: Record<string, unknown>): KnowledgeModeRenderer {
         switch (modeId) {
             case "cultivate":
-                return new CultivateModeRenderer(container, this.plugin);
+                return new CultivateModeRenderer(container, this.plugin, state);
             case "recent":
                 return new HistoryRenderer(container, this.plugin);
             case "home":

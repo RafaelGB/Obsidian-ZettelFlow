@@ -1,10 +1,11 @@
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { App } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome, readyToCultivate, developmentStreak, runGraphQuery } from "architecture/knowledge/state";
+import { HomeModel, buildHome, runGraphQuery } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
@@ -33,8 +34,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private home: HomeModel | null = null;
     private recommendations: KnowledgeRecommendation[] = [];
-    private cultivateCount = 0;
-    private streak = 0;
     private pinnedCards: PinnedQueryCard[] = [];
     private debounceTimer: number | undefined;
 
@@ -81,8 +80,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
             this.home = buildHome(model, { thinkingDays, now: Date.now() });
             this.recommendations = topRecommendations(model, undefined, JudgementLog.getInstance().entries());
-            this.cultivateCount = readyToCultivate(model);
-            this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
             // Pinned "ask your graph" queries (#323 G4): resolve each against the live model so Home
             // shows a current "N notes match …" card that deep-links back into the query.
             this.pinnedCards = pinnedQueries(ObsidianApi.getOwnPlugin()?.settings.savedGraphQueries).map((entry) => {
@@ -111,6 +108,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         });
         refresh.addEventListener("click", () => this.recompute());
 
+        this.renderCultivateTeaser(container);
+
         if (this.state === "indexing") {
             container.createDiv({ cls: c("home-status"), text: t("home_indexing") });
             return;
@@ -132,7 +131,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         });
 
         this.renderGrowthNudge(container);
-        this.renderCultivateTeaser(container);
         this.renderGraphTeaser(container);
         this.renderPinnedQueries(container);
         this.renderRecommendations(container);
@@ -147,25 +145,20 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
      * highest-leverage idea, with the count of ideas that still have development headroom.
      */
     private renderCultivateTeaser(container: HTMLElement): void {
-        if (this.cultivateCount === 0) return;
         const teaser = container.createDiv({ cls: c("home-cultivate-teaser") });
-        teaser.createDiv({ cls: c("home-cultivate-teaser-title"), text: t("home_cultivate_teaser_title") });
+        teaser.createDiv({ cls: c("home-cultivate-teaser-title"), text: t("home_inquiry_title") });
         teaser.createDiv({
             cls: c("home-cultivate-teaser-sub"),
-            text: t("home_cultivate_teaser_sub", String(this.cultivateCount)),
+            text: t("home_inquiry_desc"),
         });
-        if (this.streak > 0) {
-            teaser.createDiv({
-                cls: c("home-cultivate-teaser-streak"),
-                text: t("home_cultivate_teaser_streak", String(this.streak)),
-            });
-        }
+        const resume = !!InquiryRuntime.getInstance().getSnapshot().current;
         const btn = teaser.createEl("button", {
             cls: c("home-cultivate-teaser-btn"),
-            text: t("home_cultivate_teaser_cta"),
+            text: t(resume ? 'inquiry_resume' : 'inquiry_start'),
         });
-        btn.setAttribute("aria-label", t("home_cultivate_teaser_cta"));
-        btn.addEventListener("click", () => void activateSurface(this.app, "zettelflow-home", "cultivate"));
+        btn.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: resume ? 'resume' : 'start' }));
+        const ordinary = teaser.createEl('button', { text: t('inquiry_ordinary'), cls: c('inquiry-onramp') });
+        ordinary.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: 'ordinary' }));
     }
 
     /**

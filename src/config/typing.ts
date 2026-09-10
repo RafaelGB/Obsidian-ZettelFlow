@@ -34,6 +34,8 @@ export type PropertyHookSettings = {
  * Main settings interface for the ZettelFlow plugin.
  */
 export interface ZettelFlowSettings {
+    /** Versioned, sensitive local inquiry checkpoint. Unknown/corrupt data is retained for recovery. */
+    inquiry?: unknown;
     /** Enable or disable logging */
     loggerEnabled: boolean;
     /** Logging level (e.g., "debug", "info", etc.) */

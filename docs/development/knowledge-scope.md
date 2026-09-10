@@ -1,3 +1,10 @@
+### Inquiry context (#401)
+
+Purpose-led context honors these same exclusions, including managed-system folders. Its default is
+the user's explicitly selected notes; expanding by one recorded link hop is optional. Exclusions
+override both choices and also apply to source links. Missing or newly excluded references remain
+unavailable context, never silently replaced by another note. The scoped gather is bounded and reports
+truncation; it is not a whole-vault semantic search over the user's written purpose.
 # Knowledge scope (excluded paths)
 
 Not everything in a vault is *knowledge*. Config folders, template libraries, attachments-as-notes

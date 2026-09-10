@@ -1,9 +1,10 @@
-import { Modal, Notice, normalizePath } from "obsidian";
+import { Modal, Notice } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import ZettelFlow from "main";
-
-const CAPTURE_FOLDER = "Inbox";
+import { QuickCaptureService } from 'architecture/plugin/services/QuickCaptureService';
+import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
+import { v4 as uuid } from 'uuid';
 
 /**
  * Lowest-friction capture (#285 S3): a single title prompt that writes a **fleeting** note to the
@@ -11,7 +12,9 @@ const CAPTURE_FOLDER = "Inbox";
  * the first note. Mobile-friendly (a plain modal + Enter to submit).
  */
 export class QuickCaptureModal extends Modal {
-    constructor(private readonly plugin: ZettelFlow) {
+    private operation: InquiryOperation | undefined;
+    private busy = false;
+    constructor(private readonly plugin: ZettelFlow, private readonly options: { capture?: (title: string) => Promise<boolean> } = {}) {
         super(plugin.app);
     }
 
@@ -24,38 +27,40 @@ export class QuickCaptureModal extends Modal {
         input.setAttribute("aria-label", t("quick_capture_placeholder"));
         input.focus();
 
-        const submit = () => {
+        const status = contentEl.createDiv({ attr: { role: 'status', 'aria-live': 'polite' } });
+        const submit = async () => {
             const title = input.value.trim();
-            if (!title) return;
-            void this.capture(title);
-            this.close();
+            if (!title || this.busy) return;
+            this.busy = true; button.disabled = true; status.setText(t('quick_capture_saving'));
+            try {
+                const success = await (this.options.capture ? this.options.capture(title) : this.capture(title));
+                if (success) this.close(); else status.setText(t('quick_capture_retry'));
+            } catch { status.setText(t('quick_capture_retry')); }
+            finally { this.busy = false; button.disabled = false; }
         };
         input.addEventListener("keydown", (evt) => {
-            if (evt.key === "Enter") submit();
+            if (evt.key === "Enter") void submit();
         });
         const button = contentEl.createEl("button", { text: t("quick_capture_button"), cls: "mod-cta" });
-        button.addEventListener("click", () => submit());
+        button.addEventListener("click", () => void submit());
     }
 
     onClose(): void {
         this.contentEl.empty();
     }
 
-    private async capture(title: string): Promise<void> {
-        const { vault } = this.plugin.app;
+    private async capture(title: string): Promise<boolean> {
         try {
-            const folder = normalizePath(CAPTURE_FOLDER);
-            if (!vault.getAbstractFileByPath(folder)) {
-                await vault.createFolder(folder).catch(() => undefined);
-            }
-            const safe = title.replace(/[\\/:*?"<>|#^[\]]/g, " ").trim();
-            let path = `${folder}/${safe}.md`;
-            if (vault.getAbstractFileByPath(path)) path = `${folder}/${safe} ${Date.now()}.md`;
-            await vault.create(path, `---\nstate: fleeting\n---\n\n# ${title}\n`);
+            const service = new QuickCaptureService(this.plugin.app.vault);
+            this.operation ??= service.plan(title, uuid());
+            const result = await service.write(this.operation);
+            if (result.status !== 'created' && result.status !== 'already-created') throw new Error('Capture failed');
             new Notice(t("quick_capture_captured", title));
-        } catch (error) {
-            log.error("[QuickCapture] failed to capture", error);
+            return true;
+        } catch {
+            log.error("[QuickCapture] capture failed");
             new Notice(t("quick_capture_error"));
+            return false;
         }
     }
 }

@@ -3,6 +3,7 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { CommunityTemplatesModal } from "application/community";
 import ZettelFlow from "main";
+import { activateSurface } from 'architecture/plugin/services/ViewActivation';
 
 /**
  * First-run welcome (#246 A1). Instead of a bare notice, greet the user, say what ZettelFlow does in
@@ -22,11 +23,14 @@ export class WelcomeModal extends Modal {
         contentEl.createEl("h2", { text: t("welcome_title") });
         contentEl.createEl("p", { text: t("welcome_body") });
 
+        new Setting(contentEl).addButton(btn => btn.setButtonText(t('welcome_cta_own_material')).setCta().onClick(() => {
+            this.close();
+            void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: 'start' });
+        }));
         new Setting(contentEl)
             .addButton((btn) =>
                 btn
                     .setButtonText(t("welcome_cta_browse"))
-                    .setCta()
                     .onClick(() => {
                         this.close();
                         new CommunityTemplatesModal(this.plugin).open();

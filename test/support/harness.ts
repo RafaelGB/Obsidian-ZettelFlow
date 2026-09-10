@@ -1,4 +1,4 @@
-import { TFile, stringifyYaml } from "obsidian";
+import { TFile, TFolder, stringifyYaml } from "obsidian";
 import { __setMockObsidianApi } from "architecture";
 
 /**
@@ -34,6 +34,7 @@ function render(frontmatter: Record<string, unknown>, body: string): string {
 }
 
 export class FakeVault {
+    readonly folders = new Map<string, TFolder>();
     readonly entries = new Map<string, Entry>();
     readonly adapter = { exists: async (path: string) => this.entries.has(path) };
 
@@ -48,8 +49,8 @@ export class FakeVault {
     getMarkdownFiles(): TFile[] {
         return [...this.entries.values()].map((e) => e.file);
     }
-    getAbstractFileByPath(path: string): TFile | null {
-        return this.entries.get(path)?.file ?? null;
+    getAbstractFileByPath(path: string): TFile | TFolder | null {
+        return this.entries.get(path)?.file ?? this.folders.get(path) ?? null;
     }
     getFileByPath(path: string): TFile | null {
         return this.entries.get(path)?.file ?? null;
@@ -65,12 +66,14 @@ export class FakeVault {
         if (e) e.content = content;
     }
     async create(path: string, content: string): Promise<TFile> {
+        if (this.getAbstractFileByPath(path)) throw new Error('File exists');
         const file = makeTFile(path);
         this.entries.set(path, { file, frontmatter: {}, content });
         return file;
     }
-    async createFolder(_path: string): Promise<void> {
-        /* no-op: folders are implicit in the flat map */
+    async createFolder(path: string): Promise<void> {
+        if (this.getAbstractFileByPath(path)) throw new Error('Folder exists');
+        const folder = new TFolder(); folder.path = path; this.folders.set(path, folder);
     }
     on(): { unload: () => void } {
         return { unload: () => undefined };

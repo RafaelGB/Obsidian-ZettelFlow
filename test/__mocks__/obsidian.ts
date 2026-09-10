@@ -14,16 +14,32 @@ export interface RGB {
 }
 
 export class Notice {
-  constructor(public message?: string) {}
+  constructor(public message?: string) { }
   setMessage(message: string): this {
     this.message = message;
     return this;
   }
-  hide(): void {}
+  hide(): void { }
 }
 
-export class Plugin {}
-export class Modal {}
+export class Plugin { }
+export class Component {
+  private cleanups: (() => void)[] = [];
+  private children: Component[] = [];
+  onload(): void { } onunload(): void { }
+  load(): void { this.onload(); }
+  unload(): void { this.onunload(); for (const child of this.children) child.unload(); for (const fn of this.cleanups) fn(); this.cleanups = []; }
+  addChild<T extends Component>(child: T): T { this.children.push(child); child.load(); return child; }
+  removeChild<T extends Component>(child: T): T { this.children = this.children.filter(x => x !== child); child.unload(); return child; }
+  register(fn: () => void): void { this.cleanups.push(fn); }
+  registerEvent(_event: unknown): void { }
+}
+export class Modal {
+  constructor(public app?: any) { }
+  onOpen(): void { } onClose(): void { }
+  open(): void { this.onOpen(); }
+  close(): void { this.onClose(); }
+}
 export class TAbstractFile {
   path = "";
   name = "";
@@ -45,14 +61,14 @@ export function getLanguage(): string {
 }
 
 export class SuggestModal<T> {
-  constructor(public app?: unknown) {}
-  setPlaceholder(_text: string): void {}
+  constructor(public app?: unknown) { }
+  setPlaceholder(_text: string): void { }
   getSuggestions(_query: string): T[] {
     return [];
   }
-  renderSuggestion(_value: T, _el: unknown): void {}
-  onChooseSuggestion(_value: T): void {}
-  open(): void {}
+  renderSuggestion(_value: T, _el: unknown): void { }
+  onChooseSuggestion(_value: T): void { }
+  open(): void { }
 }
 
 export function requireApiVersion(_version: string): boolean {
@@ -62,12 +78,12 @@ export function requireApiVersion(_version: string): boolean {
 // UI-surface stubs — enough for modules that build settings/suggesters to *load* under jest
 // (they are never rendered in unit tests). The real classes come from Obsidian at runtime.
 export class AbstractInputSuggest<T> {
-  constructor(_app?: unknown, _inputEl?: unknown) {}
+  constructor(_app?: unknown, _inputEl?: unknown) { }
   getSuggestions(_query: string): T[] {
     return [];
   }
-  renderSuggestion(_value: T, _el: unknown): void {}
-  selectSuggestion(_value: T): void {}
+  renderSuggestion(_value: T, _el: unknown): void { }
+  selectSuggestion(_value: T): void { }
   setValue(_value: string): this {
     return this;
   }
@@ -78,7 +94,7 @@ export class AbstractInputSuggest<T> {
 
 /** Chainable no-op stub of Obsidian's declarative Setting builder. */
 export class Setting {
-  constructor(_containerEl?: unknown) {}
+  constructor(_containerEl?: unknown) { }
   setName(): this {
     return this;
   }
@@ -120,7 +136,7 @@ export class Setting {
   }
 }
 
-export function setIcon(_el: unknown, _icon: string): void {}
+export function setIcon(_el: unknown, _icon: string): void { }
 
 /** Mutable platform flags so tests can exercise the desktop/mobile default + the bug-report mapping. */
 export const Platform = {

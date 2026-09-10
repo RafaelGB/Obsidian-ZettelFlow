@@ -12,8 +12,11 @@
 
     1. Install from the Obsidian community plugin browser.
     2. Click the ZettelFlow ribbon icon (or run *Open ZettelFlow* from the command palette).
-    3. On the welcome screen, click **Create example flow** — ZettelFlow creates a sample canvas and step template, sets it as your flow canvas, and opens it.
-    4. Run the ribbon icon again to try your first wizard.
+    3. Click **Start with my own idea** and choose a note or capture one real idea.
+    4. State your question, inspect selected material, write your response or uncertainty, and **Save progress**.
+
+    [Purpose-led Cultivate](development/cultivate.md) needs no Canvas setup or installation. The existing
+    Systems Gallery remains optional for ready-to-run workflows, including the introductory tour.
 
     **Manual path — build your own flow from scratch:**
 

@@ -1,3 +1,14 @@
+### Purpose-led inquiry checkpoints (#401)
+
+An explicitly saved inquiry stores sensitive user text (purpose, response and gaps), selected and
+consulted paths, and its human resolution in the plugin's local data. This is **not** the content-free
+activity counter. One inquiry is retained until explicit clear/replace; the optional judgement log's
+500-entry cap and recording toggle do not control it. Nothing is transmitted. Ordinary vault/device
+sync remains under the user's configuration, not a new plugin sync or encryption guarantee.
+
+Drafts are not persisted by unrelated settings changes. A successful Save/Pause acknowledges one
+revision; newer edits or failed saves are not guaranteed after restart. Unsupported saved data is
+retained for explicit recovery/reset. Clearing inquiry bookkeeping never removes authored Markdown.
 # Capabilities & privacy
 
 ZettelFlow discloses every capability it uses, ahead of Obsidian's upcoming **capability-label**
@@ -30,6 +41,14 @@ requests are the opt-in community fetches (read-only) and the opt-in AI provider
 your notes leaves your machine unless *you* enable AI and run an AI action (which sends the note
 content only to the endpoint you set). Sharing a template is a manual GitHub contribution you make
 yourself — the plugin never uploads anything.
+
+## Diagnostics stay content-free (#401)
+
+The inquiry journey reads the knowledge index, so a diagnostic emitted while indexing the very note
+you are working on must not become a side channel. The index diagnostics that journey can trigger —
+inline-relation enrichment, per-note upsert, and the conceptual-timeline/development-journal hooks —
+log only a **fixed failure category** (the error *type*, e.g. `TypeError`), never the note's **path**,
+its **body**, or the raw exception message. A private inquiry note cannot leak into the log this way.
 
 ## The thinking-heatmap journal (local only)
 

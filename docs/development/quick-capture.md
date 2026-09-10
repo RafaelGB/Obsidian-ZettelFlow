@@ -1,5 +1,16 @@
 # Quick capture
 
+## Safe file creation
+
+Capture now uses the shared create-only writer. It still produces a fleeting note in Inbox; invalid
+empty filenames are rejected. A name collision chooses a unique operation suffix once. Retries retain
+that operation and path: exact content is recognized, different content is never overwritten. The
+hidden operation marker lets a failed response after successful creation be reconciled safely.
+
+The modal remains open with its title until acknowledgement; repeated submits are coalesced while
+busy. Purpose-led capture uses the same service and selects the exact created note. Its pending
+operation is retained in the inquiry checkpoint, so a retry can survive restart.
+
 The lowest-friction path from a thought to a note (#285). A single command opens one title prompt and
 writes a **fleeting note** straight to your `Inbox` — no canvas, no wizard, no folder decision. The
 point is speed: get the idea out of your head before it's gone, and develop it later.
@@ -25,6 +36,6 @@ connect it.
 ## Details
 
 - **Folder** — notes land in a top-level `Inbox/` folder, created on first use.
-- **Filename** — the title, with characters unsafe for a filename replaced by spaces; a timestamp is
+- **Filename** — the title, with characters unsafe for a filename replaced by spaces; an operation ID is
   appended if a note of that name already exists (captures never overwrite).
 - **Offline** — writes a single Markdown file through the Vault API; no network, no AI.

@@ -1,4 +1,6 @@
 export default {
+    notice_settings_load_failed: 'No se pudieron cargar los datos guardados. Reactiva el plugin para reintentar; no se han escrito valores predeterminados.',
+    notice_settings_save_failed: 'No se pudieron guardar los ajustes. Los cambios podrían perderse al reiniciar.',
     command_open_manage_templates: 'Abrir gestión de plantillas',
     command_open_community_templates: 'Abrir plantillas de la comunidad',
     modals_community_templates_title: 'Comunidad',

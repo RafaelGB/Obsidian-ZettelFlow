@@ -1,4 +1,6 @@
 export default {
+    notice_settings_load_failed: 'Could not load saved data. Re-enable the plugin to retry; no defaults were written.',
+    notice_settings_save_failed: 'Could not save settings. Your changes may not survive a restart.',
     command_open_manage_templates: 'Open manage templates',
     command_open_community_templates: 'Open community templates',
     modals_community_templates_title: 'Community',

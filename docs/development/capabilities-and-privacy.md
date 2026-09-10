@@ -1,3 +1,14 @@
+### Purpose-led inquiry checkpoints (#401)
+
+An explicitly saved inquiry stores sensitive user text (purpose, response and gaps), selected and
+consulted paths, and its human resolution in the plugin's local data. This is **not** the content-free
+activity counter. One inquiry is retained until explicit clear/replace; the optional judgement log's
+500-entry cap and recording toggle do not control it. Nothing is transmitted. Ordinary vault/device
+sync remains under the user's configuration, not a new plugin sync or encryption guarantee.
+
+Drafts are not persisted by unrelated settings changes. A successful Save/Pause acknowledges one
+revision; newer edits or failed saves are not guaranteed after restart. Unsupported saved data is
+retained for explicit recovery/reset. Clearing inquiry bookkeeping never removes authored Markdown.
 # Capabilities & privacy
 
 ZettelFlow discloses every capability it uses, ahead of Obsidian's upcoming **capability-label**

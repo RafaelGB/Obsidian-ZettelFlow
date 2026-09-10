@@ -29,12 +29,26 @@ import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJourn
 import { JudgementLog } from 'architecture/plugin/judgement/JudgementLog';
 import { ConceptualTimeline } from 'architecture/plugin/timeline/ConceptualTimeline';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
+import { SerializedSettingsWriter } from 'architecture/plugin/services/SerializedSettingsWriter';
+import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
+import { v4 as uuid } from 'uuid';
 
 export default class ZettelFlow extends Plugin {
+	private readonly settingsWriter = new SerializedSettingsWriter(snapshot => this.saveData(snapshot));
 	private canvasExtensions: CanvasExtension[] = [];
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
+		InquiryRuntime.getInstance().init({
+			load: () => this.settings.inquiry,
+			persist: async storage => {
+				const previous = this.settings.inquiry;
+				this.settings.inquiry = storage;
+				try { await this.saveSettings(); }
+				catch (error) { if (this.settings.inquiry === storage) this.settings.inquiry = previous; throw error; }
+			},
+			now: () => Date.now(), id: () => uuid(),
+		});
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		JudgementLog.getInstance().init(this); // #336: wire the judgement record to settings.
@@ -64,6 +78,7 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	onunload() {
+		InquiryRuntime.getInstance().dispose();
 		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.
 		JudgementLog.getInstance().flush(); // #336: persist any pending verdict.
@@ -76,7 +91,13 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	async loadSettings() {
-		const loaded = (await this.loadData()) as Partial<ZettelFlowSettings> | null;
+		let loaded: Partial<ZettelFlowSettings> | null;
+		try { loaded = (await this.loadData()) as Partial<ZettelFlowSettings> | null; }
+		catch {
+			log.error('[Settings] load failed');
+			new Notice(t('notice_settings_load_failed'));
+			throw new Error('Settings load failed');
+		}
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {}) as ZettelFlowSettings;
 
 		// Object.assign is shallow — patch nested objects so older saved data that
@@ -94,12 +115,15 @@ export default class ZettelFlow extends Plugin {
 		// call that could never be written. Drop the dead key rather than let it sit in data.json
 		// forever, quietly implying a switch that no longer exists.
 		delete (this.settings.ai as Partial<Record<"allowInAutomations", unknown>>).allowInAutomations;
-		void this.saveSettings();
+		void this.saveSettings().catch(() => {
+			log.error('[Settings] normalization save failed');
+			new Notice(t('notice_settings_save_failed'));
+		});
 		loadServicesThatRequireSettings(this.settings);
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		await this.settingsWriter.save(this.settings);
 	}
 
 	registerViews() {

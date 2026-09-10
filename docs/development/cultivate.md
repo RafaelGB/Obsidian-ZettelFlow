@@ -1,3 +1,11 @@
+### Local checkpoint contract
+
+The runtime keeps the editable draft outside settings until **Save** or **Pause** requests a
+checkpoint. All plugin-data writes use one serial queue, including journal/settings writes. Only the
+acknowledged revision is durable; newer input remains dirty, and a failure leaves it editable. One
+inquiry persists across restart independently of the bounded judgement log or whether logging is on.
+Unsupported/corrupt storage requires explicit reset. Clearing bookkeeping never deletes outcome notes.
+Unloading is not an acknowledgement: save successfully before closing to guarantee restart continuity.
 ### Context bounds
 
 The internal inquiry projection starts with selected notes only. Optional **one-hop** scope adds

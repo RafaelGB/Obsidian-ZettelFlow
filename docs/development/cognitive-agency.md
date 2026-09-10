@@ -92,6 +92,22 @@ This is not a technicality. A "cognitive surrender score" would be exactly the m
 gamified thing epic #335 exists to avoid — the right question is never *"how much did the user do?"*
 but *"has their understanding changed?"*
 
+## Reviewing your decisions
+
+The **Agency** tab on the Health surface (#389) makes the record something you can *look at*. It is a
+**read-only, local** view — nothing is written back, nothing is transmitted:
+
+- A compact **header** — the cognitive agency index (`agencyIndex`), the interpretive
+  accept · modify · reject breakdown (`verdictBreakdown`), and a one-line plain-language **reading**
+  (*deciding · mixed · accepting · unknown*). The reading is a description of your verdict mix, **not a
+  grade**; below a small sample it reads *unknown*, never zero.
+- A **newest-first list** of every recorded decision — the note, the verdict, its origin, your
+  confidence and rationale when you gave them, and when. Each row opens the note.
+
+The header numbers come straight from the C5 queries (`agencyReviewModel` composes them), so the tab
+and a script's `zf.knowledge.agencyIndex()` can never disagree. Empty log ⇒ a friendly empty state;
+recording off ⇒ a prompt to enable it in settings.
+
 ## The other half: your own readings
 
 AI proposals fill the record with `origin: "ai"`. [Cultivate](cultivate.md) fills it with

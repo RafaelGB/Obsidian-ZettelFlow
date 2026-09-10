@@ -1,0 +1,120 @@
+// The Agency review mode (#389, C6) — a read-only decision-history tab on the Health surface: a compact
+// agency header (index + accept/modify/reject reading) over a newest-first list of recorded verdicts.
+
+.zettelkasten-flow__agency-review {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    padding: var(--size-4-3);
+}
+
+.zettelkasten-flow__agency-review-title {
+    margin: 0;
+}
+
+.zettelkasten-flow__agency-review-message {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    padding: var(--size-4-2) 0;
+}
+
+// ── Header: index + breakdown + one-line reading ─────────────────────────────
+.zettelkasten-flow__agency-review-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+}
+
+.zettelkasten-flow__agency-review-index {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__agency-review-index-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.zettelkasten-flow__agency-review-index-value {
+    font-size: var(--font-ui-large);
+    font-weight: var(--font-bold);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__agency-review-breakdown {
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__agency-review-reading {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+}
+
+// ── The decision list ────────────────────────────────────────────────────────
+.zettelkasten-flow__agency-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.zettelkasten-flow__agency-review-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    min-height: 40px;
+    padding: var(--size-2-2) var(--size-4-2);
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__agency-review-name {
+    flex: 1 1 auto;
+    color: var(--text-accent);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__agency-review-verdict {
+    flex: 0 0 auto;
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    padding: 0 var(--size-2-2);
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-border);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__agency-review-verdict--accepted { color: var(--color-green); }
+.zettelkasten-flow__agency-review-verdict--modified { color: var(--color-yellow); }
+.zettelkasten-flow__agency-review-verdict--rejected { color: var(--color-red); }
+.zettelkasten-flow__agency-review-verdict--confirmed { color: var(--color-green); }
+.zettelkasten-flow__agency-review-verdict--challenged { color: var(--color-orange); }
+
+.zettelkasten-flow__agency-review-origin,
+.zettelkasten-flow__agency-review-confidence,
+.zettelkasten-flow__agency-review-when {
+    flex: 0 0 auto;
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__agency-review-note {
+    flex: 1 1 100%;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+}

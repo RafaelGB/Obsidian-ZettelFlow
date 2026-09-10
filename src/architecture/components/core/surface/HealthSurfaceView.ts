@@ -3,6 +3,7 @@ import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { SlipboxHealthRenderer } from "architecture/components/core/slipboxHealth/SlipboxHealthRenderer";
 import { EvolutionTimelineRenderer } from "architecture/components/core/timeline/EvolutionTimelineRenderer";
 import { ThinkingHeatmapRenderer } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapRenderer";
+import { AgencyReviewRenderer } from "architecture/components/core/agencyReview/AgencyReviewRenderer";
 
 /**
  * The **Health** surface (#272) — one destination for the state of your slip-box, with modes:
@@ -24,6 +25,8 @@ export class HealthSurfaceView extends ModeHostView {
                 return new EvolutionTimelineRenderer(container, this.app);
             case "momentum":
                 return new ThinkingHeatmapRenderer(container);
+            case "agency":
+                return new AgencyReviewRenderer(container, this.app);
             case "health":
             default:
                 return new SlipboxHealthRenderer(container, this.app);

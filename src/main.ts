@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
 import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings, unloadPluginComponents } from 'starters';
-import { Notice, Plugin } from 'obsidian';
+import { Notice, Plugin, TFile } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
 import {
 	BackLinkAction, CalendarAction, CheckboxAction,
@@ -32,6 +32,9 @@ import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/
 import { SerializedSettingsWriter } from 'architecture/plugin/services/SerializedSettingsWriter';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { v4 as uuid } from 'uuid';
+import { isPathExcluded, scopeExcludedPaths } from 'architecture/knowledge/scope/knowledgeScope';
+import { CultivationService } from 'architecture/plugin/services/CultivationService';
+import { QuickCaptureService } from 'architecture/plugin/services/QuickCaptureService';
 
 export default class ZettelFlow extends Plugin {
 	private readonly settingsWriter = new SerializedSettingsWriter(snapshot => this.saveData(snapshot));
@@ -39,6 +42,8 @@ export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
+		const inScope = (path: string) => !isPathExcluded(path, [...scopeExcludedPaths(this.settings), this.app.vault.configDir]);
+		const capture = new QuickCaptureService(this.app.vault, inScope);
 		InquiryRuntime.getInstance().init({
 			load: () => this.settings.inquiry,
 			persist: async storage => {
@@ -48,7 +53,20 @@ export default class ZettelFlow extends Plugin {
 				catch (error) { if (this.settings.inquiry === storage) this.settings.inquiry = previous; throw error; }
 			},
 			now: () => Date.now(), id: () => uuid(),
+			inScope,
+			available: path => this.app.vault.getFileByPath(path) instanceof TFile,
+			link: (path, destination) => {
+				const file = inScope(path) ? this.app.vault.getFileByPath(path) : null;
+				if (!(file instanceof TFile)) throw new Error('Unavailable reference');
+				return this.app.fileManager.generateMarkdownLink(file, destination);
+			},
+			planCapture: (title, id) => capture.plan(title, id),
+			writeOperation: operation => operation.kind === 'capture' ? capture.write(operation) : CultivationService.getInstance().saveInquiryOutcome(this.app, operation, path => inScope(path) && operation.references.every(ref => inScope(ref) && this.app.vault.getFileByPath(ref) instanceof TFile)),
 		});
+		this.registerEvent(this.app.vault.on('rename', (file, oldPath) => {
+			if (file instanceof TFile) InquiryRuntime.getInstance().rename(oldPath, file.path, !this.app.vault.getAbstractFileByPath(oldPath) && this.app.vault.getFileByPath(file.path) === file);
+		}));
+		this.registerEvent(this.app.vault.on('delete', file => InquiryRuntime.getInstance().markMissing(file.path)));
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		JudgementLog.getInstance().init(this); // #336: wire the judgement record to settings.

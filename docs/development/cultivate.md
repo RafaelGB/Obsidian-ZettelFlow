@@ -1,3 +1,17 @@
+### Recovery guarantees
+
+| Stage | What is durable | Recovery |
+|---|---|---|
+| Pending intent save failed | Earlier checkpoint only | Keep draft and retry; no file creation has started |
+| Intent acknowledged, creation failed/conflicted | Frozen operation, destination and content | Retry the same operation; never overwrite a different file |
+| File exists, receipt save failed | Pending operation and the file | A partial state, not success; restart/retry recognizes the exact same file |
+| Receipt acknowledged | Checkpoint plus outcome receipt | Re-saving an unchanged revision does not create a duplicate |
+
+Observed unambiguous renames follow the exact file. Missing/offline renames are not guessed from a
+basename; explicitly choose replacement context. Observed deletion remains unavailable even if a new
+file occupies that path. Newly excluded references cannot be read on retry. Abandoning an ambiguous
+operation requires confirmation and removes only its bookkeeping, never a potentially created note.
+This is local recovery, not distributed locking across devices or an atomic transaction with sync.
 ### Create-only outcomes
 
 Outcome snapshots use a create-only Vault boundary. An exact complete-content retry is recognized;

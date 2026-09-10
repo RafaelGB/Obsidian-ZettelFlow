@@ -5,9 +5,10 @@
 > [*"one obvious path"* epic (#231)](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/231); every
 > later phase should cite a row here.
 >
-> **Stance: consolidate & hide.** Per the [manifesto](../manifesto.md), *"keep every feature — reposition
-> it; almost nothing is deleted."* Nothing below is a proposal to delete a capability — only to expose
-> one obvious path and tuck duplicates out of the way.
+> **Stance: consolidate & hide.** The [manifesto](../manifesto.md) asks us to preserve people's work and
+> compatible workflows, not every redundant interface. This audit retains capabilities while exposing
+> one obvious path and moving duplicates out of the way; it does not authorize deleting user work or
+> breaking established workflows.
 
 >
 > **Two different "frictions" — do not confuse them.** This page is about **operational friction**:

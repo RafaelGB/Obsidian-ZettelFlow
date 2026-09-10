@@ -5,6 +5,8 @@
 > [manifesto](../manifesto.md)'s meta-principle: *ZettelFlow removes mechanical work and protects
 > cognitive work.*
 
+> See the agency review in action → the [Showcase](../showcase.md).
+
 ## The problem this solves
 
 ZettelFlow could already tell you a great deal about how your knowledge **grew**. The

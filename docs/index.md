@@ -57,6 +57,11 @@ Canvas file          ZettelFlow wizard          Note in your vault
 
 | Feature | Docs |
 |---|---|
+| Immersive **Knowledge Galaxy** 3D graph | [Showcase →](showcase.md) · [3D graph →](development/graph-3d.md) |
+| Cinematic guided tour | [Showcase →](showcase.md) |
+| Share your universe (graph export) | [Showcase →](showcase.md) |
+| Before/after idea card | [Showcase →](showcase.md) · [Evolution timeline →](development/evolution-timeline.md) |
+| Agency review & index | [Showcase →](showcase.md) · [Cognitive agency →](development/cognitive-agency.md) |
 | Guided first-run with example flow | [Getting started →](development/getting-started.md) |
 | Systems Gallery (one-click) | [Systems gallery →](how-to-contribute/systems-gallery.md) |
 | Built-in actions (form + knowledge) | [Actions →](actions/Prompt.md) |

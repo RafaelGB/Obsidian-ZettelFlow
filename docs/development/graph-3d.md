@@ -7,6 +7,8 @@
 Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). Everything is
 **read-only and offline** — clicking a node opens its note; the graph never writes.
 
+> See it in motion → the [Showcase](../showcase.md).
+
 ## What it shows
 
 - **Nodes** are your notes, **sized by degree** (how connected they are). Colour has two modes,

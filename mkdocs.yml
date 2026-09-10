@@ -105,6 +105,7 @@ extra:
 
 nav:
   - Home: index.md
+  - Showcase: showcase.md
   - Get started:
       - Getting started: development/getting-started.md
       - AI provider setup: development/ai-provider-setup.md

@@ -42,6 +42,14 @@ your notes leaves your machine unless *you* enable AI and run an AI action (whic
 content only to the endpoint you set). Sharing a template is a manual GitHub contribution you make
 yourself — the plugin never uploads anything.
 
+## Diagnostics stay content-free (#401)
+
+The inquiry journey reads the knowledge index, so a diagnostic emitted while indexing the very note
+you are working on must not become a side channel. The index diagnostics that journey can trigger —
+inline-relation enrichment, per-note upsert, and the conceptual-timeline/development-journal hooks —
+log only a **fixed failure category** (the error *type*, e.g. `TypeError`), never the note's **path**,
+its **body**, or the raw exception message. A private inquiry note cannot leak into the log this way.
+
 ## The thinking-heatmap journal (local only)
 
 The [thinking heatmap](thinking-heatmap.md) is fed by a **development-event journal** stored in the

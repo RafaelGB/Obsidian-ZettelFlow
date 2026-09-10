@@ -24,6 +24,15 @@ export interface KnowledgeIndexBootstrapOptions {
 const ENRICH_YIELD_EVERY = 50;
 
 /**
+ * A **non-sensitive** failure label for a diagnostic (#401 §XII): the error's *type*, never its
+ * message, stack or any path/body it may quote. `ZettelError` and the built-ins all set `name` to the
+ * class name, so this is a fixed category — safe to log even when the failing note is a private inquiry.
+ */
+function failureCategory(error: unknown): string {
+    return error instanceof Error ? error.name : "non-error";
+}
+
+/**
  * The read-only, incremental index that models the vault as ideas — the foundation every later
  * epic layer reads from (#144). A `getInstance()` singleton behind the {@link ObsidianApi} facade.
  *
@@ -210,7 +219,8 @@ export class KnowledgeIndex {
                 enriched++;
                 if (enriched % ENRICH_YIELD_EVERY === 0) await Promise.resolve();
             } catch (error) {
-                log.error(`[KnowledgeIndex] inline relation enrichment failed for ${file.path}`, error);
+                // Never name the note or echo the raw error — a private inquiry note must not leak here (#401 §XII).
+                log.error(`[KnowledgeIndex] inline relation enrichment failed for a note (${failureCategory(error)})`);
             }
         }
         log.debug(`[KnowledgeIndex] inline-enriched ${enriched} notes in ${Date.now() - start}ms`);
@@ -224,7 +234,8 @@ export class KnowledgeIndex {
         }
         const before = this.model.get(file.path);
         this.model.upsert(deriveIdea(gatherSnapshot(file), this.schemas));
-        log.debug(`[KnowledgeIndex] upsert ${file.path}`);
+        // No per-note upsert log: the path is sensitive on the inquiry journey (#401 §XII), and build()
+        // already reports aggregate counts. Emitting one line per edit was diagnostic noise besides.
         this.recordDevelopment(file.path, before);
         this.recordTimeline(file.path);
     }
@@ -240,7 +251,7 @@ export class KnowledgeIndex {
             const after = this.model.get(path);
             if (after) timeline.capture(after, Date.now());
         } catch (error) {
-            log.error(`[KnowledgeIndex] conceptual timeline failed: ${error instanceof Error ? error.message : "unknown error"}`);
+            log.error(`[KnowledgeIndex] conceptual timeline failed (${failureCategory(error)})`);
         }
     }
 
@@ -252,7 +263,7 @@ export class KnowledgeIndex {
         try {
             ConceptualTimeline.getInstance().prune(path);
         } catch (error) {
-            log.error(`[KnowledgeIndex] conceptual timeline prune failed: ${error instanceof Error ? error.message : "unknown error"}`);
+            log.error(`[KnowledgeIndex] conceptual timeline prune failed (${failureCategory(error)})`);
         }
     }
 
@@ -261,7 +272,7 @@ export class KnowledgeIndex {
         try {
             ConceptualTimeline.getInstance().rekey(oldPath, newPath);
         } catch (error) {
-            log.error(`[KnowledgeIndex] conceptual timeline rekey failed: ${error instanceof Error ? error.message : "unknown error"}`);
+            log.error(`[KnowledgeIndex] conceptual timeline rekey failed (${failureCategory(error)})`);
         }
     }
 
@@ -279,7 +290,7 @@ export class KnowledgeIndex {
                 journal.record(Date.now());
             }
         } catch (error) {
-            log.error(`[KnowledgeIndex] development journal failed: ${error instanceof Error ? error.message : "unknown error"}`);
+            log.error(`[KnowledgeIndex] development journal failed (${failureCategory(error)})`);
         }
     }
 

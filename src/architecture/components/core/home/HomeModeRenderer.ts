@@ -157,7 +157,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             text: t(resume ? 'inquiry_resume' : 'inquiry_start'),
         });
         btn.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: resume ? 'resume' : 'start' }));
-        const ordinary = teaser.createEl('button', { text: t('inquiry_ordinary') });
+        const ordinary = teaser.createEl('button', { text: t('inquiry_ordinary'), cls: c('inquiry-onramp') });
         ordinary.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: 'ordinary' }));
     }
 

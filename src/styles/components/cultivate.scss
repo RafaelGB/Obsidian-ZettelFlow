@@ -72,6 +72,13 @@
     font-size: var(--font-ui-small);
 }
 
+// The start/ordinary on-ramp buttons live outside `.inquiry` (cultivate header, home teaser), so the
+// touch target from `.inquiry button` doesn't reach them — size them here too (#319 / #401 FR-22).
+.zettelkasten-flow__inquiry-onramp {
+    min-height: 2.75rem;
+    cursor: pointer;
+}
+
 // Cultivate — thinking sessions (#309).
 .zettelkasten-flow__cultivate {
     padding: 0.5rem;

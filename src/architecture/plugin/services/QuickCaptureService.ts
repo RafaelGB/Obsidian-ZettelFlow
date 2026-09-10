@@ -1,4 +1,4 @@
-import { TFolder, type Vault } from 'obsidian';
+import { TFolder, normalizePath, type Vault } from 'obsidian';
 import { FileService, type CreateFileResult } from './FileService';
 import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 
@@ -9,8 +9,8 @@ export class QuickCaptureService {
         const clean = title.replace(/[\r\n]/g, ' ').trim();
         const name = clean.replace(/[\\/:*?"<>|#^[\]]/g, ' ').trim().replace(/[. ]+$/, '');
         if (!name || name.length > 180 || !/^[a-zA-Z0-9-]{1,80}$/.test(id)) throw new Error('Invalid capture');
-        let path = `Inbox/${name}.md`;
-        if (this.vault.getAbstractFileByPath(path)) path = `Inbox/${name} ${id}.md`;
+        let path = normalizePath(`Inbox/${name}.md`);
+        if (this.vault.getAbstractFileByPath(path)) path = normalizePath(`Inbox/${name} ${id}.md`);
         return {id, kind: 'capture', path, revision: 0, references: [], content: `---\nstate: fleeting\n---\n\n# ${clean}\n\n<!-- zf-capture:${id} -->\n`};
     }
     async write(operation: InquiryOperation): Promise<CreateFileResult> {

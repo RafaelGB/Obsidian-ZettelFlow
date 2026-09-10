@@ -131,7 +131,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
         const header = root.createDiv({ cls: c("cultivate-header") });
         header.createEl("h4", { text: t("cultivate_title"), cls: c("cultivate-title") });
-        const own = header.createEl('button', { text: t('inquiry_start') });
+        const own = header.createEl('button', { text: t('inquiry_start'), cls: c('inquiry-onramp') });
         own.addEventListener('click', () => { this.inquiryMode = true; this.mountInquiry(); });
         const another = header.createEl("button", {
             text: t("cultivate_another"),
@@ -169,7 +169,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         const runtime = InquiryRuntime.getInstance();
         if (!runtime.getSnapshot().current) runtime.start();
         runtime.resume();
-        const ordinary = this.container.createEl('button', { text: t('inquiry_ordinary') });
+        const ordinary = this.container.createEl('button', { text: t('inquiry_ordinary'), cls: c('inquiry-onramp') });
         ordinary.addEventListener('click', () => {
             if (runtime.getSnapshot().status !== 'saved') new Notice(t('inquiry_pending_warning'));
             if (this.inquiryPanel) this.removeChild(this.inquiryPanel);

@@ -1,3 +1,4 @@
+import { normalizePath } from 'obsidian';
 import { createInquiry, updateInquiry, inquiryErrors, parseInquiryStorage, safeInquiryPath, type Inquiry, type InquiryEdit, type InquiryStorage, type InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 import { renderInquiryOutcome, type InquiryOutcomeLabels } from 'architecture/knowledge/inquiry/inquiryOutcome';
 import type { CreateFileResult } from '../services/FileService';
@@ -92,7 +93,7 @@ export class InquiryRuntime {
         if (!q.pending && q.receipt?.revision === q.revision) { this.status = 'saved'; this.emit(); return true; }
         if (!q.pending) {
             try {
-                const id = host.id(); const path = destination || `Inquiry ${id}.md`;
+                const id = host.id(); const path = normalizePath(destination || `Inquiry ${id}.md`);
                 if (!safeInquiryPath(path) || !path.endsWith('.md') || !host.inScope?.(path)) throw new Error('Invalid destination');
                 const refs = q.consultedPaths.map(ref => ({path:ref, link: this.available(ref) ? host.link?.(ref, path) : undefined}));
                 const content = renderInquiryOutcome({inquiry:q,operationId:id,references:refs}, labels);

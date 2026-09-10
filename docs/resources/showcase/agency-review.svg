@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Agency review (placeholder)">
+  <rect width="1200" height="630" fill="#0b0e14"/>
+  <rect x="24" y="24" width="1152" height="582" rx="18" fill="none" stroke="#2a3346" stroke-width="2"/>
+  <text x="600" y="296" fill="#e8eaed" font-family="sans-serif" font-size="46" font-weight="700" text-anchor="middle">Agency review</text>
+  <text x="600" y="352" fill="#8b93a7" font-family="sans-serif" font-size="22" text-anchor="middle">Placeholder — replace with a real capture before the 3.2.0 release</text>
+</svg>

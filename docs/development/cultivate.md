@@ -1,3 +1,15 @@
+### Context bounds
+
+The internal inquiry projection starts with selected notes only. Optional **one-hop** scope adds
+direct recorded neighbors of those seeds, never recursive expansion. Purpose prose is not a semantic
+search. Each candidate names its actual directed relation. Opening material is not an attestation
+that it was consulted, understood, or accepted.
+
+One gather inspects at most 1,000 adjacency/relation/claim/source records, 200 material notes,
+50 candidates and 100 combined relation/evidence rows. Truncation is explicitly reported; the bounded
+sample follows index encounter order, not an exhaustive global ranking. Missing/excluded endpoints
+and linked sources are not presented as evidence. Indexed context may omit inline enrichment,
+especially on mobile. No result means none found in this scope by this method, not universal absence.
 ## Purpose-led work — implementation contract (#401)
 
 The first internal slice models **one inquiry**, independently of the activity log. This is not yet

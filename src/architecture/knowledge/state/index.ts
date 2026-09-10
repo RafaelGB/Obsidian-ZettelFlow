@@ -1,4 +1,5 @@
 export * from '../inquiry/inquiryState';
+export * from '../inquiry/inquiryContext';
 export * from '../inquiry/inquiryOutcome';
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
 

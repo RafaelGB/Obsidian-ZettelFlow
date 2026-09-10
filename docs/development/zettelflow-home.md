@@ -6,6 +6,10 @@ you, in one narrative surface, where your thinking is and **what to work on next
 
 ## Opening it
 
+Home's Cultivate entry offers **Start with my material** or **Resume my inquiry**, plus the ordinary
+no-purpose mode. It stays available for empty/indexing states and replaces the former count/streak
+teaser, not another panel. See [purpose-led Cultivate](cultivate.md).
+
 Run **"Show home"** from the command palette, or click **Open** next to *Home* in
 **Settings → ZettelFlow → Zettelkasten toolkit**. It updates automatically (debounced) as the vault
 changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*

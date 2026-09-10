@@ -23,8 +23,9 @@ front end while overlapping interfaces are consolidated with compatible access.
 
 **Our direction: useful from the first idea, deeper as your practice grows.** You choose what deserves
 attention; recorded activity is not a measure of your understanding. The proposed
-[Knowledge with purpose epic](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/401) develops that
-direction through purpose-led Cultivate and first value on your own material — **planned, not shipped**.
+[Knowledge with purpose epic](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/401) tracks
+purpose-led Cultivate and first value on your own material. The implementation is described below;
+real-device walkthroughs and the consented adoption pilot remain pending, not proven by automated tests.
 
 > Read the **[manifesto →](https://rafaelgb.github.io/Obsidian-ZettelFlow/manifesto/)** · **[full documentation →](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**
 
@@ -40,6 +41,12 @@ direction through purpose-led Cultivate and first value on your own material —
 
 ZettelFlow is more than a note templater — it is a full **Zettelkasten workflow**. Beyond the
 canvas wizard, it ships a set of tools that grow and maintain your slip-box:
+
+- **🎯 Knowledge with purpose** — start with your own note or question, inspect bounded recorded
+  context, write a provisional response, and save/pause/resume one inquiry locally. Evidence does not
+  close your question: only you declare it sufficient for now. Markdown snapshots cite only material
+  you explicitly marked as used and never overwrite an existing note. No AI or workflow setup needed;
+  ordinary Cultivate remains available. See [Cultivate](docs/development/cultivate.md).
 
 - **🏠 ZettelFlow Home** — *open ZettelFlow, not Obsidian.* A single front door: a greeting and
   "you've been thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting
@@ -202,8 +209,9 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 
 1. Install **ZettelFlow** from the Obsidian community plugin browser.
 2. Click the ZettelFlow ribbon button (or run *Open ZettelFlow* from the command palette).
-3. On the welcome screen, click **Create example flow** — ZettelFlow creates a sample canvas, sets it as your flow canvas, and opens it.
-4. Click the ribbon button → **Create note** to run your first wizard.
+3. On the welcome screen, click **Start with my own idea**, then choose an existing note or capture one.
+4. State a question, inspect selected material, write a response or gap, and **Save progress**. Optionally
+  install a system from the existing gallery when you want a Canvas workflow.
 
 **Manual path (build your own flow):**
 
@@ -222,6 +230,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 
 | Feature | Description |
 |---|---|
+| **Knowledge with purpose** | One saved inquiry inside Home → Cultivate: user-chosen note/purpose, selected-only or one-hop context, explicitly consulted references, human-controlled provisional resolution, local pause/resume and create-only Markdown snapshots with recoverable retries. Offline; no mandatory AI, methodology or Canvas setup. |
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
 | **Knowledge patterns** | Templates that carry behavior — on creation a pattern runs its attached offline knowledge/relation actions through the standard pipeline. The shipped **Permanent Note** pattern wires find related · find contradictions · suggest links · calculate maturity, computed against your existing graph. Results are **recomputed once, automatically, after the note is indexed**, so a brand-new note lands already connected (on by default, offline). Additive & backward-compatible; legacy templates are unchanged. |
 | **31 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question, suggest next move, thinking simulator — 🔗 relation actions — find related, suggest link, create semantic relation — 🔍 research actions — extract claims, compare claims, find sources, attach source — and 🤖 optional AI actions (off by default) — summarize, classify, generate questions, challenge idea, synthesize, suggest connections. |

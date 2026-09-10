@@ -6,6 +6,13 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { Notice, TFile } from 'obsidian';
+import { InquiryPanel } from './InquiryPanel';
+import { InquiryNoteSuggest } from './InquiryNoteSuggest';
+import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
+import { QuickCaptureModal } from 'zettelkasten/modals/QuickCaptureModal';
+import { ConfirmModal } from 'architecture/components/settings/confirmModal';
+import { buildInquiryContext, scopeExcludedPaths } from 'architecture/knowledge/state';
 import {
     buildCultivationSession,
     selectCultivationTarget,
@@ -33,6 +40,8 @@ function basename(path: string): string {
  * always shows "what to do next" on that idea. Offline; AI is never required.
  */
 export class CultivateModeRenderer extends KnowledgeModeRenderer {
+    private inquiryMode = false;
+    private inquiryPanel: InquiryPanel | undefined;
     private state: ViewState = "indexing";
     private session: CultivationSession | null = null;
     private targetPath: string | null = null;
@@ -45,8 +54,9 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     private readonly frictionAnswers = new Map<CultivationMoveKind, string>();
     private debounceTimer: number | undefined;
 
-    constructor(container: HTMLElement, private readonly plugin: ZettelFlow) {
+    constructor(container: HTMLElement, private readonly plugin: ZettelFlow, state?: Record<string, unknown>) {
         super(container);
+        this.inquiryMode = state?.inquiry === 'start' || state?.inquiry === 'resume';
     }
 
     private get app() {
@@ -54,6 +64,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     }
 
     onload(): void {
+        if (this.inquiryMode) this.mountInquiry();
         const debounced = () => {
             window.clearTimeout(this.debounceTimer);
             this.debounceTimer = window.setTimeout(() => this.recompute(), DEBOUNCE_MS);
@@ -66,6 +77,10 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     onunload(): void {
         window.clearTimeout(this.debounceTimer);
+        if (this.inquiryPanel) {
+            if (InquiryRuntime.getInstance().getSnapshot().status !== 'saved') new Notice(t('inquiry_pending_warning'));
+            this.removeChild(this.inquiryPanel); this.inquiryPanel = undefined;
+        }
         this.container.empty();
     }
 
@@ -78,6 +93,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     }
 
     private recompute(): void {
+        if (this.inquiryMode) { this.inquiryPanel?.refreshContext(); return; }
         try {
             const index = KnowledgeIndex.getInstance();
             if (index.status !== "ready") {
@@ -115,6 +131,8 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
         const header = root.createDiv({ cls: c("cultivate-header") });
         header.createEl("h4", { text: t("cultivate_title"), cls: c("cultivate-title") });
+        const own = header.createEl('button', { text: t('inquiry_start') });
+        own.addEventListener('click', () => { this.inquiryMode = true; this.mountInquiry(); });
         const another = header.createEl("button", {
             text: t("cultivate_another"),
             cls: c("cultivate-another"),
@@ -143,6 +161,33 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         this.renderTarget(root, this.session);
         const list = root.createDiv({ cls: c("cultivate-moves") });
         for (const move of this.session.moves) this.renderMove(list, move);
+    }
+
+    private mountInquiry(): void {
+        if (this.inquiryPanel) this.removeChild(this.inquiryPanel);
+        this.container.empty();
+        const runtime = InquiryRuntime.getInstance();
+        if (!runtime.getSnapshot().current) runtime.start();
+        runtime.resume();
+        const ordinary = this.container.createEl('button', { text: t('inquiry_ordinary') });
+        ordinary.addEventListener('click', () => {
+            if (runtime.getSnapshot().status !== 'saved') new Notice(t('inquiry_pending_warning'));
+            if (this.inquiryPanel) this.removeChild(this.inquiryPanel);
+            this.inquiryPanel = undefined; this.inquiryMode = false; this.recompute();
+        });
+        const canUse = (path: string) => KnowledgeIndex.getInstance().inScope(path) && this.app.vault.getFileByPath(path) instanceof TFile;
+        this.inquiryPanel = this.addChild(new InquiryPanel(this.container.createDiv(), {
+            runtime, canUse,
+            pick: select => new InquiryNoteSuggest(this.app, select).open(),
+            capture: () => new QuickCaptureModal(this.plugin, { capture: title => runtime.capture(title) }).open(),
+            open: async path => { if (canUse(path)) await this.app.workspace.openLinkText(path, '', false); },
+            confirm: (key, action) => new ConfirmModal(this.app, t(key), t('component_confirm'), t('inquiry_cancel'), action).open(),
+            context: inquiry => {
+                const index = KnowledgeIndex.getInstance();
+                if (index.status !== 'ready') return { status: 'loading' };
+                return { status: 'ready', value: buildInquiryContext(index.getModel(), inquiry, [...scopeExcludedPaths(this.plugin.settings), this.app.vault.configDir]) };
+            },
+        }));
     }
 
     private renderTarget(root: HTMLElement, session: CultivationSession): void {

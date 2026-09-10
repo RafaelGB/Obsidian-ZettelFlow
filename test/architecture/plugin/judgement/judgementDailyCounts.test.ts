@@ -41,18 +41,18 @@ describe("one definition of a judgement day (#339, AC-4)", () => {
     });
 });
 
-describe("Home and Cultivate cannot drift apart (#339, AC-4)", () => {
+describe("Cultivate streak remains descriptive; purpose-led Home has no streak (#401)", () => {
     const sources = [
-        "src/architecture/components/core/home/HomeModeRenderer.ts",
         "src/architecture/components/core/cultivate/CultivateModeRenderer.ts",
     ];
 
-    it("both read the streak from the judgement log, not the development journal", () => {
+    it("ordinary Cultivate reads its streak from judgement, while Home does not grade inquiry progress", () => {
         for (const file of sources) {
             const source = read(file);
             expect(source).toMatch(/developmentStreak\(\s*JudgementLog\.getInstance\(\)\.dailyCounts\(\)/);
             expect(source).not.toMatch(/developmentStreak\(\s*DevelopmentJournal/);
         }
+        expect(read('src/architecture/components/core/home/HomeModeRenderer.ts')).not.toContain('developmentStreak(');
     });
 
     it("leaves the thinking heatmap on development events, deliberately", () => {

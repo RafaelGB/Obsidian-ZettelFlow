@@ -1,3 +1,28 @@
+# Cultivate — purposeful work and thinking sessions
+
+## Start with your own material
+
+Open **Home → Start with my material** (or **Resume my inquiry**). Choose an existing note with the
+literal title/path picker, or capture one real idea. No Canvas setup, system installation or bulk
+tagging is required. Only one inquiry is retained; ordinary Cultivate remains available separately.
+
+1. Choose a starting note and state your question if useful. Add other notes explicitly.
+2. Keep selected-only scope or deliberately include one recorded-link hop. Inspect directed relations
+  and recorded evidence. Opening a note does not mark it consulted; **I used this material** is your
+  explicit attestation and determines the references in an outcome.
+3. Write your provisional response and uncertainty. Confidence is optional. Continuing, insufficient
+  evidence, or stopping are valid dispositions. **Sufficient for now** is a separate reversible
+  decision; adding support never supplies it.
+4. **Save progress** or **Save and pause** acknowledges a local checkpoint. **Save response snapshot**
+  creates Markdown, not an overwrite. Retry pending work after an error; inspect the pending
+  snapshot before abandoning an ambiguous operation.
+5. **Cultivate without a purpose** keeps the original moves, recipe and friction settings. Switching
+  modes retains the in-memory inquiry; save it successfully for restart continuity.
+
+Editors remain mounted during metadata/context refresh. Loading and errors are distinct from an empty
+scoped result. Actual device walkthroughs and the consented adoption pilot remain pending; automated
+tests are not evidence of user adoption or improved understanding.
+
 ### Recovery guarantees
 
 | Stage | What is durable | Recovery |
@@ -39,10 +64,9 @@ One gather inspects at most 1,000 adjacency/relation/claim/source records, 200 m
 sample follows index encounter order, not an exhaustive global ranking. Missing/excluded endpoints
 and linked sources are not presented as evidence. Indexed context may omit inline enrichment,
 especially on mobile. No result means none found in this scope by this method, not universal absence.
-## Purpose-led work — implementation contract (#401)
+### State and provenance
 
-The first internal slice models **one inquiry**, independently of the activity log. This is not yet
-a connected first-use experience. Its optional purpose, selected notes, explicitly consulted notes,
+One inquiry is independent of the activity log. Its optional purpose, selected notes, consulted notes,
 authored response and unresolved gaps have their own versioned local state. Only an explicit human
 decision marks a response sufficient for now; changing the question reopens it without deleting the
 previous response or decision context. Support edges and scores never settle it.
@@ -51,7 +75,7 @@ Markdown outcomes retain authored or explicitly accepted/modified provenance, co
 only, and honest uncertainty. No confidence is invented. Draft limits are 4,000 purpose characters,
 64,000 response characters, 32,000 gap characters, 20 selected and 200 consulted notes. Invalid or
 unsupported stored data is reported, not silently discarded; over-limit text is not truncated.
-# Cultivate — thinking sessions
+## Ordinary thinking sessions
 
 > *ZettelFlow is an engine that makes knowledge evolve.* Cultivate is that engine made a daily
 > practice: a short, guided **thinking session** that takes one idea and makes it measurably more
@@ -64,7 +88,7 @@ passive. It doesn't just *tell* you what to do; it *walks you through doing it*.
 ## Starting a session
 
 - **Home surface → Cultivate mode**, the **`Cultivate — start a thinking session`** command, or the
-  ribbon menu (🌱). Home also shows a **Cultivate teaser** with how many ideas still have room to grow.
+  ribbon menu (🌱). Home offers **Cultivate without a purpose** alongside the own-material entry.
 - ZettelFlow picks the **highest-leverage** idea (well-connected yet under-developed, via the same
   `nextSession` heuristic Home uses). **Another idea** moves on to the next one.
 
@@ -119,7 +143,7 @@ come back.
 The session header shows a **streak** and the size of the cultivation queue. Since
 [#339](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/339) the streak counts **days you
 exercised judgement** — a verdict on an AI proposal, or an answered friction prompt — not days something
-happened in the vault. Momentum here means thinking, not activity. See
+happened in the vault. This describes recorded verdict days, not a measure of understanding. See
 [cognitive agency](cognitive-agency.md).
 
 ## Principles

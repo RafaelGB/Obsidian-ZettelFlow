@@ -8,6 +8,11 @@ door, everything reachable, nothing deleted.
 
 ## One ribbon button
 
+Purpose-led work (#401) lives inside the existing **Home → Cultivate** mode. A small `inquiry`
+activation intent selects start/resume/ordinary; private purpose text is never put into workspace view
+state. The runtime singleton owns draft/checkpoint continuity across renderer remounts. No new surface
+or command is registered; the ordinary mode keeps its recipe and friction settings.
+
 There is a **single** all-in-one ribbon button ("Open ZettelFlow"). Its menu leads with **Create
 note** (also the hotkey-bindable `Open workflow` command), then the system-adoption actions, then the
 four surfaces. Note creation is no longer its own ribbon icon.

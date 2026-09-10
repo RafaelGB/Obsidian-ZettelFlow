@@ -1,0 +1,17 @@
+{
+  "zfVersion": "1.0",
+  "name": "Concept note",
+  "description": "Grow an evergreen concept: define it, say why it matters and give an example, get a stable Zettel ID, and on creation have it ranked, cross-checked, link-suggested, maturity-scored, challenged with thinking prompts and given a recommended next move. Offline, no AI.",
+  "author": "ZettelFlow",
+  "difficulty": "easy",
+  "canvas": {
+    "filename": "Concept note.canvas",
+    "content": "{\"nodes\":[{\"id\":\"n-0\",\"type\":\"file\",\"file\":\"Concept.md\",\"x\":-600,\"y\":-120,\"width\":350,\"height\":240}],\"edges\":[]}"
+  },
+  "steps": [
+    {
+      "filename": "Concept.md",
+      "content": "---\nzettelFlowSettings:\n  root: true\n  label: Concept note\n  phase: DEVELOP\n  actions:\n  - type: prompt\n    id: cn-title\n    description: Concept\n    hasUI: true\n    key: title\n    zone: context\n    label: Concept\n    placeholder: Name the concept in your own words...\n    staticBehaviour: false\n  - type: prompt\n    id: cn-def\n    description: Definition\n    hasUI: true\n    key: definition\n    zone: context\n    label: Definition\n    placeholder: What is it, precisely?...\n    staticBehaviour: false\n  - type: prompt\n    id: cn-why\n    description: Why it matters\n    hasUI: true\n    key: why\n    zone: context\n    label: Why it matters\n    placeholder: Why is this worth keeping?...\n    staticBehaviour: false\n  - type: prompt\n    id: cn-example\n    description: Example\n    hasUI: true\n    key: example\n    zone: context\n    label: Example\n    placeholder: A concrete instance...\n    staticBehaviour: false\n  - type: prompt\n    id: cn-type\n    hasUI: false\n    key: type\n    zone: frontmatter\n    staticBehaviour: true\n    staticValue: concept\n  - type: prompt\n    id: cn-state\n    hasUI: false\n    key: state\n    zone: frontmatter\n    staticBehaviour: true\n    staticValue: permanent\n  - type: zettel-id\n    id: cn-id\n    hasUI: false\n    strategy: timestamp\n    key: id\n    writeFrontmatter: true\n    writeFilename: false\n    timestampFormat: YYYYMMDDHHmm\n    relationship: child\n  onCreation:\n  - type: find-related\n    id: cn-related\n    hasUI: false\n    key: related\n    zone: frontmatter\n    limit: 10\n  - type: find-contradiction\n    id: cn-contra\n    hasUI: false\n    key: contradictions\n    zone: frontmatter\n  - type: suggest-link\n    id: cn-suggest\n    hasUI: false\n    key: suggestedLinks\n    zone: frontmatter\n    limit: 5\n  - type: calculate-maturity\n    id: cn-maturity\n    hasUI: false\n    key: maturity\n    zone: frontmatter\n  - type: thinking-simulator\n    id: cn-thinking\n    hasUI: false\n    key: thinkingPrompts\n    zone: frontmatter\n  - type: suggest-next-move\n    id: cn-next\n    hasUI: false\n    key: nextMoves\n    zone: frontmatter\n  targetFolder: Concepts\n  childrenHeader: ''\n  optional: false\n---\n\n# {{title}}\n\n{{definition}}\n\n**Why it matters:** {{why}}\n\n**Example:** {{example}}\n\n## Related\n\n{{related}}\n\n## Suggested connections\n\n{{suggestedLinks}}\n\n## Contradictions\n\n{{contradictions}}\n\n## Think it through\n\n{{thinkingPrompts}}\n\n## Next move\n\n{{nextMoves}}\n"
+    }
+  ]
+}

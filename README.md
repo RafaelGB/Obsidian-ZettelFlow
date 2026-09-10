@@ -16,8 +16,15 @@ transform knowledge*. It stands on **four pillars**:
 - 🔭 **Knowledge Discovery** — surface the unexpected: connections you didn't know you'd made, ideas worth challenging, a book outline hiding in a folder.
 - 🩺 **Knowledge Health** — measure balance and richness, not volume: maturity, knowledge debt, a weekly review, a heatmap of ideas *developed*.
 
-**AI is one Action, never the product** — every pillar works fully with AI disabled, and when it is on it **proposes, never commits**: you accept, edit or reject every suggestion. And **nothing is
-removed, only repositioned**: the canvas wizard you know is the engine's front end.
+**AI is one Action, never the product** — every pillar works fully with AI disabled, and when it is on
+it **proposes, never commits without your verdict**: you accept, edit or reject every suggestion.
+**Preserve people's work; simplify the paths:** the canvas wizard you know remains the engine's
+front end while overlapping interfaces are consolidated with compatible access.
+
+**Our direction: useful from the first idea, deeper as your practice grows.** You choose what deserves
+attention; recorded activity is not a measure of your understanding. The proposed
+[Knowledge with purpose epic](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/401) develops that
+direction through purpose-led Cultivate and first value on your own material — **planned, not shipped**.
 
 > Read the **[manifesto →](https://rafaelgb.github.io/Obsidian-ZettelFlow/manifesto/)** · **[full documentation →](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**
 

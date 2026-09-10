@@ -6,8 +6,10 @@ architecture it now stands for — the **five layers** of the Knowledge OS (epic
 
 **Knowledge Model · Workflow Engine · Knowledge State · Experience · Community Gallery** (+ Foundation).
 
-> **The rule: keep every feature, reposition it — nothing is deleted or renamed.** This is a *map*,
-> not a move. Every `src/` area below appears **exactly once**. The actual folder moves land as small,
+> **Mapping scope: no features are deleted or renamed by this map.** The
+> [manifesto](../manifesto.md) preserves people's work and compatible workflows, not every redundant
+> interface forever. This is a *map*, not a move. Every `src/` area below appears **exactly once**.
+> The actual folder moves land as small,
 > `verify`-green follow-up PRs (see the roadmap at the end); the *target layer* column is the home a
 > capability belongs to, not a path that exists today.
 

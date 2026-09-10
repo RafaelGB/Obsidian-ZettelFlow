@@ -1,3 +1,10 @@
+### Create-only outcomes
+
+Outcome snapshots use a create-only Vault boundary. An exact complete-content retry is recognized;
+different or externally modified content is a conflict and is never overwritten. Outcome folders must
+already exist, and unsafe/traversal/config paths are rejected. A snapshot is ordinary editable Markdown,
+not a live back-sync into the inquiry. New edits require a deliberately new snapshot, not an automatic
+append, replacement, filename suffix loop or extra file on retry.
 ### Local checkpoint contract
 
 The runtime keeps the editable draft outside settings until **Save** or **Pause** requests a

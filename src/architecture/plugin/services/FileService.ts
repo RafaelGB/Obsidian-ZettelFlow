@@ -1,5 +1,9 @@
 import { log, ObsidianApi } from "architecture";
 import { DataWriteOptions, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
+import { safeInquiryPath } from 'architecture/knowledge/inquiry/inquiryState';
+export type CreateFileVault = Pick<Vault, 'getAbstractFileByPath' | 'read' | 'create'>;
+export interface CreateFileOperation { path: string; content: string }
+export interface CreateFileResult { status: 'created' | 'already-created' | 'conflict' | 'failed'; path: string }
 export const FILE_EXTENSIONS = Object.freeze({
     BASIC: ["md", "canvas"],
     ONLY_CANVAS: ["canvas"],
@@ -7,6 +11,30 @@ export const FILE_EXTENSIONS = Object.freeze({
 });
 
 export class FileService {
+    /** Create-only canonical boundary: exact retry is safe, any differing user prose is a conflict. */
+    public static async createFileOnce(vault: CreateFileVault, operation: CreateFileOperation, allowed: (path: string) => boolean = () => true): Promise<CreateFileResult> {
+        const { path, content } = operation;
+        const result = (status: CreateFileResult['status']): CreateFileResult => ({status, path});
+        if (!safeInquiryPath(path) || path.split('/').some(part => /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part)) || !allowed(path)) return result('failed');
+        const reconcile = async (): Promise<CreateFileResult> => {
+            if (!allowed(path)) return result('failed');
+            const existing = vault.getAbstractFileByPath(path);
+            if (!(existing instanceof TFile)) return result(existing ? 'conflict' : 'failed');
+            const actual = await vault.read(existing);
+            if (!allowed(path)) return result('failed');
+            return result(actual === content ? 'already-created' : 'conflict');
+        };
+        try {
+            if (vault.getAbstractFileByPath(path)) return await reconcile();
+            const parent = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+            if (parent && !(vault.getAbstractFileByPath(parent) instanceof TFolder)) return result('failed');
+            if (!allowed(path)) return result('failed');
+            try { await vault.create(path, content); }
+            catch { return await reconcile(); }
+            if (!allowed(path)) return result('failed');
+            return result('created');
+        } catch { return result('failed'); }
+    }
     public static PATH_SEPARATOR = "/";
     public static MARKDOWN_EXTENSION = ".md";
     public static async createFile(path: string, content: string, openAfter = true): Promise<TFile> {

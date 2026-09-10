@@ -1,9 +1,10 @@
-import { Modal, Notice, normalizePath } from "obsidian";
+import { Modal, Notice } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import ZettelFlow from "main";
-
-const CAPTURE_FOLDER = "Inbox";
+import { QuickCaptureService } from 'architecture/plugin/services/QuickCaptureService';
+import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
+import { v4 as uuid } from 'uuid';
 
 /**
  * Lowest-friction capture (#285 S3): a single title prompt that writes a **fleeting** note to the
@@ -11,6 +12,7 @@ const CAPTURE_FOLDER = "Inbox";
  * the first note. Mobile-friendly (a plain modal + Enter to submit).
  */
 export class QuickCaptureModal extends Modal {
+    private operation: InquiryOperation | undefined;
     constructor(private readonly plugin: ZettelFlow) {
         super(plugin.app);
     }
@@ -42,19 +44,14 @@ export class QuickCaptureModal extends Modal {
     }
 
     private async capture(title: string): Promise<void> {
-        const { vault } = this.plugin.app;
         try {
-            const folder = normalizePath(CAPTURE_FOLDER);
-            if (!vault.getAbstractFileByPath(folder)) {
-                await vault.createFolder(folder).catch(() => undefined);
-            }
-            const safe = title.replace(/[\\/:*?"<>|#^[\]]/g, " ").trim();
-            let path = `${folder}/${safe}.md`;
-            if (vault.getAbstractFileByPath(path)) path = `${folder}/${safe} ${Date.now()}.md`;
-            await vault.create(path, `---\nstate: fleeting\n---\n\n# ${title}\n`);
+            const service = new QuickCaptureService(this.plugin.app.vault);
+            this.operation ??= service.plan(title, uuid());
+            const result = await service.write(this.operation);
+            if (result.status !== 'created' && result.status !== 'already-created') throw new Error('Capture failed');
             new Notice(t("quick_capture_captured", title));
-        } catch (error) {
-            log.error("[QuickCapture] failed to capture", error);
+        } catch {
+            log.error("[QuickCapture] capture failed");
             new Notice(t("quick_capture_error"));
         }
     }

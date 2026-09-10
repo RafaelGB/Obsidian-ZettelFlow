@@ -1,3 +1,9 @@
+### Safe file creation
+
+Capture now uses the shared create-only writer. It still produces a fleeting note in Inbox; invalid
+empty filenames are rejected. A name collision chooses a unique operation suffix once. Retries retain
+that operation and path: exact content is recognized, different content is never overwritten. The
+hidden operation marker lets a failed response after successful creation be reconciled safely.
 # Quick capture
 
 The lowest-friction path from a thought to a note (#285). A single command opens one title prompt and

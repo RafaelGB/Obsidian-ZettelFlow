@@ -52,12 +52,12 @@ describe("QuickCapture writes (#317 S3 / #285)", () => {
         expect(content).toContain("# My idea");
     });
 
-    it("never overwrites an existing note — a collision gets a timestamp suffix", async () => {
+    it("never overwrites an existing note — a collision gets a stable operation suffix", async () => {
         const h = wireHarness({ files: { "Inbox/Dup.md": { body: "original" } } });
         const modal = new QuickCaptureModal(h.plugin as never);
         await (modal as unknown as { capture: (t: string) => Promise<void> }).capture("Dup");
         expect(h.vault.contentOf("Inbox/Dup.md")).toBe("original"); // untouched
-        const suffixed = [...h.vault.entries.keys()].find((p) => /^Inbox\/Dup \d+\.md$/.test(p));
+        const suffixed = [...h.vault.entries.keys()].find((p) => /^Inbox\/Dup [a-f0-9-]+\.md$/.test(p));
         expect(suffixed).toBeDefined();
     });
 });

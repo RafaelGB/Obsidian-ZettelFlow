@@ -1,7 +1,8 @@
 import { Notice, TFile, type App } from "obsidian";
 import { log } from "architecture/monitoring/Logger";
 import { t } from "architecture/lang";
-import { FileService } from "./FileService";
+import { FileService, type CreateFileResult } from "./FileService";
+import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 import { FrontmatterService } from "./FrontmatterService";
 import { StateTransitionService } from "./StateTransitionService";
 import {
@@ -19,6 +20,10 @@ import { SOURCE_KEYS } from "architecture/knowledge/claims/keys";
  * and surfaced, never thrown into the UI. Offline.
  */
 export class CultivationService {
+    /** Inquiry outcomes are frozen, reviewed snapshots, not append operations on a source note. */
+    saveInquiryOutcome(app: App, operation: InquiryOperation, allowed: (path: string) => boolean): Promise<CreateFileResult> {
+        return FileService.createFileOnce(app.vault, operation, allowed);
+    }
     private static instance: CultivationService;
 
     static getInstance(): CultivationService {

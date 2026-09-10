@@ -2,15 +2,22 @@ import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
+import { KnowledgeIndex } from "architecture/knowledge";
 import {
     timelineEvents,
     judgementsFor,
+    buildIdeaCard,
+    trajectory,
     type Snapshot,
     type TimelineEvent,
     type Judgement,
 } from "architecture/knowledge/state";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { paintIdeaCard } from "./IdeaCardCanvas";
+import { canvasToPngBlob } from "architecture/components/core/export/mediaCapture";
+import { buildExportBaseName } from "architecture/components/core/export/exportFilename";
+import { ExportShareModal } from "architecture/components/core/export/ExportShareModal";
 
 const DEBOUNCE_MS = 400;
 
@@ -104,6 +111,16 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             });
         }
 
+        // Share this idea's evolution as an image card (#387, B4) — only when there's history to show.
+        if (this.state === "ready") {
+            const share = header.createEl("button", {
+                text: t("evolution_timeline_share_button"),
+                cls: c("evolution-timeline-share"),
+                attr: { "aria-label": t("evolution_timeline_share_button") },
+            });
+            this.registerDomEvent(share, "click", () => void this.shareIdeaCard());
+        }
+
         if (this.state === "loading") {
             container.createDiv({ cls: c("evolution-timeline-status"), text: t("evolution_timeline_loading") });
             return;
@@ -125,6 +142,34 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         for (const event of events) {
             if (event.kind === "snapshot" && event.snapshot) this.renderSnapshot(container, event.snapshot);
             else if (event.kind === "judgement" && event.judgement) this.renderJudgement(container, event.judgement);
+        }
+    }
+
+    /**
+     * Build the before→after idea card for the active note and open A3's export dialog (#387, B4).
+     * Read-only: composes shipped data (timeline + judgements + current degree) into a canvas image;
+     * writes nothing to the note or the vault until the user chooses to save from the dialog.
+     */
+    private async shareIdeaCard(): Promise<void> {
+        try {
+            const active = this.app.workspace.getActiveFile();
+            if (!active) return;
+            const index = KnowledgeIndex.getInstance();
+            if (index.status !== "ready") return;
+            const model = index.getModel();
+            const linksNow = model.get(active.path)?.maturitySignals.degree ?? 0;
+            const history = JudgementLog.getInstance().entries();
+            const direction = trajectory(model, history, Date.now()).find((row) => row.path === active.path)?.direction ?? null;
+
+            const card = buildIdeaCard({ path: active.path, events: this.events, linksNow, direction });
+            if (!card) return;
+
+            const canvas = createEl("canvas");
+            paintIdeaCard(canvas, card);
+            const blob = await canvasToPngBlob(canvas);
+            new ExportShareModal(this.app, { blob, baseName: buildExportBaseName("idea", new Date(), card.title), kind: "image" }).open();
+        } catch (error) {
+            log.error(`[EvolutionTimeline] share failed: ${error instanceof Error ? error.message : "unknown error"}`);
         }
     }
 

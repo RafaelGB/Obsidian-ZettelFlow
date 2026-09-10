@@ -105,6 +105,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     selectCultivationTarget: "internal to the cultivation session",
     timelineEvents: "merges the timeline + judgement log for the Evolution timeline view, not a model answer",
     agencyReviewModel: "builds the Agency review view model (header + rows), not a model answer",
+    buildIdeaCard: "builds the shareable idea-card view model, not a model answer",
 };
 
 /** Build the `zf.knowledge` member table against live accessors. */

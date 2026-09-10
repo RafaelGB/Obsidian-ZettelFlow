@@ -77,6 +77,12 @@
     font-size: var(--font-ui-smaller);
 }
 
+// Share this idea's evolution as an image card (#387, B4).
+.zettelkasten-flow__evolution-timeline-share {
+    margin-inline-start: 0.35rem;
+    font-size: var(--font-ui-smaller);
+}
+
 // A cognitive milestone (#362, D2): a verdict on the same axis as the structural snapshots, marked
 // with the accent so the moments you *reasoned* stand out from the moments the note merely changed.
 .zettelkasten-flow__evolution-timeline-judgement {

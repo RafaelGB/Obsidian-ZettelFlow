@@ -294,3 +294,43 @@ describe("tourStops (#385)", () => {
         expect(tourStops(data(nodes), { maxStops: 5 })).toHaveLength(5);
     });
 });
+
+/**
+ * #394 — the force layout (`d3-force`) mutates link endpoints in place, turning `source`/`target`
+ * string ids into the resolved node objects. The pure filters run on that live data during the
+ * time-lapse, so they must read the id from either shape or every relation disappears (only dots show).
+ */
+describe("link filters survive d3-force endpoint mutation (#394)", () => {
+    const node = (id: string, created: number): Graph3DNode => ({
+        id, name: id, val: 2, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created, kind: "note",
+    });
+
+    it("graph3dUpToTime keeps links whose endpoints are node objects, not id strings", () => {
+        const a = node("A.md", 10), b = node("B.md", 20);
+        // Simulate the in-place mutation: link.source/target are the node objects.
+        const mutated: Graph3DData = {
+            nodes: [a, b],
+            links: [{ source: a as unknown as string, target: b as unknown as string, type: "supports" }],
+        };
+        expect(graph3dUpToTime(mutated, 100).links).toHaveLength(1);
+    });
+
+    it("filterGraph3D keeps links whose endpoints are node objects", () => {
+        const a = node("A.md", 10), b = node("B.md", 20);
+        const mutated: Graph3DData = {
+            nodes: [a, b],
+            links: [{ source: a as unknown as string, target: b as unknown as string, type: "link" }],
+        };
+        expect(filterGraph3D(mutated, {}).links).toHaveLength(1);
+    });
+
+    it("still drops a link when one mutated endpoint falls outside the time cursor", () => {
+        const a = node("A.md", 10), b = node("B.md", 5000);
+        const mutated: Graph3DData = {
+            nodes: [a, b],
+            links: [{ source: a as unknown as string, target: b as unknown as string, type: "link" }],
+        };
+        // Cursor before B was created → B is filtered out → the link goes with it.
+        expect(graph3dUpToTime(mutated, 100).links).toHaveLength(0);
+    });
+});

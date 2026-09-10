@@ -61,6 +61,16 @@ function basename(path: string): string {
 const byStr = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
+ * A link endpoint's id. Links are built with string `source`/`target`, but the force layout
+ * (`d3-force` via `3d-force-graph`) mutates them **in place** into the resolved node objects. These
+ * pure filters run on that same live data during the time-lapse, so read the id either way — otherwise
+ * `kept.has(link.source)` compares a Set of ids against a node object and drops every link (#394).
+ */
+function linkEndId(end: unknown): string {
+    return typeof end === "object" && end !== null ? (end as { id?: string }).id ?? "" : String(end);
+}
+
+/**
  * Pure projection of the {@link KnowledgeModel} into a `{ nodes, links }` shape for the 3D graph view
  * (#280 S1/S2). Nodes are ideas (id = path, name = basename, `val` = degree, `group` = cluster index
  * from {@link buildKnowledgeMap} for coloring, `state`); links are the model's typed relations,
@@ -293,7 +303,7 @@ export function filterGraph3D(data: Graph3DData, filter: Graph3DFilter): Graph3D
         return true;
     });
     const kept = new Set(nodes.map((node) => node.id));
-    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
+    const links = data.links.filter((link) => kept.has(linkEndId(link.source)) && kept.has(linkEndId(link.target)));
 
     return { nodes, links };
 }
@@ -327,7 +337,7 @@ export function graph3dTimeRange(data: Graph3DData): { min: number; max: number 
 export function graph3dUpToTime(data: Graph3DData, cursor: number): Graph3DData {
     const nodes = data.nodes.filter((node) => node.created === 0 || node.created <= cursor);
     const kept = new Set(nodes.map((node) => node.id));
-    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
+    const links = data.links.filter((link) => kept.has(linkEndId(link.source)) && kept.has(linkEndId(link.target)));
     return { nodes, links };
 }
 

@@ -21,6 +21,8 @@ import {
     judgementsFor,
     lastJudgementFor,
     agencySignals,
+    agencyIndex,
+    verdictBreakdown,
     unexaminedIdeas,
     trajectory,
 } from "architecture/knowledge/state";
@@ -211,6 +213,16 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(path: string) => AgencySignals",
             summary: "Counts of the verdicts you have given on one idea. Never a score.",
             call: (path: string) => agencySignals(history(), path),
+        },
+        agencyIndex: {
+            signature: "(opts?: AgencyMetricsOptions) => AgencyIndex",
+            summary: "How much you shaped interpretive output vs accepted it as-is. A description, never a score.",
+            call: (opts?: Parameters<typeof agencyIndex>[1]) => agencyIndex(history(), opts),
+        },
+        verdictBreakdown: {
+            signature: "(opts?: AgencyMetricsOptions) => VerdictBreakdown",
+            summary: "Counts of the verdicts you gave, optionally scoped to AI/derived output.",
+            call: (opts?: Parameters<typeof verdictBreakdown>[1]) => verdictBreakdown(history(), opts),
         },
         judgements: {
             signature: "(path: string) => Judgement[]",

@@ -69,12 +69,24 @@ All pure, all offline, all reachable through the Knowledge State barrel:
   / stalled* spectrum by how recently you ruled on it: the read side of *"is this idea moving, or has it
   stalled?"*. A stalled idea grew but carries no recent verdict; `unexaminedIdeas` (never ruled on) is
   its `lastMovementAt: null` extreme. Queryable from a script as `zf.knowledge.trajectory()`. Still no score.
+- `verdictBreakdown(history, opts?)` (#388) — a vault-wide tally of your verdicts, optionally scoped to
+  certain origins. Pass `INTERPRETIVE_ORIGINS` for the **AI accept/modify/reject rate**. Counts only.
+- `agencyIndex(history, opts?)` (#388) — of the interpretive (AI/derived) proposals you ruled on, the
+  share you **shaped** (modified/rejected/challenged) rather than accepted as-is. `index` is `null` when
+  there is nothing to describe. Both are queryable as `zf.knowledge.verdictBreakdown()` /
+  `zf.knowledge.agencyIndex()`, computed **only** from the log — local, never transmitted.
 
 ### There is no score
 
 `agencySignals` exposes counts and a timestamp — **no score, no ratio, no grade**, and a test asserts
 those keys are absent. An idea nobody has ruled on reads as a well-defined **unknown**, not a failing
 mark. The signal names an *idea* and proposes a *move*; it never grades **you**.
+
+`agencyIndex` (#388) does return a ratio, and the distinction matters: it is a **description of your
+verdict mix, not a score of you**. A low value can simply mean the proposals were good — it is never a
+"cognitive surrender score". `index` is `null` (an *unknown*) when there is nothing to describe, and the
+metric is local to your vault and never transmitted. It measures the *gate* (how interpretive output was
+handled), not the person.
 
 This is not a technicality. A "cognitive surrender score" would be exactly the moralising,
 gamified thing epic #335 exists to avoid — the right question is never *"how much did the user do?"*

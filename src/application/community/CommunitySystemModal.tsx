@@ -20,9 +20,9 @@ import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
  * {@link FileService.createFilesOnce} (no clipboard-paste dance or customized-file overwrite).
  */
 export class CommunitySystemModal extends Modal {
-  private installing=false;
-  private installButton: ButtonComponent | null=null;
-  private installStatus: HTMLElement | null=null;
+  private installing = false;
+  private installButton: ButtonComponent | null = null;
+  private installStatus: HTMLElement | null = null;
   private targetFolder: string;
   private imageUrl = `${COMMUNITY_BASE_URL}${this.refUrl.replace(
     /\.zftemplate$/,
@@ -116,7 +116,7 @@ export class CommunitySystemModal extends Modal {
       .addSearch((cb) => {
         new FolderSuggest(cb.inputEl);
         cb.setValue(this.targetFolder).onChange((value) => {
-          if(!this.installing)this.targetFolder = value;
+          if (!this.installing) this.targetFolder = value;
         });
       });
 
@@ -138,7 +138,7 @@ export class CommunitySystemModal extends Modal {
 
     new Setting(this.contentEl).addButton((btn) => {
       installButton = btn;
-      this.installButton=btn;
+      this.installButton = btn;
       btn
         .setButtonText(t("community_system_install_button"))
         .setCta()
@@ -147,7 +147,7 @@ export class CommunitySystemModal extends Modal {
           void this.installSystem();
         });
     });
-    this.installStatus=this.contentEl.createDiv({attr:{role:'status','aria-live':'polite'}});
+    this.installStatus = this.contentEl.createDiv({ attr: { role: 'status', 'aria-live': 'polite' } });
   }
 
   /**
@@ -186,7 +186,7 @@ export class CommunitySystemModal extends Modal {
   * {@link FileService.createFilesOnce}: exact retries are safe, customized files are preserved.
    */
   private async installSystem(): Promise<void> {
-    if(this.installing || !this.codeAcknowledged)return;
+    if (this.installing || !this.codeAcknowledged) return;
     const problems = validateSystemTemplate(this.template, REGISTERED_ACTION_IDS);
     if (problems.length > 0) {
       log.error("Refusing to install invalid community system:", problems);
@@ -194,17 +194,17 @@ export class CommunitySystemModal extends Modal {
       return;
     }
     try {
-      this.installing=true;this.installButton?.setDisabled(true);
+      this.installing = true; this.installButton?.setDisabled(true);
       this.installStatus?.setText(t('community_system_installing'));
       const { files } = planSystemInstall(this.template, this.targetFolder);
-      const result=await FileService.createFilesOnce(this.app.vault,files);
-      if(result!=='complete'){
-        const message=t(result==='conflict'?'community_system_install_conflict':'community_system_install_partial');
-        this.installStatus?.setText(message);new Notice(message);
+      const result = await FileService.createFilesOnce(this.app.vault, files);
+      if (result !== 'complete') {
+        const message = t(result === 'conflict' ? 'community_system_install_conflict' : 'community_system_install_partial');
+        this.installStatus?.setText(message); new Notice(message);
         this.installButton?.setButtonText(t('community_system_install_retry'));
         return;
       }
-      if(this.disposed)return;
+      if (this.disposed) return;
       this.close();
       if (files.length > 0) {
         // Open the canvas and offer to run it immediately — so a system is usable the moment it lands,
@@ -216,7 +216,7 @@ export class CommunitySystemModal extends Modal {
       log.error("Community system installation failed");
       new Notice(t("community_system_install_error"));
     } finally {
-      this.installing=false;this.installButton?.setDisabled(!this.codeAcknowledged);
+      this.installing = false; this.installButton?.setDisabled(!this.codeAcknowledged);
     }
   }
 

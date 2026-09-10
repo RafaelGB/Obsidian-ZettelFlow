@@ -12,38 +12,38 @@ export const FILE_EXTENSIONS = Object.freeze({
 
 export class FileService {
     /** Shared batch write for the existing gallery path. Preflight is not a lock or a transaction. */
-    public static async createFilesOnce(vault: CreateFileVault & Pick<Vault,'createFolder'>, files: readonly CreateFileOperation[]): Promise<'complete' | 'conflict' | 'partial'> {
+    public static async createFilesOnce(vault: CreateFileVault & Pick<Vault, 'createFolder'>, files: readonly CreateFileOperation[]): Promise<'complete' | 'conflict' | 'partial'> {
         try {
-            const seen=new Set<string>();
-            for(const file of files){
-                if(!safeInquiryPath(file.path) || seen.has(file.path))return 'conflict';
+            const seen = new Set<string>();
+            for (const file of files) {
+                if (!safeInquiryPath(file.path) || seen.has(file.path)) return 'conflict';
                 seen.add(file.path);
-                const existing=vault.getAbstractFileByPath(file.path);
-                if(existing && (!(existing instanceof TFile) || await vault.read(existing)!==file.content))return 'conflict';
-                const parts=file.path.split('/').slice(0,-1);
-                for(let i=1;i<=parts.length;i++){
-                    const parent=vault.getAbstractFileByPath(parts.slice(0,i).join('/'));
-                    if(parent && !(parent instanceof TFolder))return 'conflict';
+                const existing = vault.getAbstractFileByPath(file.path);
+                if (existing && (!(existing instanceof TFile) || await vault.read(existing) !== file.content)) return 'conflict';
+                const parts = file.path.split('/').slice(0, -1);
+                for (let i = 1; i <= parts.length; i++) {
+                    const parent = vault.getAbstractFileByPath(parts.slice(0, i).join('/'));
+                    if (parent && !(parent instanceof TFolder)) return 'conflict';
                 }
             }
-            for(const file of files){
-                const parts=file.path.split('/').slice(0,-1);
-                for(let i=1;i<=parts.length;i++){
-                    const folder=parts.slice(0,i).join('/');
-                    if(!vault.getAbstractFileByPath(folder)){
-                        try{await vault.createFolder(folder);}catch{if(!(vault.getAbstractFileByPath(folder) instanceof TFolder))return 'partial';}
+            for (const file of files) {
+                const parts = file.path.split('/').slice(0, -1);
+                for (let i = 1; i <= parts.length; i++) {
+                    const folder = parts.slice(0, i).join('/');
+                    if (!vault.getAbstractFileByPath(folder)) {
+                        try { await vault.createFolder(folder); } catch { if (!(vault.getAbstractFileByPath(folder) instanceof TFolder)) return 'partial'; }
                     }
                 }
-                const written=await this.createFileOnce(vault,file);
-                if(written.status==='conflict' || written.status==='failed')return 'partial';
+                const written = await this.createFileOnce(vault, file);
+                if (written.status === 'conflict' || written.status === 'failed') return 'partial';
             }
             return 'complete';
-        }catch{return 'partial';}
+        } catch { return 'partial'; }
     }
     /** Create-only canonical boundary: exact retry is safe, any differing user prose is a conflict. */
     public static async createFileOnce(vault: CreateFileVault, operation: CreateFileOperation, allowed: (path: string) => boolean = () => true): Promise<CreateFileResult> {
         const { path, content } = operation;
-        const result = (status: CreateFileResult['status']): CreateFileResult => ({status, path});
+        const result = (status: CreateFileResult['status']): CreateFileResult => ({ status, path });
         if (!safeInquiryPath(path) || path.split('/').some(part => /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part)) || !allowed(path)) return result('failed');
         const reconcile = async (): Promise<CreateFileResult> => {
             if (!allowed(path)) return result('failed');

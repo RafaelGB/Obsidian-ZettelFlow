@@ -100,3 +100,81 @@ export function judgementDays(history: readonly Judgement[]): Record<string, num
     }
     return days;
 }
+
+// ── Agency metrics (#388, C5) ────────────────────────────────────────────────
+// Local, vault-wide descriptions of your verdict mix. Never transmitted, never a score.
+
+/**
+ * The origins whose output is **interpretive** — a conclusion, a proposed connection — and so must pass
+ * the §XII accept/modify/reject gate before it can reach a note. `human` output is your own and is not
+ * gated, so it is excluded from the agency signal.
+ */
+export const INTERPRETIVE_ORIGINS: readonly JudgementOrigin[] = ["ai", "derived"];
+
+/** Verdicts where you **shaped** the proposal (changed or refused it) instead of taking it as-is. */
+const SHAPING_VERDICTS: readonly JudgementVerdict[] = ["modified", "rejected", "challenged"];
+
+/** Options shared by the agency metrics. */
+export interface AgencyMetricsOptions {
+    /** Restrict the tally to these origins. Omitted = all origins (for {@link verdictBreakdown}). */
+    origins?: readonly JudgementOrigin[];
+}
+
+/** A pure tally of the verdicts recorded, optionally scoped to certain origins (e.g. AI). */
+export interface VerdictBreakdown {
+    /** How many verdicts the tally covers. */
+    total: number;
+    /** Count per verdict — every verdict starts at 0, so a caller never reads `undefined`. */
+    byVerdict: Record<JudgementVerdict, number>;
+}
+
+/**
+ * The **AI accept/modify/reject rate** (#388) as raw counts, not a grade. With no `origins` it tallies
+ * every verdict; pass `INTERPRETIVE_ORIGINS` for the AI/derived rate. Pure and vault-local; an empty log
+ * yields a fully-zeroed shape, never `undefined`.
+ */
+export function verdictBreakdown(history: readonly Judgement[], opts: AgencyMetricsOptions = {}): VerdictBreakdown {
+    const origins = opts.origins ? new Set<JudgementOrigin>(opts.origins) : null;
+    const byVerdict = zeroed(JUDGEMENT_VERDICTS);
+    let total = 0;
+    for (const entry of history) {
+        if (origins && !origins.has(entry.origin)) continue;
+        byVerdict[entry.verdict]++;
+        total++;
+    }
+    return { total, byVerdict };
+}
+
+/** The **cognitive agency signal** (#388) — a description of your engagement, never a score. */
+export interface AgencyIndex {
+    /** Interpretive (AI/derived) verdicts recorded. `0` ⇒ nothing to describe yet. */
+    interpretive: number;
+    /** Of those, how many you **shaped** — modified, rejected or challenged — rather than accepted as-is. */
+    shaped: number;
+    /**
+     * `shaped / interpretive` in `[0, 1]`, or `null` when there is nothing to describe. This is a
+     * **description of your verdict mix, never a score of you**: a low value can simply mean the
+     * proposals were good, not that you were passive (§XI/§XII — a consequence of the log, not an
+     * invented grade). The Experience layer must read it as *unknown* when `null`, not as zero.
+     */
+    index: number | null;
+}
+
+/**
+ * How engaged you were with interpretive output (#388): of the AI/derived proposals you ruled on, the
+ * share you shaped (modified/rejected/challenged) rather than accepted wholesale. Computed **only** from
+ * the {@link Judgement} log — no new state, nothing transmitted. Deliberately **not** a user grade
+ * (§XII); `index` is `null` when there is nothing to describe.
+ */
+export function agencyIndex(history: readonly Judgement[], opts: AgencyMetricsOptions = {}): AgencyIndex {
+    const origins = new Set<JudgementOrigin>(opts.origins ?? INTERPRETIVE_ORIGINS);
+    const shaping = new Set<JudgementVerdict>(SHAPING_VERDICTS);
+    let interpretive = 0;
+    let shaped = 0;
+    for (const entry of history) {
+        if (!origins.has(entry.origin)) continue;
+        interpretive++;
+        if (shaping.has(entry.verdict)) shaped++;
+    }
+    return { interpretive, shaped, index: interpretive === 0 ? null : shaped / interpretive };
+}

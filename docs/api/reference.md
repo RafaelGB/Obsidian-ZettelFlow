@@ -14,6 +14,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | Member | Signature | What it answers |
 |---|---|---|
 | `agency` | `(path: string) => AgencySignals` | Counts of the verdicts you have given on one idea. Never a score. |
+| `agencyIndex` | `(opts?: AgencyMetricsOptions) => AgencyIndex` | How much you shaped interpretive output vs accepted it as-is. A description, never a score. |
 | `balance` | `() => KnowledgeBalance` | How the vault is composed across fleeting, literature and permanent ideas. |
 | `cultivationQueue` | `(exclude?: string[], limit?: number) => string[]` | Ideas most worth thinking about next. |
 | `dashboard` | `() => DashboardModel` | The headline metrics of the whole vault. |
@@ -37,6 +38,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `review` | `(now?: number, windowDays?: number) => WeeklyReview` | What changed, stalled and matured over a recent window. |
 | `trajectory` | `(now?: number, opts?: TrajectoryOptions) => IdeaTrajectory[]` | Which important ideas are advancing, steady or stalled by how recently you ruled on them. |
 | `unexamined` | `(opts?: { limit?: number }) => UnexaminedIdea[]` | Ideas that gained structure but carry no judgement of yours. |
+| `verdictBreakdown` | `(opts?: AgencyMetricsOptions) => VerdictBreakdown` | Counts of the verdicts you gave, optionally scoped to AI/derived output. |
 
 ## AI — `zf.ai`
 

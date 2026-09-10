@@ -68,6 +68,13 @@ export interface KnowledgeMember {
  * makes the guardrail a decision point rather than a chore.
  */
 export const NOT_EXPOSED: Record<string, string> = {
+    createInquiry: 'Human-owned inquiry editor state, not a graph query or scripting writer.',
+    updateInquiry: 'Explicit human editing and decisions belong to the inquiry experience.',
+    inquiryErrors: 'Internal versioned inquiry validation, not a model projection.',
+    parseInquiryStorage: 'Private persisted inquiry data must not become a scripting surface.',
+    safeInquiryPath: 'Internal path validation for create-only inquiry writes.',
+    validProvenance: 'Internal human-verdict validation, not a scripting approval gate.',
+    renderInquiryOutcome: 'Private inquiry snapshot rendering requires the canonical reviewed write boundary.',
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",
     severityBucket: "internal helper of computeKnowledgeDebt",

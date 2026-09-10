@@ -1,3 +1,15 @@
+## Purpose-led work — implementation contract (#401)
+
+The first internal slice models **one inquiry**, independently of the activity log. This is not yet
+a connected first-use experience. Its optional purpose, selected notes, explicitly consulted notes,
+authored response and unresolved gaps have their own versioned local state. Only an explicit human
+decision marks a response sufficient for now; changing the question reopens it without deleting the
+previous response or decision context. Support edges and scores never settle it.
+
+Markdown outcomes retain authored or explicitly accepted/modified provenance, consulted references
+only, and honest uncertainty. No confidence is invented. Draft limits are 4,000 purpose characters,
+64,000 response characters, 32,000 gap characters, 20 selected and 200 consulted notes. Invalid or
+unsupported stored data is reported, not silently discarded; over-limit text is not truncated.
 # Cultivate — thinking sessions
 
 > *ZettelFlow is an engine that makes knowledge evolve.* Cultivate is that engine made a daily

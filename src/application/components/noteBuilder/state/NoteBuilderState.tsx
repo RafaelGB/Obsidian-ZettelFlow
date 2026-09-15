@@ -19,6 +19,7 @@ import {
   suggestionSubject,
 } from "application/notes/suggestionVerdicts";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { popRedo } from "../walkHistory";
 import { RestoredStep } from "../RestoredStep";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
@@ -41,6 +42,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   actionWasTriggered: false,
   enableSkip: false,
   suggestionVerdicts: [],
+  redoStack: [],
   // Progress bar properties
   pbValue: 0,
   pbElements: 0,
@@ -178,6 +180,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         actionWasTriggered: false,
         enableSkip: false,
         suggestionVerdicts: [],
+        redoStack: [],
         builder: Builder.default(),
         currentNode: undefined,
       });
@@ -193,6 +196,56 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         }
         return {
           builder,
+        };
+      });
+    },
+    jumpToStep: (index) => {
+      set((state) => {
+        const { previousArray, previousSections, builder } = state;
+        const target = previousArray[index];
+        if (target === undefined) return {};
+        const saved = previousSections.get(target);
+        // Everything from the target position on is discarded, so the note always matches the
+        // visible path — no orphan frontmatter from a branch nobody walked any more.
+        builder.note.deletePos(target);
+        const remaining = new Map(previousSections);
+        for (const position of previousArray.slice(index)) remaining.delete(position);
+        return {
+          position: target,
+          previousArray: previousArray.slice(0, index),
+          previousSections: remaining,
+          section: saved?.section ?? { color: "", element: <></> },
+          header: saved?.header ?? { title: t("flow_selector_placeholder") },
+          currentAction: saved?.actionType ?? "",
+          actionWasTriggered: false,
+          // A jump is a new intention; the forward history it leaves behind is not resumable.
+          redoStack: [],
+          builder,
+        };
+      });
+    },
+    redo: () => {
+      set((state) => {
+        const { entry, rest } = popRedo(state.redoStack);
+        if (!entry) return {};
+        const { builder, previousArray, previousSections } = state;
+        for (const [position, path] of entry.contribution.paths) {
+          builder.note.addPath(path, position);
+        }
+        for (const [position, element] of entry.contribution.elements) {
+          builder.note.addFinalElement(element, position);
+        }
+        const restored = new Map(previousSections);
+        restored.set(entry.position, entry.section);
+        return {
+          builder,
+          position: entry.position + 1,
+          previousArray: [...previousArray, entry.position],
+          previousSections: restored,
+          section: entry.section.section,
+          header: entry.section.header,
+          currentAction: entry.section.actionType ?? "",
+          redoStack: rest,
         };
       });
     },

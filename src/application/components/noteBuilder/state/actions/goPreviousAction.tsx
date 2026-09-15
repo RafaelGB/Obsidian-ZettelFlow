@@ -1,4 +1,5 @@
 import { log } from "architecture";
+import { captureContributions, pushRedo } from "../../walkHistory";
 import { t } from "architecture/lang";
 import {
   NoteBuilderState,
@@ -18,9 +19,21 @@ const goPreviousAction =
     // On UI State
     const previousSection = previousSections.get(previousPosition);
     previousSections.delete(previousPosition);
-    // On Builder
+    // On Builder — captured first, so redo can put it back (#413).
+    const contribution = captureContributions(
+      builder.note.getPaths(),
+      builder.note.getElements(),
+      previousPosition
+    );
     builder.note.deletePos(previousPosition);
     set({
+      redoStack: previousSection
+        ? pushRedo(get().redoStack, {
+            position: previousPosition,
+            section: previousSection,
+            contribution,
+          })
+        : get().redoStack,
       position: previousPosition,
       previousSections,
       previousArray,

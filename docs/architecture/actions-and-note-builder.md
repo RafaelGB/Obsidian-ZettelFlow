@@ -261,6 +261,22 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### Going back to any step (#413)
+
+One back button that popped a single position meant correcting a choice made four steps ago cost
+four blind clicks — so people abandoned the flow instead. The breadcrumb from #408 is now navigable:
+
+- **Activating an entry** returns to that step and **discards the answers after it**
+  (`NoteDTO.deletePos`), so the note always matches the visible path — no orphan frontmatter from a
+  branch nobody walks any more.
+- **More than one step is confirmed**, with the count. One step is not: that is the back button.
+- **Steps that already had an effect** outside the note (a `script`, anything in the `ai` category)
+  are named in the confirmation as *already applied and not undone*. You are told, not blocked, and
+  nothing is ever re-executed.
+- **Undo / redo** (`Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`) is scoped to the wizard. Going back captures
+  the contributions it removes so redo can put them back; answering something new clears the
+  forward history — a line, not a tree.
+
 ### The preview became a diff (#412)
 
 The pane answered *"what will the note look like?"*. At the moment of committing the question is

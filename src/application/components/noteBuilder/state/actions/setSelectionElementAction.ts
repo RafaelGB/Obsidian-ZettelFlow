@@ -29,6 +29,8 @@ const setSelectionElementAction =
         }
         log.trace(`section set from ${position} to ${position + 1}`);
         set({
+            // Answering something new makes the forward history unreachable (#413).
+            redoStack: [],
             position: position + 1,
             section: elementSection,
             previousSections: previousSections,

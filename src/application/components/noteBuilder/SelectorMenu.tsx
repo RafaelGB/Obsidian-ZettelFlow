@@ -82,11 +82,21 @@ function Component(noteBuilderType: NoteBuilderType) {
   }
 
   const wizard = (
-    <div className={c("note-builder-main")}>
+    <div
+      className={c("note-builder-main")}
+      // Undo/redo inside the wizard (#413), scoped to the modal: Obsidian's own history belongs to
+      // the editor, and the walk is not in it.
+      onKeyDown={(event) => {
+        if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "z") return;
+        event.preventDefault();
+        if (event.shiftKey) actions.redo();
+        else if (useNoteBuilderStore.getState().previousArray.length > 0) actions.goPrevious();
+      }}
+    >
       <LiveRegion />
       <NavBar {...noteBuilderType} />
       <Header />
-      <Breadcrumb />
+      <Breadcrumb {...noteBuilderType} />
       <Section {...noteBuilderType} />
     </div>
   );

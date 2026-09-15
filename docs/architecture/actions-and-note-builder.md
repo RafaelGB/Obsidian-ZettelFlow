@@ -562,6 +562,67 @@ The marker types (`ActionKind`, `KnowledgeQuery`, `KnowledgeCommand`) live in th
 are classified, totally and disjointly — it reads the sources with `fs` (it never imports the
 React-coupled action modules).
 
+## One flow, several notes — the satellite note (#419)
+
+A flow produced exactly one note. The canonical Zettelkasten move produces **two**: the literature
+note for what you read and the permanent note for what you now think, related by *meaning*. Doing
+that properly cost two passes through the wizard plus a manual link, so people wrote one note that
+mixed a source with an idea — which Health then correctly flagged as unsourced. The engine was
+working against the method it exists to serve.
+
+### The rule that keeps it simple
+
+> A satellite is **declared when authoring the step**, never walked at runtime.
+
+It is a **byproduct** — a template, a title pattern and a relation — so the wizard asks nothing
+extra, there is no "which note am I answering for?" mode, and `NoteDTO` gains **one field** instead
+of becoming multi-note. That is why this change is small: only the build path and two display
+surfaces learn about the second file.
+
+```yaml
+# in a step's zettelflowConfig / frontmatter
+satellite:
+  template: steps/permanent.md
+  title: "{{title}} — idea"     # the body-template tokens, plus {{title}}
+  targetFolder: zettel/ideas     # optional; the main note's folder when absent
+  relation:
+    type: inspired-by            # from the #147 semantic vocabulary
+    direction: satellite-to-main # which note carries the frontmatter edge
+```
+
+`source` is deliberately **not** a valid type: sources have their own mechanism (the
+`attachSource` action and the `unsourced` predicate), so the literature→permanent pairing uses
+`inspired-by`. The reverse direction needs no second write — `incoming:` (#377) already reads edges
+backwards.
+
+### The write order *is* the failure handling
+
+`writeSatellite` exists as one function precisely so the failure modes fall out of the sequence
+instead of needing compensation:
+
+1. it takes the **created** main `TFile`, so a build that failed to create the main note cannot
+   reach the satellite at all — that guarantee is a signature, not a test;
+2. an occupied path aborts before any write (create-only, as in the #401 install path);
+3. the satellite is built from **its own** template, never a copy of the main note;
+4. the **edge is written last**, so a failed satellite can never leave the main note claiming a
+   relation to a file that does not exist.
+
+A problem here is reported through a `Notice` and the log, never propagated into the build's failure
+path — that path deletes the note, and the main note is already on disk and legitimately the user's.
+
+### Where it is stated before it happens
+
+The same `resolveSatellite` powers all three, so none of them can drift from what is written:
+
+| Surface | Shows |
+|---|---|
+| The step editor (read-only) | the declaration, and **its defect** if any — an empty template is caught while authoring, so the plugin never manufactures the debt Health would then report |
+| The destination line (#408) | *"It will also create `folder/name.md`, related by inspired-by"* |
+| The companion pane (#412) | the satellite's **own** diff, from its own template, plus the edge |
+
+The destination line is honestly a *preview*: a title pattern that reads frontmatter converges as the
+walk fills it in.
+
 ## Recorded decisions
 
 ### The canvas is *not* the wizard (#415, 2026-09-15)

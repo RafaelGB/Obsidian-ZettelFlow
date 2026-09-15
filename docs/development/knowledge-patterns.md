@@ -88,3 +88,9 @@ note is indexed*; behaviour is then identical to the build-time-only pass.
 Install the starter flows (Settings → ZettelFlow → Zettelkasten toolkit → *Starter flows*), then build
 a note from the **Permanent note** flow: its frontmatter will carry the pattern's result properties
 (`related`, `contradictions`, `suggestedLinks`, `maturity`), computed against your existing graph.
+
+## A sibling mechanism: the satellite note (#419)
+
+`onCreation` gives a template *behaviour*. A **satellite** gives a step a *second note*: declared the
+same way (an additive, opt-in block in the step's settings), it creates a linked note and relates it
+by meaning. See [actions & note builder](../architecture/actions-and-note-builder.md#one-flow-several-notes--the-satellite-note-419).

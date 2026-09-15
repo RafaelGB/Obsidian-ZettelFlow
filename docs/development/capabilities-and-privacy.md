@@ -27,6 +27,14 @@ telemetry** and transmits **no personal data or vault contents**.
 | **Dynamic code execution** | Opt-in | Runs the JavaScript **you** author: the Script action, dynamic selectors, vault hooks and workflow-event conditions. Your code is handed `zf` and Obsidian's `app`, so it can do whatever the plugin itself can — including **reading the whole offline knowledge model** through [`zf.knowledge`](../api/ZettelFlowAPI.md). That is a read-only surface: it exposes no vault writer, and your script still writes only through the note it is building or a hook's `response`. Reaching the AI provider from a script goes through `zf.ai.propose`, which cannot write without your verdict (§XII). | Built in exactly **one** module, `architecture/api/lib/FnConstructor.ts` — both the async form the script surfaces use and the synchronous CommonJS wrapper that loads your library scripts (a guardrail test fails the build if a second site appears). A library script is loaded as a CommonJS module and is handed Node's `require` **on desktop only**, where Obsidian exposes it; on mobile it is simply absent. No remote code is ever fetched or executed — only code stored in your own vault or settings. A **community system may ship JavaScript**, and the install now says so before it writes anything, naming the steps that carry code and asking you to acknowledge it. |
 | **Judgement record** | On by default | Stores the decisions you make on your own ideas — accept / modify / reject / confirm / challenge — so [cognitive agency](cognitive-agency.md) can be derived instead of invented. | A local, bounded log (most recent 500) in the plugin's `data.json`: a note path, a short locale-free subject id, an origin and a verdict. **No note content, no AI output**, no network. Honours the [knowledge scope](knowledge-scope.md) and can be turned off. |
 
+### The satellite note (#419)
+
+A step can declare a second, linked note, so one walk produces the literature/permanent pair. That
+is **one additional file per declaring step**, at a path announced before anything is written, and
+**create-only**: an existing note is never touched, and a name collision aborts the write instead of
+overwriting. No network, no clipboard, no code execution — and nothing interpretive: the template and
+the relation are the author's own choices, so §XII imposes no verdict gate.
+
 ### Note-builder drafts (#410)
 
 Closing the creation wizard mid-flow keeps what you answered, so you can resume instead of starting

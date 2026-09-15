@@ -13,6 +13,12 @@ import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
 import { resolveOnCreationActions } from "application/patterns/resolveOnCreationActions";
 import { restoreDraft, WizardDraft } from "application/notes/draftState";
+import {
+  bufferVerdict,
+  flushVerdicts,
+  suggestionSubject,
+} from "application/notes/suggestionVerdicts";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { RestoredStep } from "../RestoredStep";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
@@ -34,6 +40,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   builder: Builder.default(),
   actionWasTriggered: false,
   enableSkip: false,
+  suggestionVerdicts: [],
   // Progress bar properties
   pbValue: 0,
   pbElements: 0,
@@ -170,6 +177,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         },
         actionWasTriggered: false,
         enableSkip: false,
+        suggestionVerdicts: [],
         builder: Builder.default(),
         currentNode: undefined,
       });
@@ -187,6 +195,26 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           builder,
         };
       });
+    },
+    judgeSuggestion: (targetPath, verdict, detail) => {
+      set((state) => ({
+        suggestionVerdicts: bufferVerdict(state.suggestionVerdicts, {
+          subject: suggestionSubject(targetPath),
+          verdict,
+          at: Date.now(),
+          ...(detail?.note ? { note: detail.note } : {}),
+          ...(detail?.confidence ? { confidence: detail.confidence } : {}),
+        }),
+      }));
+    },
+    flushSuggestionVerdicts: (notePath) => {
+      const { suggestionVerdicts } = get();
+      if (suggestionVerdicts.length === 0) return;
+      const log = JudgementLog.getInstance();
+      for (const judgement of flushVerdicts(suggestionVerdicts, notePath)) {
+        log.record(judgement);
+      }
+      set({ suggestionVerdicts: [] });
     },
     snapshotDraft: (canvasPath) => {
       const { builder, title, position, previousArray, previousSections } = get();

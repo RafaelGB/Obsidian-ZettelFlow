@@ -3,7 +3,6 @@ import { Component, Notice, getAllTags, stringifyYaml } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { FileService, FrontmatterService, MarkdownService } from "architecture/plugin";
-import { Icon } from "architecture/components/icon";
 import {
   AssembleNotePreviewInput,
   ConnectionSuggestion,
@@ -19,6 +18,8 @@ import { NoteBuilder } from "application/notes/NoteBuilder";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
+import { SuggestionRow } from "./SuggestionRow";
+import { FrictionPrompt } from "./FrictionPrompt";
 
 /** UX states the pane exposes at all times (FR-7). */
 type PaneState = "empty" | "loading" | "ready" | "error";
@@ -134,11 +135,16 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
   const position = useNoteBuilderStore((store) => store.position);
   const title = useNoteBuilderStore((store) => store.title);
   const linkVersion = useNoteBuilderStore((store) => store.linkVersion);
-  const actions = useNoteBuilderStore((store) => store.actions);
 
   const [state, setState] = useState<PaneState>("empty");
   const [preview, setPreview] = useState<NotePreview | null>(null);
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
+  // Rejected suggestions are not proposed again for the rest of the session (#411 FR-4).
+  const [rejected, setRejected] = useState<string[]>([]);
+  // Deliberate friction, default off (#411 FR-6): creation is high-frequency, and the manifesto
+  // says friction belongs where judgement is at stake, not on every click.
+  const frictionOn = props.plugin.settings.builderFriction ?? false;
+  const [reading, setReading] = useState(!frictionOn);
 
   const previewRef = useRef<HTMLDivElement>(null);
   const componentRef = useRef<Component>(new Component());
@@ -215,6 +221,8 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
     );
   }, [state, preview]);
 
+  const visible = suggestions.filter((suggestion) => !rejected.includes(suggestion.path));
+
   const body = (
     <>
       <section className={c("companion-pane-section")}>
@@ -244,35 +252,18 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
         <p className={c("companion-pane-proposal-note")}>
           {t("companion_pane_suggestions_basis")}
         </p>
-        {suggestions.length === 0 ? (
+        {!reading ? (
+          <FrictionPrompt onDone={() => setReading(true)} />
+        ) : visible.length === 0 ? (
           <p className={c("companion-pane-status")}>{t("companion_pane_suggestions_empty")}</p>
         ) : (
           <ul className={c("companion-pane-suggestions")}>
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.path} className={c("companion-pane-suggestion")}>
-                <button
-                  type="button"
-                  className={c("companion-pane-suggestion-open")}
-                  title={t("companion_pane_open_note")}
-                  aria-label={t("companion_pane_open_note")}
-                  onClick={() => {
-                    void FileService.openFile(suggestion.path);
-                  }}
-                >
-                  {suggestion.basename}
-                </button>
-                <button
-                  type="button"
-                  className={c("companion-pane-suggestion-link")}
-                  title={t("companion_pane_insert_link")}
-                  aria-label={t("companion_pane_insert_link")}
-                  onClick={() => {
-                    actions.insertLink(suggestion.basename);
-                  }}
-                >
-                  <Icon name="link" />
-                </button>
-              </li>
+            {visible.map((suggestion) => (
+              <SuggestionRow
+                key={suggestion.path}
+                suggestion={suggestion}
+                onRejected={(path) => setRejected((current) => [...current, path])}
+              />
             ))}
           </ul>
         )}

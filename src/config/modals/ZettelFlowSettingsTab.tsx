@@ -141,6 +141,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
+                        // Deliberate friction in the wizard (#411) — off by default, on purpose.
+                        name: t("settings_builder_friction_name"),
+                        desc: t("settings_builder_friction_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.builderFriction ?? false)
+                                    .onChange(async (value) => {
+                                        plugin.settings.builderFriction = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
                         // Density of the creation wizard (#409). A preference about the reader's eyes,
                         // so it is global rather than per flow.
                         name: t("settings_wizard_density_name"),

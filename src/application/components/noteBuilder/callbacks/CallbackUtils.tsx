@@ -150,6 +150,8 @@ export async function manageElement(
       .build(info.modal)
       .then(async (path) => {
         actions.setActiveContext("", "");
+        // The verdicts taken while walking belong to the note that just came into existence (#411).
+        actions.flushSuggestionVerdicts(path);
         if (!modal.isEditor()) {
           recordHistory(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
             ? info.flow.canvasPath

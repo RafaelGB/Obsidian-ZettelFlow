@@ -44,6 +44,13 @@ export interface ZettelFlowSettings {
     /** Whether the wizard keeps drafts at all (#410). Undefined reads as on. */
     wizardDraftsEnabled?: boolean;
     /**
+     * **Deliberate friction in the note builder** (#411): ask for your own reading before the
+     * connection suggestions appear. Unlike Cultivate's `cultivateFriction` this is **off** by
+     * default — note creation is high-frequency, and the manifesto is explicit that friction is not
+     * a tax on every click.
+     */
+    builderFriction?: boolean;
+    /**
      * How dense the note-builder wizard renders (#409). Undefined reads as "comfortable", so an
      * install predating the setting keeps today's spacing.
      */

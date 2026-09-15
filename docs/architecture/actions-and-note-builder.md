@@ -261,6 +261,30 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### The verdict is recorded where it is taken (#411, §XII)
+
+The pane's connection suggestions are **interpretive output from a heuristic**
+(`rankConnectionSuggestions`). The constitution says interpretive output — AI *or* heuristic —
+reaches the vault only through an explicit accept / modify / reject, with the verdict recorded.
+Accepting one used to write a link and record nothing, and there was no way to reject at all.
+
+- **Three outcomes.** *Accept* inserts `[[Basename]]`. *Modify* inserts `[[Basename|your words]]`.
+  *Reject* inserts nothing and drops the suggestion for the rest of the session.
+- **Buffered, then flushed.** The note does not exist while the wizard runs, so verdicts are held in
+  the store and written with the created note's path from the build callback. **A wizard closed
+  without building records nothing** — an abandoned session is not a decision.
+- **Content-free by construction.** The subject is `suggest-link:<target path>`; a guardrail test
+  asserts the shape. Reason and confidence are optional and hidden behind *add a reason*.
+- **Origin `derived`**, not `ai` and not `human`: a ranking, not a model and not your own idea.
+- **Deliberate friction is off by default** (`builderFriction`), unlike Cultivate's
+  `cultivateFriction`. Note creation is high-frequency and the manifesto is explicit that friction
+  is not a tax on every click. Skipping the prompt records nothing — a skip is not a verdict.
+- **Navigation is not a verdict.** Choosing a step is not recorded; inflating the log would make the
+  agency index dishonest.
+
+Effect: the surface where most decisions are made now feeds the agency index and the Health → Agency
+tab, which until now only saw AI actions and Cultivate.
+
 ### Drafts: closing the wizard no longer destroys the walk (#410)
 
 `SelectorMenu` resets the store in its unmount cleanup, so closing the modal used to throw away the

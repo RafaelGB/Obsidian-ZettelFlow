@@ -6,6 +6,8 @@ import { SectionType } from "application/components/section";
 import ZettelFlow from "main";
 import { FinalElement } from "application/notes";
 import type { DraftSnapshot, WizardDraft } from "application/notes/draftState";
+import type { BufferedVerdict, SuggestionVerdict } from "application/notes/suggestionVerdicts";
+import type { JudgementConfidence } from "architecture/knowledge/judgement/Judgement";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { ZettelFlowSettings } from "config";
 import { SelectorMenuModal } from "zettelkasten";
@@ -53,6 +55,17 @@ export type NoteBuilderStateInfo = {
 }
 
 export type NoteBuilderStateActions = {
+    /**
+     * Record a verdict on a suggested connection (#411, §XII). Buffered until the note exists;
+     * a session that never builds records nothing.
+     */
+    judgeSuggestion: (
+        targetPath: string,
+        verdict: SuggestionVerdict,
+        detail?: { note?: string; confidence?: JudgementConfidence }
+    ) => void;
+    /** Write the buffered verdicts against the created note. */
+    flushSuggestionVerdicts: (notePath: string) => void;
     /** Freeze the session so it survives closing the modal (#410). */
     snapshotDraft: (canvasPath: string) => DraftSnapshot;
     /** Put a stored draft back: results restored, actions never re-run (#410). */
@@ -84,6 +97,8 @@ export type NoteBuilderStateActions = {
 }
 
 export type NoteBuilderState = {
+    /** Verdicts on suggested connections, pending the note's creation (#411). */
+    suggestionVerdicts: BufferedVerdict[];
     creationMode: boolean;
     title: string;
     invalidTitle: boolean;

@@ -193,8 +193,10 @@ function parseScalar(raw: string): unknown {
 export function parseYaml(yaml: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   if (!yaml) return result;
-  let currentKey: string | null = null;
-  let currentObj: Record<string, unknown> | null = null;
+  // An indent stack, so nesting is not limited to one level (#419 declares `satellite.relation.type`).
+  const stack: { indent: number; obj: Record<string, unknown> }[] = [
+    { indent: -1, obj: result },
+  ];
 
   for (const rawLine of yaml.split("\n")) {
     if (rawLine.trim() === "" || rawLine.trim().startsWith("#")) continue;
@@ -209,20 +211,15 @@ export function parseYaml(yaml: string): Record<string, unknown> {
     const key = line.slice(0, separator).trim();
     const raw = line.slice(separator + 1).trim();
 
-    if (indent === 0) {
-      if (raw === "") {
-        // Start of nested object
-        currentKey = key;
-        currentObj = {};
-        result[currentKey] = currentObj;
-      } else {
-        currentKey = null;
-        currentObj = null;
-        result[key] = parseScalar(raw);
-      }
-    } else if (currentObj !== null) {
-      // Nested key (2-level only)
-      currentObj[key] = parseScalar(raw);
+    while (stack.length > 1 && indent <= stack[stack.length - 1].indent) stack.pop();
+    const parent = stack[stack.length - 1].obj;
+
+    if (raw === "") {
+      const nested: Record<string, unknown> = {};
+      parent[key] = nested;
+      stack.push({ indent, obj: nested });
+    } else {
+      parent[key] = parseScalar(raw);
     }
   }
   return result;

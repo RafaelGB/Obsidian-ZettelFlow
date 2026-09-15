@@ -60,8 +60,9 @@ function Component(noteBuilderType: NoteBuilderType) {
     };
   }, []);
 
-  // The companion pane is creation-mode only; on mobile it collapses instead of disappearing (#409).
-  const showCompanionPane = !editor;
+  // The pane now runs in edit mode too, where it shows the diff against the note you are in
+  // (#412); on mobile it collapses instead of disappearing (#409).
+  const showCompanionPane = true;
   const density = normalizeDensity(noteBuilderType.plugin.settings.wizardDensity);
   const modifier = densityModifier(density);
   const layout = [c("note-builder-layout"), ...(modifier ? [c(modifier)] : [])];

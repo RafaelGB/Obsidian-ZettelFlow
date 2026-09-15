@@ -194,3 +194,56 @@
     min-height: 32px;
     cursor: pointer;
 }
+
+/* What the build will change (#412) — the diff, above the rendered preview. */
+.zettelkasten-flow__companion-pane-diff {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: var(--size-4-2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__companion-pane-diff-heading {
+    margin: 0 0 0.2rem;
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__companion-pane-diff-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+/* The kind is a word, not only a colour — colour alone is not a distinction everyone can see. */
+.zettelkasten-flow__companion-pane-diff-kind {
+    flex-shrink: 0;
+    padding: 0 0.3rem;
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+    font-variant: small-caps;
+}
+
+.zettelkasten-flow__companion-pane-diff-key {
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__companion-pane-diff-value {
+    color: var(--text-muted);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__companion-pane-diff-conflict .zettelkasten-flow__companion-pane-diff-kind {
+    background-color: var(--background-modifier-error);
+    color: var(--text-on-accent);
+}

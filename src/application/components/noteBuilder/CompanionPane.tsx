@@ -15,6 +15,7 @@ import {
   rankConnectionSuggestions,
 } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
+import { buildNoteDiff, DiffSource, NoteDiff } from "application/notes/noteDiff";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
@@ -122,6 +123,115 @@ function gatherSuggestions(preview: NotePreview, modal: SelectorMenuModal): Conn
   return rankConnectionSuggestions({ tags: noteTags, titleKeywords, candidates, excludePaths });
 }
 
+/** The note the build starts from: the edited note in editor mode, nothing in creation mode. */
+async function readBaseline(
+  modal: SelectorMenuModal
+): Promise<{ frontmatter: Record<string, unknown>; body: string }> {
+  const file = modal.isEditor() ? modal.getSourceFile() : undefined;
+  if (!file) return { frontmatter: {}, body: "" };
+  const service = FrontmatterService.instance(file);
+  return {
+    frontmatter: service.getFrontmatter() ?? {},
+    body: await service.getContent(),
+  };
+}
+
+/** Each step template, labelled by its file name, so a conflict can name who set what. */
+function diffSources(paths: Map<number, string>, templates: PreviewTemplate[]): DiffSource[] {
+  const ordered = [...paths.entries()].sort((a, b) => a[0] - b[0]);
+  return templates.map((template, index) => ({
+    label: (ordered[index]?.[1] ?? "").split("/").pop()?.replace(/\.md$/, "") ?? `step ${index + 1}`,
+    frontmatter: template.frontmatter,
+  }));
+}
+
+/** `{{key}}` substitutions the build will perform, from the recorded body-zone results. */
+function collectModifications(builder: NoteBuilder): Record<string, string> {
+  const modifications: Record<string, string> = {};
+  for (const element of builder.note.getElements().values()) {
+    const zone = element.zone as string | undefined;
+    if ((zone ?? "frontmatter") !== "body") continue;
+    const result = element.result;
+    // Only scalars can appear inside a {{placeholder}}; anything else is not a text substitution.
+    if (typeof element.key !== "string") continue;
+    if (typeof result === "string" || typeof result === "number" || typeof result === "boolean") {
+      modifications[element.key] = String(result);
+    }
+  }
+  return modifications;
+}
+
+/** What the build will add or change — the question the preview did not answer (#412). */
+function DiffSummary({ diff, editing }: { diff: NoteDiff; editing: boolean }) {
+  const changed = diff.frontmatter.filter((entry) => entry.kind !== "unchanged");
+  const nothing =
+    changed.length === 0 &&
+    diff.bodyBlocks.length === 0 &&
+    diff.conflicts.length === 0 &&
+    diff.placeholders.length === 0;
+  if (nothing) return null;
+
+  return (
+    <div className={c("companion-pane-diff")}>
+      <h5 className={c("companion-pane-diff-heading")}>{t("companion_pane_diff_title")}</h5>
+      {changed.map((entry) => (
+        <div className={c("companion-pane-diff-row")} key={`fm-${entry.key}`}>
+          <span className={c("companion-pane-diff-kind")}>
+            {entry.kind === "added" ? t("companion_pane_diff_added") : t("companion_pane_diff_changed")}
+          </span>
+          <span className={c("companion-pane-diff-key")}>{entry.key}</span>
+          <span className={c("companion-pane-diff-value")}>
+            {entry.kind === "changed"
+              ? t("companion_pane_diff_from_to", String(entry.previous), String(entry.value))
+              : String(entry.value)}
+          </span>
+        </div>
+      ))}
+      {diff.bodyBlocks.length > 0 && (
+        <div className={c("companion-pane-diff-row")}>
+          <span className={c("companion-pane-diff-kind")}>{t("companion_pane_diff_added")}</span>
+          <span className={c("companion-pane-diff-value")}>
+            {t("companion_pane_diff_body_blocks", String(diff.bodyBlocks.length))}
+          </span>
+        </div>
+      )}
+      {editing &&
+        diff.placeholders.map((placeholder) => (
+          <div className={c("companion-pane-diff-row")} key={`ph-${placeholder.key}`}>
+            <span className={c("companion-pane-diff-kind")}>
+              {t("companion_pane_diff_replaced")}
+            </span>
+            <span className={c("companion-pane-diff-value")}>
+              {t(
+                "companion_pane_diff_placeholder",
+                placeholder.key,
+                String(placeholder.occurrences),
+                placeholder.value
+              )}
+            </span>
+          </div>
+        ))}
+      {diff.conflicts.map((conflict) => (
+        <div
+          className={c("companion-pane-diff-row", "companion-pane-diff-conflict")}
+          key={`cf-${conflict.key}`}
+        >
+          <span className={c("companion-pane-diff-kind")}>{t("companion_pane_diff_conflict")}</span>
+          <span className={c("companion-pane-diff-value")}>
+            {t(
+              "companion_pane_diff_conflict_detail",
+              conflict.key,
+              conflict.winnerSource,
+              String(conflict.winner),
+              conflict.overridden.map((entry) => entry.source).join(", ")
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /**
  * Companion pane rendered beside the note-builder wizard on desktop (#127). Shows a live,
  * in-memory preview of the note being assembled plus bounded connection suggestions.
@@ -138,6 +248,7 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
 
   const [state, setState] = useState<PaneState>("empty");
   const [preview, setPreview] = useState<NotePreview | null>(null);
+  const [diff, setDiff] = useState<NoteDiff | null>(null);
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
   // Rejected suggestions are not proposed again for the rest of the session (#411 FR-4).
   const [rejected, setRejected] = useState<string[]>([]);
@@ -183,8 +294,19 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
           if (cancelled) return;
           const assembled = assembleNotePreview(buildPreviewInput(builder, title, modal, templates));
           const nextSuggestions = gatherSuggestions(assembled, modal);
+          // In edit mode the baseline is the note being edited; in creation it is an empty note.
+          const baseline = await readBaseline(modal);
           if (cancelled) return;
           setPreview(assembled);
+          setDiff(
+            buildNoteDiff({
+              baseline,
+              preview: assembled,
+              sources: diffSources(paths, templates),
+              documentText: baseline.body,
+              modifications: collectModifications(builder),
+            })
+          );
           setSuggestions(nextSuggestions);
           setState("ready");
           log.debug(
@@ -238,6 +360,7 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
             {t("companion_pane_error")}
           </p>
         )}
+        {state === "ready" && diff && <DiffSummary diff={diff} editing={modal.isEditor()} />}
         {state === "ready" && preview && (
           <div className={c("companion-pane-preview")}>
             <h3 className={c("companion-pane-preview-title")}>

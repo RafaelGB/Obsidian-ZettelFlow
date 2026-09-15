@@ -261,6 +261,27 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### The preview became a diff (#412)
+
+The pane answered *"what will the note look like?"*. At the moment of committing the question is
+*"what is about to change, and where?"* — and **edit mode** answered it not at all: `onEditorBuild`
+inserted the merged template at the cursor and then ran a **document-wide** `{{key}}` replace, and
+the user saw the result only after it happened.
+
+- `noteDiff.ts` is pure and works off the **same assembled preview the builder writes**, so it
+  cannot drift: frontmatter keys *added* / *changed* / *unchanged*, the body blocks that will be
+  appended, the placeholder replacements and their **occurrence counts**, and conflicts.
+- **Conflicts are stated, not resolved.** Two steps setting the same key used to be settled silently
+  by the merge (last one wins, in both `assembleNotePreview` and `ContentDTO.addFrontMatter`). The
+  pane now names the winner, its source step and what it overrode. A test pins the stated winner
+  against what the assembly actually produces — one rule, not a second opinion about it. `tags` are
+  excluded: they merge rather than overwrite, so two steps adding tags is not a conflict.
+- **Edit mode is confirmed before it writes.** The build assembles, the diff is on screen, and
+  `confirmEditorInsert()` asks; declining returns `""` and the wizard stays open with the document
+  byte-identical.
+- The pane runs in edit mode now (it used to be creation-only), and change kinds are labelled in
+  **words** — colour is never the only carrier.
+
 ### The verdict is recorded where it is taken (#411, §XII)
 
 The pane's connection suggestions are **interpretive output from a heuristic**

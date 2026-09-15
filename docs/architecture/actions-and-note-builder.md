@@ -261,6 +261,23 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### Drafts: closing the wizard no longer destroys the walk (#410)
+
+`SelectorMenu` resets the store in its unmount cleanup, so closing the modal used to throw away the
+title, the answers, the prompts and the accepted links. It now hands the session to `DraftStore`
+first (`architecture/plugin/noteBuilder/DraftStore.ts`), which persists a **versioned, bounded,
+local** record — the same shape as the inquiry checkpoint (#401).
+
+| Concern | How it is handled |
+|---|---|
+| Identity | One draft per **canvas**; five canvases at most, oldest dropped |
+| Lifetime | Cleared on a successful build or on *start fresh*; not offered after 30 days or if the canvas is gone |
+| Corrupt data | **Retained, not deleted** — `readDrafts` skips what it cannot parse and the blob stays in `data.json` |
+| Load timing | The store takes an **injected** host; `getOwnPlugin()` is undefined during enable/reload, which is exactly when a draft is read (#374) |
+| Actions | Recorded **results** are restored; an action is **never re-executed**, because a step that already wrote something cannot be unwound |
+| Resume point | The wizard re-enters at the node it was left on (`manageElement`); steps answered earlier show *"answered before you paused"* rather than a replayed form |
+| Discovery | Home nudges the most recent draft. It asks through a `zettelflow-open-flow` **workspace event** rather than importing the modal — an import would tie the Knowledge-State surface to the wizard's module graph and create a cycle |
+
 ### What the wizard looks like, and why (#409)
 
 One visual language, shared with the newer modals rather than the wizard's own dialect:

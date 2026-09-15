@@ -1,4 +1,4 @@
-import React, { StrictMode, useEffect } from "react";
+import React, { StrictMode, useEffect, useState } from "react";
 import { Platform } from "obsidian";
 import { c } from "architecture";
 import { NoteBuilderType } from "./typing";
@@ -8,6 +8,8 @@ import { CompanionPane } from "./CompanionPane";
 import { LiveRegion } from "./LiveRegion";
 import { Breadcrumb } from "./Breadcrumb";
 import { densityModifier, normalizeDensity } from "./presentation";
+import { ResumePrompt } from "./ResumePrompt";
+import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { Section } from "application/components/section";
 import { Header } from "application/components/header";
 import { NavBar } from "application/components/navbar";
@@ -40,6 +42,10 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 function Component(noteBuilderType: NoteBuilderType) {
   const editor = noteBuilderType.modal.getMarkdownView();
   const actions = useNoteBuilderStore((store) => store.actions);
+  // Looked up once, when the flow opens: an unfinished walk for this canvas (#410).
+  const [draft, setDraft] = useState(() =>
+    editor ? undefined : draftStore.offer(noteBuilderType.flow.canvasPath)
+  );
   useEffect(() => {
     if (editor) {
       actions.setIsCreationMode(false);
@@ -59,6 +65,20 @@ function Component(noteBuilderType: NoteBuilderType) {
   const density = normalizeDensity(noteBuilderType.plugin.settings.wizardDensity);
   const modifier = densityModifier(density);
   const layout = [c("note-builder-layout"), ...(modifier ? [c(modifier)] : [])];
+
+  if (draft) {
+    return (
+      <div className={layout.join(" ")}>
+        <div className={c("note-builder-main")}>
+          <ResumePrompt
+            draft={draft}
+            info={noteBuilderType}
+            onDecided={() => setDraft(undefined)}
+          />
+        </div>
+      </div>
+    );
+  }
 
   const wizard = (
     <div className={c("note-builder-main")}>

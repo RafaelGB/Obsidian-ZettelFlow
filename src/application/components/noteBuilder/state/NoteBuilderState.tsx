@@ -12,6 +12,8 @@ import { Action } from "architecture/api";
 import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
 import { resolveOnCreationActions } from "application/patterns/resolveOnCreationActions";
+import { restoreDraft, WizardDraft } from "application/notes/draftState";
+import { RestoredStep } from "../RestoredStep";
 
 export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   creationMode: true,
@@ -183,6 +185,50 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         }
         return {
           builder,
+        };
+      });
+    },
+    snapshotDraft: (canvasPath) => {
+      const { builder, title, position, previousArray, previousSections } = get();
+      return {
+        canvasPath,
+        savedAt: Date.now(),
+        title,
+        position,
+        targetFolder: builder.note.getTargetFolder(),
+        walked: previousArray.map((walkedPosition) => ({
+          position: walkedPosition,
+          nodeId: previousSections.get(walkedPosition)?.nodeId ?? "",
+          title: previousSections.get(walkedPosition)?.header.title ?? "",
+        })),
+        paths: builder.note.getPaths(),
+        elements: builder.note.getElements(),
+        links: builder.note.getLinks(),
+        onCreation: builder.note.getOnCreation(),
+      };
+    },
+    restoreFromDraft: (draft: WizardDraft) => {
+      set((state) => {
+        const { builder } = state;
+        restoreDraft(draft, builder.note);
+        const previousSections = new Map(state.previousSections);
+        const previousArray: number[] = [];
+        for (const step of draft.walked) {
+          previousArray.push(step.position);
+          previousSections.set(step.position, {
+            header: { title: step.title },
+            // A step answered before the pause: its result is in the note, and it is not replayed.
+            section: { color: "", element: <RestoredStep /> },
+            isAction: false,
+            nodeId: step.nodeId,
+          });
+        }
+        return {
+          builder,
+          title: draft.title,
+          position: draft.position,
+          previousArray,
+          previousSections,
         };
       });
     },

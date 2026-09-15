@@ -37,6 +37,13 @@ export interface ZettelFlowSettings {
     /** Versioned, sensitive local inquiry checkpoint. Unknown/corrupt data is retained for recovery. */
     inquiry?: unknown;
     /**
+     * Versioned, sensitive local note-builder drafts (#410) — an unfinished walk, so closing the
+     * modal does not destroy it. Unknown or corrupt data is retained, never deleted.
+     */
+    wizardDrafts?: unknown;
+    /** Whether the wizard keeps drafts at all (#410). Undefined reads as on. */
+    wizardDraftsEnabled?: boolean;
+    /**
      * How dense the note-builder wizard renders (#409). Undefined reads as "comfortable", so an
      * install predating the setting keeps today's spacing.
      */

@@ -126,6 +126,21 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         action: () => new ManageInstalledTemplatesModal(plugin).open(),
                     },
                     {
+                        // Unfinished thinking deserves continuity (#410) — on by default.
+                        name: t("settings_wizard_drafts_name"),
+                        desc: t("settings_wizard_drafts_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.wizardDraftsEnabled ?? true)
+                                    .onChange(async (value) => {
+                                        plugin.settings.wizardDraftsEnabled = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
                         // Density of the creation wizard (#409). A preference about the reader's eyes,
                         // so it is global rather than per flow.
                         name: t("settings_wizard_density_name"),

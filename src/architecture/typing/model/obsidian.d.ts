@@ -25,6 +25,8 @@ declare module "obsidian" {
         on(name: "canvas:popup-menu", callback: (canvas: Canvas) => void): EventRef;
         on(name: "zettelflow-node-connection-drop-menu", callback: (canvas: Canvas) => void): EventRef;
         on(name: "zettelflow-canvas-render", callback: (canvas: Canvas) => void): EventRef;
+        /** Ask whoever owns the wizard to open a flow for this canvas (#410). */
+        on(name: "zettelflow-open-flow", callback: (canvasPath: string) => void): EventRef;
     }
 
     interface MetadataCache {

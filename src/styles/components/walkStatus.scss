@@ -79,3 +79,37 @@
     color: var(--text-normal);
     font-weight: var(--font-semibold);
 }
+
+/* The resume prompt: the first thing a flow with unfinished work asks (#410). */
+.zettelkasten-flow__resume-prompt {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    padding: var(--size-4-3);
+    border: 1px solid var(--background-modifier-border);
+    border-left: 3px solid var(--interactive-accent);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__resume-prompt-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__resume-prompt-detail {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__resume-prompt-actions {
+    display: flex;
+    gap: var(--size-4-2);
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__resume-prompt-actions button {
+    min-height: 40px;
+    cursor: pointer;
+}

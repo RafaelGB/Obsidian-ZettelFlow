@@ -56,6 +56,12 @@ export class RibbonIcon extends PluginComponent {
                 return true;
             }
         });
+        // Home nudges an unfinished note back open through an event (#410) — no import cycle.
+        this.plugin.registerEvent(
+            this.plugin.app.workspace.on('zettelflow-open-flow', (canvasPath: string) =>
+                void this.runCanvasFlow(canvasPath)
+            )
+        );
         log.info('RibbonIcon loaded');
     }
     private ribbonIconCallback = async () => {

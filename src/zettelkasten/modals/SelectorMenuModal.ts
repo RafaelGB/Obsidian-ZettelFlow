@@ -5,11 +5,15 @@ import { buildSelectorMenu } from "application/components/noteBuilder";
 import { Flow } from "architecture/plugin/canvas";
 import { buildTutorial } from "application/components/noteBuilder/SelectorMenu";
 import { c, log } from "architecture";
+import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
+import { useNoteBuilderStore } from "application/components/noteBuilder";
 
 export class SelectorMenuModal extends Modal {
     private root: Root;
     private editorMode: boolean;
     private embedded: boolean;
+    /** Set once the note exists: a built flow has nothing left to resume (#410). */
+    private built = false;
     constructor(
         app: App,
         private plugin: ZettelFlow,
@@ -59,7 +63,25 @@ export class SelectorMenuModal extends Modal {
         }
     }
 
+    /** The flow reached a note; its draft is done. */
+    markBuilt(): void {
+        this.built = true;
+        if (this.flow) draftStore.clear(this.flow.canvasPath);
+    }
+
     onClose(): void {
+        // Before unmounting: the wizard's own cleanup resets the store, which is exactly the data
+        // a draft is made of (#410). Creation flows only — the editor flow edits an existing note.
+        if (this.flow && !this.built && !this.isEditor()) {
+            try {
+                const snapshot = useNoteBuilderStore
+                    .getState()
+                    .actions.snapshotDraft(this.flow.canvasPath);
+                draftStore.save(snapshot);
+            } catch (error) {
+                log.error(`Could not keep the unfinished note: ${String(error)}`);
+            }
+        }
         this.root.unmount();
     }
 

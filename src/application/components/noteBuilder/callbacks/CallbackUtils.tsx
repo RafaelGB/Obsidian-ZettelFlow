@@ -156,6 +156,8 @@ export async function manageElement(
             : "");
           void FileService.openFile(path);
         }
+        // The flow produced a note: there is nothing left to resume (#410).
+        modal.markBuilt();
         modal.close();
       })
       .catch((error: ZettelError) => {

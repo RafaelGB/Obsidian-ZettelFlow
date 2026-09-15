@@ -5,6 +5,7 @@ import { HeaderType } from "application/components/header";
 import { SectionType } from "application/components/section";
 import ZettelFlow from "main";
 import { FinalElement } from "application/notes";
+import type { DraftSnapshot, WizardDraft } from "application/notes/draftState";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { ZettelFlowSettings } from "config";
 import { SelectorMenuModal } from "zettelkasten";
@@ -35,6 +36,8 @@ export type SavedSection = {
     section: SectionType;
     header: HeaderType;
     isAction: boolean;
+    /** The canvas node this step came from (#410) — what a resumed draft navigates back to. */
+    nodeId?: string;
     actionType?: string;
     element?: FinalElement;
 }
@@ -50,6 +53,10 @@ export type NoteBuilderStateInfo = {
 }
 
 export type NoteBuilderStateActions = {
+    /** Freeze the session so it survives closing the modal (#410). */
+    snapshotDraft: (canvasPath: string) => DraftSnapshot;
+    /** Put a stored draft back: results restored, actions never re-run (#410). */
+    restoreFromDraft: (draft: WizardDraft) => void;
     addBridge: (uniqueChild: FlowNode) => void;
     setTitle: (title: string) => void;
     setInvalidTitle: (invalid: boolean) => void;

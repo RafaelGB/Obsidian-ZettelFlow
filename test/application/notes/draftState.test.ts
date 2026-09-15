@@ -187,3 +187,58 @@ describe("a draft round-trips the work, and restores results without re-running 
         expect(folders).toEqual([]);
     });
 });
+
+describe("a draft remembers the linked note (#419, AC-6)", () => {
+    const satellite = {
+        template: "steps/permanent.md",
+        title: "{{title}} — idea",
+        relation: { type: "inspired-by" as const, direction: "satellite-to-main" as const },
+    };
+
+    it("round-trips the declaration", () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const written = serializeDraft({ ...snapshotWith(satellite) } as any);
+        const read = readDraft(JSON.parse(JSON.stringify(written)));
+        expect(read?.satellite).toEqual(satellite);
+    });
+
+    it("keeps loading a draft written before the field existed", () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const written = serializeDraft(snapshotWith(undefined) as any);
+        expect("satellite" in written).toBe(false);
+        expect(readDraft(JSON.parse(JSON.stringify(written)))).toBeDefined();
+        expect(DRAFT_VERSION).toBe(1);
+    });
+
+    it("puts the declaration back on resume, without re-running anything", () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const written = serializeDraft(snapshotWith(satellite) as any);
+        const calls: unknown[] = [];
+        restoreDraft(written, {
+            setTitle: () => undefined,
+            setTargetFolder: () => undefined,
+            addPath: () => undefined,
+            addFinalElement: () => undefined,
+            addLink: () => undefined,
+            addOnCreation: () => undefined,
+            setSatellite: (declaration: unknown) => calls.push(declaration),
+        });
+        expect(calls).toEqual([satellite]);
+    });
+});
+
+function snapshotWith(satellite: unknown) {
+    return {
+        canvasPath: "flows/main.canvas",
+        savedAt: 1,
+        title: "Luhmann 1992",
+        position: 2,
+        targetFolder: "zettel",
+        walked: [],
+        paths: new Map(),
+        elements: new Map(),
+        links: [],
+        onCreation: [],
+        ...(satellite ? { satellite } : {}),
+    };
+}

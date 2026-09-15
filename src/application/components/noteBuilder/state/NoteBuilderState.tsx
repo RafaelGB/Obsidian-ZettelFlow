@@ -293,6 +293,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         elements: builder.note.getElements(),
         links: builder.note.getLinks(),
         onCreation: builder.note.getOnCreation(),
+        satellite: builder.note.getSatellite(),
       };
     },
     restoreFromDraft: (draft: WizardDraft) => {

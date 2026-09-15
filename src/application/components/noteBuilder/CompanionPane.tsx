@@ -204,7 +204,10 @@ async function assembleSatellite(
     relation: resolved.edge.key,
     diff: buildNoteDiff({
       baseline: { frontmatter: {}, body: "" },
-      preview: satellitePreview(resolved, template),
+      preview: satellitePreview(resolved, template, {
+        frontmatter: assembled.frontmatter,
+        canvasName: modal.getCanvasName(),
+      }),
     }),
   };
 }

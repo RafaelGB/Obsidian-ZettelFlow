@@ -146,7 +146,10 @@ export class NoteBuilder {
       return;
     }
 
-    const outcome = await writeSatellite(resolved, mainFile);
+    const outcome = await writeSatellite(resolved, mainFile, {
+      frontmatter: this.content.getFrontmatter(),
+      canvasName: this.modal?.getCanvasName() ?? "",
+    });
     if (outcome.status === "conflict") {
       new Notice(t("satellite_conflict", outcome.path));
     } else if (outcome.status === "failed") {

@@ -6,6 +6,7 @@ import { wireHarness } from "../../support/harness";
 
 const MAIN = "zettel/sources/Luhmann 1992.md";
 const TEMPLATE = "steps/permanent.md";
+const CTX = { frontmatter: { author: "Luhmann" }, canvasName: "zettel" };
 
 function plan(overrides: Partial<SatellitePlan> = {}): SatellitePlan {
     return {
@@ -44,7 +45,7 @@ describe("the satellite is written after the main note, or not at all (#419)", (
         const h = harness();
         const main = h.vault.getFileByPath(MAIN)!;
 
-        const outcome = await writeSatellite(plan(), main);
+        const outcome = await writeSatellite(plan(), main, CTX);
 
         expect(outcome.status).toBe("created");
         const satellite = h.vault.getFileByPath("zettel/ideas/Luhmann 1992 — idea.md");
@@ -71,7 +72,8 @@ describe("the satellite is written after the main note, or not at all (#419)", (
                     value: "[[Luhmann 1992 — idea]]",
                 },
             }),
-            main
+            main,
+            CTX
         );
 
         expect(h.vault.frontmatterOf(MAIN)["expands"]).toBe("[[Luhmann 1992 — idea]]");
@@ -84,7 +86,7 @@ describe("the satellite is written after the main note, or not at all (#419)", (
         const main = h.vault.getFileByPath(MAIN)!;
         const before = h.vault.contentOf(taken);
 
-        const outcome = await writeSatellite(plan(), main);
+        const outcome = await writeSatellite(plan(), main, CTX);
 
         expect(outcome.status).toBe("conflict");
         expect(h.vault.contentOf(taken)).toBe(before);
@@ -97,7 +99,7 @@ describe("the satellite is written after the main note, or not at all (#419)", (
         const main = h.vault.getFileByPath(MAIN)!;
         jest.spyOn(FileService, "createFile").mockRejectedValue(new Error("disk is full"));
 
-        const outcome = await writeSatellite(plan(), main);
+        const outcome = await writeSatellite(plan(), main, CTX);
 
         expect(outcome.status).toBe("failed");
         expect(outcome.error).toContain("disk is full");
@@ -110,7 +112,7 @@ describe("the satellite is written after the main note, or not at all (#419)", (
         const h = harness();
         const main = h.vault.getFileByPath(MAIN)!;
 
-        const outcome = await writeSatellite(plan({ template: "steps/absent.md" }), main);
+        const outcome = await writeSatellite(plan({ template: "steps/absent.md" }), main, CTX);
 
         expect(outcome.status).toBe("failed");
         expect(h.vault.getFileByPath("zettel/ideas/Luhmann 1992 — idea.md")).toBeNull();
@@ -120,12 +122,54 @@ describe("the satellite is written after the main note, or not at all (#419)", (
         const h = harness();
         const main = h.vault.getFileByPath(MAIN)!;
 
-        await writeSatellite(plan(), main);
+        await writeSatellite(plan(), main, CTX);
 
         const frontmatter = h.vault.frontmatterOf("zettel/ideas/Luhmann 1992 — idea.md");
         expect(frontmatter.state).toBe("permanent");
         expect(h.vault.contentOf("zettel/ideas/Luhmann 1992 — idea.md")).not.toContain(
             "# Luhmann 1992"
         );
+    });
+});
+
+describe("the satellite's body goes through the same tokens as the main note's (#419)", () => {
+    beforeEach(() => jest.restoreAllMocks());
+
+    it("substitutes the satellite's own title, not a literal {{title}}", async () => {
+        const h = wireHarness({
+            files: {
+                [MAIN]: { frontmatter: { state: "literature" }, body: "# Luhmann 1992\n" },
+                [TEMPLATE]: {
+                    frontmatter: { state: "permanent" },
+                    body: "# {{title}}\n\nBy {{frontmatter.author}} on {{canvas.name}}.",
+                },
+            },
+        });
+
+        await writeSatellite(plan(), h.vault.getFileByPath(MAIN)!, CTX);
+
+        const written = h.vault.contentOf("zettel/ideas/Luhmann 1992 — idea.md");
+        expect(written).toContain("# Luhmann 1992 — idea");
+        expect(written).toContain("By Luhmann on zettel.");
+        expect(written).not.toContain("{{");
+    });
+
+    it("never turns the satellite into a step, even from a step-note template", async () => {
+        const h = wireHarness({
+            files: {
+                [MAIN]: { frontmatter: {}, body: "" },
+                [TEMPLATE]: {
+                    // A real step note carries its own config; it must not be copied along.
+                    frontmatter: { zettelFlowSettings: { root: true, label: "x" }, state: "permanent" },
+                    body: "body\n",
+                },
+            },
+        });
+
+        await writeSatellite(plan(), h.vault.getFileByPath(MAIN)!, CTX);
+
+        const frontmatter = h.vault.frontmatterOf("zettel/ideas/Luhmann 1992 — idea.md");
+        expect(frontmatter.zettelFlowSettings).toBeUndefined();
+        expect(frontmatter.state).toBe("permanent");
     });
 });

@@ -4,8 +4,7 @@ import { log } from "architecture";
 // services are exactly what the write-path harness exercises for real (as main.ts does).
 import { FileService } from "architecture/plugin/services/FileService";
 import { FrontmatterService } from "architecture/plugin/services/FrontmatterService";
-import type { Literal } from "architecture/plugin";
-import type { SatellitePlan } from "./satellitePlan";
+import { satellitePreview, type SatellitePlan, type SatelliteContext } from "./satellitePlan";
 
 /**
  * Writing the satellite note (#419, epic #405).
@@ -29,7 +28,8 @@ export interface SatelliteOutcome {
 
 export async function writeSatellite(
     plan: SatellitePlan,
-    mainFile: TFile
+    mainFile: TFile,
+    context: Pick<SatelliteContext, "frontmatter" | "canvasName">
 ): Promise<SatelliteOutcome> {
     const outcome = (status: SatelliteOutcome["status"], error?: string): SatelliteOutcome => ({
         status,
@@ -51,17 +51,27 @@ export async function writeSatellite(
             return outcome("failed", `template not found: ${plan.template}`);
         }
         const service = FrontmatterService.instance(template);
-        const body = await service.getContent();
-        const frontmatter = service.getFrontmatter() as Record<string, Literal>;
+        // `getFrontmatter` strips the internal `zettelFlowSettings`, so a step-note used as a
+        // template never turns the satellite into a step.
+        const composed = satellitePreview(
+            plan,
+            {
+                frontmatter: service.getFrontmatter(),
+                body: await service.getContent(),
+            },
+            context
+        );
 
-        const created = await FileService.createFile(plan.path, body, false);
-        await FrontmatterService.instance(created).setProperties({ ...frontmatter });
+        const created = await FileService.createFile(plan.path, composed.body, false);
+        // The same composition the preview showed, including the edge when it belongs here.
+        await FrontmatterService.instance(created).setProperties(composed.frontmatter);
 
-        // 4. The edge, last of all.
-        const target = plan.edge.on === "main" ? mainFile : created;
-        await FrontmatterService.instance(target).setProperties({
-            [plan.edge.key]: plan.edge.value,
-        });
+        // 4. The edge on the *main* note, last of all.
+        if (plan.edge.on === "main") {
+            await FrontmatterService.instance(mainFile).setProperties({
+                [plan.edge.key]: plan.edge.value,
+            });
+        }
 
         log.info(`[satellite] created ${plan.path} (${plan.edge.key})`);
         return outcome("created");

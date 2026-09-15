@@ -115,6 +115,8 @@ describe("the preview says what will change, not just what it will look like (#4
     });
 });
 
+const CTX = { frontmatter: { author: "Luhmann" }, canvasName: "zettel" };
+
 describe("the linked note gets its own diff (#419, FR-5)", () => {
     const plan = {
         template: "steps/permanent.md",
@@ -132,7 +134,7 @@ describe("the linked note gets its own diff (#419, FR-5)", () => {
     it("is built from its own template, against an empty baseline", () => {
         const diff = buildNoteDiff({
             baseline: { frontmatter: {}, body: "" },
-            preview: satellitePreview(plan, template),
+            preview: satellitePreview(plan, template, CTX),
         });
         expect(diff.frontmatter.map((entry) => `${entry.kind}:${entry.key}`)).toEqual([
             "added:inspired-by",
@@ -145,13 +147,13 @@ describe("the linked note gets its own diff (#419, FR-5)", () => {
     it("leaves the edge off the satellite when the main note carries it", () => {
         const diff = buildNoteDiff({
             baseline: { frontmatter: {}, body: "" },
-            preview: satellitePreview({ ...plan, edge: { ...plan.edge, on: "main" } }, template),
+            preview: satellitePreview({ ...plan, edge: { ...plan.edge, on: "main" } }, template, CTX),
         });
         expect(diff.frontmatter.map((entry) => entry.key)).toEqual(["state"]);
     });
 
     it("never carries the main note's content into the satellite", () => {
-        const preview = satellitePreview(plan, template);
+        const preview = satellitePreview(plan, template, CTX);
         expect(preview.body).toBe(template.body);
         expect(preview.frontmatter).not.toBe(template.frontmatter);
     });

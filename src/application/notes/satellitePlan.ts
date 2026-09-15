@@ -152,9 +152,17 @@ export const SATELLITE_ERROR_KEYS = {
  */
 export function satellitePreview(
     plan: SatellitePlan,
-    template: { frontmatter: Record<string, unknown>; body: string }
+    template: { frontmatter: Record<string, unknown>; body: string },
+    context: Pick<SatelliteContext, "frontmatter" | "canvasName">
 ): { frontmatter: Record<string, unknown>; body: string } {
     const frontmatter = { ...template.frontmatter };
     if (plan.edge.on === "satellite") frontmatter[plan.edge.key] = plan.edge.value;
-    return { frontmatter, body: template.body };
+    // The body goes through the same tokens the main note's does, with the satellite's own title.
+    // Copying it verbatim would leave a literal "{{title}}" in a created note.
+    const body = substituteContextTokens(
+        template.body.replace(/{{title}}/g, plan.title),
+        context.frontmatter,
+        context.canvasName
+    );
+    return { frontmatter, body };
 }

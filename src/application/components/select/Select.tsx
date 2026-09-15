@@ -180,17 +180,37 @@ function OptionElement(optionElementType: OptionElementType) {
       }}
       style={styleMemo}
     >
-      <label>{label}</label>
-      <div className={c("icon-group")}>
-        {actionTypes.map((elementType, index) => (
-          <ActionIcon type={elementType} key={`icon-${index}`} />
-        ))}
+      <div className={c("option-text")}>
+        <span className={c("option-label")}>{label}</span>
+        {tooltip && <span className={c("option-description")}>{tooltip}</span>}
       </div>
+      {actionTypes.length > 0 && (
+        <div className={c("icon-group")}>
+          {actionTypes.map((elementType, index) => (
+            <ActionIcon type={elementType} key={`icon-${index}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
+/**
+ * An action badge. The icon is decorative (#407), so the action's own label rides along as text only
+ * assistive technology reads — the option says what it will do, not just how it looks.
+ */
 function ActionIcon(info: { type: string }) {
   const { type } = info;
-  return <Icon name={`${actionsStore.getIconOf(type)}`} />;
+  let label = type;
+  try {
+    label = actionsStore.getLabelOf(type);
+  } catch {
+    // An unregistered type still renders; the raw key is a better name than nothing.
+  }
+  return (
+    <span className={c("option-action")} title={label}>
+      <Icon name={`${actionsStore.getIconOf(type)}`} />
+      <span className={c("visually-hidden")}>{label}</span>
+    </span>
+  );
 }

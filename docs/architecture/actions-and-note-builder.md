@@ -261,6 +261,29 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### What the wizard looks like, and why (#409)
+
+One visual language, shared with the newer modals rather than the wizard's own dialect:
+
+- **An option is a card**: label, the step's own description on a second line (it used to live in a
+  `title` attribute — invisible on touch and to most people), and action badges that carry the
+  action's **label** as assistive text, since the icon itself is `aria-hidden`.
+- **The accent is the current node's canvas colour**, as a left edge. It used to be
+  `borderColor: section.color`, and `section.color` is only ever `""` or `"info"` — an invalid
+  declaration on an element with no border width, so the accent never rendered at all.
+  `stepAccent()` (`noteBuilder/presentation.ts`) resolves the sentinel `getCanvasColor` returns for
+  an uncoloured node to *no accent* instead of an invalid value.
+- **One empty / loading / error treatment** (`WizardState.tsx`). `RootSelector` had three tidy
+  states and nothing else in the wizard had any; that treatment is now the shared one.
+- **Density** (`comfortable` | `compact`, in settings) trims padding and hides the descriptions and
+  breadcrumb for long flows. Global, because it is a preference about the reader's eyes, not about a
+  flow.
+- **On a phone the companion pane collapses** into a `<details>` instead of being removed from the
+  tree, so the preview is one tap away rather than desktop-only.
+- **Interpretive output is marked as such**: the suggestions section states its basis and is visually
+  set apart from the mechanical preview — the treatment #411 hangs the accept / modify / reject
+  controls off.
+
 ### Position, estimate and destination (#408)
 
 The wizard answers three questions it used to leave open, and each answer is derived, never invented:

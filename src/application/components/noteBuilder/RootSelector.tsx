@@ -7,9 +7,9 @@ import {
   Select,
   SelectMapper,
 } from "application/components/select";
-import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture";
+import { WizardState } from "./WizardState";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -48,27 +48,15 @@ export function RootSelector(info: NoteBuilderType) {
   );
 
   if (loadState === "loading") {
-    return (
-      <div className={c("root-selector-status")}>
-        <p>{t("root_selector_loading")}</p>
-      </div>
-    );
+    return <WizardState kind="loading" message={t("root_selector_loading")} />;
   }
 
   if (loadState === "error") {
-    return (
-      <div className={c("root-selector-status", "root-selector-status--error")}>
-        <p>{t("root_selector_error")}</p>
-      </div>
-    );
+    return <WizardState kind="error" message={t("root_selector_error")} />;
   }
 
   if (options.length === 0) {
-    return (
-      <div className={c("root-selector-status")}>
-        <p>{t("root_selector_no_steps")}</p>
-      </div>
-    );
+    return <WizardState kind="empty" message={t("root_selector_no_steps")} />;
   }
 
   return (

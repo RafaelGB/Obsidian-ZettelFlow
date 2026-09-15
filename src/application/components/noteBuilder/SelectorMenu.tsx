@@ -7,6 +7,7 @@ import { WelcomeTutorial } from "./WelcomeTutorial";
 import { CompanionPane } from "./CompanionPane";
 import { LiveRegion } from "./LiveRegion";
 import { Breadcrumb } from "./Breadcrumb";
+import { densityModifier, normalizeDensity } from "./presentation";
 import { Section } from "application/components/section";
 import { Header } from "application/components/header";
 import { NavBar } from "application/components/navbar";
@@ -53,32 +54,30 @@ function Component(noteBuilderType: NoteBuilderType) {
     };
   }, []);
 
-  // The companion pane is desktop-only and creation-mode-only (FR-1, FR-10); on mobile or in
-  // the editor flow the wizard renders unchanged.
-  const showCompanionPane = !Platform.isMobile && !editor;
+  // The companion pane is creation-mode only; on mobile it collapses instead of disappearing (#409).
+  const showCompanionPane = !editor;
+  const density = normalizeDensity(noteBuilderType.plugin.settings.wizardDensity);
+  const modifier = densityModifier(density);
+  const layout = [c("note-builder-layout"), ...(modifier ? [c(modifier)] : [])];
+
+  const wizard = (
+    <div className={c("note-builder-main")}>
+      <LiveRegion />
+      <NavBar {...noteBuilderType} />
+      <Header />
+      <Breadcrumb />
+      <Section {...noteBuilderType} />
+    </div>
+  );
 
   if (!showCompanionPane) {
-    return (
-      <>
-        <LiveRegion />
-        <NavBar {...noteBuilderType} />
-        <Header />
-        <Breadcrumb />
-        <Section {...noteBuilderType} />
-      </>
-    );
+    return <div className={layout.join(" ")}>{wizard}</div>;
   }
 
   return (
-    <div className={c("note-builder-layout")}>
-      <div className={c("note-builder-main")}>
-        <LiveRegion />
-        <NavBar {...noteBuilderType} />
-        <Header />
-        <Breadcrumb />
-        <Section {...noteBuilderType} />
-      </div>
-      <CompanionPane {...noteBuilderType} />
+    <div className={layout.join(" ")}>
+      {wizard}
+      <CompanionPane {...noteBuilderType} collapsible={Platform.isMobile} />
     </div>
   );
 }

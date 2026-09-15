@@ -129,8 +129,8 @@ function gatherSuggestions(preview: NotePreview, modal: SelectorMenuModal): Conn
  * `builder` — the builder object is mutated in place and never changes identity, so subscribing
  * to it would not re-render. Builder data is read fresh inside the effect.
  */
-export function CompanionPane(props: NoteBuilderType) {
-  const { modal } = props;
+export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }) {
+  const { modal, collapsible = false } = props;
   const position = useNoteBuilderStore((store) => store.position);
   const title = useNoteBuilderStore((store) => store.title);
   const linkVersion = useNoteBuilderStore((store) => store.linkVersion);
@@ -215,8 +215,8 @@ export function CompanionPane(props: NoteBuilderType) {
     );
   }, [state, preview]);
 
-  return (
-    <div className={c("companion-pane")}>
+  const body = (
+    <>
       <section className={c("companion-pane-section")}>
         <h4 className={c("companion-pane-heading")}>{t("companion_pane_preview_title")}</h4>
         {state === "empty" && (
@@ -239,8 +239,11 @@ export function CompanionPane(props: NoteBuilderType) {
           </div>
         )}
       </section>
-      <section className={c("companion-pane-section")}>
+      <section className={c("companion-pane-section", "companion-pane-section-proposal")}>
         <h4 className={c("companion-pane-heading")}>{t("companion_pane_suggestions_title")}</h4>
+        <p className={c("companion-pane-proposal-note")}>
+          {t("companion_pane_suggestions_basis")}
+        </p>
         {suggestions.length === 0 ? (
           <p className={c("companion-pane-status")}>{t("companion_pane_suggestions_empty")}</p>
         ) : (
@@ -274,6 +277,20 @@ export function CompanionPane(props: NoteBuilderType) {
           </ul>
         )}
       </section>
-    </div>
+    </>
   );
+
+  // On a phone the pane used to be removed from the tree entirely; it now collapses (#409).
+  if (collapsible) {
+    return (
+      <details className={c("companion-pane", "companion-pane-collapsible")}>
+        <summary className={c("companion-pane-summary")}>
+          {t("companion_pane_preview_title")}
+        </summary>
+        {body}
+      </details>
+    );
+  }
+
+  return <div className={c("companion-pane")}>{body}</div>;
 }

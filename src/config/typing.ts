@@ -36,6 +36,11 @@ export type PropertyHookSettings = {
 export interface ZettelFlowSettings {
     /** Versioned, sensitive local inquiry checkpoint. Unknown/corrupt data is retained for recovery. */
     inquiry?: unknown;
+    /**
+     * How dense the note-builder wizard renders (#409). Undefined reads as "comfortable", so an
+     * install predating the setting keeps today's spacing.
+     */
+    wizardDensity?: "comfortable" | "compact";
     /** Enable or disable logging */
     loggerEnabled: boolean;
     /** Logging level (e.g., "debug", "info", etc.) */

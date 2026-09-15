@@ -185,6 +185,8 @@
 }
 
 .zettelkasten-flow__section {
+    /* Set by the step, absent when it has no canvas colour (#406). */
+    border-color: var(--zf-step-accent, transparent);
     margin-bottom: 1rem;
     animation: stepEnter 0.2s ease-out;
 }

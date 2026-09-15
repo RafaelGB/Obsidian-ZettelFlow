@@ -39,7 +39,7 @@ export function Select(selectType: SelectType) {
         type="text"
         ref={searchRef}
         value={searchValue}
-        placeholder="Search"
+        placeholder={t("note_builder_search_placeholder")}
         onChange={(event) => {
           const value = event.target.value;
           setOptionsState(

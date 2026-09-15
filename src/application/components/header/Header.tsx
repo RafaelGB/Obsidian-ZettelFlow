@@ -1,5 +1,6 @@
 import React from "react";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 import { useNoteBuilderStore } from "application/components/noteBuilder";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
@@ -16,7 +17,7 @@ export function Header() {
   return (
     <div className={c("header")}>
       <button
-        title={"Go to previous section"}
+        title={t("note_builder_previous_section")}
         disabled={disablePrevious}
         onClick={() => {
           actions.goPrevious();

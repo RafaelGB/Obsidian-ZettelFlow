@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActionAccordionProps } from "./typing";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
 import { Input } from "architecture/components/core";
@@ -67,8 +68,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
         <div className={c("accordion-header-info")}>
           <a
             href={knownAction?.link ?? "#"}
-            style={{ color: "inherit", textDecoration: "none" }}
-            title={`${action.type} documentation`}
+            title={t("step_builder_action_documentation", action.type)}
             className={c("accordion-header-label")}
           >
             <label>{action.type}</label>
@@ -78,20 +78,26 @@ export function ActionAccordion(props: ActionAccordionProps) {
         <div className={c("accordion-header-actions")}>
           <Input
             value={action.description}
-            placeholder="Action description"
+            placeholder={t("step_builder_action_description_placeholder")}
             onChange={(inputValue) => {
               action.description = inputValue;
             }}
             required={true}
             disablePlaceHolderLabel={true}
           />
-          <button onClick={() => setAccordionOpen(!accordionOpen)}>
+          <button
+            aria-label={t("step_builder_action_toggle")}
+            aria-expanded={accordionOpen}
+            onClick={() => setAccordionOpen(!accordionOpen)}
+          >
             <Icon
               name={accordionOpen ? "up-chevron-glyph" : "down-chevron-glyph"}
             />
           </button>
           <button
             className={c("accordion-header-remove")}
+            aria-label={t("remove_action_button_title")}
+            title={t("remove_action_button_title")}
             onClick={handleRemove}
           >
             <Icon name="cross" />
@@ -99,7 +105,7 @@ export function ActionAccordion(props: ActionAccordionProps) {
           {/* Drag handle: attaches dndkit listeners for dragging */}
           <div
             className="mobile-option-setting-drag-icon clickable-icon"
-            aria-label="Drag to rearrange"
+            aria-label={t("step_builder_action_drag_handle")}
             {...attributes}
             {...listeners}
           >

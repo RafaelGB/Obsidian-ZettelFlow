@@ -5,11 +5,17 @@ import { buildSelectorMenu } from "application/components/noteBuilder";
 import { Flow } from "architecture/plugin/canvas";
 import { buildTutorial } from "application/components/noteBuilder/SelectorMenu";
 import { c, log } from "architecture";
+import { t } from "architecture/lang";
+import { ConfirmModal } from "architecture/components/settings";
+import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
+import { useNoteBuilderStore } from "application/components/noteBuilder";
 
 export class SelectorMenuModal extends Modal {
     private root: Root;
     private editorMode: boolean;
     private embedded: boolean;
+    /** Set once the note exists: a built flow has nothing left to resume (#410). */
+    private built = false;
     constructor(
         app: App,
         private plugin: ZettelFlow,
@@ -59,7 +65,25 @@ export class SelectorMenuModal extends Modal {
         }
     }
 
+    /** The flow reached a note; its draft is done. */
+    markBuilt(): void {
+        this.built = true;
+        if (this.flow) draftStore.clear(this.flow.canvasPath);
+    }
+
     onClose(): void {
+        // Before unmounting: the wizard's own cleanup resets the store, which is exactly the data
+        // a draft is made of (#410). Creation flows only — the editor flow edits an existing note.
+        if (this.flow && !this.built && !this.isEditor()) {
+            try {
+                const snapshot = useNoteBuilderStore
+                    .getState()
+                    .actions.snapshotDraft(this.flow.canvasPath);
+                draftStore.save(snapshot);
+            } catch (error) {
+                log.error(`Could not keep the unfinished note: ${String(error)}`);
+            }
+        }
         this.root.unmount();
     }
 
@@ -84,6 +108,32 @@ export class SelectorMenuModal extends Modal {
                 editor.setValue(doc);
             }
         }
+    }
+
+    /**
+     * Edit mode writes into a note that already exists — at the cursor, plus a document-wide
+     * placeholder replace. Nothing used to preview that (#412), so it is confirmed first.
+     */
+    confirmEditorInsert(): Promise<boolean> {
+        return new Promise((resolve) => {
+            let accepted = false;
+            const modal = new ConfirmModal(
+                this.app,
+                t("companion_pane_editor_confirm"),
+                t("companion_pane_editor_confirm_accept"),
+                t("inquiry_cancel"),
+                async () => {
+                    accepted = true;
+                    resolve(true);
+                }
+            );
+            const close = modal.onClose.bind(modal);
+            modal.onClose = () => {
+                close();
+                if (!accepted) resolve(false);
+            };
+            modal.open();
+        });
     }
 
     isEditor(): boolean {

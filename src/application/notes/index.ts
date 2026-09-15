@@ -27,3 +27,9 @@ export type {
     SuggestionCandidate,
     RankSuggestionsInput,
 } from './connectionSuggestions';
+export {
+    composeFilename,
+    composeDestination,
+    describeDestination,
+} from './destination';
+export type { DestinationView } from './destination';

@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useId, useMemo, useRef, useState } from "react";
 import { OptionElementType, SelectType } from "./typing";
 import { c } from "architecture";
 import { t } from "architecture/lang";
@@ -6,13 +6,35 @@ import { Platform } from "obsidian";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
 import { groupOptionsByPhase, PHASE_LABEL_KEY } from "zettelkasten/phases";
+import {
+  INITIAL_OPTION_LIST_STATE,
+  optionDomId,
+  reduceOptionListKey,
+} from "./optionListModel";
 
+/**
+ * The wizard's option list, as a real **listbox** (#407, epic #405).
+ *
+ * One tab stop on the container, `aria-activedescendant` pointing at the active option, and every
+ * movement decided by the pure reducer in `optionListModel` (arrows with wrap, Home/End, page, Enter
+ * *and* Space, typeahead). Options are plain `role="option"` elements with no `tabindex` of their own —
+ * the previous `tabIndex={index}` put a positive tabindex on every row and hijacked the modal's tab
+ * order.
+ */
 export function Select(selectType: SelectType) {
-  const { options, callback, className = [], autofocus = false } = selectType;
+  const {
+    options,
+    callback,
+    className = [],
+    autofocus = false,
+    label,
+  } = selectType;
   const [selected, setSelected] = useState<string>("");
-  const [arrowIndex, setArrowIndex] = useState<number>(-1);
   const [searchValue, setSearchValue] = useState<string>("");
   const [optionsState, setOptionsState] = useState(options);
+  const [listState, setListState] = useState(INITIAL_OPTION_LIST_STATE);
+  const listId = useId();
+
   const internalCallback = (selectedOption: string) => {
     setSelected(selectedOption);
     callback(selectedOption);
@@ -23,15 +45,41 @@ export function Select(selectType: SelectType) {
   useEffect(() => {
     if (!autofocus) return;
     if (Platform.isMobile && searchRef.current) {
-      searchRef.current.addClass(c("is-visible"));
       searchRef.current.focus();
     } else if (groupRef.current) {
       groupRef.current.focus();
     }
   }, [autofocus]);
 
+  const activeOption =
+    listState.activeIndex >= 0 && listState.activeIndex < optionsState.length
+      ? optionsState[listState.activeIndex]
+      : undefined;
+
+  // Keep the active option visible without moving focus off the listbox.
+  useEffect(() => {
+    if (!activeOption || !groupRef.current) return;
+    const el = groupRef.current.querySelector<HTMLElement>(
+      `[data-option-key="${CSS.escape(activeOption.key)}"]`
+    );
+    el?.scrollIntoView({ block: "nearest" });
+  }, [activeOption]);
+
   // Group by knowledge phase (#149); null = no option is phased → render a flat list (legacy look).
   const phaseGroups = groupOptionsByPhase(optionsState);
+  const listLabel = label ?? t("note_builder_options_label");
+
+  const renderOption = (option: (typeof optionsState)[number], index: number) => (
+    <OptionElement
+      option={option}
+      index={index}
+      domId={optionDomId(listId, option.key)}
+      callback={internalCallback}
+      isSelected={selected === option.key}
+      isActive={activeOption?.key === option.key}
+      key={`option-${option.key}-${index}`}
+    />
+  );
 
   return (
     <div className={c("select-group", ...className)}>
@@ -39,7 +87,9 @@ export function Select(selectType: SelectType) {
         type="text"
         ref={searchRef}
         value={searchValue}
-        placeholder="Search"
+        aria-label={t("note_builder_search_placeholder")}
+        aria-controls={listId}
+        placeholder={t("note_builder_search_placeholder")}
         onChange={(event) => {
           const value = event.target.value;
           setOptionsState(
@@ -48,124 +98,119 @@ export function Select(selectType: SelectType) {
             )
           );
           setSearchValue(value);
+          setListState(INITIAL_OPTION_LIST_STATE);
         }}
-        onBlur={() => groupRef.current?.focus()}
       />
       <div
-        tabIndex={-1}
+        id={listId}
+        role="listbox"
+        aria-label={listLabel}
+        aria-activedescendant={
+          activeOption ? optionDomId(listId, activeOption.key) : undefined
+        }
+        tabIndex={0}
         ref={groupRef}
-        onClick={() => {
-          groupRef.current?.focus();
-        }}
         onKeyDown={(event) => {
-          // Ignore special keys like tab, shift, etc. except arrow up and down
-          if (
-            event.key.length > 1 &&
-            event.key !== "ArrowDown" &&
-            event.key !== "ArrowUp"
-          ) {
+          const result = reduceOptionListKey(listState, optionsState, {
+            key: event.key,
+            at: event.timeStamp,
+          });
+          if (!result.handled) return;
+          setListState(result.state);
+          if (result.effect.kind === "activate") {
+            event.preventDefault();
+            internalCallback(result.effect.key);
             return;
           }
-          // Control arrow up and down
-          if (event.key === "ArrowDown") {
-            if (arrowIndex < optionsState.length - 1) {
-              setSelected(optionsState[arrowIndex + 1].key);
-              setArrowIndex(arrowIndex + 1);
+          if (result.effect.kind === "close-search") {
+            // Escape clears a filter in progress; with nothing to clear it belongs to the modal.
+            if (searchValue.length > 0) {
+              event.stopPropagation();
+              setSearchValue("");
+              setOptionsState(options);
             }
-          } else if (event.key === "ArrowUp") {
-            if (arrowIndex > 0) {
-              setSelected(optionsState[arrowIndex - 1].key);
-              setArrowIndex(arrowIndex - 1);
-            }
-          } else if (
-            searchRef.current &&
-            !searchRef.current.hasClass(c("is-visible"))
-          ) {
-            searchRef.current.addClass(c("is-visible"));
-            searchRef.current.focus();
+            return;
           }
+          event.preventDefault();
         }}
       >
         {phaseGroups
           ? phaseGroups.map((group) => (
               <React.Fragment key={`phase-${group.phase ?? "unphased"}`}>
-                <div className={c("select-group-phase-header")}>
-                  {group.phase ? t(PHASE_LABEL_KEY[group.phase]) : t("step_phase_unphased")}
+                <div className={c("select-group-phase-header")} role="presentation">
+                  {group.phase
+                    ? t(PHASE_LABEL_KEY[group.phase])
+                    : t("step_phase_unphased")}
                 </div>
-                {group.options.map((option) => {
-                  const index = optionsState.indexOf(option);
-                  return (
-                    <OptionElement
-                      option={option}
-                      index={index}
-                      callback={internalCallback}
-                      isSelected={selected === option.key}
-                      key={`option-${option.key}-${index}`}
-                    />
-                  );
-                })}
+                {group.options.map((option) =>
+                  renderOption(option, optionsState.indexOf(option))
+                )}
               </React.Fragment>
             ))
-          : optionsState.map((option, index) => (
-              <OptionElement
-                option={option}
-                index={index}
-                callback={internalCallback}
-                isSelected={selected === option.key}
-                key={`option-${option.key}-${index}`}
-              />
-            ))}
+          : optionsState.map((option, index) => renderOption(option, index))}
       </div>
     </div>
   );
 }
 
 function OptionElement(optionElementType: OptionElementType) {
-  const { option, index, isSelected, callback } = optionElementType;
+  const { option, isSelected, isActive, domId, callback } = optionElementType;
   const { actionTypes, key, label, tooltip } = option;
-  const optionRef = useRef<HTMLDivElement>(null);
-  const styleMemo = React.useMemo<CSSProperties>(() => {
+  const styleMemo = useMemo<CSSProperties>(() => {
     return {
       "--canvas-color": option.color,
     } as CSSProperties;
-  }, []);
+  }, [option.color]);
 
-  useEffect(() => {
-    if (isSelected) {
-      optionRef.current?.focus();
-    }
-  }, [isSelected]);
+  const classes = [c("option")];
+  if (isSelected) classes.push(c("selected"));
+  if (isActive) classes.push(c("option-active"));
 
   return (
     <div
-      ref={optionRef}
-      tabIndex={index}
+      id={domId}
+      role="option"
+      aria-selected={isSelected}
+      data-option-key={key}
       title={tooltip}
-      className={isSelected ? c("option", "selected") : c("option")}
+      className={classes.join(" ")}
       onClick={(mouseEvent) => {
         mouseEvent.stopPropagation();
         callback(key);
       }}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          callback(key);
-        }
-      }}
-      autoFocus={isSelected}
-      key={`option-${index}`}
       style={styleMemo}
     >
-      <label>{label}</label>
-      <div className={c("icon-group")}>
-        {actionTypes.map((elementType, index) => (
-          <ActionIcon type={elementType} key={`icon-${index}`} />
-        ))}
+      <div className={c("option-text")}>
+        <span className={c("option-label")}>{label}</span>
+        {tooltip && <span className={c("option-description")}>{tooltip}</span>}
       </div>
+      {actionTypes.length > 0 && (
+        <div className={c("icon-group")}>
+          {actionTypes.map((elementType, index) => (
+            <ActionIcon type={elementType} key={`icon-${index}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
+/**
+ * An action badge. The icon is decorative (#407), so the action's own label rides along as text only
+ * assistive technology reads — the option says what it will do, not just how it looks.
+ */
 function ActionIcon(info: { type: string }) {
   const { type } = info;
-  return <Icon name={`${actionsStore.getIconOf(type)}`} />;
+  let label = type;
+  try {
+    label = actionsStore.getLabelOf(type);
+  } catch {
+    // An unregistered type still renders; the raw key is a better name than nothing.
+  }
+  return (
+    <span className={c("option-action")} title={label}>
+      <Icon name={`${actionsStore.getIconOf(type)}`} />
+      <span className={c("visually-hidden")}>{label}</span>
+    </span>
+  );
 }

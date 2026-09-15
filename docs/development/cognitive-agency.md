@@ -45,6 +45,17 @@ One decision you made about one idea:
 things and the i18n layer maps them to text. `note` and `confidence` are always optional: a bare verdict
 records exactly as it did before them.
 
+## Where judgements come from
+
+| Surface | What is judged | Origin |
+|---|---|---|
+| AI actions | a model's proposal | `ai` |
+| Cultivate moves | a proposed connection, challenge, source | `derived` |
+| **The note builder (#411)** | a suggested connection in the companion pane, accepted / modified / rejected while the note is being written | `derived` |
+
+The note-builder verdicts are buffered while the wizard runs and recorded against the note that is
+finally created; a session closed without building records nothing.
+
 ## What it deliberately does not store
 
 **No note content. No model output. Ever.** `subject` is an identifier, not the text that was proposed

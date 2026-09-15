@@ -21,9 +21,17 @@ baseline for our custom UI, and the manual matrix a contributor walks before a r
   disabled globally.
 - **Focus is visible** (a `:focus-visible` ring on every namespaced widget) and **touch targets** on the
   tabs and fallback rows meet ~44px.
+- **The note-builder wizard** (#407) is a real listbox: the option list is `role="listbox"` with a single
+  tab stop and `aria-activedescendant`, options are `role="option"` with `aria-selected`, and movement
+  is decided by the pure reducer in `application/components/select/optionListModel.ts` — arrows with
+  wrap, Home/End, PageUp/PageDown, Enter **and** Space, plus typeahead. The filter field is permanent and
+  labelled (it used to appear only once you typed, which is undiscoverable), each step is announced
+  through a polite live region, icons are `aria-hidden` and every icon-only control carries an
+  `aria-label`.
 - **Modals** extend Obsidian's `Modal`, which traps focus and restores it to the prior element on close.
 
-These are guarded by `test/architecture/components/core/a11y.test.ts` so they can't silently regress.
+These are guarded by `test/architecture/components/core/a11y.test.ts`, `test/application/components/optionListModel.test.ts`
+and the source-scanning `test/application/components/wizardConventions.test.ts`, so they can't silently regress.
 
 ## Manual release matrix
 
@@ -39,6 +47,7 @@ emulator) and with the keyboard only:
 | Health | Bars and lists render without overflow; drill-downs open. |
 | Systems | Browse + one-click install writes the canvas + step notes. |
 | Graph on mobile | The navigable list fallback shows, hubs first, and rows open notes. |
+| Note builder | Arrows/Home/End/typeahead move the option list; Enter and Space both choose; each step is announced. |
 | Keyboard only | Tab reaches every control; arrow keys move between surface tabs; focus is always visible. |
 | Reduced motion | With the OS setting on, the graph does not animate for long and transitions are off. |
 

@@ -261,6 +261,172 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### A step that throws no longer blanks the wizard (#417)
+
+React unmounts the whole tree on an uncaught render error, so one broken step component left an
+**empty modal**: no message, no failing step named, and no way to keep the answers already given. A
+blank modal is the one state from which no choice is possible.
+
+`WizardErrorBoundary` contains the step and (separately) the companion pane — the same discipline
+#327 applied to the hooks panel, where one bad row could blank the rest. It names what failed, logs
+it through `log.error` with the first frame of the component stack, and offers only the recoveries
+that exist, computed by the pure `recoveryActions()`:
+
+| Recovery | Offered when |
+|---|---|
+| **Try again** | the failure has not already survived one retry (a second identical button is a loop, not a recovery) |
+| **Go back a step** | there is a walked step to return to |
+| **Skip this step** | the step is optional (`enableSkip`) |
+| **Create the note with what you have** | something has already been answered |
+
+`describeFailure()` turns anything a component can throw — an `Error`, a string, an object, nothing
+— into one bounded, whitespace-collapsed line. A stack trace in a modal helps nobody. The draft
+(#410) is untouched by a crash, so the session is still resumable either way.
+
+### Branches you cannot see are explained (#414)
+
+A conditional edge that evaluates false used to make its branch **vanish**: the filter dropped it and
+nothing was said. For the user the wizard silently decided on their behalf; for the author, a correct
+expression that happens to be false was invisible — only a *malformed* one produced a Notice.
+
+`branchVisibility.ts` partitions the children instead of filtering them, adding **no evaluation
+logic**: it reports what the #119 evaluator already decided, and evaluates individual comparisons
+only to say *which one* failed.
+
+| Case | What the step shows |
+|---|---|
+| Closed by one comparison | *"frontmatter.state is permanent, and this branch needs fleeting"* |
+| Closed `&&` chain | the **first** failing comparison |
+| Closed `||` | that **every** alternative failed, listing them |
+| Anything harder to decompose | the expression itself — an honest "here is what was evaluated" beats a confident wrong story |
+| Malformed | still **visible** (safe-open, as before) and flagged for the author |
+| Nothing hidden | nothing rendered: zero cost for the common case |
+
+There is deliberately **no way to take a closed branch anyway**. The gate is made legible, not
+bypassable.
+
+### Going back to any step (#413)
+
+One back button that popped a single position meant correcting a choice made four steps ago cost
+four blind clicks — so people abandoned the flow instead. The breadcrumb from #408 is now navigable:
+
+- **Activating an entry** returns to that step and **discards the answers after it**
+  (`NoteDTO.deletePos`), so the note always matches the visible path — no orphan frontmatter from a
+  branch nobody walks any more.
+- **More than one step is confirmed**, with the count. One step is not: that is the back button.
+- **Steps that already had an effect** outside the note (a `script`, anything in the `ai` category)
+  are named in the confirmation as *already applied and not undone*. You are told, not blocked, and
+  nothing is ever re-executed.
+- **Undo / redo** (`Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`) is scoped to the wizard. Going back captures
+  the contributions it removes so redo can put them back; answering something new clears the
+  forward history — a line, not a tree.
+
+### The preview became a diff (#412)
+
+The pane answered *"what will the note look like?"*. At the moment of committing the question is
+*"what is about to change, and where?"* — and **edit mode** answered it not at all: `onEditorBuild`
+inserted the merged template at the cursor and then ran a **document-wide** `{{key}}` replace, and
+the user saw the result only after it happened.
+
+- `noteDiff.ts` is pure and works off the **same assembled preview the builder writes**, so it
+  cannot drift: frontmatter keys *added* / *changed* / *unchanged*, the body blocks that will be
+  appended, the placeholder replacements and their **occurrence counts**, and conflicts.
+- **Conflicts are stated, not resolved.** Two steps setting the same key used to be settled silently
+  by the merge (last one wins, in both `assembleNotePreview` and `ContentDTO.addFrontMatter`). The
+  pane now names the winner, its source step and what it overrode. A test pins the stated winner
+  against what the assembly actually produces — one rule, not a second opinion about it. `tags` are
+  excluded: they merge rather than overwrite, so two steps adding tags is not a conflict.
+- **Edit mode is confirmed before it writes.** The build assembles, the diff is on screen, and
+  `confirmEditorInsert()` asks; declining returns `""` and the wizard stays open with the document
+  byte-identical.
+- The pane runs in edit mode now (it used to be creation-only), and change kinds are labelled in
+  **words** — colour is never the only carrier.
+
+### The verdict is recorded where it is taken (#411, §XII)
+
+The pane's connection suggestions are **interpretive output from a heuristic**
+(`rankConnectionSuggestions`). The constitution says interpretive output — AI *or* heuristic —
+reaches the vault only through an explicit accept / modify / reject, with the verdict recorded.
+Accepting one used to write a link and record nothing, and there was no way to reject at all.
+
+- **Three outcomes.** *Accept* inserts `[[Basename]]`. *Modify* inserts `[[Basename|your words]]`.
+  *Reject* inserts nothing and drops the suggestion for the rest of the session.
+- **Buffered, then flushed.** The note does not exist while the wizard runs, so verdicts are held in
+  the store and written with the created note's path from the build callback. **A wizard closed
+  without building records nothing** — an abandoned session is not a decision.
+- **Content-free by construction.** The subject is `suggest-link:<target path>`; a guardrail test
+  asserts the shape. Reason and confidence are optional and hidden behind *add a reason*.
+- **Origin `derived`**, not `ai` and not `human`: a ranking, not a model and not your own idea.
+- **Deliberate friction is off by default** (`builderFriction`), unlike Cultivate's
+  `cultivateFriction`. Note creation is high-frequency and the manifesto is explicit that friction
+  is not a tax on every click. Skipping the prompt records nothing — a skip is not a verdict.
+- **Navigation is not a verdict.** Choosing a step is not recorded; inflating the log would make the
+  agency index dishonest.
+
+Effect: the surface where most decisions are made now feeds the agency index and the Health → Agency
+tab, which until now only saw AI actions and Cultivate.
+
+### Drafts: closing the wizard no longer destroys the walk (#410)
+
+`SelectorMenu` resets the store in its unmount cleanup, so closing the modal used to throw away the
+title, the answers, the prompts and the accepted links. It now hands the session to `DraftStore`
+first (`architecture/plugin/noteBuilder/DraftStore.ts`), which persists a **versioned, bounded,
+local** record — the same shape as the inquiry checkpoint (#401).
+
+| Concern | How it is handled |
+|---|---|
+| Identity | One draft per **canvas**; five canvases at most, oldest dropped |
+| Lifetime | Cleared on a successful build or on *start fresh*; not offered after 30 days or if the canvas is gone |
+| Corrupt data | **Retained, not deleted** — `readDrafts` skips what it cannot parse and the blob stays in `data.json` |
+| Load timing | The store takes an **injected** host; `getOwnPlugin()` is undefined during enable/reload, which is exactly when a draft is read (#374) |
+| Actions | Recorded **results** are restored; an action is **never re-executed**, because a step that already wrote something cannot be unwound |
+| Resume point | The wizard re-enters at the node it was left on (`manageElement`); steps answered earlier show *"answered before you paused"* rather than a replayed form |
+| Discovery | Home nudges the most recent draft. It asks through a `zettelflow-open-flow` **workspace event** rather than importing the modal — an import would tie the Knowledge-State surface to the wizard's module graph and create a cycle |
+
+### What the wizard looks like, and why (#409)
+
+One visual language, shared with the newer modals rather than the wizard's own dialect:
+
+- **An option is a card**: label, the step's own description on a second line (it used to live in a
+  `title` attribute — invisible on touch and to most people), and action badges that carry the
+  action's **label** as assistive text, since the icon itself is `aria-hidden`.
+- **The accent is the current node's canvas colour**, as a left edge. It used to be
+  `borderColor: section.color`, and `section.color` is only ever `""` or `"info"` — an invalid
+  declaration on an element with no border width, so the accent never rendered at all.
+  `stepAccent()` (`noteBuilder/presentation.ts`) resolves the sentinel `getCanvasColor` returns for
+  an uncoloured node to *no accent* instead of an invalid value.
+- **One empty / loading / error treatment** (`WizardState.tsx`). `RootSelector` had three tidy
+  states and nothing else in the wizard had any; that treatment is now the shared one.
+- **Density** (`comfortable` | `compact`, in settings) trims padding and hides the descriptions and
+  breadcrumb for long flows. Global, because it is a preference about the reader's eyes, not about a
+  flow.
+- **On a phone the companion pane collapses** into a `<details>` instead of being removed from the
+  tree, so the preview is one tap away rather than desktop-only.
+- **Interpretive output is marked as such**: the suggestions section states its basis and is visually
+  set apart from the mechanical preview — the treatment #411 hangs the accept / modify / reject
+  controls off.
+
+### Position, estimate and destination (#408)
+
+The wizard answers three questions it used to leave open, and each answer is derived, never invented:
+
+| Shown | Derived from | When it is not shown |
+|---|---|---|
+| **Step N** | the walked path (`previousArray.length + 1`) | never — the position is always known |
+| **about M left** | `remainingSteps(flowAdjacency(canvas), currentNode)` — the **longest** remaining path in the flow graph (`architecture/plugin/canvas/walkProgress.ts`) | a reachable cycle, or a node not in the graph: the position is shown alone rather than a number the flow cannot stand behind |
+| **Will be created at `folder/name.md`** | `describeDestination` (`application/notes/destination.ts`) | no title yet — an honest *"destination not decided yet"* instead of a path ending in `/.md` |
+
+The estimate is the *longest* path on purpose: a shorter number would read as a promise the flow cannot
+keep. It is explicitly approximate in the wording, and its basis is in the tooltip.
+
+The destination is not a second implementation of the builder's path rule: `NoteDTO.getFinalPath()` and
+`NoteBuilder.buildFilename()` **call the same functions** the indicator displays, so the two cannot
+drift apart. The unique prefix arrives already rendered (moment formats the pattern at the call site),
+which keeps `destination.ts` pure and unit-testable.
+
+A **breadcrumb** shows the walked path (canvas › step › step › current); the current step never
+truncates. Making an entry activatable is #413.
+
 ### The companion pane — live preview & connection suggestions
 
 On **desktop, in the creation flow** (ribbon → `SelectorMenuModal`), a **companion pane** renders
@@ -395,3 +561,39 @@ The marker types (`ActionKind`, `KnowledgeQuery`, `KnowledgeCommand`) live in th
 (`test/architecture/api/categories/actionKindClassification.test.ts`) enforces that all 31 built-ins
 are classified, totally and disjointly — it reads the sources with `fs` (it never imports the
 React-coupled action modules).
+
+## Recorded decisions
+
+### The canvas is *not* the wizard (#415, 2026-09-15)
+
+Two ambitious repositionings were on the table after the creation experience landed (#405):
+
+**A — the canvas *is* the wizard.** Run the flow on the canvas itself: current node highlighted,
+available children lit, the walked path traced, each step's input anchored to its node.
+
+**B — one flow, several connected notes.** A step can also create a linked satellite note, so
+literature note → permanent note is one pass instead of two plus a manual link.
+
+**B was chosen** (specced in #419). The reasoning, kept here so the rejection is discoverable:
+
+| | A | B |
+|---|---|---|
+| Adds capability | no — same note, different place | **yes** |
+| Risk | Obsidian internals: 13 monkey-patched sites, and *note creation* would sit behind them | none — all our own code |
+| Mobile | no story; the canvas is uncomfortable on a phone | identical |
+| Reversibility | all-or-nothing (it is the host) | opt-in per step |
+| Value | identity and demo | the canonical Zettelkasten move |
+
+A's *usability* case had already been answered by much cheaper work — drafts (#410), honest progress
+(#408), free navigation (#413), the diff (#412) and explained branches (#414) — leaving only its
+identity case, which is a differentiation argument rather than a workflow one.
+
+**What A would cost, if it ever comes back.** The rendering half is nearly free:
+`WorkflowLegibilityExtension` already toggles classes on `node.nodeEl`, and `EmptyStateExtension`
+already injects a panel into the canvas. The **input** half is the problem: that panel anchors to
+`canvas.wrapperEl` (a fixed overlay), while a step's field must follow a **node** through pan and
+zoom — tracking coordinates and the canvas transform, or injecting into node DOM Obsidian recreates
+at will. The honest moment to reconsider is **after #400**, when inline boxes are the primary
+authoring surface and the canvas is denser.
+
+**#400 stays independent**: B does not touch canvas authoring.

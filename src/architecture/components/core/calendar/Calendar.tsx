@@ -19,7 +19,7 @@ export function Calendar(info: CalendarType) {
           setValueState(event.target.value);
           setInputValid(true);
         }}
-        placeholder="Empty"
+        placeholder={t("calendar_empty_placeholder")}
         autoFocus={autofocus}
         onFocus={(event) => {
           const input = event.currentTarget;

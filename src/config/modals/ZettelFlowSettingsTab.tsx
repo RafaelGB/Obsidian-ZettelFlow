@@ -13,6 +13,7 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
 import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
 import { ModeHostView } from "architecture/components/core/surface/ModeHostView";
+import { normalizeDensity } from "application/components/noteBuilder/presentation";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -123,6 +124,54 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         name: t("manage_installed_templates_title"),
                         desc: t("manage_installed_templates_description"),
                         action: () => new ManageInstalledTemplatesModal(plugin).open(),
+                    },
+                    {
+                        // Unfinished thinking deserves continuity (#410) — on by default.
+                        name: t("settings_wizard_drafts_name"),
+                        desc: t("settings_wizard_drafts_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.wizardDraftsEnabled ?? true)
+                                    .onChange(async (value) => {
+                                        plugin.settings.wizardDraftsEnabled = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
+                        // Deliberate friction in the wizard (#411) — off by default, on purpose.
+                        name: t("settings_builder_friction_name"),
+                        desc: t("settings_builder_friction_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.builderFriction ?? false)
+                                    .onChange(async (value) => {
+                                        plugin.settings.builderFriction = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
+                        // Density of the creation wizard (#409). A preference about the reader's eyes,
+                        // so it is global rather than per flow.
+                        name: t("settings_wizard_density_name"),
+                        desc: t("settings_wizard_density_desc"),
+                        render: (setting) => {
+                            setting.addDropdown((dropdown) =>
+                                dropdown
+                                    .addOption("comfortable", t("settings_wizard_density_comfortable"))
+                                    .addOption("compact", t("settings_wizard_density_compact"))
+                                    .setValue(normalizeDensity(plugin.settings.wizardDensity))
+                                    .onChange(async (value) => {
+                                        plugin.settings.wizardDensity = normalizeDensity(value);
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
                     },
                     {
                         name: t("ribbon_canvas_file_selector_title"),

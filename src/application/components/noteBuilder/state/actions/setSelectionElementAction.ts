@@ -6,7 +6,7 @@ import { JSX } from "react";
 const setSelectionElementAction =
     (set: StoreNoteBuilderModifier, get: () => NoteBuilderState) => (element: JSX.Element, config: Partial<SectionElementOptions>) => {
         log.trace(`setSelectionElementAction - config: ${JSON.stringify(config)}`);
-        const { previousSections, previousArray, section, position, header, builder, actionWasTriggered } = get();
+        const { previousSections, previousArray, section, position, header, builder, actionWasTriggered, currentNode } = get();
         const { savePrevious = true, isOptional = false, actionType } = config;
         const elementSection: SectionType = {
             ...section,
@@ -20,13 +20,17 @@ const setSelectionElementAction =
                 section,
                 element: element,
                 isAction: actionWasTriggered,
-                actionType: element?.type
+                actionType: element?.type,
+                // Recorded so a draft can resume at the node this step came from (#410).
+                nodeId: currentNode?.id,
             };
 
             previousSections.set(position, savedSection);
         }
         log.trace(`section set from ${position} to ${position + 1}`);
         set({
+            // Answering something new makes the forward history unreachable (#413).
+            redoStack: [],
             position: position + 1,
             section: elementSection,
             previousSections: previousSections,

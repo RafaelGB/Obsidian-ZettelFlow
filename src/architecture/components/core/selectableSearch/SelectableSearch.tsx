@@ -3,13 +3,14 @@ import { SelectableSearchType } from "./typing";
 import { c } from "architecture/styles/helper";
 import { Icon } from "architecture/components/icon";
 import { useOnClickAway } from "architecture/hooks";
+import { t } from "architecture/lang";
 
 export function SelectableSearch(props: SelectableSearchType) {
   const {
     options,
     initialSelections = [],
     onChange,
-    placeholder = "Buscar...",
+    placeholder = t("selectable_search_placeholder"),
     enableCreate = false,
     autoFocus = false,
     disabled = false,
@@ -20,7 +21,11 @@ export function SelectableSearch(props: SelectableSearchType) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const containerRef = useRef<HTMLDivElement>(activeDocument.createDiv());
+  // No placeholder element at all (#418). It used to be `activeDocument.createDiv()`: Obsidian's
+  // `createDiv` is a Node method that appends to its receiver, and the document already has its one
+  // permitted root — so `appendChild` threw mid-render and unmounted the whole wizard. Both hooks
+  // below already guard on `ref.current`, so the ref simply starts null and attaches on mount.
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [selectedOptions, setSelectedOptions] = useState<string[]>(
     () => initialSelections
@@ -116,7 +121,7 @@ export function SelectableSearch(props: SelectableSearchType) {
               <button
                 disabled={disabled}
                 className={c("pill-remove-button")}
-                aria-label={`Eliminar ${option}`}
+                aria-label={t("selectable_search_remove_one", option)}
                 onClick={(event) => {
                   event.stopPropagation();
                   handleRemoveOption(option);
@@ -145,7 +150,7 @@ export function SelectableSearch(props: SelectableSearchType) {
             disabled={disabled}
             className={c("clear-all-button")}
             onClick={handleClearAll}
-            aria-label="Eliminar todas las selecciones"
+            aria-label={t("selectable_search_remove_all")}
           >
             <Icon name="cross" />
           </button>

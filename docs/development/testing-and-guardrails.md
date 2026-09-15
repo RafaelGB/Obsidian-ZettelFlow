@@ -84,6 +84,28 @@ The policy — deliberately, not vanity:
 - **Raise the floor as tests land**, never lower it. The current values (stmts 83 / branch 75 /
   func 78 / lines 84) sit just below the measured level.
 
+## Source-scanning guardrails (#406)
+
+Two project rules are absolute in `CLAUDE.md` — **never inline styles** and **all user-facing text
+lives in the i18n layer** — and neither blocking lint can see them in React:
+
+- `eslint-plugin-obsidianmd`'s `no-static-styles-assignment` matches `el.style.x = …`, so a JSX
+  `style={{ … }}` prop slips past a lint the project otherwise keeps at zero.
+- The locale-parity test compares `en.ts` with `es.ts`; a literal that never entered the i18n layer
+  is invisible to it.
+
+It also catches the one that crashed a real user (#418): an element built through a **Node-appending**
+helper. `createEl`/`createDiv`/`createSpan` are `Node` methods — they create the element *and append
+it to the receiver*. Bare, or on `document`/`activeDocument`, that appends a second root element and
+throws *"Only one element on document allowed"* **mid-render**, which unmounts the React tree. Note
+that `eslint-plugin-obsidianmd`'s `prefer-create-el` pushes the other way, so `document.createElement`
+is not the answer either: a ref that starts `null` and attaches on mount needs no placeholder at all.
+
+`test/application/components/wizardConventions.test.ts` therefore **reads the source** of the
+creation-experience trees (`src/application/components/**`, `src/zettelkasten/**`) and fails on either.
+Two carve-outs are deliberate: a `style` prop taking a **variable** (dnd-kit's transform) is not a
+static style, and an object literal whose keys are **CSS custom properties** (`--zf-step-accent`) is the
+sanctioned way to hand a dynamic value to a stylesheet.
 ## Generated artefacts (#352)
 
 Two files are **produced from the `zf` API manifest**, not written by hand:

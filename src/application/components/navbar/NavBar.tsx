@@ -1,5 +1,5 @@
 import { t } from "architecture/lang";
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 import {
   NoteBuilderType,
@@ -7,6 +7,7 @@ import {
   callbackSkipNote,
   useNoteBuilderStore,
 } from "application/components/noteBuilder";
+import { WalkStatus } from "application/components/noteBuilder/WalkStatus";
 import { c } from "architecture";
 import { Badge, Input } from "architecture/components/core";
 import { Icon } from "architecture/components/icon";
@@ -23,12 +24,6 @@ export function NavBar(props: NoteBuilderType) {
     store.builder.note.getPaths(),
     store.builder.note.getElements(),
   ]);
-
-  const [stepsCompleted, setStepsCompleted] = useState(0);
-  useEffect(() => {
-    const total = savedPaths.size + savedElements.size;
-    setStepsCompleted((prev) => Math.max(prev, total));
-  }, [savedPaths.size, savedElements.size]);
 
   return (
     <div className={c("navbar")}>
@@ -51,6 +46,7 @@ export function NavBar(props: NoteBuilderType) {
             className={c("navbar_skip_button")}
             onClick={callbackSkipNote({ actions, data }, props)}
             title={t("navbar_skip_step")}
+            aria-label={t("navbar_skip_step")}
           >
             <Icon name="cross-in-box" />
           </button>
@@ -60,16 +56,13 @@ export function NavBar(props: NoteBuilderType) {
             className={c("navbar_build_button")}
             onClick={callbackBuildActualState({ actions, data }, props)}
             title={t("navbar_abort_flow")}
+            aria-label={t("navbar_abort_flow")}
           >
             <Icon name="create-new" />
           </button>
         )}
       </div>
-      {stepsCompleted > 0 && (
-        <span className={c("navbar_step_counter")}>
-          {stepsCompleted} {t("navbar_steps_completed")}
-        </span>
-      )}
+      <WalkStatus {...props} />
       <div className={c("navbar_icons")}>
         <Badge content={savedPaths.size}>
           <Icon name={RibbonIcon.TEMPLATE} />

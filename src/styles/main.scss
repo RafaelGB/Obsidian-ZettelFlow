@@ -36,6 +36,7 @@
 @use 'components/flowStatus.scss';
 @use 'components/stepBuilder.scss';
 @use 'components/welcome.scss';
+@use 'components/walkStatus.scss';
 @use 'components/companionPane.scss';
 @use 'components/slipboxHealth.scss';
 @use 'components/knowledgeDebt.scss';
@@ -189,40 +190,35 @@
     animation: stepEnter 0.2s ease-out;
 }
 
+/* The filter is always present (#407): a control that only appears once you type cannot be
+ * discovered, focused or announced. */
 .zettelkasten-flow__select-group input {
     margin-bottom: 0.5rem;
     border-radius: 0.25rem;
-    display: none;
-}
-
-/* Shown on demand (autofocus / keyboard search) without inline styles. */
-.zettelkasten-flow__select-group input.zettelkasten-flow__is-visible {
     display: block;
-    animation: fadeIn 0.15s ease-out;
+    width: 100%;
 }
 
 .zettelkasten-flow__option {
-    background-color: rgba(var(--canvas-color), 0.25);
-    border-color: rgba(var(--canvas-color), 0.5);
+    background-color: rgba(var(--canvas-color), 0.18);
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1.25rem;
-    margin-bottom: 0.625rem;
-    border: 1px solid transparent;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.18s ease-out, transform 0.18s ease-out,
-        border-color 0.18s ease-out, background-color 0.18s ease-out;
+    align-items: flex-start;
+    gap: var(--size-4-2);
+    padding: var(--size-4-2) var(--size-4-3);
+    margin-bottom: var(--size-4-2);
+    border: 1px solid var(--background-modifier-border);
+    /* The node colour reads as an accent edge, not as a wash over the whole card. */
+    border-left: 3px solid rgba(var(--canvas-color), 0.75);
+    border-radius: var(--radius-s);
+    transition: border-color 0.15s ease-out, background-color 0.15s ease-out;
     cursor: pointer;
 }
 
 .zettelkasten-flow__option:hover {
-    border: 1px solid var(--interactive-accent);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
-    transform: translateY(-2px);
-    background-color: rgba(var(--canvas-color), 0.38);
+    border-color: var(--interactive-accent);
+    background-color: var(--background-modifier-hover);
 }
 
 .zettelkasten-flow__option:focus-within {
@@ -230,11 +226,30 @@
     outline-offset: 2px;
 }
 
-.zettelkasten-flow__option label {
+.zettelkasten-flow__option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
     flex: 1;
-    font-weight: 500;
-    cursor: pointer;
+}
+
+.zettelkasten-flow__option-label {
+    font-weight: var(--font-medium);
     line-height: 1.4;
+    cursor: pointer;
+}
+
+/* The description already existed as a title attribute — invisible on touch, and to most people. */
+.zettelkasten-flow__option-description {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+.zettelkasten-flow__option-action {
+    display: inline-flex;
+    align-items: center;
 }
 
 .zettelkasten-flow__icon-group {
@@ -247,8 +262,8 @@
 }
 
 .zettelkasten-flow__selected {
-    border-color: var(--interactive-accent) !important;
-    box-shadow: 0 2px 8px var(--interactive-accent-hover) !important;
+    border-color: var(--interactive-accent);
+    background-color: var(--background-modifier-hover);
 }
 
 /*****************
@@ -306,4 +321,168 @@
         transition-duration: 0.001ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* --- Accessibility of the creation wizard (#407, epic #405) --- */
+
+/* Text that exists only for assistive technology (the step live region). */
+.zettelkasten-flow__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* The listbox is the single tab stop; its focus has to be visible. */
+.zettelkasten-flow__select-group [role="listbox"]:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
+}
+
+/* Keyboard position (aria-activedescendant) — distinct from a made choice. */
+.zettelkasten-flow__option-active {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+.zettelkasten-flow__option:focus-visible,
+.zettelkasten-flow__header button:focus-visible,
+.zettelkasten-flow__navbar_button_group > button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+/* Touch targets: the navbar controls were 0.25rem of padding around an icon. */
+body.is-mobile .zettelkasten-flow__navbar_button_group > button,
+body.is-mobile .zettelkasten-flow__header button {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* --- One visual language for the wizard (#409, epic #405) --- */
+
+/* The step's accent: the current canvas node's colour as an edge, absent when it has none. */
+.zettelkasten-flow__section {
+    padding-left: var(--size-4-2);
+    border-left: 3px solid transparent;
+}
+
+.zettelkasten-flow__section-accented {
+    border-left-color: rgba(var(--zf-step-accent), 0.75);
+}
+
+/* One empty / loading / error treatment, everywhere in the wizard. */
+.zettelkasten-flow__wizard-state {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-3);
+    border: 1px dashed var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__wizard-state-message {
+    margin: 0;
+}
+
+.zettelkasten-flow__wizard-state-error {
+    border-style: solid;
+    border-color: var(--background-modifier-error);
+    color: var(--text-error);
+}
+
+/* Compact density: same information, less room. */
+.zettelkasten-flow__is-compact .zettelkasten-flow__option {
+    padding: var(--size-4-1) var(--size-4-2);
+    margin-bottom: var(--size-4-1);
+}
+
+.zettelkasten-flow__is-compact .zettelkasten-flow__option-description {
+    display: none;
+}
+
+.zettelkasten-flow__is-compact .zettelkasten-flow__breadcrumb {
+    display: none;
+}
+
+/* Interpretive output is marked as such — proposals, not results (constitution XII). */
+.zettelkasten-flow__companion-pane-proposal-note {
+    margin: 0;
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__companion-pane-section-proposal {
+    padding-left: var(--size-4-2);
+    border-left: 2px dashed var(--background-modifier-border);
+}
+
+/* On a phone the pane collapses rather than disappearing. */
+.zettelkasten-flow__companion-pane-collapsible {
+    flex: 1 1 100%;
+    max-height: none;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__companion-pane-summary {
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+/* The wizard stacks on a narrow screen instead of squeezing two columns. */
+@media (max-width: 40rem) {
+    .zettelkasten-flow__note-builder-layout {
+        flex-wrap: wrap;
+    }
+}
+
+/* A contained failure (#417): the wizard stays, the step explains itself, recoveries are offered. */
+.zettelkasten-flow__wizard-state-error {
+    align-items: flex-start;
+}
+
+.zettelkasten-flow__wizard-error-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    min-width: 0;
+}
+
+.zettelkasten-flow__wizard-error-detail {
+    margin: 0;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__wizard-error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__wizard-error-actions button {
+    min-height: 32px;
+    cursor: pointer;
+}
+
+body.is-mobile .zettelkasten-flow__wizard-error-actions button {
+    min-height: 44px;
 }

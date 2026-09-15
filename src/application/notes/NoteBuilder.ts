@@ -1,5 +1,6 @@
 import { FatalError, ObsidianApi, log } from "architecture";
 import { substituteContextTokens } from "./contextTokens";
+import { composeFilename } from "./destination";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { NoteDTO } from "./model/NoteDTO";
@@ -52,6 +53,13 @@ export class NoteBuilder {
         throw new FatalError("Markdown view is undefined").setCode(FatalError.MARKDOWN_VIEW_UNDEFINED);
       }
       await this.buildNote();
+
+      // #412: the diff is on screen; the write is confirmed before it happens.
+      if (!(await modal.confirmEditorInsert())) {
+        this.content.reset();
+        log.debug("Editor insertion cancelled — nothing was written");
+        return "";
+      }
 
       modal.onEditorBuild(this.content.get(), this.content.getModifications());
       // If the origin is a file, we need to process the frontmatter and post-process the file
@@ -109,12 +117,11 @@ export class NoteBuilder {
   }
 
   private buildFilename(): string {
-    return this.note.hasPattern() ?
-      moment()
-        .format(this.note.getPattern())
-        .concat(" - ")
-        .concat(this.note.getTitle()) :
-      this.note.getTitle()
+    // Shared with the destination indicator (#408): one rule, two readers.
+    return composeFilename(
+      this.note.getTitle(),
+      this.note.hasPattern() ? moment().format(this.note.getPattern()) : undefined
+    );
   }
 
   private async buildNote() {

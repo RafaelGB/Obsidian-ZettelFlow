@@ -4,6 +4,7 @@ import { App } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
+import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { HomeModel, buildHome, runGraphQuery } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
@@ -109,6 +110,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         refresh.addEventListener("click", () => this.recompute());
 
         this.renderCultivateTeaser(container);
+        this.renderUnfinishedNote(container);
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("home-status"), text: t("home_indexing") });
@@ -159,6 +161,36 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         btn.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: resume ? 'resume' : 'start' }));
         const ordinary = teaser.createEl('button', { text: t('inquiry_ordinary'), cls: c('inquiry-onramp') });
         ordinary.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: 'ordinary' }));
+    }
+
+    /**
+     * The unfinished note (#410): when a wizard session was left mid-flow, Home offers to pick it
+     * back up. One nudge on an existing surface — no new command, no new view. Silent when there is
+     * no draft, when drafts are off, or when the canvas has gone.
+     */
+    private renderUnfinishedNote(container: HTMLElement): void {
+        const drafts = draftStore.resumable();
+        const draft = drafts[0];
+        if (!draft) return;
+        const nudge = container.createDiv({ cls: c("home-nudge") });
+        nudge.createSpan({
+            cls: c("home-nudge-text"),
+            text: t(
+                "home_nudge_unfinished",
+                draft.title.trim() || t("note_builder_draft_untitled"),
+                draft.canvasPath.split("/").pop()?.replace(/\.[^.]+$/, "") ?? draft.canvasPath
+            ),
+        });
+        const cta = nudge.createEl("button", {
+            cls: c("home-nudge-cta"),
+            text: t("note_builder_draft_resume"),
+            attr: { "aria-label": t("note_builder_draft_resume") },
+        });
+        // Handled by whoever owns the wizard (the ribbon component). An import would tie the
+        // Knowledge-State surface to the wizard's module graph and create a cycle.
+        cta.addEventListener("click", () =>
+            this.app.workspace.trigger("zettelflow-open-flow", draft.canvasPath)
+        );
     }
 
     /**

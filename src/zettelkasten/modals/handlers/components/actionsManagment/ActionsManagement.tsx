@@ -137,7 +137,8 @@ export function ActionsManagement(props: ActionsManagementProps) {
       {actionClipboard !== null && (
         <button
           className="mod-cta"
-          title="Paste copyed action"
+          title={t("step_builder_paste_action")}
+          aria-label={t("step_builder_paste_action")}
           onClick={handlePasteAction}
         >
           <Icon name="clipboard-paste" />

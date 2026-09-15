@@ -110,3 +110,140 @@
     flex-shrink: 0;
     cursor: pointer;
 }
+
+/* Verdicts on a suggestion (#411): accept · modify · reject, and an optional reason. */
+.zettelkasten-flow__companion-pane-suggestion-verdicts {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-verdicts button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    padding: 0;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-decided {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__companion-pane-suggestion-reason-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-accent);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    text-decoration: underline;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-detail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    align-items: center;
+    width: 100%;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-detail input {
+    flex: 1 1 8rem;
+    min-width: 0;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-confidence {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-confidence button {
+    font-size: var(--font-ui-smaller);
+    padding: 0 0.4rem;
+    cursor: pointer;
+}
+
+/* Deliberate friction: your reading first, and only if you asked for it (off by default). */
+.zettelkasten-flow__companion-pane-friction {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__companion-pane-friction-question {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__companion-pane-friction-actions {
+    display: flex;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__companion-pane-friction-actions button {
+    min-height: 32px;
+    cursor: pointer;
+}
+
+/* What the build will change (#412) — the diff, above the rendered preview. */
+.zettelkasten-flow__companion-pane-diff {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: var(--size-4-2);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__companion-pane-diff-heading {
+    margin: 0 0 0.2rem;
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__companion-pane-diff-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+/* The kind is a word, not only a colour — colour alone is not a distinction everyone can see. */
+.zettelkasten-flow__companion-pane-diff-kind {
+    flex-shrink: 0;
+    padding: 0 0.3rem;
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+    font-variant: small-caps;
+}
+
+.zettelkasten-flow__companion-pane-diff-key {
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__companion-pane-diff-value {
+    color: var(--text-muted);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__companion-pane-diff-conflict .zettelkasten-flow__companion-pane-diff-kind {
+    background-color: var(--background-modifier-error);
+    color: var(--text-on-accent);
+}

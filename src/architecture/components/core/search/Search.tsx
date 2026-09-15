@@ -10,10 +10,10 @@ export function Search<T>(props: SearchType<T>) {
   // Refs
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Initial detached placeholder. The global `createEl` builds a parentless node; the *document*
-  // helper appends to its receiver, which once put a second element on the document and threw
-  // "appendChild: Only one element on document allowed", unmounting the React tree (#327).
-  const listRef = useRef<HTMLUListElement>(createEl("ul"));
+  // No placeholder element (#418). Obsidian's `createEl` family are Node methods that append to
+  // their receiver; reached bare or through `document` they throw "Only one element on document
+  // allowed" mid-render. Both hooks below guard on `ref.current`, so null until the list mounts.
+  const listRef = useRef<HTMLUListElement>(null);
   // States
   const [value, setValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");

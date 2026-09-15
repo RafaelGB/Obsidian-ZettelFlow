@@ -57,6 +57,14 @@ class ActionsStore {
         return Array.from(this.actions.keys());
     }
 
+    /** Human label for an action type (#409) — an icon on its own names nothing. */
+    public getLabelOf(key: string): string {
+        if (key === "bridge") {
+            return "bridge";
+        }
+        return this.getAction(key).getLabel();
+    }
+
     public getIconOf(key: string): string {
         if (key === "bridge") {
             return "zettelflow-bridge-icon";

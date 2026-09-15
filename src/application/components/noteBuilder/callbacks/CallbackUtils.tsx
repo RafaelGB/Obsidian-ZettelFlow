@@ -10,7 +10,8 @@ import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
 import { recordHistory } from "architecture/components/core/historyView/recordHistory";
-import { evaluateEdgeGate, EvalContext } from "application/notes/conditionEvaluator";
+import { EvalContext } from "application/notes/conditionEvaluator";
+import { partitionBranches } from "application/notes/branchVisibility";
 import { isWaitNode, WaitMachine } from "architecture/plugin/workflow";
 import { WaitPromptModal } from "zettelkasten/modals/WaitPromptModal";
 
@@ -119,7 +120,7 @@ export async function manageElement(
     ? []
     : await flow.childrensOf(selectedElement.id);
   const evalCtx = buildEvalContext(state, info);
-  const childrens = filterConditionalEdges(rawChildren, evalCtx);
+  const childrens = filterConditionalEdges(rawChildren, evalCtx, actions);
 
   if (childrens.length > 1) {
     // Element Selector
@@ -142,20 +143,26 @@ export async function manageElement(
     void nextElement(state, childrens[0].id, info);
   } else {
     actions.setVisualSection({
-      element: <ProgressBar key="progress-bar" label="Loading..." />,
+      element: <ProgressBar key="progress-bar" label={t("note_builder_building")} />,
       color: "info",
     });
     // Build and close modal
     actions
       .build(info.modal)
       .then(async (path) => {
+        // "" means the user cancelled the editor insertion (#412): nothing written, stay open.
+        if (!path) return;
         actions.setActiveContext("", "");
+        // The verdicts taken while walking belong to the note that just came into existence (#411).
+        actions.flushSuggestionVerdicts(path);
         if (!modal.isEditor()) {
           recordHistory(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
             ? info.flow.canvasPath
             : "");
           void FileService.openFile(path);
         }
+        // The flow produced a note: there is nothing left to resume (#410).
+        modal.markBuilt();
         modal.close();
       })
       .catch((error: ZettelError) => {
@@ -196,17 +203,21 @@ function buildEvalContext(state: CallbackPickedState, info: NoteBuilderType): Ev
   };
 }
 
-function filterConditionalEdges(children: FlowNode[], ctx: EvalContext): FlowNode[] {
-  // IF block (#151): each edge is gated by the #119 evaluator via evaluateEdgeGate. A malformed
-  // expression safe-opens and is surfaced (Notice + debug log) rather than silently dropping a branch.
-  return children.filter((child) => {
-    const { open, invalid } = evaluateEdgeGate(child.tooltip, ctx);
-    if (invalid) {
-      log.debug(`[workflow] invalid IF condition on edge to "${child.label}" — opening (safe)`);
-      new Notice(t("edge_condition_invalid_expression"));
-    }
-    return open;
-  });
+function filterConditionalEdges(
+  children: FlowNode[],
+  ctx: EvalContext,
+  actions: CallbackPickedState["actions"]
+): FlowNode[] {
+  // IF block (#151): each edge is gated by the #119 evaluator. A malformed expression safe-opens and
+  // is surfaced (Notice + debug log). A *closed* one used to vanish without a word — the wizard
+  // deciding for the user in silence — so the partition keeps it and the step explains it (#414).
+  const { visible, hidden, invalid } = partitionBranches(children, ctx);
+  for (const label of invalid) {
+    log.debug(`[workflow] invalid IF condition on edge to "${label}" — opening (safe)`);
+    new Notice(t("edge_condition_invalid_expression"));
+  }
+  actions.setHiddenBranches(hidden);
+  return visible;
 }
 
 function manageFatalError(

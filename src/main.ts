@@ -30,6 +30,7 @@ import { JudgementLog } from 'architecture/plugin/judgement/JudgementLog';
 import { ConceptualTimeline } from 'architecture/plugin/timeline/ConceptualTimeline';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 import { SerializedSettingsWriter } from 'architecture/plugin/services/SerializedSettingsWriter';
+import { draftStore } from 'architecture/plugin/noteBuilder/DraftStore';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { v4 as uuid } from 'uuid';
 import { isPathExcluded, scopeExcludedPaths } from 'architecture/knowledge/scope/knowledgeScope';
@@ -70,6 +71,16 @@ export default class ZettelFlow extends Plugin {
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		JudgementLog.getInstance().init(this); // #336: wire the judgement record to settings.
+		// #410: the note-builder draft store takes an injected host — `getOwnPlugin()` is undefined
+		// while the plugin is enabling, which is exactly when a draft is read (#374).
+		draftStore.init({
+			read: () => this.settings.wizardDrafts,
+			write: value => { this.settings.wizardDrafts = value; },
+			enabled: () => this.settings.wizardDraftsEnabled ?? true,
+			canvasExists: path => this.app.vault.getAbstractFileByPath(path) !== null,
+			persist: () => this.saveSettings(),
+			now: () => Date.now(),
+		});
 		loadVariableTextProcessors(this);
 
 		// Register the core views + actions FIRST. If a UI component fails while loading, the
@@ -100,6 +111,7 @@ export default class ZettelFlow extends Plugin {
 		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.
 		JudgementLog.getInstance().flush(); // #336: persist any pending verdict.
+		draftStore.release(); // #410: never hold an unloaded plugin across a disable/enable.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}

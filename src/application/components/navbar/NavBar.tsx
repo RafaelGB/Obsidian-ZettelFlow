@@ -51,6 +51,7 @@ export function NavBar(props: NoteBuilderType) {
             className={c("navbar_skip_button")}
             onClick={callbackSkipNote({ actions, data }, props)}
             title={t("navbar_skip_step")}
+            aria-label={t("navbar_skip_step")}
           >
             <Icon name="cross-in-box" />
           </button>
@@ -60,6 +61,7 @@ export function NavBar(props: NoteBuilderType) {
             className={c("navbar_build_button")}
             onClick={callbackBuildActualState({ actions, data }, props)}
             title={t("navbar_abort_flow")}
+            aria-label={t("navbar_abort_flow")}
           >
             <Icon name="create-new" />
           </button>

@@ -5,6 +5,7 @@ import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 import { CompanionPane } from "./CompanionPane";
+import { LiveRegion } from "./LiveRegion";
 import { Section } from "application/components/section";
 import { Header } from "application/components/header";
 import { NavBar } from "application/components/navbar";
@@ -58,6 +59,7 @@ function Component(noteBuilderType: NoteBuilderType) {
   if (!showCompanionPane) {
     return (
       <>
+        <LiveRegion />
         <NavBar {...noteBuilderType} />
         <Header />
         <Section {...noteBuilderType} />
@@ -68,6 +70,7 @@ function Component(noteBuilderType: NoteBuilderType) {
   return (
     <div className={c("note-builder-layout")}>
       <div className={c("note-builder-main")}>
+        <LiveRegion />
         <NavBar {...noteBuilderType} />
         <Header />
         <Section {...noteBuilderType} />

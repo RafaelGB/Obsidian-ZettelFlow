@@ -20,5 +20,13 @@ export function Icon({ name, className }: IconProps) {
     setIcon(el, name);
   }, [name]);
 
-  return <span data-icon={name} className={`${c("icon")} ${className || ""}`} ref={ref} />;
+  // Decorative by definition: every icon sits next to a label or inside a named control (#407).
+  return (
+    <span
+      data-icon={name}
+      aria-hidden="true"
+      className={`${c("icon")} ${className || ""}`}
+      ref={ref}
+    />
+  );
 }

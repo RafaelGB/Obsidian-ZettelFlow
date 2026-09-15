@@ -191,16 +191,13 @@
     animation: stepEnter 0.2s ease-out;
 }
 
+/* The filter is always present (#407): a control that only appears once you type cannot be
+ * discovered, focused or announced. */
 .zettelkasten-flow__select-group input {
     margin-bottom: 0.5rem;
     border-radius: 0.25rem;
-    display: none;
-}
-
-/* Shown on demand (autofocus / keyboard search) without inline styles. */
-.zettelkasten-flow__select-group input.zettelkasten-flow__is-visible {
     display: block;
-    animation: fadeIn 0.15s ease-out;
+    width: 100%;
 }
 
 .zettelkasten-flow__option {
@@ -308,4 +305,46 @@
         transition-duration: 0.001ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* --- Accessibility of the creation wizard (#407, epic #405) --- */
+
+/* Text that exists only for assistive technology (the step live region). */
+.zettelkasten-flow__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* The listbox is the single tab stop; its focus has to be visible. */
+.zettelkasten-flow__select-group [role="listbox"]:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
+}
+
+/* Keyboard position (aria-activedescendant) — distinct from a made choice. */
+.zettelkasten-flow__option-active {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+.zettelkasten-flow__option:focus-visible,
+.zettelkasten-flow__header button:focus-visible,
+.zettelkasten-flow__navbar_button_group > button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+/* Touch targets: the navbar controls were 0.25rem of padding around an icon. */
+body.is-mobile .zettelkasten-flow__navbar_button_group > button,
+body.is-mobile .zettelkasten-flow__header button {
+    min-width: 44px;
+    min-height: 44px;
 }

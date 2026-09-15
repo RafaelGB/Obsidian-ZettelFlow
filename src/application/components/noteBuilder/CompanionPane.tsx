@@ -251,6 +251,7 @@ export function CompanionPane(props: NoteBuilderType) {
                   type="button"
                   className={c("companion-pane-suggestion-open")}
                   title={t("companion_pane_open_note")}
+                  aria-label={t("companion_pane_open_note")}
                   onClick={() => {
                     void FileService.openFile(suggestion.path);
                   }}
@@ -261,6 +262,7 @@ export function CompanionPane(props: NoteBuilderType) {
                   type="button"
                   className={c("companion-pane-suggestion-link")}
                   title={t("companion_pane_insert_link")}
+                  aria-label={t("companion_pane_insert_link")}
                   onClick={() => {
                     actions.insertLink(suggestion.basename);
                   }}

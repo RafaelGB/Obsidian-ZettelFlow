@@ -85,13 +85,19 @@ export function ActionAccordion(props: ActionAccordionProps) {
             required={true}
             disablePlaceHolderLabel={true}
           />
-          <button onClick={() => setAccordionOpen(!accordionOpen)}>
+          <button
+            aria-label={t("step_builder_action_toggle")}
+            aria-expanded={accordionOpen}
+            onClick={() => setAccordionOpen(!accordionOpen)}
+          >
             <Icon
               name={accordionOpen ? "up-chevron-glyph" : "down-chevron-glyph"}
             />
           </button>
           <button
             className={c("accordion-header-remove")}
+            aria-label={t("remove_action_button_title")}
+            title={t("remove_action_button_title")}
             onClick={handleRemove}
           >
             <Icon name="cross" />

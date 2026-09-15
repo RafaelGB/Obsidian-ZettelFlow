@@ -6,11 +6,17 @@ export type SelectType = {
     callback: (value: string) => void;
     className?: string[];
     autofocus?: boolean;
+    /** Accessible name for the listbox (#407). Defaults to a generic options label. */
+    label?: string;
 }
 
 export type OptionElementType = {
     option: OptionType;
     isSelected: boolean;
+    /** The active (aria-activedescendant) option — keyboard position, not a choice (#407). */
+    isActive: boolean;
+    /** Stable DOM id so the listbox can point at this option (#407). */
+    domId: string;
     index: number;
     callback: (value: string) => void;
 }

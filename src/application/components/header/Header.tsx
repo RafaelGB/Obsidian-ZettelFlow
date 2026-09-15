@@ -18,6 +18,7 @@ export function Header() {
     <div className={c("header")}>
       <button
         title={t("note_builder_previous_section")}
+        aria-label={t("note_builder_previous_section")}
         disabled={disablePrevious}
         onClick={() => {
           actions.goPrevious();

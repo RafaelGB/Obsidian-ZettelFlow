@@ -143,7 +143,7 @@ export async function manageElement(
     void nextElement(state, childrens[0].id, info);
   } else {
     actions.setVisualSection({
-      element: <ProgressBar key="progress-bar" label="Loading..." />,
+      element: <ProgressBar key="progress-bar" label={t("note_builder_building")} />,
       color: "info",
     });
     // Build and close modal

@@ -94,6 +94,13 @@ lives in the i18n layer** — and neither blocking lint can see them in React:
 - The locale-parity test compares `en.ts` with `es.ts`; a literal that never entered the i18n layer
   is invisible to it.
 
+It also catches the one that crashed a real user (#418): an element built through a **Node-appending**
+helper. `createEl`/`createDiv`/`createSpan` are `Node` methods — they create the element *and append
+it to the receiver*. Bare, or on `document`/`activeDocument`, that appends a second root element and
+throws *"Only one element on document allowed"* **mid-render**, which unmounts the React tree. Note
+that `eslint-plugin-obsidianmd`'s `prefer-create-el` pushes the other way, so `document.createElement`
+is not the answer either: a ref that starts `null` and attaches on mount needs no placeholder at all.
+
 `test/application/components/wizardConventions.test.ts` therefore **reads the source** of the
 creation-experience trees (`src/application/components/**`, `src/zettelkasten/**`) and fails on either.
 Two carve-outs are deliberate: a `style` prop taking a **variable** (dnd-kit's transform) is not a

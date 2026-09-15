@@ -4,13 +4,18 @@ import { join, relative } from "path";
 
 // test/application/components → 3 ups → repo root
 const ROOT = join(__dirname, "..", "..", "..");
-const SCANNED = [
+
+/** The wizard and the step-builder trees — cleaned by #406/#407. */
+const WIZARD_TREES = [
     join(ROOT, "src", "application", "components"),
     join(ROOT, "src", "zettelkasten"),
 ];
 
+/** The shared React widgets a step renders (where the #418 crash actually lived). */
+const SHARED_TREES = [join(ROOT, "src", "architecture", "components")];
+
 /**
- * Convention guardrails for the creation experience (#406/#407, epic #405).
+ * Convention guardrails for the creation experience (#406/#407/#418, epic #405).
  *
  * Four project rules are absolute and none of them is visible to the blocking lints in React:
  *
@@ -21,9 +26,15 @@ const SCANNED = [
  * - *Every control has an accessible name*: an icon-only button announces nothing.
  * - *No positive tabindex*: it hijacks the tab order of the whole modal.
  *
+ * Plus the one that crashed a real user (#418): an element built through a **Node-appending** helper.
+ *
  * Two carve-outs are deliberate: a `style` prop taking a **variable** (dnd-kit's transform) is not a
  * static style, and an object literal whose keys are **CSS custom properties** is the sanctioned way to
  * hand a dynamic value to a stylesheet.
+ *
+ * Scope is per-rule on purpose. The two rules that need real component work in the shared widgets
+ * (`Search.tsx`'s portal positioning and its roving tabindex) are tracked separately rather than
+ * asserted and suppressed here — a guardrail with exemptions stops being one.
  */
 function tsxFiles(dir: string): string[] {
     const out: string[] = [];
@@ -35,7 +46,9 @@ function tsxFiles(dir: string): string[] {
     return out;
 }
 
-const files = SCANNED.flatMap(tsxFiles);
+const wizardFiles = WIZARD_TREES.flatMap(tsxFiles);
+const sharedFiles = SHARED_TREES.flatMap(tsxFiles);
+const allFiles = [...wizardFiles, ...sharedFiles];
 
 /** `style={{ … }}` object literals, with their inner text. */
 function inlineStyleObjects(source: string): string[] {
@@ -49,12 +62,26 @@ function declaredKeys(body: string): string[] {
     );
 }
 
+function visualStyleProps(source: string): string[] {
+    return inlineStyleObjects(source).flatMap((body) => {
+        const visual = declaredKeys(body).filter((key) => !key.startsWith("--"));
+        return visual.length > 0 ? [visual.join(", ")] : [];
+    });
+}
+
 /** JSX props whose value is a bare literal instead of a `t(...)` call. */
 function literalTextProps(source: string): string[] {
     const pattern = /\b(title|placeholder|aria-label|alt)=(?:\{\s*)?(["'`])([\s\S]*?)\2/g;
     return [...source.matchAll(pattern)]
         .filter((match) => match[3].trim().length > 0)
         .map((match) => `${match[1]}=${match[2]}${match[3]}${match[2]}`);
+}
+
+/** Default parameter values that are user-facing text — invisible to the locale-parity test too. */
+function literalTextDefaults(source: string): string[] {
+    return [...source.matchAll(/\b(placeholder|label|title)\s*=\s*"([^"]{2,})"/g)].map(
+        (match) => `${match[1]} = "${match[2]}"`
+    );
 }
 
 /** Buttons whose only child is an icon and that carry no `aria-label`. */
@@ -73,6 +100,22 @@ function iconOnlyControls(source: string): string[] {
     return offenders;
 }
 
+/**
+ * Element creation through a **Node-appending** helper. Obsidian implements `createEl`/`createDiv`/
+ * `createSpan` on `Node`: they create the element *and append it to the receiver*. On `document` — or
+ * bare, which resolves there — that appends a second root element and throws "Only one element on
+ * document allowed", mid-render, taking the React tree with it (#418; #327 was the same class).
+ * A detached placeholder is `document.createElement`, which cannot append anywhere.
+ */
+function documentElementCreation(source: string): string[] {
+    const bare = /(?:^|[^.\w])(create(?:El|Div|Span))\s*\(/g;
+    const onDocument = /\b(?:active)?[dD]ocument\.(create(?:El|Div|Span))\s*\(/g;
+    return [
+        ...[...source.matchAll(bare)].map((match) => `${match[1]}()`),
+        ...[...source.matchAll(onDocument)].map((match) => `document.${match[1]}()`),
+    ];
+}
+
 /** `tabIndex={n}` values other than 0 / -1. */
 function positiveTabIndexes(source: string): string[] {
     return [...source.matchAll(/tabIndex=\{([^}]+)\}/g)]
@@ -85,7 +128,7 @@ function withoutComments(source: string): string {
     return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
-function scan(collect: (source: string) => string[]): string[] {
+function scan(files: string[], collect: (source: string) => string[]): string[] {
     const offenders: string[] = [];
     for (const file of files) {
         for (const hit of collect(withoutComments(readFileSync(file, "utf8")))) {
@@ -96,30 +139,32 @@ function scan(collect: (source: string) => string[]): string[] {
 }
 
 describe("the creation-experience components keep the project conventions (#406, #407)", () => {
-    it("scans the wizard and step-builder component trees", () => {
-        expect(files.length).toBeGreaterThan(10);
+    it("scans the wizard, step-builder and shared-widget trees", () => {
+        expect(wizardFiles.length).toBeGreaterThan(10);
+        expect(sharedFiles.length).toBeGreaterThan(5);
     });
 
     it("declares no visual CSS through a JSX style prop", () => {
-        expect(
-            scan((source) =>
-                inlineStyleObjects(source).flatMap((body) => {
-                    const visual = declaredKeys(body).filter((key) => !key.startsWith("--"));
-                    return visual.length > 0 ? [visual.join(", ")] : [];
-                })
-            )
-        ).toEqual([]);
+        expect(scan(wizardFiles, visualStyleProps)).toEqual([]);
     });
 
     it("routes every user-facing prop string through the i18n layer", () => {
-        expect(scan(literalTextProps)).toEqual([]);
+        expect(scan(allFiles, literalTextProps)).toEqual([]);
+    });
+
+    it("routes user-facing default values through the i18n layer too", () => {
+        expect(scan(allFiles, literalTextDefaults)).toEqual([]);
     });
 
     it("names every icon-only control for assistive technology", () => {
-        expect(scan(iconOnlyControls)).toEqual([]);
+        expect(scan(allFiles, iconOnlyControls)).toEqual([]);
     });
 
     it("keeps the tab order intact: no positive tabIndex", () => {
-        expect(scan(positiveTabIndexes)).toEqual([]);
+        expect(scan(wizardFiles, positiveTabIndexes)).toEqual([]);
+    });
+
+    it("never builds an element through a helper that appends to the document (#418)", () => {
+        expect(scan(allFiles, documentElementCreation)).toEqual([]);
     });
 });

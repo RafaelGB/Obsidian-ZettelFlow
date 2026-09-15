@@ -1,7 +1,8 @@
 import { RefObject, useEffect } from "react";
 
 export function useScrollToSelected(
-  ref: RefObject<HTMLElement>,
+  // Nullable on purpose (#418): a ref attaches on mount, and the guard below already expects that.
+  ref: RefObject<HTMLElement | null>,
   selectedIndex: number | null
 ) {
   useEffect(() => {

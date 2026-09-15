@@ -261,6 +261,28 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### A step that throws no longer blanks the wizard (#417)
+
+React unmounts the whole tree on an uncaught render error, so one broken step component left an
+**empty modal**: no message, no failing step named, and no way to keep the answers already given. A
+blank modal is the one state from which no choice is possible.
+
+`WizardErrorBoundary` contains the step and (separately) the companion pane — the same discipline
+#327 applied to the hooks panel, where one bad row could blank the rest. It names what failed, logs
+it through `log.error` with the first frame of the component stack, and offers only the recoveries
+that exist, computed by the pure `recoveryActions()`:
+
+| Recovery | Offered when |
+|---|---|
+| **Try again** | the failure has not already survived one retry (a second identical button is a loop, not a recovery) |
+| **Go back a step** | there is a walked step to return to |
+| **Skip this step** | the step is optional (`enableSkip`) |
+| **Create the note with what you have** | something has already been answered |
+
+`describeFailure()` turns anything a component can throw — an `Error`, a string, an object, nothing
+— into one bounded, whitespace-collapsed line. A stack trace in a modal helps nobody. The draft
+(#410) is untouched by a crash, so the session is still resumable either way.
+
 ### Branches you cannot see are explained (#414)
 
 A conditional edge that evaluates false used to make its branch **vanish**: the filter dropped it and

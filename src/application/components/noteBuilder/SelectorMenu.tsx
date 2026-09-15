@@ -8,6 +8,9 @@ import { CompanionPane } from "./CompanionPane";
 import { LiveRegion } from "./LiveRegion";
 import { Breadcrumb } from "./Breadcrumb";
 import { densityModifier, normalizeDensity } from "./presentation";
+import { WizardErrorBoundary } from "./WizardErrorBoundary";
+import { callbackBuildActualState, callbackSkipNote } from "./callbacks/CallbackNote";
+import { t } from "architecture/lang";
 import { ResumePrompt } from "./ResumePrompt";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { Section } from "application/components/section";
@@ -42,6 +45,14 @@ function NoteBuilder(noteBuilderType: NoteBuilderType) {
 function Component(noteBuilderType: NoteBuilderType) {
   const editor = noteBuilderType.modal.getMarkdownView();
   const actions = useNoteBuilderStore((store) => store.actions);
+  const data = useNoteBuilderStore((store) => store.data);
+  const enableSkip = useNoteBuilderStore((store) => store.enableSkip);
+  const canGoBack = useNoteBuilderStore((store) => store.previousArray.length > 0);
+  const hasContent = useNoteBuilderStore(
+    (store) => store.builder.note.getPaths().size + store.builder.note.getElements().size > 0
+  );
+  // Remounting the step is what a retry means; the key change is the remount (#417).
+  const [attempt, setAttempt] = useState(0);
   // Looked up once, when the flow opens: an unfinished walk for this canvas (#410).
   const [draft, setDraft] = useState(() =>
     editor ? undefined : draftStore.offer(noteBuilderType.flow.canvasPath)
@@ -97,7 +108,24 @@ function Component(noteBuilderType: NoteBuilderType) {
       <NavBar {...noteBuilderType} />
       <Header />
       <Breadcrumb {...noteBuilderType} />
-      <Section {...noteBuilderType} />
+      <WizardErrorBoundary
+        key={`step-boundary-${attempt}`}
+        label={t("wizard_error_step")}
+        onRetry={() => setAttempt((current) => current + 1)}
+        onBack={canGoBack ? () => actions.goPrevious() : undefined}
+        onSkip={
+          enableSkip
+            ? () => callbackSkipNote({ actions, data }, noteBuilderType)()
+            : undefined
+        }
+        onBuild={
+          hasContent
+            ? () => callbackBuildActualState({ actions, data }, noteBuilderType)()
+            : undefined
+        }
+      >
+        <Section {...noteBuilderType} />
+      </WizardErrorBoundary>
     </div>
   );
 
@@ -108,7 +136,9 @@ function Component(noteBuilderType: NoteBuilderType) {
   return (
     <div className={layout.join(" ")}>
       {wizard}
-      <CompanionPane {...noteBuilderType} collapsible={Platform.isMobile} />
+      <WizardErrorBoundary label={t("wizard_error_pane")}>
+        <CompanionPane {...noteBuilderType} collapsible={Platform.isMobile} />
+      </WizardErrorBoundary>
     </div>
   );
 }

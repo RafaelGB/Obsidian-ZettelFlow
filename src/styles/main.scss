@@ -451,3 +451,38 @@ body.is-mobile .zettelkasten-flow__header button {
         flex-wrap: wrap;
     }
 }
+
+/* A contained failure (#417): the wizard stays, the step explains itself, recoveries are offered. */
+.zettelkasten-flow__wizard-state-error {
+    align-items: flex-start;
+}
+
+.zettelkasten-flow__wizard-error-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    min-width: 0;
+}
+
+.zettelkasten-flow__wizard-error-detail {
+    margin: 0;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__wizard-error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__wizard-error-actions button {
+    min-height: 32px;
+    cursor: pointer;
+}
+
+body.is-mobile .zettelkasten-flow__wizard-error-actions button {
+    min-height: 44px;
+}

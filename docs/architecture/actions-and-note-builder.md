@@ -561,3 +561,39 @@ The marker types (`ActionKind`, `KnowledgeQuery`, `KnowledgeCommand`) live in th
 (`test/architecture/api/categories/actionKindClassification.test.ts`) enforces that all 31 built-ins
 are classified, totally and disjointly — it reads the sources with `fs` (it never imports the
 React-coupled action modules).
+
+## Recorded decisions
+
+### The canvas is *not* the wizard (#415, 2026-09-15)
+
+Two ambitious repositionings were on the table after the creation experience landed (#405):
+
+**A — the canvas *is* the wizard.** Run the flow on the canvas itself: current node highlighted,
+available children lit, the walked path traced, each step's input anchored to its node.
+
+**B — one flow, several connected notes.** A step can also create a linked satellite note, so
+literature note → permanent note is one pass instead of two plus a manual link.
+
+**B was chosen** (specced in #419). The reasoning, kept here so the rejection is discoverable:
+
+| | A | B |
+|---|---|---|
+| Adds capability | no — same note, different place | **yes** |
+| Risk | Obsidian internals: 13 monkey-patched sites, and *note creation* would sit behind them | none — all our own code |
+| Mobile | no story; the canvas is uncomfortable on a phone | identical |
+| Reversibility | all-or-nothing (it is the host) | opt-in per step |
+| Value | identity and demo | the canonical Zettelkasten move |
+
+A's *usability* case had already been answered by much cheaper work — drafts (#410), honest progress
+(#408), free navigation (#413), the diff (#412) and explained branches (#414) — leaving only its
+identity case, which is a differentiation argument rather than a workflow one.
+
+**What A would cost, if it ever comes back.** The rendering half is nearly free:
+`WorkflowLegibilityExtension` already toggles classes on `node.nodeEl`, and `EmptyStateExtension`
+already injects a panel into the canvas. The **input** half is the problem: that panel anchors to
+`canvas.wrapperEl` (a fixed overlay), while a step's field must follow a **node** through pan and
+zoom — tracking coordinates and the canvas transform, or injecting into node DOM Obsidian recreates
+at will. The honest moment to reconsider is **after #400**, when inline boxes are the primary
+authoring surface and the canvas is denser.
+
+**#400 stays independent**: B does not touch canvas authoring.

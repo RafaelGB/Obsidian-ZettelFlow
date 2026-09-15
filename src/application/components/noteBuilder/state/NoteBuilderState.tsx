@@ -43,6 +43,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
   enableSkip: false,
   suggestionVerdicts: [],
   redoStack: [],
+  hiddenBranches: [],
   // Progress bar properties
   pbValue: 0,
   pbElements: 0,
@@ -181,6 +182,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         enableSkip: false,
         suggestionVerdicts: [],
         redoStack: [],
+        hiddenBranches: [],
         builder: Builder.default(),
         currentNode: undefined,
       });
@@ -198,6 +200,9 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           builder,
         };
       });
+    },
+    setHiddenBranches: (hiddenBranches) => {
+      set({ hiddenBranches });
     },
     jumpToStep: (index) => {
       set((state) => {

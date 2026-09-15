@@ -140,3 +140,45 @@
     outline-offset: 2px;
     border-radius: var(--radius-s);
 }
+
+/* Options a condition removed, and why (#414). Nothing at all when nothing is hidden. */
+.zettelkasten-flow__hidden-branches {
+    margin-top: var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__hidden-branches-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
+
+.zettelkasten-flow__hidden-branches-toggle:hover,
+.zettelkasten-flow__hidden-branches-toggle:focus-visible {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__hidden-branches-list {
+    margin: var(--size-4-1) 0 0;
+    padding-left: var(--size-4-3);
+    list-style: none;
+}
+
+.zettelkasten-flow__hidden-branches-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.15rem 0;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__hidden-branches-label {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__hidden-branches-reason {
+    font-style: italic;
+}

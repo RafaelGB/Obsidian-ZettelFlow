@@ -8,6 +8,7 @@ import { FinalElement } from "application/notes";
 import type { DraftSnapshot, WizardDraft } from "application/notes/draftState";
 import type { BufferedVerdict, SuggestionVerdict } from "application/notes/suggestionVerdicts";
 import type { RedoEntry } from "application/components/noteBuilder/walkHistory";
+import type { HiddenBranch } from "application/notes/branchVisibility";
 import type { JudgementConfidence } from "architecture/knowledge/judgement/Judgement";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { ZettelFlowSettings } from "config";
@@ -67,6 +68,8 @@ export type NoteBuilderStateActions = {
     ) => void;
     /** Write the buffered verdicts against the created note. */
     flushSuggestionVerdicts: (notePath: string) => void;
+    /** Record the branches a closed condition removed from the current step (#414). */
+    setHiddenBranches: (hidden: HiddenBranch[]) => void;
     /** Return to a step already walked, discarding the answers given after it (#413). */
     jumpToStep: (index: number) => void;
     /** Step forward into the step just stepped out of, while no new answer has been given (#413). */
@@ -106,6 +109,8 @@ export type NoteBuilderState = {
     suggestionVerdicts: BufferedVerdict[];
     /** Steps stepped back out of, so they can be stepped into again (#413). */
     redoStack: RedoEntry<SavedSection>[];
+    /** Branches a closed condition removed from this step, and why (#414). */
+    hiddenBranches: HiddenBranch[];
     creationMode: boolean;
     title: string;
     invalidTitle: boolean;

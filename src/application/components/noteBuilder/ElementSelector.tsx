@@ -3,6 +3,7 @@ import { callbackElementBuilder } from "./callbacks/CallbackNote";
 import { Select, SelectMapper } from "application/components/select";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { ElementBuilderProps } from "./typing";
+import { HiddenBranches } from "./HiddenBranches";
 
 export function ElementSelector(info: ElementBuilderProps) {
   const { childen } = info;
@@ -19,15 +20,18 @@ export function ElementSelector(info: ElementBuilderProps) {
     );
   }, []);
   return (
-    <Select
-      key={`selector-element-${position}`}
-      options={SelectMapper.flowNodes2Options(childen)}
-      callback={(selected) => {
-        const selectedStep = childen.find((step) => step.id === selected);
-        if (!selectedStep) throw new Error("Selected step not found");
-        callbackMemo(selectedStep.id);
-      }}
-      autofocus={true}
-    />
+    <>
+      <Select
+        key={`selector-element-${position}`}
+        options={SelectMapper.flowNodes2Options(childen)}
+        callback={(selected) => {
+          const selectedStep = childen.find((step) => step.id === selected);
+          if (!selectedStep) throw new Error("Selected step not found");
+          callbackMemo(selectedStep.id);
+        }}
+        autofocus={true}
+      />
+      <HiddenBranches />
+    </>
   );
 }

@@ -261,6 +261,28 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### Branches you cannot see are explained (#414)
+
+A conditional edge that evaluates false used to make its branch **vanish**: the filter dropped it and
+nothing was said. For the user the wizard silently decided on their behalf; for the author, a correct
+expression that happens to be false was invisible — only a *malformed* one produced a Notice.
+
+`branchVisibility.ts` partitions the children instead of filtering them, adding **no evaluation
+logic**: it reports what the #119 evaluator already decided, and evaluates individual comparisons
+only to say *which one* failed.
+
+| Case | What the step shows |
+|---|---|
+| Closed by one comparison | *"frontmatter.state is permanent, and this branch needs fleeting"* |
+| Closed `&&` chain | the **first** failing comparison |
+| Closed `||` | that **every** alternative failed, listing them |
+| Anything harder to decompose | the expression itself — an honest "here is what was evaluated" beats a confident wrong story |
+| Malformed | still **visible** (safe-open, as before) and flagged for the author |
+| Nothing hidden | nothing rendered: zero cost for the common case |
+
+There is deliberately **no way to take a closed branch anyway**. The gate is made legible, not
+bypassable.
+
 ### Going back to any step (#413)
 
 One back button that popped a single position meant correcting a choice made four steps ago cost

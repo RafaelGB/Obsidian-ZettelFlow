@@ -4,6 +4,7 @@ import { Action } from "architecture/api";
 import { FileService } from "architecture/plugin";
 import type { NotePersistence } from "./NotePersistence";
 import { composeDestination } from "../destination";
+import type { SatelliteDeclaration } from "../satellitePlan";
 
 export class NoteDTO implements NotePersistence {
     private title = "";
@@ -14,6 +15,11 @@ export class NoteDTO implements NotePersistence {
     private targetFolder = "";
     private targetFolderLocked = false;
     private onCreationActions: Action[] = [];
+    /**
+     * The linked note a walked step declared (#419). One field, not a second note: the satellite is
+     * a **byproduct** resolved at build time, so this DTO keeps modelling exactly one note.
+     */
+    private satellite: SatelliteDeclaration | undefined;
 
     public getFinalPath(): string {
         // Shared with the destination indicator (#408) so the two can never disagree.
@@ -152,6 +158,16 @@ export class NoteDTO implements NotePersistence {
 
     public addOnCreation(actions: Action[]): NoteDTO {
         if (actions.length > 0) this.onCreationActions.push(...actions);
+        return this;
+    }
+
+    public getSatellite(): SatelliteDeclaration | undefined {
+        return this.satellite;
+    }
+
+    /** The last declaring step wins; a step declaring nothing never clears an earlier declaration. */
+    public setSatellite(declaration: SatelliteDeclaration | undefined): NoteDTO {
+        if (declaration) this.satellite = declaration;
         return this;
     }
 

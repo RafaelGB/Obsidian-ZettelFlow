@@ -133,3 +133,14 @@ export function resolveSatellite(
 
     return { template: declaration.template, title, path, edge: { on, target, ...field } };
 }
+
+/**
+ * One locale key per declaration defect. Literal keys in a map, so the #320 unrendered-strings
+ * guardrail can see all four (the trap #411 hit with a composed lookup).
+ */
+export const SATELLITE_ERROR_KEYS = {
+    "template-missing": "satellite_error_template_missing",
+    "title-empty": "satellite_error_title_empty",
+    "relation-invalid": "satellite_error_relation_invalid",
+    "self-relation": "satellite_error_self_relation",
+} as const;

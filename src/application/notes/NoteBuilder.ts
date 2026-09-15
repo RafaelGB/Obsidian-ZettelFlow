@@ -1,12 +1,15 @@
 import { FatalError, ObsidianApi, log } from "architecture";
+import { t } from "architecture/lang";
 import { substituteContextTokens } from "./contextTokens";
 import { composeFilename } from "./destination";
+import { resolveSatellite, SATELLITE_ERROR_KEYS } from "./satellitePlan";
+import { writeSatellite } from "./satelliteWriter";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { NoteDTO } from "./model/NoteDTO";
 import { ContentDTO } from "./model/ContentDTO";
 import { actionsStore } from "architecture/api";
-import { TFile, moment as obsidianMoment } from "obsidian";
+import { Notice, TFile, moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderStateActions } from "application/components/noteBuilder/typing";
@@ -98,6 +101,10 @@ export class NoteBuilder {
       // vault modify/create event; all timing/guarding lives in PostIndexRerun.
       this.armPostIndexRerun(generatedFile);
 
+      // The linked note (#419), after the main one exists: `writeSatellite` takes the created file,
+      // so a build that failed above cannot reach it.
+      await this.createSatellite(generatedFile);
+
       log.trace(`Built: title "${this.note.getTitle()}" in folder "${this.note.getTargetFolder()}". paths: ${JSON.stringify(this.note.getPaths())}, elements: ${JSON.stringify(this.note.getElements())}`)
 
       return generatedFile.path;
@@ -113,6 +120,37 @@ export class NoteBuilder {
     } finally {
       // Enable other process
       VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
+    }
+  }
+
+  /**
+   * Create the satellite note a walked step declared (#419), if any. Never throws: the main note is
+   * already on disk, so a problem here is reported, not propagated into the build's failure path
+   * (which would delete a note the user successfully created).
+   */
+  private async createSatellite(mainFile: TFile): Promise<void> {
+    const declaration = this.note.getSatellite();
+    if (!declaration) return;
+
+    const resolved = resolveSatellite(declaration, {
+      mainTitle: this.note.getTitle(),
+      mainPath: mainFile.path,
+      frontmatter: this.content.getFrontmatter(),
+      canvasName: this.modal?.getCanvasName() ?? "",
+    });
+    if (!resolved) return;
+    if ("error" in resolved) {
+      // A defect the step editor should already have reported (#419 FR-12).
+      log.warn(`[satellite] declaration is invalid (${resolved.error}) — nothing was written`);
+      new Notice(t(SATELLITE_ERROR_KEYS[resolved.error]));
+      return;
+    }
+
+    const outcome = await writeSatellite(resolved, mainFile);
+    if (outcome.status === "conflict") {
+      new Notice(t("satellite_conflict", outcome.path));
+    } else if (outcome.status === "failed") {
+      new Notice(t("satellite_failed", outcome.error ?? outcome.path));
     }
   }
 

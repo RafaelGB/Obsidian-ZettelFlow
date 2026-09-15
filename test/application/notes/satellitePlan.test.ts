@@ -148,3 +148,31 @@ describe("resolving a declaration yields the path and the edge, or an error (#41
         expect(resolveSatellite(undefined, context)).toBeUndefined();
     });
 });
+
+describe("the destination indicator and the build resolve the same way (#419, AC-2)", () => {
+    it("is deterministic, so what is shown is what gets written", () => {
+        expect(resolveSatellite(declaration, context)).toEqual(resolveSatellite(declaration, context));
+    });
+
+    it("converges as the frontmatter fills, which is a preview, not a lie", () => {
+        const pattern = { ...declaration, title: "{{frontmatter.author}} — idea" };
+        // Mid-walk, before the step that sets `author` has run: the token resolves to nothing, so
+        // the preview shows the rest of the pattern. It is what would be written *right now*.
+        const early = resolveSatellite(pattern, { ...context, frontmatter: {} });
+        if (!early || !("path" in early)) throw new Error("expected a plan");
+        expect(early.path).toBe("zettel/ideas/— idea.md");
+        // At build time the frontmatter is assembled, and the path is final.
+        const final = resolveSatellite(pattern, context);
+        if (!final || !("path" in final)) throw new Error("expected a plan");
+        expect(final.path).toBe("zettel/ideas/Luhmann — idea.md");
+        expect(final.path).not.toBe(early.path);
+    });
+
+    it("refuses a pattern that is only tokens once they all resolve to nothing", () => {
+        const plan = resolveSatellite(
+            { ...declaration, title: "{{frontmatter.absent}}{{frontmatter.also-absent}}" },
+            context
+        );
+        expect(plan).toEqual({ error: "title-empty" });
+    });
+});

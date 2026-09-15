@@ -12,6 +12,8 @@ import { useNoteBuilderStore } from "./state/NoteBuilderState";
  */
 export function LiveRegion() {
   const header = useNoteBuilderStore((store) => store.header);
+  const previousArray = useNoteBuilderStore((store) => store.previousArray);
+  const step = previousArray.length + 1;
 
   return (
     <div
@@ -20,7 +22,9 @@ export function LiveRegion() {
       aria-atomic="true"
       className={c("visually-hidden")}
     >
-      {header.title ? t("note_builder_step_announcement", header.title) : ""}
+      {header.title
+        ? t("note_builder_step_announcement", String(step), header.title)
+        : ""}
     </div>
   );
 }

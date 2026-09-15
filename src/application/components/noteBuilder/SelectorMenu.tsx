@@ -6,6 +6,7 @@ import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 import { CompanionPane } from "./CompanionPane";
 import { LiveRegion } from "./LiveRegion";
+import { Breadcrumb } from "./Breadcrumb";
 import { Section } from "application/components/section";
 import { Header } from "application/components/header";
 import { NavBar } from "application/components/navbar";
@@ -62,6 +63,7 @@ function Component(noteBuilderType: NoteBuilderType) {
         <LiveRegion />
         <NavBar {...noteBuilderType} />
         <Header />
+        <Breadcrumb />
         <Section {...noteBuilderType} />
       </>
     );
@@ -73,6 +75,7 @@ function Component(noteBuilderType: NoteBuilderType) {
         <LiveRegion />
         <NavBar {...noteBuilderType} />
         <Header />
+        <Breadcrumb />
         <Section {...noteBuilderType} />
       </div>
       <CompanionPane {...noteBuilderType} />

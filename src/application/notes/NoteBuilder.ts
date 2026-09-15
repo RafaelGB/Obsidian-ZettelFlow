@@ -1,5 +1,6 @@
 import { FatalError, ObsidianApi, log } from "architecture";
 import { substituteContextTokens } from "./contextTokens";
+import { composeFilename } from "./destination";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { NoteDTO } from "./model/NoteDTO";
@@ -109,12 +110,11 @@ export class NoteBuilder {
   }
 
   private buildFilename(): string {
-    return this.note.hasPattern() ?
-      moment()
-        .format(this.note.getPattern())
-        .concat(" - ")
-        .concat(this.note.getTitle()) :
-      this.note.getTitle()
+    // Shared with the destination indicator (#408): one rule, two readers.
+    return composeFilename(
+      this.note.getTitle(),
+      this.note.hasPattern() ? moment().format(this.note.getPattern()) : undefined
+    );
   }
 
   private async buildNote() {

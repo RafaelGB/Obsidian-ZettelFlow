@@ -261,6 +261,27 @@ RootSelector ─pick root─► callbackRootBuilder ─► initPluginConfig ─�
                      → processTypedFrontMatter → postProcess → open note
 ```
 
+### Position, estimate and destination (#408)
+
+The wizard answers three questions it used to leave open, and each answer is derived, never invented:
+
+| Shown | Derived from | When it is not shown |
+|---|---|---|
+| **Step N** | the walked path (`previousArray.length + 1`) | never — the position is always known |
+| **about M left** | `remainingSteps(flowAdjacency(canvas), currentNode)` — the **longest** remaining path in the flow graph (`architecture/plugin/canvas/walkProgress.ts`) | a reachable cycle, or a node not in the graph: the position is shown alone rather than a number the flow cannot stand behind |
+| **Will be created at `folder/name.md`** | `describeDestination` (`application/notes/destination.ts`) | no title yet — an honest *"destination not decided yet"* instead of a path ending in `/.md` |
+
+The estimate is the *longest* path on purpose: a shorter number would read as a promise the flow cannot
+keep. It is explicitly approximate in the wording, and its basis is in the tooltip.
+
+The destination is not a second implementation of the builder's path rule: `NoteDTO.getFinalPath()` and
+`NoteBuilder.buildFilename()` **call the same functions** the indicator displays, so the two cannot
+drift apart. The unique prefix arrives already rendered (moment formats the pattern at the call site),
+which keeps `destination.ts` pure and unit-testable.
+
+A **breadcrumb** shows the walked path (canvas › step › step › current); the current step never
+truncates. Making an entry activatable is #413.
+
 ### The companion pane — live preview & connection suggestions
 
 On **desktop, in the creation flow** (ribbon → `SelectorMenuModal`), a **companion pane** renders

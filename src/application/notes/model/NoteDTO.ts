@@ -3,6 +3,7 @@ import { log } from "architecture";
 import { Action } from "architecture/api";
 import { FileService } from "architecture/plugin";
 import type { NotePersistence } from "./NotePersistence";
+import { composeDestination } from "../destination";
 
 export class NoteDTO implements NotePersistence {
     private title = "";
@@ -15,10 +16,8 @@ export class NoteDTO implements NotePersistence {
     private onCreationActions: Action[] = [];
 
     public getFinalPath(): string {
-        return this.getTargetFolder()
-            .concat(FileService.PATH_SEPARATOR)
-            .concat(this.getTitle())
-            .concat(FileService.MARKDOWN_EXTENSION);
+        // Shared with the destination indicator (#408) so the two can never disagree.
+        return composeDestination(this.getTargetFolder(), this.getTitle());
     }
 
     public getTitle(): string {

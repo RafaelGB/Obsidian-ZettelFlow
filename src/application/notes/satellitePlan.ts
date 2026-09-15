@@ -144,3 +144,17 @@ export const SATELLITE_ERROR_KEYS = {
     "relation-invalid": "satellite_error_relation_invalid",
     "self-relation": "satellite_error_self_relation",
 } as const;
+
+/**
+ * What the satellite will contain, for the preview (#419 FR-5) and for the writer: its **own**
+ * template, plus the edge when the declared direction puts it on the satellite. The main note's
+ * content never leaks in — a satellite is not a copy.
+ */
+export function satellitePreview(
+    plan: SatellitePlan,
+    template: { frontmatter: Record<string, unknown>; body: string }
+): { frontmatter: Record<string, unknown>; body: string } {
+    const frontmatter = { ...template.frontmatter };
+    if (plan.edge.on === "satellite") frontmatter[plan.edge.key] = plan.edge.value;
+    return { frontmatter, body: template.body };
+}

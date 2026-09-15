@@ -119,6 +119,8 @@ export default {
     satellite_conflict: '{0} already exists, so the linked note was not created',
     satellite_failed: 'The note was created, but the linked note was not: {0}',
     satellite_destination_label: 'It will also create {0}, related by {1}',
+    satellite_diff_title: 'The linked note',
+    satellite_relation_summary: '{0} — related by {1}',
     selectable_search_placeholder: 'Search…',
     selectable_search_remove_one: 'Remove {0}',
     selectable_search_remove_all: 'Remove every selection',

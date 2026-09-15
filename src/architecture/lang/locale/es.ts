@@ -119,6 +119,8 @@ export default {
     satellite_conflict: '{0} ya existe, así que no se creó la nota enlazada',
     satellite_failed: 'La nota se creó, pero la nota enlazada no: {0}',
     satellite_destination_label: 'También creará {0}, relacionada por {1}',
+    satellite_diff_title: 'La nota enlazada',
+    satellite_relation_summary: '{0} — relacionada por {1}',
     selectable_search_placeholder: 'Buscar…',
     selectable_search_remove_one: 'Eliminar {0}',
     selectable_search_remove_all: 'Eliminar todas las selecciones',

@@ -247,3 +247,19 @@
     background-color: var(--background-modifier-error);
     color: var(--text-on-accent);
 }
+
+/* The linked note's own preview (#419), set apart from the main note's. */
+.zettelkasten-flow__companion-pane-satellite {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding-left: var(--size-4-2);
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__companion-pane-satellite-path {
+    margin: 0;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}

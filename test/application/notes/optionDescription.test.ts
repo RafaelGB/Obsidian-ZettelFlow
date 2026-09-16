@@ -13,9 +13,12 @@ describe("an option's description is for a person, not for the parser (#423)", (
         expect(describeOption("Source · book")).toBe("Source · book");
     });
 
-    it("keeps the human half when a label carries both", () => {
-        expect(describeOption('Fuente — if: frontmatter.type === "source"')).toBe("Fuente");
-        expect(describeOption('Fuente if: frontmatter.type === "source"')).toBe("Fuente");
+    it("keeps a label whose if: is not at the start — it was never a gate", () => {
+        // The engine gates on a *leading* `if:` alone (#119), so this tail never filtered
+        // anything. Stripping it would hide words the author wrote and the flow honoured.
+        expect(describeOption('Fuente — if: frontmatter.type === "source"')).toBe(
+            'Fuente — if: frontmatter.type === "source"'
+        );
     });
 
     it("is not fooled by a label that merely contains the word if", () => {

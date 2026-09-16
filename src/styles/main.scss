@@ -488,3 +488,15 @@ body.is-mobile .zettelkasten-flow__header button {
 body.is-mobile .zettelkasten-flow__wizard-error-actions button {
     min-height: 44px;
 }
+
+/* The step's default exit, marked where it is chosen rather than only where it is configured (#427). */
+.zettelkasten-flow__option-default {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-normal);
+    text-transform: lowercase;
+}

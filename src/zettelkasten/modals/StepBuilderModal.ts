@@ -1,4 +1,4 @@
-import { Notice, setIcon, TFile } from "obsidian";
+import { Notice, Setting, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
@@ -21,6 +21,18 @@ import {
 } from "./handlers/stepGroups";
 import { BLOCK_LABEL_KEY } from "architecture/plugin/workflow";
 import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
+import type { Flow, FlowNode } from "architecture/plugin/canvas";
+import {
+    moveExit,
+    orderExits,
+    planMigration,
+    pruneExits,
+    setDefaultExit,
+    type StepExit,
+    type StepExits,
+} from "application/notes/stepExits";
+import { describeOption } from "application/notes/optionDescription";
+import { ConditionEditorModal } from "./ConditionEditorModal";
 
 export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
@@ -177,6 +189,8 @@ export class StepBuilderModal extends AbstractStepModal {
         // the file, an inline box in its own settings (#426). It used to exist only for the former,
         // which made the path #400 wants to promote the poorest one.
         this.setupBody();
+        // Where the flow goes next belongs to the step, not to the arrows drawing it (#427).
+        this.setupExits();
 
         // Only after everything has rendered: a question nobody answered leaves no heading (#425).
         this.pruneEmptyGroups();
@@ -306,6 +320,218 @@ export class StepBuilderModal extends AbstractStepModal {
         if (this.info.body === undefined && this.mode === "edit") {
             void this.loadBodyFromFile(textarea);
         }
+    }
+
+    /**
+     * Where does it go next (#427): one row per arrow leaving this step — what it says, when it is
+     * open, in what order, and which one you land on. Only a step drawn on a canvas has arrows, so
+     * a step note opened from its own file shows no section rather than an empty promise; the
+     * arrow's own popup on the canvas is the second door into the same three questions.
+     */
+    private setupExits(): void {
+        if (this.mode !== "embed" || !this.info.nodeId) return;
+        const path = this.canvasPath();
+        if (!path) return;
+
+        const contentEl = this.groupEl("leads");
+        contentEl.createDiv({ cls: c("step-exits-intro"), text: t("step_exits_intro") });
+        const rows = contentEl.createDiv({ cls: c("step-exits") });
+        void this.renderExits(rows, path);
+    }
+
+    /** The canvas this step is drawn on, when it is drawn on one. */
+    private canvasPath(): string | undefined {
+        if (!this.info.folder || !this.info.filename) return undefined;
+        return this.info.folder.path
+            .concat(FileService.PATH_SEPARATOR)
+            .concat(this.info.filename)
+            .concat(".canvas");
+    }
+
+    private async renderExits(rows: HTMLElement, path: string): Promise<void> {
+        const nodeId = this.info.nodeId;
+        if (!nodeId) return;
+        let flow: Flow;
+        let children: FlowNode[];
+        try {
+            flow = await canvas.flows.update(path);
+            children = await flow.childrensOf(nodeId);
+        } catch (error) {
+            log.warn("[exits] could not read the arrows leaving this step", error);
+            return;
+        }
+
+        rows.empty();
+        const candidates = children.filter((child) => child.edgeId);
+        if (candidates.length === 0) {
+            rows.createDiv({ cls: c("step-exits-empty"), text: t("step_exits_empty") });
+            return;
+        }
+
+        // An arrow you deleted is not configuration anyone can reach again.
+        this.info.exits = pruneExits(
+            this.info.exits ?? {},
+            candidates.map((child) => child.edgeId as string)
+        );
+
+        const ordered = orderExits(candidates, this.info.exits);
+        ordered.forEach((child, index) =>
+            this.renderExitRow({ rows, path, candidates, child, index, total: ordered.length })
+        );
+        this.renderExitMigration(rows, path, flow, candidates);
+    }
+
+    private renderExitRow(row: {
+        rows: HTMLElement;
+        path: string;
+        candidates: FlowNode[];
+        child: FlowNode;
+        index: number;
+        total: number;
+    }): void {
+        const { rows, path, candidates, child, index, total } = row;
+        const edgeId = child.edgeId as string;
+        const exits: StepExits = this.info.exits ?? {};
+        const exit: StepExit = exits[edgeId] ?? {};
+        const redraw = () => void this.renderExits(rows, path);
+
+        const setting = new Setting(rows)
+            .setName(child.label || t("step_identity_untitled"))
+            .setDesc(exit.when?.trim() || t("step_exits_when_always"));
+
+        if (exit.default) {
+            setting.nameEl.createSpan({
+                cls: c("step-exits-default"),
+                text: t("step_exits_default_badge"),
+            });
+        }
+
+        setting.addText((text) =>
+            text
+                .setPlaceholder(t("step_exits_says_placeholder"))
+                // With nothing configured the arrow label is still what the option says (#423).
+                .setValue(exit.says ?? describeOption(child.tooltip) ?? "")
+                .onChange((value) =>
+                    this.updateExit(edgeId, (current) => {
+                        const says = value.trim();
+                        if (says) return { ...current, says };
+                        const { says: _cleared, ...rest } = current;
+                        return rest;
+                    })
+                )
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("filter")
+                .setTooltip(t("step_exits_when_edit"))
+                .onClick(() => {
+                    new ConditionEditorModal(this.plugin.app, exit.when ?? "", (expression) => {
+                        this.updateExit(edgeId, (current) => {
+                            if (expression) return { ...current, when: expression };
+                            const { when: _cleared, ...rest } = current;
+                            return rest;
+                        });
+                        redraw();
+                    }).open();
+                })
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("target")
+                .setTooltip(t("step_exits_default_set"))
+                .setDisabled(exit.default === true)
+                .onClick(() => {
+                    this.info.exits = setDefaultExit(this.info.exits ?? {}, edgeId);
+                    redraw();
+                })
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("chevron-up")
+                .setTooltip(t("step_exits_move_up"))
+                .setDisabled(index === 0)
+                .onClick(() => {
+                    this.info.exits = moveExit(candidates, this.info.exits ?? {}, edgeId, -1);
+                    redraw();
+                })
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("chevron-down")
+                .setTooltip(t("step_exits_move_down"))
+                .setDisabled(index === total - 1)
+                .onClick(() => {
+                    this.info.exits = moveExit(candidates, this.info.exits ?? {}, edgeId, 1);
+                    redraw();
+                })
+        );
+    }
+
+    /**
+     * The one-time move from labels to exits, previewed before it runs: every arrow it would touch
+     * is named, with the words that stay on the diagram and the condition that moves into the step.
+     * Idempotent — a configured arrow stops being proposed.
+     */
+    private renderExitMigration(
+        rows: HTMLElement,
+        path: string,
+        flow: Flow,
+        candidates: FlowNode[]
+    ): void {
+        const plan = planMigration(candidates, this.info.exits ?? {});
+        if (plan.length === 0) return;
+
+        const named = (edgeId: string) =>
+            candidates.find((child) => child.edgeId === edgeId)?.label ?? edgeId;
+        const preview = plan
+            .map((step) => {
+                const gate = step.exit.when ? ` · ${step.exit.when}` : "";
+                const says = step.label || t("step_exits_says_placeholder");
+                return `${named(step.edgeId)}: ${says}${gate}`;
+            })
+            .join(" — ");
+
+        new Setting(rows)
+            .setName(t("step_exits_migrate"))
+            .setDesc(`${t("step_exits_migrate_description")} ${preview}`)
+            .addButton((button) =>
+                button.setButtonText(t("step_exits_migrate")).onClick(() => {
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t("step_exits_migrate_confirm"),
+                        t("confirm_apply_template_button"),
+                        t("confirm_cancel_button"),
+                        async () => {
+                            const exits: StepExits = { ...this.info.exits };
+                            const labels: Record<string, string> = {};
+                            for (const step of plan) {
+                                exits[step.edgeId] = step.exit;
+                                labels[step.edgeId] = step.label;
+                            }
+                            this.info.exits = exits;
+                            await flow.editEdgeLabels(labels);
+                            new Notice(t("step_exits_migrate_done"));
+                            void this.renderExits(rows, path);
+                        }
+                    ).open();
+                })
+            );
+    }
+
+    /** Edit one exit in place; an exit that says nothing at all is removed, not stored empty. */
+    private updateExit(edgeId: string, edit: (current: StepExit) => StepExit): void {
+        const exits: StepExits = { ...this.info.exits };
+        const next = edit(exits[edgeId] ?? {});
+        if (Object.keys(next).length === 0) {
+            delete exits[edgeId];
+        } else {
+            exits[edgeId] = next;
+        }
+        this.info.exits = exits;
     }
 
     private async loadBodyFromFile(textarea: HTMLTextAreaElement): Promise<void> {

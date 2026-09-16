@@ -83,7 +83,27 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
     private styleEdge(edge: CanvasEdge): void {
         const el = edge?.labelElement?.wrapperEl;
         if (!el) return; // a plain (unlabelled) edge has no wrapper — nothing to annotate
-        this.applyBlockClass(el, styleForEdge(edge.label));
+        this.applyBlockClass(el, styleForEdge(edge.label, this.isGatedExit(edge)));
+    }
+
+    /**
+     * Whether the step this arrow leaves gates it (#427). The condition no longer has to be written
+     * on the label, so the canvas asks the step instead — and an arrow that is only words still
+     * shows that it is conditional.
+     */
+    private isGatedExit(edge: CanvasEdge): boolean {
+        try {
+            const from = (edge as unknown as { from?: { node?: CanvasNode } }).from?.node;
+            const edgeId = (edge as unknown as { id?: string }).id;
+            if (!from || !edgeId) return false;
+            const settings = this.nodeShape(from) as
+                | { exits?: Record<string, { when?: string }> }
+                | undefined;
+            return Boolean(settings?.exits?.[edgeId]?.when?.trim());
+        } catch (error) {
+            log.warn("ZettelFlow: could not read a step's exits for legibility", error);
+            return false;
+        }
     }
 
     /** Resolve a node's block-relevant settings: inline config for text/group, frontmatter for file. */

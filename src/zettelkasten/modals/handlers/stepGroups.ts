@@ -12,7 +12,7 @@ import type { StepBuilderInfo } from "zettelkasten";
  * handler cannot quietly land outside the structure (a test asserts completeness).
  */
 
-export const STEP_GROUPS = ["asks", "writes", "when", "where", "shown"] as const;
+export const STEP_GROUPS = ["asks", "writes", "when", "where", "shown", "leads"] as const;
 export type StepGroupId = (typeof STEP_GROUPS)[number];
 
 /** Sentence-case question per group; the renderer translates. */
@@ -22,6 +22,7 @@ export const STEP_GROUP_HEADING: Record<StepGroupId, string> = {
     when: "step_group_when",
     where: "step_group_where",
     shown: "step_group_shown",
+    leads: "step_group_leads",
 };
 
 /**
@@ -59,5 +60,9 @@ export function isGroupExpanded(group: StepGroupId, info: StepBuilderInfo): bool
             return Boolean(info.targetFolder?.trim());
         case "shown":
             return Boolean(info.label?.trim() || info.phase || info.childrenHeader?.trim());
+        case "leads":
+            // Open when the step already decides something about where it goes; otherwise the
+            // arrows speak for themselves and the section is one heading you can ignore.
+            return Object.keys(info.exits ?? {}).length > 0;
     }
 }

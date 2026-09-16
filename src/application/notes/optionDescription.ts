@@ -11,11 +11,12 @@
  * person only ever reads the human half. #427 gives the three jobs three fields and supersedes it.
  */
 
-/** A condition prefix, only when it opens the label (`motif:` and "a gift" are not conditions). */
+/**
+ * A condition prefix, and **only** when it opens the label. `parseEdgeCondition` (#119) gates on a
+ * leading `if:` alone, so a label like `Fuente — if: x` never filtered anything: that tail is the
+ * author's own text, not a gate, and hiding it would hide their words.
+ */
 const LEADING_CONDITION = /^\s*if\s*:/i;
-
-/** An inline condition tail, e.g. `Fuente — if: x === 1`. */
-const TRAILING_CONDITION = /\s*[—–-]?\s*\bif\s*:.*$/i;
 
 /**
  * The part of an edge label meant for a human, or `undefined` when there is none. A label that is
@@ -27,6 +28,5 @@ export function describeOption(label: string | undefined): string | undefined {
     if (trimmed.length === 0) return undefined;
     if (LEADING_CONDITION.test(trimmed)) return undefined;
 
-    const human = trimmed.replace(TRAILING_CONDITION, "").trim();
-    return human.length > 0 ? human : undefined;
+    return trimmed;
 }

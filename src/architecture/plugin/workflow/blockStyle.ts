@@ -51,7 +51,14 @@ export function styleForNode(node: NodeBlockShape): BlockStyle {
 
 const IF_EDGE_PREFIX = /^if:\s*/i;
 
-/** The IF style for a conditional (`if: …`) edge; `undefined` for a plain edge (no styling). */
-export function styleForEdge(tooltip: string | undefined): BlockStyle | undefined {
+/**
+ * The IF style for a conditional edge; `undefined` for a plain one (no styling).
+ *
+ * A gate used to be visible because it was written in the label. Since #427 it can live in the
+ * step that owns the exit, so the arrow reads as words and `gated` is how the canvas still says
+ * this branch has a condition.
+ */
+export function styleForEdge(tooltip: string | undefined, gated = false): BlockStyle | undefined {
+    if (gated) return BLOCK_STYLE.if;
     return tooltip && IF_EDGE_PREFIX.test(tooltip) ? BLOCK_STYLE.if : undefined;
 }

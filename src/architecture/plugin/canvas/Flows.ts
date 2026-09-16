@@ -13,6 +13,8 @@ import { findDirectChildren, isNodeInside } from "./shared/Geometry";
 type EdgeInfo = {
     key: string;
     tooltip: string | undefined
+    /** The canvas edge travelled, so the source step can configure that exit (#427). */
+    edgeId?: string
 }
 
 export class FlowsImpl implements Flows {
@@ -143,11 +145,30 @@ export class FlowImpl implements Flow {
         await this.save();
     }
 
+    editEdgeLabels = async (labels: Record<string, string>) => {
+        const entries = Object.entries(labels);
+        if (entries.length === 0) return;
+        await this.refresh();
+        for (const [edgeId, label] of entries) {
+            const edge = this.data.edges.find(candidate => candidate.id === edgeId);
+            // A deleted arrow is not an error: the step's own exits are the truth now (#427).
+            if (!edge) continue;
+            if (label) {
+                edge.label = label;
+            } else {
+                delete edge.label;
+            }
+        }
+        await this.save();
+    }
+
     childrensOf = async (nodeId: string) => {
         const node = this.nodes.get(nodeId);
         if (node?.type !== "group") {
             const { edges } = this.data;
-            const childrenKeys: EdgeInfo[] = edges.filter(edge => edge.fromNode === nodeId).map(edge => ({ key: edge.toNode, tooltip: edge.label }));
+            const childrenKeys: EdgeInfo[] = edges
+                .filter(edge => edge.fromNode === nodeId)
+                .map(edge => ({ key: edge.toNode, tooltip: edge.label, edgeId: edge.id }));
             return this.nodesFrom(childrenKeys);
         } else {
             const childNodes = findDirectChildren(node, this.data.nodes);
@@ -237,7 +258,7 @@ export class FlowImpl implements Flow {
                     case "text":
                     case "group": {
                         const textNode = YamlService.instance(node.zettelflowConfig);
-                        flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings(), edge.tooltip));
+                        flowNodes.push(this.populateNode(node, textNode.getZettelFlowSettings(), edge));
                         break;
                     }
                     case "file": {
@@ -248,11 +269,11 @@ export class FlowImpl implements Flow {
                         switch (file.extension) {
                             case "md": {
                                 const fileNode = FrontmatterService.instance(file);
-                                flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge.tooltip));
+                                flowNodes.push(this.populateNode(node, fileNode.getZettelFlowSettings(), edge));
                                 break;
                             }
                             case "js": {
-                                flowNodes.push(this.populateScriptNode(node, file, edge.tooltip));
+                                flowNodes.push(this.populateScriptNode(node, file, edge));
                                 break;
                             }
                             default:
@@ -282,18 +303,19 @@ export class FlowImpl implements Flow {
         this.data = JSON.parse(content) as CanvasData;
     }
 
-    private populateNode(data: CanvasTextData | CanvasFileData | CanvasGroupData, node: StepSettings, tooltip?: string): FlowNode {
+    private populateNode(data: CanvasTextData | CanvasFileData | CanvasGroupData, node: StepSettings, edge?: EdgeInfo): FlowNode {
         return {
             ...node,
             type: data.type,
             color: getCanvasColor(data.color),
             id: data.id,
             path: data.type === "file" ? data.file : undefined,
-            tooltip
+            tooltip: edge?.tooltip,
+            edgeId: edge?.edgeId
         }
     }
 
-    private populateScriptNode(data: CanvasFileData, file: TFile, tooltip?: string): FlowNode {
+    private populateScriptNode(data: CanvasFileData, file: TFile, edge?: EdgeInfo): FlowNode {
         const node = {
             ...data,
             root: false,
@@ -301,7 +323,8 @@ export class FlowImpl implements Flow {
             label: `Script: ${file.basename}`,
             color: getCanvasColor(data.color),
             path: file.path,
-            tooltip
+            tooltip: edge?.tooltip,
+            edgeId: edge?.edgeId
         }
         this.nodes.set(data.id, node);
         return node;

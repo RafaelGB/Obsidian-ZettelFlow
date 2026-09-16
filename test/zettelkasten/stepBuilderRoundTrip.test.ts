@@ -28,6 +28,9 @@ const FULL: StepSettings = {
         relation: { type: "inspired-by", direction: "satellite-to-main" },
     },
     body: "# {{title}}\n",
+    exits: {
+        "edge-1": { says: "Something I read", when: 'frontmatter.type === "source"', order: 1, default: true },
+    },
 };
 
 describe("saving a step keeps everything it was given (#425, #426)", () => {
@@ -51,7 +54,7 @@ describe("saving a step keeps everything it was given (#425, #426)", () => {
         } as StepBuilderInfo;
 
         const settings = StepBuilderMapper.StepBuilderInfo2StepSettings(info);
-        for (const key of ["phase", "trigger", "wait", "onCreation", "satellite", "body"]) {
+        for (const key of ["phase", "trigger", "wait", "onCreation", "satellite", "body", "exits"]) {
             expect(key in settings).toBe(false);
         }
     });
@@ -72,6 +75,7 @@ describe("saving a step keeps everything it was given (#425, #426)", () => {
                 "actions",
                 "body",
                 "childrenHeader",
+                "exits",
                 "label",
                 "onCreation",
                 "optional",
@@ -83,5 +87,27 @@ describe("saving a step keeps everything it was given (#425, #426)", () => {
                 "wait",
             ].sort()
         );
+    });
+});
+
+describe("reading a step back carries as much as writing it (#427)", () => {
+    it("keeps the capabilities the form owns when a step note is reopened", () => {
+        // The other side of the #419 defect: the file menu maps settings *into* the editor, and a
+        // capability missing here is deleted the moment that step is saved again.
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(FULL);
+        expect(back.satellite).toEqual(FULL.satellite);
+        expect(back.body).toBe(FULL.body);
+        expect(back.exits).toEqual(FULL.exits);
+    });
+
+    it("omits what the step never set", () => {
+        const back = StepBuilderMapper.StepSettings2PartialStepBuilderInfo({
+            root: false,
+            actions: [],
+            label: "",
+        });
+        for (const key of ["satellite", "body", "exits"]) {
+            expect(key in back).toBe(false);
+        }
     });
 });

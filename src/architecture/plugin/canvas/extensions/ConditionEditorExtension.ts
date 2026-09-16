@@ -5,6 +5,7 @@ import CanvasHelper from "./utils/CanvasHelper";
 import { t } from "architecture/lang";
 import { log } from "architecture";
 import { ConditionEditorModal } from "zettelkasten/modals/ConditionEditorModal";
+import { openExitEditor } from "zettelkasten/exits/editExit";
 import { popupMenuOptions } from "./utils/popupMenuOptions";
 
 /** Shared with the cleanup below: the popup is reused across selections (#432). */
@@ -52,8 +53,22 @@ export default class ConditionEditorExtension extends CanvasExtension {
                 btn.classList.add("clickable-icon");
                 setIcon(btn, "filter");
                 setTooltip(btn, t("condition_editor_title"), { placement: "top" });
+                const canvasPath = this.plugin.app.workspace.getActiveFile()?.path;
                 btn.addEventListener("click", () => {
-                    new ConditionEditorModal(this.plugin.app, edge, eventCanvas).open();
+                    void (async () => {
+                        // The arrow is a door into the step that owns it (#427): it configures
+                        // that exit — what it says, when it opens, whether you land on it.
+                        const edgeId = (edge as unknown as { id?: string }).id;
+                        if (canvasPath && edgeId && (await openExitEditor(this.plugin.app, canvasPath, edgeId))) {
+                            return;
+                        }
+                        // A source that cannot hold settings (a script node) keeps the older
+                        // behaviour: the condition stays on the label rather than being lost.
+                        new ConditionEditorModal(this.plugin.app, edge.label ?? "", (expression) => {
+                            edge.label = expression ? `if: ${expression}` : "";
+                            eventCanvas.requestSave();
+                        }).open();
+                    })();
                 });
 
                 const totalItems = popupMenuEl.children.length;

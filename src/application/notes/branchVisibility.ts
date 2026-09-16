@@ -1,9 +1,4 @@
-import {
-    EvalContext,
-    evaluateCondition,
-    evaluateEdgeGate,
-    parseEdgeCondition,
-} from "./conditionEvaluator";
+import { EvalContext, evaluateCondition } from "./conditionEvaluator";
 
 /**
  * Why an option is not on screen (#414, epic #405) — pure.
@@ -18,13 +13,6 @@ import {
  * evaluator already decided, and evaluates individual comparisons only to say *which one* failed.
  */
 
-/** The shape the wizard already has for a child: an id, a label and the edge label as `tooltip`. */
-export interface BranchCandidate {
-    id: string;
-    label: string;
-    tooltip?: string;
-}
-
 export type BranchReason =
     /** A single comparison decided it. */
     | { kind: "comparison"; path: string; operator: string; expected: string; found: string }
@@ -38,15 +26,6 @@ export interface HiddenBranch {
     label: string;
     expression: string;
     reason: BranchReason;
-}
-
-export interface BranchPartition<T extends BranchCandidate> {
-    /** Options the user can pick — open gates and safe-opened malformed ones. */
-    visible: T[];
-    /** Options a closed gate removed, with the reason. */
-    hidden: HiddenBranch[];
-    /** Labels of branches shown *despite* a malformed expression (the author has a defect). */
-    invalid: string[];
 }
 
 const COMPARISON =
@@ -102,31 +81,4 @@ export function explainClosedBranch(expression: string, context: EvalContext): B
         expected: unquote(literal),
         found: display(readPath(path, context)),
     };
-}
-
-/**
- * Split the children the wizard was about to filter into what stays, what goes and why. Each child
- * is evaluated **once** — the same call the filter makes — so nothing is computed twice.
- */
-export function partitionBranches<T extends BranchCandidate>(
-    children: T[],
-    context: EvalContext
-): BranchPartition<T> {
-    const partition: BranchPartition<T> = { visible: [], hidden: [], invalid: [] };
-    for (const child of children) {
-        const { open, invalid } = evaluateEdgeGate(child.tooltip, context);
-        if (invalid) partition.invalid.push(child.label);
-        if (open) {
-            partition.visible.push(child);
-            continue;
-        }
-        const expression = parseEdgeCondition(child.tooltip) ?? "";
-        partition.hidden.push({
-            id: child.id,
-            label: child.label,
-            expression,
-            reason: explainClosedBranch(expression, context),
-        });
-    }
-    return partition;
 }

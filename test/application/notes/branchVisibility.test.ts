@@ -1,8 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-    explainClosedBranch,
-    partitionBranches,
-} from "application/notes/branchVisibility";
+import { explainClosedBranch } from "application/notes/branchVisibility";
+import { partitionExits } from "application/notes/stepExits";
 import type { EvalContext } from "application/notes/conditionEvaluator";
 
 const context: EvalContext = {
@@ -15,12 +13,13 @@ const child = (id: string, label: string, tooltip?: string) => ({ id, label, too
 
 describe("the wizard explains the branches it hides (#414)", () => {
     it("keeps open branches and hides closed ones", () => {
-        const partition = partitionBranches(
+        const partition = partitionExits(
             [
                 child("a", "Permanent step", 'if: frontmatter.state === "permanent"'),
                 child("b", "Fleeting step", 'if: frontmatter.state === "fleeting"'),
                 child("c", "Always"),
             ],
+            {},
             context
         );
         expect(partition.visible.map((entry) => entry.id)).toEqual(["a", "c"]);
@@ -29,8 +28,9 @@ describe("the wizard explains the branches it hides (#414)", () => {
     });
 
     it("names the path, what it expected and what it found", () => {
-        const partition = partitionBranches(
+        const partition = partitionExits(
             [child("b", "Fleeting step", 'if: frontmatter.state === "fleeting"')],
+            {},
             context
         );
         expect(partition.hidden[0].reason).toEqual({
@@ -43,8 +43,9 @@ describe("the wizard explains the branches it hides (#414)", () => {
     });
 
     it("says 'nothing' for a key the note does not have", () => {
-        const partition = partitionBranches(
+        const partition = partitionExits(
             [child("b", "Author step", 'if: frontmatter.author === "luhmann"')],
+            {},
             context
         );
         expect(partition.hidden[0].reason).toMatchObject({ found: "nothing", expected: "luhmann" });
@@ -75,8 +76,9 @@ describe("the wizard explains the branches it hides (#414)", () => {
     });
 
     it("keeps a malformed expression visible, and flags it for the author", () => {
-        const partition = partitionBranches(
+        const partition = partitionExits(
             [child("x", "Broken step", "if: frontmatter.state ===")],
+            {},
             context
         );
         expect(partition.visible.map((entry) => entry.id)).toEqual(["x"]);
@@ -85,8 +87,9 @@ describe("the wizard explains the branches it hides (#414)", () => {
     });
 
     it("handles a canvas-name gate as well as a frontmatter one", () => {
-        const partition = partitionBranches(
+        const partition = partitionExits(
             [child("c", "Other canvas", 'if: canvas.name === "journal"')],
+            {},
             context
         );
         expect(partition.hidden[0].reason).toMatchObject({

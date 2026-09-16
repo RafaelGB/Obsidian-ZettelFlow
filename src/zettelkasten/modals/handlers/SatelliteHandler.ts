@@ -40,6 +40,11 @@ export class SatelliteHandler extends AbstractHandlerClass<AbstractStepModal> {
     description = t("step_builder_satellite_desc");
 
     handle(modal: AbstractStepModal): AbstractStepModal {
+        // An editor flow inserts into a note that already exists; `buildEditor` creates nothing, so
+        // it would never honour a linked note. Offering the control there would be a lie — the same
+        // reason TargetFolderSuggesterHandler hides the destination in this mode.
+        if (modal.builder === "editor") return this.goNext(modal);
+
         const { info } = modal;
         const { contentEl } = info;
         const state = satelliteFormState(info.satellite);

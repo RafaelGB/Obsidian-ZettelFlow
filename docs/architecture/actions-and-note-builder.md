@@ -579,7 +579,13 @@ extra, there is no "which note am I answering for?" mode, and `NoteDTO` gains **
 of becoming multi-note. That is why this change is small: only the build path and two display
 surfaces learn about the second file.
 
-Authored in the step editor: a **Linked note** section with a toggle, a template picker, the title
+Authored wherever a **step** is configured — the canvas node popup (*Edit ZettelFlow Step*), the
+canvas node right-click menu, right-clicking a step note in the file explorer, and the installed-step
+editor. It is **not** offered in the note-creation wizard (that is runtime: the wizard only *shows*
+what the step declared) nor in an **editor-mode** flow, where `buildEditor` inserts into an existing
+note and creates nothing, so a linked note would never be honoured.
+
+A **Linked note** section with a toggle, a template picker, the title
 pattern, a folder picker and two dropdowns (the relation and which note carries it). Defaults are the
 canonical pairing, so the only choice that is really yours is the template.
 

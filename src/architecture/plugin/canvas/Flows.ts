@@ -7,6 +7,7 @@ import { YamlService } from "../services/YamlService";
 import { FrontmatterService } from "../services/FrontmatterService";
 import { StepSettings } from "zettelkasten";
 import { getCanvasColor } from "./shared/Color";
+import { stepCanvasColor } from "zettelkasten/phases/phaseColor";
 import { canvasJsonFormatter } from "./formatter";
 import { findDirectChildren, isNodeInside } from "./shared/Geometry";
 
@@ -162,6 +163,21 @@ export class FlowImpl implements Flow {
         await this.save();
     }
 
+    editNodeColor = async (nodeId: string, color: string) => {
+        await this.refresh();
+        const node = this.data.nodes.find(candidate => candidate.id === nodeId);
+        if (!node) {
+            throw new Error(`Node ${nodeId} not found`);
+        }
+        if (color) {
+            node.color = color;
+        } else {
+            delete node.color;
+        }
+        this.nodes.set(nodeId, node);
+        await this.save();
+    }
+
     childrensOf = async (nodeId: string) => {
         const node = this.nodes.get(nodeId);
         if (node?.type !== "group") {
@@ -307,7 +323,9 @@ export class FlowImpl implements Flow {
         return {
             ...node,
             type: data.type,
-            color: getCanvasColor(data.color),
+            // A phased step with no colour of its own is drawn in its phase's colour (#429), from
+            // the same map the canvas paints with — the accent means the same thing in both places.
+            color: getCanvasColor(stepCanvasColor(data.color, node.phase)),
             id: data.id,
             path: data.type === "file" ? data.file : undefined,
             tooltip: edge?.tooltip,

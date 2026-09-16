@@ -20,6 +20,8 @@ export interface Flow {
     editTextNode: (nodeId: string, text: string) => Promise<void>
     /** Rewrite arrow labels in one pass; an empty string removes the label (#427). */
     editEdgeLabels: (labels: Record<string, string>) => Promise<void>
+    /** Paint a node with a canvas colour preset; an empty string clears it (#429). */
+    editNodeColor: (nodeId: string, color: string) => Promise<void>
     get: (nodeId: string) => Promise<FlowNode>
     childrensOf: (nodeId: string) => Promise<FlowNode[]>
     parentsOf: (nodeId: string) => Promise<FlowNode[]>

@@ -355,6 +355,7 @@ linked. They now answer five questions, in this order:
 | **When does it appear?** | root · trigger · wait · optional | when any is set |
 | **Where does it go?** | the target folder | when it is set |
 | **How is it shown?** | name · label · phase · children header | when any is set |
+| **Where does it go next?** | the step's exits, one row per arrow (#427) | when any exit is configured |
 
 The chain is kept — it is how a handler skips itself (root-only, editor-only) — so this changes
 **where** each `Setting` lands, not who builds it. The mapping is data (`stepGroups.ts`) and a test
@@ -383,13 +384,52 @@ drift from the settings above it. `revealNode` finds the leaf through the public
 `getLeavesOfType("canvas")`; only the selection call is undocumented, so three shapes are
 feature-detected and a failure hides the action instead of throwing (§VI).
 
+### Colour means the phase, and a node says what it does (#429)
+
+A node's colour used to be decoration travelling as information: you picked it by eye and the
+wizard painted the option with it. Now the **phase** (#149) decides the colour, from one map
+(`zettelkasten/phases/phaseColor.ts`) that both the canvas and the wizard's accent read — so the
+same phase is the same colour in both places, and a phased step that was never coloured borrows
+its phase's colour in the option list without anything being written.
+
+Seven phases, six canvas presets: **review and consolidate share the closing colour**. That is a
+decision, asserted by a test and stated in the legend rather than hidden.
+
+Painting a node is **never silent**:
+
+- the step editor offers *"colour this node by its phase"* — one click, and nothing changes until
+  it is pressed;
+- a setting (**off by default**) makes it automatic for people who want the canvas to paint itself;
+- clearing a phase never clears a colour. Removing meaning must not repaint someone's canvas.
+
+Each node also carries **badges** derived at render time — *N questions · template · linked note ·
+optional · conditional exits*. Nothing new is stored: they are read from the settings the step
+already has, and they disappear with the extension. A collapsible **legend** on the canvas states
+what the colours and the badges mean, so the canvas explains its own language instead of sending
+you to this page.
+
 ### What an option says (#423)
 
 An edge label does three jobs: it draws the transition, it stores the `if:` gate, and it is what the
 wizard shows as the option description. Since #409 made descriptions visible, a conditional edge
 printed its expression at the person writing the note. The gate still reads the raw label; a person
 reads only its **human half** (`describeOption`), and a group child — which has no edge — has no
-description rather than a fabricated one. #427 gives the three jobs three fields.
+description rather than a fabricated one.
+
+### The step owns its exits (#427)
+
+#427 gives those three jobs three fields, on the **source step**: `says` · `when` · `order` ·
+`default`, keyed by canvas edge id. The wizard resolves them once (`partitionExits`), which also
+replaced `partitionBranches` so there is a single path from *children of a node* to *options on
+screen* — an unconfigured arrow still reads its label, which is exactly the previous behaviour.
+
+Two doors, both forms: the step editor's *"Where does it go next?"* section (one row per arrow, the
+guided condition editor behind a button, ↑ ↓ to order, one click to make an exit the default) and
+the **arrow itself** on the canvas, which now configures its exit instead of writing code on its
+label. A previewed, idempotent migration moves existing labels into the step; the canvas keeps
+marking a conditional arrow because `styleForEdge` asks the step, not the label.
+
+See [conditional edges](conditional-edges.md) for the storage and the expression language.
 
 ### The preview became a diff (#412)
 

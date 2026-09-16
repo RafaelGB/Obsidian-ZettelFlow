@@ -174,6 +174,23 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
+                        // Colour as meaning (#429). Off by default: the step editor offers the
+                        // colour one click at a time, and this makes it automatic for people who
+                        // want the canvas to paint itself.
+                        name: t("settings_colour_by_phase_title"),
+                        desc: t("settings_colour_by_phase_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.colourNodesByPhase ?? false)
+                                    .onChange(async (value) => {
+                                        plugin.settings.colourNodesByPhase = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
                         name: t("ribbon_canvas_file_selector_title"),
                         desc: t("ribbon_canvas_file_selector_description"),
                         render: (setting) => {

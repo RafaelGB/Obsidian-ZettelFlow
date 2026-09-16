@@ -1,5 +1,6 @@
 import AddManagedStepExtension from './extensions/AddManagedStepExtension';
 import CanvasExtension from './extensions/CanvasExtension';
+import CanvasLegendExtension from './extensions/CanvasLegendExtension';
 import CanvasPatcher from './extensions/CanvasPatcher';
 import ConditionEditorExtension from './extensions/ConditionEditorExtension';
 import EditStepCanvasExtension from './extensions/EditCanvasExtension';
@@ -22,6 +23,7 @@ const allCanvasExtensions: CanvasExtensionConstructor[] = [
     WorkflowLegibilityExtension,
     ConditionEditorExtension,
     EmptyStateExtension,
+    CanvasLegendExtension,
 ];
 
 export { allCanvasExtensions, CanvasExtension, CanvasPatcher };

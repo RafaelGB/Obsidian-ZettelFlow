@@ -47,3 +47,110 @@
     // The button is the one interactive affordance; the rest of the card lets clicks/hover fall through.
     pointer-events: auto;
 }
+
+// ── What a node does, on the node (#429) ────────────────────────────────────────────────────────
+// Derived at render time and removed with the extension: no stored byte, no layout of ours inside
+// the node's own content — the strip rides under it.
+.zettelkasten-flow__node-badges {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1.5em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__node-badge {
+    padding: 0.05rem 0.35rem;
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+// ── The canvas explains its own language (#429) ─────────────────────────────────────────────────
+.zettelkasten-flow__canvas-legend {
+    position: absolute;
+    right: var(--size-4-3);
+    bottom: var(--size-4-3);
+    z-index: var(--layer-popover, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--size-4-1);
+    max-width: 24em;
+}
+
+.zettelkasten-flow__canvas-legend-toggle {
+    padding: 0.15rem 0.5rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__canvas-legend-toggle:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__canvas-legend-body {
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__canvas-legend-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__canvas-legend-note {
+    margin: var(--size-4-1) 0;
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__canvas-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.1rem 0;
+}
+
+.zettelkasten-flow__canvas-legend-label {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__canvas-legend-swatch {
+    width: 0.85em;
+    height: 0.85em;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+    flex-shrink: 0;
+}
+
+// The six canvas presets, named as classes so no rule needs an inline style.
+.zettelkasten-flow__canvas-legend-swatch-1 { background-color: var(--canvas-color-1); }
+.zettelkasten-flow__canvas-legend-swatch-2 { background-color: var(--canvas-color-2); }
+.zettelkasten-flow__canvas-legend-swatch-3 { background-color: var(--canvas-color-3); }
+.zettelkasten-flow__canvas-legend-swatch-4 { background-color: var(--canvas-color-4); }
+.zettelkasten-flow__canvas-legend-swatch-5 { background-color: var(--canvas-color-5); }
+.zettelkasten-flow__canvas-legend-swatch-6 { background-color: var(--canvas-color-6); }
+
+.zettelkasten-flow__canvas-legend-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: var(--size-4-1);
+}

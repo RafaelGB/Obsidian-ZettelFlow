@@ -64,6 +64,12 @@ export type StepSettings = {
      * form writes, and what a shared system carries, not something anyone is expected to hand-edit.
      */
     satellite?: SatelliteDeclaration,
+    /**
+     * The step's **body template** when it has no file to keep it in — an inline canvas box (#426).
+     * A step note keeps its template in the note itself; this is the same capability for the node
+     * kind #400 wants to promote. Absent = the step contributes no body, exactly as before.
+     */
+    body?: string,
 }
 
 export type ZettelFlowElement = {

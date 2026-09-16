@@ -4,7 +4,7 @@ import { v4 as uuid4 } from "uuid";
 
 export class StepBuilderMapper {
     public static StepBuilderInfo2StepSettings(info: StepBuilderInfo): StepSettings {
-        const { label, childrenHeader, targetFolder, root, optional, actions, phase, trigger, wait, onCreation } = info;
+        const { label, childrenHeader, targetFolder, root, optional, actions, phase, trigger, wait, onCreation, satellite, body } = info;
         const settings: StepSettings = {
             root,
             actions,
@@ -21,6 +21,11 @@ export class StepBuilderMapper {
         if (wait !== undefined) settings.wait = wait;
         // Preserve Knowledge Pattern on-creation behavior opaquely — #170.
         if (onCreation !== undefined) settings.onCreation = onCreation;
+        // Preserve the linked note — #419. Its absence here silently deleted the declaration the
+        // form had just written, which is why the round-trip test exists.
+        if (satellite !== undefined) settings.satellite = satellite;
+        // An inline box keeps its template here, having no file to keep it in — #426.
+        if (body !== undefined) settings.body = body;
         return settings;
     }
 

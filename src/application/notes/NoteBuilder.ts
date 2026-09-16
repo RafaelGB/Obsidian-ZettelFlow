@@ -2,6 +2,7 @@ import { FatalError, ObsidianApi, log } from "architecture";
 import { t } from "architecture/lang";
 import { substituteContextTokens } from "./contextTokens";
 import { composeFilename } from "./destination";
+import { orderedTemplateSources } from "./stepBody";
 import { resolveSatellite, SATELLITE_ERROR_KEYS } from "./satellitePlan";
 import { writeSatellite } from "./satelliteWriter";
 import { TypeService } from "architecture/typing";
@@ -166,10 +167,17 @@ export class NoteBuilder {
   }
 
   private async buildNote() {
-    log.debug(`Builder: ${this.note.getPaths().size} paths to process`);
-    for (const [, path] of this.note.getPaths()) {
-      log.trace(`Builder: processing path ${path}`);
-      const file = await FileService.getFile(path);
+    // One ordered list, so a step note and an inline box contribute in the order they were
+    // walked rather than by which map they happen to live in (#426).
+    const sources = orderedTemplateSources(this.note.getPaths(), this.note.getInlineBodies());
+    log.debug(`Builder: ${sources.length} templates to process`);
+    for (const source of sources) {
+      if ("body" in source) {
+        this.content.add(source.body);
+        continue;
+      }
+      log.trace(`Builder: processing path ${source.path}`);
+      const file = await FileService.getFile(source.path);
       if (!file) continue;
       const service = FrontmatterService.instance(file);
       const frontmatter = service.getFrontmatter();

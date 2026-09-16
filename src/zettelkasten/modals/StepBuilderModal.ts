@@ -1,4 +1,4 @@
-import { Notice, Platform, setIcon, TFile } from "obsidian";
+import { Notice, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
@@ -173,13 +173,13 @@ export class StepBuilderModal extends AbstractStepModal {
         this.chain.handle(this);
 
         // A handler that skipped itself must not leave a heading behind (#425 FR-4).
-        this.pruneEmptyGroups();
+        // The body template is a step's template wherever the step lives: a step note keeps it in
+        // the file, an inline box in its own settings (#426). It used to exist only for the former,
+        // which made the path #400 wants to promote the poorest one.
+        this.setupBody();
 
-        // Body template editor (desktop only, not in embed mode). Embed nodes store
-        // their config on the canvas node itself, so they have no markdown body to edit.
-        if (!Platform.isMobile && this.mode !== "embed") {
-            this.setupBody();
-        }
+        // Only after everything has rendered: a question nobody answered leaves no heading (#425).
+        this.pruneEmptyGroups();
     }
 
     /**
@@ -278,7 +278,31 @@ export class StepBuilderModal extends AbstractStepModal {
             this.info.body = textarea.value;
         });
 
-        // Load from file when editing (body undefined = not yet loaded)
+        // The tokens are insertable rather than documented: a template language you have to
+        // remember is a capability you have to look up (#426).
+        const tokens = contentEl.createDiv({ cls: c("step-builder-tokens") });
+        tokens.createSpan({ text: t("step_builder_body_tokens") });
+        const INSERTABLE: [string, LocaleKey][] = [
+            ["{{title}}", "step_builder_body_token_title"],
+            ["{{date}}", "step_builder_body_token_date"],
+            ["{{canvas.name}}", "step_builder_body_token_canvas"],
+        ];
+        for (const [token, labelKey] of INSERTABLE) {
+            const button = tokens.createEl("button", {
+                cls: c("step-builder-token"),
+                text: token,
+                attr: { type: "button", title: t(labelKey), "aria-label": t(labelKey) },
+            });
+            button.addEventListener("click", () => {
+                const at = textarea.selectionStart ?? textarea.value.length;
+                textarea.value = textarea.value.slice(0, at) + token + textarea.value.slice(at);
+                this.info.body = textarea.value;
+                textarea.focus();
+                textarea.setSelectionRange(at + token.length, at + token.length);
+            });
+        }
+
+        // Load from file when editing a step note (an inline box keeps its body in its settings).
         if (this.info.body === undefined && this.mode === "edit") {
             void this.loadBodyFromFile(textarea);
         }
@@ -347,7 +371,10 @@ export class StepBuilderModal extends AbstractStepModal {
 
     private async saveFile(path: string): Promise<void> {
         let file = await FileService.getFile(path, false);
-        const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
+        // A step note's template is the note itself, so the body never goes into its frontmatter
+        // too — that is the inline box's storage, not this one's (#426).
+        const { body: _inlineBody, ...stepSettings } =
+            StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
         const body = this.info.body;
         if (!file) {
             file = await FileService.createFile(path, body ?? "", false);

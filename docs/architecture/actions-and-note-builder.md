@@ -321,6 +321,28 @@ four blind clicks — so people abandoned the flow instead. The breadcrumb from 
   the contributions it removes so redo can put them back; answering something new clears the
   forward history — a line, not a tree.
 
+### Where a step keeps its template (#426)
+
+| Node kind | Template lives in |
+|---|---|
+| Step note | the **note** itself (its body) |
+| Inline box / group | the step settings (`body`), because there is no file to keep it in |
+
+The body editor used to be skipped for inline boxes entirely, so the node kind #400 wants to promote
+could contribute actions but never a template — and the only way round it was to convert the node
+into a note. Both kinds now use the same editor; the builder and the preview walk **one** ordered
+list (`orderedTemplateSources`) so a step note and an inline box contribute in the order they were
+walked, not by which map they live in. A step note never stores its body in frontmatter as well:
+that storage belongs to the inline box, not to it.
+
+The tokens are **insertable buttons**, not documentation — a template language you have to remember
+is a capability you have to look up.
+
+> **Saving keeps what it was given.** `StepBuilderInfo2StepSettings` enumerates the fields it
+> carries, so a capability added to `StepSettings` and forgotten there is silently deleted on save.
+> That had already happened to the #419 linked note. `stepBuilderRoundTrip.test.ts` now pins the
+> full list.
+
 ### The step editor, organised by questions (#425)
 
 Eleven settings used to render in one flat list, in whatever order the handler chain happened to be

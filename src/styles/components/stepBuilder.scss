@@ -127,3 +127,22 @@
 .zettelkasten-flow__step-group-body.zettelkasten-flow__is-hidden {
     display: none;
 }
+
+/* Insertable tokens under the body template (#426) — a language you pick, not one you memorise. */
+.zettelkasten-flow__step-builder-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: var(--size-4-1);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__step-builder-token {
+    padding: 0 0.4rem;
+    border-radius: var(--radius-s);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}

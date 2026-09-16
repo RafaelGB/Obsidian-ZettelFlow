@@ -102,6 +102,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         }
         builder.note
           .addPath(node.path, position)
+          .addInlineBody(node.body, position)
           .setTargetFolder(node.targetFolder)
           .addOnCreation(resolveOnCreationActions(node))
           .setSatellite(resolveSatelliteDeclaration(node));

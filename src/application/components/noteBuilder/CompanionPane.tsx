@@ -16,6 +16,12 @@ import {
 } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { buildNoteDiff, DiffSource, NoteDiff } from "application/notes/noteDiff";
+import {
+  resolveSatellite,
+  satellitePreview,
+  SATELLITE_ERROR_KEYS,
+  type SatelliteError,
+} from "application/notes/satellitePlan";
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
@@ -161,6 +167,51 @@ function collectModifications(builder: NoteBuilder): Record<string, string> {
   return modifications;
 }
 
+/**
+ * The linked note's preview (#419): resolved with the **same** function the build writes with, then
+ * diffed with the same `buildNoteDiff` — one engine, two notes. `null` when no step declared one.
+ */
+async function assembleSatellite(
+  builder: NoteBuilder,
+  assembled: NotePreview,
+  modal: SelectorMenuModal
+): Promise<
+  { title: string; path: string; relation: string; diff: NoteDiff } | { error: SatelliteError } | null
+> {
+  const declaration = builder.note.getSatellite();
+  if (!declaration) return null;
+
+  const resolved = resolveSatellite(declaration, {
+    mainTitle: assembled.title,
+    mainPath: `${builder.note.getTargetFolder()}/${assembled.title}.md`,
+    frontmatter: assembled.frontmatter,
+    canvasName: modal.getCanvasName(),
+  });
+  if (!resolved) return null;
+  if ("error" in resolved) return resolved;
+
+  const file = await FileService.getFile(resolved.template, false);
+  if (!file) return { error: "template-missing" };
+  const service = FrontmatterService.instance(file);
+  const template = {
+    frontmatter: (service.getFrontmatter() ?? {}) as Record<string, unknown>,
+    body: await service.getContent(),
+  };
+
+  return {
+    title: resolved.title,
+    path: resolved.path,
+    relation: resolved.edge.key,
+    diff: buildNoteDiff({
+      baseline: { frontmatter: {}, body: "" },
+      preview: satellitePreview(resolved, template, {
+        frontmatter: assembled.frontmatter,
+        canvasName: modal.getCanvasName(),
+      }),
+    }),
+  };
+}
+
 /** What the build will add or change — the question the preview did not answer (#412). */
 function DiffSummary({ diff, editing }: { diff: NoteDiff; editing: boolean }) {
   const changed = diff.frontmatter.filter((entry) => entry.kind !== "unchanged");
@@ -249,6 +300,10 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
   const [state, setState] = useState<PaneState>("empty");
   const [preview, setPreview] = useState<NotePreview | null>(null);
   const [diff, setDiff] = useState<NoteDiff | null>(null);
+  // The linked note's own diff (#419 FR-5), or the defect in its declaration.
+  const [satellite, setSatellite] = useState<
+    { title: string; path: string; relation: string; diff: NoteDiff } | { error: SatelliteError } | null
+  >(null);
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
   // Rejected suggestions are not proposed again for the rest of the session (#411 FR-4).
   const [rejected, setRejected] = useState<string[]>([]);
@@ -307,6 +362,7 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
               modifications: collectModifications(builder),
             })
           );
+          setSatellite(await assembleSatellite(builder, assembled, modal));
           setSuggestions(nextSuggestions);
           setState("ready");
           log.debug(
@@ -361,6 +417,23 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
           </p>
         )}
         {state === "ready" && diff && <DiffSummary diff={diff} editing={modal.isEditor()} />}
+        {state === "ready" && satellite && (
+          <div className={c("companion-pane-satellite")}>
+            <h5 className={c("companion-pane-diff-heading")}>{t("satellite_diff_title")}</h5>
+            {"error" in satellite ? (
+              <p className={c("companion-pane-status", "companion-pane-status--error")}>
+                {t(SATELLITE_ERROR_KEYS[satellite.error])}
+              </p>
+            ) : (
+              <>
+                <p className={c("companion-pane-satellite-path")}>
+                  {t("satellite_relation_summary", satellite.path, satellite.relation)}
+                </p>
+                <DiffSummary diff={satellite.diff} editing={false} />
+              </>
+            )}
+          </div>
+        )}
         {state === "ready" && preview && (
           <div className={c("companion-pane-preview")}>
             <h3 className={c("companion-pane-preview-title")}>

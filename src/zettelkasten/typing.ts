@@ -6,6 +6,7 @@ import type { ZettelIdStrategy, FolgezettelRelationship } from "../actions/zette
 import type { StepPhase } from "./phases";
 import type { WorkflowTrigger } from "architecture/plugin/events";
 import type { WaitSettings } from "architecture/plugin/workflow";
+import type { SatelliteDeclaration } from "application/notes/satellitePlan";
 
 export type StepBuilderInfo = {
     type: string,
@@ -55,6 +56,14 @@ export type StepSettings = {
      * yet); the builder preserves it opaquely so an unrelated edit never drops it.
      */
     onCreation?: Action[],
+    /**
+     * Optional **satellite note** (#419): a second, linked note this step also creates — the
+     * literature/permanent pairing in one pass instead of two plus a manual link. Additive & opt-in,
+     * like {@link trigger}, {@link wait} and {@link onCreation}: absence means one note, exactly as
+     * before. **Authored from the step editor's form** (constitution §XIII) — this block is what the
+     * form writes, and what a shared system carries, not something anyone is expected to hand-edit.
+     */
+    satellite?: SatelliteDeclaration,
 }
 
 export type ZettelFlowElement = {

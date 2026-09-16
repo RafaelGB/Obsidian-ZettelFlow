@@ -201,6 +201,27 @@ practice does. That is the **summit**: depth that serves your practice, not diff
 
 > **Useful from the first idea. Deeper as your practice grows.**
 
+## Power you can reach
+
+A capability nobody can switch on is a capability nobody has. Depth belongs in **what the tool can
+do**, never in **what you must know to turn it on**.
+
+Every capability is authored where it is used — in the step editor, in settings, in the surface that
+owns it — with defaults that already work. Hand-editing a YAML or JSON block is never the intended
+path and never the only one. Configuration files are an **export format and an escape hatch**, for
+people who prefer them and for systems that ship them; they are not an admission fee.
+
+This is not the same as hiding power. A form that can only express the easy half is worse than no
+form, because the missing half is exactly what sends people back to the file. The interface must be
+able to author the **whole** capability, and what it writes must be exactly what a shared system
+carries.
+
+> **If the only way to use it is to edit a config file, it is not finished.**
+
+The corollary is ours to carry: the effort a feature demands is part of the feature. Something that
+technically exists but costs an afternoon of reading to enable has not shipped — it has been
+announced.
+
 ## The test for every addition
 
 Before building, ask:
@@ -210,6 +231,7 @@ Before building, ask:
 3. **What does the system actually know?** State the basis, scope and limits; do not infer a mind from a log.
 4. **What do we deepen or simplify?** Reuse a capability and preserve people's work rather than add a rival surface.
 5. **How will we know it helped?** Test an observable outcome and the burden of using it, with consent and no hidden telemetry.
+6. **What must someone learn before this works?** If the honest answer includes a file format, it is not done.
 
 The [constitution](development/constitution.md) makes the engineering boundaries enforceable. This
 manifesto sets the direction, not a claim that every journey described here already ships. The

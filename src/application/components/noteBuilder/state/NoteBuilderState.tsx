@@ -12,6 +12,7 @@ import { Action } from "architecture/api";
 import { v4 as uuid4 } from "uuid";
 import { FileService } from "architecture/plugin";
 import { resolveOnCreationActions } from "application/patterns/resolveOnCreationActions";
+import { resolveSatelliteDeclaration } from "application/patterns/resolveSatelliteDeclaration";
 import { restoreDraft, WizardDraft } from "application/notes/draftState";
 import {
   bufferVerdict,
@@ -102,7 +103,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         builder.note
           .addPath(node.path, position)
           .setTargetFolder(node.targetFolder)
-          .addOnCreation(resolveOnCreationActions(node));
+          .addOnCreation(resolveOnCreationActions(node))
+          .setSatellite(resolveSatelliteDeclaration(node));
 
         return {
           builder,
@@ -291,6 +293,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
         elements: builder.note.getElements(),
         links: builder.note.getLinks(),
         onCreation: builder.note.getOnCreation(),
+        satellite: builder.note.getSatellite(),
       };
     },
     restoreFromDraft: (draft: WizardDraft) => {

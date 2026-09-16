@@ -1,5 +1,6 @@
 import type { Action } from "architecture/api";
 import type { FinalElement } from "./typing";
+import type { SatelliteDeclaration } from "./satellitePlan";
 
 /**
  * The note-builder draft (#410, epic #405) — pure shape, validation and housekeeping.
@@ -48,6 +49,11 @@ export interface WizardDraft {
     links: string[];
     /** On-creation actions collected from the walked steps. */
     onCreation?: Action[];
+    /**
+     * The linked note a walked step declared (#419). Optional, so `DRAFT_VERSION` does not change:
+     * a draft written before this field is still a valid draft.
+     */
+    satellite?: SatelliteDeclaration;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -103,6 +109,10 @@ export function readDraft(value: unknown): WizardDraft | undefined {
         elements: value.elements,
         links: value.links,
         onCreation: Array.isArray(value.onCreation) ? (value.onCreation as Action[]) : undefined,
+        // Handed back as authored; validation is satellitePlan's job, not the reader's.
+        satellite: isRecord(value.satellite)
+            ? (value.satellite as unknown as SatelliteDeclaration)
+            : undefined,
     };
 }
 
@@ -169,6 +179,7 @@ export interface DraftSnapshot {
     elements: Map<number, FinalElement>;
     links: string[];
     onCreation: Action[];
+    satellite?: SatelliteDeclaration;
 }
 
 /** Freeze a live wizard session into a persistable draft. */
@@ -185,6 +196,7 @@ export function serializeDraft(snapshot: DraftSnapshot): WizardDraft {
         elements: [...snapshot.elements.entries()].sort((a, b) => a[0] - b[0]),
         links: [...snapshot.links],
         onCreation: snapshot.onCreation.length > 0 ? [...snapshot.onCreation] : undefined,
+        ...(snapshot.satellite ? { satellite: snapshot.satellite } : {}),
     };
 }
 
@@ -199,6 +211,7 @@ export interface DraftTarget {
     addFinalElement(element: FinalElement | undefined, position: number): unknown;
     addLink(basename: string | undefined): unknown;
     addOnCreation(actions: Action[]): unknown;
+    setSatellite(declaration: SatelliteDeclaration | undefined): unknown;
 }
 
 /**
@@ -212,4 +225,5 @@ export function restoreDraft(draft: WizardDraft, note: DraftTarget): void {
     for (const [position, element] of draft.elements) note.addFinalElement(element, position);
     for (const link of draft.links) note.addLink(link);
     if (draft.onCreation && draft.onCreation.length > 0) note.addOnCreation(draft.onCreation);
+    if (draft.satellite) note.setSatellite(draft.satellite);
 }

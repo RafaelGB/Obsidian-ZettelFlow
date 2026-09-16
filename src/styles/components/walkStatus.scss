@@ -182,3 +182,10 @@
 .zettelkasten-flow__hidden-branches-reason {
     font-style: italic;
 }
+
+/* The second destination: the linked note this flow will also create (#419). */
+.zettelkasten-flow__walk-status-satellite {
+    padding-left: var(--size-4-2);
+    border-left: 2px solid var(--background-modifier-border);
+    font-style: italic;
+}

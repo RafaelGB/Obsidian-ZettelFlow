@@ -7,6 +7,7 @@ import {
     placeholderReplacements,
 } from "application/notes/noteDiff";
 import { assembleNotePreview } from "application/notes/previewAssembly";
+import { satellitePreview } from "application/notes/satellitePlan";
 
 describe("the preview says what will change, not just what it will look like (#412)", () => {
     it("marks keys the build adds", () => {
@@ -111,5 +112,49 @@ describe("the preview says what will change, not just what it will look like (#4
         expect(diff.bodyBlocks).toEqual(["a", "b"]);
         expect(diff.conflicts).toHaveLength(1);
         expect(diff.placeholders).toEqual([]);
+    });
+});
+
+const CTX = { frontmatter: { author: "Luhmann" }, canvasName: "zettel" };
+
+describe("the linked note gets its own diff (#419, FR-5)", () => {
+    const plan = {
+        template: "steps/permanent.md",
+        title: "Luhmann 1992 — idea",
+        path: "zettel/ideas/Luhmann 1992 — idea.md",
+        edge: {
+            on: "satellite" as const,
+            target: "Luhmann 1992",
+            key: "inspired-by",
+            value: "[[Luhmann 1992]]",
+        },
+    };
+    const template = { frontmatter: { state: "permanent" }, body: "## What I now think\n\nBecause." };
+
+    it("is built from its own template, against an empty baseline", () => {
+        const diff = buildNoteDiff({
+            baseline: { frontmatter: {}, body: "" },
+            preview: satellitePreview(plan, template, CTX),
+        });
+        expect(diff.frontmatter.map((entry) => `${entry.kind}:${entry.key}`)).toEqual([
+            "added:inspired-by",
+            "added:state",
+        ]);
+        expect(diff.bodyBlocks).toEqual(["## What I now think", "Because."]);
+        expect(diff.conflicts).toEqual([]);
+    });
+
+    it("leaves the edge off the satellite when the main note carries it", () => {
+        const diff = buildNoteDiff({
+            baseline: { frontmatter: {}, body: "" },
+            preview: satellitePreview({ ...plan, edge: { ...plan.edge, on: "main" } }, template, CTX),
+        });
+        expect(diff.frontmatter.map((entry) => entry.key)).toEqual(["state"]);
+    });
+
+    it("never carries the main note's content into the satellite", () => {
+        const preview = satellitePreview(plan, template, CTX);
+        expect(preview.body).toBe(template.body);
+        expect(preview.frontmatter).not.toBe(template.frontmatter);
     });
 });

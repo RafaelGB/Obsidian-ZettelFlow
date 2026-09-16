@@ -2,7 +2,7 @@ import { AbstractHandlerClass } from "architecture/patterns";
 import { Setting } from "obsidian";
 import { t } from "architecture/lang";
 import { FolderSuggest } from "architecture/settings";
-import { OptionalToggleHandler } from "./OptionalToggleHandler";
+import { SatelliteHandler } from "./SatelliteHandler";
 import { AbstractStepModal } from "../AbstractStepModal";
 
 export class TargetFolderSuggesterHandler extends AbstractHandlerClass<AbstractStepModal> {
@@ -37,6 +37,6 @@ export class TargetFolderSuggesterHandler extends AbstractHandlerClass<AbstractS
     }
 
     public manageNextHandler() {
-        this.nextHandler = new OptionalToggleHandler();
+        this.nextHandler = new SatelliteHandler();
     }
 }

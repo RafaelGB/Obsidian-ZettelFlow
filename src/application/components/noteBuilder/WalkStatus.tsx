@@ -4,6 +4,7 @@ import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { describeDestination } from "application/notes";
+import { resolveSatellite, SATELLITE_ERROR_KEYS } from "application/notes/satellitePlan";
 import { flowAdjacency, remainingSteps } from "architecture/plugin/canvas/walkProgress";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
@@ -20,7 +21,7 @@ const moment = obsidianMoment as unknown as typeof MomentFn;
  * the position is shown alone rather than a number the flow cannot stand behind.
  */
 export function WalkStatus(props: NoteBuilderType) {
-  const { flow } = props;
+  const { flow, modal } = props;
   const creationMode = useNoteBuilderStore((store) => store.creationMode);
   const previousArray = useNoteBuilderStore((store) => store.previousArray);
   const currentNode = useNoteBuilderStore((store) => store.currentNode);
@@ -52,6 +53,21 @@ export function WalkStatus(props: NoteBuilderType) {
     // The builder is mutated in place, so these identity-changing values are the signal.
   }, [position, title]);
 
+  // The linked note a walked step declared (#419), resolved through the **same** function the build
+  // writes with — so the line cannot drift from what happens. It is a preview: a title pattern that
+  // reads frontmatter converges as the walk fills it in.
+  const satellite = useMemo(() => {
+    const note = useNoteBuilderStore.getState().builder.note;
+    const declaration = note.getSatellite();
+    if (!declaration || !destination.path) return undefined;
+    return resolveSatellite(declaration, {
+      mainTitle: destination.filename,
+      mainPath: destination.path,
+      frontmatter: {},
+      canvasName: modal.getCanvasName(),
+    });
+  }, [destination.path, destination.filename, position]);
+
   return (
     <div className={c("walk-status")}>
       <span className={c("walk-status-position")}>
@@ -63,6 +79,13 @@ export function WalkStatus(props: NoteBuilderType) {
           title={t("note_builder_steps_left_explanation")}
         >
           {t("note_builder_steps_left", String(remaining))}
+        </span>
+      )}
+      {creationMode && satellite && (
+        <span className={c("walk-status-destination", "walk-status-satellite")}>
+          {"error" in satellite
+            ? t(SATELLITE_ERROR_KEYS[satellite.error])
+            : t("satellite_destination_label", satellite.path, satellite.edge.key)}
         </span>
       )}
       {creationMode && (

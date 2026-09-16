@@ -321,6 +321,24 @@ four blind clicks — so people abandoned the flow instead. The breadcrumb from 
   the contributions it removes so redo can put them back; answering something new clears the
   forward history — a line, not a tree.
 
+### The step editor says what you are editing (#424)
+
+The dialog used to open with the constant *"ZettelFlow step builder"* — identical for a root step
+that fires on a vault event and for a leaf that asks one question. It now leads with the **step**:
+
+- the heading is the step name (label → file name → *unnamed step*);
+- an identity row states the node kind (**inline box · group · step note**), the #151 block kind, the
+  phase, and a badge per thing switched on (start of the flow · runs on an event · pauses for you ·
+  can be skipped · creates a linked note);
+- a plain-language line says what it **does** — *asks 2 things · applies a template · writes to
+  Sources* — or admits that it *does nothing yet*;
+- **show on the canvas** selects and centres the node it came from.
+
+The line is a pure projection (`stepIdentity`) that returns locale keys, so it is unit-tested and cannot
+drift from the settings above it. `revealNode` finds the leaf through the public
+`getLeavesOfType("canvas")`; only the selection call is undocumented, so three shapes are
+feature-detected and a failure hides the action instead of throwing (§VI).
+
 ### What an option says (#423)
 
 An edge label does three jobs: it draws the transition, it stores the `if:` gate, and it is what the

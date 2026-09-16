@@ -4,7 +4,7 @@ import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
-import { mergeStepSettingsIntoFrontmatter } from "zettelkasten/phases";
+import { mergeStepSettingsIntoFrontmatter, PHASE_LABEL_KEY } from "zettelkasten/phases";
 import { ObsidianApi, c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
 import { AbstractStepModal } from "./AbstractStepModal";
@@ -12,6 +12,9 @@ import ZettelFlow from "main";
 import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
 import { UsedInstalledStepsModal } from "application/community";
 import { ConfirmModal } from "architecture/components/settings";
+import { stepIdentity, type SummaryFragment } from "./handlers/stepIdentity";
+import { BLOCK_LABEL_KEY } from "architecture/plugin/workflow";
+import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
 
 export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
@@ -52,7 +55,12 @@ export class StepBuilderModal extends AbstractStepModal {
         // Header with title and subtitle with the mode
         const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
 
-        navbar.createEl("h2", { text: t("step_builder_title") })
+        // The heading names the step, not the product: on a canvas of fifteen nodes you used to
+        // find out what you had opened three fields down (#424).
+        const identity = stepIdentity(this.info);
+        navbar.createEl("h2", {
+            text: identity.title ?? t(identity.titleKey as LocaleKey),
+        });
 
         // Separator
         navbar.createSpan();
@@ -151,6 +159,8 @@ export class StepBuilderModal extends AbstractStepModal {
         });
         setIcon(saveButton.createDiv(), "book-marked");
 
+        this.renderIdentity(identity);
+
         this.chain.handle(this);
 
         // Body template editor (desktop only, not in embed mode). Embed nodes store
@@ -158,6 +168,46 @@ export class StepBuilderModal extends AbstractStepModal {
         if (!Platform.isMobile && this.mode !== "embed") {
             this.setupBody();
         }
+    }
+
+    /** What this step is and what it does — stated, never editable (#424). */
+    private renderIdentity(identity: ReturnType<typeof stepIdentity>): void {
+        const { contentEl } = this.info;
+        const row = contentEl.createDiv({ cls: c("step-identity") });
+
+        row.createSpan({ cls: c("step-identity-kind"), text: t(identity.kindKey as LocaleKey) });
+        row.createSpan({
+            cls: c("step-identity-block"),
+            text: t(BLOCK_LABEL_KEY[identity.block]),
+        });
+        if (identity.phase) {
+            row.createSpan({
+                cls: c("step-identity-phase"),
+                text: t(PHASE_LABEL_KEY[identity.phase]),
+            });
+        }
+        for (const badge of identity.badges) {
+            row.createSpan({ cls: c("step-identity-badge"), text: t(badge as LocaleKey) });
+        }
+
+        if (identity.canReveal && this.info.nodeId) {
+            const nodeId = this.info.nodeId;
+            const reveal = row.createEl("button", {
+                cls: c("step-identity-reveal"),
+                text: t("step_identity_reveal"),
+                attr: { "aria-label": t("step_identity_reveal") },
+            });
+            reveal.addEventListener("click", () => {
+                if (!CanvasHelper.revealNode(this.plugin, nodeId)) {
+                    new Notice(t("step_identity_reveal_failed"));
+                }
+            });
+        }
+
+        contentEl.createDiv({
+            cls: c("step-identity-summary"),
+            text: identity.summary.map((fragment) => describe(fragment)).join(" · "),
+        });
     }
 
     refresh(): void {
@@ -299,4 +349,13 @@ export class StepBuilderModal extends AbstractStepModal {
             }
         }
     }
+}
+
+type LocaleKey = Parameters<typeof t>[0];
+
+/** One summary fragment as a sentence piece; the value is interpolated when the key takes one. */
+function describe(fragment: SummaryFragment): string {
+    return fragment.value === undefined
+        ? t(fragment.key as LocaleKey)
+        : t(fragment.key as LocaleKey, fragment.value);
 }

@@ -579,8 +579,16 @@ extra, there is no "which note am I answering for?" mode, and `NoteDTO` gains **
 of becoming multi-note. That is why this change is small: only the build path and two display
 surfaces learn about the second file.
 
+Authored in the step editor: a **Linked note** section with a toggle, a template picker, the title
+pattern, a folder picker and two dropdowns (the relation and which note carries it). Defaults are the
+canonical pairing, so the only choice that is really yours is the template.
+
+The block below is simply **what that form writes** — visible here because it is also what a shared
+`.zftemplate` carries, not because anyone is expected to type it
+([constitution §XIII](../development/constitution.md)):
+
 ```yaml
-# in a step's zettelflowConfig / frontmatter
+# what the step editor writes into the step's settings
 satellite:
   template: steps/permanent.md
   title: "{{title}} — idea"     # the body-template tokens, plus {{title}}
@@ -616,7 +624,7 @@ The same `resolveSatellite` powers all three, so none of them can drift from wha
 
 | Surface | Shows |
 |---|---|
-| The step editor (read-only) | the declaration, and **its defect** if any — an empty template is caught while authoring, so the plugin never manufactures the debt Health would then report |
+| The step editor (the form) | the declaration itself, with **its defect inline** — an empty template is caught while authoring, so the plugin never manufactures the debt Health would then report |
 | The destination line (#408) | *"It will also create `folder/name.md`, related by inspired-by"* |
 | The companion pane (#412) | the satellite's **own** diff, from its own template, plus the edge |
 

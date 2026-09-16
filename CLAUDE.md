@@ -169,6 +169,12 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
   AI or heuristic) reaches the vault **only through an explicit human accept/modify/reject**, and the
   verdict is recorded. This is [constitution §XII](docs/development/constitution.md) and it is a review
   gate, not a preference.
+- **Operational simplicity (a core principle — see the [manifesto](docs/manifesto.md)).** A capability
+  is authorable **from the interface that owns it**, with working defaults; the `Setting` ships in the
+  same change as the data field it writes. A feature whose only authoring path is hand-edited YAML is
+  **not shippable**, however well documented — configuration files are an export format and an escape
+  hatch, never the front door. This is
+  [constitution §XIII](docs/development/constitution.md) and it is a review gate, not a preference.
 - **Design by subtraction (a core principle — see the [manifesto](docs/manifesto.md)).** Prefer
   removing or centralizing over adding. If a new capability overlaps an existing one, **empower one**
   instead of shipping both; keep the product minimal and comprehensible. An addition must earn its

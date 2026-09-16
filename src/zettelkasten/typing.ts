@@ -60,8 +60,8 @@ export type StepSettings = {
      * Optional **satellite note** (#419): a second, linked note this step also creates — the
      * literature/permanent pairing in one pass instead of two plus a manual link. Additive & opt-in,
      * like {@link trigger}, {@link wait} and {@link onCreation}: absence means one note, exactly as
-     * before. Authored in frontmatter/YAML in v1; the builder preserves it opaquely and the step
-     * editor reports a broken declaration rather than waiting for build time.
+     * before. **Authored from the step editor's form** (constitution §XIII) — this block is what the
+     * form writes, and what a shared system carries, not something anyone is expected to hand-edit.
      */
     satellite?: SatelliteDeclaration,
 }

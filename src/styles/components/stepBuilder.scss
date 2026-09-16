@@ -22,36 +22,20 @@
     }
 }
 
-/* The step's linked-note declaration (#419): read-only, and it states its own defects. */
-.zettelkasten-flow__satellite-summary {
+/* The step's linked-note form (#419). Hidden as a block when the capability is off. */
+.zettelkasten-flow__satellite-fields {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    padding: var(--size-4-2);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    font-size: var(--font-ui-smaller);
 }
 
-.zettelkasten-flow__satellite-summary-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+.zettelkasten-flow__satellite-fields.zettelkasten-flow__is-hidden {
+    display: none;
 }
 
-.zettelkasten-flow__satellite-summary-label {
-    min-width: 8rem;
-    color: var(--text-muted);
-}
-
-.zettelkasten-flow__satellite-summary-value {
-    font-family: var(--font-monospace);
-    overflow-wrap: anywhere;
-}
-
-.zettelkasten-flow__satellite-summary-error {
-    margin-top: var(--size-4-1);
-    padding-top: var(--size-4-1);
-    border-top: 1px solid var(--background-modifier-error);
+.zettelkasten-flow__satellite-error:not(:empty) {
+    margin: var(--size-4-1) 0;
+    padding: var(--size-4-1) var(--size-4-2);
+    border-left: 2px solid var(--background-modifier-error);
     color: var(--text-error);
+    font-size: var(--font-ui-smaller);
 }

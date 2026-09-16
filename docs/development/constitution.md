@@ -92,6 +92,24 @@ Three invariants make this enforceable, not aspirational:
   metrics are **queries over the model, not invented dashboard features** — *metrics are
   consequences, not inventions*.
 
+## XIII. Configuration is a product surface, not a fallback
+
+The manifesto's *power you can reach*: a capability is authorable **from the interface that owns it**,
+with working defaults. A feature whose only authoring path is a hand-edited YAML/JSON block is **not
+shippable**, however well documented.
+
+Three consequences a reviewer can check on a diff:
+
+- **The authoring control ships with the field.** A new step/flow capability adds its `Setting` in the
+  step editor (or its settings row, or its modal field) in the *same* change that adds the data field.
+- **The form is complete.** It can express every field the engine reads. A half-authorable capability
+  is rejected: the missing half is precisely what drives people back to the file.
+- **The file stays valid.** What the form writes is what a `.zftemplate` carries, so hand-authoring
+  remains possible for those who want it — as an escape hatch, not the front door.
+
+Recorded debt rather than hidden debt: **`onCreation` (#170) is still YAML-only** and predates this
+rule. It is the one exception on the books, and it is a defect, not a precedent.
+
 ## XII. Never write a judgement the user did not make
 
 The manifesto's meta-principle is **cognitive agency**: ZettelFlow removes *mechanical* work and

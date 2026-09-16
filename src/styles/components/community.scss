@@ -275,6 +275,8 @@
 
 .zettelkasten-flow__template-type-step .zettelkasten-flow__community-templates-card-type-badge {
     background-color: var(--color-accent);
+    /* Restated where the background is chosen, so a new badge variant cannot forget it. */
+    color: var(--text-on-accent);
 }
 
 .zettelkasten-flow__template-type-action .zettelkasten-flow__community-templates-card-type-badge {
@@ -372,6 +374,7 @@
 
 .zettelkasten-flow__community-templates-uninstall-button:hover {
     background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
 }
 
 /* Loading or sentinel states */

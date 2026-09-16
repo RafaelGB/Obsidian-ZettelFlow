@@ -94,6 +94,8 @@
 /* This section warning the user with red tones */
 .zettelkasten-flow__settings-developer-section {
     background-color: var(--background-modifier-error);
+    /* A tint rather than a solid fill, so the normal text colour is the legible pair here. */
+    color: var(--text-normal);
     padding: 0.75rem 1.25rem;
     margin-bottom: 1rem;
     border: 1px solid transparent;

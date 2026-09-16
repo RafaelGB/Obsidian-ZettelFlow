@@ -68,3 +68,19 @@ When you add UI:
 The exhaustive keyboard-operability sweep of the *remaining* read-only lenses (Discovery, Open questions,
 Evidence map, Concept navigation, Knowledge dashboard) and the recorded device walkthrough are tracked in
 **#325** (follow-up to epic #319).
+
+## Colour pairs (#431)
+
+A strong background carries its foreground **in the same rule**, and a test enforces it
+(`test/config/colourPairs.test.ts`). The pairs in use:
+
+| Background | Foreground | Where |
+|---|---|---|
+| `--color-accent` / `--color-accent-hover` | `--text-on-accent` | the actions list header, a selected search result, the step badge in the gallery |
+| `--interactive-accent` | `--text-on-accent` | primary buttons, the uninstall hover |
+| `--background-modifier-error` | `--text-normal` | the developer section and the remove hover — a tint, not a solid fill |
+
+This exists because the actions list shipped unreadable: the header filled with `--color-accent`
+and stated no foreground, so the action's type — a link — fell back to `--text-accent`, the same
+hue family, and only became legible on hover. Taste cannot be linted; an unpaired strong background
+can.

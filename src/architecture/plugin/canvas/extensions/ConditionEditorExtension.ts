@@ -5,6 +5,10 @@ import CanvasHelper from "./utils/CanvasHelper";
 import { t } from "architecture/lang";
 import { log } from "architecture";
 import { ConditionEditorModal } from "zettelkasten/modals/ConditionEditorModal";
+import { popupMenuOptions } from "./utils/popupMenuOptions";
+
+/** Shared with the cleanup below: the popup is reused across selections (#432). */
+const EDIT_CONDITION_BUTTON_ID = "edit-zettelflow-condition-btn";
 
 /**
  * Adds an "Edit condition" button to the canvas popup menu when exactly one
@@ -19,7 +23,10 @@ export default class ConditionEditorExtension extends CanvasExtension {
             this.plugin.app.workspace.on("canvas:popup-menu", (eventCanvas: Canvas) => {
                 if (eventCanvas.isDragging) return;
                 if (!CanvasHelper.isCanvasFlow(this.plugin)) return;
-                if (eventCanvas.selection.size !== 1) return;
+
+                // Always take our own button away first; add it back only if it still applies.
+                CanvasHelper.removePopupMenuOption(eventCanvas, EDIT_CONDITION_BUTTON_ID);
+                if (!popupMenuOptions(CanvasHelper.selectionShape(eventCanvas)).condition) return;
 
                 const [selected]: CanvasElement[] = [...eventCanvas.selection];
                 if (!selected) return;
@@ -38,11 +45,9 @@ export default class ConditionEditorExtension extends CanvasExtension {
                 const popupMenuEl = eventCanvas?.menu?.menuEl;
                 if (!popupMenuEl) return;
 
-                const buttonId = "edit-zettelflow-condition-btn";
-                const existing = popupMenuEl.querySelector(`#${buttonId}`);
-                if (existing) existing.remove();
+                const buttonId = EDIT_CONDITION_BUTTON_ID;
 
-                const btn = createEl("button");
+                const btn = popupMenuEl.createEl("button");
                 btn.id = buttonId;
                 btn.classList.add("clickable-icon");
                 setIcon(btn, "filter");

@@ -15,6 +15,39 @@ export default class CanvasHelper {
     static readonly GRID_SIZE = 20
 
     /**
+     * What the canvas has selected, as the pure decision function wants it (#432). Feature-detected:
+     * an unreadable selection reports `size: 0`, which offers nothing rather than guessing.
+     */
+    static selectionShape(canvas: Canvas): { size: number; kind: string | undefined } {
+        try {
+            const selection = canvas?.selection;
+            const size = selection?.size ?? 0;
+            if (size !== 1) return { size, kind: undefined };
+
+            const [selected] = [...selection];
+            const id = (selected as unknown as { id?: string })?.id;
+            const edges = canvas?.edges as Map<string, unknown> | undefined;
+            if (id && typeof edges?.get === "function" && edges.get(id)) {
+                return { size, kind: "edge" };
+            }
+            const data = (selected as unknown as { getData?: () => { type?: string } })?.getData?.();
+            return { size, kind: data?.type };
+        } catch (error) {
+            log.warn("ZettelFlow: could not read the canvas selection", error);
+            return { size: 0, kind: undefined };
+        }
+    }
+
+    /**
+     * Remove a button this plugin added. Obsidian reuses the same popup across selections, so an
+     * extension that only ever *adds* leaves its button behind when its condition stops holding
+     * (#432). Removing something that is not there is a no-op.
+     */
+    static removePopupMenuOption(canvas: Canvas, id: string): void {
+        canvas?.menu?.menuEl?.querySelector(`#${id}`)?.remove();
+    }
+
+    /**
      * Select and centre a node on an open canvas (#424).
      *
      * The leaves come from the **public** `getLeavesOfType`; only the selection call is

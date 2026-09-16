@@ -32,6 +32,7 @@ import {
     type StepExits,
 } from "application/notes/stepExits";
 import { describeOption } from "application/notes/optionDescription";
+import { describeTemplateChanges } from "zettelkasten/review/templateChanges";
 import { ConditionEditorModal } from "./ConditionEditorModal";
 
 export class StepBuilderModal extends AbstractStepModal {
@@ -119,27 +120,33 @@ export class StepBuilderModal extends AbstractStepModal {
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
-                new ConfirmModal(
-                    this.plugin.app,
-                    t("confirm_apply_template_step"),
-                    t("confirm_apply_template_button"),
-                    t("confirm_cancel_button"),
-                    async () => {
-                        // Step 1 - Open the modal to select the step
-                        log.info("info before", this.info);
-                        new UsedInstalledStepsModal(this.plugin, (step) => {
-                            // Step 2 - Apply the step to the current step
+                // Pick the template first, then confirm against *what it changes* (#428 FR-7): an
+                // overwrite nobody can see is an overwrite nobody agreed to.
+                new UsedInstalledStepsModal(this.plugin, (step) => {
+                    const changes = describeTemplateChanges(this.info, step);
+                    const details =
+                        changes.length === 0
+                            ? [t("apply_template_preview_none")]
+                            : changes.map(
+                                  (change) =>
+                                      `${t(change.fieldKey as LocaleKey)}: ${change.before || "—"} → ${change.after || "—"}`
+                              );
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t("confirm_apply_template_step"),
+                        t("confirm_apply_template_button"),
+                        t("confirm_cancel_button"),
+                        async () => {
                             this.partialInfo = {
                                 ...this.info,
                                 ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
-                            }
+                            };
                             this.info = this.getBaseInfo();
-                            log.info("info after", this.info);
-                            // Step 3 - Refresh the modal
                             this.refresh();
-                        }).open();
-                    }
-                ).open();
+                        },
+                        [t("apply_template_preview_intro"), ...details]
+                    ).open();
+                }).open();
             });
 
         });

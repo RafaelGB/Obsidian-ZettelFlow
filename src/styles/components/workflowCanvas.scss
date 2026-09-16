@@ -154,3 +154,101 @@
     gap: 0.25rem;
     margin-top: var(--size-4-1);
 }
+
+// A step whose note is gone will stop the wizard — the one finding marked without opening the
+// review (#428 FR-5). A tint, not a solid fill, so the text stays the theme's own.
+.zettelkasten-flow__node-badge-alert {
+    background-color: var(--background-modifier-error);
+    color: var(--text-normal);
+    border-color: var(--background-modifier-error);
+}
+
+// ── Review this flow (#428) ─────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__flow-review {
+    position: absolute;
+    right: var(--size-4-3);
+    bottom: calc(var(--size-4-3) + 2.2em);
+    z-index: var(--layer-popover, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--size-4-1);
+    max-width: 28em;
+}
+
+.zettelkasten-flow__flow-review-toggle {
+    padding: 0.15rem 0.5rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__flow-review-toggle.zettelkasten-flow__has-findings {
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+}
+
+.zettelkasten-flow__flow-review-toggle:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__flow-review-body {
+    max-height: 22em;
+    overflow-y: auto;
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__flow-review-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__flow-review-note,
+.zettelkasten-flow__flow-review-clean {
+    margin-bottom: var(--size-4-2);
+    line-height: 1.4;
+}
+
+// A finding is a button when it has a node to take you to; the plain ones read the same.
+.zettelkasten-flow__flow-review-finding {
+    display: block;
+    width: 100%;
+    padding: var(--size-4-1) 0;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--background-modifier-border);
+    box-shadow: none;
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    text-align: left;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+button.zettelkasten-flow__flow-review-finding:hover {
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__flow-review-finding:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+// What an applied template is about to change (#428 FR-7).
+.zettelkasten-flow__confirm-details {
+    margin: 0 0 var(--size-4-3);
+    padding-left: var(--size-4-4);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+}

@@ -81,7 +81,7 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         if (!el) return;
         const shape = this.nodeShape(node);
         this.applyBlockClass(el, shape ? styleForNode(shape) : undefined);
-        this.paintBadges(el, shape);
+        this.paintBadges(el, shape, this.noteIsGone(node));
     }
 
     /**
@@ -90,10 +90,23 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
      * Every badge is derived at render time — nothing new is stored, and the strip disappears with
      * the extension.
      */
-    private paintBadges(el: HTMLElement, shape: NodeBlockShape | undefined): void {
+    private paintBadges(
+        el: HTMLElement,
+        shape: NodeBlockShape | undefined,
+        noteIsGone: boolean
+    ): void {
         const badges = nodeBadges(shape);
-        if (badges.length === 0) return;
+        if (badges.length === 0 && !noteIsGone) return;
         const strip = el.createDiv({ cls: c("node-badges") });
+        if (noteIsGone) {
+            // The one finding that throws mid-wizard is marked without opening the review (#428).
+            const alert = strip.createSpan({
+                cls: c("node-badge"),
+                text: t("node_badge_missing"),
+                attr: { "aria-label": t("node_badge_missing") },
+            });
+            alert.addClass(c("node-badge-alert"));
+        }
         for (const badge of badges) {
             const label =
                 badge.count === undefined
@@ -112,6 +125,18 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         const el = edge?.labelElement?.wrapperEl;
         if (!el) return; // a plain (unlabelled) edge has no wrapper — nothing to annotate
         this.applyBlockClass(el, styleForEdge(edge.label, this.isGatedExit(edge)));
+    }
+
+    /** A file node whose note is no longer in the vault — it will stop the wizard (#428 FR-5). */
+    private noteIsGone(node: CanvasNode): boolean {
+        try {
+            const data = node.getData();
+            if (data.type !== "file" || !data.file) return false;
+            return !(this.plugin.app.vault.getAbstractFileByPath(data.file) instanceof TFile);
+        } catch (error) {
+            log.warn("ZettelFlow: could not check whether a step's note still exists", error);
+            return false;
+        }
     }
 
     /**

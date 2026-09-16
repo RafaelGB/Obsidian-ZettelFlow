@@ -13,11 +13,19 @@ import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
 import { UsedInstalledStepsModal } from "application/community";
 import { ConfirmModal } from "architecture/components/settings";
 import { stepIdentity, type SummaryFragment } from "./handlers/stepIdentity";
+import {
+    isGroupExpanded,
+    STEP_GROUPS,
+    STEP_GROUP_HEADING,
+    type StepGroupId,
+} from "./handlers/stepGroups";
 import { BLOCK_LABEL_KEY } from "architecture/plugin/workflow";
 import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
 
 export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
+    /** The section around each group body, so an empty one can be removed whole (#425). */
+    private groupSections: Partial<Record<StepGroupId, HTMLElement>> = {};
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
@@ -160,13 +168,57 @@ export class StepBuilderModal extends AbstractStepModal {
         setIcon(saveButton.createDiv(), "book-marked");
 
         this.renderIdentity(identity);
+        this.buildGroups();
 
         this.chain.handle(this);
+
+        // A handler that skipped itself must not leave a heading behind (#425 FR-4).
+        this.pruneEmptyGroups();
 
         // Body template editor (desktop only, not in embed mode). Embed nodes store
         // their config on the canvas node itself, so they have no markdown body to edit.
         if (!Platform.isMobile && this.mode !== "embed") {
             this.setupBody();
+        }
+    }
+
+    /**
+     * The five questions the editor answers (#425). The chain still owns every field; this only
+     * decides where each one lands, so a step's settings read as *what does it ask · what does it
+     * write · when does it appear · where does it go · how is it shown*.
+     */
+    private buildGroups(): void {
+        const { contentEl } = this.info;
+        for (const group of STEP_GROUPS) {
+            const section = contentEl.createDiv({ cls: c("step-group") });
+            const expanded = isGroupExpanded(group, this.info);
+
+            const heading = section.createEl("button", {
+                cls: c("step-group-heading"),
+                text: t(STEP_GROUP_HEADING[group] as LocaleKey),
+                attr: { "aria-expanded": String(expanded), type: "button" },
+            });
+            const body = section.createDiv({ cls: c("step-group-body") });
+            body.toggleClass(c("is-hidden"), !expanded);
+            heading.addEventListener("click", () => {
+                const open = heading.getAttribute("aria-expanded") !== "true";
+                heading.setAttribute("aria-expanded", String(open));
+                body.toggleClass(c("is-hidden"), !open);
+            });
+
+            this.groups[group] = body;
+            this.groupSections[group] = section;
+        }
+    }
+
+    /** Remove a question nobody answered — an empty heading is noise, not structure. */
+    private pruneEmptyGroups(): void {
+        for (const group of STEP_GROUPS) {
+            const body = this.groups[group];
+            if (body && body.childElementCount === 0) {
+                this.groupSections[group]?.remove();
+                delete this.groups[group];
+            }
         }
     }
 
@@ -216,7 +268,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private setupBody(): void {
-        const { contentEl } = this.info;
+        const contentEl = this.groupEl("writes");
         const textarea = contentEl.createEl("textarea", {
             cls: c("step-builder-body"),
             placeholder: t("step_builder_body_template_placeholder"),

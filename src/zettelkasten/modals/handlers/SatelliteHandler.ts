@@ -49,7 +49,7 @@ export class SatelliteHandler extends AbstractHandlerClass<AbstractStepModal> {
         const { contentEl } = info;
         const state = satelliteFormState(info.satellite);
 
-        new Setting(contentEl).setName(this.name).setDesc(this.description).setHeading();
+        new Setting(modal.groupEl("writes")).setName(this.name).setDesc(this.description).setHeading();
 
         // The fields live in their own container so the toggle can reveal or hide them as a block.
         const fields = contentEl.createDiv({ cls: c("satellite-fields") });
@@ -62,7 +62,7 @@ export class SatelliteHandler extends AbstractHandlerClass<AbstractStepModal> {
             fields.toggleClass(c("is-hidden"), !state.enabled);
         };
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("writes"))
             .setName(t("step_builder_satellite_enable_name"))
             .setDesc(t("step_builder_satellite_enable_desc"))
             .addToggle((toggle) =>

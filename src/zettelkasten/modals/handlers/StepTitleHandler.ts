@@ -13,11 +13,11 @@ export class StepTitleHandler extends AbstractHandlerClass<AbstractStepModal> {
             return this.goNext(modal);
         }
 
-        const { contentEl, filename } = info;
+        const { filename } = info;
         const onChangePromise = (value: string) => {
             info.filename = value;
         };
-        new Setting(contentEl)
+        new Setting(modal.groupEl("shown"))
             .setName(this.name)
             .setDesc(this.description)
             .addText(text => {

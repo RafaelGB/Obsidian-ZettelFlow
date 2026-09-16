@@ -321,6 +321,28 @@ four blind clicks — so people abandoned the flow instead. The breadcrumb from 
   the contributions it removes so redo can put them back; answering something new clears the
   forward history — a line, not a tree.
 
+### The step editor, organised by questions (#425)
+
+Eleven settings used to render in one flat list, in whatever order the handler chain happened to be
+linked. They now answer five questions, in this order:
+
+| Group | Holds | Opens |
+|---|---|---|
+| **What does this step ask?** | the actions | always |
+| **What does it write?** | the body template, the linked note | always |
+| **When does it appear?** | root · trigger · wait · optional | when any is set |
+| **Where does it go?** | the target folder | when it is set |
+| **How is it shown?** | name · label · phase · children header | when any is set |
+
+The chain is kept — it is how a handler skips itself (root-only, editor-only) — so this changes
+**where** each `Setting` lands, not who builds it. The mapping is data (`stepGroups.ts`) and a test
+walks the handlers directory to prove every one of them is placed exactly once, so a new handler
+cannot quietly render at the bottom where nobody looks. A group whose handlers all skipped
+themselves is removed whole rather than left as an empty heading.
+
+Groups 3–5 open when they hold something, so a configured trigger is never hidden from the person
+who configured it.
+
 ### The step editor says what you are editing (#424)
 
 The dialog used to open with the constant *"ZettelFlow step builder"* — identical for a root step

@@ -17,8 +17,8 @@ export class PhaseSelectorHandler extends AbstractHandlerClass<AbstractStepModal
     description = t('step_builder_phase_description');
     handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
-        const { contentEl, phase } = info;
-        new Setting(contentEl)
+        const { phase } = info;
+        new Setting(modal.groupEl("shown"))
             .setName(this.name)
             .setDesc(this.description)
             .addDropdown(dropdown => {

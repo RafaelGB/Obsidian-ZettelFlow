@@ -54,3 +54,30 @@ node it is about.
   graph with `flowAdjacency` (#408), the same adjacency the wizard walks.
 - `FlowReviewExtension` — the chip and the panel on `canvas.wrapperEl`, every canvas access
   feature-detected and removed on unload (§VI).
+
+## Rehearse the flow
+
+The only way to find out what a flow did was to run it on a real note. Authors tested by making
+throwaway notes and deleting them — which is why half-finished flows ship, and why a branch that
+can never open survives for months.
+
+**Rehearse** walks your own flow, in the panel on the left of the canvas:
+
+- you take the options you would be offered, and the path is traced **on the canvas** — the current
+  node outlined, the walked ones dashed;
+- a **closed branch is shown with its reason**, the same sentence the wizard says to the person
+  writing a note (`explainBranch`, one phrasing shared by both);
+- you supply the **frontmatter a gate would read**, as a form, because a rehearsal with an empty
+  context only ever takes one path;
+- side-effecting actions — script, AI — are **listed as "what would run"**, named, never executed.
+  Pretending to run a script safely would not be an honest answer;
+- it ends on the note the walk would have produced: the merged body, the frontmatter keys, where it
+  would be filed, and the linked note (#419) it would also create.
+
+**Nothing is written.** No note, no folder, no frontmatter, no draft, no history entry. That is not
+a promise, it is the shape of the code: the walk is a pure module whose imports are asserted by a
+test — `conditionEvaluator`, `branchVisibility`, `stepExits`, `previewAssembly`, and nothing else.
+Leaving the rehearsal removes every class it added; the selection is never touched.
+
+If the canvas internals cannot be annotated, the rehearsal still runs — it just stays in the panel,
+and says so in the log.

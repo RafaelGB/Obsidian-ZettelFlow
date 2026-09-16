@@ -6,6 +6,7 @@ import ConditionEditorExtension from './extensions/ConditionEditorExtension';
 import EditStepCanvasExtension from './extensions/EditCanvasExtension';
 import EmptyStateExtension from './extensions/EmptyStateExtension';
 import FlowReviewExtension from './extensions/FlowReviewExtension';
+import RehearsalExtension from './extensions/RehearsalExtension';
 import WorkflowLegibilityExtension from './extensions/WorkflowLegibilityExtension';
 import type ZettelFlow from 'main';
 
@@ -26,6 +27,7 @@ const allCanvasExtensions: CanvasExtensionConstructor[] = [
     EmptyStateExtension,
     CanvasLegendExtension,
     FlowReviewExtension,
+    RehearsalExtension,
 ];
 
 export { allCanvasExtensions, CanvasExtension, CanvasPatcher };

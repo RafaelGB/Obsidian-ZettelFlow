@@ -252,3 +252,121 @@ button.zettelkasten-flow__flow-review-finding:hover {
     font-size: var(--font-ui-smaller);
     line-height: 1.5;
 }
+
+// ── Rehearse the flow (#430) ────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__rehearsal {
+    position: absolute;
+    left: var(--size-4-3);
+    bottom: var(--size-4-3);
+    z-index: var(--layer-popover, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-4-1);
+    max-width: 30em;
+}
+
+.zettelkasten-flow__rehearsal-toggle {
+    padding: 0.15rem 0.5rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__rehearsal-toggle:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__rehearsal-body {
+    max-height: 26em;
+    overflow-y: auto;
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__rehearsal-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__rehearsal-note,
+.zettelkasten-flow__rehearsal-would-run {
+    margin: var(--size-4-1) 0;
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__rehearsal-current {
+    margin-top: var(--size-4-2);
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__rehearsal-context-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.2rem 0;
+}
+
+.zettelkasten-flow__rehearsal-option {
+    display: block;
+    width: 100%;
+    margin: 0.2rem 0;
+    padding: var(--size-4-1) var(--size-4-2);
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    text-align: left;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__rehearsal-option:hover {
+    border-color: var(--interactive-accent);
+}
+
+// A branch that is closed, and why — the same sentence the wizard says (#414).
+.zettelkasten-flow__rehearsal-closed {
+    margin: 0.2rem 0;
+    padding-left: var(--size-4-2);
+    border-left: 2px solid var(--background-modifier-border);
+    color: var(--text-faint);
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__rehearsal-preview {
+    max-height: 12em;
+    overflow: auto;
+    padding: var(--size-4-2);
+    background-color: var(--background-primary);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__rehearsal-restart {
+    margin-top: var(--size-4-2);
+    cursor: pointer;
+}
+
+// The walk, traced on the canvas itself — classes only, removed when the rehearsal closes.
+.zettelkasten-flow__rehearsal-node-walked {
+    outline: 2px dashed var(--text-faint);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__rehearsal-node-current {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}

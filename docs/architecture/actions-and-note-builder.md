@@ -321,6 +321,14 @@ four blind clicks — so people abandoned the flow instead. The breadcrumb from 
   the contributions it removes so redo can put them back; answering something new clears the
   forward history — a line, not a tree.
 
+### What an option says (#423)
+
+An edge label does three jobs: it draws the transition, it stores the `if:` gate, and it is what the
+wizard shows as the option description. Since #409 made descriptions visible, a conditional edge
+printed its expression at the person writing the note. The gate still reads the raw label; a person
+reads only its **human half** (`describeOption`), and a group child — which has no edge — has no
+description rather than a fabricated one. #427 gives the three jobs three fields.
+
 ### The preview became a diff (#412)
 
 The pane answered *"what will the note look like?"*. At the moment of committing the question is

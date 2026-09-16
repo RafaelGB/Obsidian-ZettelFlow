@@ -151,7 +151,9 @@ export class FlowImpl implements Flow {
             return this.nodesFrom(childrenKeys);
         } else {
             const childNodes = findDirectChildren(node, this.data.nodes);
-            const childrenKeys: EdgeInfo[] = childNodes.map(child => ({ key: child.id, tooltip: `Child of ${node.label}` }));
+            // A group child has no edge, so it has no description — the engine must not invent one
+            // (it used to fabricate an English "Child of <group>" that #409 then printed at users).
+            const childrenKeys: EdgeInfo[] = childNodes.map(child => ({ key: child.id, tooltip: undefined }));
 
             return this.nodesFrom(childrenKeys);
         }
@@ -164,7 +166,7 @@ export class FlowImpl implements Flow {
             const parentKeys = edges.filter(edge => edge.toNode === nodeId).map(edge => ({ key: edge.fromNode, tooltip: edge.label }));
             return this.nodesFrom(parentKeys);
         } else {
-            const parentKeys = this.data.nodes.filter(parent => isNodeInside(node, parent)).map(parent => ({ key: parent.id, tooltip: `Parent of ${node.label}` }));
+            const parentKeys = this.data.nodes.filter(parent => isNodeInside(node, parent)).map(parent => ({ key: parent.id, tooltip: undefined }));
             // TODO obtain the smallest parent
             return this.nodesFrom(parentKeys);
         }

@@ -63,3 +63,19 @@
     flex-grow: 1;
     color: var(--text-normal);
 }
+
+// The error policy, beside the script it belongs to (#445).
+.zettelkasten-flow__script-policy-explanation {
+    margin-top: var(--size-4-1);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+// What this script has actually done lately, read from the run log (#444).
+.zettelkasten-flow__script-policy-failures {
+    margin-top: var(--size-4-1);
+    padding-left: var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-error);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

@@ -8,6 +8,14 @@ import { CSS } from "@dnd-kit/utilities";
 import { ObsidianNativeTypesManager } from "architecture/plugin";
 import { PropertyHookSettings } from "config/typing";
 import { CONDITION_EXAMPLES, sanityCheckCondition } from "architecture/plugin/events/conditionHelp";
+import {
+  POLICY_DESCRIPTION_KEY,
+  POLICY_LABEL_KEY,
+  SCRIPT_ERROR_POLICIES,
+  type ScriptErrorPolicy,
+} from "application/scripts/errorPolicy";
+
+type LocaleKey = Parameters<typeof t>[0];
 import { HookDryRunResult } from "hooks/VaultHooks";
 
 interface PropertyHookAccordionProps {
@@ -36,6 +44,7 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
   const [localScript, setLocalScript] = useState(settings.script ?? "");
   const [localDescription, setLocalDescription] = useState(settings.description ?? "");
   const [localCondition, setLocalCondition] = useState(settings.condition ?? "");
+  const [localPolicy, setLocalPolicy] = useState<ScriptErrorPolicy>(settings.onError ?? "notify");
   const [testResult, setTestResult] = useState<HookDryRunResult | null>(null);
 
   const enabled = settings.enabled !== false;
@@ -45,13 +54,19 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
     setLocalScript(settings.script ?? "");
     setLocalDescription(settings.description ?? "");
     setLocalCondition(settings.condition ?? "");
-  }, [settings.script, settings.description, settings.condition]);
+    setLocalPolicy(settings.onError ?? "notify");
+  }, [settings.script, settings.description, settings.condition, settings.onError]);
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: property });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
   const handleSave = () => {
-    onChange({ script: localScript, description: localDescription.trim(), condition: localCondition.trim() });
+    onChange({
+      script: localScript,
+      description: localDescription.trim(),
+      condition: localCondition.trim(),
+      onError: localPolicy,
+    });
     setIsOpen(false);
   };
 
@@ -61,6 +76,7 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
       condition: localCondition.trim(),
       description: localDescription.trim(),
       enabled,
+      onError: localPolicy,
     });
     setTestResult(result);
   };
@@ -172,6 +188,27 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
             </div>
             <p className={c("property-hook-script-hint")}>{t("property_hooks_script_hint")}</p>
             <CodeEditor value={localScript} onChange={(value) => setLocalScript(value)} />
+          </div>
+
+          <div className={c("property-hook-field")}>
+            <label className={c("property-hook-label")}>{t("script_policy_name")}</label>
+            <p className={c("property-hook-script-hint")}>{t("script_policy_desc")}</p>
+            {/* A hook runs while you are elsewhere, so what its failure does is worth saying (#445). */}
+            <select
+              className={c("property-hook-select")}
+              value={localPolicy}
+              aria-label={t("script_policy_name")}
+              onChange={(e) => setLocalPolicy(e.target.value as ScriptErrorPolicy)}
+            >
+              {SCRIPT_ERROR_POLICIES.map((policy) => (
+                <option key={policy} value={policy}>
+                  {t(POLICY_LABEL_KEY[policy] as LocaleKey)}
+                </option>
+              ))}
+            </select>
+            <p className={c("property-hook-script-hint")}>
+              {t(POLICY_DESCRIPTION_KEY[localPolicy] as LocaleKey)}
+            </p>
           </div>
 
           {testResult && <HookTestResult result={testResult} />}

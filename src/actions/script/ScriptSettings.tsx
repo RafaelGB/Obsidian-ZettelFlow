@@ -16,6 +16,7 @@ import { ScriptResult } from "actions";
 import { ContentDTO, NoteDTO } from "application/notes";
 import { c, ObsidianApi } from "architecture";
 import { navbarAction } from "architecture/components/settings";
+import { renderErrorPolicy } from "application/scripts/renderErrorPolicy";
 
 export const scriptSettings: ActionSetting = (
   contentEl,
@@ -44,6 +45,10 @@ export const scriptSettings: ActionSetting = (
   );
 
   renderExamplesList(contentEl, SCRIPT_ACTION_EXAMPLES, () => editorView);
+
+  // What a failure here should do to the work around it (#445), and how often it has failed —
+  // the count is read from the run log (#444), never counted a second time.
+  renderErrorPolicy(contentEl, scriptAction);
   // Contenedor para resultados de depuración
   const debugContainer = contentEl.createDiv({
     cls: "debug-container",

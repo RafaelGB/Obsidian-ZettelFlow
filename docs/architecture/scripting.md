@@ -34,3 +34,26 @@ from bloating `data.json` between two prunes.
 The recorder is wrapped: if writing the log fails, it logs a warning and gives up. Observing
 must not change what was observed — a script that works keeps working, and a script that throws
 still throws the same error to the same caller.
+
+## What a failure should do (#445)
+
+Every failure used to do the same thing: a notice, and the surrounding work carried on. One policy
+cannot be right for five surfaces and every script — a hook that tags a note has no business
+interrupting you, and a step that computes the note's title has no business letting the note be
+created without one.
+
+Each script says which it is, in the form next to it:
+
+| Policy | You see | What happens next |
+|---|---|---|
+| **Tell me and carry on** (default) | a notice | what ZettelFlow has always done |
+| **Carry on quietly** | nothing | the run is **still recorded** |
+| **Skip the rest of this step** | a notice | the note is created without what that step had left to do |
+| **Stop building the note** | a notice naming the script | nothing is written |
+
+*Silent* is about not interrupting you, never about hiding the fact: the record is written either
+way, and the form itself states how often that script has failed and when — read from the log
+rather than counted a second time.
+
+A hook has one script and nothing after it, so *skip* and *stop* both mean "apply none of its
+changes". An event condition that throws fails closed, as it always has: the flow does not run.

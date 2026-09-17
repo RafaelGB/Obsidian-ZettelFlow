@@ -3,6 +3,7 @@ import { canvas } from "architecture/plugin/canvas";
 import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
+import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { SelectorMenuModal } from "zettelkasten";
 import {
     App,
@@ -431,7 +432,16 @@ export class VaultHooks {
                     continue;
                 }
 
-                event = await this.executeHook(hookSettings.script, event);
+                try {
+                    event = await this.executeHook(hookSettings.script, event, hookSettings.onError);
+                } catch {
+                    // The hook decided what its failure means (#445); *skip* and *stop* both
+                    // leave the note untouched, which is what abandoning the response does.
+                    if (applyErrorPolicy(hookSettings.onError).notify === false) {
+                        log.debug(`[VaultHooks] Hook for "${property}" failed quietly.`);
+                    }
+                    return;
+                }
                 log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
             }
 
@@ -519,7 +529,11 @@ export class VaultHooks {
         });
     }
 
-    private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
+    private async executeHook(
+        script: string,
+        event: HookEvent,
+        onError?: ScriptErrorPolicy
+    ): Promise<HookEvent> {
         try {
             const fnBody = `return (async () => {
         ${script}
@@ -539,7 +553,10 @@ export class VaultHooks {
             )) as HookEvent;
         } catch (error: unknown) {
             const msg = errorMessage(error);
-            new Notice(t("property_hooks_script_error_notice", msg));
+            // Recorded either way (#444); whether it interrupts you is the hook's own decision.
+            if (applyErrorPolicy(onError).notify) {
+                new Notice(t("property_hooks_script_error_notice", msg));
+            }
             log.error("[VaultHooks] Error executing hook script:", error);
             throw error;
         }

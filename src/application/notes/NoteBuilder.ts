@@ -1,4 +1,5 @@
 import { FatalError, ObsidianApi, log } from "architecture";
+import { SkipStepError } from "application/scripts/SkipStepError";
 import { t } from "architecture/lang";
 import { substituteContextTokens } from "./contextTokens";
 import { composeFilename } from "./destination";
@@ -255,11 +256,22 @@ export class NoteBuilder {
 
   private async manageElements() {
     log.debug(`Builder: ${this.note.getElements().size} elements to process`);
+    // A script whose policy is *skip* abandons the rest of **its step** (#445) — the elements
+    // that follow it and came from the same node — and the build continues with the next one.
+    let skipping: string | undefined;
     for (const [, element] of this.note.getElements()) {
+      if (skipping !== undefined && element.stepId === skipping) continue;
+      skipping = undefined;
       log.trace(`Builder: processing element ${element.type}`);
-      await actionsStore
-        .getAction(element.type)
-        .execute({ element, content: this.content, note: this.note, context: this.context });
+      try {
+        await actionsStore
+          .getAction(element.type)
+          .execute({ element, content: this.content, note: this.note, context: this.context });
+      } catch (error) {
+        if (!(error instanceof SkipStepError)) throw error;
+        log.info(`Builder: skipping the rest of step ${error.stepId ?? "?"} — ${error.message}`);
+        skipping = error.stepId;
+      }
       this.actions.pbFinishElement();
     }
   }

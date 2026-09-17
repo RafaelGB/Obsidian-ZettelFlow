@@ -1,5 +1,6 @@
 import { Action } from "architecture/api";
 import type { ScriptRun } from "application/scripts/scriptRunLog";
+import type { ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { DEFAULT_RETENTION_DAYS } from "application/scripts/scriptRunLog";
 import { StepSettings } from "zettelkasten";
 import type { HistoryEntry } from "application/notes/historyUtils";
@@ -31,6 +32,12 @@ export type PropertyHookSettings = {
     description?: string;
     /** Optional `zf` condition; the hook runs only when it holds (#327 S4). Blank = always. */
     condition?: string;
+    /**
+     * What a failure should do (#445). A hook has one script and nothing after it, so *skip* and
+     * *stop* both mean "apply none of its changes"; *silent* means "do not interrupt me".
+     * Absent = notify, which is what hooks have always done.
+     */
+    onError?: ScriptErrorPolicy;
 };
 /**
  * Main settings interface for the ZettelFlow plugin.

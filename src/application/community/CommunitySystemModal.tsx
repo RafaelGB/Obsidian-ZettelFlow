@@ -16,6 +16,7 @@ import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
 import { installDestination, type InstallRole } from "./installDestination";
 import { flowFolders, FLOW_ROLE_LABEL_KEY } from "architecture/plugin/canvas/flowRole";
 import { ConfirmModal } from "architecture/components/settings";
+import { SystemRehearsalPanel } from "./SystemRehearsalPanel";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -70,6 +71,8 @@ export class CommunitySystemModal extends Modal {
   private role: InstallRole;
   /** For the folder role: the vault folder whose notes should run it. */
   private roleFolder = "";
+  /** Whether the rehearsal panel is open (#438). It writes nothing, so it can stay inline. */
+  private trying = false;
 
   constructor(
     private plugin: ZettelFlow,
@@ -200,6 +203,23 @@ export class CommunitySystemModal extends Modal {
             installButton?.setDisabled(!value);
           });
         });
+    }
+
+    // --- Try it first (#438): the walk and the review, before a single file exists ---
+    new Setting(this.contentEl)
+      .setName(t("community_system_try"))
+      .setDesc(t("community_system_try_desc"))
+      .addButton((btn) =>
+        btn.setButtonText(t("community_system_try_button")).onClick(() => {
+          this.trying = !this.trying;
+          this.contentEl.empty();
+          this.renderContent();
+        })
+      );
+
+    if (this.trying) {
+      const panel = this.contentEl.createDiv({ cls: c("system-rehearsal") });
+      new SystemRehearsalPanel(this.template, panel).render();
     }
 
     new Setting(this.contentEl).addButton((btn) => {

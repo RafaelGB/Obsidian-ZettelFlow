@@ -1,9 +1,7 @@
 import type { Flow } from "architecture/plugin/canvas";
 import { flowAdjacency } from "architecture/plugin/canvas/walkProgress";
 import { ObsidianApi } from "architecture";
-import { describeOption } from "application/notes/optionDescription";
-import { parseEdgeCondition } from "application/notes/conditionEvaluator";
-import { canvasEdges } from "./canvasEdges";
+import { canvasEdges, resolveEdgeText } from "./canvasEdges";
 import type { FlowEdgeShape, FlowShape, FlowStepShape } from "application/notes/flowFindings";
 import type { StepSettings } from "zettelkasten";
 import { readStepSettings } from "zettelkasten/exits/exitStore";
@@ -56,22 +54,14 @@ export async function readFlowShape(flow: Flow): Promise<FlowShape> {
         });
     }
 
-    // The same graph the wizard walks, so a group's children are options too (#428).
-    const edges: FlowEdgeShape[] = canvasEdges(flow.data).map((edge) => {
-        // The step owns its exits (#427); an unconfigured arrow still speaks through its label.
-        const exit = settingsOf.get(edge.fromNode)?.exits?.[edge.id];
-        return {
-            id: edge.id,
-            fromNode: edge.fromNode,
-            toNode: edge.toNode,
-            ...(exit?.when ?? parseEdgeCondition(edge.label)
-                ? { when: exit?.when ?? parseEdgeCondition(edge.label) }
-                : {}),
-            ...(exit?.says ?? describeOption(edge.label)
-                ? { says: exit?.says ?? describeOption(edge.label) }
-                : {}),
-        };
-    });
+    // The same graph the wizard walks, so a group's children are options too (#428). The step
+    // owns its exits (#427); an unconfigured arrow still speaks through its label.
+    const edges: FlowEdgeShape[] = canvasEdges(flow.data).map((edge) => ({
+        id: edge.id,
+        fromNode: edge.fromNode,
+        toNode: edge.toNode,
+        ...resolveEdgeText(edge, settingsOf.get(edge.fromNode)?.exits),
+    }));
 
     return { steps, edges, adjacency: flowAdjacency(flow.data) };
 }

@@ -1,5 +1,8 @@
 import type { CanvasData } from "obsidian/canvas";
 import { flowAdjacency } from "architecture/plugin/canvas/walkProgress";
+import { describeOption } from "application/notes/optionDescription";
+import { parseEdgeCondition } from "application/notes/conditionEvaluator";
+import type { StepExits } from "application/notes/stepExits";
 
 /**
  * The arrows a flow can actually take (#428/#430, epic #422) — as the wizard takes them.
@@ -46,4 +49,19 @@ export function canvasEdges(data: CanvasData): CanvasEdgeShape[] {
     }
 
     return edges;
+}
+
+/**
+ * What an arrow says and when it is open, from the step's exits (#427) with its label as the
+ * fallback. One resolution, shared by the review of a flow in the vault and of a system that is
+ * not installed yet (#438).
+ */
+export function resolveEdgeText(
+    edge: CanvasEdgeShape,
+    exits: StepExits | undefined
+): { when?: string; says?: string } {
+    const exit = exits?.[edge.id];
+    const when = exit?.when ?? parseEdgeCondition(edge.label);
+    const says = exit?.says ?? describeOption(edge.label);
+    return { ...(when ? { when } : {}), ...(says ? { says } : {}) };
 }

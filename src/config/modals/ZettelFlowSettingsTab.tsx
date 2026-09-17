@@ -32,6 +32,7 @@ import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup } from "./handlers/flowsSettingsGroup";
 import { settingsSummary } from "config/settingsSummary";
+import { hasRowContainer, rowContainer } from "architecture/components/settings";
 
 /** The items of a group definition — the union does not narrow itself at the call site. */
 type SettingsRow = NonNullable<SettingDefinitionGroup["items"]>[number];
@@ -83,7 +84,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         name: t("settings_summary_name"),
                         render: (setting) => {
                             setting.setClass(c("settings-summary"));
-                            const host = setting.settingEl.createDiv({ cls: c("settings-summary-list") });
+                            const host = rowContainer(setting, "settings-summary-list");
                             for (const fact of settingsSummary(plugin.settings)) {
                                 host.createDiv({
                                     cls: c("settings-summary-fact"),
@@ -243,7 +244,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             // vault-folder autosuggest so the stored value is the *exact* `folder.path` —
                             // no typo, case or emoji-encoding mismatch can silently make an exclusion no-op.
                             setting.setClass(c("excluded-paths-setting-item"));
-                            const list = setting.settingEl.createDiv({ cls: c("excluded-paths-list") });
+                            const list = rowContainer(setting, "excluded-paths-list");
                             const draft = { value: "" };
 
                             const apply = async () => {
@@ -469,9 +470,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         desc: t("property_hooks_setting_description"),
                         render: (setting) => {
                             setting.settingEl.addClass(c("property-hooks-setting-item"));
-                            const container = setting.settingEl.createDiv({
-                                cls: c("property-hooks-container"),
-                            });
+                            // Already mounted: a repeated render must not start a second React root.
+                            if (hasRowContainer(setting, "property-hooks-container")) return;
+                            const container = rowContainer(setting, "property-hooks-container");
                             const root = createRoot(container);
                             root.render(
                                 <HookErrorBoundary>
@@ -498,7 +499,11 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             setting.addToggle((toggle) =>
                                 toggle.setValue(this.showAdvanced).onChange((value) => {
                                     this.showAdvanced = value;
-                                    this.update();
+                                    // Re-evaluate the `visible` predicates in place. `update()`
+                                    // would re-render the whole tab, and a re-render re-runs every
+                                    // `render` callback on rows Obsidian keeps — which stacked a
+                                    // second copy of every dynamic list on the panel.
+                                    this.refreshDomState();
                                 })
                             );
                         },

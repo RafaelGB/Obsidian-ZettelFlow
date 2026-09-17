@@ -6,6 +6,7 @@ import { FileService } from "architecture/plugin";
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { FILE_EXTENSIONS } from "architecture/plugin/services/FileService";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
+import { rowContainer } from "architecture/components/settings";
 import {
     ASSIGNABLE_ROLES,
     FLOW_ROLE_LABEL_KEY,
@@ -93,7 +94,8 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                 name: t("settings_flows_heading"),
                 render: (setting) => {
                     setting.settingEl.addClass(c("flows-list-item"));
-                    const host = setting.settingEl.createDiv({ cls: c("flows-list") });
+                    // Reused, never stacked: a re-render re-runs this callback (#440 follow-up).
+                    const host = rowContainer(setting, "flows-list");
                     renderFlows(plugin, host, refresh);
                 },
             },
@@ -136,9 +138,7 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
             name: t("settings_events_bindings_heading"),
             render: (setting) => {
                 setting.setClass(c("readable-setting-item"));
-                const list = setting.settingEl.createDiv({
-                    cls: c("event-bindings-list"),
-                });
+                const list = rowContainer(setting, "event-bindings-list");
                 const renderList = async () => {
                     list.empty();
                     const engine = WorkflowEventEngine.getInstance();

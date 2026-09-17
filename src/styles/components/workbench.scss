@@ -62,3 +62,36 @@
     color: var(--text-error);
     line-height: 1.5;
 }
+
+// The run log (#447): facts, newest first, with the two actions that make them useful.
+.zettelkasten-flow__run-log {
+    max-height: 24em;
+    overflow-y: auto;
+    margin: var(--size-4-2) 0;
+}
+
+.zettelkasten-flow__run-log-entry {
+    padding: var(--size-4-2);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__run-log-entry-failed {
+    border-left: 3px solid var(--background-modifier-error);
+}
+
+.zettelkasten-flow__run-log-line {
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__run-log-detail {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__run-log-actions {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: var(--size-4-1);
+}

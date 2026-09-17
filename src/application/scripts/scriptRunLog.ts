@@ -127,3 +127,23 @@ export function failureSummary(runs: ScriptRun[], ref: string): FailureSummary {
         ...(failures.length > 0 ? { lastAt: Math.max(...failures.map((run) => run.at)) } : {}),
     };
 }
+
+/** The surfaces present in a log — what the filter can offer, rather than every surface there is. */
+export function surfacesInLog(runs: ScriptRun[]): ScriptSurface[] {
+    const seen: ScriptSurface[] = [];
+    for (const run of runs) {
+        if (!seen.includes(run.surface)) seen.push(run.surface);
+    }
+    return seen;
+}
+
+/** An empty log. Clearing is a decision, so it is stated rather than inlined as `[]`. */
+export function clearRuns(): ScriptRun[] {
+    return [];
+}
+
+/** The script a run came from, when the reference names one we can reopen. */
+export function hookPropertyOf(run: ScriptRun): string | undefined {
+    const ref = run.origin.ref ?? "";
+    return ref.startsWith("hook:") ? ref.slice("hook:".length) : undefined;
+}

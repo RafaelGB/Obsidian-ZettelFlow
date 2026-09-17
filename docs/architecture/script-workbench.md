@@ -30,3 +30,24 @@ run too, and it is worth knowing before you press *run it*.
 
 Console output still goes to the developer console: capturing it would mean patching a global, and
 a bench that quietly changes the environment is worse than one that tells you where to look.
+
+## The run log
+
+Under the bench is everything your scripts have been doing — every run, wherever it came from,
+newest first. One line each: when, which surface, which script, the note it ran on, and either how
+long it took or what it threw.
+
+Two filters (a surface, and *only the failures*) and two actions per entry:
+
+- **Run it here** puts the bench back where that run was: its surface, its note, and — when the
+  script can still be found, as a property hook's can — its code. A note that has since been
+  deleted says so rather than opening a blank run.
+- **Open the file**, for a library module that failed to load.
+
+At the bottom: how long runs are kept (**7 days** by default, up to **30**), and a way to clear
+the log that tells you how many records it dropped. The retention control lives here, where the
+log is read, rather than as one more row in the settings panel — #439 exists so that panel stops
+growing.
+
+There are deliberately no badges, no counts in the ribbon and no leaderboard of failing scripts.
+You go and look.

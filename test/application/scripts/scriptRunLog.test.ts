@@ -1,6 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     appendRun,
+    clearRuns,
+    hookPropertyOf,
+    surfacesInLog,
     clampRetention,
     DEFAULT_RETENTION_DAYS,
     failureSummary,
@@ -93,5 +96,23 @@ describe("a log is not a copy of your vault (#444, FR-4)", () => {
             "app",
         ]);
         expect(summariseInput(undefined)).toEqual([]);
+    });
+});
+
+describe("what the log can be filtered by (#447)", () => {
+    it("offers only the surfaces that are actually in it", () => {
+        const log = [run({ surface: "hook" }), run({ surface: "hook" }), run({ surface: "library" })];
+        expect(surfacesInLog(log)).toEqual(["hook", "library"]);
+        expect(surfacesInLog([])).toEqual([]);
+    });
+
+    it("clears to nothing", () => {
+        expect(clearRuns()).toEqual([]);
+    });
+
+    it("recognises a run that came from a property hook, so it can be reopened", () => {
+        expect(hookPropertyOf(run({ origin: { ref: "hook:state" } }))).toBe("state");
+        expect(hookPropertyOf(run({ origin: { ref: "flow#step" } }))).toBeUndefined();
+        expect(hookPropertyOf(run({ origin: {} }))).toBeUndefined();
     });
 });

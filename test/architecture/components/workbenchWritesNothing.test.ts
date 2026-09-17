@@ -11,6 +11,10 @@ const PURE = readFileSync(
     join(ROOT, "src", "application", "scripts", "workbenchRun.ts"),
     "utf8"
 );
+const LOG_SECTION = readFileSync(
+    join(ROOT, "src", "architecture", "components", "core", "workbench", "runLogSection.ts"),
+    "utf8"
+);
 
 /**
  * The workbench runs your script and writes nothing (#446, AC-2) — the same guarantee the flow
@@ -55,5 +59,27 @@ describe("the workbench writes nothing (#446)", () => {
 
     it("records what it ran, marked as a bench run", () => {
         expect(VIEW).toContain('surface: "workbench"');
+    });
+});
+
+/**
+ * The log lives beside the bench rather than inside it (#447): reading a record and setting how
+ * long records are kept is a settings write, and the bench itself must reach no writer at all.
+ * Neither of them touches the vault.
+ */
+describe("the run log writes a setting, and nothing else (#447)", () => {
+    it("never writes to the vault", () => {
+        for (const forbidden of ["vault().modify", "vault().create", "vault().delete", "processFrontMatter"]) {
+            expect(LOG_SECTION).not.toContain(forbidden);
+        }
+    });
+
+    it("keeps its one write to the log's own settings", () => {
+        expect(LOG_SECTION).toContain("plugin.settings.scriptLog");
+        expect(LOG_SECTION).toContain("saveSettings");
+    });
+
+    it("says so when the note a run used is gone, instead of opening a blank run", () => {
+        expect(LOG_SECTION).toContain("run_log_note_gone");
     });
 });

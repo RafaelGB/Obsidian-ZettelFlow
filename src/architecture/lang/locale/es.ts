@@ -222,6 +222,8 @@ export default {
     changes_kind_properties_set: 'propiedades puestas',
     changes_kind_content_appended: 'añadido a',
     changes_kind_content_replaced: 'sobrescrito',
+    undo_offer_properties: 'Un hook ha puesto {0} en {1}.',
+    undo_offer_changed: 'Un hook ha cambiado {0}.',
     write_origin_flow: 'Flujo',
     write_origin_hook: 'Hook',
     write_origin_action: 'Acción',

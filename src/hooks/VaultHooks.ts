@@ -3,7 +3,8 @@ import { canvas } from "architecture/plugin/canvas";
 import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
-import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { currentWriteBatch, withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { offerUndo } from "architecture/plugin/writes/undoNotice";
 import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { isUnderFolder } from "architecture/plugin/canvas/flowRole";
 import { SelectorMenuModal } from "zettelkasten";
@@ -481,12 +482,17 @@ export class VaultHooks {
             ) {
                 // The write a hook makes is the one that surprises people: it lands on a note you
                 // were not looking at. It goes on the record under the hooks that caused it (#453).
+                let batch: string | undefined;
                 await withWriteBatch({ kind: "hook", ref: `hook:${fired.join(", ")}` }, async () => {
+                    batch = currentWriteBatch();
                     await fmPrev.setProperties(
                         event.response.frontmatter,
                         event.response.removeProperties
                     );
                 });
+                // The write you most want to take back, offered where you will actually see it
+                // (#455). Expires in thirty seconds; the record keeps the undo afterwards.
+                if (batch) offerUndo(batch, file.path);
 
                 VaultStateManager.INSTANCE.update(file);
             }

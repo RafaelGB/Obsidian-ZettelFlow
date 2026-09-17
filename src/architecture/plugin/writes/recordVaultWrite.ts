@@ -83,6 +83,11 @@ export async function withoutRecording<T>(work: () => Promise<T>): Promise<T> {
     }
 }
 
+/** The batch a write would join right now — what a caller needs to offer an undo for it (#455). */
+export function currentWriteBatch(): string | undefined {
+    return stack.length > 0 ? stack[0].batch : undefined;
+}
+
 /** The origin a write would inherit right now — exported for the tests and for R4's seam. */
 export function currentWriteOrigin(): WriteOrigin | undefined {
     return stack.length > 0 ? stack[stack.length - 1].origin : undefined;

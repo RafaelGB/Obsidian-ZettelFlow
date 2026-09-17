@@ -156,3 +156,26 @@
     white-space: nowrap;
     flex-shrink: 0;
 }
+
+/* The undo a hook's change carries with it (#455). */
+.zettelkasten-flow__undo-offer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.zettelkasten-flow__undo-offer-what {
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__undo-offer-button {
+    font-size: var(--font-ui-smaller);
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}

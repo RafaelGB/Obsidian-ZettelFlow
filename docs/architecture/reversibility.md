@@ -127,6 +127,20 @@ When some of a batch is out of reach, the rest is still planned and offered as a
 
 A batch that has been taken back is marked as such, and is not offered again.
 
+### A hook's change, undoable in the moment
+
+Of everything ZettelFlow writes, a property hook's write is the one that surprises people: it
+fires on a note you were not looking at, and the only trace is a notice that is gone in five
+seconds.
+
+So the notice carries an undo, live for **thirty seconds**. It says *which* property changed, on
+*which* note. Taking it does exactly what the panel would do for that batch. Ignoring it is the
+normal case — it is a notice, never a modal, and after thirty seconds it goes quietly: no second
+notice, no badge, no counter. The same undo stays in the record.
+
+A hook that set a property to the value it already had changed nothing, recorded nothing, and
+offers nothing. That is the common case for an idempotent hook, and it stays silent.
+
 ### The one place content is kept
 
 An **append** is the exception to *no note content*: the record keeps the exact text ZettelFlow

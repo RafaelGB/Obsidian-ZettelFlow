@@ -37,8 +37,12 @@ export interface RehearsalEdge {
     id: string;
     fromNode: string;
     toNode: string;
-    /** The words the option reads, when the exit or the label says any. */
-    says?: string;
+    /**
+     * The raw label — gate and words together. The step's exits override it where they exist and
+     * fall back to it where they do not (#427), so a flow whose conditions still live on its
+     * labels rehearses exactly as it runs.
+     */
+    label?: string;
 }
 
 export interface RehearsalFlow {
@@ -113,7 +117,7 @@ function optionsAt(
                 id: edge.toNode,
                 label: destination?.label ?? edge.toNode,
                 edgeId: edge.id,
-                ...(edge.says ? { tooltip: edge.says } : {}),
+                ...(edge.label ? { tooltip: edge.label } : {}),
                 destination,
             };
         });

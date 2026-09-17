@@ -402,8 +402,10 @@ Painting a node is **never silent**:
 - a setting (**off by default**) makes it automatic for people who want the canvas to paint itself;
 - clearing a phase never clears a colour. Removing meaning must not repaint someone's canvas.
 
-Each node also carries **badges** derived at render time — *N questions · template · linked note ·
-optional · conditional exits*. Nothing new is stored: they are read from the settings the step
+Each node also carries **badges** derived at render time — *start of the flow · N questions ·
+template · linked note · optional · conditional exits*. The first one matters most on someone
+else's canvas: a root **without** an event trigger is not a WHEN block, so until that badge nothing
+on the canvas said where a flow begins — including the common case where the root is a group. Nothing new is stored: they are read from the settings the step
 already has, and they disappear with the extension. A collapsible **legend** on the canvas states
 what the colours and the badges mean, so the canvas explains its own language instead of sending
 you to this page.

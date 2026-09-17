@@ -10,7 +10,7 @@ import { NODE_BADGE_LABEL_KEY, type NodeBadgeKind } from "architecture/plugin/wo
 type LocaleKey = Parameters<typeof t>[0];
 
 /** Reading order of the badge vocabulary in the legend. */
-const BADGE_ORDER: NodeBadgeKind[] = ["asks", "template", "satellite", "optional", "gated"];
+const BADGE_ORDER: NodeBadgeKind[] = ["start", "asks", "template", "satellite", "optional", "gated"];
 
 /**
  * The canvas explains its own language (#429, epic #422).

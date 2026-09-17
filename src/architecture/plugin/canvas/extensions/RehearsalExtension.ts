@@ -1,4 +1,5 @@
 import { Canvas } from "obsidian/canvas";
+import { Notice } from "obsidian";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
 import { c, log } from "architecture";
@@ -87,7 +88,9 @@ export default class RehearsalExtension extends CanvasExtension {
             log.warn("[Rehearsal] could not read this flow", error);
             return;
         }
-        this.state = startRehearsal(this.flow, this.context);
+        // A canvas can hold several flows; starting in the first one found would be a guess.
+        const roots = this.flow.steps.filter((step) => step.root);
+        this.state = roots.length === 1 ? startRehearsal(this.flow, this.context) : undefined;
         this.render();
     }
 
@@ -110,7 +113,8 @@ export default class RehearsalExtension extends CanvasExtension {
 
         const state = this.state;
         if (!state) {
-            body.createDiv({ cls: c("rehearsal-note"), text: t("rehearsal_no_root") });
+            this.clearMarks();
+            this.renderStarts(body);
             return;
         }
 
@@ -130,6 +134,8 @@ export default class RehearsalExtension extends CanvasExtension {
         });
 
         this.renderOptions(body, state);
+        // An end is a fact worth stating: the walk stops here because there is nowhere else to go.
+        if (state.done) body.createDiv({ cls: c("rehearsal-note"), text: t("rehearsal_end") });
         this.renderWouldRun(body, state);
         if (state.done) this.renderOutcome(body, state);
 
@@ -139,9 +145,37 @@ export default class RehearsalExtension extends CanvasExtension {
             attr: { type: "button" },
         });
         restart.addEventListener("click", () => {
-            this.state = startRehearsal(flow, this.context);
+            // Back to the choice of start, so pressing it visibly does something even when the
+            // walk had not moved yet.
+            this.state = undefined;
+            new Notice(t("rehearsal_restarted"));
             this.render();
         });
+    }
+
+    /**
+     * Where to begin. A canvas usually holds several flows — four groups on one board is normal —
+     * so the rehearsal asks instead of guessing, and a board with no start says so.
+     */
+    private renderStarts(body: HTMLElement): void {
+        const roots = this.flow?.steps.filter((step) => step.root) ?? [];
+        if (roots.length === 0) {
+            body.createDiv({ cls: c("rehearsal-note"), text: t("rehearsal_no_root") });
+            return;
+        }
+        body.createDiv({ cls: c("rehearsal-current"), text: t("rehearsal_choose_start") });
+        for (const root of roots) {
+            const button = body.createEl("button", {
+                cls: c("rehearsal-option"),
+                text: root.label,
+                attr: { type: "button" },
+            });
+            button.addEventListener("click", () => {
+                if (!this.flow) return;
+                this.state = startRehearsal(this.flow, this.context, root.id);
+                this.render();
+            });
+        }
     }
 
     /**
@@ -163,7 +197,7 @@ export default class RehearsalExtension extends CanvasExtension {
             remove.addEventListener("click", () => {
                 const { [key]: _gone, ...rest } = this.context.frontmatter;
                 this.context = { ...this.context, frontmatter: rest };
-                this.state = this.flow ? startRehearsal(this.flow, this.context) : undefined;
+                this.state = this.restarted();
                 this.render();
             });
         }
@@ -181,8 +215,8 @@ export default class RehearsalExtension extends CanvasExtension {
                 ...this.context,
                 frontmatter: { ...this.context.frontmatter, [name]: value.value.trim() },
             };
-            // The context decides which branches open, so the walk starts again from the root.
-            this.state = this.flow ? startRehearsal(this.flow, this.context) : undefined;
+            // The context decides which branches open, so the walk starts again from where it began.
+            this.state = this.restarted();
             this.render();
         });
     }
@@ -244,6 +278,13 @@ export default class RehearsalExtension extends CanvasExtension {
             });
         }
         body.createEl("pre", { cls: c("rehearsal-preview"), text: outcome.preview.body.trim() });
+    }
+
+    /** The same walk from its own start, re-evaluated against the context as it now stands. */
+    private restarted(): RehearsalState | undefined {
+        const from = this.state?.path[0];
+        if (!this.flow || !from) return undefined;
+        return startRehearsal(this.flow, this.context, from);
     }
 
     /** Trace the walk on the canvas itself (FR-2), feature-detected: a failure degrades to the list. */

@@ -51,7 +51,12 @@ node it is about.
   writes the key a gate reads.
 - `zettelkasten/review/readFlow.ts` — the impure half: resolves each node's settings (the same
   reader the exits use), asks the vault whether a file step's note still exists, and builds the
-  graph with `flowAdjacency` (#408), the same adjacency the wizard walks.
+  graph with `canvasEdges` over `flowAdjacency` (#408) — the same adjacency the wizard walks, so a
+  group's children count as options here too.
+- `zettelkasten/review/canvasEdges.ts` — one graph reader shared by the review and the rehearsal.
+  It hands over the **raw** arrow label; who resolves the gate and the words is the exits' business
+  (#427), in one place, so a flow whose conditions still live on its labels reads exactly as it
+  runs.
 - `FlowReviewExtension` — the chip and the panel on `canvas.wrapperEl`, every canvas access
   feature-detected and removed on unload (§VI).
 
@@ -63,6 +68,10 @@ can never open survives for months.
 
 **Rehearse** walks your own flow, in the panel on the left of the canvas:
 
+- it asks **where to start**: a canvas usually holds several flows (four groups on one board is
+  normal), and guessing the first one found would be a guess;
+- it walks the graph the **wizard** walks — outgoing arrows for a box, and the boxes **inside a
+  group** for a group, since that is how `childrensOf` reads a canvas;
 - you take the options you would be offered, and the path is traced **on the canvas** — the current
   node outlined, the walked ones dashed;
 - a **closed branch is shown with its reason**, the same sentence the wizard says to the person

@@ -1,7 +1,7 @@
 import type { Flow } from "architecture/plugin/canvas";
 import { FileService, FrontmatterService } from "architecture/plugin";
-import { describeOption } from "application/notes/optionDescription";
-import type { RehearsalEdge, RehearsalFlow, RehearsalStep } from "application/notes/rehearsal";
+import type { RehearsalFlow, RehearsalStep } from "application/notes/rehearsal";
+import { canvasEdges } from "./canvasEdges";
 import type { PreviewTemplate } from "application/notes/previewAssembly";
 import type { StepSettings } from "zettelkasten";
 import { readStepSettings } from "./../exits/exitStore";
@@ -59,16 +59,5 @@ export async function readRehearsalFlow(flow: Flow): Promise<RehearsalFlow> {
         });
     }
 
-    const edges: RehearsalEdge[] = (flow.data.edges ?? []).map((edge) => {
-        const exit = settingsOf.get(edge.fromNode)?.exits?.[edge.id];
-        const says = exit?.says ?? describeOption(edge.label);
-        return {
-            id: edge.id,
-            fromNode: edge.fromNode,
-            toNode: edge.toNode,
-            ...(says ? { says } : {}),
-        };
-    });
-
-    return { steps, edges };
+    return { steps, edges: canvasEdges(flow.data) };
 }

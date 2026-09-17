@@ -43,7 +43,7 @@ const flow: RehearsalFlow = {
     ],
     edges: [
         { id: "e-root-permanent", fromNode: "root", toNode: "permanent" },
-        { id: "e-root-fleeting", fromNode: "root", toNode: "fleeting", says: "Not yet" },
+        { id: "e-root-fleeting", fromNode: "root", toNode: "fleeting", label: "Not yet" },
     ],
 };
 
@@ -89,6 +89,26 @@ describe("rehearsing a flow walks it without touching anything (#430)", () => {
         expect(state.wouldRun[0].asks).toBe(true);
         expect(state.wouldRun[1].asks).toBe(false);
         expect(execute).not.toHaveBeenCalled();
+    });
+
+    it("honours a gate still written on the arrow's label (a flow nobody migrated)", () => {
+        const legacy: RehearsalFlow = {
+            steps: [
+                { id: "root", label: "Start", root: true },
+                { id: "a", label: "Permanent" },
+            ],
+            edges: [
+                {
+                    id: "e1",
+                    fromNode: "root",
+                    toNode: "a",
+                    label: 'if: frontmatter.state === "fleeting"',
+                },
+            ],
+        };
+        const state = startRehearsal(legacy, context);
+        expect(state?.options).toEqual([]);
+        expect(state?.closed[0].expression).toBe('frontmatter.state === "fleeting"');
     });
 
     it("has nothing to rehearse when no step is the start", () => {

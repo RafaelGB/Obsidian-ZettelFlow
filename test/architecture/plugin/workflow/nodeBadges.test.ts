@@ -2,6 +2,13 @@ import { describe, it, expect } from "@jest/globals";
 import { nodeBadges, NODE_BADGE_LABEL_KEY } from "architecture/plugin/workflow/nodeBadges";
 
 describe("a node says what it does (#429)", () => {
+    it("says which step the flow starts on", () => {
+        // A root without an event trigger is not a WHEN block, so until this badge the canvas said
+        // nothing at all about where a flow begins — including when the root is a group.
+        expect(nodeBadges({ root: true }).map((badge) => badge.kind)).toEqual(["start"]);
+        expect(nodeBadges({ root: false })).toEqual([]);
+    });
+
     it("counts the questions it asks, ignoring what runs in the background", () => {
         const badges = nodeBadges({
             actions: [{ hasUI: true }, { hasUI: false }, { hasUI: true }],
@@ -38,8 +45,10 @@ describe("a node says what it does (#429)", () => {
             satellite: {},
             body: "x",
             actions: [{ hasUI: true }],
+            root: true,
         });
         expect(badges.map((badge) => badge.kind)).toEqual([
+            "start",
             "asks",
             "template",
             "satellite",

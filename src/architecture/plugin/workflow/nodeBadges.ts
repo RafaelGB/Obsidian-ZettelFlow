@@ -11,7 +11,7 @@
 
 import type { NodeBlockShape } from "./blocks";
 
-export type NodeBadgeKind = "asks" | "template" | "satellite" | "optional" | "gated";
+export type NodeBadgeKind = "start" | "asks" | "template" | "satellite" | "optional" | "gated";
 
 export interface NodeBadge {
     kind: NodeBadgeKind;
@@ -23,6 +23,7 @@ export interface NodeBadge {
 
 /** i18n key per badge kind. Pure data. */
 export const NODE_BADGE_LABEL_KEY: Record<NodeBadgeKind, string> = {
+    start: "node_badge_start",
     asks: "node_badge_asks",
     template: "node_badge_template",
     satellite: "node_badge_satellite",
@@ -40,14 +41,17 @@ export interface NodeBadgeShape extends NodeBlockShape {
 }
 
 /**
- * What this step does, in reading order: what it asks, what it writes, what it also creates, that
- * it can be skipped, and that some of its exits are conditional. A step that does none of these
- * gets no badges at all — an empty strip is noise, not information.
+ * What this step does, in reading order: that the flow starts here, what it asks, what it writes,
+ * what it also creates, that it can be skipped, and that some of its exits are conditional. A step
+ * that does none of these gets no badges at all — an empty strip is noise, not information.
  */
 export function nodeBadges(step: NodeBadgeShape | undefined): NodeBadge[] {
     if (!step) return [];
     const badges: NodeBadge[] = [];
 
+    // Which box starts the flow is the first thing you look for on someone else's canvas, and a
+    // root without an event trigger is not a WHEN block — so nothing on the canvas said it.
+    if (step.root) badges.push({ kind: "start", labelKey: NODE_BADGE_LABEL_KEY.start });
     const asks = (step.actions ?? []).filter((action) => action?.hasUI).length;
     if (asks > 0) badges.push({ kind: "asks", labelKey: NODE_BADGE_LABEL_KEY.asks, count: asks });
     if (step.body?.trim()) badges.push({ kind: "template", labelKey: NODE_BADGE_LABEL_KEY.template });

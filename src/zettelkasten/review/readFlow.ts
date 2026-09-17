@@ -3,6 +3,7 @@ import { flowAdjacency } from "architecture/plugin/canvas/walkProgress";
 import { ObsidianApi } from "architecture";
 import { describeOption } from "application/notes/optionDescription";
 import { parseEdgeCondition } from "application/notes/conditionEvaluator";
+import { canvasEdges } from "./canvasEdges";
 import type { FlowEdgeShape, FlowShape, FlowStepShape } from "application/notes/flowFindings";
 import type { StepSettings } from "zettelkasten";
 import { readStepSettings } from "zettelkasten/exits/exitStore";
@@ -55,7 +56,8 @@ export async function readFlowShape(flow: Flow): Promise<FlowShape> {
         });
     }
 
-    const edges: FlowEdgeShape[] = (flow.data.edges ?? []).map((edge) => {
+    // The same graph the wizard walks, so a group's children are options too (#428).
+    const edges: FlowEdgeShape[] = canvasEdges(flow.data).map((edge) => {
         // The step owns its exits (#427); an unconfigured arrow still speaks through its label.
         const exit = settingsOf.get(edge.fromNode)?.exits?.[edge.id];
         return {

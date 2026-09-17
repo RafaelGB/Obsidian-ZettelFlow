@@ -1,4 +1,5 @@
 // External imports
+import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { ZettelFlowSettings } from "config";
 import { log } from "architecture";
 import ZettelFlow from "main";
@@ -57,6 +58,7 @@ export function unloadPluginComponents(): void {
 }
 
 export function loadServicesThatRequireSettings(setttings: ZettelFlowSettings): void {
-    log.setDebugMode(setttings.loggerEnabled);
+    // `off` is a level: the separate enable toggle was a second way to say the same thing (#439).
+    log.setDebugMode(setttings.logLevel !== LOG_LEVEL_OFF);
     log.setLevelInfo(setttings.logLevel);
 }

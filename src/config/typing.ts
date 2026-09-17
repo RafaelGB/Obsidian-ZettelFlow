@@ -55,13 +55,9 @@ export interface ZettelFlowSettings {
      * install predating the setting keeps today's spacing.
      */
     wizardDensity?: "comfortable" | "compact";
-    /** Enable or disable logging */
-    loggerEnabled: boolean;
-    /** Logging level (e.g., "debug", "info", etc.) */
+    /** Logging level, including `off` — which is what the retired enable toggle meant (#439). */
     logLevel: string;
-    /** Enable or disable the use of a unique prefix */
-    uniquePrefixEnabled: boolean;
-    /** Format/string used as a unique prefix (e.g., "YYYYMMDDHHmmss") */
+    /** Unique-title prefix pattern (e.g. "YYYYMMDDHHmmss"); **empty means no prefix** (#439). */
     uniquePrefix: string;
     /**
      * **Colour canvas nodes by phase** (#429): choosing a step's phase paints its node in that
@@ -78,6 +74,13 @@ export interface ZettelFlowSettings {
     jsLibraryFolderPath: string;
     /** Path to the folder where flows are stored */
     foldersFlowsPath: string;
+    /**
+     * Home of the **event flows** (#436): the canvases whose root carries a trigger. Separate from
+     * {@link foldersFlowsPath} because a canvas cannot be both the automation of a folder (by its
+     * filename) and a flow that reacts to an event — which is exactly what sharing one folder made
+     * it. The two may be neither equal nor nested (`validateFlowFolders`).
+     */
+    eventFlowsPath: string;
     /**
      * Path prefixes to exclude from the knowledge system (#311). Notes under any of these (config,
      * templates, other vault tooling) never enter the index, so they drop out of every mechanism —
@@ -281,15 +284,14 @@ export type InstalledTemplates = {
  * Default settings for ZettelFlow.
  */
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
-    loggerEnabled: false, // Logging is disabled by default.
-    logLevel: "info", // Default log level; must match a key of the logger's level record.
-    uniquePrefixEnabled: false, // Unique prefix is disabled by default.
-    uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
+    logLevel: "off", // No logging until someone asks for it (#439).
+    uniquePrefix: "", // No prefix until someone writes a pattern (#439).
     colourNodesByPhase: false, // A canvas you already coloured is yours (#429).
     ribbonCanvas: "", // No ribbon canvas configured until the user picks one.
     editorCanvas: "", // No editor canvas configured until the user picks one.
     jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
+    eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     installedTemplates: {
         steps: {},   // No step templates are installed by default.

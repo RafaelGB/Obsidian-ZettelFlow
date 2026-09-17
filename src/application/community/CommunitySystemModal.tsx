@@ -13,6 +13,33 @@ import {
   REGISTERED_ACTION_IDS,
 } from "./systemInstall";
 import { COMMUNITY_BASE_URL } from "./services/CommunityHttpClientService";
+import { installDestination, type InstallRole } from "./installDestination";
+import { flowFolders, FLOW_ROLE_LABEL_KEY } from "architecture/plugin/canvas/flowRole";
+import { ConfirmModal } from "architecture/components/settings";
+import { SystemRehearsalPanel } from "./SystemRehearsalPanel";
+
+type LocaleKey = Parameters<typeof t>[0];
+
+/** The five answers to "how will you use this?", in the order the dialog offers them. */
+const INSTALL_ROLES: InstallRole[] = ["create", "edit", "folder", "event", "none"];
+
+/** How the system will run once installed — said in the user's terms, not as a command id. */
+const RUNS_KEY: Record<InstallRole, string> = {
+    create: "community_system_runs_create",
+    edit: "community_system_runs_edit",
+    folder: "community_system_runs_folder",
+    event: "community_system_runs_event",
+    none: "community_system_runs_none",
+};
+
+/** The role label, plus the one for "just the files" which is not a role at all. */
+const ROLE_OPTION_KEY: Record<InstallRole, string> = {
+    create: FLOW_ROLE_LABEL_KEY.create,
+    edit: FLOW_ROLE_LABEL_KEY.edit,
+    folder: FLOW_ROLE_LABEL_KEY.folder,
+    event: FLOW_ROLE_LABEL_KEY.event,
+    none: "community_system_role_none",
+};
 
 /**
  * Modal for a community **system** (#214): a `.zftemplate` bundle installed as a canvas + step notes
@@ -36,6 +63,16 @@ export class CommunitySystemModal extends Modal {
    * systems that carry none, so nothing gains friction where there is nothing to disclose (#353).
    */
   private codeAcknowledged = true;
+  /**
+   * How the system will be used (#437). Pre-selected as *creates notes* **only** when no canvas
+   * holds that role yet — the common first install, where nothing is displaced. Otherwise it
+   * starts at "just the files", so the question never has a destructive default.
+   */
+  private role: InstallRole;
+  /** For the folder role: the vault folder whose notes should run it. */
+  private roleFolder = "";
+  /** Whether the rehearsal panel is open (#438). It writes nothing, so it can stay inline. */
+  private trying = false;
 
   constructor(
     private plugin: ZettelFlow,
@@ -50,6 +87,7 @@ export class CommunitySystemModal extends Modal {
     const base = plugin.settings.foldersFlowsPath || "";
     const segment = sanitizeFolderSegment(template.name);
     this.targetFolder = segment ? (base ? `${base}/${segment}` : segment) : base;
+    this.role = plugin.settings.ribbonCanvas ? "none" : "create";
   }
 
   onOpen(): void {
@@ -109,16 +147,47 @@ export class CommunitySystemModal extends Modal {
       }
     }
 
-    // --- Install location ---
+    // --- How will you use this? (#437) ---
+    // The last question stops being *where do the files go* and becomes *what is this for*: the
+    // role writes the setting or picks the folder that makes the system reachable at all.
     new Setting(this.contentEl)
-      .setName(t("community_system_install_location"))
-      .setDesc(t("community_system_install_location_desc"))
-      .addSearch((cb) => {
-        new FolderSuggest(cb.inputEl);
-        cb.setValue(this.targetFolder).onChange((value) => {
-          if (!this.installing) this.targetFolder = value;
+      .setName(t("community_system_role"))
+      .setDesc(t("community_system_role_desc"))
+      .addDropdown((dropdown) => {
+        for (const role of INSTALL_ROLES) {
+          dropdown.addOption(role, t(ROLE_OPTION_KEY[role] as LocaleKey));
+        }
+        dropdown.setValue(this.role).onChange((value) => {
+          this.role = value as InstallRole;
+          this.contentEl.empty();
+          this.renderContent();
         });
       });
+
+    if (this.role === "folder") {
+      new Setting(this.contentEl)
+        .setName(t("assign_role_folder"))
+        .setDesc(t("assign_role_folder_description"))
+        .addSearch((cb) => {
+          new FolderSuggest(cb.inputEl);
+          cb.setValue(this.roleFolder).onChange((value) => {
+            this.roleFolder = value;
+          });
+        });
+    }
+
+    // --- Install location (the role decides it for a folder or event flow) ---
+    if (this.role === "none" || this.role === "create" || this.role === "edit") {
+      new Setting(this.contentEl)
+        .setName(t("community_system_install_location"))
+        .setDesc(t("community_system_install_location_desc"))
+        .addSearch((cb) => {
+          new FolderSuggest(cb.inputEl);
+          cb.setValue(this.targetFolder).onChange((value) => {
+            if (!this.installing) this.targetFolder = value;
+          });
+        });
+    }
 
     // --- Acknowledgement, then the install button it unlocks ---
     // Built in that order because a Setting appends to contentEl as it is constructed: creating the
@@ -134,6 +203,23 @@ export class CommunitySystemModal extends Modal {
             installButton?.setDisabled(!value);
           });
         });
+    }
+
+    // --- Try it first (#438): the walk and the review, before a single file exists ---
+    new Setting(this.contentEl)
+      .setName(t("community_system_try"))
+      .setDesc(t("community_system_try_desc"))
+      .addButton((btn) =>
+        btn.setButtonText(t("community_system_try_button")).onClick(() => {
+          this.trying = !this.trying;
+          this.contentEl.empty();
+          this.renderContent();
+        })
+      );
+
+    if (this.trying) {
+      const panel = this.contentEl.createDiv({ cls: c("system-rehearsal") });
+      new SystemRehearsalPanel(this.template, panel).render();
     }
 
     new Setting(this.contentEl).addButton((btn) => {
@@ -193,10 +279,53 @@ export class CommunitySystemModal extends Modal {
       new Notice(t("community_system_install_error"));
       return;
     }
+    // Where it lands and what it changes, before anything exists (#437).
+    const destination = installDestination({
+      role: this.role,
+      targetFolder: this.targetFolder,
+      canvasFilename: this.template.canvas.filename,
+      folders: flowFolders(this.plugin.settings),
+      folder: this.roleFolder,
+    });
+    if (destination.problem) {
+      const message =
+        destination.problem === "folder-required"
+          ? t("assign_role_problem_folder_required")
+          : t("assign_role_problem_no_home");
+      this.installStatus?.setText(message);
+      new Notice(message);
+      return;
+    }
+
+    // Cancelling here writes nothing at all — not the files either: the role is part of the
+    // install, not a follow-up to it (AC-2).
+    const details = [
+      t("community_system_install_into", destination.targetFolder),
+      ...(destination.displaces ? [t("assign_role_displaces", destination.displaces)] : []),
+      t(RUNS_KEY[this.role] as LocaleKey),
+    ];
+    new ConfirmModal(
+      this.app,
+      t("community_system_confirm"),
+      t("community_system_install_button"),
+      t("confirm_cancel_button"),
+      async () => this.writeSystem(destination),
+      details
+    ).open();
+  }
+
+  /** The write half, once it has been agreed to. */
+  private async writeSystem(
+    destination: ReturnType<typeof installDestination>
+  ): Promise<void> {
     try {
       this.installing = true; this.installButton?.setDisabled(true);
       this.installStatus?.setText(t('community_system_installing'));
-      const { files } = planSystemInstall(this.template, this.targetFolder);
+      const { files } = planSystemInstall(this.template, destination.targetFolder);
+      // A folder flow is found by its name, so the convention renames the canvas (#437).
+      if (destination.canvasName && files.length > 0) {
+        files[0] = { ...files[0], path: `${destination.targetFolder}/${destination.canvasName}` };
+      }
       const result = await FileService.createFilesOnce(this.app.vault, files);
       if (result !== 'complete') {
         const message = t(result === 'conflict' ? 'community_system_install_conflict' : 'community_system_install_partial');
@@ -204,11 +333,14 @@ export class CommunitySystemModal extends Modal {
         this.installButton?.setButtonText(t('community_system_install_retry'));
         return;
       }
+      // The role's one setting, written only now that its files exist.
+      if (destination.settings) {
+        this.plugin.settings[destination.settings.key] = destination.settings.value;
+        await this.plugin.saveSettings();
+      }
       if (this.disposed) return;
       this.close();
       if (files.length > 0) {
-        // Open the canvas and offer to run it immediately — so a system is usable the moment it lands,
-        // without wiring it into settings as the single ribbonCanvas (#231 / user feedback).
         await FileService.openFile(files[0].path);
       }
       this.notifyInstalled();
@@ -220,11 +352,17 @@ export class CommunitySystemModal extends Modal {
     }
   }
 
-  /** Success notice with a "Run now" button that runs the just-opened canvas as a flow. */
+  /**
+   * Success notice that says **how it runs now** (#437 FR-6). A command id told you nothing about
+   * what you had just installed; the role does — and *just the files* still offers to run it.
+   */
   private notifyInstalled(): void {
     const notice = new Notice("", 0);
     const message = notice.messageEl.createDiv();
     message.createSpan({ text: `${this.template.name} — ${t("community_system_installed")}` });
+    message.createEl("br");
+    message.createSpan({ text: t(RUNS_KEY[this.role] as LocaleKey) });
+    if (this.role !== "none") return;
     message.createEl("br");
     const run = message.createEl("button", { text: t("community_system_run_now") });
     run.addClass("mod-cta");

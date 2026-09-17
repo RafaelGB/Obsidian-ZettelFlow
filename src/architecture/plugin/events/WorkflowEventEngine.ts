@@ -55,7 +55,9 @@ export class WorkflowEventEngine {
         // Teardown on unload even if disarm() is never called explicitly (no leaks, AC-4).
         plugin.register(() => engine.disarm());
         plugin.app.workspace.onLayoutReady(() => {
-            if (plugin.settings.events?.enabled) engine.arm();
+            // Armed always: with no bindings nothing fires, and which flows bind is now the
+            // switch (#436) — a flow only binds by living in the events folder.
+            engine.arm();
         });
         return engine;
     }
@@ -156,7 +158,8 @@ export class WorkflowEventEngine {
     // ── Dispatch wiring ─────────────────────────────────────────────────────────
     private dispatch(payload: WorkflowEventPayload): Promise<DispatchResult[]> {
         const deps: DispatchDeps = {
-            enabled: () => this.plugin.settings.events?.enabled ?? false,
+            // The gate moved from a global toggle to *which flows bind* (#436).
+            enabled: () => true,
             bindings: () => this.bindings,
             selfWriteState: () => this.selfWriteState(payload.notePath),
             throttle: this.throttle,
@@ -200,10 +203,25 @@ export class WorkflowEventEngine {
      * required) so the settings management list can call it directly.
      */
     public async scanTriggers(): Promise<WorkflowBinding[]> {
-        const folder = this.plugin.settings.foldersFlowsPath;
-        if (!folder) return [];
+        // Event flows live in their own folder (#435). The folder-flows folder is still scanned —
+        // but only for installs that had event workflows switched on — so no automation that
+        // fires today stops firing, and none that was inert starts (#434 FR-5).
+        const folders = [this.plugin.settings.eventFlowsPath];
+        if (this.plugin.settings.events?.enabled) folders.push(this.plugin.settings.foldersFlowsPath);
+
         try {
-            const files = FileService.getTfilesFromFolder(folder, FILE_EXTENSIONS.ONLY_CANVAS);
+            const seen = new Set<string>();
+            const files = folders
+                .filter((folder) => Boolean(folder))
+                .flatMap((folder) => {
+                    try {
+                        return FileService.getTfilesFromFolder(folder, FILE_EXTENSIONS.ONLY_CANVAS);
+                    } catch (error) {
+                        log.debug(`[WorkflowEventEngine] no flows under ${folder}`, error);
+                        return [];
+                    }
+                })
+                .filter((file) => (seen.has(file.path) ? false : seen.add(file.path)));
             const sources: FlowTriggerSource[] = [];
             for (const file of files) {
                 try {

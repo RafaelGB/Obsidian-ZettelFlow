@@ -85,3 +85,24 @@ Ideas to explore (not committed scope):
 Treat Milestone 1 as the definition of "ready to ship a compliant update." The
 `obsidian-plugin-quality` harness skill re-runs the compliance audit on demand, and the
 `obsidian-plugin-reviewer` agent reviews individual PRs against the guidelines.
+
+## The settings panel, subtracted (#439)
+
+The panel had **62 options** in one tab — 44 in `ZettelFlowSettingsTab.tsx` plus 18 across five
+settings groups — and nine of them configured nothing.
+
+| What | Why it went |
+|---|---|
+| The whole *Zettelkasten toolkit* section (9 rows) | four buttons opening surfaces the menu button already opens, and four rows whose only control was a docs link |
+| *Unique prefix* toggle | the pattern says it: **empty means no prefix** |
+| *Enable logger* toggle | `off` is a level, so the toggle said the same thing twice |
+| *Enable event-driven workflows* toggle | the role is the switch (#436) |
+| The two canvas selectors | they **are** roles now, assigned in *Your flows* (#435) |
+| The two gallery entries | a flow usually arrives from the gallery, so it lives with the flows |
+
+Nothing was lost: `settingsMigration.ts` moves an install that had a prefix or a log level onto the
+merged control, idempotently and with a unit test per case, and a guardrail test keeps launchers,
+docs-only rows and the retired toggles out for good.
+
+The tab renders **28 rows**; the ceiling asserted by the guardrail is 35, so the next addition is
+a decision rather than an accident.

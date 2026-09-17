@@ -523,3 +523,15 @@
   margin-left: 0.5rem;
   border: 1px solid var(--background-modifier-border);
 }
+// Trying a system before installing it (#438): the rehearsal, inline in the gallery's dialog.
+.zettelkasten-flow__system-rehearsal {
+    max-height: 22em;
+    overflow-y: auto;
+    margin: var(--size-4-2) 0;
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

@@ -23,8 +23,9 @@ describe("DEFAULT_SETTINGS", () => {
     });
 
     it("has the semantic-relations settings strings in both locales (i18n parity)", () => {
+        // The section's own heading went with #440's regrouping: relations now live inside
+        // *Your vault's vocabulary*, with their intro and their one setting.
         const keys = [
-            "settings_relations_heading",
             "settings_relations_intro",
             "settings_parse_inline_relations_name",
             "settings_parse_inline_relations_desc",

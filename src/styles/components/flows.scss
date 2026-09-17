@@ -1,0 +1,104 @@
+// "Your flows" (#435): the canvases that have a role, and the dialog that gives one.
+// A role is a fact about a canvas, so it reads as a chip next to its name, never as a colour alone.
+
+.zettelkasten-flow__flows-list-item {
+    display: block;
+}
+
+.zettelkasten-flow__flows-list .setting-item {
+    border-top: 1px solid var(--background-modifier-border);
+    padding: var(--size-4-2) 0;
+}
+
+.zettelkasten-flow__flows-empty {
+    padding: var(--size-4-2) 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__flows-role {
+    margin-left: 0.45rem;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-secondary-alt);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-normal);
+}
+
+// Giving a role: what it costs, before it costs it.
+.zettelkasten-flow__assign-role-subject {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: var(--size-4-3);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__assign-role-target {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__assign-role-consequences {
+    margin: var(--size-4-3) 0;
+}
+
+.zettelkasten-flow__assign-role-line {
+    padding: 0.15rem 0 0.15rem var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__assign-role-problem {
+    padding: var(--size-4-1) var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-error);
+    color: var(--text-error);
+    font-size: var(--font-ui-smaller);
+}
+
+// A flow that still reacts to events from the old folder (#436): it works, and it is offered the move.
+.zettelkasten-flow__flows-legacy {
+    margin-left: 0.45rem;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-modifier-error);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+}
+
+// A trigger that cannot fire where it was written (#436).
+.zettelkasten-flow__step-trigger-orphan {
+    border-left: 3px solid var(--background-modifier-error);
+    padding-left: var(--size-4-2);
+}
+
+// What is on right now (#440): facts, stated before the panel asks anything.
+.zettelkasten-flow__settings-summary {
+    border-top: none;
+}
+
+.zettelkasten-flow__settings-summary-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: var(--size-4-1);
+}
+
+.zettelkasten-flow__settings-summary-fact {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

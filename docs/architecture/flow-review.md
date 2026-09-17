@@ -90,3 +90,23 @@ Leaving the rehearsal removes every class it added; the selection is never touch
 
 If the canvas internals cannot be annotated, the rehearsal still runs — it just stays in the panel,
 and says so in the log.
+
+## Rehearsing a system you have not installed (#438)
+
+The walk and the review work on a plain graph, and a community `.zftemplate` **is** that graph:
+the canvas JSON plus each step's markdown, all of it inside the bundle. So the gallery can answer
+*what would this do to my vault?* before anything exists.
+
+**Try it** in a system's dialog:
+
+- the **review** first — steps nothing points at, dead ends, options that read alike, a gate on a
+  key nothing writes — so a half-built system is visible before it lands;
+- then the **walk**: the options it would offer, why a branch is closed, the frontmatter you can
+  supply to open another one, and the note it would produce;
+- and the **what would run** list: script and AI actions are named, never executed. That rule
+  matters more here than anywhere else — this is code from the internet.
+
+Nothing is created and nothing is read from the vault: the step contents travel inside the
+template, the frontmatter parser is injected, and a test asserts the module imports neither
+`FileService` nor `FrontmatterService` nor `obsidian`. Install stays one click away, and a system
+with findings is still installable — the gallery informs, it does not gate.

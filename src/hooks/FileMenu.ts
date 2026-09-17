@@ -4,6 +4,7 @@ import ZettelFlow from "main";
 import { Notice, TFile, TFolder } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { StepBuilderMapper, StepBuilderModal } from "zettelkasten";
+import { flowFolders, flowRole } from "architecture/plugin/canvas/flowRole";
 import { canvas } from 'architecture/plugin/canvas';
 
 export class FileMenu {
@@ -21,7 +22,7 @@ export class FileMenu {
     // Register a custom file menu event.
     private onFileMenuTriggered =
         this.plugin.app.workspace.on('file-menu', (menu, file) => {
-            const { ribbonCanvas, foldersFlowsPath } = this.plugin.settings;
+            const { foldersFlowsPath } = this.plugin.settings;
             if (file instanceof TFolder) {
                 menu.addItem((item) => {
                     item
@@ -32,7 +33,10 @@ export class FileMenu {
                         });
                 });
             } else if (file instanceof TFile) {
-                const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
+                const builderMode =
+                    flowRole(file.path, flowFolders(this.plugin.settings)) === "create"
+                        ? "ribbon"
+                        : "editor";
                 if (file.extension === "md") {
                     const fileService = FrontmatterService.instance(file);
                     let mappedInfo = {};

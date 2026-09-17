@@ -48,9 +48,11 @@ describe("four-surface consolidation (#272, AC-3/AC-4)", () => {
         }
     });
 
-    it("the settings launchers open surfaces, not the retired view types", () => {
+    it("keeps launchers out of the settings tab (#439), and names no retired view type", () => {
+        // The four surfaces are opened from the menu button and the command palette. A settings
+        // panel that launches things is a menu wearing a panel's clothes, and it cost nine rows.
         const tab = read("src/config/modals/ZettelFlowSettingsTab.tsx");
-        expect(tab).toContain("activateSurface");
+        expect(tab).not.toContain("activateSurface");
         expect(tab).not.toContain("activateSidebarView");
         const retiredTypes = [
             "zettelflow-slipbox-health", "zettelflow-knowledge-dashboard", "zettelflow-evolution-timeline",

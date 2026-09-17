@@ -107,3 +107,32 @@ A maintainer then adds the `.zftemplate` under `docs/systems/` and a row in `doc
 on `main`. See the [Systems Gallery guide](../how-to-contribute/systems-gallery.md) for authoring
 details, and [Community examples](../how-to-contribute/community-examples.md) for the
 step/action/markdown formats.
+
+## Installing a system into a role (#437)
+
+Installing used to write the files, open the canvas and offer a *run now* command. The system was
+in your vault and connected to nothing: the ribbon did not open it, no folder ran it, and you had
+to know — from nowhere — that it needed wiring by hand in settings.
+
+The last question of the install dialog is now **how will you use this?**
+
+| Answer | What it writes | How it runs afterwards |
+|---|---|---|
+| Creates notes | the *new notes canvas* setting | the ribbon icon |
+| Edits the open note | the *editor canvas* setting | the edit command, at your cursor |
+| Runs on a folder | the canvas, **named after the folder** you pick | creating a note there |
+| Runs on an event | the canvas, in the events folder | give its first step a trigger |
+| Just the files | nothing | the *run a flow* command (what it always did) |
+
+Three rules keep it honest:
+
+- **Nothing is written before you agree.** The confirmation names the folder the files go to, the
+  canvas that would stop holding an exclusive role (it keeps existing as a file), and how the
+  system will run. Cancelling writes nothing — not even the files.
+- **No destructive default.** *Creates notes* is pre-selected only when no canvas holds that role
+  yet, which is the common first install and displaces nobody. Otherwise the dialog starts at
+  *just the files*.
+- **The success notice says how it runs**, in those words, instead of naming a command.
+
+Everything else is unchanged: still create-only and idempotent (`createFilesOnce`), still validated
+before install, still one static fetch from GitHub raw — no backend (#294).

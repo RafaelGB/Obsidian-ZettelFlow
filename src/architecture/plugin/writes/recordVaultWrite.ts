@@ -66,6 +66,23 @@ const settingsSink: VaultWriteSink = {
  */
 const stack: { batch: string; origin: WriteOrigin }[] = [];
 
+/**
+ * Undo is the one thing that writes and must **not** be recorded: putting a note back is not a new
+ * thing ZettelFlow did to your vault, and recording it would leave an undo you could undo.
+ */
+let recording = true;
+
+/** Run `work` with recording off. Always restores it, including when the work throws. */
+export async function withoutRecording<T>(work: () => Promise<T>): Promise<T> {
+    const previous = recording;
+    recording = false;
+    try {
+        return await work();
+    } finally {
+        recording = previous;
+    }
+}
+
 /** The origin a write would inherit right now — exported for the tests and for R4's seam. */
 export function currentWriteOrigin(): WriteOrigin | undefined {
     return stack.length > 0 ? stack[stack.length - 1].origin : undefined;
@@ -103,6 +120,7 @@ function narrowBefore(
 
 /** Write one change down. Never throws: a record that breaks a write is worse than no record. */
 export function recordVaultWrite(facts: VaultWriteFacts, sink: VaultWriteSink = settingsSink): void {
+    if (!recording) return;
     try {
         const { writes } = sink.read();
         const entry: VaultWrite = {

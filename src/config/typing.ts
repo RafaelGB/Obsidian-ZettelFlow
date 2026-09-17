@@ -4,7 +4,6 @@ import type { VaultWrite } from "application/writes/vaultWriteLog";
 import type { ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { DEFAULT_RETENTION_DAYS } from "application/scripts/scriptRunLog";
 import { StepSettings } from "zettelkasten";
-import type { HistoryEntry } from "application/notes/historyUtils";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -226,8 +225,6 @@ export interface ZettelFlowSettings {
         rerunOnIndex: boolean;
     };
 
-    /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
-    history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
     hasSeenWelcome: boolean;
     /** When true, new notes are created in the active file's folder instead of the step's targetFolder. */
@@ -236,7 +233,6 @@ export interface ZettelFlowSettings {
     openHomeOnStartup: boolean;
 }
 
-export type { HistoryEntry } from "application/notes/historyUtils";
 
 
 /**
@@ -339,7 +335,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
     judgements: { enabled: true, log: [] }, // Judgement record on by default (#336); descriptors only, no content.
     patterns: { rerunOnIndex: true }, // Post-index pattern re-run on by default (#200); offline, own keys only.
-    history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,
     openHomeOnStartup: false, // Off by default; first-run onboarding turns it on for new users (#246 A2).

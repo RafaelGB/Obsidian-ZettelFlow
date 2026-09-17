@@ -25,3 +25,31 @@ export interface WriteOrigin {
 
 /** A write nobody claimed. Recorded rather than dropped: an unexplained write is still a fact. */
 export const UNATTRIBUTED: WriteOrigin = Object.freeze({ kind: "unknown" });
+
+/**
+ * What to call each kind on screen. A map rather than a composed key, so the locale guardrail
+ * (#320) can still see every key that exists and every key that is used.
+ */
+export const ORIGIN_LABEL_KEY: Record<WriteOriginKind, string> = {
+    flow: "write_origin_flow",
+    hook: "write_origin_hook",
+    action: "write_origin_action",
+    install: "write_origin_install",
+    manual: "write_origin_manual",
+    unknown: "write_origin_unknown",
+};
+
+/**
+ * The origin's reference in the shortest form that still identifies it: a flow is its file name, a
+ * hook is its property. Empty when the origin named nothing.
+ */
+export function originName(origin: WriteOrigin): string {
+    const ref = origin.label ?? origin.ref ?? "";
+    if (!ref) return "";
+    if (origin.kind === "hook") return ref.startsWith("hook:") ? ref.slice("hook:".length) : ref;
+    if (origin.kind === "flow") {
+        const name = ref.split("/").pop() ?? ref;
+        return name.endsWith(".canvas") ? name.slice(0, -".canvas".length) : name;
+    }
+    return ref;
+}

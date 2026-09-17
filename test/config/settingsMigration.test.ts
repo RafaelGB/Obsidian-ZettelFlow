@@ -42,6 +42,14 @@ describe("two rows become one decision, losing nothing (#439)", () => {
         expect(twice.changed).toBe(false);
     });
 
+    it("drops the wizard's own list of built notes, now the write record holds it (#454)", () => {
+        const { settings, changed } = migrateSettings({
+            history: [{ notePath: "Notes/one.md", canvasPath: "a.canvas", createdAt: 1 }],
+        });
+        expect("history" in settings).toBe(false);
+        expect(changed).toBe(true);
+    });
+
     it("leaves everything else exactly as it was", () => {
         const { settings } = migrateSettings({
             loggerEnabled: true,

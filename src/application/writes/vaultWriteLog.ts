@@ -49,6 +49,19 @@ export const UNDOABLE_KINDS: readonly WriteKind[] = [
     "content-appended",
 ];
 
+/**
+ * What to call each kind on screen. A map, not a composed `t()` key: the locale guardrail (#320)
+ * has to be able to see every key that is used.
+ */
+export const KIND_LABEL_KEY: Record<WriteKind, string> = {
+    "note-created": "changes_kind_note_created",
+    "file-created": "changes_kind_file_created",
+    "file-moved": "changes_kind_file_moved",
+    "properties-set": "changes_kind_properties_set",
+    "content-appended": "changes_kind_content_appended",
+    "content-replaced": "changes_kind_content_replaced",
+};
+
 /** Whether this particular change can be taken back at all. */
 export function isUndoableKind(kind: WriteKind): boolean {
     return UNDOABLE_KINDS.includes(kind);

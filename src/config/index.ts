@@ -1,6 +1,6 @@
 export {
     CommunityTemplateOptions, StaticTemplateOptions, SystemDifficulty, CommunityStepSettings, CommunityAction,
-    InstalledTemplates, ZettelFlowSettings, DEFAULT_SETTINGS, HistoryEntry, SavedGraphQuery
+    InstalledTemplates, ZettelFlowSettings, DEFAULT_SETTINGS, SavedGraphQuery
 } from './typing';
 
 export { ZettelFlowSettingsTab } from './modals/ZettelFlowSettingsTab';

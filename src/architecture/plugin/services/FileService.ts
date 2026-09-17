@@ -185,6 +185,27 @@ export class FileService {
     }
 
     /**
+     * Add text to the end of a note (#454). Recorded **with the text**, which is the one place the
+     * write record holds content — and it is ZettelFlow's own output, capped, kept for a week,
+     * because removing it again is the only way an append can be taken back.
+     */
+    public static async appendTo(file: TFile, text: string): Promise<void> {
+        const content = await ObsidianApi.vault().cachedRead(file);
+        await ObsidianApi.vault().modify(file, `${content.trimEnd()}\n\n${text}\n`);
+        recordVaultWrite(
+            text.length <= FileService.MAX_RECORDED_APPEND
+                ? { kind: "content-appended", path: file.path, appended: text }
+                : { kind: "content-replaced", path: file.path }
+        );
+    }
+
+    /**
+     * How much appended text the record will keep. Past it the write is still recorded, as an
+     * overwrite that cannot be taken back — the record must not become a place to store prose.
+     */
+    public static MAX_RECORDED_APPEND = 2000;
+
+    /**
      * Move a file, through the file manager so links follow it (#453). The one write that changes
      * nothing inside a note and is still the hardest to notice — and the easiest to take back.
      */

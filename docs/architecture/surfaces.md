@@ -21,7 +21,7 @@ four surfaces. Note creation is no longer its own ribbon icon.
 
 | Surface | Modes | Folds in (former views) |
 |---|---|---|
-| **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + Notes history |
+| **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + **[What ZettelFlow changed](reversibility.md)** (#454) |
 | **Health** | Health · Timeline · Momentum | Slip-box health **+ the knowledge dashboard folded in** (#314) + Evolution timeline + Thinking heatmap |
 | **Discovery** | Connections · Forgotten · Questions · Challenges | Discovery + Resurface + Open questions + Evidence map |
 | **Graph** | 3D | **[3D knowledge graph](../development/graph-3d.md)** (#280, 3D-only); the retired 2D map / concept-nav redirect here |

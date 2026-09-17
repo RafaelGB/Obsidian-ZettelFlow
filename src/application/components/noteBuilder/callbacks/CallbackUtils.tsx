@@ -9,7 +9,6 @@ import { ObsidianApi } from "architecture";
 import { FlowNode } from "architecture/plugin/canvas";
 import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
-import { recordHistory } from "architecture/components/core/historyView/recordHistory";
 import { EvalContext } from "application/notes/conditionEvaluator";
 import { partitionExits } from "application/notes/stepExits";
 import { isWaitNode, WaitMachine } from "architecture/plugin/workflow";
@@ -155,12 +154,9 @@ export async function manageElement(
         actions.setActiveContext("", "");
         // The verdicts taken while walking belong to the note that just came into existence (#411).
         actions.flushSuggestionVerdicts(path);
-        if (!modal.isEditor()) {
-          recordHistory(info.plugin.app, info.plugin, path, info.modal.getCanvasName()
-            ? info.flow.canvasPath
-            : "");
-          void FileService.openFile(path);
-        }
+        // The write record (#453) already knows what this flow created, and the Recent mode
+        // reads it — a second list kept only for the wizard was the narrower half of the story.
+        if (!modal.isEditor()) void FileService.openFile(path);
         // The flow produced a note: there is nothing left to resume (#410).
         modal.markBuilt();
         modal.close();

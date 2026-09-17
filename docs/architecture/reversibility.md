@@ -26,7 +26,8 @@ One entry per change, newest first:
 
 ### No note content, ever
 
-There is no field for a note's body, and a test asserts there is not. The record is deliberately
+There is no field for a note's body, and a test asserts there is not. (The one exception, stated
+below, is the text of an **append** — ZettelFlow's own output, capped at 2,000 characters.) The record is deliberately
 not a second copy of your vault — a copy would have none of your vault's protections and all of
 its contents.
 
@@ -87,6 +88,57 @@ methods from the source and fails when one of them does not record. `deleteFile`
 named exception: undoing a deletion would mean keeping the body, and Obsidian's trash already holds
 the file.
 
+## Taking it back
+
+The record is read by the **Recent** mode of the Home surface, which is now *What ZettelFlow
+changed*: batches newest first, each one naming what ran, what it touched and when.
+
+That mode used to list the notes the wizard built, from a second list kept only for it. It never
+mentioned the satellite beside the note, the frontmatter a hook set while you were elsewhere, or
+the canvas that moved when you gave it a role. The narrow list is gone; the complete one replaced
+it, and the `history` setting is dropped on load.
+
+### Undo takes a batch, not a file
+
+`Ctrl+Z` reaches the note you have focused. This reaches what you actually did:
+
+- Notes and files ZettelFlow **created** go to Obsidian's **trash**. Nothing is deleted.
+- Properties it **set** go back to their previous values — and a key it *added* is removed again,
+  because "before" recorded its absence.
+- A file it **moved** goes back where it came from.
+- Text it **appended** is removed, exactly that text and nothing around it.
+
+### It is previewed, and it refuses
+
+Before anything happens, a confirmation states the counts and names the notes. Cancelling changes
+nothing.
+
+And undo **refuses** rather than overwriting your work:
+
+| Situation | What happens |
+|---|---|
+| You edited the note after ZettelFlow wrote it | Left alone, named, with when it changed |
+| A property no longer holds what ZettelFlow left | Left alone, naming the key |
+| The write was an overwrite (`content-replaced`) | Left alone: the old content was never kept |
+| The file is already gone | Skipped quietly — there is nothing to take back |
+
+When some of a batch is out of reach, the rest is still planned and offered as an explicit
+*undo the rest* — a partial undo is a decision you take, never one taken for you.
+
+A batch that has been taken back is marked as such, and is not offered again.
+
+### The one place content is kept
+
+An **append** is the exception to *no note content*: the record keeps the exact text ZettelFlow
+added, up to 2,000 characters, because removing it again is the only way an append can be reversed.
+It is ZettelFlow's own output, capped, and gone in a week. Past the cap the write is recorded as an
+overwrite instead, and cannot be taken back.
+
+### Undoing is not a write
+
+The undo's own operations are performed with recording **off**. Putting a note back is not a new
+thing ZettelFlow did to your vault, and recording it would leave you an undo you could undo.
+
 ## Recording never changes the write
 
 The rule the [script run log](scripting.md) established holds here too: **observing must never
@@ -98,7 +150,7 @@ worse than no record.
 
 | Capability | Used |
 |---|---|
-| File system — write | The record itself, capped, in the plugin's own settings |
+| File system — write | The record itself, capped, in the plugin's own settings — and, only on an explicit, previewed undo: moving created notes to the trash and restoring previous property values |
 | Network | No |
 | Clipboard | No |
 | Script execution | No |

@@ -118,6 +118,9 @@ async function buildInternalTools(): Promise<ZfInternalTools> {
         user: zfScriptsFns
     };
 
+    // A documented library function is part of the API as far as the editor is concerned (#448).
+    userDocs = zfScript.describe();
+
     return internalFns;
 }
 
@@ -136,7 +139,7 @@ async function buildTools(): Promise<ZettelFlowApp> {
         knowledge: await knowledge.generate_object(),
         ai: await ai.generate_object(),
     };
-    apiManifest = [...ZfVault().describe(), ...knowledge.describe(), ...ai.describe()];
+    apiManifest = [...ZfVault().describe(), ...knowledge.describe(), ...ai.describe(), ...userDocs];
     return fns;
 };
 
@@ -146,6 +149,9 @@ async function buildTools(): Promise<ZettelFlowApp> {
  * Populated when `zf` is built; the editor and the type generator read it.
  */
 let apiManifest: ApiMemberDoc[] = [];
+
+/** What the user's own documented library functions contribute to it (#448). */
+let userDocs: ApiMemberDoc[] = [];
 
 /** The manifest of the currently built API. Empty until `fnsManager.getFns()` has resolved once. */
 export function describeApi(): ApiMemberDoc[] {

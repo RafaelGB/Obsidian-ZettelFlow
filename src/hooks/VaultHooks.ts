@@ -4,6 +4,7 @@ import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
+import { isUnderFolder } from "architecture/plugin/canvas/flowRole";
 import { SelectorMenuModal } from "zettelkasten";
 import {
     App,
@@ -59,6 +60,8 @@ export type HookDryRunResult =
 
 /** Ajustable si ves muchos "changed" por tecleo. */
 const METADATA_DEBOUNCE_MS = 60;
+/** A save can arrive several times in a row; the library is reloaded once. */
+const LIBRARY_RELOAD_DEBOUNCE_MS = 300;
 /** TTL del cache de FrontmatterService, igual que el original (60s). */
 const FRONTMATTER_CACHE_TTL_MS = 60_000;
 
@@ -234,12 +237,32 @@ export class VaultHooks {
             canvas.flows.delete(file.path);
             log.debug("[VaultHooks] Invalida flow cache por modificación:", file.path);
         }
+
+        // Editing your own library function did nothing until Obsidian restarted (#448): the `zf`
+        // cache was only invalidated when the folder itself was renamed or deleted.
+        this.reloadLibraryOnSave(file);
     };
+
+    /** The library folder's own files, reloaded when you save one. Debounced: a save can burst. */
+    private reloadLibraryOnSave(file: TAbstractFile): void {
+        const folder = this.plugin.settings.jsLibraryFolderPath;
+        if (!folder || !isUnderFolder(folder, file.path) || !file.path.endsWith(".js")) return;
+
+        if (this.libraryReloadTimer) window.clearTimeout(this.libraryReloadTimer);
+        this.libraryReloadTimer = window.setTimeout(() => {
+            fnsManager.invalidateCache();
+            log.info(`[VaultHooks] Library reloaded after saving ${file.path}`);
+            new Notice(t("library_reloaded", file.name));
+        }, LIBRARY_RELOAD_DEBOUNCE_MS);
+    }
 
     /**
      * When a file is deleted, we check if it is a folder or a file. Then we handle it accordingly.
      * @param file The file that was deleted.
      */
+    /** Pending library reload, so a burst of saves reloads once. */
+    private libraryReloadTimer: number | undefined;
+
     private onDelete = (file: TAbstractFile) => {
         if (VaultStateManager.INSTANCE.isFreezed()) return;
 

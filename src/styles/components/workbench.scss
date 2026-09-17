@@ -95,3 +95,35 @@
     gap: 0.35rem;
     margin-top: var(--size-4-1);
 }
+
+// The library manager (#448): what loaded, what it says about itself, and who uses it.
+.zettelkasten-flow__library-list .setting-item {
+    border-top: 1px solid var(--background-modifier-border);
+    padding: var(--size-4-2) 0;
+}
+
+.zettelkasten-flow__library-failed {
+    border-left: 3px solid var(--background-modifier-error);
+    padding-left: var(--size-4-2);
+}
+
+.zettelkasten-flow__library-error {
+    color: var(--text-error);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__library-doc {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__library-desktop {
+    margin-top: 0.15rem;
+    padding: 0.05rem 0.4rem;
+    display: inline-block;
+    border-radius: 999px;
+    background-color: var(--background-secondary-alt);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

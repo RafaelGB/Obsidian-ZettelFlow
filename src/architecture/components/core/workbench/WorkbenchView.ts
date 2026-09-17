@@ -18,6 +18,7 @@ import {
 } from "architecture/api";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { renderRunLog } from "./runLogSection";
+import { renderLibrary } from "./librarySection";
 import { ContentDTO, NoteDTO } from "application/notes";
 import type { ScriptSurface } from "application/scripts/scriptRunLog";
 import {
@@ -158,6 +159,14 @@ export class WorkbenchView extends ItemView {
         this.outputEl = contentEl.createDiv({
             cls: c("workbench-output"),
             attr: { role: "status", "aria-live": "polite" },
+        });
+
+        renderLibrary(contentEl, {
+            onTry: (surface, code) => {
+                this.surface = surface;
+                this.code = code;
+                this.render();
+            },
         });
 
         renderRunLog(contentEl, {

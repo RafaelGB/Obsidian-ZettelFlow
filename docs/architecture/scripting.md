@@ -57,3 +57,37 @@ rather than counted a second time.
 
 A hook has one script and nothing after it, so *skip* and *stop* both mean "apply none of its
 changes". An event condition that throws fails closed, as it always has: the flow does not run.
+
+## Your library (#448)
+
+Modules in your scripts folder become `zf.internal.user.<name>`. Three things changed:
+
+**They reload when you save one.** Until 3.5 the `zf` cache was invalidated only when the folder
+itself was renamed or deleted, so editing your own function changed nothing until Obsidian
+restarted. A save now reloads (debounced, so a burst of saves reloads once) and says so.
+
+**They can say what they are.** An optional JSDoc block on the exported function:
+
+```js
+/**
+ * Title a note after its source.
+ * @param {string} title The note's current title
+ * @param source - where it came from
+ * @returns {string} the new title
+ * @zf-surface action
+ */
+module.exports = (title, source) => `${title} — ${source}`;
+```
+
+A documented function earns its parameters and description in the editor's completions and hover,
+in the generated `zettelflow.d.ts`, and in the manager. An undocumented one keeps working exactly
+as before; a malformed block degrades to "no documentation", never to an error, because a comment
+must not break a module.
+
+**There is a map.** The library manager (in the script workbench) lists every module: whether it
+loaded, the error if it did not — remembered rather than announced once at startup — what it says
+about itself, a *try it* that writes the call into the bench, and *find who uses it*, scanned on
+demand across your hooks and canvases.
+
+A module that reaches `require()` is marked **desktop only**: `window.require` does not exist on
+mobile, where it used to return `undefined` in silence.

@@ -32,6 +32,7 @@ import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
+import { flowsSettingsGroup } from "./handlers/flowsSettingsGroup";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -83,6 +84,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     override getSettingDefinitions(): SettingDefinitionItem[] {
         const plugin = this.plugin;
         return [
+            // ── Your flows (#435): the canvases that have a role ──────────────
+            flowsSettingsGroup(plugin, () => this.update()),
             // ── Get started (shown only when no canvas is configured) ─────────
             {
                 type: "group",

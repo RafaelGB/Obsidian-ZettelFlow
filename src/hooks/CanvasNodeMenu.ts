@@ -6,6 +6,7 @@ import ZettelFlow from "main";
 import { Notice } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { StepBuilderModal } from "zettelkasten";
+import { flowFolders, flowRole } from "architecture/plugin/canvas/flowRole";
 
 export class CanvasNodeMenu {
     public static setup(plugin: ZettelFlow) {
@@ -23,18 +24,17 @@ export class CanvasNodeMenu {
         if (file === null) {
             return;
         }
-        const { ribbonCanvas, editorCanvas, foldersFlowsPath } = this.plugin.settings;
-        // Discard canvas if file.path is not one of the zettelFlow canvases
-        if (ribbonCanvas !== file.path && editorCanvas !== file.path && !file.path.startsWith(foldersFlowsPath)) {
-            return;
-        }
+        // One question, one answer (#435): this used to forget the hooks folder, so a hook flow's
+        // nodes had no menu at all.
+        const role = flowRole(file.path, flowFolders(this.plugin.settings));
+        if (role === "none") return;
 
         const data = node.canvas.data;
         const currentNode = data.nodes.find((n) => n.id === node.id);
         if (!currentNode) {
             return;
         }
-        const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
+        const builderMode = role === "create" ? "ribbon" : "editor";
         if (currentNode.type === "text" || currentNode.type === "group") {
             const zettelFlowSettings = currentNode.zettelflowConfig;
             menu.addItem((item) => {

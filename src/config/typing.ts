@@ -79,6 +79,13 @@ export interface ZettelFlowSettings {
     /** Path to the folder where flows are stored */
     foldersFlowsPath: string;
     /**
+     * Home of the **event flows** (#436): the canvases whose root carries a trigger. Separate from
+     * {@link foldersFlowsPath} because a canvas cannot be both the automation of a folder (by its
+     * filename) and a flow that reacts to an event — which is exactly what sharing one folder made
+     * it. The two may be neither equal nor nested (`validateFlowFolders`).
+     */
+    eventFlowsPath: string;
+    /**
      * Path prefixes to exclude from the knowledge system (#311). Notes under any of these (config,
      * templates, other vault tooling) never enter the index, so they drop out of every mechanism —
      * graph, health, discovery, cultivate, home. Folder-boundary "starts with" match. Default: none.
@@ -290,6 +297,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     editorCanvas: "", // No editor canvas configured until the user picks one.
     jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
+    eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     installedTemplates: {
         steps: {},   // No step templates are installed by default.

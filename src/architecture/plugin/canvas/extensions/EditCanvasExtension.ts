@@ -4,6 +4,7 @@ import { Notice, setIcon, setTooltip } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
 import { StepBuilderModal } from "zettelkasten";
+import { flowFolders, flowRole } from "architecture/plugin/canvas/flowRole";
 import CanvasHelper from "./utils/CanvasHelper";
 import { popupMenuOptions } from "./utils/popupMenuOptions";
 
@@ -80,7 +81,6 @@ export default class EditStepCanvasExtension extends CanvasExtension {
         // Check if canvas is one of the ZettelFlow canvases
         const file = this.plugin.app.workspace.getActiveFile();
         if (!file) return;
-        const { ribbonCanvas } = this.plugin.settings;
 
         // The menu object from the Canvas
         const popupMenuEl = eventCanvas?.menu?.menuEl;
@@ -105,7 +105,10 @@ export default class EditStepCanvasExtension extends CanvasExtension {
             label: "Edit ZettelFlow Step",
             icon: RibbonIcon.ID,
             callback: () => {
-                const builderMode = ribbonCanvas === file.path ? "ribbon" : "editor";
+                const builderMode =
+                    flowRole(file.path, flowFolders(this.plugin.settings)) === "create"
+                        ? "ribbon"
+                        : "editor";
                 const zettelFlowSettings = data.zettelflowConfig;
                 const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
 

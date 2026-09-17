@@ -2,6 +2,7 @@ import ZettelFlow from "main"
 import { setIcon, setTooltip } from "obsidian"
 import { log } from "architecture"
 import { Canvas, CanvasNode, Position, Size } from "obsidian/canvas"
+import { flowFolders, isFlowCanvas } from "architecture/plugin/canvas/flowRole"
 
 
 export interface MenuOption {
@@ -254,19 +255,9 @@ export default class CanvasHelper {
         return separatorElement
     }
 
+    /** Whether the open canvas is one of ours — the question `flowRole` owns (#435). */
     static isCanvasFlow(plugin: ZettelFlow): boolean {
-        // Check if canvas is one of the ZettelFlow canvases
         const file = plugin.app.workspace.getActiveFile();
-        if (!file) return false;
-        const { ribbonCanvas, editorCanvas, foldersFlowsPath, hooks } = plugin.settings;
-        if (
-            ribbonCanvas !== file.path &&
-            editorCanvas !== file.path &&
-            !file.path.startsWith(foldersFlowsPath) &&
-            !file.path.startsWith(hooks.folderFlowPath)
-        ) {
-            return false;
-        }
-        return true;
+        return isFlowCanvas(file?.path, flowFolders(plugin.settings));
     }
 }

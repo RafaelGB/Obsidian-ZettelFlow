@@ -2,6 +2,7 @@ import { App, MarkdownView, Notice, TFile } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { FrontmatterService } from "architecture/plugin";
 import { Discovery, findDiscoveries } from "architecture/knowledge/state";
 import { ResurfacedNote, rankResurfacedNotes } from "application/notes/resurfaceRanking";
 import { buildResurfaceInputs } from "architecture/components/core/resurface/resurfaceInputs";
@@ -188,7 +189,7 @@ export class DiscoveriesRenderer extends KnowledgeModeRenderer {
                 return;
             }
             const link = `[[${basename(discovery.b)}]]`;
-            await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+            await FrontmatterService.instance(file).update((frontmatter: Record<string, unknown>) => {
                 const existing = frontmatter.expands;
                 if (Array.isArray(existing)) {
                     if (!existing.includes(link)) existing.push(link);

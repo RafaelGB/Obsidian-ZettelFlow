@@ -305,8 +305,7 @@ export class FlowImpl implements Flow {
 
     private async save() {
         const content = canvasJsonFormatter(this.data);
-        await ObsidianApi.vault()
-            .modify(this.file, content)
+        await FileService.modify(this.file, content)
             .catch(error => {
                 const errorString = `Error saving canvas on ${this.file.path}: ${error}`;
                 log.error(errorString);

@@ -1,5 +1,24 @@
 import { log } from "architecture";
 import ZettelFlow from "main";
+import { FileService } from "architecture/plugin/services/FileService";
+import { TFile } from "obsidian";
+
+/**
+ * How onboarding writes (#456). Vault mutation goes through the services, where the write record
+ * lives — but this module is unit-tested against a fake vault, so the two writes it performs are
+ * a port with a real default rather than a direct call.
+ */
+export interface OnboardingWriter {
+    create(path: string, content: string): Promise<void>;
+    overwrite(file: TFile, content: string): Promise<void>;
+}
+
+const FILE_WRITER: OnboardingWriter = {
+    create: async (path, content) => {
+        await FileService.createFile(path, content, false);
+    },
+    overwrite: (file, content) => FileService.modify(file, content),
+};
 
 const EXAMPLE_FOLDER = "_ZettelFlow/examples";
 const EXAMPLE_STEPS_FOLDER = `${EXAMPLE_FOLDER}/steps`;
@@ -59,15 +78,13 @@ async function ensureFolder(vault: ZettelFlow["app"]["vault"], path: string): Pr
 
 async function writeFile(
     vault: ZettelFlow["app"]["vault"],
+    writer: OnboardingWriter,
     path: string,
     content: string
 ): Promise<void> {
     const existing = vault.getFileByPath(path);
-    if (existing) {
-        await vault.modify(existing, content);
-    } else {
-        await vault.create(path, content);
-    }
+    if (existing) await writer.overwrite(existing, content);
+    else await writer.create(path, content);
 }
 
 /**
@@ -80,7 +97,10 @@ async function writeFile(
 // We only auto-repair that exact default; any other content is user-customised.
 const OLD_BROKEN_TEMPLATE = "# {{title}}";
 
-export async function repairBrokenExampleFlow(plugin: ZettelFlow): Promise<boolean> {
+export async function repairBrokenExampleFlow(
+    plugin: ZettelFlow,
+    writer: OnboardingWriter = FILE_WRITER
+): Promise<boolean> {
     if (plugin.settings.ribbonCanvas !== EXAMPLE_CANVAS_PATH) return false;
     const { vault } = plugin.app;
     const stepFile = vault.getFileByPath(EXAMPLE_STEP_PATH);
@@ -88,11 +108,14 @@ export async function repairBrokenExampleFlow(plugin: ZettelFlow): Promise<boole
     const content = await vault.cachedRead(stepFile);
     if (content.includes("zettelFlowSettings:")) return false;
     if (content.trim() !== OLD_BROKEN_TEMPLATE) return false;
-    await vault.modify(stepFile, STEP_TEMPLATE);
+    await writer.overwrite(stepFile, STEP_TEMPLATE);
     return true;
 }
 
-export async function createExampleFlow(plugin: ZettelFlow): Promise<string | null> {
+export async function createExampleFlow(
+    plugin: ZettelFlow,
+    writer: OnboardingWriter = FILE_WRITER
+): Promise<string | null> {
     const vault = plugin.app.vault;
     try {
         await ensureFolder(vault, EXAMPLE_FOLDER);
@@ -100,12 +123,12 @@ export async function createExampleFlow(plugin: ZettelFlow): Promise<string | nu
         await ensureFolder(vault, EXAMPLE_NOTES_FOLDER);
 
         // Step file: always write the latest template so the frontmatter is correct.
-        await writeFile(vault, EXAMPLE_STEP_PATH, STEP_TEMPLATE);
+        await writeFile(vault, writer, EXAMPLE_STEP_PATH, STEP_TEMPLATE);
 
         // Canvas: only create when it does not yet exist.
         // An existing canvas may contain user-added nodes — never overwrite it.
         if (!vault.getFileByPath(EXAMPLE_CANVAS_PATH)) {
-            await vault.create(EXAMPLE_CANVAS_PATH, EXAMPLE_CANVAS_CONTENT);
+            await writer.create(EXAMPLE_CANVAS_PATH, EXAMPLE_CANVAS_CONTENT);
         }
 
         plugin.settings.ribbonCanvas = EXAMPLE_CANVAS_PATH;

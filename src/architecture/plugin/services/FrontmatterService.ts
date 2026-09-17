@@ -97,6 +97,18 @@ export class FrontmatterService {
     }
 
     /**
+     * Change a note's frontmatter, whatever the change is (#456).
+     *
+     * The one public door onto the private, **recorded** `processFrontMatter`. Everywhere in the
+     * plugin that used to reach `fileManager.processFrontMatter` directly comes through here, so
+     * a property write cannot happen without the write record hearing about it. A guardrail test
+     * (`vaultWriteSeam.test.ts`) keeps it that way.
+     */
+    public async update(updateFn: (frontmatter: Record<string, unknown>) => void): Promise<void> {
+        await this.processFrontMatter(updateFn);
+    }
+
+    /**
      * Retrieves the entire frontmatter metadata.
      * @returns {CachedMetadata}
      */

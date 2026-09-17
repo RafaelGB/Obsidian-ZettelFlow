@@ -5,9 +5,10 @@ import { UsedInstalledStepsModal } from "application/community";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { OptionsModal, Option } from "architecture/components/settings";
 import { StepSettings } from "zettelkasten";
+import { FrontmatterService } from "../../services/FrontmatterService";
 import { Notice } from "obsidian";
 import { t } from "architecture/lang";
-import { ObsidianApi, log } from "architecture";
+import { log } from "architecture";
 import { FileService } from "architecture/plugin";
 
 const GROUP_NODE_SIZE = { width: 300, height: 300 };
@@ -149,7 +150,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
                 path = `${folder}/${base} ${n}.md`;
             }
             const file = await FileService.createFile(path, `# ${step.label || base}\n`, false);
-            await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+            await FrontmatterService.instance(file).update((frontmatter: Record<string, unknown>) => {
                 frontmatter.zettelFlowSettings = step;
             });
             canvas.createFileNode({ pos, size: FILE_NODE_SIZE, file });

@@ -3,7 +3,7 @@ import { CachedMetadata, EventRef, TAbstractFile, TFile } from "obsidian";
 import { log } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { canvas } from "architecture/plugin/canvas";
-import { FileService, FILE_EXTENSIONS, VaultStateManager } from "architecture/plugin";
+import { FileService, FILE_EXTENSIONS, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import {
     buildAsyncScriptFunction,
     sharedScriptValues,
@@ -273,7 +273,7 @@ export class WorkflowEventEngine {
         }
         const file = this.plugin.app.vault.getAbstractFileByPath(binding.filePath);
         if (!(file instanceof TFile)) return;
-        await this.plugin.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+        await FrontmatterService.instance(file).update((frontmatter: Record<string, unknown>) => {
             const settings = frontmatter.zettelFlowSettings as Record<string, unknown> | undefined;
             if (settings) mutate(settings);
         });

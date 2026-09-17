@@ -18,6 +18,7 @@ import {
     TFolder,
 } from "obsidian";
 import {
+    FileService,
     FrontmatterService,
     Literal,
     VaultStateManager,
@@ -295,17 +296,16 @@ export class VaultHooks {
 
         if (canvasFile instanceof TFile) {
             canvas.flows.delete(canvasFile.path);
-            this.plugin.app.fileManager
-                .trashFile(canvasFile)
+            FileService.deleteFile(canvasFile)
                 .then(() =>
                     log.info(
                         `[VaultHooks] Eliminado canvas asociado a carpeta ${folder.path}: ${canvasFile.path}`
                     )
                 )
-                .catch((e) =>
+                .catch((error: unknown) =>
                     log.error(
                         `[VaultHooks] Error eliminando canvas ${canvasFile.path}:`,
-                        e
+                        error
                     )
                 );
         }

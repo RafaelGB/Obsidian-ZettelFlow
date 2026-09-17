@@ -1,5 +1,5 @@
 import { App, MarkdownView, Notice, SuggestModal, TFile } from "obsidian";
-import { PluginComponent, ObsidianApi, log } from "architecture";
+import { PluginComponent, log } from "architecture";
 import { FrontmatterService } from "architecture/plugin";
 import { ConfirmModal } from "architecture/components/settings";
 import { t } from "architecture/lang";
@@ -83,7 +83,7 @@ export class RemoveRelationComponent extends PluginComponent {
     private async remove(file: TFile, edge: RelationEdge): Promise<void> {
         try {
             let changed = false;
-            await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+            await FrontmatterService.instance(file).update((frontmatter: Record<string, unknown>) => {
                 const result = removeRelationField(frontmatter, edge.relationType, edge.target);
                 if (!result.changed) return;
                 changed = true;

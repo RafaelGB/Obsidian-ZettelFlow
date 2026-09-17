@@ -80,6 +80,10 @@ push to `main`.
 - **Logging:** use `log` from `architecture`, never bare `console.*`.
 - **Obsidian API:** go through the `ObsidianApi` facade / the `Vault` API; avoid global `app` and
   the `Adapter` API.
+- **Vault writes:** go through `FileService` / `FrontmatterService` — never `vault.create`,
+  `vault.modify`, `fileManager.renameFile` or `fileManager.processFrontMatter` directly. That is
+  where the [write record](docs/architecture/reversibility.md) is taken, and a guardrail test
+  (`vaultWriteSeam.test.ts`) fails the build on a direct call.
 - **DOM:** build with `createEl`/`createDiv`/`createSpan`, clear with `el.empty()` —
   **never `innerHTML`**.
 - **Styling:** CSS classes via `c('name')` (prefix `zettelkasten-flow__`) + SCSS partials in

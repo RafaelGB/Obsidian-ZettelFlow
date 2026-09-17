@@ -38,7 +38,7 @@ export interface UndoOutcome {
  * Carry out a plan. One failure does not stop the rest: an undo that gives up halfway without
  * saying so is worse than one that finishes what it can and names what it could not.
  */
-export async function applyUndo(plan: UndoPlan, vault: UndoVault): Promise<UndoOutcome> {
+export async function applyUndo(plan: UndoPlan, port: UndoVault): Promise<UndoOutcome> {
     const outcome: UndoOutcome = { done: 0, failed: [] };
     const step = async (path: string, work: () => Promise<void>): Promise<void> => {
         try {
@@ -53,16 +53,16 @@ export async function applyUndo(plan: UndoPlan, vault: UndoVault): Promise<UndoO
     // Properties before notes: a note on its way to the trash does not need its frontmatter put
     // back, but a note that is only having properties restored does.
     for (const entry of plan.restore) {
-        await step(entry.path, () => vault.restore(entry.path, entry.before));
+        await step(entry.path, () => port.restore(entry.path, entry.before));
     }
     for (const entry of plan.unappend) {
-        await step(entry.path, () => vault.unappend(entry.path, entry.text));
+        await step(entry.path, () => port.unappend(entry.path, entry.text));
     }
     for (const entry of plan.moveBack) {
-        await step(entry.from, () => vault.move(entry.from, entry.to));
+        await step(entry.from, () => port.move(entry.from, entry.to));
     }
     for (const path of plan.trash) {
-        await step(path, () => vault.trash(path));
+        await step(path, () => port.trash(path));
     }
     return outcome;
 }

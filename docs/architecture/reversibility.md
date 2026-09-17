@@ -88,6 +88,38 @@ methods from the source and fails when one of them does not record. `deleteFile`
 named exception: undoing a deletion would mean keeping the body, and Obsidian's trash already holds
 the file.
 
+### One door, and the test that keeps it shut
+
+The reason a record like this rots is the writer that arrives later and does not join it — and
+`vault.modify` is one import away from anywhere. So there is a second guardrail
+(`test/architecture/plugin/vaultWriteSeam.test.ts`) that scans the whole of `src/` and fails on
+**any** direct call to the vault's mutating API outside the two services:
+
+```
+vault.create · vault.createBinary · vault.modify · vault.modifyBinary · vault.delete · vault.trash
+fileManager.renameFile · fileManager.trashFile · fileManager.processFrontMatter
+```
+
+`createFolder` is not on the list: a folder is structure, not content, and there is nothing to
+record or take back about one.
+
+This is the same move `FnConstructor` made for running code — one home, and a list of callers
+derived from the source rather than copied into a test. Eight places were reaching past the
+services when the rule went in; they now go through `FileService.modify` / `createFile` /
+`deleteFile` or `FrontmatterService.update`, which is the public door onto the recorded
+`processFrontMatter`.
+
+Two modules that are unit-tested against a fake vault take a small **writer port** with a real,
+service-backed default (`onboardingService`, and `applyUndo` itself) — the port is the seam, not a
+way around it.
+
+### Who is writing
+
+The origin travels with the batch: `withWriteBatch({ kind, ref, step }, work)` is set once by
+whoever starts the unit of work, and every write underneath inherits it. A call site never invents
+a label, and a write that nobody claimed is recorded as *unattributed* rather than dropped — an
+unexplained write is still a fact.
+
 ## Taking it back
 
 The record is read by the **Recent** mode of the Home surface, which is now *What ZettelFlow

@@ -139,3 +139,29 @@ malformed condition **safe-opens** the branch rather than silently dropping it.
   vault signals this engine observes.
 - [Knowledge lifecycle](knowledge-lifecycle.md) — a note's **state** (its maturity) is orthogonal
   to a step's **phase** and to these trigger **events**.
+
+## Where an event flow lives, and where a trigger can be written (#436)
+
+An event flow is a canvas in the **events folder** (Settings → Your flows → *Events folder*). That
+is the switch: a flow reacts to vault events because it lives there, and stops when it moves out.
+The old global *enable event-driven workflows* toggle is gone — it gated everything at once, which
+told you nothing about which flow would run.
+
+A **trigger can only be written where it can fire**: on the **first step** (the root) of an event
+flow. Anywhere else the step editor shows no trigger section at all, because the engine reads a
+trigger from exactly one place and every other switch was disconnected. Two exceptions keep that
+honest:
+
+- on a non-root step of an event flow, the editor says the start owns the trigger and offers one
+  click to **make this step the start**;
+- a trigger that is **already stored** anywhere is always shown, with the reason it cannot fire and
+  a control to remove it. Configuration never becomes invisible.
+
+### Migrating from the shared folder
+
+Until 3.4 the engine scanned the **folder-flows** folder for triggers, so a canvas there was both
+the automation of a folder (by its filename) and an event flow (if its root carried a trigger).
+
+Nothing that fires today stops firing: if event workflows were switched on, those flows keep being
+scanned, and *Your flows* marks each one with **move to the events folder** — a previewed move that
+makes it an event flow like any other. New triggers are only offered in the events folder.

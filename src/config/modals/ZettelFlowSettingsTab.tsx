@@ -597,24 +597,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
-                        name: t("settings_events_enable_name"),
-                        desc: t("settings_events_enable_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(plugin.settings.events?.enabled ?? false)
-                                    .onChange(async (value) => {
-                                        plugin.settings.events = { enabled: value };
-                                        await plugin.saveSettings();
-                                        // Arm/disarm the listener set immediately — no reload needed.
-                                        const engine = WorkflowEventEngine.getInstance();
-                                        if (value) engine.arm();
-                                        else engine.disarm();
-                                    })
-                            );
-                        },
-                    },
-                    {
                         name: t("settings_events_bindings_heading"),
                         render: (setting) => {
                             setting.setClass(c("readable-setting-item"));

@@ -64,3 +64,20 @@
     color: var(--text-error);
     font-size: var(--font-ui-smaller);
 }
+
+// A flow that still reacts to events from the old folder (#436): it works, and it is offered the move.
+.zettelkasten-flow__flows-legacy {
+    margin-left: 0.45rem;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-modifier-error);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+}
+
+// A trigger that cannot fire where it was written (#436).
+.zettelkasten-flow__step-trigger-orphan {
+    border-left: 3px solid var(--background-modifier-error);
+    padding-left: var(--size-4-2);
+}

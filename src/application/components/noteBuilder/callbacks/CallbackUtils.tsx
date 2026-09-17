@@ -11,7 +11,7 @@ import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
 import { recordHistory } from "architecture/components/core/historyView/recordHistory";
 import { EvalContext } from "application/notes/conditionEvaluator";
-import { partitionBranches } from "application/notes/branchVisibility";
+import { partitionExits } from "application/notes/stepExits";
 import { isWaitNode, WaitMachine } from "architecture/plugin/workflow";
 import { WaitPromptModal } from "zettelkasten/modals/WaitPromptModal";
 
@@ -120,7 +120,7 @@ export async function manageElement(
     ? []
     : await flow.childrensOf(selectedElement.id);
   const evalCtx = buildEvalContext(state, info);
-  const childrens = filterConditionalEdges(rawChildren, evalCtx, actions);
+  const childrens = resolveChildren(selectedElement, rawChildren, evalCtx, actions);
 
   if (childrens.length > 1) {
     // Element Selector
@@ -203,15 +203,17 @@ function buildEvalContext(state: CallbackPickedState, info: NoteBuilderType): Ev
   };
 }
 
-function filterConditionalEdges(
+function resolveChildren(
+  step: FlowNode,
   children: FlowNode[],
   ctx: EvalContext,
   actions: CallbackPickedState["actions"]
 ): FlowNode[] {
-  // IF block (#151): each edge is gated by the #119 evaluator. A malformed expression safe-opens and
-  // is surfaced (Notice + debug log). A *closed* one used to vanish without a word — the wizard
-  // deciding for the user in silence — so the partition keeps it and the step explains it (#414).
-  const { visible, hidden, invalid } = partitionBranches(children, ctx);
+  // The step owns its exits (#427): what each option says, when it is open, in what order and which
+  // one is the default. A step with no exit configuration falls back to the edge label, which is
+  // exactly the #119/#414 behaviour — same evaluator, same safe-open, same explanation for a closed
+  // branch, which the step now states instead of the wizard dropping it in silence.
+  const { visible, hidden, invalid } = partitionExits(children, step.exits ?? {}, ctx);
   for (const label of invalid) {
     log.debug(`[workflow] invalid IF condition on edge to "${label}" — opening (safe)`);
     new Notice(t("edge_condition_invalid_expression"));

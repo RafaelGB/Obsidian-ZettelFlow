@@ -47,3 +47,380 @@
     // The button is the one interactive affordance; the rest of the card lets clicks/hover fall through.
     pointer-events: auto;
 }
+
+// ── What a node does, on the node (#429) ────────────────────────────────────────────────────────
+// Derived at render time and removed with the extension: no stored byte. It rides *inside* the
+// node's top-right corner — hanging it below the node put it where the canvas clips.
+.zettelkasten-flow__node-badges {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    z-index: 1;
+    max-width: 92%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.2rem;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__node-badge {
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+// Where a flow begins is the first thing you look for on someone else's canvas.
+.zettelkasten-flow__node-badge-start {
+    background-color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: var(--font-semibold);
+}
+
+// ── The canvas explains its own language (#429) ─────────────────────────────────────────────────
+.zettelkasten-flow__canvas-legend {
+    position: absolute;
+    right: var(--size-4-3);
+    bottom: var(--size-4-3);
+    z-index: var(--layer-popover, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--size-4-1);
+    max-width: 24em;
+}
+
+.zettelkasten-flow__canvas-legend-toggle {
+    padding: 0.15rem 0.5rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__canvas-legend-toggle:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__canvas-legend-body {
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__canvas-legend-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__canvas-legend-note {
+    margin: var(--size-4-1) 0;
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__canvas-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.1rem 0;
+}
+
+.zettelkasten-flow__canvas-legend-label {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__canvas-legend-swatch {
+    width: 0.85em;
+    height: 0.85em;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+    flex-shrink: 0;
+}
+
+// The six canvas presets, named as classes so no rule needs an inline style.
+.zettelkasten-flow__canvas-legend-swatch-1 { background-color: var(--canvas-color-1); }
+.zettelkasten-flow__canvas-legend-swatch-2 { background-color: var(--canvas-color-2); }
+.zettelkasten-flow__canvas-legend-swatch-3 { background-color: var(--canvas-color-3); }
+.zettelkasten-flow__canvas-legend-swatch-4 { background-color: var(--canvas-color-4); }
+.zettelkasten-flow__canvas-legend-swatch-5 { background-color: var(--canvas-color-5); }
+.zettelkasten-flow__canvas-legend-swatch-6 { background-color: var(--canvas-color-6); }
+
+.zettelkasten-flow__canvas-legend-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: var(--size-4-1);
+}
+
+// A step whose note is gone will stop the wizard — the one finding marked without opening the
+// review (#428 FR-5). A tint, not a solid fill, so the text stays the theme's own.
+.zettelkasten-flow__node-badge-alert {
+    background-color: var(--background-modifier-error);
+    color: var(--text-normal);
+    border-color: var(--background-modifier-error);
+}
+
+// ── Review this flow (#428) ─────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__flow-review {
+    position: absolute;
+    right: var(--size-4-3);
+    bottom: calc(var(--size-4-3) + 2.2em);
+    z-index: var(--layer-popover, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--size-4-1);
+    max-width: 28em;
+}
+
+.zettelkasten-flow__flow-review-toggle {
+    padding: 0.15rem 0.5rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__flow-review-toggle.zettelkasten-flow__has-findings {
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+}
+
+.zettelkasten-flow__flow-review-toggle:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__flow-review-body {
+    max-height: 22em;
+    overflow-y: auto;
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__flow-review-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__flow-review-note,
+.zettelkasten-flow__flow-review-clean {
+    margin-bottom: var(--size-4-2);
+    line-height: 1.4;
+}
+
+// A finding is a button when it has a node to take you to; the plain ones read the same.
+.zettelkasten-flow__flow-review-finding {
+    display: block;
+    width: 100%;
+    padding: var(--size-4-1) 0;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--background-modifier-border);
+    box-shadow: none;
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    text-align: left;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+button.zettelkasten-flow__flow-review-finding:hover {
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__flow-review-finding:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: -2px;
+}
+
+// What an applied template is about to change (#428 FR-7).
+.zettelkasten-flow__confirm-details {
+    margin: 0 0 var(--size-4-3);
+    padding-left: var(--size-4-4);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+}
+
+// ── Rehearse the flow (#430) ────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__rehearsal {
+    position: absolute;
+    left: var(--size-4-3);
+    bottom: var(--size-4-3);
+    z-index: var(--layer-popover, 30);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-4-1);
+    max-width: 30em;
+}
+
+.zettelkasten-flow__rehearsal-toggle {
+    padding: 0.15rem 0.5rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__rehearsal-toggle:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__rehearsal-body {
+    max-height: 26em;
+    overflow-y: auto;
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__rehearsal-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__rehearsal-note,
+.zettelkasten-flow__rehearsal-would-run {
+    margin: var(--size-4-1) 0;
+    line-height: 1.4;
+}
+
+// Where the walk stands, read as a heading rather than as one more grey line.
+.zettelkasten-flow__rehearsal-current {
+    margin-top: var(--size-4-3);
+    padding-left: var(--size-4-2);
+    border-left: 3px solid var(--interactive-accent);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__rehearsal-context-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.2rem 0;
+}
+
+.zettelkasten-flow__rehearsal-context-row input {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-ui-smaller);
+}
+
+// An option is a thing you press: it looks pressable, and says where it leads.
+.zettelkasten-flow__rehearsal-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin: 0.25rem 0;
+    padding: var(--size-4-2);
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.12s ease-out, background-color 0.12s ease-out;
+}
+
+.zettelkasten-flow__rehearsal-option::after {
+    content: "→";
+    margin-left: auto;
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__rehearsal-option:hover {
+    border-color: var(--interactive-accent);
+    background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__rehearsal-option:hover::after {
+    color: var(--interactive-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__rehearsal-option {
+        transition: none;
+    }
+}
+
+// A branch that is closed, and why — the same sentence the wizard says (#414).
+.zettelkasten-flow__rehearsal-closed {
+    margin: 0.25rem 0;
+    padding: var(--size-4-1) var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary-alt);
+    color: var(--text-faint);
+    line-height: 1.4;
+}
+
+// What the real run would do here, as chips: a list of sentences hid the shape of it.
+.zettelkasten-flow__rehearsal-would-run {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.15rem 0.25rem 0.15rem 0;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__rehearsal-preview {
+    max-height: 12em;
+    overflow: auto;
+    padding: var(--size-4-2);
+    background-color: var(--background-primary);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__rehearsal-restart {
+    margin-top: var(--size-4-2);
+    cursor: pointer;
+}
+
+// The walk, traced on the canvas itself — classes only, removed when the rehearsal closes.
+.zettelkasten-flow__rehearsal-node-walked {
+    outline: 2px dashed var(--text-faint);
+    outline-offset: 2px;
+}
+
+.zettelkasten-flow__rehearsal-node-current {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}

@@ -13,9 +13,9 @@ export class TargetFolderSuggesterHandler extends AbstractHandlerClass<AbstractS
         if (modal.builder === "editor") {
             return this.goNext(modal);
         }
-        const { targetFolder, contentEl } = info;
+        const { targetFolder } = info;
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("where"))
             .setName(this.name)
             .setDesc(this.description)
             .addSearch((cb) => {

@@ -5,6 +5,11 @@ import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
 import { StepBuilderModal } from "zettelkasten";
 import CanvasHelper from "./utils/CanvasHelper";
+import { popupMenuOptions } from "./utils/popupMenuOptions";
+
+/** Button ids, shared with the cleanup: the popup is reused across selections (#432). */
+const EDIT_STEP_BUTTON_ID = "edit-zettelflow-step-btn";
+const COPY_FLOW_BUTTON_ID = "save-zettelflow-clipboard-btn";
 
 interface MenuOption {
     id?: string;
@@ -36,20 +41,21 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                     return;
                 }
 
-                // Only proceed if exactly one node is selected
-                if (eventCanvas.selection.size === 1) {
-                    this.uniqueNodePopupMenu(eventCanvas);
-                } else if (eventCanvas.selection.size > 1) {
-                    this.multipleNodePopupMenu(eventCanvas);
-                }
+                // Clean up first: the popup is shared, so a button that no longer applies has
+                // to be taken away, not merely not re-added (#432).
+                CanvasHelper.removePopupMenuOption(eventCanvas, EDIT_STEP_BUTTON_ID);
+                CanvasHelper.removePopupMenuOption(eventCanvas, COPY_FLOW_BUTTON_ID);
+
+                const options = popupMenuOptions(CanvasHelper.selectionShape(eventCanvas));
+                if (options.step) this.uniqueNodePopupMenu(eventCanvas);
+                if (options.copyFlow) this.multipleNodePopupMenu(eventCanvas);
             })
         );
     }
     private multipleNodePopupMenu(eventCanvas: Canvas) {
         const selectedNode: SelectionData = eventCanvas.getSelectionData();
 
-        // Define a unique ID for our new button to prevent duplication
-        const buttonId = "save-zettelflow-clipboard-btn";
+        const buttonId = COPY_FLOW_BUTTON_ID;
 
         // Create a new option
         const newOption = this.createPopupMenuOption({
@@ -91,8 +97,7 @@ export default class EditStepCanvasExtension extends CanvasExtension {
         if (data.type !== "text" && data.type !== "group") {
             return;
         }
-        // Define a unique ID for our new button to prevent duplication
-        const buttonId = "edit-zettelflow-step-btn";
+        const buttonId = EDIT_STEP_BUTTON_ID;
 
         // Create a new option
         const newOption = this.createPopupMenuOption({
@@ -107,7 +112,9 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 new StepBuilderModal(this.plugin, {
                     folder: file.parent || undefined,
                     filename: file.basename,
-                    type: "text",
+                    // The node's real kind: hardcoding "text" made the editor call a group an
+                    // inline box, which is the first thing the header claims to tell you (#424).
+                    type: data.type,
                     // Additional context for the modal
                     ...stepSettings,
                 })

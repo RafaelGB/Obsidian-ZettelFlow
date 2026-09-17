@@ -9,7 +9,7 @@ export class OptionalToggleHandler extends AbstractHandlerClass<AbstractStepModa
     description = t('step_builder_optional_toggle_description');
     handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
-        const { optional, root, contentEl } = info;
+        const { optional, root } = info;
         // if is root, then it is not optional by default. Skip this step
         if (root) {
             return this.goNext(modal);
@@ -18,7 +18,7 @@ export class OptionalToggleHandler extends AbstractHandlerClass<AbstractStepModa
         const onChangePromise = (value: boolean) => {
             info.optional = value;
         };
-        new Setting(contentEl)
+        new Setting(modal.groupEl("when"))
             .setName(this.name)
             .setDesc(this.description)
             .addToggle(toggle =>

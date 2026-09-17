@@ -3,3 +3,4 @@ export * from "./wait";
 export * from "./waitMachine";
 export * from "./lowering";
 export * from "./blockStyle";
+export * from "./nodeBadges";

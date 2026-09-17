@@ -9,6 +9,8 @@ import type { SatelliteDeclaration } from "../satellitePlan";
 export class NoteDTO implements NotePersistence {
     private title = "";
     private paths = new Map<number, string>();
+    /** Bodies contributed by steps that have no file of their own (#426). */
+    private inlineBodies = new Map<number, string>();
     private savedActions = new Map<number, FinalElement>();
     private links: string[] = [];
     private uniquePrefixPattern = "";
@@ -105,6 +107,15 @@ export class NoteDTO implements NotePersistence {
         return this.paths;
     }
 
+    public getInlineBodies(): Map<number, string> {
+        return this.inlineBodies;
+    }
+
+    public addInlineBody(body: string | undefined, pos: number): NoteDTO {
+        if (body && body.trim().length > 0 && pos >= 0) this.inlineBodies.set(pos, body);
+        return this;
+    }
+
     public getPath(pos: number): string | undefined {
         return this.paths.get(pos);
     }
@@ -121,6 +132,11 @@ export class NoteDTO implements NotePersistence {
         this.paths.forEach((path, position) => {
             if (position >= pos) {
                 this.paths.delete(position);
+            }
+        });
+        this.inlineBodies.forEach((body, position) => {
+            if (position >= pos) {
+                this.inlineBodies.delete(position);
             }
         });
         this.savedActions.forEach((element, position) => {

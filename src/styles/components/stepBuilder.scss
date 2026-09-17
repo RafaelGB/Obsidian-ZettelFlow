@@ -39,3 +39,220 @@
     color: var(--text-error);
     font-size: var(--font-ui-smaller);
 }
+
+/* What you are editing (#424): stated above the fields, never editable. */
+.zettelkasten-flow__step-identity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Every chip carries an icon and a colour that means something: a row of identical grey pills
+   reads as decoration, and the two facts you came for were the easiest to miss in it. */
+.zettelkasten-flow__step-identity-kind,
+.zettelkasten-flow__step-identity-block,
+.zettelkasten-flow__step-identity-phase,
+.zettelkasten-flow__step-identity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-primary);
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__step-identity-icon {
+    display: inline-flex;
+    align-items: center;
+    --icon-size: var(--icon-s);
+}
+
+.zettelkasten-flow__step-identity-kind {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+/* The four blocks of the visual language, in the colours the canvas already uses for them. */
+.zettelkasten-flow__step-identity-block-when {
+    border-color: var(--color-green, #3aa675);
+    color: var(--color-green, #3aa675);
+}
+
+.zettelkasten-flow__step-identity-block-wait {
+    border-color: var(--color-orange, #e0a030);
+    color: var(--color-orange, #e0a030);
+}
+
+.zettelkasten-flow__step-identity-block-if {
+    border-color: var(--color-purple, #a060c0);
+    color: var(--color-purple, #a060c0);
+}
+
+/* The phase, as the dot the canvas paints that node with (#429) — a fill would fight the theme. */
+.zettelkasten-flow__step-identity-phase .zettelkasten-flow__step-identity-icon {
+    display: none;
+}
+
+.zettelkasten-flow__step-identity-phase::before {
+    content: "";
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__step-identity-phase-1::before { background-color: var(--canvas-color-1); }
+.zettelkasten-flow__step-identity-phase-2::before { background-color: var(--canvas-color-2); }
+.zettelkasten-flow__step-identity-phase-3::before { background-color: var(--canvas-color-3); }
+.zettelkasten-flow__step-identity-phase-4::before { background-color: var(--canvas-color-4); }
+.zettelkasten-flow__step-identity-phase-5::before { background-color: var(--canvas-color-5); }
+.zettelkasten-flow__step-identity-phase-6::before { background-color: var(--canvas-color-6); }
+
+/* What is switched on. The flow's start is the headline fact, so it is the one that fills. */
+.zettelkasten-flow__step-identity-badge {
+    background-color: var(--background-secondary-alt);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__step-identity-badge-root {
+    background-color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__step-identity-reveal {
+    margin-left: auto;
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    min-height: 28px;
+}
+
+/* The plain-language line: what this step actually does. */
+.zettelkasten-flow__step-identity-summary {
+    margin-bottom: var(--size-4-3);
+    padding-bottom: var(--size-4-2);
+    border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* The five questions the editor answers (#425). */
+.zettelkasten-flow__step-group {
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__step-group-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: var(--size-4-1) 0;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--background-modifier-border);
+    box-shadow: none;
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    text-align: left;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__step-group-heading::before {
+    content: "▾";
+    color: var(--text-faint);
+    transition: transform 0.15s ease-out;
+}
+
+.zettelkasten-flow__step-group-heading[aria-expanded="false"]::before {
+    transform: rotate(-90deg);
+}
+
+.zettelkasten-flow__step-group-heading:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__step-group-body.zettelkasten-flow__is-hidden {
+    display: none;
+}
+
+/* Insertable tokens under the body template (#426) — a language you pick, not one you memorise. */
+.zettelkasten-flow__step-builder-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: var(--size-4-1);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__step-builder-token {
+    padding: 0 0.4rem;
+    border-radius: var(--radius-s);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+/* Where does it go next (#427): one row per arrow, the three questions each one answers. */
+.zettelkasten-flow__step-exits-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: var(--size-4-1);
+}
+
+.zettelkasten-flow__step-exits-empty {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    padding: var(--size-4-2) 0;
+}
+
+.zettelkasten-flow__step-exits .setting-item {
+    border-top: 1px solid var(--background-modifier-border);
+    padding: var(--size-4-2) 0;
+}
+
+/* The exit you land on, said out loud rather than implied by position (#427). */
+.zettelkasten-flow__step-exits-default {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: var(--radius-s);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-size: var(--font-ui-smaller);
+    text-transform: lowercase;
+}
+
+/* One exit, as a form (#427). */
+.zettelkasten-flow__exit-editor-destination {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__exit-editor-destination-name {
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__exit-editor-when {
+    margin-right: 0.5rem;
+    color: var(--text-muted);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+}

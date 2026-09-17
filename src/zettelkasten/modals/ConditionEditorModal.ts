@@ -1,6 +1,5 @@
 import { App, Modal, Setting } from "obsidian";
 import { EditorView } from "@codemirror/view";
-import { Canvas, CanvasEdge } from "obsidian/canvas";
 import { dispatchEditor } from "architecture/components/core";
 import {
     CONDITION_FIELDS,
@@ -12,28 +11,26 @@ import {
     buildConditionExpression,
 } from "architecture/plugin/events/conditionBuilder";
 import { t } from "architecture/lang";
-import { c, log } from "architecture";
+import { c } from "architecture";
 
 type LocaleKey = Parameters<typeof t>[0];
 
 /**
- * Guided condition editor for ZettelFlow canvas edges (#258).
- * Opens a CodeMirror editor pre-populated with the current `if: <expr>` label,
- * shows live sanity-check feedback, displays the conditionHelp vocabulary and
- * insert-ready examples, then writes `if: <expr>` back to the edge on save.
+ * Guided condition editor (#258): a CodeMirror box pre-populated with the current expression,
+ * live sanity-check feedback, the conditionHelp vocabulary and insert-ready examples.
+ *
+ * It edits an **expression**, not a place to store one. #427 moved the condition off the arrow
+ * label and into the step that owns the exit, so the caller decides where the result lands — the
+ * arrow popup, the step editor and the exit editor all reuse this same guided surface.
  */
 export class ConditionEditorModal extends Modal {
-    private edge: CanvasEdge;
-    private canvas: Canvas;
     private expr: string;
     private editorView?: EditorView;
     private warningEl!: HTMLElement;
 
-    constructor(app: App, edge: CanvasEdge, canvas: Canvas) {
+    constructor(app: App, initial: string, private onSave: (expression: string) => void) {
         super(app);
-        this.edge = edge;
-        this.canvas = canvas;
-        this.expr = (edge.label ?? "").replace(/^if:\s*/, "").trim();
+        this.expr = stripGate(initial);
     }
 
     onOpen(): void {
@@ -93,13 +90,7 @@ export class ConditionEditorModal extends Modal {
                     .setButtonText(t("condition_editor_save"))
                     .setCta()
                     .onClick(() => {
-                        const trimmed = this.expr.trim();
-                        try {
-                            this.edge.label = trimmed ? `if: ${trimmed}` : "";
-                            this.canvas.requestSave();
-                        } catch (err) {
-                            log.error(err);
-                        }
+                        this.onSave(this.expr.trim());
                         this.close();
                     })
             )
@@ -177,4 +168,9 @@ export class ConditionEditorModal extends Modal {
     onClose(): void {
         this.contentEl.empty();
     }
+}
+
+/** An expression, whether it arrives bare or still wearing the legacy `if:` prefix. */
+export function stripGate(raw: string | undefined): string {
+    return (raw ?? "").replace(/^\s*if\s*:/i, "").trim();
 }

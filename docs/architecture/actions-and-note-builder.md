@@ -321,6 +321,118 @@ four blind clicks — so people abandoned the flow instead. The breadcrumb from 
   the contributions it removes so redo can put them back; answering something new clears the
   forward history — a line, not a tree.
 
+### Where a step keeps its template (#426)
+
+| Node kind | Template lives in |
+|---|---|
+| Step note | the **note** itself (its body) |
+| Inline box / group | the step settings (`body`), because there is no file to keep it in |
+
+The body editor used to be skipped for inline boxes entirely, so the node kind #400 wants to promote
+could contribute actions but never a template — and the only way round it was to convert the node
+into a note. Both kinds now use the same editor; the builder and the preview walk **one** ordered
+list (`orderedTemplateSources`) so a step note and an inline box contribute in the order they were
+walked, not by which map they live in. A step note never stores its body in frontmatter as well:
+that storage belongs to the inline box, not to it.
+
+The tokens are **insertable buttons**, not documentation — a template language you have to remember
+is a capability you have to look up.
+
+> **Saving keeps what it was given.** `StepBuilderInfo2StepSettings` enumerates the fields it
+> carries, so a capability added to `StepSettings` and forgotten there is silently deleted on save.
+> That had already happened to the #419 linked note. `stepBuilderRoundTrip.test.ts` now pins the
+> full list.
+
+### The step editor, organised by questions (#425)
+
+Eleven settings used to render in one flat list, in whatever order the handler chain happened to be
+linked. They now answer five questions, in this order:
+
+| Group | Holds | Opens |
+|---|---|---|
+| **What does this step ask?** | the actions | always |
+| **What does it write?** | the body template, the linked note | always |
+| **When does it appear?** | root · trigger · wait · optional | when any is set |
+| **Where does it go?** | the target folder | when it is set |
+| **How is it shown?** | name · label · phase · children header | when any is set |
+| **Where does it go next?** | the step's exits, one row per arrow (#427) | when any exit is configured |
+
+The chain is kept — it is how a handler skips itself (root-only, editor-only) — so this changes
+**where** each `Setting` lands, not who builds it. The mapping is data (`stepGroups.ts`) and a test
+walks the handlers directory to prove every one of them is placed exactly once, so a new handler
+cannot quietly render at the bottom where nobody looks. A group whose handlers all skipped
+themselves is removed whole rather than left as an empty heading.
+
+Groups 3–5 open when they hold something, so a configured trigger is never hidden from the person
+who configured it.
+
+### The step editor says what you are editing (#424)
+
+The dialog used to open with the constant *"ZettelFlow step builder"* — identical for a root step
+that fires on a vault event and for a leaf that asks one question. It now leads with the **step**:
+
+- the heading is the step name (label → file name → *unnamed step*);
+- an identity row states the node kind (**inline box · group · step note**), the #151 block kind, the
+  phase, and a badge per thing switched on (start of the flow · runs on an event · pauses for you ·
+  can be skipped · creates a linked note);
+- a plain-language line says what it **does** — *asks 2 things · applies a template · writes to
+  Sources* — or admits that it *does nothing yet*;
+- **show on the canvas** selects and centres the node it came from.
+
+The line is a pure projection (`stepIdentity`) that returns locale keys, so it is unit-tested and cannot
+drift from the settings above it. `revealNode` finds the leaf through the public
+`getLeavesOfType("canvas")`; only the selection call is undocumented, so three shapes are
+feature-detected and a failure hides the action instead of throwing (§VI).
+
+### Colour means the phase, and a node says what it does (#429)
+
+A node's colour used to be decoration travelling as information: you picked it by eye and the
+wizard painted the option with it. Now the **phase** (#149) decides the colour, from one map
+(`zettelkasten/phases/phaseColor.ts`) that both the canvas and the wizard's accent read — so the
+same phase is the same colour in both places, and a phased step that was never coloured borrows
+its phase's colour in the option list without anything being written.
+
+Seven phases, six canvas presets: **review and consolidate share the closing colour**. That is a
+decision, asserted by a test and stated in the legend rather than hidden.
+
+Painting a node is **never silent**:
+
+- the step editor offers *"colour this node by its phase"* — one click, and nothing changes until
+  it is pressed;
+- a setting (**off by default**) makes it automatic for people who want the canvas to paint itself;
+- clearing a phase never clears a colour. Removing meaning must not repaint someone's canvas.
+
+Each node also carries **badges** derived at render time — *start of the flow · N questions ·
+template · linked note · optional · conditional exits*. The first one matters most on someone
+else's canvas: a root **without** an event trigger is not a WHEN block, so until that badge nothing
+on the canvas said where a flow begins — including the common case where the root is a group. Nothing new is stored: they are read from the settings the step
+already has, and they disappear with the extension. A collapsible **legend** on the canvas states
+what the colours and the badges mean, so the canvas explains its own language instead of sending
+you to this page.
+
+### What an option says (#423)
+
+An edge label does three jobs: it draws the transition, it stores the `if:` gate, and it is what the
+wizard shows as the option description. Since #409 made descriptions visible, a conditional edge
+printed its expression at the person writing the note. The gate still reads the raw label; a person
+reads only its **human half** (`describeOption`), and a group child — which has no edge — has no
+description rather than a fabricated one.
+
+### The step owns its exits (#427)
+
+#427 gives those three jobs three fields, on the **source step**: `says` · `when` · `order` ·
+`default`, keyed by canvas edge id. The wizard resolves them once (`partitionExits`), which also
+replaced `partitionBranches` so there is a single path from *children of a node* to *options on
+screen* — an unconfigured arrow still reads its label, which is exactly the previous behaviour.
+
+Two doors, both forms: the step editor's *"Where does it go next?"* section (one row per arrow, the
+guided condition editor behind a button, ↑ ↓ to order, one click to make an exit the default) and
+the **arrow itself** on the canvas, which now configures its exit instead of writing code on its
+label. A previewed, idempotent migration moves existing labels into the step; the canvas keeps
+marking a conditional arrow because `styleForEdge` asks the step, not the label.
+
+See [conditional edges](conditional-edges.md) for the storage and the expression language.
+
 ### The preview became a diff (#412)
 
 The pane answered *"what will the note look like?"*. At the moment of committing the question is

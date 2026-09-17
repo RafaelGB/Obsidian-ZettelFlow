@@ -34,5 +34,12 @@ describe("block-kind → canvas style map (in-canvas legibility)", () => {
             expect(styleForEdge("Next")).toBeUndefined();
             expect(styleForEdge(undefined)).toBeUndefined();
         });
+
+        it("marks an arrow whose condition lives in the step, not in its label (#427)", () => {
+            // The label is words now; the canvas asks the step whether the branch is gated.
+            expect(styleForEdge("Something I read", true)).toBe(BLOCK_STYLE.if);
+            expect(styleForEdge("", true)).toBe(BLOCK_STYLE.if);
+            expect(styleForEdge("Something I read", false)).toBeUndefined();
+        });
     });
 });

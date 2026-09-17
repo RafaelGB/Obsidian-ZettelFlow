@@ -32,7 +32,14 @@ export function Select(selectType: SelectType) {
   const [selected, setSelected] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
   const [optionsState, setOptionsState] = useState(options);
-  const [listState, setListState] = useState(INITIAL_OPTION_LIST_STATE);
+  // The keyboard starts on the step's default exit when it declares one (#427), so Enter takes
+  // the path the flow's author called the usual one — and the badge below says which that is.
+  const [listState, setListState] = useState(() => {
+    const preferred = options.findIndex((option) => option.isDefault);
+    return preferred < 0
+      ? INITIAL_OPTION_LIST_STATE
+      : { ...INITIAL_OPTION_LIST_STATE, activeIndex: preferred };
+  });
   const listId = useId();
 
   const internalCallback = (selectedOption: string) => {
@@ -181,7 +188,12 @@ function OptionElement(optionElementType: OptionElementType) {
       style={styleMemo}
     >
       <div className={c("option-text")}>
-        <span className={c("option-label")}>{label}</span>
+        <span className={c("option-label")}>
+          {label}
+          {option.isDefault && (
+            <span className={c("option-default")}>{t("note_builder_option_default")}</span>
+          )}
+        </span>
         {tooltip && <span className={c("option-description")}>{tooltip}</span>}
       </div>
       {actionTypes.length > 0 && (

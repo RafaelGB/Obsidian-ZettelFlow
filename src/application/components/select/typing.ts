@@ -29,4 +29,6 @@ export type OptionType = {
     tooltip?: string;
     /** Optional knowledge-transformation phase (#149) used to group options in the selector. */
     phase?: StepPhase;
+    /** The step's default exit (#427): where the keyboard lands, marked so the choice is visible. */
+    isDefault?: boolean;
 }

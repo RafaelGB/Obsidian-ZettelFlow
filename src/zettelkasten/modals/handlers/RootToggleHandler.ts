@@ -9,7 +9,7 @@ export class RootToggleHandler extends AbstractHandlerClass<AbstractStepModal> {
     description = t('step_builder_root_toggle_description');
     handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
-        const { root, contentEl } = info;
+        const { root } = info;
         const onChangePromise = (value: boolean) => {
             if (value) {
                 // If it is root, apply extra logic
@@ -18,7 +18,7 @@ export class RootToggleHandler extends AbstractHandlerClass<AbstractStepModal> {
             info.root = value;
             modal.refresh();
         };
-        new Setting(contentEl)
+        new Setting(modal.groupEl("when"))
             .setName(this.name)
             .setDesc(this.description)
             .addToggle(toggle =>

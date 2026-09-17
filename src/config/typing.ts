@@ -63,6 +63,13 @@ export interface ZettelFlowSettings {
     uniquePrefixEnabled: boolean;
     /** Format/string used as a unique prefix (e.g., "YYYYMMDDHHmmss") */
     uniquePrefix: string;
+    /**
+     * **Colour canvas nodes by phase** (#429): choosing a step's phase paints its node in that
+     * phase's colour without asking. OFF by default — a canvas someone already coloured is theirs,
+     * so the editor offers the colour as a one-click suggestion instead. Clearing a phase never
+     * clears a colour: removing meaning must not repaint a canvas.
+     */
+    colourNodesByPhase?: boolean;
     /** Identifier for the ribbon canvas */
     ribbonCanvas: string;
     /** Identifier for the editor canvas */
@@ -278,6 +285,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     logLevel: "info", // Default log level; must match a key of the logger's level record.
     uniquePrefixEnabled: false, // Unique prefix is disabled by default.
     uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
+    colourNodesByPhase: false, // A canvas you already coloured is yours (#429).
     ribbonCanvas: "", // No ribbon canvas configured until the user picks one.
     editorCanvas: "", // No editor canvas configured until the user picks one.
     jsLibraryFolderPath: "", // No JS library folder configured by default.

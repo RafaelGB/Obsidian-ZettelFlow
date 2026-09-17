@@ -197,6 +197,7 @@ nav:
       - Community gallery: architecture/community.md
       - .zftemplate schema: architecture/zftemplate-schema.md
       - Conditional edges: architecture/conditional-edges.md
+      - Review and rehearse a flow: architecture/flow-review.md
       - Trigger conditions: architecture/trigger-conditions.md
       - Knowledge model: architecture/knowledge-model.md
       - Knowledge lifecycle: architecture/knowledge-lifecycle.md

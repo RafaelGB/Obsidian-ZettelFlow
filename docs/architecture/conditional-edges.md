@@ -3,6 +3,39 @@
 ZettelFlow canvas edges support a simple boolean expression language that lets you control
 which branches of a workflow are followed based on the context of the note being built.
 
+## The step owns its exits (#427)
+
+An arrow's label used to do three jobs at once: draw the transition, hold the condition, and
+describe the option in the wizard. They conflict — a condition written on the label puts code on
+the diagram, and the wizard printed that code at whoever was writing a note.
+
+Since 3.3 the **source step owns its exits**. For each arrow leaving it, the step says:
+
+| Question | Field |
+|---|---|
+| What does this option say? | `says` |
+| When is it open? | `when` (the same expression language as below) |
+| In what order does it appear? | `order` |
+| Which one do you land on? | `default` |
+
+Two doors, no YAML:
+
+- **The step editor → "Where does it go next?"** — one row per arrow: the words, a *When…* button
+  that opens the guided condition editor, ↑ ↓ to order, and a target button to make an exit the
+  default.
+- **The arrow itself** — select an arrow on the canvas and press the filter button. It opens that
+  arrow's exit on its source step, and the label follows the words the exit says.
+
+Nothing had to change for existing flows: an arrow with no exit configuration still reads its
+condition and its description from the label, exactly as documented below. The step editor offers
+a previewed, idempotent **"Move arrow labels into this step"** when it finds labels worth moving —
+the condition goes into the step, the words stay on the diagram, and the arrow keeps its IF
+annotation on the canvas because the canvas asks the step, not the label.
+
+Where it is stored: with the step's own settings (the node's `zettelflowConfig` on a canvas box,
+the note's frontmatter for a step note), keyed by canvas edge id. The `.canvas` file stays a plain
+canvas file.
+
 ## Syntax
 
 Label a canvas edge with `if: <expression>` (case-insensitive prefix):
@@ -66,7 +99,6 @@ if: (frontmatter.priority === "high") && (canvas.name === "Daily")
 
 - Arbitrary JavaScript (no `eval`, no `Function()`)
 - Looping constructs
-- Visual condition builder (planned separately)
 
 ## See also
 

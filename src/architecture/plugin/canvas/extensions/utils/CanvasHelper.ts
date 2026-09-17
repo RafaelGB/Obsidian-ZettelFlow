@@ -1,6 +1,7 @@
 import ZettelFlow from "main"
 import { setIcon, setTooltip } from "obsidian"
-import { Canvas, Position, Size } from "obsidian/canvas"
+import { log } from "architecture"
+import { Canvas, CanvasNode, Position, Size } from "obsidian/canvas"
 
 
 export interface MenuOption {
@@ -12,6 +13,91 @@ export interface MenuOption {
 
 export default class CanvasHelper {
     static readonly GRID_SIZE = 20
+
+    /**
+     * What the canvas has selected, as the pure decision function wants it (#432). Feature-detected:
+     * an unreadable selection reports `size: 0`, which offers nothing rather than guessing.
+     */
+    static selectionShape(canvas: Canvas): { size: number; kind: string | undefined } {
+        try {
+            const selection = canvas?.selection;
+            const size = selection?.size ?? 0;
+            if (size !== 1) return { size, kind: undefined };
+
+            const [selected] = [...selection];
+            const id = (selected as unknown as { id?: string })?.id;
+            const edges = canvas?.edges as Map<string, unknown> | undefined;
+            if (id && typeof edges?.get === "function" && edges.get(id)) {
+                return { size, kind: "edge" };
+            }
+            const data = (selected as unknown as { getData?: () => { type?: string } })?.getData?.();
+            return { size, kind: data?.type };
+        } catch (error) {
+            log.warn("ZettelFlow: could not read the canvas selection", error);
+            return { size: 0, kind: undefined };
+        }
+    }
+
+    /**
+     * Remove a button this plugin added. Obsidian reuses the same popup across selections, so an
+     * extension that only ever *adds* leaves its button behind when its condition stops holding
+     * (#432). Removing something that is not there is a no-op.
+     */
+    static removePopupMenuOption(canvas: Canvas, id: string): void {
+        canvas?.menu?.menuEl?.querySelector(`#${id}`)?.remove();
+    }
+
+    /**
+     * Select and centre a node on an open canvas (#424).
+     *
+     * The leaves come from the **public** `getLeavesOfType`; only the selection call is
+     * undocumented, so three shapes are feature-detected and a failure returns `false` for the
+     * caller to hide its action rather than throwing (constitution §VI).
+     */
+    static revealNode(plugin: ZettelFlow, nodeId: string): boolean {
+        try {
+            for (const leaf of plugin.app.workspace.getLeavesOfType("canvas")) {
+                const canvas = (leaf.view as unknown as { canvas?: Canvas })?.canvas;
+                const nodes = canvas?.nodes;
+                if (!canvas || typeof nodes?.get !== "function") continue;
+                const node = nodes.get(nodeId);
+                if (!node) continue;
+                if (!CanvasHelper.selectNode(canvas, node)) return false;
+                void plugin.app.workspace.revealLeaf(leaf);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            log.warn("ZettelFlow: could not reveal the node on the canvas", error);
+            return false;
+        }
+    }
+
+    /** The three selection shapes Obsidian has shipped; none of them is documented. */
+    private static selectNode(canvas: Canvas, node: CanvasNode): boolean {
+        const api = canvas as unknown as {
+            selectOnly?: (node: CanvasNode) => void;
+            select?: (node: CanvasNode) => void;
+            updateSelection?: (update: () => void) => void;
+            selection?: Set<unknown>;
+            deselectAll?: () => void;
+            zoomToSelection?: () => void;
+        };
+        if (typeof api.selectOnly === "function") {
+            api.selectOnly(node);
+        } else if (typeof api.select === "function") {
+            api.deselectAll?.();
+            api.select(node);
+        } else if (typeof api.updateSelection === "function" && api.selection) {
+            api.deselectAll?.();
+            api.updateSelection(() => api.selection?.add(node));
+        } else {
+            log.warn("ZettelFlow: no known canvas selection API — reveal skipped");
+            return false;
+        }
+        api.zoomToSelection?.();
+        return true;
+    }
 
     static createControlMenuButton(menuOption: MenuOption): HTMLElement {
         const quickSetting = createDiv()

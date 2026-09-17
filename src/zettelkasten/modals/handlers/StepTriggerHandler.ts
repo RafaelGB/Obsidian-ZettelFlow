@@ -24,7 +24,7 @@ export class StepTriggerHandler extends AbstractHandlerClass<AbstractStepModal> 
         // WHEN is root-only: a non-root step never triggers a flow.
         if (!info.root) return this.goNext(modal);
 
-        const { contentEl } = info;
+        
         let condition = info.trigger?.condition ?? "";
         const applyEvent = (value: string) => {
             if (!isWiredEvent(value)) {
@@ -37,7 +37,7 @@ export class StepTriggerHandler extends AbstractHandlerClass<AbstractStepModal> 
             });
         };
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("when"))
             .setName(this.name)
             .setDesc(this.description)
             .addDropdown((dropdown) => {
@@ -50,7 +50,7 @@ export class StepTriggerHandler extends AbstractHandlerClass<AbstractStepModal> 
                     .onChange((value) => applyEvent(value));
             });
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("when"))
             .setName(t("step_builder_trigger_condition_name"))
             .setDesc(t("step_builder_trigger_condition_desc"))
             .addText((text) =>

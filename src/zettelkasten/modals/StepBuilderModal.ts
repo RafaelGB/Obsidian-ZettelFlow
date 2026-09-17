@@ -1,10 +1,10 @@
-import { Notice, Platform, setIcon, TFile } from "obsidian";
+import { Notice, Setting, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
 import { t } from "architecture/lang";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
-import { mergeStepSettingsIntoFrontmatter } from "zettelkasten/phases";
+import { mergeStepSettingsIntoFrontmatter, PHASE_LABEL_KEY } from "zettelkasten/phases";
 import { ObsidianApi, c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
 import { AbstractStepModal } from "./AbstractStepModal";
@@ -12,9 +12,34 @@ import ZettelFlow from "main";
 import { InstalledStepEditorModal } from "./InstalledStepEditorModal";
 import { UsedInstalledStepsModal } from "application/community";
 import { ConfirmModal } from "architecture/components/settings";
+import { stepIdentity, type SummaryFragment } from "./handlers/stepIdentity";
+import {
+    isGroupExpanded,
+    STEP_GROUPS,
+    STEP_GROUP_HEADING,
+    type StepGroupId,
+} from "./handlers/stepGroups";
+import { BLOCK_LABEL_KEY, type WorkflowBlockKind } from "architecture/plugin/workflow";
+import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
+import type { Flow, FlowNode } from "architecture/plugin/canvas";
+import {
+    moveExit,
+    orderExits,
+    planMigration,
+    pruneExits,
+    setDefaultExit,
+    type StepExit,
+    type StepExits,
+} from "application/notes/stepExits";
+import { describeOption } from "application/notes/optionDescription";
+import { describeTemplateChanges } from "zettelkasten/review/templateChanges";
+import { phaseCanvasColor } from "zettelkasten/phases/phaseColor";
+import { ConditionEditorModal } from "./ConditionEditorModal";
 
 export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
+    /** The section around each group body, so an empty one can be removed whole (#425). */
+    private groupSections: Partial<Record<StepGroupId, HTMLElement>> = {};
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
@@ -52,7 +77,12 @@ export class StepBuilderModal extends AbstractStepModal {
         // Header with title and subtitle with the mode
         const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
 
-        navbar.createEl("h2", { text: t("step_builder_title") })
+        // The heading names the step, not the product: on a canvas of fifteen nodes you used to
+        // find out what you had opened three fields down (#424).
+        const identity = stepIdentity(this.info);
+        navbar.createEl("h2", {
+            text: identity.title ?? t(identity.titleKey as LocaleKey),
+        });
 
         // Separator
         navbar.createSpan();
@@ -91,27 +121,33 @@ export class StepBuilderModal extends AbstractStepModal {
         }, el => {
             el.addClass("mod-cta");
             el.addEventListener("click", () => {
-                new ConfirmModal(
-                    this.plugin.app,
-                    t("confirm_apply_template_step"),
-                    t("confirm_apply_template_button"),
-                    t("confirm_cancel_button"),
-                    async () => {
-                        // Step 1 - Open the modal to select the step
-                        log.info("info before", this.info);
-                        new UsedInstalledStepsModal(this.plugin, (step) => {
-                            // Step 2 - Apply the step to the current step
+                // Pick the template first, then confirm against *what it changes* (#428 FR-7): an
+                // overwrite nobody can see is an overwrite nobody agreed to.
+                new UsedInstalledStepsModal(this.plugin, (step) => {
+                    const changes = describeTemplateChanges(this.info, step);
+                    const details =
+                        changes.length === 0
+                            ? [t("apply_template_preview_none")]
+                            : changes.map(
+                                  (change) =>
+                                      `${t(change.fieldKey as LocaleKey)}: ${change.before || "—"} → ${change.after || "—"}`
+                              );
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t("confirm_apply_template_step"),
+                        t("confirm_apply_template_button"),
+                        t("confirm_cancel_button"),
+                        async () => {
                             this.partialInfo = {
                                 ...this.info,
                                 ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
-                            }
+                            };
                             this.info = this.getBaseInfo();
-                            log.info("info after", this.info);
-                            // Step 3 - Refresh the modal
                             this.refresh();
-                        }).open();
-                    }
-                ).open();
+                        },
+                        [t("apply_template_preview_intro"), ...details]
+                    ).open();
+                }).open();
             });
 
         });
@@ -151,13 +187,124 @@ export class StepBuilderModal extends AbstractStepModal {
         });
         setIcon(saveButton.createDiv(), "book-marked");
 
+        this.renderIdentity(identity);
+        this.buildGroups();
+
         this.chain.handle(this);
 
-        // Body template editor (desktop only, not in embed mode). Embed nodes store
-        // their config on the canvas node itself, so they have no markdown body to edit.
-        if (!Platform.isMobile && this.mode !== "embed") {
-            this.setupBody();
+        // A handler that skipped itself must not leave a heading behind (#425 FR-4).
+        // The body template is a step's template wherever the step lives: a step note keeps it in
+        // the file, an inline box in its own settings (#426). It used to exist only for the former,
+        // which made the path #400 wants to promote the poorest one.
+        this.setupBody();
+        // Where the flow goes next belongs to the step, not to the arrows drawing it (#427).
+        this.setupExits();
+
+        // Only after everything has rendered: a question nobody answered leaves no heading (#425).
+        this.pruneEmptyGroups();
+    }
+
+    /**
+     * The five questions the editor answers (#425). The chain still owns every field; this only
+     * decides where each one lands, so a step's settings read as *what does it ask · what does it
+     * write · when does it appear · where does it go · how is it shown*.
+     */
+    private buildGroups(): void {
+        const { contentEl } = this.info;
+        for (const group of STEP_GROUPS) {
+            const section = contentEl.createDiv({ cls: c("step-group") });
+            const expanded = isGroupExpanded(group, this.info);
+
+            const heading = section.createEl("button", {
+                cls: c("step-group-heading"),
+                text: t(STEP_GROUP_HEADING[group] as LocaleKey),
+                attr: { "aria-expanded": String(expanded), type: "button" },
+            });
+            const body = section.createDiv({ cls: c("step-group-body") });
+            body.toggleClass(c("is-hidden"), !expanded);
+            heading.addEventListener("click", () => {
+                const open = heading.getAttribute("aria-expanded") !== "true";
+                heading.setAttribute("aria-expanded", String(open));
+                body.toggleClass(c("is-hidden"), !open);
+            });
+
+            this.groups[group] = body;
+            this.groupSections[group] = section;
         }
+    }
+
+    /** Remove a question nobody answered — an empty heading is noise, not structure. */
+    private pruneEmptyGroups(): void {
+        for (const group of STEP_GROUPS) {
+            const body = this.groups[group];
+            if (body && body.childElementCount === 0) {
+                this.groupSections[group]?.remove();
+                delete this.groups[group];
+            }
+        }
+    }
+
+    /** What this step is and what it does — stated, never editable (#424). */
+    private renderIdentity(identity: ReturnType<typeof stepIdentity>): void {
+        const { contentEl } = this.info;
+        const row = contentEl.createDiv({ cls: c("step-identity") });
+
+        // Each chip carries its own icon and colour: a row of identical grey pills reads as
+        // decoration, and the two facts you came for — what this is, and whether the flow starts
+        // here — were the easiest to miss in it.
+        this.chip(row, "step-identity-kind", KIND_ICON[identity.kindKey] ?? "box", t(identity.kindKey as LocaleKey));
+
+        const block = this.chip(
+            row,
+            "step-identity-block",
+            BLOCK_ICON[identity.block],
+            t(BLOCK_LABEL_KEY[identity.block])
+        );
+        block.addClass(c(`step-identity-block-${identity.block}`));
+
+        if (identity.phase) {
+            const phase = this.chip(
+                row,
+                "step-identity-phase",
+                "palette",
+                t(PHASE_LABEL_KEY[identity.phase])
+            );
+            // The same colour the canvas paints that phase with (#429), as a dot rather than a
+            // fill, so the chip stays legible in every theme.
+            phase.addClass(c(`step-identity-phase-${phaseCanvasColor(identity.phase)}`));
+        }
+
+        for (const badge of identity.badges) {
+            const chip = this.chip(row, "step-identity-badge", BADGE_ICON[badge] ?? "dot", t(badge as LocaleKey));
+            chip.addClass(c(`step-identity-badge-${badge.replace("step_identity_badge_", "")}`));
+        }
+
+        if (identity.canReveal && this.info.nodeId) {
+            const nodeId = this.info.nodeId;
+            const reveal = row.createEl("button", {
+                cls: c("step-identity-reveal"),
+                text: t("step_identity_reveal"),
+                attr: { "aria-label": t("step_identity_reveal") },
+            });
+            reveal.addEventListener("click", () => {
+                if (!CanvasHelper.revealNode(this.plugin, nodeId)) {
+                    new Notice(t("step_identity_reveal_failed"));
+                }
+            });
+        }
+
+        contentEl.createDiv({
+            cls: c("step-identity-summary"),
+            text: identity.summary.map((fragment) => describe(fragment)).join(" · "),
+        });
+    }
+
+    /** One chip of the identity row: an icon that names the kind of fact, and the fact. */
+    private chip(row: HTMLElement, cls: string, icon: string, text: string): HTMLElement {
+        const chip = row.createSpan({ cls: c(cls) });
+        setIcon(chip.createSpan({ cls: c("step-identity-icon") }), icon);
+        chip.createSpan({ text });
+        return chip;
     }
 
     refresh(): void {
@@ -166,7 +313,7 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     private setupBody(): void {
-        const { contentEl } = this.info;
+        const contentEl = this.groupEl("writes");
         const textarea = contentEl.createEl("textarea", {
             cls: c("step-builder-body"),
             placeholder: t("step_builder_body_template_placeholder"),
@@ -176,10 +323,246 @@ export class StepBuilderModal extends AbstractStepModal {
             this.info.body = textarea.value;
         });
 
-        // Load from file when editing (body undefined = not yet loaded)
+        // The tokens are insertable rather than documented: a template language you have to
+        // remember is a capability you have to look up (#426).
+        const tokens = contentEl.createDiv({ cls: c("step-builder-tokens") });
+        tokens.createSpan({ text: t("step_builder_body_tokens") });
+        const INSERTABLE: [string, LocaleKey][] = [
+            ["{{title}}", "step_builder_body_token_title"],
+            ["{{date}}", "step_builder_body_token_date"],
+            ["{{canvas.name}}", "step_builder_body_token_canvas"],
+        ];
+        for (const [token, labelKey] of INSERTABLE) {
+            const button = tokens.createEl("button", {
+                cls: c("step-builder-token"),
+                text: token,
+                attr: { type: "button", title: t(labelKey), "aria-label": t(labelKey) },
+            });
+            button.addEventListener("click", () => {
+                const at = textarea.selectionStart ?? textarea.value.length;
+                textarea.value = textarea.value.slice(0, at) + token + textarea.value.slice(at);
+                this.info.body = textarea.value;
+                textarea.focus();
+                textarea.setSelectionRange(at + token.length, at + token.length);
+            });
+        }
+
+        // Load from file when editing a step note (an inline box keeps its body in its settings).
         if (this.info.body === undefined && this.mode === "edit") {
             void this.loadBodyFromFile(textarea);
         }
+    }
+
+    /**
+     * Where does it go next (#427): one row per arrow leaving this step — what it says, when it is
+     * open, in what order, and which one you land on. Only a step drawn on a canvas has arrows, so
+     * a step note opened from its own file shows no section rather than an empty promise; the
+     * arrow's own popup on the canvas is the second door into the same three questions.
+     */
+    private setupExits(): void {
+        if (this.mode !== "embed" || !this.info.nodeId) return;
+        const path = this.canvasPath();
+        if (!path) return;
+
+        const contentEl = this.groupEl("leads");
+        contentEl.createDiv({ cls: c("step-exits-intro"), text: t("step_exits_intro") });
+        const rows = contentEl.createDiv({ cls: c("step-exits") });
+        void this.renderExits(rows, path);
+    }
+
+    /** The canvas this step is drawn on, when it is drawn on one. */
+    private canvasPath(): string | undefined {
+        if (!this.info.folder || !this.info.filename) return undefined;
+        return this.info.folder.path
+            .concat(FileService.PATH_SEPARATOR)
+            .concat(this.info.filename)
+            .concat(".canvas");
+    }
+
+    private async renderExits(rows: HTMLElement, path: string): Promise<void> {
+        const nodeId = this.info.nodeId;
+        if (!nodeId) return;
+        let flow: Flow;
+        let children: FlowNode[];
+        try {
+            flow = await canvas.flows.update(path);
+            children = await flow.childrensOf(nodeId);
+        } catch (error) {
+            log.warn("[exits] could not read the arrows leaving this step", error);
+            return;
+        }
+
+        rows.empty();
+        const candidates = children.filter((child) => child.edgeId);
+        if (candidates.length === 0) {
+            rows.createDiv({ cls: c("step-exits-empty"), text: t("step_exits_empty") });
+            return;
+        }
+
+        // An arrow you deleted is not configuration anyone can reach again.
+        this.info.exits = pruneExits(
+            this.info.exits ?? {},
+            candidates.map((child) => child.edgeId as string)
+        );
+
+        const ordered = orderExits(candidates, this.info.exits);
+        ordered.forEach((child, index) =>
+            this.renderExitRow({ rows, path, candidates, child, index, total: ordered.length })
+        );
+        this.renderExitMigration(rows, path, flow, candidates);
+    }
+
+    private renderExitRow(row: {
+        rows: HTMLElement;
+        path: string;
+        candidates: FlowNode[];
+        child: FlowNode;
+        index: number;
+        total: number;
+    }): void {
+        const { rows, path, candidates, child, index, total } = row;
+        const edgeId = child.edgeId as string;
+        const exits: StepExits = this.info.exits ?? {};
+        const exit: StepExit = exits[edgeId] ?? {};
+        const redraw = () => void this.renderExits(rows, path);
+
+        const setting = new Setting(rows)
+            .setName(child.label || t("step_identity_untitled"))
+            .setDesc(exit.when?.trim() || t("step_exits_when_always"));
+
+        if (exit.default) {
+            setting.nameEl.createSpan({
+                cls: c("step-exits-default"),
+                text: t("step_exits_default_badge"),
+            });
+        }
+
+        setting.addText((text) =>
+            text
+                .setPlaceholder(t("step_exits_says_placeholder"))
+                // With nothing configured the arrow label is still what the option says (#423).
+                .setValue(exit.says ?? describeOption(child.tooltip) ?? "")
+                .onChange((value) =>
+                    this.updateExit(edgeId, (current) => {
+                        const says = value.trim();
+                        if (says) return { ...current, says };
+                        const { says: _cleared, ...rest } = current;
+                        return rest;
+                    })
+                )
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("filter")
+                .setTooltip(t("step_exits_when_edit"))
+                .onClick(() => {
+                    new ConditionEditorModal(this.plugin.app, exit.when ?? "", (expression) => {
+                        this.updateExit(edgeId, (current) => {
+                            if (expression) return { ...current, when: expression };
+                            const { when: _cleared, ...rest } = current;
+                            return rest;
+                        });
+                        redraw();
+                    }).open();
+                })
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("target")
+                .setTooltip(t("step_exits_default_set"))
+                .setDisabled(exit.default === true)
+                .onClick(() => {
+                    this.info.exits = setDefaultExit(this.info.exits ?? {}, edgeId);
+                    redraw();
+                })
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("chevron-up")
+                .setTooltip(t("step_exits_move_up"))
+                .setDisabled(index === 0)
+                .onClick(() => {
+                    this.info.exits = moveExit(candidates, this.info.exits ?? {}, edgeId, -1);
+                    redraw();
+                })
+        );
+
+        setting.addExtraButton((button) =>
+            button
+                .setIcon("chevron-down")
+                .setTooltip(t("step_exits_move_down"))
+                .setDisabled(index === total - 1)
+                .onClick(() => {
+                    this.info.exits = moveExit(candidates, this.info.exits ?? {}, edgeId, 1);
+                    redraw();
+                })
+        );
+    }
+
+    /**
+     * The one-time move from labels to exits, previewed before it runs: every arrow it would touch
+     * is named, with the words that stay on the diagram and the condition that moves into the step.
+     * Idempotent — a configured arrow stops being proposed.
+     */
+    private renderExitMigration(
+        rows: HTMLElement,
+        path: string,
+        flow: Flow,
+        candidates: FlowNode[]
+    ): void {
+        const plan = planMigration(candidates, this.info.exits ?? {});
+        if (plan.length === 0) return;
+
+        const named = (edgeId: string) =>
+            candidates.find((child) => child.edgeId === edgeId)?.label ?? edgeId;
+        const preview = plan
+            .map((step) => {
+                const gate = step.exit.when ? ` · ${step.exit.when}` : "";
+                const says = step.label || t("step_exits_says_placeholder");
+                return `${named(step.edgeId)}: ${says}${gate}`;
+            })
+            .join(" — ");
+
+        new Setting(rows)
+            .setName(t("step_exits_migrate"))
+            .setDesc(`${t("step_exits_migrate_description")} ${preview}`)
+            .addButton((button) =>
+                button.setButtonText(t("step_exits_migrate")).onClick(() => {
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t("step_exits_migrate_confirm"),
+                        t("confirm_apply_template_button"),
+                        t("confirm_cancel_button"),
+                        async () => {
+                            const exits: StepExits = { ...this.info.exits };
+                            const labels: Record<string, string> = {};
+                            for (const step of plan) {
+                                exits[step.edgeId] = step.exit;
+                                labels[step.edgeId] = step.label;
+                            }
+                            this.info.exits = exits;
+                            await flow.editEdgeLabels(labels);
+                            new Notice(t("step_exits_migrate_done"));
+                            void this.renderExits(rows, path);
+                        }
+                    ).open();
+                })
+            );
+    }
+
+    /** Edit one exit in place; an exit that says nothing at all is removed, not stored empty. */
+    private updateExit(edgeId: string, edit: (current: StepExit) => StepExit): void {
+        const exits: StepExits = { ...this.info.exits };
+        const next = edit(exits[edgeId] ?? {});
+        if (Object.keys(next).length === 0) {
+            delete exits[edgeId];
+        } else {
+            exits[edgeId] = next;
+        }
+        this.info.exits = exits;
     }
 
     private async loadBodyFromFile(textarea: HTMLTextAreaElement): Promise<void> {
@@ -245,7 +628,10 @@ export class StepBuilderModal extends AbstractStepModal {
 
     private async saveFile(path: string): Promise<void> {
         let file = await FileService.getFile(path, false);
-        const stepSettings = StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
+        // A step note's template is the note itself, so the body never goes into its frontmatter
+        // too — that is the inline box's storage, not this one's (#426).
+        const { body: _inlineBody, ...stepSettings } =
+            StepBuilderMapper.StepBuilderInfo2StepSettings(this.info);
         const body = this.info.body;
         if (!file) {
             file = await FileService.createFile(path, body ?? "", false);
@@ -299,4 +685,38 @@ export class StepBuilderModal extends AbstractStepModal {
             }
         }
     }
+}
+
+/** The node kinds, as icons — one glyph is faster to recognise than three words. */
+const KIND_ICON: Record<string, string> = {
+    step_identity_kind_inline: "square",
+    step_identity_kind_group: "group",
+    step_identity_kind_note: "file-text",
+    step_identity_kind_unknown: "help-circle",
+};
+
+/** The #151 block vocabulary, with the icons the canvas legend uses for the same idea. */
+const BLOCK_ICON: Record<WorkflowBlockKind, string> = {
+    when: "zap",
+    if: "filter",
+    action: "square-check",
+    wait: "pause",
+};
+
+/** What is switched on, each with its own glyph; the flow's start gets the loudest treatment. */
+const BADGE_ICON: Record<string, string> = {
+    step_identity_badge_root: "flag",
+    step_identity_badge_trigger: "zap",
+    step_identity_badge_wait: "pause",
+    step_identity_badge_optional: "skip-forward",
+    step_identity_badge_satellite: "link",
+};
+
+type LocaleKey = Parameters<typeof t>[0];
+
+/** One summary fragment as a sentence piece; the value is interpolated when the key takes one. */
+function describe(fragment: SummaryFragment): string {
+    return fragment.value === undefined
+        ? t(fragment.key as LocaleKey)
+        : t(fragment.key as LocaleKey, fragment.value);
 }

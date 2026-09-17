@@ -48,7 +48,8 @@ export class CanvasNodeMenu {
                         new StepBuilderModal(this.plugin, {
                             folder: file.parent || undefined,
                             filename: file.basename,
-                            type: "text",
+                            // The node's real kind — a group is not an inline box (#424).
+                            type: currentNode.type,
                             menu,
                             ...stepSettings
                         })

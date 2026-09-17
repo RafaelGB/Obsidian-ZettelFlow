@@ -1,9 +1,12 @@
 import AddManagedStepExtension from './extensions/AddManagedStepExtension';
 import CanvasExtension from './extensions/CanvasExtension';
+import CanvasLegendExtension from './extensions/CanvasLegendExtension';
 import CanvasPatcher from './extensions/CanvasPatcher';
 import ConditionEditorExtension from './extensions/ConditionEditorExtension';
 import EditStepCanvasExtension from './extensions/EditCanvasExtension';
 import EmptyStateExtension from './extensions/EmptyStateExtension';
+import FlowReviewExtension from './extensions/FlowReviewExtension';
+import RehearsalExtension from './extensions/RehearsalExtension';
 import WorkflowLegibilityExtension from './extensions/WorkflowLegibilityExtension';
 import type ZettelFlow from 'main';
 
@@ -22,6 +25,9 @@ const allCanvasExtensions: CanvasExtensionConstructor[] = [
     WorkflowLegibilityExtension,
     ConditionEditorExtension,
     EmptyStateExtension,
+    CanvasLegendExtension,
+    FlowReviewExtension,
+    RehearsalExtension,
 ];
 
 export { allCanvasExtensions, CanvasExtension, CanvasPatcher };

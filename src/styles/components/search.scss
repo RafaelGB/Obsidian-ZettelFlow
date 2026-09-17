@@ -28,6 +28,7 @@
 
 .zettelkasten-flow__search-selected {
     background-color: var(--color-accent);
+    color: var(--text-on-accent);
     transition: background-color 0.3s ease;
     /* smooth transition animation on background-color */
 }

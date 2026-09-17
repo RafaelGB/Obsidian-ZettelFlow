@@ -4,7 +4,7 @@ import { v4 as uuid4 } from "uuid";
 
 export class StepBuilderMapper {
     public static StepBuilderInfo2StepSettings(info: StepBuilderInfo): StepSettings {
-        const { label, childrenHeader, targetFolder, root, optional, actions, phase, trigger, wait, onCreation } = info;
+        const { label, childrenHeader, targetFolder, root, optional, actions, phase, trigger, wait, onCreation, satellite, body, exits } = info;
         const settings: StepSettings = {
             root,
             actions,
@@ -21,6 +21,13 @@ export class StepBuilderMapper {
         if (wait !== undefined) settings.wait = wait;
         // Preserve Knowledge Pattern on-creation behavior opaquely — #170.
         if (onCreation !== undefined) settings.onCreation = onCreation;
+        // Preserve the linked note — #419. Its absence here silently deleted the declaration the
+        // form had just written, which is why the round-trip test exists.
+        if (satellite !== undefined) settings.satellite = satellite;
+        // An inline box keeps its template here, having no file to keep it in — #426.
+        if (body !== undefined) settings.body = body;
+        // What each outgoing arrow says, when it opens, its order and the default — #427.
+        if (exits !== undefined) settings.exits = exits;
         return settings;
     }
 
@@ -49,7 +56,7 @@ export class StepBuilderMapper {
     }
 
     public static StepSettings2PartialStepBuilderInfo(settings: StepSettings): Partial<Omit<StepBuilderInfo, "containerEl">> {
-        const { root, label, childrenHeader, targetFolder, optional, actions, phase, trigger, wait, onCreation } = settings;
+        const { root, label, childrenHeader, targetFolder, optional, actions, phase, trigger, wait, onCreation, satellite, body, exits } = settings;
         const info: Partial<Omit<StepBuilderInfo, "containerEl">> = {
             root,
             label,
@@ -62,6 +69,12 @@ export class StepBuilderMapper {
         if (trigger !== undefined) info.trigger = trigger;
         if (wait !== undefined) info.wait = wait;
         if (onCreation !== undefined) info.onCreation = onCreation;
+        // Reading back has to carry as much as writing does: a step opened from the file menu and
+        // saved again used to lose its linked note, its body and its exits (the #419 defect, on the
+        // other side of the mapper).
+        if (satellite !== undefined) info.satellite = satellite;
+        if (body !== undefined) info.body = body;
+        if (exits !== undefined) info.exits = exits;
         return info;
     }
 }

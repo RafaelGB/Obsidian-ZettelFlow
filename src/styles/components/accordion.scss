@@ -15,6 +15,10 @@
     align-items: center;
     padding: 10px 15px;
     background-color: var(--color-accent);
+    /* The pair for an accent fill. Without it the action type — a link — fell back to
+       --text-accent, the same hue family, and was unreadable until hover shifted the background
+       (#431). #406 deleted the inline `color: inherit` that had been hiding this. */
+    color: var(--text-on-accent);
     border-bottom: 1px solid var(--background-secondary);
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
@@ -23,6 +27,7 @@
 /* Hover más sutil en el Accordion Header */
 .zettelkasten-flow__accordion-header:hover {
     background-color: var(--color-accent-hover);
+    color: var(--text-on-accent);
     /* Asegúrate de que este color sea sutil */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     /* Sombra externa sutil */
@@ -153,6 +158,17 @@
 
 .zettelkasten-flow__accordion-header-remove:hover {
     background-color: var(--background-modifier-error);
+    color: var(--text-normal);
+}
+
+/* The type link and every icon in the header take the header's colour, not the theme's link
+   colour — this is the rule #406 said it was moving the inline style to. */
+.zettelkasten-flow__accordion-header-label,
+.zettelkasten-flow__accordion-header-label:hover,
+.zettelkasten-flow__accordion-header .zettelkasten-flow__icon,
+.zettelkasten-flow__accordion-header-actions button {
+    color: inherit;
+    text-decoration: none;
 }
 
 /* =======================================

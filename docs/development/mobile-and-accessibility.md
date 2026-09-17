@@ -68,3 +68,45 @@ When you add UI:
 The exhaustive keyboard-operability sweep of the *remaining* read-only lenses (Discovery, Open questions,
 Evidence map, Concept navigation, Knowledge dashboard) and the recorded device walkthrough are tracked in
 **#325** (follow-up to epic #319).
+
+## Colour pairs (#431)
+
+A strong background carries its foreground **in the same rule**, and a test enforces it
+(`test/config/colourPairs.test.ts`). The pairs in use:
+
+| Background | Foreground | Where |
+|---|---|---|
+| `--color-accent` / `--color-accent-hover` | `--text-on-accent` | the actions list header, a selected search result, the step badge in the gallery |
+| `--interactive-accent` | `--text-on-accent` | primary buttons, the uninstall hover |
+| `--background-modifier-error` | `--text-normal` | the developer section and the remove hover — a tint, not a solid fill |
+
+This exists because the actions list shipped unreadable: the header filled with `--color-accent`
+and stated no foreground, so the action's type — a link — fell back to `--text-accent`, the same
+hue family, and only became legible on hover. Taste cannot be linted; an unpaired strong background
+can.
+
+## Phase colours on the canvas (#429)
+
+Colour on a ZettelFlow canvas *means* something: the phase of the knowledge arc a step advances.
+The map is one definition (`zettelkasten/phases/phaseColor.ts`), read by both the canvas and the
+wizard's option accent.
+
+| Phase | Canvas preset | Theme note |
+|---|---|---|
+| Capture | `1` (red) | Obsidian's own canvas palette; contrast is the theme's, not ours |
+| Classify | `2` (orange) | " |
+| Process | `3` (yellow) | the lightest preset — never the sole carrier (see below) |
+| Connect | `4` (green) | " |
+| Develop | `5` (cyan) | " |
+| Review · Consolidate | `6` (purple) | two phases share the closing colour (seven phases, six presets) |
+
+**Colour is never the only carrier.** Every phased step also states its phase as text in the step
+editor and as a group heading in the wizard, and the node's badges (questions · template · linked
+note · optional · conditional exits) are words, not hues. The legend on the canvas states the map,
+including the shared colour, so the meaning is reachable without the docs.
+
+Contrast itself is Obsidian's: the presets are the app's own `--canvas-color-N` variables, which
+the light and dark default themes define and keep legible. ZettelFlow adds no custom hue, so a
+theme that adjusts the canvas palette adjusts ours with it. The badges use
+`--background-secondary` / `--text-muted`, a pair that is theme-defined and covered by the colour
+pair test above.

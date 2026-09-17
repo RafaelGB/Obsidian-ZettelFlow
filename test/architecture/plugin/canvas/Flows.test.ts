@@ -184,7 +184,9 @@ describe("FlowImpl", () => {
 
       const children = await flow.childrensOf("G");
       expect(children.map((n) => n.id)).toEqual(["inside"]);
-      expect(children[0].tooltip).toBe("Child of Group");
+      // A group child has no edge, so it has no description. The engine used to fabricate an
+      // English "Child of <group>" that #409 then printed at users as the option text (#423).
+      expect(children[0].tooltip).toBeUndefined();
     });
   });
 });

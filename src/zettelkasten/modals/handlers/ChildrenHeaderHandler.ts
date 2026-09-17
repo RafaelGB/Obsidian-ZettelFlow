@@ -9,11 +9,11 @@ export class ChildrenHeaderHandler extends AbstractHandlerClass<AbstractStepModa
     description = t('step_builder_children_header_description');
     handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
-        const { contentEl, childrenHeader, root } = info;
+        const { childrenHeader, root } = info;
         // If is root, skip this step
         if (root) return this.goNext(modal);
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("shown"))
             .setName(this.name)
             .setDesc(this.description)
             .addTextArea(text => {

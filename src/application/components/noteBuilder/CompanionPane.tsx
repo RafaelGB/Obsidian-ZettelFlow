@@ -16,6 +16,7 @@ import {
 } from "application/notes";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { buildNoteDiff, DiffSource, NoteDiff } from "application/notes/noteDiff";
+import { orderedTemplateSources } from "application/notes/stepBody";
 import {
   resolveSatellite,
   satellitePreview,
@@ -39,14 +40,22 @@ const MAX_CANDIDATE_SCAN = 2000;
 
 type TemplateCache = Map<string, PreviewTemplate>;
 
-/** Loads (position-ordered) step templates, caching each file read for the session (FR-8). */
+/**
+ * Loads step templates in step order, caching each file read for the session (FR-8). A step that
+ * has no file contributes its **inline body** (#426) — the same ordered list the builder walks.
+ */
 async function loadTemplates(
   paths: Map<number, string>,
+  inlineBodies: Map<number, string>,
   cache: TemplateCache
 ): Promise<PreviewTemplate[]> {
-  const ordered = [...paths.entries()].sort((a, b) => a[0] - b[0]);
   const templates: PreviewTemplate[] = [];
-  for (const [, path] of ordered) {
+  for (const source of orderedTemplateSources(paths, inlineBodies)) {
+    if ("body" in source) {
+      templates.push({ body: source.body, frontmatter: {} });
+      continue;
+    }
+    const path = source.path;
     let template = cache.get(path);
     if (!template) {
       const file = await FileService.getFile(path, false);
@@ -345,7 +354,11 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
       void (async () => {
         const started = window.performance.now();
         try {
-          const templates = await loadTemplates(paths, templateCacheRef.current);
+          const templates = await loadTemplates(
+            paths,
+            builder.note.getInlineBodies(),
+            templateCacheRef.current
+          );
           if (cancelled) return;
           const assembled = assembleNotePreview(buildPreviewInput(builder, title, modal, templates));
           const nextSuggestions = gatherSuggestions(assembled, modal);

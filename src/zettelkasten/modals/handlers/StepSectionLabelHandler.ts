@@ -9,11 +9,11 @@ export class StepSectionLabelHandler extends AbstractHandlerClass<AbstractStepMo
     description = t('step_builder_section_label_description');
     handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
-        const { contentEl, label } = info;
+        const { label } = info;
         const onChangePromise = (value: string) => {
             info.label = value;
         };
-        new Setting(contentEl)
+        new Setting(modal.groupEl("shown"))
             .setName(this.name)
             .setDesc(this.description)
             .addTextArea(text => {

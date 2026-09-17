@@ -16,7 +16,7 @@ export class StepWaitHandler extends AbstractHandlerClass<AbstractStepModal> {
 
     handle(modal: AbstractStepModal): AbstractStepModal {
         const { info } = modal;
-        const { contentEl } = info;
+        
         let message = info.wait?.message ?? "";
         const apply = (enabled: boolean) => {
             info.wait = enabled
@@ -24,14 +24,14 @@ export class StepWaitHandler extends AbstractHandlerClass<AbstractStepModal> {
                 : undefined;
         };
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("when"))
             .setName(this.name)
             .setDesc(this.description)
             .addToggle((toggle) =>
                 toggle.setValue(info.wait !== undefined).onChange((value) => apply(value))
             );
 
-        new Setting(contentEl)
+        new Setting(modal.groupEl("when"))
             .setName(t("step_builder_wait_message_name"))
             .setDesc(t("step_builder_wait_message_desc"))
             .addText((text) =>

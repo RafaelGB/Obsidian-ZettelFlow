@@ -7,6 +7,7 @@ import type { StepPhase } from "./phases";
 import type { WorkflowTrigger } from "architecture/plugin/events";
 import type { WaitSettings } from "architecture/plugin/workflow";
 import type { SatelliteDeclaration } from "application/notes/satellitePlan";
+import type { StepExits } from "application/notes/stepExits";
 
 export type StepBuilderInfo = {
     type: string,
@@ -64,6 +65,19 @@ export type StepSettings = {
      * form writes, and what a shared system carries, not something anyone is expected to hand-edit.
      */
     satellite?: SatelliteDeclaration,
+    /**
+     * The step's **body template** when it has no file to keep it in — an inline canvas box (#426).
+     * A step note keeps its template in the note itself; this is the same capability for the node
+     * kind #400 wants to promote. Absent = the step contributes no body, exactly as before.
+     */
+    body?: string,
+    /**
+     * The step's **exits** (#427): for each outgoing arrow, what the option says, when it is open,
+     * in what order it appears and whether it is the default — keyed by canvas edge id. Absent, or
+     * missing an arrow, means that arrow's label still does all three jobs, exactly as before.
+     * Written by the step editor's exits section and by the arrow's own popup (§XIII).
+     */
+    exits?: StepExits,
 }
 
 export type ZettelFlowElement = {

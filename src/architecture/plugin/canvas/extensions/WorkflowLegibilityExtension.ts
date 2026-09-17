@@ -8,6 +8,7 @@ import { YamlService } from "architecture/plugin";
 import {
     BLOCK_STYLE,
     WORKFLOW_BLOCK_KINDS,
+    nodeBadges,
     styleForEdge,
     styleForNode,
     type BlockStyle,
@@ -30,6 +31,8 @@ const RESTYLE_DEBOUNCE_MS = 80;
  */
 export default class WorkflowLegibilityExtension extends CanvasExtension {
     private readonly styledEls = new Set<HTMLElement>();
+    /** Badge strips this pass created; removed before the next one and on unload (#429). */
+    private readonly badgeEls = new Set<HTMLElement>();
     private restyleTimer: number | undefined;
 
     init(): void {
@@ -78,12 +81,83 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         if (!el) return;
         const shape = this.nodeShape(node);
         this.applyBlockClass(el, shape ? styleForNode(shape) : undefined);
+        this.paintBadges(el, shape, this.noteIsGone(node));
+    }
+
+    /**
+     * What the step does, on the node itself (#429): the questions it asks, the template it
+     * writes, the linked note it creates, that it can be skipped, that some exits are conditional.
+     * Every badge is derived at render time — nothing new is stored, and the strip disappears with
+     * the extension.
+     */
+    private paintBadges(
+        el: HTMLElement,
+        shape: NodeBlockShape | undefined,
+        noteIsGone: boolean
+    ): void {
+        const badges = nodeBadges(shape);
+        if (badges.length === 0 && !noteIsGone) return;
+        const strip = el.createDiv({ cls: c("node-badges") });
+        if (noteIsGone) {
+            // The one finding that throws mid-wizard is marked without opening the review (#428).
+            const alert = strip.createSpan({
+                cls: c("node-badge"),
+                text: t("node_badge_missing"),
+                attr: { "aria-label": t("node_badge_missing") },
+            });
+            alert.addClass(c("node-badge-alert"));
+        }
+        for (const badge of badges) {
+            const label =
+                badge.count === undefined
+                    ? t(badge.labelKey as LocaleKey)
+                    : `${badge.count} ${badge.count === 1 ? t("node_badge_asks_one") : t("node_badge_asks")}`;
+            const chip = strip.createSpan({
+                cls: c("node-badge"),
+                text: label,
+                attr: { "aria-label": label },
+            });
+            chip.addClass(c(`node-badge-${badge.kind}`));
+        }
+        this.badgeEls.add(strip);
     }
 
     private styleEdge(edge: CanvasEdge): void {
         const el = edge?.labelElement?.wrapperEl;
         if (!el) return; // a plain (unlabelled) edge has no wrapper — nothing to annotate
-        this.applyBlockClass(el, styleForEdge(edge.label));
+        this.applyBlockClass(el, styleForEdge(edge.label, this.isGatedExit(edge)));
+    }
+
+    /** A file node whose note is no longer in the vault — it will stop the wizard (#428 FR-5). */
+    private noteIsGone(node: CanvasNode): boolean {
+        try {
+            const data = node.getData();
+            if (data.type !== "file" || !data.file) return false;
+            return !(this.plugin.app.vault.getAbstractFileByPath(data.file) instanceof TFile);
+        } catch (error) {
+            log.warn("ZettelFlow: could not check whether a step's note still exists", error);
+            return false;
+        }
+    }
+
+    /**
+     * Whether the step this arrow leaves gates it (#427). The condition no longer has to be written
+     * on the label, so the canvas asks the step instead — and an arrow that is only words still
+     * shows that it is conditional.
+     */
+    private isGatedExit(edge: CanvasEdge): boolean {
+        try {
+            const from = (edge as unknown as { from?: { node?: CanvasNode } }).from?.node;
+            const edgeId = (edge as unknown as { id?: string }).id;
+            if (!from || !edgeId) return false;
+            const settings = this.nodeShape(from) as
+                | { exits?: Record<string, { when?: string }> }
+                | undefined;
+            return Boolean(settings?.exits?.[edgeId]?.when?.trim());
+        } catch (error) {
+            log.warn("ZettelFlow: could not read a step's exits for legibility", error);
+            return false;
+        }
     }
 
     /** Resolve a node's block-relevant settings: inline config for text/group, frontmatter for file. */
@@ -117,13 +191,15 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         this.styledEls.add(el);
     }
 
-    /** Strip every class + label this extension applied. Keeps `styledEls` bounded to the last pass. */
+    /** Strip every class, label and badge this extension applied — nothing of ours survives it. */
     private clearStyled(): void {
         for (const el of this.styledEls) {
             for (const kind of WORKFLOW_BLOCK_KINDS) el.classList.remove(c(BLOCK_STYLE[kind].cssClass));
             el.removeAttribute("aria-label");
         }
         this.styledEls.clear();
+        for (const strip of this.badgeEls) strip.remove();
+        this.badgeEls.clear();
     }
 
     private teardown(): void {

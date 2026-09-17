@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import type { BranchReason } from "application/notes/branchVisibility";
+import { explainBranch } from "application/notes/branchExplanationText";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 
 /**
@@ -36,22 +36,11 @@ export function HiddenBranches() {
           {hidden.map((branch) => (
             <li className={c("hidden-branches-item")} key={branch.id}>
               <span className={c("hidden-branches-label")}>{branch.label}</span>
-              <span className={c("hidden-branches-reason")}>{explain(branch.reason, branch.expression)}</span>
+              <span className={c("hidden-branches-reason")}>{explainBranch(branch.reason, branch.expression)}</span>
             </li>
           ))}
         </ul>
       )}
     </div>
   );
-}
-
-function explain(reason: BranchReason, expression: string): string {
-  switch (reason.kind) {
-    case "comparison":
-      return t("note_builder_hidden_reason", reason.path, reason.found, reason.expected);
-    case "all-failed":
-      return t("note_builder_hidden_all_failed", reason.comparisons.join(", "));
-    default:
-      return t("note_builder_hidden_expression", expression);
-  }
 }

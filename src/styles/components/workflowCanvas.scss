@@ -49,28 +49,38 @@
 }
 
 // ── What a node does, on the node (#429) ────────────────────────────────────────────────────────
-// Derived at render time and removed with the extension: no stored byte, no layout of ours inside
-// the node's own content — the strip rides under it.
+// Derived at render time and removed with the extension: no stored byte. It rides *inside* the
+// node's top-right corner — hanging it below the node put it where the canvas clips.
 .zettelkasten-flow__node-badges {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1.5em;
+    top: 0.25rem;
+    right: 0.25rem;
+    z-index: 1;
+    max-width: 92%;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    justify-content: flex-end;
+    gap: 0.2rem;
     pointer-events: none;
 }
 
 .zettelkasten-flow__node-badge {
-    padding: 0.05rem 0.35rem;
-    border-radius: var(--radius-s);
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
     background-color: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
     line-height: 1.4;
     white-space: nowrap;
+}
+
+// Where a flow begins is the first thing you look for on someone else's canvas.
+.zettelkasten-flow__node-badge-start {
+    background-color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: var(--font-semibold);
 }
 
 // ── The canvas explains its own language (#429) ─────────────────────────────────────────────────
@@ -304,9 +314,13 @@ button.zettelkasten-flow__flow-review-finding:hover {
     line-height: 1.4;
 }
 
+// Where the walk stands, read as a heading rather than as one more grey line.
 .zettelkasten-flow__rehearsal-current {
-    margin-top: var(--size-4-2);
+    margin-top: var(--size-4-3);
+    padding-left: var(--size-4-2);
+    border-left: 3px solid var(--interactive-accent);
     color: var(--text-normal);
+    font-size: var(--font-ui-small);
     font-weight: var(--font-semibold);
 }
 
@@ -317,31 +331,71 @@ button.zettelkasten-flow__flow-review-finding:hover {
     margin: 0.2rem 0;
 }
 
+.zettelkasten-flow__rehearsal-context-row input {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-ui-smaller);
+}
+
+// An option is a thing you press: it looks pressable, and says where it leads.
 .zettelkasten-flow__rehearsal-option {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     width: 100%;
-    margin: 0.2rem 0;
-    padding: var(--size-4-1) var(--size-4-2);
+    margin: 0.25rem 0;
+    padding: var(--size-4-2);
     background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
+    border-radius: var(--radius-m);
     color: var(--text-normal);
     font-size: var(--font-ui-smaller);
     text-align: left;
     cursor: pointer;
+    transition: border-color 0.12s ease-out, background-color 0.12s ease-out;
+}
+
+.zettelkasten-flow__rehearsal-option::after {
+    content: "→";
+    margin-left: auto;
+    color: var(--text-faint);
 }
 
 .zettelkasten-flow__rehearsal-option:hover {
     border-color: var(--interactive-accent);
+    background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__rehearsal-option:hover::after {
+    color: var(--interactive-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__rehearsal-option {
+        transition: none;
+    }
 }
 
 // A branch that is closed, and why — the same sentence the wizard says (#414).
 .zettelkasten-flow__rehearsal-closed {
-    margin: 0.2rem 0;
-    padding-left: var(--size-4-2);
-    border-left: 2px solid var(--background-modifier-border);
+    margin: 0.25rem 0;
+    padding: var(--size-4-1) var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary-alt);
     color: var(--text-faint);
     line-height: 1.4;
+}
+
+// What the real run would do here, as chips: a list of sentences hid the shape of it.
+.zettelkasten-flow__rehearsal-would-run {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.15rem 0.25rem 0.15rem 0;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    color: var(--text-muted);
 }
 
 .zettelkasten-flow__rehearsal-preview {

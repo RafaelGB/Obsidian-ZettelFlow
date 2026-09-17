@@ -19,7 +19,7 @@ import {
     STEP_GROUP_HEADING,
     type StepGroupId,
 } from "./handlers/stepGroups";
-import { BLOCK_LABEL_KEY } from "architecture/plugin/workflow";
+import { BLOCK_LABEL_KEY, type WorkflowBlockKind } from "architecture/plugin/workflow";
 import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
 import type { Flow, FlowNode } from "architecture/plugin/canvas";
 import {
@@ -33,6 +33,7 @@ import {
 } from "application/notes/stepExits";
 import { describeOption } from "application/notes/optionDescription";
 import { describeTemplateChanges } from "zettelkasten/review/templateChanges";
+import { phaseCanvasColor } from "zettelkasten/phases/phaseColor";
 import { ConditionEditorModal } from "./ConditionEditorModal";
 
 export class StepBuilderModal extends AbstractStepModal {
@@ -248,19 +249,34 @@ export class StepBuilderModal extends AbstractStepModal {
         const { contentEl } = this.info;
         const row = contentEl.createDiv({ cls: c("step-identity") });
 
-        row.createSpan({ cls: c("step-identity-kind"), text: t(identity.kindKey as LocaleKey) });
-        row.createSpan({
-            cls: c("step-identity-block"),
-            text: t(BLOCK_LABEL_KEY[identity.block]),
-        });
+        // Each chip carries its own icon and colour: a row of identical grey pills reads as
+        // decoration, and the two facts you came for — what this is, and whether the flow starts
+        // here — were the easiest to miss in it.
+        this.chip(row, "step-identity-kind", KIND_ICON[identity.kindKey] ?? "box", t(identity.kindKey as LocaleKey));
+
+        const block = this.chip(
+            row,
+            "step-identity-block",
+            BLOCK_ICON[identity.block],
+            t(BLOCK_LABEL_KEY[identity.block])
+        );
+        block.addClass(c(`step-identity-block-${identity.block}`));
+
         if (identity.phase) {
-            row.createSpan({
-                cls: c("step-identity-phase"),
-                text: t(PHASE_LABEL_KEY[identity.phase]),
-            });
+            const phase = this.chip(
+                row,
+                "step-identity-phase",
+                "palette",
+                t(PHASE_LABEL_KEY[identity.phase])
+            );
+            // The same colour the canvas paints that phase with (#429), as a dot rather than a
+            // fill, so the chip stays legible in every theme.
+            phase.addClass(c(`step-identity-phase-${phaseCanvasColor(identity.phase)}`));
         }
+
         for (const badge of identity.badges) {
-            row.createSpan({ cls: c("step-identity-badge"), text: t(badge as LocaleKey) });
+            const chip = this.chip(row, "step-identity-badge", BADGE_ICON[badge] ?? "dot", t(badge as LocaleKey));
+            chip.addClass(c(`step-identity-badge-${badge.replace("step_identity_badge_", "")}`));
         }
 
         if (identity.canReveal && this.info.nodeId) {
@@ -281,6 +297,14 @@ export class StepBuilderModal extends AbstractStepModal {
             cls: c("step-identity-summary"),
             text: identity.summary.map((fragment) => describe(fragment)).join(" · "),
         });
+    }
+
+    /** One chip of the identity row: an icon that names the kind of fact, and the fact. */
+    private chip(row: HTMLElement, cls: string, icon: string, text: string): HTMLElement {
+        const chip = row.createSpan({ cls: c(cls) });
+        setIcon(chip.createSpan({ cls: c("step-identity-icon") }), icon);
+        chip.createSpan({ text });
+        return chip;
     }
 
     refresh(): void {
@@ -662,6 +686,31 @@ export class StepBuilderModal extends AbstractStepModal {
         }
     }
 }
+
+/** The node kinds, as icons — one glyph is faster to recognise than three words. */
+const KIND_ICON: Record<string, string> = {
+    step_identity_kind_inline: "square",
+    step_identity_kind_group: "group",
+    step_identity_kind_note: "file-text",
+    step_identity_kind_unknown: "help-circle",
+};
+
+/** The #151 block vocabulary, with the icons the canvas legend uses for the same idea. */
+const BLOCK_ICON: Record<WorkflowBlockKind, string> = {
+    when: "zap",
+    if: "filter",
+    action: "square-check",
+    wait: "pause",
+};
+
+/** What is switched on, each with its own glyph; the flow's start gets the loudest treatment. */
+const BADGE_ICON: Record<string, string> = {
+    step_identity_badge_root: "flag",
+    step_identity_badge_trigger: "zap",
+    step_identity_badge_wait: "pause",
+    step_identity_badge_optional: "skip-forward",
+    step_identity_badge_satellite: "link",
+};
 
 type LocaleKey = Parameters<typeof t>[0];
 

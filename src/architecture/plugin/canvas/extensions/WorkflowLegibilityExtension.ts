@@ -112,11 +112,12 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
                 badge.count === undefined
                     ? t(badge.labelKey as LocaleKey)
                     : `${badge.count} ${badge.count === 1 ? t("node_badge_asks_one") : t("node_badge_asks")}`;
-            strip.createSpan({
+            const chip = strip.createSpan({
                 cls: c("node-badge"),
                 text: label,
                 attr: { "aria-label": label },
             });
+            chip.addClass(c(`node-badge-${badge.kind}`));
         }
         this.badgeEls.add(strip);
     }

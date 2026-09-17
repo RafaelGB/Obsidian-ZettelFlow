@@ -112,7 +112,9 @@ export default class EditStepCanvasExtension extends CanvasExtension {
                 new StepBuilderModal(this.plugin, {
                     folder: file.parent || undefined,
                     filename: file.basename,
-                    type: "text",
+                    // The node's real kind: hardcoding "text" made the editor call a group an
+                    // inline box, which is the first thing the header claims to tell you (#424).
+                    type: data.type,
                     // Additional context for the modal
                     ...stepSettings,
                 })

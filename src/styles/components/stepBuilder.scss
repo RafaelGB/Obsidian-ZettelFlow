@@ -46,18 +46,31 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.35rem;
-    margin-bottom: var(--size-4-1);
+    margin-bottom: var(--size-4-2);
     font-size: var(--font-ui-smaller);
 }
 
+/* Every chip carries an icon and a colour that means something: a row of identical grey pills
+   reads as decoration, and the two facts you came for were the easiest to miss in it. */
 .zettelkasten-flow__step-identity-kind,
 .zettelkasten-flow__step-identity-block,
 .zettelkasten-flow__step-identity-phase,
 .zettelkasten-flow__step-identity-badge {
-    padding: 0 0.4rem;
-    border-radius: var(--radius-s);
-    background-color: var(--background-modifier-border);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-primary);
     color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__step-identity-icon {
+    display: inline-flex;
+    align-items: center;
+    --icon-size: var(--icon-s);
 }
 
 .zettelkasten-flow__step-identity-kind {
@@ -66,8 +79,53 @@
     font-weight: var(--font-semibold);
 }
 
-.zettelkasten-flow__step-identity-phase {
+/* The four blocks of the visual language, in the colours the canvas already uses for them. */
+.zettelkasten-flow__step-identity-block-when {
+    border-color: var(--color-green, #3aa675);
+    color: var(--color-green, #3aa675);
+}
+
+.zettelkasten-flow__step-identity-block-wait {
+    border-color: var(--color-orange, #e0a030);
+    color: var(--color-orange, #e0a030);
+}
+
+.zettelkasten-flow__step-identity-block-if {
+    border-color: var(--color-purple, #a060c0);
+    color: var(--color-purple, #a060c0);
+}
+
+/* The phase, as the dot the canvas paints that node with (#429) — a fill would fight the theme. */
+.zettelkasten-flow__step-identity-phase .zettelkasten-flow__step-identity-icon {
+    display: none;
+}
+
+.zettelkasten-flow__step-identity-phase::before {
+    content: "";
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__step-identity-phase-1::before { background-color: var(--canvas-color-1); }
+.zettelkasten-flow__step-identity-phase-2::before { background-color: var(--canvas-color-2); }
+.zettelkasten-flow__step-identity-phase-3::before { background-color: var(--canvas-color-3); }
+.zettelkasten-flow__step-identity-phase-4::before { background-color: var(--canvas-color-4); }
+.zettelkasten-flow__step-identity-phase-5::before { background-color: var(--canvas-color-5); }
+.zettelkasten-flow__step-identity-phase-6::before { background-color: var(--canvas-color-6); }
+
+/* What is switched on. The flow's start is the headline fact, so it is the one that fills. */
+.zettelkasten-flow__step-identity-badge {
     background-color: var(--background-secondary-alt);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__step-identity-badge-root {
+    background-color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: var(--font-semibold);
 }
 
 .zettelkasten-flow__step-identity-reveal {

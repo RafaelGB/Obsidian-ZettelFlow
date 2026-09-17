@@ -3,6 +3,7 @@ import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
+import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { FILE_EXTENSIONS } from "architecture/plugin/services/FileService";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
 import {
@@ -129,6 +130,72 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                     });
                 },
             },
+            {
+                // The triggers that are actually bound, listed where the flows are (#439): they
+                // are a fact about your flows, not a section of their own.
+            name: t("settings_events_bindings_heading"),
+            render: (setting) => {
+                setting.setClass(c("readable-setting-item"));
+                const list = setting.settingEl.createDiv({
+                    cls: c("event-bindings-list"),
+                });
+                const renderList = async () => {
+                    list.empty();
+                    const engine = WorkflowEventEngine.getInstance();
+                    const bindings = await engine.scanTriggers();
+                    if (!bindings.length) {
+                        new Setting(list).setName(
+                            t("settings_events_binding_list_empty")
+                        );
+                        return;
+                    }
+                    for (const binding of bindings) {
+                        const flowName =
+                            binding.flowPath.split(FileService.PATH_SEPARATOR).pop() ??
+                            binding.flowPath;
+                        const eventLabel = isWiredEvent(binding.event)
+                            ? t(EVENT_LABEL_KEY[binding.event])
+                            : binding.event;
+                        const row = new Setting(list)
+                            .setName(`${flowName} · ${eventLabel}`)
+                            .setDesc(binding.flowPath);
+                        if (binding.filePath) {
+                            row.addToggle((toggle) =>
+                                toggle
+                                    .setTooltip(t("settings_events_binding_enabled_name"))
+                                    .setValue(binding.enabled !== false)
+                                    .onChange((value) =>
+                                        void engine.setTriggerEnabled(binding, value)
+                                    )
+                            );
+                            row.addExtraButton((btn) =>
+                                btn
+                                    .setIcon("trash")
+                                    .setTooltip(
+                                        t("settings_events_binding_remove_tooltip")
+                                    )
+                                    .onClick(async () => {
+                                        await engine.removeTrigger(binding);
+                                        await renderList();
+                                    })
+                            );
+                        } else {
+                            row.addExtraButton((btn) =>
+                                btn
+                                    .setIcon("pencil")
+                                    .setTooltip(
+                                        t("settings_events_binding_open_tooltip")
+                                    )
+                                    .onClick(() =>
+                                        void FileService.openFile(binding.flowPath)
+                                    )
+                            );
+                        }
+                    }
+                };
+                void renderList();
+            },
+        },
             {
                 // A flow usually arrives from the gallery, so the gallery lives with the flows
                 // rather than among sixty unrelated settings (#439).

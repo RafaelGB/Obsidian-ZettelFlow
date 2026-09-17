@@ -198,6 +198,7 @@ nav:
       - .zftemplate schema: architecture/zftemplate-schema.md
       - Conditional edges: architecture/conditional-edges.md
       - Your flows and their roles: architecture/flow-roles.md
+      - The settings panel: development/settings-panel.md
       - Review and rehearse a flow: architecture/flow-review.md
       - Trigger conditions: architecture/trigger-conditions.md
       - Knowledge model: architecture/knowledge-model.md

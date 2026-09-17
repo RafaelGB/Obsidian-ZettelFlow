@@ -81,3 +81,24 @@
     border-left: 3px solid var(--background-modifier-error);
     padding-left: var(--size-4-2);
 }
+
+// What is on right now (#440): facts, stated before the panel asks anything.
+.zettelkasten-flow__settings-summary {
+    border-top: none;
+}
+
+.zettelkasten-flow__settings-summary-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: var(--size-4-1);
+}
+
+.zettelkasten-flow__settings-summary-fact {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

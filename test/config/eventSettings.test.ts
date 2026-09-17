@@ -5,8 +5,8 @@ import es from "architecture/lang/locale/es";
 import { WIRED_EVENTS, EVENT_LABEL_KEY } from "architecture/plugin/events/vocabulary";
 
 const SETTINGS_KEYS = [
-    "settings_events_heading",
-    "settings_events_intro",
+    // #440 merged the events section into *Your flows*: the triggers list is a fact about your
+    // flows, not a section of its own, so the section's heading and intro are gone.
     "settings_events_binding_list_empty",
     "settings_events_binding_remove_tooltip",
     "settings_events_binding_enabled_name",
@@ -22,7 +22,7 @@ describe("event-driven workflows settings (AC-3, AC-8)", () => {
 
     it("defines every event i18n key in both en and es, non-empty (AC-8)", () => {
         const keys = [...SETTINGS_KEYS, ...WIRED_EVENTS.map((event) => EVENT_LABEL_KEY[event])];
-        expect(keys.length).toBe(9);
+        expect(keys.length).toBe(7);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of keys) {

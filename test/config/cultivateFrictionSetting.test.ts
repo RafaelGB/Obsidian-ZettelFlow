@@ -20,11 +20,17 @@ describe("the friction toggle (#338, T4)", () => {
         expect(typing).not.toMatch(/cultivateFrictionMoves/);
     });
 
-    it("lives beside the recipe, in the Cultivate settings group", () => {
+    it("lives beside the recipe it changes, in the thinking group", () => {
+        // #440 merged the cultivate, judgement, patterns, journal and timeline sections into one
+        // *Thinking* group; the friction toggle still sits next to the recipe of moves.
         const tab = read("src/config/modals/ZettelFlowSettingsTab.tsx");
-        const group = tab.slice(tab.indexOf("settings_cultivate_heading"), tab.indexOf("settings_relations_heading"));
+        const group = tab.slice(
+            tab.indexOf("settings_group_thinking"),
+            tab.indexOf("aiSettingsGroup(plugin)")
+        );
         expect(group).toContain("settings_cultivate_friction_name");
         expect(group).toContain("cultivateFriction");
+        expect(group).toContain("settings_cultivate_intro");
     });
 
     it("is what the Cultivate renderer actually reads", () => {

@@ -1,13 +1,10 @@
 import ZettelFlow from "main";
-import { App, moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { App, moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionGroup, SettingDefinitionItem } from "obsidian";
 import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { FolderSuggest } from "architecture/settings";
-import { FileService } from "architecture/plugin";
-import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
-import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager, writeTypeDeclarations } from "architecture/api";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
@@ -34,6 +31,16 @@ import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup } from "./handlers/flowsSettingsGroup";
+import { settingsSummary } from "config/settingsSummary";
+
+/** The items of a group definition — the union does not narrow itself at the call site. */
+type SettingsRow = NonNullable<SettingDefinitionGroup["items"]>[number];
+
+function itemsOf(definition: SettingDefinitionItem): SettingsRow[] {
+    return "items" in definition ? ((definition.items ?? []) as SettingsRow[]) : [];
+}
+
+type LocaleKey = Parameters<typeof t>[0];
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -57,6 +64,8 @@ function refreshKnowledgeSurfaces(app: App): void {
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
     plugin: ZettelFlow;
+    /** View state, not a setting: nobody should meet a log level on their first day (#440). */
+    private showAdvanced = false;
 
     constructor(plugin: ZettelFlow) {
         super(plugin.app, plugin);
@@ -66,7 +75,26 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     override getSettingDefinitions(): SettingDefinitionItem[] {
         const plugin = this.plugin;
         return [
-            // ── Your flows (#435): the canvases that have a role ──────────────
+            // ── What is on right now (#440) ──────────────────────────────────
+            {
+                type: "group",
+                items: [
+                    {
+                        name: t("settings_summary_name"),
+                        render: (setting) => {
+                            setting.setClass(c("settings-summary"));
+                            const host = setting.settingEl.createDiv({ cls: c("settings-summary-list") });
+                            for (const fact of settingsSummary(plugin.settings)) {
+                                host.createDiv({
+                                    cls: c("settings-summary-fact"),
+                                    text: `${t(fact.labelKey as LocaleKey)}: ${fact.value}`,
+                                });
+                            }
+                        },
+                    },
+                ],
+            },
+            // ── 1 · Your flows (#435): the canvases that have a role ──────────
             flowsSettingsGroup(plugin, () => this.update()),
             // ── Get started (shown only when no canvas is configured) ─────────
             {
@@ -90,16 +118,12 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     },
                 ],
             },
-            // ── General ──────────────────────────────────────────────────────
+            // ── 2 · Creating notes ────────────────────────────────────────────
             {
                 type: "group",
+                heading: t("settings_group_creating"),
                 items: [
-                    {
-                        name: t("support_coffee_button"),
-                        action: () => {
-                            window.open("https://www.buymeacoffee.com/5tsytn22v9Z", "_blank");
-                        },
-                    },
+                    
                     {
                         // Unfinished thinking deserves continuity (#410) — on by default.
                         name: t("settings_wizard_drafts_name"),
@@ -193,95 +217,17 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             );
                         },
                     },
-                    {
-                        name: t("folders_flows_selector_title"),
-                        desc: t("folders_flows_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting
-                                .addSearch((cb) => {
-                                    new FolderSuggest(cb.inputEl);
-                                    cb.setPlaceholder(t("folders_flows_selector_placeholder"))
-                                        .setValue(plugin.settings.foldersFlowsPath)
-                                        .onChange(async (value) => {
-                                            plugin.settings.foldersFlowsPath = value;
-                                            await plugin.saveSettings();
-                                        });
-                                })
-                                .addButton((btn) =>
-                                    btn
-                                        .setClass("mod-cta")
-                                        .setButtonText(t("reset_to_default"))
-                                        .setIcon("reset")
-                                        .onClick(async () => {
-                                            plugin.settings.foldersFlowsPath =
-                                                DEFAULT_SETTINGS.foldersFlowsPath!;
-                                            await plugin.saveSettings();
-                                            this.update();
-                                        })
-                                );
-                        },
-                    },
-                    {
-                        name: t("scripts_folder_selector_title"),
-                        desc: t("scripts_folder_selector_description"),
-                        render: (setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("scripts_folder_selector_placeholder"))
-                                    .setValue(plugin.settings.jsLibraryFolderPath)
-                                    .onChange(async (value) => {
-                                        plugin.settings.jsLibraryFolderPath = value;
-                                        await plugin.saveSettings();
-                                        // Rebuild the `zf` script API so it reads from the new folder.
-                                        fnsManager.invalidateCache();
-                                    });
-                            });
-                        },
-                    },
-                    {
-                        name: t("generate_types_name"),
-                        desc: t("generate_types_description"),
-                        render: (setting) => {
-                            setting.addButton((button) => {
-                                button.setButtonText(t("generate_types_button")).onClick(async () => {
-                                    const result = await writeTypeDeclarations();
-                                    if (result.status === "written") {
-                                        new Notice(t("generate_types_written", result.path));
-                                    } else if (result.status === "no-folder") {
-                                        new Notice(t("generate_types_no_folder"));
-                                    } else {
-                                        new Notice(t("generate_types_failed", result.message));
-                                    }
-                                });
-                            });
-                        },
-                    },
-                    {
-                        name: t("markdown_templates_folder_title"),
-                        desc: t("markdown_templates_folder_description"),
-                        render: (setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("markdown_templates_folder_placeholder"))
-                                    .setValue(
-                                        plugin.settings.communitySettings
-                                            .markdownTemplateFolder
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.communitySettings.markdownTemplateFolder =
-                                            value;
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
+                    
+                    
+                    
+                    
+                
                 ],
             },
-            // ── Knowledge lifecycle ───────────────────────────────────────────
+            // ── 3 · Your vault's vocabulary ───────────────────────────────────
             {
                 type: "group",
-                heading: t("settings_scope_heading"),
+                heading: t("settings_group_vocabulary"),
                 items: [
                     {
                         name: t("settings_scope_intro"),
@@ -363,13 +309,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             renderRows();
                         },
                     },
-                ],
-            },
-            // ── Knowledge lifecycle ───────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_lifecycle_heading"),
-                items: [
+                
                     {
                         name: t("settings_lifecycle_intro"),
                         render: (setting) => {
@@ -438,12 +378,41 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             );
                         },
                     },
+                
+                    {
+                        name: t("settings_relations_intro"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    {
+                        name: t("settings_parse_inline_relations_name"),
+                        desc: t("settings_parse_inline_relations_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(
+                                        plugin.settings.relations?.parseInlineRelations ??
+                                            !Platform.isMobile
+                                    )
+                                    .onChange(async (value) => {
+                                        plugin.settings.relations = { parseInlineRelations: value };
+                                        await plugin.saveSettings();
+                                        // Rebuild frontmatter edges, then re-enrich inline ones if on.
+                                        const index = KnowledgeIndex.getInstance();
+                                        index.build();
+                                        if (value) void index.enrichInlineRelations();
+                                    })
+                            );
+                        },
+                    },
+                
                 ],
             },
-            // ── Cultivate (thinking sessions) ─────────────────────────────────
+            // ── 4 · Thinking ──────────────────────────────────────────────────
             {
                 type: "group",
-                heading: t("settings_cultivate_heading"),
+                heading: t("settings_group_thinking"),
                 items: [
                     {
                         name: t("settings_cultivate_intro"),
@@ -481,131 +450,19 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             );
                         },
                     })),
+                
+                    ...itemsOf(journalSettingsGroup(plugin)),
+                    ...itemsOf(judgementSettingsGroup(plugin)),
+                    ...itemsOf(timelineSettingsGroup(plugin)),
+                    ...itemsOf(patternsSettingsGroup(plugin)),
                 ],
             },
-            // ── Semantic relations ────────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_relations_heading"),
-                items: [
-                    {
-                        name: t("settings_relations_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_parse_inline_relations_name"),
-                        desc: t("settings_parse_inline_relations_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(
-                                        plugin.settings.relations?.parseInlineRelations ??
-                                            !Platform.isMobile
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.relations = { parseInlineRelations: value };
-                                        await plugin.saveSettings();
-                                        // Rebuild frontmatter edges, then re-enrich inline ones if on.
-                                        const index = KnowledgeIndex.getInstance();
-                                        index.build();
-                                        if (value) void index.enrichInlineRelations();
-                                    })
-                            );
-                        },
-                    },
-                ],
-            },
-            // ── Event-driven workflows (#150) ─────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_events_heading"),
-                items: [
-                    {
-                        name: t("settings_events_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_events_bindings_heading"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            const list = setting.settingEl.createDiv({
-                                cls: c("event-bindings-list"),
-                            });
-                            const renderList = async () => {
-                                list.empty();
-                                const engine = WorkflowEventEngine.getInstance();
-                                const bindings = await engine.scanTriggers();
-                                if (!bindings.length) {
-                                    new Setting(list).setName(
-                                        t("settings_events_binding_list_empty")
-                                    );
-                                    return;
-                                }
-                                for (const binding of bindings) {
-                                    const flowName =
-                                        binding.flowPath.split(FileService.PATH_SEPARATOR).pop() ??
-                                        binding.flowPath;
-                                    const eventLabel = isWiredEvent(binding.event)
-                                        ? t(EVENT_LABEL_KEY[binding.event])
-                                        : binding.event;
-                                    const row = new Setting(list)
-                                        .setName(`${flowName} · ${eventLabel}`)
-                                        .setDesc(binding.flowPath);
-                                    if (binding.filePath) {
-                                        row.addToggle((toggle) =>
-                                            toggle
-                                                .setTooltip(t("settings_events_binding_enabled_name"))
-                                                .setValue(binding.enabled !== false)
-                                                .onChange((value) =>
-                                                    void engine.setTriggerEnabled(binding, value)
-                                                )
-                                        );
-                                        row.addExtraButton((btn) =>
-                                            btn
-                                                .setIcon("trash")
-                                                .setTooltip(
-                                                    t("settings_events_binding_remove_tooltip")
-                                                )
-                                                .onClick(async () => {
-                                                    await engine.removeTrigger(binding);
-                                                    await renderList();
-                                                })
-                                        );
-                                    } else {
-                                        row.addExtraButton((btn) =>
-                                            btn
-                                                .setIcon("pencil")
-                                                .setTooltip(
-                                                    t("settings_events_binding_open_tooltip")
-                                                )
-                                                .onClick(() =>
-                                                    void FileService.openFile(binding.flowPath)
-                                                )
-                                        );
-                                    }
-                                }
-                            };
-                            void renderList();
-                        },
-                    },
-                ],
-            },
-            // ── AI (optional, off by default) ─────────────────────────────────
+            // ── 5 · AI (optional, off by default) ─────────────────────────────
             aiSettingsGroup(plugin),
-            // ── Thinking journal (#162) ───────────────────────────────────────
-            journalSettingsGroup(plugin),
-            judgementSettingsGroup(plugin),
-            timelineSettingsGroup(plugin),
-            // ── Knowledge patterns (#200) ─────────────────────────────────────
-            patternsSettingsGroup(plugin),
-            // ── Hooks ─────────────────────────────────────────────────────────
+            // ── 6 · Automation ────────────────────────────────────────────────
             {
                 type: "group",
-                heading: t("hooks_section_title"),
+                heading: t("settings_group_automation"),
                 items: [
                     {
                         name: t("property_hooks_setting_title"),
@@ -626,7 +483,63 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             return () => window.setTimeout(() => root.unmount(), 0);
                         },
                     },
+                    
+                
+                ],
+            },
+            // ── 7 · Advanced, folded: nobody meets a log level on their first day
+            {
+                type: "group",
+                items: [
                     {
+                        name: t("settings_advanced_toggle"),
+                        desc: t("settings_advanced_toggle_desc"),
+                        render: (setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle.setValue(this.showAdvanced).onChange((value) => {
+                                    this.showAdvanced = value;
+                                    this.update();
+                                })
+                            );
+                        },
+                    },
+                ],
+            },
+            {
+                type: "group",
+                heading: t("settings_group_advanced"),
+                visible: () => this.showAdvanced,
+                items: [
+{
+                        name: t("folders_flows_selector_title"),
+                        desc: t("folders_flows_selector_description"),
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                            setting
+                                .addSearch((cb) => {
+                                    new FolderSuggest(cb.inputEl);
+                                    cb.setPlaceholder(t("folders_flows_selector_placeholder"))
+                                        .setValue(plugin.settings.foldersFlowsPath)
+                                        .onChange(async (value) => {
+                                            plugin.settings.foldersFlowsPath = value;
+                                            await plugin.saveSettings();
+                                        });
+                                })
+                                .addButton((btn) =>
+                                    btn
+                                        .setClass("mod-cta")
+                                        .setButtonText(t("reset_to_default"))
+                                        .setIcon("reset")
+                                        .onClick(async () => {
+                                            plugin.settings.foldersFlowsPath =
+                                                DEFAULT_SETTINGS.foldersFlowsPath!;
+                                            await plugin.saveSettings();
+                                            this.update();
+                                        })
+                                );
+                        },
+                    },
+{
                         name: t("hooks_flows_selector_title"),
                         desc: t("hooks_flows_selector_description"),
                         render: (setting) => {
@@ -655,13 +568,60 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                 );
                         },
                     },
-                ],
-            },
-            // ── Developer ────────────────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("developer_section_title"),
-                items: [
+{
+                        name: t("scripts_folder_selector_title"),
+                        desc: t("scripts_folder_selector_description"),
+                        render: (setting) => {
+                            setting.addSearch((cb) => {
+                                new FolderSuggest(cb.inputEl);
+                                cb.setPlaceholder(t("scripts_folder_selector_placeholder"))
+                                    .setValue(plugin.settings.jsLibraryFolderPath)
+                                    .onChange(async (value) => {
+                                        plugin.settings.jsLibraryFolderPath = value;
+                                        await plugin.saveSettings();
+                                        // Rebuild the `zf` script API so it reads from the new folder.
+                                        fnsManager.invalidateCache();
+                                    });
+                            });
+                        },
+                    },
+{
+                        name: t("generate_types_name"),
+                        desc: t("generate_types_description"),
+                        render: (setting) => {
+                            setting.addButton((button) => {
+                                button.setButtonText(t("generate_types_button")).onClick(async () => {
+                                    const result = await writeTypeDeclarations();
+                                    if (result.status === "written") {
+                                        new Notice(t("generate_types_written", result.path));
+                                    } else if (result.status === "no-folder") {
+                                        new Notice(t("generate_types_no_folder"));
+                                    } else {
+                                        new Notice(t("generate_types_failed", result.message));
+                                    }
+                                });
+                            });
+                        },
+                    },
+{
+                        name: t("markdown_templates_folder_title"),
+                        desc: t("markdown_templates_folder_description"),
+                        render: (setting) => {
+                            setting.addSearch((cb) => {
+                                new FolderSuggest(cb.inputEl);
+                                cb.setPlaceholder(t("markdown_templates_folder_placeholder"))
+                                    .setValue(
+                                        plugin.settings.communitySettings
+                                            .markdownTemplateFolder
+                                    )
+                                    .onChange(async (value) => {
+                                        plugin.settings.communitySettings.markdownTemplateFolder =
+                                            value;
+                                        await plugin.saveSettings();
+                                    });
+                            });
+                        },
+                    },
                     {
                         name: t("logger_level_title"),
                         desc: t("logger_level_description"),
@@ -676,6 +636,31 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                 warn: "warn",
                                 error: "error",
                             },
+                        },
+                    },
+                
+                ],
+            },
+            // ── 8 · About ─────────────────────────────────────────────────────
+            {
+                type: "group",
+                heading: t("settings_group_about"),
+                items: [
+                    {
+                        name: t("settings_about_version"),
+                        desc: plugin.manifest.version,
+                        render: (setting) => {
+                            setting.setClass(c("readable-setting-item"));
+                        },
+                    },
+                    {
+                        name: t("settings_about_docs"),
+                        action: () => window.open("https://rafaelgb.github.io/Obsidian-ZettelFlow/", "_blank"),
+                    },
+{
+                        name: t("support_coffee_button"),
+                        action: () => {
+                            window.open("https://www.buymeacoffee.com/5tsytn22v9Z", "_blank");
                         },
                     },
                 ],

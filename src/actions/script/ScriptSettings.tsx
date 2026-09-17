@@ -11,6 +11,7 @@ import {
 import { t } from "architecture/lang";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { CodeElement, dispatchEditor, renderExamplesList } from "architecture/components/core";
+import { renderBindingsPalette } from "architecture/components/core/codeView/editor/BindingsPalette";
 import { Setting } from "obsidian";
 import { ScriptResult } from "actions";
 import { ContentDTO, NoteDTO } from "application/notes";
@@ -45,6 +46,8 @@ export const scriptSettings: ActionSetting = (
     SCRIPT_ACTION_BINDINGS
   );
 
+  // What this surface hands the script, insertable rather than remembered (#449).
+  renderBindingsPalette(contentEl, SCRIPT_ACTION_BINDINGS, () => editorView);
   renderExamplesList(contentEl, SCRIPT_ACTION_EXAMPLES, () => editorView);
 
   // What a failure here should do to the work around it (#445), and how often it has failed —

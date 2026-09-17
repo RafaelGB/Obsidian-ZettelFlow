@@ -431,6 +431,7 @@ export default {
     library_no_folder: 'Configura antes una carpeta de scripts (Ajustes → Avanzado).',
     library_reload: 'Recargarlos todos',
     library_reloaded_all: 'Librería recargada.',
+    bindings_palette: 'A tu script se le pasa:',
     workbench_title: 'Banco de pruebas',
     workbench_intro: 'Prueba un script antes de que toque nada. Aquí no se escribe nada: lo que escribiría se muestra como una diferencia.',
     workbench_surface: '¿Qué tipo de script es?',

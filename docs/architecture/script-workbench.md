@@ -51,3 +51,27 @@ growing.
 
 There are deliberately no badges, no counts in the ribbon and no leaderboard of failing scripts.
 You go and look.
+
+## The editor around it (#449)
+
+Wherever you write a script — the bench, a step's Script action, a `.js` module — the editor
+offers the same three things:
+
+- **completions and hover** built from that surface's binding contract, plus your own documented
+  library functions (#448);
+- **the bindings palette**: what this surface hands your script, insertable at the cursor instead
+  of remembered. It reads the same constants the runtime injects from, so it cannot drift;
+- **a starting point**: the surface's examples, one click into an empty editor.
+
+A `.js` library module has one action of its own: hand it to the workbench, where it can be called
+against a real note.
+
+### Two things deliberately not built
+
+- **Formatting.** It would mean bundling a formatter for a nicety, and the plugin's weight is a
+  user's load time.
+- **Go to definition.** That is language-server shaped, which the epic put out of scope — and the
+  library manager already opens any module in one click.
+
+The `// TODO: linter button action` that sat in the code view is gone: the gutter already lints as
+you type, so the button would have duplicated it. A dead affordance is worse than no affordance.

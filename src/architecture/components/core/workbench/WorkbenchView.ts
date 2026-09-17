@@ -4,6 +4,8 @@ import { t } from "architecture/lang";
 import { FileSuggest } from "architecture/settings";
 import { FileService } from "architecture/plugin";
 import { dispatchEditor } from "architecture/components/core/codeView/editor/Dispatcher";
+import { renderBindingsPalette } from "architecture/components/core/codeView/editor/BindingsPalette";
+import { renderExamplesList } from "architecture/components/core/codeView/editor/ExamplesList";
 import {
     bindingArgs,
     bindingNames,
@@ -14,7 +16,10 @@ import {
     fnsManager,
     HOOK_BINDINGS,
     SCRIPT_ACTION_BINDINGS,
+    SCRIPT_ACTION_EXAMPLES,
+    DYNAMIC_SELECTOR_EXAMPLES,
     type ScriptBinding,
+    type ScriptExample,
 } from "architecture/api";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { renderRunLog } from "./runLogSection";
@@ -32,6 +37,12 @@ import {
 } from "application/scripts/workbenchRun";
 
 type LocaleKey = Parameters<typeof t>[0];
+
+/** A starting point per surface — the same lists the real panels offer. */
+const EXAMPLES: Record<string, readonly ScriptExample[]> = {
+    action: SCRIPT_ACTION_EXAMPLES,
+    selector: DYNAMIC_SELECTOR_EXAMPLES,
+};
 
 /** Each surface's contract — the same constants the real runs inject from (#349). */
 const BINDINGS: Record<string, readonly ScriptBinding[]> = {
@@ -133,15 +144,21 @@ export class WorkbenchView extends ItemView {
             });
         }
 
+        const bindings = BINDINGS[this.surface] ?? SCRIPT_ACTION_BINDINGS;
         const editorEl = contentEl.createDiv({ cls: c("workbench-editor") });
-        dispatchEditor(
+        const editorView = dispatchEditor(
             editorEl,
             this.code,
             (update) => {
                 if (update.docChanged) this.code = update.state.doc.toString();
             },
-            BINDINGS[this.surface] ?? SCRIPT_ACTION_BINDINGS
+            bindings
         );
+
+        // What this surface hands your script, insertable rather than remembered (#449).
+        renderBindingsPalette(contentEl, bindings, () => editorView);
+        // And a starting point, because nobody should begin at an empty editor.
+        renderExamplesList(contentEl, EXAMPLES[this.surface] ?? [], () => editorView);
 
         new Setting(contentEl)
             .addButton((button) =>

@@ -431,6 +431,7 @@ export default {
     library_no_folder: 'Set a scripts folder first (Settings → Advanced).',
     library_reload: 'Reload them all',
     library_reloaded_all: 'Library reloaded.',
+    bindings_palette: 'Your script is handed:',
     workbench_title: 'Script workbench',
     workbench_intro: 'Try a script before it touches anything. Nothing here is written: what it would write is shown as a difference.',
     workbench_surface: 'What kind of script is this?',

@@ -350,8 +350,6 @@ export default {
     step_builder_trigger_make_root: 'Make this the start',
     step_builder_trigger_cannot_fire: 'This trigger cannot fire here: only the start of a flow in the events folder reacts to events.',
     step_builder_trigger_remove: 'Remove the trigger',
-    settings_flows_legacy: 'reacts to events from the old folder',
-    settings_flows_move_to_events: 'Move to the events folder',
     community_system_try: 'Try it before installing',
     community_system_try_desc: 'Walk the system as if you were using it. Nothing is created: not a note, not a folder, not a setting.',
     community_system_try_button: 'Try it',

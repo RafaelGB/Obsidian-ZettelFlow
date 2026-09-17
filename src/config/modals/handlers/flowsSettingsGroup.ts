@@ -4,6 +4,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin";
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
+import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { FILE_EXTENSIONS } from "architecture/plugin/services/FileService";
 import { FileSuggest, FolderSuggest } from "architecture/settings";
 import { rowContainer } from "architecture/components/settings";
@@ -13,11 +14,9 @@ import {
     flowFolders,
     flowRole,
     isExclusive,
-    isUnderFolder,
     validateFlowFolders,
     type FlowRole,
 } from "architecture/plugin/canvas/flowRole";
-import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { planRoleRemoval } from "config/roles/assignRole";
 import { AssignRoleModal } from "config/modals/AssignRoleModal";
 import { CommunityTemplatesModal } from "application/community/CommunityTemplatesModal";
@@ -247,7 +246,6 @@ function renderFlows(plugin: ZettelFlow, host: HTMLElement, refresh: () => void)
         return;
     }
 
-    const rows = new Map<string, Setting>();
     for (const flow of flows) {
         const name = (flow.path.split("/").pop() ?? flow.path).replace(/\.canvas$/, "");
         const row = new Setting(host).setName(name).setDesc(flow.path);
@@ -287,42 +285,6 @@ function renderFlows(plugin: ZettelFlow, host: HTMLElement, refresh: () => void)
                 .setIcon("external-link")
                 .setTooltip(t("settings_flows_open"))
                 .onClick(() => void FileService.openFile(flow.path))
-        );
-        rows.set(flow.path, row);
-    }
-
-    void markLegacyEventFlows(plugin, rows, refresh);
-}
-
-/**
- * A flow that still reacts to events from the **folder-flows** folder (#436). It keeps working —
- * nothing that fires today stops firing — and it is offered the move that makes it an event flow
- * like any other.
- */
-async function markLegacyEventFlows(
-    plugin: ZettelFlow,
-    rows: Map<string, Setting>,
-    refresh: () => void
-): Promise<void> {
-    let bindings;
-    try {
-        bindings = await WorkflowEventEngine.getInstance().scanTriggers();
-    } catch (error) {
-        log.debug("[flows] could not read the triggers", error);
-        return;
-    }
-    const folders = flowFolders(plugin.settings);
-    for (const binding of bindings) {
-        if (isUnderFolder(folders.eventFlowsPath, binding.flowPath)) continue;
-        const row = rows.get(binding.flowPath);
-        if (!row) continue;
-        row.nameEl.createSpan({ cls: c("flows-legacy"), text: t("settings_flows_legacy") });
-        row.addButton((button) =>
-            button
-                .setButtonText(t("settings_flows_move_to_events"))
-                .onClick(() =>
-                    new AssignRoleModal(plugin.app, plugin, binding.flowPath, "event", refresh).open()
-                )
         );
     }
 }

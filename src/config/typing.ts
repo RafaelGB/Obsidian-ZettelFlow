@@ -145,15 +145,6 @@ export interface ZettelFlowSettings {
         parseInlineRelations?: boolean;
     };
 
-    /** Event-driven workflows (#150). */
-    events: {
-        /**
-         * Master switch for event-driven execution. OFF by default: with it disabled no vault
-         * listeners are armed and no flow can fire on its own — behavior identical to today.
-         */
-        enabled: boolean;
-    };
-
     /**
      * Optional, provider-agnostic AI (#156). OFF by default: while `enabled` is false no AI action
      * ever reaches the network. Bring-your-own OpenAI-compatible endpoint + key + model.
@@ -311,7 +302,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     },
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
-    events: { enabled: false }, // Event-driven workflows are opt-in (#150).
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
     timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).

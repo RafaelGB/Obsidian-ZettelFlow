@@ -157,11 +157,16 @@ honest:
 - a trigger that is **already stored** anywhere is always shown, with the reason it cannot fire and
   a control to remove it. Configuration never becomes invisible.
 
-### Migrating from the shared folder
+### Breaking change in 3.4: one home, no legacy scan
 
 Until 3.4 the engine scanned the **folder-flows** folder for triggers, so a canvas there was both
 the automation of a folder (by its filename) and an event flow (if its root carried a trigger).
+That is gone, deliberately and without a compatibility path: **only the events folder is scanned**.
 
-Nothing that fires today stops firing: if event workflows were switched on, those flows keep being
-scanned, and *Your flows* marks each one with **move to the events folder** — a previewed move that
-makes it an event flow like any other. New triggers are only offered in the events folder.
+If you had a flow that fired from the old location, move it into the events folder — Settings →
+*Your flows* → set its role to *runs on an event*, which moves the file for you and says so first.
+Until you do, it does not fire.
+
+The global *enable event-driven workflows* switch is also gone, along with its stored value: it
+gated everything at once and said nothing about which flow would run. A flow reacts to events
+because it lives in the events folder; moving it out is how you turn it off.

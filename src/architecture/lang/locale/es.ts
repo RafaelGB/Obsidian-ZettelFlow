@@ -350,8 +350,6 @@ export default {
     step_builder_trigger_make_root: 'Convertir en el inicio',
     step_builder_trigger_cannot_fire: 'Este trigger no puede dispararse aquí: solo reacciona el inicio de un flujo que viva en la carpeta de eventos.',
     step_builder_trigger_remove: 'Quitar el trigger',
-    settings_flows_legacy: 'reacciona a eventos desde la carpeta antigua',
-    settings_flows_move_to_events: 'Mover a la carpeta de eventos',
     community_system_try: 'Probarlo antes de instalar',
     community_system_try_desc: 'Recorre el sistema como si lo estuvieras usando. No se crea nada: ni nota, ni carpeta, ni ajuste.',
     community_system_try_button: 'Probarlo',

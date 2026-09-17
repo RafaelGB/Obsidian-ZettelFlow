@@ -199,29 +199,20 @@ export class WorkflowEventEngine {
     }
 
     /**
-     * Scan the flows folder and resolve every per-flow trigger into a binding. Read-only (no arm
-     * required) so the settings management list can call it directly.
+     * Resolve every trigger in the **events folder** into a binding. Read-only (no arm required),
+     * so the flows list can call it directly.
+     *
+     * One home, deliberately: until 3.4 this scanned the folder-flows folder, which made a canvas
+     * the automation of a folder (by its filename) *and* an event flow (if its root happened to
+     * carry a trigger). A flow reacts to events because it lives here — moving it in is the
+     * switch, and moving it out is how you turn it off.
      */
     public async scanTriggers(): Promise<WorkflowBinding[]> {
-        // Event flows live in their own folder (#435). The folder-flows folder is still scanned —
-        // but only for installs that had event workflows switched on — so no automation that
-        // fires today stops firing, and none that was inert starts (#434 FR-5).
-        const folders = [this.plugin.settings.eventFlowsPath];
-        if (this.plugin.settings.events?.enabled) folders.push(this.plugin.settings.foldersFlowsPath);
+        const folder = this.plugin.settings.eventFlowsPath;
+        if (!folder) return [];
 
         try {
-            const seen = new Set<string>();
-            const files = folders
-                .filter((folder) => Boolean(folder))
-                .flatMap((folder) => {
-                    try {
-                        return FileService.getTfilesFromFolder(folder, FILE_EXTENSIONS.ONLY_CANVAS);
-                    } catch (error) {
-                        log.debug(`[WorkflowEventEngine] no flows under ${folder}`, error);
-                        return [];
-                    }
-                })
-                .filter((file) => (seen.has(file.path) ? false : seen.add(file.path)));
+            const files = FileService.getTfilesFromFolder(folder, FILE_EXTENSIONS.ONLY_CANVAS);
             const sources: FlowTriggerSource[] = [];
             for (const file of files) {
                 try {

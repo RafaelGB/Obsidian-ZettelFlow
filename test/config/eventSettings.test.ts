@@ -13,11 +13,12 @@ const SETTINGS_KEYS = [
 ];
 
 describe("event-driven workflows settings (AC-3, AC-8)", () => {
-    it("event-driven execution is OFF by default (AC-3)", () => {
-        // #436 retired the global toggle — a flow binds by living in the events folder — but the
-        // flag stays, off, as the gate for triggers still sitting in the legacy folder.
-        expect(DEFAULT_SETTINGS.events).toBeDefined();
-        expect(DEFAULT_SETTINGS.events?.enabled).toBe(false);
+    it("event-driven execution is opt-in, one flow at a time (AC-3)", () => {
+        // The master switch is gone (3.4, breaking): a flow reacts to events because it lives in
+        // the events folder, and a fresh install has no such folder contents at all. The default
+        // is therefore "nothing fires", expressed as a home rather than as a boolean.
+        expect(DEFAULT_SETTINGS.eventFlowsPath).toBe("_ZettelFlow/events");
+        expect("events" in DEFAULT_SETTINGS).toBe(false);
     });
 
     it("defines every event i18n key in both en and es, non-empty (AC-8)", () => {

@@ -20,6 +20,7 @@ export interface MigratableSettings {
     uniquePrefix?: string;
     loggerEnabled?: boolean;
     logLevel?: string;
+    events?: { enabled?: boolean };
     [key: string]: unknown;
 }
 
@@ -45,6 +46,14 @@ export function migrateSettings(input: MigratableSettings): SettingsMigration {
         if (settings.loggerEnabled === false) settings.logLevel = LOG_LEVEL_OFF;
         else if (!settings.logLevel) settings.logLevel = "info";
         delete settings.loggerEnabled;
+        changed = true;
+    }
+
+    // The event master switch (#150) has no meaning left: a flow reacts to events by living in
+    // the events folder, and 3.4 stopped scanning anywhere else. Dropped rather than left in
+    // data.json implying a switch that no longer exists.
+    if ("events" in settings) {
+        delete settings.events;
         changed = true;
     }
 

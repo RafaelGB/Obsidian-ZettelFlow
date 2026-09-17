@@ -4,6 +4,7 @@ import { App, Notice, TFile } from "obsidian";
 import { ZfVault } from "../../vault/service/ZfVault";
 import { log } from "architecture";
 import { buildSyncScriptFunction } from "../../FnConstructor";
+import { withScriptRun } from "../../recordScriptRun";
 
 export class ZfScripts extends LibModule {
     name = "user";
@@ -49,7 +50,12 @@ export class ZfScripts extends LibModule {
         // (#320). It runs in the global scope with no access to this closure — safer than `eval`, and
         // it keeps the "exactly one home" the capability disclosure promises actually true.
         const wrapping_fn = buildSyncScriptFunction(["require", "module", "exports"], file_content);
-        wrapping_fn(req, mod, exp);
+        // Loading a module runs it, so it is a run and it is recorded (#444): a library that
+        // throws on load used to show one toast at startup and then vanish from the story.
+        await withScriptRun(
+            { surface: "library", origin: { ref: file.path, label: file.basename } },
+            async () => wrapping_fn(req, mod, exp)
+        );
         const formula_function = exp['default'] || mod.exports;
 
         if (!formula_function) {

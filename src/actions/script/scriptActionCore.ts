@@ -9,6 +9,7 @@ import {
     bindingArgs,
 } from "architecture/api";
 import { log } from "architecture";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { t } from "architecture/lang";
 import type { CodeElement } from "architecture/components/core";
 
@@ -52,14 +53,22 @@ export async function runScriptAction(info: ExecuteInfo, deps: ScriptRunDeps = d
             `return (async () => {\n${element.code}\n})();`
         );
 
-        await scriptFn(
-            ...bindingArgs(SCRIPT_ACTION_BINDINGS, {
-                element,
-                content,
-                note,
-                context,
-                ...(await deps.values()),
-            })
+        const args = bindingArgs(SCRIPT_ACTION_BINDINGS, {
+            element,
+            content,
+            note,
+            context,
+            ...(await deps.values()),
+        });
+        // Timed and written down, whatever it does (#444): a step's script that fails while you
+        // are answering the next question used to leave nothing behind.
+        await withScriptRun(
+            {
+                surface: "action",
+                origin: { ref: element.id, label: element.description ?? element.type },
+                input: { element, content, note, context },
+            },
+            () => scriptFn(...args)
         );
     } catch (error) {
         const message = errorMessage(error);

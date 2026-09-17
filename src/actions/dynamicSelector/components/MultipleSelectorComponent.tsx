@@ -1,4 +1,5 @@
 import { c, log, ObsidianApi } from "architecture";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { SelectableSearch } from "architecture/components/core";
 import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
@@ -44,11 +45,17 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
           bindingNames(DYNAMIC_SELECTOR_BINDINGS),
           fnBody
         );
-        const result = await scriptFn(
-          ...bindingArgs(DYNAMIC_SELECTOR_BINDINGS, {
-            zf: await fnsManager.getFns(),
-            app: ObsidianApi.globalApp(),
-          })
+        const args = bindingArgs(DYNAMIC_SELECTOR_BINDINGS, {
+          zf: await fnsManager.getFns(),
+          app: ObsidianApi.globalApp(),
+        });
+        // Recorded like any other run (#444).
+        const result = await withScriptRun(
+          {
+            surface: "selector",
+            origin: { ref: element.id, label: element.description ?? element.type },
+          },
+          () => scriptFn(...args)
         );
         if (isStringTupleArray(result)) {
           const dynamicOptions: string[] = result.map(([key]) => key);

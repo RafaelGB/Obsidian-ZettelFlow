@@ -10,6 +10,7 @@ import {
   bindingArgs,
 } from "architecture/api";
 import { log, ObsidianApi } from "architecture";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { t } from "architecture/lang";
 import { isStringTupleArray } from "./typing";
 
@@ -31,11 +32,14 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
       fnBody
     );
 
-    return await scriptFn(
-      ...bindingArgs(DYNAMIC_SELECTOR_BINDINGS, {
-        zf: await fnsManager.getFns(),
-        app: ObsidianApi.globalApp(),
-      })
+    const args = bindingArgs(DYNAMIC_SELECTOR_BINDINGS, {
+      zf: await fnsManager.getFns(),
+      app: ObsidianApi.globalApp(),
+    });
+    // Recorded like any other run (#444): a selector that throws used to leave only a red box.
+    return await withScriptRun(
+      { surface: "selector", origin: { ref: element.id, label: element.description ?? element.type } },
+      () => scriptFn(...args)
     );
   }, []);
 

@@ -1,6 +1,7 @@
 import ZettelFlow from "main";
 import { CachedMetadata, EventRef, TAbstractFile, TFile } from "obsidian";
 import { log } from "architecture";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { canvas } from "architecture/plugin/canvas";
 import { FileService, FILE_EXTENSIONS, VaultStateManager } from "architecture/plugin";
 import {
@@ -189,7 +190,16 @@ export class WorkflowEventEngine {
     private runScript = async (script: string, ctx: unknown): Promise<unknown> => {
         const fnBody = `return (async () => {\n${script}\n})();`;
         const scriptFn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), fnBody);
-        return await scriptFn(...bindingArgs(CONDITION_BINDINGS, { event: ctx, ...(await sharedScriptValues()) }));
+        const args = bindingArgs(CONDITION_BINDINGS, { event: ctx, ...(await sharedScriptValues()) });
+        // An event condition runs unattended by definition: it is recorded like everything else (#444).
+        const notePath = (ctx as { notePath?: string } | undefined)?.notePath;
+        return await withScriptRun(
+            {
+                surface: "condition",
+                origin: { ref: "event-condition", ...(notePath ? { notePath } : {}) },
+            },
+            () => scriptFn(...args)
+        );
     };
 
     // ── Binding registry (flow-folder scan) ──────────────────────────────────────

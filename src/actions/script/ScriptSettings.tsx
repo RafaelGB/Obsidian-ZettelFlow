@@ -9,6 +9,7 @@ import {
   bindingArgs,
 } from "architecture/api";
 import { t } from "architecture/lang";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { CodeElement, dispatchEditor, renderExamplesList } from "architecture/components/core";
 import { Setting } from "obsidian";
 import { ScriptResult } from "actions";
@@ -82,15 +83,18 @@ export const scriptSettings: ActionSetting = (
       `
       );
 
-      const output = await scriptFn(
-        ...bindingArgs(SCRIPT_ACTION_BINDINGS, {
-          element: scriptAction,
-          content: new ContentDTO(),
-          note: new NoteDTO(),
-          context: {},
-          zf: await fnsManager.getFns(),
-          app: ObsidianApi.globalApp(),
-        })
+      const args = bindingArgs(SCRIPT_ACTION_BINDINGS, {
+        element: scriptAction,
+        content: new ContentDTO(),
+        note: new NoteDTO(),
+        context: {},
+        zf: await fnsManager.getFns(),
+        app: ObsidianApi.globalApp(),
+      });
+      // A try is a run: recorded as one, marked as coming from a bench rather than a flow (#444).
+      const output = await withScriptRun(
+        { surface: "workbench", origin: { ref: scriptAction.id, label: scriptAction.type } },
+        () => scriptFn(...args)
       );
 
       return { output, error: null };

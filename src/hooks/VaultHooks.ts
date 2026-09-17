@@ -2,6 +2,7 @@ import ZettelFlow from "main";
 import { canvas } from "architecture/plugin/canvas";
 import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { SelectorMenuModal } from "zettelkasten";
 import {
     App,
@@ -93,7 +94,14 @@ export class VaultHooks {
             if (condition) {
                 const ctx = { event: "property.changed", notePath: file.path, property, oldValue: undefined, newValue };
                 const condFn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), `return (${condition});`);
-                const passes = await condFn(...bindingArgs(CONDITION_BINDINGS, { event: ctx, ...shared }));
+                const condArgs = bindingArgs(CONDITION_BINDINGS, { event: ctx, ...shared });
+                const passes = await withScriptRun(
+                    {
+                        surface: "condition",
+                        origin: { ref: `hook:${property}`, label: property, notePath: file.path },
+                    },
+                    () => condFn(...condArgs)
+                );
                 if (!passes) return { status: "skipped" };
             }
 
@@ -106,7 +114,16 @@ export class VaultHooks {
                 bindingNames(HOOK_BINDINGS),
                 `return (async () => {\n${settings.script}\n return event;\n})();`
             );
-            const result = (await scriptFn(...bindingArgs(HOOK_BINDINGS, { event, ...shared }))) as HookEvent;
+            const hookArgs = bindingArgs(HOOK_BINDINGS, { event, ...shared });
+            // A hook runs while you are elsewhere: without this its failure was a toast nobody saw (#444).
+            const result = (await withScriptRun(
+                {
+                    surface: "hook",
+                    origin: { ref: `hook:${property}`, label: property, notePath: file.path },
+                    input: { event },
+                },
+                () => scriptFn(...hookArgs)
+            )) as HookEvent;
             return { status: "ran", response: result.response };
         } catch (error) {
             return { status: "error", message: error instanceof Error ? error.message : String(error) };
@@ -492,7 +509,13 @@ export class VaultHooks {
     private evaluateHookCondition(condition: string | undefined, ctx: unknown): Promise<boolean> {
         return evaluateBindingCondition(condition, ctx, async (script, context) => {
             const fn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), `return (${script});`);
-            return fn(...bindingArgs(CONDITION_BINDINGS, { event: context, ...(await sharedScriptValues()) }));
+            const args = bindingArgs(CONDITION_BINDINGS, {
+                event: context,
+                ...(await sharedScriptValues()),
+            });
+            return withScriptRun({ surface: "condition", origin: { ref: "hook-condition" } }, () =>
+                fn(...args)
+            );
         });
     }
 
@@ -504,9 +527,15 @@ export class VaultHooks {
       })();`;
 
             const scriptFn = buildAsyncScriptFunction(bindingNames(HOOK_BINDINGS), fnBody);
+            const args = bindingArgs(HOOK_BINDINGS, { event, ...(await sharedScriptValues()) });
 
-            return (await scriptFn(
-                ...bindingArgs(HOOK_BINDINGS, { event, ...(await sharedScriptValues()) })
+            return (await withScriptRun(
+                {
+                    surface: "hook",
+                    origin: { ref: "hook", notePath: event.file?.path },
+                    input: { event },
+                },
+                () => scriptFn(...args)
             )) as HookEvent;
         } catch (error: unknown) {
             const msg = errorMessage(error);

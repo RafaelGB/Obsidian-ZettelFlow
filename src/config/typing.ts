@@ -1,4 +1,6 @@
 import { Action } from "architecture/api";
+import type { ScriptRun } from "application/scripts/scriptRunLog";
+import { DEFAULT_RETENTION_DAYS } from "application/scripts/scriptRunLog";
 import { StepSettings } from "zettelkasten";
 import type { HistoryEntry } from "application/notes/historyUtils";
 import {
@@ -146,6 +148,16 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * The **script run log** (#444): every run a scripting surface performed, newest first, kept
+     * for `retentionDays` (7 by default, up to 30). Facts only — paths, names and the keys a
+     * script was handed, never a note's content.
+     */
+    scriptLog?: {
+        runs: ScriptRun[];
+        retentionDays: number;
+    };
+
+    /**
      * Optional, provider-agnostic AI (#156). OFF by default: while `enabled` is false no AI action
      * ever reaches the network. Bring-your-own OpenAI-compatible endpoint + key + model.
      */
@@ -284,6 +296,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
     eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
+    scriptLog: { runs: [], retentionDays: DEFAULT_RETENTION_DAYS }, // The script run log (#444).
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.

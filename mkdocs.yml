@@ -201,6 +201,7 @@ nav:
       - The settings panel: development/settings-panel.md
       - Scripting: architecture/scripting.md
       - The script workbench: architecture/script-workbench.md
+      - What ZettelFlow wrote: architecture/reversibility.md
       - Review and rehearse a flow: architecture/flow-review.md
       - Trigger conditions: architecture/trigger-conditions.md
       - Knowledge model: architecture/knowledge-model.md

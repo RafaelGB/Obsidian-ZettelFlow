@@ -17,6 +17,7 @@ import { installDestination, type InstallRole } from "./installDestination";
 import { flowFolders, FLOW_ROLE_LABEL_KEY } from "architecture/plugin/canvas/flowRole";
 import { ConfirmModal } from "architecture/components/settings";
 import { SystemRehearsalPanel } from "./SystemRehearsalPanel";
+import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -326,7 +327,11 @@ export class CommunitySystemModal extends Modal {
       if (destination.canvasName && files.length > 0) {
         files[0] = { ...files[0], path: `${destination.targetFolder}/${destination.canvasName}` };
       }
-      const result = await FileService.createFilesOnce(this.app.vault, files);
+      // One batch (#453): a system is many files and one decision, and the record should say so.
+      const result = await withWriteBatch(
+        { kind: 'install', ref: this.template.name, label: this.template.name },
+        () => FileService.createFilesOnce(this.app.vault, files)
+      );
       if (result !== 'complete') {
         const message = t(result === 'conflict' ? 'community_system_install_conflict' : 'community_system_install_partial');
         this.installStatus?.setText(message); new Notice(message);

@@ -3,6 +3,7 @@ import { canvas } from "architecture/plugin/canvas";
 import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
+import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { isUnderFolder } from "architecture/plugin/canvas/flowRole";
 import { SelectorMenuModal } from "zettelkasten";
@@ -428,6 +429,8 @@ export class VaultHooks {
         };
 
         VaultStateManager.INSTANCE.processStart(file.path);
+        /** Which hooks actually ran, so the record can say who changed this note (#453). */
+        const fired: string[] = [];
 
         try {
             for (const [property, hookSettings] of hooksEntries) {
@@ -465,6 +468,7 @@ export class VaultHooks {
                     }
                     return;
                 }
+                fired.push(property);
                 log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
             }
 
@@ -475,10 +479,14 @@ export class VaultHooks {
                     event.response.removeProperties
                 )
             ) {
-                await fmPrev.setProperties(
-                    event.response.frontmatter,
-                    event.response.removeProperties
-                );
+                // The write a hook makes is the one that surprises people: it lands on a note you
+                // were not looking at. It goes on the record under the hooks that caused it (#453).
+                await withWriteBatch({ kind: "hook", ref: `hook:${fired.join(", ")}` }, async () => {
+                    await fmPrev.setProperties(
+                        event.response.frontmatter,
+                        event.response.removeProperties
+                    );
+                });
 
                 VaultStateManager.INSTANCE.update(file);
             }

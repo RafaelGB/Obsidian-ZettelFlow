@@ -5,6 +5,8 @@ import { StepSettings } from "zettelkasten";
 import { ContentDTO } from "application/notes/model/ContentDTO";
 import { ObsidianConfig } from "./ObsidianConfig";
 import { ObsidianNativeTypesManager } from "./ObsidianNativeTypesManager";
+import { recordVaultWrite } from "architecture/plugin/writes/recordVaultWrite";
+import { diffFrontmatter, isChange, snapshotFrontmatter } from "application/writes/frontmatterDiff";
 
 /**
  * Service to manage frontmatter metadata in Obsidian notes.
@@ -197,11 +199,28 @@ export class FrontmatterService {
      * @param {(frontmatter: Record<string, unknown>) => void} updateFn - The function that modifies the frontmatter.
      */
     private async processFrontMatter(updateFn: (frontmatter: Record<string, unknown>) => void): Promise<void> {
+        // The write record (#453) is taken here because this is the only moment the *before* still
+        // exists: `processFrontMatter` hands over a mutable object and keeps no copy. Recording the
+        // diff rather than the frontmatter keeps the record small, and means an idempotent hook
+        // that set a property to the value it already had leaves no trace and offers no undo.
+        let change = { before: {} as Record<string, unknown>, after: {} as Record<string, unknown> };
         try {
-            await ObsidianApi.fileManager().processFrontMatter(this.file, updateFn);
+            await ObsidianApi.fileManager().processFrontMatter(this.file, (raw: Record<string, unknown>) => {
+                const before = snapshotFrontmatter(raw);
+                updateFn(raw);
+                change = diffFrontmatter(before, raw);
+            });
         } catch (error) {
             log.error(`Error processing frontmatter: ${error}`);
             throw new Error(`Error processing frontmatter: ${error}`);
+        }
+        if (isChange(change)) {
+            recordVaultWrite({
+                kind: "properties-set",
+                path: this.file.path,
+                before: change.before,
+                after: change.after,
+            });
         }
     }
 

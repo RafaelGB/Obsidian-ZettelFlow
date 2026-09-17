@@ -152,6 +152,11 @@ export class SelectorMenuModal extends Modal {
         return (this.markdownView as MarkdownView)?.file ?? undefined;
     }
 
+    /** The flow this build came from, for the write record (#453). */
+    getCanvasPath(): string {
+        return this.flow?.canvasPath ?? "";
+    }
+
     getCanvasName(): string {
         if (!this.flow) return "";
         const p = this.flow.canvasPath;

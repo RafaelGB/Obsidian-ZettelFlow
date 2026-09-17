@@ -6,6 +6,7 @@ import { composeFilename } from "./destination";
 import { orderedTemplateSources } from "./stepBody";
 import { resolveSatellite, SATELLITE_ERROR_KEYS } from "./satellitePlan";
 import { writeSatellite } from "./satelliteWriter";
+import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { NoteDTO } from "./model/NoteDTO";
@@ -44,11 +45,12 @@ export class NoteBuilder {
   public async build(modal: SelectorMenuModal, actions: NoteBuilderStateActions) {
     this.modal = modal;
     this.actions = actions;
-    if (modal.isEditor()) {
-      return await this.buildEditor(modal);
-    } else {
-      return await this.buildNewNote();
-    }
+    // One batch (#453): the note, its satellite and every property this flow set are one thing
+    // you ran, and one thing you should be able to take back.
+    return await withWriteBatch(
+      { kind: "flow", ref: modal.getCanvasPath(), label: modal.getCanvasName() },
+      async () => (modal.isEditor() ? await this.buildEditor(modal) : await this.buildNewNote())
+    );
   }
 
   private async buildEditor(modal: SelectorMenuModal) {

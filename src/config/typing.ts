@@ -1,5 +1,6 @@
 import { Action } from "architecture/api";
 import type { ScriptRun } from "application/scripts/scriptRunLog";
+import type { VaultWrite } from "application/writes/vaultWriteLog";
 import type { ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { DEFAULT_RETENTION_DAYS } from "application/scripts/scriptRunLog";
 import { StepSettings } from "zettelkasten";
@@ -165,6 +166,16 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * The **write record** (#453): what ZettelFlow wrote to your vault, newest first, kept for a
+     * week at most and capped in total. Paths, property names and the values a property change
+     * would restore — never a note's content, because a created note is taken back by moving it
+     * to the trash, which needs no copy.
+     */
+    writeLog?: {
+        writes: VaultWrite[];
+    };
+
+    /**
      * Optional, provider-agnostic AI (#156). OFF by default: while `enabled` is false no AI action
      * ever reaches the network. Bring-your-own OpenAI-compatible endpoint + key + model.
      */
@@ -304,6 +315,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     scriptLog: { runs: [], retentionDays: DEFAULT_RETENTION_DAYS }, // The script run log (#444).
+    writeLog: { writes: [] }, // The write record (#453) — a week at most, capped.
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.

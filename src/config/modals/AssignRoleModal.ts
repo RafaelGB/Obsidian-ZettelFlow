@@ -5,6 +5,8 @@ import { t } from "architecture/lang";
 import { FolderSuggest } from "architecture/settings";
 import { FLOW_ROLE_LABEL_KEY, flowFolders, type FlowRole } from "architecture/plugin/canvas/flowRole";
 import { planRoleChange, type RolePlan, type RoleProblem } from "config/roles/assignRole";
+import { FileService } from "architecture/plugin/services/FileService";
+import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 
 /**
  * Literal keys per case: a composed `t()` key is invisible to the unrendered-strings guardrail
@@ -133,13 +135,17 @@ export class AssignRoleModal extends Modal {
         const plan = this.plan();
         if (plan.problem) return;
         try {
-            if (plan.settings) {
-                this.plugin.settings[plan.settings.key] = plan.settings.value;
-                await this.plugin.saveSettings();
-            }
-            if (plan.move) {
-                await this.move(plan.move.from, plan.move.to);
-            }
+            // One batch (#453): giving a canvas a role can move it, and a move you did not expect
+            // is exactly the write worth being able to find again.
+            await withWriteBatch({ kind: "manual", ref: this.canvasPath, label: this.canvasPath }, async () => {
+                if (plan.settings) {
+                    this.plugin.settings[plan.settings.key] = plan.settings.value;
+                    await this.plugin.saveSettings();
+                }
+                if (plan.move) {
+                    await this.move(plan.move.from, plan.move.to);
+                }
+            });
             new Notice(t("assign_role_done"));
             this.onDone();
             this.close();
@@ -157,7 +163,7 @@ export class AssignRoleModal extends Modal {
         if (parent && !ObsidianApi.vault().getFolderByPath(parent)) {
             await ObsidianApi.vault().createFolder(parent);
         }
-        await this.plugin.app.fileManager.renameFile(file, to);
+        await FileService.moveFile(file, to);
     }
 
     onClose(): void {

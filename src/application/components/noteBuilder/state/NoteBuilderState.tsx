@@ -193,7 +193,8 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     initPluginConfig: async (settings, currentFolder) => {
       set((state) => {
         const { builder } = state;
-        if (settings.uniquePrefixEnabled) {
+        // An empty pattern is "no prefix" — the value is the whole decision (#439).
+        if (settings.uniquePrefix?.trim()) {
           builder.note.setPattern(settings.uniquePrefix);
         }
         if (currentFolder) {

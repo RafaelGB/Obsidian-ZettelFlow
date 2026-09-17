@@ -1,4 +1,5 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
+import { migrateSettings, type MigratableSettings } from "config/settingsMigration";
 import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings, unloadPluginComponents } from 'starters';
 import { Notice, Plugin, TFile } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
@@ -145,6 +146,14 @@ export default class ZettelFlow extends Plugin {
 		// call that could never be written. Drop the dead key rather than let it sit in data.json
 		// forever, quietly implying a switch that no longer exists.
 		delete (this.settings.ai as Partial<Record<"allowInAutomations", unknown>>).allowInAutomations;
+
+		// Two rows that were one decision (#439): the prefix pattern and the log level now say it
+		// alone. Migrated here, once, so an install that prefixed keeps prefixing and one logging
+		// at debug keeps logging at debug.
+		const migrated = migrateSettings(this.settings as unknown as MigratableSettings);
+		if (migrated.changed) {
+			this.settings = migrated.settings as unknown as ZettelFlowSettings;
+		}
 		void this.saveSettings().catch(() => {
 			log.error('[Settings] normalization save failed');
 			new Notice(t('notice_settings_save_failed'));

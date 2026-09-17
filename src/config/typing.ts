@@ -55,13 +55,9 @@ export interface ZettelFlowSettings {
      * install predating the setting keeps today's spacing.
      */
     wizardDensity?: "comfortable" | "compact";
-    /** Enable or disable logging */
-    loggerEnabled: boolean;
-    /** Logging level (e.g., "debug", "info", etc.) */
+    /** Logging level, including `off` — which is what the retired enable toggle meant (#439). */
     logLevel: string;
-    /** Enable or disable the use of a unique prefix */
-    uniquePrefixEnabled: boolean;
-    /** Format/string used as a unique prefix (e.g., "YYYYMMDDHHmmss") */
+    /** Unique-title prefix pattern (e.g. "YYYYMMDDHHmmss"); **empty means no prefix** (#439). */
     uniquePrefix: string;
     /**
      * **Colour canvas nodes by phase** (#429): choosing a step's phase paints its node in that
@@ -288,10 +284,8 @@ export type InstalledTemplates = {
  * Default settings for ZettelFlow.
  */
 export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
-    loggerEnabled: false, // Logging is disabled by default.
-    logLevel: "info", // Default log level; must match a key of the logger's level record.
-    uniquePrefixEnabled: false, // Unique prefix is disabled by default.
-    uniquePrefix: "YYYYMMDDHHmmss", // Default format for unique prefixes.
+    logLevel: "off", // No logging until someone asks for it (#439).
+    uniquePrefix: "", // No prefix until someone writes a pattern (#439).
     colourNodesByPhase: false, // A canvas you already coloured is yours (#429).
     ribbonCanvas: "", // No ribbon canvas configured until the user picks one.
     editorCanvas: "", // No editor canvas configured until the user picks one.

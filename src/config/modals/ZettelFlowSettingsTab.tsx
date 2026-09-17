@@ -4,8 +4,8 @@ import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
-import { FileSuggest, FolderSuggest } from "architecture/settings";
-import { FILE_EXTENSIONS, FileService, activateSurface } from "architecture/plugin";
+import { FolderSuggest } from "architecture/settings";
+import { FileService } from "architecture/plugin";
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { fnsManager, writeTypeDeclarations } from "architecture/api";
@@ -22,7 +22,7 @@ import {
 } from "architecture/knowledge/lifecycle";
 import { buildLifecycleAliases } from "architecture/knowledge/lifecycleAliases";
 import { DEFAULT_SETTINGS } from "config";
-import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "application/community";
+import { CommunityTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
@@ -32,6 +32,7 @@ import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
+import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup } from "./handlers/flowsSettingsGroup";
 
 // Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
@@ -53,25 +54,6 @@ function refreshKnowledgeSurfaces(app: App): void {
         });
     }
 }
-
-// Documentation base + per-feature pages surfaced from the Zettelkasten toolkit settings group.
-const DOCS_BASE = "https://rafaelgb.github.io/Obsidian-ZettelFlow/";
-const TOOLKIT_DOCS = {
-    companion: `${DOCS_BASE}architecture/actions-and-note-builder/`,
-    zettelId: `${DOCS_BASE}actions/ZettelId/`,
-    health: `${DOCS_BASE}development/slipbox-health-dashboard/`,
-    moc: `${DOCS_BASE}development/moc-builder/`,
-    resurface: `${DOCS_BASE}development/connection-resurfacing/`,
-    atomicity: `${DOCS_BASE}development/atomicity-split/`,
-    heatmap: `${DOCS_BASE}development/thinking-heatmap/`,
-    discoveries: `${DOCS_BASE}development/morning-discovery/`,
-    map: `${DOCS_BASE}development/living-knowledge-map/`,
-    conceptNav: `${DOCS_BASE}development/concept-navigation/`,
-    openQuestions: `${DOCS_BASE}development/open-questions/`,
-    timeline: `${DOCS_BASE}development/evolution-timeline/`,
-    evidenceMap: `${DOCS_BASE}development/evidence-map/`,
-    home: `${DOCS_BASE}development/zettelflow-home/`,
-} as const;
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
     plugin: ZettelFlow;
@@ -117,16 +99,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         action: () => {
                             window.open("https://www.buymeacoffee.com/5tsytn22v9Z", "_blank");
                         },
-                    },
-                    {
-                        name: t("community_templates_browser_title"),
-                        desc: t("community_templates_browser_description"),
-                        action: () => new CommunityTemplatesModal(plugin).open(),
-                    },
-                    {
-                        name: t("manage_installed_templates_title"),
-                        desc: t("manage_installed_templates_description"),
-                        action: () => new ManageInstalledTemplatesModal(plugin).open(),
                     },
                     {
                         // Unfinished thinking deserves continuity (#410) — on by default.
@@ -194,40 +166,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
-                        name: t("ribbon_canvas_file_selector_title"),
-                        desc: t("ribbon_canvas_file_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting.addSearch((cb) => {
-                                new FileSuggest(cb.inputEl, FileService.PATH_SEPARATOR)
-                                    .setExtensions(FILE_EXTENSIONS.ONLY_CANVAS);
-                                cb.setPlaceholder(t("canvas_file_selector_placeholder"))
-                                    .setValue(plugin.settings.ribbonCanvas)
-                                    .onChange(async (value) => {
-                                        plugin.settings.ribbonCanvas = value;
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
-                    {
-                        name: t("editor_canvas_file_selector_title"),
-                        desc: t("editor_canvas_file_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting.addSearch((cb) => {
-                                new FileSuggest(cb.inputEl, FileService.PATH_SEPARATOR)
-                                    .setExtensions(FILE_EXTENSIONS.ONLY_CANVAS);
-                                cb.setPlaceholder(t("canvas_file_selector_placeholder"))
-                                    .setValue(plugin.settings.editorCanvas)
-                                    .onChange(async (value) => {
-                                        plugin.settings.editorCanvas = value;
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
-                    {
                         name: t("create_in_current_folder_toggle_title"),
                         desc: t("create_in_current_folder_toggle_description"),
                         control: { type: "toggle", key: "createInCurrentFolder" },
@@ -238,14 +176,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         control: { type: "toggle", key: "openHomeOnStartup" },
                     },
                     {
-                        name: t("unique_prefix_toggle_title"),
-                        desc: t("unique_prefix_toggle_description"),
-                        control: { type: "toggle", key: "uniquePrefixEnabled" },
-                    },
-                    {
                         name: t("unique_prefix_pattern_title"),
                         desc: buildPrefixDescription(plugin.settings.uniquePrefix),
-                        visible: () => plugin.settings.uniquePrefixEnabled,
                         render: (setting) => {
                             setting.addText((text) =>
                                 text
@@ -670,86 +602,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             timelineSettingsGroup(plugin),
             // ── Knowledge patterns (#200) ─────────────────────────────────────
             patternsSettingsGroup(plugin),
-            // ── Zettelkasten toolkit ──────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_toolkit_heading"),
-                cls: c("toolkit-group"),
-                items: [
-                    {
-                        name: t("settings_toolkit_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("toolkit-intro"));
-                        },
-                    },
-                    // Launchers: open the four surfaces (#272) without the command palette.
-                    {
-                        name: t("surface_home_title"),
-                        desc: t("settings_toolkit_home_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
-                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-home"))
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.home);
-                        },
-                    },
-                    {
-                        name: t("surface_health_title"),
-                        desc: t("settings_toolkit_health_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
-                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-health"))
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.health);
-                        },
-                    },
-                    {
-                        name: t("surface_discovery_title"),
-                        desc: t("settings_toolkit_discoveries_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
-                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-discovery"))
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.discoveries);
-                        },
-                    },
-                    {
-                        name: t("surface_graph_title"),
-                        desc: t("settings_toolkit_map_desc"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn.setButtonText(t("settings_toolkit_open_button")).setCta()
-                                    .onClick(() => void activateSurface(plugin.app, "zettelflow-graph"))
-                            );
-                            addDocsButton(setting, TOOLKIT_DOCS.map);
-                        },
-                    },
-                    // Learn-more rows: features reached via the wizard / commands, doc link only.
-                    {
-                        name: t("settings_toolkit_companion_name"),
-                        desc: t("settings_toolkit_companion_desc"),
-                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.companion),
-                    },
-                    {
-                        name: t("settings_toolkit_zettelid_name"),
-                        desc: t("settings_toolkit_zettelid_desc"),
-                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.zettelId),
-                    },
-                    {
-                        name: t("settings_toolkit_moc_name"),
-                        desc: t("settings_toolkit_moc_desc"),
-                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.moc),
-                    },
-                    {
-                        name: t("settings_toolkit_atomicity_name"),
-                        desc: t("settings_toolkit_atomicity_desc"),
-                        render: (setting) => addDocsButton(setting, TOOLKIT_DOCS.atomicity),
-                    },
-                ],
-            },
             // ── Hooks ─────────────────────────────────────────────────────────
             {
                 type: "group",
@@ -811,18 +663,13 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                 heading: t("developer_section_title"),
                 items: [
                     {
-                        name: t("logger_toggle_title"),
-                        desc: t("logger_toggle_description"),
-                        control: { type: "toggle", key: "loggerEnabled" },
-                    },
-                    {
                         name: t("logger_level_title"),
                         desc: t("logger_level_description"),
-                        visible: () => plugin.settings.loggerEnabled,
                         control: {
                             type: "dropdown",
                             key: "logLevel",
                             options: {
+                                off: t("logger_level_off"),
                                 trace: "trace",
                                 debug: "debug",
                                 info: "info",
@@ -837,12 +684,12 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     }
 
     override async setControlValue(key: string, value: unknown): Promise<void> {
-        if (key === "loggerEnabled") log.setDebugMode(value as boolean);
-        if (key === "logLevel") log.setLevelInfo(value as string);
-        await super.setControlValue(key, value);
-        if (key === "uniquePrefixEnabled" || key === "loggerEnabled") {
-            this.refreshDomState();
+        // `off` is a level now (#439): one control decides both whether and how much.
+        if (key === "logLevel") {
+            log.setDebugMode(value !== LOG_LEVEL_OFF);
+            log.setLevelInfo(value as string);
         }
+        await super.setControlValue(key, value);
     }
 }
 
@@ -850,14 +697,3 @@ function buildPrefixDescription(pattern: string): string {
     return `${t("unique_prefix_pattern_description")}\n${t("unique_prefix_pattern_helper")}: ${moment().format(pattern)}`;
 }
 
-/** Adds an "open documentation" icon button that opens the given docs URL in the browser. */
-function addDocsButton(setting: Setting, url: string): void {
-    setting.addExtraButton((btn) =>
-        btn
-            .setIcon("help")
-            .setTooltip(t("settings_toolkit_docs_tooltip"))
-            .onClick(() => {
-                window.open(url, "_blank");
-            })
-    );
-}

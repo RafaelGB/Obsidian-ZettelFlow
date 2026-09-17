@@ -18,6 +18,8 @@ import {
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { planRoleRemoval } from "config/roles/assignRole";
 import { AssignRoleModal } from "config/modals/AssignRoleModal";
+import { CommunityTemplatesModal } from "application/community/CommunityTemplatesModal";
+import { ManageInstalledTemplatesModal } from "application/community/ManageInstalledTemplatesModal";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -126,6 +128,18 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                         });
                     });
                 },
+            },
+            {
+                // A flow usually arrives from the gallery, so the gallery lives with the flows
+                // rather than among sixty unrelated settings (#439).
+                name: t("community_templates_browser_title"),
+                desc: t("community_templates_browser_description"),
+                action: () => new CommunityTemplatesModal(plugin).open(),
+            },
+            {
+                name: t("manage_installed_templates_title"),
+                desc: t("manage_installed_templates_description"),
+                action: () => new ManageInstalledTemplatesModal(plugin).open(),
             },
             {
                 name: t("settings_event_flows_title"),

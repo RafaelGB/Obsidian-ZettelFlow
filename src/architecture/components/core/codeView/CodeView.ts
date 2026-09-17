@@ -2,6 +2,9 @@ import { HoverParent, HoverPopover, TFile, TextFileView, WorkspaceLeaf } from "o
 import { dispatchEditor } from "./editor/Dispatcher";
 import { EditService, FileService } from "architecture/plugin";
 import { EditorView } from "codemirror";
+import { ObsidianApi } from "architecture";
+import { t } from "architecture/lang";
+import { openWorkbench } from "starters/zcomponents/WorkbenchComponent";
 
 export class CodeView extends TextFileView implements HoverParent {
     public static NAME = "ZettelFlowCodeView";
@@ -89,8 +92,20 @@ export class CodeView extends TextFileView implements HoverParent {
         void this.editor.setContent(this.data).save();
     }
 
+    /**
+     * The one action this view offers: hand the module to the workbench, where it can be called
+     * against a real note (#449). The gutter already lints as you type, which is what the removed
+     * "linter button" would have duplicated.
+     */
     private initActions(): void {
-        // TODO: linter button action
+        this.addAction("flask-conical", t("workbench_try_it"), () => {
+            const plugin = ObsidianApi.getOwnPlugin();
+            if (!plugin || !this.file) return;
+            void openWorkbench(plugin, {
+                surface: "action",
+                code: `return zf.internal.user.${this.file.basename}();`,
+            });
+        });
     }
 
     /**

@@ -634,3 +634,9 @@
     min-height: 8rem;
     resize: vertical;
 }
+
+// What a hook's failure should do (#445) — asked next to the script it is about.
+.zettelkasten-flow__property-hook-select {
+    width: 100%;
+    margin-bottom: var(--size-4-1);
+}

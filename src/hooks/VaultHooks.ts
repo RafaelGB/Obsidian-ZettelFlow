@@ -2,6 +2,9 @@ import ZettelFlow from "main";
 import { canvas } from "architecture/plugin/canvas";
 import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
+import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
+import { isUnderFolder } from "architecture/plugin/canvas/flowRole";
 import { SelectorMenuModal } from "zettelkasten";
 import {
     App,
@@ -57,6 +60,8 @@ export type HookDryRunResult =
 
 /** Ajustable si ves muchos "changed" por tecleo. */
 const METADATA_DEBOUNCE_MS = 60;
+/** A save can arrive several times in a row; the library is reloaded once. */
+const LIBRARY_RELOAD_DEBOUNCE_MS = 300;
 /** TTL del cache de FrontmatterService, igual que el original (60s). */
 const FRONTMATTER_CACHE_TTL_MS = 60_000;
 
@@ -93,7 +98,14 @@ export class VaultHooks {
             if (condition) {
                 const ctx = { event: "property.changed", notePath: file.path, property, oldValue: undefined, newValue };
                 const condFn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), `return (${condition});`);
-                const passes = await condFn(...bindingArgs(CONDITION_BINDINGS, { event: ctx, ...shared }));
+                const condArgs = bindingArgs(CONDITION_BINDINGS, { event: ctx, ...shared });
+                const passes = await withScriptRun(
+                    {
+                        surface: "condition",
+                        origin: { ref: `hook:${property}`, label: property, notePath: file.path },
+                    },
+                    () => condFn(...condArgs)
+                );
                 if (!passes) return { status: "skipped" };
             }
 
@@ -106,7 +118,16 @@ export class VaultHooks {
                 bindingNames(HOOK_BINDINGS),
                 `return (async () => {\n${settings.script}\n return event;\n})();`
             );
-            const result = (await scriptFn(...bindingArgs(HOOK_BINDINGS, { event, ...shared }))) as HookEvent;
+            const hookArgs = bindingArgs(HOOK_BINDINGS, { event, ...shared });
+            // A hook runs while you are elsewhere: without this its failure was a toast nobody saw (#444).
+            const result = (await withScriptRun(
+                {
+                    surface: "hook",
+                    origin: { ref: `hook:${property}`, label: property, notePath: file.path },
+                    input: { event },
+                },
+                () => scriptFn(...hookArgs)
+            )) as HookEvent;
             return { status: "ran", response: result.response };
         } catch (error) {
             return { status: "error", message: error instanceof Error ? error.message : String(error) };
@@ -216,12 +237,32 @@ export class VaultHooks {
             canvas.flows.delete(file.path);
             log.debug("[VaultHooks] Invalida flow cache por modificación:", file.path);
         }
+
+        // Editing your own library function did nothing until Obsidian restarted (#448): the `zf`
+        // cache was only invalidated when the folder itself was renamed or deleted.
+        this.reloadLibraryOnSave(file);
     };
+
+    /** The library folder's own files, reloaded when you save one. Debounced: a save can burst. */
+    private reloadLibraryOnSave(file: TAbstractFile): void {
+        const folder = this.plugin.settings.jsLibraryFolderPath;
+        if (!folder || !isUnderFolder(folder, file.path) || !file.path.endsWith(".js")) return;
+
+        if (this.libraryReloadTimer) window.clearTimeout(this.libraryReloadTimer);
+        this.libraryReloadTimer = window.setTimeout(() => {
+            fnsManager.invalidateCache();
+            log.info(`[VaultHooks] Library reloaded after saving ${file.path}`);
+            new Notice(t("library_reloaded", file.name));
+        }, LIBRARY_RELOAD_DEBOUNCE_MS);
+    }
 
     /**
      * When a file is deleted, we check if it is a folder or a file. Then we handle it accordingly.
      * @param file The file that was deleted.
      */
+    /** Pending library reload, so a burst of saves reloads once. */
+    private libraryReloadTimer: number | undefined;
+
     private onDelete = (file: TAbstractFile) => {
         if (VaultStateManager.INSTANCE.isFreezed()) return;
 
@@ -414,7 +455,16 @@ export class VaultHooks {
                     continue;
                 }
 
-                event = await this.executeHook(hookSettings.script, event);
+                try {
+                    event = await this.executeHook(hookSettings.script, event, hookSettings.onError);
+                } catch {
+                    // The hook decided what its failure means (#445); *skip* and *stop* both
+                    // leave the note untouched, which is what abandoning the response does.
+                    if (applyErrorPolicy(hookSettings.onError).notify === false) {
+                        log.debug(`[VaultHooks] Hook for "${property}" failed quietly.`);
+                    }
+                    return;
+                }
                 log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
             }
 
@@ -492,11 +542,21 @@ export class VaultHooks {
     private evaluateHookCondition(condition: string | undefined, ctx: unknown): Promise<boolean> {
         return evaluateBindingCondition(condition, ctx, async (script, context) => {
             const fn = buildAsyncScriptFunction(bindingNames(CONDITION_BINDINGS), `return (${script});`);
-            return fn(...bindingArgs(CONDITION_BINDINGS, { event: context, ...(await sharedScriptValues()) }));
+            const args = bindingArgs(CONDITION_BINDINGS, {
+                event: context,
+                ...(await sharedScriptValues()),
+            });
+            return withScriptRun({ surface: "condition", origin: { ref: "hook-condition" } }, () =>
+                fn(...args)
+            );
         });
     }
 
-    private async executeHook(script: string, event: HookEvent): Promise<HookEvent> {
+    private async executeHook(
+        script: string,
+        event: HookEvent,
+        onError?: ScriptErrorPolicy
+    ): Promise<HookEvent> {
         try {
             const fnBody = `return (async () => {
         ${script}
@@ -504,13 +564,22 @@ export class VaultHooks {
       })();`;
 
             const scriptFn = buildAsyncScriptFunction(bindingNames(HOOK_BINDINGS), fnBody);
+            const args = bindingArgs(HOOK_BINDINGS, { event, ...(await sharedScriptValues()) });
 
-            return (await scriptFn(
-                ...bindingArgs(HOOK_BINDINGS, { event, ...(await sharedScriptValues()) })
+            return (await withScriptRun(
+                {
+                    surface: "hook",
+                    origin: { ref: "hook", notePath: event.file?.path },
+                    input: { event },
+                },
+                () => scriptFn(...args)
             )) as HookEvent;
         } catch (error: unknown) {
             const msg = errorMessage(error);
-            new Notice(t("property_hooks_script_error_notice", msg));
+            // Recorded either way (#444); whether it interrupts you is the hook's own decision.
+            if (applyErrorPolicy(onError).notify) {
+                new Notice(t("property_hooks_script_error_notice", msg));
+            }
             log.error("[VaultHooks] Error executing hook script:", error);
             throw error;
         }

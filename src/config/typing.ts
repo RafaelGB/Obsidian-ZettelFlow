@@ -1,4 +1,7 @@
 import { Action } from "architecture/api";
+import type { ScriptRun } from "application/scripts/scriptRunLog";
+import type { ScriptErrorPolicy } from "application/scripts/errorPolicy";
+import { DEFAULT_RETENTION_DAYS } from "application/scripts/scriptRunLog";
 import { StepSettings } from "zettelkasten";
 import type { HistoryEntry } from "application/notes/historyUtils";
 import {
@@ -29,6 +32,12 @@ export type PropertyHookSettings = {
     description?: string;
     /** Optional `zf` condition; the hook runs only when it holds (#327 S4). Blank = always. */
     condition?: string;
+    /**
+     * What a failure should do (#445). A hook has one script and nothing after it, so *skip* and
+     * *stop* both mean "apply none of its changes"; *silent* means "do not interrupt me".
+     * Absent = notify, which is what hooks have always done.
+     */
+    onError?: ScriptErrorPolicy;
 };
 /**
  * Main settings interface for the ZettelFlow plugin.
@@ -143,6 +152,16 @@ export interface ZettelFlowSettings {
          * unset, defaults to on for desktop and off for mobile (resolved at runtime).
          */
         parseInlineRelations?: boolean;
+    };
+
+    /**
+     * The **script run log** (#444): every run a scripting surface performed, newest first, kept
+     * for `retentionDays` (7 by default, up to 30). Facts only — paths, names and the keys a
+     * script was handed, never a note's content.
+     */
+    scriptLog?: {
+        runs: ScriptRun[];
+        retentionDays: number;
     };
 
     /**
@@ -284,6 +303,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
     eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
+    scriptLog: { runs: [], retentionDays: DEFAULT_RETENTION_DAYS }, // The script run log (#444).
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.

@@ -1,4 +1,5 @@
 import { t } from "architecture/lang";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import {
   Action,
   ActionSetting,
@@ -161,8 +162,11 @@ export function dynamicSelectorDetails(
         bindingNames(DYNAMIC_SELECTOR_BINDINGS),
         fnBody
       );
-      const output = await scriptFn(
-        ...bindingArgs(DYNAMIC_SELECTOR_BINDINGS, await sharedScriptValues())
+      const args = bindingArgs(DYNAMIC_SELECTOR_BINDINGS, await sharedScriptValues());
+      // A try is a run, recorded as one (#444).
+      const output = await withScriptRun(
+        { surface: "workbench", origin: { ref: action.id, label: action.type } },
+        () => scriptFn(...args)
       );
 
       // Validate the output format

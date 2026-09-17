@@ -1,4 +1,5 @@
 // External imports
+import { WorkbenchComponent } from "starters/zcomponents/WorkbenchComponent";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { ZettelFlowSettings } from "config";
 import { log } from "architecture";
@@ -41,6 +42,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new DeriveProjectComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));
+    ZComponentsManager.registerComponent(new WorkbenchComponent(plugin));
     ZComponentsManager.registerComponent(new KnowledgeIndexComponent(plugin));
     ZComponentsManager.registerComponent(new StateTransitionComponent(plugin));
     ZComponentsManager.registerComponent(new RemoveRelationComponent(plugin));

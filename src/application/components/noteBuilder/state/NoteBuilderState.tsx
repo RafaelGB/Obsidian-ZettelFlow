@@ -115,7 +115,12 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
     addAction: (element, result) =>
       set((state) => {
         const { builder } = state;
-        builder.note.addAction(element, result, state.position);
+        // Stamped with the step it came from (#445): "skip the step" needs to know which.
+        builder.note.addAction(
+          { ...element, stepId: state.currentNode?.id },
+          result,
+          state.position
+        );
         return {
           builder,
           actionWasTriggered: true,
@@ -147,7 +152,7 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
       set((state) => {
         const { builder, position } = state;
         const next = position + 1;
-        builder.note.addBackgroundAction(action, next);
+        builder.note.addBackgroundAction({ ...action, stepId: state.currentNode?.id }, next);
         return {
           builder,
           actionWasTriggered: true,

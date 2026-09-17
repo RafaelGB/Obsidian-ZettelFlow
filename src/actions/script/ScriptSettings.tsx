@@ -9,12 +9,16 @@ import {
   bindingArgs,
 } from "architecture/api";
 import { t } from "architecture/lang";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { CodeElement, dispatchEditor, renderExamplesList } from "architecture/components/core";
+import { renderBindingsPalette } from "architecture/components/core/codeView/editor/BindingsPalette";
 import { Setting } from "obsidian";
 import { ScriptResult } from "actions";
 import { ContentDTO, NoteDTO } from "application/notes";
 import { c, ObsidianApi } from "architecture";
 import { navbarAction } from "architecture/components/settings";
+import { renderErrorPolicy } from "application/scripts/renderErrorPolicy";
+import { openWorkbench } from "starters/zcomponents/WorkbenchComponent";
 
 export const scriptSettings: ActionSetting = (
   contentEl,
@@ -42,7 +46,24 @@ export const scriptSettings: ActionSetting = (
     SCRIPT_ACTION_BINDINGS
   );
 
+  // What this surface hands the script, insertable rather than remembered (#449).
+  renderBindingsPalette(contentEl, SCRIPT_ACTION_BINDINGS, () => editorView);
   renderExamplesList(contentEl, SCRIPT_ACTION_EXAMPLES, () => editorView);
+
+  // What a failure here should do to the work around it (#445), and how often it has failed —
+  // the count is read from the run log (#444), never counted a second time.
+  renderErrorPolicy(contentEl, scriptAction);
+
+  // The bench is where a script can be tried against a real note, writing nothing (#446).
+  new Setting(contentEl)
+    .setName(t("workbench_try_it"))
+    .setDesc(t("workbench_intro"))
+    .addButton((button) =>
+      button.setButtonText(t("workbench_try_it")).onClick(() => {
+        const plugin = ObsidianApi.getOwnPlugin();
+        if (plugin) void openWorkbench(plugin, { surface: "action", code: scriptAction.code });
+      })
+    );
   // Contenedor para resultados de depuración
   const debugContainer = contentEl.createDiv({
     cls: "debug-container",
@@ -82,15 +103,18 @@ export const scriptSettings: ActionSetting = (
       `
       );
 
-      const output = await scriptFn(
-        ...bindingArgs(SCRIPT_ACTION_BINDINGS, {
-          element: scriptAction,
-          content: new ContentDTO(),
-          note: new NoteDTO(),
-          context: {},
-          zf: await fnsManager.getFns(),
-          app: ObsidianApi.globalApp(),
-        })
+      const args = bindingArgs(SCRIPT_ACTION_BINDINGS, {
+        element: scriptAction,
+        content: new ContentDTO(),
+        note: new NoteDTO(),
+        context: {},
+        zf: await fnsManager.getFns(),
+        app: ObsidianApi.globalApp(),
+      });
+      // A try is a run: recorded as one, marked as coming from a bench rather than a flow (#444).
+      const output = await withScriptRun(
+        { surface: "workbench", origin: { ref: scriptAction.id, label: scriptAction.type } },
+        () => scriptFn(...args)
       );
 
       return { output, error: null };

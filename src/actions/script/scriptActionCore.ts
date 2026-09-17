@@ -9,6 +9,10 @@ import {
     bindingArgs,
 } from "architecture/api";
 import { log } from "architecture";
+import { FatalError } from "architecture/monitoring/CustomExceptions";
+import { applyErrorPolicy } from "application/scripts/errorPolicy";
+import { SkipStepError } from "application/scripts/SkipStepError";
+import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { t } from "architecture/lang";
 import type { CodeElement } from "architecture/components/core";
 
@@ -52,18 +56,34 @@ export async function runScriptAction(info: ExecuteInfo, deps: ScriptRunDeps = d
             `return (async () => {\n${element.code}\n})();`
         );
 
-        await scriptFn(
-            ...bindingArgs(SCRIPT_ACTION_BINDINGS, {
-                element,
-                content,
-                note,
-                context,
-                ...(await deps.values()),
-            })
+        const args = bindingArgs(SCRIPT_ACTION_BINDINGS, {
+            element,
+            content,
+            note,
+            context,
+            ...(await deps.values()),
+        });
+        // Timed and written down, whatever it does (#444): a step's script that fails while you
+        // are answering the next question used to leave nothing behind.
+        await withScriptRun(
+            {
+                surface: "action",
+                origin: { ref: element.id, label: element.description ?? element.type },
+                input: { element, content, note, context },
+            },
+            () => scriptFn(...args)
         );
     } catch (error) {
+        // A skip or a stop raised by this very handler must travel, not be caught again.
+        if (error instanceof SkipStepError || error instanceof FatalError) throw error;
+
         const message = errorMessage(error);
         log.error(`Error executing script action "${element.id}": ${message}`);
-        deps.notify(t("script_action_error_notice", message));
+
+        // What the failure does to the work around it is the script's own decision (#445).
+        const outcome = applyErrorPolicy(element.onError);
+        if (outcome.notify) deps.notify(t("script_action_error_notice", message));
+        if (outcome.stopBuild) throw new FatalError(t("script_action_stopped_notice", message));
+        if (outcome.skipStep) throw new SkipStepError(message, element.stepId);
     }
 }

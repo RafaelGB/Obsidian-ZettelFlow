@@ -63,3 +63,48 @@
     flex-grow: 1;
     color: var(--text-normal);
 }
+
+// The error policy, beside the script it belongs to (#445).
+.zettelkasten-flow__script-policy-explanation {
+    margin-top: var(--size-4-1);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+// What this script has actually done lately, read from the run log (#444).
+.zettelkasten-flow__script-policy-failures {
+    margin-top: var(--size-4-1);
+    padding-left: var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-error);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+// What this surface hands your script (#449), insertable at the cursor.
+.zettelkasten-flow__bindings-palette {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+    margin: var(--size-4-1) 0;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__bindings-palette-label {
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__bindings-palette-item {
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 999px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__bindings-palette-item:hover {
+    border-color: var(--interactive-accent);
+}

@@ -45,11 +45,32 @@ describe("a failing script action is never silent (#349, FR-1/AC-1)", () => {
         expect(notices).toHaveLength(1);
     });
 
-    it("never throws out of execute — one bad step must not abort the whole build", async () => {
+    it("never throws out of execute under the default policy — one bad step must not abort the build", async () => {
         const { info } = fakeInfo(`throw new Error("boom");`);
         const { dep } = deps();
 
         await expect(runScriptAction(info, dep)).resolves.toBeUndefined();
+    });
+
+    it("throws only when the script asked for it (#445)", async () => {
+        // *stop* and *skip* are the two policies whose whole point is to interrupt the work; the
+        // builder catches the signal, which is why it must leave this function.
+        const stopping = fakeInfo(`throw new Error("boom");`);
+        (stopping.info.element as { onError?: string }).onError = "stop";
+        await expect(runScriptAction(stopping.info, deps().dep)).rejects.toThrow();
+
+        const skipping = fakeInfo(`throw new Error("boom");`);
+        (skipping.info.element as { onError?: string }).onError = "skip";
+        await expect(runScriptAction(skipping.info, deps().dep)).rejects.toThrow();
+    });
+
+    it("says nothing when the script asked for silence, and still does not throw", async () => {
+        const quiet = fakeInfo(`throw new Error("boom");`);
+        (quiet.info.element as { onError?: string }).onError = "silent";
+        const { notices, dep } = deps();
+
+        await expect(runScriptAction(quiet.info, dep)).resolves.toBeUndefined();
+        expect(notices).toEqual([]);
     });
 
     it("stays quiet and does its work when the script succeeds", async () => {

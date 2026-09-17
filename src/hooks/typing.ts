@@ -1,3 +1,4 @@
+import type { ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import type { TFile } from "obsidian";
 import type { Literal } from "architecture/plugin";
 
@@ -30,6 +31,11 @@ export interface HookSettings {
     description?: string;
     /** Optional `zf` condition; the hook runs only when it holds (#327 S4). Blank = always. */
     condition?: string;
+    /**
+     * What a failure should do (#445). A hook has one script and nothing after it, so *skip* and
+     * *stop* both mean "apply none of its changes"; *silent* means "do not interrupt me".
+     */
+    onError?: ScriptErrorPolicy;
 }
 
 export type PropertiesHooksConfig = Record<string, HookSettings>;

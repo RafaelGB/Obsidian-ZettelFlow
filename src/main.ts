@@ -1,4 +1,5 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
+import { WorkbenchView } from "architecture/components/core/workbench/WorkbenchView";
 import { migrateSettings, type MigratableSettings } from "config/settingsMigration";
 import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings, unloadPluginComponents } from 'starters';
 import { Notice, Plugin, TFile } from 'obsidian';
@@ -172,6 +173,8 @@ export default class ZettelFlow extends Plugin {
 		this.registerView("zettelflow-health", (leaf) => new HealthSurfaceView(leaf));
 		this.registerView("zettelflow-discovery", (leaf) => new DiscoverySurfaceView(leaf));
 		this.registerView("zettelflow-graph", (leaf) => new GraphSurfaceView(leaf));
+		// The script workbench (#446): its own view, like the four surfaces.
+		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));
 		// Back-compat: the 11 retired view types redirect a restored/pinned leaf to its surface + mode.
 		for (const legacyType of Object.keys(LEGACY_VIEW_TARGETS)) {
 			this.registerView(legacyType, (leaf) => new LegacyRedirectView(leaf, legacyType));

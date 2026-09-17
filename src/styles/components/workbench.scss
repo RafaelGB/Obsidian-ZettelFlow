@@ -1,0 +1,64 @@
+// The script workbench (#446): try a script before it touches anything.
+// A view of its own, so it gets room to breathe — an editor, a run, and what the run would do.
+
+.zettelkasten-flow__workbench {
+    padding: var(--size-4-4);
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__workbench-intro {
+    margin-bottom: var(--size-4-3);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__workbench-editor {
+    margin: var(--size-4-3) 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+}
+
+.zettelkasten-flow__workbench-output {
+    margin-top: var(--size-4-3);
+    padding: var(--size-4-3);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-m);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__workbench-note {
+    margin: var(--size-4-1) 0;
+    line-height: 1.4;
+}
+
+// What it would have written — a difference, never a write.
+.zettelkasten-flow__workbench-change {
+    margin: 0.15rem 0;
+    padding-left: var(--size-4-2);
+    border-left: 3px solid var(--interactive-accent);
+    color: var(--text-normal);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__workbench-value {
+    max-height: 14em;
+    overflow: auto;
+    padding: var(--size-4-2);
+    background-color: var(--background-primary);
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-size: var(--font-ui-smaller);
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__workbench-problem {
+    padding: var(--size-4-1) var(--size-4-2);
+    border-left: 3px solid var(--background-modifier-error);
+    color: var(--text-error);
+    line-height: 1.5;
+}

@@ -31,9 +31,18 @@ export class ThoughtStore {
         return ThoughtStore.instance;
     }
 
-    /** The configured folder, or the default. Empty means the Lab is not usable yet. */
+    /**
+     * The configured folder. Empty means the Lab is not usable yet — and **empty is also the
+     * honest answer before the plugin has finished enabling**, because `getPlugin(id)` can throw
+     * or return undefined during load (#374). A capture that asked too early used to take the
+     * whole command down with it.
+     */
     public folder(): string {
-        return ObsidianApi.getOwnPlugin()?.settings.thoughtLabPath ?? "";
+        try {
+            return ObsidianApi.getOwnPlugin()?.settings.thoughtLabPath ?? "";
+        } catch {
+            return "";
+        }
     }
 
     /** Every thought, newest first. A file it cannot parse is still a thought — just text. */

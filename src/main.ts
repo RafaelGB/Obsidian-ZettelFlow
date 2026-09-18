@@ -37,7 +37,7 @@ import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { v4 as uuid } from 'uuid';
 import { isPathExcluded, scopeExcludedPaths } from 'architecture/knowledge/scope/knowledgeScope';
 import { CultivationService } from 'architecture/plugin/services/CultivationService';
-import { QuickCaptureService } from 'architecture/plugin/services/QuickCaptureService';
+import { CreateOnlyWriter } from 'architecture/plugin/services/CreateOnlyWriter';
 
 export default class ZettelFlow extends Plugin {
 	private readonly settingsWriter = new SerializedSettingsWriter(snapshot => this.saveData(snapshot));
@@ -46,7 +46,7 @@ export default class ZettelFlow extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		const inScope = (path: string) => !isPathExcluded(path, [...scopeExcludedPaths(this.settings), this.app.vault.configDir]);
-		const capture = new QuickCaptureService(this.app.vault, inScope);
+		const capture = new CreateOnlyWriter(this.app.vault, inScope);
 		InquiryRuntime.getInstance().init({
 			load: () => this.settings.inquiry,
 			persist: async storage => {

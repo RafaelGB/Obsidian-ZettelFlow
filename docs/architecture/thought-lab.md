@@ -431,6 +431,26 @@ reason is said. Offering to append to something that is gone is offering to fail
 A crystallization of thoughts that disagree about what they are about has **no** subject: there
 is no honest single note to return to.
 
+## Capturing lands here (#475)
+
+The capture command used to write `Inbox/<title>.md` with `state: fleeting`. Three commitments
+before you had decided anything: that it is a **note**, that it has a **title**, and that it has
+a **lifecycle state**. It was immediately in the knowledge model, could be an orphan, counted in
+Health, and was one more thing in an inbox to get through.
+
+An impulse has no subject. It now leaves a **thought**.
+
+Same command, same hotkey, same single prompt — two commands doing almost the same thing is what
+subtraction refuses, and the friction was the feature. A captured thought is indistinguishable
+from one typed in the Lab: there is no "captured" flavour to manage later.
+
+With no Lab folder configured it says so and writes nothing. Falling back to creating a note is
+how you end up with the thing this change exists to stop.
+
+`QuickCaptureService` was **renamed** rather than removed: its remaining caller is inquiry (#401),
+whose outcome is a frozen reviewed snapshot and is not capture. It is now `CreateOnlyWriter`,
+which is the job it actually has.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

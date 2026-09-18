@@ -42,22 +42,29 @@ describe("Cultivate writes (#317 S3)", () => {
     });
 });
 
-describe("QuickCapture writes (#317 S3 / #285)", () => {
-    it("writes a fleeting note to Inbox with the title as the heading", async () => {
+/**
+ * Capture lands in the lab (#475).
+ *
+ * It used to write `Inbox/<title>.md` with `state: fleeting` — three commitments before you had
+ * decided anything: that it is a note, that it has a title, and that it has a lifecycle state.
+ * An impulse has no subject, so it belongs where nothing is classified yet.
+ */
+describe("capture writes a thought, not a note (#475)", () => {
+    it("creates no note anywhere", async () => {
         const h = wireHarness({});
         const modal = new QuickCaptureModal(h.plugin as never);
-        await (modal as unknown as { capture: (t: string) => Promise<void> }).capture("My idea");
-        const content = h.vault.contentOf("Inbox/My idea.md");
-        expect(content).toContain("state: fleeting");
-        expect(content).toContain("# My idea");
+        await (modal as unknown as { capture: (t: string) => Promise<boolean> }).capture("My idea");
+        const notes = [...h.vault.entries.keys()].filter((path) => path.startsWith("Inbox/"));
+        expect(notes).toEqual([]);
     });
 
-    it("never overwrites an existing note — a collision gets a stable operation suffix", async () => {
-        const h = wireHarness({ files: { "Inbox/Dup.md": { body: "original" } } });
+    it("says so and writes nothing when there is no lab to write to", async () => {
+        // Falling back to creating a note is how you end up with the thing this change exists
+        // to stop.
+        const h = wireHarness({});
         const modal = new QuickCaptureModal(h.plugin as never);
-        await (modal as unknown as { capture: (t: string) => Promise<void> }).capture("Dup");
-        expect(h.vault.contentOf("Inbox/Dup.md")).toBe("original"); // untouched
-        const suffixed = [...h.vault.entries.keys()].find((p) => /^Inbox\/Dup [a-f0-9-]+\.md$/.test(p));
-        expect(suffixed).toBeDefined();
+        const kept = await (modal as unknown as { capture: (t: string) => Promise<boolean> }).capture("Idea");
+        expect(kept).toBe(false);
+        expect(h.vault.entries.size).toBe(0);
     });
 });

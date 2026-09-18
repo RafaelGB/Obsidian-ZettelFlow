@@ -5,10 +5,22 @@ import { join } from "path";
 const SRC = join(__dirname, "..", "..", "..", "src");
 const read = (...parts: string[]) => readFileSync(join(SRC, ...parts), "utf8");
 
+/**
+ * Source with its comments removed.
+ *
+ * A rule is judged on what runs, not on what explains it: these files document at length what
+ * they deliberately no longer do, and a blunt substring scan flags the explanation.
+ */
+function code(source: string): string {
+    return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
 const BRIDGE = read("starters", "zcomponents", "ThinkAboutComponent.ts");
+const BRIDGE_CODE = code(BRIDGE);
 const CULTIVATE = read("architecture", "components", "core", "cultivate", "CultivateModeRenderer.ts");
 const LAB = read("architecture", "components", "core", "lab", "LabRenderer.ts");
 const HOME = read("architecture", "components", "core", "surface", "HomeSurfaceView.ts");
+const CAPTURE = code(read("zettelkasten", "modals", "QuickCaptureModal.ts"));
 
 /**
  * The door between Cultivate and the Lab (#473).
@@ -50,7 +62,7 @@ describe("crossing writes nothing (#473)", () => {
         // Leaving a question unanswered is not an edit, and a bridge that dirties your vault is
         // a bridge nobody crosses twice.
         for (const writer of ["FileService", "FrontmatterService", "ThoughtStore", "vault().create", "vault().modify"]) {
-            expect({ writer, used: BRIDGE.includes(writer) }).toEqual({ writer, used: false });
+            expect({ writer, used: BRIDGE_CODE.includes(writer) }).toEqual({ writer, used: false });
         }
     });
 
@@ -81,5 +93,39 @@ describe("a thread keeps the context you arrived with (#473)", () => {
 
     it("says when the note it was about is gone, and stays usable", () => {
         expect(LAB).toContain('t("lab_about_gone"');
+    });
+});
+
+/**
+ * Capture lands in the lab (#475).
+ *
+ * `Inbox/<title>.md` with `state: fleeting` was three commitments before you had decided
+ * anything: that it is a note, that it has a title, and that it has a lifecycle state. An impulse
+ * has no subject.
+ */
+describe("an impulse does not become a note (#475)", () => {
+    it("writes a thought, and reaches no note writer at all", () => {
+        expect(CAPTURE).toContain("ThoughtStore.getInstance()");
+        for (const note of ["CreateOnlyWriter", "QuickCaptureService", "createFileOnce", "state: fleeting", "Inbox/"]) {
+            expect({ note, used: CAPTURE.includes(note) }).toEqual({ note, used: false });
+        }
+    });
+
+    it("asks for the text and nothing else — no title, no folder, no state", () => {
+        for (const asking of ["FolderSuggest", "lifecycle", "addDropdown"]) {
+            expect({ asking, used: CAPTURE.includes(asking) }).toEqual({ asking, used: false });
+        }
+    });
+
+    it("says so rather than falling back to a note when there is no lab", () => {
+        // Falling back is how you end up with the thing this change exists to stop.
+        expect(CAPTURE).toContain("if (!store.folder())");
+        expect(CAPTURE).toContain('t("quick_capture_no_lab")');
+    });
+
+    it("is still one command, not two", () => {
+        const commands = read("starters", "zcomponents", "QuickCaptureComponent.ts");
+        expect(commands).toContain('id: "quick-capture"');
+        expect((commands.match(/addCommand\(/g) ?? []).length).toBe(1);
     });
 });

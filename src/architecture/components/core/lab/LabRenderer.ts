@@ -5,7 +5,7 @@ import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
-import { threadThoughts, type ThoughtNode } from "application/thinking/thread";
+import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
 import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -100,13 +100,22 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /**
      * Redraw — unless you are in the middle of a sentence.
      *
-     * Every path that wants the surface refreshed comes through here, so the rule that a redraw
-     * must never steal the cursor is stated once instead of remembered in five places.
+     * For changes that arrive **while you write**. The guard exists so typing can never move the
+     * ground under you; it is not a veto on things you asked for. An action you took goes through
+     * {@link redrawAfterAction} instead — restoring a thought and never seeing it come back is
+     * exactly what this guard caused when it was used for both.
      */
     private refresh(): void {
         const active = this.container.ownerDocument.activeElement;
         if (active instanceof HTMLTextAreaElement && this.container.contains(active)) return;
         this.render();
+    }
+
+    /** Redraw because *you* did something. Always happens, and the cursor goes back where it was. */
+    private redrawAfterAction(): void {
+        const wasComposing = this.container.ownerDocument.activeElement === this.composerEl;
+        this.render();
+        if (wasComposing) this.composerEl?.focus();
     }
 
     private render(): void {
@@ -256,8 +265,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
         if (!this.listEl) return;
         this.listEl.querySelector(`.${c("lab-blank")}`)?.remove();
-        const card = this.renderThought(this.listEl, made);
-        this.listEl.prepend(card);
+        // A new top-level thought is a thread of one, and inserting it needs no reflow — which is
+        // what keeps the common case free of a redraw.
+        const thread = this.renderNode(this.listEl, { thought: made, children: [], depth: 0 });
+        this.listEl.prepend(thread);
     }
 
     /**
@@ -268,15 +279,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
      */
     private renderNode(host: HTMLElement, node: ThoughtNode): HTMLElement {
         const thread = host.createDiv({ cls: c("lab-thread") });
-        const card = this.renderThought(thread, node.thought);
-        if (node.children.length === 0) return thread;
-
-        const answers = thread.createDiv({ cls: c("lab-answers") });
-        for (const child of node.children) this.renderNode(answers, child);
-        return card;
+        this.renderThought(thread, node);
+        if (node.children.length > 0) {
+            const answers = thread.createDiv({ cls: c("lab-answers") });
+            for (const child of node.children) this.renderNode(answers, child);
+        }
+        // Always the whole thread: what an action removes or sets aside is this element, and
+        // returning the card instead was how "throw away" left its answers hanging on screen.
+        return thread;
     }
 
-    private renderThought(list: HTMLElement, thought: Thought): HTMLElement {
+    private renderThought(list: HTMLElement, node: ThoughtNode): HTMLElement {
+        const thought = node.thought;
         const box = list.createDiv({ cls: c("lab-card") });
         this.cards.set(thought.id, box);
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
@@ -319,11 +333,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.iconAction(actions, this.connecting ? t("lab_connect_to") : t("lab_connect"), "link", () =>
             void this.connect(thought)
         );
-        this.iconAction(actions, t("lab_set_aside"), "moon", () => void this.aside(thought, "not-now"));
-        this.iconAction(actions, t("lab_decided_against"), "archive", () =>
-            void this.aside(thought, "decided-against")
+        // Everything below acts on the **whole thread**: an answer without the thought it
+        // answers is a fragment, so a thought never leaves without what was written under it.
+        const whole = flattenThread(node);
+        this.iconAction(actions, this.blockLabel(t("lab_set_aside"), whole), "moon", () =>
+            void this.aside(whole, "not-now")
         );
-        this.iconAction(actions, t("lab_discard"), "trash-2", () => void this.discard(thought, box));
+        this.iconAction(actions, this.blockLabel(t("lab_decided_against"), whole), "archive", () =>
+            void this.aside(whole, "decided-against")
+        );
+        this.iconAction(actions, this.blockLabel(t("lab_discard"), whole), "trash-2", () =>
+            void this.discard(whole, box)
+        );
         return box;
     }
 
@@ -335,25 +356,45 @@ export class LabRenderer extends KnowledgeModeRenderer {
      * memory, so putting it back is instant — and it went to Obsidian's trash anyway, because
      * nothing ZettelFlow removes should be unrecoverable.
      */
-    private async discard(thought: Thought, card: HTMLElement): Promise<void> {
-        card.addClass(c("lab-leaving"));
-        await ThoughtStore.getInstance().discard(thought);
-        this.thoughts = this.thoughts.filter((entry) => entry.id !== thought.id);
+    private async discard(whole: readonly Thought[], card: HTMLElement): Promise<void> {
+        const thread = card.closest(`.${c("lab-thread")}`) ?? card;
+        thread.addClass(c("lab-leaving"));
 
-        const strip = card.parentElement?.createDiv({ cls: c("lab-discarded") });
-        card.remove();
+        const store = ThoughtStore.getInstance();
+        for (const thought of whole) await store.discard(thought);
+        const gone = new Set(whole.map((thought) => thought.id));
+        this.thoughts = this.thoughts.filter((entry) => !gone.has(entry.id));
+
+        const strip = thread.parentElement?.createDiv({ cls: c("lab-discarded") });
+        thread.remove();
         if (!strip) return;
-        strip.createSpan({ text: t("lab_discarded") });
+        strip.createSpan({
+            text: whole.length === 1 ? t("lab_discarded") : t("lab_discarded_thread", String(whole.length)),
+        });
         this.ghostAction(strip, t("lab_discard_undo"), "undo-2", () => {
             strip.remove();
-            void this.undoDiscard(thought);
+            void this.undoDiscard(whole);
         });
     }
 
-    private async undoDiscard(thought: Thought): Promise<void> {
-        await ThoughtStore.getInstance().restore(thought);
-        this.thoughts.push(thought);
-        this.refresh();
+    private async undoDiscard(whole: readonly Thought[]): Promise<void> {
+        const store = ThoughtStore.getInstance();
+        for (const thought of whole) await store.restore(thought);
+        this.thoughts.push(...whole);
+        // Unconditionally: you asked for this, and `refresh()` would refuse while the composer
+        // holds the cursor — which is exactly how an undo used to work on disk and nowhere else.
+        this.redrawAfterAction();
+    }
+
+    /**
+     * What the tooltip says when the action will take answers with it.
+     *
+     * Not a badge and not a backlog — a statement about what the button you are hovering is about
+     * to do. A destructive action that does not say its reach is how you lose four thoughts
+     * meaning to lose one.
+     */
+    private blockLabel(label: string, whole: readonly Thought[]): string {
+        return whole.length === 1 ? label : `${label} — ${t("lab_with_answers", String(whole.length - 1))}`;
     }
 
     /** The thoughts this one is connected to, as chips that take you to them. */
@@ -460,7 +501,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         );
         if (!this.showingAside) return;
         const room = host.createDiv({ cls: c("lab-list") });
-        for (const thought of aside) this.renderAside(room, thought);
+        // Threaded here too: a thread set down together should be read together.
+        for (const node of threadThoughts(aside)) this.renderAsideNode(room, node);
     }
 
     /**
@@ -469,7 +511,16 @@ export class LabRenderer extends KnowledgeModeRenderer {
      * What it says is mechanical: this is what you were stuck on, and these notes have appeared
      * since. Never *this is now promising* — that is a judgement, and it is yours (§XII).
      */
-    private renderAside(list: HTMLElement, thought: Thought): void {
+    private renderAsideNode(host: HTMLElement, node: ThoughtNode): void {
+        const thread = host.createDiv({ cls: c("lab-thread") });
+        this.renderAside(thread, node);
+        if (node.children.length === 0) return;
+        const answers = thread.createDiv({ cls: c("lab-answers") });
+        for (const child of node.children) this.renderAsideNode(answers, child);
+    }
+
+    private renderAside(list: HTMLElement, node: ThoughtNode): void {
+        const thought = node.thought;
         const box = list.createDiv({ cls: [c("lab-card"), c("lab-aside")].join(" ") });
         const decided = thought.incubated?.reason === "decided-against";
         this.ribbon(
@@ -497,7 +548,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const footer = box.createDiv({ cls: c("lab-card-footer") });
         footer.createDiv({ cls: c("lab-meta"), text: moment(thought.at).fromNow() });
         const actions = footer.createDiv({ cls: c("lab-actions") });
-        this.iconAction(actions, t("lab_pick_back_up"), "undo-2", () => void this.pickUp(thought));
+        const whole = flattenThread(node);
+        this.iconAction(actions, this.blockLabel(t("lab_pick_back_up"), whole), "undo-2", () =>
+            void this.pickUp(whole)
+        );
     }
 
     /** Notes created since you set this down that share a word with what you were stuck on. */
@@ -517,20 +571,36 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    private async aside(thought: Thought, reason: "not-now" | "decided-against"): Promise<void> {
-        // What you were stuck on is what you already wrote; nothing extra is demanded at the
-        // moment you stop, which is the moment you have least patience for a form.
-        const set = setAside(thought, reason, Date.now());
-        this.replace(set);
-        await ThoughtStore.getInstance().save(set);
-        this.render();
+    /**
+     * Set a whole thread down at once.
+     *
+     * What you were stuck on is what you already wrote, so nothing extra is demanded at the
+     * moment you stop — the moment you have least patience for a form. And the thread goes
+     * together: if you set aside the idea, the counterpoint you wrote against it has nothing
+     * left to argue with.
+     */
+    private async aside(
+        whole: readonly Thought[],
+        reason: "not-now" | "decided-against"
+    ): Promise<void> {
+        const at = Date.now();
+        const store = ThoughtStore.getInstance();
+        for (const thought of whole) {
+            const set = setAside(thought, reason, at);
+            this.replace(set);
+            await store.save(set);
+        }
+        this.redrawAfterAction();
     }
 
-    private async pickUp(thought: Thought): Promise<void> {
-        const back = pickBackUp(thought);
-        this.replace(back);
-        await ThoughtStore.getInstance().save(back);
-        this.render();
+    private async pickUp(whole: readonly Thought[]): Promise<void> {
+        const store = ThoughtStore.getInstance();
+        for (const thought of whole) {
+            const back = pickBackUp(thought);
+            this.replace(back);
+            await store.save(back);
+        }
+        this.redrawAfterAction();
     }
 
     // ── saving an edit, which must never lose a sentence ──────────────────────

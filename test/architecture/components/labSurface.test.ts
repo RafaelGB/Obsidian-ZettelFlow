@@ -83,7 +83,7 @@ describe("typing, by itself, creates nothing (#467 regression)", () => {
 
     it("inserts a new top-level thought instead of rebuilding the surface under you", () => {
         const commit = LAB.slice(LAB.indexOf("private async commit"), LAB.indexOf("private renderNode"));
-        expect(commit).toContain("this.listEl.prepend(card)");
+        expect(commit).toContain("this.listEl.prepend(thread)");
     });
 
     it("redraws for a response, because only a redraw knows where it belongs — and gives the cursor back", () => {
@@ -194,7 +194,7 @@ describe("throwing a thought away (#467 follow-up)", () => {
     it("can be put back, from memory, without a trip to the trash folder", () => {
         expect(STORE).toContain("public async restore(");
         expect(LAB).toContain("private async undoDiscard(");
-        expect(LAB).toContain("ThoughtStore.getInstance().restore(thought)");
+        expect(LAB).toContain("store.restore(thought)");
     });
 
     it("offers the undo where the card was, never as a toast that interrupts", () => {
@@ -230,5 +230,59 @@ describe("the moves explain themselves (#467 follow-up)", () => {
     it("explains each move in a sentence, not in a word", () => {
         const sentence = /lab_legend_(fork|challenge|connect): '([^']{30,})'/g;
         expect([...EN.matchAll(sentence)]).toHaveLength(3);
+    });
+});
+
+/**
+ * An answer without the thought it answers is a fragment (#467 follow-up).
+ *
+ * Throwing away or setting down a thought takes everything written under it. And the redraw that
+ * follows must actually happen: an undo that restores the file and not the screen is an undo
+ * that did not work.
+ */
+describe("actions act on the whole thread (#467 follow-up)", () => {
+    it("hands every action the flattened thread, not the single thought", () => {
+        expect(LAB).toContain("const whole = flattenThread(node);");
+        for (const action of ["this.aside(whole,", "this.discard(whole,", "this.pickUp(whole)"]) {
+            expect({ action, blockwise: LAB.includes(action) }).toEqual({ action, blockwise: true });
+        }
+    });
+
+    it("removes the whole thread's element, not just the card it was clicked on", () => {
+        // Returning the card here is what left the answers hanging on screen.
+        expect(LAB).toContain('const thread = card.closest(`.${c("lab-thread")}`) ?? card;');
+        expect(LAB).toContain("thread.remove();");
+    });
+
+    it("warns in the tooltip when an action will take answers with it", () => {
+        // A destructive action that does not say its reach is how you lose four thoughts meaning
+        // to lose one. A statement about the button you are hovering — not a badge, not a backlog.
+        expect(LAB).toContain("private blockLabel(");
+        expect(LAB).toContain('t("lab_with_answers"');
+    });
+
+    it("threads what was set aside too, so a thread set down together reads together", () => {
+        expect(LAB).toContain("private renderAsideNode(");
+        expect(LAB).toContain("for (const node of threadThoughts(aside))");
+    });
+});
+
+describe("a redraw you asked for always happens (#467 follow-up)", () => {
+    it("separates the guard for typing from the redraw for an action", () => {
+        // The guard stops typing moving the ground under you. It is not a veto on what you asked
+        // for — using it for both is how an undo restored the file and nothing on screen.
+        expect(LAB).toContain("private redrawAfterAction(): void {");
+        expect(LAB).toContain("if (wasComposing) this.composerEl?.focus();");
+    });
+
+    it("has every action redraw through it, never through the guarded one", () => {
+        for (const after of ["undoDiscard", "aside", "pickUp"]) {
+            const body = LAB.slice(LAB.indexOf(`private async ${after}(`));
+            const end = body.indexOf("\n    }");
+            expect({ after, guarded: body.slice(0, end).includes("this.refresh()") }).toEqual({
+                after,
+                guarded: false,
+            });
+        }
     });
 });

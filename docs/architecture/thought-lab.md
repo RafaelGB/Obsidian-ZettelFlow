@@ -134,6 +134,18 @@ actually want to re-read: *I thought this, then I doubted it, then I found the f
   dropped; losing a thought because its parent went is the worst thing this surface could do.
 - A cycle, which only a hand-edited file can produce, is broken rather than recursed into.
 
+### A thread moves as one
+
+**Throwing away, setting aside and deciding against all act on the whole thread.** An answer
+without the thought it answers is a fragment: if you discard the idea, the counterpoint you wrote
+against it has nothing left to argue with, so it goes too.
+
+The tooltip says so before you click — *takes 3 answers with it* — because a destructive action
+that does not state its reach is how you lose four thoughts meaning to lose one. And the undo puts
+the **whole** thread back.
+
+What is set aside is threaded too: a thread set down together should read together.
+
 ### Connections are lateral, because a graph cannot nest
 
 `connect` is undirected, can be many, and can cross threads — so it is **not** part of the tree.
@@ -154,7 +166,18 @@ box — and committing **never rebuilds the surface**: the card is inserted and 
 in place. Editing a thought that already exists *does* save on a debounce, because there the file
 exists and nothing moves on screen.
 
-Two rules hold it together, each stated in exactly one place:
+There are **two** kinds of redraw, and confusing them was a real bug — an undo restored the file
+and nothing on screen, because the guard below refused while the composer held the cursor:
+
+| | |
+|---|---|
+| `refresh()` | for something that changed **while you write**. Refuses if a text box has focus. |
+| `redrawAfterAction()` | because **you** did something. Always happens, and puts the cursor back. |
+
+The guard exists so typing can never move the ground under you. It is not a veto on what you
+asked for.
+
+Two more rules hold it together, each stated in exactly one place:
 
 - **Nothing redraws while a text box has focus** (`refresh()`).
 - **The draft lives outside the DOM**, so even a redraw that does happen cannot lose it.

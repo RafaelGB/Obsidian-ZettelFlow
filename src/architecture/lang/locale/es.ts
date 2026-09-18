@@ -269,6 +269,8 @@ export default {
     lab_legend_discard: 'Va a la papelera de Obsidian. Aquí nunca se borra nada de verdad.',
     lab_link_go: 'Ir a este pensamiento',
     lab_link_gone: 'un pensamiento que ya no está',
+    lab_with_answers: 'se lleva {0} respuestas',
+    lab_discarded_thread: 'Tirado, con sus respuestas ({0} pensamientos). Están en tu papelera.',
     lab_set_aside: 'Dejar aparcado',
     lab_decided_against: 'Descartado',
     lab_reason_not_now: 'aparcado',

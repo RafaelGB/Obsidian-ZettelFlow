@@ -269,6 +269,8 @@ export default {
     lab_legend_discard: 'Send it to the Obsidian trash. Nothing here is ever really deleted.',
     lab_link_go: 'Go to this thought',
     lab_link_gone: 'a thought that is gone',
+    lab_with_answers: 'takes {0} answers with it',
+    lab_discarded_thread: 'Thrown away, with its answers ({0} thoughts). They are in your trash.',
     lab_set_aside: 'Set aside',
     lab_decided_against: 'Decided against',
     lab_reason_not_now: 'set aside',

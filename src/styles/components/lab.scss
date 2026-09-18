@@ -1,0 +1,93 @@
+/* The Thought Lab (#467): a space that asks nothing of you. */
+
+.zettelkasten-flow__lab {
+    padding: 8px 12px;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__lab-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding-bottom: 8px;
+}
+
+.zettelkasten-flow__lab-empty {
+    padding: 24px 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__lab-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.zettelkasten-flow__lab-thought {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: var(--background-primary);
+}
+
+/* The one that is always ready. Nothing to press to start. */
+.zettelkasten-flow__lab-composer {
+    border-style: dashed;
+}
+
+.zettelkasten-flow__lab-connecting {
+    border-color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__lab-text {
+    width: 100%;
+    resize: vertical;
+    border: none;
+    background: transparent;
+    color: var(--text-normal);
+    font-family: var(--font-text);
+    font-size: var(--font-ui-medium);
+    line-height: 1.5;
+    padding: 0;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+/* What a thought is to another thought — never who is right. */
+.zettelkasten-flow__lab-relation {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-accent);
+    padding-bottom: 4px;
+}
+
+.zettelkasten-flow__lab-actions {
+    display: flex;
+    gap: 6px;
+    padding-top: 6px;
+}
+
+.zettelkasten-flow__lab-action {
+    font-size: var(--font-ui-smaller);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__lab-meta {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}

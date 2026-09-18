@@ -5,6 +5,7 @@ import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { HomeModeRenderer } from "architecture/components/core/home/HomeModeRenderer";
 import { CultivateModeRenderer } from "architecture/components/core/cultivate/CultivateModeRenderer";
 import { ChangeRenderer } from "architecture/components/core/changes/ChangeRenderer";
+import { LabRenderer } from "architecture/components/core/lab/LabRenderer";
 
 /**
  * The **Home** surface (#272) — the front door, with modes: Home (the narrative overview) and Recent
@@ -30,6 +31,8 @@ export class HomeSurfaceView extends ModeHostView {
                 return new CultivateModeRenderer(container, this.plugin, state);
             case "recent":
                 return new ChangeRenderer(container, this.plugin);
+            case "lab":
+                return new LabRenderer(container);
             case "home":
             default:
                 return new HomeModeRenderer(container, this.app);

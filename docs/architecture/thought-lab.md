@@ -84,10 +84,45 @@ Writes go through `FileService` like every other write (#456), so a thought land
 Settings → **Thinking** → *Thought Lab folder*. Default `_ZettelFlow/lab`. Point it at an empty
 folder: anything already in there becomes invisible to the knowledge model.
 
+## The space
+
+**Home → Lab**, or the **Think** command. A mode of the Home surface, not a fourth leaf type:
+`ModeHostView` already owns the switching, the deep links and the lifecycle, and a new view would
+be exactly the addition subtraction exists to refuse.
+
+The command's whole promise is a **blinking cursor**. No modal, no folder prompt, no kind picker,
+no title — a guardrail asserts there is nothing in its path that asks a question, because the
+moment a thought matters most is the moment it is most likely to be lost.
+
+### Four moves, and there will not be a fifth
+
+| | |
+|---|---|
+| **Fork** | a variant that goes its own way. Both survive; neither is the parent. |
+| **Challenge** | a thought that argues with another. **Neither is marked right.** |
+| **Connect** | two clicks: arm on one, land on the other. Plain and untyped — never a semantic relation. |
+| **Leave** | not a button. It is what closing does, and it costs nothing. |
+
+Everything else — collision, constraints, perspectives, question transformations — belongs to the
+operator engine in phase 2. A fifth move here would start the feature collection this epic exists
+to prevent, and a test says so.
+
+### Leaving must never cost a sentence
+
+Writing saves on a short debounce, on blur, and on close. A refuge that loses what you typed
+because you switched tabs is not one.
+
+### It never counts
+
+No total, no badge, no "you have 17 thoughts". A guardrail scans the whole of `src/` — not just
+the Lab — for anything that counts thoughts, and scans this surface's strings for the vocabulary
+of debt. A counter would destroy the thing the Lab is for, and it would not be added in this file
+when it happened.
+
 ## What is not here yet
 
-The surface you write in, the four moves, crystallizing a thought into a note, setting one aside,
-and thinking before you look are separate changes in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
+Crystallizing a thought into a note, setting one aside, and thinking before you look are separate
+changes in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
 This page describes the object and the guarantee underneath them.
 
 ## Capability disclosure

@@ -2,6 +2,7 @@ import { PluginComponent } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
 import { openSurfaceForCommand } from "architecture/components/core/surface/openSurface";
+import { activateSurface } from "architecture/plugin";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -34,6 +35,16 @@ export class SurfaceCommandsComponent extends PluginComponent {
     private plugin: ZettelFlow;
 
     onLoad(): void {
+        // The Thought Lab (#467). Registered here rather than in the table above because it opens
+        // a mode directly instead of mapping a retired view — and because its whole promise is
+        // that nothing stands between the command and a blinking cursor: no modal, no folder
+        // prompt, no kind picker, no title.
+        this.plugin.addCommand({
+            id: "think",
+            name: t("command_think"),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-home", "lab"),
+        });
+
         for (const { id, nameKey } of SURFACE_COMMANDS) {
             this.plugin.addCommand({
                 id,

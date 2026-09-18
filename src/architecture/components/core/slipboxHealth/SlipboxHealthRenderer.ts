@@ -1,4 +1,5 @@
-import { App } from "obsidian";
+import { App, Notice, moment as obsidianMoment } from "obsidian";
+import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
@@ -24,6 +25,8 @@ import {
     DashboardPanel,
     Metric,
     RecommendationToken,
+    speedFacts,
+    formatDuration,
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import type { SurfaceTarget } from "architecture/components/core/surface/legacyTargets";
@@ -31,6 +34,9 @@ import type { SurfaceTarget } from "architecture/components/core/surface/legacyT
 const DEBOUNCE_MS = 400;
 /** Cap the DOM rows per health section (#302 S5): a huge vault can have thousands of orphans. */
 const MAX_HEALTH_ROWS = 200;
+
+/** Obsidian re-exports moment without its call signature; the app's own tabs do the same cast. */
+const moment = obsidianMoment as unknown as typeof MomentFn;
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -127,11 +133,15 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
 
     onload(): void {
         this.registerVaultListeners();
+        this.watchPass();
         void this.recompute();
     }
 
     onunload(): void {
         window.clearTimeout(this.debounceTimer);
+        // Stop listening before the DOM goes, or a pass still running would draw into nothing.
+        KnowledgeIndex.getInstance().onEnrichmentProgress(undefined);
+        this.passHost = undefined;
         this.container.empty();
     }
 
@@ -230,6 +240,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 this.renderDebtSection(container);
                 this.renderBalanceSection(container);
                 this.renderAgencySection(container);
+                this.renderSpeedSection(container);
                 this.renderLists(container);
                 break;
         }
@@ -385,6 +396,93 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
      * invites a move — there is no score, no ratio and no grade, because the question is whether your
      * understanding changed, never how much you did.
      */
+    /**
+     * **How fast it is here** (#462, epic #452).
+     *
+     * The budgets in CI measure a synthetic vault on a build runner; that gates a release, and it
+     * cannot answer *"is this slow for me?"*. These are your numbers, from your last launch, out
+     * of the same instrument the budgets assert against.
+     *
+     * Facts only (§XII), exactly like the agency section above it: a duration, a note count, when
+     * it was measured. No score, no band, no colour, no advice — a number lets you draw your own
+     * conclusion, and it is your vault.
+     */
+    /** Live progress of the pass, when one is running. Cleared when it finishes. */
+    private pass: { done: number; total: number } | undefined;
+
+    /**
+     * Watch the enrichment pass while this surface is open (#462 FR-1/FR-2).
+     *
+     * A long pass used to run with nothing said and no way to stop it. Now it reports at each
+     * yield boundary and the section offers **Stop** — which leaves the model consistent, because
+     * every note is applied whole or not at all.
+     */
+    private watchPass(): void {
+        KnowledgeIndex.getInstance().onEnrichmentProgress((progress) => {
+            this.pass = progress.done >= progress.total ? undefined : progress;
+            this.renderPassRow();
+        });
+    }
+
+    private renderPassRow(): void {
+        if (!this.passHost) return;
+        this.passHost.empty();
+        if (!this.pass) return;
+        this.passHost.createSpan({
+            cls: c("slipbox-health-item-name"),
+            text: t("speed_pass_running", String(this.pass.done), String(this.pass.total)),
+        });
+        const stop = this.passHost.createEl("button", {
+            text: t("speed_pass_cancel"),
+            cls: c("speed-stop"),
+            attr: { type: "button" },
+        });
+        this.registerDomEvent(stop, "click", () => {
+            const stopped = this.pass?.done ?? 0;
+            KnowledgeIndex.getInstance().cancelEnrichment();
+            this.pass = undefined;
+            this.renderPassRow();
+            new Notice(t("speed_pass_stopped", String(stopped)));
+        });
+    }
+
+    /** Where {@link renderPassRow} draws, so progress never re-renders the whole surface. */
+    private passHost: HTMLElement | undefined;
+
+    private renderSpeedSection(container: HTMLElement): void {
+        const facts = speedFacts();
+        const section = container.createDiv({ cls: c("slipbox-health-section") });
+        section.createEl("h5", { text: t("speed_title"), cls: c("slipbox-health-section-heading") });
+        section.createDiv({ cls: c("slipbox-health-section-intro"), text: t("speed_intro") });
+
+        // A pass in flight is the one thing here that is not history.
+        this.passHost = section.createDiv({ cls: c("speed-pass") });
+        this.renderPassRow();
+
+        if (facts.empty) {
+            // Said once, without ceremony, instead of a table of zeros.
+            section.createDiv({ cls: c("slipbox-health-empty"), text: t("speed_never_measured") });
+            return;
+        }
+
+        const list = section.createDiv({ cls: c("slipbox-health-list") });
+        for (const fact of facts.facts) {
+            const row = list.createDiv({ cls: c("slipbox-health-item") });
+            row.createSpan({
+                cls: c("slipbox-health-item-name"),
+                text: t(fact.labelKey as LocaleKey),
+            });
+            row.createSpan({ cls: c("speed-value"), text: formatDuration(fact.ms) });
+            if (fact.scale !== undefined) {
+                row.createSpan({ cls: c("speed-scale"), text: t("speed_over_notes", String(fact.scale)) });
+            }
+            row.createSpan({
+                cls: c("speed-when"),
+                text: t("speed_measured_at", moment(fact.at).fromNow()),
+            });
+        }
+    }
+
     private renderAgencySection(container: HTMLElement): void {
         if (this.unexamined.length === 0) return; // nothing to say is better than an empty scoreboard
         const section = container.createDiv({ cls: c("slipbox-health-section") });

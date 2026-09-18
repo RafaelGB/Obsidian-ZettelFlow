@@ -117,3 +117,18 @@
         opacity: 1;
     }
 }
+
+/* Timings from this vault (#462): facts in a row, no colour and no grading. */
+.zettelkasten-flow__speed-value {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-normal);
+    margin-left: auto;
+}
+
+.zettelkasten-flow__speed-scale,
+.zettelkasten-flow__speed-when {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    margin-left: 8px;
+    white-space: nowrap;
+}

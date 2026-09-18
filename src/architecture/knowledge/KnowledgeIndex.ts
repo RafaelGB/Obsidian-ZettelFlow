@@ -7,6 +7,8 @@ import { gatherSnapshot } from "./snapshot";
 import { parseInlineFields } from "./parse/inlineFields";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
 import { isClaimOrSourceKey, isSourceKey } from "./claims";
+import { measure, measureAsync } from "architecture/monitoring/measure";
+import { runLongPass } from "architecture/monitoring/longPass";
 import {
     fingerprint,
     filesToEnrich,
@@ -81,6 +83,12 @@ export class KnowledgeIndex {
     /** The debounce behind the incremental re-pass: a burst of edits is one pass, not twenty. */
     private enrichTimer: number | undefined;
 
+    /** Flipped by {@link cancelEnrichment}; the pass checks it at every item (#462). */
+    private enrichAbort = { aborted: false };
+
+    /** Where a running pass reports to, when a surface is watching. */
+    private enrichProgress: ((progress: { done: number; total: number }) => void) | undefined;
+
     private constructor() {
         // singleton
     }
@@ -147,7 +155,13 @@ export class KnowledgeIndex {
         // The single scope filter (#311): excluded notes never become ideas, so they drop out of every
         // downstream mechanism (graph, health, discovery, cultivate, home) at once.
         const inScope = all.filter((file) => this.inScope(file.path));
-        const ideas: Idea[] = inScope.map((file) => deriveIdea(gatherSnapshot(file), this.schemas));
+        // Timed through the shared instrument (#462), so Health can report what it actually
+        // cost on this machine, with this vault — the same numbers the budgets assert in CI.
+        const ideas: Idea[] = measure(
+            "index.build",
+            () => inScope.map((file) => deriveIdea(gatherSnapshot(file), this.schemas)),
+            { scale: inScope.length }
+        );
         this.model.build(ideas);
         this.currentStatus = "ready";
         log.debug(
@@ -227,6 +241,7 @@ export class KnowledgeIndex {
      */
     public async enrichInlineRelations(): Promise<void> {
         const start = Date.now();
+        this.enrichAbort = { aborted: false };
         const vault = ObsidianApi.vault();
         const metadataCache = ObsidianApi.metadataCache();
         const inScope: EnrichableFile[] = [];
@@ -240,10 +255,19 @@ export class KnowledgeIndex {
 
         const plan = filesToEnrich(this.enrichedFingerprints, inScope);
         const enriched: string[] = [];
-        for (const path of plan.enrich) {
-            const file = byPath.get(path);
-            if (!file) continue;
-            try {
+        // The first pass over a large vault is genuinely long, so it yields, reports and can be
+        // stopped (#462). Each note is applied whole or not at all, which is what makes stopping
+        // safe: what finished is finished, and the rest was never started.
+        // Timed as one thing or the other, because "the whole vault" and "the four notes you
+        // touched" are different questions and Health shows both (#462).
+        const full = plan.enrich.length === inScope.length && inScope.length > 0;
+        const pass = await measureAsync(
+            full ? "enrich.full" : "enrich.incremental",
+            () => runLongPass(
+            plan.enrich,
+            async (path) => {
+                const file = byPath.get(path);
+                if (!file) return;
                 const body = await vault.cachedRead(file);
                 const inlineFields = parseInlineFields(body).filter(
                     (field) => isSemanticRelationType(field.key) || isClaimOrSourceKey(field.key)
@@ -265,25 +289,44 @@ export class KnowledgeIndex {
                 // left the relation in the model for the rest of the session (#459).
                 this.model.upsert(deriveIdea({ ...snapshot, inlineFields, resolvedTargets }, this.schemas));
                 enriched.push(path);
-                if (enriched.length % ENRICH_YIELD_EVERY === 0) await Promise.resolve();
-            } catch (error) {
-                // Never name the note or echo the raw error — a private inquiry note must not leak here (#401 §XII).
-                log.error(`[KnowledgeIndex] inline relation enrichment failed for a note (${failureCategory(error)})`);
+            },
+            {
+                yieldEvery: ENRICH_YIELD_EVERY,
+                signal: this.enrichAbort,
+                onProgress: (progress) => this.enrichProgress?.(progress),
             }
+            ),
+            { scale: plan.enrich.length }
+        );
+        if (pass.failed > 0) {
+            // Never name the note or echo the raw error — a private inquiry note must not leak here (#401 §XII).
+            log.error(`[KnowledgeIndex] inline relation enrichment failed for ${pass.failed} note(s)`);
         }
 
-        // Only what was actually read is remembered: a file that threw stays "changed" so the next
-        // pass tries it again.
+        // Only what was actually read is remembered: a file that threw, or one a cancellation
+        // never reached, stays "changed" so the next pass tries it again.
         this.enrichedFingerprints = rememberEnriched(
             this.enrichedFingerprints,
             inScope,
             enriched,
             plan.drop
         );
-        this.firstEnrichmentDone = true;
+        // A cancelled pass has not seen the vault, so it must not claim the first pass is done.
+        if (!pass.cancelled) this.firstEnrichmentDone = true;
+        const elapsed = Date.now() - start;
         log.debug(
-            `[KnowledgeIndex] inline-enriched ${enriched.length} of ${inScope.length} notes in ${Date.now() - start}ms`
+            `[KnowledgeIndex] inline-enriched ${enriched.length} of ${inScope.length} notes in ${elapsed}ms`
         );
+    }
+
+    /** Stop the pass that is running, at its next item. Used by the Health surface (#462). */
+    public cancelEnrichment(): void {
+        this.enrichAbort.aborted = true;
+    }
+
+    /** Watch a running pass. One listener: there is one surface that shows it. */
+    public onEnrichmentProgress(listener: ((progress: { done: number; total: number }) => void) | undefined): void {
+        this.enrichProgress = listener;
     }
 
     /** True once the whole vault has been enriched at least once this session (#459). */

@@ -104,5 +104,28 @@ Not measured here: `getMarkdownFiles`, the metadata cache, and the fifty thousan
 calls the enrichment pass makes. `enrich.parse` times the parsing; the **reading** is the expensive
 half, and it is I/O no synthetic harness can honestly stand in for.
 
-That gap is why the epic also reports real, in-app timings on the Health surface — the numbers from
-*your* vault, on *your* machine, out of the same instrument.
+That gap is why the app reports its own timings too.
+
+## Timings from this vault (#462)
+
+The Health surface has a small section fed by the **same instrument**. What you read there is what
+was measured on your last launch, on your machine, over your notes:
+
+| Row | What it timed |
+|---|---|
+| Building the index | deriving every in-scope note |
+| Reading every note for inline fields | the first, full enrichment pass |
+| Reading the notes that changed | an incremental pass (#459) |
+| The heaviest analysis | the last expensive projection that ran |
+
+Each row carries the note count it was measured over and when. A kind never measured is **absent**,
+not shown as zero.
+
+**Facts, and no verdict** (§XII). No score, no band, no colour, no "your vault is slow". A
+guardrail test scans the section's strings for comparative and prescriptive words — it rejected
+the first title this section was given (*"How fast it is here"*) for containing *fast*, which is
+the rule working as intended.
+
+A long pass now also **says it is running and can be stopped**. Cancelling is safe because every
+note is applied whole or not at all: what finished is finished, what was not started stays marked
+as changed, and the next pass picks it up.

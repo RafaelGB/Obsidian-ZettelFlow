@@ -26,16 +26,32 @@ export interface ThoughtLink {
     to: string;
 }
 
+/**
+ * What a thought is **to the one it came out of**.
+ *
+ * Fork and challenge were two fields saying the same thing — *which thought is this a response
+ * to* — and storing them apart made them impossible to lay out together. They are one relation
+ * with two flavours: a variant that goes its own way, or an argument against.
+ */
+export type ResponseKind = "fork" | "challenge";
+
+export interface Response {
+    to: string;
+    as: ResponseKind;
+}
+
 export interface Thought {
     id: string;
     /** Unix ms. The only ordering a thought has. */
     at: number;
     text: string;
     links: ThoughtLink[];
-    /** The thought this one went its own way from. */
-    forkedFrom?: string;
-    /** The thought this one argues with. Neither side is marked right. */
-    challenges?: string;
+    /**
+     * The thought this one responds to, and how. **At most one** — that single parent is what
+     * makes the lab a set of threads you can read downward instead of a pile sorted by clock.
+     * Neither side of a challenge is marked right.
+     */
+    respondsTo?: Response;
     /** Set aside (#469). Absent is the normal state, and it generates nothing. */
     incubated?: Incubation;
 }
@@ -44,8 +60,7 @@ export interface NewThought {
     text: string;
     id: string;
     at: number;
-    forkedFrom?: string;
-    challenges?: string;
+    respondsTo?: Response;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -54,8 +69,7 @@ export function newThought(input: NewThought): Thought {
         at: input.at,
         text: input.text,
         links: [],
-        ...(input.forkedFrom ? { forkedFrom: input.forkedFrom } : {}),
-        ...(input.challenges ? { challenges: input.challenges } : {}),
+        ...(input.respondsTo ? { respondsTo: input.respondsTo } : {}),
     };
 }
 
@@ -96,8 +110,9 @@ export function renderThought(thought: Thought): string {
         `  at: ${thought.at}`,
         `  links: [${thought.links.map((link) => link.to).join(", ")}]`,
     ];
-    if (thought.forkedFrom) lines.push(`  forkedFrom: ${thought.forkedFrom}`);
-    if (thought.challenges) lines.push(`  challenges: ${thought.challenges}`);
+    if (thought.respondsTo) {
+        lines.push(`  respondsTo: ${thought.respondsTo.to}`, `  respondsAs: ${thought.respondsTo.as}`);
+    }
     if (thought.incubated) {
         lines.push(`  asideReason: ${thought.incubated.reason}`, `  asideAt: ${thought.incubated.at}`);
         if (thought.incubated.stuckOn) lines.push(`  stuckOn: ${thought.incubated.stuckOn}`);
@@ -135,8 +150,7 @@ export function parseThought(content: string, path: string): Thought {
         .map((to) => ({ to }));
 
     const at = Number(read("at"));
-    const forkedFrom = read("forkedFrom");
-    const challenges = read("challenges");
+    const respondsTo = readResponse(read);
     const asideReason = read("asideReason");
     const stuckOn = read("stuckOn");
     const incubated: Incubation | undefined =
@@ -152,8 +166,26 @@ export function parseThought(content: string, path: string): Thought {
         at: Number.isFinite(at) ? at : 0,
         text: body,
         links,
-        ...(forkedFrom ? { forkedFrom } : {}),
-        ...(challenges ? { challenges } : {}),
+        ...(respondsTo ? { respondsTo } : {}),
         ...(incubated ? { incubated } : {}),
     };
+}
+
+/**
+ * The response a file declares.
+ *
+ * Also reads the two fields this replaced (`forkedFrom` / `challenges`), so a lab written by an
+ * earlier build keeps its threads. A read-only migration: the next save writes the new shape, and
+ * the old keys are never produced again.
+ */
+function readResponse(read: (field: string) => string | undefined): Response | undefined {
+    const to = read("respondsTo");
+    const as = read("respondsAs");
+    if (to && (as === "fork" || as === "challenge")) return { to, as };
+
+    const forked = read("forkedFrom");
+    if (forked) return { to: forked, as: "fork" };
+    const challenged = read("challenges");
+    if (challenged) return { to: challenged, as: "challenge" };
+    return undefined;
 }

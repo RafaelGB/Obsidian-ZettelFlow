@@ -81,12 +81,16 @@ describe("typing, by itself, creates nothing (#467 regression)", () => {
         expect(LAB).toContain('registerDomEvent(area, "blur", () => this.flush())');
     });
 
-    it("inserts the new card instead of rebuilding the surface under you", () => {
-        const commit = LAB.slice(LAB.indexOf("private async commit"), LAB.indexOf("private renderThought"));
+    it("inserts a new top-level thought instead of rebuilding the surface under you", () => {
+        const commit = LAB.slice(LAB.indexOf("private async commit"), LAB.indexOf("private renderNode"));
         expect(commit).toContain("this.listEl.prepend(card)");
-        // A bare `this.render()` here is what made it jump; the only redraw allowed is the
-        // focus-guarded one, and only when the armed banner has to go.
-        expect(commit.includes("this.render()")).toBe(false);
+    });
+
+    it("redraws for a response, because only a redraw knows where it belongs — and gives the cursor back", () => {
+        // A response has to land under what it answers. That redraw is safe: it happens on an
+        // explicit commit, never on a timer, and the composer is refocused immediately.
+        const commit = LAB.slice(LAB.indexOf("private async commit"), LAB.indexOf("private renderNode"));
+        expect(commit).toMatch(/if \(relation\) \{[\s\S]*this\.render\(\);[\s\S]*this\.composerEl\?\.focus\(\);/);
     });
 
     it("keeps the draft outside the DOM, so a redraw cannot lose it", () => {
@@ -102,7 +106,7 @@ describe("typing, by itself, creates nothing (#467 regression)", () => {
     it("arms the composer for a fork or a challenge, rather than creating an empty card", () => {
         // An empty file you have to go back and fill is worse than no file.
         const arm = LAB.slice(LAB.indexOf("private arm("), LAB.indexOf("private async connect"));
-        expect(arm).toContain("this.relation = { kind, to: origin.id }");
+        expect(arm).toContain("this.relation = { to: origin.id, as: kind }");
         expect(arm.includes("ThoughtStore")).toBe(false);
     });
 

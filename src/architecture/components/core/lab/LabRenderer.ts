@@ -4,7 +4,8 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { linkThoughts, orderThoughts, thoughtPath, type Thought } from "application/thinking/thought";
+import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
+import { threadThoughts, type ThoughtNode } from "application/thinking/thread";
 import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -48,7 +49,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** The composer's text. Held here, not in the DOM, so a redraw can never lose it. */
     private draft = "";
     /** What the next committed thought will be to an existing one. */
-    private relation: { kind: "fork" | "challenge"; to: string } | undefined;
+    private relation: { to: string; as: ResponseKind } | undefined;
 
     private editTimer: number | undefined;
     private pendingEdit: (() => Promise<void>) | undefined;
@@ -69,6 +70,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private blind: BlindPanel | undefined;
 
     private listEl: HTMLElement | undefined;
+    /** Where each thought is on screen, so following a connection can actually go somewhere. */
+    private readonly cards = new Map<string, HTMLElement>();
     private composerEl: HTMLTextAreaElement | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -109,6 +112,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private render(): void {
         const host = this.container;
         host.empty();
+        this.cards.clear();
         host.addClass(c("lab"));
 
         if (!ThoughtStore.getInstance().folder()) {
@@ -143,14 +147,14 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (this.selected.size > 0) this.renderPicked(host);
 
         this.listEl = host.createDiv({ cls: c("lab-list") });
-        const here = orderThoughts(this.thoughts);
-        const open = here.filter((thought) => !isIncubated(thought));
+        const open = this.thoughts.filter((thought) => !isIncubated(thought));
         if (open.length === 0) {
             this.listEl.createDiv({ cls: c("lab-blank"), text: t("lab_blank") });
         }
-        for (const thought of open) this.renderThought(this.listEl, thought);
+        // Threads, not a pile sorted by clock: a counterpoint belongs under what it answers.
+        for (const node of threadThoughts(open)) this.renderNode(this.listEl, node);
 
-        this.renderAsideDoor(host, here.filter(isIncubated));
+        this.renderAsideDoor(host, this.thoughts.filter(isIncubated));
     }
 
     /**
@@ -188,7 +192,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (this.relation) {
             const armed = box.createDiv({ cls: c("lab-armed") });
             armed.createSpan({
-                text: this.relation.kind === "fork" ? t("lab_arming_fork") : t("lab_arming_challenge"),
+                text: this.relation.as === "fork" ? t("lab_arming_fork") : t("lab_arming_challenge"),
             });
             this.ghostAction(armed, t("lab_arming_cancel"), "x", () => {
                 this.relation = undefined;
@@ -234,32 +238,58 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.relation = undefined;
         if (this.composerEl) this.composerEl.value = "";
 
-        const options = relation
-            ? relation.kind === "fork"
-                ? { forkedFrom: relation.to }
-                : { challenges: relation.to }
-            : {};
-        const made = await ThoughtStore.getInstance().write(text, options);
+        const made = await ThoughtStore.getInstance().write(
+            text,
+            relation ? { respondsTo: relation } : {}
+        );
         if (!made) return;
         this.thoughts.push(made);
+
+        if (relation) {
+            // A response has to land under what it answers, and only a redraw knows where that
+            // is. Safe here because this is an explicit commit, not a timer — and the cursor is
+            // put straight back where it was.
+            this.render();
+            this.composerEl?.focus();
+            this.scrollTo(made.id);
+            return;
+        }
         if (!this.listEl) return;
         this.listEl.querySelector(`.${c("lab-blank")}`)?.remove();
         const card = this.renderThought(this.listEl, made);
         this.listEl.prepend(card);
-        if (relation) this.refresh(); // the armed banner is gone; nothing has focus
+    }
+
+    /**
+     * A thought and everything written in answer to it, nested.
+     *
+     * The indent is capped in CSS rather than here: going eight replies deep is a real thing to
+     * do, and the data should say so even when the screen cannot show it.
+     */
+    private renderNode(host: HTMLElement, node: ThoughtNode): HTMLElement {
+        const thread = host.createDiv({ cls: c("lab-thread") });
+        const card = this.renderThought(thread, node.thought);
+        if (node.children.length === 0) return thread;
+
+        const answers = thread.createDiv({ cls: c("lab-answers") });
+        for (const child of node.children) this.renderNode(answers, child);
+        return card;
     }
 
     private renderThought(list: HTMLElement, thought: Thought): HTMLElement {
         const box = list.createDiv({ cls: c("lab-card") });
+        this.cards.set(thought.id, box);
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
 
-        // Colour distinguishes what a thought *is* to another, never who is right.
-        if (thought.challenges) {
-            box.addClass(c("lab-card-challenge"));
-            this.ribbon(box, t("lab_challenges"), "swords");
-        } else if (thought.forkedFrom) {
-            box.addClass(c("lab-card-fork"));
-            this.ribbon(box, t("lab_forked"), "git-branch");
+        // Colour distinguishes what a thought *is* to the one above it, never who is right.
+        const response = thought.respondsTo;
+        if (response) {
+            box.addClass(c(response.as === "challenge" ? "lab-card-challenge" : "lab-card-fork"));
+            this.ribbon(
+                box,
+                response.as === "challenge" ? t("lab_challenges") : t("lab_forked"),
+                response.as === "challenge" ? "swords" : "git-branch"
+            );
         }
 
         const area = box.createEl("textarea", { cls: c("lab-text"), attr: { rows: "1" } });
@@ -267,12 +297,13 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(area, "input", () => this.scheduleEdit(thought, area, box));
         this.registerDomEvent(area, "blur", () => this.flush());
 
+        // A connection is undirected and can cross threads, so it cannot nest. It is shown
+        // beside the thought as a reference you can follow, not as a count you cannot use.
+        if (thought.links.length > 0) this.renderLinks(box, thought);
+
         const footer = box.createDiv({ cls: c("lab-card-footer") });
         const meta = footer.createDiv({ cls: c("lab-meta") });
         meta.createSpan({ text: moment(thought.at).fromNow() });
-        if (thought.links.length > 0) {
-            meta.createSpan({ text: t("lab_connected", String(thought.links.length)) });
-        }
 
         const actions = footer.createDiv({ cls: c("lab-actions") });
         const pick = actions.createEl("input", { type: "checkbox", cls: c("lab-pick") });
@@ -325,9 +356,41 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.refresh();
     }
 
+    /** The thoughts this one is connected to, as chips that take you to them. */
+    private renderLinks(box: HTMLElement, thought: Thought): void {
+        const row = box.createDiv({ cls: c("lab-links") });
+        setIcon(row.createSpan({ cls: c("lab-links-icon") }), "link");
+        for (const link of thought.links) {
+            const other = this.thoughts.find((entry) => entry.id === link.to);
+            const chip = row.createEl("button", {
+                cls: c("lab-chip"),
+                text: other ? firstWords(other.text) : t("lab_link_gone"),
+                attr: { type: "button" },
+            });
+            if (!other) {
+                chip.addClass(c("lab-chip-gone"));
+                continue;
+            }
+            setTooltip(chip, t("lab_link_go"));
+            this.registerDomEvent(chip, "mousedown", (event: MouseEvent) => {
+                event.preventDefault();
+                this.scrollTo(other.id);
+            });
+        }
+    }
+
+    /** Take me to that thought, and say which one arrived. */
+    private scrollTo(id: string): void {
+        const target = this.cards.get(id);
+        if (!target) return;
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.addClass(c("lab-arrived"));
+        window.setTimeout(() => target.removeClass(c("lab-arrived")), 1200);
+    }
+
     /** Arm the composer, instead of creating an empty card you would have to go back and fill. */
-    private arm(kind: "fork" | "challenge", origin: Thought): void {
-        this.relation = { kind, to: origin.id };
+    private arm(kind: ResponseKind, origin: Thought): void {
+        this.relation = { to: origin.id, as: kind };
         this.render();
         this.composerEl?.focus();
     }
@@ -537,4 +600,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (at === -1) this.thoughts.push(thought);
         else this.thoughts[at] = thought;
     }
+}
+
+/** Enough of a thought to recognise it in a chip. */
+function firstWords(text: string): string {
+    const single = text.replace(/\s+/g, " ").trim();
+    return single.length <= 32 ? single : `${single.slice(0, 31).trimEnd()}…`;
 }

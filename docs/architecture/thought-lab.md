@@ -107,6 +107,42 @@ Everything else — collision, constraints, perspectives, question transformatio
 operator engine in phase 2. A fifth move here would start the feature collection this epic exists
 to prevent, and a test says so.
 
+### Thinking reads downward
+
+An answer sits **under what it answers**.
+
+The lab's first list was flat and sorted by clock, so a counterpoint you had just written appeared
+at the *top*, nowhere near the thought it argued with. That was not a layout problem with a layout
+fix: `forkedFrom` and `challenges` were two fields saying the same thing — *which thought is this
+a response to* — and nothing in the data said they formed a shape.
+
+They do. A thought responds to **at most one** other:
+
+```yaml
+respondsTo: a1b2c3d4
+respondsAs: challenge     # or: fork
+```
+
+That single parent is what makes the lab a set of **threads**, and a thread is the thing you
+actually want to re-read: *I thought this, then I doubted it, then I found the flaw.*
+
+`threadThoughts` builds them, and its rules are the interesting part:
+
+- Roots come **newest first** — the thread you were just in is the one you want.
+- Children come **oldest first** — a conversation reads downward.
+- A response whose parent was thrown away becomes **a thread of its own**. Nothing is ever
+  dropped; losing a thought because its parent went is the worst thing this surface could do.
+- A cycle, which only a hand-edited file can produce, is broken rather than recursed into.
+
+### Connections are lateral, because a graph cannot nest
+
+`connect` is undirected, can be many, and can cross threads — so it is **not** part of the tree.
+A connected thought appears as a chip beside the card, showing its first words; clicking one
+scrolls to it and flashes the card you landed on. A chip whose thought is gone says so rather than
+disappearing.
+
+That is the split: **responses nest, connections point.**
+
 ### Nothing is committed on a timer
 
 A pause while writing is **thinking, not a boundary**. The first version of this surface saved a

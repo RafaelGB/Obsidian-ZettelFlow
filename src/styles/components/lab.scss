@@ -566,3 +566,103 @@
         animation: none;
     }
 }
+
+/* ── threads: an answer sits under what it answers ────────────────────────── */
+
+.zettelkasten-flow__lab-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/*
+ * The indent is capped here rather than in the model: going six replies deep is a real thing to
+ * do, and the data should keep saying so even when the screen runs out of room.
+ */
+.zettelkasten-flow__lab-answers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 18px;
+    padding-left: 14px;
+    border-left: 1px solid var(--background-modifier-border);
+    position: relative;
+
+    /* Stop indenting past the fourth level; the ribbon still says what each card is. */
+    .zettelkasten-flow__lab-answers .zettelkasten-flow__lab-answers .zettelkasten-flow__lab-answers & {
+        margin-left: 0;
+    }
+}
+
+/* ── connections: lateral, because a graph cannot nest ────────────────────── */
+
+.zettelkasten-flow__lab-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 8px;
+}
+
+.zettelkasten-flow__lab-links-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    .svg-icon {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.zettelkasten-flow__lab-chip {
+    font-size: var(--font-ui-smaller);
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    cursor: pointer;
+    box-shadow: none;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+        border-color: var(--text-accent);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__lab-chip-gone {
+    cursor: default;
+    opacity: 0.6;
+    font-style: italic;
+
+    &:hover {
+        border-color: var(--background-modifier-border);
+        color: var(--text-muted);
+    }
+}
+
+/* Following a connection should say which card you landed on. */
+@keyframes zf-lab-arrived {
+    0%,
+    60% {
+        background: var(--background-modifier-hover);
+    }
+
+    100% {
+        background: var(--background-primary);
+    }
+}
+
+.zettelkasten-flow__lab-arrived {
+    animation: zf-lab-arrived 1200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__lab-arrived {
+        animation: none;
+    }
+}

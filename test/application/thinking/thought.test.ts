@@ -50,14 +50,37 @@ describe("a thought asks nothing of you (#466)", () => {
         expect(twice.links).toEqual([{ to: "t2" }]);
     });
 
-    it("records a fork and a challenge as what they are, not as a verdict", () => {
+    it("records a fork and a challenge as one relation with two flavours", () => {
+        // They were two fields saying the same thing — *which thought is this a response to* —
+        // and storing them apart is what made them impossible to lay out together.
         const origin = newThought({ text: "structure helps", id: "t1", at: NOW });
-        const fork = newThought({ text: "or does it", id: "t2", at: NOW + 1, forkedFrom: origin.id });
-        const against = newThought({ text: "too much kills it", id: "t3", at: NOW + 2, challenges: origin.id });
-        expect(fork.forkedFrom).toBe("t1");
-        expect(against.challenges).toBe("t1");
+        const fork = newThought({
+            text: "or does it",
+            id: "t2",
+            at: NOW + 1,
+            respondsTo: { to: origin.id, as: "fork" },
+        });
+        const against = newThought({
+            text: "too much kills it",
+            id: "t3",
+            at: NOW + 2,
+            respondsTo: { to: origin.id, as: "challenge" },
+        });
+        expect(fork.respondsTo).toEqual({ to: "t1", as: "fork" });
+        expect(against.respondsTo).toEqual({ to: "t1", as: "challenge" });
         // Neither side is marked right, wrong, resolved or preferred.
         expect(Object.keys(against)).not.toContain("resolved");
+    });
+
+    it("answers at most one thought, which is what makes the lab a set of threads", () => {
+        const thought = newThought({
+            text: "x",
+            id: "t1",
+            at: NOW,
+            respondsTo: { to: "t0", as: "challenge" },
+        });
+        expect(Object.keys(thought)).not.toContain("forkedFrom");
+        expect(Object.keys(thought)).not.toContain("challenges");
     });
 
     it("keeps the newest first, which is where you were just working", () => {
@@ -84,17 +107,30 @@ describe("a thought is a file you can open (#466)", () => {
         expect(parseThought(renderThought(thought), "lab/t1.md").text).toBe(text);
     });
 
-    it("round-trips the links, the fork and the challenge", () => {
+    it("round-trips the links and the response", () => {
         const thought: Thought = {
             ...newThought({ text: "x", id: "t1", at: NOW }),
             links: [{ to: "t2" }, { to: "t3" }],
-            forkedFrom: "t9",
-            challenges: "t8",
+            respondsTo: { to: "t9", as: "challenge" },
         };
         const back = parseThought(renderThought(thought), "lab/t1.md");
         expect(back.links).toEqual([{ to: "t2" }, { to: "t3" }]);
-        expect(back.forkedFrom).toBe("t9");
-        expect(back.challenges).toBe("t8");
+        expect(back.respondsTo).toEqual({ to: "t9", as: "challenge" });
+    });
+
+    it("reads a lab written before the two fields became one", () => {
+        // A read-only migration: the next save writes the new shape, and the old keys are never
+        // produced again. Someone's thoughts should not lose their threads to a refactor.
+        const old = "---\nzfThought:\n  id: t1\n  at: 5\n  links: []\n  forkedFrom: t9\n---\n\nthe text\n";
+        expect(parseThought(old, "lab/t1.md").respondsTo).toEqual({ to: "t9", as: "fork" });
+
+        const argued = old.replace("forkedFrom: t9", "challenges: t8");
+        expect(parseThought(argued, "lab/t1.md").respondsTo).toEqual({ to: "t8", as: "challenge" });
+    });
+
+    it("ignores a response whose flavour it does not recognise", () => {
+        const broken = "---\nzfThought:\n  id: t1\n  at: 5\n  links: []\n  respondsTo: t9\n  respondsAs: maybe\n---\n\nx\n";
+        expect(parseThought(broken, "lab/t1.md").respondsTo).toBeUndefined();
     });
 
     it("reads a file with no frontmatter at all as just text, rather than failing", () => {

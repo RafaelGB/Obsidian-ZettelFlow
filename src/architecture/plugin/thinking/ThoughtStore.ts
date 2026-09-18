@@ -9,6 +9,7 @@ import {
     parseThought,
     renderThought,
     thoughtPath,
+    type Response,
     type Thought,
 } from "application/thinking/thought";
 
@@ -53,7 +54,7 @@ export class ThoughtStore {
     /** Start one. No title is asked for, because a thought does not have one. */
     public async write(
         text: string,
-        options: { forkedFrom?: string; challenges?: string } = {}
+        options: { respondsTo?: Response } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
         if (!folder) return undefined;

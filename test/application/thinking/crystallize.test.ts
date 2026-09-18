@@ -1,5 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import {
+    destinationsFor,
+    renderReturn,
     FROZEN_QUOTE_LIMIT,
     FROZEN_QUOTE_MAX,
     planCrystallization,
@@ -120,5 +122,38 @@ describe("provenance that survives the Lab (#468)", () => {
         const note = renderCrystallized(plan!, "Something else entirely.", HEADING, OMITTED);
         expect(note).toContain("Something else entirely.");
         expect(note.split(HEADING)[0]).not.toContain("maybe the problem is speed");
+    });
+});
+
+describe("going back to the note you came from (#474)", () => {
+    const plan = planCrystallization(
+        [thought("maybe the volume does not justify it", "t1", 0), thought("or maybe it does at 10x", "t2", 100)],
+        { t1: "lab/1-t1.md" }
+    );
+
+    it("adds a section, with your text and where it came from", () => {
+        const block = renderReturn(plan!, "We are not using Kafka.", "From the lab", HEADING, OMITTED);
+        expect(block.startsWith("## From the lab")).toBe(true);
+        expect(block).toContain("We are not using Kafka.");
+        expect(block).toContain('- "maybe the volume does not justify it"');
+    });
+
+    it("uses what you edited, not what was proposed", () => {
+        const block = renderReturn(plan!, "Something else entirely.", "From the lab", HEADING, OMITTED);
+        expect(block).toContain("Something else entirely.");
+        expect(block).not.toContain("maybe the volume does not justify it\n\nor maybe");
+    });
+
+    it("offers the way back only when there is a note to go back to", () => {
+        expect(destinationsFor("Notes/kafka.md", true)).toEqual(["back", "new-note"]);
+        // Offering to append to something that is gone is offering to fail.
+        expect(destinationsFor("Notes/kafka.md", false)).toEqual(["new-note"]);
+        expect(destinationsFor(undefined, true)).toEqual(["new-note"]);
+    });
+
+    it("never offers to rewrite — the block is all there is", () => {
+        const block = renderReturn(plan!, "x", "From the lab", HEADING, OMITTED);
+        // Whatever the note already says is untouched: this is a block to append, nothing more.
+        expect(block.split("\n")[0].startsWith("## ")).toBe(true);
     });
 });

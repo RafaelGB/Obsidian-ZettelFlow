@@ -399,6 +399,38 @@ note's content: that would make the Lab a reading surface, and put the note back
 a place that exists for the thought. A subject that has since been deleted says so, and the
 thread is still yours.
 
+### Going back where you came from (#474)
+
+A thread with a subject was a one-way street: you crossed over to think, worked something out,
+and the only thing crystallization knew how to do was create a *new* note — leaving the one you
+came from exactly as unfinished as when you left it.
+
+So crystallization now has two destinations, and when both are open **neither is the default**.
+Where a piece of thinking belongs is the decision; guessing it is how it ends up in the wrong
+place.
+
+Going back **appends**, never rewrites:
+
+```markdown
+## From the lab
+
+What you wrote, as you edited it.
+
+## Born from
+- "maybe the volume does not justify it"
+- "or maybe it does at 10x"
+```
+
+Whatever the note already said is untouched, the write goes through the recorded seam so it can
+be taken back (#454), and the verdict goes to the same log as every other — naming the note it
+landed in.
+
+If the thread's subject has since been deleted, only the new-note destination is offered, and the
+reason is said. Offering to append to something that is gone is offering to fail.
+
+A crystallization of thoughts that disagree about what they are about has **no** subject: there
+is no honest single note to return to.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

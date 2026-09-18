@@ -532,10 +532,19 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const paths = Object.fromEntries(chosen.map((thought) => [thought.id, thoughtPath(folder, thought)]));
         const plan = planCrystallization(chosen, paths);
         if (!plan) return;
-        new CrystallizeModal(this.app, plan, () => {
-            this.selected.clear();
-            void this.readLab();
-        }).open();
+        // One subject per crystallization: if the picked thoughts disagree about what they are
+        // about, there is no honest single note to go back to.
+        const subjects = new Set(chosen.map((thought) => thought.about).filter(Boolean));
+        const subject = subjects.size === 1 ? [...subjects][0] : undefined;
+        new CrystallizeModal(
+            this.app,
+            plan,
+            () => {
+                this.selected.clear();
+                void this.readLab();
+            },
+            subject
+        ).open();
     }
 
     /** A door, not a queue. It says the room exists; it never says how full it is. */

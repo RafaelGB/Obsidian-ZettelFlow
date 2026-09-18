@@ -77,6 +77,11 @@ export const NOT_EXPOSED: Record<string, string> = {
     safeInquiryPath: 'Internal path validation for create-only inquiry writes.',
     validProvenance: 'Internal human-verdict validation, not a scripting approval gate.',
     renderInquiryOutcome: 'Private inquiry snapshot rendering requires the canonical reviewed write boundary.',
+    // The app's own timings (#462). Facts about how long ZettelFlow took on this machine, not a
+    // projection of your knowledge — and a script that could read them would invite exactly the
+    // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
+    speedFacts: "the plugin's own timings, not a projection of the model",
+    formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",
     severityBucket: "internal helper of computeKnowledgeDebt",

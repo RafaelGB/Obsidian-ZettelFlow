@@ -5,6 +5,9 @@ import { FileService } from "architecture/plugin";
 import { ZfScripts, type LibraryModuleStatus } from "architecture/api/lib/scripts/service/ZfScripts";
 import { fnsManager } from "architecture/api";
 import type { ScriptSurface } from "application/scripts/scriptRunLog";
+import { boundedScan, describeScan } from "application/search/boundedScan";
+
+type LocaleKey = Parameters<typeof t>[0];
 
 /**
  * **The library manager** (#448, epic #443): which modules loaded, what they export, what they say
@@ -116,6 +119,12 @@ function renderModule(
  * Who calls this function. Scanned on demand rather than on every render: the answer needs the
  * hooks and the flows, and a manager that reads the vault to draw a list is a manager nobody
  * opens twice.
+ *
+ * **Bounded and honest since #461.** This reads canvas files, and before the bound it read *every*
+ * canvas in the vault with nothing to stop it — the one place in ZettelFlow that could genuinely
+ * hang while you waited for a `Notice`. It now covers at most {@link SCAN_LIMIT} canvases, yields
+ * while it works, and the result says how many it actually searched rather than implying it
+ * searched them all.
  */
 async function findUsages(name: string): Promise<void> {
     const plugin = ObsidianApi.getOwnPlugin();
@@ -127,20 +136,24 @@ async function findUsages(name: string): Promise<void> {
         if (hook.script?.includes(needle)) used.push(t("library_used_by_hook", property));
     }
 
+    let coverage = { key: "scan_searched", count: 0 };
     try {
         const { vault } = plugin.app;
-        for (const file of vault.getFiles()) {
-            if (!file.path.endsWith(".canvas")) continue;
-            const content = await vault.cachedRead(file);
-            if (content.includes(needle)) used.push(file.path);
-        }
+        const canvases = vault.getFiles().filter((file) => file.path.endsWith(".canvas"));
+        const result = await boundedScan(canvases, async (file) =>
+            (await vault.cachedRead(file)).includes(needle)
+        );
+        for (const file of result.matches) used.push(file.path);
+        coverage = describeScan(result);
     } catch (error) {
         log.warn("[library] could not scan the vault for usages", error);
     }
 
-    new Notice(
-        used.length === 0 ? t("library_used_by_nobody", name) : t("library_used_by", name, used.join(", "))
-    );
+    const where =
+        used.length === 0 ? t("library_used_by_nobody", name) : t("library_used_by", name, used.join(", "));
+    // Say what was covered, always: an answer that does not state its scope is a claim about the
+    // whole vault, and at this size that claim would often be wrong.
+    new Notice(`${where} ${t(coverage.key as LocaleKey, String(coverage.count))}`);
 }
 
 /** Write a starter module into the library folder, then reload so it is immediately callable. */

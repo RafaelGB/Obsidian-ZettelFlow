@@ -62,6 +62,7 @@ links (plugin core, actions & note builder, vault hooks, the static community ga
 | Type-check (blocking) | `npm run typecheck` |
 | Test — TDD (blocking) | `npm test` / `npm run test:watch` / `npm run test:coverage` |
 | Verify all (pre-push + CI) | `npm run verify` |
+| Performance budgets (blocking, own CI job) | `npm run test:perf` — see [budgets](docs/development/performance-budgets.md) |
 | Obsidian-guideline lint (blocking) | `npm run lint:obsidian` — clean (0), part of `verify`/CI |
 | Docs preview | `mkdocs serve` |
 

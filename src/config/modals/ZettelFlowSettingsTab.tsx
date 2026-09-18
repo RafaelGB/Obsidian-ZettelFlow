@@ -402,6 +402,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                         // Rebuild frontmatter edges, then re-enrich inline ones if on.
                                         const index = KnowledgeIndex.getInstance();
                                         index.build();
+                                        index.setEnrichmentEnabled(value);
                                         if (value) void index.enrichInlineRelations();
                                     })
                             );

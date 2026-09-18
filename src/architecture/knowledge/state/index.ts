@@ -50,3 +50,4 @@ export * from "architecture/knowledge/timeline/ideaCard";
 export * from "./classifyHealth";
 export * from "./recommendation";
 export * from "./trajectory";
+export * from "./speedFacts";

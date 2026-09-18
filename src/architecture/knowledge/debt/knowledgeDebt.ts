@@ -1,6 +1,7 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import type { Idea } from "../model/Idea";
 import { notesWithNoIncoming, notesWithNoOutgoing, unsourced } from "../query/queries";
+import { memoise } from "../model/memo";
 
 /** The four shipped debt categories (#159). Self-describing keys avoid the older view's inverted "orphan"/"dead-end" wording. */
 export type DebtCategoryKey = "unreferenced" | "dangling" | "unsourced" | "open-question";
@@ -67,8 +68,11 @@ const sortedPaths = (ideas: Idea[]): string[] => ideas.map((idea) => idea.path).
  * debt categories, each with its affected note paths and a remediation token, plus a single 0–100
  * Debt Score = `round(100 · Σ weightᵢ · countᵢ/max(1,total))`, clamped, `0` when clean/empty. Reads
  * only the {@link KnowledgeModel}; deterministic, read-only, never throws. Obsidian-free.
+ *
+ * Memoised per model revision (#458): the Health surface's main projection, recomputed on every
+ * render before this.
  */
-export function computeKnowledgeDebt(model: KnowledgeModel): KnowledgeDebt {
+export const computeKnowledgeDebt = memoise("debt", (model: KnowledgeModel): KnowledgeDebt => {
     const total = model.size();
     const categories: DebtCategory[] = [
         { key: "unreferenced", paths: sortedPaths(notesWithNoIncoming(model)), remediation: "connect", count: 0 },
@@ -86,4 +90,4 @@ export function computeKnowledgeDebt(model: KnowledgeModel): KnowledgeDebt {
     const score = Math.min(100, Math.max(0, Math.round(100 * weighted)));
 
     return { score, total, categories };
-}
+});

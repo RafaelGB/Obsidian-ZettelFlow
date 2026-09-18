@@ -48,3 +48,28 @@ jobs:
 
       - name: Obsidian guideline lint (blocking)
         run: npm run lint:obsidian
+
+  # Performance budgets (#457, epic #452) — BLOCKING, and deliberately its own job.
+  #
+  # It builds synthetic vaults of up to 50,000 notes, so it is far too slow to sit inside the
+  # `quality` job that every push waits on. A budget is a ceiling with a stated reason
+  # (test/perf/budgets.ts); exceeding one fails here and prints by how much.
+  #
+  # `--runInBand` is not optional: parallel workers compete for the same cores and turn every
+  # timing into a measurement of the other workers.
+  performance:
+    name: Performance budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Budgets (blocking)
+        run: npm run test:perf

@@ -209,7 +209,19 @@ export class FlowImpl implements Flow {
         }
     }
 
+    /**
+     * The roots, computed once per loaded canvas (#461).
+     *
+     * `scanTriggers()` calls this for every flow in the events folder on each rebuild, and a
+     * rebuild happens on vault changes. The canvas itself was already mtime-cached (#226), but
+     * its roots were re-derived every time — including a `getFile` + frontmatter read per file
+     * node. A `Flow` object is replaced whenever its canvas changes on disk, so caching on the
+     * instance needs no invalidation of its own: the object *is* the revision.
+     */
+    private cachedRoots: FlowNode[] | undefined;
+
     rootNodes = async () => {
+        if (this.cachedRoots) return this.cachedRoots;
         // Map nodes to check if they are root.
         // NOTE: iterate with for..of + await — a `forEach(async …)` would return
         // before the awaited file-node branches push their result, silently dropping
@@ -247,6 +259,7 @@ export class FlowImpl implements Flow {
                 }
             }
         }
+        this.cachedRoots = rootNodes;
         return rootNodes;
     }
 

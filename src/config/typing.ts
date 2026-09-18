@@ -165,6 +165,13 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * The **Thought Lab** (#466): where thinking lives before it has to be knowledge. Excluded
+     * from the knowledge model by the same scope that already hides ZettelFlow's own folders, so
+     * a thought is never an orphan, never debt, and never appears in Health.
+     */
+    thoughtLabPath?: string;
+
+    /**
      * The **write record** (#453): what ZettelFlow wrote to your vault, newest first, kept for a
      * week at most and capped in total. Paths, property names and the values a property change
      * would restore — never a note's content, because a created note is taken back by moving it
@@ -312,6 +319,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     scriptLog: { runs: [], retentionDays: DEFAULT_RETENTION_DAYS }, // The script run log (#444).
     writeLog: { writes: [] }, // The write record (#453) — a week at most, capped.
+    thoughtLabPath: "_ZettelFlow/lab", // Where thinking lives before it is knowledge (#466).
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.

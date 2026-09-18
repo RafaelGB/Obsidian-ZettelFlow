@@ -208,7 +208,8 @@ describe("throwing a thought away (#467 follow-up)", () => {
 
 describe("the moves explain themselves (#467 follow-up)", () => {
     it("gives every icon a tooltip, because an icon is opaque until you know it", () => {
-        expect(LAB).toContain("setTooltip(button, label);");
+        // And, where the move has one, the key that does it without the pointer (#476).
+        expect(LAB).toContain("setTooltip(button, entry ? `${label} (${keyLabel(entry)})` : label);");
     });
 
     it("has a legend that says what each move does, closed by default", () => {
@@ -284,5 +285,51 @@ describe("a redraw you asked for always happens (#467 follow-up)", () => {
                 guarded: false,
             });
         }
+    });
+});
+
+/**
+ * The Lab from the keyboard (#476).
+ *
+ * The table itself is pure and covered by `labKeys.test.ts`. What has to be pinned here is the
+ * wiring: that writing wins over shortcuts, that the keys are scoped to this view, and that a
+ * move added later cannot be mouse-only.
+ */
+describe("every move is reachable without the mouse (#476)", () => {
+    it("binds keys to the view, never globally", () => {
+        // A single letter that worked everywhere in Obsidian would be a bug in someone else's
+        // workflow.
+        expect(LAB).toContain('this.registerDomEvent(this.container, "keydown"');
+    });
+
+    it("lets writing win over shortcuts, always", () => {
+        expect(LAB).toContain("if (writing && event.key !== \"Escape\") return;");
+        expect(LAB).toContain("target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement");
+    });
+
+    it("leaves a keystroke with a modifier to Obsidian", () => {
+        expect(LAB).toContain("if (event.metaKey || event.ctrlKey || event.altKey) return;");
+    });
+
+    it("has every action in the table, so a move added later cannot be mouse-only", () => {
+        const moves = [...LAB.matchAll(/"(fork|challenge|connect|pick|setAside|decidedAgainst|discard|crystallize)"/g)]
+            .map((match) => match[1]);
+        for (const move of ["fork", "challenge", "connect", "setAside", "decidedAgainst", "discard"]) {
+            expect({ move, wired: moves.includes(move) }).toEqual({ move, wired: true });
+        }
+    });
+
+    it("shows which thought the keys act on", () => {
+        expect(LAB).toContain('card.addClass(c("lab-focused"))');
+        expect(LAB).toContain("private focus(id: string): void {");
+    });
+
+    it("lets you change which one that is, and wraps rather than dead-ending", () => {
+        expect(LAB).toContain("const next = at === -1 ? 0 : (at + by + this.order.length) % this.order.length;");
+    });
+
+    it("shows the keys in the legend, including how to move", () => {
+        expect(LAB).toContain('c("lab-legend-key")');
+        expect(LAB).toContain('for (const move of ["next", "previous", "leave"] as const)');
     });
 });

@@ -451,6 +451,35 @@ how you end up with the thing this change exists to stop.
 whose outcome is a frozen reviewed snapshot and is not capture. It is now `CreateOnlyWriter`,
 which is the job it actually has.
 
+## From the keyboard (#476)
+
+Every move was a button that appears on hover. That is fine for a surface you visit; it is wrong
+for the place an idea starts — reaching for the pointer mid-sentence is the same interruption as
+being asked for a title, except it happens every time instead of once.
+
+| | | | |
+|---|---|---|---|
+| `J` / `K` | next · previous thought | `F` | fork |
+| `C` | challenge | `L` | connect |
+| `X` | pick out | `Y` | crystallize what you picked |
+| `S` | set aside | `Esc` | stop writing |
+| `Shift+A` | decided against | `Shift+D` | throw away |
+
+Four rules make single letters safe in a surface whose whole purpose is typing:
+
+- **Writing wins over shortcuts, always.** Inside a text box, a letter is a letter. Only `Esc`
+  gets through.
+- **Nothing destructive on a bare key.** Throwing a thread away needs `Shift`, because a stray
+  keystroke in a place you were told is safe must not be able to do it.
+- **Scoped to the view.** A single letter that worked everywhere in Obsidian would be a bug in
+  somebody else's workflow, and a modifier is left to Obsidian entirely.
+- **The focused thought is visible**, not guessed — and its actions stay on screen, because you
+  cannot hover what you reached with a key.
+
+One table (`application/thinking/labKeys.ts`) is read by the handler, the tooltips and the
+legend, so what a key does cannot drift from what the legend says it does. A guardrail asserts
+every rendered action is wired to it: a move added later cannot be mouse-only.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

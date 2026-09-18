@@ -210,3 +210,17 @@ Nothing reads the log yet. It is the foundation for the rest of epic #335:
   [Cultivate](cultivate.md): your reading before the reveal.
 - [#339](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/339) — **agency as a consequence**: the
   development streak counts days you *ruled on something*, rather than days something happened.
+
+## Crystallization: the principle stops being defensive (#468)
+
+Everywhere described above, §XII is a **guardrail**: interpretive output — AI or heuristic — is
+held at a gate until a human accepts, modifies or rejects it, and the verdict is recorded.
+
+The [Thought Lab](../architecture/thought-lab.md) inverts who is being interpretive. The Lab is
+where *you* are messy, contradictory and speculative, and **crystallization is the gate**. Same
+rule, same log, same recorded verdict — but now it is the central mechanic of a feature rather
+than a defence against one.
+
+That is worth stating because it changes what the guardrail has to check. There is no model output
+to hold back here; what must be proven is that the door has exactly one caller, that it is a button
+and not a lifecycle hook, and that no AI is anywhere near it.

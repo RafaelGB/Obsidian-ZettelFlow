@@ -423,6 +423,24 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
+                        // The Thought Lab (#466). Its folder is excluded from the knowledge model
+                        // by the same scope that hides ZettelFlow's own folders, so nothing you
+                        // write here is ever an orphan, debt, or a line in Health.
+                        name: t("settings_thought_lab_name"),
+                        desc: t("settings_thought_lab_desc"),
+                        render: (setting: Setting) => {
+                            setting.addSearch((cb) => {
+                                new FolderSuggest(cb.inputEl);
+                                cb.setPlaceholder(t("settings_thought_lab_placeholder"))
+                                    .setValue(plugin.settings.thoughtLabPath ?? "")
+                                    .onChange(async (value) => {
+                                        plugin.settings.thoughtLabPath = value.trim();
+                                        await plugin.saveSettings();
+                                    });
+                            });
+                        },
+                    },
+                    {
                         name: t("settings_cultivate_friction_name"),
                         desc: t("settings_cultivate_friction_desc"),
                         render: (setting: Setting) => {

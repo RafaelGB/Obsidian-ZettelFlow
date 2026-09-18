@@ -50,6 +50,11 @@ export interface ScopeSettings {
     jsLibraryFolderPath?: string;
     /** Folder for hook-triggered flow canvases. */
     hooks?: { folderFlowPath?: string };
+    /**
+     * The Thought Lab (#466). Thinking that has not become knowledge yet, and must never be
+     * judged as if it had: no orphans, no debt, no Health, no Discovery.
+     */
+    thoughtLabPath?: string;
 }
 
 /**
@@ -58,7 +63,14 @@ export interface ScopeSettings {
  * are never indexed, cultivated, or counted anywhere. Deterministic and normalised.
  */
 export function scopeExcludedPaths(settings: ScopeSettings): string[] {
-    const system = [settings.foldersFlowsPath, settings.jsLibraryFolderPath, settings.hooks?.folderFlowPath];
+    // The Lab belongs here rather than in a second list: this is the one place that decides
+    // what is not knowledge, and a thought must inherit every consequence of that at once (#466).
+    const system = [
+        settings.foldersFlowsPath,
+        settings.jsLibraryFolderPath,
+        settings.hooks?.folderFlowPath,
+        settings.thoughtLabPath,
+    ];
     return normalizeExcludedPaths([
         ...(settings.excludedPaths ?? []),
         ...system.filter((p): p is string => typeof p === "string"),

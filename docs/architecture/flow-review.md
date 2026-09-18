@@ -110,3 +110,28 @@ Nothing is created and nothing is read from the vault: the step contents travel 
 template, the frontmatter parser is injected, and a test asserts the module imports neither
 `FileService` nor `FrontmatterService` nor `obsidian`. Install stays one click away, and a system
 with findings is still installable — the gallery informs, it does not gate.
+
+## Scans that remember (#461)
+
+Three places in ZettelFlow read more than they need. They were checked one by one rather than
+assumed, and only two turned out to be worth changing:
+
+| Place | Verdict |
+|---|---|
+| `WorkflowEventEngine.scanTriggers()` | **Partly cached already.** `canvas.flows.update()` has been mtime-keyed since #226, so an unchanged canvas is not re-parsed. What *was* re-derived on every rebuild is each flow's **roots** — including a file read plus a frontmatter lookup per file node. Now computed once per loaded canvas. |
+| The library's *find who uses it* (#448) | **The real problem.** It read every canvas in the vault with `cachedRead`, unbounded, with no way to stop it — the one place that could genuinely hang. Now a bounded, yielding scan that reports what it covered. |
+| `flowsWithRole` in the settings panel | **Deliberately left alone.** It walks Obsidian's in-memory file tree over three small `_ZettelFlow` folders; there is no I/O and the cost is bounded by the number of flows, not by the size of the vault. A cache here would add invalidation risk to buy nothing. |
+
+### A search states its scope
+
+A search that quietly truncates produces a confident wrong answer, so the result always says how
+much it actually covered — *"searched 214 canvases"*, *"stopped after 2,000 canvases — there may be
+more"*, or *"cancelled after 12 canvases"*. One unreadable file is counted, never allowed to lose
+the rest.
+
+### Why the roots cache needs no invalidation
+
+A `Flow` object is replaced whenever its canvas changes on disk (#226). The object **is** the
+revision, so caching on the instance is correct by construction — the same reasoning as the
+model-revision memo in
+[Knowledge State](knowledge-state.md#computed-once-per-revision-458).

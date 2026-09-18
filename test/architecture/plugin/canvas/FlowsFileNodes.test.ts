@@ -93,6 +93,29 @@ function wireApp(opts: {
 describe("FlowImpl.rootNodes — file-type nodes", () => {
     beforeEach(() => jest.clearAllMocks());
 
+    it("computes its roots once per loaded canvas (#461)", async () => {
+        const { metadataCache } = wireApp({
+            fileExists: true,
+            cache: { frontmatter: { zettelFlowSettings: { root: true, label: "Test" } } },
+            diskContent: ROOT_CONTENT,
+        });
+
+        const flow = new FlowImpl(makeCanvas(), fakeCanvasFile);
+        const first = await flow.rootNodes();
+        const callsAfterFirst = metadataCache.getFileCache.mock.calls.length;
+        const second = await flow.rootNodes();
+
+        // scanTriggers() asks every flow in the events folder for its roots on each rebuild, and a
+        // rebuild happens on vault changes. A Flow object is replaced whenever its canvas changes
+        // on disk, so the object *is* the revision and the cache needs no invalidation.
+        expect(second).toBe(first);
+        expect(metadataCache.getFileCache.mock.calls.length).toBe(callsAfterFirst);
+
+        // A reloaded canvas is a new object, and derives its roots again.
+        const reloaded = new FlowImpl(makeCanvas(), fakeCanvasFile);
+        expect(await reloaded.rootNodes()).not.toBe(first);
+    });
+
     it("A: warm cache with root:true → returns the file node", async () => {
         wireApp({
             fileExists: true,

@@ -362,6 +362,43 @@ and their relatives.
 
 Offline, and no AI.
 
+## Arriving from somewhere (#473)
+
+Cultivate and the Lab are **not** the same thing wearing two hats, and that was argued out
+carefully enough to write down:
+
+| | Cultivate | The Lab |
+|---|---|---|
+| The subject | a note that exists | the thought; there is no subject yet |
+| What you bring | something you already know | not knowing what you think |
+| Where output lands | the note, which is how a note matures | nowhere, until you crystallize |
+
+A counterpoint to note X is a fact *about* X, and putting it into X is `knowledge evolves`, not
+premature commitment. A shared verb is not a shared capability — `delete` exists on notes and on
+thoughts, and nobody calls that duplication.
+
+What was missing was a **door**, in both directions:
+
+- **From a note** — a command, and an item in the file menu.
+- **From Cultivate** — *I do not know yet — think in the lab*, the exit for the one case that
+  surface cannot serve.
+
+The note comes across as the thread's **subject**, carried in the view state through the same
+deep-link seam everything else uses. Every thought written in that visit inherits it, so an
+answer you write an hour later still knows what it was about.
+
+### Crossing writes nothing
+
+Leaving a question unanswered is **not an edit**. A guardrail asserts the bridge reaches no
+writer at all — a bridge that dirties your vault is a bridge nobody crosses twice.
+
+### The subject is named, not shown
+
+The thread's root says which note it is about and opens it on a click. It does not render the
+note's content: that would make the Lab a reading surface, and put the note back at the centre of
+a place that exists for the thought. A subject that has since been deleted says so, and the
+thread is still yours.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

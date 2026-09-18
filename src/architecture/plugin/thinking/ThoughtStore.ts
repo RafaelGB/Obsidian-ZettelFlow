@@ -54,7 +54,7 @@ export class ThoughtStore {
     /** Start one. No title is asked for, because a thought does not have one. */
     public async write(
         text: string,
-        options: { respondsTo?: Response } = {}
+        options: { respondsTo?: Response; about?: string } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
         if (!folder) return undefined;

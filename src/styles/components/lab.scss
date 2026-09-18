@@ -666,3 +666,57 @@
         animation: none;
     }
 }
+
+/* ── the note a thread is about (#473) ────────────────────────────────────── */
+
+.zettelkasten-flow__lab-about-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--interactive-accent);
+    background: var(--background-primary-alt);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__lab-subject {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 6px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__lab-subject-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    .svg-icon {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.zettelkasten-flow__lab-subject-name {
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-accent);
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__lab-subject-gone {
+    cursor: default;
+    font-style: italic;
+    opacity: 0.7;
+
+    &:hover {
+        color: var(--text-muted);
+        text-decoration: none;
+    }
+}

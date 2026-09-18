@@ -32,7 +32,8 @@ export class HomeSurfaceView extends ModeHostView {
             case "recent":
                 return new ChangeRenderer(container, this.plugin);
             case "lab":
-                return new LabRenderer(container, this.app);
+                // The subject travels in the view state (#473), the same seam deep links use.
+                return new LabRenderer(container, this.app, typeof state?.about === "string" ? state.about : undefined);
             case "home":
             default:
                 return new HomeModeRenderer(container, this.app);

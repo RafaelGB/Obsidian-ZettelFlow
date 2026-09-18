@@ -10,6 +10,7 @@ import { Notice, TFile } from 'obsidian';
 import { InquiryPanel } from './InquiryPanel';
 import { InquiryNoteSuggest } from './InquiryNoteSuggest';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
+import { thinkAbout } from 'starters/zcomponents/ThinkAboutComponent';
 import { QuickCaptureModal } from 'zettelkasten/modals/QuickCaptureModal';
 import { ConfirmModal } from 'architecture/components/settings/confirmModal';
 import { buildInquiryContext, scopeExcludedPaths } from 'architecture/knowledge/state';
@@ -139,6 +140,19 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             attr: { "aria-label": t("cultivate_another") },
         });
         another.addEventListener("click", () => this.anotherIdea());
+
+        // The exit for the case this surface cannot serve (#473). Cultivate offers "write the
+        // counterpoint"; when you do not know it yet, there was nowhere to go. Taking this door
+        // writes nothing — leaving a question unanswered is not an edit.
+        if (this.targetPath) {
+            const path = this.targetPath;
+            const think = header.createEl("button", {
+                text: t("cultivate_think_instead"),
+                cls: c("cultivate-another"),
+                attr: { "aria-label": t("cultivate_think_instead") },
+            });
+            think.addEventListener("click", () => thinkAbout(this.plugin, path));
+        }
 
         if (this.state === "indexing") {
             root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_building") });

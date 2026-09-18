@@ -74,7 +74,12 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private readonly cards = new Map<string, HTMLElement>();
     private composerEl: HTMLTextAreaElement | undefined;
 
-    constructor(container: HTMLElement, private readonly app: App) {
+    constructor(
+        container: HTMLElement,
+        private readonly app: App,
+        /** The note this visit is about, when you arrived from one (#473). */
+        private about?: string
+    ) {
         super(container);
     }
 
@@ -150,6 +155,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 void this.app.workspace.openLinkText(path, "", false);
             });
             this.addChild(this.blind);
+        }
+
+        if (this.about) {
+            const banner = host.createDiv({ cls: c("lab-about-banner") });
+            setIcon(banner.createSpan({ cls: c("lab-subject-icon") }), "file-text");
+            banner.createSpan({
+                text: t("lab_thinking_about", (this.about.split("/").pop() ?? this.about).replace(/\.md$/, "")),
+            });
+            this.ghostAction(banner, t("lab_about_leave"), "x", () => {
+                this.about = undefined;
+                this.render();
+            });
         }
 
         this.renderComposer(host);
@@ -247,10 +264,13 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.relation = undefined;
         if (this.composerEl) this.composerEl.value = "";
 
-        const made = await ThoughtStore.getInstance().write(
-            text,
-            relation ? { respondsTo: relation } : {}
-        );
+        // Inherited, so a thread keeps the context you arrived with — including the answers
+        // you write to your own thoughts an hour later.
+        const subject = relation ? this.subjectOf(relation.to) ?? this.about : this.about;
+        const made = await ThoughtStore.getInstance().write(text, {
+            ...(relation ? { respondsTo: relation } : {}),
+            ...(subject ? { about: subject } : {}),
+        });
         if (!made) return;
         this.thoughts.push(made);
 
@@ -293,6 +313,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const thought = node.thought;
         const box = list.createDiv({ cls: c("lab-card") });
         this.cards.set(thought.id, box);
+        // Only on the thread's root: repeating it on every answer would be noise.
+        if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about);
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
 
         // Colour distinguishes what a thought *is* to the one above it, never who is right.
@@ -397,6 +419,31 @@ export class LabRenderer extends KnowledgeModeRenderer {
         return whole.length === 1 ? label : `${label} — ${t("lab_with_answers", String(whole.length - 1))}`;
     }
 
+    /**
+     * The note this thread is about (#473).
+     *
+     * Named and openable, not shown: the Lab is where you think, and turning it into a reading
+     * surface would put the note back at the centre of a place that exists for the thought.
+     */
+    private renderSubject(box: HTMLElement, path: string): void {
+        const row = box.createDiv({ cls: c("lab-subject") });
+        setIcon(row.createSpan({ cls: c("lab-subject-icon") }), "file-text");
+        const gone = !this.app.vault.getAbstractFileByPath(path);
+        const name = (path.split("/").pop() ?? path).replace(/\.md$/, "");
+        const label = row.createSpan({
+            cls: c("lab-subject-name"),
+            text: gone ? t("lab_about_gone", name) : t("lab_about", name),
+        });
+        if (gone) {
+            label.addClass(c("lab-subject-gone"));
+            return;
+        }
+        setTooltip(label, t("lab_about_open"));
+        this.registerDomEvent(label, "click", () => {
+            void this.app.workspace.openLinkText(path, "", false);
+        });
+    }
+
     /** The thoughts this one is connected to, as chips that take you to them. */
     private renderLinks(box: HTMLElement, thought: Thought): void {
         const row = box.createDiv({ cls: c("lab-links") });
@@ -427,6 +474,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.addClass(c("lab-arrived"));
         window.setTimeout(() => target.removeClass(c("lab-arrived")), 1200);
+    }
+
+    /** What an existing thought is about, so a response inherits it rather than losing it. */
+    private subjectOf(id: string): string | undefined {
+        return this.thoughts.find((thought) => thought.id === id)?.about;
     }
 
     /** Arm the composer, instead of creating an empty card you would have to go back and fill. */

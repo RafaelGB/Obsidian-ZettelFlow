@@ -83,6 +83,22 @@ describe("a thought asks nothing of you (#466)", () => {
         expect(Object.keys(thought)).not.toContain("challenges");
     });
 
+    it("can be about a note, without becoming one", () => {
+        const thought = newThought({ text: "is this actually true?", id: "t1", at: NOW, about: "Notes/kafka.md" });
+        expect(thought.about).toBe("Notes/kafka.md");
+        // A subject, not a link: the thought is still not knowledge, and crossing wrote nothing.
+        expect(Object.keys(thought)).not.toContain("links_to_note");
+    });
+
+    it("is about nothing by default, which is the normal case", () => {
+        expect(newThought({ text: "x", id: "t1", at: NOW }).about).toBeUndefined();
+    });
+
+    it("round-trips its subject through the file", () => {
+        const thought = newThought({ text: "x", id: "t1", at: NOW, about: "Notes/a b.md" });
+        expect(parseThought(renderThought(thought), "lab/t1.md").about).toBe("Notes/a b.md");
+    });
+
     it("keeps the newest first, which is where you were just working", () => {
         const thoughts: Thought[] = [
             newThought({ text: "old", id: "t1", at: NOW }),

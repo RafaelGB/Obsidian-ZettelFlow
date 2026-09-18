@@ -89,6 +89,12 @@ smoothed over:
   recomputed on every surface render. That makes *computing once per revision* the highest-value
   change in the epic, not a nicety.
 
+## What the budgets have changed so far
+
+| Change | Measured effect |
+|---|---|
+| [#458 compute once per revision](../architecture/knowledge-state.md#computed-once-per-revision-458) | a second render of an unchanged 10k model: **1,413 ms → 0.073 ms** |
+
 ## What these numbers do not include
 
 Everything above is the **pure model layer**: snapshots in, ideas and projections out. That is what

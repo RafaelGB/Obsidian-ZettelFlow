@@ -45,6 +45,47 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `classifyHealth` | `HealthResult` | Health (orphans / dead-ends, over the model's edges) |
 | `deriveRecommendations` | `KnowledgeRecommendation[]` | Home / Health / Discovery (via #268) |
 
+## Computed once per revision (#458)
+
+`KnowledgeModel.revision()` has existed since #302 and, until 3.6, **nothing consumed it**. Every
+surface called `getModel()` and recomputed its projection from scratch, whether or not a note had
+changed — and the `resolved` event fires far more often than the graph actually moves.
+
+The [budgets](../development/performance-budgets.md) said how much that cost, and the answer was
+lopsided: most projections are milliseconds, and **discovery is 1.5 seconds over ten thousand
+notes** — a hundred times heavier than any other.
+
+So three projections are wrapped in `memoise` (`architecture/knowledge/model/memo.ts`):
+`findDiscoveries`, `computeKnowledgeDebt` and `buildKnowledgeMap`. Measured: a second render of an
+unchanged 10k model went from **1,413 ms to 0.073 ms**.
+
+The wrapper is applied **at each definition**, not at the State barrel, because Home and the
+dashboard deep-import these functions — a barrel-only wrapper would have missed the heaviest
+callers.
+
+### The rules that make it safe
+
+- **Per model instance, one revision at a time.** Keyed on the model itself (a `WeakMap`), not on
+  the revision number alone — two freshly built models both sit at revision 1, and answering one
+  with the other's result is the worst kind of cache bug. (The existing suite caught exactly that
+  during the change.) When a model moves, everything derived from its previous revision is dropped:
+  there is no partial staleness to reason about.
+- **Keyed by the arguments too.** `findDiscoveries(model, { limit: 1 })` and `{ limit: 2 }` are two
+  questions, not one.
+- **An argument that cannot be serialised is not cached at all** — computing twice is cheap,
+  answering the wrong question is not.
+- **Bounded** (64 entries per model, least-recently-used eviction), and the `WeakMap` lets a
+  discarded model take its cache with it.
+- **A failure is not an answer**: a projection that threw is re-run next time.
+
+### What may be memoised
+
+Only a **pure function of the model and its arguments**. A projection that reads the clock, the
+settings or the vault cannot be keyed on the model's revision, because the key would not change
+when the answer does. A guardrail test
+(`test/architecture/knowledge/memoisedProjections.test.ts`) scans the three wrapped files for
+`Date.now`, `new Date`, `Math.random` and any Obsidian access, and fails if one appears.
+
 ## The recommendation pipeline — `Query → State → Recommendation → Command`
 
 *Every metric proposes an action* (the manifesto). The last leg of the pipeline is one primitive,

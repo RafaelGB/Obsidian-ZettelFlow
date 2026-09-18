@@ -114,6 +114,15 @@ describe("the projections the surfaces run", () => {
         assertBudget("analysis.discovery.10k", timed("analysis.heaviest", () => findDiscoveries(model), 10_000));
     });
 
+    it("memoised: a second render of an unchanged model costs nothing (#458)", () => {
+        const fresh = modelOf(10_000, 3);
+        const first = timed("analysis.heaviest", () => findDiscoveries(fresh), 10_000);
+        const second = timed("analysis.heaviest", () => findDiscoveries(fresh), 10_000);
+        // eslint-disable-next-line no-console
+        console.log(`memo — discovery first render ${first.toFixed(1)} ms, second ${second.toFixed(3)} ms`);
+        expect(second).toBeLessThan(first / 100);
+    });
+
     it("analysis.discovery.scaling", () => {
         // The shape, not the number. Pairwise work that slipped to quadratic would still pass the
         // 10k ceiling and be unusable at 50k, so what is asserted is how the cost grows when the

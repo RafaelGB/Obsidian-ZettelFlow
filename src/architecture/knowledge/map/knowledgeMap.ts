@@ -1,5 +1,6 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { hubs } from "../query/queries";
+import { memoise } from "../model/memo";
 
 /** A hub and the non-hub notes that orbit it (#164). */
 export interface Cluster {
@@ -28,7 +29,10 @@ const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
  * path; members and `unclustered` sorted by path. Deterministic, read-only, never throws; empty model
  * ⇒ empty map. Obsidian-free.
  */
-export function buildKnowledgeMap(model: KnowledgeModel, opts: BuildKnowledgeMapOptions = {}): KnowledgeMap {
+export const buildKnowledgeMap = memoise(
+    "knowledgeMap",
+    // Memoised per model revision (#458): clustering the whole graph on every render.
+    (model: KnowledgeModel, opts: BuildKnowledgeMapOptions = {}): KnowledgeMap => {
     const threshold = opts.hubThreshold ?? DEFAULT_HUB_THRESHOLD;
     const hubIdeas = hubs(model, threshold);
     const hubPaths = new Set(hubIdeas.map((hub) => hub.path));
@@ -77,5 +81,6 @@ export function buildKnowledgeMap(model: KnowledgeModel, opts: BuildKnowledgeMap
     clusters.sort((a, b) => b.degree - a.degree || byPath(a.hub, b.hub));
     unclustered.sort(byPath);
 
-    return { clusters, unclustered };
-}
+        return { clusters, unclustered };
+    }
+);

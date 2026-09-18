@@ -118,11 +118,38 @@ untyped links. A target that gets a semantic type is **not** also emitted as a `
 | Source | When | How |
 |---|---|---|
 | Frontmatter (`supports: ["[[X]]"]`) | inside the synchronous build | free from the metadata cache; targets resolved via `getFirstLinkpathDest` into the snapshot's additive `resolvedTargets` |
-| Inline (`supports:: [[X]]`) | a **deferred pass after layout-ready** (`KnowledgeIndex.enrichInlineRelations`) | reads bodies via `cachedRead` (O(vault content)), so it never blocks load |
+| Inline (`supports:: [[X]]`) | a **deferred pass after layout-ready** (`KnowledgeIndex.enrichInlineRelations`), then **incrementally** | reads bodies via `cachedRead`; the full pass happens once per session, after which only changed files are read (#459) |
 
 The deferred inline pass is gated by the **`parseInlineRelations`** setting — **on by default on
 desktop, off on mobile** (resolved as `?? !Platform.isMobile`). It is read-only (zero writes),
 batched/yielding, and wraps each file in `try/catch`.
+
+### Only what changed (#459)
+
+The pass used to read **every note in the vault**, every time it ran — O(vault content), and the
+reason it is off by default on mobile. It now compares a cheap fingerprint (`mtime + size`) against
+what the last pass saw, and reads only the difference. Measured on a fake vault: the second pass
+reads **one file instead of the whole vault**.
+
+The fingerprint is not a hash, because hashing means reading and reading is the cost being avoided.
+Size is part of it because some sync clients preserve modification times, and an edit that keeps
+its timestamp must not be invisible. A file that could not be read stays *changed*, so the next
+pass tries it again rather than leaving it stale forever. A change of scope or of vocabulary resets
+everything, because both alter what enrichment would conclude from the same text.
+
+The fingerprints live **in memory, for the session only**. Nothing is persisted, so the first pass
+after every launch is still a full one — which is why the mobile default is unchanged. Persisting
+them is the open question in #460.
+
+### Two bugs this fixed
+
+- **A deleted relation used to survive.** The old pass skipped a note whose body had nothing
+  interesting in it, so removing a `supports::` line left the relation in the model until the next
+  restart. The pass now always upserts a changed note, with or without inline fields.
+- **Editing a note used to drop its inline relations.** A vault `modify` rebuilds the note from
+  `gatherSnapshot`, which is cache-only and has **no** inline fields — so a note's `supports::`
+  relations vanished from the model the moment you typed in it. An edit now schedules a debounced
+  (2 s) re-pass, which the fingerprints make cost exactly one read.
 
 Only the pure schema and vocabulary are Obsidian-free (guarded); link resolution and body reads live
 in the Obsidian-facing `snapshot.ts` / `KnowledgeIndex.ts`. Wikilink aliases and headings/blocks are

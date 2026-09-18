@@ -213,10 +213,53 @@ Mechanical, and deliberately dull. *"This appeared since"* is a fact; *"this is 
 a judgement, and it is yours (§XII). A test asserts `appearedSince` sorts by creation time and
 that the module's code contains no notion of score, rank, relevance or weight.
 
+## Think before you look
+
+When you ask your vault a question it answers immediately — and the moment it does, **your own
+answer is gone**. You never learn what you thought before you read it, and you never notice the
+thing worth noticing: that you had already worked this out two years ago and forgot.
+
+Every tool in this space optimises for retrieving what you knew. None preserve what you thought
+*before* you retrieved it, which is the only way to watch your own reasoning move.
+
+So the Lab can wait:
+
+1. You ask a question.
+2. It asks **what do you currently think?** — and shows nothing.
+3. Your answer is stored as a thought, **before** anything is revealed.
+4. Then it shows what your vault holds, side by side with what you said.
+5. You say what changed in you: *nothing* · *I had forgotten this* · *I was wrong* · *I still
+   think so*.
+
+That last step is recorded as a verdict in the same `JudgementLog` as every other — subject only,
+never content.
+
+### The leak is impossible, not forbidden
+
+The one requirement this feature exists for is that nothing from your vault appears before you
+answer. A careless re-render would break that silently, and a source scan would not catch it.
+
+So `blindView` **does not return** what the vault holds until there is an answer. Before you
+submit, it is not hidden — it is **absent from the view model**, and the renderer has nothing to
+draw even if it tried. A test asserts the serialised view contains no trace of a note that was
+already fetched.
+
+### It is a choice, and it is not a quiz
+
+The normal *ask your graph* surface is untouched; nobody is made to guess before searching.
+
+And there is no tally, no accuracy and no streak — that would turn thinking into a game with a
+loser. *"I was wrong"* is available because it is **your** word about **yourself**; what must not
+exist is the system saying it. A guardrail scans the strings for *correct*, *accuracy*, *score*
+and their relatives.
+
+Offline, and no AI.
+
 ## What is not here yet
 
-Thinking before you look is a separate change in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
-This page describes the object and the guarantee underneath them.
+Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator
+engine (collision · constraints · perspectives · question transformations, as **one** mechanism
+with four vocabularies), the shadow graph, and tension and belief as objects.
 
 ## Capability disclosure
 

@@ -160,3 +160,85 @@
         text-decoration: underline;
     }
 }
+
+/* Think before you look (#470). */
+.zettelkasten-flow__lab-ask-row {
+    display: flex;
+    padding-bottom: 8px;
+}
+
+.zettelkasten-flow__blind {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+.zettelkasten-flow__blind-intro,
+.zettelkasten-flow__blind-prompt {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: 4px 0;
+}
+
+.zettelkasten-flow__blind-question,
+.zettelkasten-flow__blind-answer {
+    width: 100%;
+    font-family: var(--font-text);
+}
+
+.zettelkasten-flow__blind-columns {
+    display: flex;
+    gap: 16px;
+    padding-top: 6px;
+}
+
+.zettelkasten-flow__blind-column {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.zettelkasten-flow__blind-answer-text {
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__blind-nothing {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__blind-note {
+    cursor: pointer;
+    font-size: var(--font-ui-small);
+
+    &:hover {
+        color: var(--text-accent);
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__blind-movements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.zettelkasten-flow__blind-action {
+    font-size: var(--font-ui-smaller);
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__blind-chosen {
+    border-color: var(--interactive-accent);
+    color: var(--text-normal);
+}

@@ -9,6 +9,7 @@ import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { CrystallizeModal } from "./CrystallizeModal";
+import { BlindPanel } from "./BlindPanel";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -46,6 +47,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
      */
     private showingAside = false;
 
+    /** Whether the blind question panel is open. A choice, never a mode you are put into. */
+    private asking = false;
+    private blind: BlindPanel | undefined;
+
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
     }
@@ -81,6 +86,22 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
 
         host.createDiv({ cls: c("lab-intro"), text: t("lab_intro") });
+
+        // Thinking before you look is a choice, not a mode: the normal query surface is untouched
+        // and nobody is made to guess before searching (#470).
+        const askRow = host.createDiv({ cls: c("lab-ask-row") });
+        this.action(askRow, this.asking ? t("blind_close") : t("blind_open"), () => {
+            this.asking = !this.asking;
+            this.render();
+        });
+        if (this.asking) {
+            const panel = host.createDiv();
+            this.blind?.unload();
+            this.blind = new BlindPanel(panel, (path) => {
+                void this.app.workspace.openLinkText(path, "", false);
+            });
+            this.addChild(this.blind);
+        }
 
         // Only when you have picked something out. Nothing here nags you to.
         if (this.selected.size > 0) {

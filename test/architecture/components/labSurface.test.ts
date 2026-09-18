@@ -52,9 +52,61 @@ describe("the way in costs nothing (#467)", () => {
         expect(LAB).toContain("renderComposer");
     });
 
-    it("saves on a debounce, on blur, and on close — leaving must never cost a sentence", () => {
+    it("saves on blur and on close — leaving must never cost a sentence", () => {
         expect(LAB).toContain('registerDomEvent(area, "blur", () => this.flush())');
         expect(LAB).toMatch(/onunload\(\): void \{\s*this\.flush\(\);/);
+    });
+});
+
+/**
+ * A pause while writing is thinking, not a boundary.
+ *
+ * The first version committed a new thought on a debounce and it was unusable: stopping to think
+ * for half a second turned half a sentence into a card, the surface rebuilt itself, and the
+ * cursor was gone. These pin the fix so it cannot come back.
+ */
+describe("typing, by itself, creates nothing (#467 regression)", () => {
+    it("has the composer's keystrokes do nothing but remember the draft", () => {
+        expect(LAB).toContain("this.registerDomEvent(area, \"input\", () => (this.draft = area.value));");
+        // No timer anywhere near the composer: the only debounce left is for editing a thought
+        // that already exists, where nothing moves on screen.
+        const composer = LAB.slice(LAB.indexOf("private renderComposer"), LAB.indexOf("private async commit"));
+        expect(composer.includes("setTimeout(() => this.flush")).toBe(false);
+        expect(composer.includes("scheduleEdit")).toBe(false);
+    });
+
+    it("commits at a real boundary: the shortcut, or leaving the box", () => {
+        expect(LAB).toContain('event.key === "Enter" && (event.metaKey || event.ctrlKey)');
+        expect(LAB).toContain('registerDomEvent(area, "blur", () => this.flush())');
+    });
+
+    it("inserts the new card instead of rebuilding the surface under you", () => {
+        const commit = LAB.slice(LAB.indexOf("private async commit"), LAB.indexOf("private renderThought"));
+        expect(commit).toContain("this.listEl.prepend(card)");
+        // A bare `this.render()` here is what made it jump; the only redraw allowed is the
+        // focus-guarded one, and only when the armed banner has to go.
+        expect(commit.includes("this.render()")).toBe(false);
+    });
+
+    it("keeps the draft outside the DOM, so a redraw cannot lose it", () => {
+        expect(LAB).toContain("private draft = \"\";");
+        expect(LAB).toContain("area.value = this.draft;");
+    });
+
+    it("never redraws while a text box has focus, and says so in one place", () => {
+        expect(LAB).toContain("private refresh(): void {");
+        expect(LAB).toContain("if (active instanceof HTMLTextAreaElement && this.container.contains(active)) return;");
+    });
+
+    it("arms the composer for a fork or a challenge, rather than creating an empty card", () => {
+        // An empty file you have to go back and fill is worse than no file.
+        const arm = LAB.slice(LAB.indexOf("private arm("), LAB.indexOf("private async connect"));
+        expect(arm).toContain("this.relation = { kind, to: origin.id }");
+        expect(arm.includes("ThoughtStore")).toBe(false);
+    });
+
+    it("acts on mousedown, so a click is not lost to the blur it causes", () => {
+        expect(LAB).toContain('this.registerDomEvent(button, "mousedown"');
     });
 });
 

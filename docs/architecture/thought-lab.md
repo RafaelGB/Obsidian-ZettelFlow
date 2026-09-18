@@ -107,6 +107,27 @@ Everything else — collision, constraints, perspectives, question transformatio
 operator engine in phase 2. A fifth move here would start the feature collection this epic exists
 to prevent, and a test says so.
 
+### Nothing is committed on a timer
+
+A pause while writing is **thinking, not a boundary**. The first version of this surface saved a
+new thought on a debounce, and it was unusable: stopping for half a second turned half a sentence
+into a card, the surface rebuilt itself, and the cursor was gone.
+
+So a new thought is written down only at a real boundary — `Ctrl`/`Cmd`+`Enter`, or leaving the
+box — and committing **never rebuilds the surface**: the card is inserted and the composer cleared
+in place. Editing a thought that already exists *does* save on a debounce, because there the file
+exists and nothing moves on screen.
+
+Two rules hold it together, each stated in exactly one place:
+
+- **Nothing redraws while a text box has focus** (`refresh()`).
+- **The draft lives outside the DOM**, so even a redraw that does happen cannot lose it.
+
+Fork and challenge do not create an empty card either: they **arm the composer**, so a relation
+costs a sentence instead of an empty file you have to go back and fill. And the actions fire on
+`mousedown` rather than `click`, because the composer commits on blur and a click that lands after
+a redraw is a click that never happened.
+
 ### Leaving must never cost a sentence
 
 Writing saves on a short debounce, on blur, and on close. A refuge that loses what you typed

@@ -1,82 +1,248 @@
-/* The Thought Lab (#467): a space that asks nothing of you. */
+/*
+ * The Thought Lab (#467): a space that asks nothing of you.
+ *
+ * The visual job is to feel like paper rather than like software. Cards are quiet, their actions
+ * stay out of the way until you are near them, and the composer is the only thing with any
+ * emphasis — because the only thing you should feel invited to do is write.
+ */
 
 .zettelkasten-flow__lab {
-    padding: 8px 12px;
+    padding: 4px 16px 32px;
     overflow-y: auto;
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.zettelkasten-flow__lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0 12px;
 }
 
 .zettelkasten-flow__lab-intro {
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
-    padding-bottom: 8px;
+    line-height: 1.5;
 }
 
-.zettelkasten-flow__lab-empty {
-    padding: 24px 12px;
+.zettelkasten-flow__lab-empty,
+.zettelkasten-flow__lab-blank {
+    padding: 28px 12px;
     text-align: center;
-    color: var(--text-muted);
+    color: var(--text-faint);
     font-size: var(--font-ui-small);
 }
+
+/* ── the composer: the only thing with any emphasis ───────────────────────── */
+
+.zettelkasten-flow__lab-composer {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    background: var(--background-primary-alt);
+    padding: 12px 14px 8px;
+    margin-bottom: 18px;
+    transition: border-color 120ms ease;
+
+    &:focus-within {
+        border-color: var(--interactive-accent);
+    }
+}
+
+/* What the next thought will be to an existing one. */
+.zettelkasten-flow__lab-armed {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__lab-hint {
+    padding-top: 6px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    opacity: 0;
+    transition: opacity 120ms ease;
+
+    .zettelkasten-flow__lab-composer:focus-within & {
+        opacity: 1;
+    }
+}
+
+/* ── the thoughts ─────────────────────────────────────────────────────────── */
 
 .zettelkasten-flow__lab-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
-.zettelkasten-flow__lab-thought {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    padding: 8px 10px;
+.zettelkasten-flow__lab-card {
+    border: 1px solid transparent;
+    border-left: 2px solid var(--background-modifier-border);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 12px 6px;
     background: var(--background-primary);
-}
+    transition: border-color 120ms ease, background 120ms ease;
 
-/* The one that is always ready. Nothing to press to start. */
-.zettelkasten-flow__lab-composer {
-    border-style: dashed;
+    &:hover,
+    &:focus-within {
+        border-left-color: var(--text-accent);
+        background: var(--background-primary-alt);
+    }
 }
 
 .zettelkasten-flow__lab-connecting {
     border-color: var(--interactive-accent);
+    border-left-color: var(--interactive-accent);
+}
+
+/* What a thought is to another thought — never who is right. */
+.zettelkasten-flow__lab-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 6px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__lab-ribbon-icon {
+    display: inline-flex;
+
+    .svg-icon {
+        width: 13px;
+        height: 13px;
+    }
 }
 
 .zettelkasten-flow__lab-text {
     width: 100%;
-    resize: vertical;
     border: none;
     background: transparent;
     color: var(--text-normal);
     font-family: var(--font-text);
     font-size: var(--font-ui-medium);
-    line-height: 1.5;
+    line-height: 1.6;
     padding: 0;
+    resize: none;
+    /* Grows with what you write, without a script reaching for `style.height`. */
+    field-sizing: content;
+    min-height: 1.6em;
 
     &:focus {
         outline: none;
     }
+
+    &::placeholder {
+        color: var(--text-faint);
+    }
 }
 
-/* What a thought is to another thought — never who is right. */
-.zettelkasten-flow__lab-relation {
+.zettelkasten-flow__lab-composer-text {
+    min-height: 3.2em;
+}
+
+.zettelkasten-flow__lab-aside-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+/* ── the footer: out of the way until you are near it ─────────────────────── */
+
+.zettelkasten-flow__lab-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+    min-height: 26px;
+}
+
+.zettelkasten-flow__lab-meta {
+    display: flex;
+    gap: 10px;
     font-size: var(--font-ui-smaller);
-    color: var(--text-accent);
-    padding-bottom: 4px;
+    color: var(--text-faint);
 }
 
 .zettelkasten-flow__lab-actions {
     display: flex;
-    gap: 6px;
-    padding-top: 6px;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 120ms ease;
+
+    .zettelkasten-flow__lab-card:hover &,
+    .zettelkasten-flow__lab-card:focus-within & {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__lab-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-faint);
+    cursor: pointer;
+    box-shadow: none;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+
+    .svg-icon {
+        width: 15px;
+        height: 15px;
+    }
+}
+
+/* Picking a thought out is not a judgement about it, so it is a checkbox, not a star. */
+.zettelkasten-flow__lab-pick {
+    margin: 0 6px 0 0;
+}
+
+/* ── what you picked out ──────────────────────────────────────────────────── */
+
+.zettelkasten-flow__lab-picked {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    background: var(--background-modifier-hover);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
 }
 
 .zettelkasten-flow__lab-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: var(--font-ui-smaller);
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 3px 10px;
+    border-radius: 5px;
     border: 1px solid var(--background-modifier-border);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
+    box-shadow: none;
+    white-space: nowrap;
 
     &:hover {
         background: var(--background-modifier-hover);
@@ -84,76 +250,41 @@
     }
 }
 
-.zettelkasten-flow__lab-meta {
-    display: flex;
-    gap: 10px;
-    padding-top: 4px;
-    font-size: var(--font-ui-smaller);
-    color: var(--text-faint);
+.zettelkasten-flow__lab-action-icon {
+    display: inline-flex;
+
+    .svg-icon {
+        width: 14px;
+        height: 14px;
+    }
 }
 
-/* Picking a thought out is not a judgement about it, so it is a checkbox, not a star. */
-.zettelkasten-flow__lab-pick {
-    margin-right: 4px;
-}
+/* ── what you set aside: a door, not a queue ──────────────────────────────── */
 
-.zettelkasten-flow__lab-crystallize-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0 10px;
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
-}
-
-/* The note, before it exists (#468). */
-.zettelkasten-flow__crystallize-intro {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    padding-bottom: 8px;
-}
-
-.zettelkasten-flow__crystallize-body {
-    width: 100%;
-    resize: vertical;
-    font-family: var(--font-text);
-    font-size: var(--font-ui-medium);
-    line-height: 1.5;
-}
-
-.zettelkasten-flow__crystallize-origins {
-    margin: 4px 0;
-    padding-left: 20px;
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__crystallize-keeps {
-    color: var(--text-faint);
-    font-size: var(--font-ui-smaller);
-    padding-bottom: 8px;
-}
-
-/* What you set aside (#469): a door, not a queue. Closed by default, and it never says how full. */
 .zettelkasten-flow__lab-aside-door {
     display: flex;
-    padding: 14px 0 8px;
+    justify-content: center;
+    padding: 22px 0 10px;
 }
 
 .zettelkasten-flow__lab-aside {
-    opacity: 0.8;
-    border-style: dashed;
+    border-left-style: dashed;
+    opacity: 0.75;
+
+    &:hover {
+        opacity: 1;
+    }
 }
 
 .zettelkasten-flow__lab-since {
-    padding-top: 6px;
+    padding-top: 8px;
     font-size: var(--font-ui-smaller);
     color: var(--text-muted);
 }
 
 .zettelkasten-flow__lab-since-note {
     cursor: pointer;
-    padding-left: 8px;
+    padding: 1px 0 1px 10px;
 
     &:hover {
         color: var(--text-accent);
@@ -161,17 +292,24 @@
     }
 }
 
-/* Think before you look (#470). */
+/* ── think before you look (#470) ─────────────────────────────────────────── */
+
 .zettelkasten-flow__lab-ask-row {
     display: flex;
     padding-bottom: 8px;
 }
 
 .zettelkasten-flow__blind {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 12px;
+    border: 1px solid var(--interactive-accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    background: var(--background-primary-alt);
+
+    h4,
+    h5 {
+        margin: 0 0 4px;
+    }
 }
 
 .zettelkasten-flow__blind-intro,
@@ -185,12 +323,18 @@
 .zettelkasten-flow__blind-answer {
     width: 100%;
     font-family: var(--font-text);
+    margin-bottom: 6px;
+}
+
+.zettelkasten-flow__blind-answer {
+    resize: vertical;
+    line-height: 1.6;
 }
 
 .zettelkasten-flow__blind-columns {
     display: flex;
-    gap: 16px;
-    padding-top: 6px;
+    gap: 18px;
+    padding-top: 8px;
 }
 
 .zettelkasten-flow__blind-column {
@@ -200,6 +344,7 @@
 
 .zettelkasten-flow__blind-answer-text {
     white-space: pre-wrap;
+    line-height: 1.6;
 }
 
 .zettelkasten-flow__blind-nothing {
@@ -210,6 +355,7 @@
 .zettelkasten-flow__blind-note {
     cursor: pointer;
     font-size: var(--font-ui-small);
+    padding: 1px 0;
 
     &:hover {
         color: var(--text-accent);
@@ -221,16 +367,18 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    padding-bottom: 8px;
 }
 
 .zettelkasten-flow__blind-action {
     font-size: var(--font-ui-smaller);
-    padding: 2px 10px;
-    border-radius: 4px;
+    padding: 3px 10px;
+    border-radius: 5px;
     border: 1px solid var(--background-modifier-border);
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
+    box-shadow: none;
 
     &:hover {
         background: var(--background-modifier-hover);
@@ -241,4 +389,33 @@
 .zettelkasten-flow__blind-chosen {
     border-color: var(--interactive-accent);
     color: var(--text-normal);
+}
+
+/* ── the note, before it exists (#468) ────────────────────────────────────── */
+
+.zettelkasten-flow__crystallize-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding-bottom: 8px;
+}
+
+.zettelkasten-flow__crystallize-body {
+    width: 100%;
+    resize: vertical;
+    font-family: var(--font-text);
+    font-size: var(--font-ui-medium);
+    line-height: 1.6;
+}
+
+.zettelkasten-flow__crystallize-origins {
+    margin: 4px 0;
+    padding-left: 20px;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__crystallize-keeps {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    padding-bottom: 8px;
 }

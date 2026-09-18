@@ -480,6 +480,31 @@ One table (`application/thinking/labKeys.ts`) is read by the handler, the toolti
 legend, so what a key does cannot drift from what the legend says it does. A guardrail asserts
 every rendered action is wired to it: a move added later cannot be mouse-only.
 
+## When the lab has grown (#477)
+
+The Lab works because it asks nothing of you, which is also what makes it fill up. After a few
+weeks the thread you want is below the fold, and the refuge is a wall of text.
+
+Every obvious fix is the wrong shape. A list of what to process is an **inbox**. A count is a
+**debt**. A ranking of what looks promising is a **judgement**, and it is yours (§XII).
+
+What is actually needed is narrower: **a way to find the thing you are looking for, when you are
+looking for it.**
+
+- **A filter**, appearing only once there are enough thoughts to lose one in — a search box over
+  four thoughts is furniture. Empty by default, it narrows and **never reorders**.
+- **A match keeps its thread.** If an answer matches but its question does not, the question comes
+  with it: an answer alone is a fragment.
+- Case- and accent-insensitive, because you will not remember whether you typed *análisis* or
+  *analisis* at eleven at night.
+- **Folding**, so a long thread is one card when you are not in it. View state: it survives a
+  redraw and **not** a restart, because nothing about how you looked at a thread belongs on disk.
+- **The Lab opens where you left it.**
+
+No saved filters — *one you keep is a queue with a different name* — no suggestions, no counts.
+The guardrail from #469 is extended over all of it, and `lab.thread.500` measures a
+five-hundred-thought lab in CI: **0.65 ms per keystroke**, against a ceiling of 8.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

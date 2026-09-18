@@ -8,6 +8,8 @@ import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 import { generateBody, generateVault } from "./generateVault";
+import { newThought, type Thought } from "application/thinking/thought";
+import { filterThreads, threadThoughts } from "application/thinking/thread";
 
 /**
  * The budget suite (#457, epic #452).
@@ -151,5 +153,37 @@ describe("what the model costs to hold", () => {
         // Keep the model reachable across the reading, or it is an empty heap being measured.
         expect(model.revision()).toBeGreaterThan(0);
         assertBudget("model.memory.50k", (after - before) / (1024 * 1024));
+    });
+});
+
+describe("a lab that has grown", () => {
+    it("lab.thread.500", () => {
+        // Threads of five, which is what a lab actually looks like after a few weeks.
+        const thoughts: Thought[] = [];
+        for (let root = 0; root < 100; root++) {
+            const id = `r${root}`;
+            thoughts.push(newThought({ text: `a thought about topic ${root % 17}`, id, at: root * 1000 }));
+            for (let answer = 0; answer < 4; answer++) {
+                thoughts.push(
+                    newThought({
+                        text: `an answer ${answer} concerning topic ${root % 17}`,
+                        id: `${id}-${answer}`,
+                        at: root * 1000 + answer + 1,
+                        respondsTo: { to: id, as: answer % 2 === 0 ? "fork" : "challenge" },
+                    })
+                );
+            }
+        }
+        const ms = timed(
+            "canvas.scan",
+            () => {
+                for (let round = 0; round < 20; round++) {
+                    filterThreads(threadThoughts(thoughts), `topic ${round % 17}`);
+                }
+            },
+            thoughts.length
+        );
+        // Per keystroke, which is what the number has to mean for it to be honest.
+        assertBudget("lab.thread.500", ms / 20);
     });
 });

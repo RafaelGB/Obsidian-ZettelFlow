@@ -32,7 +32,7 @@ export class HomeSurfaceView extends ModeHostView {
             case "recent":
                 return new ChangeRenderer(container, this.plugin);
             case "lab":
-                return new LabRenderer(container);
+                return new LabRenderer(container, this.app);
             case "home":
             default:
                 return new HomeModeRenderer(container, this.app);

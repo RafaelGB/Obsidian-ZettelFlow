@@ -119,10 +119,58 @@ the Lab — for anything that counts thoughts, and scans this surface's strings 
 of debt. A counter would destroy the thing the Lab is for, and it would not be added in this file
 when it happened.
 
+## Crystallize — the only door
+
+Pick out the thoughts that turned out to be an idea, and **Crystallize**. A note appears in your
+real graph, in the real model, with everything a note has.
+
+### The archaeology survives
+
+Zettelkasten rewards thought that is already clean: a note arrives with a title and a claim, and
+the twenty minutes of contradiction that produced it are gone. Here the note keeps both halves of
+its provenance:
+
+```markdown
+The idea, as you wrote it.
+
+## Born from
+- "maybe the problem isn't that AI thinks worse than us"
+- "or maybe that's a simplification"
+- "what if the real problem is speed"
+```
+
+**Links and frozen quotes.** Links let you navigate back while the thoughts exist; the quotes are
+plain text, so the record is still readable after you empty the Lab. A record that points at a
+deleted file answers nothing — the same reasoning that makes the [write record](reversibility.md)
+keep previous values rather than a pointer.
+
+Quotes are clipped and capped, and a capped one says *and 4 more* rather than silently dropping
+them.
+
+### It is the §XII verdict
+
+The [constitution](../development/constitution.md) requires that interpretive output reach the
+vault only through an explicit human accept/modify/reject, recorded. Everywhere else in ZettelFlow
+that is a defensive guardrail on AI and heuristics. **Here it is the mechanic.** The Lab is where
+interpretation happens; this is the gate it passes.
+
+So the guardrail is about who may open the door: a test asserts `crystallize()` has exactly **one**
+caller, that it sits behind a button you press rather than a lifecycle hook, and that neither it
+nor the modal touches AI. The verdict goes to the same `JudgementLog` as every other — subject
+only, never content.
+
+### Nothing is consumed
+
+Crystallizing does not delete, move or lock the thoughts. The same chaos can produce a second idea
+next month, and a door that eats the room behind it is not a door. A test asserts the applier
+cannot reach a delete.
+
+The title and the body are **proposed, never imposed** — a proposal that is hard to change is an
+imposition. Cancelling writes nothing at all.
+
 ## What is not here yet
 
-Crystallizing a thought into a note, setting one aside, and thinking before you look are separate
-changes in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
+Setting a thought aside and thinking before you look are separate changes in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
 This page describes the object and the guarantee underneath them.
 
 ## Capability disclosure

@@ -91,3 +91,45 @@
     font-size: var(--font-ui-smaller);
     color: var(--text-faint);
 }
+
+/* Picking a thought out is not a judgement about it, so it is a checkbox, not a star. */
+.zettelkasten-flow__lab-pick {
+    margin-right: 4px;
+}
+
+.zettelkasten-flow__lab-crystallize-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0 10px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+/* The note, before it exists (#468). */
+.zettelkasten-flow__crystallize-intro {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding-bottom: 8px;
+}
+
+.zettelkasten-flow__crystallize-body {
+    width: 100%;
+    resize: vertical;
+    font-family: var(--font-text);
+    font-size: var(--font-ui-medium);
+    line-height: 1.5;
+}
+
+.zettelkasten-flow__crystallize-origins {
+    margin: 4px 0;
+    padding-left: 20px;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__crystallize-keeps {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    padding-bottom: 8px;
+}

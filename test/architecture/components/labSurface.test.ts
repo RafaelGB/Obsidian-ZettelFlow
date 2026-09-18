@@ -33,7 +33,18 @@ describe("the way in costs nothing (#467)", () => {
         for (const asking of ["Modal", "prompt(", "Suggest"]) {
             expect(COMMANDS.includes(asking)).toBe(false);
         }
-        expect(LAB.includes("Modal")).toBe(false);
+        // The Lab may open a modal — crystallization (#468) is a decision and deserves one — but
+        // never on the way *in*. The path from the command to a cursor is onload → readLab →
+        // render → renderComposer, and none of it may ask anything.
+        const entry = LAB.slice(LAB.indexOf("onload()"), LAB.indexOf("private renderThought"));
+        for (const asking of ["Modal", "prompt(", "Suggest", "confirm("]) {
+            expect({ asking, onTheWayIn: entry.includes(asking) }).toEqual({ asking, onTheWayIn: false });
+        }
+    });
+
+    it("opens a modal only for crystallizing, which is a decision and not an entrance", () => {
+        const modals = [...LAB.matchAll(/new (\w*Modal)\(/g)].map((match) => match[1]);
+        expect([...new Set(modals)]).toEqual(["CrystallizeModal"]);
     });
 
     it("focuses an empty thought as soon as it renders", () => {

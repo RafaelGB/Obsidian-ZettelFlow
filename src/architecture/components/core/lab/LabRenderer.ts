@@ -1,10 +1,12 @@
-import { moment as obsidianMoment } from "obsidian";
+import { App, moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { linkThoughts, orderThoughts, type Thought } from "application/thinking/thought";
+import { linkThoughts, orderThoughts, thoughtPath, type Thought } from "application/thinking/thought";
+import { planCrystallization } from "application/thinking/crystallize";
+import { CrystallizeModal } from "./CrystallizeModal";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -33,7 +35,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** Set when connect is armed: the next thought you click joins this one. */
     private connecting: string | undefined;
 
-    constructor(container: HTMLElement) {
+    /** What you have picked out as maybe being an idea. Empty is the normal state. */
+    private selected = new Set<string>();
+
+    constructor(container: HTMLElement, private readonly app: App) {
         super(container);
     }
 
@@ -68,6 +73,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
 
         host.createDiv({ cls: c("lab-intro"), text: t("lab_intro") });
+
+        // Only when you have picked something out. Nothing here nags you to.
+        if (this.selected.size > 0) {
+            const bar = host.createDiv({ cls: c("lab-crystallize-bar") });
+            bar.createSpan({ text: t("lab_selected", String(this.selected.size)) });
+            this.action(bar, t("lab_crystallize"), () => this.openCrystallize());
+            this.action(bar, t("lab_clear_selection"), () => {
+                this.selected.clear();
+                this.render();
+            });
+        }
+
         const list = host.createDiv({ cls: c("lab-list") });
 
         // A new thought, always first and always ready. No button to press to start one.
@@ -105,6 +122,15 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(area, "blur", () => this.flush());
 
         const actions = box.createDiv({ cls: c("lab-actions") });
+        // Picking a thought out is not a judgement about it, so it is a checkbox, not a star.
+        const pick = actions.createEl("input", { type: "checkbox", cls: c("lab-pick") });
+        pick.checked = this.selected.has(thought.id);
+        pick.setAttribute("aria-label", t("lab_pick"));
+        this.registerDomEvent(pick, "change", () => {
+            if (pick.checked) this.selected.add(thought.id);
+            else this.selected.delete(thought.id);
+            this.render();
+        });
         this.action(actions, t("lab_fork"), () => void this.fork(thought));
         this.action(actions, t("lab_challenge"), () => void this.challenge(thought));
         this.action(actions, this.connecting ? t("lab_connect_to") : t("lab_connect"), () =>
@@ -157,6 +183,24 @@ export class LabRenderer extends KnowledgeModeRenderer {
         await store.save(left);
         await store.save(right);
         this.render();
+    }
+
+    /**
+     * Propose a note, and let you rewrite it before it exists (#468).
+     *
+     * The thoughts are not consumed: the same chaos can produce a second idea next month, and a
+     * door that eats the room behind it is not a door.
+     */
+    private openCrystallize(): void {
+        const chosen = this.thoughts.filter((thought) => this.selected.has(thought.id));
+        const folder = ThoughtStore.getInstance().folder();
+        const paths = Object.fromEntries(chosen.map((thought) => [thought.id, thoughtPath(folder, thought)]));
+        const plan = planCrystallization(chosen, paths);
+        if (!plan) return;
+        new CrystallizeModal(this.app, plan, () => {
+            this.selected.clear();
+            void this.readLab();
+        }).open();
     }
 
     // ── saving, which must never lose a sentence ──────────────────────────────

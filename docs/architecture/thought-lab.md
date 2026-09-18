@@ -168,9 +168,54 @@ cannot reach a delete.
 The title and the body are **proposed, never imposed** — a proposal that is hard to change is an
 imposition. Cancelling writes nothing at all.
 
+## Set it aside
+
+Some ideas should not be processed. Not developed, not linked, not classified, not turned into a
+note, not resolved — just **left alone**, without that meaning abandoned.
+
+Two reasons, one state:
+
+| | |
+|---|---|
+| **Set aside** | not now. |
+| **Decided against** | you rejected it — and it is **still kept**, because a conclusion you rejected is part of your intellectual history, and the context that made it wrong can change. |
+
+### Why this is in phase 1
+
+Every tool's answer to "leave this alone" is an inbox, and **an inbox is a debt**: a list that
+grows, counts itself, and greets you with how far behind you are. Without this, the Lab would be
+another inbox. That is why it shipped alongside the space rather than after it.
+
+### The rule, and the test that is the feature
+
+**Nothing here ever counts at you.** No total, no badge, no ribbon number, no status bar, no
+notification, no reminder, no "you have 17 waiting". Coming back is your move.
+
+`test/application/thinking/noDebt.test.ts` is where most of this feature's weight lives, because
+the requirement is negative. It scans **all of `src/`** — not just the Lab — for anything counting
+thoughts, and the Lab specifically for badges, status-bar items, intervals and scheduled returns.
+Then it scans the strings for the vocabulary of debt: *pending, overdue, waiting, remaining,
+backlog, inbox, due, should, must, still*.
+
+A counter would destroy the thing the Lab is for, and it would not be added in `incubation.ts`
+when it happened — it would be added in a ribbon, or in Home. Hence the scope of the scan.
+
+What you set aside sits behind **a door, not a queue**: closed by default, labelled with a name
+rather than a number.
+
+### Being welcomed back
+
+When you reopen something, it says what you stopped at and **what has been written since** — notes
+created after that moment that share a word with what you were stuck on, in the order they were
+created.
+
+Mechanical, and deliberately dull. *"This appeared since"* is a fact; *"this is now promising"* is
+a judgement, and it is yours (§XII). A test asserts `appearedSince` sorts by creation time and
+that the module's code contains no notion of score, rank, relevance or weight.
+
 ## What is not here yet
 
-Setting a thought aside and thinking before you look are separate changes in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
+Thinking before you look is a separate change in [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465).
 This page describes the object and the guarantee underneath them.
 
 ## Capability disclosure

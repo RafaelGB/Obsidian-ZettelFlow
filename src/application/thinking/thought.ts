@@ -16,6 +16,8 @@
  * is exactly what you typed.
  */
 
+import type { Incubation } from "./incubation";
+
 /** The frontmatter key a thought's little structure lives under. */
 export const LAB_FRONTMATTER_KEY = "zfThought";
 
@@ -34,6 +36,8 @@ export interface Thought {
     forkedFrom?: string;
     /** The thought this one argues with. Neither side is marked right. */
     challenges?: string;
+    /** Set aside (#469). Absent is the normal state, and it generates nothing. */
+    incubated?: Incubation;
 }
 
 export interface NewThought {
@@ -94,6 +98,10 @@ export function renderThought(thought: Thought): string {
     ];
     if (thought.forkedFrom) lines.push(`  forkedFrom: ${thought.forkedFrom}`);
     if (thought.challenges) lines.push(`  challenges: ${thought.challenges}`);
+    if (thought.incubated) {
+        lines.push(`  asideReason: ${thought.incubated.reason}`, `  asideAt: ${thought.incubated.at}`);
+        if (thought.incubated.stuckOn) lines.push(`  stuckOn: ${thought.incubated.stuckOn}`);
+    }
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -129,6 +137,16 @@ export function parseThought(content: string, path: string): Thought {
     const at = Number(read("at"));
     const forkedFrom = read("forkedFrom");
     const challenges = read("challenges");
+    const asideReason = read("asideReason");
+    const stuckOn = read("stuckOn");
+    const incubated: Incubation | undefined =
+        asideReason === "not-now" || asideReason === "decided-against"
+            ? {
+                  reason: asideReason,
+                  at: Number(read("asideAt")) || 0,
+                  ...(stuckOn ? { stuckOn } : {}),
+              }
+            : undefined;
     return {
         id: read("id") || fallbackId,
         at: Number.isFinite(at) ? at : 0,
@@ -136,5 +154,6 @@ export function parseThought(content: string, path: string): Thought {
         links,
         ...(forkedFrom ? { forkedFrom } : {}),
         ...(challenges ? { challenges } : {}),
+        ...(incubated ? { incubated } : {}),
     };
 }

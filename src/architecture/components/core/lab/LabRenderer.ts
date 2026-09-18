@@ -6,6 +6,8 @@ import { KnowledgeModeRenderer } from "architecture/components/core/surface/Know
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { linkThoughts, orderThoughts, thoughtPath, type Thought } from "application/thinking/thought";
 import { planCrystallization } from "application/thinking/crystallize";
+import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
+import { KnowledgeIndex } from "architecture/knowledge";
 import { CrystallizeModal } from "./CrystallizeModal";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -37,6 +39,12 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     /** What you have picked out as maybe being an idea. Empty is the normal state. */
     private selected = new Set<string>();
+
+    /**
+     * Whether what was set aside is on screen. **Off by default, and it is not a count** — you
+     * come back because you decided to, never because something told you how many were waiting.
+     */
+    private showingAside = false;
 
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
@@ -89,7 +97,76 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
         // A new thought, always first and always ready. No button to press to start one.
         this.renderComposer(list);
-        for (const thought of orderThoughts(this.thoughts)) this.renderThought(list, thought);
+        const here = orderThoughts(this.thoughts);
+        for (const thought of here.filter((entry) => !isIncubated(entry))) {
+            this.renderThought(list, thought);
+        }
+
+        // A door, not a queue. It says the room exists; it never says how full it is.
+        const aside = here.filter(isIncubated);
+        if (aside.length > 0) {
+            const door = host.createDiv({ cls: c("lab-aside-door") });
+            this.action(door, this.showingAside ? t("lab_hide_aside") : t("lab_show_aside"), () => {
+                this.showingAside = !this.showingAside;
+                this.render();
+            });
+            if (this.showingAside) {
+                const room = host.createDiv({ cls: c("lab-list") });
+                for (const thought of aside) this.renderAside(room, thought);
+            }
+        }
+    }
+
+    /**
+     * Something you set down, and the one honest thing to say about coming back to it (#469).
+     *
+     * What it says is mechanical: this is what you were stuck on, and these notes have appeared
+     * since. Never *this is now promising* — that is a judgement, and it is yours (§XII).
+     */
+    private renderAside(list: HTMLElement, thought: Thought): void {
+        const box = list.createDiv({ cls: [c("lab-thought"), c("lab-aside")].join(" ") });
+        box.createDiv({
+            cls: c("lab-relation"),
+            text: thought.incubated?.reason === "decided-against"
+                ? t("lab_reason_decided_against")
+                : t("lab_reason_not_now"),
+        });
+        box.createDiv({ cls: c("lab-text"), text: thought.text });
+
+        const stuckOn = thought.incubated?.stuckOn;
+        if (stuckOn) box.createDiv({ cls: c("lab-meta"), text: t("lab_stuck_on", stuckOn) });
+
+        const since = this.appearedSinceFor(thought);
+        if (since.length > 0) {
+            const welcome = box.createDiv({ cls: c("lab-since") });
+            welcome.createDiv({ text: t("lab_appeared_since") });
+            for (const note of since) {
+                const link = welcome.createDiv({ cls: c("lab-since-note"), text: note.title });
+                this.registerDomEvent(link, "click", () => {
+                    void this.app.workspace.openLinkText(note.path, "", false);
+                });
+            }
+        }
+
+        const actions = box.createDiv({ cls: c("lab-actions") });
+        this.action(actions, t("lab_pick_back_up"), () => void this.pickUp(thought));
+    }
+
+    /** Notes created since you set this down that share a word with what you were stuck on. */
+    private appearedSinceFor(thought: Thought) {
+        const aside = thought.incubated;
+        if (!aside) return [];
+        const subject = `${aside.stuckOn ?? ""} ${thought.text}`;
+        try {
+            const notes = KnowledgeIndex.getInstance()
+                .getModel()
+                .all()
+                .map((idea) => ({ path: idea.path, title: idea.title, created: idea.created }));
+            return appearedSince(notes, aside.at, subject);
+        } catch (error) {
+            log.warn("[lab] could not look at what appeared since", error);
+            return [];
+        }
     }
 
     /** The empty thought at the top. Typing in it is how a thought begins. */
@@ -133,6 +210,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
         });
         this.action(actions, t("lab_fork"), () => void this.fork(thought));
         this.action(actions, t("lab_challenge"), () => void this.challenge(thought));
+        this.action(actions, t("lab_set_aside"), () => void this.setAside(thought, "not-now"));
+        this.action(actions, t("lab_decided_against"), () =>
+            void this.setAside(thought, "decided-against")
+        );
         this.action(actions, this.connecting ? t("lab_connect_to") : t("lab_connect"), () =>
             void this.connect(thought)
         );
@@ -201,6 +282,22 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.selected.clear();
             void this.readLab();
         }).open();
+    }
+
+    private async setAside(thought: Thought, reason: "not-now" | "decided-against"): Promise<void> {
+        // The text you were stuck on is what you already wrote; nothing extra is demanded of you
+        // at the moment you stop, which is the moment you have least patience for a form.
+        const aside = setAside(thought, reason, Date.now());
+        this.replace(aside);
+        await ThoughtStore.getInstance().save(aside);
+        this.render();
+    }
+
+    private async pickUp(thought: Thought): Promise<void> {
+        const back = pickBackUp(thought);
+        this.replace(back);
+        await ThoughtStore.getInstance().save(back);
+        this.render();
     }
 
     // ── saving, which must never lose a sentence ──────────────────────────────

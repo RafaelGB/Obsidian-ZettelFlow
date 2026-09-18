@@ -133,3 +133,30 @@
     font-size: var(--font-ui-smaller);
     padding-bottom: 8px;
 }
+
+/* What you set aside (#469): a door, not a queue. Closed by default, and it never says how full. */
+.zettelkasten-flow__lab-aside-door {
+    display: flex;
+    padding: 14px 0 8px;
+}
+
+.zettelkasten-flow__lab-aside {
+    opacity: 0.8;
+    border-style: dashed;
+}
+
+.zettelkasten-flow__lab-since {
+    padding-top: 6px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__lab-since-note {
+    cursor: pointer;
+    padding-left: 8px;
+
+    &:hover {
+        color: var(--text-accent);
+        text-decoration: underline;
+    }
+}

@@ -29,9 +29,19 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         super(plugin);
     }
 
-    /** Menu entries grouped by job; a separator is drawn between groups. Create note leads. */
+    /**
+     * Menu entries grouped by job; a separator is drawn between groups.
+     *
+     * **Think leads** (#479). That order is the claim epic #472 makes: an idea starts as a
+     * thought, and a note is what it may become. Creating a note is the second thing you do, not
+     * the first — and a front door that offers only the second one is why the thinking space was
+     * somewhere you had to already know about.
+     */
     private static readonly GROUPS: MenuEntry[][] = [
-        [{ command: "open-workflow", labelKey: "menu_create_note", icon: "file-plus" }],
+        [
+            { command: "think", labelKey: "command_think", icon: "lightbulb" },
+            { command: "open-workflow", labelKey: "menu_create_note", icon: "file-plus" },
+        ],
         [
             { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
             { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },

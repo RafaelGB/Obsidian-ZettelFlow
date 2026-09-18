@@ -1,4 +1,7 @@
-# The Thought Lab
+# Think
+
+*Your thinking space — where anything starts.*
+
 
 Every object ZettelFlow has presupposes the thinking already happened.
 
@@ -510,6 +513,22 @@ five-hundred-thought lab in CI: **0.65 ms per keystroke**, against a ceiling of 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator
 engine (collision · constraints · perspectives · question transformations, as **one** mechanism
 with four vocabularies), the shadow graph, and tension and belief as objects.
+
+## The name, and the one in the code
+
+The surface is called **Think** (#479). It was *Lab*, which reads as somewhere advanced you go
+once you already have something to test — the opposite of an invitation to begin, and beside
+`Home · Cultivate · Recent` it was the entry a new user was least likely to open first. A verb is
+the invitation, and it is the only verb the ribbon menu offers.
+
+It leads that menu, above *Create note*. That order is the claim: an idea starts as a thought, and
+a note is what it may become.
+
+**The code still says `lab`** — the classes, the `lab/` folder, `thoughtLabPath`. That is
+deliberate. A product name and a code name serve different readers, `lab` remains an accurate
+description of what the code is, and renaming identifiers for a label is churn with real
+regression risk. The repo already does this: `historyView` serves the *Recent* mode. What matters
+is that the command id and the mode id never changed, so nobody's hotkey or deep link broke.
 
 ## Capability disclosure
 

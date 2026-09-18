@@ -6,6 +6,7 @@ const SRC = join(__dirname, "..", "..", "..", "src");
 const LAB = readFileSync(join(SRC, "architecture", "components", "core", "lab", "LabRenderer.ts"), "utf8");
 const COMMANDS = readFileSync(join(SRC, "starters", "zcomponents", "SurfaceCommandsComponent.ts"), "utf8");
 const EN = readFileSync(join(SRC, "architecture", "lang", "locale", "en.ts"), "utf8");
+const STORE = readFileSync(join(SRC, "architecture", "plugin", "thinking", "ThoughtStore.ts"), "utf8");
 
 function sources(dir: string): string[] {
     return readdirSync(dir).flatMap((entry) => {
@@ -169,5 +170,61 @@ describe("the lab never counts (#467)", () => {
             })
             .map((path) => relative(SRC, path));
         expect(offenders).toEqual([]);
+    });
+});
+
+/**
+ * You can tidy the lab, and nothing you remove is gone (#467 follow-up).
+ *
+ * A refuge you cannot tidy becomes a junk drawer — but "delete" in a place you were told is safe
+ * has to mean the same thing it means everywhere else in the plugin: Obsidian's trash.
+ */
+describe("throwing a thought away (#467 follow-up)", () => {
+    it("goes to the trash, never to a delete", () => {
+        expect(STORE).toContain("public async discard(");
+        expect(STORE).toContain("FileService.deleteFile(file)");
+        // FileService.deleteFile is trashFile underneath (#453); nothing here reaches a raw delete.
+        expect(STORE).not.toContain("vault().delete(");
+    });
+
+    it("can be put back, from memory, without a trip to the trash folder", () => {
+        expect(STORE).toContain("public async restore(");
+        expect(LAB).toContain("private async undoDiscard(");
+        expect(LAB).toContain("ThoughtStore.getInstance().restore(thought)");
+    });
+
+    it("offers the undo where the card was, never as a toast that interrupts", () => {
+        expect(LAB).toContain('c("lab-discarded")');
+        expect(LAB).toContain('t("lab_discard_undo")');
+        // `Notice(` is already forbidden on this surface by noDebt.test.ts, which is what makes
+        // an inline strip the only option — and it is the better one anyway.
+        expect(LAB.includes("new Notice")).toBe(false);
+    });
+});
+
+describe("the moves explain themselves (#467 follow-up)", () => {
+    it("gives every icon a tooltip, because an icon is opaque until you know it", () => {
+        expect(LAB).toContain("setTooltip(button, label);");
+    });
+
+    it("has a legend that says what each move does, closed by default", () => {
+        expect(LAB).toContain("private showingLegend = false;");
+        expect(LAB).toContain("private renderLegend(");
+        for (const key of [
+            "lab_legend_fork",
+            "lab_legend_challenge",
+            "lab_legend_connect",
+            "lab_legend_set_aside",
+            "lab_legend_decided_against",
+            "lab_legend_crystallize",
+            "lab_legend_discard",
+        ]) {
+            expect({ key, explained: EN.includes(`${key}:`) }).toEqual({ key, explained: true });
+        }
+    });
+
+    it("explains each move in a sentence, not in a word", () => {
+        const sentence = /lab_legend_(fork|challenge|connect): '([^']{30,})'/g;
+        expect([...EN.matchAll(sentence)]).toHaveLength(3);
     });
 });

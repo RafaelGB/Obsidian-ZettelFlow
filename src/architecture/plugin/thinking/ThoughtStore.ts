@@ -70,6 +70,27 @@ export class ThoughtStore {
         await FileService.writeFile(path, renderThought(thought), false);
     }
 
+    /**
+     * Throw a thought away.
+     *
+     * To Obsidian's **trash**, never deleted — the same rule the rest of the plugin lives by
+     * (#454). Some things you write here are a typo or a false start, and a refuge you cannot
+     * tidy becomes a junk drawer; but nothing ZettelFlow removes should be unrecoverable.
+     */
+    public async discard(thought: Thought): Promise<void> {
+        const path = this.pathOf(thought);
+        if (!path) return;
+        const file = ObsidianApi.vault().getFileByPath(path);
+        if (file instanceof TFile) await FileService.deleteFile(file);
+    }
+
+    /** Put a discarded thought back, exactly as it was. */
+    public async restore(thought: Thought): Promise<void> {
+        const folder = this.folder();
+        if (!folder) return;
+        await FileService.writeFile(thoughtPath(folder, thought), renderThought(thought), false);
+    }
+
     /** The file a thought came from, when it is already on disk. */
     private pathOf(thought: Thought): string | undefined {
         return this.files().find((file) => file.path.includes(thought.id))?.path;

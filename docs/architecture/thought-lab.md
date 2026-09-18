@@ -133,6 +133,33 @@ a redraw is a click that never happened.
 Writing saves on a short debounce, on blur, and on close. A refuge that loses what you typed
 because you switched tabs is not one.
 
+### Throwing one away
+
+A refuge you cannot tidy becomes a junk drawer, so a thought can be **thrown away** — and, like
+everything else ZettelFlow removes, it goes to **Obsidian's trash**, never to a delete.
+
+The undo appears **where the card was**, not as a toast: this surface must not interrupt, and a
+strip in the space the card occupied is closer to where you are already looking. The thought is
+held in memory, so putting it back is instant.
+
+Note the difference from *decided against*: that one **keeps** the thought, because a rejected
+conclusion is part of your intellectual history. Throwing away is for the typo and the false
+start.
+
+### Saying what the moves do
+
+An icon is quick once you know it and opaque until you do. So every action carries a tooltip that
+says what it *does* rather than what it is called, and the header has a **What do these do?**
+legend — one sentence per move, closed by default, because a legend you cannot dismiss is clutter
+for everyone who already read it.
+
+Colour distinguishes what a thought is to another: a fork takes the blue rule, a challenge the
+orange one. That is a distinction, never a verdict — neither side is marked right.
+
+Feedback is deliberately small: a card fades in when it arrives, its rule pulses green for a
+moment when an edit is saved, and it slides out when thrown away. All of it respects
+`prefers-reduced-motion`.
+
 ### It never counts
 
 No total, no badge, no "you have 17 thoughts". A guardrail scans the whole of `src/` — not just

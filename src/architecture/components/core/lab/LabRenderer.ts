@@ -1,4 +1,4 @@
-import { App, moment as obsidianMoment, setIcon } from "obsidian";
+import { App, moment as obsidianMoment, setIcon, setTooltip } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
@@ -64,6 +64,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private showingAside = false;
     /** Whether the blind question panel is open. A choice, never a mode you are put into. */
     private asking = false;
+    /** Whether the short explanation of the moves is on screen. */
+    private showingLegend = false;
     private blind: BlindPanel | undefined;
 
     private listEl: HTMLElement | undefined;
@@ -115,11 +117,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
 
         const header = host.createDiv({ cls: c("lab-header") });
-        header.createDiv({ cls: c("lab-intro"), text: t("lab_intro") });
-        this.ghostAction(header, this.asking ? t("blind_close") : t("blind_open"), "eye-off", () => {
+        const said = header.createDiv();
+        said.createDiv({ cls: c("lab-intro"), text: t("lab_intro") });
+        const actions = header.createDiv({ cls: c("lab-header-actions") });
+        this.ghostAction(actions, t("lab_legend_open"), "help-circle", () => {
+            this.showingLegend = !this.showingLegend;
+            this.render();
+        });
+        this.ghostAction(actions, this.asking ? t("blind_close") : t("blind_open"), "eye-off", () => {
             this.asking = !this.asking;
             this.render();
         });
+        if (this.showingLegend) this.renderLegend(host);
 
         if (this.asking) {
             const panel = host.createDiv();
@@ -142,6 +151,32 @@ export class LabRenderer extends KnowledgeModeRenderer {
         for (const thought of open) this.renderThought(this.listEl, thought);
 
         this.renderAsideDoor(host, here.filter(isIncubated));
+    }
+
+    /**
+     * What the moves do, in one sentence each (#467 follow-up).
+     *
+     * The icons are quick once you know them and opaque until you do, so the explanation is a
+     * click away rather than absent — and closed by default, because a legend you cannot dismiss
+     * is clutter for everyone who already read it.
+     */
+    private renderLegend(host: HTMLElement): void {
+        const legend = host.createDiv({ cls: c("lab-legend") });
+        const rows: [string, string, string][] = [
+            ["git-branch", t("lab_fork"), t("lab_legend_fork")],
+            ["swords", t("lab_challenge"), t("lab_legend_challenge")],
+            ["link", t("lab_connect"), t("lab_legend_connect")],
+            ["moon", t("lab_set_aside"), t("lab_legend_set_aside")],
+            ["archive", t("lab_decided_against"), t("lab_legend_decided_against")],
+            ["gem", t("lab_crystallize"), t("lab_legend_crystallize")],
+            ["trash-2", t("lab_discard"), t("lab_legend_discard")],
+        ];
+        for (const [icon, name, what] of rows) {
+            const row = legend.createDiv({ cls: c("lab-legend-row") });
+            setIcon(row.createSpan({ cls: c("lab-legend-icon") }), icon);
+            row.createSpan({ cls: c("lab-legend-name"), text: name });
+            row.createSpan({ cls: c("lab-legend-what"), text: what });
+        }
     }
 
     /**
@@ -218,12 +253,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const box = list.createDiv({ cls: c("lab-card") });
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
 
-        if (thought.challenges) this.ribbon(box, t("lab_challenges"), "swords");
-        else if (thought.forkedFrom) this.ribbon(box, t("lab_forked"), "git-branch");
+        // Colour distinguishes what a thought *is* to another, never who is right.
+        if (thought.challenges) {
+            box.addClass(c("lab-card-challenge"));
+            this.ribbon(box, t("lab_challenges"), "swords");
+        } else if (thought.forkedFrom) {
+            box.addClass(c("lab-card-fork"));
+            this.ribbon(box, t("lab_forked"), "git-branch");
+        }
 
         const area = box.createEl("textarea", { cls: c("lab-text"), attr: { rows: "1" } });
         area.value = thought.text;
-        this.registerDomEvent(area, "input", () => this.scheduleEdit(thought, area));
+        this.registerDomEvent(area, "input", () => this.scheduleEdit(thought, area, box));
         this.registerDomEvent(area, "blur", () => this.flush());
 
         const footer = box.createDiv({ cls: c("lab-card-footer") });
@@ -251,7 +292,37 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.iconAction(actions, t("lab_decided_against"), "archive", () =>
             void this.aside(thought, "decided-against")
         );
+        this.iconAction(actions, t("lab_discard"), "trash-2", () => void this.discard(thought, box));
         return box;
+    }
+
+    /**
+     * Throw a thought away, with the undo **where the card was** (#467 follow-up).
+     *
+     * Not a `Notice`: this surface must never interrupt, and a strip in the space the card
+     * occupied is both quieter and closer to where you are looking. The thought is kept in
+     * memory, so putting it back is instant — and it went to Obsidian's trash anyway, because
+     * nothing ZettelFlow removes should be unrecoverable.
+     */
+    private async discard(thought: Thought, card: HTMLElement): Promise<void> {
+        card.addClass(c("lab-leaving"));
+        await ThoughtStore.getInstance().discard(thought);
+        this.thoughts = this.thoughts.filter((entry) => entry.id !== thought.id);
+
+        const strip = card.parentElement?.createDiv({ cls: c("lab-discarded") });
+        card.remove();
+        if (!strip) return;
+        strip.createSpan({ text: t("lab_discarded") });
+        this.ghostAction(strip, t("lab_discard_undo"), "undo-2", () => {
+            strip.remove();
+            void this.undoDiscard(thought);
+        });
+    }
+
+    private async undoDiscard(thought: Thought): Promise<void> {
+        await ThoughtStore.getInstance().restore(thought);
+        this.thoughts.push(thought);
+        this.refresh();
     }
 
     /** Arm the composer, instead of creating an empty card you would have to go back and fill. */
@@ -401,11 +472,15 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     // ── saving an edit, which must never lose a sentence ──────────────────────
 
-    private scheduleEdit(thought: Thought, area: HTMLTextAreaElement): void {
+    private scheduleEdit(thought: Thought, area: HTMLTextAreaElement, card?: HTMLElement): void {
         this.pendingEdit = async () => {
             const next = { ...thought, text: area.value };
             this.replace(next);
             await ThoughtStore.getInstance().save(next);
+            // A short pulse on the card's rule. Enough to know it landed, quiet enough to ignore.
+            if (!card) return;
+            card.addClass(c("lab-saved"));
+            window.setTimeout(() => card.removeClass(c("lab-saved")), 900);
         };
         if (this.editTimer) window.clearTimeout(this.editTimer);
         this.editTimer = window.setTimeout(() => this.flush(), EDIT_SAVE_AFTER_MS);
@@ -437,6 +512,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const button = host.createEl("button", { cls: c("lab-icon"), attr: { type: "button" } });
         setIcon(button, icon);
         button.setAttribute("aria-label", label);
+        // An icon is quick once you know it and opaque until you do, so it says what it does.
+        setTooltip(button, label);
         // `mousedown`, not `click`: the composer commits on blur, and a click that lands after a
         // redraw is a click that never happened.
         this.registerDomEvent(button, "mousedown", (event: MouseEvent) => {

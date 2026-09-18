@@ -21,6 +21,12 @@
     padding: 8px 0 12px;
 }
 
+.zettelkasten-flow__lab-header-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
 .zettelkasten-flow__lab-intro {
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
@@ -41,12 +47,13 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: 10px;
     background: var(--background-primary-alt);
-    padding: 12px 14px 8px;
-    margin-bottom: 18px;
-    transition: border-color 120ms ease;
+    padding: 16px 18px 10px;
+    margin-bottom: 20px;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
 
     &:focus-within {
         border-color: var(--interactive-accent);
+        box-shadow: 0 0 0 3px var(--background-modifier-border);
     }
 }
 
@@ -145,8 +152,11 @@
     }
 }
 
+/* Room to think in: the composer is a page, not an input. */
 .zettelkasten-flow__lab-composer-text {
-    min-height: 3.2em;
+    min-height: 7em;
+    font-size: var(--font-text-size, var(--font-ui-medium));
+    line-height: 1.7;
 }
 
 .zettelkasten-flow__lab-aside-text {
@@ -418,4 +428,141 @@
     color: var(--text-faint);
     font-size: var(--font-ui-smaller);
     padding-bottom: 8px;
+}
+
+/* ── what the moves do, a click away ──────────────────────────────────────── */
+
+.zettelkasten-flow__lab-legend {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    background: var(--background-secondary);
+    animation: zf-lab-in 160ms ease;
+}
+
+.zettelkasten-flow__lab-legend-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__lab-legend-icon {
+    display: inline-flex;
+    color: var(--text-muted);
+    flex-shrink: 0;
+
+    .svg-icon {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.zettelkasten-flow__lab-legend-name {
+    color: var(--text-normal);
+    font-weight: 600;
+    min-width: 92px;
+    flex-shrink: 0;
+}
+
+.zettelkasten-flow__lab-legend-what {
+    color: var(--text-muted);
+}
+
+/* ── colour says what a thought is to another, never who is right ─────────── */
+
+.zettelkasten-flow__lab-card-fork {
+    border-left-color: var(--color-blue);
+
+    .zettelkasten-flow__lab-ribbon {
+        color: var(--color-blue);
+    }
+
+    &:hover,
+    &:focus-within {
+        border-left-color: var(--color-blue);
+    }
+}
+
+.zettelkasten-flow__lab-card-challenge {
+    border-left-color: var(--color-orange);
+
+    .zettelkasten-flow__lab-ribbon {
+        color: var(--color-orange);
+    }
+
+    &:hover,
+    &:focus-within {
+        border-left-color: var(--color-orange);
+    }
+}
+
+/* ── feedback: enough to know it landed, quiet enough to ignore ───────────── */
+
+@keyframes zf-lab-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes zf-lab-out {
+    to {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+}
+
+@keyframes zf-lab-saved {
+    0% {
+        border-left-color: var(--color-green);
+    }
+
+    100% {
+        border-left-color: var(--background-modifier-border);
+    }
+}
+
+.zettelkasten-flow__lab-card {
+    animation: zf-lab-in 180ms ease;
+}
+
+.zettelkasten-flow__lab-saved {
+    animation: zf-lab-saved 900ms ease;
+}
+
+.zettelkasten-flow__lab-leaving {
+    animation: zf-lab-out 140ms ease forwards;
+    pointer-events: none;
+}
+
+/* The undo, where the card was — never a toast that interrupts you. */
+.zettelkasten-flow__lab-discarded {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px dashed var(--background-modifier-border);
+    border-radius: 8px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    animation: zf-lab-in 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__lab-card,
+    .zettelkasten-flow__lab-legend,
+    .zettelkasten-flow__lab-discarded,
+    .zettelkasten-flow__lab-saved,
+    .zettelkasten-flow__lab-leaving {
+        animation: none;
+    }
 }

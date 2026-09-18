@@ -1,6 +1,7 @@
 import { log, ObsidianApi } from "architecture";
 import { DataWriteOptions, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 import { safeInquiryPath } from 'architecture/knowledge/inquiry/inquiryState';
+import { recordVaultWrite } from "architecture/plugin/writes/recordVaultWrite";
 export type CreateFileVault = Pick<Vault, 'getAbstractFileByPath' | 'read' | 'create'>;
 export interface CreateFileOperation { path: string; content: string }
 export interface CreateFileResult { status: 'created' | 'already-created' | 'conflict' | 'failed'; path: string }
@@ -61,6 +62,7 @@ export class FileService {
             try { await vault.create(path, content); }
             catch { return await reconcile(); }
             if (!allowed(path)) return result('failed');
+            FileService.recordCreation(path); // the gallery install is a write like any other (#453)
             return result('created');
         } catch { return result('failed'); }
     }
@@ -73,10 +75,23 @@ export class FileService {
         }
 
         const file = await ObsidianApi.vault().create(path, content);
+        FileService.recordCreation(path);
         if (openAfter) {
             await FileService.openFile(path);
         }
         return file;
+    }
+
+    /**
+     * Everything ZettelFlow creates goes on the record (#453). A note and any other file are told
+     * apart because undo treats them the same way — the trash — but the panel should not call a
+     * `.canvas` a note.
+     */
+    private static recordCreation(path: string): void {
+        recordVaultWrite({
+            kind: path.endsWith(FileService.MARKDOWN_EXTENSION) ? "note-created" : "file-created",
+            path,
+        });
     }
 
     public static async openFile(path: string): Promise<void> {
@@ -98,8 +113,12 @@ export class FileService {
         if (existing instanceof TFile) {
             await ObsidianApi.vault().modify(existing, content);
             file = existing;
+            // Recorded, but not undoable: taking an overwrite back would need the old body, and
+            // the record deliberately keeps none (#453).
+            recordVaultWrite({ kind: "content-replaced", path });
         } else {
             file = await ObsidianApi.vault().create(path, content);
+            FileService.recordCreation(path);
         }
         if (openAfter) {
             await FileService.openFile(path);
@@ -120,11 +139,19 @@ export class FileService {
         const existing = ObsidianApi.vault().getFileByPath(path);
         if (existing instanceof TFile) {
             await ObsidianApi.vault().modifyBinary(existing, data);
+            recordVaultWrite({ kind: "content-replaced", path });
             return existing;
         }
-        return await ObsidianApi.vault().createBinary(path, data);
+        const created = await ObsidianApi.vault().createBinary(path, data);
+        FileService.recordCreation(path);
+        return created;
     }
 
+    /**
+     * Deliberately **not** recorded (#453): taking a deletion back would mean keeping the note's
+     * body, which is the one thing the write record refuses to do. Obsidian's own trash is the
+     * recovery path, and it already holds the file.
+     */
     public static async deleteFile(file: TFile): Promise<void> {
         await ObsidianApi.fileManager().trashFile(file);
     }
@@ -154,6 +181,38 @@ export class FileService {
 
     public static async modify(file: TFile, content: string, options?: DataWriteOptions): Promise<void> {
         await ObsidianApi.vault().modify(file, content, options);
+        recordVaultWrite({ kind: "content-replaced", path: file.path });
+    }
+
+    /**
+     * Add text to the end of a note (#454). Recorded **with the text**, which is the one place the
+     * write record holds content — and it is ZettelFlow's own output, capped, kept for a week,
+     * because removing it again is the only way an append can be taken back.
+     */
+    public static async appendTo(file: TFile, text: string): Promise<void> {
+        const content = await ObsidianApi.vault().cachedRead(file);
+        await ObsidianApi.vault().modify(file, `${content.trimEnd()}\n\n${text}\n`);
+        recordVaultWrite(
+            text.length <= FileService.MAX_RECORDED_APPEND
+                ? { kind: "content-appended", path: file.path, appended: text }
+                : { kind: "content-replaced", path: file.path }
+        );
+    }
+
+    /**
+     * How much appended text the record will keep. Past it the write is still recorded, as an
+     * overwrite that cannot be taken back — the record must not become a place to store prose.
+     */
+    public static MAX_RECORDED_APPEND = 2000;
+
+    /**
+     * Move a file, through the file manager so links follow it (#453). The one write that changes
+     * nothing inside a note and is still the hardest to notice — and the easiest to take back.
+     */
+    public static async moveFile(file: TFile, to: string): Promise<void> {
+        const from = file.path;
+        await ObsidianApi.fileManager().renameFile(file, to);
+        recordVaultWrite({ kind: "file-moved", path: to, from });
     }
 
     public static getFolder(folder_str: string): TFolder {

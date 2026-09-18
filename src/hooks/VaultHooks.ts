@@ -3,6 +3,8 @@ import { canvas } from "architecture/plugin/canvas";
 import type { Flow } from "architecture/plugin/canvas";
 import { log } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
+import { currentWriteBatch, withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { offerUndo } from "architecture/plugin/writes/undoNotice";
 import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { isUnderFolder } from "architecture/plugin/canvas/flowRole";
 import { SelectorMenuModal } from "zettelkasten";
@@ -16,6 +18,7 @@ import {
     TFolder,
 } from "obsidian";
 import {
+    FileService,
     FrontmatterService,
     Literal,
     VaultStateManager,
@@ -293,17 +296,16 @@ export class VaultHooks {
 
         if (canvasFile instanceof TFile) {
             canvas.flows.delete(canvasFile.path);
-            this.plugin.app.fileManager
-                .trashFile(canvasFile)
+            FileService.deleteFile(canvasFile)
                 .then(() =>
                     log.info(
                         `[VaultHooks] Eliminado canvas asociado a carpeta ${folder.path}: ${canvasFile.path}`
                     )
                 )
-                .catch((e) =>
+                .catch((error: unknown) =>
                     log.error(
                         `[VaultHooks] Error eliminando canvas ${canvasFile.path}:`,
-                        e
+                        error
                     )
                 );
         }
@@ -428,6 +430,8 @@ export class VaultHooks {
         };
 
         VaultStateManager.INSTANCE.processStart(file.path);
+        /** Which hooks actually ran, so the record can say who changed this note (#453). */
+        const fired: string[] = [];
 
         try {
             for (const [property, hookSettings] of hooksEntries) {
@@ -465,6 +469,7 @@ export class VaultHooks {
                     }
                     return;
                 }
+                fired.push(property);
                 log.debug(`[VaultHooks] Hook executed with property "${property}".`, event);
             }
 
@@ -475,10 +480,19 @@ export class VaultHooks {
                     event.response.removeProperties
                 )
             ) {
-                await fmPrev.setProperties(
-                    event.response.frontmatter,
-                    event.response.removeProperties
-                );
+                // The write a hook makes is the one that surprises people: it lands on a note you
+                // were not looking at. It goes on the record under the hooks that caused it (#453).
+                let batch: string | undefined;
+                await withWriteBatch({ kind: "hook", ref: `hook:${fired.join(", ")}` }, async () => {
+                    batch = currentWriteBatch();
+                    await fmPrev.setProperties(
+                        event.response.frontmatter,
+                        event.response.removeProperties
+                    );
+                });
+                // The write you most want to take back, offered where you will actually see it
+                // (#455). Expires in thirty seconds; the record keeps the undo afterwards.
+                if (batch) offerUndo(batch, file.path);
 
                 VaultStateManager.INSTANCE.update(file);
             }

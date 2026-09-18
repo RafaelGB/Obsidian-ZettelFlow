@@ -5,7 +5,7 @@ import { t } from "architecture/lang";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { mergeStepSettingsIntoFrontmatter, PHASE_LABEL_KEY } from "zettelkasten/phases";
-import { ObsidianApi, c, log } from "architecture";
+import { c, log } from "architecture";
 import { canvas } from "architecture/plugin/canvas";
 import { AbstractStepModal } from "./AbstractStepModal";
 import ZettelFlow from "main";
@@ -652,7 +652,7 @@ export class StepBuilderModal extends AbstractStepModal {
     private async addStep(file: TFile, stepSettings: StepSettings): Promise<void> {
         // Must be awaited: save() runs from onClose and defrosts the vault state right after,
         // so a fire-and-forget write could be dropped and the step never persisted (#79).
-        await ObsidianApi.fileManager().processFrontMatter(file, (frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
+        await FrontmatterService.instance(file).update((frontmatter: Record<string, unknown> & { zettelFlowSettings?: Record<string, unknown> }) => {
             // Use the pure merge helper so a cleared phase/wait marker is DELETED (a plain spread
             // would leave a previously-saved value behind). The canvas/embed path full-replaces already.
             frontmatter.zettelFlowSettings = mergeStepSettingsIntoFrontmatter(

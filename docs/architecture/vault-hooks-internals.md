@@ -83,6 +83,19 @@ native property types via `ObsidianNativeTypesManager.getAllTypes()` and saves t
 `plugin.settings.hooks.properties`. A `FoldersFlowSelectorHandler` binds a folder-suggest to
 `settings.hooks.folderFlowPath`.
 
+### Taking a hook's change back (#455)
+
+A hook's write is the one that surprises people: it lands on a note you were not looking at. So
+when a hook changes a note, the notice it shows carries an **undo**, live for 30 seconds, naming
+the property and the note. It runs the same plan the
+[change panel](reversibility.md#taking-it-back) would run for that batch.
+
+It is a `Notice`, never a modal — ignoring it is the normal case — and after 30 seconds it goes
+without a second word. The undo stays available from the record.
+
+A hook whose response set a property to the value it already had recorded no write at all (the
+record is a diff), so it offers nothing.
+
 ## Menu integrations
 
 - **`FileMenu`** — folder menu "Edit folder workflow"; markdown-file menu to

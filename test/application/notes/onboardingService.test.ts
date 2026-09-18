@@ -4,6 +4,7 @@ import {
     repairBrokenExampleFlow,
     EXAMPLE_CANVAS_PATH,
     EXAMPLE_STEP_PATH,
+    type OnboardingWriter,
 } from "application/notes/onboardingService";
 
 const mockTFile = { path: EXAMPLE_STEP_PATH };
@@ -26,7 +27,17 @@ const makeMockPlugin = (stepExists = false, canvasExists = false) => {
         settings: { ribbonCanvas: "" },
         saveSettings: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
     } as unknown as import("main").default;
-    return { plugin, vault };
+    // Vault mutation goes through the services now (#456), so onboarding takes a writer port.
+    // This one lands on the same fake vault, which is what every assertion below reads.
+    const writer: OnboardingWriter = {
+        create: async (path, content) => {
+            await vault.create(path, content);
+        },
+        overwrite: async (file, content) => {
+            await vault.modify(file, content);
+        },
+    };
+    return { plugin, vault, writer };
 };
 
 describe("onboarding constants", () => {
@@ -46,31 +57,31 @@ describe("onboarding constants", () => {
 
 describe("createExampleFlow — fresh vault (no files exist)", () => {
     it("returns the canvas path on success", async () => {
-        const { plugin } = makeMockPlugin();
-        expect(await createExampleFlow(plugin)).toBe(EXAMPLE_CANVAS_PATH);
+        const { plugin, writer } = makeMockPlugin();
+        expect(await createExampleFlow(plugin, writer)).toBe(EXAMPLE_CANVAS_PATH);
     });
 
     it("sets ribbonCanvas on plugin settings", async () => {
-        const { plugin } = makeMockPlugin();
-        await createExampleFlow(plugin);
+        const { plugin, writer } = makeMockPlugin();
+        await createExampleFlow(plugin, writer);
         expect(plugin.settings.ribbonCanvas).toBe(EXAMPLE_CANVAS_PATH);
     });
 
     it("calls saveSettings once", async () => {
-        const { plugin } = makeMockPlugin();
-        await createExampleFlow(plugin);
+        const { plugin, writer } = makeMockPlugin();
+        await createExampleFlow(plugin, writer);
         expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     });
 
     it("calls vault.create for the step file", async () => {
-        const { plugin, vault } = makeMockPlugin();
-        await createExampleFlow(plugin);
+        const { plugin, vault, writer } = makeMockPlugin();
+        await createExampleFlow(plugin, writer);
         expect(vault.create).toHaveBeenCalledWith(EXAMPLE_STEP_PATH, expect.stringContaining("zettelFlowSettings"));
     });
 
     it("STEP_TEMPLATE contains zettelFlowSettings.root YAML", async () => {
-        const { plugin, vault } = makeMockPlugin();
-        await createExampleFlow(plugin);
+        const { plugin, vault, writer } = makeMockPlugin();
+        await createExampleFlow(plugin, writer);
         const stepCall = (vault.create as jest.MockedFunction<typeof vault.create>).mock.calls.find(
             ([path]) => path === EXAMPLE_STEP_PATH
         );
@@ -82,8 +93,8 @@ describe("createExampleFlow — fresh vault (no files exist)", () => {
     });
 
     it("canvas JSON does not contain zettelflowConfig", async () => {
-        const { plugin, vault } = makeMockPlugin();
-        await createExampleFlow(plugin);
+        const { plugin, vault, writer } = makeMockPlugin();
+        await createExampleFlow(plugin, writer);
         const canvasCall = (vault.create as jest.MockedFunction<typeof vault.create>).mock.calls.find(
             ([path]) => path === EXAMPLE_CANVAS_PATH
         );
@@ -93,22 +104,22 @@ describe("createExampleFlow — fresh vault (no files exist)", () => {
     });
 
     it("skips createFolder when folders already exist", async () => {
-        const { plugin, vault } = makeMockPlugin();
+        const { plugin, vault, writer } = makeMockPlugin();
         vault.getAbstractFileByPath.mockReturnValue({ path: "existing" });
-        await createExampleFlow(plugin);
+        await createExampleFlow(plugin, writer);
         expect(vault.createFolder).not.toHaveBeenCalled();
     });
 
     it("returns null when vault.create rejects", async () => {
-        const { plugin, vault } = makeMockPlugin();
+        const { plugin, vault, writer } = makeMockPlugin();
         vault.create.mockRejectedValue(new Error("disk full"));
-        expect(await createExampleFlow(plugin)).toBeNull();
+        expect(await createExampleFlow(plugin, writer)).toBeNull();
     });
 
     it("does not call saveSettings when vault.create fails", async () => {
-        const { plugin, vault } = makeMockPlugin();
+        const { plugin, vault, writer } = makeMockPlugin();
         vault.create.mockRejectedValue(new Error("fail"));
-        await createExampleFlow(plugin);
+        await createExampleFlow(plugin, writer);
         expect(plugin.saveSettings).not.toHaveBeenCalled();
     });
 });
@@ -137,17 +148,23 @@ describe("repairBrokenExampleFlow", () => {
             settings: { ribbonCanvas: opts.ribbonCanvas },
             saveSettings: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
         } as unknown as import("main").default;
-        return { plugin, vault };
+        const writer: OnboardingWriter = {
+            create: async () => undefined,
+            overwrite: async (file, content) => {
+                await vault.modify(file, content);
+            },
+        };
+        return { plugin, vault, writer };
     }
 
     it("repairs file when it exists but has no zettelFlowSettings frontmatter", async () => {
-        const { plugin, vault } = makeRepairPlugin({
+        const { plugin, vault, writer } = makeRepairPlugin({
             stepExists: true,
             stepContent: BROKEN_CONTENT,
             ribbonCanvas: EXAMPLE_CANVAS_PATH,
         });
 
-        const repaired = await repairBrokenExampleFlow(plugin);
+        const repaired = await repairBrokenExampleFlow(plugin, writer);
 
         expect(repaired).toBe(true);
         expect(vault.modify).toHaveBeenCalledWith(
@@ -157,39 +174,39 @@ describe("repairBrokenExampleFlow", () => {
     });
 
     it("does NOT overwrite a file with custom content that lacks frontmatter", async () => {
-        const { plugin, vault } = makeRepairPlugin({
+        const { plugin, vault, writer } = makeRepairPlugin({
             stepExists: true,
             stepContent: "# My custom introduction\n\nUser notes here.\n",
             ribbonCanvas: EXAMPLE_CANVAS_PATH,
         });
 
-        const repaired = await repairBrokenExampleFlow(plugin);
+        const repaired = await repairBrokenExampleFlow(plugin, writer);
 
         expect(repaired).toBe(false);
         expect(vault.modify).not.toHaveBeenCalled();
     });
 
     it("does NOT overwrite a file that already has correct frontmatter", async () => {
-        const { plugin, vault } = makeRepairPlugin({
+        const { plugin, vault, writer } = makeRepairPlugin({
             stepExists: true,
             stepContent: CORRECT_CONTENT,
             ribbonCanvas: EXAMPLE_CANVAS_PATH,
         });
 
-        const repaired = await repairBrokenExampleFlow(plugin);
+        const repaired = await repairBrokenExampleFlow(plugin, writer);
 
         expect(repaired).toBe(false);
         expect(vault.modify).not.toHaveBeenCalled();
     });
 
     it("is a no-op when the step file does not exist yet", async () => {
-        const { plugin, vault } = makeRepairPlugin({
+        const { plugin, vault, writer } = makeRepairPlugin({
             stepExists: false,
             stepContent: "",
             ribbonCanvas: EXAMPLE_CANVAS_PATH,
         });
 
-        const repaired = await repairBrokenExampleFlow(plugin);
+        const repaired = await repairBrokenExampleFlow(plugin, writer);
 
         expect(repaired).toBe(false);
         expect(vault.modify).not.toHaveBeenCalled();
@@ -197,13 +214,13 @@ describe("repairBrokenExampleFlow", () => {
     });
 
     it("is a no-op when ribbonCanvas does not point to the example canvas", async () => {
-        const { plugin, vault } = makeRepairPlugin({
+        const { plugin, vault, writer } = makeRepairPlugin({
             stepExists: true,
             stepContent: BROKEN_CONTENT,
             ribbonCanvas: "other/canvas.canvas",
         });
 
-        const repaired = await repairBrokenExampleFlow(plugin);
+        const repaired = await repairBrokenExampleFlow(plugin, writer);
 
         expect(repaired).toBe(false);
         expect(vault.modify).not.toHaveBeenCalled();
@@ -212,8 +229,8 @@ describe("repairBrokenExampleFlow", () => {
 
 describe("createExampleFlow — files already exist", () => {
     it("overwrites the step file but preserves the canvas when both exist", async () => {
-        const { plugin, vault } = makeMockPlugin(true, true);
-        await createExampleFlow(plugin);
+        const { plugin, vault, writer } = makeMockPlugin(true, true);
+        await createExampleFlow(plugin, writer);
         // Step file: overwritten to apply latest template
         expect(vault.modify).toHaveBeenCalledWith(mockTFile, expect.stringContaining("zettelFlowSettings"));
         // Canvas: NOT overwritten — user data is preserved
@@ -229,8 +246,8 @@ describe("createExampleFlow — files already exist", () => {
     });
 
     it("still sets ribbonCanvas and saves settings", async () => {
-        const { plugin } = makeMockPlugin(true, true);
-        await createExampleFlow(plugin);
+        const { plugin, writer } = makeMockPlugin(true, true);
+        await createExampleFlow(plugin, writer);
         expect(plugin.settings.ribbonCanvas).toBe(EXAMPLE_CANVAS_PATH);
         expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     });

@@ -1,9 +1,9 @@
 import { Action } from "architecture/api";
 import type { ScriptRun } from "application/scripts/scriptRunLog";
+import type { VaultWrite } from "application/writes/vaultWriteLog";
 import type { ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { DEFAULT_RETENTION_DAYS } from "application/scripts/scriptRunLog";
 import { StepSettings } from "zettelkasten";
-import type { HistoryEntry } from "application/notes/historyUtils";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -165,6 +165,16 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * The **write record** (#453): what ZettelFlow wrote to your vault, newest first, kept for a
+     * week at most and capped in total. Paths, property names and the values a property change
+     * would restore — never a note's content, because a created note is taken back by moving it
+     * to the trash, which needs no copy.
+     */
+    writeLog?: {
+        writes: VaultWrite[];
+    };
+
+    /**
      * Optional, provider-agnostic AI (#156). OFF by default: while `enabled` is false no AI action
      * ever reaches the network. Bring-your-own OpenAI-compatible endpoint + key + model.
      */
@@ -215,8 +225,6 @@ export interface ZettelFlowSettings {
         rerunOnIndex: boolean;
     };
 
-    /** Notes created by ZettelFlow, most-recent first. Capped at 50. */
-    history: HistoryEntry[];
     /** True once the first-launch welcome notice has been shown. */
     hasSeenWelcome: boolean;
     /** When true, new notes are created in the active file's folder instead of the step's targetFolder. */
@@ -225,7 +233,6 @@ export interface ZettelFlowSettings {
     openHomeOnStartup: boolean;
 }
 
-export type { HistoryEntry } from "application/notes/historyUtils";
 
 
 /**
@@ -304,6 +311,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
     excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     scriptLog: { runs: [], retentionDays: DEFAULT_RETENTION_DAYS }, // The script run log (#444).
+    writeLog: { writes: [] }, // The write record (#453) — a week at most, capped.
     installedTemplates: {
         steps: {},   // No step templates are installed by default.
         actions: {}  // No action templates are installed by default.
@@ -327,7 +335,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
     judgements: { enabled: true, log: [] }, // Judgement record on by default (#336); descriptors only, no content.
     patterns: { rerunOnIndex: true }, // Post-index pattern re-run on by default (#200); offline, own keys only.
-    history: [],
     hasSeenWelcome: false,
     createInCurrentFolder: false,
     openHomeOnStartup: false, // Off by default; first-run onboarding turns it on for new users (#246 A2).

@@ -21,6 +21,7 @@ export interface MigratableSettings {
     loggerEnabled?: boolean;
     logLevel?: string;
     events?: { enabled?: boolean };
+    history?: unknown[];
     [key: string]: unknown;
 }
 
@@ -54,6 +55,14 @@ export function migrateSettings(input: MigratableSettings): SettingsMigration {
     // data.json implying a switch that no longer exists.
     if ("events" in settings) {
         delete settings.events;
+        changed = true;
+    }
+
+    // The wizard's own list of built notes (#454). The write record answers the same question
+    // and five more — the satellite, the hook, the move, the install — so the narrower list is
+    // gone rather than kept beside it.
+    if ("history" in settings) {
+        delete settings.history;
         changed = true;
     }
 

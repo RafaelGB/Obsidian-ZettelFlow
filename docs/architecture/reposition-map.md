@@ -66,7 +66,8 @@ The State layer now has a **named single surface** the Experience layer imports:
 | Evolution timeline · development journal (recorders) | `architecture/knowledge/{timeline,journal}` + `architecture/plugin/{timeline,journal}` (#162/#168) |
 | Compound thinking / evidence map | `architecture/knowledge/synthesis` (#169) |
 | Ops-console dashboard · Home aggregate · derived projects | `architecture/knowledge/{dashboard,home,projects}` (#171/#172/#173) |
-| Note-builder state helpers (atomicity, connections, MOC, resurface, weekly-review render, history) | `application/notes/{atomicitySplit,connectionSuggestions,mocMembership,mocMerge,resurfaceRanking,weeklyReviewMarkdown,historyUtils}` |
+| Note-builder state helpers (atomicity, connections, MOC, resurface, weekly-review render) | `application/notes/{atomicitySplit,connectionSuggestions,mocMembership,mocMerge,resurfaceRanking,weeklyReviewMarkdown}` |
+| The write record and taking it back (#451) | `application/writes/{vaultWriteLog,writeAttribution,frontmatterDiff,undoPlan}` |
 
 ## Experience — how you *see and act on* the system
 

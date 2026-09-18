@@ -37,8 +37,9 @@ export class CultivationService {
     }
 
     private async appendToBody(file: TFile, text: string): Promise<void> {
-        const content = await FileService.getContent(file);
-        await FileService.modify(file, `${content.trimEnd()}\n\n${text}\n`);
+        // Through the service's append (#454), so the record knows what was added and undo can
+        // take exactly that back out again.
+        await FileService.appendTo(file, text);
     }
 
     /** Append a `[[wikilink]]` to the note body (a new outgoing connection). */

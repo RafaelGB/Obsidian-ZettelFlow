@@ -4,12 +4,12 @@ import { ModeHostView } from "./ModeHostView";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { HomeModeRenderer } from "architecture/components/core/home/HomeModeRenderer";
 import { CultivateModeRenderer } from "architecture/components/core/cultivate/CultivateModeRenderer";
-import { HistoryRenderer } from "architecture/components/core/historyView/HistoryRenderer";
+import { ChangeRenderer } from "architecture/components/core/changes/ChangeRenderer";
 
 /**
  * The **Home** surface (#272) — the front door, with modes: Home (the narrative overview) and Recent
- * (recently built notes, folded in from the old history view). Constructed with the plugin so the
- * Recent mode can read/clear `plugin.settings.history`.
+ * (**what ZettelFlow changed**, #454). Constructed with the plugin so the Recent mode can read the
+ * write record and take a batch of writes back.
  */
 export class HomeSurfaceView extends ModeHostView {
     constructor(leaf: WorkspaceLeaf, private readonly plugin: ZettelFlow) {
@@ -29,7 +29,7 @@ export class HomeSurfaceView extends ModeHostView {
             case "cultivate":
                 return new CultivateModeRenderer(container, this.plugin, state);
             case "recent":
-                return new HistoryRenderer(container, this.plugin);
+                return new ChangeRenderer(container, this.plugin);
             case "home":
             default:
                 return new HomeModeRenderer(container, this.app);

@@ -75,3 +75,46 @@ describe("nothing crystallizes by itself (#468)", () => {
         }
     });
 });
+
+/**
+ * Going back to the note you came from (#474).
+ *
+ * A thread with a subject was a one-way street: you crossed over to think, worked something out,
+ * and the only destination was a *new* note — leaving the one you came from as unfinished as when
+ * you left it.
+ */
+describe("crystallizing back is an append, never a rewrite (#474)", () => {
+    it("appends through the recorded seam, so it can be taken back", () => {
+        expect(APPLIER).toContain("export async function crystallizeInto(");
+        expect(APPLIER).toContain("FileService.appendTo(file, block)");
+        expect(APPLIER).toContain('withWriteBatch({ kind: "manual", ref: "crystallize-back"');
+        // Nothing that could touch what the note already says.
+        for (const rewriting of ["FileService.modify", "FileService.writeFile", "setProperties"]) {
+            expect({ rewriting, used: APPLIER.includes(rewriting) }).toEqual({ rewriting, used: false });
+        }
+    });
+
+    it("records the same §XII verdict, naming the note it landed in", () => {
+        expect(APPLIER).toContain("subject: `crystallize-back:");
+        expect(APPLIER).toContain("path,");
+    });
+
+    it("refuses when the note is gone, instead of failing halfway", () => {
+        expect(APPLIER).toContain("if (!(file instanceof TFile)) return undefined;");
+        expect(MODAL).toContain('t("crystallize_subject_gone")');
+    });
+
+    it("does not guess where the thinking belongs when both destinations are open", () => {
+        // Where a piece of thinking belongs is the decision; guessing it is how it ends up in
+        // the wrong place.
+        expect(MODAL).toContain("this.destination = this.choices()[0];");
+        expect(MODAL).toContain('dropdown.addOption("back"');
+        expect(MODAL).toContain('dropdown.addOption("new-note"');
+    });
+
+    it("still cannot be reached automatically", () => {
+        for (const automatic of ["onLayoutReady", "registerEvent", "setInterval"]) {
+            expect({ automatic, used: APPLIER.includes(automatic) }).toEqual({ automatic, used: false });
+        }
+    });
+});

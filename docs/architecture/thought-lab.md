@@ -362,6 +362,149 @@ and their relatives.
 
 Offline, and no AI.
 
+## Arriving from somewhere (#473)
+
+Cultivate and the Lab are **not** the same thing wearing two hats, and that was argued out
+carefully enough to write down:
+
+| | Cultivate | The Lab |
+|---|---|---|
+| The subject | a note that exists | the thought; there is no subject yet |
+| What you bring | something you already know | not knowing what you think |
+| Where output lands | the note, which is how a note matures | nowhere, until you crystallize |
+
+A counterpoint to note X is a fact *about* X, and putting it into X is `knowledge evolves`, not
+premature commitment. A shared verb is not a shared capability — `delete` exists on notes and on
+thoughts, and nobody calls that duplication.
+
+What was missing was a **door**, in both directions:
+
+- **From a note** — a command, and an item in the file menu.
+- **From Cultivate** — *I do not know yet — think in the lab*, the exit for the one case that
+  surface cannot serve.
+
+The note comes across as the thread's **subject**, carried in the view state through the same
+deep-link seam everything else uses. Every thought written in that visit inherits it, so an
+answer you write an hour later still knows what it was about.
+
+### Crossing writes nothing
+
+Leaving a question unanswered is **not an edit**. A guardrail asserts the bridge reaches no
+writer at all — a bridge that dirties your vault is a bridge nobody crosses twice.
+
+### The subject is named, not shown
+
+The thread's root says which note it is about and opens it on a click. It does not render the
+note's content: that would make the Lab a reading surface, and put the note back at the centre of
+a place that exists for the thought. A subject that has since been deleted says so, and the
+thread is still yours.
+
+### Going back where you came from (#474)
+
+A thread with a subject was a one-way street: you crossed over to think, worked something out,
+and the only thing crystallization knew how to do was create a *new* note — leaving the one you
+came from exactly as unfinished as when you left it.
+
+So crystallization now has two destinations, and when both are open **neither is the default**.
+Where a piece of thinking belongs is the decision; guessing it is how it ends up in the wrong
+place.
+
+Going back **appends**, never rewrites:
+
+```markdown
+## From the lab
+
+What you wrote, as you edited it.
+
+## Born from
+- "maybe the volume does not justify it"
+- "or maybe it does at 10x"
+```
+
+Whatever the note already said is untouched, the write goes through the recorded seam so it can
+be taken back (#454), and the verdict goes to the same log as every other — naming the note it
+landed in.
+
+If the thread's subject has since been deleted, only the new-note destination is offered, and the
+reason is said. Offering to append to something that is gone is offering to fail.
+
+A crystallization of thoughts that disagree about what they are about has **no** subject: there
+is no honest single note to return to.
+
+## Capturing lands here (#475)
+
+The capture command used to write `Inbox/<title>.md` with `state: fleeting`. Three commitments
+before you had decided anything: that it is a **note**, that it has a **title**, and that it has
+a **lifecycle state**. It was immediately in the knowledge model, could be an orphan, counted in
+Health, and was one more thing in an inbox to get through.
+
+An impulse has no subject. It now leaves a **thought**.
+
+Same command, same hotkey, same single prompt — two commands doing almost the same thing is what
+subtraction refuses, and the friction was the feature. A captured thought is indistinguishable
+from one typed in the Lab: there is no "captured" flavour to manage later.
+
+With no Lab folder configured it says so and writes nothing. Falling back to creating a note is
+how you end up with the thing this change exists to stop.
+
+`QuickCaptureService` was **renamed** rather than removed: its remaining caller is inquiry (#401),
+whose outcome is a frozen reviewed snapshot and is not capture. It is now `CreateOnlyWriter`,
+which is the job it actually has.
+
+## From the keyboard (#476)
+
+Every move was a button that appears on hover. That is fine for a surface you visit; it is wrong
+for the place an idea starts — reaching for the pointer mid-sentence is the same interruption as
+being asked for a title, except it happens every time instead of once.
+
+| | | | |
+|---|---|---|---|
+| `J` / `K` | next · previous thought | `F` | fork |
+| `C` | challenge | `L` | connect |
+| `X` | pick out | `Y` | crystallize what you picked |
+| `S` | set aside | `Esc` | stop writing |
+| `Shift+A` | decided against | `Shift+D` | throw away |
+
+Four rules make single letters safe in a surface whose whole purpose is typing:
+
+- **Writing wins over shortcuts, always.** Inside a text box, a letter is a letter. Only `Esc`
+  gets through.
+- **Nothing destructive on a bare key.** Throwing a thread away needs `Shift`, because a stray
+  keystroke in a place you were told is safe must not be able to do it.
+- **Scoped to the view.** A single letter that worked everywhere in Obsidian would be a bug in
+  somebody else's workflow, and a modifier is left to Obsidian entirely.
+- **The focused thought is visible**, not guessed — and its actions stay on screen, because you
+  cannot hover what you reached with a key.
+
+One table (`application/thinking/labKeys.ts`) is read by the handler, the tooltips and the
+legend, so what a key does cannot drift from what the legend says it does. A guardrail asserts
+every rendered action is wired to it: a move added later cannot be mouse-only.
+
+## When the lab has grown (#477)
+
+The Lab works because it asks nothing of you, which is also what makes it fill up. After a few
+weeks the thread you want is below the fold, and the refuge is a wall of text.
+
+Every obvious fix is the wrong shape. A list of what to process is an **inbox**. A count is a
+**debt**. A ranking of what looks promising is a **judgement**, and it is yours (§XII).
+
+What is actually needed is narrower: **a way to find the thing you are looking for, when you are
+looking for it.**
+
+- **A filter**, appearing only once there are enough thoughts to lose one in — a search box over
+  four thoughts is furniture. Empty by default, it narrows and **never reorders**.
+- **A match keeps its thread.** If an answer matches but its question does not, the question comes
+  with it: an answer alone is a fragment.
+- Case- and accent-insensitive, because you will not remember whether you typed *análisis* or
+  *analisis* at eleven at night.
+- **Folding**, so a long thread is one card when you are not in it. View state: it survives a
+  redraw and **not** a restart, because nothing about how you looked at a thread belongs on disk.
+- **The Lab opens where you left it.**
+
+No saved filters — *one you keep is a queue with a different name* — no suggestions, no counts.
+The guardrail from #469 is extended over all of it, and `lab.thread.500` measures a
+five-hundred-thought lab in CI: **0.65 ms per keystroke**, against a ceiling of 8.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

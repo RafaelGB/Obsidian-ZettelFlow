@@ -115,3 +115,38 @@ export function renderCrystallized(
 ): string {
     return `${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}\n`;
 }
+
+/**
+ * The block a thread adds to the note it was about (#474, epic #472).
+ *
+ * A thread with a subject is a one-way street without this: you crossed over to think, worked
+ * something out, and the only thing crystallization knew how to do was create a *new* note —
+ * leaving the one you came from exactly as unfinished as when you left it.
+ *
+ * It is an **append**, never a rewrite. Nothing already in the note is touched, and the
+ * provenance rule is #468's unchanged: frozen quotes, so the record outlives the Lab.
+ */
+export function renderReturn(
+    plan: Crystallization,
+    body: string,
+    heading: string,
+    provenanceHeading: string,
+    omittedLine: (count: string) => string
+): string {
+    const lines = [`## ${heading}`, "", body.trim(), ""];
+    lines.push(renderProvenance(plan, provenanceHeading, omittedLine));
+    return lines.join("\n");
+}
+
+/** Where a crystallization can land, given what the thread knows about itself. */
+export type Destination = "new-note" | "back";
+
+/**
+ * The destinations open to this thread.
+ *
+ * `back` only when the thread has a subject **and** that note still exists — offering to append
+ * to something that is gone is offering to fail.
+ */
+export function destinationsFor(subject: string | undefined, subjectExists: boolean): Destination[] {
+    return subject && subjectExists ? ["back", "new-note"] : ["new-note"];
+}

@@ -82,3 +82,44 @@ export function flattenThread(node: ThoughtNode): Thought[] {
 export function threadedCount(nodes: readonly ThoughtNode[]): number {
     return nodes.reduce((total, node) => total + flattenThread(node).length, 0);
 }
+
+/**
+ * Finding your way back in a lab that has grown (#477, epic #472) — pure.
+ *
+ * The Lab works because it asks nothing of you, which is also what makes it fill up. After a few
+ * weeks the thread you want is below the fold, and the refuge is a wall of text.
+ *
+ * Every obvious fix is the wrong shape. A list of what to process is an inbox. A count is a debt.
+ * A ranking of what looks promising is a judgement, and it is yours (§XII). What is actually
+ * needed is narrower: **a way to find the thing you are looking for, when you are looking.**
+ *
+ * So: a filter, empty by default, that narrows and never reorders. A match keeps its thread —
+ * an answer without the thought it answers is a fragment — which means an ancestor is kept for
+ * its descendant's sake even when it does not match itself.
+ */
+export function filterThreads(nodes: readonly ThoughtNode[], text: string): ThoughtNode[] {
+    const needle = normalise(text);
+    if (!needle) return [...nodes];
+    return nodes.map((node) => keep(node, needle)).filter((node): node is ThoughtNode => node !== undefined);
+}
+
+/** A node survives if it matches, or if anything under it does. */
+function keep(node: ThoughtNode, needle: string): ThoughtNode | undefined {
+    const children = node.children
+        .map((child) => keep(child, needle))
+        .filter((child): child is ThoughtNode => child !== undefined);
+    if (children.length > 0) return { ...node, children };
+    return normalise(node.thought.text).includes(needle) ? { ...node, children: [] } : undefined;
+}
+
+/**
+ * Case- and accent-insensitive, because you will not remember whether you typed *análisis* or
+ * *analisis* at eleven at night.
+ */
+function normalise(text: string): string {
+    return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .trim();
+}

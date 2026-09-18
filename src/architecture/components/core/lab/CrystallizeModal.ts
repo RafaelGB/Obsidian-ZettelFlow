@@ -1,8 +1,8 @@
 import { App, Modal, Notice, Setting } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { crystallize } from "architecture/plugin/thinking/crystallizeThought";
-import type { Crystallization } from "application/thinking/crystallize";
+import { crystallize, crystallizeInto } from "architecture/plugin/thinking/crystallizeThought";
+import { destinationsFor, type Crystallization, type Destination } from "application/thinking/crystallize";
 
 /**
  * The note, before it exists (#468, epic #465).
@@ -18,25 +18,59 @@ export class CrystallizeModal extends Modal {
     private title: string;
     private body: string;
 
+    /** Where it lands. `back` only exists when the thread had a subject that still does. */
+    private destination: Destination;
+
     constructor(
         app: App,
         private readonly plan: Crystallization,
-        private readonly onDone: () => void
+        private readonly onDone: () => void,
+        /** The note the thread was about, when it had one (#474). */
+        private readonly subject?: string
     ) {
         super(app);
         this.title = plan.title;
         this.body = plan.body;
+        // No default when both are open: where a piece of thinking belongs is the decision, and
+        // guessing it is how it ends up in the wrong place.
+        this.destination = this.choices()[0];
+    }
+
+    private choices(): Destination[] {
+        const exists = Boolean(this.subject && this.app.vault.getAbstractFileByPath(this.subject));
+        return destinationsFor(this.subject, exists);
     }
 
     onOpen(): void {
         const { contentEl } = this;
+        // Re-entered when the destination changes, so it clears first: an Obsidian modal keeps
+        // its element, and the settings-panel lesson (#434) applies here too.
+        contentEl.empty();
         contentEl.addClass(c("crystallize"));
         contentEl.createEl("h2", { text: t("crystallize_title") });
         contentEl.createDiv({ cls: c("crystallize-intro"), text: t("crystallize_intro") });
 
-        new Setting(contentEl).setName(t("crystallize_note_title")).addText((text) =>
-            text.setValue(this.title).onChange((value) => (this.title = value))
-        );
+        const choices = this.choices();
+        if (choices.length > 1 && this.subject) {
+            const name = (this.subject.split("/").pop() ?? this.subject).replace(/\.md$/, "");
+            new Setting(contentEl).setName(t("crystallize_where")).addDropdown((dropdown) => {
+                dropdown.addOption("back", t("crystallize_where_back", name));
+                dropdown.addOption("new-note", t("crystallize_where_new"));
+                dropdown.setValue(this.destination).onChange((value) => {
+                    this.destination = value as Destination;
+                    this.onOpen();
+                });
+            });
+        } else if (this.subject) {
+            // Offering to append to something that is gone is offering to fail.
+            contentEl.createDiv({ cls: c("crystallize-keeps"), text: t("crystallize_subject_gone") });
+        }
+
+        if (this.destination === "new-note") {
+            new Setting(contentEl).setName(t("crystallize_note_title")).addText((text) =>
+                text.setValue(this.title).onChange((value) => (this.title = value))
+            );
+        }
 
         const body = contentEl.createEl("textarea", { cls: c("crystallize-body"), attr: { rows: "10" } });
         body.value = this.body;
@@ -65,12 +99,15 @@ export class CrystallizeModal extends Modal {
     private async apply(): Promise<void> {
         this.close();
         try {
-            const path = await crystallize({
-                plan: this.plan,
-                title: this.title,
-                body: this.body,
-                folder: "",
-            });
+            const path =
+                this.destination === "back" && this.subject
+                    ? await crystallizeInto(this.subject, this.plan, this.body)
+                    : await crystallize({
+                          plan: this.plan,
+                          title: this.title,
+                          body: this.body,
+                          folder: "",
+                      });
             new Notice(path ? t("crystallize_done", path) : t("crystallize_failed"));
             this.onDone();
         } catch (error) {

@@ -41,9 +41,11 @@
     padding: 0.9rem 1rem;
     margin-bottom: 0.9rem;
     border-radius: var(--radius-m);
-    color: #e8eaf2;
-    background: radial-gradient(120% 140% at 15% 0%, #22305a 0%, #121a33 55%, #0b0e14 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    /* The theme's own surface: the hardcoded gradient broke every light theme (#472 follow-up). */
+    color: var(--text-normal);
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-left: 3px solid var(--interactive-accent);
 }
 
 .zettelkasten-flow__home-graph-teaser-title {
@@ -52,7 +54,7 @@
 }
 
 .zettelkasten-flow__home-graph-teaser-sub {
-    color: #aeb6c4;
+    color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
 
@@ -97,9 +99,11 @@
     padding: 0.9rem 1rem;
     margin-bottom: 0.9rem;
     border-radius: var(--radius-m);
-    color: #e8f2ec;
-    background: radial-gradient(120% 140% at 15% 0%, #1d3a2b 0%, #14261d 55%, #0e1712 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    /* The theme's own surface: the hardcoded gradient broke every light theme (#472 follow-up). */
+    color: var(--text-normal);
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-left: 3px solid var(--interactive-accent);
 }
 
 .zettelkasten-flow__home-cultivate-teaser-title {
@@ -108,12 +112,12 @@
 }
 
 .zettelkasten-flow__home-cultivate-teaser-sub {
-    color: #a9c4b6;
+    color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
 
 .zettelkasten-flow__home-cultivate-teaser-streak {
-    color: #f0c674;
+    color: var(--text-accent);
     font-size: var(--font-ui-smaller);
     font-weight: var(--font-semibold);
 }

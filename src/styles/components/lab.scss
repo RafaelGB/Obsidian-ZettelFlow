@@ -666,3 +666,149 @@
         animation: none;
     }
 }
+
+/* ── the note a thread is about (#473) ────────────────────────────────────── */
+
+.zettelkasten-flow__lab-about-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--interactive-accent);
+    background: var(--background-primary-alt);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__lab-subject {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 6px;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__lab-subject-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    .svg-icon {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.zettelkasten-flow__lab-subject-name {
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-accent);
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__lab-subject-gone {
+    cursor: default;
+    font-style: italic;
+    opacity: 0.7;
+
+    &:hover {
+        color: var(--text-muted);
+        text-decoration: none;
+    }
+}
+
+/* ── the thought the keys act on (#476) ───────────────────────────────────── */
+
+.zettelkasten-flow__lab-focused {
+    border-left-color: var(--interactive-accent);
+    background: var(--background-primary-alt);
+
+    /* Its actions stay visible: you cannot hover what you reached with a key. */
+    .zettelkasten-flow__lab-actions {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__lab-legend-key {
+    margin-left: auto;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-muted);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+}
+
+/* ── finding your way back (#477) ─────────────────────────────────────────── */
+
+.zettelkasten-flow__lab-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 0 12px;
+}
+
+.zettelkasten-flow__lab-filter-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    .svg-icon {
+        width: 15px;
+        height: 15px;
+    }
+}
+
+.zettelkasten-flow__lab-filter-input {
+    flex: 1 1 auto;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--background-modifier-border);
+    border-radius: 0;
+    padding: 4px 0;
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+
+    &:focus {
+        border-bottom-color: var(--interactive-accent);
+        box-shadow: none;
+    }
+}
+
+/* Folding is about the thread, so it sits on the card rather than in the footer. */
+.zettelkasten-flow__lab-fold {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-faint);
+    cursor: pointer;
+    box-shadow: none;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+
+    .svg-icon {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.zettelkasten-flow__lab-card {
+    position: relative;
+}

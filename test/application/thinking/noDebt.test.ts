@@ -97,3 +97,54 @@ describe("the Lab never counts at you (#469)", () => {
         }
     });
 });
+
+/**
+ * A lab that has grown must not become a backlog (#477).
+ *
+ * Every obvious way to make hundreds of thoughts usable is the wrong shape: a list of what to
+ * process is an inbox, a count is a debt, a ranking of what looks promising is a judgement. The
+ * only acceptable answer is a filter you pick up when you are looking for something.
+ */
+describe("finding is a tool, not a queue (#477)", () => {
+    const EN_SRC = readFileSync(join(SRC, "architecture", "lang", "locale", "en.ts"), "utf8");
+
+    it("starts empty, and an empty filter shows everything", () => {
+        expect(LAB).toContain('private filter = "";');
+        const thread = readFileSync(join(SRC, "application", "thinking", "thread.ts"), "utf8");
+        expect(thread).toContain("if (!needle) return [...nodes];");
+    });
+
+    it("narrows and never reorders", () => {
+        const thread = withoutComments(
+            readFileSync(join(SRC, "application", "thinking", "thread.ts"), "utf8")
+        );
+        const filtering = thread.slice(thread.indexOf("export function filterThreads"));
+        for (const ordering of [".sort(", "rank", "score", "relevance"]) {
+            expect({ ordering, used: filtering.includes(ordering) }).toEqual({ ordering, used: false });
+        }
+    });
+
+    it("keeps no saved filters — one you keep is a queue with a different name", () => {
+        for (const saved of ["savedFilter", "recentFilters", "filterHistory", "suggestFilter"]) {
+            expect({ saved, used: LAB.includes(saved) }).toEqual({ saved, used: false });
+        }
+    });
+
+    it("uses no count, ranking or age warning in what it shows", () => {
+        const keys = ["lab_filter_placeholder", "lab_filter_clear", "lab_filter_nothing", "lab_fold", "lab_unfold"];
+        const queueish = /(pending|overdue|waiting|remaining|unprocessed|backlog|inbox|promising|stale|old|forgotten|should)/i;
+        for (const key of keys) {
+            const match = new RegExp(`${key}: '([^']*)'`).exec(EN_SRC);
+            expect({ key, found: match !== null }).toEqual({ key, found: true });
+            expect({ key, queueish: queueish.test(match?.[1] ?? "") }).toEqual({ key, queueish: false });
+        }
+    });
+
+    it("treats folding as a view, not a decision to store", () => {
+        // It survives a redraw and not a restart: nothing about how you looked at a thread
+        // belongs on disk.
+        expect(LAB).toContain("private readonly collapsed = new Set<string>();");
+        const store = readFileSync(join(SRC, "architecture", "plugin", "thinking", "ThoughtStore.ts"), "utf8");
+        expect(store.includes("collapsed")).toBe(false);
+    });
+});

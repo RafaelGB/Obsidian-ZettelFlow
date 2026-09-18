@@ -6,10 +6,11 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
-import { Notice, TFile } from 'obsidian';
+import { Notice, TFile, setIcon } from 'obsidian';
 import { InquiryPanel } from './InquiryPanel';
 import { InquiryNoteSuggest } from './InquiryNoteSuggest';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
+import { thinkAbout } from 'starters/zcomponents/ThinkAboutComponent';
 import { QuickCaptureModal } from 'zettelkasten/modals/QuickCaptureModal';
 import { ConfirmModal } from 'architecture/components/settings/confirmModal';
 import { buildInquiryContext, scopeExcludedPaths } from 'architecture/knowledge/state';
@@ -27,6 +28,18 @@ import {
 } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 500;
+
+/**
+ * An icon per move (#472 follow-up). Five moves stacked with identical accent bars read as one
+ * wall; an icon each lets you find the one you want without reading all of them.
+ */
+const MOVE_ICON: Record<CultivationMoveKind, string> = {
+    connect: "link",
+    challenge: "swords",
+    question: "help-circle",
+    advance: "trending-up",
+    source: "book-marked",
+};
 type ViewState = "indexing" | "ready" | "empty" | "error";
 
 function basename(path: string): string {
@@ -140,6 +153,19 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         });
         another.addEventListener("click", () => this.anotherIdea());
 
+        // The exit for the case this surface cannot serve (#473). Cultivate offers "write the
+        // counterpoint"; when you do not know it yet, there was nowhere to go. Taking this door
+        // writes nothing — leaving a question unanswered is not an edit.
+        if (this.targetPath) {
+            const path = this.targetPath;
+            const think = header.createEl("button", {
+                text: t("cultivate_think_instead"),
+                cls: c("cultivate-another"),
+                attr: { "aria-label": t("cultivate_think_instead") },
+            });
+            think.addEventListener("click", () => thinkAbout(this.plugin, path));
+        }
+
         if (this.state === "indexing") {
             root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_building") });
             return;
@@ -207,8 +233,13 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     private renderMove(list: HTMLElement, move: CultivationMove): void {
         const card = list.createDiv({ cls: [c("cultivate-move"), c(`cultivate-move--${move.kind}`)].join(" ") });
-        card.createDiv({ cls: c("cultivate-move-title"), text: t(`cultivate_move_${move.kind}_title`) });
-        card.createDiv({ cls: c("cultivate-move-desc"), text: t(`cultivate_move_${move.kind}_desc`) });
+        // An icon per kind, so five moves read as five different things at a glance rather than
+        // as one wall of text with five identical accent bars.
+        const head = card.createDiv({ cls: c("cultivate-move-head") });
+        setIcon(head.createSpan({ cls: c("cultivate-move-icon") }), MOVE_ICON[move.kind]);
+        const heading = head.createDiv({ cls: c("cultivate-move-heading") });
+        heading.createDiv({ cls: c("cultivate-move-title"), text: t(`cultivate_move_${move.kind}_title`) });
+        heading.createDiv({ cls: c("cultivate-move-desc"), text: t(`cultivate_move_${move.kind}_desc`) });
         const body = card.createDiv({ cls: c("cultivate-move-body") });
 
         // #338: a move that would hand you its answer asks for yours first. Always skippable.

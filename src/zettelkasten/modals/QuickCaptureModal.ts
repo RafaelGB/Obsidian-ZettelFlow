@@ -2,19 +2,24 @@ import { Modal, Notice } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import ZettelFlow from "main";
-import { QuickCaptureService } from 'architecture/plugin/services/QuickCaptureService';
-import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
-import { v4 as uuid } from 'uuid';
+import { ThoughtStore } from 'architecture/plugin/thinking/ThoughtStore';
 
 /**
- * Lowest-friction capture (#285 S3): a single title prompt that writes a **fleeting** note to the
- * Inbox and nudges the user to develop it later. No canvas, no wizard — the fastest possible path to
- * the first note. Mobile-friendly (a plain modal + Enter to submit).
+ * Lowest-friction capture (#285 S3, #475).
+ *
+ * One prompt, Enter to submit, and it lands in the **Thought Lab**.
+ *
+ * It used to write `Inbox/<title>.md` with `state: fleeting` — three commitments before you had
+ * decided anything: that it is a **note**, that it has a **title**, and that it has a **lifecycle
+ * state**. It was immediately in the knowledge model, could be an orphan, counted in Health, and
+ * was one more thing in an inbox to get through.
+ *
+ * An impulse has no subject. That is the Lab's territory by definition, and nothing should be
+ * classified before you have decided it is an idea.
  */
 export class QuickCaptureModal extends Modal {
-    private operation: InquiryOperation | undefined;
     private busy = false;
-    constructor(private readonly plugin: ZettelFlow, private readonly options: { capture?: (title: string) => Promise<boolean> } = {}) {
+    constructor(plugin: ZettelFlow, private readonly options: { capture?: (text: string) => Promise<boolean> } = {}) {
         super(plugin.app);
     }
 
@@ -49,13 +54,18 @@ export class QuickCaptureModal extends Modal {
         this.contentEl.empty();
     }
 
-    private async capture(title: string): Promise<boolean> {
+    private async capture(text: string): Promise<boolean> {
+        const store = ThoughtStore.getInstance();
+        if (!store.folder()) {
+            // Said plainly rather than falling back to creating a note: falling back is how you
+            // end up with the thing this change exists to stop.
+            new Notice(t("quick_capture_no_lab"));
+            return false;
+        }
         try {
-            const service = new QuickCaptureService(this.plugin.app.vault);
-            this.operation ??= service.plan(title, uuid());
-            const result = await service.write(this.operation);
-            if (result.status !== 'created' && result.status !== 'already-created') throw new Error('Capture failed');
-            new Notice(t("quick_capture_captured", title));
+            const made = await store.write(text);
+            if (!made) throw new Error('Capture failed');
+            new Notice(t("quick_capture_captured"));
             return true;
         } catch {
             log.error("[QuickCapture] capture failed");

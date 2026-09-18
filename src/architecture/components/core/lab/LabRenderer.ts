@@ -5,7 +5,13 @@ import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
-import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
+import {
+    filterThreads,
+    flattenThread,
+    threadThoughts,
+    type ThoughtNode,
+} from "application/thinking/thread";
+import { keyFor, keyLabel, LAB_KEYS, moveFor, type LabMove } from "application/thinking/labKeys";
 import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -14,8 +20,13 @@ import { BlindPanel } from "./BlindPanel";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
+type LocaleKey = Parameters<typeof t>[0];
+
 /** How long after you stop typing an **existing** thought is written back to its file. */
 const EDIT_SAVE_AFTER_MS = 600;
+
+/** How many thoughts before a filter is worth its space. A search box over four is furniture. */
+const FILTER_APPEARS_AT = 8;
 
 /**
  * **The Thought Lab** (#467, epic #465) — a mode of the Home surface.
@@ -69,17 +80,116 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private showingLegend = false;
     private blind: BlindPanel | undefined;
 
+    /** What you are looking for. Empty is the normal state, and it shows everything. */
+    private filter = "";
+    /** Threads you have folded away. View state: it survives a redraw, not a restart. */
+    private readonly collapsed = new Set<string>();
+    /** Where you were, so returning is as cheap as arriving. */
+    private scrollTop = 0;
+
+    /** The thought the keys act on. Visible, never guessed. */
+    private focused: string | undefined;
+    /** Every node on screen, in the order the eye reads them — what `next`/`previous` walk. */
+    private order: ThoughtNode[] = [];
+
     private listEl: HTMLElement | undefined;
     /** Where each thought is on screen, so following a connection can actually go somewhere. */
     private readonly cards = new Map<string, HTMLElement>();
     private composerEl: HTMLTextAreaElement | undefined;
 
-    constructor(container: HTMLElement, private readonly app: App) {
+    constructor(
+        container: HTMLElement,
+        private readonly app: App,
+        /** The note this visit is about, when you arrived from one (#473). */
+        private about?: string
+    ) {
         super(container);
     }
 
     onload(): void {
+        // View-local, so a single letter never steals a key from the rest of Obsidian.
+        this.registerDomEvent(this.container, "keydown", (event: KeyboardEvent) => this.onKey(event));
         void this.readLab();
+    }
+
+    /**
+     * A keystroke, when you are not writing.
+     *
+     * Writing wins over shortcuts, always: inside a text box a letter is a letter. That is the
+     * rule that makes single-key moves safe in a surface whose whole purpose is typing.
+     */
+    private onKey(event: KeyboardEvent): void {
+        const target = event.target;
+        const writing =
+            target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement;
+        if (writing && event.key !== "Escape") return;
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+        const move = moveFor(event.key, event.shiftKey);
+        if (!move) return;
+        event.preventDefault();
+        this.run(move);
+    }
+
+    private run(move: LabMove): void {
+        if (move === "next" || move === "previous") return this.step(move === "next" ? 1 : -1);
+        if (move === "leave") {
+            const active = this.container.ownerDocument.activeElement;
+            if (active instanceof HTMLElement) active.blur();
+            return;
+        }
+        if (move === "crystallize") {
+            if (this.selected.size > 0) this.openCrystallize();
+            return;
+        }
+        const node = this.order.find((entry) => entry.thought.id === this.focused);
+        if (!node) return;
+        const thought = node.thought;
+        const whole = flattenThread(node);
+        switch (move) {
+            case "fork":
+                return this.arm("fork", thought);
+            case "challenge":
+                return this.arm("challenge", thought);
+            case "connect":
+                return void this.connect(thought);
+            case "pick":
+                return this.togglePick(thought.id);
+            case "setAside":
+                return void this.aside(whole, "not-now");
+            case "decidedAgainst":
+                return void this.aside(whole, "decided-against");
+            case "discard": {
+                const card = this.cards.get(thought.id);
+                if (card) void this.discard(whole, card);
+                return;
+            }
+            default:
+                return;
+        }
+    }
+
+    /** Move the focus, and bring it into view. Wraps, because a list you fall off the end of is worse. */
+    private step(by: number): void {
+        if (this.order.length === 0) return;
+        const at = this.order.findIndex((entry) => entry.thought.id === this.focused);
+        const next = at === -1 ? 0 : (at + by + this.order.length) % this.order.length;
+        this.focus(this.order[next].thought.id);
+    }
+
+    private focus(id: string): void {
+        for (const card of this.cards.values()) card.removeClass(c("lab-focused"));
+        this.focused = id;
+        const card = this.cards.get(id);
+        if (!card) return;
+        card.addClass(c("lab-focused"));
+        card.scrollIntoView({ block: "nearest" });
+    }
+
+    private togglePick(id: string): void {
+        if (this.selected.has(id)) this.selected.delete(id);
+        else this.selected.add(id);
+        this.redrawAfterAction();
     }
 
     onunload(): void {
@@ -120,6 +230,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     private render(): void {
         const host = this.container;
+        this.scrollTop = host.scrollTop || this.scrollTop;
         host.empty();
         this.cards.clear();
         host.addClass(c("lab"));
@@ -152,18 +263,43 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.addChild(this.blind);
         }
 
+        if (this.about) {
+            const banner = host.createDiv({ cls: c("lab-about-banner") });
+            setIcon(banner.createSpan({ cls: c("lab-subject-icon") }), "file-text");
+            banner.createSpan({
+                text: t("lab_thinking_about", (this.about.split("/").pop() ?? this.about).replace(/\.md$/, "")),
+            });
+            this.ghostAction(banner, t("lab_about_leave"), "x", () => {
+                this.about = undefined;
+                this.render();
+            });
+        }
+
         this.renderComposer(host);
         if (this.selected.size > 0) this.renderPicked(host);
 
-        this.listEl = host.createDiv({ cls: c("lab-list") });
         const open = this.thoughts.filter((thought) => !isIncubated(thought));
+        // Only once there is enough here to lose something in. A search box over four thoughts
+        // is furniture.
+        if (open.length >= FILTER_APPEARS_AT) this.renderFilter(host);
+
+        this.listEl = host.createDiv({ cls: c("lab-list") });
         if (open.length === 0) {
             this.listEl.createDiv({ cls: c("lab-blank"), text: t("lab_blank") });
         }
         // Threads, not a pile sorted by clock: a counterpoint belongs under what it answers.
-        for (const node of threadThoughts(open)) this.renderNode(this.listEl, node);
+        this.order = [];
+        const shown = filterThreads(threadThoughts(open), this.filter);
+        if (shown.length === 0 && this.filter) {
+            this.listEl.createDiv({ cls: c("lab-blank"), text: t("lab_filter_nothing") });
+        }
+        for (const node of shown) this.renderNode(this.listEl, node);
+        if (this.focused && this.cards.has(this.focused)) this.focus(this.focused);
 
         this.renderAsideDoor(host, this.thoughts.filter(isIncubated));
+
+        // Returning should be as cheap as arriving.
+        if (this.scrollTop > 0) window.setTimeout(() => (host.scrollTop = this.scrollTop), 0);
     }
 
     /**
@@ -189,7 +325,65 @@ export class LabRenderer extends KnowledgeModeRenderer {
             setIcon(row.createSpan({ cls: c("lab-legend-icon") }), icon);
             row.createSpan({ cls: c("lab-legend-name"), text: name });
             row.createSpan({ cls: c("lab-legend-what"), text: what });
+            const entry = LAB_KEYS.find((key) => t(key.labelKey as LocaleKey) === name);
+            if (entry) row.createSpan({ cls: c("lab-legend-key"), text: keyLabel(entry) });
         }
+
+        // Moving around is a move too, and the least discoverable of them.
+        for (const move of ["next", "previous", "leave"] as const) {
+            const entry = keyFor(move);
+            if (!entry) continue;
+            const row = legend.createDiv({ cls: c("lab-legend-row") });
+            row.createSpan({ cls: c("lab-legend-icon") });
+            row.createSpan({ cls: c("lab-legend-name"), text: t(entry.labelKey as LocaleKey) });
+            row.createSpan({ cls: c("lab-legend-what"), text: "" });
+            row.createSpan({ cls: c("lab-legend-key"), text: keyLabel(entry) });
+        }
+    }
+
+    /**
+     * A way to find the thing you are looking for, when you are looking (#477).
+     *
+     * Empty by default, and it narrows without ever reordering. It is a tool you pick up, not a
+     * queue you are handed — which is why there is no saved filter, no suggestion and no count.
+     */
+    private renderFilter(host: HTMLElement): void {
+        const row = host.createDiv({ cls: c("lab-filter") });
+        setIcon(row.createSpan({ cls: c("lab-filter-icon") }), "search");
+        const input = row.createEl("input", {
+            type: "text",
+            cls: c("lab-filter-input"),
+            attr: { placeholder: t("lab_filter_placeholder") },
+        });
+        input.value = this.filter;
+        this.registerDomEvent(input, "input", () => {
+            this.filter = input.value;
+            this.renderList();
+        });
+        if (this.filter) {
+            this.ghostAction(row, t("lab_filter_clear"), "x", () => {
+                this.filter = "";
+                this.render();
+            });
+        }
+    }
+
+    /** Redraw only the list, so typing in the filter never touches the box you are typing in. */
+    private renderList(): void {
+        const list = this.listEl;
+        if (!list) return;
+        list.empty();
+        this.cards.clear();
+        this.order = [];
+        const open = this.thoughts.filter((thought) => !isIncubated(thought));
+        const shown = filterThreads(threadThoughts(open), this.filter);
+        if (shown.length === 0) {
+            list.createDiv({
+                cls: c("lab-blank"),
+                text: this.filter ? t("lab_filter_nothing") : t("lab_blank"),
+            });
+        }
+        for (const node of shown) this.renderNode(list, node);
     }
 
     /**
@@ -247,10 +441,13 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.relation = undefined;
         if (this.composerEl) this.composerEl.value = "";
 
-        const made = await ThoughtStore.getInstance().write(
-            text,
-            relation ? { respondsTo: relation } : {}
-        );
+        // Inherited, so a thread keeps the context you arrived with — including the answers
+        // you write to your own thoughts an hour later.
+        const subject = relation ? this.subjectOf(relation.to) ?? this.about : this.about;
+        const made = await ThoughtStore.getInstance().write(text, {
+            ...(relation ? { respondsTo: relation } : {}),
+            ...(subject ? { about: subject } : {}),
+        });
         if (!made) return;
         this.thoughts.push(made);
 
@@ -278,11 +475,29 @@ export class LabRenderer extends KnowledgeModeRenderer {
      * do, and the data should say so even when the screen cannot show it.
      */
     private renderNode(host: HTMLElement, node: ThoughtNode): HTMLElement {
+        // The order the eye reads them, which is the order the keys walk.
+        this.order.push(node);
         const thread = host.createDiv({ cls: c("lab-thread") });
-        this.renderThought(thread, node);
+        const card = this.renderThought(thread, node);
         if (node.children.length > 0) {
-            const answers = thread.createDiv({ cls: c("lab-answers") });
-            for (const child of node.children) this.renderNode(answers, child);
+            const folded = this.collapsed.has(node.thought.id);
+            // On the card, not in the footer: folding is about the thread, not about the thought.
+            const toggle = card.createEl("button", {
+                cls: c("lab-fold"),
+                attr: { type: "button" },
+            });
+            setIcon(toggle, folded ? "chevron-right" : "chevron-down");
+            setTooltip(toggle, folded ? t("lab_unfold") : t("lab_fold"));
+            this.registerDomEvent(toggle, "mousedown", (event: MouseEvent) => {
+                event.preventDefault();
+                if (folded) this.collapsed.delete(node.thought.id);
+                else this.collapsed.add(node.thought.id);
+                this.renderList();
+            });
+            if (!folded) {
+                const answers = thread.createDiv({ cls: c("lab-answers") });
+                for (const child of node.children) this.renderNode(answers, child);
+            }
         }
         // Always the whole thread: what an action removes or sets aside is this element, and
         // returning the card instead was how "throw away" left its answers hanging on screen.
@@ -293,6 +508,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const thought = node.thought;
         const box = list.createDiv({ cls: c("lab-card") });
         this.cards.set(thought.id, box);
+        // Only on the thread's root: repeating it on every answer would be noise.
+        if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about);
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
 
         // Colour distinguishes what a thought *is* to the one above it, never who is right.
@@ -308,6 +525,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
         const area = box.createEl("textarea", { cls: c("lab-text"), attr: { rows: "1" } });
         area.value = thought.text;
+        // Clicking into a thought is also how you tell the keys which one you mean.
+        this.registerDomEvent(area, "focus", () => this.focus(thought.id));
         this.registerDomEvent(area, "input", () => this.scheduleEdit(thought, area, box));
         this.registerDomEvent(area, "blur", () => this.flush());
 
@@ -328,22 +547,38 @@ export class LabRenderer extends KnowledgeModeRenderer {
             else this.selected.delete(thought.id);
             this.refresh();
         });
-        this.iconAction(actions, t("lab_fork"), "git-branch", () => this.arm("fork", thought));
-        this.iconAction(actions, t("lab_challenge"), "swords", () => this.arm("challenge", thought));
-        this.iconAction(actions, this.connecting ? t("lab_connect_to") : t("lab_connect"), "link", () =>
-            void this.connect(thought)
+        this.iconAction(actions, t("lab_fork"), "git-branch", () => this.arm("fork", thought), "fork");
+        this.iconAction(actions, t("lab_challenge"), "swords", () => this.arm("challenge", thought), "challenge");
+        this.iconAction(
+            actions,
+            this.connecting ? t("lab_connect_to") : t("lab_connect"),
+            "link",
+            () => void this.connect(thought),
+            "connect"
         );
         // Everything below acts on the **whole thread**: an answer without the thought it
         // answers is a fragment, so a thought never leaves without what was written under it.
         const whole = flattenThread(node);
-        this.iconAction(actions, this.blockLabel(t("lab_set_aside"), whole), "moon", () =>
-            void this.aside(whole, "not-now")
+        this.iconAction(
+            actions,
+            this.blockLabel(t("lab_set_aside"), whole),
+            "moon",
+            () => void this.aside(whole, "not-now"),
+            "setAside"
         );
-        this.iconAction(actions, this.blockLabel(t("lab_decided_against"), whole), "archive", () =>
-            void this.aside(whole, "decided-against")
+        this.iconAction(
+            actions,
+            this.blockLabel(t("lab_decided_against"), whole),
+            "archive",
+            () => void this.aside(whole, "decided-against"),
+            "decidedAgainst"
         );
-        this.iconAction(actions, this.blockLabel(t("lab_discard"), whole), "trash-2", () =>
-            void this.discard(whole, box)
+        this.iconAction(
+            actions,
+            this.blockLabel(t("lab_discard"), whole),
+            "trash-2",
+            () => void this.discard(whole, box),
+            "discard"
         );
         return box;
     }
@@ -397,6 +632,31 @@ export class LabRenderer extends KnowledgeModeRenderer {
         return whole.length === 1 ? label : `${label} — ${t("lab_with_answers", String(whole.length - 1))}`;
     }
 
+    /**
+     * The note this thread is about (#473).
+     *
+     * Named and openable, not shown: the Lab is where you think, and turning it into a reading
+     * surface would put the note back at the centre of a place that exists for the thought.
+     */
+    private renderSubject(box: HTMLElement, path: string): void {
+        const row = box.createDiv({ cls: c("lab-subject") });
+        setIcon(row.createSpan({ cls: c("lab-subject-icon") }), "file-text");
+        const gone = !this.app.vault.getAbstractFileByPath(path);
+        const name = (path.split("/").pop() ?? path).replace(/\.md$/, "");
+        const label = row.createSpan({
+            cls: c("lab-subject-name"),
+            text: gone ? t("lab_about_gone", name) : t("lab_about", name),
+        });
+        if (gone) {
+            label.addClass(c("lab-subject-gone"));
+            return;
+        }
+        setTooltip(label, t("lab_about_open"));
+        this.registerDomEvent(label, "click", () => {
+            void this.app.workspace.openLinkText(path, "", false);
+        });
+    }
+
     /** The thoughts this one is connected to, as chips that take you to them. */
     private renderLinks(box: HTMLElement, thought: Thought): void {
         const row = box.createDiv({ cls: c("lab-links") });
@@ -427,6 +687,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.addClass(c("lab-arrived"));
         window.setTimeout(() => target.removeClass(c("lab-arrived")), 1200);
+    }
+
+    /** What an existing thought is about, so a response inherits it rather than losing it. */
+    private subjectOf(id: string): string | undefined {
+        return this.thoughts.find((thought) => thought.id === id)?.about;
     }
 
     /** Arm the composer, instead of creating an empty card you would have to go back and fill. */
@@ -480,10 +745,19 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const paths = Object.fromEntries(chosen.map((thought) => [thought.id, thoughtPath(folder, thought)]));
         const plan = planCrystallization(chosen, paths);
         if (!plan) return;
-        new CrystallizeModal(this.app, plan, () => {
-            this.selected.clear();
-            void this.readLab();
-        }).open();
+        // One subject per crystallization: if the picked thoughts disagree about what they are
+        // about, there is no honest single note to go back to.
+        const subjects = new Set(chosen.map((thought) => thought.about).filter(Boolean));
+        const subject = subjects.size === 1 ? [...subjects][0] : undefined;
+        new CrystallizeModal(
+            this.app,
+            plan,
+            () => {
+                this.selected.clear();
+                void this.readLab();
+            },
+            subject
+        ).open();
     }
 
     /** A door, not a queue. It says the room exists; it never says how full it is. */
@@ -641,12 +915,14 @@ export class LabRenderer extends KnowledgeModeRenderer {
         ribbon.createSpan({ text: label });
     }
 
-    private iconAction(host: HTMLElement, label: string, icon: string, onClick: () => void): void {
+    private iconAction(host: HTMLElement, label: string, icon: string, onClick: () => void, move?: LabMove): void {
         const button = host.createEl("button", { cls: c("lab-icon"), attr: { type: "button" } });
         setIcon(button, icon);
         button.setAttribute("aria-label", label);
-        // An icon is quick once you know it and opaque until you do, so it says what it does.
-        setTooltip(button, label);
+        // An icon is quick once you know it and opaque until you do, so it says what it does —
+        // and, where there is one, which key does it without the pointer.
+        const entry = move ? keyFor(move) : undefined;
+        setTooltip(button, entry ? `${label} (${keyLabel(entry)})` : label);
         // `mousedown`, not `click`: the composer commits on blur, and a click that lands after a
         // redraw is a click that never happened.
         this.registerDomEvent(button, "mousedown", (event: MouseEvent) => {

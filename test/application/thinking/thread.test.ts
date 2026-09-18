@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { flattenThread, threadedCount, threadThoughts } from "application/thinking/thread";
+import { filterThreads, flattenThread, threadedCount, threadThoughts } from "application/thinking/thread";
 import { newThought, type ResponseKind, type Thought } from "application/thinking/thought";
 
 const NOW = 1_700_000_000_000;
@@ -101,5 +101,68 @@ describe("thinking reads downward (#467 follow-up)", () => {
             at("c", 200, { to: "b", as: "challenge" }),
         ]);
         expect(flattenThread(threads[0]).map((thought) => thought.id)).toEqual(["a", "b", "c"]);
+    });
+});
+
+describe("finding your way back (#477)", () => {
+    function say(id: string, text: string, offset: number, to?: string): Thought {
+        return newThought({
+            text,
+            id,
+            at: NOW + offset,
+            ...(to ? { respondsTo: { to, as: "challenge" as ResponseKind } } : {}),
+        });
+    }
+
+    const threads = threadThoughts([
+        say("a", "structure helps you think", 0),
+        say("b", "too much of it kills the work", 100, "a"),
+        say("c", "an unrelated thought about queues", 200),
+    ]);
+
+    it("returns everything, unchanged, when nothing is typed", () => {
+        expect(filterThreads(threads, "")).toEqual(threads);
+        expect(filterThreads(threads, "   ")).toEqual(threads);
+    });
+
+    it("narrows to what matches", () => {
+        const found = filterThreads(threads, "queues");
+        expect(found.map((node) => node.thought.id)).toEqual(["c"]);
+    });
+
+    it("keeps a matching answer with the thought it answers", () => {
+        // An answer without its question is a fragment.
+        const found = filterThreads(threads, "kills the work");
+        expect(found).toHaveLength(1);
+        expect(found[0].thought.id).toBe("a");
+        expect(found[0].children.map((child) => child.thought.id)).toEqual(["b"]);
+    });
+
+    it("drops the answers that did not match, when the root did", () => {
+        const found = filterThreads(threads, "structure");
+        expect(found[0].thought.id).toBe("a");
+        expect(found[0].children).toEqual([]);
+    });
+
+    it("ignores case and accents, because you will not remember which you typed", () => {
+        const accented = threadThoughts([say("x", "análisis del problema", 0)]);
+        expect(filterThreads(accented, "ANALISIS")).toHaveLength(1);
+        expect(filterThreads(accented, "análisis")).toHaveLength(1);
+    });
+
+    it("says nothing matched, rather than showing everything", () => {
+        expect(filterThreads(threads, "nothing like this")).toEqual([]);
+    });
+
+    it("never reorders — the newest thread is still the newest", () => {
+        const found = filterThreads(threads, "t");
+        expect(found.map((node) => node.thought.at)).toEqual(
+            [...found].sort((a, b) => b.thought.at - a.thought.at).map((node) => node.thought.at)
+        );
+    });
+
+    it("leaves the originals alone", () => {
+        filterThreads(threads, "structure");
+        expect(threads[1].children).toHaveLength(1);
     });
 });

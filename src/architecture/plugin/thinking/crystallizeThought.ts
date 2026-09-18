@@ -3,7 +3,9 @@ import { log } from "architecture/monitoring/Logger";
 import { FileService } from "architecture/plugin/services/FileService";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
-import { renderCrystallized, type Crystallization } from "application/thinking/crystallize";
+import { TFile } from "obsidian";
+import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
+import { renderCrystallized, renderReturn, type Crystallization } from "application/thinking/crystallize";
 
 /**
  * The only door between the Lab and the vault (#468, epic #465).
@@ -56,6 +58,44 @@ export async function crystallize(request: CrystallizeRequest): Promise<string |
         });
     } catch (error) {
         log.error("[lab] could not crystallize", error);
+        return undefined;
+    }
+}
+
+/**
+ * Put the thinking back into the note it was about (#474).
+ *
+ * An **append**, never a rewrite: whatever the note already says is untouched, and the write goes
+ * through the recorded seam so it can be taken back (#454). Same verdict as a new note — a human
+ * decided this thinking belonged there.
+ */
+export async function crystallizeInto(
+    path: string,
+    plan: Crystallization,
+    body: string
+): Promise<string | undefined> {
+    const file = ObsidianApi.vault().getFileByPath(path);
+    if (!(file instanceof TFile)) return undefined;
+    const block = renderReturn(
+        plan,
+        body,
+        t("crystallize_from_the_lab"),
+        t("crystallize_born_from"),
+        (count) => t("crystallize_and_more", count)
+    );
+    try {
+        return await withWriteBatch({ kind: "manual", ref: "crystallize-back", label: path }, async () => {
+            await FileService.appendTo(file, block);
+            JudgementLog.getInstance().record({
+                path,
+                subject: `crystallize-back:${plan.frozen.length}`,
+                origin: "human",
+                verdict: "accepted",
+            });
+            return path;
+        });
+    } catch (error) {
+        log.error("[lab] could not crystallize back", error);
         return undefined;
     }
 }

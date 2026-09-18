@@ -95,6 +95,13 @@ export const BUDGETS = {
         because:
             "the shape matters more than the number: pairwise work that slips to quadratic would pass an absolute ceiling at 10k and be unusable at 50k",
     },
+    "lab.thread.500": {
+        name: "thread and filter a lab of 500 thoughts",
+        limit: 8,
+        measured: "0.65 ms per keystroke",
+        because:
+            "the cost of the Lab succeeding: filtering has to feel like typing, not like searching",
+    },
     "model.memory.50k": {
         name: "heap retained by the model for 50,000 notes, in MB",
         limit: 150,

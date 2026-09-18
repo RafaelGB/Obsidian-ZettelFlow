@@ -23,6 +23,7 @@ import { StateTransitionComponent } from "../zcomponents/StateTransitionComponen
 import { RemoveRelationComponent } from "../zcomponents/RemoveRelationComponent";
 import { ZettelFlowMenuComponent } from "../zcomponents/ZettelFlowMenuComponent";
 import { QuickCaptureComponent } from "../zcomponents/QuickCaptureComponent";
+import { ThinkAboutComponent } from "../zcomponents/ThinkAboutComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -48,6 +49,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new RemoveRelationComponent(plugin));
     ZComponentsManager.registerComponent(new ZettelFlowMenuComponent(plugin));
     ZComponentsManager.registerComponent(new QuickCaptureComponent(plugin));
+    ZComponentsManager.registerComponent(new ThinkAboutComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

@@ -2,8 +2,15 @@ import { TFolder, normalizePath, type Vault } from 'obsidian';
 import { FileService, type CreateFileResult } from './FileService';
 import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 
-/** Shared by the existing quick-capture command and inquiry; never overwrites an existing note. */
-export class QuickCaptureService {
+/**
+ * The create-only write seam for a **reviewed** inquiry outcome (#401): never overwrites an
+ * existing note.
+ *
+ * It was `QuickCaptureService` until #475 moved capture into the Thought Lab. Renamed rather than
+ * kept under a name describing a job it no longer has — the remaining caller is inquiry, whose
+ * outcome is a frozen, reviewed snapshot and is not capture.
+ */
+export class CreateOnlyWriter {
     constructor(private readonly vault: Pick<Vault, 'getAbstractFileByPath' | 'read' | 'create' | 'createFolder'>, private readonly allowed: (path: string) => boolean = () => true) {}
     plan(title: string, id: string): InquiryOperation {
         const clean = title.replace(/[\r\n]/g, ' ').trim();

@@ -52,6 +52,12 @@ export interface Thought {
      * Neither side of a challenge is marked right.
      */
     respondsTo?: Response;
+    /**
+     * The note this thread is **about** (#473), when you arrived here from one. A subject, not a
+     * link: the thought is still not knowledge, and crossing over writes nothing to the note.
+     * Inherited by every response, so a thread keeps the context you came with.
+     */
+    about?: string;
     /** Set aside (#469). Absent is the normal state, and it generates nothing. */
     incubated?: Incubation;
 }
@@ -61,6 +67,7 @@ export interface NewThought {
     id: string;
     at: number;
     respondsTo?: Response;
+    about?: string;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -70,6 +77,7 @@ export function newThought(input: NewThought): Thought {
         text: input.text,
         links: [],
         ...(input.respondsTo ? { respondsTo: input.respondsTo } : {}),
+        ...(input.about ? { about: input.about } : {}),
     };
 }
 
@@ -113,6 +121,7 @@ export function renderThought(thought: Thought): string {
     if (thought.respondsTo) {
         lines.push(`  respondsTo: ${thought.respondsTo.to}`, `  respondsAs: ${thought.respondsTo.as}`);
     }
+    if (thought.about) lines.push(`  about: ${thought.about}`);
     if (thought.incubated) {
         lines.push(`  asideReason: ${thought.incubated.reason}`, `  asideAt: ${thought.incubated.at}`);
         if (thought.incubated.stuckOn) lines.push(`  stuckOn: ${thought.incubated.stuckOn}`);
@@ -151,6 +160,7 @@ export function parseThought(content: string, path: string): Thought {
 
     const at = Number(read("at"));
     const respondsTo = readResponse(read);
+    const about = read("about");
     const asideReason = read("asideReason");
     const stuckOn = read("stuckOn");
     const incubated: Incubation | undefined =
@@ -167,6 +177,7 @@ export function parseThought(content: string, path: string): Thought {
         text: body,
         links,
         ...(respondsTo ? { respondsTo } : {}),
+        ...(about ? { about } : {}),
         ...(incubated ? { incubated } : {}),
     };
 }

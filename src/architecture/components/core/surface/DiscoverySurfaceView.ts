@@ -9,7 +9,8 @@ import { AskGraphRenderer } from "architecture/components/core/askGraph/AskGraph
 /**
  * The **Discovery** surface (#272) — one destination for finding what to explore next, with modes:
  * Connections (surprising pairs) · Forgotten (resurfaced notes) · Questions (open questions) ·
- * Challenges (evidence map). Each mode reuses the retired view's renderer verbatim.
+ * Challenges (evidence map) · **Explore** (#484), which absorbed the retired Graph surface: the 3D
+ * graph is one of its lenses, so the deep link carries a `lens` alongside the mode.
  */
 export class DiscoverySurfaceView extends ModeHostView {
     getViewType(): string {
@@ -29,7 +30,12 @@ export class DiscoverySurfaceView extends ModeHostView {
             case "challenges":
                 return new EvidenceMapRenderer(container, this.app);
             case "ask":
-                return new AskGraphRenderer(container, this.app, typeof state?.query === "string" ? state.query : undefined);
+                return new AskGraphRenderer(
+                    container,
+                    this.app,
+                    typeof state?.query === "string" ? state.query : undefined,
+                    typeof state?.lens === "string" ? state.lens : undefined
+                );
             case "connections":
             default:
                 return new DiscoveriesRenderer(container, this.app);

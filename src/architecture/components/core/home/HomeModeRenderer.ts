@@ -242,7 +242,9 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         teaser.createDiv({ cls: c("home-graph-teaser-sub"), text: t("home_graph_teaser_sub") });
         const btn = teaser.createEl("button", { cls: c("home-graph-teaser-btn"), text: t("home_graph_teaser_cta") });
         btn.setAttribute("aria-label", t("home_graph_teaser_cta"));
-        btn.addEventListener("click", () => void activateSurface(this.app, "zettelflow-graph", "3d"));
+        btn.addEventListener("click", () =>
+            void activateSurface(this.app, "zettelflow-discovery", "ask", { lens: "graph" })
+        );
     }
 
     /** The "What to do next" section (#273): top recommendations, each row navigating to its target. */

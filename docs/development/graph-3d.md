@@ -1,11 +1,21 @@
-# 3D knowledge graph
+# The graph lens
 
-> Epic [#280](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/280). A **3D** mode on the
-> [Graph surface](../architecture/surfaces.md) that turns the flat map into a spatial, explorable
-> force-directed graph — *see the shape of your thinking.*
+> Epic [#280](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/280), folded into
+> [Explore](ask-your-graph.md) by [#484](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/484).
+> A spatial, explorable force-directed graph — *see the shape of your thinking.*
 
-Open the **Graph** surface and pick the **3D** mode (next to Map and Navigate). Everything is
-**read-only and offline** — clicking a node opens its note; the graph never writes.
+The graph is a **lens on your Explore selection**, not a place of its own. Open **Explore** and
+switch the lens to **Graph**: your whole vault is drawn, with the notes you selected **lit** and
+everything else dimmed — the selection **in context**, which is the one thing a list structurally
+cannot show you.
+
+It had its own surface until 4.2. *Which notes match this?* and *what shape is my knowledge?* are
+the same question, and answering them in two places meant you could narrow to twelve orphaned
+permanents and then have no way to **see** them. Switching lens never recomputes the selection, and
+never rebuilds the layout: a changed selection re-lights the graph in place.
+
+Everything here is **read-only and offline** — clicking a node opens its note; the graph never
+writes.
 
 > See it in motion → the [Showcase](../showcase.md).
 

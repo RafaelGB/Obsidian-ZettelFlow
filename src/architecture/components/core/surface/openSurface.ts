@@ -8,5 +8,5 @@ import { LEGACY_OPEN_TARGETS } from "./legacyTargets";
  */
 export function openSurfaceForCommand(app: App, commandId: string): void {
     const target = LEGACY_OPEN_TARGETS[commandId];
-    if (target) void activateSurface(app, target.surface, target.mode);
+    if (target) void activateSurface(app, target.surface, target.mode, target.lens ? { lens: target.lens } : undefined);
 }

@@ -135,8 +135,20 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private timeSlider: HTMLInputElement | null = null;
     private playBtn: HTMLElement | null = null;
 
-    constructor(container: HTMLElement, private readonly app: App) {
+    /**
+     * `lit` is the Explore selection (#484): the graph draws your whole vault, with those notes
+     * painted and everything else dimmed — the selection **in context**, which is the only way a
+     * graph answers anything a list cannot. It rides the dimming path `pathNodes` already drives,
+     * so a lens costs a parameter rather than a scoping engine.
+     */
+    constructor(container: HTMLElement, private readonly app: App, private lit: ReadonlySet<string> | null = null) {
         super(container);
+    }
+
+    /** Re-light without rebuilding: the selection changed, the graph and its layout did not. */
+    setLit(lit: ReadonlySet<string> | null): void {
+        this.lit = lit;
+        this.refreshPaint();
     }
 
     onload(): void {
@@ -1103,6 +1115,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             return OVERLAY_SPECS[this.overlay].matches(node) ? this.varColor(OVERLAY_SPECS[this.overlay].colorVar) : DIM_NODE;
         }
         if (this.pathNodes) return this.pathNodes.has(node.id ?? "") ? this.baseNodeColor(node) : DIM_NODE;
+        if (this.lit && !this.lit.has(node.id ?? "")) return DIM_NODE;
         const focus = this.activeFocus();
         if (focus && !focus.has(node.id ?? "")) return DIM_NODE;
         return this.baseNodeColor(node);
@@ -1116,6 +1129,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private computeLinkColor(link: LiveLink): string {
         if (this.overlay) return DIM_LINK;
         if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? this.relationColor(link.type) : DIM_LINK;
+        if (this.lit && !(this.lit.has(endId(link.source)) && this.lit.has(endId(link.target)))) return DIM_LINK;
         const focus = this.activeFocus();
         if (focus) return focus.has(endId(link.source)) && focus.has(endId(link.target)) ? this.relationColor(link.type) : DIM_LINK;
         return this.relationColor(link.type);

@@ -6,13 +6,15 @@ const SRC = join(__dirname, "..", "..", "..", "..", "..", "src", "architecture",
 const readCore = (rel: string) => readFileSync(join(SRC, rel), "utf8");
 
 /**
- * #280 S1 — structural guardrails for the 3D graph mode: it's wired into the Graph surface, the heavy
- * WebGL library is loaded lazily (never statically at plugin load), and the renderer is read-only
- * (navigates via openLinkText, never writes).
+ * #280 S1 — structural guardrails for the 3D graph: the heavy WebGL library is loaded lazily (never
+ * statically at plugin load) and the renderer is read-only (navigates via openLinkText, never
+ * writes). Since #484 it is mounted as a **lens of Explore** rather than owning a surface, and the
+ * lazy import is the thing that most needs guarding: Explore now imports the renderer eagerly, so a
+ * static WebGL import would move three megabytes into plugin load.
  */
-describe("Graph 3D mode wiring (#280 S1)", () => {
-    it("GraphSurfaceView builds the Graph3DRenderer (the surface is 3D-only)", () => {
-        const src = readCore("surface/GraphSurfaceView.ts");
+describe("Graph 3D mode wiring (#280 S1, #484)", () => {
+    it("Explore builds the Graph3DRenderer for its graph lens", () => {
+        const src = readCore("askGraph/AskGraphRenderer.ts");
         expect(src).toMatch(/new\s+Graph3DRenderer\(/);
     });
 

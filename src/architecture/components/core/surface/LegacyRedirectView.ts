@@ -31,7 +31,8 @@ export class LegacyRedirectView extends ItemView {
         // old-type leaf becomes the surface it now lives in. Deferred so the workspace finishes
         // restoring first.
         window.setTimeout(() => {
-            void this.leaf.setViewState({ type: target.surface, state: { mode: target.mode }, active: true });
+            const state = { mode: target.mode, ...(target.lens ? { lens: target.lens } : {}) };
+            void this.leaf.setViewState({ type: target.surface, state, active: true });
         }, 0);
     }
 }

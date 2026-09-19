@@ -22,7 +22,6 @@ import { CodeView } from 'architecture/components/core';
 import { HomeSurfaceView } from 'architecture/components/core/surface/HomeSurfaceView';
 import { HealthSurfaceView } from 'architecture/components/core/surface/HealthSurfaceView';
 import { DiscoverySurfaceView } from 'architecture/components/core/surface/DiscoverySurfaceView';
-import { GraphSurfaceView } from 'architecture/components/core/surface/GraphSurfaceView';
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
 import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
@@ -168,14 +167,13 @@ export default class ZettelFlow extends Plugin {
 
 	registerViews() {
 		this.registerView(CodeView.NAME, (leaf) => new CodeView(leaf));
-		// The four consolidated surfaces (#272, epic #268 Phase 7).
+		// The three consolidated surfaces (#272, epic #268 Phase 7; the Graph became a lens, #484).
 		this.registerView("zettelflow-home", (leaf) => new HomeSurfaceView(leaf, this));
 		this.registerView("zettelflow-health", (leaf) => new HealthSurfaceView(leaf));
 		this.registerView("zettelflow-discovery", (leaf) => new DiscoverySurfaceView(leaf));
-		this.registerView("zettelflow-graph", (leaf) => new GraphSurfaceView(leaf));
 		// The script workbench (#446): its own view, like the four surfaces.
 		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));
-		// Back-compat: the 11 retired view types redirect a restored/pinned leaf to its surface + mode.
+		// Back-compat: the retired view types redirect a restored/pinned leaf to its surface + mode.
 		for (const legacyType of Object.keys(LEGACY_VIEW_TARGETS)) {
 			this.registerView(legacyType, (leaf) => new LegacyRedirectView(leaf, legacyType));
 		}

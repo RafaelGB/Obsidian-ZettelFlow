@@ -42,17 +42,25 @@ function codeLines(source: string): number {
 }
 
 /**
- * What the surface weighed before this epic: `AskGraphRenderer` (292) + `graphTermBuilder` (57) +
- * `savedQueries` (72), counted the same way. Explore does strictly more than Ask did — facets,
- * chips, negation, completion, the whole-vault default — and it may not cost more code to do it.
- * If this number has to go up, that is a decision someone takes on purpose, in a visible diff.
+ * The ceiling, and its history. This is not a record of the smallest the surface has ever been —
+ * it is the number someone has to **raise on purpose, in a visible diff, with a reason**, which is
+ * the only kind of size guardrail that survives contact with a real epic.
+ *
+ * | | code lines | why |
+ * |---|---|---|
+ * | before #483 | 421 | `AskGraphRenderer` 292 + `graphTermBuilder` 57 + `savedQueries` 72 |
+ * | after #483 | 400 | the builder, the grammar card, the examples, the table lens and two reorder buttons came out, and Explore still does strictly more |
+ * | after #484 | 444 | the graph lens: mounting it, re-lighting it without a rebuild, and a lens bar. It is paid for in the same change by deleting a whole **surface** — `GraphSurfaceView` (14 lines), its registration, its menu entry and two locale keys — which this counter cannot see |
+ *
+ * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
+ * you to delete the wrong thing.
  */
-const BEFORE = 421;
+const CEILING = 444;
 
-describe("the surface did not grow (#483)", () => {
-    it("does more, with no more code than Ask needed", () => {
+describe("the surface does not grow by accident (#483, #484)", () => {
+    it("stays under a ceiling that has to be raised deliberately", () => {
         const now = SURFACE.reduce((total, file) => total + codeLines(read(file)), 0);
-        expect({ now, ceiling: BEFORE, grew: now > BEFORE }).toEqual({ now, ceiling: BEFORE, grew: false });
+        expect({ now, ceiling: CEILING, over: now > CEILING }).toEqual({ now, ceiling: CEILING, over: false });
     });
 });
 
@@ -118,6 +126,16 @@ describe("what replaced it (#483)", () => {
         expect(suggest).toContain("values()");
         // The third, hardcoded list beside those is exactly how the builder went wrong.
         expect(suggest).not.toMatch(/const [A-Z_]*FIELDS/);
+    });
+
+    it("switches lens without re-asking the question (#484)", () => {
+        // The selection is computed in run() and kept; a lens change only redraws it. A setLens
+        // that recomputed would make the graph rebuild its layout every time you glanced at a list.
+        const setLens = RENDERER.slice(RENDERER.indexOf("private setLens("));
+        const body = setLens.slice(0, setLens.indexOf("\n    }"));
+        expect(body).toContain("renderResults()");
+        expect(body).not.toContain("this.run()");
+        expect(body).not.toContain("matchesFor(");
     });
 
     it("is still read-only — looking never writes", () => {

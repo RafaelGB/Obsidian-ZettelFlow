@@ -19,10 +19,11 @@ interface MenuEntry {
 
 /**
  * The single all-in-one ribbon button (#231 Phase 2, #271, #272): one obvious front door. Its menu
- * leads with **Create note**, then the system-adoption actions, then the **four surfaces** (Home ·
- * Health · Discovery · Graph) — the ~12 former per-view entries are now modes inside those surfaces.
+ * leads with **Think**, then the system-adoption actions, then the **surfaces** (Home · Cultivate ·
+ * Explore · Health · Discovery) — the ~12 former per-view entries are now modes inside those.
  * Additive & consolidate-and-hide: every capability is still reachable; execution goes through the
- * sanctioned command runner / {@link activateSurface}.
+ * sanctioned command runner / {@link activateSurface}. Since #484 there are **three** surfaces:
+ * the Graph became a lens inside Explore, so one door leads there instead of two.
  */
 export class ZettelFlowMenuComponent extends PluginComponent {
     constructor(private plugin: ZettelFlow) {
@@ -50,10 +51,9 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         [
             { command: "show-home", labelKey: "command_show_home", icon: "house" },
             { command: "cultivate", labelKey: "command_cultivate", icon: "sprout" },
-            { command: "ask-your-graph", labelKey: "command_ask_graph", icon: "search" },
+            { command: "ask-your-graph", labelKey: "command_ask_graph", icon: "telescope" },
             { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
-            { command: "show-discovery", labelKey: "command_show_discovery", icon: "telescope" },
-            { command: "show-graph", labelKey: "command_show_graph", icon: "network" },
+            { command: "show-discovery", labelKey: "command_show_discovery", icon: "compass" },
         ],
     ];
 
@@ -78,7 +78,8 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-graph",
             name: t("command_show_graph"),
-            callback: () => void activateSurface(this.plugin.app, "zettelflow-graph"),
+            // The graph is a lens now (#484). The id stays so a bound hotkey survives.
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-discovery", "ask", { lens: "graph" }),
         });
         // Start a guided thinking session on the Home surface's Cultivate mode (#309 S4).
         this.plugin.addCommand({
@@ -86,7 +87,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             name: t("command_cultivate"),
             callback: () => void activateSurface(this.plugin.app, "zettelflow-home", "cultivate"),
         });
-        // Deep-link: open the Graph surface at the 3D mode and fly to the active note (#280 S3).
+        // Deep-link: open Explore on the graph lens and fly to the active note (#280 S3, #484).
         this.plugin.addCommand({
             id: "explore-in-3d",
             name: t("command_explore_in_3d"),
@@ -95,7 +96,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
                 if (!file || file.extension !== "md") return false;
                 if (!checking) {
                     requestGraph3DFocus(file.path);
-                    void activateSurface(this.plugin.app, "zettelflow-graph", "3d");
+                    void activateSurface(this.plugin.app, "zettelflow-discovery", "ask", { lens: "graph" });
                 }
                 return true;
             },

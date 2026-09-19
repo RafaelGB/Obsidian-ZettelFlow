@@ -9,6 +9,8 @@ import { locateSourceView } from "./surfaceRegistry";
 export interface SurfaceTarget {
     surface: string;
     mode: string;
+    /** Extra view state the door asks for — the graph doors land on Explore's graph lens (#484). */
+    lens?: string;
 }
 
 /** Retired opener command id → the source view it used to open. */
@@ -29,6 +31,9 @@ const COMMAND_SOURCE: Record<string, string> = {
 
 /** Old view types that become thin redirects — every source view except the retained `zettelflow-home`. */
 const REDIRECT_VIEW_TYPES = [
+    // The Graph surface itself, since #484: a workspace saved before the merge still holds leaves
+    // of this type, and they must open Explore rather than an empty pane.
+    "zettelflow-graph",
     "zettelflow-history",
     "zettelflow-slipbox-health",
     "zettelflow-knowledge-dashboard",
@@ -42,11 +47,13 @@ const REDIRECT_VIEW_TYPES = [
     "zettelflow-concept-nav",
 ];
 
-// Retired modes whose source view no longer hosts a mode, mapped to where they live now:
-// the 2D Graph views open the 3D mode (#280); the Dashboard merged into Health (#314).
+// Retired modes whose source view no longer hosts a mode, mapped to where they live now: every
+// graph door opens Explore, where the graph is a lens (#484); the Dashboard merged into Health (#314).
+const EXPLORE: SurfaceTarget = { surface: "zettelflow-discovery", mode: "ask", lens: "graph" };
 const RETIRED_TARGETS: Record<string, SurfaceTarget> = {
-    "zettelflow-knowledge-map": { surface: "zettelflow-graph", mode: "3d" },
-    "zettelflow-concept-nav": { surface: "zettelflow-graph", mode: "3d" },
+    "zettelflow-graph": EXPLORE,
+    "zettelflow-knowledge-map": EXPLORE,
+    "zettelflow-concept-nav": EXPLORE,
     "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "health" },
 };
 

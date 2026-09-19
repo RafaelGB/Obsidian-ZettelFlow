@@ -10,8 +10,8 @@ describe("surface i18n keys (#272)", () => {
     const enMap = en as Record<string, string>;
     const esMap = es as Record<string, string>;
 
-    it("references 4 titles + 14 mode labels (+the Thought Lab as a Home mode, #467)", () => {
-        expect(KEYS).toHaveLength(18);
+    it("references 3 titles + 13 mode labels (the Graph became a lens of Explore, #484)", () => {
+        expect(KEYS).toHaveLength(16);
     });
 
     it("defines every surface/mode key in both en and es, non-empty", () => {

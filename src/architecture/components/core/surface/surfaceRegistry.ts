@@ -1,7 +1,12 @@
 /**
- * The **four ZettelFlow surfaces** and their modes (#272, epic #268 Phase 7) — one obvious front
+ * The **three ZettelFlow surfaces** and their modes (#272, epic #268 Phase 7) — one obvious front
  * door per job, with the former ~12 sidebar views surviving as modes inside them. Pure data: no
  * `obsidian`, no React, no view import — so the alias/redirect maps derived from it stay unit-testable.
+ *
+ * It was four until #484. The Graph was a whole surface with **one** mode, answering *what shape is
+ * my knowledge?* while Explore answered *which notes match this?* — the same question asked twice,
+ * in two places, with no way to carry an answer across. The graph is now a **lens** on the Explore
+ * selection, and a surface went away rather than a fifth arriving.
  */
 
 export interface SurfaceMode {
@@ -54,16 +59,9 @@ export const SURFACES: readonly Surface[] = [
             { id: "forgotten", sourceView: "zettelflow-resurface", labelKey: "surface_mode_forgotten" },
             { id: "questions", sourceView: "zettelflow-open-questions", labelKey: "surface_mode_questions" },
             { id: "challenges", sourceView: "zettelflow-evidence-map", labelKey: "surface_mode_challenges" },
+            // Explore (#484). The **id stays `ask`**: rename what is read, never what is bound —
+            // every deep link, hotkey and pinned Home card keeps landing (the #479 precedent).
             { id: "ask", labelKey: "surface_mode_ask" },
-        ],
-    },
-    {
-        viewType: "zettelflow-graph",
-        titleKey: "surface_graph_title",
-        // The Graph surface is 3D-only (#280 direction); the retired 2D Map/Navigate view types are
-        // repointed to the 3D mode in legacyTargets so their alias commands still work.
-        modes: [
-            { id: "3d", labelKey: "surface_mode_3d" },
         ],
     },
 ];

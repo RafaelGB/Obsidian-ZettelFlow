@@ -18,6 +18,7 @@ import {
 import { makeActivatable } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { QuerySuggest } from "architecture/settings/suggesters/QuerySuggest";
+import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
 import type { SavedGraphQuery } from "config";
 import {
     addSavedQuery,
@@ -36,16 +37,21 @@ function basename(path: string): string {
 
 const DEBOUNCE_MS = 400;
 
-/**
- * The matches, typed through the State surface rather than by reaching into the model (#266).
- *
- * There is **one** way to read them. The table lens is gone: it showed the same matches as the
- * list with four fixed columns — state, degree, sources — which is the pre-facet way of thinking,
- * a universal schema instead of your question. Its one real advantage was alignment, and
- * alignment is CSS. A lens has to be a genuinely different way of *seeing*, and #484 adds the one
- * that is: the graph.
- */
+/** The matches, typed through the State surface rather than by reaching into the model (#266). */
 type Matches = GraphQueryResult["matches"];
+
+/**
+ * The lenses: **two**, and each is a genuinely different way of seeing the same selection.
+ *
+ * *List* reads it. *Graph* (#484) shows it in context — your whole vault drawn, with the selection
+ * lit and the rest dimmed — which is the thing a list structurally cannot do. The table lens that
+ * sat here until #483 was the list with four fixed columns; its one real advantage was alignment,
+ * and alignment is a CSS grid rule.
+ *
+ * Switching lens never recomputes the selection. `run()` computes; `setLens` only redraws.
+ */
+const LENSES = ["list", "graph"] as const;
+type ResultLens = (typeof LENSES)[number];
 
 /**
  * Group and shape labels as explicit maps rather than composed keys, so the locale guardrail
@@ -99,11 +105,18 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private savedEl: HTMLElement | null = null;
     private debounceTimer: number | undefined;
     private suggest: QuerySuggest | null = null;
+    private lens: ResultLens = "list";
+    private readonly lensButtons = new Map<ResultLens, HTMLElement>();
+    private graphLens: Graph3DRenderer | null = null;
+    /** The last computed selection, so switching lens never re-asks the question. */
+    private matches: Matches = [];
 
-    constructor(container: HTMLElement, private readonly app: App, initialQuery?: string) {
+    constructor(container: HTMLElement, private readonly app: App, initialQuery?: string, initialLens?: string) {
         super(container);
         // Deep-link from a Home pinned card (#323 G4): open pre-filled and run immediately.
         if (initialQuery && initialQuery.trim() !== "") this.query = initialQuery.trim();
+        // …or from any of the graph doors (#484), which ask for Explore with the graph already up.
+        if (initialLens === "graph") this.lens = "graph";
     }
 
     onload(): void {
@@ -131,6 +144,18 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
 
         this.facetsEl = root.createDiv({ cls: c("ask-graph-facets") });
         this.chipsEl = root.createDiv({ cls: c("ask-graph-chips") });
+
+        const lensBar = root.createDiv({ cls: c("ask-graph-lenses") });
+        this.lensButtons.clear();
+        for (const lens of LENSES) {
+            const btn = lensBar.createEl("button", {
+                text: t(`ask_graph_lens_${lens}` as LocaleKey),
+                cls: c("ask-graph-lens"),
+            });
+            btn.toggleClass(c("ask-graph-lens--active"), this.lens === lens);
+            this.registerDomEvent(btn, "click", () => this.setLens(lens));
+            this.lensButtons.set(lens, btn);
+        }
 
         this.statusEl = root.createDiv({ cls: c("ask-graph-status") });
         this.resultsEl = root.createDiv({ cls: c("ask-graph-results") });
@@ -185,13 +210,20 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.setQuery(toQuery(terms));
     }
 
+    /** A lens change is a redraw, never a re-ask: the selection it draws was already computed. */
+    private setLens(lens: ResultLens): void {
+        if (this.lens === lens) return;
+        this.lens = lens;
+        for (const [id, btn] of this.lensButtons) btn.toggleClass(c("ask-graph-lens--active"), id === lens);
+        this.renderResults();
+    }
+
     private openNote(path: string): void {
         void this.app.workspace.openLinkText(path, "", false);
     }
 
     private run(): void {
         if (!this.resultsEl || !this.statusEl || !this.facetsEl || !this.chipsEl) return;
-        this.resultsEl.empty();
         this.facetsEl.empty();
         this.chipsEl.empty();
         this.statusEl.textContent = "";
@@ -210,6 +242,8 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             const result = runGraphQuery(model, this.query);
             this.renderChips(null);
             if (result.error) {
+                // Clear the stale answer first, then say what is wrong with the new query.
+                this.renderAnswer([], model.all().length);
                 this.statusEl.textContent = result.error;
                 return;
             }
@@ -292,18 +326,43 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         return btn;
     }
 
-    /** The count, then the matches through the active lens. */
+    /** Take the answer, say how big it is, and hand it to the active lens. */
     private renderAnswer(matches: Matches, total: number): void {
-        if (!this.statusEl || !this.resultsEl) return;
-        if (matches.length === 0) {
-            this.statusEl.textContent = t("ask_graph_no_results");
+        if (!this.statusEl) return;
+        this.matches = matches;
+        this.statusEl.textContent =
+            matches.length === 0
+                ? t("ask_graph_no_results")
+                : matches.length === total
+                  ? t("explore_all_notes", String(total))
+                  : t("ask_graph_result_count", String(matches.length));
+        this.renderResults();
+    }
+
+    /**
+     * Draw the selection already computed. The graph lens is **not** torn down and rebuilt on every
+     * vault event: a 3D layout takes seconds to settle, so an existing one is re-lit in place and
+     * only a lens change builds or drops it.
+     */
+    private renderResults(): void {
+        if (!this.resultsEl) return;
+        if (this.lens === "graph") {
+            const lit = new Set(this.matches.map((match) => match.path));
+            if (this.graphLens) {
+                this.graphLens.setLit(lit);
+                return;
+            }
+            this.resultsEl.empty();
+            this.graphLens = new Graph3DRenderer(this.resultsEl.createDiv({ cls: c("ask-graph-graph") }), this.app, lit);
+            this.addChild(this.graphLens);
             return;
         }
-        this.statusEl.textContent =
-            matches.length === total
-                ? t("explore_all_notes", String(total))
-                : t("ask_graph_result_count", String(matches.length));
-        this.renderList(matches);
+        if (this.graphLens) {
+            this.removeChild(this.graphLens);
+            this.graphLens = null;
+        }
+        this.resultsEl.empty();
+        if (this.matches.length > 0) this.renderList(this.matches);
     }
 
     /** The note's name, wherever a lens puts it: titled with its path, and it opens the note. */

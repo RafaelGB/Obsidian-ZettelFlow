@@ -25,4 +25,16 @@ describe("pure core stays Obsidian-free (AC-4)", () => {
             expect(source).not.toMatch(/from\s+["']obsidian["']/);
         }
     });
+
+    it("and none of them reaches into the plugin layer for anything that survives compilation (#482)", () => {
+        // `obsidian` is the obvious door out of purity; `architecture/plugin` is the quiet one —
+        // it is Obsidian-free by name only, and a *value* import drags a live vault behind it.
+        // `import type` is allowed: it is erased, so it borrows a shape without borrowing a world.
+        const value = /^import\s+(?!type\b)[^;]*?from\s+["']architecture\/plugin/m;
+        const files = PURE_DIRS.flatMap((dir) => collectTsFiles(join(KNOWLEDGE_ROOT, dir)));
+        for (const file of files) {
+            const source = readFileSync(file, "utf8");
+            expect({ file, plugin: value.test(source) }).toEqual({ file, plugin: false });
+        }
+    });
 });

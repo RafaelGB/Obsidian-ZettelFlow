@@ -39,6 +39,7 @@ export * from "architecture/knowledge/map/graph3d";
 export * from "architecture/knowledge/traverse/conceptNeighbors";
 export * from "architecture/knowledge/traverse/reasoningPaths";
 export * from "architecture/knowledge/query/graphQuery";
+export * from "architecture/knowledge/query/facets";
 export * from "architecture/knowledge/synthesis/evidenceMap";
 export * from "architecture/knowledge/journal/heatmap";
 export * from "architecture/knowledge/projects/deriveOutline";

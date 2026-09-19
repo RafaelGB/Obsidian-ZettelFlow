@@ -12,6 +12,7 @@ import {
     conceptNeighbors,
     reasoningPaths,
     runGraphQuery,
+    deriveFacets,
     buildEvidenceMap,
     deriveOutline,
     cultivationQueue,
@@ -191,6 +192,15 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(source: string, now?: number) => GraphQueryResult",
             summary: "Run a graph query from a note against the model.",
             call: (source: string, now?: number) => runGraphQuery(model(), source, now),
+        },
+        facets: {
+            signature: "(source?: string, now?: number) => Facet[]",
+            summary: "What a query could still be narrowed by, with counts — the vocabulary your own vault uses.",
+            call: (source?: string, now?: number) =>
+                deriveFacets(
+                    model(),
+                    source && source.trim() !== "" ? runGraphQuery(model(), source, now).matches : model().all()
+                ),
         },
         evidence: {
             signature: "(path: string) => EvidenceMap",

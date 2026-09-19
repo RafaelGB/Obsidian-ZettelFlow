@@ -44,6 +44,31 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `deriveOutline` | `Outline` | Projects / synthesis |
 | `classifyHealth` | `HealthResult` | Health (orphans / dead-ends, over the model's edges) |
 | `deriveRecommendations` | `KnowledgeRecommendation[]` | Home / Health / Discovery (via #268) |
+| `deriveFacets` | `Facet[]` | Explore (#482) |
+
+### Facets: what your vault lets you ask (#482)
+
+`deriveFacets(model, selection)` answers a question the interface never used to ask its own
+model: *which values do you actually use?* It returns the lifecycle states, relation types (in
+both directions), top-level folders and structural shapes present in the **current selection**,
+each with a count and with the query term it contributes.
+
+One rule governs what is offered:
+
+> A value appears only when `0 < count < selection.length`.
+
+Nothing that matches nothing; nothing that matches everything. Neither can narrow, and a filter
+that cannot narrow is noise. Two consequences follow, and both are load-bearing:
+
+- once a selection is entirely `permanent`, the state group **disappears** instead of offering
+  you the thing you already did;
+- **clicking can never empty your results.** Because counts are conditional on the selection,
+  every offered term finds something — asserted exhaustively, every term, one at a time. The
+  empty answer stops being somewhere the interface can walk you into.
+
+Age is deliberately not a facet: `older-than:` is a dial, not a list of values, and it stays a
+typed term. The cost is `O(N + E)` — 69 ms over 50,000 notes, which matters because the facets
+are re-derived after **every** click.
 
 ## Computed once per revision (#458)
 

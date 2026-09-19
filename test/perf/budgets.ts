@@ -88,6 +88,13 @@ export const BUDGETS = {
         because:
             "a hundred times every other projection and re-run on every render — the single most expensive thing ZettelFlow computes",
     },
+    "facets.50k": {
+        name: "derive the Explore facets over 50,000 notes",
+        limit: 300,
+        measured: "69.1 ms",
+        because:
+            "the facets are re-derived after every click, so this is interaction latency, not load time: it has to stay inside a frame or two of a click",
+    },
     "analysis.discovery.scaling": {
         name: "how discovery grows when the vault doubles (20k ÷ 10k)",
         limit: 3.5,

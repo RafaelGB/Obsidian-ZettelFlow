@@ -21,6 +21,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `debt` | `() => KnowledgeDebt` | Ideas carrying structural debt — orphans, stubs, unsourced claims. |
 | `discoveries` | `(opts?: FindDiscoveriesOptions) => Discovery[]` | Unlinked pairs of ideas that keep appearing together. |
 | `evidence` | `(path: string) => EvidenceMap` | What supports and what contradicts one idea. |
+| `facets` | `(source?: string, now?: number) => Facet[]` | What a query could still be narrowed by, with counts — the vocabulary your own vault uses. |
 | `health` | `() => HealthResult` | Notes classified by slipbox health. |
 | `judgements` | `(path: string) => Judgement[]` | Every verdict you recorded about one idea. |
 | `lastJudgement` | `(path: string) => Judgement \| null` | The most recent verdict on one idea, or null. |

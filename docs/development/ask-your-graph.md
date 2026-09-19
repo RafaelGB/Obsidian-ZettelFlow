@@ -56,6 +56,27 @@ The one thing the text can express that chips cannot is `OR`. A hand-written dis
 written and **says so**, and the facets stand down rather than appending a term that would silently
 re-bracket the query.
 
+## The answer speaks (#485)
+
+**Each row carries the facts your selection asked about.** Filter by sources and the row says what
+it cites; filter by `relation:supports` and it says how many. With nothing selected it reads
+`state · links`, exactly as it always did — nobody who never clicks a facet sees a change.
+
+**A zero names the term that caused it.** `state:permanent AND unsourced AND folder:Reading`
+matching nothing used to be a wall. Now the surface narrows one term at a time and says which one
+reached zero, with the count immediately before it:
+
+> Nothing matches. `folder:Reading` took it from 43 to none.
+
+That is a **fact about your selection** and it stops there. Naming the term is mechanical;
+proposing the fix would be a verdict, and [§XII](constitution.md) puts verdicts behind an explicit
+human decision — of which there is none to take here, because the query is on screen and editable.
+A guardrail scans these strings for advice verbs in both locales, because a doc paragraph will not
+stop the next person adding a helpful sentence.
+
+It refuses rather than guesses: a query containing `OR` has no single culprit, and a query with a
+typo is broken rather than empty. Both get the plain message.
+
 ## The query language
 
 You do not have to write this. It is here because you can, and because it is what a saved query

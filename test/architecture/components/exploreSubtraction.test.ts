@@ -42,22 +42,31 @@ function codeLines(source: string): number {
 }
 
 /**
- * The ceiling, and its history. This is not a record of the smallest the surface has ever been —
- * it is the number someone has to **raise on purpose, in a visible diff, with a reason**, which is
- * the only kind of size guardrail that survives contact with a real epic.
+ * The ceiling, and its history.
+ *
+ * This is **not** a record of the smallest the surface has ever been. It is the number someone has
+ * to raise on purpose, in a visible diff, with a reason — the only kind of size guardrail that
+ * survives contact with a real epic. Each row below is a decision, not a drift:
  *
  * | | code lines | why |
  * |---|---|---|
  * | before #483 | 421 | `AskGraphRenderer` 292 + `graphTermBuilder` 57 + `savedQueries` 72 |
- * | after #483 | 400 | the builder, the grammar card, the examples, the table lens and two reorder buttons came out, and Explore still does strictly more |
- * | after #484 | 444 | the graph lens: mounting it, re-lighting it without a rebuild, and a lens bar. It is paid for in the same change by deleting a whole **surface** — `GraphSurfaceView` (14 lines), its registration, its menu entry and two locale keys — which this counter cannot see |
+ * | after #483 | 400 | the builder, the grammar card, the examples, the table lens and two reorder buttons came out — and Explore already did strictly more |
+ * | after #484 | 444 | the graph lens: mounting it, re-lighting it without a rebuild, a lens bar |
+ * | after #485 | 462 | the answer explains itself: which term emptied a selection, and rows that carry the facts you asked about instead of a fixed pair |
+ *
+ * The honest comparison for the whole epic is **435 → 462**: 421 plus the 14 lines of
+ * `GraphSurfaceView`, which #484 deleted and this counter cannot see. Twenty-seven lines bought
+ * facets, chips, negation, completion, a whole-vault default, a graph lens and an explaining
+ * answer — while a surface, a form that emitted code, a grammar reference card, a worked-examples
+ * list, a redundant lens and two buttons went away.
  *
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 444;
+const CEILING = 462;
 
-describe("the surface does not grow by accident (#483, #484)", () => {
+describe("the surface does not grow by accident (#483, #484, #485)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {
         const now = SURFACE.reduce((total, file) => total + codeLines(read(file)), 0);
         expect({ now, ceiling: CEILING, over: now > CEILING }).toEqual({ now, ceiling: CEILING, over: false });

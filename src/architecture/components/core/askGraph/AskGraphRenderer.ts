@@ -5,12 +5,15 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import {
     asSelection,
     deriveFacets,
+    explainEmpty,
+    rowFacts,
     invertTerm,
     matchesFor,
     runGraphQuery,
     toQuery,
     toggleTerm,
     type Facet,
+    type RowFact,
     type FacetId,
     type FacetValue,
     type GraphQueryResult,
@@ -110,6 +113,8 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private graphLens: Graph3DRenderer | null = null;
     /** The last computed selection, so switching lens never re-asks the question. */
     private matches: Matches = [];
+    /** …and the terms that produced it, which is what tells a row which facts to carry (#485). */
+    private terms: readonly string[] = [];
 
     constructor(container: HTMLElement, private readonly app: App, initialQuery?: string, initialLens?: string) {
         super(container);
@@ -243,18 +248,18 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             this.renderChips(null);
             if (result.error) {
                 // Clear the stale answer first, then say what is wrong with the new query.
-                this.renderAnswer([], model.all().length);
+                this.renderAnswer([], model.all().length, []);
                 this.statusEl.textContent = result.error;
                 return;
             }
-            this.renderAnswer(result.matches, model.all().length);
+            this.renderAnswer(result.matches, model.all().length, []);
             return;
         }
 
         const matches = matchesFor(model, terms);
         this.renderFacets(deriveFacets(model, matches), terms);
         this.renderChips(terms);
-        this.renderAnswer(matches, model.all().length);
+        this.renderAnswer(matches, model.all().length, terms);
     }
 
     /** What the selection can still be narrowed by — derived from the vault, with counts (#482). */
@@ -326,16 +331,30 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         return btn;
     }
 
-    /** Take the answer, say how big it is, and hand it to the active lens. */
-    private renderAnswer(matches: Matches, total: number): void {
+    /**
+     * Take the answer, say what it is, and hand it to the active lens.
+     *
+     * A zero says **which term emptied it** and the counts either side (#485). That is a fact
+     * about your selection and stops there: naming the term is mechanical, proposing the fix
+     * would be a verdict, and there is nothing to decide anyway — there is a query to edit, and
+     * it is right there.
+     */
+    private renderAnswer(matches: Matches, total: number, terms: readonly string[]): void {
         if (!this.statusEl) return;
         this.matches = matches;
-        this.statusEl.textContent =
-            matches.length === 0
-                ? t("ask_graph_no_results")
-                : matches.length === total
-                  ? t("explore_all_notes", String(total))
-                  : t("ask_graph_result_count", String(matches.length));
+        this.terms = terms;
+        if (matches.length === 0) {
+            const index = KnowledgeIndex.getInstance();
+            const emptied = index.status === "ready" ? explainEmpty(index.getModel(), terms) : null;
+            this.statusEl.textContent = emptied
+                ? t("explore_emptied_by", emptied.term, String(emptied.before))
+                : t("ask_graph_no_results");
+        } else {
+            this.statusEl.textContent =
+                matches.length === total
+                    ? t("explore_all_notes", String(total))
+                    : t("ask_graph_result_count", String(matches.length));
+        }
         this.renderResults();
     }
 
@@ -372,17 +391,32 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         makeActivatable(name, () => this.openNote(path));
     }
 
-    /** The list lens: one row per match, opening in place (persistent — the tab stays open). */
+    /**
+     * The list lens: one row per match, opening in place (persistent — the tab stays open).
+     *
+     * Each row carries the facts **your selection asked about** (#485), not a fixed pair. Filter
+     * by sources and the row says what it cites; filter by `relation:supports` and it says how
+     * many. With nothing selected it reads `state · degree`, exactly as it always did.
+     */
     private renderList(matches: Matches): void {
         if (!this.resultsEl) return;
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
         for (const match of matches) {
             const row = this.resultsEl.createDiv({ cls: c("ask-graph-result") });
             this.noteName(row, match.path);
             row.createSpan({
                 cls: c("ask-graph-result-meta"),
-                text: `${match.state} · ${match.maturitySignals.degree}`,
+                text: rowFacts(match, this.terms, model).map((fact) => this.factText(fact)).join(" · "),
             });
         }
+    }
+
+    /** A fact reads `label value`; the label names its relation type when the key cannot. */
+    private factText(fact: RowFact): string {
+        const label = fact.arg ? t(fact.key as LocaleKey, fact.arg) : t(fact.key as LocaleKey);
+        return `${label} ${fact.value}`;
     }
 
     private savedQueries(): SavedGraphQuery[] {

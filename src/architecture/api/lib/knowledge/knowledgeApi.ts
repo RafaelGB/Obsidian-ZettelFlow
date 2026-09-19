@@ -91,6 +91,10 @@ export const NOT_EXPOSED: Record<string, string> = {
     invertTerm: "what a chip's negate toggle does to a term",
     matchesFor: "runGraphQuery, plus the surface's rule that no filters means every note",
     byConnectivity: "the comparator every answer is already sorted by",
+    // What the Explore surface says about its own answer (#485). A script holds the matches
+    // already; these turn them into a sentence and a row, which is the interface's job.
+    explainEmpty: "names the term that emptied a selection — an explanation for a surface, not a query",
+    rowFacts: "which facts a result row should carry; a script reads the idea it already has",
 
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.

@@ -78,8 +78,11 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   Flip any filter to its opposite; see the selection as a **list** or in the **3D graph**, lit in
   context. The query text — `state:permanent AND unsourced` — appears because you built it: it is
   the receipt, still editable, still what a **saved** selection stores (name it, **pin it to Home**
-  as a live *"N notes match …"* card). Answers questions Dataview can't, like *"orphaned permanents
-  older than 30 days that contradict X"*. Never AI, always offline.
+  as a live *"N notes match …"* card). When nothing matches, it names **which filter emptied it**,
+  with the count either side. And a selection is somewhere to start: **copy it as links**, or turn
+  it into a **map of content** — previewed, never overwriting, and undoable. Answers questions
+  Dataview can't, like *"orphaned permanents older than 30 days that contradict X"*. Never AI,
+  always offline.
 - **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
   suggested connections to existing notes so you can link before you file.
 - **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
@@ -268,7 +271,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
 | **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
 | **Concept navigation** | Walk your vault by typed relation (in + out) — focus a note, click a neighbour to re-focus, no folders. A **Trace reasoning paths** command opens a read-only lens of the argument chains leaving a note (`supports → expands → example → implements`), each note clickable. Offline. |
-| **Explore your graph** | Narrow your vault by **clicking**: the states, relation types, folders and shapes your own notes use, each with a count, and a click can never empty your results. See the selection as a list or in the **3D graph**, lit in context. The query text (`state:permanent AND unsourced`) is what your clicks *produce* — editable, and what a **saved** selection stores (name it, pin it to Home as a live count). Answers what Dataview cannot, over *meaning and structure*, never AI, offline. |
+| **Explore your graph** | Narrow your vault by **clicking**: the states, relation types, folders and shapes your own notes use, each with a count, and a click can never empty your results. See the selection as a list or in the **3D graph**, lit in context; each row carries the facts *you* filtered on, and a zero names the filter that caused it. The query text (`state:permanent AND unsourced`) is what your clicks *produce* — editable, and what a **saved** selection stores (name it, pin it to Home as a live count). Take a selection somewhere: **copy as links**, or a **map of content** (previewed, never overwriting, undoable). Answers what Dataview cannot, over *meaning and structure*, never AI, offline. |
 | **The graph lens** | An immersive **Knowledge Galaxy** — an interactive 3D force-directed graph of your slip-box over a starfield, and a **lens on your Explore selection**: nodes sized by connectivity and coloured by cluster with cluster-hued glow halos, links coloured by relation type; search-to-focus, state filter, and a discovery lens for orphans · dead-ends · contradictions. A one-click **cinematic tour** flies through your hubs; **share your universe** by exporting the view to a PNG or the time-lapse to a WebM clip. Read-only, offline; respects reduced-motion and Lite mode; 2D-map fallback on mobile. |
 | **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
 | **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. **Share this idea** exports a before→after image card (state change · claims gained · links · decisions · days). Local, bounded, opt-in. |

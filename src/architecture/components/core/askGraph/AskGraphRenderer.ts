@@ -1,4 +1,4 @@
-import { App } from "obsidian";
+import { App, Notice } from "obsidian";
 import { c, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -22,6 +22,8 @@ import { makeActivatable } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { QuerySuggest } from "architecture/settings/suggesters/QuerySuggest";
 import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
+import { MapOfContentModal } from "./MapOfContentModal";
+import { asLinks } from "application/explore/mapOfContent";
 import type { SavedGraphQuery } from "config";
 import {
     addSavedQuery,
@@ -106,6 +108,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private statusEl: HTMLElement | null = null;
     private resultsEl: HTMLElement | null = null;
     private savedEl: HTMLElement | null = null;
+    private takeEl: HTMLElement | null = null;
     private debounceTimer: number | undefined;
     private suggest: QuerySuggest | null = null;
     private lens: ResultLens = "list";
@@ -163,6 +166,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         }
 
         this.statusEl = root.createDiv({ cls: c("ask-graph-status") });
+        this.takeEl = root.createDiv({ cls: c("ask-graph-take") });
         this.resultsEl = root.createDiv({ cls: c("ask-graph-results") });
         this.renderTextEscape(root);
         this.savedEl = root.createDiv({ cls: c("ask-graph-saved") });
@@ -231,6 +235,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         if (!this.resultsEl || !this.statusEl || !this.facetsEl || !this.chipsEl) return;
         this.facetsEl.empty();
         this.chipsEl.empty();
+        this.takeEl?.empty();
         this.statusEl.textContent = "";
 
         const index = KnowledgeIndex.getInstance();
@@ -354,6 +359,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
                 matches.length === total
                     ? t("explore_all_notes", String(total))
                     : t("ask_graph_result_count", String(matches.length));
+            this.renderTake();
         }
         this.renderResults();
     }
@@ -382,6 +388,48 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         }
         this.resultsEl.empty();
         if (this.matches.length > 0) this.renderList(this.matches);
+    }
+
+    /**
+     * Where a selection can go (#486). Two moves, and deliberately only two.
+     *
+     * Both are **mechanical**: a gathered list of links, and a note that lists them with the facts
+     * you asked about. Neither concludes anything, so neither needs the accept/reject gate §XII
+     * puts in front of interpretive output.
+     *
+     * *Think about this* is not here on purpose: thinking is about something in particular, and a
+     * set of forty notes is not something in particular. The per-note move already exists, and the
+     * map this makes is itself a note — so the moment a selection becomes a thing you can think
+     * about, the command that does it is already there.
+     */
+    private renderTake(): void {
+        if (!this.takeEl) return;
+        this.button(this.takeEl, "explore_copy_links", "ask-graph-take-copy", null, () => {
+            void navigator.clipboard.writeText(asLinks(this.matches));
+            new Notice(t("explore_copied", String(this.matches.length)));
+        });
+        // A map of everything is not a map.
+        if (this.terms.length === 0) return;
+        this.button(this.takeEl, "explore_make_map", "ask-graph-take-map", null, () => this.makeMap());
+    }
+
+    private makeMap(): void {
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
+        new MapOfContentModal(
+            this.app,
+            {
+                matches: this.matches,
+                terms: this.terms,
+                facts: (each) => rowFacts(each, this.terms, model),
+                factText: (fact) => this.factText(fact),
+                queryKey: "zfQuery",
+                intro: t("explore_map_intro"),
+                andMore: (hidden) => t("explore_map_and_more", String(hidden)),
+            },
+            (path) => void this.app.workspace.openLinkText(path, "", false)
+        ).open();
     }
 
     /** The note's name, wherever a lens puts it: titled with its path, and it opens the note. */

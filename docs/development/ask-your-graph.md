@@ -77,6 +77,38 @@ stop the next person adding a helpful sentence.
 It refuses rather than guesses: a query containing `OR` has no single culprit, and a query with a
 typo is broken rather than empty. Both get the plain message.
 
+## A selection is a place to start (#486)
+
+A selection is the most concentrated piece of intent the plugin holds — you built it click by
+click — and until 4.2 it evaporated when you closed the tab. Only the *question* survived, as a
+saved query, never the thing the question found.
+
+Two moves, under the answer:
+
+- **Copy as links** — the matches as wikilinks, in your clipboard, for the note you are already
+  writing. Only on the click, never otherwise.
+- **Make a map of content** — the matches become a real note: a list, each entry carrying the same
+  facts the answer put on its row, with the query in the frontmatter so the map can be re-run.
+  It is **previewed first** (name, folder, how many will be listed), it never overwrites — a taken
+  name gets a number — and it goes through `FileService`, so it appears in
+  [Recent](../architecture/reversibility.md) and **undo takes it back**. A map of everything is not
+  a map, so the action only appears once you have narrowed something.
+
+Both are **mechanical output** under [§XII](constitution.md): a gathered list, derived facts.
+Neither concludes anything, so neither needs the accept/reject gate interpretive output does — and
+a guardrail fails the build if the map ever grows a field a conclusion could live in.
+
+### Why there is no third button
+
+The obvious third destination is *Think about this selection*, and it is deliberately absent.
+Thinking is about **something in particular**, and a set of forty notes is not something in
+particular. The per-note move already exists (*Think about this note*), and the map this creates is
+itself a note — so the moment a selection becomes a thing you can think about, the command that
+does it is already there. A third button would have been a worse version of a door that is open.
+
+There is no new export either: the graph lens already exports an image or a WebM clip, with its own
+confirmation. Two answers to one question is the disease this epic exists to treat.
+
 ## The query language
 
 You do not have to write this. It is here because you can, and because it is what a saved query

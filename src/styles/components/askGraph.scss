@@ -248,3 +248,36 @@
     background: var(--interactive-accent);
     color: var(--text-on-accent);
 }
+
+// Where a selection can go (#486), and the graph as a lens (#484).
+.zettelkasten-flow__ask-graph-take {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.4rem;
+}
+
+.zettelkasten-flow__ask-graph-take-copy,
+.zettelkasten-flow__ask-graph-take-map {
+    padding: 0.1rem 0.5rem;
+    height: auto;
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+// The graph needs room to be a graph; the list scrolls inside 40vh, this does not.
+.zettelkasten-flow__ask-graph-results:has(.zettelkasten-flow__ask-graph-graph) {
+    max-height: none;
+    overflow: visible;
+}
+
+.zettelkasten-flow__ask-graph-graph {
+    min-height: 26rem;
+    height: 60vh;
+}
+
+.zettelkasten-flow__explore-map-count {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: 0.6rem;
+}

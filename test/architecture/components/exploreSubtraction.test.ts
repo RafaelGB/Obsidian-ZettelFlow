@@ -7,9 +7,14 @@ const ROOT = join(__dirname, "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const has = (rel: string) => existsSync(join(ROOT, rel));
 
+/**
+ * Everything Explore is made of. New files join this list rather than escaping the count — a
+ * guardrail you can dodge by putting the code somewhere else is a guardrail that measures nothing.
+ */
 const SURFACE = [
     "src/architecture/components/core/askGraph/AskGraphRenderer.ts",
     "src/architecture/components/core/askGraph/savedQueries.ts",
+    "src/architecture/components/core/askGraph/MapOfContentModal.ts",
     "src/architecture/settings/suggesters/QuerySuggest.ts",
 ];
 const EN = read("src/architecture/lang/locale/en.ts");
@@ -54,19 +59,21 @@ function codeLines(source: string): number {
  * | after #483 | 400 | the builder, the grammar card, the examples, the table lens and two reorder buttons came out — and Explore already did strictly more |
  * | after #484 | 444 | the graph lens: mounting it, re-lighting it without a rebuild, a lens bar |
  * | after #485 | 462 | the answer explains itself: which term emptied a selection, and rows that carry the facts you asked about instead of a fixed pair |
+ * | after #486 | 562 | where a selection can go: copy as links, and a previewed, undoable map of content (`MapOfContentModal`, 67 of those lines, joins the counted set rather than escaping it) |
  *
- * The honest comparison for the whole epic is **435 → 462**: 421 plus the 14 lines of
- * `GraphSurfaceView`, which #484 deleted and this counter cannot see. Twenty-seven lines bought
- * facets, chips, negation, completion, a whole-vault default, a graph lens and an explaining
- * answer — while a surface, a form that emitted code, a grammar reference card, a worked-examples
- * list, a redundant lens and two buttons went away.
+ * The honest comparison for the whole epic is **435 → 562**: 421 plus the 14 lines of
+ * `GraphSurfaceView`, which #484 deleted and this counter cannot see. A hundred and twenty-seven
+ * lines bought facets, chips, negation, completion, a whole-vault default, a graph lens, an
+ * explaining answer and somewhere for a selection to go — while a surface, a form that emitted
+ * code, a grammar reference card, a worked-examples list, a redundant lens and two buttons went
+ * away. Explore is bigger than Ask; it is also the only thing left where there used to be two.
  *
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 462;
+const CEILING = 562;
 
-describe("the surface does not grow by accident (#483, #484, #485)", () => {
+describe("the surface does not grow by accident (#483, #484, #485, #486)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {
         const now = SURFACE.reduce((total, file) => total + codeLines(read(file)), 0);
         expect({ now, ceiling: CEILING, over: now > CEILING }).toEqual({ now, ceiling: CEILING, over: false });
@@ -111,7 +118,9 @@ describe("what the surface stopped showing (#483)", () => {
 
     it("no longer offers up and down buttons on a saved query", () => {
         // Careful: "removeSavedQuery" contains "moveSavedQuery". Assert the declaration.
-        expect(read(SURFACE[1])).not.toMatch(/export function moveSavedQuery/);
+        expect(read("src/architecture/components/core/askGraph/savedQueries.ts")).not.toMatch(
+            /export function moveSavedQuery/
+        );
         expect(EN).not.toContain("ask_graph_move_up");
         expect(ES).not.toContain("ask_graph_move_up");
     });
@@ -130,7 +139,7 @@ describe("what replaced it (#483)", () => {
     });
 
     it("completes from the grammar and the vault, and from nothing else", () => {
-        const suggest = read(SURFACE[2]);
+        const suggest = read("src/architecture/settings/suggesters/QuerySuggest.ts");
         expect(suggest).toContain("GRAPH_QUERY_PREDICATES");
         expect(suggest).toContain("values()");
         // The third, hardcoded list beside those is exactly how the builder went wrong.

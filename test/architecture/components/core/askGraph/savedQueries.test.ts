@@ -4,7 +4,6 @@ import {
     addSavedQuery,
     removeSavedQuery,
     renameSavedQuery,
-    moveSavedQuery,
     togglePinnedQuery,
     pinnedQueries,
     savedQueryLabel,
@@ -85,20 +84,6 @@ describe("saved graph queries — richer shape (#323 G4)", () => {
         });
     });
 
-    describe("moveSavedQuery", () => {
-        const list = [{ query: "a" }, { query: "b" }, { query: "c" }];
-        it("moves up", () => {
-            expect(moveSavedQuery(list, "b", "up")).toEqual([{ query: "b" }, { query: "a" }, { query: "c" }]);
-        });
-        it("moves down", () => {
-            expect(moveSavedQuery(list, "b", "down")).toEqual([{ query: "a" }, { query: "c" }, { query: "b" }]);
-        });
-        it("is a no-op at the edges", () => {
-            expect(moveSavedQuery(list, "a", "up")).toEqual(list);
-            expect(moveSavedQuery(list, "c", "down")).toEqual(list);
-            expect(moveSavedQuery(list, "z", "up")).toEqual(list);
-        });
-    });
 
     describe("togglePinnedQuery + pinnedQueries", () => {
         it("flips pinned on and off, preserving name", () => {

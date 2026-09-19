@@ -1,20 +1,69 @@
 # Ask your graph
 
-**Ask your graph** (#318 S3) queries your notes by **meaning and structure** — typed relations,
-connectivity, sources, orphanhood, age, lifecycle state — not by frontmatter or tags. That is the line
-the manifesto draws: *"show me every idea that contradicts this"* is a question about the **shape of your
-thinking**, and it is exactly what a Dataview query cannot answer. It is **deterministic** — a query is a
-set of predicates, never a natural-language prompt, and AI is never involved.
+**Ask your graph** queries your notes by **meaning and structure** — typed relations, connectivity,
+sources, orphanhood, age, lifecycle state — not by frontmatter or tags. That is the line the
+manifesto draws: *"show me every idea that contradicts this"* is a question about the **shape of your
+thinking**, and it is exactly what a Dataview query cannot answer. It is **deterministic** — a query
+is a set of predicates, never a natural-language prompt, and AI is never involved.
 
 Open it with the **Ask your graph** command (or the ribbon menu). It opens as a **persistent tab** in
-the Discovery surface — the *Ask your graph* mode — so a query and its results stay open beside the note
-you're editing and **recompute live** as the vault changes.
+the Discovery surface, so a selection and its results stay open beside the note you are editing and
+**recompute live** as the vault changes.
+
+## Clicking is the query (#483)
+
+Until 4.2 this mode opened on an empty box. You had to compose a specification in a small boolean
+language before it would show you anything at all — and the "guided builder" that was supposed to
+help was two dropdowns, a value field, a checkbox and an **Add** button whose entire effect was to
+**paste DSL text into the box**. A form that emits code.
+
+[Constitution §XIII](constitution.md) is explicit about that shape: configuration syntax is *an export
+format and an escape hatch, never the front door*. So the order is inverted.
+
+**Your whole vault is the starting selection**, and everything you could narrow it by is offered to
+you, derived from your own notes, with counts:
+
+| | |
+|---|---|
+| **state** | the lifecycle states *you* use — three if you use three |
+| **links out to** / **linked from** | the typed relation types present, in both directions |
+| **folder** | your top-level folders |
+| **shape** | well connected · nothing links to it · links to nothing · claims without a source |
+
+Clicking a value narrows the selection; the facets re-derive against what is left. Each choice
+becomes a **chip** you can remove, or flip to its opposite with **¬** — negation stays reachable
+without typing anything.
+
+### Clicking can never empty your results
+
+The counts are conditional on the **current selection**, and a value is offered only when
+`0 < count < selection.length`. Nothing that matches nothing; nothing that matches everything.
+Neither can narrow, and a filter that cannot narrow is noise.
+
+Two things follow. Once a selection is entirely `permanent`, the state group **disappears** instead
+of offering you the thing you already did. And every offered term finds something — so an empty
+answer is no longer somewhere the interface can walk you into. See
+[facets](../architecture/knowledge-state.md#facets-what-your-vault-lets-you-ask-482) for the derivation
+and its cost.
+
+### The text is what that produces
+
+The query text lives under **As text**: generated from your chips, editable, runnable, and still
+exactly what a saved query stores. It is the escape hatch, and it completes as you type — from the
+grammar below and from your vault's own values, and from no third list.
+
+The one thing the text can express that chips cannot is `OR`. A hand-written disjunction is shown as
+written and **says so**, and the facets stand down rather than appending a term that would silently
+re-bracket the query.
 
 ## The query language
 
+You do not have to write this. It is here because you can, and because it is what a saved query
+stores.
+
 A query is predicate **terms** combined with `AND` / `OR`. `AND` binds tighter than `OR`, so
-`a AND b OR c` means `(a AND b) OR c` (disjunctive normal form). A term can be negated with a leading `!`.
-A blank query matches nothing — the surface asks for intent.
+`a AND b OR c` means `(a AND b) OR c` (disjunctive normal form). A term can be negated with a leading
+`!`. A blank query matches nothing in the engine; on the surface, no filters means **every note**.
 
 | Term | Selects |
 |---|---|
@@ -32,66 +81,54 @@ A blank query matches nothing — the surface asks for intent.
 | `about:<term>` | its title or path contains the term |
 | `!<term>` | negate any term, e.g. `!orphan` |
 
-## Examples
-
 ```text
-state:permanent AND unsourced                       # permanent notes with no sources
+state:permanent AND unsourced                        # permanent notes with no sources
 state:permanent AND orphan AND older-than:30         # orphaned permanents older than 30 days
 hub AND relation:contradicts                         # well-connected notes that contradict something
-relation:supports AND relation:contradicts           # notes that both support and contradict a note
 state:fleeting OR unsourced                          # fleeting or still-unsourced ideas
 ```
 
-Results are sorted by connectivity (degree, highest first) then path, and every result opens on click.
-A useful query can be **saved** (persisted in settings) and re-run from the *Saved queries* list.
+Results are sorted by connectivity (degree, highest first) then path, and every result opens on
+click.
 
 ## Architecture
 
 ```
 runGraphQuery(model, source, now)                    (pure, Obsidian-free, unit-tested)
   → { matches: Idea[], error? }                       DNF of predicate terms; deterministic sort
-  parses: state / relation[:target] / incoming[:source] / folder / degree cmp / hub / orphan / leaf / unsourced / older-/newer-than / about / !neg
 
-AskGraphRenderer — the "Ask your graph" mode of the Discovery surface (command: ask-your-graph)
-  reads the KnowledgeIndex model → runGraphQuery(query); recomputes live on vault change
-  list / table lenses · guided term builder (buildGraphTerm) · examples · predicate help
-  saved queries (settings.savedGraphQueries: named / reorderable / pinned)
+deriveFacets(model, selection) → Facet[]             (pure) what can still narrow, with counts
+selection.ts: toQuery / asSelection / toggleTerm /   (pure) the chips, and the text they produce
+              invertTerm / matchesFor                       no filters ⇒ every note
 
-buildGraphTerm(selection) + savedQueries ops    (pure, Obsidian-free, unit-tested)
-  {field, comparison?, value?, negate?} → a valid term  ·  add/rename/move/pin/normalize
+AskGraphRenderer — the mode of the Discovery surface (command: ask-your-graph)
+  facets → chips → results, recomputed live; the DSL under "as text", with completion
+  saved queries (settings.savedGraphQueries: named / pinned)
 ```
 
-The engine lives in `src/architecture/knowledge/query/graphQuery.ts` and is re-exported from the Knowledge
-State barrel. It reads only the `KnowledgeModel` — offline, read-only, and it never mutates the vault.
+The engine lives in `src/architecture/knowledge/query/graphQuery.ts`, the facets and the selection
+beside it, and all three are re-exported from the Knowledge State barrel. They read only the
+`KnowledgeModel` — offline, read-only, and they never mutate the vault. `zf.knowledge.query` and
+`zf.knowledge.facets` expose the two of them a script can usefully ask.
 
-## Scope
+## What this deliberately does not have
 
-This ships the deterministic engine, the extended predicate set (incl. `incoming:` and `folder:`, #323 G1)
-a **first-class Discovery surface mode** (a persistent tab that recomputes live, #323 G2), **result
-lenses** — a plain list or a **table** (note · state · degree · sources), #323 G3 — **richer saved
-queries** (#323 G4): each saved query can be **named**, **reordered**, and **pinned to Home**, where it
-becomes a live *"N notes match …"* card that deep-links back into the query, pre-filled — and a **guided
-term builder** (#323 G5) that composes a valid term from field / comparison / value pickers, so a
-non-writer never has to memorise the grammar. Still tracked under #323: a
-[reasoning-paths](concept-navigation.md#reasoning-paths) lens. Embeddings / RAG / vector search are
-intentionally out of scope (the manifesto: a query stays deterministic and offline).
+- **A term builder.** A form whose output is syntax does not satisfy §XIII; it conceals the failure.
+  The facets replaced it, and they carry your real counts.
+- **A grammar reference card on the surface.** It is on this page, where a reference for a language
+  you no longer have to write belongs.
+- **A table lens.** It showed the same matches as the list with four fixed columns — state, degree,
+  sources — a universal schema instead of your question. Its one real advantage was alignment, and
+  alignment is CSS. A lens has to be a genuinely different way of *seeing*.
+- **Reordering saved queries.** Two buttons per row to move a list nobody sorts.
+- **Embeddings, RAG or vector search.** The manifesto: a query stays deterministic and offline.
 
-### Guided term builder
+## Saved queries
 
-Don't want to memorise the grammar? The **Build a term** row composes one for you: pick a **field**
-(`state`, `relation`, `degree`, `hub`, …), an optional **comparison** (for `degree`) and **value**,
-tick **negate** to prepend `!`, and **Add term** appends a valid predicate to the query with `AND`.
-A value-less field hides the value box; `degree` reveals the comparison box; an invalid selection
-shows the reason in the status line instead of writing a broken term. The composer is the pure,
-unit-tested `buildGraphTerm` (`graphTermBuilder.ts`) — it mirrors the [#235 condition
-builder](../architecture/trigger-conditions.md) and only ever emits terms the engine parses.
-
-### Saved queries
-
-A useful query is **saved** from the query bar and re-run from the *Saved queries* list. Each saved
-query carries an optional **name** (rename inline), an **order** (move up / down), and a **pin** state.
-A pinned query surfaces on **Home** as a live count — mechanical output, no judgement written
-([constitution §XII](constitution.md)) — and clicking it reopens *Ask your graph* on that query. The
-list persists in `settings.savedGraphQueries` as `SavedGraphQuery` objects (`{ query, name?, pinned? }`);
-an install predating the enrichment stored bare strings, which migrate transparently on read
-(`normalizeSavedQueries`).
+A useful selection is **saved** from the chips row and re-run from the *Saved queries* list. Each
+saved query carries an optional **name** (rename inline) and a **pin** state. A pinned query surfaces
+on **Home** as a live count — mechanical output, no judgement written
+([constitution §XII](constitution.md)) — and clicking it reopens the mode on that query, pre-filled.
+The list persists in `settings.savedGraphQueries` as `SavedGraphQuery` objects
+(`{ query, name?, pinned? }`); an install predating the enrichment stored bare strings, which migrate
+transparently on read (`normalizeSavedQueries`).

@@ -17,8 +17,7 @@
     font-family: var(--font-monospace);
 }
 
-.zettelkasten-flow__ask-graph-run,
-.zettelkasten-flow__ask-graph-save {
+.zettelkasten-flow__ask-graph-run {
     cursor: pointer;
 }
 
@@ -36,8 +35,11 @@
     overflow-y: auto;
 }
 
+// The rows align in columns (#483): that alignment was the table lens's only real advantage over
+// the list, and it costs one grid rule rather than a second way of looking at the same thing.
 .zettelkasten-flow__ask-graph-result {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: baseline;
     gap: 0.5rem;
     padding: 0.15rem 0;
@@ -58,7 +60,6 @@
     font-size: var(--font-ui-smaller);
 }
 
-.zettelkasten-flow__ask-graph-example-query,
 .zettelkasten-flow__ask-graph-saved-query {
     cursor: pointer;
     margin-left: 0.4rem;
@@ -68,8 +69,7 @@
     }
 }
 
-.zettelkasten-flow__ask-graph-saved-item,
-.zettelkasten-flow__ask-graph-example {
+.zettelkasten-flow__ask-graph-saved-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -106,30 +106,130 @@
     font-size: var(--font-ui-smaller);
 }
 
-// Guided term builder (#323, G4/G5): field · comparison · value pickers that compose a valid term.
-.zettelkasten-flow__ask-graph-builder {
+// Explore (#483): the facets you click, the chips you picked, and the text they produce.
+.zettelkasten-flow__ask-graph-facets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.zettelkasten-flow__ask-graph-facet {
     display: flex;
     flex-wrap: wrap;
+    align-items: baseline;
     gap: 0.4rem;
+}
+
+.zettelkasten-flow__ask-graph-facet-label {
+    min-width: 6.5rem;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    text-transform: lowercase;
+}
+
+.zettelkasten-flow__ask-graph-facet-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    flex: 1;
+}
+
+.zettelkasten-flow__ask-graph-facet-value {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-l);
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+    box-shadow: none;
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+    height: auto;
+}
+
+.zettelkasten-flow__ask-graph-facet-value:hover {
+    border-color: var(--interactive-accent);
+}
+
+// The count is the whole point of the facet: it is what tells you the click is worth making.
+.zettelkasten-flow__ask-graph-facet-count {
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__ask-graph-facet-more {
+    align-self: center;
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__ask-graph-chips {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 0.3rem;
     margin-bottom: 0.4rem;
 }
 
-.zettelkasten-flow__ask-graph-builder-value {
-    flex: 1;
-    min-width: 8rem;
-}
-
-.zettelkasten-flow__ask-graph-builder-negate {
-    display: flex;
+.zettelkasten-flow__ask-graph-chip {
+    display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.2rem;
+    padding: 0.1rem 0.2rem 0.1rem 0.5rem;
+    border-radius: var(--radius-l);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
     font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
 }
 
-.zettelkasten-flow__ask-graph-builder-add {
+// A negated filter reads as the opposite of a chosen one, so it is drawn as an outline.
+.zettelkasten-flow__ask-graph-chip--negated {
+    background-color: transparent;
+    color: var(--text-normal);
+    border: 1px dashed var(--interactive-accent);
+}
+
+.zettelkasten-flow__ask-graph-chip-term {
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__ask-graph-chip-negate,
+.zettelkasten-flow__ask-graph-chip-remove {
+    padding: 0 0.25rem;
+    height: auto;
+    line-height: 1.2;
+    background-color: transparent;
+    box-shadow: none;
+    color: inherit;
     cursor: pointer;
+}
+
+.zettelkasten-flow__ask-graph-clear,
+.zettelkasten-flow__ask-graph-save {
+    padding: 0.1rem 0.5rem;
+    height: auto;
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__ask-graph-hand-written {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+// The escape hatch is folded away: present, never in the way.
+.zettelkasten-flow__ask-graph-text {
+    margin-top: 0.6rem;
+}
+
+.zettelkasten-flow__ask-graph-text > summary {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+    margin-bottom: 0.35rem;
 }
 
 // Result lenses (#323, G3): the list/table toggle and the table lens.
@@ -147,22 +247,4 @@
 .zettelkasten-flow__ask-graph-lens--active {
     background: var(--interactive-accent);
     color: var(--text-on-accent);
-}
-
-.zettelkasten-flow__ask-graph-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-ui-smaller);
-
-    th,
-    td {
-        text-align: left;
-        padding: 0.2rem 0.4rem;
-        border-bottom: 1px solid var(--background-modifier-border);
-    }
-
-    th {
-        color: var(--text-muted);
-        font-weight: var(--font-semibold);
-    }
 }

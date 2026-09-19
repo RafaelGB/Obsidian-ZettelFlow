@@ -178,6 +178,15 @@ function splitOn(text: string, keyword: "AND" | "OR"): string[] {
 }
 
 /**
+ * How every answer is ordered: most-connected first, then by path so the order never wobbles.
+ * Exported because the surface shows your whole vault before you have typed anything (#483), and
+ * narrowing from everything to twelve must not reshuffle what was already on screen.
+ */
+export function byConnectivity(a: Idea, b: Idea): number {
+    return b.maturitySignals.degree - a.maturitySignals.degree || a.path.localeCompare(b.path);
+}
+
+/**
  * Run a query against the model. A blank query matches nothing (not everything — the surface asks for
  * intent). Deterministic: matches are sorted by connectivity (degree desc) then path. A parse error in
  * any term aborts with `{ matches: [], error }`.
@@ -201,6 +210,6 @@ export function runGraphQuery(model: KnowledgeModel, source: string, now: number
     const matches = model
         .all()
         .filter((idea) => groups.some((preds) => preds.every((p) => p(idea, model, now))))
-        .sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || a.path.localeCompare(b.path));
+        .sort(byConnectivity);
     return { matches };
 }

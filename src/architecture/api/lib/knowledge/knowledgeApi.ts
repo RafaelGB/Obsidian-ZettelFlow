@@ -82,6 +82,16 @@ export const NOT_EXPOSED: Record<string, string> = {
     // projection of your knowledge — and a script that could read them would invite exactly the
     // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
     speedFacts: "the plugin's own timings, not a projection of the model",
+    // The selection's own plumbing (#483). `zf.knowledge.query` already answers the question these
+    // serve; exposing the pieces the Explore surface composes them from would publish an interface
+    // shape as if it were knowledge.
+    toQuery: "composes the query text a selection produces — the surface's plumbing",
+    asSelection: "reads a query back as chips; the parser scripts want is runGraphQuery",
+    toggleTerm: "what a facet click does to a selection",
+    invertTerm: "what a chip's negate toggle does to a term",
+    matchesFor: "runGraphQuery, plus the surface's rule that no filters means every note",
+    byConnectivity: "the comparator every answer is already sorted by",
+
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",

@@ -30,7 +30,7 @@ describe("ask-your-graph surface mode (#323)", () => {
     it("runs the pure engine from the Knowledge State barrel", () => {
         expect(RENDERER).toContain('from "architecture/knowledge/state"');
         expect(RENDERER).toContain("runGraphQuery(");
-        expect(RENDERER).toContain("GRAPH_QUERY_EXAMPLES");
+        expect(RENDERER).toContain("deriveFacets(");
     });
 
     it("persists saved queries and recomputes live on vault change", () => {
@@ -39,15 +39,8 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(RENDERER).toMatch(/metadataCache\.on\("resolved"/);
     });
 
-    it("offers result lenses — a list and a table (#323 G3)", () => {
-        expect(RENDERER).toContain("ask-graph-lens");
-        expect(RENDERER).toContain("renderTable(");
-        expect(RENDERER).toMatch(/ask_graph_col_/);
-    });
-
-    it("offers rename, reorder and pin-to-Home on saved queries (#323 G4)", () => {
+    it("offers rename and pin-to-Home on saved queries (#323 G4)", () => {
         expect(RENDERER).toContain("renameSavedQuery");
-        expect(RENDERER).toContain("moveSavedQuery");
         expect(RENDERER).toContain("togglePinnedQuery");
         expect(RENDERER).toContain("savedQueryLabel");
     });
@@ -59,10 +52,11 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-discovery", "ask"/);
     });
 
-    it("offers a guided term builder — field / comparison / value pickers (#323 G5)", () => {
-        expect(RENDERER).toContain("buildGraphTerm");
-        expect(RENDERER).toContain("ask-graph-builder");
-        expect(RENDERER).toMatch(/ask_graph_field_/);
+    it("composes a query by clicking instead — the builder is gone (#483)", () => {
+        // The full subtraction is asserted in exploreSubtraction.test.ts; this is the mode's own
+        // stake in it: what used to be a form is now the facets.
+        expect(RENDERER).not.toContain("buildGraphTerm");
+        expect(RENDERER).toContain("ask-graph-facet-value");
     });
 
     it("is read-only — never imports a write path or mutates the vault", () => {

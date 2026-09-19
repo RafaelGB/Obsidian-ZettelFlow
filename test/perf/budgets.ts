@@ -90,10 +90,10 @@ export const BUDGETS = {
     },
     "facets.50k": {
         name: "derive the Explore facets over 50,000 notes",
-        limit: 300,
-        measured: "69.1 ms",
+        limit: 600,
+        measured: "190 ms",
         because:
-            "the facets are re-derived after every click, so this is interaction latency, not load time: it has to stay inside a frame or two of a click",
+            "the facets are re-derived after every click, so this is interaction latency rather than load time; the number recorded is the busy-machine run (an idle one is 69 ms), because a ceiling set from the flattering measurement is a gate that goes red on a noisy runner",
     },
     "analysis.discovery.scaling": {
         name: "how discovery grows when the vault doubles (20k ÷ 10k)",

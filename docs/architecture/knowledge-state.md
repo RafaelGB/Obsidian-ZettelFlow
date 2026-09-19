@@ -67,8 +67,8 @@ that cannot narrow is noise. Two consequences follow, and both are load-bearing:
   empty answer stops being somewhere the interface can walk you into.
 
 Age is deliberately not a facet: `older-than:` is a dial, not a list of values, and it stays a
-typed term. The cost is `O(N + E)` — 69 ms over 50,000 notes, which matters because the facets
-are re-derived after **every** click.
+typed term. The cost is `O(N + E)` — 69 ms over 50,000 notes on an idle machine, 190 ms on a busy
+one, which matters because the facets are re-derived after **every** click.
 
 ## Computed once per revision (#458)
 

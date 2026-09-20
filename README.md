@@ -70,14 +70,19 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
 - **🖼️ Shareable idea card** — *show how your thinking grew.* One click on the Evolution timeline paints
   a **before→after image** of a note — first vs current state, claims gained, links, decisions and days —
   and saves it as a PNG to share. Built only from already-recorded data; nothing invented, nothing sent.
-- **🔎 Ask your graph** — *query your thinking, not your frontmatter.* A deterministic query surface
-  over the **meaning and structure** of your slip-box: compose predicates — `state:permanent`,
-  `relation:contradicts`, `degree>=5`, `orphan`, `unsourced`, `older-than:30` — with `AND`/`OR` to
-  answer questions Dataview can't, like *"orphaned permanents older than 30 days that contradict X"*
-  — or **compose one from menus** with the guided term builder if you'd rather not memorise the
-  grammar. Every result opens on click; view them as a list or a table; **save** a useful query —
-  name it, reorder it, and **pin it to Home** as a live *"N notes match …"* card. Never AI, always
-  offline.
+- **🔎 Explore your graph** — *narrow your vault by clicking; the query is what that produces.*
+  Open it and your **whole vault** is the answer, beside everything you could narrow it by — the
+  lifecycle states *you* use, the relation types in *your* notes, your folders, the shapes
+  (orphan · hub · unsourced) — each with how many notes it would leave. Click to narrow, and
+  **clicking can never empty your results**: a filter that would match nothing is never offered.
+  Flip any filter to its opposite; see the selection as a **list** or in the **3D graph**, lit in
+  context. The query text — `state:permanent AND unsourced` — appears because you built it: it is
+  the receipt, still editable, still what a **saved** selection stores (name it, **pin it to Home**
+  as a live *"N notes match …"* card). When nothing matches, it names **which filter emptied it**,
+  with the count either side. And a selection is somewhere to start: **copy it as links**, or turn
+  it into a **map of content** — previewed, never overwriting, and undoable. Answers questions
+  Dataview can't, like *"orphaned permanents older than 30 days that contradict X"*. Never AI,
+  always offline.
 - **📝 Note-builder companion pane** — a live preview of the note as you build it, plus
   suggested connections to existing notes so you can link before you file.
 - **📖 Derived projects** — turn a folder of notes into the *structure* of a book / course / article:
@@ -134,7 +139,7 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   **discovery lens** that lights up orphans, dead-ends and contradictions in space. Click a node to
   open it, take a **cinematic tour** through your hubs, or **export** the view to a PNG / WebM clip to
   share. Read-only, offline; respects reduced-motion, and degrades to the 2D map on mobile.
-  (Graph surface → 3D mode.)
+  (A **lens of Explore** — the graph draws your whole vault with your selection lit.)
 - **❓ Open questions** — every unanswered question in your vault, made first-class: each `question::`
   with no answer yet, its asker(s), and the note most likely to answer it (ranked by shared graph
   context). Read-only, offline — a live thread instead of a dead end.
@@ -266,8 +271,8 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | **Morning discovery** | Up to three unexpected connections — unlinked note pairs that share concepts — each one click from being related. Graph-structural, offline. |
 | **Living knowledge map** | A read-only sidebar that detects your hubs and the notes clustering around them, regenerating as the vault changes. |
 | **Concept navigation** | Walk your vault by typed relation (in + out) — focus a note, click a neighbour to re-focus, no folders. A **Trace reasoning paths** command opens a read-only lens of the argument chains leaving a note (`supports → expands → example → implements`), each note clickable. Offline. |
-| **Ask your graph** | A deterministic query surface over your slip-box's *meaning and structure* (not frontmatter/tags like Dataview, and never AI): compose predicates — `state:`, `relation:supports/contradicts`, `incoming:`, `folder:`, `degree>=`, `orphan`, `unsourced`, `older-than:` … — with `AND`/`OR` to answer *"orphaned permanents older than 30 days that contradict X"*. Results open on click as a list or table; compose terms from menus with the guided builder; save a query to **name / reorder / pin it to Home**. Read-only, offline. |
-| **3D knowledge graph** | An immersive **Knowledge Galaxy** — an interactive 3D force-directed graph of your slip-box over a starfield (Graph surface → 3D): nodes sized by connectivity and coloured by cluster with cluster-hued glow halos, links coloured by relation type; search-to-focus, state filter, and a discovery lens for orphans · dead-ends · contradictions. A one-click **cinematic tour** flies through your hubs; **share your universe** by exporting the view to a PNG or the time-lapse to a WebM clip. Read-only, offline; respects reduced-motion and Lite mode; 2D-map fallback on mobile. |
+| **Explore your graph** | Narrow your vault by **clicking**: the states, relation types, folders and shapes your own notes use, each with a count, and a click can never empty your results. See the selection as a list or in the **3D graph**, lit in context; each row carries the facts *you* filtered on, and a zero names the filter that caused it. The query text (`state:permanent AND unsourced`) is what your clicks *produce* — editable, and what a **saved** selection stores (name it, pin it to Home as a live count). Take a selection somewhere: **copy as links**, or a **map of content** (previewed, never overwriting, undoable). Answers what Dataview cannot, over *meaning and structure*, never AI, offline. |
+| **The graph lens** | An immersive **Knowledge Galaxy** — an interactive 3D force-directed graph of your slip-box over a starfield, and a **lens on your Explore selection**: nodes sized by connectivity and coloured by cluster with cluster-hued glow halos, links coloured by relation type; search-to-focus, state filter, and a discovery lens for orphans · dead-ends · contradictions. A one-click **cinematic tour** flies through your hubs; **share your universe** by exporting the view to a PNG or the time-lapse to a WebM clip. Read-only, offline; respects reduced-motion and Lite mode; 2D-map fallback on mobile. |
 | **Open questions** | A vault-wide list of every unanswered `question::`, its askers, and candidate answering notes ranked by shared graph context. Read-only, offline. |
 | **Evolution timeline** | The conceptual history of an idea — a per-note sequence of its lifecycle state + claim texts, captured only on meaningful change, oldest to newest. **Share this idea** exports a before→after image card (state change · claims gained · links · decisions · days). Local, bounded, opt-in. |
 | **Agency review** | A read-only **Health → Agency** tab listing your recorded decisions newest-first with a compact header: the cognitive agency index and the accept/modify/reject breakdown of AI/derived suggestions, plus a one-line plain-language reading. Local, offline, nothing transmitted — a description of your verdict mix, never a grade. |

@@ -1,8 +1,8 @@
 import type { SavedGraphQuery } from "config";
 
 /**
- * Pure saved-query operations for the Ask-your-graph mode (#323, enriched G4). Kept Obsidian-free so
- * the add / rename / reorder / pin rules are unit-tested without a view; the renderer persists the
+ * Pure saved-query operations for the Explore mode (#323, enriched G4). Kept Obsidian-free so
+ * the add / rename / pin rules are unit-tested without a view; the renderer persists the
  * result in settings. Every operation is keyed by the query text (the identity) and returns a fresh
  * canonical list, so it also migrates the legacy `string[]` shape transparently.
  */
@@ -65,22 +65,6 @@ export function renameSavedQuery(
         if (entry.pinned) next.pinned = true;
         return next;
     });
-}
-
-/** Move a saved query one slot toward the start ("up") or end ("down"); out-of-range is a no-op. */
-export function moveSavedQuery(
-    list: readonly SavedGraphQueryInput[],
-    query: string,
-    direction: "up" | "down"
-): SavedGraphQuery[] {
-    const normalized = normalizeSavedQueries(list);
-    const from = normalized.findIndex((entry) => entry.query === query);
-    if (from === -1) return normalized;
-    const to = direction === "up" ? from - 1 : from + 1;
-    if (to < 0 || to >= normalized.length) return normalized;
-    const next = [...normalized];
-    [next[from], next[to]] = [next[to], next[from]];
-    return next;
 }
 
 /** Flip whether a saved query is pinned to Home. */

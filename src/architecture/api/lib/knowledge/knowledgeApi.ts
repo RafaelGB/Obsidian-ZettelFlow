@@ -12,6 +12,7 @@ import {
     conceptNeighbors,
     reasoningPaths,
     runGraphQuery,
+    deriveFacets,
     buildEvidenceMap,
     deriveOutline,
     cultivationQueue,
@@ -81,6 +82,20 @@ export const NOT_EXPOSED: Record<string, string> = {
     // projection of your knowledge — and a script that could read them would invite exactly the
     // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
     speedFacts: "the plugin's own timings, not a projection of the model",
+    // The selection's own plumbing (#483). `zf.knowledge.query` already answers the question these
+    // serve; exposing the pieces the Explore surface composes them from would publish an interface
+    // shape as if it were knowledge.
+    toQuery: "composes the query text a selection produces — the surface's plumbing",
+    asSelection: "reads a query back as chips; the parser scripts want is runGraphQuery",
+    toggleTerm: "what a facet click does to a selection",
+    invertTerm: "what a chip's negate toggle does to a term",
+    matchesFor: "runGraphQuery, plus the surface's rule that no filters means every note",
+    byConnectivity: "the comparator every answer is already sorted by",
+    // What the Explore surface says about its own answer (#485). A script holds the matches
+    // already; these turn them into a sentence and a row, which is the interface's job.
+    explainEmpty: "names the term that emptied a selection — an explanation for a surface, not a query",
+    rowFacts: "which facts a result row should carry; a script reads the idea it already has",
+
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",
@@ -191,6 +206,15 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(source: string, now?: number) => GraphQueryResult",
             summary: "Run a graph query from a note against the model.",
             call: (source: string, now?: number) => runGraphQuery(model(), source, now),
+        },
+        facets: {
+            signature: "(source?: string, now?: number) => Facet[]",
+            summary: "What a query could still be narrowed by, with counts — the vocabulary your own vault uses.",
+            call: (source?: string, now?: number) =>
+                deriveFacets(
+                    model(),
+                    source && source.trim() !== "" ? runGraphQuery(model(), source, now).matches : model().all()
+                ),
         },
         evidence: {
             signature: "(path: string) => EvidenceMap",

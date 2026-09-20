@@ -75,6 +75,9 @@ inside them:
 
 - **`FileService`** — `createFile`, `createFileOnce`, `writeFile`, `writeBinaryFile`, `modify`
   and `moveFile`.
+- A **map of content** created from an Explore selection (#486) is an ordinary recorded
+  `note-created`, attributed to `map-of-content` — previewed before it is written, never
+  overwriting, and taken back with its batch like anything else.
 - **`FrontmatterService`** — every property write in the plugin passes through one private
   `processFrontMatter`, which is the only moment at which the *previous* value still exists. The
   record is taken there, as a **diff**.

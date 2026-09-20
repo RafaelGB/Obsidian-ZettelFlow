@@ -1,7 +1,18 @@
 /**
- * The **four ZettelFlow surfaces** and their modes (#272, epic #268 Phase 7) — one obvious front
+ * The **three ZettelFlow surfaces** and their modes (#272, epic #268 Phase 7) — one obvious front
  * door per job, with the former ~12 sidebar views surviving as modes inside them. Pure data: no
  * `obsidian`, no React, no view import — so the alias/redirect maps derived from it stay unit-testable.
+ *
+ * #484 absorbed the Graph surface — it hosted **one** mode, answering *what shape is my knowledge?*
+ * while Explore answered *which notes match this?*, the same question asked twice with no way to
+ * carry an answer across. The graph is a **lens** now.
+ *
+ * #487 then gave Explore its own room. Discovery's four modes are narrow lists that belong in a
+ * side panel; Explore is facets, chips, an answer and a 3D graph, and a mode cannot be moved out
+ * of a pane without taking the four lists with it. So the count went 4 → 3 → 4 — and the honest
+ * reading is *the Graph surface was absorbed and Explore took its place*, not that a box was
+ * saved. The principle was never "fewer boxes": it is one home per capability, and no two places
+ * answering the same question.
  */
 
 export interface SurfaceMode {
@@ -54,17 +65,14 @@ export const SURFACES: readonly Surface[] = [
             { id: "forgotten", sourceView: "zettelflow-resurface", labelKey: "surface_mode_forgotten" },
             { id: "questions", sourceView: "zettelflow-open-questions", labelKey: "surface_mode_questions" },
             { id: "challenges", sourceView: "zettelflow-evidence-map", labelKey: "surface_mode_challenges" },
-            { id: "ask", labelKey: "surface_mode_ask" },
         ],
     },
     {
-        viewType: "zettelflow-graph",
-        titleKey: "surface_graph_title",
-        // The Graph surface is 3D-only (#280 direction); the retired 2D Map/Navigate view types are
-        // repointed to the 3D mode in legacyTargets so their alias commands still work.
-        modes: [
-            { id: "3d", labelKey: "surface_mode_3d" },
-        ],
+        viewType: "zettelflow-explore",
+        titleKey: "surface_explore_title",
+        // One mode, and therefore no mode bar (see ModeHostView): a bar offering one choice is not
+        // a choice. Explore's own lens bar is where the switching that matters happens.
+        modes: [{ id: "explore", labelKey: "surface_mode_ask" }],
     },
 ];
 

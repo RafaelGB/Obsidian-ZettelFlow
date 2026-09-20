@@ -4,12 +4,14 @@ import { DiscoveriesRenderer } from "architecture/components/core/discoveries/Di
 import { ResurfaceRenderer } from "architecture/components/core/resurface/ResurfaceRenderer";
 import { OpenQuestionsRenderer } from "architecture/components/core/openQuestions/OpenQuestionsRenderer";
 import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/EvidenceMapRenderer";
-import { AskGraphRenderer } from "architecture/components/core/askGraph/AskGraphRenderer";
 
 /**
  * The **Discovery** surface (#272) — one destination for finding what to explore next, with modes:
  * Connections (surprising pairs) · Forgotten (resurfaced notes) · Questions (open questions) ·
  * Challenges (evidence map). Each mode reuses the retired view's renderer verbatim.
+ *
+ * Four again since #487: these are all **narrow lists**, which is why people keep this surface in
+ * a side panel — and why Explore, which is a workspace, could not stay inside it.
  */
 export class DiscoverySurfaceView extends ModeHostView {
     getViewType(): string {
@@ -20,7 +22,7 @@ export class DiscoverySurfaceView extends ModeHostView {
         return "telescope";
     }
 
-    protected createRenderer(modeId: string, container: HTMLElement, state?: Record<string, unknown>): KnowledgeModeRenderer {
+    protected createRenderer(modeId: string, container: HTMLElement): KnowledgeModeRenderer {
         switch (modeId) {
             case "forgotten":
                 return new ResurfaceRenderer(container, this.app);
@@ -28,8 +30,6 @@ export class DiscoverySurfaceView extends ModeHostView {
                 return new OpenQuestionsRenderer(container, this.app);
             case "challenges":
                 return new EvidenceMapRenderer(container, this.app);
-            case "ask":
-                return new AskGraphRenderer(container, this.app, typeof state?.query === "string" ? state.query : undefined);
             case "connections":
             default:
                 return new DiscoveriesRenderer(container, this.app);

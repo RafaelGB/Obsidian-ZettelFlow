@@ -7,7 +7,7 @@ const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const RENDERER = read("src/architecture/components/core/askGraph/AskGraphRenderer.ts");
 const MENU = read("src/starters/zcomponents/ZettelFlowMenuComponent.ts");
-const DISCOVERY = read("src/architecture/components/core/surface/DiscoverySurfaceView.ts");
+const EXPLORE = read("src/architecture/components/core/surface/ExploreSurfaceView.ts");
 const HOME = read("src/architecture/components/core/home/HomeModeRenderer.ts");
 
 /**
@@ -16,21 +16,22 @@ const HOME = read("src/architecture/components/core/home/HomeModeRenderer.ts");
  * barrel, persists saved queries, recomputes live, and never writes.
  */
 describe("ask-your-graph surface mode (#323)", () => {
-    it("the command opens the Discovery surface in the ask mode, not a modal", () => {
+    it("the command opens the Explore surface, not a modal", () => {
         expect(MENU).toContain('id: "ask-your-graph"');
-        expect(MENU).toContain('activateSurface(this.plugin.app, "zettelflow-discovery", "ask")');
+        expect(MENU).toContain('activateSurface(this.plugin.app, "zettelflow-explore")');
         expect(MENU).not.toContain("AskGraphModal");
     });
 
-    it("the Discovery surface mounts the ask renderer for the ask mode", () => {
-        expect(DISCOVERY).toContain('case "ask":');
-        expect(DISCOVERY).toContain("new AskGraphRenderer(");
+    it("the Explore surface mounts the renderer, and carries the query and the lens (#487)", () => {
+        expect(EXPLORE).toContain("new AskGraphRenderer(");
+        expect(EXPLORE).toContain("state?.query");
+        expect(EXPLORE).toContain("state?.lens");
     });
 
     it("runs the pure engine from the Knowledge State barrel", () => {
         expect(RENDERER).toContain('from "architecture/knowledge/state"');
         expect(RENDERER).toContain("runGraphQuery(");
-        expect(RENDERER).toContain("GRAPH_QUERY_EXAMPLES");
+        expect(RENDERER).toContain("deriveFacets(");
     });
 
     it("persists saved queries and recomputes live on vault change", () => {
@@ -39,15 +40,8 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(RENDERER).toMatch(/metadataCache\.on\("resolved"/);
     });
 
-    it("offers result lenses — a list and a table (#323 G3)", () => {
-        expect(RENDERER).toContain("ask-graph-lens");
-        expect(RENDERER).toContain("renderTable(");
-        expect(RENDERER).toMatch(/ask_graph_col_/);
-    });
-
-    it("offers rename, reorder and pin-to-Home on saved queries (#323 G4)", () => {
+    it("offers rename and pin-to-Home on saved queries (#323 G4)", () => {
         expect(RENDERER).toContain("renameSavedQuery");
-        expect(RENDERER).toContain("moveSavedQuery");
         expect(RENDERER).toContain("togglePinnedQuery");
         expect(RENDERER).toContain("savedQueryLabel");
     });
@@ -56,13 +50,14 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(HOME).toContain("pinnedQueries");
         expect(HOME).toContain("runGraphQuery(");
         expect(HOME).toContain("home_pinned_query_count");
-        expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-discovery", "ask"/);
+        expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-explore", "explore"/);
     });
 
-    it("offers a guided term builder — field / comparison / value pickers (#323 G5)", () => {
-        expect(RENDERER).toContain("buildGraphTerm");
-        expect(RENDERER).toContain("ask-graph-builder");
-        expect(RENDERER).toMatch(/ask_graph_field_/);
+    it("composes a query by clicking instead — the builder is gone (#483)", () => {
+        // The full subtraction is asserted in exploreSubtraction.test.ts; this is the mode's own
+        // stake in it: what used to be a form is now the facets.
+        expect(RENDERER).not.toContain("buildGraphTerm");
+        expect(RENDERER).toContain("ask-graph-facet-value");
     });
 
     it("is read-only — never imports a write path or mutates the vault", () => {

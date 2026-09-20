@@ -5,6 +5,7 @@ import { parseInlineFields } from "architecture/knowledge/parse/inlineFields";
 import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
+import { deriveFacets } from "architecture/knowledge/query/facets";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 import { generateBody, generateVault } from "./generateVault";
@@ -185,5 +186,17 @@ describe("a lab that has grown", () => {
         );
         // Per keystroke, which is what the number has to mean for it to be honest.
         assertBudget("lab.thread.500", ms / 20);
+    });
+});
+
+describe("what Explore offers you (#482)", () => {
+    it("facets.50k", () => {
+        // Facets are re-derived after **every** click, against the selection you just made, so
+        // this number is interaction latency. The whole-vault case is the worst one: the selection
+        // is every note, and the incoming-relation walk covers every edge in the graph.
+        const model = modelOf(50_000);
+        const selection = model.all();
+        const ms = timed("analysis.heaviest", () => deriveFacets(model, selection), selection.length);
+        assertBudget("facets.50k", ms);
     });
 });

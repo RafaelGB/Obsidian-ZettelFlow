@@ -156,8 +156,8 @@ nav:
       - Explore & navigate:
           - Living knowledge map: development/living-knowledge-map.md
           - Concept navigation: development/concept-navigation.md
-          - 3D knowledge graph: development/graph-3d.md
-          - Ask your graph: development/ask-your-graph.md
+          - Explore your graph: development/ask-your-graph.md
+          - The graph lens: development/graph-3d.md
           - Canvas integration: development/canvas-integration.md
       - Review & analyze:
           - Slip-box health dashboard: development/slipbox-health-dashboard.md

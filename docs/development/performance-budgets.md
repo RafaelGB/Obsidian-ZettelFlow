@@ -78,6 +78,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.discovery.10k` | **1,528 ms** | 5,000 |
 | `analysis.discovery.scaling` | 2.24× | 3.5 |
 | `model.memory.50k` | 44.9 MB | 150 |
+| `facets.50k` | 190 ms (69 ms idle) | 600 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:

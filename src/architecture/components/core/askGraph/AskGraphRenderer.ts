@@ -1,21 +1,40 @@
-import { App } from "obsidian";
+import { App, Notice } from "obsidian";
 import { c, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { runGraphQuery, GRAPH_QUERY_EXAMPLES, GRAPH_QUERY_PREDICATES, type GraphQueryResult } from "architecture/knowledge/state";
+import {
+    asSelection,
+    deriveFacets,
+    explainEmpty,
+    rowFacts,
+    invertTerm,
+    matchesFor,
+    runGraphQuery,
+    toQuery,
+    toggleTerm,
+    type Facet,
+    type RowFact,
+    type FacetId,
+    type FacetValue,
+    type GraphQueryResult,
+} from "architecture/knowledge/state";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { QuerySuggest } from "architecture/settings/suggesters/QuerySuggest";
+import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
+import { MapOfContentModal } from "./MapOfContentModal";
+import { asLinks } from "application/explore/mapOfContent";
 import type { SavedGraphQuery } from "config";
 import {
     addSavedQuery,
     removeSavedQuery,
     renameSavedQuery,
-    moveSavedQuery,
     togglePinnedQuery,
     normalizeSavedQueries,
     savedQueryLabel,
 } from "./savedQueries";
-import { GRAPH_TERM_FIELDS, GRAPH_TERM_COMPARISONS, buildGraphTerm } from "./graphTermBuilder";
+
+type LocaleKey = Parameters<typeof t>[0];
 
 function basename(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
@@ -23,37 +42,94 @@ function basename(path: string): string {
 
 const DEBOUNCE_MS = 400;
 
-/** The result lenses (#323, G3): the same match set as a plain list or a structured table. */
-const LENSES = ["list", "table"] as const;
-type ResultLens = (typeof LENSES)[number];
+/** The matches, typed through the State surface rather than by reaching into the model (#266). */
 type Matches = GraphQueryResult["matches"];
 
 /**
- * **Ask your graph** as a first-class **surface mode** (#323, promotes the #318 S3 modal): a persistent
- * tab that stays open beside the note you're editing, runs the deterministic {@link runGraphQuery} engine
- * over the semantic graph + lifecycle (never AI), and **recomputes live** as the vault changes. Saved
- * queries persist in settings. Read-only; opening a result never closes the tab. Reuses the modal's
- * markup/classes verbatim so nothing is re-styled.
+ * The lenses: **two**, and each is a genuinely different way of seeing the same selection.
+ *
+ * *List* reads it. *Graph* (#484) shows it in context — your whole vault drawn, with the selection
+ * lit and the rest dimmed — which is the thing a list structurally cannot do. The table lens that
+ * sat here until #483 was the list with four fixed columns; its one real advantage was alignment,
+ * and alignment is a CSS grid rule.
+ *
+ * Switching lens never recomputes the selection. `run()` computes; `setLens` only redraws.
+ */
+const LENSES = ["list", "graph"] as const;
+type ResultLens = (typeof LENSES)[number];
+
+/**
+ * Group and shape labels as explicit maps rather than composed keys, so the locale guardrail
+ * (#320) can still see every key that is used.
+ */
+const FACET_LABEL_KEY: Record<FacetId, LocaleKey> = {
+    state: "explore_facet_state",
+    relation: "explore_facet_relation",
+    incoming: "explore_facet_incoming",
+    folder: "explore_facet_folder",
+    shape: "explore_facet_shape",
+};
+
+const SHAPE_LABEL_KEY: Record<string, LocaleKey> = {
+    hub: "explore_shape_hub",
+    orphan: "explore_shape_orphan",
+    leaf: "explore_shape_leaf",
+    unsourced: "explore_shape_unsourced",
+};
+
+/**
+ * **Explore** — clicking is the query (#483, epic #481).
+ *
+ * This mode used to open on an empty box and a *guided builder*: two `<select>`s, a value field, a
+ * negate checkbox and an **Add** button whose entire effect was to paste DSL text into the box. A
+ * form that emits code, which is exactly what [§XIII](../../../../../docs/development/constitution.md)
+ * names as *not shippable* — configuration syntax is an export format and an escape hatch, never
+ * the front door.
+ *
+ * So the order is inverted. **The selection is what you hold** and the text is what it produces:
+ *
+ * - opening it costs **zero typing** — with nothing picked, the selection is your whole vault;
+ * - what you can narrow by is **derived from your notes** (#482), with counts, and clicking a
+ *   value can never empty the results because a value that would is never offered;
+ * - each pick becomes a **chip** you can negate or remove — negation stays reachable without
+ *   typing, which the deleted checkbox was the only way to do;
+ * - the DSL sits under *as text*: generated, editable, runnable, and still exactly what a saved
+ *   query stores.
+ *
+ * The one thing the text can express that chips cannot is `OR`. A hand-written disjunction is
+ * shown as text and **says so**, and the facets stand down rather than appending a term that would
+ * silently re-bracket the query.
  */
 export class AskGraphRenderer extends KnowledgeModeRenderer {
     private query = "";
     private input: HTMLInputElement | null = null;
+    private facetsEl: HTMLElement | null = null;
+    private chipsEl: HTMLElement | null = null;
     private statusEl: HTMLElement | null = null;
     private resultsEl: HTMLElement | null = null;
     private savedEl: HTMLElement | null = null;
+    private takeEl: HTMLElement | null = null;
     private debounceTimer: number | undefined;
+    private suggest: QuerySuggest | null = null;
     private lens: ResultLens = "list";
     private readonly lensButtons = new Map<ResultLens, HTMLElement>();
+    private graphLens: Graph3DRenderer | null = null;
+    /** The last computed selection, so switching lens never re-asks the question. */
+    private matches: Matches = [];
+    /** …and the terms that produced it, which is what tells a row which facts to carry (#485). */
+    private terms: readonly string[] = [];
 
-    constructor(container: HTMLElement, private readonly app: App, initialQuery?: string) {
+    constructor(container: HTMLElement, private readonly app: App, initialQuery?: string, initialLens?: string) {
         super(container);
         // Deep-link from a Home pinned card (#323 G4): open pre-filled and run immediately.
         if (initialQuery && initialQuery.trim() !== "") this.query = initialQuery.trim();
+        // …or from any of the graph doors (#484), which ask for Explore with the graph already up.
+        if (initialLens === "graph") this.lens = "graph";
     }
 
     onload(): void {
         this.renderShell();
-        // Live recompute (#323): a query and its results refresh as the vault changes.
+        // Live recompute (#323): the selection and its facets refresh as the vault changes.
         const debounced = () => {
             window.clearTimeout(this.debounceTimer);
             this.debounceTimer = window.setTimeout(() => this.run(), DEBOUNCE_MS);
@@ -65,33 +141,31 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
 
     onunload(): void {
         window.clearTimeout(this.debounceTimer);
+        this.suggest?.close();
+        this.suggest = null;
         this.container.empty();
     }
 
+    /**
+     * Three regions, and only the middle one scrolls (#487).
+     *
+     * They used to be one column, so scrolling the results carried the facets and the chips off
+     * the top of the pane: to change one filter you scrolled up, changed it, and scrolled back.
+     * The part of a surface that is a **control panel** must not behave like content.
+     */
     private renderShell(): void {
         const root = this.container.createDiv({ cls: c("ask-graph") });
-        root.createDiv({ cls: c("ask-graph-intro"), text: t("ask_graph_intro") });
+        const head = root.createDiv({ cls: c("ask-graph-head") });
+        head.createDiv({ cls: c("ask-graph-intro"), text: t("explore_intro") });
 
-        const bar = root.createDiv({ cls: c("ask-graph-bar") });
-        this.input = bar.createEl("input", { type: "text", cls: c("ask-graph-input") });
-        this.input.placeholder = t("ask_graph_placeholder");
-        this.input.setAttribute("aria-label", t("ask_graph_title"));
-        this.input.value = this.query;
-        this.registerDomEvent(this.input, "input", () => (this.query = this.input?.value ?? ""));
-        this.registerDomEvent(this.input, "keydown", (evt) => {
-            if (evt.key === "Enter") this.run();
-        });
-        const runBtn = bar.createEl("button", { text: t("ask_graph_run"), cls: c("ask-graph-run") });
-        this.registerDomEvent(runBtn, "click", () => this.run());
-        const saveBtn = bar.createEl("button", { text: t("ask_graph_save"), cls: c("ask-graph-save") });
-        this.registerDomEvent(saveBtn, "click", () => void this.save());
+        this.facetsEl = head.createDiv({ cls: c("ask-graph-facets") });
+        this.chipsEl = head.createDiv({ cls: c("ask-graph-chips") });
 
-        // Result lenses (#323, G3): the same matches as a list or a structured table.
-        const lensBar = root.createDiv({ cls: c("ask-graph-lenses") });
+        const lensBar = head.createDiv({ cls: c("ask-graph-lenses") });
         this.lensButtons.clear();
         for (const lens of LENSES) {
             const btn = lensBar.createEl("button", {
-                text: t(`ask_graph_lens_${lens}` as Parameters<typeof t>[0]),
+                text: t(`ask_graph_lens_${lens}` as LocaleKey),
                 cls: c("ask-graph-lens"),
             });
             btn.toggleClass(c("ask-graph-lens--active"), this.lens === lens);
@@ -99,72 +173,51 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             this.lensButtons.set(lens, btn);
         }
 
-        this.renderBuilder(root);
-        this.statusEl = root.createDiv({ cls: c("ask-graph-status") });
+        this.statusEl = head.createDiv({ cls: c("ask-graph-status") });
+        this.takeEl = head.createDiv({ cls: c("ask-graph-take") });
+
         this.resultsEl = root.createDiv({ cls: c("ask-graph-results") });
-        this.savedEl = root.createDiv({ cls: c("ask-graph-saved") });
+
+        const foot = root.createDiv({ cls: c("ask-graph-foot") });
+        this.renderTextEscape(foot);
+        this.savedEl = foot.createDiv({ cls: c("ask-graph-saved") });
         this.renderSaved();
-        this.renderExamples(root);
-        this.renderPredicateHelp(root);
         this.run();
     }
 
     /**
-     * The guided term builder (#323 G5, mirrors the #235 condition builder): field · comparison · value
-     * pickers that emit a valid term via the pure {@link buildGraphTerm} and append it to the query with
-     * `AND`, so a non-writer composes a query from menus. A value-less field hides the value box; `degree`
-     * reveals the comparison box; an invalid selection shows the builder's reason in the status line.
+     * The escape hatch, and only that: the query as text, folded away. Typing here **never**
+     * re-renders — the surface runs on Enter or on the button, because a view that rebuilds itself
+     * on every keystroke is a view you cannot type in (the lesson #468 paid for).
      */
-    private renderBuilder(root: HTMLElement): void {
-        root.createEl("h6", { text: t("ask_graph_builder_heading") });
-        const row = root.createDiv({ cls: c("ask-graph-builder") });
-
-        const fieldSelect = row.createEl("select", { cls: c("ask-graph-builder-field") });
-        fieldSelect.setAttribute("aria-label", t("ask_graph_builder_field"));
-        for (const field of GRAPH_TERM_FIELDS) {
-            fieldSelect.createEl("option", {
-                value: field.id,
-                text: t(`ask_graph_field_${field.id}` as Parameters<typeof t>[0]),
-            });
-        }
-
-        const cmpSelect = row.createEl("select", { cls: c("ask-graph-builder-comparison") });
-        cmpSelect.setAttribute("aria-label", t("ask_graph_builder_comparison"));
-        for (const cmp of GRAPH_TERM_COMPARISONS) cmpSelect.createEl("option", { value: cmp, text: cmp });
-
-        const valueInput = row.createEl("input", { type: "text", cls: c("ask-graph-builder-value") });
-        valueInput.placeholder = t("ask_graph_builder_value");
-        valueInput.setAttribute("aria-label", t("ask_graph_builder_value"));
-
-        const negateLabel = row.createEl("label", { cls: c("ask-graph-builder-negate") });
-        const negateInput = negateLabel.createEl("input", { type: "checkbox" });
-        negateLabel.createSpan({ text: t("ask_graph_builder_negate") });
-
-        const sync = () => {
-            const field = GRAPH_TERM_FIELDS.find((candidate) => candidate.id === fieldSelect.value);
-            cmpSelect.toggleClass(c("is-hidden"), !(field?.comparison ?? false));
-            valueInput.toggleClass(c("is-hidden"), (field?.value ?? "text") === "none");
-        };
-        this.registerDomEvent(fieldSelect, "change", sync);
-        sync();
-
-        const addBtn = row.createEl("button", { text: t("ask_graph_builder_add"), cls: c("ask-graph-builder-add") });
-        this.registerDomEvent(addBtn, "click", () => {
-            const built = buildGraphTerm({
-                field: fieldSelect.value,
-                comparison: cmpSelect.value,
-                value: valueInput.value,
-                negate: negateInput.checked,
-            });
-            if (!built.ok || !built.term) {
-                if (this.statusEl) this.statusEl.textContent = built.error ?? "";
-                return;
-            }
-            const current = this.query.trim();
-            this.setQuery(current === "" ? built.term : `${current} AND ${built.term}`);
-            valueInput.value = "";
-            negateInput.checked = false;
+    private renderTextEscape(root: HTMLElement): void {
+        const details = root.createEl("details", { cls: c("ask-graph-text") });
+        details.createEl("summary", { text: t("explore_as_text") });
+        const bar = details.createDiv({ cls: c("ask-graph-bar") });
+        this.input = bar.createEl("input", { type: "text", cls: c("ask-graph-input") });
+        this.input.placeholder = t("ask_graph_placeholder");
+        this.input.setAttribute("aria-label", t("explore_as_text"));
+        this.input.value = this.query;
+        // Not a Component: closed by hand on unload rather than registered as a child.
+        this.suggest = new QuerySuggest(this.input, () => this.vocabulary());
+        this.registerDomEvent(this.input, "input", () => (this.query = this.input?.value ?? ""));
+        this.registerDomEvent(this.input, "keydown", (evt) => {
+            if (evt.key === "Enter") this.run();
         });
+        const runBtn = bar.createEl("button", { text: t("ask_graph_run"), cls: c("ask-graph-run") });
+        this.registerDomEvent(runBtn, "click", () => this.run());
+    }
+
+    /**
+     * What completion offers: the grammar, and your vault's own values. Two sources and no third —
+     * a hardcoded list of fields beside them is how the deleted builder went wrong.
+     */
+    private vocabulary(): string[] {
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return [];
+        const model = index.getModel();
+        const values = deriveFacets(model, model.all()).flatMap((facet) => facet.values.map((v) => v.term));
+        return [...new Set(values)];
     }
 
     private setQuery(next: string): void {
@@ -173,10 +226,16 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.run();
     }
 
+    private setTerms(terms: readonly string[]): void {
+        this.setQuery(toQuery(terms));
+    }
+
+    /** A lens change is a redraw, never a re-ask: the selection it draws was already computed. */
     private setLens(lens: ResultLens): void {
+        if (this.lens === lens) return;
         this.lens = lens;
         for (const [id, btn] of this.lensButtons) btn.toggleClass(c("ask-graph-lens--active"), id === lens);
-        this.run();
+        this.renderResults();
     }
 
     private openNote(path: string): void {
@@ -184,64 +243,239 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     }
 
     private run(): void {
-        if (!this.resultsEl || !this.statusEl) return;
-        this.resultsEl.empty();
+        if (!this.resultsEl || !this.statusEl || !this.facetsEl || !this.chipsEl) return;
+        this.facetsEl.empty();
+        this.chipsEl.empty();
+        this.takeEl?.empty();
         this.statusEl.textContent = "";
-        // A persistent tab stays quiet until you ask something (unlike the old modal, which nagged).
-        if (this.query.trim() === "") return;
 
         const index = KnowledgeIndex.getInstance();
         if (index.status !== "ready") {
             this.statusEl.textContent = t("ask_graph_indexing");
             return;
         }
-        const result = runGraphQuery(index.getModel(), this.query);
-        if (result.error) {
-            this.statusEl.textContent = result.error;
+        const model = index.getModel();
+        const terms = asSelection(this.query);
+
+        if (terms === null) {
+            // Hand-written, with an OR in it. Chips cannot express that, and appending a term
+            // would re-bracket the query behind your back — so the facets stand down.
+            const result = runGraphQuery(model, this.query);
+            this.renderChips(null);
+            if (result.error) {
+                // Clear the stale answer first, then say what is wrong with the new query.
+                this.renderAnswer([], model.all().length, []);
+                this.statusEl.textContent = result.error;
+                return;
+            }
+            this.renderAnswer(result.matches, model.all().length, []);
             return;
         }
-        if (result.matches.length === 0) {
-            this.statusEl.textContent = t("ask_graph_no_results");
-            return;
-        }
-        this.statusEl.textContent = t("ask_graph_result_count", String(result.matches.length));
-        if (this.lens === "table") this.renderTable(result.matches);
-        else this.renderList(result.matches);
+
+        const matches = matchesFor(model, terms);
+        this.renderFacets(deriveFacets(model, matches), terms);
+        this.renderChips(terms);
+        this.renderAnswer(matches, model.all().length, terms);
     }
 
-    /** The list lens: one row per match, opening in place (persistent — the tab stays open). */
+    /** What the selection can still be narrowed by — derived from the vault, with counts (#482). */
+    private renderFacets(facets: Facet[], terms: readonly string[]): void {
+        if (!this.facetsEl) return;
+        for (const facet of facets) {
+            const group = this.facetsEl.createDiv({ cls: c("ask-graph-facet") });
+            group.createSpan({ cls: c("ask-graph-facet-label"), text: t(FACET_LABEL_KEY[facet.id]) });
+            const values = group.createDiv({ cls: c("ask-graph-facet-values") });
+            for (const value of facet.values) {
+                const btn = values.createEl("button", { cls: c("ask-graph-facet-value") });
+                btn.createSpan({ cls: c("ask-graph-facet-name"), text: this.facetLabel(facet, value) });
+                btn.createSpan({ cls: c("ask-graph-facet-count"), text: String(value.count) });
+                this.registerDomEvent(btn, "click", () => this.setTerms(toggleTerm(terms, value.term)));
+            }
+            if (facet.hidden > 0) {
+                values.createSpan({
+                    cls: c("ask-graph-facet-more"),
+                    text: t("explore_facet_more", String(facet.hidden)),
+                });
+            }
+        }
+    }
+
+    /** A state, a relation type and a folder are your own words; a shape is ours, so it is translated. */
+    private facetLabel(facet: Facet, value: FacetValue): string {
+        const key = facet.id === "shape" ? SHAPE_LABEL_KEY[value.value] : undefined;
+        return key ? t(key) : value.value;
+    }
+
+    /**
+     * The selection itself: one chip per term, each negatable and removable — and, when the query
+     * was written by hand with an `OR` in it, a line saying so instead of chips that would lose
+     * half of what it means.
+     */
+    private renderChips(terms: readonly string[] | null): void {
+        if (!this.chipsEl) return;
+        if (terms === null) {
+            this.chipsEl.createSpan({ cls: c("ask-graph-hand-written"), text: t("explore_hand_written") });
+        }
+        const picked = terms ?? [];
+        for (const [index, term] of picked.entries()) {
+            const chip = this.chipsEl.createDiv({ cls: c("ask-graph-chip") });
+            chip.toggleClass(c("ask-graph-chip--negated"), term.startsWith("!"));
+            chip.createSpan({ cls: c("ask-graph-chip-term"), text: term });
+            this.button(chip, "explore_chip_negate", "ask-graph-chip-negate", "¬", () =>
+                this.setTerms(picked.map((each, at) => (at === index ? invertTerm(each) : each)))
+            );
+            this.button(chip, "explore_chip_remove", "ask-graph-chip-remove", "×", () =>
+                this.setTerms(picked.filter((_, at) => at !== index))
+            );
+        }
+        if (this.query.trim() === "") return;
+        this.button(this.chipsEl, "explore_clear", "ask-graph-clear", null, () => this.setQuery(""));
+        this.button(this.chipsEl, "explore_save_selection", "ask-graph-save", null, () => void this.save());
+    }
+
+    /** Every button on this surface: labelled for a screen reader, whatever it shows on screen. */
+    private button(
+        parent: HTMLElement,
+        labelKey: LocaleKey,
+        cls: string,
+        glyph: string | null,
+        onClick: () => void
+    ): HTMLElement {
+        const btn = parent.createEl("button", { cls: c(cls), text: glyph ?? t(labelKey) });
+        btn.setAttribute("aria-label", t(labelKey));
+        this.registerDomEvent(btn, "click", onClick);
+        return btn;
+    }
+
+    /**
+     * Take the answer, say what it is, and hand it to the active lens.
+     *
+     * A zero says **which term emptied it** and the counts either side (#485). That is a fact
+     * about your selection and stops there: naming the term is mechanical, proposing the fix
+     * would be a verdict, and there is nothing to decide anyway — there is a query to edit, and
+     * it is right there.
+     */
+    private renderAnswer(matches: Matches, total: number, terms: readonly string[]): void {
+        if (!this.statusEl) return;
+        this.matches = matches;
+        this.terms = terms;
+        if (matches.length === 0) {
+            const index = KnowledgeIndex.getInstance();
+            const emptied = index.status === "ready" ? explainEmpty(index.getModel(), terms) : null;
+            this.statusEl.textContent = emptied
+                ? t("explore_emptied_by", emptied.term, String(emptied.before))
+                : t("ask_graph_no_results");
+        } else {
+            this.statusEl.textContent =
+                matches.length === total
+                    ? t("explore_all_notes", String(total))
+                    : t("ask_graph_result_count", String(matches.length));
+            this.renderTake();
+        }
+        this.renderResults();
+    }
+
+    /**
+     * Draw the selection already computed. The graph lens is **not** torn down and rebuilt on every
+     * vault event: a 3D layout takes seconds to settle, so an existing one is re-lit in place and
+     * only a lens change builds or drops it.
+     */
+    private renderResults(): void {
+        if (!this.resultsEl) return;
+        if (this.lens === "graph") {
+            const lit = new Set(this.matches.map((match) => match.path));
+            if (this.graphLens) {
+                this.graphLens.setLit(lit);
+                return;
+            }
+            this.resultsEl.empty();
+            this.graphLens = new Graph3DRenderer(this.resultsEl.createDiv({ cls: c("ask-graph-graph") }), this.app, lit);
+            this.addChild(this.graphLens);
+            return;
+        }
+        if (this.graphLens) {
+            this.removeChild(this.graphLens);
+            this.graphLens = null;
+        }
+        this.resultsEl.empty();
+        if (this.matches.length > 0) this.renderList(this.matches);
+    }
+
+    /**
+     * Where a selection can go (#486). Two moves, and deliberately only two.
+     *
+     * Both are **mechanical**: a gathered list of links, and a note that lists them with the facts
+     * you asked about. Neither concludes anything, so neither needs the accept/reject gate §XII
+     * puts in front of interpretive output.
+     *
+     * *Think about this* is not here on purpose: thinking is about something in particular, and a
+     * set of forty notes is not something in particular. The per-note move already exists, and the
+     * map this makes is itself a note — so the moment a selection becomes a thing you can think
+     * about, the command that does it is already there.
+     */
+    private renderTake(): void {
+        if (!this.takeEl) return;
+        this.button(this.takeEl, "explore_copy_links", "ask-graph-take-copy", null, () => {
+            void navigator.clipboard.writeText(asLinks(this.matches));
+            new Notice(t("explore_copied", String(this.matches.length)));
+        });
+        // A map of everything is not a map.
+        if (this.terms.length === 0) return;
+        this.button(this.takeEl, "explore_make_map", "ask-graph-take-map", null, () => this.makeMap());
+    }
+
+    private makeMap(): void {
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
+        new MapOfContentModal(
+            this.app,
+            {
+                matches: this.matches,
+                terms: this.terms,
+                facts: (each) => rowFacts(each, this.terms, model),
+                factText: (fact) => this.factText(fact),
+                queryKey: "zfQuery",
+                intro: t("explore_map_intro"),
+                andMore: (hidden) => t("explore_map_and_more", String(hidden)),
+            },
+            (path) => void this.app.workspace.openLinkText(path, "", false)
+        ).open();
+    }
+
+    /** The note's name, wherever a lens puts it: titled with its path, and it opens the note. */
+    private noteName(parent: HTMLElement, path: string): void {
+        const name = parent.createSpan({ cls: c("ask-graph-result-name"), text: basename(path) });
+        name.setAttribute("title", path);
+        makeActivatable(name, () => this.openNote(path));
+    }
+
+    /**
+     * The list lens: one row per match, opening in place (persistent — the tab stays open).
+     *
+     * Each row carries the facts **your selection asked about** (#485), not a fixed pair. Filter
+     * by sources and the row says what it cites; filter by `relation:supports` and it says how
+     * many. With nothing selected it reads `state · degree`, exactly as it always did.
+     */
     private renderList(matches: Matches): void {
         if (!this.resultsEl) return;
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
         for (const match of matches) {
             const row = this.resultsEl.createDiv({ cls: c("ask-graph-result") });
-            const name = row.createSpan({ cls: c("ask-graph-result-name"), text: basename(match.path) });
-            name.setAttribute("title", match.path);
-            makeActivatable(name, () => this.openNote(match.path));
+            this.noteName(row, match.path);
             row.createSpan({
                 cls: c("ask-graph-result-meta"),
-                text: `${match.state} · ${match.maturitySignals.degree}`,
+                text: rowFacts(match, this.terms, model).map((fact) => this.factText(fact)).join(" · "),
             });
         }
     }
 
-    /** The table lens (#323, G3): note · state · degree · sources, for scanning a result set structurally. */
-    private renderTable(matches: Matches): void {
-        if (!this.resultsEl) return;
-        const table = this.resultsEl.createEl("table", { cls: c("ask-graph-table") });
-        const headRow = table.createEl("thead").createEl("tr");
-        for (const col of ["note", "state", "degree", "sources"] as const) {
-            headRow.createEl("th", { text: t(`ask_graph_col_${col}` as Parameters<typeof t>[0]) });
-        }
-        const tbody = table.createEl("tbody");
-        for (const match of matches) {
-            const tr = tbody.createEl("tr", { cls: c("ask-graph-table-row") });
-            const name = tr.createEl("td").createSpan({ cls: c("ask-graph-result-name"), text: basename(match.path) });
-            name.setAttribute("title", match.path);
-            makeActivatable(name, () => this.openNote(match.path));
-            tr.createEl("td", { text: match.state });
-            tr.createEl("td", { text: String(match.maturitySignals.degree) });
-            tr.createEl("td", { text: match.maturitySignals.hasSources ? "✓" : "—" });
-        }
+    /** A fact reads `label value`; the label names its relation type when the key cannot. */
+    private factText(fact: RowFact): string {
+        const label = fact.arg ? t(fact.key as LocaleKey, fact.arg) : t(fact.key as LocaleKey);
+        return `${label} ${fact.value}`;
     }
 
     private savedQueries(): SavedGraphQuery[] {
@@ -271,7 +505,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         for (const entry of saved) this.renderSavedRow(list, entry);
     }
 
-    /** One saved-query row: run it, rename, reorder, pin-to-Home (#323 G4), delete. */
+    /** One saved-query row: run it, rename, pin-to-Home (#323 G4), delete. */
     private renderSavedRow(list: HTMLElement, entry: SavedGraphQuery): void {
         const li = list.createEl("li", { cls: c("ask-graph-saved-item") });
         const label = li.createEl("code", {
@@ -282,26 +516,13 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         makeActivatable(label, () => this.setQuery(entry.query));
 
         const actions = li.createDiv({ cls: c("ask-graph-saved-actions") });
-        this.savedAction(actions, "ask_graph_rename", "ask-graph-saved-rename", () => this.renameSaved(entry, label));
-        this.savedAction(actions, "ask_graph_move_up", "ask-graph-saved-up", () =>
-            void this.mutateSaved((l) => moveSavedQuery(l, entry.query, "up"))
-        );
-        this.savedAction(actions, "ask_graph_move_down", "ask-graph-saved-down", () =>
-            void this.mutateSaved((l) => moveSavedQuery(l, entry.query, "down"))
-        );
-        this.savedAction(actions, entry.pinned ? "ask_graph_unpin" : "ask_graph_pin", "ask-graph-saved-pin", () =>
+        this.button(actions, "ask_graph_rename", "ask-graph-saved-rename", null, () => this.renameSaved(entry, label));
+        this.button(actions, entry.pinned ? "ask_graph_unpin" : "ask_graph_pin", "ask-graph-saved-pin", null, () =>
             void this.mutateSaved((l) => togglePinnedQuery(l, entry.query))
         ).toggleClass(c("ask-graph-saved-pin--on"), entry.pinned === true);
-        this.savedAction(actions, "ask_graph_delete", "ask-graph-saved-delete", () =>
+        this.button(actions, "ask_graph_delete", "ask-graph-saved-delete", null, () =>
             void this.mutateSaved((l) => removeSavedQuery(l, entry.query))
         );
-    }
-
-    private savedAction(parent: HTMLElement, labelKey: Parameters<typeof t>[0], cls: string, onClick: () => void): HTMLElement {
-        const btn = parent.createEl("button", { cls: c(cls), text: t(labelKey) });
-        btn.setAttribute("aria-label", t(labelKey));
-        this.registerDomEvent(btn, "click", onClick);
-        return btn;
     }
 
     /** Inline rename: swap the label for a text field, commit on Enter/blur, cancel on Escape. */
@@ -324,27 +545,5 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             else if (evt.key === "Escape") commit(false);
         });
         this.registerDomEvent(input, "blur", () => commit(true));
-    }
-
-    private renderExamples(root: HTMLElement): void {
-        root.createEl("h6", { text: t("ask_graph_examples_heading") });
-        const list = root.createEl("ul", { cls: c("ask-graph-examples") });
-        for (const example of GRAPH_QUERY_EXAMPLES) {
-            const li = list.createEl("li", { cls: c("ask-graph-example") });
-            li.createSpan({ cls: c("ask-graph-example-label"), text: example.label });
-            const code = li.createEl("code", { cls: c("ask-graph-example-query"), text: example.query });
-            makeActivatable(code, () => this.setQuery(example.query));
-        }
-    }
-
-    private renderPredicateHelp(root: HTMLElement): void {
-        root.createEl("h6", { text: t("ask_graph_predicates_heading") });
-        const table = root.createEl("table", { cls: c("ask-graph-predicates") });
-        const tbody = table.createEl("tbody");
-        for (const predicate of GRAPH_QUERY_PREDICATES) {
-            const tr = tbody.createEl("tr");
-            tr.createEl("td").createEl("code", { text: predicate.token });
-            tr.createEl("td", { text: predicate.note });
-        }
     }
 }

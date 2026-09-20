@@ -79,7 +79,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             id: "show-graph",
             name: t("command_show_graph"),
             // The graph is a lens now (#484). The id stays so a bound hotkey survives.
-            callback: () => void activateSurface(this.plugin.app, "zettelflow-discovery", "ask", { lens: "graph" }),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-explore", "explore", { lens: "graph" }),
         });
         // Start a guided thinking session on the Home surface's Cultivate mode (#309 S4).
         this.plugin.addCommand({
@@ -96,16 +96,17 @@ export class ZettelFlowMenuComponent extends PluginComponent {
                 if (!file || file.extension !== "md") return false;
                 if (!checking) {
                     requestGraph3DFocus(file.path);
-                    void activateSurface(this.plugin.app, "zettelflow-discovery", "ask", { lens: "graph" });
+                    void activateSurface(this.plugin.app, "zettelflow-explore", "explore", { lens: "graph" });
                 }
                 return true;
             },
         });
-        // Ask your graph — the deterministic semantic query, now a first-class Discovery mode (#323).
+        // Explore — the deterministic semantic query. A Discovery mode from #323 until #487 gave
+        // it a surface of its own; the command id is unchanged, so a bound hotkey survives.
         this.plugin.addCommand({
             id: "ask-your-graph",
             name: t("command_ask_graph"),
-            callback: () => void activateSurface(this.plugin.app, "zettelflow-discovery", "ask"),
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-explore"),
         });
         // Trace the argument-forward reasoning chains leaving the active note (#166, #318 S4).
         this.plugin.addCommand({

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { LEGACY_OPEN_TARGETS, LEGACY_VIEW_TARGETS } from "architecture/components/core/surface/legacyTargets";
+import { LEGACY_OPEN_TARGETS, LEGACY_VIEW_TARGETS, relocateMode } from "architecture/components/core/surface/legacyTargets";
 import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
 
 const isValidTarget = (t: { surface: string; mode: string }) =>
@@ -24,28 +24,36 @@ describe("legacy back-compat targets (#272, AC-2)", () => {
         for (const type of types) expect(isValidTarget(LEGACY_VIEW_TARGETS[type])).toBe(true);
     });
 
-    it("every graph door lands on Explore, with the graph lens (#484)", () => {
-        // Nobody loses a binding when a surface goes away: four ids kept, all repointed.
+    it("every graph door lands on Explore, with the graph lens (#484, #487)", () => {
+        // Nobody loses a binding when a surface goes away, or when one moves house: five ids
+        // kept, all repointed.
+        const explore = { surface: "zettelflow-explore", mode: "explore", lens: "graph" };
         for (const id of ["show-knowledge-map", "show-concept-nav"]) {
-            expect(LEGACY_OPEN_TARGETS[id]).toEqual({
-                surface: "zettelflow-discovery",
-                mode: "ask",
-                lens: "graph",
-            });
+            expect(LEGACY_OPEN_TARGETS[id]).toEqual(explore);
         }
-        expect(LEGACY_VIEW_TARGETS["zettelflow-graph"]).toEqual({
-            surface: "zettelflow-discovery",
-            mode: "ask",
-            lens: "graph",
-        });
-        // The two direct doors keep their ids and ask for the same state.
+        expect(LEGACY_VIEW_TARGETS["zettelflow-graph"]).toEqual(explore);
+        // The direct doors keep their ids and ask for the same state.
         const menu = readFileSync(
             join(__dirname, "..", "..", "..", "..", "..", "src", "starters", "zcomponents", "ZettelFlowMenuComponent.ts"),
             "utf8"
         );
-        for (const id of ["show-graph", "explore-in-3d"]) expect(menu).toContain(`id: "${id}"`);
+        for (const id of ["show-graph", "explore-in-3d", "ask-your-graph"]) expect(menu).toContain(`id: "${id}"`);
         expect(menu).not.toContain('"zettelflow-graph"');
         expect(menu.match(/lens: "graph"/g) ?? []).toHaveLength(2);
+    });
+
+    it("hands a stale Discovery/ask leaf over to Explore rather than showing the wrong list (#487)", () => {
+        expect(relocateMode("zettelflow-discovery", "ask")).toMatchObject({
+            surface: "zettelflow-explore",
+            mode: "explore",
+        });
+        expect(relocateMode("zettelflow-discovery", "connections")).toBeNull();
+        // …and the host actually consults it, rather than falling back to the first mode.
+        const host = readFileSync(
+            join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "surface", "ModeHostView.ts"),
+            "utf8"
+        );
+        expect(host).toContain("relocateMode(this.getViewType(), mode)");
     });
 
     it("every retired-view-backed mode is reachable by at least one alias command", () => {

@@ -11,6 +11,7 @@ const VIEW_FILE: Record<string, string> = {
     "zettelflow-home": "HomeSurfaceView.ts",
     "zettelflow-health": "HealthSurfaceView.ts",
     "zettelflow-discovery": "DiscoverySurfaceView.ts",
+    "zettelflow-explore": "ExploreSurfaceView.ts",
 };
 
 /**
@@ -25,7 +26,8 @@ describe("surface mode ↔ renderer wiring (#317 S7)", () => {
             const src = readFileSync(join(SURFACE_DIR, VIEW_FILE[surface.viewType]), "utf8");
             expect(src).toContain("createRenderer");
             const hasDefault = /default\s*:/.test(src);
-            const hasSwitch = src.includes("switch");
+            // An actual switch statement — "the switching that matters" in a doc comment is not one.
+            const hasSwitch = /switch\s*\(/.test(src);
             surface.modes.forEach((mode, index) => {
                 const hasCase = src.includes(`case "${mode.id}"`);
                 // Handled if: an explicit case, OR the first mode via `default:`, OR a switch-less

@@ -1106,6 +1106,7 @@ export default {
     surface_home_title: 'Home',
     surface_health_title: 'Health',
     surface_discovery_title: 'Discovery',
+    surface_explore_title: 'Explore',
     surface_mode_home: 'Home',
     surface_mode_cultivate: 'Cultivate',
     surface_mode_recent: 'Recent',

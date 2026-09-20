@@ -16,6 +16,7 @@ const SURFACE = [
     "src/architecture/components/core/askGraph/savedQueries.ts",
     "src/architecture/components/core/askGraph/MapOfContentModal.ts",
     "src/architecture/settings/suggesters/QuerySuggest.ts",
+    "src/architecture/components/core/surface/ExploreSurfaceView.ts",
 ];
 const EN = read("src/architecture/lang/locale/en.ts");
 const ES = read("src/architecture/lang/locale/es.ts");
@@ -60,6 +61,7 @@ function codeLines(source: string): number {
  * | after #484 | 444 | the graph lens: mounting it, re-lighting it without a rebuild, a lens bar |
  * | after #485 | 462 | the answer explains itself: which term emptied a selection, and rows that carry the facts you asked about instead of a fixed pair |
  * | after #486 | 562 | where a selection can go: copy as links, and a previewed, undoable map of content (`MapOfContentModal`, 67 of those lines, joins the counted set rather than escaping it) |
+ * | after #487 | 587 | `ExploreSurfaceView` (a workspace needs a leaf of its own) and three layout wrappers, so the controls stop scrolling away with the results |
  *
  * The honest comparison for the whole epic is **435 → 562**: 421 plus the 14 lines of
  * `GraphSurfaceView`, which #484 deleted and this counter cannot see. A hundred and twenty-seven
@@ -71,9 +73,9 @@ function codeLines(source: string): number {
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 562;
+const CEILING = 587;
 
-describe("the surface does not grow by accident (#483, #484, #485, #486)", () => {
+describe("the surface does not grow by accident (#483–#487)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {
         const now = SURFACE.reduce((total, file) => total + codeLines(read(file)), 0);
         expect({ now, ceiling: CEILING, over: now > CEILING }).toEqual({ now, ceiling: CEILING, over: false });
@@ -123,6 +125,37 @@ describe("what the surface stopped showing (#483)", () => {
         );
         expect(EN).not.toContain("ask_graph_move_up");
         expect(ES).not.toContain("ask_graph_move_up");
+    });
+});
+
+describe("the controls do not scroll away (#487)", () => {
+    const SCSS = read("src/styles/components/askGraph.scss");
+
+    it("groups the surface into a head, a scrolling middle and a foot", () => {
+        // They were one column, so scrolling the results carried the facets and the chips off the
+        // top: to change one filter you scrolled up, changed it, and scrolled back down.
+        for (const region of ["ask-graph-head", "ask-graph-results", "ask-graph-foot"]) {
+            expect(RENDERER).toContain(`c("${region}")`);
+        }
+        // The facets and the chips hang off the head, not off the root.
+        expect(RENDERER).toContain('head.createDiv({ cls: c("ask-graph-facets") })');
+        expect(RENDERER).toContain('head.createDiv({ cls: c("ask-graph-chips") })');
+        expect(RENDERER).toContain('root.createDiv({ cls: c("ask-graph-results") })');
+    });
+
+    it("makes the results the only region that scrolls", () => {
+        const rule = (selector: string) => {
+            const at = SCSS.indexOf(`${selector} {`);
+            return at === -1 ? "" : SCSS.slice(at, SCSS.indexOf("}", at));
+        };
+        expect(rule(".zettelkasten-flow__ask-graph")).toContain("height: 100%");
+        expect(rule(".zettelkasten-flow__ask-graph")).toContain("min-height: 0");
+        const results = rule(".zettelkasten-flow__ask-graph-results");
+        expect(results).toContain("flex: 1 1 auto");
+        // Without this a flex child refuses to shrink below its content and pushes the foot out.
+        expect(results).toContain("min-height: 0");
+        expect(results).toContain("overflow-y: auto");
+        expect(rule(".zettelkasten-flow__ask-graph-facets")).toContain("overflow-y: auto");
     });
 });
 

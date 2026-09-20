@@ -1,4 +1,21 @@
-// Ask your graph — the deterministic semantic query surface (#318 S3).
+// Explore — the deterministic semantic query surface (#318 S3, #483).
+//
+// Three regions, and only the middle one scrolls (#487). `min-height: 0` is the load-bearing
+// rule: without it a flex child refuses to shrink below its content, the results region grows to
+// fit every match, and the footer leaves the pane.
+.zettelkasten-flow__ask-graph {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.zettelkasten-flow__ask-graph-head,
+.zettelkasten-flow__ask-graph-foot {
+    flex: 0 0 auto;
+}
+
+
 .zettelkasten-flow__ask-graph-intro {
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
@@ -31,7 +48,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-    max-height: 40vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -107,11 +125,15 @@
 }
 
 // Explore (#483): the facets you click, the chips you picked, and the text they produce.
+// The facets can be tall in a narrow pane; they scroll inside their own bound rather than
+// pushing the answer off-screen (#487).
 .zettelkasten-flow__ask-graph-facets {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     margin-bottom: 0.5rem;
+    max-height: 30vh;
+    overflow-y: auto;
 }
 
 .zettelkasten-flow__ask-graph-facet {
@@ -266,11 +288,6 @@
 }
 
 // The graph needs room to be a graph; the list scrolls inside 40vh, this does not.
-.zettelkasten-flow__ask-graph-results:has(.zettelkasten-flow__ask-graph-graph) {
-    max-height: none;
-    overflow: visible;
-}
-
 .zettelkasten-flow__ask-graph-graph {
     min-height: 26rem;
     height: 60vh;

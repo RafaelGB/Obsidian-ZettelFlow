@@ -7,7 +7,7 @@ const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const RENDERER = read("src/architecture/components/core/askGraph/AskGraphRenderer.ts");
 const MENU = read("src/starters/zcomponents/ZettelFlowMenuComponent.ts");
-const DISCOVERY = read("src/architecture/components/core/surface/DiscoverySurfaceView.ts");
+const EXPLORE = read("src/architecture/components/core/surface/ExploreSurfaceView.ts");
 const HOME = read("src/architecture/components/core/home/HomeModeRenderer.ts");
 
 /**
@@ -16,15 +16,16 @@ const HOME = read("src/architecture/components/core/home/HomeModeRenderer.ts");
  * barrel, persists saved queries, recomputes live, and never writes.
  */
 describe("ask-your-graph surface mode (#323)", () => {
-    it("the command opens the Discovery surface in the ask mode, not a modal", () => {
+    it("the command opens the Explore surface, not a modal", () => {
         expect(MENU).toContain('id: "ask-your-graph"');
-        expect(MENU).toContain('activateSurface(this.plugin.app, "zettelflow-discovery", "ask")');
+        expect(MENU).toContain('activateSurface(this.plugin.app, "zettelflow-explore")');
         expect(MENU).not.toContain("AskGraphModal");
     });
 
-    it("the Discovery surface mounts the ask renderer for the ask mode", () => {
-        expect(DISCOVERY).toContain('case "ask":');
-        expect(DISCOVERY).toContain("new AskGraphRenderer(");
+    it("the Explore surface mounts the renderer, and carries the query and the lens (#487)", () => {
+        expect(EXPLORE).toContain("new AskGraphRenderer(");
+        expect(EXPLORE).toContain("state?.query");
+        expect(EXPLORE).toContain("state?.lens");
     });
 
     it("runs the pure engine from the Knowledge State barrel", () => {
@@ -49,7 +50,7 @@ describe("ask-your-graph surface mode (#323)", () => {
         expect(HOME).toContain("pinnedQueries");
         expect(HOME).toContain("runGraphQuery(");
         expect(HOME).toContain("home_pinned_query_count");
-        expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-discovery", "ask"/);
+        expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-explore", "explore"/);
     });
 
     it("composes a query by clicking instead — the builder is gone (#483)", () => {

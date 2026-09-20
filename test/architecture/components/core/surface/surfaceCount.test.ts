@@ -1,12 +1,13 @@
 import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
 
 // test/architecture/components/core/surface → 5 ups → repo root
 const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
-const SURFACE_TYPES = ["zettelflow-home", "zettelflow-health", "zettelflow-discovery"];
+const SURFACE_TYPES = ["zettelflow-home", "zettelflow-health", "zettelflow-discovery", "zettelflow-explore"];
 
 /** The 12 retired opener commands kept as aliases (must still be registered somewhere). */
 const ALIAS_COMMANDS = [
@@ -27,8 +28,8 @@ const ALIAS_COMMANDS = [
 /** The per-view openers that must NOT appear in the ribbon menu (it lists only the surfaces). */
 const RETIRED_IN_MENU = ALIAS_COMMANDS.filter((id) => id !== "show-home");
 
-describe("surface consolidation (#272, AC-3/AC-4; three since #484)", () => {
-    it("main.ts registers exactly the 3 surfaces + the legacy redirect loop", () => {
+describe("surface consolidation (#272, AC-3/AC-4; the count's history is in surfaceRegistry.test)", () => {
+    it("main.ts registers exactly the 4 surfaces + the legacy redirect loop", () => {
         const main = read("src/main.ts");
         for (const type of SURFACE_TYPES) {
             expect(main).toContain(`this.registerView("${type}"`);
@@ -48,6 +49,16 @@ describe("surface consolidation (#272, AC-3/AC-4; three since #484)", () => {
         for (const retired of RETIRED_IN_MENU) {
             expect(menu.includes(`"${retired}"`)).toBe(false);
         }
+    });
+
+    it("draws no mode bar for a surface with a single mode (#487)", () => {
+        // A bar offering one choice is not a choice, and an ARIA tablist of one is noise for a
+        // screen reader too. The same rule Explore's own lens bar already follows.
+        const host = read("src/architecture/components/core/surface/ModeHostView.ts");
+        expect(host).toContain("this.surface.modes.length > 1 ? this.surface.modes : []");
+        expect(SURFACES.filter((surface) => surface.modes.length === 1).map((s) => s.viewType)).toEqual([
+            "zettelflow-explore",
+        ]);
     });
 
     it("keeps launchers out of the settings tab (#439), and names no retired view type", () => {

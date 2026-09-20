@@ -23,12 +23,23 @@ surfaces. Note creation is no longer its own ribbon icon.
 |---|---|---|
 | **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + **[What ZettelFlow changed](reversibility.md)** (#454) |
 | **Health** | Health · Timeline · Momentum | Slip-box health **+ the knowledge dashboard folded in** (#314) + Evolution timeline + Thinking heatmap |
-| **Discovery** | Connections · Forgotten · Questions · Challenges · **[Explore](../development/ask-your-graph.md)** | Discovery + Resurface + Open questions + Evidence map + the retired **Graph** surface (#484), whose 3D view is now one of Explore's [lenses](../development/graph-3d.md) |
+| **Discovery** | Connections · Forgotten · Questions · Challenges | Discovery + Resurface + Open questions + Evidence map |
+| **[Explore](../development/ask-your-graph.md)** | *(one mode, so no mode bar)* | Ask your graph + the retired **Graph** surface (#484), whose 3D view is now one of Explore's [lenses](../development/graph-3d.md) |
 
-There were **four** until 4.2. The Graph was a whole surface hosting one mode, answering *what
-shape is my knowledge?* while Explore answered *which notes match this?* — the same question in
-two places, with no way to carry an answer across. It is a lens now, and a surface went away
-rather than a fifth arriving (#484).
+The count went **4 → 3 → 4** in one release, and the honest reading is not "a box was saved".
+
+#484 absorbed the Graph surface: it hosted one mode, answering *what shape is my knowledge?* while
+Explore answered *which notes match this?* — the same question in two places, with no way to carry
+an answer across. That merge stands.
+
+#487 then gave Explore its own room. Discovery's four modes are **narrow lists** — a handful of
+pairs, a few resurfaced notes — which is why people keep that surface in a side panel. Explore is
+facets, chips, an answer, a lens bar and a 3D graph, and a *mode* cannot be moved out of a pane
+without dragging the four lists with it. The principle was never "fewer boxes": it is **one home
+per capability, and no two places answering the same question**.
+
+A surface with a single mode draws **no mode bar** — a bar offering one choice is not a choice,
+and an ARIA tablist of one is noise for a screen reader too.
 
 Every mode reuses the retired view's rendering **verbatim** — same numbers, same behaviour — mounted
 inside the surface as a `KnowledgeModeRenderer` (an Obsidian `Component`, so its listeners are cleaned
@@ -47,6 +58,10 @@ can move, split or pin them like any Obsidian document.
 - The **Graph surface's own view type** joined that alias list when it was retired (#484), so a
   workspace saved before the merge reopens Explore instead of an empty pane, and `show-graph` /
   `explore-in-3d` keep their ids and their hotkeys.
+- A **mode that moved house** is handed over rather than dropped: `relocateMode` maps
+  `zettelflow-discovery:ask` to the Explore surface (#487), so a workspace saved while Explore was
+  still a Discovery mode reopens Explore — instead of quietly showing Connections, which is the
+  failure that looks like nothing went wrong.
 - A user's **saved or pinned leaf** of a retired view type is transparently redirected: a thin
   `LegacyRedirectView` transforms that leaf into the surface it now lives in, so no "no view of type
   X" pane ever appears.
@@ -55,5 +70,5 @@ can move, split or pin them like any Obsidian document.
 
 - Registry + back-compat maps (pure): `architecture/components/core/surface/{surfaceRegistry,legacyTargets}.ts`.
 - Host + renderer contract: `architecture/components/core/surface/{ModeHostView,KnowledgeModeRenderer,LegacyRedirectView}.ts`.
-- The three surfaces: `architecture/components/core/surface/{Home,Health,Discovery}SurfaceView.ts`.
+- The four surfaces: `architecture/components/core/surface/{Home,Health,Discovery,Explore}SurfaceView.ts`.
 - Deep-linking to a mode: `activateSurface(app, surfaceType, mode)` in `architecture/plugin/services/ViewActivation.ts`.

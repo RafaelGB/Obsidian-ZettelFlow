@@ -230,7 +230,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             });
             label.setAttribute("title", card.query);
             makeActivatable(label, () =>
-                void activateSurface(this.app, "zettelflow-discovery", "ask", { query: card.query })
+                void activateSurface(this.app, "zettelflow-explore", "explore", { query: card.query })
             );
         }
     }
@@ -243,7 +243,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         const btn = teaser.createEl("button", { cls: c("home-graph-teaser-btn"), text: t("home_graph_teaser_cta") });
         btn.setAttribute("aria-label", t("home_graph_teaser_cta"));
         btn.addEventListener("click", () =>
-            void activateSurface(this.app, "zettelflow-discovery", "ask", { lens: "graph" })
+            void activateSurface(this.app, "zettelflow-explore", "explore", { lens: "graph" })
         );
     }
 

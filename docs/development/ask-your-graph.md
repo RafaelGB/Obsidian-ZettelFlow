@@ -6,9 +6,16 @@ manifesto draws: *"show me every idea that contradicts this"* is a question abou
 thinking**, and it is exactly what a Dataview query cannot answer. It is **deterministic** — a query
 is a set of predicates, never a natural-language prompt, and AI is never involved.
 
-Open it with the **Ask your graph** command (or the ribbon menu). It opens as a **persistent tab** in
-the Discovery surface, so a selection and its results stay open beside the note you are editing and
-**recompute live** as the vault changes.
+Open it with the **Ask your graph** command (or the ribbon menu). It is its own **surface** — a
+persistent tab you can move, split or pin wherever you like — so a selection and its results stay
+open beside the note you are editing and **recompute live** as the vault changes.
+
+It was the fifth mode of Discovery until someone used it (#487). Discovery's other modes are narrow
+lists that belong in a side panel; Explore is a workspace, and a mode cannot be moved out of a pane
+without taking the lists with it.
+
+Inside it, only the **results** scroll. The facets, the chips, the lens bar and the answer line
+stay put, because the part of a surface that is a control panel should not behave like content.
 
 ## Clicking is the query (#483)
 

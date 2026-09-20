@@ -25,7 +25,8 @@ describe('first-use entry without a setup ritual', () => {
         await Promise.resolve();
         expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-home', state: { mode: 'cultivate', inquiry: 'resume' } }));
         expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-home', state: { mode: 'cultivate', inquiry: 'ordinary' } }));
-        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-discovery' }));
+        // Home's graph and pinned-query entries lead to Explore, which took its own surface (#487).
+        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-explore' }));
         expect(opens).toContain('a.md');
         (renderer as any).recommendations = []; (renderer as any).home.suggestedConnections = []; (renderer as any).render();
         expect(root.find(el => el.textContent.includes('My query'))).toBeDefined();

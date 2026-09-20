@@ -18,6 +18,7 @@ describe("surface views expose a construction-safe getViewType (#278)", () => {
         ["HomeSurfaceView.ts", "zettelflow-home"],
         ["HealthSurfaceView.ts", "zettelflow-health"],
         ["DiscoverySurfaceView.ts", "zettelflow-discovery"],
+        ["ExploreSurfaceView.ts", "zettelflow-explore"],
     ];
 
     for (const [file, viewType] of cases) {

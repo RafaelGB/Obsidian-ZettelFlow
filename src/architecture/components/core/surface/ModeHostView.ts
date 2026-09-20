@@ -2,6 +2,7 @@ import { ItemView, ViewStateResult } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { surfaceByType, type Surface } from "./surfaceRegistry";
+import { relocateMode } from "./legacyTargets";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -70,10 +71,22 @@ export abstract class ModeHostView extends ItemView {
         await super.setState(state, result);
         const payload = (state as Record<string, unknown> | null) ?? null;
         const mode = payload?.mode;
-        if (typeof mode === "string" && this.hasMode(mode)) {
+        if (typeof mode !== "string") return;
+        if (this.hasMode(mode)) {
             this.pendingState = payload; // handed to the renderer once, then cleared
             if (this.bodyEl) await this.showMode(mode);
             else this.activeMode = mode; // shell not built yet — onOpen will honour it
+            return;
+        }
+        // A mode this surface no longer has (#487). Hand the leaf over rather than falling back
+        // to the first mode: showing the wrong thing without saying so is the worst failure here.
+        const moved = relocateMode(this.getViewType(), mode);
+        if (moved) {
+            await this.leaf.setViewState({
+                type: moved.surface,
+                state: { ...payload, mode: moved.mode },
+                active: true,
+            });
         }
     }
 
@@ -96,7 +109,9 @@ export abstract class ModeHostView extends ItemView {
         this.tabButtons.clear();
         this.tabOrder = [];
         const viewType = this.getViewType();
-        for (const mode of this.surface.modes) {
+        // A bar offering one choice is not a choice — and an ARIA tablist of one is noise for a
+        // screen reader too. The same rule Explore's lens bar already follows (#487).
+        for (const mode of this.surface.modes.length > 1 ? this.surface.modes : []) {
             const btn = tabs.createEl("button", {
                 text: t(mode.labelKey as LocaleKey),
                 cls: c("surface-mode-tab"),

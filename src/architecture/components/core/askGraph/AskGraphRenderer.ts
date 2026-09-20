@@ -146,14 +146,22 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.container.empty();
     }
 
+    /**
+     * Three regions, and only the middle one scrolls (#487).
+     *
+     * They used to be one column, so scrolling the results carried the facets and the chips off
+     * the top of the pane: to change one filter you scrolled up, changed it, and scrolled back.
+     * The part of a surface that is a **control panel** must not behave like content.
+     */
     private renderShell(): void {
         const root = this.container.createDiv({ cls: c("ask-graph") });
-        root.createDiv({ cls: c("ask-graph-intro"), text: t("explore_intro") });
+        const head = root.createDiv({ cls: c("ask-graph-head") });
+        head.createDiv({ cls: c("ask-graph-intro"), text: t("explore_intro") });
 
-        this.facetsEl = root.createDiv({ cls: c("ask-graph-facets") });
-        this.chipsEl = root.createDiv({ cls: c("ask-graph-chips") });
+        this.facetsEl = head.createDiv({ cls: c("ask-graph-facets") });
+        this.chipsEl = head.createDiv({ cls: c("ask-graph-chips") });
 
-        const lensBar = root.createDiv({ cls: c("ask-graph-lenses") });
+        const lensBar = head.createDiv({ cls: c("ask-graph-lenses") });
         this.lensButtons.clear();
         for (const lens of LENSES) {
             const btn = lensBar.createEl("button", {
@@ -165,11 +173,14 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             this.lensButtons.set(lens, btn);
         }
 
-        this.statusEl = root.createDiv({ cls: c("ask-graph-status") });
-        this.takeEl = root.createDiv({ cls: c("ask-graph-take") });
+        this.statusEl = head.createDiv({ cls: c("ask-graph-status") });
+        this.takeEl = head.createDiv({ cls: c("ask-graph-take") });
+
         this.resultsEl = root.createDiv({ cls: c("ask-graph-results") });
-        this.renderTextEscape(root);
-        this.savedEl = root.createDiv({ cls: c("ask-graph-saved") });
+
+        const foot = root.createDiv({ cls: c("ask-graph-foot") });
+        this.renderTextEscape(foot);
+        this.savedEl = foot.createDiv({ cls: c("ask-graph-saved") });
         this.renderSaved();
         this.run();
     }

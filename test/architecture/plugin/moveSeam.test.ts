@@ -27,8 +27,8 @@ const DOOR = "architecture/plugin/thinking/MoveLog.ts";
  * satisfied by adding one.
  */
 const PERMITTED: Record<string, string> = {
-    // #492 fills this with the Lab's own actions; #493 with the note commands. Empty here on
-    // purpose: M2 ships the door and its guarantees, and nothing yet walks through it.
+    "architecture/components/core/lab/LabRenderer.ts":
+        "the Lab's own gestures — fork, challenge, set aside, crystallize — each from a key or a button you pressed (#492)",
 };
 
 function sources(dir: string): string[] {
@@ -41,12 +41,21 @@ function sources(dir: string): string[] {
     return out;
 }
 
-/** Comments stripped: a rule about what the code does must be judged on code. */
+/**
+ * Comments stripped: a rule about what the code does must be judged on code.
+ *
+ * Line-based on purpose. A block-comment regex is the obvious way and it is wrong here — an
+ * opening block-comment marker inside a string or a regex literal makes it swallow real code up
+ * to the next closing one, and the first version of this guardrail lost most of `LabRenderer`
+ * that way, silently concluding the Lab records nothing.
+ */
 function code(source: string): string {
     return source
-        .replace(/\/\*[\s\S]*?\*\//g, "")
         .split("\n")
-        .filter((line) => !line.trim().startsWith("//"))
+        .filter((line) => {
+            const trimmed = line.trim();
+            return !trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*");
+        })
         .join("\n");
 }
 
@@ -55,9 +64,18 @@ const files = sources(SRC).map((path) => ({
     code: code(readFileSync(path, "utf8")),
 }));
 
-const callers = files.filter(
-    (file) => file.rel !== DOOR && /MoveLog\s*\.\s*getInstance\(\)[\s\S]{0,40}\.record\(/.test(file.code)
-);
+/**
+ * A caller is any file that names the log and records through it — **however** it holds the
+ * reference. The first version looked for `MoveLog.getInstance().record(` and missed the Lab
+ * entirely, because the Lab keeps the instance in a local first. A seam guardrail that a local
+ * variable defeats is decoration, and this one caught its own author.
+ */
+function records(file: { rel: string; code: string }): boolean {
+    if (file.rel === DOOR) return false;
+    return file.code.includes("MoveLog") && file.code.includes(".record(");
+}
+
+const callers = files.filter(records);
 
 describe("the move log has one door (#491)", () => {
     it("is defined in exactly one place", () => {

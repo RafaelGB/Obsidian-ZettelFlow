@@ -267,6 +267,31 @@ most recent **50 moves per subject**, then a global ceiling of **2,000**. The or
 global cap applied first would wipe the whole history of an idea you thought about once to make
 room for one you thought about all week.
 
+### The Lab's own gestures, written down (#492)
+
+Four of the Lab's moves now record themselves, and **nothing about the Lab changed** to make that
+happen — no new key, no new button, no prompt:
+
+| Gesture | Recorded as |
+|---|---|
+| fork | `explore · branch` |
+| challenge | `perturb · challenge` |
+| set aside *(and decided against)* | `explore · set-aside` |
+| crystallize | `crystallize`, carrying the thought **and** the note it became |
+
+A fork records when the response is actually written, not when you press `F` — arming the
+composer opens a box; the move is the thing you did, not the thing you were about to do. Setting a
+thread aside records **one** move, because that is one act however many cards it moves. And
+picking something back up records nothing: putting it back is not a new act of thinking.
+
+Crystallizing writes **both** a judgement and a move, which looks like duplication until you say
+why. The judgement is the verdict — *a human decided this chaos was an idea*. The move is the
+operation — *thinking became knowledge, here, out of that thought*. One answers whether it was
+accepted, the other how it got here.
+
+The lineage comes for free: the most recent move on the thought you acted on **is** what this one
+came out of, so a genealogy builds itself with nothing to maintain.
+
 ## Crystallize — the only door
 
 Pick out the thoughts that turned out to be an idea, and **Crystallize**. A note appears in your

@@ -89,10 +89,14 @@ export class MoveLog {
         try {
             if (!this.inScope(entry.subject)) return undefined;
             const move = newMove({ ...entry, id: entry.id ?? uuid4(), at: entry.at ?? now });
-            this.host.settings.moves.log = pruneMoves([...this.all(), move], {
-                perSubject: MOVES_PER_SUBJECT,
-                ceiling: MOVE_CEILING,
-            });
+            // Replace the container, never mutate it. Settings are loaded with a **shallow**
+            // `Object.assign` over the defaults, so an install with no `moves` key on disk shares
+            // `DEFAULT_SETTINGS.moves` by reference — and mutating `.log` in place would write
+            // into the module-level default, where it would survive a disable/enable and come
+            // back as somebody else's history.
+            this.host.settings.moves = {
+                log: pruneMoves([...this.all(), move], { perSubject: MOVES_PER_SUBJECT, ceiling: MOVE_CEILING }),
+            };
             this.scheduleSave();
             return move;
         } catch (error) {
@@ -105,7 +109,7 @@ export class MoveLog {
     public remove(id: string): void {
         if (!this.host) return;
         const kept = this.all().filter((move) => move.id !== id);
-        this.host.settings.moves.log = kept;
+        this.host.settings.moves = { log: kept };
         this.scheduleSave();
     }
 

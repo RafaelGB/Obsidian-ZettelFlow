@@ -148,3 +148,19 @@ describe("it stays bounded, and it can be undone (#491)", () => {
         expect(MoveLog.getInstance().forSubject("a.md")).toHaveLength(1);
     });
 });
+
+describe("it never writes into the shared default (#491)", () => {
+    it("replaces the container rather than mutating it", () => {
+        // Settings load with a shallow `Object.assign` over the defaults, so an install with no
+        // `moves` key on disk shares `DEFAULT_SETTINGS.moves` by reference. Mutating `.log` in
+        // place would write into the module-level default, survive a disable/enable, and come
+        // back as somebody else's history.
+        MoveLog.getInstance().reset();
+        const shared = { log: [] as Move[] };
+        const owner = host({ moves: shared });
+        MoveLog.getInstance().init(owner);
+        MoveLog.getInstance().record(entry());
+        expect(shared.log).toEqual([]);
+        expect(owner.settings.moves.log).toHaveLength(1);
+    });
+});

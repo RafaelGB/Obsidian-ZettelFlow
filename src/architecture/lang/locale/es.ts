@@ -1578,6 +1578,8 @@ export default {
     evolution_timeline_refresh_button: 'Actualizar',
     evolution_timeline_state_label: 'Estado',
     evolution_timeline_claims_label: 'Afirmaciones',
+    evolution_timeline_move_label: 'Tú',
+    evolution_timeline_move_forget: 'Olvidar este movimiento',
     evolution_timeline_judgement_label: 'Juicio',
     evolution_timeline_filter_cognitive: 'Solo mis juicios',
     evolution_timeline_filter_all: 'Mostrar todo',

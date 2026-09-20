@@ -1578,6 +1578,8 @@ export default {
     evolution_timeline_refresh_button: 'Refresh',
     evolution_timeline_state_label: 'State',
     evolution_timeline_claims_label: 'Claims',
+    evolution_timeline_move_label: 'You',
+    evolution_timeline_move_forget: 'Forget this move',
     evolution_timeline_judgement_label: 'Judgement',
     evolution_timeline_filter_cognitive: 'Only my judgements',
     evolution_timeline_filter_all: 'Show all',

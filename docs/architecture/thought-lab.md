@@ -292,6 +292,32 @@ accepted, the other how it got here.
 The lineage comes for free: the most recent move on the thought you acted on **is** what this one
 came out of, so a genealogy builds itself with nothing to maintain.
 
+### A move on a note (#493)
+
+The moves are **not** a Lab feature. Challenging an idea, finding a counterexample and reframing
+it are exactly as useful against a permanent note you wrote last year, and two doors reach them:
+
+- the **command palette** — one command per verb (`move-challenge`, `move-reframe`, …), each
+  separately hotkey-bindable, each gated on an active markdown note. You type "challenge", you
+  press enter, it is done;
+- **Cultivate** — the same eleven, on the note it is already showing you, which is where you are
+  already deciding what to do with it.
+
+**The note is never written to.** A move is a fact about what *you* did, kept in the log — no
+property, no frontmatter, no body. That is what makes it safe on a note you care about, and the
+[write record](reversibility.md) is where you would see it if it were not true.
+
+There is deliberately no right-click submenu: nesting a menu needs `MenuItem.setSubmenu()`, which
+Obsidian ships at runtime and does not declare in its typings. This plugin already carries one
+unavoidable internal dependency — the canvas patcher — and a right-click convenience does not
+justify a second.
+
+Two things this does **not** do, on purpose. It never asks *why*: the `because` line exists in the
+record and nothing prompts for it, because a gesture that opens a form is a gesture nobody
+repeats. And a move does not follow a rename — neither does a
+[judgement](knowledge-state.md), for the same reason: the alternative is a vault listener inside
+a log whose entire promise is that it never listens to the vault.
+
 ## Crystallize — the only door
 
 Pick out the thoughts that turned out to be an idea, and **Crystallize**. A note appears in your

@@ -4,6 +4,8 @@ import { t } from "architecture/lang";
 import { CultivationService } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { MOVE_VERBS } from "application/thinking/move";
+import { recordMoveOn } from "starters/zcomponents/MoveCommandsComponent";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { Notice, TFile, setIcon } from 'obsidian';
@@ -229,6 +231,26 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             cls: c("cultivate-target-meta"),
             text: t("cultivate_target_meta", String(session.degree), maturity),
         });
+        this.renderMoveRow(card, session.path);
+    }
+
+    /**
+     * The eleven moves, on the note Cultivate is already showing you (#493).
+     *
+     * This is the in-context door. The command palette is the fast one — a hotkey each — but this
+     * is where you are already deciding what to do with a note, and it is how anyone finds out
+     * the moves exist at all. Each is one click, no form asks you to classify it, and **the note
+     * is never written to**: a move is a fact about what you did, not an edit.
+     */
+    private renderMoveRow(card: HTMLElement, path: string): void {
+        const row = card.createDiv({ cls: c("cultivate-target-moves") });
+        for (const verb of MOVE_VERBS) {
+            const button = row.createEl("button", {
+                cls: c("cultivate-target-move"),
+                text: t(verb.labelKey as Parameters<typeof t>[0]),
+            });
+            this.registerDomEvent(button, "click", () => recordMoveOn(verb, path));
+        }
     }
 
     private renderMove(list: HTMLElement, move: CultivationMove): void {

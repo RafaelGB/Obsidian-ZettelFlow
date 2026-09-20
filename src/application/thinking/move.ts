@@ -44,8 +44,14 @@ export interface MoveVerb {
     labelKey: string;
 }
 
-function verb(verb: string, primitive: MovePrimitive): MoveVerb {
-    return { verb, primitive, labelKey: `move_verb_${verb.replace(/-/g, "_")}` };
+/**
+ * Label keys are written out rather than derived from the verb. Deriving them was neater and
+ * wrong: the locale guardrail (#320) scans the source for every key it can find, and a key built
+ * by string arithmetic is invisible to it — so eleven real strings looked like eleven orphans.
+ * A greppable literal is worth more than a clever one.
+ */
+function verb(verb: string, primitive: MovePrimitive, labelKey: string): MoveVerb {
+    return { verb, primitive, labelKey };
 }
 
 /**
@@ -60,17 +66,17 @@ function verb(verb: string, primitive: MovePrimitive): MoveVerb {
  * | crystallize | crystallize | it has enough shape to be knowledge |
  */
 export const MOVE_VERBS: readonly MoveVerb[] = [
-    verb("capture", "externalize"),
-    verb("split", "transform"),
-    verb("compress", "transform"),
-    verb("reframe", "transform"),
-    verb("challenge", "perturb"),
-    verb("counterexample", "perturb"),
-    verb("invert", "perturb"),
-    verb("branch", "explore"),
-    verb("analogy", "explore"),
-    verb("set-aside", "explore"),
-    verb("crystallize", "crystallize"),
+    verb("capture", "externalize", "move_verb_capture"),
+    verb("split", "transform", "move_verb_split"),
+    verb("compress", "transform", "move_verb_compress"),
+    verb("reframe", "transform", "move_verb_reframe"),
+    verb("challenge", "perturb", "move_verb_challenge"),
+    verb("counterexample", "perturb", "move_verb_counterexample"),
+    verb("invert", "perturb", "move_verb_invert"),
+    verb("branch", "explore", "move_verb_branch"),
+    verb("analogy", "explore", "move_verb_analogy"),
+    verb("set-aside", "explore", "move_verb_set_aside"),
+    verb("crystallize", "crystallize", "move_verb_crystallize"),
 ];
 
 /**

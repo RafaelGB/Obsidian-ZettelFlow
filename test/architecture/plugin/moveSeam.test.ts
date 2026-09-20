@@ -29,6 +29,8 @@ const DOOR = "architecture/plugin/thinking/MoveLog.ts";
 const PERMITTED: Record<string, string> = {
     "architecture/components/core/lab/LabRenderer.ts":
         "the Lab's own gestures — fork, challenge, set aside, crystallize — each from a key or a button you pressed (#492)",
+    "starters/zcomponents/MoveCommandsComponent.ts":
+        "the eleven verb commands on the active note, and the one helper Cultivate calls (#493)",
 };
 
 function sources(dir: string): string[] {

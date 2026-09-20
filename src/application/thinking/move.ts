@@ -158,6 +158,16 @@ function byTime(a: Move, b: Move): number {
     return a.at - b.at || a.id.localeCompare(b.id);
 }
 
+/**
+ * How many moves one subject keeps — its genealogy, not the whole history. Fifty is well past
+ * what any one idea accumulates, and the point of the limit is that a runaway subject cannot
+ * push everything else out.
+ */
+export const MOVES_PER_SUBJECT = 50;
+
+/** The safety net for `data.json`. A move is about 120 bytes, so this is a quarter of a megabyte. */
+export const MOVE_CEILING = 2000;
+
 export interface MoveLimits {
     /** How many moves one subject keeps. Its genealogy, not the global history. */
     perSubject: number;
@@ -213,3 +223,39 @@ export const LAB_MOVE_VOCABULARY: Record<LabMove, { primitive: MovePrimitive; ve
     previous: null,
     leave: null,
 };
+
+const PRIMITIVES = new Set<string>(MOVE_PRIMITIVES);
+const VERBS = new Map(MOVE_VERBS.map((entry) => [entry.verb, entry.primitive]));
+
+function looksLikeMove(value: unknown): value is Move {
+    if (typeof value !== "object" || value === null) return false;
+    const candidate = value as Partial<Move>;
+    if (typeof candidate.id !== "string" || candidate.id === "") return false;
+    if (typeof candidate.at !== "number" || !Number.isFinite(candidate.at)) return false;
+    if (typeof candidate.subject !== "string" || candidate.subject === "") return false;
+    if (typeof candidate.primitive !== "string" || !PRIMITIVES.has(candidate.primitive)) return false;
+    if (typeof candidate.verb !== "string") return false;
+    // A verb must belong to the primitive it claims: a log written by a newer release, or edited
+    // by hand, must not be able to smuggle a vocabulary the interface cannot name.
+    return VERBS.get(candidate.verb) === candidate.primitive;
+}
+
+/**
+ * Read a persisted log back safely.
+ *
+ * Everything is rebuilt through {@link newMove}, which is what drops a field the type never
+ * declared — so a body cannot arrive from disk even if something wrote one there. A corrupt blob
+ * costs you the log rather than the plugin, and a hostile member is skipped rather than thrown on.
+ */
+export function sanitizeMoveLog(raw: unknown): Move[] {
+    if (!Array.isArray(raw)) return [];
+    const out: Move[] = [];
+    for (const value of raw) {
+        try {
+            if (looksLikeMove(value)) out.push(newMove(value));
+        } catch {
+            // A getter that throws, a Symbol, a proxy: skip it and keep the rest.
+        }
+    }
+    return out;
+}

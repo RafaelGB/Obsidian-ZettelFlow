@@ -229,6 +229,44 @@ the Lab — for anything that counts thoughts, and scans this surface's strings 
 of debt. A counter would destroy the thing the Lab is for, and it would not be added in this file
 when it happened.
 
+## The move record (#491)
+
+ZettelFlow records what you **have** — notes, states, links, verdicts, and every write it made on
+your behalf. Since 4.3 it also records what you **did**: the operation that changed your mind.
+
+A **move** is five things and nothing more:
+
+| Field | What it holds |
+|---|---|
+| `primitive` | one of five: externalize · transform · perturb · explore · crystallize |
+| `verb` | one of eleven: capture · split · compress · reframe · challenge · counterexample · invert · branch · analogy · set-aside · crystallize |
+| `subject` | a vault path or a thought id — a **reference**, never content |
+| `from` | the move this came out of, so a branch has a genealogy |
+| `because` | one optional line, capped at 140 characters |
+
+### What it never holds
+
+No note body, no thought text. The subject is a reference, exactly as `Judgement.subject` is, and
+the sanitiser rebuilds every entry on read so a field the type never declared cannot arrive from
+disk even if something wrote one there. That is what makes the record safe enough to keep on
+without asking.
+
+### Nothing records itself
+
+Every move comes from a gesture you made. A log a vault event could append to is not a record of
+your thinking — it is telemetry, and this project [deleted its telemetry on
+purpose](project-health-and-roadmap.md). The rule is enforced the way the
+[write seam](reversibility.md#one-door-and-the-test-that-keeps-it-shut) is: the callers are
+derived from the source, and one that also listens to a vault event fails the build.
+
+### Bounded per subject, not by clock
+
+The [write record](reversibility.md) expires after a week because it carries values to restore. A
+move log that expired would destroy the thing it exists for, so it is bounded differently: the
+most recent **50 moves per subject**, then a global ceiling of **2,000**. The order matters — a
+global cap applied first would wipe the whole history of an idea you thought about once to make
+room for one you thought about all week.
+
 ## Crystallize — the only door
 
 Pick out the thoughts that turned out to be an idea, and **Crystallize**. A note appears in your

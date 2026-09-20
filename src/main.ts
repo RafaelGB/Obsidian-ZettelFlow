@@ -29,6 +29,7 @@ import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'arc
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
 import { DevelopmentJournal } from 'architecture/plugin/journal/DevelopmentJournal';
 import { JudgementLog } from 'architecture/plugin/judgement/JudgementLog';
+import { MoveLog } from 'architecture/plugin/thinking/MoveLog';
 import { ConceptualTimeline } from 'architecture/plugin/timeline/ConceptualTimeline';
 import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/onboardingService';
 import { SerializedSettingsWriter } from 'architecture/plugin/services/SerializedSettingsWriter';
@@ -73,6 +74,7 @@ export default class ZettelFlow extends Plugin {
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.
 		ConceptualTimeline.getInstance().init(this); // #168: wire the conceptual evolution timeline to settings.
 		JudgementLog.getInstance().init(this); // #336: wire the judgement record to settings.
+		MoveLog.getInstance().init(this); // #491: wire the move record to settings.
 		// #410: the note-builder draft store takes an injected host — `getOwnPlugin()` is undefined
 		// while the plugin is enabling, which is exactly when a draft is read (#374).
 		draftStore.init({
@@ -113,6 +115,7 @@ export default class ZettelFlow extends Plugin {
 		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.
 		JudgementLog.getInstance().flush(); // #336: persist any pending verdict.
+		MoveLog.getInstance().flush(); // #491: persist any pending move.
 		draftStore.release(); // #410: never hold an unloaded plugin across a disable/enable.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();

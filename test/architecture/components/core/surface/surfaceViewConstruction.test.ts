@@ -17,7 +17,6 @@ describe("surface views expose a construction-safe getViewType (#278)", () => {
     const cases: Array<[string, string]> = [
         ["HomeSurfaceView.ts", "zettelflow-home"],
         ["HealthSurfaceView.ts", "zettelflow-health"],
-        ["DiscoverySurfaceView.ts", "zettelflow-discovery"],
         ["ExploreSurfaceView.ts", "zettelflow-explore"],
     ];
 

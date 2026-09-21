@@ -53,7 +53,6 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             { command: "cultivate", labelKey: "command_cultivate", icon: "sprout" },
             { command: "ask-your-graph", labelKey: "command_ask_graph", icon: "telescope" },
             { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
-            { command: "show-discovery", labelKey: "command_show_discovery", icon: "compass" },
         ],
     ];
 
@@ -73,7 +72,9 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         this.plugin.addCommand({
             id: "show-discovery",
             name: t("command_show_discovery"),
-            callback: () => void activateSurface(this.plugin.app, "zettelflow-discovery"),
+            // The surface is gone (#504) and the id is not: what it looked for — what to do next
+            // — is what Home answers, and always did.
+            callback: () => void activateSurface(this.plugin.app, "zettelflow-home", "home"),
         });
         this.plugin.addCommand({
             id: "show-graph",

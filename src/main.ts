@@ -21,7 +21,6 @@ import { Hooks } from 'hooks';
 import { CodeView } from 'architecture/components/core';
 import { HomeSurfaceView } from 'architecture/components/core/surface/HomeSurfaceView';
 import { HealthSurfaceView } from 'architecture/components/core/surface/HealthSurfaceView';
-import { DiscoverySurfaceView } from 'architecture/components/core/surface/DiscoverySurfaceView';
 import { ExploreSurfaceView } from 'architecture/components/core/surface/ExploreSurfaceView';
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
 import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
@@ -175,7 +174,6 @@ export default class ZettelFlow extends Plugin {
 		// (#484), and Explore took a leaf of its own once it outgrew Discovery's pane (#487).
 		this.registerView("zettelflow-home", (leaf) => new HomeSurfaceView(leaf, this));
 		this.registerView("zettelflow-health", (leaf) => new HealthSurfaceView(leaf));
-		this.registerView("zettelflow-discovery", (leaf) => new DiscoverySurfaceView(leaf));
 		this.registerView("zettelflow-explore", (leaf) => new ExploreSurfaceView(leaf));
 		// The script workbench (#446): its own view, like the four surfaces.
 		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));

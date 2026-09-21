@@ -112,7 +112,7 @@ describe("it restates, and never concludes (#494)", () => {
 
 describe("it costs no new place to look (#494)", () => {
     it("adds no surface", () => {
-        expect(SURFACES).toHaveLength(4);
+        expect(SURFACES).toHaveLength(3);
     });
 
     it("renders the moves where the question already lives", () => {

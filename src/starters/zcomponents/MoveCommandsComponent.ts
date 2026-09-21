@@ -1,10 +1,11 @@
 import { Menu, Notice, TFile } from "obsidian";
 import { PluginComponent } from "architecture";
 import { t } from "architecture/lang";
-import { type MoveVerb } from "application/thinking/move";
+import { effectOf, type MoveVerb } from "application/thinking/move";
 import { isPathExcluded, scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
+import { activateSurface } from "architecture/plugin";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -100,7 +101,22 @@ export class MoveCommandsComponent extends PluginComponent {
 
     private pick(path: string): void {
         const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
-        new MovePicker(this.plugin.app, name, (verb) => recordMoveOn(verb, path)).open();
+        new MovePicker(this.plugin.app, name, "note", (verb: MoveVerb) => this.perform(verb, path)).open();
+    }
+
+    /**
+     * What choosing a verb does, which the vocabulary decides rather than this file (#498).
+     *
+     * A **framed** verb opens the thinking space about that note. It records nothing yet: a move
+     * you did not make is not a move, and the space you opened and closed is not an act of
+     * thinking (#500). A verb that only records has nothing else coming, so it records now.
+     */
+    private perform(verb: MoveVerb, path: string): void {
+        if (effectOf(verb.verb, "note") === "space") {
+            void activateSurface(this.plugin.app, "zettelflow-home", "lab", { about: path, frame: verb.verb });
+            return;
+        }
+        recordMoveOn(verb, path);
     }
 }
 

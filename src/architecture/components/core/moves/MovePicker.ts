@@ -1,7 +1,7 @@
 import { App, SuggestModal } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { MOVE_VERBS, type MoveVerb } from "application/thinking/move";
+import { verbsFor, type MoveSubjectKind, type MoveVerb } from "application/thinking/move";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -29,7 +29,12 @@ type LocaleKey = Parameters<typeof t>[0];
  * is the entire reason the vocabulary has a shape.
  */
 export class MovePicker extends SuggestModal<MoveVerb> {
-    constructor(app: App, noteName: string, private readonly onPick: (verb: MoveVerb) => void) {
+    constructor(
+        app: App,
+        noteName: string,
+        private readonly subject: MoveSubjectKind,
+        private readonly onPick: (verb: MoveVerb) => void
+    ) {
         super(app);
         // The note is named in the placeholder, so the picker says what it is about without a
         // title bar repeating it.
@@ -37,11 +42,14 @@ export class MovePicker extends SuggestModal<MoveVerb> {
     }
 
     getSuggestions(query: string): MoveVerb[] {
+        // Only what means something here (#498): `crystallize` on a note that is already
+        // knowledge, or `capture` on something already captured, are not choices.
+        const offered = verbsFor(this.subject);
         const needle = query.trim().toLowerCase();
-        if (needle === "") return [...MOVE_VERBS];
+        if (needle === "") return offered;
         // Matched on what the user reads, not on the stored id: nobody is searching for
         // "set-aside" — they are typing "aside", or the name of the kind it belongs to.
-        return MOVE_VERBS.filter((verb) => {
+        return offered.filter((verb) => {
             const label = t(verb.labelKey as LocaleKey).toLowerCase();
             const primitive = t(`move_primitive_${verb.primitive}` as LocaleKey).toLowerCase();
             return label.includes(needle) || primitive.includes(needle);

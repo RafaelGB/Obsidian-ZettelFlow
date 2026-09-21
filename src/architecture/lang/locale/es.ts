@@ -227,6 +227,7 @@ export default {
     surface_mode_lab: 'Pensar',
     command_think: 'Pensar: abre tu espacio de pensamiento',
     lab_intro: 'Escribe lo que estás pensando. Nada de esto es una nota, y nada tiene que llegar a serlo.',
+    lab_framed_placeholder: '{0}: {1}…',
     lab_new_thought: '¿Qué estás pensando?',
     lab_no_folder: 'Elige una carpeta para tu espacio de pensamiento en los ajustes, en Pensamiento.',
     lab_fork: 'Bifurcar',

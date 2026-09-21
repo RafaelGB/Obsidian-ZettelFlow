@@ -227,6 +227,7 @@ export default {
     surface_mode_lab: 'Think',
     command_think: 'Think — open your thinking space',
     lab_intro: 'Write what you are thinking. None of this is a note, and none of it has to become one.',
+    lab_framed_placeholder: '{0} — {1}…',
     lab_new_thought: 'What are you thinking?',
     lab_no_folder: 'Choose a folder for your thinking space in settings, under Thinking.',
     lab_fork: 'Fork',

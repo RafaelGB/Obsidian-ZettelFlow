@@ -4,7 +4,6 @@ import { ModeHostView } from "./ModeHostView";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 import { HomeModeRenderer } from "architecture/components/core/home/HomeModeRenderer";
 import { CultivateModeRenderer } from "architecture/components/core/cultivate/CultivateModeRenderer";
-import { ChangeRenderer } from "architecture/components/core/changes/ChangeRenderer";
 import { LabRenderer } from "architecture/components/core/lab/LabRenderer";
 
 /**
@@ -29,8 +28,6 @@ export class HomeSurfaceView extends ModeHostView {
         switch (modeId) {
             case "cultivate":
                 return new CultivateModeRenderer(container, this.plugin, state);
-            case "recent":
-                return new ChangeRenderer(container, this.plugin);
             case "lab":
                 // The subject travels in the view state (#473), the same seam deep links use —
                 // and since #499 the move that opened the space travels beside it.

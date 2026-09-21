@@ -6,7 +6,8 @@ import { composeFilename } from "./destination";
 import { orderedTemplateSources } from "./stepBody";
 import { resolveSatellite, SATELLITE_ERROR_KEYS } from "./satellitePlan";
 import { writeSatellite } from "./satelliteWriter";
-import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { currentWriteBatch, withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { offerUndo } from "architecture/plugin/writes/undoNotice";
 import { TypeService } from "architecture/typing";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { NoteDTO } from "./model/NoteDTO";
@@ -47,10 +48,20 @@ export class NoteBuilder {
     this.actions = actions;
     // One batch (#453): the note, its satellite and every property this flow set are one thing
     // you ran, and one thing you should be able to take back.
-    return await withWriteBatch(
+    let batch: string | undefined;
+    const path = await withWriteBatch(
       { kind: "flow", ref: modal.getCanvasPath(), label: modal.getCanvasName() },
-      async () => (modal.isEditor() ? await this.buildEditor(modal) : await this.buildNewNote())
+      async () => {
+        batch = currentWriteBatch();
+        return modal.isEditor() ? await this.buildEditor(modal) : await this.buildNewNote();
+      }
     );
+    // The same offer a hook makes (#511). A flow creates a note, a satellite, and sets properties
+    // on a third note you were not looking at — and until now the only way to take that back was
+    // a panel of batches and origins that nobody opened. Offered here it arrives while you still
+    // remember what you meant, which is the only moment the third note is even findable.
+    if (batch && path) offerUndo(batch, path);
+    return path;
   }
 
   private async buildEditor(modal: SelectorMenuModal) {

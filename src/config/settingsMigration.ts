@@ -22,6 +22,7 @@ export interface MigratableSettings {
     logLevel?: string;
     events?: { enabled?: boolean };
     history?: unknown[];
+    writeLog?: unknown;
     [key: string]: unknown;
 }
 
@@ -63,6 +64,15 @@ export function migrateSettings(input: MigratableSettings): SettingsMigration {
     // gone rather than kept beside it.
     if ("history" in settings) {
         delete settings.history;
+        changed = true;
+    }
+
+    // And the write record that replaced it (#511). Its only reader was a panel of batches and
+    // origins that nobody opened; the undo it existed for is offered in the moment now, which a
+    // two-minute buffer in memory outlives comfortably. The symmetry is not lost on anyone: the
+    // list that replaced a list is replaced by no list at all.
+    if ("writeLog" in settings) {
+        delete settings.writeLog;
         changed = true;
     }
 

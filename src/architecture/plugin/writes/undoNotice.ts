@@ -1,11 +1,11 @@
 import { Notice } from "obsidian";
 import { c } from "architecture/styles/helper";
 import { t } from "architecture/lang";
-import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { filterWrites, touchedProperties } from "application/writes/vaultWriteLog";
 import { offerState, UNDO_OFFER_MS, worthOffering } from "application/writes/undoOffer";
 import { hasWork, planUndo } from "application/writes/undoPlan";
 import { applyUndo, obsidianUndoVault, readVaultFacts, rememberUndone } from "./applyUndo";
+import { bufferedWrites } from "./recordVaultWrite";
 
 /**
  * The undo a hook's change carries with it (#455, epic #451).
@@ -15,7 +15,7 @@ import { applyUndo, obsidianUndoVault, readVaultFacts, rememberUndone } from "./
  * no second notice, no badge, no counter. The same undo is still in the record afterwards.
  */
 export function offerUndo(batch: string, notePath: string): void {
-    const writes = filterWrites(ObsidianApi.getOwnPlugin()?.settings.writeLog?.writes ?? [], { batch });
+    const writes = filterWrites(bufferedWrites(), { batch });
     if (!worthOffering(writes)) return;
 
     const properties = [...new Set(writes.flatMap(touchedProperties))];
@@ -47,7 +47,7 @@ export function offerUndo(batch: string, notePath: string): void {
 }
 
 async function takeItBack(batch: string): Promise<void> {
-    const writes = filterWrites(ObsidianApi.getOwnPlugin()?.settings.writeLog?.writes ?? [], { batch });
+    const writes = filterWrites(bufferedWrites(), { batch });
     const plan = planUndo(writes, readVaultFacts(writes));
     if (!hasWork(plan)) {
         new Notice(t("changes_nothing_to_undo"));

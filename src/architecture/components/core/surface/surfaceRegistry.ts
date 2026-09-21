@@ -46,7 +46,6 @@ export const SURFACES: readonly Surface[] = [
         modes: [
             { id: "home", sourceView: "zettelflow-home", labelKey: "surface_mode_home" },
             { id: "cultivate", labelKey: "surface_mode_cultivate" },
-            { id: "recent", sourceView: "zettelflow-history", labelKey: "surface_mode_recent" },
             // The Thought Lab (#467) is a mode, not a view: ModeHostView already owns the
             // switching, the deep links and the lifecycle, and a fourth leaf type would be
             // exactly the addition subtraction exists to refuse.

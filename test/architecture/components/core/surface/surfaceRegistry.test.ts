@@ -27,8 +27,8 @@ describe("surface registry (#272, AC-1/AC-6)", () => {
         const sources = SURFACES.flatMap((s) => s.modes.map((m) => m.sourceView)).filter(
             (s): s is string => s !== undefined
         );
-        expect(sources).toHaveLength(5);
-        expect(new Set(sources).size).toBe(5);
+        expect(sources).toHaveLength(4);
+        expect(new Set(sources).size).toBe(4);
     });
 
     it("locateSourceView resolves every retired source to its (surface, mode); defaultMode is the first mode", () => {

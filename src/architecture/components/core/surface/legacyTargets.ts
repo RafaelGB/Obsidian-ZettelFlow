@@ -61,6 +61,9 @@ const RETIRED_TARGETS: Record<string, SurfaceTarget> = {
     "zettelflow-knowledge-map": EXPLORE,
     "zettelflow-concept-nav": EXPLORE,
     "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "health" },
+    // The wizard's note history, then the write record's panel that replaced it, then nothing
+    // (#511): the undo it existed for is offered in the moment now. Home is where it pointed.
+    "zettelflow-history": HOME,
     // Discovery, dissolved (#504): two of its modes were recommendations, two were about the
     // note you had open, and each half already had somewhere to be.
     "zettelflow-discovery": HOME,

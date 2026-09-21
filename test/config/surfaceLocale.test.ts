@@ -10,10 +10,10 @@ describe("surface i18n keys (#272)", () => {
     const enMap = en as Record<string, string>;
     const esMap = es as Record<string, string>;
 
-    it("references 3 titles + 9 mode labels (Discovery dissolved, #504)", () => {
+    it("references 3 titles + 8 mode labels (Recent removed too, #511)", () => {
         // Explore's single mode reuses `surface_mode_ask`, the label it had when it lived in
         // Discovery — and its bar is never drawn anyway.
-        expect(KEYS).toHaveLength(12);
+        expect(KEYS).toHaveLength(11);
     });
 
     it("defines every surface/mode key in both en and es, non-empty", () => {

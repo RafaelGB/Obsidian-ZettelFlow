@@ -12,6 +12,8 @@ import {
     type TimelineEvent,
     type Judgement,
 } from "architecture/knowledge/state";
+import { MOVE_VERBS, type Move } from "application/thinking/move";
+import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { paintIdeaCard } from "./IdeaCardCanvas";
@@ -75,7 +77,11 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             // The judgement log is scope-filtered and path-exact; an idea with no verdicts adds nothing,
             // so a note that was never ruled on renders exactly the pre-#362 timeline.
             const judgements = active ? judgementsFor(JudgementLog.getInstance().entries(), active.path) : [];
-            this.events = timelineEvents(snapshots, judgements);
+            // The moves strand renders even when snapshot recording is off: the timeline is
+            // opt-in because it stores claim *texts*, and a move stores none — so the reason for
+            // the opt-in does not reach it (#494).
+            const moves = active ? MoveLog.getInstance().forSubject(active.path) : [];
+            this.events = timelineEvents(snapshots, judgements, moves);
             this.state = this.events.length === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -142,6 +148,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         for (const event of events) {
             if (event.kind === "snapshot" && event.snapshot) this.renderSnapshot(container, event.snapshot);
             else if (event.kind === "judgement" && event.judgement) this.renderJudgement(container, event.judgement);
+            else if (event.kind === "move" && event.move) this.renderMove(container, event.move);
         }
     }
 
@@ -194,6 +201,40 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             const noteLine = entry.createDiv({ cls: c("evolution-timeline-line") });
             noteLine.createSpan({ text: judgement.note, cls: c("evolution-timeline-note"), attr: { title: judgement.note } });
         }
+    }
+
+    /**
+     * One move, as a sentence rather than a row (#494).
+     *
+     * What it says is a **fact restated**: you did this, to this, then. It never characterises
+     * the sequence — no density, no depth, no "well developed". A run of moves invites a
+     * conclusion and drawing one is a verdict, which §XII puts behind a human decision that has
+     * not been asked for here.
+     */
+    private renderMove(container: HTMLElement, move: Move): void {
+        const entry = container.createDiv({ cls: [c("evolution-timeline-entry"), c("evolution-timeline-move")] });
+        entry.createSpan({ text: new Date(move.at).toLocaleDateString(), cls: c("evolution-timeline-date") });
+
+        const line = entry.createDiv({ cls: c("evolution-timeline-line") });
+        const verb = MOVE_VERBS.find((entry) => entry.verb === move.verb);
+        line.createSpan({ text: t("evolution_timeline_move_label"), cls: c("evolution-timeline-label") });
+        line.createSpan({
+            text: verb ? t(verb.labelKey as Parameters<typeof t>[0]) : move.verb,
+            cls: c("evolution-timeline-verb"),
+        });
+        if (move.because) {
+            line.createSpan({ text: move.because, cls: c("evolution-timeline-note"), attr: { title: move.because } });
+        }
+        // You can take a move back from where you can see it is wrong. It touches the log and
+        // nothing else — never the note it referred to.
+        const undo = line.createEl("button", {
+            text: t("evolution_timeline_move_forget"),
+            cls: c("evolution-timeline-move-forget"),
+        });
+        this.registerDomEvent(undo, "click", () => {
+            MoveLog.getInstance().remove(move.id);
+            this.recompute();
+        });
     }
 
     private renderSnapshot(container: HTMLElement, snapshot: Snapshot): void {

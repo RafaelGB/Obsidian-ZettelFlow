@@ -6,6 +6,7 @@ import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
+import { movesFor, MOVE_CEILING, type Move } from "application/thinking/move";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 import { generateBody, generateVault } from "./generateVault";
@@ -198,5 +199,27 @@ describe("what Explore offers you (#482)", () => {
         const selection = model.all();
         const ms = timed("analysis.heaviest", () => deriveFacets(model, selection), selection.length);
         assertBudget("facets.50k", ms);
+    });
+});
+
+describe("the move record (#491)", () => {
+    it("moves.read", () => {
+        // A full log, spread over 200 subjects, which is what a year of thinking looks like.
+        const moves: Move[] = Array.from({ length: MOVE_CEILING }, (_, n) => ({
+            id: `m${n}`,
+            at: n,
+            primitive: "perturb" as const,
+            verb: "challenge",
+            subject: `note-${n % 200}.md`,
+        }));
+        const ms = timed(
+            "analysis.heaviest",
+            () => {
+                for (let round = 0; round < 50; round++) movesFor(`note-${round % 200}.md`, moves);
+            },
+            moves.length
+        );
+        // Per render, which is what the number has to mean for it to be honest.
+        assertBudget("moves.read", ms / 50);
     });
 });

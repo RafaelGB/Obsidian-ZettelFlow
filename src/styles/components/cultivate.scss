@@ -369,3 +369,28 @@
     }
 }
 
+// The moves, on the note Cultivate is showing (#493). Quiet by default: they are available, not
+// demanded — the card's own recommendation is still the thing leading.
+.zettelkasten-flow__cultivate-target-moves {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.zettelkasten-flow__cultivate-target-move {
+    padding: 0.1rem 0.5rem;
+    height: auto;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    background-color: transparent;
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: none;
+    border-radius: var(--radius-l);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-normal);
+        border-color: var(--interactive-accent);
+    }
+}

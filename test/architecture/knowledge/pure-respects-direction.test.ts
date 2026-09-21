@@ -22,8 +22,25 @@ const FORBIDDEN_PREFIXES = [
     "architecture/api",
 ];
 
-// The single documented exception: a zero-import pure type file under architecture/plugin/model.
-const ALLOWED_EXCEPTIONS = new Set(["architecture/plugin/model/FrontmatterModel"]);
+/**
+ * Documented exceptions, and both are the same shape: a **pure vocabulary** borrowed as a type.
+ *
+ * - `FrontmatterModel` — a zero-import type file under `architecture/plugin/model`.
+ * - `application/thinking/move` — the move vocabulary (#494). The timeline merges what changed,
+ *   what you ruled and what you *did* into one ordered stream, so it has to name the third. The
+ *   module is pure and Obsidian-free, and the import is **type-only**: erased at build, so it
+ *   borrows a shape without borrowing a world. A value import of either still fails below.
+ */
+const ALLOWED_EXCEPTIONS = new Set([
+    "architecture/plugin/model/FrontmatterModel",
+    "application/thinking/move",
+]);
+
+/** `import type { X } from "spec"` — erased at build, so it creates no runtime dependency. */
+function isTypeOnlyImport(source: string, spec: string): boolean {
+    const escaped = spec.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`import\\s+type\\s[^;]*?from\\s+["']${escaped}["']`).test(source);
+}
 
 function collectTsFiles(dir: string): string[] {
     const out: string[] = [];
@@ -39,8 +56,9 @@ function importsOf(source: string): string[] {
     return [...source.matchAll(/from\s+["']([^"']+)["']/g)].map((m) => m[1]);
 }
 
-function isForbidden(spec: string, file: string): boolean {
-    if (ALLOWED_EXCEPTIONS.has(spec)) return false;
+function isForbidden(spec: string, file: string, source: string): boolean {
+    // An exception has to be *taken* as a type: the allow-list is not a licence to import a value.
+    if (ALLOWED_EXCEPTIONS.has(spec) && isTypeOnlyImport(source, spec)) return false;
     if (spec === "obsidian" || spec.startsWith("obsidian/")) return true;
     if (FORBIDDEN_PREFIXES.some((p) => spec === p || spec.startsWith(p + "/"))) return true;
     if (spec.startsWith(".")) {
@@ -65,8 +83,9 @@ describe("pure Knowledge layer imports only inward (#209, epic #262 Phase 6, §X
     it("never imports an outer layer (application/zettelkasten/hooks/config/starters/actions/components/plugin/api/obsidian)", () => {
         const offenders: string[] = [];
         for (const file of files) {
-            for (const spec of importsOf(readFileSync(file, "utf8"))) {
-                if (isForbidden(spec, file)) {
+            const source = readFileSync(file, "utf8");
+            for (const spec of importsOf(source)) {
+                if (isForbidden(spec, file, source)) {
                     offenders.push(`${file.replace(KNOWLEDGE_ROOT, "knowledge")} → ${spec}`);
                 }
             }

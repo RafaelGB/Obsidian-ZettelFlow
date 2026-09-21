@@ -105,3 +105,25 @@
     color: var(--text-muted);
     font-style: italic;
 }
+
+// A move on the timeline (#494): what you *did*, beside what changed and what you ruled. Read as
+// a sentence, so the verb leads and everything else recedes.
+.zettelkasten-flow__evolution-timeline-verb {
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__evolution-timeline-move-forget {
+    margin-left: auto;
+    padding: 0 0.4rem;
+    height: auto;
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-error);
+    }
+}

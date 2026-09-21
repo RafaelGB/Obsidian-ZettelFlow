@@ -24,7 +24,8 @@ export class CrystallizeModal extends Modal {
     constructor(
         app: App,
         private readonly plan: Crystallization,
-        private readonly onDone: () => void,
+        /** Given the path it wrote, so the caller can record what the thinking became (#492). */
+        private readonly onDone: (path?: string) => void,
         /** The note the thread was about, when it had one (#474). */
         private readonly subject?: string
     ) {
@@ -109,7 +110,7 @@ export class CrystallizeModal extends Modal {
                           folder: "",
                       });
             new Notice(path ? t("crystallize_done", path) : t("crystallize_failed"));
-            this.onDone();
+            this.onDone(path);
         } catch (error) {
             log.error("[lab] crystallization failed", error);
             new Notice(t("crystallize_failed"));

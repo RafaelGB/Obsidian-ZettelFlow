@@ -12,6 +12,8 @@ import {
     type ThoughtNode,
 } from "application/thinking/thread";
 import { keyFor, keyLabel, LAB_KEYS, moveFor, type LabMove } from "application/thinking/labKeys";
+import { LAB_MOVE_VOCABULARY } from "application/thinking/move";
+import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -167,6 +169,28 @@ export class LabRenderer extends KnowledgeModeRenderer {
             default:
                 return;
         }
+    }
+
+    /**
+     * Write a Lab gesture down as a move (#492), inheriting the lineage of whatever it acted on.
+     *
+     * The parent comes for free: the most recent move on the thought you acted on *is* what this
+     * one came out of, so a genealogy builds itself with nothing to maintain. Never throws and
+     * never blocks — the gesture already happened; the record is bookkeeping around it.
+     */
+    private remember(move: LabMove, subject: string, produced?: string): void {
+        const vocabulary = LAB_MOVE_VOCABULARY[move];
+        if (!vocabulary) return;
+        const log = MoveLog.getInstance();
+        const history = log.forSubject(subject);
+        const from = history.length > 0 ? history[history.length - 1].id : undefined;
+        log.record({
+            primitive: vocabulary.primitive,
+            verb: vocabulary.verb,
+            subject,
+            ...(produced ? { produced } : {}),
+            ...(from ? { from } : {}),
+        });
     }
 
     /** Move the focus, and bring it into view. Wraps, because a list you fall off the end of is worse. */
@@ -450,6 +474,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
         });
         if (!made) return;
         this.thoughts.push(made);
+        // The gesture, written down (#492). A fork *is* a branch and a challenge *is* a challenge
+        // — the Lab has always called them moves, and now it keeps them. Recorded here rather
+        // than in `arm()` because arming only opens the composer: the move is the thing you did,
+        // not the thing you were about to do.
+        if (relation) this.remember(relation.as === "challenge" ? "challenge" : "fork", relation.to);
 
         if (relation) {
             // A response has to land under what it answers, and only a redraw knows where that
@@ -752,7 +781,12 @@ export class LabRenderer extends KnowledgeModeRenderer {
         new CrystallizeModal(
             this.app,
             plan,
-            () => {
+            (path) => {
+                // Thinking became knowledge, here, out of these thoughts. The judgement recorded
+                // inside `crystallize` is the *verdict* — a human decided this chaos was an idea;
+                // this is the *operation*. One answers "was it accepted", the other "how did it
+                // get here", and collapsing them would lose the genealogy.
+                if (path && chosen.length > 0) this.remember("crystallize", chosen[0].id, path);
                 this.selected.clear();
                 void this.readLab();
             },
@@ -864,6 +898,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.replace(set);
             await store.save(set);
         }
+        // One move for the whole thread: setting a thread aside is one act, however many cards
+        // it moves. `decided-against` is the same verb with a different reason, and the reason
+        // lives on the thought rather than in the log.
+        if (whole.length > 0) this.remember(reason === "not-now" ? "setAside" : "decidedAgainst", whole[0].id);
         this.redrawAfterAction();
     }
 

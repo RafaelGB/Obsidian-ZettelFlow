@@ -1,0 +1,17 @@
+// The move picker (#496): the verb leads, the kind it belongs to recedes — eleven options read
+// as five kinds, which is the entire reason the vocabulary has a shape.
+.zettelkasten-flow__move-pick-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.zettelkasten-flow__move-pick-verb {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__move-pick-primitive {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}

@@ -229,6 +229,132 @@ the Lab — for anything that counts thoughts, and scans this surface's strings 
 of debt. A counter would destroy the thing the Lab is for, and it would not be added in this file
 when it happened.
 
+## The move record (#491)
+
+ZettelFlow records what you **have** — notes, states, links, verdicts, and every write it made on
+your behalf. Since 4.3 it also records what you **did**: the operation that changed your mind.
+
+A **move** is five things and nothing more:
+
+| Field | What it holds |
+|---|---|
+| `primitive` | one of five: externalize · transform · perturb · explore · crystallize |
+| `verb` | one of eleven: capture · split · compress · reframe · challenge · counterexample · invert · branch · analogy · set-aside · crystallize |
+| `subject` | a vault path or a thought id — a **reference**, never content |
+| `from` | the move this came out of, so a branch has a genealogy |
+| `because` | one optional line, capped at 140 characters |
+
+### What it never holds
+
+No note body, no thought text. The subject is a reference, exactly as `Judgement.subject` is, and
+the sanitiser rebuilds every entry on read so a field the type never declared cannot arrive from
+disk even if something wrote one there. That is what makes the record safe enough to keep on
+without asking.
+
+### Nothing records itself
+
+Every move comes from a gesture you made. A log a vault event could append to is not a record of
+your thinking — it is telemetry, and this project [deleted its telemetry on
+purpose](project-health-and-roadmap.md). The rule is enforced the way the
+[write seam](reversibility.md#one-door-and-the-test-that-keeps-it-shut) is: the callers are
+derived from the source, and one that also listens to a vault event fails the build.
+
+### Bounded per subject, not by clock
+
+The [write record](reversibility.md) expires after a week because it carries values to restore. A
+move log that expired would destroy the thing it exists for, so it is bounded differently: the
+most recent **50 moves per subject**, then a global ceiling of **2,000**. The order matters — a
+global cap applied first would wipe the whole history of an idea you thought about once to make
+room for one you thought about all week.
+
+### The Lab's own gestures, written down (#492)
+
+Four of the Lab's moves now record themselves, and **nothing about the Lab changed** to make that
+happen — no new key, no new button, no prompt:
+
+| Gesture | Recorded as |
+|---|---|
+| fork | `explore · branch` |
+| challenge | `perturb · challenge` |
+| set aside *(and decided against)* | `explore · set-aside` |
+| crystallize | `crystallize`, carrying the thought **and** the note it became |
+
+A fork records when the response is actually written, not when you press `F` — arming the
+composer opens a box; the move is the thing you did, not the thing you were about to do. Setting a
+thread aside records **one** move, because that is one act however many cards it moves. And
+picking something back up records nothing: putting it back is not a new act of thinking.
+
+Crystallizing writes **both** a judgement and a move, which looks like duplication until you say
+why. The judgement is the verdict — *a human decided this chaos was an idea*. The move is the
+operation — *thinking became knowledge, here, out of that thought*. One answers whether it was
+accepted, the other how it got here.
+
+The lineage comes for free: the most recent move on the thought you acted on **is** what this one
+came out of, so a genealogy builds itself with nothing to maintain.
+
+### A move on a note (#493)
+
+The moves are **not** a Lab feature. Challenging an idea, finding a counterexample and reframing
+it are exactly as useful against a permanent note you wrote last year, and two doors reach them:
+
+- **right-click** — in the note you are reading, or on its tab or its file: *Make a move…*, which
+  opens a keyboard-first picker. Arrows move, enter chooses, typing narrows, nothing has to be
+  typed;
+- **Cultivate** — the same eleven, on the note it is already showing you, which is where you are
+  already deciding what to do with it.
+
+### Only where a note is knowledge (#496)
+
+The entry appears **only for a note inside the [knowledge scope](knowledge-model.md)**. An
+excluded path — a flow canvas, a script folder, the thinking space — never becomes an idea, so it
+never accrues moves. The log already refused them, and a refusal you cannot see is an invisible
+failure in a different place; better not to offer it.
+
+**The note is never written to.** A move is a fact about what *you* did, kept in the log — no
+property, no frontmatter, no body. That is what makes it safe on a note you care about, and the
+[write record](reversibility.md) is where you would see it if it were not true.
+
+**There are no move commands.** 4.3 first shipped eleven of them and called the palette one
+gesture; it is one gesture for someone who already knows the feature exists, and twelve rows of
+clutter for everyone else. The palette is where you go looking for something you know is there,
+never where you discover anything (#496).
+
+There is still no nested submenu: that needs `MenuItem.setSubmenu()`, which Obsidian ships at
+runtime and does not declare in its typings even at 1.13.1. This plugin already carries one
+unavoidable internal dependency — the canvas patcher — and a right-click convenience does not
+justify a second. One menu entry opening a picker is the next most native answer, and it is an
+interaction every Obsidian user already knows from the quick switcher.
+
+The rule the picker has to satisfy is not "no modal" — it is that **no move may ask you to justify
+or classify it**. Naming the move is the one irreducible question, since there are eleven.
+
+Two things this does **not** do, on purpose. It never asks *why*: the `because` line exists in the
+record and nothing prompts for it, because a gesture that opens a form is a gesture nobody
+repeats. And a move does not follow a rename — neither does a
+[judgement](knowledge-state.md), for the same reason: the alternative is a vault listener inside
+a log whose entire promise is that it never listens to the vault.
+
+### How you got here (#494)
+
+The moves are read where the question already lives: the **Evolution timeline**, which already
+merged *what changed* (snapshots) with *what you ruled* (judgements). Moves are the third strand —
+*what you did* — and `timelineEvents` takes them as a default-empty third argument, so a note with
+no moves renders exactly as it did before.
+
+The strand shows **even when snapshot recording is off**. The timeline is opt-in because it stores
+claim texts; a move stores none, so the reason for the opt-in does not reach it — and a user with
+snapshots off would otherwise have moves and nowhere to read them.
+
+You can **forget a move** from the line you are looking at. It touches the log and nothing else.
+
+#### What it never says
+
+A run of moves invites a conclusion, and the interface does not get to draw one. No density, no
+depth, no "well developed", no "this thread stalled". Counting transformations is still counting,
+and the [manifesto](../manifesto.md) refuses productivity metrics. A locale scan in both languages
+enforces it, because this is the single most likely place for a helpful sentence to arrive in six
+months and a note in a review will not stop it.
+
 ## Crystallize — the only door
 
 Pick out the thoughts that turned out to be an idea, and **Crystallize**. A note appears in your

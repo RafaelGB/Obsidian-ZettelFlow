@@ -88,6 +88,13 @@ export const BUDGETS = {
         because:
             "a hundred times every other projection and re-run on every render — the single most expensive thing ZettelFlow computes",
     },
+    "moves.read": {
+        name: "read one subject's moves from a log at its ceiling",
+        limit: 2,
+        measured: "0.016 ms",
+        because:
+            "the timeline reads this on every render, so it is interaction latency; the log is bounded at 2,000 entries, which is the worst case by construction",
+    },
     "facets.50k": {
         name: "derive the Explore facets over 50,000 notes",
         limit: 600,

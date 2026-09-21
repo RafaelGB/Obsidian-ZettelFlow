@@ -12,6 +12,7 @@ import {
 import type { AiSettings } from "architecture/ai";
 import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 import type { Judgement } from "architecture/knowledge/judgement";
+import type { Move } from "application/thinking/move";
 
 /**
  * A saved "ask your graph" query (#323 G4). `query` is the identity (the predicate text); `name`
@@ -222,6 +223,19 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * The **move record** (#491, epic #489) — what you *did*, beside what you decided.
+     *
+     * The judgement log stores verdicts; this stores operations: you challenged this, branched
+     * that, set the other aside. Same discipline — locale-free descriptors only, never a note
+     * body — with one difference worth knowing: it is bounded **per subject**, not by clock, so
+     * an idea keeps its own genealogy however long ago you had it.
+     */
+    moves: {
+        /** The bounded chronological log, oldest→newest. */
+        log: Move[];
+    };
+
+    /**
      * Knowledge Patterns (#170/#200). When `rerunOnIndex` is on, a note created from a pattern with
      * on-creation actions has that pattern re-run once **after** the vault indexes the note, so graph
      * results (related, contradictions, maturity …) fill in on the first pass. ON by default: offline,
@@ -342,6 +356,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).
     timeline: { enabled: false, snapshots: {} }, // Conceptual evolution timeline opt-in (#168, stores note content).
     judgements: { enabled: true, log: [] }, // Judgement record on by default (#336); descriptors only, no content.
+    moves: { log: [] }, // The move record (#491): what you did, descriptors only, no content.
     patterns: { rerunOnIndex: true }, // Post-index pattern re-run on by default (#200); offline, own keys only.
     hasSeenWelcome: false,
     createInCurrentFolder: false,

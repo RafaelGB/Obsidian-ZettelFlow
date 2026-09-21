@@ -268,6 +268,13 @@
     gap: var(--size-4-1);
 }
 
+// A region's size, trailing its name (#514) — muted, so the name is what you read first.
+.zettelkasten-flow__graph3d-legend-count {
+    margin-left: auto;
+    padding-left: var(--size-4-2);
+    color: #8b93a7;
+}
+
 // Relation rows are clickable to toggle that relation's visibility (#280 iteration).
 .zettelkasten-flow__graph3d-legend-row--clickable {
     pointer-events: auto;

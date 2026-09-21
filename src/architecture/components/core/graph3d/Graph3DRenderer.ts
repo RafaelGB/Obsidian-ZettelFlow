@@ -43,7 +43,7 @@ const STAR_COUNT = 1400;
 const STAR_INNER_RADIUS = 320;
 const STAR_OUTER_RADIUS = 900;
 type ViewState = "indexing" | "ready" | "empty" | "error";
-type ColorMode = "state" | "cluster";
+type ColorMode = "state" | "region";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
 type LabelSprite = THREE.Sprite; // three-spritetext's SpriteText extends three's Sprite (an Object3D)
@@ -115,6 +115,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private tourStopIds: string[] = [];
     private tourBtn: HTMLElement | null = null;
     private hullMeshes: THREE.Mesh[] = [];
+    /** One name per hull (#514) — same lifecycle as the hulls, so neither can outlive the other. */
+    private regionLabels: LabelSprite[] = [];
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
     private proximityTimer: number | undefined;
@@ -608,6 +610,16 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             mesh.position.set(cx, cy, cz);
             scene.add(mesh);
             this.hullMeshes.push(mesh);
+            // The name, above the bubble (#514). Larger and dimmer than a node label, so it reads
+            // as the region rather than as one more note in it.
+            const Ctor = this.spriteTextCtor;
+            const name = nodes.find((node) => node.region)?.region;
+            if (Ctor && name) {
+                const label = new Ctor(name, 11, this.clusterHue(group));
+                label.position.set(cx, cy + radius + 18, cz);
+                scene.add(label);
+                this.regionLabels.push(label);
+            }
             made++;
         }
     }
@@ -619,6 +631,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             mesh.material.dispose();
         }
         this.hullMeshes = [];
+        for (const label of this.regionLabels) scene.remove(label);
+        this.regionLabels = [];
     }
 
     /** Proximity labels (#280): show names for the nearest non-hub nodes so they fade in as you zoom in. */
@@ -718,7 +732,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         colorGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_color") });
         const segmented = colorGroup.createDiv({ cls: c("graph3d-segmented") });
         this.addColorButton(segmented, "state", t("graph3d_color_state"));
-        this.addColorButton(segmented, "cluster", t("graph3d_color_cluster"));
+        this.addColorButton(segmented, "region", t("graph3d_color_region"));
 
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
@@ -1176,7 +1190,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     // ── Status + legend ──────────────────────────────────────────────────────────
     private updateStatus(): void {
         if (!this.statusEl) return;
-        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_cluster");
+        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_region");
         const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
         if (this.pinnedId) {
@@ -1196,7 +1210,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const legend = this.wrapperEl.createDiv({ cls: c("graph3d-legend") });
 
         // Node colour legend — reflects the active mode so the user knows what colours mean.
-        legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_nodes") });
+        legend.createDiv({
+            cls: c("graph3d-legend-title"),
+            text: t(this.colorMode === "state" ? "graph3d_legend_nodes" : "graph3d_legend_regions"),
+        });
         if (this.colorMode === "state") {
             const states = [...new Set(this.displayed.nodes.map((n) => n.state).filter((s) => s))].sort();
             for (const stateName of states) {
@@ -1206,7 +1223,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 row.createSpan({ text: stateName });
             }
         } else {
-            legend.createDiv({ cls: c("graph3d-legend-row") }).createSpan({ text: t("graph3d_legend_cluster") });
+            this.legendRegionRows(legend);
         }
 
         // Node-kind icons present (question / source).
@@ -1229,6 +1246,33 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 row.createSpan({ text: this.relationLabel(type) });
                 this.registerDomEvent(row, "click", () => this.toggleRelation(type));
             }
+        }
+    }
+
+    /**
+     * The regions **on screen**, named and counted (#514).
+     *
+     * It said "By cluster" and stopped there, which is how the largest structures in the view ended
+     * up being the only unlabelled ones. Counting from `displayed.nodes` rather than from the model
+     * means a capped or time-sliced graph reports what you are actually looking at.
+     */
+    private legendRegionRows(legend: HTMLElement): void {
+        const sizes = new Map<string, number>();
+        let alone = 0;
+        for (const node of this.displayed.nodes) {
+            if (node.group < 0 || !node.region) alone++;
+            else sizes.set(node.region, (sizes.get(node.region) ?? 0) + 1);
+        }
+        const ordered = [...sizes].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+        for (const [name, size] of ordered) {
+            const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+            row.createSpan({ text: name });
+            row.createSpan({ cls: c("graph3d-legend-count"), text: t("graph3d_legend_region_size", String(size)) });
+        }
+        if (alone > 0) {
+            const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+            row.createSpan({ text: t("graph3d_legend_alone") });
+            row.createSpan({ cls: c("graph3d-legend-count"), text: t("graph3d_legend_region_size", String(alone)) });
         }
     }
 

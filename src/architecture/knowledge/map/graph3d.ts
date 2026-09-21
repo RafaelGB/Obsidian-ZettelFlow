@@ -7,8 +7,15 @@ export interface Graph3DNode {
     name: string;
     /** Relative size (node degree, min 1). */
     val: number;
-    /** Cluster index for coloring (its hub's cluster), or -1 when the note orbits no hub. */
+    /** Region index for colouring, or -1 when the note is alone (no link to anything in the model). */
     group: number;
+    /**
+     * The region's **name** — its most connected note (#514). Empty when the note is alone.
+     *
+     * It rides on the node rather than sitting on {@link Graph3DData} so it survives `capGraph3D`,
+     * `filterGraph3D` and `graph3dUpToTime` without being threaded through any of them.
+     */
+    region: string;
     /** The idea's workflow state (for optional coloring / filtering). */
     state: string;
     /** Discovery-lens flags (#280 S4): no outgoing edges / no incoming edges / in a `contradicts` relation. */
@@ -81,12 +88,17 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
     const ideas = model.all();
     const ids = new Set(ideas.map((idea) => idea.path));
 
-    // Cluster index per note (hub + members share their cluster's index; unclustered → -1).
+    // Region index and name per note (#513/#514): a region is a connected component, named after
+    // its most connected note; a note with no link in the model gets -1 and no name.
     const groupOf = new Map<string, number>();
+    const regionOf = new Map<string, string>();
     const map = buildKnowledgeMap(model);
     map.clusters.forEach((cluster, index) => {
-        groupOf.set(cluster.hub, index);
-        for (const member of cluster.members) groupOf.set(member, index);
+        const name = basename(cluster.hub);
+        for (const path of [cluster.hub, ...cluster.members]) {
+            groupOf.set(path, index);
+            regionOf.set(path, name);
+        }
     });
 
     // Both endpoints of any in-model `contradicts` relation are flagged for the discovery lens (#280 S4).
@@ -106,6 +118,7 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             name: basename(idea.path),
             val: Math.max(1, idea.maturitySignals.degree),
             group: groupOf.get(idea.path) ?? -1,
+            region: regionOf.get(idea.path) ?? "",
             state: idea.state,
             orphan: model.outNeighborSet(idea.path).size === 0,
             deadEnd: model.inNeighborSet(idea.path).size === 0,

@@ -6,6 +6,7 @@ import { isPathExcluded, scopeExcludedPaths } from "architecture/knowledge/scope
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
 import { activateSurface } from "architecture/plugin";
+import { splitNote } from "./AtomicitySplitComponent";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -112,8 +113,17 @@ export class MoveCommandsComponent extends PluginComponent {
      * thinking (#500). A verb that only records has nothing else coming, so it records now.
      */
     private perform(verb: MoveVerb, path: string): void {
-        if (effectOf(verb.verb, "note") === "space") {
+        const effect = effectOf(verb.verb, "note");
+        if (effect === "space") {
             void activateSurface(this.plugin.app, "zettelflow-home", "lab", { about: path, frame: verb.verb });
+            return;
+        }
+        if (effect === "operation") {
+            // The one verb the product can actually perform: splitting a note at its headings
+            // invents nothing, it rearranges what you already wrote (#501). It records when the
+            // split completes, so a cancelled modal leaves no trace.
+            const file = this.plugin.app.vault.getAbstractFileByPath(path);
+            if (file instanceof TFile) void splitNote(this.plugin.app, file, () => recordMoveOn(verb, path));
             return;
         }
         recordMoveOn(verb, path);

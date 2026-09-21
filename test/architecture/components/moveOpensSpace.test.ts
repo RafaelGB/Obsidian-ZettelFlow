@@ -32,7 +32,8 @@ function code(source: string): string {
 
 describe("a framed verb opens the thinking space (#499)", () => {
     it("routes by what the vocabulary says the verb does, not by a list here", () => {
-        expect(code(COMMANDS)).toContain('effectOf(verb.verb, "note") === "space"');
+        expect(code(COMMANDS)).toContain('const effect = effectOf(verb.verb, "note");');
+        expect(code(COMMANDS)).toContain('if (effect === "space")');
         expect(code(COMMANDS)).toContain('activateSurface(this.plugin.app, "zettelflow-home", "lab", { about: path, frame: verb.verb })');
     });
 

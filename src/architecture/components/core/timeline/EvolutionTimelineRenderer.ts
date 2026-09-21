@@ -16,6 +16,8 @@ import { MOVE_VERBS, type Move } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/EvidenceMapRenderer";
+import { ResurfaceRenderer } from "architecture/components/core/resurface/ResurfaceRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { paintIdeaCard } from "./IdeaCardCanvas";
 import { canvasToPngBlob } from "architecture/components/core/export/mediaCapture";
@@ -128,6 +130,43 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             this.registerDomEvent(share, "click", () => void this.shareIdeaCard());
         }
 
+        this.renderHistory(container.createDiv({ cls: c("evolution-timeline-history") }));
+        this.renderAround(container);
+    }
+
+    /**
+     * What is around this note (#506, epic #504).
+     *
+     * Two of Discovery's modes were never about discovery: **Challenges** asked what supports and
+     * contradicts *the active note*, and **Forgotten** ranked notes near *the active note* you had
+     * not revisited. They sat in a surface named for browsing the vault while the question they
+     * answer — *what is around the note I am reading* — had no home at all.
+     *
+     * This view did: it is already per-note, already merges what changed with what you ruled and
+     * what you did, and is already where you look after making a move. So they are **mounted**
+     * here rather than reimplemented — same renderers, same behaviour, cleaned up by this
+     * component's lifecycle.
+     *
+     * Outside the history's state gate on purpose. The history is opt-in because it stores claim
+     * texts; neither of these does, so a user with snapshots off must still see what contradicts
+     * the note in front of them — the same reasoning #494 used for moves.
+     */
+    private renderAround(container: HTMLElement): void {
+        this.section(container, "evolution_timeline_contradicts", (host) => new EvidenceMapRenderer(host, this.app));
+        this.section(container, "evolution_timeline_unrevisited", (host) => new ResurfaceRenderer(host, this.app));
+    }
+
+    private section(
+        container: HTMLElement,
+        headingKey: Parameters<typeof t>[0],
+        build: (host: HTMLElement) => KnowledgeModeRenderer
+    ): void {
+        const section = container.createDiv({ cls: c("evolution-timeline-section") });
+        section.createEl("h5", { text: t(headingKey), cls: c("evolution-timeline-section-title") });
+        this.addChild(build(section.createDiv()));
+    }
+
+    private renderHistory(container: HTMLElement): void {
         if (this.state === "loading") {
             container.createDiv({ cls: c("evolution-timeline-status"), text: t("evolution_timeline_loading") });
             return;

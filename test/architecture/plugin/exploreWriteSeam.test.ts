@@ -1,79 +1,109 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
+import { readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
-import { createMapOfContent } from "architecture/plugin/explore/createMapOfContent";
-import { rowFacts } from "architecture/knowledge/query/answer";
-import { idea, buildModel } from "../../actions/knowledge/support/knowledgeFixture";
 
 const ROOT = join(__dirname, "..", "..", "..");
+const SRC = join(ROOT, "src");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
-const WRITER = read("src/architecture/plugin/explore/createMapOfContent.ts");
+const WRITER = read("src/architecture/plugin/notes/writeMapOfContent.ts");
+const DOOR = read("src/architecture/plugin/explore/createMapOfContent.ts");
 const PURE = read("src/application/explore/mapOfContent.ts");
 const RENDERER = read("src/architecture/components/core/askGraph/AskGraphRenderer.ts");
 const MODAL = read("src/architecture/components/core/askGraph/MapOfContentModal.ts");
+const MOC_MODAL = read("src/zettelkasten/modals/MocBuilderModal.ts");
 
 /**
- * Comments stripped. A rule about what the code must not say has to be judged on the code: the
- * doc comment explaining *"nothing is summarised"* would otherwise fail the very test it
- * describes — a trap this repo has fallen into twice.
+ * **One map of content** (#505, epic #504), and taking a selection somewhere safely (#486).
+ *
+ * There were two writers. `MocBuilderModal` has always written into a **machine-managed region**,
+ * so running a map again updates that block and leaves your prose alone. #486 added a second
+ * that wrote a fresh numbered note and could not be re-run — having declared re-running out of
+ * scope **without checking that a re-runnable map already existed three folders away**.
+ *
+ * The door #486 added was the better one; the implementation was the weaker one. So the door
+ * stays and the implementation is gone, and the rule that keeps it that way is here.
  */
+
+/** Comments stripped, line-based — a rule about what the code does is judged on code. */
 function code(source: string): string {
     return source
-        .replace(/\/\*[\s\S]*?\*\//g, "")
         .split("\n")
-        .filter((line) => !line.trim().startsWith("//"))
+        .filter((line) => {
+            const trimmed = line.trim();
+            return !trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*");
+        })
         .join("\n");
 }
 
-/**
- * **Taking a selection somewhere, safely** (#486, epic #481).
- *
- * Explore is a read-only surface with exactly one write in it, and that write has to behave like
- * every other write in the plugin: through `FileService`, inside a batch, recorded, undoable, and
- * never overwriting. These are the structural assertions; the note's shape is tested purely in
- * `mapOfContent.test.ts`.
- */
+function sources(dir: string): string[] {
+    const out: string[] = [];
+    for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) out.push(...sources(full));
+        else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) out.push(full);
+    }
+    return out;
+}
 
-describe("the one write goes through the one door (#486)", () => {
-    it("creates through FileService inside a write batch, never the vault directly", () => {
-        expect(WRITER).toContain("withWriteBatch(");
-        expect(WRITER).toContain("FileService.createFile(");
-        // The seam guardrail scans all of src/ for these, but stating it here says why it matters:
-        // this is where the write record is taken, which is what makes the map undoable for free.
-        expect(WRITER).not.toMatch(/vault\.(create|modify|delete|trash)\b/);
+describe("one map of content (#505)", () => {
+    it("has exactly one module that renders a map's body", () => {
+        const rendering = sources(SRC)
+            .map((path) => ({ rel: path.slice(SRC.length + 1).replace(/\\/g, "/"), code: code(readFileSync(path, "utf8")) }))
+            .filter((file) => /renderMocRegion\(|MOC_REGION_START/.test(file.code))
+            .map((file) => file.rel);
+        expect(rendering.sort()).toEqual(["application/notes/mocMerge.ts"]);
+    });
+
+    it("has exactly one module that writes one", () => {
+        const writing = sources(SRC)
+            .map((path) => ({ rel: path.slice(SRC.length + 1).replace(/\\/g, "/"), code: code(readFileSync(path, "utf8")) }))
+            .filter((file) => file.code.includes("mergeMocRegion("))
+            .map((file) => file.rel);
+        expect(writing.sort()).toEqual([
+            "application/notes/mocMerge.ts",
+            "architecture/plugin/notes/writeMapOfContent.ts",
+        ]);
+    });
+
+    it("and both doors come through it", () => {
+        expect(code(DOOR)).toContain("writeMapOfContent(");
+        expect(code(MOC_MODAL)).toContain("writeMapOfContent(");
+    });
+
+    it("the selection module chooses members and renders nothing", () => {
+        expect(code(PURE)).toContain("export function mapMembers");
+        expect(code(PURE)).not.toContain("planMapOfContent");
+        // Scoped to `mapMembers`: `asLinks` legitimately renders wikilinks, for the clipboard.
+        const body = code(PURE).slice(code(PURE).indexOf("export function mapMembers"));
+        const members = body.slice(0, body.indexOf("\n}"));
+        expect(members).not.toContain("[[");
+        expect(members).not.toContain("---");
+    });
+});
+
+describe("the write is recorded, and never destructive (#486, #505)", () => {
+    it("goes through FileService inside a write batch, never the vault directly", () => {
+        expect(code(WRITER)).toContain("withWriteBatch(");
+        expect(code(WRITER)).toContain("FileService.createFile(");
+        expect(code(WRITER)).toContain("FileService.modify(");
+        expect(code(WRITER)).not.toMatch(/vault\.(create|modify|delete|trash)\b/);
     });
 
     it("names an origin, so Recent can say what wrote the note", () => {
-        expect(WRITER).toContain('ref: "map-of-content"');
-        expect(WRITER).toContain('kind: "manual"');
+        expect(code(WRITER)).toContain('kind: "manual"');
+        expect(code(DOOR)).toContain('"explore-map"');
+        expect(code(MOC_MODAL)).toContain('"moc-builder"');
     });
 
-    it("never overwrites — a taken name gets a number", async () => {
-        const taken = new Set(["Notes/state permanent.md"]);
-        const written: string[] = [];
-        const model = buildModel([idea("a.md", "permanent")]);
-        // The write itself needs a vault; the naming decision does not, so it is checked here by
-        // letting the create fail and reading which path it tried.
-        const path = await createMapOfContent({
-            matches: model.all(),
-            terms: ["state:permanent"],
-            facts: (each) => rowFacts(each, ["state:permanent"], model),
-            factText: (fact) => `${fact.key} ${fact.value}`,
-            name: "state:permanent",
-            queryKey: "zfQuery",
-            intro: "x",
-            andMore: (n) => `${n}`,
-            folder: "Notes",
-            exists: (candidate) => {
-                written.push(candidate);
-                return taken.has(candidate);
-            },
-        });
-        // No vault in this environment, so the write fails and returns undefined — what matters is
-        // that it asked about the taken name first and moved on.
-        expect(written[0]).toBe("Notes/state permanent.md");
-        expect(written[1]).toBe("Notes/state permanent 2.md");
-        expect(path).toBeUndefined();
+    it("updates rather than overwrites — the managed region is the whole point", () => {
+        // A map that cannot be re-run is a map you abandon the first time the selection changes.
+        expect(code(WRITER)).toContain("mergeMocRegion(content,");
+        expect(code(WRITER)).not.toContain("uniqueName");
+    });
+
+    it("never throws: a failed map must not take the surface down with it", () => {
+        expect(code(WRITER)).toContain("catch (error)");
+        expect(code(WRITER)).toContain("return undefined;");
     });
 });
 
@@ -86,17 +116,22 @@ describe("the clipboard is only touched on purpose (#486)", () => {
 });
 
 describe("the map stays mechanical (#486)", () => {
-    it("writes no conclusion: the pure module has no field a verdict could live in", () => {
+    it("writes no conclusion: nothing in the path holds one", () => {
         // §XII: a gathered list needs no accept/reject gate. A "what these have in common"
         // section would, and this is the test that notices it arriving.
         for (const word of ["summary", "summarise", "summarize", "insight", "conclusion", "theme"]) {
-            const present = code(PURE).toLowerCase().includes(word);
-            expect({ word, present }).toEqual({ word, present: false });
+            for (const [name, source] of [["pure", PURE], ["writer", WRITER]] as const) {
+                expect({ word, name, present: code(source).toLowerCase().includes(word) }).toEqual({
+                    word,
+                    name,
+                    present: false,
+                });
+            }
         }
     });
 
-    it("reaches no AI and no network, from either side", () => {
-        for (const source of [PURE, WRITER, MODAL]) {
+    it("reaches no AI and no network, from any side", () => {
+        for (const source of [PURE, WRITER, DOOR, MODAL]) {
             expect(source).not.toMatch(/\bfetch\(|requestUrl|ZfAi|openai|anthropic/i);
         }
     });

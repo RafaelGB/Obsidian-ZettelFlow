@@ -7,7 +7,13 @@
  * while Explore answered *which notes match this?*, the same question asked twice with no way to
  * carry an answer across. The graph is a **lens** now.
  *
- * #487 then gave Explore its own room. Discovery's four modes are narrow lists that belong in a
+ * #504 then dissolved **Discovery**. Its four modes answered two questions, neither of them
+ * Discovery's own: *what should I do next* (connections and questions — and Home already rendered
+ * the connections, from the same function) and *what is around the note I am reading* (forgotten
+ * and challenges, both keyed on the active file, now sections of the note's own view). A surface
+ * with no question of its own is a door onto four things that live somewhere else.
+ *
+ * #487 gave Explore its own room. Discovery's four modes are narrow lists that belong in a
  * side panel; Explore is facets, chips, an answer and a 3D graph, and a mode cannot be moved out
  * of a pane without taking the four lists with it. So the count went 4 → 3 → 4 — and the honest
  * reading is *the Graph surface was absorbed and Explore took its place*, not that a box was
@@ -40,7 +46,6 @@ export const SURFACES: readonly Surface[] = [
         modes: [
             { id: "home", sourceView: "zettelflow-home", labelKey: "surface_mode_home" },
             { id: "cultivate", labelKey: "surface_mode_cultivate" },
-            { id: "recent", sourceView: "zettelflow-history", labelKey: "surface_mode_recent" },
             // The Thought Lab (#467) is a mode, not a view: ModeHostView already owns the
             // switching, the deep links and the lifecycle, and a fourth leaf type would be
             // exactly the addition subtraction exists to refuse.
@@ -55,16 +60,6 @@ export const SURFACES: readonly Surface[] = [
             { id: "timeline", sourceView: "zettelflow-evolution-timeline", labelKey: "surface_mode_timeline" },
             { id: "momentum", sourceView: "zettelflow-thinking-heatmap", labelKey: "surface_mode_momentum" },
             { id: "agency", labelKey: "surface_mode_agency" },
-        ],
-    },
-    {
-        viewType: "zettelflow-discovery",
-        titleKey: "surface_discovery_title",
-        modes: [
-            { id: "connections", sourceView: "zettelflow-discoveries", labelKey: "surface_mode_connections" },
-            { id: "forgotten", sourceView: "zettelflow-resurface", labelKey: "surface_mode_forgotten" },
-            { id: "questions", sourceView: "zettelflow-open-questions", labelKey: "surface_mode_questions" },
-            { id: "challenges", sourceView: "zettelflow-evidence-map", labelKey: "surface_mode_challenges" },
         ],
     },
     {

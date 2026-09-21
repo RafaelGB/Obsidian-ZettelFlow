@@ -5,8 +5,8 @@ import { FileService } from "architecture/plugin/services/FileService";
 import { FrontmatterService } from "architecture/plugin/services/FrontmatterService";
 import type { Literal } from "architecture/plugin/model/FrontmatterModel";
 import type { UndoPlan, VaultFacts } from "application/writes/undoPlan";
-import { markBatchUndone, type VaultWrite } from "application/writes/vaultWriteLog";
-import { withoutRecording } from "./recordVaultWrite";
+import type { VaultWrite } from "application/writes/vaultWriteLog";
+import { bufferedWrites, replaceBufferedWrites, withoutRecording } from "./recordVaultWrite";
 
 /**
  * The side of undo that touches the vault (#454, epic #451).
@@ -127,15 +127,12 @@ export function readVaultFacts(writes: VaultWrite[]): VaultFacts {
     return { mtimes, frontmatter };
 }
 
-/** Write the batch off as taken back, so the panel stops offering an undo that already happened. */
+/** Write the batch off as taken back, so a second offer never appears for an undo that happened. */
 export function rememberUndone(batch: string, at: number): void {
     try {
-        const plugin = ObsidianApi.getOwnPlugin();
-        if (!plugin?.settings.writeLog) return;
-        plugin.settings.writeLog = {
-            writes: markBatchUndone(plugin.settings.writeLog.writes, batch, at),
-        };
-        void plugin.saveSettings();
+        replaceBufferedWrites(
+            bufferedWrites().map((write) => (write.batch === batch ? { ...write, undone: at } : write))
+        );
     } catch (error) {
         log.warn("[undo] could not mark the batch as taken back", error);
     }

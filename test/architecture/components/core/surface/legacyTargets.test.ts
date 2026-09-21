@@ -14,11 +14,11 @@ describe("legacy back-compat targets (#272, AC-2)", () => {
         for (const cmd of commands) expect(isValidTarget(LEGACY_OPEN_TARGETS[cmd])).toBe(true);
     });
 
-    it("maps all 12 redirect view types to a valid (surface, mode) — never self-redirecting home", () => {
+    it("maps all 13 redirect view types to a valid (surface, mode) — never self-redirecting home", () => {
         // Twelve since #484: `zettelflow-graph` joined the list when its surface went away, so a
         // workspace saved before the merge reopens Explore instead of an empty pane.
         const types = Object.keys(LEGACY_VIEW_TARGETS);
-        expect(types).toHaveLength(12);
+        expect(types).toHaveLength(13);
         expect(types).toContain("zettelflow-graph");
         expect(types).not.toContain("zettelflow-home");
         for (const type of types) expect(isValidTarget(LEGACY_VIEW_TARGETS[type])).toBe(true);
@@ -47,7 +47,10 @@ describe("legacy back-compat targets (#272, AC-2)", () => {
             surface: "zettelflow-explore",
             mode: "explore",
         });
-        expect(relocateMode("zettelflow-discovery", "connections")).toBeNull();
+        // Its other modes moved too (#504): two to Home, two to the note's own view.
+        expect(relocateMode("zettelflow-discovery", "connections")).toMatchObject({ surface: "zettelflow-home" });
+        expect(relocateMode("zettelflow-discovery", "challenges")).toMatchObject({ mode: "timeline" });
+        expect(relocateMode("zettelflow-discovery", "nonsense")).toBeNull();
         // …and the host actually consults it, rather than falling back to the first mode.
         const host = readFileSync(
             join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "surface", "ModeHostView.ts"),

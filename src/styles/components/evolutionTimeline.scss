@@ -144,3 +144,22 @@
     color: var(--text-faint);
     text-decoration: line-through;
 }
+
+// The note's view (#506): its history, then what is around it. The history is the long part, so
+// it is the part that scrolls — the controls above it stay put, the rule #487 paid for.
+.zettelkasten-flow__evolution-timeline-history {
+    max-height: 45vh;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__evolution-timeline-section {
+    margin-top: 1rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__evolution-timeline-section-title {
+    margin: 0 0 0.4rem;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

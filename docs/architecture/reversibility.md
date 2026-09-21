@@ -10,6 +10,22 @@ the notes and look.
 Now every write leaves a **fact**. This page is what that record is, what it deliberately is not,
 and where it lives.
 
+> **3.3 changed the shape of this.** The panel that read the record — *What ZettelFlow changed* —
+> is gone (#511). Nobody opened it, and every thought typed in the Lab landed in the record it
+> read, so an afternoon of thinking could evict the flow writes you would actually want to take
+> back.
+>
+> Undo did not go with it. It moved to **the moment**: a flow now offers the same thirty-second
+> notice a hook always did, which is when you still remember what you meant and the only moment
+> you would notice that a third note was touched at all. One offer, one path, no panel.
+>
+> And the record then had nothing to outlive but that offer, so it is **in memory**: two minutes,
+> never written to disk. No retention policy, no settings field, no `data.json` growth. A reload
+> empties it.
+>
+> **The honest consequence:** a flow you regret an hour later is no longer reversible from inside
+> the plugin. That was already true for hooks by decision (#455); it is now true for everything.
+
 ## The record
 
 One entry per change, newest first:

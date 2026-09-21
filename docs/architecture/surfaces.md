@@ -23,10 +23,10 @@ surfaces. Note creation is no longer its own ribbon icon.
 |---|---|---|
 | **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + **[What ZettelFlow changed](reversibility.md)** (#454) |
 | **Health** | Health · Timeline · Momentum | Slip-box health **+ the knowledge dashboard folded in** (#314) + Evolution timeline + Thinking heatmap |
-| **Discovery** | Connections · Forgotten · Questions · Challenges | Discovery + Resurface + Open questions + Evidence map |
+| *(Discovery — dissolved, #504)* | — | its four modes answered two questions that already had homes: see below |
 | **[Explore](../development/ask-your-graph.md)** | *(one mode, so no mode bar)* | Ask your graph + the retired **Graph** surface (#484), whose 3D view is now one of Explore's [lenses](../development/graph-3d.md) |
 
-The count went **4 → 3 → 4** in one release, and the honest reading is not "a box was saved".
+The count went **4 → 3 → 4 → 3**, and the honest reading is not "boxes were saved".
 
 #484 absorbed the Graph surface: it hosted one mode, answering *what shape is my knowledge?* while
 Explore answered *which notes match this?* — the same question in two places, with no way to carry
@@ -37,6 +37,20 @@ pairs, a few resurfaced notes — which is why people keep that surface in a sid
 facets, chips, an answer, a lens bar and a 3D graph, and a *mode* cannot be moved out of a pane
 without dragging the four lists with it. The principle was never "fewer boxes": it is **one home
 per capability, and no two places answering the same question**.
+
+#504 then dissolved **Discovery**, whose four modes were never about discovery:
+
+| Mode | What it really was | Where it went |
+|---|---|---|
+| Connections | `findDiscoveries`, a ranked pair-finder | Home — which **already rendered it**, from the same function |
+| Questions | a global list of what is unanswered | Home |
+| Forgotten | notes near *the active note* you have not revisited | the note's own view |
+| Challenges | *the active note's* supports and contradictions | the note's own view |
+
+Two were recommendations — *what should I do next*, which is what Home is for — and two were
+about the note you had open, which is what the **This note** mode of Health already was. A
+surface whose modes answer other surfaces' questions is a door onto four things that live
+somewhere else.
 
 A surface with a single mode draws **no mode bar** — a bar offering one choice is not a choice,
 and an ARIA tablist of one is noise for a screen reader too.
@@ -70,5 +84,5 @@ can move, split or pin them like any Obsidian document.
 
 - Registry + back-compat maps (pure): `architecture/components/core/surface/{surfaceRegistry,legacyTargets}.ts`.
 - Host + renderer contract: `architecture/components/core/surface/{ModeHostView,KnowledgeModeRenderer,LegacyRedirectView}.ts`.
-- The four surfaces: `architecture/components/core/surface/{Home,Health,Discovery,Explore}SurfaceView.ts`.
+- The three surfaces: `architecture/components/core/surface/{Home,Health,Explore}SurfaceView.ts`.
 - Deep-linking to a mode: `activateSurface(app, surfaceType, mode)` in `architecture/plugin/services/ViewActivation.ts`.

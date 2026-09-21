@@ -1,13 +1,24 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { readdirSync, readFileSync, statSync } from "fs";
+import { basename, join } from "path";
 import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
 
 // test/architecture/components/core/surface → 5 ups → repo root
 const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
-const SURFACE_TYPES = ["zettelflow-home", "zettelflow-health", "zettelflow-discovery", "zettelflow-explore"];
+/** Everything under src/, concatenated — enough to ask "is this name ever constructed?". */
+const SOURCES = (function collect(dir: string): string {
+    let out = "";
+    for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) out += collect(full);
+        else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) out += readFileSync(full, "utf8");
+    }
+    return out;
+})(join(ROOT, "src"));
+
+const SURFACE_TYPES = ["zettelflow-home", "zettelflow-health", "zettelflow-explore"];
 
 /** The 12 retired opener commands kept as aliases (must still be registered somewhere). */
 const ALIAS_COMMANDS = [
@@ -29,7 +40,7 @@ const ALIAS_COMMANDS = [
 const RETIRED_IN_MENU = ALIAS_COMMANDS.filter((id) => id !== "show-home");
 
 describe("surface consolidation (#272, AC-3/AC-4; the count's history is in surfaceRegistry.test)", () => {
-    it("main.ts registers exactly the 4 surfaces + the legacy redirect loop", () => {
+    it("main.ts registers exactly the 3 surfaces + the legacy redirect loop", () => {
         const main = read("src/main.ts");
         for (const type of SURFACE_TYPES) {
             expect(main).toContain(`this.registerView("${type}"`);
@@ -45,7 +56,6 @@ describe("surface consolidation (#272, AC-3/AC-4; the count's history is in surf
     it("the ribbon menu references only the surface commands, none of the retired per-view openers", () => {
         const menu = read("src/starters/zcomponents/ZettelFlowMenuComponent.ts");
         expect(menu).toContain("show-health");
-        expect(menu).toContain("show-discovery");
         for (const retired of RETIRED_IN_MENU) {
             expect(menu.includes(`"${retired}"`)).toBe(false);
         }
@@ -86,5 +96,30 @@ describe("surface consolidation (#272, AC-3/AC-4; the count's history is in surf
         for (const id of ALIAS_COMMANDS) {
             expect(components.includes(`"${id}"`)).toBe(true);
         }
+    });
+});
+
+describe("no renderer is left with nobody to build it (#508)", () => {
+    it("every mode renderer in the tree is constructed somewhere", () => {
+        // The failure mode of dissolving a surface is a renderer nobody deletes because nobody
+        // notices — dead code that still compiles, still ships, and still has tests.
+        const core = join(ROOT, "src", "architecture", "components", "core");
+        const files: string[] = [];
+        const walk = (dir: string): void => {
+            for (const entry of readdirSync(dir)) {
+                const full = join(dir, entry);
+                if (statSync(full).isDirectory()) walk(full);
+                else if (entry.endsWith("Renderer.ts")) files.push(full);
+            }
+        };
+        walk(core);
+
+        const all = read("src/main.ts") + SOURCES;
+        const orphans = files
+            .map((file) => basename(file, ".ts"))
+            // The abstract base every mode renderer extends; never constructed, by definition.
+            .filter((name) => name !== "KnowledgeModeRenderer")
+            .filter((name) => all.indexOf(`new ${name}(`) === -1);
+        expect(orphans).toEqual([]);
     });
 });

@@ -1,6 +1,7 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { computeWeeklyReview } from "../review/weeklyReview";
 import { findDiscoveries } from "../discovery/discoveries";
+import { openQuestions, type OpenQuestion } from "../questions/openQuestions";
 
 const DAY_MS = 86_400_000;
 const NEW_IDEAS_WINDOW_MS = 7 * DAY_MS;
@@ -17,6 +18,14 @@ export interface HomeModel {
     fleetingCount: number;
     /** Up to TOP_N fleeting notes, newest first — the nudge links straight to the first one. */
     fleetingReady: string[];
+    /**
+     * What is asked and unanswered (#507, epic #504).
+     *
+     * It had a mode of its own in Discovery, which was the wrong surface: it is not a filter
+     * over your vault, it is an answer to *what should I do next* — the question Home exists
+     * for, and where the suggested connections beside it already were.
+     */
+    openQuestions: OpenQuestion[];
 }
 
 export interface BuildHomeOptions {
@@ -60,6 +69,8 @@ export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeMo
         .slice(0, TOP_N)
         .map((discovery) => ({ a: discovery.a, b: discovery.b }));
 
+    const unanswered = openQuestions(model).slice(0, TOP_N);
+
     const fleeting = all
         .filter((idea) => idea.state === "fleeting")
         .sort((a, b) => b.created - a.created || byPath(a.path, b.path));
@@ -73,5 +84,6 @@ export function buildHome(model: KnowledgeModel, opts: BuildHomeOptions): HomeMo
         suggestedConnections,
         fleetingCount: fleeting.length,
         fleetingReady,
+        openQuestions: unanswered,
     };
 }

@@ -49,19 +49,6 @@ export const UNDOABLE_KINDS: readonly WriteKind[] = [
     "content-appended",
 ];
 
-/**
- * What to call each kind on screen. A map, not a composed `t()` key: the locale guardrail (#320)
- * has to be able to see every key that is used.
- */
-export const KIND_LABEL_KEY: Record<WriteKind, string> = {
-    "note-created": "changes_kind_note_created",
-    "file-created": "changes_kind_file_created",
-    "file-moved": "changes_kind_file_moved",
-    "properties-set": "changes_kind_properties_set",
-    "content-appended": "changes_kind_content_appended",
-    "content-replaced": "changes_kind_content_replaced",
-};
-
 /** Whether this particular change can be taken back at all. */
 export function isUndoableKind(kind: WriteKind): boolean {
     return UNDOABLE_KINDS.includes(kind);
@@ -89,35 +76,30 @@ export interface VaultWrite {
 }
 
 /**
- * A week. Not configurable, deliberately: a run record is a line of text, a write record carries
- * the values it would restore, and the honest way to keep that small is to keep it short.
+ * How long a write stays on the record (#511).
+ *
+ * It was **a week**, because a panel read it: *What ZettelFlow changed* listed batches, kinds and
+ * origins, and a week was how far back you could look. Nobody opened it — and every thought typed
+ * in the Lab landed here too, so an afternoon of thinking could evict the flow writes you would
+ * actually want to take back.
+ *
+ * The panel is gone. The record's only reader is now the thirty-second undo offer, so it has to
+ * outlive an offer and nothing more: two minutes, in memory, never written to disk. That deletes
+ * the retention policy, the settings field, the migration and `data.json` growth in one move.
  */
-export const DEFAULT_WRITE_RETENTION_DAYS = 7;
+export const WRITE_WINDOW_MS = 2 * 60_000;
 
-/**
- * The ceiling. Not the policy — retention is by time — but a vault whose hooks fire on every
- * keystroke must not be able to grow `data.json` without bound between two prunes.
- */
-export const MAX_WRITES = 1000;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+/** A burst from one flow, not a day of work. The buffer is transient; this is only a ceiling. */
+export const MAX_WRITES = 200;
 
 export interface WriteRetention {
-    /** Injected, so a test does not have to wait a week. */
+    /** Injected, so a test does not have to wait. */
     now: number;
-    /** Held at or below {@link DEFAULT_WRITE_RETENTION_DAYS}; a caller cannot ask for longer. */
-    retentionDays?: number;
 }
 
-function windowDays(retentionDays: number | undefined): number {
-    if (!Number.isFinite(retentionDays)) return DEFAULT_WRITE_RETENTION_DAYS;
-    return Math.min(DEFAULT_WRITE_RETENTION_DAYS, Math.max(1, Math.round(retentionDays as number)));
-}
-
-/** Drop what is older than the window, then anything past the ceiling. Oldest goes first, both times. */
-export function pruneWrites(writes: VaultWrite[], { now, retentionDays }: WriteRetention): VaultWrite[] {
-    const oldest = now - windowDays(retentionDays) * DAY_MS;
-    const kept = writes.filter((write) => write.at >= oldest);
+/** Drop what is past the window, then anything past the ceiling. Oldest goes first, both times. */
+export function pruneWrites(writes: VaultWrite[], { now }: WriteRetention): VaultWrite[] {
+    const kept = writes.filter((write) => write.at >= now - WRITE_WINDOW_MS);
     return kept.length > MAX_WRITES ? kept.slice(0, MAX_WRITES) : kept;
 }
 
@@ -128,48 +110,6 @@ export function appendWrite(
     retention: WriteRetention
 ): VaultWrite[] {
     return pruneWrites([write, ...writes], retention);
-}
-
-/** A batch, as the panel reads it: what it touched, when it started, and whether it is still standing. */
-export interface WriteBatch {
-    batch: string;
-    /** The most recent write in it — batches are listed by when they happened. */
-    at: number;
-    origin: WriteOrigin;
-    writes: VaultWrite[];
-    /** True only when every write in the batch was taken back. */
-    undone: boolean;
-}
-
-/** Group the record into the units it was written in, newest batch first. */
-export function batchesOf(writes: VaultWrite[]): WriteBatch[] {
-    const order: string[] = [];
-    const grouped = new Map<string, VaultWrite[]>();
-    for (const write of writes) {
-        const existing = grouped.get(write.batch);
-        if (existing) {
-            existing.push(write);
-        } else {
-            order.push(write.batch);
-            grouped.set(write.batch, [write]);
-        }
-    }
-    return order.map((batch) => {
-        const entries = grouped.get(batch) ?? [];
-        return {
-            batch,
-            at: Math.max(...entries.map((entry) => entry.at)),
-            origin: entries[0].origin,
-            writes: entries,
-            // Half a batch taken back is not a batch taken back — the panel must not imply it is.
-            undone: entries.every((entry) => entry.undone !== undefined),
-        };
-    });
-}
-
-/** Take a whole batch back at once, leaving every other batch exactly as it was. */
-export function markBatchUndone(writes: VaultWrite[], batch: string, at: number): VaultWrite[] {
-    return writes.map((write) => (write.batch === batch ? { ...write, undone: at } : write));
 }
 
 export interface WriteFilter {

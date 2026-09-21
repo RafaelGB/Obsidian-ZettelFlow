@@ -1,13 +1,11 @@
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { FileService } from "architecture/plugin/services/FileService";
-import { FrontmatterService } from "architecture/plugin/services/FrontmatterService";
-import { MocLink, mergeMocRegion } from "application/notes/mocMerge";
+import { writeMapOfContent } from "architecture/plugin/notes/writeMapOfContent";
+import { MocLink } from "application/notes/mocMerge";
 import { MemberSource, MocQuery, resolveMembers } from "application/notes/mocMembership";
 import { App, ButtonComponent, Modal, Notice, Setting, TFile, getAllTags } from "obsidian";
 
-/** Frontmatter marker that flags a note as a ZettelFlow-managed structure note. */
-const STRUCTURE_NOTE_PROPERTY = "zettelflowStructureNote";
 
 type SelectionMode = "query" | "manual";
 
@@ -249,26 +247,10 @@ export class MocBuilderModal extends Modal {
         const heading = t("moc_heading_default");
 
         try {
-            const existing = await FileService.getFile(path, false);
-            let file: TFile;
-            let created: boolean;
-
-            if (existing === null) {
-                const body = mergeMocRegion("", links, heading);
-                file = await FileService.createFile(path, body, false);
-                created = true;
-            } else {
-                const content = await FileService.getContent(existing);
-                await FileService.modify(existing, mergeMocRegion(content, links, heading));
-                file = existing;
-                created = false;
-            }
-
-            await FrontmatterService.instance(file).setProperty(STRUCTURE_NOTE_PROPERTY, true);
-
-            log.info(
-                `MocBuilderModal: ${created ? "created" : "updated"} map "${path}" with ${links.length} links`
-            );
+            // One writer, shared with Explore's door since #505: the managed region is what lets
+            // a map be run again without clobbering the prose you wrote around it.
+            const written = await writeMapOfContent(path, links, heading, "moc-builder");
+            if (!written) throw new Error("write failed");
             new Notice(t("moc_success_notice", String(links.length)));
             this.close();
         } catch (error) {

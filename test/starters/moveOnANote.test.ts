@@ -1,7 +1,18 @@
 import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { readdirSync, statSync } from "fs";
 import { MOVE_VERBS } from "application/thinking/move";
+
+function sources(dir: string): string[] {
+    const out: string[] = [];
+    for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) out.push(...sources(full));
+        else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) out.push(full);
+    }
+    return out;
+}
 
 // test/starters → 2 ups → repo root
 const ROOT = join(__dirname, "..", "..");
@@ -114,11 +125,34 @@ describe("the note is never written to (#493)", () => {
     });
 });
 
-describe("Cultivate is the in-context door (#493)", () => {
-    it("offers the moves on the note it is already showing", () => {
+describe("Cultivate is the in-context door (#493, one control since #509)", () => {
+    it("offers the moves on the note it is already showing, through the picker", () => {
+        // It shipped as eleven buttons in a row — iterated out of MOVE_VERBS and never looked at
+        // before it went out, into the surface whose last redesign was triggered by it feeling
+        // overwhelming. One control now, opening the same picker every other door opens.
         expect(CULTIVATE).toContain("renderMoveRow(");
-        expect(CULTIVATE).toContain("recordMoveOn(verb, path)");
-        expect(CULTIVATE).toContain("MOVE_VERBS");
+        expect(CULTIVATE).toContain("new MovePicker(");
+        expect(code(CULTIVATE)).not.toContain("MOVE_VERBS");
+    });
+
+    it("and no other renderer iterates the vocabulary to build controls", () => {
+        // Without this the next surface that wants the moves grows its own row, which is
+        // precisely how Cultivate got eleven. Looking a verb *up* is fine — the timeline does it
+        // to resolve one label — so the rule is about iteration, not about the name.
+        const components = sources(join(ROOT, "src"))
+            .map((file) => ({
+                rel: file.slice(join(ROOT, "src").length + 1).replace(/\\/g, "/"),
+                code: code(readFileSync(file, "utf8")),
+            }))
+            .filter((file) => file.rel.startsWith("architecture/components/"));
+
+        const iterates = /of MOVE_VERBS|MOVE_VERBS\.(map|filter|forEach|slice)\(/;
+        expect(components.filter((f) => iterates.test(f.code)).map((f) => f.rel)).toEqual([]);
+
+        // And the one place allowed to ask the vocabulary what applies is the picker.
+        expect(components.filter((f) => f.code.includes("verbsFor(")).map((f) => f.rel)).toEqual([
+            "architecture/components/core/moves/MovePicker.ts",
+        ]);
     });
 
     it("is wired into the plugin", () => {

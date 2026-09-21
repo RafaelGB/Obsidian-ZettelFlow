@@ -36,6 +36,7 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
             ],
             fleetingCount: 3,
             fleetingReady: ["recent1.md", "recent2.md", "old.md"],
+            openQuestions: [],
         });
     });
 
@@ -48,6 +49,7 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
             suggestedConnections: [],
             fleetingCount: 0,
             fleetingReady: [],
+            openQuestions: [],
         });
     });
 

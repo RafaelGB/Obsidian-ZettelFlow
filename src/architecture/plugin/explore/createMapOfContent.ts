@@ -1,43 +1,36 @@
-import { log } from "architecture/monitoring/Logger";
-import { FileService } from "architecture/plugin/services/FileService";
-import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
-import { planMapOfContent, uniqueName, type MapRequest } from "application/explore/mapOfContent";
+import { writeMapOfContent } from "architecture/plugin/notes/writeMapOfContent";
+import { mapMembers, type MapRequest } from "application/explore/mapOfContent";
 
 /**
- * Writing the map (#486, epic #481).
+ * Turning an Explore selection into a map of content (#486, rewritten by #505).
  *
- * The pure module decides **what the note says**; this decides **whether it is written**, and it
- * goes through the door every other write in this plugin goes through. That is not a convenience:
- * `FileService` is where the [write record](../../../../docs/architecture/reversibility.md) is
- * taken, so the map shows up in *Recent* and is undoable by batch with no undo code here at all.
+ * It used to render its own body — frontmatter, an intro line, a flat list — and write a fresh
+ * numbered note each time, because #486 declared *"a map is a snapshot of a moment"* out of
+ * scope **without checking that a re-runnable map already existed** in `MocBuilderModal`. It did,
+ * and it was better: the links go into a machine-managed region, so running the map again
+ * updates that block and leaves everything you wrote around it alone.
  *
- * It never overwrites. A map is a snapshot of a moment, and a second snapshot of the same query is
- * a second note.
+ * So this keeps the door — a selection is by far the best way to choose what goes in a map — and
+ * gives up the implementation.
  */
 
 export interface CreateMapRequest extends MapRequest {
     /** Where it lands, chosen in the preview. Empty means the vault root. */
     folder: string;
-    /** Whether a path is already taken — injected, so the naming rule is testable without a vault. */
-    exists: (path: string) => boolean;
+    /** The heading the managed region carries, already localised. */
+    heading: string;
 }
 
-/** Create the map and return its path, or `undefined` when it could not be written. */
+/** Create or update the map, and return its path. `undefined` when it could not be written. */
 export async function createMapOfContent(request: CreateMapRequest): Promise<string | undefined> {
-    const plan = planMapOfContent(request);
     const folder = request.folder.replace(/\/+$/, "");
-    const name = uniqueName(plan.name, (candidate) =>
-        request.exists(`${folder ? `${folder}/` : ""}${candidate}.md`)
-    );
+    const name = safeMapName(request.name) || "Map of content";
     const path = `${folder ? `${folder}/` : ""}${name}.md`;
+    const written = await writeMapOfContent(path, mapMembers(request), request.heading, "explore-map");
+    return written?.path;
+}
 
-    try {
-        return await withWriteBatch({ kind: "manual", ref: "map-of-content", label: name }, async () => {
-            await FileService.createFile(path, plan.content, true);
-            return path;
-        });
-    } catch (error) {
-        log.error("[explore] could not write the map of content", error);
-        return undefined;
-    }
+/** Obsidian forbids these in a file name; a selection's description can easily contain them. */
+export function safeMapName(name: string): string {
+    return name.replace(/[\\/:*?"<>|#^[\]]/g, " ").replace(/\s+/g, " ").trim();
 }

@@ -1,86 +1,67 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-    asLinks,
-    MAP_ENTRY_LIMIT,
-    planMapOfContent,
-    safeMapName,
-    uniqueName,
-} from "application/explore/mapOfContent";
-import { rowFacts } from "architecture/knowledge/query/answer";
+import { asLinks, mapMembers, MAP_ENTRY_LIMIT } from "application/explore/mapOfContent";
+import { mergeMocRegion, MOC_REGION_START } from "application/notes/mocMerge";
+import { safeMapName } from "architecture/plugin/explore/createMapOfContent";
 import { idea, buildModel } from "../../actions/knowledge/support/knowledgeFixture";
-import type { RowFact } from "architecture/knowledge/query/answer";
 
 /**
- * **A selection is a place to start** (#486, epic #481).
+ * **A selection is a place to start** (#486), with one writer (#505).
  *
- * The map is deliberately dull, and the tests are here to keep it that way: a list of links, the
- * facts your selection asked about, and the query it came from. The moment it summarises anything
- * it stops being mechanical output and needs a decision gate it does not have.
+ * This module chose the members *and* rendered the note until #505. It now only chooses: the
+ * rendering belongs to `mocMerge`, which writes into a machine-managed region so a map can be
+ * run again without clobbering the prose around it. #486 shipped a second renderer that could
+ * not do that, having put re-running out of scope without checking that a re-runnable map
+ * already existed three folders away.
  */
 
 const model = buildModel([
     idea("Projects/alpha.md", "permanent", [{ to: "Projects/beta.md", type: "supports" }]),
     idea("Projects/beta.md", "permanent"),
-    idea("Reading/gamma.md", "fleeting", [], { claims: [{ text: "a claim" }], hasSources: false }),
+    idea("Reading/gamma.md", "fleeting"),
 ]);
 
-const factText = (fact: RowFact) => `${fact.key}${fact.arg ? `(${fact.arg})` : ""} ${fact.value}`;
-
-const plan = (matches = model.all(), terms: string[] = ["state:permanent"]) =>
-    planMapOfContent({
-        matches,
-        terms,
-        facts: (each) => rowFacts(each, terms, model),
-        factText,
-        name: "Permanent notes",
-        queryKey: "zfQuery",
-        intro: "Found by ZettelFlow:",
-        andMore: (hidden) => `…and ${hidden} more.`,
+describe("a selection chooses the members (#505)", () => {
+    it("keeps the lens's order — a map that re-sorted would answer a question you did not ask", () => {
+        expect(mapMembers({ matches: model.all() }).map((link) => link.title)).toEqual([
+            "alpha",
+            "beta",
+            "gamma",
+        ]);
     });
 
-describe("the map is the selection, written down (#486)", () => {
-    it("lists every match, in the order it was given, as links", () => {
-        const body = plan().content;
-        const links = body.split("\n").filter((line) => line.startsWith("- [["));
-        expect(links).toHaveLength(3);
-        expect(links[0]).toContain("[[alpha]]");
-        expect(links[2]).toContain("[[gamma]]");
+    it("carries the path, so the link survives a note being renamed", () => {
+        expect(mapMembers({ matches: model.all() })[0]).toEqual({ path: "Projects/alpha.md", title: "alpha" });
     });
 
-    it("carries the same facts the answer put on the row", () => {
-        // One function, two readers: the map and the list cannot drift into saying different things.
-        expect(plan().content).toContain("[[alpha]] — explore_fact_state permanent");
-    });
-
-    it("keeps the query, so the map can be re-run", () => {
-        expect(plan().content).toContain('zfQuery: "state:permanent"');
-    });
-
-    it("says how many it left out rather than truncating quietly", () => {
+    it("stops at the cap rather than making a map of four thousand notes", () => {
         const many = Array.from({ length: MAP_ENTRY_LIMIT + 5 }, (_, n) => idea(`n${n}.md`, "permanent"));
-        const body = plan(buildModel(many).all(), ["state:permanent"]).content;
-        expect(body.split("\n").filter((line) => line.startsWith("- [["))).toHaveLength(MAP_ENTRY_LIMIT);
-        expect(body).toContain("…and 5 more.");
+        expect(mapMembers({ matches: buildModel(many).all() })).toHaveLength(MAP_ENTRY_LIMIT);
     });
 
-    it("concludes nothing — there is no prose beyond the intro and the count", () => {
-        const body = plan().content;
-        const prose = body
-            .split("\n")
-            .filter((line) => line.trim() !== "" && !line.startsWith("- [[") && !line.startsWith("---"))
-            .filter((line) => !line.startsWith("zfQuery:"));
-        expect(prose).toEqual(["Found by ZettelFlow:"]);
+    it("renders nothing itself — there is one writer, and this is not it", () => {
+        const members = mapMembers({ matches: model.all() });
+        expect(JSON.stringify(members)).not.toContain("[[");
+        expect(JSON.stringify(members)).not.toContain("---");
     });
 });
 
-describe("a map never overwrites (#486)", () => {
-    it("numbers a name that is taken", () => {
-        const taken = new Set(["Permanent notes", "Permanent notes 2"]);
-        expect(uniqueName("Permanent notes", (n) => taken.has(n))).toBe("Permanent notes 3");
-        expect(uniqueName("Fresh", () => false)).toBe("Fresh");
-    });
+describe("and the writer can be run again (#505)", () => {
+    it("updates the managed region and leaves your prose byte-for-byte", () => {
+        // This is the capability #486's own renderer could not offer, and the reason it lost.
+        const heading = "Notes in this map";
+        const first = mergeMocRegion("", mapMembers({ matches: model.all() }), heading);
+        const withProse = `# My map\n\nWhy these belong together: they are all about atomicity.\n\n${first}\n\nA closing thought.\n`;
+        const second = mergeMocRegion(withProse, mapMembers({ matches: model.all().slice(0, 2) }), heading);
 
-    it("strips what a file name cannot hold", () => {
+        expect(second).toContain("Why these belong together: they are all about atomicity.");
+        expect(second).toContain("A closing thought.");
+        expect(second).toContain(MOC_REGION_START);
+        expect(second).not.toContain("gamma");
+    });
+});
+
+describe("a name a file system can hold (#505)", () => {
+    it("strips what a file name cannot carry", () => {
         expect(safeMapName('state:permanent AND "x"/y')).toBe("state permanent AND x y");
     });
 });

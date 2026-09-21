@@ -300,8 +300,9 @@ it are exactly as useful against a permanent note you wrote last year, and two d
 - **right-click** — in the note you are reading, or on its tab or its file: *Make a move…*, which
   opens a keyboard-first picker. Arrows move, enter chooses, typing narrows, nothing has to be
   typed;
-- **Cultivate** — the same eleven, on the note it is already showing you, which is where you are
-  already deciding what to do with it.
+- **Cultivate** — one control on the note it is already showing you, opening the same picker.
+  It shipped as eleven buttons in a row and was corrected in #509: eleven buttons is not a second
+  way of offering the moves, it is the thing the picker exists to avoid, put back by hand.
 
 ### Only where a note is knowledge (#496)
 

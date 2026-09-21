@@ -10,7 +10,6 @@ const SURFACE_DIR = join(__dirname, "..", "..", "..", "..", "..", "src", "archit
 const VIEW_FILE: Record<string, string> = {
     "zettelflow-home": "HomeSurfaceView.ts",
     "zettelflow-health": "HealthSurfaceView.ts",
-    "zettelflow-discovery": "DiscoverySurfaceView.ts",
     "zettelflow-explore": "ExploreSurfaceView.ts",
 };
 

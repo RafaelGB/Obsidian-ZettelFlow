@@ -1,9 +1,7 @@
 import { v4 as uuid4 } from "uuid";
 import { log } from "architecture/monitoring/Logger";
-import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import {
     appendWrite,
-    DEFAULT_WRITE_RETENTION_DAYS,
     type VaultWrite,
     type WriteKind,
 } from "application/writes/vaultWriteLog";
@@ -46,14 +44,24 @@ export interface VaultWriteFacts {
     appended?: string;
 }
 
-/** The plugin's settings, read lazily: at load time there is no plugin to ask yet (#374). */
-const settingsSink: VaultWriteSink = {
-    read: () => ({ writes: ObsidianApi.getOwnPlugin()?.settings.writeLog?.writes ?? [] }),
+/**
+ * The record lives **in memory** (#511).
+ *
+ * It lived in `data.json` for a week, because a panel read it. Nobody opened the panel, and
+ * every thought typed in the Lab landed there too — so an afternoon of thinking could evict the
+ * flow writes you would actually want to take back. The panel is gone, and the record's only
+ * reader is now a thirty-second offer, which a buffer outlives comfortably.
+ *
+ * So: no settings field, no retention policy, no migration, and `data.json` stops growing. A
+ * reload empties it, which is exactly right — an undo you could still take tomorrow was never
+ * what this was for.
+ */
+let buffered: VaultWrite[] = [];
+
+const memorySink: VaultWriteSink = {
+    read: () => ({ writes: buffered }),
     write: (state) => {
-        const plugin = ObsidianApi.getOwnPlugin();
-        if (!plugin) return;
-        plugin.settings.writeLog = { writes: state.writes };
-        void plugin.saveSettings();
+        buffered = state.writes;
     },
     now: () => Date.now(),
     id: () => uuid4(),
@@ -124,7 +132,7 @@ function narrowBefore(
 }
 
 /** Write one change down. Never throws: a record that breaks a write is worse than no record. */
-export function recordVaultWrite(facts: VaultWriteFacts, sink: VaultWriteSink = settingsSink): void {
+export function recordVaultWrite(facts: VaultWriteFacts, sink: VaultWriteSink = memorySink): void {
     if (!recording) return;
     try {
         const { writes } = sink.read();
@@ -142,12 +150,19 @@ export function recordVaultWrite(facts: VaultWriteFacts, sink: VaultWriteSink = 
         const before = narrowBefore(facts.before, facts.after);
         if (before) entry.before = before;
         sink.write({
-            writes: appendWrite(writes, entry, {
-                now: entry.at,
-                retentionDays: DEFAULT_WRITE_RETENTION_DAYS,
-            }),
+            writes: appendWrite(writes, entry, { now: entry.at }),
         });
     } catch (error) {
         log.warn("[writes] could not record a write", error);
     }
+}
+
+/** What is on the record right now — read by the undo offer, and by nothing else. */
+export function bufferedWrites(): VaultWrite[] {
+    return buffered;
+}
+
+/** Replace the record. Only `rememberUndone` needs this, to write a batch off as taken back. */
+export function replaceBufferedWrites(writes: VaultWrite[]): void {
+    buffered = writes;
 }

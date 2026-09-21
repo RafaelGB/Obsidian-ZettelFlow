@@ -12,6 +12,7 @@ import {
     graph3dTimeRange,
     graph3dUpToTime,
     Graph3DData,
+    Graph3DLink,
     Graph3DNode,
     OverlayKind,
     OVERLAY_KINDS,
@@ -90,6 +91,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private dataSignature = "";
     private colorMode: ColorMode = "state";
     private overlay: OverlayKind | null = null;
+    /**
+     * When the active lens is about **links** (#526), the notes at the ends of the matching ones.
+     * Computed once per lens change rather than per node per frame.
+     */
+    private edgeLensEndpoints: Set<string> | null = null;
     private hoverId: string | null = null;
     private pinnedId: string | null = null;
     private readonly hiddenRelations = new Set<string>();
@@ -371,6 +377,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private applyGraphData(): void {
         if (!this.graph) return;
         this.displayed = filterGraph3D(this.baseData(), {});
+        // A link lens caches the notes its edges join, so it has to be recomputed whenever the
+        // displayed set moves under it — a time cursor, a reindex (#526).
+        this.syncEdgeLens();
         this.preservePositions(this.displayed);
         this.graph.graphData(this.displayed);
         this.renderLegend();
@@ -798,7 +807,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
         const stats = graph3dStats(this.data);
-        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier };
+        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges };
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
 
         const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
@@ -897,8 +906,35 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(chip, "click", () => this.toggleOverlay(kind));
     }
 
+    /**
+     * Which edges the active lens lights, and the notes they join (#526) — or `null` when the
+     * lens is about notes. Paint only: nothing here hides, filters or narrows anything, the way
+     * framing in #515 moves the camera and nothing else.
+     */
+    private syncEdgeLens(): void {
+        const spec = this.overlay ? OVERLAY_SPECS[this.overlay] : null;
+        if (!spec || spec.on !== "edge") {
+            this.edgeLensEndpoints = null;
+            return;
+        }
+        const endpoints = new Set<string>();
+        for (const link of this.displayed.links) {
+            if (!spec.matches(link)) continue;
+            endpoints.add(link.source);
+            endpoints.add(link.target);
+        }
+        this.edgeLensEndpoints = endpoints;
+    }
+
+    /** Whether the active lens matches this link — false whenever the lens is about notes. */
+    private edgeLensMatches(link: LiveLink): boolean {
+        const spec = this.overlay ? OVERLAY_SPECS[this.overlay] : null;
+        return !!spec && spec.on === "edge" && spec.matches(link as unknown as Graph3DLink);
+    }
+
     private toggleOverlay(kind: OverlayKind): void {
         this.overlay = this.overlay === kind ? null : kind;
+        this.syncEdgeLens();
         for (const [k, el] of this.lensChips) {
             const active = k === this.overlay;
             el.toggleClass(c("graph3d-chip--active"), active);
@@ -1099,6 +1135,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.pinnedId = null;
         this.arrivedAt = null;
         this.overlay = null;
+        this.edgeLensEndpoints = null;
         this.pathFrom = null;
         this.pathNodes = null;
         this.pathEdges = null;
@@ -1192,7 +1229,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     // ── Paint ─────────────────────────────────────────────────────────────────
     private computeNodeColor(node: Graph3DNode & LiveNode): string {
         if (this.overlay) {
-            return OVERLAY_SPECS[this.overlay].matches(node) ? this.varColor(OVERLAY_SPECS[this.overlay].colorVar) : DIM_NODE;
+            const spec = OVERLAY_SPECS[this.overlay];
+            // A link lens lights what its edges join, so the picture reads as what joins what
+            // rather than as a scatter of bright lines over an unlit graph (#526).
+            if (spec.on === "edge") {
+                return this.edgeLensEndpoints?.has(node.id ?? "") ? this.varColor(spec.colorVar) : DIM_NODE;
+            }
+            return spec.matches(node) ? this.varColor(spec.colorVar) : DIM_NODE;
         }
         if (this.pathNodes) return this.pathNodes.has(node.id ?? "") ? this.baseNodeColor(node) : DIM_NODE;
         if (this.lit && !this.lit.has(node.id ?? "")) return DIM_NODE;
@@ -1207,6 +1250,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private computeLinkColor(link: LiveLink): string {
+        if (this.edgeLensEndpoints) {
+            const spec = OVERLAY_SPECS[this.overlay as OverlayKind];
+            return this.edgeLensMatches(link) ? this.varColor(spec.colorVar) : DIM_LINK;
+        }
         if (this.overlay) return DIM_LINK;
         if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? this.relationColor(link.type) : DIM_LINK;
         if (this.lit && !(this.lit.has(endId(link.source)) && this.lit.has(endId(link.target)))) return DIM_LINK;
@@ -1216,6 +1263,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private computeLinkWidth(link: LiveLink): number {
+        // 26 crossings in a graph of hundreds have to be findable, not merely coloured.
+        if (this.edgeLensEndpoints) return this.edgeLensMatches(link) ? 4 : 0.4;
         if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? 4 : 0.4;
         const focus = this.activeFocus();
         if (!focus) return 1.6; // bold by default so connections read clearly

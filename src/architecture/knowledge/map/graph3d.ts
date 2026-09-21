@@ -50,6 +50,12 @@ export interface Graph3DLink {
     target: string;
     /** Relation type — `"link"` for a plain wikilink, else a #147 semantic relation (supports, …). */
     type: string;
+    /**
+     * This link crosses from one neighbourhood into another (#526) — its endpoints are in
+     * different Louvain communities. A flag on the edge for the same reason `frontier` is a flag
+     * on the node: an {@link OverlaySpec} predicate is handed one thing and cannot look around it.
+     */
+    bridge: boolean;
 }
 
 export interface Graph3DData {
@@ -178,7 +184,10 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             const key = `${relation.to}|${relation.type}`;
             if (seen.has(key)) continue; // one link per (target, type)
             seen.add(key);
-            links.push({ source: idea.path, target: relation.to, type: relation.type });
+            const from = communityOf.get(idea.path);
+            const to = communityOf.get(relation.to);
+            const bridge = from !== undefined && to !== undefined && from !== to;
+            links.push({ source: idea.path, target: relation.to, type: relation.type, bridge });
         }
     }
     links.sort((a, b) => byStr(a.source, b.source) || byStr(a.target, b.target) || byStr(a.type, b.type));
@@ -272,6 +281,8 @@ export interface Graph3DStats {
     alone: number;
     /** Notes whose neighbours are not all from their own community (#525) — 48 in the reference vault. */
     frontier: number;
+    /** Links crossing from one community into another (#526) — 26 in the reference vault. */
+    bridges: number;
 }
 
 /** Count the discovery-lens categories across the graph. Pure. */
@@ -284,7 +295,9 @@ export function graph3dStats(data: Graph3DData): Graph3DStats {
         if (node.group < 0) alone++;
         if (node.frontier) frontier++;
     }
-    return { orphans, deadEnds, contradictions, alone, frontier };
+    let bridges = 0;
+    for (const link of data.links) if (link.bridge) bridges++;
+    return { orphans, deadEnds, contradictions, alone, frontier, bridges };
 }
 
 /**
@@ -351,29 +364,45 @@ export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): 
 }
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
-export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone" | "frontier";
-export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone", "frontier"];
+export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone" | "frontier" | "bridges";
+export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone", "frontier", "bridges"];
 
-export interface OverlaySpec {
+/** A lens about **notes**: matching nodes are lit and the rest dim. */
+export interface NodeOverlay {
     /** i18n label key for the toggle option. */
     labelKey: string;
-    /** Obsidian CSS colour var used to highlight matching nodes (dims the rest). */
+    /** Obsidian CSS colour var used to highlight what matches (dims the rest). */
     colorVar: string;
-    /** Whether a node belongs to this overlay. */
+    on: "node";
     matches: (node: Graph3DNode) => boolean;
 }
 
+/**
+ * A lens about **links** (#526): matching edges are drawn bright and thick, their endpoints stay
+ * lit, and everything else dims. The first statement this table could not make about notes.
+ */
+export interface EdgeOverlay {
+    labelKey: string;
+    colorVar: string;
+    on: "edge";
+    matches: (edge: Graph3DLink) => boolean;
+}
+
+export type OverlaySpec = NodeOverlay | EdgeOverlay;
+
 /** Overlay kind → its label, highlight colour and match predicate. Pure; shared by the renderer. */
 export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
-    "orphans": { labelKey: "graph3d_overlay_orphans", colorVar: "--color-orange", matches: (n) => n.orphan },
-    "dead-ends": { labelKey: "graph3d_overlay_dead_ends", colorVar: "--color-yellow", matches: (n) => n.deadEnd },
-    "contradictions": { labelKey: "graph3d_overlay_contradictions", colorVar: "--color-red", matches: (n) => n.contradiction },
+    "orphans": { labelKey: "graph3d_overlay_orphans", colorVar: "--color-orange", on: "node", matches: (n) => n.orphan },
+    "dead-ends": { labelKey: "graph3d_overlay_dead_ends", colorVar: "--color-yellow", on: "node", matches: (n) => n.deadEnd },
+    "contradictions": { labelKey: "graph3d_overlay_contradictions", colorVar: "--color-red", on: "node", matches: (n) => n.contradiction },
     // Read from `group`, not from `orphan && deadEnd` (#516): those read `outAdj`/`inAdj`, which
     // record a link's target whether or not it is an idea, so a note linking only outside the
     // scope is `orphan === false` and has no neighbour here. The lens wants the graph sense.
-    "alone": { labelKey: "graph3d_overlay_alone", colorVar: "--text-muted", matches: (n) => n.group < 0 },
+    "alone": { labelKey: "graph3d_overlay_alone", colorVar: "--text-muted", on: "node", matches: (n) => n.group < 0 },
     // Where two neighbourhoods meet (#525). A crossing has two sides, so both show.
-    "frontier": { labelKey: "graph3d_overlay_frontier", colorVar: "--color-cyan", matches: (n) => n.frontier },
+    "frontier": { labelKey: "graph3d_overlay_frontier", colorVar: "--color-cyan", on: "node", matches: (n) => n.frontier },
+    // The crossings themselves (#526) — the first lens about links rather than notes.
+    "bridges": { labelKey: "graph3d_overlay_bridges", colorVar: "--color-purple", on: "edge", matches: (e) => e.bridge },
 };
 
 /** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */

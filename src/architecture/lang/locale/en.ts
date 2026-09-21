@@ -1145,6 +1145,7 @@ export default {
     graph3d_overlay_dead_ends: 'Dead ends',
     graph3d_overlay_contradictions: 'Contradictions',
     graph3d_overlay_alone: 'Alone',
+    graph3d_overlay_frontier: 'Frontier',
     graph3d_fallback_message: '3D graph needs a desktop with graphics acceleration — here is your slip-box as a navigable list, hubs first.',
     graph3d_fallback_connections: '{0} connections',
     graph3d_fit_view: 'Fit view',

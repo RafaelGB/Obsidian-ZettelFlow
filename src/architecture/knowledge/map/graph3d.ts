@@ -1,5 +1,6 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { buildKnowledgeMap } from "./knowledgeMap";
+import { communitiesOf } from "./communities";
 
 /** A node in the 3D graph — identity is the vault `path`; `name` labels it, `val` sizes it. */
 export interface Graph3DNode {
@@ -16,12 +17,24 @@ export interface Graph3DNode {
      * `filterGraph3D` and `graph3dUpToTime` without being threaded through any of them.
      */
     region: string;
+    /**
+     * The **neighbourhood** inside that region (#525): a Louvain community index, `-1` when the
+     * note is alone, and the community's name — its most connected note — or `""`.
+     */
+    community: number;
+    communityName: string;
     /** The idea's workflow state (for optional coloring / filtering). */
     state: string;
     /** Discovery-lens flags (#280 S4): no outgoing edges / no incoming edges / in a `contradicts` relation. */
     orphan: boolean;
     deadEnd: boolean;
     contradiction: boolean;
+    /**
+     * This note's neighbours are not all from its own community (#525) — it sits where two
+     * neighbourhoods meet. Precomputed here because an {@link OverlaySpec} predicate is handed one
+     * node and cannot see a neighbour, which is the same reason `orphan` and `deadEnd` are flags.
+     */
+    frontier: boolean;
     /** Creation timestamp (ms) — drives the time-lapse; 0 when unknown. */
     created: number;
     /** Note kind for shape/icon differentiation (#280): a question, a source note, or a plain note. */
@@ -101,6 +114,30 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
         }
     });
 
+    // The neighbourhoods inside each region (#525), and which notes straddle two of them. The
+    // frontier test reuses the neighbour sets `orphan`/`deadEnd` already read, so the extra
+    // information costs one more lookup per edge and no second traversal.
+    const communityOf = new Map<string, number>();
+    const communityName = new Map<string, string>();
+    communitiesOf(model).forEach((community, index) => {
+        const name = basename(community.hub);
+        for (const path of [community.hub, ...community.members]) {
+            communityOf.set(path, index);
+            communityName.set(path, name);
+        }
+    });
+    const spansTwo = (path: string): boolean => {
+        const own = communityOf.get(path);
+        if (own === undefined) return false; // alone: no neighbour, so nothing to straddle
+        for (const set of [model.outNeighborSet(path), model.inNeighborSet(path)]) {
+            for (const other of set) {
+                const theirs = communityOf.get(other);
+                if (theirs !== undefined && theirs !== own) return true;
+            }
+        }
+        return false;
+    };
+
     // Both endpoints of any in-model `contradicts` relation are flagged for the discovery lens (#280 S4).
     const contradicted = new Set<string>();
     for (const idea of ideas) {
@@ -119,10 +156,13 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             val: Math.max(1, idea.maturitySignals.degree),
             group: groupOf.get(idea.path) ?? -1,
             region: regionOf.get(idea.path) ?? "",
+            community: communityOf.get(idea.path) ?? -1,
+            communityName: communityName.get(idea.path) ?? "",
             state: idea.state,
             orphan: model.outNeighborSet(idea.path).size === 0,
             deadEnd: model.inNeighborSet(idea.path).size === 0,
             contradiction: contradicted.has(idea.path),
+            frontier: spansTwo(idea.path),
             created: idea.created ?? 0,
             kind: idea.relations.some((r) => r.type === "question")
                 ? "question"
@@ -230,18 +270,21 @@ export interface Graph3DStats {
     contradictions: number;
     /** Notes with no link to anything else in the model (#516) — 19 % of the reference vault. */
     alone: number;
+    /** Notes whose neighbours are not all from their own community (#525) — 48 in the reference vault. */
+    frontier: number;
 }
 
 /** Count the discovery-lens categories across the graph. Pure. */
 export function graph3dStats(data: Graph3DData): Graph3DStats {
-    let orphans = 0, deadEnds = 0, contradictions = 0, alone = 0;
+    let orphans = 0, deadEnds = 0, contradictions = 0, alone = 0, frontier = 0;
     for (const node of data.nodes) {
         if (node.orphan) orphans++;
         if (node.deadEnd) deadEnds++;
         if (node.contradiction) contradictions++;
         if (node.group < 0) alone++;
+        if (node.frontier) frontier++;
     }
-    return { orphans, deadEnds, contradictions, alone };
+    return { orphans, deadEnds, contradictions, alone, frontier };
 }
 
 /**
@@ -308,8 +351,8 @@ export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): 
 }
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
-export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone";
-export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone"];
+export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone" | "frontier";
+export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone", "frontier"];
 
 export interface OverlaySpec {
     /** i18n label key for the toggle option. */
@@ -329,6 +372,8 @@ export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
     // record a link's target whether or not it is an idea, so a note linking only outside the
     // scope is `orphan === false` and has no neighbour here. The lens wants the graph sense.
     "alone": { labelKey: "graph3d_overlay_alone", colorVar: "--text-muted", matches: (n) => n.group < 0 },
+    // Where two neighbourhoods meet (#525). A crossing has two sides, so both show.
+    "frontier": { labelKey: "graph3d_overlay_frontier", colorVar: "--color-cyan", matches: (n) => n.frontier },
 };
 
 /** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */

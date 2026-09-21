@@ -1145,6 +1145,7 @@ export default {
     graph3d_overlay_dead_ends: 'Sin salida',
     graph3d_overlay_contradictions: 'Contradicciones',
     graph3d_overlay_alone: 'Solas',
+    graph3d_overlay_frontier: 'Frontera',
     graph3d_fallback_message: 'El grafo 3D necesita escritorio con aceleración gráfica — aquí tienes tu fichero como lista navegable, los concentradores primero.',
     graph3d_fallback_connections: '{0} conexiones',
     graph3d_fit_view: 'Ajustar vista',

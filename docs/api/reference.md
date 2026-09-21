@@ -25,7 +25,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `health` | `() => HealthResult` | Notes classified by slipbox health. |
 | `judgements` | `(path: string) => Judgement[]` | Every verdict you recorded about one idea. |
 | `lastJudgement` | `(path: string) => Judgement \| null` | The most recent verdict on one idea, or null. |
-| `map` | `(opts?: BuildKnowledgeMapOptions) => KnowledgeMap` | Clusters and hubs of the idea graph. |
+| `map` | `() => KnowledgeMap` | The connected regions of the idea graph, and the notes that are alone. |
 | `model` | `() => KnowledgeModel` | The raw idea graph, for questions no projection answers. |
 | `neighbors` | `(path: string) => ConceptNeighbors` | What sits next to one idea in the graph, by relation type. |
 | `openQuestions` | `() => OpenQuestion[]` | Questions recorded in the vault that nothing has answered yet. |

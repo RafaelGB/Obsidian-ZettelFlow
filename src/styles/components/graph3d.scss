@@ -253,7 +253,7 @@
     border-radius: var(--radius-s);
     font-size: var(--font-ui-smaller);
     color: #c7ccd6;
-    max-width: 12em;
+    max-width: 15em; // region names need the room (#514)
 }
 
 .zettelkasten-flow__graph3d-legend-title {
@@ -266,6 +266,13 @@
     display: flex;
     align-items: center;
     gap: var(--size-4-1);
+}
+
+// A region's size, trailing its name (#514) — muted, so the name is what you read first.
+.zettelkasten-flow__graph3d-legend-count {
+    margin-left: auto;
+    padding-left: var(--size-4-2);
+    color: #8b93a7;
 }
 
 // Relation rows are clickable to toggle that relation's visibility (#280 iteration).
@@ -397,3 +404,19 @@
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
+
+// Region swatches (#515) — mirrors REGION_COLORS in graph3d.ts, which a guardrail test
+// keeps in step. They are classes and not inline styles because inline styles cost score.
+.zettelkasten-flow__graph3d-swatch--region-0 { background: #7dd3fc; }
+.zettelkasten-flow__graph3d-swatch--region-1 { background: #86efac; }
+.zettelkasten-flow__graph3d-swatch--region-2 { background: #fcd34d; }
+.zettelkasten-flow__graph3d-swatch--region-3 { background: #f0abfc; }
+.zettelkasten-flow__graph3d-swatch--region-4 { background: #fda4af; }
+.zettelkasten-flow__graph3d-swatch--region-5 { background: #a5b4fc; }
+.zettelkasten-flow__graph3d-swatch--region-6 { background: #5eead4; }
+.zettelkasten-flow__graph3d-swatch--region-7 { background: #fdba74; }
+.zettelkasten-flow__graph3d-swatch--region-8 { background: #d8b4fe; }
+.zettelkasten-flow__graph3d-swatch--region-9 { background: #bef264; }
+.zettelkasten-flow__graph3d-swatch--region-10 { background: #67e8f9; }
+.zettelkasten-flow__graph3d-swatch--region-11 { background: #f9a8d4; }
+.zettelkasten-flow__graph3d-swatch--region-alone { background: #9aa4b8; }

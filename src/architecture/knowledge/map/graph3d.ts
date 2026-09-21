@@ -7,8 +7,15 @@ export interface Graph3DNode {
     name: string;
     /** Relative size (node degree, min 1). */
     val: number;
-    /** Cluster index for coloring (its hub's cluster), or -1 when the note orbits no hub. */
+    /** Region index for colouring, or -1 when the note is alone (no link to anything in the model). */
     group: number;
+    /**
+     * The region's **name** — its most connected note (#514). Empty when the note is alone.
+     *
+     * It rides on the node rather than sitting on {@link Graph3DData} so it survives `capGraph3D`,
+     * `filterGraph3D` and `graph3dUpToTime` without being threaded through any of them.
+     */
+    region: string;
     /** The idea's workflow state (for optional coloring / filtering). */
     state: string;
     /** Discovery-lens flags (#280 S4): no outgoing edges / no incoming edges / in a `contradicts` relation. */
@@ -72,8 +79,8 @@ function linkEndId(end: unknown): string {
 
 /**
  * Pure projection of the {@link KnowledgeModel} into a `{ nodes, links }` shape for the 3D graph view
- * (#280 S1/S2). Nodes are ideas (id = path, name = basename, `val` = degree, `group` = cluster index
- * from {@link buildKnowledgeMap} for coloring, `state`); links are the model's typed relations,
+ * (#280 S1/S2). Nodes are ideas (id = path, name = basename, `val` = degree, `group`/`region` = the
+ * connected region from {@link buildKnowledgeMap} (#513/#514), `state`); links are the model's typed relations,
  * **filtered to edges whose target is also a node** so the force layout never gets a dangling
  * reference. Deterministic (sorted) and Obsidian-free; empty model ⇒ empty graph.
  */
@@ -81,12 +88,17 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
     const ideas = model.all();
     const ids = new Set(ideas.map((idea) => idea.path));
 
-    // Cluster index per note (hub + members share their cluster's index; unclustered → -1).
+    // Region index and name per note (#513/#514): a region is a connected component, named after
+    // its most connected note; a note with no link in the model gets -1 and no name.
     const groupOf = new Map<string, number>();
+    const regionOf = new Map<string, string>();
     const map = buildKnowledgeMap(model);
     map.clusters.forEach((cluster, index) => {
-        groupOf.set(cluster.hub, index);
-        for (const member of cluster.members) groupOf.set(member, index);
+        const name = basename(cluster.hub);
+        for (const path of [cluster.hub, ...cluster.members]) {
+            groupOf.set(path, index);
+            regionOf.set(path, name);
+        }
     });
 
     // Both endpoints of any in-model `contradicts` relation are flagged for the discovery lens (#280 S4).
@@ -106,6 +118,7 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             name: basename(idea.path),
             val: Math.max(1, idea.maturitySignals.degree),
             group: groupOf.get(idea.path) ?? -1,
+            region: regionOf.get(idea.path) ?? "",
             state: idea.state,
             orphan: model.outNeighborSet(idea.path).size === 0,
             deadEnd: model.inNeighborSet(idea.path).size === 0,
@@ -165,6 +178,41 @@ export const RELATION_COLORS: Record<string, string> = {
     implements: "#facc15",
 };
 
+/**
+ * The **region** palette (#515). Twelve colours tuned for the view's fixed dark background.
+ *
+ * It used to be generated — `hsl((group * 67) % 360, 70%, 62%)` — in two places that had drifted
+ * four per cent apart, so a node and its own hull were different colours. A generated hue also
+ * cannot reach a stylesheet without an inline style, which this repo forbids, so the legend
+ * swatch could never match the scene. A fixed list fixes both: `graph3d.scss` mirrors it in
+ * `graph3d-swatch--region-N`, and a guardrail test keeps the two in step.
+ *
+ * Twelve is headroom, not a guess: #513 left the reference vault with nine regions. Past twelve it
+ * wraps, and two distant regions sharing a hue is the right failure to accept.
+ */
+export const REGION_COLORS: readonly string[] = [
+    "#7dd3fc", // sky
+    "#86efac", // green
+    "#fcd34d", // amber
+    "#f0abfc", // fuchsia
+    "#fda4af", // rose
+    "#a5b4fc", // indigo
+    "#5eead4", // teal
+    "#fdba74", // orange
+    "#d8b4fe", // purple
+    "#bef264", // lime
+    "#67e8f9", // cyan
+    "#f9a8d4", // pink
+];
+
+/** A note that is alone belongs to no region — grey, and it means something (#513). */
+export const ALONE_COLOR = "#9aa4b8";
+
+/** The one colour a region is drawn in: node, halo, hull, scene label and legend swatch (#515). */
+export function regionColor(group: number): string {
+    return group < 0 ? ALONE_COLOR : REGION_COLORS[group % REGION_COLORS.length];
+}
+
 export const STATE_COLORS: Record<string, string> = {
     fleeting: "#f87171",
     literature: "#fb923c",
@@ -180,17 +228,20 @@ export interface Graph3DStats {
     orphans: number;
     deadEnds: number;
     contradictions: number;
+    /** Notes with no link to anything else in the model (#516) — 19 % of the reference vault. */
+    alone: number;
 }
 
 /** Count the discovery-lens categories across the graph. Pure. */
 export function graph3dStats(data: Graph3DData): Graph3DStats {
-    let orphans = 0, deadEnds = 0, contradictions = 0;
+    let orphans = 0, deadEnds = 0, contradictions = 0, alone = 0;
     for (const node of data.nodes) {
         if (node.orphan) orphans++;
         if (node.deadEnd) deadEnds++;
         if (node.contradiction) contradictions++;
+        if (node.group < 0) alone++;
     }
-    return { orphans, deadEnds, contradictions };
+    return { orphans, deadEnds, contradictions, alone };
 }
 
 /**
@@ -257,8 +308,8 @@ export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): 
 }
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
-export type OverlayKind = "orphans" | "dead-ends" | "contradictions";
-export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions"];
+export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone";
+export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone"];
 
 export interface OverlaySpec {
     /** i18n label key for the toggle option. */
@@ -274,6 +325,10 @@ export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
     "orphans": { labelKey: "graph3d_overlay_orphans", colorVar: "--color-orange", matches: (n) => n.orphan },
     "dead-ends": { labelKey: "graph3d_overlay_dead_ends", colorVar: "--color-yellow", matches: (n) => n.deadEnd },
     "contradictions": { labelKey: "graph3d_overlay_contradictions", colorVar: "--color-red", matches: (n) => n.contradiction },
+    // Read from `group`, not from `orphan && deadEnd` (#516): those read `outAdj`/`inAdj`, which
+    // record a link's target whether or not it is an idea, so a note linking only outside the
+    // scope is `orphan === false` and has no neighbour here. The lens wants the graph sense.
+    "alone": { labelKey: "graph3d_overlay_alone", colorVar: "--text-muted", matches: (n) => n.group < 0 },
 };
 
 /** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */

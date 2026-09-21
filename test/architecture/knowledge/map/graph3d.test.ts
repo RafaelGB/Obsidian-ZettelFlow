@@ -74,12 +74,21 @@ describe("build3DGraph (#280 S1)", () => {
         expect(build3DGraph(buildModel([]))).toEqual({ nodes: [], links: [] });
     });
 
-    it("carries each node's state and a cluster group (-1 when it orbits no hub)", () => {
-        const model = buildModel([idea("A.md", "permanent", [{ to: "B.md" }]), idea("B.md", "seed", [])]);
+    it("carries each node's state and a region group (-1 only when the note is alone)", () => {
+        // Before #513 this asserted -1: a two-note graph had no note of degree 5, so neither
+        // belonged anywhere and both were painted the "no group" grey. A region is a connected
+        // component now, so two linked notes are a region — and grey finally means something.
+        const model = buildModel([
+            idea("A.md", "permanent", [{ to: "B.md" }]),
+            idea("B.md", "seed", []),
+            idea("Alone.md", "seed", []),
+        ]);
         const graph = build3DGraph(model);
         const a = graph.nodes.find((n) => n.id === "A.md");
         expect(a?.state).toBe("permanent");
-        expect(a?.group).toBe(-1); // no hub in a 2-note graph
+        expect(a?.group).toBe(0);
+        expect(graph.nodes.find((n) => n.id === "B.md")?.group).toBe(0);
+        expect(graph.nodes.find((n) => n.id === "Alone.md")?.group).toBe(-1);
     });
 
     it("preserves each link's relation type (plain link vs typed relation)", () => {

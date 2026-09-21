@@ -18,6 +18,8 @@ import {
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
     RELATION_COLORS,
+    REGION_COLORS,
+    regionColor,
     shortestPath,
     tourStops,
     STATE_COLOR_VARS,
@@ -43,12 +45,14 @@ const STAR_COUNT = 1400;
 const STAR_INNER_RADIUS = 320;
 const STAR_OUTER_RADIUS = 900;
 type ViewState = "indexing" | "ready" | "empty" | "error";
-type ColorMode = "state" | "cluster";
+type ColorMode = "state" | "region";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
 type LabelSprite = THREE.Sprite; // three-spritetext's SpriteText extends three's Sprite (an Object3D)
 const endId = (end: string | LiveNode): string => (typeof end === "object" ? end.id ?? "" : end);
 const HUB_LABEL_COUNT = 18;
+/** Smallest region that earns a bubble of its own (#515). Below it the hull is noise. */
+const HULL_MIN_NODES = 3;
 
 function webglAvailable(): boolean {
     try {
@@ -115,6 +119,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private tourStopIds: string[] = [];
     private tourBtn: HTMLElement | null = null;
     private hullMeshes: THREE.Mesh[] = [];
+    /** One name per hull (#514) — same lifecycle as the hulls, so neither can outlive the other. */
+    private regionLabels: LabelSprite[] = [];
+    /** The region the camera is currently framing (#515), or null for the whole graph. */
+    private framedRegion: string | null = null;
+    /** The note this view was opened *on* (#517), until you pin something or clear the focus. */
+    private arrivedAt: string | null = null;
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
     private proximityTimer: number | undefined;
@@ -400,7 +410,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (halo && this.glowTexture) {
             const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
             material.opacity = halo.opacity;
-            material.color.set(this.clusterHue(gn.group));
+            material.color.set(regionColor(gn.group));
             const glow = new three.Sprite(material);
             glow.scale.set(halo.scale, halo.scale, 1);
             group.add(glow);
@@ -576,10 +586,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         return new three.CanvasTexture(canvas);
     }
 
-    private clusterHue(group: number): string {
-        return group < 0 ? "#9aa4b8" : `hsl(${(group * 67) % 360}, 70%, 62%)`;
-    }
-
     /** Translucent "hull" bubbles around each cluster, rebuilt when the layout settles (#280). */
     private rebuildHulls(): void {
         const three = this.three;
@@ -594,21 +600,31 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             arr.push(node);
             byGroup.set(node.group, arr);
         }
-        let made = 0;
         for (const [group, nodes] of byGroup) {
-            if (nodes.length < 4 || made >= 12) continue; // only real clusters; cap for performance
+            // The cap of twelve went with #515: it was written when a 421-note vault produced 31
+            // regions covering a quarter of it. An honest partition gives single digits.
+            if (nodes.length < HULL_MIN_NODES) continue;
             let cx = 0, cy = 0, cz = 0;
             for (const n of nodes) { cx += n.x ?? 0; cy += n.y ?? 0; cz += n.z ?? 0; }
             const k = nodes.length; cx /= k; cy /= k; cz /= k;
             let radius = 0;
             for (const n of nodes) radius = Math.max(radius, Math.hypot((n.x ?? 0) - cx, (n.y ?? 0) - cy, (n.z ?? 0) - cz));
-            const material = new three.MeshBasicMaterial({ color: new three.Color(this.clusterHue(group)), transparent: true, side: three.BackSide, depthWrite: false });
+            const material = new three.MeshBasicMaterial({ color: new three.Color(regionColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
             material.opacity = 0.06;
             const mesh = new three.Mesh(new three.SphereGeometry(radius + 10, 16, 12), material);
             mesh.position.set(cx, cy, cz);
             scene.add(mesh);
             this.hullMeshes.push(mesh);
-            made++;
+            // The name, above the bubble (#514). Larger and dimmer than a node label, so it reads
+            // as the region rather than as one more note in it.
+            const Ctor = this.spriteTextCtor;
+            const name = nodes.find((node) => node.region)?.region;
+            if (Ctor && name) {
+                const label = new Ctor(name, 11, regionColor(group));
+                label.position.set(cx, cy + radius + 18, cz);
+                scene.add(label);
+                this.regionLabels.push(label);
+            }
         }
     }
 
@@ -619,6 +635,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             mesh.material.dispose();
         }
         this.hullMeshes = [];
+        for (const label of this.regionLabels) scene.remove(label);
+        this.regionLabels = [];
     }
 
     /** Proximity labels (#280): show names for the nearest non-hub nodes so they fade in as you zoom in. */
@@ -718,12 +736,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         colorGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_color") });
         const segmented = colorGroup.createDiv({ cls: c("graph3d-segmented") });
         this.addColorButton(segmented, "state", t("graph3d_color_state"));
-        this.addColorButton(segmented, "cluster", t("graph3d_color_cluster"));
+        this.addColorButton(segmented, "region", t("graph3d_color_region"));
 
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
         const stats = graph3dStats(this.data);
-        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions };
+        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone };
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
 
         const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
@@ -1012,6 +1030,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.lastClick = { id, at: now };
         this.pinnedId = this.pinnedId === id ? null : id;
         this.hoverId = null;
+        this.arrivedAt = null; // you have moved on from where you came in
+
         if (this.pinnedId) this.focusNode(this.pinnedId);
         this.refreshPaint();
         this.updateStatus();
@@ -1020,6 +1040,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private clearFocus(): void {
         this.hoverId = null;
         this.pinnedId = null;
+        this.arrivedAt = null;
         this.overlay = null;
         this.pathFrom = null;
         this.pathNodes = null;
@@ -1043,7 +1064,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!this.pendingFocusPath) return;
         const path = this.pendingFocusPath;
         this.pendingFocusPath = null;
+        this.arrivedAt = path;
         this.focusNode(path);
+        this.updateStatus();
     }
 
     private focusNode(path: string, durationMs = 1200): void {
@@ -1123,7 +1146,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private baseNodeColor(node: Graph3DNode): string {
         if (this.colorMode === "state") return STATE_COLORS[node.state] ?? DEFAULT_STATE_COLOR;
-        return node.group < 0 ? "#9aa4b8" : `hsl(${(node.group * 67) % 360}, 70%, 66%)`;
+        return regionColor(node.group);
     }
 
     private computeLinkColor(link: LiveLink): string {
@@ -1176,18 +1199,38 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     // ── Status + legend ──────────────────────────────────────────────────────────
     private updateStatus(): void {
         if (!this.statusEl) return;
-        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_cluster");
+        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_region");
         const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
         if (this.pinnedId) {
             const pinned = this.displayed.nodes.find((n) => n.id === this.pinnedId);
             if (pinned) parts.push(`▸ ${pinned.name}`);
         }
+        const arrival = this.arrivalFact();
+        if (arrival) parts.push(arrival);
         if (this.pathMode) parts.push(t("graph3d_path_mode"));
         if (this.tourActive) parts.push(t("graph3d_status_tour"));
         if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
         if (this.lite) parts.push(t("graph3d_lite"));
         this.statusEl.setText(parts.join("  ·  "));
+    }
+
+    /**
+     * Where you landed (#517) — the payoff of naming the regions. Read straight off the node:
+     * #513 and #514 already put the name there and made `group < 0` mean alone, so this is a
+     * lookup, not a second traversal. Counted from `displayed.nodes`, like the legend, so a capped
+     * graph reports what is on screen.
+     *
+     * Both sentences are facts. A note being alone is a fact; "connect it" would be the surface
+     * deciding what you came for (§XII).
+     */
+    private arrivalFact(): string | null {
+        if (!this.arrivedAt) return null;
+        const node = this.displayed.nodes.find((candidate) => candidate.id === this.arrivedAt);
+        if (!node) return null;
+        if (node.group < 0 || !node.region) return t("graph3d_status_alone");
+        const size = this.displayed.nodes.filter((candidate) => candidate.region === node.region).length;
+        return t("graph3d_status_in_region", node.region, String(size));
     }
 
     private renderLegend(): void {
@@ -1196,7 +1239,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const legend = this.wrapperEl.createDiv({ cls: c("graph3d-legend") });
 
         // Node colour legend — reflects the active mode so the user knows what colours mean.
-        legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_nodes") });
+        legend.createDiv({
+            cls: c("graph3d-legend-title"),
+            text: t(this.colorMode === "state" ? "graph3d_legend_nodes" : "graph3d_legend_regions"),
+        });
         if (this.colorMode === "state") {
             const states = [...new Set(this.displayed.nodes.map((n) => n.state).filter((s) => s))].sort();
             for (const stateName of states) {
@@ -1206,7 +1252,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 row.createSpan({ text: stateName });
             }
         } else {
-            legend.createDiv({ cls: c("graph3d-legend-row") }).createSpan({ text: t("graph3d_legend_cluster") });
+            this.legendRegionRows(legend);
         }
 
         // Node-kind icons present (question / source).
@@ -1230,6 +1276,72 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.registerDomEvent(row, "click", () => this.toggleRelation(type));
             }
         }
+    }
+
+    /**
+     * The regions **on screen**, named and counted (#514).
+     *
+     * It said "By cluster" and stopped there, which is how the largest structures in the view ended
+     * up being the only unlabelled ones. Counting from `displayed.nodes` rather than from the model
+     * means a capped or time-sliced graph reports what you are actually looking at.
+     */
+    private legendRegionRows(legend: HTMLElement): void {
+        const seen = new Map<string, { group: number; size: number }>();
+        let alone = 0;
+        for (const node of this.displayed.nodes) {
+            if (node.group < 0 || !node.region) {
+                alone++;
+                continue;
+            }
+            const entry = seen.get(node.region);
+            if (entry) entry.size++;
+            else seen.set(node.region, { group: node.group, size: 1 });
+        }
+        const ordered = [...seen].sort((a, b) => b[1].size - a[1].size || (a[0] < b[0] ? -1 : 1));
+        for (const [name, { group, size }] of ordered) {
+            const row = this.legendRegionRow(legend, name, size, group % REGION_COLORS.length);
+            row.addClass(c("graph3d-legend-row--clickable"));
+            row.toggleClass(c("graph3d-legend-row--framed"), this.framedRegion === name);
+            row.tabIndex = 0;
+            row.setAttribute("role", "button");
+            row.setAttribute("aria-pressed", this.framedRegion === name ? "true" : "false");
+            this.registerDomEvent(row, "click", () => this.frameRegion(name));
+            this.registerDomEvent(row, "keydown", (event: KeyboardEvent) => {
+                if (event.key !== "Enter" && event.key !== " ") return;
+                event.preventDefault();
+                this.frameRegion(name);
+            });
+        }
+        // Alone is a state, not a region: it is listed so the count is visible, and it does not
+        // frame, because there is no "there" to fly to.
+        if (alone > 0) this.legendRegionRow(legend, t("graph3d_legend_alone"), alone, null);
+    }
+
+    private legendRegionRow(legend: HTMLElement, name: string, size: number, palette: number | null): HTMLElement {
+        const row = legend.createDiv({ cls: c("graph3d-legend-row") });
+        row.createSpan({
+            cls: c("graph3d-swatch", palette === null ? "graph3d-swatch--region-alone" : `graph3d-swatch--region-${palette}`),
+        });
+        row.createSpan({ text: name });
+        row.createSpan({ cls: c("graph3d-legend-count"), text: t("graph3d_legend_region_size", String(size)) });
+        return row;
+    }
+
+    /**
+     * Fly to one region (#515). A **camera move and nothing else** — the graph already has a query,
+     * a lens and a time cursor to narrow it with, and a fourth way would be the addition this epic
+     * exists to refuse. Clicking the framed region again pulls back to the whole graph.
+     */
+    private frameRegion(name: string): void {
+        if (!this.graph) return;
+        if (this.framedRegion === name) {
+            this.framedRegion = null;
+            this.graph.zoomToFit(700, 40);
+        } else {
+            this.framedRegion = name;
+            this.graph.zoomToFit(700, 40, (node) => (node as Graph3DNode).region === name);
+        }
+        this.renderLegend();
     }
 
     private legendKindRow(legend: HTMLElement, kind: string, glyph: string, labelKey: Parameters<typeof t>[0]): void {

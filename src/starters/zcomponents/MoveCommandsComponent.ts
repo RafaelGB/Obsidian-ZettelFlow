@@ -124,7 +124,7 @@ export class MoveCommandsComponent extends PluginComponent {
  * Write the move down and say so. Acknowledged the moment it lands — a log that fills up silently
  * teaches you it is not there.
  */
-export function recordMoveOn(entry: MoveVerb, path: string, because?: string): void {
+export function recordMoveOn(entry: MoveVerb, path: string): void {
     const log = MoveLog.getInstance();
     const history = log.forSubject(path);
     const from = history.length > 0 ? history[history.length - 1].id : undefined;
@@ -133,7 +133,6 @@ export function recordMoveOn(entry: MoveVerb, path: string, because?: string): v
         verb: entry.verb,
         subject: path,
         ...(from ? { from } : {}),
-        ...(because ? { because } : {}),
     });
     const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
     new Notice(recorded ? t("move_recorded", t(entry.labelKey as LocaleKey), name) : t("move_not_recorded"));

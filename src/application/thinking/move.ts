@@ -124,15 +124,19 @@ export interface Move {
     produced?: string;
     /** The move this came out of. Present, a branch has a lineage; absent, it is a root. */
     from?: string;
-    /**
-     * One line, optional, never asked for. The single piece of free text in the record, and the
-     * reason a replay reads as a story rather than a list of verbs.
-     */
-    because?: string;
 }
 
-/** A line, not a paragraph. Same limit a frozen quote already uses in the Lab. */
-export const BECAUSE_LIMIT = 140;
+/*
+ * There is no field for **why**, and there was one until #500.
+ *
+ * The question "where do I say what my challenge was?" is the right question, and a capped line
+ * in a log is the wrong answer to it: the reason you challenged a note **is a thought**. It
+ * deserves to branch, to survive, to be set aside, to come back into the note — and 140
+ * characters in `data.json` would bury it in the one place nothing else can reach.
+ *
+ * Since #499 a framed verb opens a space to write exactly that, so the field had no writer and
+ * nothing asked for it. A record with a field nobody fills is drift, so it went.
+ */
 
 /** Validate and normalise. The id and the clock come from the caller, which is what keeps this pure. */
 export function newMove(facts: Move): Move {
@@ -145,8 +149,6 @@ export function newMove(facts: Move): Move {
     };
     if (facts.produced) move.produced = facts.produced;
     if (facts.from) move.from = facts.from;
-    const because = facts.because?.trim();
-    if (because) move.because = because.slice(0, BECAUSE_LIMIT);
     return move;
 }
 

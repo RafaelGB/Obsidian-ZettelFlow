@@ -1,7 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     ancestorsOf,
-    BECAUSE_LIMIT,
     childrenOf,
     LAB_MOVE_VOCABULARY,
     MOVE_PRIMITIVES,
@@ -41,10 +40,13 @@ describe("five primitives, eleven verbs, and not one more (#490)", () => {
 });
 
 describe("a move carries what you did, never what it said (#490)", () => {
-    it("has no field a note body could live in", () => {
-        expect(Object.keys(move({ from: "m0", because: "why", produced: "n.md" })).sort()).toEqual([
+    it("has no field any text could live in", () => {
+        // There was a capped `because` until #500. The question it answered — *where do I say
+        // what my challenge was?* — is the right one, and a line in a log is the wrong answer:
+        // the reason is a thought, and #499 opens a space to write it. A field nobody fills is
+        // drift, so it went.
+        expect(Object.keys(move({ from: "m0", produced: "n.md" })).sort()).toEqual([
             "at",
-            "because",
             "from",
             "id",
             "primitive",
@@ -54,14 +56,8 @@ describe("a move carries what you did, never what it said (#490)", () => {
         ]);
     });
 
-    it("caps the one line of free text rather than refusing it", () => {
-        const long = "x".repeat(400);
-        expect(move({ because: long }).because).toHaveLength(BECAUSE_LIMIT);
-    });
-
-    it("omits a blank reason entirely", () => {
-        expect(move({ because: "   " })).not.toHaveProperty("because");
-        expect(move()).not.toHaveProperty("because");
+    it("drops anything else it is handed", () => {
+        expect(move({ because: "why" } as never)).not.toHaveProperty("because");
     });
 });
 

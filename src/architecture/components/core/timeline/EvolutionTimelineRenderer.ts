@@ -222,9 +222,6 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             text: verb ? t(verb.labelKey as Parameters<typeof t>[0]) : move.verb,
             cls: c("evolution-timeline-verb"),
         });
-        if (move.because) {
-            line.createSpan({ text: move.because, cls: c("evolution-timeline-note"), attr: { title: move.because } });
-        }
         // You can take a move back from where you can see it is wrong. It touches the log and
         // nothing else — never the note it referred to.
         const undo = line.createEl("button", {

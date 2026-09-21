@@ -97,14 +97,25 @@ describe("the move log has one door (#491)", () => {
 });
 
 describe("nothing records itself (#491)", () => {
-    it("no recorder also listens to the vault", () => {
+    it("no recorder listens to a data event", () => {
         // The negative scan is the half that a name on a list cannot satisfy: a file that both
-        // records a move and subscribes to a vault or metadata event is, by construction, capable
-        // of writing down something you did not do.
+        // records a move and subscribes to a **vault or metadata** event is, by construction,
+        // capable of writing down something you did not do.
         const listening = callers
-            .filter((file) => /\b(vault|metadataCache|workspace)\s*\.\s*on\(/.test(file.code))
+            .filter((file) => /\b(vault|metadataCache)\s*\.\s*on\(/.test(file.code))
             .map((file) => file.rel);
         expect(listening).toEqual([]);
+    });
+
+    it("and a recorder that hooks the workspace only hooks a menu", () => {
+        // `workspace.on("file-menu" | "editor-menu")` is deliberately allowed. It is a UI hook: it
+        // fires to *offer* you something, and nothing is recorded until you click. The danger was
+        // never the word `on` — it is a change in the vault causing a write (#496).
+        for (const file of callers) {
+            const hooks = [...file.code.matchAll(/workspace\s*\.\s*on\(\s*"([^"]+)"/g)].map((m) => m[1]);
+            const offenders = hooks.filter((event) => event !== "file-menu" && event !== "editor-menu");
+            expect({ file: file.rel, offenders }).toEqual({ file: file.rel, offenders: [] });
+        }
     });
 
     it("no hook, no action and no index pass records one", () => {

@@ -9,6 +9,7 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 const COMMANDS = read("src/starters/zcomponents/MoveCommandsComponent.ts");
 const CULTIVATE = read("src/architecture/components/core/cultivate/CultivateModeRenderer.ts");
 const STARTERS = read("src/starters/utils/StartersTools.ts");
+const PICKER = read("src/architecture/components/core/moves/MovePicker.ts");
 /**
  * Comments stripped, line-based. A rule about what the code must not reach has to be judged on
  * the code: the doc comment explaining *why* `setSubmenu` is avoided says the word, and would
@@ -39,16 +40,34 @@ const ES = read("src/architecture/lang/locale/es.ts");
  * to**.
  */
 
-describe("every verb is one gesture on the active note (#493)", () => {
-    it("registers one command per verb, from the vocabulary rather than a second list", () => {
-        expect(COMMANDS).toContain("for (const entry of MOVE_VERBS)");
-        expect(COMMANDS).toContain("id: `move-${entry.verb}`");
-        expect(MOVE_VERBS).toHaveLength(11);
+describe("you reach a move the way you reach everything else (#496)", () => {
+    it("offers exactly one entry per context menu, never eleven", () => {
+        // A context menu is shared with the core app and every other plugin. Filling it with our
+        // vocabulary would be rude, which is what made a nested submenu attractive — and that is
+        // still untyped at 1.13.1, so the entry opens a picker instead.
+        for (const event of ["editor-menu", "file-menu"]) {
+            expect((code(COMMANDS).match(new RegExp(`workspace\\.on\\("${event}"`, "g")) ?? [])).toHaveLength(1);
+        }
+        expect((code(COMMANDS).match(/menu\.addItem\(/g) ?? [])).toHaveLength(1);
     });
 
-    it("gates them on an active markdown note, so the palette stays honest", () => {
-        expect(COMMANDS).toContain("checkCallback");
-        expect(COMMANDS).toContain('file.extension !== "md"');
+    it("registers no command at all — the palette is not where anyone discovers anything", () => {
+        // #493 shipped eleven commands and called the palette one gesture. It is one gesture for
+        // someone who already knows the feature exists, and twelve rows of clutter for everyone.
+        expect(code(COMMANDS)).not.toContain("addCommand(");
+    });
+
+    it("offers the moves only where a note is knowledge", () => {
+        // An excluded path never becomes an idea, so it never accrues moves — the log already
+        // refused them, and a refusal you cannot see is an invisible failure in another place.
+        expect(code(COMMANDS)).toContain("isKnowledge(");
+        expect(code(COMMANDS)).toContain("scopeExcludedPaths(this.plugin.settings)");
+    });
+
+    it("lists the whole vocabulary in the picker, from the one table", () => {
+        expect(PICKER).toContain("MOVE_VERBS");
+        expect(PICKER).toContain("move_primitive_");
+        expect(MOVE_VERBS).toHaveLength(11);
     });
 
     it("acknowledges the move the moment it lands", () => {
@@ -57,12 +76,20 @@ describe("every verb is one gesture on the active note (#493)", () => {
     });
 });
 
-describe("no form stands between you and a move (#493)", () => {
-    it("opens no modal, anywhere in the path", () => {
-        // If naming a move took longer than making one, nobody would ever make one.
-        expect(code(COMMANDS)).not.toMatch(/new\s+\w*Modal\(/);
+describe("no form stands between you and a move (#493, restated by #496)", () => {
+    it("asks which move, and nothing else", () => {
+        // The rule was never "no modal" — it was that **no move may ask you to justify or
+        // classify it**. Naming the move is the one irreducible question, since there are eleven,
+        // and a keyboard-first picker answers it without anything being typed. That picker is the
+        // single named exception; a second modal in this path would not be.
+        expect((code(COMMANDS).match(/new\s+\w*Modal\(|new MovePicker\(/g) ?? [])).toEqual(["new MovePicker("]);
         expect(code(COMMANDS)).not.toContain("prompt(");
         expect(code(CULTIVATE)).toContain("recordMoveOn(");
+    });
+
+    it("and the picker has no field of its own to fill", () => {
+        expect(code(PICKER)).not.toMatch(/createEl\("input"|addText\(/);
+        expect(code(PICKER)).not.toContain("because");
     });
 
     it("reaches no internal Obsidian API for a nested menu", () => {

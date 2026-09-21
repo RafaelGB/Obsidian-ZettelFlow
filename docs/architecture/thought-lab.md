@@ -297,20 +297,36 @@ came out of, so a genealogy builds itself with nothing to maintain.
 The moves are **not** a Lab feature. Challenging an idea, finding a counterexample and reframing
 it are exactly as useful against a permanent note you wrote last year, and two doors reach them:
 
-- the **command palette** — one command per verb (`move-challenge`, `move-reframe`, …), each
-  separately hotkey-bindable, each gated on an active markdown note. You type "challenge", you
-  press enter, it is done;
+- **right-click** — in the note you are reading, or on its tab or its file: *Make a move…*, which
+  opens a keyboard-first picker. Arrows move, enter chooses, typing narrows, nothing has to be
+  typed;
 - **Cultivate** — the same eleven, on the note it is already showing you, which is where you are
   already deciding what to do with it.
+
+### Only where a note is knowledge (#496)
+
+The entry appears **only for a note inside the [knowledge scope](knowledge-model.md)**. An
+excluded path — a flow canvas, a script folder, the thinking space — never becomes an idea, so it
+never accrues moves. The log already refused them, and a refusal you cannot see is an invisible
+failure in a different place; better not to offer it.
 
 **The note is never written to.** A move is a fact about what *you* did, kept in the log — no
 property, no frontmatter, no body. That is what makes it safe on a note you care about, and the
 [write record](reversibility.md) is where you would see it if it were not true.
 
-There is deliberately no right-click submenu: nesting a menu needs `MenuItem.setSubmenu()`, which
-Obsidian ships at runtime and does not declare in its typings. This plugin already carries one
+**There are no move commands.** 4.3 first shipped eleven of them and called the palette one
+gesture; it is one gesture for someone who already knows the feature exists, and twelve rows of
+clutter for everyone else. The palette is where you go looking for something you know is there,
+never where you discover anything (#496).
+
+There is still no nested submenu: that needs `MenuItem.setSubmenu()`, which Obsidian ships at
+runtime and does not declare in its typings even at 1.13.1. This plugin already carries one
 unavoidable internal dependency — the canvas patcher — and a right-click convenience does not
-justify a second.
+justify a second. One menu entry opening a picker is the next most native answer, and it is an
+interaction every Obsidian user already knows from the quick switcher.
+
+The rule the picker has to satisfy is not "no modal" — it is that **no move may ask you to justify
+or classify it**. Naming the move is the one irreducible question, since there are eleven.
 
 Two things this does **not** do, on purpose. It never asks *why*: the `because` line exists in the
 record and nothing prompts for it, because a gesture that opens a form is a gesture nobody

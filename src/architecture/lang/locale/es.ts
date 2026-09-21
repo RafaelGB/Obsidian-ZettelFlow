@@ -371,7 +371,6 @@ export default {
     zettel_id_no_parent_fallback_notice: 'No se seleccionó padre Folgezettel — usando el siguiente ID de nivel raíz libre.',
     zettel_id_collision_advance_notice: 'Colisión de Zettel ID detectada — avanzado al siguiente candidato libre.',
     menu_pane_edit_step: 'Editar paso',
-    menu_pane_transform_note_into_step: 'Transformar nota en paso',
     menu_pane_remove_step_configuration: 'Eliminar la configuración del paso',
     menu_pane_copy_step_configuration: 'Copiar al portapapeles (configuración del paso)',
     menu_pane_paste_step_configuration: 'Pegar desde el portapapeles (configuración del paso)',

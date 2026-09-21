@@ -39,36 +39,36 @@ export class FileMenu {
                         : "editor";
                 if (file.extension === "md") {
                     const fileService = FrontmatterService.instance(file);
-                    let mappedInfo = {};
-                    let title = t("menu_pane_transform_note_into_step");
-                    if (fileService.hasZettelFlowSettings()) {
-                        const zettelFlowSettings = fileService.getZettelFlowSettings();
-                        mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
-                        menu.addItem((item) => {
-                            // Remove step configuration.
-                            item
-                                .setTitle(t("menu_pane_remove_step_configuration"))
-                                .setIcon(RibbonIcon.ID)
-                                .onClick(async () => {
-                                    await fileService.removeStepSettings();
-                                    new Notice("Step configuration removed!");
-                                });
-                        }).addItem((item) => {
-                            // Copy step configuration to canvas clipboard.
-                            item
-                                .setTitle(t("menu_pane_copy_step_configuration"))
-                                .setIcon(RibbonIcon.ID)
-                                .onClick(async () => {
-                                    canvas.clipboard.save(zettelFlowSettings);
-                                    new Notice("Step configuration copied!");
-                                });
-                        });
-                        // Change title to edit step if step configuration is present.
-                        title = t("menu_pane_edit_step");
-                    }
+                    // A note becomes a step **on a canvas**, nowhere else (#519). This menu used to
+                    // offer "Transform note into step" on every markdown file in the vault, which
+                    // is noise on almost all of them and misleading on the rest: a step only means
+                    // something inside a flow, so the builder opened for a note no flow references.
+                    // What is left acts on a note that already *is* one.
+                    if (!fileService.hasZettelFlowSettings()) return;
+                    const zettelFlowSettings = fileService.getZettelFlowSettings();
+                    const mappedInfo = StepBuilderMapper.StepSettings2PartialStepBuilderInfo(zettelFlowSettings);
+                    menu.addItem((item) => {
+                        // Remove step configuration.
+                        item
+                            .setTitle(t("menu_pane_remove_step_configuration"))
+                            .setIcon(RibbonIcon.ID)
+                            .onClick(async () => {
+                                await fileService.removeStepSettings();
+                                new Notice("Step configuration removed!");
+                            });
+                    }).addItem((item) => {
+                        // Copy step configuration to canvas clipboard.
+                        item
+                            .setTitle(t("menu_pane_copy_step_configuration"))
+                            .setIcon(RibbonIcon.ID)
+                            .onClick(async () => {
+                                canvas.clipboard.save(zettelFlowSettings);
+                                new Notice("Step configuration copied!");
+                            });
+                    });
                     menu.addItem((item) => {
                         item
-                            .setTitle(title)
+                            .setTitle(t("menu_pane_edit_step"))
                             .setIcon(RibbonIcon.ID)
                             .onClick(() => {
                                 new StepBuilderModal(this.plugin, {

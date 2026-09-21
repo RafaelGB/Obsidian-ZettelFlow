@@ -58,7 +58,7 @@ content.addFrontMatter({
 | `ready()` · `model()` | Whether the index is built; the raw idea graph for questions no projection answers. |
 | `dashboard()` · `balance()` · `debt()` · `health()` | Vault-wide metrics. |
 | `review(now?, windowDays?)` | What changed, stalled and matured recently. |
-| `discoveries(opts?)` · `map(opts?)` | Unlinked pairs that co-occur; clusters and hubs. |
+| `discoveries(opts?)` · `map()` | Unlinked pairs that co-occur; the connected regions of the graph, and the notes that are alone. |
 | `openQuestions()` · `proposeAnswers(path)` | Unanswered questions, and notes that could answer one. |
 | `neighbors(path)` · `reasoningPaths(start, opts?)` · `query(source, now?)` | Graph traversal. |
 | `evidence(path)` · `outline(paths, opts?)` | What supports/contradicts an idea; an outline from a set of notes. |

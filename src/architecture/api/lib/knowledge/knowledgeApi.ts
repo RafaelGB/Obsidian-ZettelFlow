@@ -187,9 +187,9 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             call: (path: string) => proposeAnswers(model(), path),
         },
         map: {
-            signature: "(opts?: BuildKnowledgeMapOptions) => KnowledgeMap",
-            summary: "Clusters and hubs of the idea graph.",
-            call: (opts?: Parameters<typeof buildKnowledgeMap>[1]) => buildKnowledgeMap(model(), opts),
+            signature: "() => KnowledgeMap",
+            summary: "The connected regions of the idea graph, and the notes that are alone.",
+            call: () => buildKnowledgeMap(model()),
         },
         neighbors: {
             signature: "(path: string) => ConceptNeighbors",

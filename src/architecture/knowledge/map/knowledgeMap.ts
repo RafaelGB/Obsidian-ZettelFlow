@@ -1,86 +1,75 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
-import { hubs } from "../query/queries";
 import { memoise } from "../model/memo";
 
-/** A hub and the non-hub notes that orbit it (#164). */
+/** A connected region of the idea graph: its most connected note, and the rest of it (#513). */
 export interface Cluster {
+    /** The region's most connected note — what a reader would call the region. Ties broken by path. */
     hub: string;
+    /** That note's degree. */
     degree: number;
+    /** The rest of the region, sorted by path. */
     members: string[];
 }
 
 export interface KnowledgeMap {
     clusters: Cluster[];
+    /** Notes with no link to anything else in the model — alone, which is a state, not a leftover. */
     unclustered: string[];
 }
 
-export interface BuildKnowledgeMapOptions {
-    hubThreshold?: number;
-}
-
-const DEFAULT_HUB_THRESHOLD = 5;
 const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
- * Pure "living knowledge map" builder (#164). Detects hubs (reusing `hubs`, degree ≥ threshold) and
- * assigns every non-hub note to its **strongest adjacent hub** — connection strength (2 = bidirectional
- * link, 1 = one-way) first, then hub degree, then hub path — leaving notes adjacent to no hub in
- * `unclustered`. Hubs are cluster centers, never members. Clusters ordered by degree desc then hub
- * path; members and `unclustered` sorted by path. Deterministic, read-only, never throws; empty model
- * ⇒ empty map. Obsidian-free.
+ * Pure "living knowledge map" builder (#164, rewritten by #513). A **region is a connected
+ * component** of the undirected link graph, so every note belongs to exactly one and coverage is a
+ * property of the partition rather than an outcome of a threshold.
+ *
+ * It used to be a heuristic: notes of degree ≥ 5 were hubs, and every other note joined its
+ * strongest adjacent hub. Measured on a 421-note vault that gave **31 regions covering 27 %** of
+ * the notes, leaving 309 in `unclustered` — and lowering the threshold to 3 gave **250 regions**.
+ * The same vault has 99 components, the largest holding 248 notes; that shape needs no parameter,
+ * so the parameter went.
+ *
+ * Only **in-model** neighbours are walked. `KnowledgeModel.attach()` records `relation.to` whether
+ * or not the target is an idea, so a note whose only link leaves the scope has a degree but no
+ * neighbour here — it is alone in this graph, which is the graph the map describes.
+ *
+ * Regions ordered by size desc then hub path; members and `unclustered` sorted by path.
+ * Deterministic, read-only, never throws; empty model ⇒ empty map. Obsidian-free.
  */
-export const buildKnowledgeMap = memoise(
-    "knowledgeMap",
-    // Memoised per model revision (#458): clustering the whole graph on every render.
-    (model: KnowledgeModel, opts: BuildKnowledgeMapOptions = {}): KnowledgeMap => {
-    const threshold = opts.hubThreshold ?? DEFAULT_HUB_THRESHOLD;
-    const hubIdeas = hubs(model, threshold);
-    const hubPaths = new Set(hubIdeas.map((hub) => hub.path));
-    const hubDegree = new Map(hubIdeas.map((hub) => [hub.path, hub.maturitySignals.degree]));
-    const members = new Map<string, string[]>();
-    for (const hub of hubIdeas) members.set(hub.path, []);
-
+export const buildKnowledgeMap = memoise("knowledgeMap", (model: KnowledgeModel): KnowledgeMap => {
+    const ideas = model.all().sort((a, b) => byPath(a.path, b.path));
+    const degreeOf = new Map(ideas.map((idea) => [idea.path, idea.maturitySignals.degree]));
+    const seen = new Set<string>();
+    const clusters: Cluster[] = [];
     const unclustered: string[] = [];
 
-    for (const idea of model.all()) {
-        if (hubPaths.has(idea.path)) continue; // hubs are centers, never members
-        // Only the note's own adjacent hubs matter — O(degree), not O(hubs) (#302 S3). Strength is the
-        // Set-membership count (one for an out-link, one for an in-link), matching the prior semantics.
-        const strengthByHub = new Map<string, number>();
-        for (const to of model.outNeighborSet(idea.path)) {
-            if (hubPaths.has(to)) strengthByHub.set(to, (strengthByHub.get(to) ?? 0) + 1);
+    for (const start of ideas) {
+        if (seen.has(start.path)) continue;
+        seen.add(start.path);
+        const region = [start.path];
+        for (let read = 0; read < region.length; read++) {
+            const path = region[read];
+            for (const set of [model.outNeighborSet(path), model.inNeighborSet(path)]) {
+                for (const next of set) {
+                    if (seen.has(next) || !degreeOf.has(next)) continue;
+                    seen.add(next);
+                    region.push(next);
+                }
+            }
         }
-        for (const from of model.inNeighborSet(idea.path)) {
-            if (hubPaths.has(from)) strengthByHub.set(from, (strengthByHub.get(from) ?? 0) + 1);
+        if (region.length === 1) {
+            unclustered.push(start.path);
+            continue;
         }
-
-        let best: { hub: string; strength: number; degree: number } | undefined;
-        for (const [hub, strength] of strengthByHub) {
-            const degree = hubDegree.get(hub) ?? 0;
-            const better =
-                !best ||
-                strength > best.strength ||
-                (strength === best.strength && degree > best.degree) ||
-                (strength === best.strength && degree === best.degree && hub < best.hub);
-            if (better) best = { hub, strength, degree };
-        }
-
-        if (best) {
-            const list = members.get(best.hub);
-            if (list) list.push(idea.path);
-        } else {
-            unclustered.push(idea.path);
-        }
+        region.sort(byPath);
+        const hub = region.reduce((best, path) =>
+            (degreeOf.get(path) ?? 0) > (degreeOf.get(best) ?? 0) ? path : best
+        );
+        clusters.push({ hub, degree: degreeOf.get(hub) ?? 0, members: region.filter((path) => path !== hub) });
     }
 
-    const clusters: Cluster[] = hubIdeas.map((hub) => ({
-        hub: hub.path,
-        degree: hub.maturitySignals.degree,
-        members: (members.get(hub.path) ?? []).sort(byPath),
-    }));
-    clusters.sort((a, b) => b.degree - a.degree || byPath(a.hub, b.hub));
+    clusters.sort((a, b) => b.members.length - a.members.length || byPath(a.hub, b.hub));
     unclustered.sort(byPath);
-
-        return { clusters, unclustered };
-    }
-);
+    return { clusters, unclustered };
+});

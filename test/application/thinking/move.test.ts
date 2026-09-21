@@ -9,6 +9,9 @@ import {
     movesFor,
     newMove,
     pruneMoves,
+    MOVE_APPLICABILITY,
+    verbsFor,
+    effectOf,
     type Move,
 } from "application/thinking/move";
 import { LAB_KEYS } from "application/thinking/labKeys";
@@ -152,5 +155,47 @@ describe("reading a subject's history (#490)", () => {
     it("returns only that subject's moves, oldest first", () => {
         const all = [move({ id: "1", at: 2, subject: "a.md" }), move({ id: "2", at: 1, subject: "b.md" }), move({ id: "3", at: 3, subject: "a.md" })];
         expect(movesFor("a.md", all).map((m) => m.id)).toEqual(["1", "3"]);
+    });
+});
+
+describe("the vocabulary knows what it acts on (#498)", () => {
+    it("answers for every verb, and only for verbs", () => {
+        // Asserted in both directions: the compile-time claim (a twelfth verb will not build
+        // until it has an answer) cannot be checked at runtime, so the key sets are.
+        expect(Object.keys(MOVE_APPLICABILITY).sort()).toEqual(MOVE_VERBS.map((v) => v.verb).sort());
+        for (const row of Object.values(MOVE_APPLICABILITY)) {
+            expect(Object.keys(row).sort()).toEqual(["note", "thought"]);
+        }
+    });
+
+    it("stops offering what means nothing where", () => {
+        const onNote = verbsFor("note").map((v) => v.verb);
+        expect(onNote).not.toContain("capture"); // already captured
+        expect(onNote).not.toContain("crystallize"); // already knowledge
+        expect(verbsFor("thought").map((v) => v.verb)).not.toContain("split"); // no headings
+    });
+
+    it("says what choosing it does", () => {
+        expect(effectOf("split", "note")).toBe("operation");
+        expect(effectOf("challenge", "note")).toBe("space");
+        expect(effectOf("set-aside", "note")).toBe("record");
+        expect(effectOf("crystallize", "note")).toBeNull();
+    });
+
+    it("answers nothing for a verb it has never heard of, rather than crashing", () => {
+        // It is called with what came off disk, where the verb is whatever was written there.
+        expect(effectOf("steelman", "note")).toBeNull();
+    });
+
+    it("agrees with the Lab about what a thought can have done to it", () => {
+        // Without this the thought column would be decoration: nothing reads it yet. A fifth Lab
+        // gesture now forces an answer here too.
+        for (const [labMove, mapped] of Object.entries(LAB_MOVE_VOCABULARY)) {
+            if (!mapped) continue;
+            expect({ labMove, effect: effectOf(mapped.verb, "thought") }).toEqual({
+                labMove,
+                effect: expect.any(String),
+            });
+        }
     });
 });

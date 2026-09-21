@@ -35,10 +35,31 @@ export const MOVE_PRIMITIVES: readonly MovePrimitive[] = [
     "crystallize",
 ];
 
+/**
+ * Every verb, as a union (#498).
+ *
+ * `MoveVerb.verb` is narrowed to this so a table keyed on it is **exhaustive**: a twelfth verb
+ * does not compile until it has an answer for what it does to a note and to a thought. The
+ * persisted {@link Move.verb} stays a plain `string` — a log written by a newer release must be
+ * readable, not fatal, and the sanitiser already drops what it does not recognise.
+ */
+export type MoveVerbId =
+    | "capture"
+    | "split"
+    | "compress"
+    | "reframe"
+    | "challenge"
+    | "counterexample"
+    | "invert"
+    | "branch"
+    | "analogy"
+    | "set-aside"
+    | "crystallize";
+
 /** A named operation, and the primitive it belongs to. */
 export interface MoveVerb {
     /** Stable, locale-free id. Persisted, so it may never be renamed. */
-    verb: string;
+    verb: MoveVerbId;
     primitive: MovePrimitive;
     /** i18n key of its name; derived, so a verb cannot exist without one. */
     labelKey: string;
@@ -50,7 +71,7 @@ export interface MoveVerb {
  * by string arithmetic is invisible to it — so eleven real strings looked like eleven orphans.
  * A greppable literal is worth more than a clever one.
  */
-function verb(verb: string, primitive: MovePrimitive, labelKey: string): MoveVerb {
+function verb(verb: MoveVerbId, primitive: MovePrimitive, labelKey: string): MoveVerb {
     return { verb, primitive, labelKey };
 }
 
@@ -231,7 +252,9 @@ export const LAB_MOVE_VOCABULARY: Record<LabMove, { primitive: MovePrimitive; ve
 };
 
 const PRIMITIVES = new Set<string>(MOVE_PRIMITIVES);
-const VERBS = new Map(MOVE_VERBS.map((entry) => [entry.verb, entry.primitive]));
+// Keyed by plain string: this map answers questions about what came off **disk**, where the
+// verb is whatever was written there rather than one of ours.
+const VERBS = new Map<string, MovePrimitive>(MOVE_VERBS.map((entry) => [entry.verb, entry.primitive]));
 
 function looksLikeMove(value: unknown): value is Move {
     if (typeof value !== "object" || value === null) return false;
@@ -264,4 +287,66 @@ export function sanitizeMoveLog(raw: unknown): Move[] {
         }
     }
     return out;
+}
+
+/** What a move can be made *on*. A note is knowledge; a thought is not knowledge yet. */
+export type MoveSubjectKind = "note" | "thought";
+
+/**
+ * What choosing a verb actually does.
+ *
+ * - `space` — opens a framed place to write. The system provides the frame; you provide the
+ *   content, which is the line [§XII](../../../docs/development/constitution.md) draws through
+ *   this whole vocabulary.
+ * - `operation` — runs a transformation **already derivable from what you wrote**. Splitting a
+ *   note at its headings invents nothing; it rearranges what is there. This is the only effect
+ *   allowed to act on the note itself.
+ * - `record` — writes the move down and nothing else, because there is nothing else to do.
+ */
+export type MoveEffect = "space" | "operation" | "record";
+
+/**
+ * What each verb means, and where (#498, epic #497).
+ *
+ * Until now the vocabulary knew what the verbs *were* and not what they **apply to**, so the
+ * picker offered all eleven on any note — including `crystallize` on something that is already
+ * knowledge. A vocabulary that cannot say which verb does what cannot drive an epic that
+ * branches on exactly that.
+ *
+ * `null` carries two distinct meanings, and each is marked where it is declared:
+ *
+ * - **does not apply** — there is no sensible reading of the verb for that subject;
+ * - **deferred** — it would read fine and is not built yet.
+ */
+export const MOVE_APPLICABILITY: Record<MoveVerbId, Record<MoveSubjectKind, MoveEffect | null>> = {
+    // does not apply to a note: it is already captured. On a thought it is what writing *is*.
+    capture: { note: null, thought: "record" },
+    // the one mechanical transform, and it needs headings — which a thought does not have.
+    split: { note: "operation", thought: null },
+    compress: { note: "space", thought: null }, // deferred in the Lab
+    reframe: { note: "space", thought: null }, // deferred in the Lab
+    challenge: { note: "space", thought: "space" },
+    counterexample: { note: "space", thought: null }, // deferred in the Lab
+    invert: { note: "space", thought: null }, // deferred in the Lab
+    branch: { note: "space", thought: "space" },
+    analogy: { note: "space", thought: null }, // deferred in the Lab
+    "set-aside": { note: "record", thought: "record" },
+    // does not apply to a note: it is what a thought *becomes*, and a note already is one.
+    crystallize: { note: null, thought: "operation" },
+};
+
+/** The verbs worth offering for a subject — what the picker may show. */
+export function verbsFor(subject: MoveSubjectKind): MoveVerb[] {
+    return MOVE_VERBS.filter((entry) => MOVE_APPLICABILITY[entry.verb][subject] !== null);
+}
+
+/**
+ * What choosing this verb does here, or `null` when it is not offered.
+ *
+ * Takes a plain `string` deliberately: it is called with what came off disk, and an unknown verb
+ * has to answer "nothing" rather than crash.
+ */
+export function effectOf(verb: string, subject: MoveSubjectKind): MoveEffect | null {
+    const row = MOVE_APPLICABILITY[verb as MoveVerbId];
+    return row ? row[subject] : null;
 }

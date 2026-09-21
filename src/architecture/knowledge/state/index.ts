@@ -35,6 +35,7 @@ export * from "architecture/knowledge/discovery/discoveries";
 export * from "architecture/knowledge/questions/openQuestions";
 export * from "architecture/knowledge/questions/proposeAnswers";
 export * from "architecture/knowledge/map/knowledgeMap";
+export * from "architecture/knowledge/map/communities";
 export * from "architecture/knowledge/map/graph3d";
 export * from "architecture/knowledge/traverse/conceptNeighbors";
 export * from "architecture/knowledge/traverse/reasoningPaths";

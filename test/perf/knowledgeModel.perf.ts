@@ -3,6 +3,7 @@ import { deriveIdea } from "architecture/knowledge/model/Idea";
 import { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
 import { parseInlineFields } from "architecture/knowledge/parse/inlineFields";
 import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
+import { communitiesOf } from "architecture/knowledge/map/communities";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
@@ -108,6 +109,10 @@ describe("the projections the surfaces run", () => {
 
     it("analysis.map.10k", () => {
         assertBudget("analysis.map.10k", timed("analysis.heaviest", () => buildKnowledgeMap(model), 10_000));
+    });
+
+    it("analysis.communities.10k", () => {
+        assertBudget("analysis.communities.10k", timed("analysis.heaviest", () => communitiesOf(model), 10_000));
     });
 
     it("analysis.debt.10k", () => {

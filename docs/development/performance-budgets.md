@@ -74,6 +74,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `derive.one` | 0.003 ms | 0.05 |
 | `enrich.parse.50k` | 37.8 ms | 250 |
 | `analysis.map.10k` | 13.9 ms | 120 |
+| `analysis.communities.10k` | 157.3 ms | 400 |
 | `analysis.debt.10k` | 5.1 ms | 60 |
 | `analysis.discovery.10k` | **1,528 ms** | 5,000 |
 | `analysis.discovery.scaling` | 2.24× | 3.5 |

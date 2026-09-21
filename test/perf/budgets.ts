@@ -75,6 +75,13 @@ export const BUDGETS = {
         measured: "13.9 ms",
         because: "recomputed on every surface render today, which is what #458 changes",
     },
+    "analysis.communities.10k": {
+        name: "find the Louvain communities inside every region over 10,000 notes",
+        limit: 400,
+        measured: "157.3 ms",
+        because:
+            "the finest partition the graph lens draws (#522); it runs per region on every model revision, and #452 exists because reasoning about cost was wrong twice",
+    },
     "analysis.debt.10k": {
         name: "compute knowledge debt over 10,000 notes",
         limit: 60,

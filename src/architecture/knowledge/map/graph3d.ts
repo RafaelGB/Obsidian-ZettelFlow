@@ -79,8 +79,8 @@ function linkEndId(end: unknown): string {
 
 /**
  * Pure projection of the {@link KnowledgeModel} into a `{ nodes, links }` shape for the 3D graph view
- * (#280 S1/S2). Nodes are ideas (id = path, name = basename, `val` = degree, `group` = cluster index
- * from {@link buildKnowledgeMap} for coloring, `state`); links are the model's typed relations,
+ * (#280 S1/S2). Nodes are ideas (id = path, name = basename, `val` = degree, `group`/`region` = the
+ * connected region from {@link buildKnowledgeMap} (#513/#514), `state`); links are the model's typed relations,
  * **filtered to edges whose target is also a node** so the force layout never gets a dangling
  * reference. Deterministic (sorted) and Obsidian-free; empty model ⇒ empty graph.
  */
@@ -228,17 +228,20 @@ export interface Graph3DStats {
     orphans: number;
     deadEnds: number;
     contradictions: number;
+    /** Notes with no link to anything else in the model (#516) — 19 % of the reference vault. */
+    alone: number;
 }
 
 /** Count the discovery-lens categories across the graph. Pure. */
 export function graph3dStats(data: Graph3DData): Graph3DStats {
-    let orphans = 0, deadEnds = 0, contradictions = 0;
+    let orphans = 0, deadEnds = 0, contradictions = 0, alone = 0;
     for (const node of data.nodes) {
         if (node.orphan) orphans++;
         if (node.deadEnd) deadEnds++;
         if (node.contradiction) contradictions++;
+        if (node.group < 0) alone++;
     }
-    return { orphans, deadEnds, contradictions };
+    return { orphans, deadEnds, contradictions, alone };
 }
 
 /**
@@ -305,8 +308,8 @@ export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): 
 }
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
-export type OverlayKind = "orphans" | "dead-ends" | "contradictions";
-export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions"];
+export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone";
+export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone"];
 
 export interface OverlaySpec {
     /** i18n label key for the toggle option. */
@@ -322,6 +325,10 @@ export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
     "orphans": { labelKey: "graph3d_overlay_orphans", colorVar: "--color-orange", matches: (n) => n.orphan },
     "dead-ends": { labelKey: "graph3d_overlay_dead_ends", colorVar: "--color-yellow", matches: (n) => n.deadEnd },
     "contradictions": { labelKey: "graph3d_overlay_contradictions", colorVar: "--color-red", matches: (n) => n.contradiction },
+    // Read from `group`, not from `orphan && deadEnd` (#516): those read `outAdj`/`inAdj`, which
+    // record a link's target whether or not it is an idea, so a note linking only outside the
+    // scope is `orphan === false` and has no neighbour here. The lens wants the graph sense.
+    "alone": { labelKey: "graph3d_overlay_alone", colorVar: "--text-muted", matches: (n) => n.group < 0 },
 };
 
 /** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */

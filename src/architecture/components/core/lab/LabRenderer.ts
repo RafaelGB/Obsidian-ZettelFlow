@@ -12,7 +12,7 @@ import {
     type ThoughtNode,
 } from "application/thinking/thread";
 import { keyFor, keyLabel, LAB_KEYS, moveFor, type LabMove } from "application/thinking/labKeys";
-import { LAB_MOVE_VOCABULARY } from "application/thinking/move";
+import { LAB_MOVE_VOCABULARY, MOVE_VERBS, type MovePrimitive } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
@@ -103,7 +103,16 @@ export class LabRenderer extends KnowledgeModeRenderer {
         container: HTMLElement,
         private readonly app: App,
         /** The note this visit is about, when you arrived from one (#473). */
-        private about?: string
+        private about?: string,
+        /**
+         * The move that opened this space (#499) — a **frame**, and only that: a placeholder
+         * naming what you came here to do, plus the move recorded when you write. It is
+         * deliberately not a `ResponseKind` and not a field on the thought: eleven frames must
+         * not become eleven kinds of edge.
+         *
+         * Consumed once. A frame that outlived its thought would silently mislabel the next one.
+         */
+        private frame?: string
     ) {
         super(container);
     }
@@ -181,12 +190,23 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private remember(move: LabMove, subject: string, produced?: string): void {
         const vocabulary = LAB_MOVE_VOCABULARY[move];
         if (!vocabulary) return;
+        this.write(vocabulary.primitive, vocabulary.verb, subject, produced);
+    }
+
+    /** A move made **on a note**, whose result is the thought you just wrote (#500). */
+    private rememberFramed(verb: string, note: string, thought: string): void {
+        const entry = MOVE_VERBS.find((candidate) => candidate.verb === verb);
+        if (!entry) return;
+        this.write(entry.primitive, entry.verb, note, thought);
+    }
+
+    private write(primitive: MovePrimitive, verb: string, subject: string, produced?: string): void {
         const log = MoveLog.getInstance();
         const history = log.forSubject(subject);
         const from = history.length > 0 ? history[history.length - 1].id : undefined;
         log.record({
-            primitive: vocabulary.primitive,
-            verb: vocabulary.verb,
+            primitive,
+            verb,
             subject,
             ...(produced ? { produced } : {}),
             ...(from ? { from } : {}),
@@ -429,7 +449,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
         const area = box.createEl("textarea", {
             cls: [c("lab-text"), c("lab-composer-text")].join(" "),
-            attr: { placeholder: t("lab_new_thought"), rows: "2" },
+            attr: { placeholder: this.composerPlaceholder(), rows: "2" },
         });
         area.value = this.draft;
         this.composerEl = area;
@@ -478,7 +498,20 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // — the Lab has always called them moves, and now it keeps them. Recorded here rather
         // than in `arm()` because arming only opens the composer: the move is the thing you did,
         // not the thing you were about to do.
-        if (relation) this.remember(relation.as === "challenge" ? "challenge" : "fork", relation.to);
+        // The frame is consumed here, once (#499): one that outlived its thought would silently
+        // mislabel the next one you wrote.
+        const framed = this.frame;
+        this.frame = undefined;
+        if (framed && this.about) {
+            // A move you did not make is not a move (#500). The gesture that opened this space
+            // recorded nothing; *writing* is the act, and the move names both ends of it — the
+            // note it was about, and the thought it produced.
+            // The **path**, not the id: what a move produced is rendered on the note's timeline,
+            // and a path is the one form both ends of the loop already speak (#502).
+            this.rememberFramed(framed, this.about, thoughtPath(ThoughtStore.getInstance().folder(), made));
+        } else if (relation) {
+            this.remember(relation.as === "challenge" ? "challenge" : "fork", relation.to);
+        }
 
         if (relation) {
             // A response has to land under what it answers, and only a redraw knows where that
@@ -721,6 +754,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** What an existing thought is about, so a response inherits it rather than losing it. */
     private subjectOf(id: string): string | undefined {
         return this.thoughts.find((thought) => thought.id === id)?.about;
+    }
+
+    /**
+     * What the composer invites. With a frame it names the move and the note — *"Challenge
+     * «Atomicity»…"* — one line of context in the place you are about to type. Never a draft:
+     * the system provides the frame, you provide the content.
+     */
+    private composerPlaceholder(): string {
+        const verb = this.frame ? MOVE_VERBS.find((entry) => entry.verb === this.frame) : undefined;
+        if (!verb || !this.about) return t("lab_new_thought");
+        const name = (this.about.split("/").pop() ?? this.about).replace(/\.md$/i, "");
+        return t("lab_framed_placeholder", t(verb.labelKey as Parameters<typeof t>[0]), name);
     }
 
     /** Arm the composer, instead of creating an empty card you would have to go back and fill. */

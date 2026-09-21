@@ -1,10 +1,12 @@
 import { Menu, Notice, TFile } from "obsidian";
 import { PluginComponent } from "architecture";
 import { t } from "architecture/lang";
-import { type MoveVerb } from "application/thinking/move";
+import { effectOf, type MoveVerb } from "application/thinking/move";
 import { isPathExcluded, scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
+import { activateSurface } from "architecture/plugin";
+import { splitNote } from "./AtomicitySplitComponent";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -100,7 +102,31 @@ export class MoveCommandsComponent extends PluginComponent {
 
     private pick(path: string): void {
         const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
-        new MovePicker(this.plugin.app, name, (verb) => recordMoveOn(verb, path)).open();
+        new MovePicker(this.plugin.app, name, "note", (verb: MoveVerb) => this.perform(verb, path)).open();
+    }
+
+    /**
+     * What choosing a verb does, which the vocabulary decides rather than this file (#498).
+     *
+     * A **framed** verb opens the thinking space about that note. It records nothing yet: a move
+     * you did not make is not a move, and the space you opened and closed is not an act of
+     * thinking (#500). A verb that only records has nothing else coming, so it records now.
+     */
+    private perform(verb: MoveVerb, path: string): void {
+        const effect = effectOf(verb.verb, "note");
+        if (effect === "space") {
+            void activateSurface(this.plugin.app, "zettelflow-home", "lab", { about: path, frame: verb.verb });
+            return;
+        }
+        if (effect === "operation") {
+            // The one verb the product can actually perform: splitting a note at its headings
+            // invents nothing, it rearranges what you already wrote (#501). It records when the
+            // split completes, so a cancelled modal leaves no trace.
+            const file = this.plugin.app.vault.getAbstractFileByPath(path);
+            if (file instanceof TFile) void splitNote(this.plugin.app, file, () => recordMoveOn(verb, path));
+            return;
+        }
+        recordMoveOn(verb, path);
     }
 }
 
@@ -108,7 +134,7 @@ export class MoveCommandsComponent extends PluginComponent {
  * Write the move down and say so. Acknowledged the moment it lands — a log that fills up silently
  * teaches you it is not there.
  */
-export function recordMoveOn(entry: MoveVerb, path: string, because?: string): void {
+export function recordMoveOn(entry: MoveVerb, path: string): void {
     const log = MoveLog.getInstance();
     const history = log.forSubject(path);
     const from = history.length > 0 ? history[history.length - 1].id : undefined;
@@ -117,7 +143,6 @@ export function recordMoveOn(entry: MoveVerb, path: string, because?: string): v
         verb: entry.verb,
         subject: path,
         ...(from ? { from } : {}),
-        ...(because ? { because } : {}),
     });
     const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
     new Notice(recorded ? t("move_recorded", t(entry.labelKey as LocaleKey), name) : t("move_not_recorded"));

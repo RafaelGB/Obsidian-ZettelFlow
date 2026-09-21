@@ -3,6 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import ZettelFlow from "main";
 import { ThoughtStore } from 'architecture/plugin/thinking/ThoughtStore';
+import { MoveLog } from 'architecture/plugin/thinking/MoveLog';
 
 /**
  * Lowest-friction capture (#285 S3, #475).
@@ -65,6 +66,9 @@ export class QuickCaptureModal extends Modal {
         try {
             const made = await store.write(text);
             if (!made) throw new Error('Capture failed');
+            // `externalize · capture` has never meant anything anywhere else (#500): this is the
+            // one place it does — something left your head and became a thing in your vault.
+            MoveLog.getInstance().record({ primitive: "externalize", verb: "capture", subject: made.id });
             new Notice(t("quick_capture_captured"));
             return true;
         } catch {

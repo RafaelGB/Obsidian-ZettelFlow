@@ -64,8 +64,10 @@ describe("you reach a move the way you reach everything else (#496)", () => {
         expect(code(COMMANDS)).toContain("scopeExcludedPaths(this.plugin.settings)");
     });
 
-    it("lists the whole vocabulary in the picker, from the one table", () => {
-        expect(PICKER).toContain("MOVE_VERBS");
+    it("lists what applies here, from the one table", () => {
+        // It listed all eleven until #498. `crystallize` on a note that is already knowledge was
+        // a choice that meant nothing, and a vocabulary that cannot say so cannot drive 4.4.
+        expect(PICKER).toContain("verbsFor(this.subject)");
         expect(PICKER).toContain("move_primitive_");
         expect(MOVE_VERBS).toHaveLength(11);
     });

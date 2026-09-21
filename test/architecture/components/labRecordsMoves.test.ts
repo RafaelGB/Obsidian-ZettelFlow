@@ -67,9 +67,9 @@ describe("the four gestures are written down (#492)", () => {
     });
 
     it("inherits the lineage of whatever it acted on, with nothing to maintain", () => {
-        const remember = methodBody(LAB, "private remember(");
-        expect(remember).toContain("forSubject(subject)");
-        expect(remember).toContain("from");
+        const write = methodBody(LAB, "private write(");
+        expect(write).toContain("forSubject(subject)");
+        expect(write).toContain("from");
     });
 });
 

@@ -29,7 +29,13 @@ interface SplitPlan {
 export class AtomicitySplitModal extends Modal {
     private readonly excluded = new Set<NoteSection>();
 
-    constructor(app: App, private readonly sourceFile: TFile, private readonly parsed: ParsedNote) {
+    constructor(
+        app: App,
+        private readonly sourceFile: TFile,
+        private readonly parsed: ParsedNote,
+        /** Called with how many notes were created, on the success path only (#501). */
+        private readonly onDone?: (created: number) => void
+    ) {
         super(app);
     }
 
@@ -100,6 +106,7 @@ export class AtomicitySplitModal extends Modal {
 
         log.info(`AtomicitySplit: created ${plans.length} atomic notes from "${this.sourceFile.path}"`);
         new Notice(t("atomicity_success_notice", String(plans.length)));
+        this.onDone?.(plans.length);
         this.close();
     }
 

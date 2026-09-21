@@ -178,6 +178,41 @@ export const RELATION_COLORS: Record<string, string> = {
     implements: "#facc15",
 };
 
+/**
+ * The **region** palette (#515). Twelve colours tuned for the view's fixed dark background.
+ *
+ * It used to be generated — `hsl((group * 67) % 360, 70%, 62%)` — in two places that had drifted
+ * four per cent apart, so a node and its own hull were different colours. A generated hue also
+ * cannot reach a stylesheet without an inline style, which this repo forbids, so the legend
+ * swatch could never match the scene. A fixed list fixes both: `graph3d.scss` mirrors it in
+ * `graph3d-swatch--region-N`, and a guardrail test keeps the two in step.
+ *
+ * Twelve is headroom, not a guess: #513 left the reference vault with nine regions. Past twelve it
+ * wraps, and two distant regions sharing a hue is the right failure to accept.
+ */
+export const REGION_COLORS: readonly string[] = [
+    "#7dd3fc", // sky
+    "#86efac", // green
+    "#fcd34d", // amber
+    "#f0abfc", // fuchsia
+    "#fda4af", // rose
+    "#a5b4fc", // indigo
+    "#5eead4", // teal
+    "#fdba74", // orange
+    "#d8b4fe", // purple
+    "#bef264", // lime
+    "#67e8f9", // cyan
+    "#f9a8d4", // pink
+];
+
+/** A note that is alone belongs to no region — grey, and it means something (#513). */
+export const ALONE_COLOR = "#9aa4b8";
+
+/** The one colour a region is drawn in: node, halo, hull, scene label and legend swatch (#515). */
+export function regionColor(group: number): string {
+    return group < 0 ? ALONE_COLOR : REGION_COLORS[group % REGION_COLORS.length];
+}
+
 export const STATE_COLORS: Record<string, string> = {
     fleeting: "#f87171",
     literature: "#fb923c",

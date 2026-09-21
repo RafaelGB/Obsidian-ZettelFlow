@@ -24,10 +24,12 @@ export class MapOfContentModal extends Modal {
     constructor(
         app: App,
         private readonly request: Omit<MapRequest, "name">,
+        /** The query the selection came from — the seed for the name, nothing more. */
+        query: string,
         private readonly onDone: (path: string) => void
     ) {
         super(app);
-        this.name = request.terms.join(" AND ") || t("explore_map_default_name");
+        this.name = query.trim() || t("explore_map_default_name");
         this.folder = app.workspace.getActiveFile()?.parent?.path ?? "";
         if (this.folder === "/") this.folder = "";
     }
@@ -70,7 +72,7 @@ export class MapOfContentModal extends Modal {
             ...this.request,
             name: this.name,
             folder: this.folder.trim(),
-            exists: (candidate) => this.app.vault.getAbstractFileByPath(candidate) !== null,
+            heading: t("moc_heading_default"),
         });
         this.close();
         if (!path) {

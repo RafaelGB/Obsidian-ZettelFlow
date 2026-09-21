@@ -94,12 +94,18 @@ Two moves, under the answer:
 
 - **Copy as links** — the matches as wikilinks, in your clipboard, for the note you are already
   writing. Only on the click, never otherwise.
-- **Make a map of content** — the matches become a real note: a list, each entry carrying the same
-  facts the answer put on its row, with the query in the frontmatter so the map can be re-run.
-  It is **previewed first** (name, folder, how many will be listed), it never overwrites — a taken
-  name gets a number — and it goes through `FileService`, so it appears in
-  [Recent](../architecture/reversibility.md) and **undo takes it back**. A map of everything is not
-  a map, so the action only appears once you have narrowed something.
+- **Make a map of content** — the matches become a real note, written by the **same builder**
+  `build-map-of-content` has always used (#505): the links go into a machine-managed region, so
+  running the map again updates that block and leaves every word you wrote around it untouched.
+  It is **previewed first** (name, folder, how many will be listed) and it goes through
+  `FileService`, so it appears in [Recent](../architecture/reversibility.md) and **undo takes it
+  back**. A map of everything is not a map, so the action only appears once you have narrowed
+  something.
+
+  It did not always work that way. 4.3 shipped a second writer here that made a fresh numbered
+  note and could not be re-run, because re-running had been declared out of scope **without
+  checking that a re-runnable map already existed**. Maps written by that version have no managed
+  region, so running them again appends one rather than updating it.
 
 Both are **mechanical output** under [§XII](constitution.md): a gathered list, derived facts.
 Neither concludes anything, so neither needs the accept/reject gate interpretive output does — and

@@ -1263,8 +1263,6 @@ export default {
     explore_map_folder: 'Folder',
     explore_map_count: '{0} notes will be listed.',
     explore_map_count_capped: '{0} of {1} notes will be listed.',
-    explore_map_intro: 'Gathered by ZettelFlow from the selection below.',
-    explore_map_and_more: '…and {0} more that did not fit.',
     explore_map_cancel: 'Cancel',
     explore_map_create: 'Create the map',
     explore_map_created: 'Map created, listing {0} notes.',

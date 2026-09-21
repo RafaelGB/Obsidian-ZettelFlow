@@ -425,20 +425,12 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     }
 
     private makeMap(): void {
-        const index = KnowledgeIndex.getInstance();
-        if (index.status !== "ready") return;
-        const model = index.getModel();
+        // The selection chooses the members; `mocMerge` writes them (#505). The facts a row
+        // carries are for reading an answer, not for a map — a map is a list of links.
         new MapOfContentModal(
             this.app,
-            {
-                matches: this.matches,
-                terms: this.terms,
-                facts: (each) => rowFacts(each, this.terms, model),
-                factText: (fact) => this.factText(fact),
-                queryKey: "zfQuery",
-                intro: t("explore_map_intro"),
-                andMore: (hidden) => t("explore_map_and_more", String(hidden)),
-            },
+            { matches: this.matches },
+            toQuery(this.terms),
             (path) => void this.app.workspace.openLinkText(path, "", false)
         ).open();
     }

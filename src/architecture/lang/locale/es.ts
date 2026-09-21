@@ -1263,8 +1263,6 @@ export default {
     explore_map_folder: 'Carpeta',
     explore_map_count: 'Se listarán {0} notas.',
     explore_map_count_capped: 'Se listarán {0} de {1} notas.',
-    explore_map_intro: 'Recogidas por ZettelFlow a partir de la selección.',
-    explore_map_and_more: '…y {0} más que no cabían.',
     explore_map_cancel: 'Cancelar',
     explore_map_create: 'Crear el mapa',
     explore_map_created: 'Mapa creado, con {0} notas.',

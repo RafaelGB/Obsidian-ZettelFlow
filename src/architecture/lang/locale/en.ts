@@ -1684,6 +1684,7 @@ export default {
     home_section_new_ideas: 'New ideas',
     home_section_main_concepts: 'Main concepts',
     home_section_review_due: 'Deserves a review',
+    home_section_open_questions: 'Asked, unanswered',
     home_section_suggested_connections: 'Suggested connections',
     home_section_pinned_queries: 'Pinned queries',
     home_pinned_query_count: '{0} notes match {1}',

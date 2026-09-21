@@ -140,6 +140,29 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
         this.renderConnections(container, this.home.suggestedConnections);
+        // Defaulted: Home is the front door, and a model shape from an older build must degrade
+        // to one missing section rather than to a blank surface.
+        this.renderOpenQuestions(container, this.home.openQuestions ?? []);
+    }
+
+    /**
+     * What is asked and unanswered (#507, epic #504).
+     *
+     * It had a mode of its own in Discovery, which was the wrong surface: it is not a filter over
+     * your vault, it is an answer to *what should I do next*, and the suggested connections
+     * beside it were already here.
+     *
+     * It says what is unanswered and opens it. It does **not** say what the answer is, and it
+     * does not score you for the count — §XII, and a locale scan holds the line.
+     */
+    private renderOpenQuestions(container: HTMLElement, questions: { path: string; askedBy: string[] }[]): void {
+        // No empty state: a vault with nothing unanswered has nothing to say here, and an empty
+        // box on the front door is a box you learn to skip.
+        if (questions.length === 0) return;
+        const section = container.createDiv({ cls: c("home-section") });
+        section.createEl("h5", { text: t("home_section_open_questions"), cls: c("home-section-title") });
+        const list = section.createDiv({ cls: c("home-list") });
+        for (const question of questions) this.renderNoteRow(list, question.path);
     }
 
     /**

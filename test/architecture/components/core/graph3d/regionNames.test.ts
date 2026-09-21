@@ -64,11 +64,15 @@ describe("the scene says the name (#514)", () => {
         expect(hulls.slice(0, hulls.indexOf("private disposeHulls"))).toContain("regionLabels");
     });
 
-    it("and drops them in the same pass that drops the hulls", () => {
-        // One lifecycle. The hulls are already rebuilt when the layout settles and skipped in lite
-        // mode; a second lifecycle for the labels is how one of them ends up orphaned in the scene.
-        const dispose = code(RENDERER).slice(code(RENDERER).indexOf("private disposeHulls"));
-        expect(dispose.slice(0, 600)).toContain("regionLabels");
+    it("and a hull cannot be dropped without its name going too", () => {
+        // One lifecycle, and since #520 a single helper: `dropHull` removes the mesh and the
+        // label together, and `disposeHulls` is that helper over every region. A second lifecycle
+        // for the labels is how one of them ends up orphaned in the scene.
+        const drop = code(RENDERER).slice(code(RENDERER).indexOf("private dropHull"));
+        const body = drop.slice(0, drop.indexOf("private disposeHulls"));
+        expect(body).toContain("scene.remove(mesh)");
+        expect(body).toContain("this.regionLabels.delete(group)");
+        expect(code(RENDERER)).toMatch(/private disposeHulls[\s\S]{0,200}this\.dropHull\(scene, group\)/);
         expect(code(RENDERER)).not.toMatch(/private\s+disposeRegionLabels/);
     });
 

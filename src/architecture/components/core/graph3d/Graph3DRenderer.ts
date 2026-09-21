@@ -53,6 +53,8 @@ const endId = (end: string | LiveNode): string => (typeof end === "object" ? end
 const HUB_LABEL_COUNT = 18;
 /** Smallest region that earns a bubble of its own (#515). Below it the hull is noise. */
 const HULL_MIN_NODES = 3;
+/** How often the hulls follow the moving layout (#520) — cheap, because an update reuses everything. */
+const HULL_REFRESH_MS = 250;
 
 function webglAvailable(): boolean {
     try {
@@ -118,9 +120,19 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private tourIndex = 0;
     private tourStopIds: string[] = [];
     private tourBtn: HTMLElement | null = null;
-    private hullMeshes: THREE.Mesh[] = [];
+    /**
+     * The hulls, kept **per region** and updated in place (#520). They used to be an array,
+     * disposed and rebuilt wholesale, which is why rebuilding was expensive enough to defer to
+     * the nine-second settle.
+     */
+    private readonly hulls = new Map<number, THREE.Mesh>();
     /** One name per hull (#514) — same lifecycle as the hulls, so neither can outlive the other. */
-    private regionLabels: LabelSprite[] = [];
+    private readonly regionLabels = new Map<number, LabelSprite>();
+    /** What each label currently reads, so a sprite is only rasterised again when it changed. */
+    private readonly labelNames = new Map<number, string>();
+    /** One unit sphere for every hull (#520); each mesh scales it to its own radius. */
+    private hullGeometry: THREE.SphereGeometry | null = null;
+    private hullTimer: number | undefined;
     /** The region the camera is currently framing (#515), or null for the whole graph. */
     private framedRegion: string | null = null;
     /** The note this view was opened *on* (#517), until you pin something or clear the focus. */
@@ -300,6 +312,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (SpriteText && this.three) {
                 this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
             }
+            // #520: the hulls follow the layout instead of waiting nine seconds for it to stop.
+            this.hullTimer = window.setInterval(() => this.rebuildHulls(), HULL_REFRESH_MS);
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
             this.resizeObserver.observe(this.wrapperEl);
@@ -333,11 +347,16 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (canLabel && this.proximityTimer === undefined) {
                 this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
             }
+            if (this.hullTimer === undefined) {
+                this.hullTimer = window.setInterval(() => this.rebuildHulls(), HULL_REFRESH_MS);
+            }
             if (this.tourActive && this.tourTimer === undefined) this.advanceTour(); // resume the tour on screen
         } else {
             anim.pauseAnimation?.();
             window.clearInterval(this.proximityTimer);
             this.proximityTimer = undefined;
+            window.clearInterval(this.hullTimer);
+            this.hullTimer = undefined;
             window.clearTimeout(this.tourTimer); // pause the tour while off-screen
             this.tourTimer = undefined;
         }
@@ -586,12 +605,20 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         return new three.CanvasTexture(canvas);
     }
 
-    /** Translucent "hull" bubbles around each cluster, rebuilt when the layout settles (#280). */
+    /**
+     * Translucent "hull" bubbles around each region, with its name above it (#280, #514).
+     *
+     * Updated **in place** and driven by a timer (#520), so the spheres grow with the layout
+     * instead of appearing when it stops. They used to be built once at `onEngineStop`, which
+     * fires when `cooldownTime` expires — nine seconds of waiting for geometry that takes
+     * microseconds. Calling this continuously is only affordable because a call now allocates
+     * nothing it can reuse: one shared unit sphere scaled per region, one material and one sprite
+     * per region kept across updates, and a label re-rasterised only when its text changes.
+     */
     private rebuildHulls(): void {
         const three = this.three;
         if (!three || !this.graph || this.lite) return;
         const scene = this.graph.scene();
-        this.disposeHulls(scene);
         const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
         const byGroup = new Map<number, (Graph3DNode & LiveNode)[]>();
         for (const node of live) {
@@ -600,43 +627,73 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             arr.push(node);
             byGroup.set(node.group, arr);
         }
+        if (!this.hullGeometry) this.hullGeometry = new three.SphereGeometry(1, 16, 12);
+
+        const present = new Set<number>();
         for (const [group, nodes] of byGroup) {
             // The cap of twelve went with #515: it was written when a 421-note vault produced 31
             // regions covering a quarter of it. An honest partition gives single digits.
             if (nodes.length < HULL_MIN_NODES) continue;
+            present.add(group);
             let cx = 0, cy = 0, cz = 0;
             for (const n of nodes) { cx += n.x ?? 0; cy += n.y ?? 0; cz += n.z ?? 0; }
             const k = nodes.length; cx /= k; cy /= k; cz /= k;
             let radius = 0;
             for (const n of nodes) radius = Math.max(radius, Math.hypot((n.x ?? 0) - cx, (n.y ?? 0) - cy, (n.z ?? 0) - cz));
-            const material = new three.MeshBasicMaterial({ color: new three.Color(regionColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
-            material.opacity = 0.06;
-            const mesh = new three.Mesh(new three.SphereGeometry(radius + 10, 16, 12), material);
+
+            let mesh = this.hulls.get(group);
+            if (!mesh) {
+                const material = new three.MeshBasicMaterial({ color: new three.Color(regionColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
+                material.opacity = 0.06;
+                mesh = new three.Mesh(this.hullGeometry, material);
+                scene.add(mesh);
+                this.hulls.set(group, mesh);
+            }
             mesh.position.set(cx, cy, cz);
-            scene.add(mesh);
-            this.hullMeshes.push(mesh);
+            mesh.scale.setScalar(radius + 10);
+
             // The name, above the bubble (#514). Larger and dimmer than a node label, so it reads
             // as the region rather than as one more note in it.
             const Ctor = this.spriteTextCtor;
             const name = nodes.find((node) => node.region)?.region;
-            if (Ctor && name) {
-                const label = new Ctor(name, 11, regionColor(group));
-                label.position.set(cx, cy + radius + 18, cz);
+            if (!Ctor || !name) continue;
+            let label = this.regionLabels.get(group);
+            if (!label || this.labelNames.get(group) !== name) {
+                if (label) scene.remove(label);
+                label = new Ctor(name, 11, regionColor(group));
                 scene.add(label);
-                this.regionLabels.push(label);
+                this.regionLabels.set(group, label);
+                this.labelNames.set(group, name);
             }
+            label.position.set(cx, cy + radius + 18, cz);
+        }
+
+        // A region that stopped existing (a rename, a deletion, a time cursor) takes its bubble
+        // with it; everything else is left alone, which is the whole point.
+        for (const group of [...this.hulls.keys()]) {
+            if (present.has(group)) continue;
+            this.dropHull(scene, group);
         }
     }
 
-    private disposeHulls(scene: THREE.Scene): void {
-        for (const mesh of this.hullMeshes) {
+    private dropHull(scene: THREE.Scene, group: number): void {
+        const mesh = this.hulls.get(group);
+        if (mesh) {
             scene.remove(mesh);
-            mesh.geometry.dispose();
-            mesh.material.dispose();
+            mesh.material.dispose(); // the geometry is shared and outlives every hull
+            this.hulls.delete(group);
         }
-        this.hullMeshes = [];
-        for (const label of this.regionLabels) scene.remove(label);
-        this.regionLabels = [];
+        const label = this.regionLabels.get(group);
+        if (label) scene.remove(label);
+        this.regionLabels.delete(group);
+        this.labelNames.delete(group);
+    }
+
+    private disposeHulls(scene: THREE.Scene): void {
+        for (const group of [...this.hulls.keys()]) this.dropHull(scene, group);
+        // The shared unit sphere is the one thing not owned by a single hull (#520).
+        this.hullGeometry?.dispose();
+        this.hullGeometry = null;
     }
 
     /** Proximity labels (#280): show names for the nearest non-hub nodes so they fade in as you zoom in. */
@@ -1424,6 +1481,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.timelapseTimer = undefined;
         window.clearInterval(this.proximityTimer);
         this.proximityTimer = undefined;
+        window.clearInterval(this.hullTimer);
+        this.hullTimer = undefined;
         if (this.graph && this.three) {
             try {
                 this.clearProximityLabels();

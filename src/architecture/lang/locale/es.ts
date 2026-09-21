@@ -1155,6 +1155,8 @@ export default {
     graph3d_group_color: 'Color',
     graph3d_group_lens: 'Lente',
     graph3d_status_notes: 'notas',
+    graph3d_status_in_region: 'En {0} · {1} notas',
+    graph3d_status_alone: 'Sola — sin enlaces con el resto de tu conocimiento',
     graph3d_status_timelapse: 'evolución',
     graph3d_legend_nodes: 'Nodos',
     graph3d_legend_regions: 'Regiones',

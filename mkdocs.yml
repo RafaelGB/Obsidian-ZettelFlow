@@ -154,7 +154,7 @@ nav:
           - Map of content builder: development/moc-builder.md
           - Derived projects: development/derived-projects.md
       - Explore & navigate:
-          - Living knowledge map: development/living-knowledge-map.md
+          - Living knowledge map (regions): development/living-knowledge-map.md
           - Concept navigation: development/concept-navigation.md
           - Explore your graph: development/ask-your-graph.md
           - The graph lens: development/graph-3d.md

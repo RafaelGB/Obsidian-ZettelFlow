@@ -123,6 +123,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private regionLabels: LabelSprite[] = [];
     /** The region the camera is currently framing (#515), or null for the whole graph. */
     private framedRegion: string | null = null;
+    /** The note this view was opened *on* (#517), until you pin something or clear the focus. */
+    private arrivedAt: string | null = null;
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
     private readonly proximityLabels = new Map<string, LabelSprite>();
     private proximityTimer: number | undefined;
@@ -1028,6 +1030,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.lastClick = { id, at: now };
         this.pinnedId = this.pinnedId === id ? null : id;
         this.hoverId = null;
+        this.arrivedAt = null; // you have moved on from where you came in
+
         if (this.pinnedId) this.focusNode(this.pinnedId);
         this.refreshPaint();
         this.updateStatus();
@@ -1036,6 +1040,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private clearFocus(): void {
         this.hoverId = null;
         this.pinnedId = null;
+        this.arrivedAt = null;
         this.overlay = null;
         this.pathFrom = null;
         this.pathNodes = null;
@@ -1059,7 +1064,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!this.pendingFocusPath) return;
         const path = this.pendingFocusPath;
         this.pendingFocusPath = null;
+        this.arrivedAt = path;
         this.focusNode(path);
+        this.updateStatus();
     }
 
     private focusNode(path: string, durationMs = 1200): void {
@@ -1199,11 +1206,31 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             const pinned = this.displayed.nodes.find((n) => n.id === this.pinnedId);
             if (pinned) parts.push(`▸ ${pinned.name}`);
         }
+        const arrival = this.arrivalFact();
+        if (arrival) parts.push(arrival);
         if (this.pathMode) parts.push(t("graph3d_path_mode"));
         if (this.tourActive) parts.push(t("graph3d_status_tour"));
         if (this.timeCursor !== null) parts.push(t("graph3d_status_timelapse"));
         if (this.lite) parts.push(t("graph3d_lite"));
         this.statusEl.setText(parts.join("  ·  "));
+    }
+
+    /**
+     * Where you landed (#517) — the payoff of naming the regions. Read straight off the node:
+     * #513 and #514 already put the name there and made `group < 0` mean alone, so this is a
+     * lookup, not a second traversal. Counted from `displayed.nodes`, like the legend, so a capped
+     * graph reports what is on screen.
+     *
+     * Both sentences are facts. A note being alone is a fact; "connect it" would be the surface
+     * deciding what you came for (§XII).
+     */
+    private arrivalFact(): string | null {
+        if (!this.arrivedAt) return null;
+        const node = this.displayed.nodes.find((candidate) => candidate.id === this.arrivedAt);
+        if (!node) return null;
+        if (node.group < 0 || !node.region) return t("graph3d_status_alone");
+        const size = this.displayed.nodes.filter((candidate) => candidate.region === node.region).length;
+        return t("graph3d_status_in_region", node.region, String(size));
     }
 
     private renderLegend(): void {

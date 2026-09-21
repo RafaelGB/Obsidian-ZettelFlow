@@ -127,3 +127,20 @@
         color: var(--text-error);
     }
 }
+
+// What a move left you holding (#502). A thought that has since been discarded is named and not
+// linked: the Lab is a place things are deliberately thrown away, and a dead link is worse than
+// a plain fact.
+.zettelkasten-flow__evolution-timeline-produced {
+    color: var(--text-accent);
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__evolution-timeline-produced-gone {
+    color: var(--text-faint);
+    text-decoration: line-through;
+}

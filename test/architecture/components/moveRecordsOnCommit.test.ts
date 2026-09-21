@@ -57,7 +57,9 @@ describe("writing is the act (#500)", () => {
     const commit = methodBody(code(LAB), "private async commit()");
 
     it("records the framed move against the note, naming the thought it produced", () => {
-        expect(commit).toContain("this.rememberFramed(framed, this.about, made.id)");
+        // The **path**, not the id: what a move produced is rendered on the note's timeline, and
+        // a path is the one form both ends of the loop already speak (#502).
+        expect(commit).toContain("this.rememberFramed(framed, this.about, thoughtPath(");
         const framed = methodBody(code(LAB), "private rememberFramed(");
         expect(framed).toContain("this.write(entry.primitive, entry.verb, note, thought)");
     });

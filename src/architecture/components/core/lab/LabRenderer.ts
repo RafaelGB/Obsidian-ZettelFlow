@@ -506,7 +506,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
             // A move you did not make is not a move (#500). The gesture that opened this space
             // recorded nothing; *writing* is the act, and the move names both ends of it — the
             // note it was about, and the thought it produced.
-            this.rememberFramed(framed, this.about, made.id);
+            // The **path**, not the id: what a move produced is rendered on the note's timeline,
+            // and a path is the one form both ends of the loop already speak (#502).
+            this.rememberFramed(framed, this.about, thoughtPath(ThoughtStore.getInstance().folder(), made));
         } else if (relation) {
             this.remember(relation.as === "challenge" ? "challenge" : "fork", relation.to);
         }

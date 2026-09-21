@@ -334,6 +334,34 @@ repeats. And a move does not follow a rename — neither does a
 [judgement](knowledge-state.md), for the same reason: the alternative is a vault listener inside
 a log whose entire promise is that it never listens to the vault.
 
+### A move does something (#497)
+
+Recording what you did was the cimiento, not the point. Since 4.4 a move on a note **leaves you
+holding something**:
+
+| Verb | What choosing it does |
+|---|---|
+| challenge · counterexample · invert · reframe · compress · analogy · branch | **opens the thinking space**, framed, about that note |
+| split | **runs** the atomicity split that has always existed |
+| set aside | records, and nothing else — there is nothing else to do |
+| capture · crystallize | not offered on a note: it is already captured, and already knowledge |
+
+The vocabulary itself decides, which is why the picker stopped offering `crystallize` on a note.
+
+**The system provides the frame; you provide the content.** `invert` does not produce *"what if B
+causes A?"* — a generated formulation is interpretive output needing a §XII gate, and it would be
+the worse product, because your inversion *is* the thinking. The one exception is not a
+generation: an operation may perform a transformation **already derivable from what you wrote**,
+and splitting a note at its headings invents nothing.
+
+**A move you did not make is not a move.** A framed verb records when the thought is written, not
+when the space opens: a composer you opened and closed is not an act of thinking. The move then
+names both ends — the note it was about, and the thought it produced.
+
+There is **no field for why**, and there was one until 4.4. The question *where do I say what my
+challenge was?* is the right one, and a capped line in a log is the wrong answer: the reason is a
+thought, and it deserves to branch, survive and come back.
+
 ### How you got here (#494)
 
 The moves are read where the question already lives: the **Evolution timeline**, which already
@@ -344,6 +372,11 @@ no moves renders exactly as it did before.
 The strand shows **even when snapshot recording is off**. The timeline is opt-in because it stores
 claim texts; a move stores none, so the reason for the opt-in does not reach it — and a user with
 snapshots off would otherwise have moves and nowhere to read them.
+
+A move that produced something **names it and opens it** — *"challenged → a counterpoint"* — so
+the line reads *you did something and here is what came of it*. A thought since discarded is
+named and **not** linked: the Lab is a place things are deliberately thrown away, and a dead link
+is worse than a plain fact.
 
 You can **forget a move** from the line you are looking at. It touches the log and nothing else.
 

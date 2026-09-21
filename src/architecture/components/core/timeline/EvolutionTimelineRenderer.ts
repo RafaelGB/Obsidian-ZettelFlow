@@ -16,6 +16,7 @@ import { MOVE_VERBS, type Move } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { makeActivatable } from "architecture/components/core/a11y";
 import { paintIdeaCard } from "./IdeaCardCanvas";
 import { canvasToPngBlob } from "architecture/components/core/export/mediaCapture";
 import { buildExportBaseName } from "architecture/components/core/export/exportFilename";
@@ -222,6 +223,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             text: verb ? t(verb.labelKey as Parameters<typeof t>[0]) : move.verb,
             cls: c("evolution-timeline-verb"),
         });
+        if (move.produced) this.renderProduced(line, move.produced);
         // You can take a move back from where you can see it is wrong. It touches the log and
         // nothing else — never the note it referred to.
         const undo = line.createEl("button", {
@@ -232,6 +234,24 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             MoveLog.getInstance().remove(move.id);
             this.recompute();
         });
+    }
+
+    /**
+     * What the move left you holding (#502).
+     *
+     * This is the sentence the epic exists for: not *you did something*, but *you did something
+     * and here is what came of it*. A thought that has since been discarded is **named and not
+     * linked** — the Lab is a place things are deliberately thrown away, and a dead link is worse
+     * than a plain fact.
+     */
+    private renderProduced(line: HTMLElement, path: string): void {
+        const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
+        const exists = this.app.vault.getAbstractFileByPath(path) !== null;
+        const span = line.createSpan({
+            cls: c(exists ? "evolution-timeline-produced" : "evolution-timeline-produced-gone"),
+            text: t("evolution_timeline_move_produced", name),
+        });
+        if (exists) makeActivatable(span, () => void this.app.workspace.openLinkText(path, "", false));
     }
 
     private renderSnapshot(container: HTMLElement, snapshot: Snapshot): void {

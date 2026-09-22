@@ -38,30 +38,19 @@ interface Tally {
  * direction) and zero-score pairs; canonical `a < b`; ordered score desc, then a asc, then b asc;
  * capped to `limit`. Deterministic, read-only, never throws; empty/edgeless model ⇒ `[]`.
  *
- * Memoised per model revision (#458): this is the heaviest projection ZettelFlow computes — 1.5 s
+ * Memoised per model revision (#458): this was the heaviest projection ZettelFlow computes — 1.5 s
  * over ten thousand notes, a hundred times any other — and every surface re-ran it on render.
  * Applied here rather than at the State barrel so deep importers (Home, the dashboard) get it too.
+ *
+ * Since #530 the work itself lives one layer down, in {@link gapTally} and {@link topGaps}: this is
+ * the same answer, bound to the default limit, and every other reader of a gap shares that one pass.
+ * The signature, the ordering and the output are unchanged — it is public through `zf.knowledge`,
+ * and a pinned expectation in `gapTally.test.ts` is what says so.
  */
 export const findDiscoveries = memoise(
     "discoveries",
-    (model: KnowledgeModel, opts: FindDiscoveriesOptions = {}): Discovery[] => {
-        const limit = opts.limit !== undefined && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_LIMIT;
-        const tallies = candidatePairs(model);
-        pruneToGaps(model, tallies);
-
-        const discoveries: Discovery[] = [];
-        for (const tally of tallies.values()) {
-            discoveries.push({ a: tally.a, b: tally.b, score: pairScore(tally.coCite, tally.couple) });
-        }
-
-        discoveries.sort(
-            (x, y) =>
-                y.score - x.score ||
-                (x.a < y.a ? -1 : x.a > y.a ? 1 : 0) ||
-                (x.b < y.b ? -1 : x.b > y.b ? 1 : 0)
-        );
-        return discoveries.slice(0, limit);
-    }
+    (model: KnowledgeModel, opts: FindDiscoveriesOptions = {}): Discovery[] =>
+        topGaps(model, opts.limit !== undefined && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_LIMIT)
 );
 
 /**

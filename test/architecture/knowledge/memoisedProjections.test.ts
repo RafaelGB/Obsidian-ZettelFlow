@@ -13,6 +13,7 @@ const SRC = join(__dirname, "..", "..", "..", "src");
 /** The projections that are memoised, and the file each lives in. */
 const MEMOISED: [string, string[]][] = [
     ["findDiscoveries", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
+    ["gapTally", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
     ["computeKnowledgeDebt", ["architecture", "knowledge", "debt", "knowledgeDebt.ts"]],
     ["buildKnowledgeMap", ["architecture", "knowledge", "map", "knowledgeMap.ts"]],
 ];

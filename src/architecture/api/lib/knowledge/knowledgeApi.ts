@@ -101,6 +101,9 @@ export const NOT_EXPOSED: Record<string, string> = {
     classifyBucket: "internal helper of computeKnowledgeBalance",
     severityBucket: "internal helper of computeKnowledgeDebt",
     pairScore: "internal helper of findDiscoveries",
+    // The shared candidate pass behind every gap reader (#530). `discoveries` is the bounded
+    // read a script wants; the whole tally is 1.26 million pairs at ten thousand notes.
+    gapTally: "the shared candidate pass; discoveries is the bounded read of it",
     toDayKey: "internal date helper",
     levelForCount: "internal heatmap helper",
     fromDashboardToken: "internal recommendation mapper",

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
+import { findDiscoveries, gapTally } from "architecture/knowledge/discovery/discoveries";
+import { memoStats } from "architecture/knowledge/model/memo";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 /**
@@ -27,7 +28,7 @@ import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFi
  * on purpose: they are what the current implementation returns, and a fixture that pretended
  * otherwise would be pinning a fiction.
  */
-const model = buildModel([
+const ideas = [
     idea("hub/h1.md", "permanent", [{ to: "pair/a1.md" }, { to: "pair/a2.md" }]),
     idea("hub/h2.md", "permanent", [{ to: "pair/a1.md" }, { to: "pair/a2.md" }]),
     idea("hub/h3.md", "permanent", [{ to: "pair/a1.md" }, { to: "pair/a2.md" }]),
@@ -52,9 +53,14 @@ const model = buildModel([
     idea("shared/t1.md", "permanent", []),
     idea("shared/t2.md", "permanent", []),
     idea("shared/t3.md", "permanent", []),
-]);
+];
+const model = buildModel(ideas);
 
-/** Every gap in the fixture, in the order the answer has always come in: score desc, then a, then b. */
+/** Score desc, then a asc, then b asc — the order the answer has always come in. */
+const byRank = (x: { a: string; b: string; score: number }, y: { a: string; b: string; score: number }): number =>
+    y.score - x.score || (x.a < y.a ? -1 : x.a > y.a ? 1 : 0) || (x.b < y.b ? -1 : x.b > y.b ? 1 : 0);
+
+/** Every gap in the fixture, in that order. */
 const EXPECTED_GAPS = [
     { a: "pair/a1.md", b: "pair/a2.md", score: 6 },
     { a: "pair/b1.md", b: "pair/b2.md", score: 5 },
@@ -87,5 +93,33 @@ describe("the gap answer, pinned before the refactor (#530, AC-1, AC-6)", () => 
         expect(
             findDiscoveries(buildModel([idea("a.md", "permanent", []), idea("b.md", "permanent", [])]), { limit: 10 })
         ).toEqual([]);
+    });
+});
+
+describe("gapTally — one shared pass (#530, FR-1, FR-4, AC-6)", () => {
+    it("counts the gaps, not the candidates it started from", () => {
+        // The candidate map holds every pair sharing context, including the linked ones; `size` is
+        // what survives the exclusion and scores above zero. That is the number the epic measured
+        // (217 on the reference vault) and the number the dashboard metric needs.
+        expect(gapTally(model).size).toBe(EXPECTED_GAPS.length);
+    });
+
+    it("walks exactly the gaps the answer is selected from", () => {
+        expect([...gapTally(model).candidates()].sort(byRank)).toEqual(EXPECTED_GAPS);
+    });
+
+    it("is one memo entry, computed once per revision", () => {
+        const fresh = buildModel(ideas);
+        expect(memoStats(fresh).entries).toBe(0);
+        const first = gapTally(fresh);
+        expect(memoStats(fresh).entries).toBe(1);
+        expect(gapTally(fresh)).toBe(first);
+        expect(memoStats(fresh).entries).toBe(1);
+    });
+
+    it("has nothing to walk on an empty model", () => {
+        const empty = gapTally(buildModel([]));
+        expect(empty.size).toBe(0);
+        expect([...empty.candidates()]).toEqual([]);
     });
 });

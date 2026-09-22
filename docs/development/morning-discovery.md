@@ -82,5 +82,6 @@ One pass, several readers: `memoise` keys on a projection's arguments, so a read
 pairs and a reader wanting sixty would each have paid for the tally behind them. The tally takes no
 arguments, which is what lets them share it — see
 [one tally, many readers](../architecture/knowledge-state.md#one-tally-many-readers-530). At ten
-thousand notes it holds **1,264,125 pairs**, so it is never copied into an array and never sorted:
-that alone took the projection from 1,528 ms to 953 ms ([budgets](performance-budgets.md)).
+thousand notes it holds over **1.2 million pairs**, so for the limits the product uses it is never
+copied into an array and never sorted — measured A/B on one warm tally, 1,393 ms of sorting became
+553 ms of selecting ([budgets](performance-budgets.md)).

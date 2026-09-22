@@ -6,10 +6,11 @@ import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
 import { communitiesOf } from "architecture/knowledge/map/communities";
 import { gapSeams } from "architecture/knowledge/map/gapSeams";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
-import { findDiscoveries, gapTally } from "architecture/knowledge/discovery/discoveries";
+import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
 import { movesFor, MOVE_CEILING, type Move } from "application/thinking/move";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
+import { clearMemo } from "architecture/knowledge/model/memo";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 import { generateBody, generateVault } from "./generateVault";
 import { newThought, type Thought } from "application/thinking/thought";
@@ -126,7 +127,14 @@ describe("the projections the surfaces run", () => {
         const fresh = modelOf(10_000, 11);
         gapTally(fresh);
         communitiesOf(fresh);
-        assertBudget("analysis.gaps.seams.10k", timed("analysis.heaviest", () => gapSeams(fresh), 10_000));
+        const ms = timed("analysis.heaviest", () => gapSeams(fresh), 10_000);
+        // Release the tally before the next case measures anything. It is 56 MB per model revision
+        // (`memo.gaps.10k`), and three of these left standing read as a 40 % regression in whatever
+        // was declared next -- which is how this suite first reported 1,208 ms here for a 538 ms
+        // projection.
+        clearMemo(fresh);
+        global.gc?.();
+        assertBudget("analysis.gaps.seams.10k", ms);
 
         // The invariant AC-4 asserts at two thousand notes in `npm test`, here at the full ten.
         const communities = communitiesOf(fresh);
@@ -150,10 +158,15 @@ describe("the projections the surfaces run", () => {
         // instance, so priming that model here would turn `analysis.discovery.10k` below into a
         // memo hit -- it would read near zero and the one budget guarding the cost of this pass
         // would silently stop guarding anything.
-        assertBudget(
-            "analysis.gaps.tally.10k",
-            timed("analysis.heaviest", () => gapTally(modelOf(10_000, 7)), 10_000)
-        );
+        //
+        // Built *outside* the timed closure. Inside it, the reading also covered generateVault, ten
+        // thousand deriveIdea calls and the index build, which is how the first recorded number came
+        // out larger than the `analysis.discovery.10k` it is a part of.
+        const fresh = modelOf(10_000, 7);
+        const ms = timed("analysis.heaviest", () => gapTally(fresh), 10_000);
+        clearMemo(fresh); // 56 MB, and the next case has to start on a clean heap
+        global.gc?.();
+        assertBudget("analysis.gaps.tally.10k", ms);
     });
 
     it("analysis.discovery.10k", () => {
@@ -176,6 +189,56 @@ describe("the projections the surfaces run", () => {
         const at10k = timed("analysis.heaviest", () => findDiscoveries(modelOf(10_000)), 10_000);
         const at20k = timed("analysis.heaviest", () => findDiscoveries(modelOf(20_000)), 20_000);
         assertBudget("analysis.discovery.scaling", at20k / Math.max(at10k, 1));
+    });
+});
+
+/**
+ * What the **shared pass** costs (#530, epic #529).
+ *
+ * Its own block, and after the projections, for a measurement reason rather than a tidiness one:
+ * these two cases hold a ten-thousand-note model plus a 1.26-million-element array, and while they
+ * sat among the projection cases the garbage they left read as a **40 % regression** in every case
+ * declared after them -- `analysis.discovery.10k` measured 1,616 ms where it measures 953 ms with a
+ * clean heap. Each case drops its model, clears the memo it filled and collects, so whatever runs
+ * next starts level.
+ */
+describe("what the shared gap pass costs", () => {
+    it("analysis.gaps.top.all.10k", () => {
+        // The pathological limit, which a script can ask for: `zf.knowledge.discoveries({ limit:
+        // 1000000 })`. Bounded selection is O(pairs) plus O(limit) per accepted insert, so past
+        // SELECTION_MAX it collects and sorts instead -- without that, this read 18.6 s at three
+        // thousand notes and minutes here.
+        const fresh = modelOf(10_000, 17);
+        gapTally(fresh);
+        const ms = timed("analysis.heaviest", () => topGaps(fresh, Number.MAX_SAFE_INTEGER), 10_000);
+        clearMemo(fresh);
+        global.gc?.();
+        assertBudget("analysis.gaps.top.all.10k", ms);
+    });
+
+    it("memo.gaps.10k", () => {
+        if (typeof global.gc !== "function") {
+            // eslint-disable-next-line no-console
+            console.log("memo.gaps.10k — skipped: needs --expose-gc for a meaningful reading");
+            expect(true).toBe(true);
+            return;
+        }
+        // What the shared pass *retains*, which is the cost of sharing it (the #537 review). Before
+        // the tally was packed into numeric keys it was 200 MB for 1.26 million pairs. The model is
+        // outside the reading: it is built first, and only the projection happens between the marks.
+        const fresh = modelOf(10_000, 13);
+        global.gc();
+        const before = process.memoryUsage().heapUsed;
+        const tally = gapTally(fresh);
+        global.gc();
+        const after = process.memoryUsage().heapUsed;
+        // eslint-disable-next-line no-console
+        console.log(`memo.gaps.10k — ${tally.size} gaps retained`);
+        expect(tally.size).toBeGreaterThan(0); // keep it reachable, or an empty heap is measured
+        const mb = (after - before) / (1024 * 1024);
+        clearMemo(fresh);
+        global.gc();
+        assertBudget("memo.gaps.10k", mb);
     });
 });
 

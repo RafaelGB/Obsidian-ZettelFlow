@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
+import { findDiscoveries, gapTally, topGaps, SELECTION_MAX } from "architecture/knowledge/discovery/discoveries";
 import { memoStats } from "architecture/knowledge/model/memo";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
@@ -139,24 +139,34 @@ describe("topGaps -- selection, not sorting (#530, FR-2, AC-4)", () => {
         expect(topGaps(model, -3)).toEqual([]);
     });
 
-    it("never sorts more than it was asked for", () => {
+    it("never sorts the candidates for a limit the product uses", () => {
         // The point of the change: at ten thousand notes the tally is 1.26 million pairs, and
-        // sorting it to answer a question about three of them cost 2.8 s. A fresh model, so the
-        // work really happens rather than coming back out of the memo.
+        // sorting it to answer a question about three of them cost 2.8 s. What is forbidden is
+        // sorting the *candidates* -- the tally itself sorts its path index once, which is how
+        // `a < b` comes out of the key for free, and that is not what this guards.
         const fresh = buildModel(ideas);
         const original = Array.prototype.sort;
-        const sorted: number[] = [];
+        const sortedGaps: number[] = [];
         // eslint-disable-next-line no-extend-native
         Array.prototype.sort = function (this: unknown[], ...args: unknown[]) {
-            sorted.push(this.length);
+            const first = this[0];
+            if (first !== null && typeof first === "object" && "score" in (first as object)) {
+                sortedGaps.push(this.length);
+            }
             return (original as (...a: unknown[]) => unknown[]).apply(this, args);
         } as typeof Array.prototype.sort;
         try {
             expect(topGaps(fresh, 3)).toEqual(EXPECTED_GAPS.slice(0, 3));
+            expect(sortedGaps).toEqual([]);
+
+            // And the other branch, which exists because selection is only cheaper while the held
+            // set is small: past SELECTION_MAX it sorts once, deliberately.
+            const wide = buildModel(ideas);
+            expect(topGaps(wide, SELECTION_MAX + 1)).toEqual(EXPECTED_GAPS);
+            expect(sortedGaps).toEqual([EXPECTED_GAPS.length]);
         } finally {
             // eslint-disable-next-line no-extend-native
             Array.prototype.sort = original;
         }
-        expect(sorted.filter((length) => length > 3)).toEqual([]);
     });
 });

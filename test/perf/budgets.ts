@@ -37,9 +37,24 @@ export interface Budget {
  * one projection — discovery — and it is recomputed on every render, which is what #458 fixes.
  *
  * Re-measured 2026-09-22 for #530: that projection built a 1.26-million-element array out of its
- * tally and sorted the whole thing to return three rows. Splitting it into a shared tally and a
- * bounded selection took `analysis.discovery.10k` from **1,528 ms to 953 ms**, of which the tally
- * every other gap reader now shares is 982 ms.
+ * tally and sorted the whole thing to return three rows. It is now a shared tally plus a **bounded
+ * selection**, and the honest measurement of that is an A/B in one process on one warm tally, at
+ * 10,000 notes and 1.24 million gaps:
+ *
+ * | the part that changed | measured |
+ * |---|---|
+ * | collect + full sort + slice (what it was) | 1,393 ms · 1,437 ms |
+ * | bounded selection (what it is) | 553 ms · 434 ms |
+ *
+ * About **three times faster** on the step that changed, over a shared tally of ~960 ms that both
+ * paths pay once.
+ *
+ * **Do not compare the numbers below across days or machines.** Measured on this machine, the same
+ * code in a full suite run varies by ~40 % — `analysis.discovery.10k` read 953 ms and 1,573 ms on
+ * consecutive runs of identical code, and a case that leaves a 56 MB memo entry standing inflates
+ * every case declared after it. The values recorded here are from one full `--runInBand
+ * --expose-gc` run; the ceilings sit far enough above them to survive that spread, which is what a
+ * budget is for. An A/B in one process is the only way to compare two implementations here.
  */
 export const BUDGETS = {
     "index.build.1k": {
@@ -93,24 +108,38 @@ export const BUDGETS = {
         measured: "5.1 ms",
         because: "the Health surface's main projection",
     },
+    "analysis.gaps.top.all.10k": {
+        name: "ask for every gap at once over 10,000 notes",
+        limit: 5_000,
+        measured: "1,685 ms",
+        because:
+            "a limit past the end of the tally is reachable from zf.knowledge.discoveries, and bounded selection turns quadratic there -- 18.6 s at three thousand notes before SELECTION_MAX existed; this is the budget that keeps the fallback honest",
+    },
+    "memo.gaps.10k": {
+        name: "megabytes the shared gap tally retains at 10,000 notes",
+        limit: 80,
+        measured: "55.9 MB",
+        because:
+            "the tally is held for as long as the model revision stands, so it is the one thing in this epic that costs memory rather than time; as objects under string keys the same 1.26 million pairs measured 200 MB, and MEMO_MAX_ENTRIES is not a memory ceiling if one entry can be that big",
+    },
     "analysis.gaps.seams.10k": {
         name: "aggregate every gap into seams over 10,000 notes",
-        limit: 1_500,
-        measured: "388.5 ms",
+        limit: 4_000,
+        measured: "1,341 ms",
         because:
             "one pass over a tally of 1.26 million pairs plus one over the ideas for the link counts (#531); the premise of the epic is that counting is cheap where sorting was not, and this is where that premise is checked",
     },
     "analysis.gaps.tally.10k": {
         name: "tally every gap over 10,000 notes",
         limit: 5_000,
-        measured: "981.8 ms",
+        measured: "1,310 ms",
         because:
             "the shared candidate pass every gap reader in epic #529 stands on (#530); it is the same walk `analysis.discovery.10k` used to do for itself, so the two move together and neither may drift",
     },
     "analysis.discovery.10k": {
         name: "find discoveries over 10,000 notes",
         limit: 5_000,
-        measured: "953.0 ms",
+        measured: "1,573 ms",
         because:
             "a hundred times every other projection and re-run on every render — the single most expensive thing ZettelFlow computes",
     },

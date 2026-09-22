@@ -72,9 +72,14 @@ interface Bucket {
  *   between two notes of the same neighbourhood is a local omission; the hole in the map is where
  *   two neighbourhoods barely touch, which is also where #522 put bridges and frontiers.
  * - **A gap never leaves its region.** 0 of 1.26 million gaps on a generated ten-thousand-note vault
- *   cross a region, and none has an endpoint outside every community — as it must be, since shared
- *   context means a common neighbour and a common neighbour means one connected component. The
- *   branch that skips such a gap is therefore an invariant guard, never a throw.
+ *   cross a region: shared context means a common neighbour, and a common neighbour means one
+ *   connected component. That part *is* an invariant.
+ *
+ *   The endpoint test next to it is **not**. `KnowledgeModel` records a link's target whether or not
+ *   it resolves, so two broken links from one note produce a candidate pair between two notes that
+ *   do not exist, and a note that does not exist is in no community (#538). Both measured vaults
+ *   happened to contain no such pair — the generated one has no broken links — which is exactly why
+ *   it read as an invariant. It is a guard, and it stays one until #538 lands.
  * - **Ordered gaps desc, then links asc, then labels.** The widest seam is the one with the most
  *   shared context and the fewest links already crossing, and that is explainable in one sentence.
  *   A ratio would be one step from an invented metric (§XI).
@@ -109,6 +114,7 @@ export const gapSeams = memoise("gaps.seams", (model: KnowledgeModel): GapSeam[]
     for (const gap of gapTally(model).candidates()) {
         const from = communityOf.get(gap.a);
         const to = communityOf.get(gap.b);
+        // `undefined` is the #538 case: an endpoint that is not a note is in no community.
         if (from === undefined || to === undefined || from === to) continue;
         const bucket = bucketFor(Math.min(from, to), Math.max(from, to));
         bucket.gaps++;

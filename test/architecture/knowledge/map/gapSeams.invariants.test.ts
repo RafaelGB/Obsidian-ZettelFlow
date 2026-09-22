@@ -33,6 +33,10 @@ describe("a gap never leaves its region (#531, AC-4)", () => {
         // Shared context means a common neighbour, and a common neighbour means one connected
         // component — so a gap that crossed a region would mean the implementation is wrong, not
         // that the vault is unusual. Collected rather than counted, so a failure names the pair.
+        //
+        // The "belongs to no community" half is weaker than it looks, and only holds here because
+        // `generateVault` links every note to notes that exist: a broken link produces a candidate
+        // pair between two notes that do not exist, and those are in no community (#538).
         const violations: string[] = [];
         for (const gap of gapTally(model).candidates()) {
             const from = communityOf.get(gap.a);

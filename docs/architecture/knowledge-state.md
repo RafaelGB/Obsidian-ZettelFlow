@@ -34,8 +34,9 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `computeKnowledgeDebt` | `KnowledgeDebt` | Health |
 | `computeKnowledgeBalance` | `KnowledgeBalance` | Health |
 | `buildKnowledgeDashboard` | `DashboardModel` | Dashboard |
-| `gapTally` | `GapTally` (a count and a walk) | every gap reader — the shared pass (#530) |
-| `findDiscoveries` / `topGaps` | `Discovery[]` | Discovery, Home, the dashboard count |
+| `gapTally` | `GapTally` (a count and a walk) | every gap reader — the shared pass (#530); the dashboard count reads it directly |
+| `gapSeams` | `GapSeam[]` | the seams between neighbourhoods (#531) |
+| `findDiscoveries` / `topGaps` | `Discovery[]` | Home, the recommendations |
 | `openQuestions` / `proposeAnswers` | `OpenQuestion[]` / answers | Open questions |
 | `buildEvidenceMap` | `EvidenceMap` | Evidence map |
 | `buildKnowledgeMap` | `KnowledgeMap` | Knowledge map |
@@ -109,9 +110,10 @@ callers.
 ### One tally, many readers (#530)
 
 Epic [#529](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/529) reads the same unlinked
-pairs four ways — a list on Home, a lens on the 3D graph, the seams between neighbourhoods, and a
-count on the dashboard. Keying by arguments (the rule above) is right, and it means four readers
-asking four different questions would have paid four times for the one expensive thing underneath.
+pairs several ways — a list on Home, the seams between neighbourhoods, a count on the dashboard, and
+(once #532 lands) a lens on the 3D graph. Keying by arguments (the rule above) is right, and it means
+each of those readers, asking its own question, would have paid for the one expensive thing
+underneath.
 
 So the expensive half was split out and takes **no arguments**:
 
@@ -126,8 +128,12 @@ So the expensive half was split out and takes **no arguments**:
 - `findDiscoveries(model, opts)` — unchanged in signature, ordering and output (it is public
   through `zf.knowledge`), now a thin read of `topGaps`.
 
-Measured: `analysis.discovery.10k` went from **1,528 ms to 953 ms**. A third of the heaviest
-projection in the product was copying its tally into an array and sorting it to return three rows.
+Measured A/B in one process, on one warm tally, at ten thousand notes: the step that changed went
+from **1,393 ms of sorting to 553 ms of selecting**, about three times faster. (Not measured across
+runs — the same code varies ~40 % between full suite runs on the reference machine, which is why the
+first version of this paragraph claimed a number it could not reproduce.) What it costs is memory:
+the tally is retained per revision, 55.9 MB packed into numeric keys where the same pairs as objects
+under string keys measured 200 MB.
 
 The same split fixed a defect it had been hiding. The dashboard's *connections* metric read
 `findDiscoveries(model).length` with no limit — and the default limit is three, so the panel could

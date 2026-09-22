@@ -56,6 +56,8 @@ describe("budgets that fail the build (#457)", () => {
                 "analysis.discovery.10k",
                 "analysis.discovery.scaling",
                 "model.memory.50k",
+                "analysis.gaps.top.all.10k",
+                "memo.gaps.10k",
             ])
         );
     });

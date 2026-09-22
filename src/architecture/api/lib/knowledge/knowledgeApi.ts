@@ -181,13 +181,15 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
         discoveries: {
             signature: "(opts?: FindDiscoveriesOptions) => Discovery[]",
             summary: "Unlinked pairs of ideas that keep appearing together.",
-            call: (opts?: Parameters<typeof findDiscoveries>[1]) => findDiscoveries(model(), opts),
+            // A copy: what the projection returns *is* the memo entry, and a script that popped
+            // from it would shorten the answer every surface reads for the rest of the revision.
+            call: (opts?: Parameters<typeof findDiscoveries>[1]) => [...findDiscoveries(model(), opts)],
         },
         gapSeams: {
             signature: "() => GapSeam[]",
             summary:
                 "Where two neighbourhoods almost touch: the gaps between them, and the links that already cross.",
-            call: () => gapSeams(model()),
+            call: () => [...gapSeams(model())],
         },
         openQuestions: {
             signature: "() => OpenQuestion[]",

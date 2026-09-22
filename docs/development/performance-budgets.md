@@ -76,9 +76,11 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.map.10k` | 13.9 ms | 120 |
 | `analysis.communities.10k` | 157.3 ms | 400 |
 | `analysis.debt.10k` | 5.1 ms | 60 |
-| `analysis.gaps.tally.10k` | 981.8 ms | 5,000 |
-| `analysis.gaps.seams.10k` | 388.5 ms | 1,500 |
-| `analysis.discovery.10k` | **953 ms** (1,528 ms before [#530](#530-one-tally-many-readers)) | 5,000 |
+| `analysis.gaps.tally.10k` | 1,310 ms | 5,000 |
+| `analysis.gaps.seams.10k` | 1,341 ms | 4,000 |
+| `analysis.gaps.top.all.10k` | 1,685 ms | 5,000 |
+| `memo.gaps.10k` | 55.9 MB | 80 |
+| `analysis.discovery.10k` | 1,573 ms | 5,000 |
 | `analysis.discovery.scaling` | 2.24× | 3.5 |
 | `model.memory.50k` | 44.9 MB | 150 |
 | `facets.50k` | 190 ms (69 ms idle) | 600 |
@@ -93,15 +95,15 @@ smoothed over:
 - **Discovery is the cost.** One projection is a hundred times heavier than every other, and it is
   recomputed on every surface render. That makes *computing once per revision* the highest-value
   change in the epic, not a nicety. It is still the heaviest projection after
-  [#530](#530-one-tally-many-readers), at 953 ms — the pass itself is the cost, and the sort on
-  top of it was not.
+  [#530](#530-one-tally-many-readers): the **tally** is the cost, and about a third of what was on
+  top of it — an array of every pair, sorted whole — is gone.
 
 ## What the budgets have changed so far
 
 | Change | Measured effect |
 |---|---|
 | [#458 compute once per revision](../architecture/knowledge-state.md#computed-once-per-revision-458) | a second render of an unchanged 10k model: **1,413 ms → 0.073 ms** |
-| [#530 one tally, many readers](#530-one-tally-many-readers) | the first render of a 10k model: **1,528 ms → 953 ms** |
+| [#530 one tally, many readers](#530-one-tally-many-readers) | the step that changed, A/B in one process: **1,393 ms → 553 ms**; retained memory **200 MB → 56 MB** |
 
 ### #530 one tally, many readers
 
@@ -117,16 +119,41 @@ asking for sixty would each have paid for the whole pass. So the expensive half 
 arguments** and is memoised on its own (`analysis.gaps.tally.10k`, 982 ms), and every reader is a
 **bounded selection** over it: one linear pass holding at most `limit` results, never a sort.
 
-The measured effects, both recorded in `test/perf/budgets.ts`:
+**How that was measured, and how it was not.** The first attempt compared a full-suite run before
+the change against one after it and reported *1,528 ms → 953 ms*. That number does not survive
+scrutiny: on this machine the **same code** in a full run measured 953 ms and 1,573 ms on
+consecutive runs, because a case that leaves a 56 MB memo entry standing inflates every case
+declared after it, and V8's heap never shrinks back. Cross-run comparison here is noise dressed as
+a result.
 
-- `analysis.discovery.10k`: **1,528 ms → 953 ms**.
-- `analysis.discovery.scaling` unchanged at ~2.05× when the vault doubles — the *shape* was
-  already fine; only the constant moved.
+So the effect is measured **A/B in one process, on one warm tally** — the only comparison that
+isolates the step that changed — at 10,000 notes and 1.24 million gaps:
 
-One trap worth naming, because it would have made the gate lie: the new budget times a model of
-its **own**, never the suite's shared one. `gapTally` is memoised per model instance, so priming
-the shared model would have turned `analysis.discovery.10k` into a memo hit reading near zero, and
-the one budget guarding this cost would have silently stopped guarding anything.
+| | measured |
+|---|---|
+| collect + full sort + slice (what it was) | 1,393 ms · 1,437 ms |
+| bounded selection (what it is) | 553 ms · 434 ms |
+
+About **three times faster** on the step that changed, over a shared tally of ~960 ms that both
+paths pay once. `analysis.discovery.scaling` is unchanged at ~2.3× when the vault doubles — the
+*shape* was already fine; only the constant moved.
+
+**And what it costs.** The tally is now **retained** for as long as the model revision stands, where
+before it was garbage the moment the call returned. As objects under string keys that measured
+**200 MB**; packed into numeric keys (`low * width + high`, the idiom `gapSeams` already used) it is
+**55.9 MB**, budgeted as `memo.gaps.10k`. Without that packing `MEMO_MAX_ENTRIES = 64` would have
+stopped being a memory ceiling at all.
+
+**Two traps worth naming, because both would have made the gate lie:**
+
+- Each gap case times a model of its **own**, never the suite's shared one. `gapTally` is memoised
+  per model instance, so priming the shared model turns `analysis.discovery.10k` into a memo hit
+  reading near zero — the budget guarding this cost would silently stop guarding anything.
+- A large `limit` used to be **quadratic**: bounded selection `splice`s into an array that grows to
+  the whole tally when the reject test can never fire, which measured **18.6 s at three thousand
+  notes** and is reachable from `zf.knowledge.discoveries({ limit: 1000000 })`. Past
+  `SELECTION_MAX` it collects and sorts instead, and `analysis.gaps.top.all.10k` is the budget that
+  keeps that honest.
 
 ## What these numbers do not include
 

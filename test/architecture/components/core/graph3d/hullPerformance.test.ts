@@ -33,7 +33,13 @@ const CODE = code(RENDERER);
 
 describe("they do not wait for the layout to stop (#520)", () => {
     it("is driven by a timer as well as by the settle", () => {
-        expect(CODE).toMatch(/setInterval\(\(\) => this\.rebuildHulls\(\)/);
+        // The tick drives **both** scene objects since #532 -- the hulls and the ghost edges answer
+        // the same question, *where are the notes right now?*, so they share one interval rather
+        // than racing on two.
+        expect(CODE).toMatch(/setInterval\(\(\) => this\.refreshSceneObjects\(\)/);
+        const tick = CODE.slice(CODE.indexOf("private refreshSceneObjects"));
+        expect(tick.slice(0, 200)).toContain("this.rebuildHulls();");
+        expect(tick.slice(0, 200)).toContain("this.rebuildGhosts();");
         expect(CODE).toContain("this.rebuildHulls(); // cluster bubbles need settled positions");
     });
 
@@ -92,5 +98,64 @@ describe("nothing was given up for it (#520)", () => {
 
     it("still builds nothing in lite mode", () => {
         expect(CODE).toMatch(/private rebuildHulls\(\): void \{[\s\S]{0,200}this\.lite/);
+    });
+});
+
+/**
+ * The ghost edges copy this lifecycle exactly (#532, epic #529) -- one shared material, a line per
+ * pair kept across ticks, and anything no longer wanted removed and disposed. They are held to the
+ * same rules because they are the same kind of thing: a scene object that follows the layout.
+ */
+describe("a ghost edge lives like a hull (#532, FR-3, FR-8, AC-8)", () => {
+    const ghosts = CODE.slice(CODE.indexOf("private rebuildGhosts"), CODE.indexOf("private dropHull"));
+
+    it("shares one material and keeps a line per pair", () => {
+        expect(ghosts).toContain("if (!this.ghostMaterial)");
+        expect(ghosts).toContain("let line = this.ghostLines.get(key)");
+        expect(ghosts).toContain("if (!line)");
+        // On a hit it repositions rather than rebuilding: the six floats go straight into the
+        // buffer that is already on the GPU.
+        expect(ghosts).toContain("position.needsUpdate = true");
+        expect(ghosts).toContain("line.computeLineDistances()");
+    });
+
+    it("drops what is no longer wanted, and disposes the geometry it owned", () => {
+        expect(ghosts).toContain("if (!keep.has(key)) this.dropGhost(scene, key)");
+        const drop = CODE.slice(CODE.indexOf("private dropGhost"), CODE.indexOf("private disposeGhosts"));
+        expect(drop).toContain("scene.remove(line)");
+        expect(drop).toContain("line.geometry.dispose()");
+        const dispose = CODE.slice(CODE.indexOf("private disposeGhosts"), CODE.indexOf("private dropHull"));
+        expect(dispose).toContain("this.ghostMaterial?.dispose()");
+    });
+
+    it("recomputes what it wants from the active lens, so clearing it self-heals", () => {
+        // No hook of its own: a background click drops the lens, and the next tick removes the
+        // lines because they are no longer in the wanted set.
+        expect(ghosts).toContain('const wanted = this.overlay === "gaps" ? this.ghosts : []');
+    });
+
+    it("returns before touching the scene when there is no three, and says so once", () => {
+        expect(ghosts.slice(0, 220)).toContain("if (!three || !this.graph || this.lite) return;");
+        expect(CODE).toContain('log.warn("[Graph3D] ghost edges unavailable (three)');
+        expect(CODE).not.toContain("console.warn");
+        // Once per activation, not once per tick.
+        expect(CODE).toContain("this.ghostWarned = true");
+    });
+
+    it("goes away with the hulls, in lite mode and at teardown", () => {
+        const lite = CODE.slice(CODE.indexOf("private toggleLite"));
+        expect(lite.slice(0, 900)).toContain("this.disposeGhosts(this.graph.scene())");
+    });
+
+    it("never writes a link, a node position or the graph data", () => {
+        // It *reads* `graphData()` for the live positions, exactly as `rebuildHulls` does. What it
+        // must never do is call it **with an argument**, which is the write -- a ghost edge in the
+        // link array would reach d3-force and pull the two notes together.
+        expect(ghosts).not.toMatch(/graphData\(\s*[^)\s]/);
+        const writes = CODE.match(/\.graphData\(\s*[^)\s]/g) ?? [];
+        expect(writes).toHaveLength(1);
+        expect(ghosts).not.toContain("displayed.links");
+        expect(ghosts).not.toContain(".push(");
+        expect(ghosts).not.toMatch(/node\.(x|y|z)\s*=/);
     });
 });

@@ -5,8 +5,11 @@ import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
 const ROOT = join(__dirname, "..", "..", "..", "..", "..");
-const RAW = readFileSync(join(ROOT, "src/architecture/components/core/graph3d/Graph3DRenderer.ts"), "utf8");
-const SCSS = readFileSync(join(ROOT, "src/styles/components/graph3d.scss"), "utf8");
+// Normalised: this repo checks out CRLF on Windows, and an assertion that embeds a newline
+// would pass on one machine and fail on another. The rule is about the code, not its endings.
+const read = (rel: string): string => readFileSync(join(ROOT, rel), "utf8").replace(/\r\n/g, "\n");
+const RAW = read("src/architecture/components/core/graph3d/Graph3DRenderer.ts");
+const SCSS = read("src/styles/components/graph3d.scss");
 
 const CODE = RAW.split("\n")
     .filter((line) => {

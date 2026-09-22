@@ -27,8 +27,13 @@ The agent posts a comment containing a task checklist. For **each** task:
   score work; `es.ts`/`en.ts` parity for i18n work
 - **Commit** — the Conventional Commit line
 
-Ends with a **Definition of done** block (all tasks checked, ACs met, quality audit + reviewer
-clean, docs + `en`/`es` synced, issue listed in the PR's `Closes` set).
+The **last task is always to walk the spec's `How to verify` script** end to end and correct it
+where it no longer describes what shipped. A step that turned out to be automatable becomes a test
+in that task, not a note for later.
+
+Ends with a **Definition of done** block (all tasks checked, ACs met, the verification script
+walked, quality audit + reviewer clean, docs + `en`/`es` synced, issue listed in the PR's `Closes`
+set).
 
 ## Right-sizing
 

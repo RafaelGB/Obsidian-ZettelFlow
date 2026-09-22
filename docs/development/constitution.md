@@ -132,3 +132,30 @@ Two consequences a reviewer can check on a diff:
 tool, not a tax: applied only where judgement is genuinely at stake, never as a generic confirmation
 dialog. It is the opposite of the *operational* friction removed by the
 [friction audit](friction-audit.md); §XI still applies, so a friction step must not add net surface.
+
+## XIV. A change ships with a way to see it work
+
+Every spec ends with a **`How to verify`** section, and it is the last one for a reason: a change
+whose outcome cannot be *seen* has not been described. It carries two halves.
+
+- **Automated** — a *command → the criteria it proves* table. `npm run verify` is the floor, not the
+  answer; name the test file that proves each AC, plus `npm run lint:obsidian` and
+  `npm run test:perf` where they apply.
+- **By hand** — a script a stranger can walk in a real vault: the preconditions (and how to reach
+  them), numbered steps with **one observable expectation each**, the **empty state**, and the
+  **negative** (nothing written, no layout change — §XII and §XIII are checked here).
+
+Three consequences a reviewer can check on a diff:
+
+- **Every acceptance criterion has a prover.** Automated, or a numbered step. An AC nobody can check
+  is not an AC, and the plan stage maps each one either way.
+- **Manual is a decision, not a default.** A step that stays manual names the reason in one clause.
+  This repo accepts four: a WebGL scene, a camera flight, an Obsidian view lifecycle, a real vault's
+  shape. It does not accept "hard to test" — and a manual step that turns out to be automatable
+  becomes a test, in the same change.
+- **The script has been walked.** Declaring an implementation done includes having followed it end
+  to end and corrected it where it no longer matched reality. A script nobody walked is worse than
+  none, because it will be trusted.
+
+Written for the person verifying, in their vocabulary — the command as the palette shows it, the
+surface title, the chip label. Never a symbol name, never a file path.

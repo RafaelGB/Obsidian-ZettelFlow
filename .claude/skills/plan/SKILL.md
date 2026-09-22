@@ -29,6 +29,9 @@ The agent posts a comment containing:
 - **Test strategy (§II)** — which units get a failing test first; which mock stubs to add.
 - **i18n impact (§IV)** — the exact `en.ts`/`es.ts` keys added/changed; sentence case confirmed.
 - **Docs impact (§VIII)** — which `docs/` page + `mkdocs.yml` nav entry.
+- **Verification coverage (§XIV)** — take the spec's `How to verify` and say, per AC, whether the
+  proof is automated (name the test) or hand-walked (name the reason it cannot be automated).
+  A manual step that *could* be automated is a missing test, and the plan is where that is caught.
 - **Rollout & rollback** and **Risks** — flag fragile areas (Canvas patcher, monkey-around,
   cross-platform).
 
@@ -37,6 +40,7 @@ The agent posts a comment containing:
 - The score delta is explicitly **zero-new-violations** (or the plan fixes violations).
 - The test plan is real (named files + assertions), not "add tests".
 - i18n and docs impact are named, not "update as needed".
+- Every AC in the spec is mapped to an automated test or to a named manual step.
 - No unbounded refactors: if the plan balloons, split the spec.
 
 Then run `/tasks <issue #>`.

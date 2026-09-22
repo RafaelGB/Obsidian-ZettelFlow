@@ -67,7 +67,32 @@ Add the label `sdd` to mark it as a spec-driven issue.
 
 ## Out of scope
 <bound the change; surface unknowns>
+
+## How to verify
+### Automated
+| Proves | Command |
+|---|---|
+| AC-1, AC-2 | `npx jest <test file>` |
+| the whole gate | `npm run verify` |
+
+### By hand
+**Preconditions** — <the smallest vault that shows it, and how to build it by hand>
+1. **Do** … **Expect** …
+
+**The empty state** — <what a user sees with nothing to show>
+**The negative** — <what must not happen: no write, no layout change — and how to check>
+**Leave it as you found it** — <how to undo>
 ```
+
+### How to verify (required, and always last)
+
+Every spec ends with `## How to verify`: the automated proofs as a *command → ACs proved* table,
+then a script a stranger can walk. Follow
+`.claude/skills/specify/references/verification.md` — every AC needs a prover, manual steps are
+written in the user's vocabulary (palette wording, surface titles, chip labels — never symbol
+names), one observable expectation per step, and the empty state and the negative are steps too.
+Automate by default; when a step must stay manual, name the reason in one clause (WebGL scene,
+camera flight, view lifecycle, a real vault's shape).
 
 ### Diagrams (required)
 
@@ -81,7 +106,8 @@ for the plan comment.
 ## Rules
 
 - Keep it **solution-free** — requirements and outcomes, not file names or algorithms.
-- Every acceptance criterion must be **verifiable** (a command, a test, an inspectable artifact).
+- Every acceptance criterion must be **verifiable** (a command, a test, an inspectable artifact)
+  **and named in `How to verify`** by the command or the step that proves it.
 - Prefer small specs. If the issue is really several changes, say so in *Out of scope*.
 - After writing, add the `sdd:planned` label: `gh issue edit <N> --add-label "sdd:planned"`.
 

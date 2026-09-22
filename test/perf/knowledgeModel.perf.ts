@@ -5,7 +5,7 @@ import { parseInlineFields } from "architecture/knowledge/parse/inlineFields";
 import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
 import { communitiesOf } from "architecture/knowledge/map/communities";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
-import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
+import { findDiscoveries, gapTally } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
 import { movesFor, MOVE_CEILING, type Move } from "application/thinking/move";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
@@ -117,6 +117,17 @@ describe("the projections the surfaces run", () => {
 
     it("analysis.debt.10k", () => {
         assertBudget("analysis.debt.10k", timed("analysis.heaviest", () => computeKnowledgeDebt(model), 10_000));
+    });
+
+    it("analysis.gaps.tally.10k", () => {
+        // A model of its own, never the suite's shared one: `gapTally` is memoised on the model
+        // instance, so priming that model here would turn `analysis.discovery.10k` below into a
+        // memo hit -- it would read near zero and the one budget guarding the cost of this pass
+        // would silently stop guarding anything.
+        assertBudget(
+            "analysis.gaps.tally.10k",
+            timed("analysis.heaviest", () => gapTally(modelOf(10_000, 7)), 10_000)
+        );
     });
 
     it("analysis.discovery.10k", () => {

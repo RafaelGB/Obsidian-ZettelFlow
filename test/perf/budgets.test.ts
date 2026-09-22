@@ -51,6 +51,7 @@ describe("budgets that fail the build (#457)", () => {
                 "index.build.50k",
                 "derive.one",
                 "enrich.parse.50k",
+                "analysis.gaps.tally.10k",
                 "analysis.discovery.10k",
                 "analysis.discovery.scaling",
                 "model.memory.50k",

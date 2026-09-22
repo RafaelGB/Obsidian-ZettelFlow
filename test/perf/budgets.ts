@@ -35,6 +35,11 @@ export interface Budget {
  * The numbers were a surprise and are recorded here rather than smoothed over: **the model layer
  * is fast**. Fifty thousand notes derive and index in about a tenth of a second. What is slow is
  * one projection — discovery — and it is recomputed on every render, which is what #458 fixes.
+ *
+ * Re-measured 2026-09-22 for #530: that projection built a 1.26-million-element array out of its
+ * tally and sorted the whole thing to return three rows. Splitting it into a shared tally and a
+ * bounded selection took `analysis.discovery.10k` from **1,528 ms to 953 ms**, of which the tally
+ * every other gap reader now shares is 982 ms.
  */
 export const BUDGETS = {
     "index.build.1k": {
@@ -88,10 +93,17 @@ export const BUDGETS = {
         measured: "5.1 ms",
         because: "the Health surface's main projection",
     },
+    "analysis.gaps.tally.10k": {
+        name: "tally every gap over 10,000 notes",
+        limit: 5_000,
+        measured: "981.8 ms",
+        because:
+            "the shared candidate pass every gap reader in epic #529 stands on (#530); it is the same walk `analysis.discovery.10k` used to do for itself, so the two move together and neither may drift",
+    },
     "analysis.discovery.10k": {
         name: "find discoveries over 10,000 notes",
         limit: 5_000,
-        measured: "1,528 ms",
+        measured: "953.0 ms",
         because:
             "a hundred times every other projection and re-run on every render — the single most expensive thing ZettelFlow computes",
     },

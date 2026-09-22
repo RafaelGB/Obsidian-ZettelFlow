@@ -77,6 +77,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.communities.10k` | 157.3 ms | 400 |
 | `analysis.debt.10k` | 5.1 ms | 60 |
 | `analysis.gaps.tally.10k` | 981.8 ms | 5,000 |
+| `analysis.gaps.seams.10k` | 388.5 ms | 1,500 |
 | `analysis.discovery.10k` | **953 ms** (1,528 ms before [#530](#530-one-tally-many-readers)) | 5,000 |
 | `analysis.discovery.scaling` | 2.24× | 3.5 |
 | `model.memory.50k` | 44.9 MB | 150 |

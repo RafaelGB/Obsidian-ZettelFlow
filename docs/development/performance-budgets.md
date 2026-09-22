@@ -76,7 +76,8 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.map.10k` | 13.9 ms | 120 |
 | `analysis.communities.10k` | 157.3 ms | 400 |
 | `analysis.debt.10k` | 5.1 ms | 60 |
-| `analysis.discovery.10k` | **1,528 ms** | 5,000 |
+| `analysis.gaps.tally.10k` | 981.8 ms | 5,000 |
+| `analysis.discovery.10k` | **953 ms** (1,528 ms before [#530](#530-one-tally-many-readers)) | 5,000 |
 | `analysis.discovery.scaling` | 2.24× | 3.5 |
 | `model.memory.50k` | 44.9 MB | 150 |
 | `facets.50k` | 190 ms (69 ms idle) | 600 |
@@ -90,13 +91,41 @@ smoothed over:
   this evidence it is not.
 - **Discovery is the cost.** One projection is a hundred times heavier than every other, and it is
   recomputed on every surface render. That makes *computing once per revision* the highest-value
-  change in the epic, not a nicety.
+  change in the epic, not a nicety. It is still the heaviest projection after
+  [#530](#530-one-tally-many-readers), at 953 ms — the pass itself is the cost, and the sort on
+  top of it was not.
 
 ## What the budgets have changed so far
 
 | Change | Measured effect |
 |---|---|
 | [#458 compute once per revision](../architecture/knowledge-state.md#computed-once-per-revision-458) | a second render of an unchanged 10k model: **1,413 ms → 0.073 ms** |
+| [#530 one tally, many readers](#530-one-tally-many-readers) | the first render of a 10k model: **1,528 ms → 953 ms** |
+
+### #530 one tally, many readers
+
+Discovery built a candidate tally of every pair of notes sharing graph context, copied it into an
+array, sorted the array whole, and returned the top three. At ten thousand notes that tally holds
+**1,264,125 pairs**: the copy and the sort were a third of the cost of the heaviest projection in
+the product, spent entirely on ordering rows nobody would read.
+
+Epic [#529](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/529) needs the same pairs read
+four different ways — a list, a lens on the 3D graph, the seams between neighbourhoods, and a
+count — and `memoise` keys on the arguments, correctly, so a reader asking for five and a reader
+asking for sixty would each have paid for the whole pass. So the expensive half now takes **no
+arguments** and is memoised on its own (`analysis.gaps.tally.10k`, 982 ms), and every reader is a
+**bounded selection** over it: one linear pass holding at most `limit` results, never a sort.
+
+The measured effects, both recorded in `test/perf/budgets.ts`:
+
+- `analysis.discovery.10k`: **1,528 ms → 953 ms**.
+- `analysis.discovery.scaling` unchanged at ~2.05× when the vault doubles — the *shape* was
+  already fine; only the constant moved.
+
+One trap worth naming, because it would have made the gate lie: the new budget times a model of
+its **own**, never the suite's shared one. `gapTally` is memoised per model instance, so priming
+the shared model would have turned `analysis.discovery.10k` into a memo hit reading near zero, and
+the one budget guarding this cost would have silently stopped guarding anything.
 
 ## What these numbers do not include
 

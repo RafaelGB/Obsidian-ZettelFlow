@@ -65,6 +65,50 @@ export const findDiscoveries = memoise(
 );
 
 /**
+ * The order the answer has always come in: score desc, then `a` asc, then `b` asc. As a predicate
+ * rather than a comparator, because this is used to place one candidate among a handful, never to
+ * sort a tally.
+ */
+function outranks(candidate: Discovery, held: Discovery): boolean {
+    if (candidate.score !== held.score) return candidate.score > held.score;
+    if (candidate.a !== held.a) return candidate.a < held.a;
+    return candidate.b < held.b;
+}
+
+/**
+ * The strongest `limit` gaps (#530) — a **bounded linear pass** over {@link gapTally}, never a sort
+ * of it.
+ *
+ * One comparison against the weakest gap held rejects a candidate outright; an accepted one is
+ * placed by binary search and the overflow tail is dropped. So the cost is O(pairs) comparisons plus
+ * O(limit) per accepted insert, where a full sort of 1.26 million pairs was 2.8 s of it — to answer
+ * a question about three.
+ *
+ * A limit past the end of the tally returns the whole tally: a caller asking for a million pairs
+ * gets the cost of the answer it asked for, which is stated rather than capped. A limit of zero or
+ * less returns nothing.
+ */
+export const topGaps = memoise("gaps.top", (model: KnowledgeModel, limit: number): Discovery[] => {
+    const cap = Math.max(0, Math.floor(limit));
+    if (cap === 0) return [];
+
+    const best: Discovery[] = [];
+    for (const candidate of gapTally(model).candidates()) {
+        if (best.length === cap && !outranks(candidate, best[best.length - 1])) continue;
+        let low = 0;
+        let high = best.length;
+        while (low < high) {
+            const middle = (low + high) >> 1;
+            if (outranks(candidate, best[middle])) high = middle;
+            else low = middle + 1;
+        }
+        best.splice(low, 0, candidate);
+        if (best.length > cap) best.pop();
+    }
+    return best;
+});
+
+/**
  * Every pair of notes that shares graph context, before anything is excluded: each pair within a
  * note’s out-neighbours is co-cited, each pair within its in-neighbours is coupled. One walk of the
  * model, and the only walk any of this does.

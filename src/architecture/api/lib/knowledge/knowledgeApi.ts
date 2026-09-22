@@ -104,6 +104,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     // The shared candidate pass behind every gap reader (#530). `discoveries` is the bounded
     // read a script wants; the whole tally is 1.26 million pairs at ten thousand notes.
     gapTally: "the shared candidate pass; discoveries is the bounded read of it",
+    topGaps: "discoveries is the same bounded read, already bound -- one door, not two",
     toDayKey: "internal date helper",
     levelForCount: "internal heatmap helper",
     fromDashboardToken: "internal recommendation mapper",

@@ -14,6 +14,7 @@ const SRC = join(__dirname, "..", "..", "..", "src");
 const MEMOISED: [string, string[]][] = [
     ["findDiscoveries", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
     ["gapTally", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
+    ["topGaps", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
     ["computeKnowledgeDebt", ["architecture", "knowledge", "debt", "knowledgeDebt.ts"]],
     ["buildKnowledgeMap", ["architecture", "knowledge", "map", "knowledgeMap.ts"]],
 ];

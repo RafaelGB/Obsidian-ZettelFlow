@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { findDiscoveries, gapTally } from "architecture/knowledge/discovery/discoveries";
+import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
 import { memoStats } from "architecture/knowledge/model/memo";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
@@ -121,5 +121,42 @@ describe("gapTally — one shared pass (#530, FR-1, FR-4, AC-6)", () => {
         const empty = gapTally(buildModel([]));
         expect(empty.size).toBe(0);
         expect([...empty.candidates()]).toEqual([]);
+    });
+});
+
+describe("topGaps -- selection, not sorting (#530, FR-2, AC-4)", () => {
+    it("takes the strongest N, in the answer’s order", () => {
+        expect(topGaps(model, 6)).toEqual(EXPECTED_GAPS.slice(0, 6));
+        expect(topGaps(model, 1)).toEqual(EXPECTED_GAPS.slice(0, 1));
+    });
+
+    it("hands back the whole tally when asked for more than there is", () => {
+        expect(topGaps(model, EXPECTED_GAPS.length + 50)).toEqual(EXPECTED_GAPS);
+    });
+
+    it("has nothing to give for a limit of none", () => {
+        expect(topGaps(model, 0)).toEqual([]);
+        expect(topGaps(model, -3)).toEqual([]);
+    });
+
+    it("never sorts more than it was asked for", () => {
+        // The point of the change: at ten thousand notes the tally is 1.26 million pairs, and
+        // sorting it to answer a question about three of them cost 2.8 s. A fresh model, so the
+        // work really happens rather than coming back out of the memo.
+        const fresh = buildModel(ideas);
+        const original = Array.prototype.sort;
+        const sorted: number[] = [];
+        // eslint-disable-next-line no-extend-native
+        Array.prototype.sort = function (this: unknown[], ...args: unknown[]) {
+            sorted.push(this.length);
+            return (original as (...a: unknown[]) => unknown[]).apply(this, args);
+        } as typeof Array.prototype.sort;
+        try {
+            expect(topGaps(fresh, 3)).toEqual(EXPECTED_GAPS.slice(0, 3));
+        } finally {
+            // eslint-disable-next-line no-extend-native
+            Array.prototype.sort = original;
+        }
+        expect(sorted.filter((length) => length > 3)).toEqual([]);
     });
 });

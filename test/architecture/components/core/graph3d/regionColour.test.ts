@@ -73,7 +73,7 @@ describe("every real region gets a bubble (#515)", () => {
 
 describe("framing is a camera move, and only that (#515)", () => {
     it("reaches the camera", () => {
-        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameRegion"));
+        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameCommunity"));
         expect(frame.slice(0, 700)).toContain("zoomToFit(");
     });
 
@@ -81,7 +81,7 @@ describe("framing is a camera move, and only that (#515)", () => {
         // A region filter would be a fourth way to narrow a graph that already has a query, a lens
         // and a time cursor. Asserted at the source so a later refactor cannot turn "show me this"
         // into "hide the rest" without this failing.
-        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameRegion"));
+        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameCommunity"));
         const body = frame.slice(0, 700);
         expect(body).not.toContain("setLit");
         expect(body).not.toContain("filterGraph3D");
@@ -89,7 +89,7 @@ describe("framing is a camera move, and only that (#515)", () => {
     });
 
     it("clears when you click the framed region again", () => {
-        expect(code(RENDERER)).toContain("framedRegion");
+        expect(code(RENDERER)).toContain("framedKey");
     });
 });
 

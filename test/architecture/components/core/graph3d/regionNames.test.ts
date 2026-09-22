@@ -103,15 +103,15 @@ describe("the legend says the name (#514)", () => {
         // wrong. The word that started this epic was *regiones*.
         expect(code(RENDERER)).not.toContain('"cluster"');
         for (const [name, locale] of [["en", en], ["es", es]] as const) {
-            const value = (locale as Record<string, string>).graph3d_color_region;
+            const value = (locale as Record<string, string>).graph3d_color_neighbourhood;
             expect({ name, value: typeof value }).toEqual({ name, value: "string" });
         }
     });
 
     it("keeps both locales complete for every key it added", () => {
         const added = [
-            "graph3d_color_region",
-            "graph3d_legend_regions",
+            "graph3d_color_neighbourhood",
+            "graph3d_legend_neighbourhoods",
             "graph3d_legend_region_size",
             "graph3d_legend_alone",
         ];

@@ -12,7 +12,7 @@ Both are derived, both regenerate as the vault changes, and neither has a settin
 ## Where you see it
 
 There is no separate pane. The map is what the **graph lens** draws: open **Explore**, switch the
-result view to the graph, and set *Colour by* to **Region**.
+result view to the graph, and set *Colour by* to **Neighbourhoods**.
 
 Each neighbourhood is a hue, a translucent bubble, a label floating in the scene, and a row in the
 legend with its size. Regions appear as **headings** grouping those rows — unless a region holds

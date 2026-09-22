@@ -78,7 +78,7 @@ describe("the legend groups without repeating itself (#527)", () => {
 
 describe("framing works at both levels, and is still only a camera (#527)", () => {
     it("frames a community from a row and a whole region from its heading", () => {
-        expect(CODE).toContain("private frameRegion(name: string): void");
+        expect(CODE).toContain("private frameCommunity(name: string): void");
         expect(CODE).toContain("private frameWholeRegion(region: string): void");
         expect(CODE).toContain("node.communityName === name");
         expect(CODE).toContain("node.region === region");
@@ -108,7 +108,7 @@ describe("no third colour mode (#527)", () => {
     it("still offers exactly two", () => {
         // If this had needed a third button, FR-4 said the toggle wins and the feature waits.
         expect((CODE.match(/this\.addColorButton\(/g) ?? [])).toHaveLength(2);
-        expect(CODE).toContain('type ColorMode = "state" | "region"');
+        expect(CODE).toContain('type ColorMode = "state" | "neighbourhood"');
     });
 });
 

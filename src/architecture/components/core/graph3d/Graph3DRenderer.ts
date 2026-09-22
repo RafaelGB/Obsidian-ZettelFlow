@@ -46,7 +46,9 @@ const STAR_COUNT = 1400;
 const STAR_INNER_RADIUS = 320;
 const STAR_OUTER_RADIUS = 900;
 type ViewState = "indexing" | "ready" | "empty" | "error";
-type ColorMode = "state" | "region";
+// "neighbourhood", not "region" (#527 follow-up): this mode colours Louvain communities, and
+// a type saying one thing while the product says another is how the next reader gets it wrong.
+type ColorMode = "state" | "neighbourhood";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
 type LabelSprite = THREE.Sprite; // three-spritetext's SpriteText extends three's Sprite (an Object3D)
@@ -139,8 +141,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     /** One unit sphere for every hull (#520); each mesh scales it to its own radius. */
     private hullGeometry: THREE.SphereGeometry | null = null;
     private hullTimer: number | undefined;
-    /** The region the camera is currently framing (#515), or null for the whole graph. */
-    private framedRegion: string | null = null;
+    /** What the camera is currently framing (#515) — a community or a region — or null for all. */
+    private framedKey: string | null = null;
     /** The note this view was opened *on* (#517), until you pin something or clear the focus. */
     private arrivedAt: string | null = null;
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
@@ -805,7 +807,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         colorGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_color") });
         const segmented = colorGroup.createDiv({ cls: c("graph3d-segmented") });
         this.addColorButton(segmented, "state", t("graph3d_color_state"));
-        this.addColorButton(segmented, "region", t("graph3d_color_region"));
+        this.addColorButton(segmented, "neighbourhood", t("graph3d_color_neighbourhood"));
 
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
@@ -1308,7 +1310,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     // ── Status + legend ──────────────────────────────────────────────────────────
     private updateStatus(): void {
         if (!this.statusEl) return;
-        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_region");
+        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_neighbourhood");
         const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
         if (this.pinnedId) {
@@ -1350,7 +1352,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         // Node colour legend — reflects the active mode so the user knows what colours mean.
         legend.createDiv({
             cls: c("graph3d-legend-title"),
-            text: t(this.colorMode === "state" ? "graph3d_legend_nodes" : "graph3d_legend_regions"),
+            text: t(this.colorMode === "state" ? "graph3d_legend_nodes" : "graph3d_legend_neighbourhoods"),
         });
         if (this.colorMode === "state") {
             const states = [...new Set(this.displayed.nodes.map((n) => n.state).filter((s) => s))].sort();
@@ -1428,7 +1430,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (communities.length > 1) this.legendRegionHeading(legend, region);
             for (const one of communities) {
                 const row = this.legendRegionRow(legend, one.name, one.size, one.community % COMMUNITY_COLORS.length);
-                this.makeFramable(row, one.name, () => this.frameRegion(one.name));
+                this.makeFramable(row, one.name, () => this.frameCommunity(one.name));
             }
         }
         // Alone is a state, not a neighbourhood: it is listed so the count is visible, and it does
@@ -1446,10 +1448,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     /** Give a legend row the click, the keyboard and the pressed state that framing needs (#515). */
     private makeFramable(row: HTMLElement, key: string, frame: () => void): void {
         row.addClass(c("graph3d-legend-row--clickable"));
-        row.toggleClass(c("graph3d-legend-row--framed"), this.framedRegion === key);
+        row.toggleClass(c("graph3d-legend-row--framed"), this.framedKey === key);
         row.tabIndex = 0;
         row.setAttribute("role", "button");
-        row.setAttribute("aria-pressed", this.framedRegion === key ? "true" : "false");
+        row.setAttribute("aria-pressed", this.framedKey === key ? "true" : "false");
         this.registerDomEvent(row, "click", () => frame());
         this.registerDomEvent(row, "keydown", (event: KeyboardEvent) => {
             if (event.key !== "Enter" && event.key !== " ") return;
@@ -1473,7 +1475,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * a lens and a time cursor to narrow it with, and a fourth way would be the addition this epic
      * exists to refuse. Clicking the framed region again pulls back to the whole graph.
      */
-    private frameRegion(name: string): void {
+    private frameCommunity(name: string): void {
         this.frameBy(name, (node) => node.communityName === name);
     }
 
@@ -1484,11 +1486,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private frameBy(key: string, belongs: (node: Graph3DNode) => boolean): void {
         if (!this.graph) return;
-        if (this.framedRegion === key) {
-            this.framedRegion = null;
+        if (this.framedKey === key) {
+            this.framedKey = null;
             this.graph.zoomToFit(700, 40);
         } else {
-            this.framedRegion = key;
+            this.framedKey = key;
             this.graph.zoomToFit(700, 40, (node) => belongs(node as Graph3DNode));
         }
         this.renderLegend();

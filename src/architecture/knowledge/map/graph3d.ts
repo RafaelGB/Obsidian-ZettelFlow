@@ -228,18 +228,20 @@ export const RELATION_COLORS: Record<string, string> = {
 };
 
 /**
- * The **region** palette (#515). Twelve colours tuned for the view's fixed dark background.
+ * The **community** palette (#515, retargeted by #527). Eighteen colours tuned for the view's
+ * fixed dark background.
  *
  * It used to be generated — `hsl((group * 67) % 360, 70%, 62%)` — in two places that had drifted
  * four per cent apart, so a node and its own hull were different colours. A generated hue also
  * cannot reach a stylesheet without an inline style, which this repo forbids, so the legend
  * swatch could never match the scene. A fixed list fixes both: `graph3d.scss` mirrors it in
- * `graph3d-swatch--region-N`, and a guardrail test keeps the two in step.
+ * `graph3d-swatch--community-N`, and a guardrail test keeps the two in step.
  *
- * Twelve is headroom, not a guess: #513 left the reference vault with nine regions. Past twelve it
- * wraps, and two distant regions sharing a hue is the right failure to accept.
+ * Eighteen because the reference vault has **17 communities** (#524) and twelve would have put two
+ * neighbourhoods side by side in one hue. Past eighteen it wraps, because a palette cannot be
+ * unbounded and two *distant* communities sharing a colour is the right failure to accept.
  */
-export const REGION_COLORS: readonly string[] = [
+export const COMMUNITY_COLORS: readonly string[] = [
     "#7dd3fc", // sky
     "#86efac", // green
     "#fcd34d", // amber
@@ -252,14 +254,20 @@ export const REGION_COLORS: readonly string[] = [
     "#bef264", // lime
     "#67e8f9", // cyan
     "#f9a8d4", // pink
+    "#93c5fd", // blue
+    "#6ee7b7", // emerald
+    "#fde68a", // yellow
+    "#c4b5fd", // violet
+    "#f8b4a0", // salmon
+    "#a7f3d0", // mint
 ];
 
-/** A note that is alone belongs to no region — grey, and it means something (#513). */
+/** A note that is alone belongs to no community — grey, and it means something (#513). */
 export const ALONE_COLOR = "#9aa4b8";
 
-/** The one colour a region is drawn in: node, halo, hull, scene label and legend swatch (#515). */
-export function regionColor(group: number): string {
-    return group < 0 ? ALONE_COLOR : REGION_COLORS[group % REGION_COLORS.length];
+/** The one colour a community is drawn in: node, halo, hull, scene label and legend swatch (#515). */
+export function communityColor(group: number): string {
+    return group < 0 ? ALONE_COLOR : COMMUNITY_COLORS[group % COMMUNITY_COLORS.length];
 }
 
 export const STATE_COLORS: Record<string, string> = {

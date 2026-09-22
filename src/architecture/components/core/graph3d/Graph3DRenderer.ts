@@ -19,8 +19,8 @@ import {
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
     RELATION_COLORS,
-    REGION_COLORS,
-    regionColor,
+    COMMUNITY_COLORS,
+    communityColor,
     shortestPath,
     tourStops,
     STATE_COLOR_VARS,
@@ -438,7 +438,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (halo && this.glowTexture) {
             const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
             material.opacity = halo.opacity;
-            material.color.set(regionColor(gn.group));
+            material.color.set(communityColor(gn.community));
             const glow = new three.Sprite(material);
             glow.scale.set(halo.scale, halo.scale, 1);
             group.add(glow);
@@ -629,12 +629,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!three || !this.graph || this.lite) return;
         const scene = this.graph.scene();
         const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
+        // Grouped by **community**, not by region (#527). A region is a connected component, and
+        // on the reference vault one of them holds 59 % of the notes: a single sphere around most
+        // of the graph. Its 17 communities are 9 to 36 notes each — bubbles that mean something.
         const byGroup = new Map<number, (Graph3DNode & LiveNode)[]>();
         for (const node of live) {
-            if (node.group < 0 || node.x === undefined) continue;
-            const arr = byGroup.get(node.group) ?? [];
+            if (node.community < 0 || node.x === undefined) continue;
+            const arr = byGroup.get(node.community) ?? [];
             arr.push(node);
-            byGroup.set(node.group, arr);
+            byGroup.set(node.community, arr);
         }
         if (!this.hullGeometry) this.hullGeometry = new three.SphereGeometry(1, 16, 12);
 
@@ -652,7 +655,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
             let mesh = this.hulls.get(group);
             if (!mesh) {
-                const material = new three.MeshBasicMaterial({ color: new three.Color(regionColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
+                const material = new three.MeshBasicMaterial({ color: new three.Color(communityColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
                 material.opacity = 0.06;
                 mesh = new three.Mesh(this.hullGeometry, material);
                 scene.add(mesh);
@@ -664,12 +667,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             // The name, above the bubble (#514). Larger and dimmer than a node label, so it reads
             // as the region rather than as one more note in it.
             const Ctor = this.spriteTextCtor;
-            const name = nodes.find((node) => node.region)?.region;
+            const name = nodes.find((node) => node.communityName)?.communityName;
             if (!Ctor || !name) continue;
             let label = this.regionLabels.get(group);
             if (!label || this.labelNames.get(group) !== name) {
                 if (label) scene.remove(label);
-                label = new Ctor(name, 11, regionColor(group));
+                label = new Ctor(name, 11, communityColor(group));
                 scene.add(label);
                 this.regionLabels.set(group, label);
                 this.labelNames.set(group, name);
@@ -1246,7 +1249,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private baseNodeColor(node: Graph3DNode): string {
         if (this.colorMode === "state") return STATE_COLORS[node.state] ?? DEFAULT_STATE_COLOR;
-        return regionColor(node.group);
+        return communityColor(node.community);
     }
 
     private computeLinkColor(link: LiveLink): string {
@@ -1334,9 +1337,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!this.arrivedAt) return null;
         const node = this.displayed.nodes.find((candidate) => candidate.id === this.arrivedAt);
         if (!node) return null;
-        if (node.group < 0 || !node.region) return t("graph3d_status_alone");
-        const size = this.displayed.nodes.filter((candidate) => candidate.region === node.region).length;
-        return t("graph3d_status_in_region", node.region, String(size));
+        if (node.community < 0 || !node.communityName) return t("graph3d_status_alone");
+        const size = this.displayed.nodes.filter((candidate) => candidate.communityName === node.communityName).length;
+        return t("graph3d_status_in_region", node.communityName, String(size), node.region);
     }
 
     private renderLegend(): void {
@@ -1385,48 +1388,80 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * The regions **on screen**, named and counted (#514).
+     * The neighbourhoods **on screen**, grouped by the region they sit in (#514, #527).
      *
-     * It said "By cluster" and stopped there, which is how the largest structures in the view ended
-     * up being the only unlabelled ones. Counting from `displayed.nodes` rather than from the model
-     * means a capped or time-sliced graph reports what you are actually looking at.
+     * It said "By cluster" and stopped there, which is how the largest structures in the view
+     * ended up being the only unlabelled ones. #527 moved it a level down: a heading per region,
+     * its communities beneath. Counting from `displayed.nodes` rather than from the model means a
+     * capped or time-sliced graph reports what you are actually looking at.
+     *
+     * A region holding exactly one community renders **one row and no heading** — "Region X" above
+     * a single "X" is the legend saying the same thing twice.
      */
     private legendRegionRows(legend: HTMLElement): void {
-        const seen = new Map<string, { group: number; size: number }>();
+        const seen = new Map<string, { community: number; size: number; region: string }>();
         let alone = 0;
         for (const node of this.displayed.nodes) {
-            if (node.group < 0 || !node.region) {
+            if (node.community < 0 || !node.communityName) {
                 alone++;
                 continue;
             }
-            const entry = seen.get(node.region);
+            const entry = seen.get(node.communityName);
             if (entry) entry.size++;
-            else seen.set(node.region, { group: node.group, size: 1 });
+            else seen.set(node.communityName, { community: node.community, size: 1, region: node.region });
         }
-        const ordered = [...seen].sort((a, b) => b[1].size - a[1].size || (a[0] < b[0] ? -1 : 1));
-        for (const [name, { group, size }] of ordered) {
-            const row = this.legendRegionRow(legend, name, size, group % REGION_COLORS.length);
-            row.addClass(c("graph3d-legend-row--clickable"));
-            row.toggleClass(c("graph3d-legend-row--framed"), this.framedRegion === name);
-            row.tabIndex = 0;
-            row.setAttribute("role", "button");
-            row.setAttribute("aria-pressed", this.framedRegion === name ? "true" : "false");
-            this.registerDomEvent(row, "click", () => this.frameRegion(name));
-            this.registerDomEvent(row, "keydown", (event: KeyboardEvent) => {
-                if (event.key !== "Enter" && event.key !== " ") return;
-                event.preventDefault();
-                this.frameRegion(name);
-            });
+
+        const byRegion = new Map<string, { name: string; community: number; size: number }[]>();
+        for (const [name, { community, size, region }] of seen) {
+            const list = byRegion.get(region) ?? [];
+            list.push({ name, community, size });
+            byRegion.set(region, list);
         }
-        // Alone is a state, not a region: it is listed so the count is visible, and it does not
-        // frame, because there is no "there" to fly to.
+        const regions = [...byRegion].sort(
+            (a, b) =>
+                b[1].reduce((total, one) => total + one.size, 0) - a[1].reduce((total, one) => total + one.size, 0) ||
+                (a[0] < b[0] ? -1 : 1)
+        );
+
+        for (const [region, communities] of regions) {
+            communities.sort((a, b) => b.size - a.size || (a.name < b.name ? -1 : 1));
+            if (communities.length > 1) this.legendRegionHeading(legend, region);
+            for (const one of communities) {
+                const row = this.legendRegionRow(legend, one.name, one.size, one.community % COMMUNITY_COLORS.length);
+                this.makeFramable(row, one.name, () => this.frameRegion(one.name));
+            }
+        }
+        // Alone is a state, not a neighbourhood: it is listed so the count is visible, and it does
+        // not frame, because there is no "there" to fly to.
         if (alone > 0) this.legendRegionRow(legend, t("graph3d_legend_alone"), alone, null);
+    }
+
+    /** A region's name over the communities inside it — only when there is more than one (#527). */
+    private legendRegionHeading(legend: HTMLElement, region: string): void {
+        const row = legend.createDiv({ cls: c("graph3d-legend-region") });
+        row.createSpan({ text: region });
+        this.makeFramable(row, region, () => this.frameWholeRegion(region));
+    }
+
+    /** Give a legend row the click, the keyboard and the pressed state that framing needs (#515). */
+    private makeFramable(row: HTMLElement, key: string, frame: () => void): void {
+        row.addClass(c("graph3d-legend-row--clickable"));
+        row.toggleClass(c("graph3d-legend-row--framed"), this.framedRegion === key);
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-pressed", this.framedRegion === key ? "true" : "false");
+        this.registerDomEvent(row, "click", () => frame());
+        this.registerDomEvent(row, "keydown", (event: KeyboardEvent) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            frame();
+        });
     }
 
     private legendRegionRow(legend: HTMLElement, name: string, size: number, palette: number | null): HTMLElement {
         const row = legend.createDiv({ cls: c("graph3d-legend-row") });
         row.createSpan({
-            cls: c("graph3d-swatch", palette === null ? "graph3d-swatch--region-alone" : `graph3d-swatch--region-${palette}`),
+            cls: c("graph3d-swatch", palette === null ? "graph3d-swatch--community-alone" : `graph3d-swatch--community-${palette}`),
         });
         row.createSpan({ text: name });
         row.createSpan({ cls: c("graph3d-legend-count"), text: t("graph3d_legend_region_size", String(size)) });
@@ -1439,13 +1474,22 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * exists to refuse. Clicking the framed region again pulls back to the whole graph.
      */
     private frameRegion(name: string): void {
+        this.frameBy(name, (node) => node.communityName === name);
+    }
+
+    /** Fly to a whole region — every community in it — from its legend heading (#527). */
+    private frameWholeRegion(region: string): void {
+        this.frameBy(region, (node) => node.region === region);
+    }
+
+    private frameBy(key: string, belongs: (node: Graph3DNode) => boolean): void {
         if (!this.graph) return;
-        if (this.framedRegion === name) {
+        if (this.framedRegion === key) {
             this.framedRegion = null;
             this.graph.zoomToFit(700, 40);
         } else {
-            this.framedRegion = name;
-            this.graph.zoomToFit(700, 40, (node) => (node as Graph3DNode).region === name);
+            this.framedRegion = key;
+            this.graph.zoomToFit(700, 40, (node) => belongs(node as Graph3DNode));
         }
         this.renderLegend();
     }

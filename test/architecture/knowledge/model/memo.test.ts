@@ -84,6 +84,30 @@ describe("computing once per revision (#458)", () => {
         expect(limited(model, 1)).toBe(1);
     });
 
+    it("shares one no-argument pass between readers that ask different questions (#530)", () => {
+        // The property epic #529 stands on. Two readers wanting three gaps and sixty gaps are two
+        // questions and get two answers -- but the expensive half between them, which takes no
+        // arguments, runs once. Asserted here, at the layer that owns it, because a later "clever"
+        // key is exactly how it would be taken away.
+        let shared = 0;
+        const pass = memoise("test.shared.pass", (model: KnowledgeModel) => {
+            shared++;
+            return model.all().map((entry) => entry.path);
+        });
+        const top = memoise("test.shared.top", (model: KnowledgeModel, limit: number) =>
+            pass(model).slice(0, limit)
+        );
+
+        const model = modelWith(["a.md", "b.md", "c.md"]);
+        expect(top(model, 1)).toEqual(["a.md"]);
+        expect(top(model, 2)).toEqual(["a.md", "b.md"]);
+        expect(top(model, 1)).toEqual(["a.md"]);
+
+        expect(shared).toBe(1);
+        // Three entries: the shared pass, and one per question asked of it.
+        expect(memoStats(model).entries).toBe(3);
+    });
+
     it("keeps different projections apart, even on the same model and arguments", () => {
         const model = modelWith(["a.md"]);
         expect(memoise("test.one", () => "one")(model)).toBe("one");

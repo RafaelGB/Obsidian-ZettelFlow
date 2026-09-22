@@ -1,18 +1,19 @@
 # Morning discovery
 
-The **morning discovery** pane surfaces up to **three surprising connections** — pairs of notes that
+**Morning discovery** surfaces up to **three surprising connections** — pairs of notes that
 share concepts but aren't linked yet — each one click from being related. The value of a slip-box
 shows up in *unexpected* links, not the backlinks you already knew about.
 
-## Opening it
+## Where you see it
 
-Run **"Show discoveries"** from the command palette, or click **Open** next to *Discoveries* in
-**Settings → ZettelFlow → Zettelkasten toolkit**. Each card shows a pair and asks *"these two notes
-share concepts — link them?"* with three actions:
+On **[Home](zettelflow-home.md)**, in its own section. Running **"Show discoveries"** from the command
+palette still works and opens Home — since [#504](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/504)
+the Discovery surface is gone, because Home already rendered these pairs from the same function and a
+door onto something that lives elsewhere is not a surface.
 
-- **Link them** — writes the connection (see below).
-- **Dismiss** — hides the pair for this session.
-- **Open** — opens the first note.
+Each row is one pair, and either name opens its note. Linking them is an act you perform in the note
+(or through Cultivate's *connect*), never something a surface does for you
+([constitution §XII](constitution.md)).
 
 ## How pairs are found
 
@@ -25,16 +26,21 @@ excluded** (either direction), and the top-scoring unlinked pairs are shown (can
 broken by path). Candidate pairs are generated once per node (every pair among a note's neighbours),
 so it stays efficient. No text similarity, no embeddings, no AI.
 
-## Accepting (the one write)
+## Accepting, and saying no
 
-**Link them** writes an **`expands`** relation from the first note to the second — appended to its
-`expands` frontmatter key via Obsidian's `processFrontMatter` (deduplicated, add-only, never removes
-anything). After the model re-indexes, the pair is linked, so it drops out of future discoveries.
-There is no generic "related" type in the [semantic vocabulary](../architecture/knowledge-model.md)
-(#147); `expands` is the neutral "this note connects to that idea" choice.
+**Accepting needs no memory.** Link the two notes and the pair stops being a gap by construction:
+the engine excludes already-linked pairs in either direction, so once the model re-indexes it is
+simply not there any more. The **`expands`** relation is the neutral "this note connects to that
+idea" choice — there is no generic *related* type in the
+[semantic vocabulary](../architecture/knowledge-model.md) (#147) — and every write goes through
+`FrontmatterService` (deduplicated, add-only, never removes anything).
 
-Dismissals are **session-only** — a dismissed pair may return next time you open the pane; an
-accepted pair does not (it's now linked). A persisted dismissed-pair set is a possible follow-up.
+**Saying no is the half that needs recording**, and today nothing does: the same pairs come back for
+ever. On a real vault the strongest gaps are often the vault's own scaffolding — folder index notes
+co-cited by their parent — and no graph statistic separates a filing convention from a thought,
+which is exactly the kind of call that belongs to a person and gets recorded as a verdict
+([#534](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/534), epic
+[#529](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/529)).
 
 ## Continuous discovery (#365, D5)
 
@@ -51,7 +57,7 @@ Two invariants hold, and a guardrail test pins them:
   [constitution §XII](constitution.md)). A test asserts the whole Home path imports no AI provider and
   calls nothing that reaches one.
 - **Never a silent write.** Continuous discovery only *proposes* — it surfaces connections and next
-  moves; committing any of them stays the same judgement-gated action the pane makes above.
+  moves; committing any of them stays the same judgement-gated act described above.
 
 There is deliberately **no parallel background engine, no badge, and no on/off toggle**: continuous
 discovery is a property of the Home surface refreshing, not a new feature bolted on (design by subtraction).
@@ -59,11 +65,23 @@ discovery is a property of the Home surface refreshing, not a new feature bolted
 ## Architecture
 
 ```
-findDiscoveries(model, { limit })   (pure, Obsidian-free, unit-tested)
-  → top unlinked pairs by shared-context score
+gapTally(model)                     (pure, Obsidian-free, memoised on the model alone)
+  → every unlinked pair that shares context: a count, and a walk of them
 
-DiscoveriesView (ItemView) + DiscoveriesComponent (show-discoveries command, no hotkey)
-  reads the KnowledgeIndex model → findDiscoveries
-  accept → semanticRelationField("expands", …) shape written via fileManager.processFrontMatter
-  dismiss → session Set · open → workspace.openLinkText
+topGaps(model, limit)               (a bounded linear selection over that walk, never a sort)
+  → the strongest `limit` pairs, score desc then a asc then b asc
+
+findDiscoveries(model, { limit })   (the same, bound to the default of three -- public on zf)
+
+  read by: Home's section · the dashboard's count (the whole tally) · deriveRecommendations
+  linking a pair → the create-semantic-relation action writes an `expands` relation
+  open → workspace.openLinkText
 ```
+
+One pass, several readers: `memoise` keys on a projection's arguments, so a reader wanting three
+pairs and a reader wanting sixty would each have paid for the tally behind them. The tally takes no
+arguments, which is what lets them share it — see
+[one tally, many readers](../architecture/knowledge-state.md#one-tally-many-readers-530). At ten
+thousand notes it holds over **1.2 million pairs**, so for the limits the product uses it is never
+copied into an array and never sorted — measured A/B on one warm tally, 1,393 ms of sorting became
+553 ms of selecting ([budgets](performance-budgets.md)).

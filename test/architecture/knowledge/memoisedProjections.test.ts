@@ -13,8 +13,11 @@ const SRC = join(__dirname, "..", "..", "..", "src");
 /** The projections that are memoised, and the file each lives in. */
 const MEMOISED: [string, string[]][] = [
     ["findDiscoveries", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
+    ["gapTally", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
+    ["topGaps", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
     ["computeKnowledgeDebt", ["architecture", "knowledge", "debt", "knowledgeDebt.ts"]],
     ["buildKnowledgeMap", ["architecture", "knowledge", "map", "knowledgeMap.ts"]],
+    ["gapSeams", ["architecture", "knowledge", "map", "gapSeams.ts"]],
 ];
 
 /**
@@ -78,7 +81,11 @@ describe("the projections that compute once per revision (#458)", () => {
         findDiscoveries(model);
         computeKnowledgeDebt(model);
         buildKnowledgeMap(model);
-        expect(memoStats(model).entries).toBe(3);
+        // Five, not three: one call to findDiscoveries fills three of them (#530) -- the answer it
+        // was asked for, the bounded selection behind it, and the shared candidate pass behind that.
+        // The pass is the one with no arguments, which is how two readers wanting different numbers
+        // of gaps share the 1.5 s it costs.
+        expect(memoStats(model).entries).toBe(5);
     });
 
     it("recomputes after a note changes, so a stale answer cannot survive", () => {

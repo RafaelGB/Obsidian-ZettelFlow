@@ -1,13 +1,15 @@
 # Living knowledge map — regions and neighbourhoods
 
-The **living knowledge map** shows the *shape* of your slip-box, at two levels that nest:
+The **living knowledge map** shows the *shape* of your slip-box, at levels that nest:
 
 - a **region** is a connected component of your link graph — *what is cut off from what*, and
   which notes are **alone**;
 - a **neighbourhood** (a *community*) is a densely linked group **inside** a region — *the
-  topics your thinking actually falls into*.
+  topics your thinking actually falls into*;
+- a **seam** is the space **between** two neighbourhoods — *how much shared context has not become
+  a link*.
 
-Both are derived, both regenerate as the vault changes, and neither has a setting.
+All three are derived, all three regenerate as the vault changes, and none of them has a setting.
 
 ## Where you see it
 
@@ -36,7 +38,37 @@ Four of the six discovery lenses read this structure:
 else dims, so it reads as *what joins what*.
 
 From a script: `zf.knowledge.map()` returns `{ clusters, unclustered }` — the regions and the
-notes that are alone.
+notes that are alone — and `zf.knowledge.gapSeams()` returns the seams, widest first.
+
+### The seams of the reference vault
+
+| | |
+|---|---|
+| gaps (unlinked pairs sharing context) | **217** |
+| of those, crossing between neighbourhoods | **65** |
+| seams | **24** |
+| seams with **no link at all** between the two sides | **15** |
+| the widest | `CRUD usuarios de agencia ↔ Customer & User Management` — **14 gaps, 2 links** |
+
+Two neighbourhoods about the same domain, fourteen shared-context pairs apart and two links apart.
+That sentence is what a seam exists to be able to say, and it is not a statement any list of pairs
+can make.
+
+**Ordered gaps desc, then links asc** — the widest seam has the most shared context and the fewest
+links already crossing, which is explainable in one sentence. It is deliberately **not** normalised
+by neighbourhood size, and that was measured rather than assumed: dividing by the pairs possible
+across the seam promotes the vault's own scaffolding (the two `readme` neighbourhoods) to first
+place and puts *two* gaps between a three-note and a two-note neighbourhood in second, while at ten
+thousand notes it hands seven of its top ten rows to a single 17-note community. A rate with a small
+denominator is an artifact, and a ratio is one step from an invented metric
+([§XI](constitution.md)). The row shows both raw numbers instead, so a reader can normalise in
+their head against sizes the legend is already showing.
+
+That decision rests on a 94-note real vault and a synthetic ten-thousand one whose communities hold
+335–444 notes each — evidence about the generator, not about a vault. On a **large real** vault the
+top ten is worth re-reading; if the bias is there, the fix is a consequence of the model (the
+conductance between the two neighbourhoods, which the graph already knows) and a new spec, not a
+rate someone chose.
 
 ## How each level is defined
 
@@ -47,9 +79,19 @@ notes that are alone.
   way is not about the partition being right: it makes *a neighbourhood never straddles a region*
   true by construction and hands each one its region for free.
 
-Both are named after their most connected note, ties broken by path. Names are derived and not
-settable: a name you could edit would be a data field with no home and an editor to build
-([constitution §XIII](constitution.md)).
+- A **seam** is a pair of neighbourhoods with at least one **gap** crossing between them — a gap
+  being a pair of notes that share graph context and are not linked
+  ([morning discovery](morning-discovery.md)). A seam carries two counts: how many gaps cross, and
+  how many links already do. Gaps *inside* one neighbourhood are counted nowhere: 152 of the
+  reference vault's 217 are internal, and a gap between two notes of the same topic is a local
+  omission rather than a hole in the map.
+
+Regions and neighbourhoods are named after their most connected note, ties broken by path. Names are
+derived and not settable: a name you could edit would be a data field with no home and an editor to
+build ([constitution §XIII](constitution.md)). A **seam** is named by its two sides, each qualified
+by the hub's parent folder **path** only when two neighbourhoods would otherwise read the same — the
+reference vault has two whose hub is a `readme.md`, and a row reading `readme ↔ readme` says
+nothing.
 
 Neither has a threshold, a resolution or a knob of any kind. That is deliberate, and the next
 section is why.
@@ -129,6 +171,13 @@ build3DGraph(model)                 puts both levels on each node, and the cross
 
 COMMUNITY_COLORS + communityColor(i) one palette for node, halo, hull, scene label and legend
                                      swatch; mirrored by graph3d.scss, guarded by a test
+
+gapSeams(model)                     (pure, memoised; one pass over the shared gap tally)
+  → [{ a, b, labelA, labelB, gaps, score, links }]
+      a, b        the two neighbourhood indices, lower first
+      gaps/score  how many gaps cross, and the sum of their scores
+      links       how many links already cross -- counted exactly as the `bridges` lens
+                  draws them, with a test asserting the two agree per seam
 ```
 
 Only **in-model** neighbours are walked at either level. `KnowledgeModel` records a link's target
@@ -138,8 +187,14 @@ no neighbour here — it is alone in *this* graph, which is the graph the map de
 Determinism is not incidental: Louvain is order-sensitive, so nodes are walked in path order and a
 tie in modularity gain resolves to the lowest community id. Two runs on one model are identical.
 
-Budgets: `analysis.map.10k` 13.9 ms (ceiling 120), `analysis.communities.10k` 157.3 ms
-(ceiling 400). See [performance budgets](performance-budgets.md).
+`gapSeams` reads the **shared gap tally** (#530) and the neighbourhoods, and walks the graph itself
+**not at all**: the link count reads each idea's own relations, and a test spies on the model's
+neighbour sets to prove zero calls. A private candidate pass in there would have doubled the
+heaviest projection in the product.
+
+Budgets: `analysis.map.10k` 13.9 ms (ceiling 120), `analysis.communities.10k` 157.3 ms (ceiling
+400), `analysis.gaps.seams.10k` 388.5 ms (ceiling 1,500) over 1.26 million gap pairs. See
+[performance budgets](performance-budgets.md).
 
 The map **writes nothing**. It is a view of the structure, distinct from the
 [MOC builder](moc-builder.md), which generates notes.
@@ -152,3 +207,8 @@ The map **writes nothing**. It is a view of the structure, distinct from the
   O(N·E) — unusable at vault scale. Twenty-six edges do not need ranking.
 - **Weighted or directed detection.** The link graph is unweighted; adding weights is a modelling
   decision with nothing behind it yet.
+- **Normalising a seam by neighbourhood size.** Measured and rejected above; re-open it with a large
+  real vault, not with an argument.
+- **Drawing the gaps.** A seam is a count today; the lens that draws a link that is not there is
+  [#532](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/532), and the legend that lets you
+  fly to the widest one is [#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533).

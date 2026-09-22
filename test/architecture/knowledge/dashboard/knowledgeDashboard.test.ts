@@ -1,5 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { buildKnowledgeDashboard } from "architecture/knowledge/dashboard/knowledgeDashboard";
+import { gapTally } from "architecture/knowledge/discovery/discoveries";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 // 11 notes: iso is isolated (orphaned); d has a dangling out-edge (unresolved); f1/f2 are fleeting
@@ -41,6 +42,10 @@ describe("buildKnowledgeDashboard (#171, FR-1/FR-3, AC-1)", () => {
                     metrics: [
                         { key: "process", count: 2 },
                         { key: "contradictions", count: 1 },
+                        // Three is this fixture's true total, not the display limit #530
+                        // removed: (a, b) co-cited by s, plus (f1, s) and (f2, s), each pair
+                        // coupled by the target they both link. A correct expectation that
+                        // happens to equal the old cap -- do not "fix" it.
                         { key: "connections", count: 3 },
                         { key: "questions", count: 1 },
                     ],
@@ -95,5 +100,39 @@ describe("buildKnowledgeDashboard (#171, FR-1/FR-3, AC-1)", () => {
         expect(buildKnowledgeDashboard(degenerate)).toEqual(buildKnowledgeDashboard(degenerate));
         expect(degenerate.size()).toBe(before);
         expect(() => buildKnowledgeDashboard(degenerate)).not.toThrow();
+    });
+});
+
+describe("the connections metric counts every gap (#530, FR-5, AC-3)", () => {
+    // One hub citing five unlinked notes co-cites ten pairs, so the true total is ten. Before this
+    // issue the metric read `findDiscoveries(model).length` with no limit -- three by default -- so
+    // the panel could never report more than three gaps however many a vault had.
+    const manyGaps = buildModel([
+        idea("hub.md", "permanent", [
+            { to: "a.md" },
+            { to: "b.md" },
+            { to: "c.md" },
+            { to: "d.md" },
+            { to: "e.md" },
+        ]),
+        idea("a.md", "permanent", []),
+        idea("b.md", "permanent", []),
+        idea("c.md", "permanent", []),
+        idea("d.md", "permanent", []),
+        idea("e.md", "permanent", []),
+    ]);
+
+    const today = () => buildKnowledgeDashboard(manyGaps).panels.find((panel) => panel.key === "today");
+
+    it("reports the true total, not the display limit", () => {
+        expect(gapTally(manyGaps).size).toBe(10);
+        expect(today()?.metrics.find((metric) => metric.key === "connections")).toEqual({
+            key: "connections",
+            count: 10,
+        });
+    });
+
+    it("hands that same total to the recommendation", () => {
+        expect(today()?.recommendation).toEqual({ token: "make-connections", count: 10 });
     });
 });

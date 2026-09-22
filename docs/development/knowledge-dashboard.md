@@ -32,7 +32,10 @@ Everything is a **composition** of existing State-layer functions — the dashbo
 ### Today
 - **To process** — `fleeting` notes awaiting processing.
 - **Contradictions** — `contradicts` edges to resolve.
-- **Connections to make** — the top [morning discoveries](morning-discovery.md) (#163).
+- **Connections to make** — how many [gaps](morning-discovery.md) the vault has: pairs of notes
+  that share context and are not linked (#163). Every one of them, not the strongest few — the
+  metric used to read the length of a list bound to a display limit of three, so it could never
+  report more than three however many a vault had ([#530](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/530)).
 - **Open questions** — unanswered questions across the vault (#167).
 - **Recommendation:** the single most-pressing of these (priority: contradictions → questions → to-process → connections), opening the matching pane; or "all clear".
 

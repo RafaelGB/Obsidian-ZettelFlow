@@ -34,7 +34,9 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `computeKnowledgeDebt` | `KnowledgeDebt` | Health |
 | `computeKnowledgeBalance` | `KnowledgeBalance` | Health |
 | `buildKnowledgeDashboard` | `DashboardModel` | Dashboard |
-| `findDiscoveries` | `Discovery[]` | Discovery |
+| `gapTally` | `GapTally` (a count and a walk) | every gap reader — the shared pass (#530); the dashboard count reads it directly |
+| `gapSeams` | `GapSeam[]` | the seams between neighbourhoods (#531) |
+| `findDiscoveries` / `topGaps` | `Discovery[]` | Home, the recommendations |
 | `openQuestions` / `proposeAnswers` | `OpenQuestion[]` / answers | Open questions |
 | `buildEvidenceMap` | `EvidenceMap` | Evidence map |
 | `buildKnowledgeMap` | `KnowledgeMap` | Knowledge map |
@@ -80,9 +82,9 @@ The [budgets](../development/performance-budgets.md) said how much that cost, an
 lopsided: most projections are milliseconds, and **discovery is 1.5 seconds over ten thousand
 notes** — a hundred times heavier than any other.
 
-So three projections are wrapped in `memoise` (`architecture/knowledge/model/memo.ts`):
-`findDiscoveries`, `computeKnowledgeDebt` and `buildKnowledgeMap`. Measured: a second render of an
-unchanged 10k model went from **1,413 ms to 0.073 ms**.
+So five projections are wrapped in `memoise` (`architecture/knowledge/model/memo.ts`):
+`findDiscoveries`, `topGaps`, `gapTally`, `computeKnowledgeDebt` and `buildKnowledgeMap`. Measured:
+a second render of an unchanged 10k model went from **1,413 ms to 0.073 ms**.
 
 The wrapper is applied **at each definition**, not at the State barrel, because Home and the
 dashboard deep-import these functions — a barrel-only wrapper would have missed the heaviest
@@ -96,20 +98,55 @@ callers.
   during the change.) When a model moves, everything derived from its previous revision is dropped:
   there is no partial staleness to reason about.
 - **Keyed by the arguments too.** `findDiscoveries(model, { limit: 1 })` and `{ limit: 2 }` are two
-  questions, not one.
+  questions, not one. Which is correct, and has a cost worth naming: two readers wanting different
+  numbers of gaps would each pay for the whole pass behind them. See *one tally, many readers*
+  below — the answer is not a cleverer key, it is a layer with no arguments to key on.
 - **An argument that cannot be serialised is not cached at all** — computing twice is cheap,
   answering the wrong question is not.
 - **Bounded** (64 entries per model, least-recently-used eviction), and the `WeakMap` lets a
   discarded model take its cache with it.
 - **A failure is not an answer**: a projection that threw is re-run next time.
 
+### One tally, many readers (#530)
+
+Epic [#529](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/529) reads the same unlinked
+pairs several ways — a list on Home, the seams between neighbourhoods, a count on the dashboard, and
+(once #532 lands) a lens on the 3D graph. Keying by arguments (the rule above) is right, and it means
+each of those readers, asking its own question, would have paid for the one expensive thing
+underneath.
+
+So the expensive half was split out and takes **no arguments**:
+
+- `gapTally(model)` — one walk of the model, producing the candidate pairs, pruned to the ones that
+  are really gaps (not already linked, score above zero). Memoised on the model alone, so every
+  reader in the epic shares it. It exposes a **count** and a **generator**; the tally itself never
+  escapes into an array, because at ten thousand notes it holds **1,264,125 pairs**.
+- `topGaps(model, limit)` — a **bounded linear selection** over that walk. One comparison against
+  the weakest gap held rejects a candidate; an accepted one is placed by binary search and the
+  overflow tail is dropped. `Array.prototype.sort` is never applied to the tally, and a test swaps
+  the method out to prove it.
+- `findDiscoveries(model, opts)` — unchanged in signature, ordering and output (it is public
+  through `zf.knowledge`), now a thin read of `topGaps`.
+
+Measured A/B in one process, on one warm tally, at ten thousand notes: the step that changed went
+from **1,393 ms of sorting to 553 ms of selecting**, about three times faster. (Not measured across
+runs — the same code varies ~40 % between full suite runs on the reference machine, which is why the
+first version of this paragraph claimed a number it could not reproduce.) What it costs is memory:
+the tally is retained per revision, 55.9 MB packed into numeric keys where the same pairs as objects
+under string keys measured 200 MB.
+
+The same split fixed a defect it had been hiding. The dashboard's *connections* metric read
+`findDiscoveries(model).length` with no limit — and the default limit is three, so the panel could
+never report more than three gaps however many a vault had. It reads the tally's count now.
+
 ### What may be memoised
 
 Only a **pure function of the model and its arguments**. A projection that reads the clock, the
 settings or the vault cannot be keyed on the model's revision, because the key would not change
 when the answer does. A guardrail test
-(`test/architecture/knowledge/memoisedProjections.test.ts`) scans the three wrapped files for
-`Date.now`, `new Date`, `Math.random` and any Obsidian access, and fails if one appears.
+(`test/architecture/knowledge/memoisedProjections.test.ts`) scans every wrapped projection's file
+for `Date.now`, `new Date`, `Math.random` and any Obsidian access, and fails if one appears. It also
+pins the entry count, so a reader that quietly stops sharing the tally shows up as a number.
 
 ## The recommendation pipeline — `Query → State → Recommendation → Command`
 

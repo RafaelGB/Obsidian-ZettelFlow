@@ -9,6 +9,7 @@ import {
     openQuestions,
     proposeAnswers,
     buildKnowledgeMap,
+    gapSeams,
     conceptNeighbors,
     reasoningPaths,
     runGraphQuery,
@@ -101,6 +102,10 @@ export const NOT_EXPOSED: Record<string, string> = {
     classifyBucket: "internal helper of computeKnowledgeBalance",
     severityBucket: "internal helper of computeKnowledgeDebt",
     pairScore: "internal helper of findDiscoveries",
+    // The shared candidate pass behind every gap reader (#530). `discoveries` is the bounded
+    // read a script wants; the whole tally is 1.26 million pairs at ten thousand notes.
+    gapTally: "the shared candidate pass; discoveries is the bounded read of it",
+    topGaps: "discoveries is the same bounded read, already bound -- one door, not two",
     toDayKey: "internal date helper",
     levelForCount: "internal heatmap helper",
     fromDashboardToken: "internal recommendation mapper",
@@ -176,7 +181,15 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
         discoveries: {
             signature: "(opts?: FindDiscoveriesOptions) => Discovery[]",
             summary: "Unlinked pairs of ideas that keep appearing together.",
-            call: (opts?: Parameters<typeof findDiscoveries>[1]) => findDiscoveries(model(), opts),
+            // A copy: what the projection returns *is* the memo entry, and a script that popped
+            // from it would shorten the answer every surface reads for the rest of the revision.
+            call: (opts?: Parameters<typeof findDiscoveries>[1]) => [...findDiscoveries(model(), opts)],
+        },
+        gapSeams: {
+            signature: "() => GapSeam[]",
+            summary:
+                "Where two neighbourhoods almost touch: the gaps between them, and the links that already cross.",
+            call: () => [...gapSeams(model())],
         },
         openQuestions: {
             signature: "() => OpenQuestion[]",

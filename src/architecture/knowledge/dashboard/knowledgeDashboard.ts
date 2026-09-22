@@ -1,6 +1,6 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { computeKnowledgeDebt, severityBucket } from "../debt/knowledgeDebt";
-import { findDiscoveries } from "../discovery/discoveries";
+import { gapTally } from "../discovery/discoveries";
 import { openQuestions } from "../questions/openQuestions";
 import { byState, edgesByType } from "../query/queries";
 
@@ -96,7 +96,9 @@ export function buildKnowledgeDashboard(model: KnowledgeModel): DashboardModel {
 
     const process = byState(model, "fleeting").length;
     const contradictions = edgesByType(model, "contradicts").length;
-    const connections = findDiscoveries(model).length;
+    // Every gap, not the strongest three: `findDiscoveries` is bound to a display limit, so
+    // reading its length capped this panel at three however many gaps a vault had (#530).
+    const connections = gapTally(model).size;
     const questions = openQuestions(model).length;
     const today: DashboardPanel = {
         key: "today",

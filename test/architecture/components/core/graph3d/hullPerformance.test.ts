@@ -86,7 +86,7 @@ describe("nothing was given up for it (#520)", () => {
         const hulls = CODE.slice(CODE.indexOf("private rebuildHulls"));
         const body = hulls.slice(0, hulls.indexOf("private disposeHulls"));
         expect(body).toContain("HULL_MIN_NODES");
-        expect(body).toContain("regionColor(group)");
+        expect(body).toContain("communityColor(group)");
         expect(body).toContain("0.06");
     });
 

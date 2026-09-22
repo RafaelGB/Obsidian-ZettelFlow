@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { REGION_COLORS, regionColor, ALONE_COLOR } from "architecture/knowledge/map/graph3d";
+import { COMMUNITY_COLORS, communityColor, ALONE_COLOR } from "architecture/knowledge/map/graph3d";
 
 const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
@@ -31,31 +31,31 @@ function code(source: string): string {
         .join("\n");
 }
 
-describe("one colour per region, from one place (#515)", () => {
-    it("gives a region a colour and alone its own", () => {
-        expect(regionColor(0)).toBe(REGION_COLORS[0]);
-        expect(regionColor(-1)).toBe(ALONE_COLOR);
+describe("one colour per community, from one place (#515)", () => {
+    it("gives a community a colour and alone its own", () => {
+        expect(communityColor(0)).toBe(COMMUNITY_COLORS[0]);
+        expect(communityColor(-1)).toBe(ALONE_COLOR);
     });
 
     it("wraps rather than running out", () => {
-        // #513 left the reference vault with nine regions; twelve colours is headroom, not a
-        // guess. Two distant regions sharing a hue is survivable — a colour that cannot be
-        // styled is not.
-        expect(REGION_COLORS).toHaveLength(12);
-        expect(regionColor(REGION_COLORS.length)).toBe(REGION_COLORS[0]);
+        // #527 retargeted the palette at communities and grew it to eighteen, because #524 found
+        // 17 in the reference vault and twelve would have put two neighbourhoods side by side in
+        // one hue. Two *distant* communities sharing one is the right failure to accept.
+        expect(COMMUNITY_COLORS).toHaveLength(18);
+        expect(communityColor(COMMUNITY_COLORS.length)).toBe(COMMUNITY_COLORS[0]);
     });
 
     it("leaves no second hue expression in the renderer", () => {
         expect(code(RENDERER)).not.toContain("hsl(");
         expect(code(RENDERER)).not.toContain("clusterHue");
-        expect(code(RENDERER)).toContain("regionColor(");
+        expect(code(RENDERER)).toContain("communityColor(");
     });
 
     it("keeps the stylesheet in step with the palette", () => {
         // The swatches are CSS classes because inline styles are forbidden, so the two lists can
         // drift. They do not, and this is why.
-        REGION_COLORS.forEach((colour, index) => {
-            const rule = new RegExp(`graph3d-swatch--region-${index}\\s*\\{[^}]*${colour.replace("#", "#")}`, "i");
+        COMMUNITY_COLORS.forEach((colour, index) => {
+            const rule = new RegExp(`graph3d-swatch--community-${index}\\s*\\{[^}]*${colour.replace("#", "#")}`, "i");
             expect({ index, colour, inScss: rule.test(SCSS) }).toEqual({ index, colour, inScss: true });
         });
         expect(SCSS.toLowerCase()).toContain(ALONE_COLOR.toLowerCase());
@@ -73,7 +73,7 @@ describe("every real region gets a bubble (#515)", () => {
 
 describe("framing is a camera move, and only that (#515)", () => {
     it("reaches the camera", () => {
-        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameRegion"));
+        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameCommunity"));
         expect(frame.slice(0, 700)).toContain("zoomToFit(");
     });
 
@@ -81,7 +81,7 @@ describe("framing is a camera move, and only that (#515)", () => {
         // A region filter would be a fourth way to narrow a graph that already has a query, a lens
         // and a time cursor. Asserted at the source so a later refactor cannot turn "show me this"
         // into "hide the rest" without this failing.
-        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameRegion"));
+        const frame = code(RENDERER).slice(code(RENDERER).indexOf("private frameCommunity"));
         const body = frame.slice(0, 700);
         expect(body).not.toContain("setLit");
         expect(body).not.toContain("filterGraph3D");
@@ -89,7 +89,7 @@ describe("framing is a camera move, and only that (#515)", () => {
     });
 
     it("clears when you click the framed region again", () => {
-        expect(code(RENDERER)).toContain("framedRegion");
+        expect(code(RENDERER)).toContain("framedKey");
     });
 });
 

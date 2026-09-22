@@ -12,14 +12,15 @@ import {
     graph3dTimeRange,
     graph3dUpToTime,
     Graph3DData,
+    Graph3DLink,
     Graph3DNode,
     OverlayKind,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
     RELATION_COLORS,
-    REGION_COLORS,
-    regionColor,
+    COMMUNITY_COLORS,
+    communityColor,
     shortestPath,
     tourStops,
     STATE_COLOR_VARS,
@@ -45,7 +46,9 @@ const STAR_COUNT = 1400;
 const STAR_INNER_RADIUS = 320;
 const STAR_OUTER_RADIUS = 900;
 type ViewState = "indexing" | "ready" | "empty" | "error";
-type ColorMode = "state" | "region";
+// "neighbourhood", not "region" (#527 follow-up): this mode colours Louvain communities, and
+// a type saying one thing while the product says another is how the next reader gets it wrong.
+type ColorMode = "state" | "neighbourhood";
 type LiveNode = { id?: string; x?: number; y?: number; z?: number; vx?: number; vy?: number; vz?: number };
 type LiveLink = { source: string | LiveNode; target: string | LiveNode; type?: string };
 type LabelSprite = THREE.Sprite; // three-spritetext's SpriteText extends three's Sprite (an Object3D)
@@ -90,6 +93,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private dataSignature = "";
     private colorMode: ColorMode = "state";
     private overlay: OverlayKind | null = null;
+    /**
+     * When the active lens is about **links** (#526), the notes at the ends of the matching ones.
+     * Computed once per lens change rather than per node per frame.
+     */
+    private edgeLensEndpoints: Set<string> | null = null;
     private hoverId: string | null = null;
     private pinnedId: string | null = null;
     private readonly hiddenRelations = new Set<string>();
@@ -133,8 +141,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     /** One unit sphere for every hull (#520); each mesh scales it to its own radius. */
     private hullGeometry: THREE.SphereGeometry | null = null;
     private hullTimer: number | undefined;
-    /** The region the camera is currently framing (#515), or null for the whole graph. */
-    private framedRegion: string | null = null;
+    /** What the camera is currently framing (#515) — a community or a region — or null for all. */
+    private framedKey: string | null = null;
     /** The note this view was opened *on* (#517), until you pin something or clear the focus. */
     private arrivedAt: string | null = null;
     private spriteTextCtor: (new (t?: string, h?: number, c?: string) => LabelSprite) | null = null;
@@ -371,6 +379,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private applyGraphData(): void {
         if (!this.graph) return;
         this.displayed = filterGraph3D(this.baseData(), {});
+        // A link lens caches the notes its edges join, so it has to be recomputed whenever the
+        // displayed set moves under it — a time cursor, a reindex (#526).
+        this.syncEdgeLens();
         this.preservePositions(this.displayed);
         this.graph.graphData(this.displayed);
         this.renderLegend();
@@ -429,7 +440,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (halo && this.glowTexture) {
             const material = new three.SpriteMaterial({ map: this.glowTexture, transparent: true, depthWrite: false, blending: three.AdditiveBlending });
             material.opacity = halo.opacity;
-            material.color.set(regionColor(gn.group));
+            material.color.set(communityColor(gn.community));
             const glow = new three.Sprite(material);
             glow.scale.set(halo.scale, halo.scale, 1);
             group.add(glow);
@@ -620,12 +631,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!three || !this.graph || this.lite) return;
         const scene = this.graph.scene();
         const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
+        // Grouped by **community**, not by region (#527). A region is a connected component, and
+        // on the reference vault one of them holds 59 % of the notes: a single sphere around most
+        // of the graph. Its 17 communities are 9 to 36 notes each — bubbles that mean something.
         const byGroup = new Map<number, (Graph3DNode & LiveNode)[]>();
         for (const node of live) {
-            if (node.group < 0 || node.x === undefined) continue;
-            const arr = byGroup.get(node.group) ?? [];
+            if (node.community < 0 || node.x === undefined) continue;
+            const arr = byGroup.get(node.community) ?? [];
             arr.push(node);
-            byGroup.set(node.group, arr);
+            byGroup.set(node.community, arr);
         }
         if (!this.hullGeometry) this.hullGeometry = new three.SphereGeometry(1, 16, 12);
 
@@ -643,7 +657,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
             let mesh = this.hulls.get(group);
             if (!mesh) {
-                const material = new three.MeshBasicMaterial({ color: new three.Color(regionColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
+                const material = new three.MeshBasicMaterial({ color: new three.Color(communityColor(group)), transparent: true, side: three.BackSide, depthWrite: false });
                 material.opacity = 0.06;
                 mesh = new three.Mesh(this.hullGeometry, material);
                 scene.add(mesh);
@@ -655,12 +669,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             // The name, above the bubble (#514). Larger and dimmer than a node label, so it reads
             // as the region rather than as one more note in it.
             const Ctor = this.spriteTextCtor;
-            const name = nodes.find((node) => node.region)?.region;
+            const name = nodes.find((node) => node.communityName)?.communityName;
             if (!Ctor || !name) continue;
             let label = this.regionLabels.get(group);
             if (!label || this.labelNames.get(group) !== name) {
                 if (label) scene.remove(label);
-                label = new Ctor(name, 11, regionColor(group));
+                label = new Ctor(name, 11, communityColor(group));
                 scene.add(label);
                 this.regionLabels.set(group, label);
                 this.labelNames.set(group, name);
@@ -793,12 +807,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         colorGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_color") });
         const segmented = colorGroup.createDiv({ cls: c("graph3d-segmented") });
         this.addColorButton(segmented, "state", t("graph3d_color_state"));
-        this.addColorButton(segmented, "region", t("graph3d_color_region"));
+        this.addColorButton(segmented, "neighbourhood", t("graph3d_color_neighbourhood"));
 
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
         const stats = graph3dStats(this.data);
-        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone };
+        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges };
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
 
         const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
@@ -897,8 +911,35 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(chip, "click", () => this.toggleOverlay(kind));
     }
 
+    /**
+     * Which edges the active lens lights, and the notes they join (#526) — or `null` when the
+     * lens is about notes. Paint only: nothing here hides, filters or narrows anything, the way
+     * framing in #515 moves the camera and nothing else.
+     */
+    private syncEdgeLens(): void {
+        const spec = this.overlay ? OVERLAY_SPECS[this.overlay] : null;
+        if (!spec || spec.on !== "edge") {
+            this.edgeLensEndpoints = null;
+            return;
+        }
+        const endpoints = new Set<string>();
+        for (const link of this.displayed.links) {
+            if (!spec.matches(link)) continue;
+            endpoints.add(link.source);
+            endpoints.add(link.target);
+        }
+        this.edgeLensEndpoints = endpoints;
+    }
+
+    /** Whether the active lens matches this link — false whenever the lens is about notes. */
+    private edgeLensMatches(link: LiveLink): boolean {
+        const spec = this.overlay ? OVERLAY_SPECS[this.overlay] : null;
+        return !!spec && spec.on === "edge" && spec.matches(link as unknown as Graph3DLink);
+    }
+
     private toggleOverlay(kind: OverlayKind): void {
         this.overlay = this.overlay === kind ? null : kind;
+        this.syncEdgeLens();
         for (const [k, el] of this.lensChips) {
             const active = k === this.overlay;
             el.toggleClass(c("graph3d-chip--active"), active);
@@ -1099,6 +1140,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.pinnedId = null;
         this.arrivedAt = null;
         this.overlay = null;
+        this.edgeLensEndpoints = null;
         this.pathFrom = null;
         this.pathNodes = null;
         this.pathEdges = null;
@@ -1192,7 +1234,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     // ── Paint ─────────────────────────────────────────────────────────────────
     private computeNodeColor(node: Graph3DNode & LiveNode): string {
         if (this.overlay) {
-            return OVERLAY_SPECS[this.overlay].matches(node) ? this.varColor(OVERLAY_SPECS[this.overlay].colorVar) : DIM_NODE;
+            const spec = OVERLAY_SPECS[this.overlay];
+            // A link lens lights what its edges join, so the picture reads as what joins what
+            // rather than as a scatter of bright lines over an unlit graph (#526).
+            if (spec.on === "edge") {
+                return this.edgeLensEndpoints?.has(node.id ?? "") ? this.varColor(spec.colorVar) : DIM_NODE;
+            }
+            return spec.matches(node) ? this.varColor(spec.colorVar) : DIM_NODE;
         }
         if (this.pathNodes) return this.pathNodes.has(node.id ?? "") ? this.baseNodeColor(node) : DIM_NODE;
         if (this.lit && !this.lit.has(node.id ?? "")) return DIM_NODE;
@@ -1203,10 +1251,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
 
     private baseNodeColor(node: Graph3DNode): string {
         if (this.colorMode === "state") return STATE_COLORS[node.state] ?? DEFAULT_STATE_COLOR;
-        return regionColor(node.group);
+        return communityColor(node.community);
     }
 
     private computeLinkColor(link: LiveLink): string {
+        if (this.edgeLensEndpoints) {
+            const spec = OVERLAY_SPECS[this.overlay as OverlayKind];
+            return this.edgeLensMatches(link) ? this.varColor(spec.colorVar) : DIM_LINK;
+        }
         if (this.overlay) return DIM_LINK;
         if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? this.relationColor(link.type) : DIM_LINK;
         if (this.lit && !(this.lit.has(endId(link.source)) && this.lit.has(endId(link.target)))) return DIM_LINK;
@@ -1216,6 +1268,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private computeLinkWidth(link: LiveLink): number {
+        // 26 crossings in a graph of hundreds have to be findable, not merely coloured.
+        if (this.edgeLensEndpoints) return this.edgeLensMatches(link) ? 4 : 0.4;
         if (this.pathEdges) return this.pathEdges.has(this.edgeKey(endId(link.source), endId(link.target))) ? 4 : 0.4;
         const focus = this.activeFocus();
         if (!focus) return 1.6; // bold by default so connections read clearly
@@ -1256,7 +1310,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     // ── Status + legend ──────────────────────────────────────────────────────────
     private updateStatus(): void {
         if (!this.statusEl) return;
-        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_region");
+        const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_neighbourhood");
         const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
         if (this.pinnedId) {
@@ -1285,9 +1339,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!this.arrivedAt) return null;
         const node = this.displayed.nodes.find((candidate) => candidate.id === this.arrivedAt);
         if (!node) return null;
-        if (node.group < 0 || !node.region) return t("graph3d_status_alone");
-        const size = this.displayed.nodes.filter((candidate) => candidate.region === node.region).length;
-        return t("graph3d_status_in_region", node.region, String(size));
+        if (node.community < 0 || !node.communityName) return t("graph3d_status_alone");
+        const size = this.displayed.nodes.filter((candidate) => candidate.communityName === node.communityName).length;
+        return t("graph3d_status_in_region", node.communityName, String(size), node.region);
     }
 
     private renderLegend(): void {
@@ -1298,7 +1352,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         // Node colour legend — reflects the active mode so the user knows what colours mean.
         legend.createDiv({
             cls: c("graph3d-legend-title"),
-            text: t(this.colorMode === "state" ? "graph3d_legend_nodes" : "graph3d_legend_regions"),
+            text: t(this.colorMode === "state" ? "graph3d_legend_nodes" : "graph3d_legend_neighbourhoods"),
         });
         if (this.colorMode === "state") {
             const states = [...new Set(this.displayed.nodes.map((n) => n.state).filter((s) => s))].sort();
@@ -1336,48 +1390,80 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * The regions **on screen**, named and counted (#514).
+     * The neighbourhoods **on screen**, grouped by the region they sit in (#514, #527).
      *
-     * It said "By cluster" and stopped there, which is how the largest structures in the view ended
-     * up being the only unlabelled ones. Counting from `displayed.nodes` rather than from the model
-     * means a capped or time-sliced graph reports what you are actually looking at.
+     * It said "By cluster" and stopped there, which is how the largest structures in the view
+     * ended up being the only unlabelled ones. #527 moved it a level down: a heading per region,
+     * its communities beneath. Counting from `displayed.nodes` rather than from the model means a
+     * capped or time-sliced graph reports what you are actually looking at.
+     *
+     * A region holding exactly one community renders **one row and no heading** — "Region X" above
+     * a single "X" is the legend saying the same thing twice.
      */
     private legendRegionRows(legend: HTMLElement): void {
-        const seen = new Map<string, { group: number; size: number }>();
+        const seen = new Map<string, { community: number; size: number; region: string }>();
         let alone = 0;
         for (const node of this.displayed.nodes) {
-            if (node.group < 0 || !node.region) {
+            if (node.community < 0 || !node.communityName) {
                 alone++;
                 continue;
             }
-            const entry = seen.get(node.region);
+            const entry = seen.get(node.communityName);
             if (entry) entry.size++;
-            else seen.set(node.region, { group: node.group, size: 1 });
+            else seen.set(node.communityName, { community: node.community, size: 1, region: node.region });
         }
-        const ordered = [...seen].sort((a, b) => b[1].size - a[1].size || (a[0] < b[0] ? -1 : 1));
-        for (const [name, { group, size }] of ordered) {
-            const row = this.legendRegionRow(legend, name, size, group % REGION_COLORS.length);
-            row.addClass(c("graph3d-legend-row--clickable"));
-            row.toggleClass(c("graph3d-legend-row--framed"), this.framedRegion === name);
-            row.tabIndex = 0;
-            row.setAttribute("role", "button");
-            row.setAttribute("aria-pressed", this.framedRegion === name ? "true" : "false");
-            this.registerDomEvent(row, "click", () => this.frameRegion(name));
-            this.registerDomEvent(row, "keydown", (event: KeyboardEvent) => {
-                if (event.key !== "Enter" && event.key !== " ") return;
-                event.preventDefault();
-                this.frameRegion(name);
-            });
+
+        const byRegion = new Map<string, { name: string; community: number; size: number }[]>();
+        for (const [name, { community, size, region }] of seen) {
+            const list = byRegion.get(region) ?? [];
+            list.push({ name, community, size });
+            byRegion.set(region, list);
         }
-        // Alone is a state, not a region: it is listed so the count is visible, and it does not
-        // frame, because there is no "there" to fly to.
+        const regions = [...byRegion].sort(
+            (a, b) =>
+                b[1].reduce((total, one) => total + one.size, 0) - a[1].reduce((total, one) => total + one.size, 0) ||
+                (a[0] < b[0] ? -1 : 1)
+        );
+
+        for (const [region, communities] of regions) {
+            communities.sort((a, b) => b.size - a.size || (a.name < b.name ? -1 : 1));
+            if (communities.length > 1) this.legendRegionHeading(legend, region);
+            for (const one of communities) {
+                const row = this.legendRegionRow(legend, one.name, one.size, one.community % COMMUNITY_COLORS.length);
+                this.makeFramable(row, one.name, () => this.frameCommunity(one.name));
+            }
+        }
+        // Alone is a state, not a neighbourhood: it is listed so the count is visible, and it does
+        // not frame, because there is no "there" to fly to.
         if (alone > 0) this.legendRegionRow(legend, t("graph3d_legend_alone"), alone, null);
+    }
+
+    /** A region's name over the communities inside it — only when there is more than one (#527). */
+    private legendRegionHeading(legend: HTMLElement, region: string): void {
+        const row = legend.createDiv({ cls: c("graph3d-legend-region") });
+        row.createSpan({ text: region });
+        this.makeFramable(row, region, () => this.frameWholeRegion(region));
+    }
+
+    /** Give a legend row the click, the keyboard and the pressed state that framing needs (#515). */
+    private makeFramable(row: HTMLElement, key: string, frame: () => void): void {
+        row.addClass(c("graph3d-legend-row--clickable"));
+        row.toggleClass(c("graph3d-legend-row--framed"), this.framedKey === key);
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-pressed", this.framedKey === key ? "true" : "false");
+        this.registerDomEvent(row, "click", () => frame());
+        this.registerDomEvent(row, "keydown", (event: KeyboardEvent) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            frame();
+        });
     }
 
     private legendRegionRow(legend: HTMLElement, name: string, size: number, palette: number | null): HTMLElement {
         const row = legend.createDiv({ cls: c("graph3d-legend-row") });
         row.createSpan({
-            cls: c("graph3d-swatch", palette === null ? "graph3d-swatch--region-alone" : `graph3d-swatch--region-${palette}`),
+            cls: c("graph3d-swatch", palette === null ? "graph3d-swatch--community-alone" : `graph3d-swatch--community-${palette}`),
         });
         row.createSpan({ text: name });
         row.createSpan({ cls: c("graph3d-legend-count"), text: t("graph3d_legend_region_size", String(size)) });
@@ -1389,14 +1475,23 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * a lens and a time cursor to narrow it with, and a fourth way would be the addition this epic
      * exists to refuse. Clicking the framed region again pulls back to the whole graph.
      */
-    private frameRegion(name: string): void {
+    private frameCommunity(name: string): void {
+        this.frameBy(name, (node) => node.communityName === name);
+    }
+
+    /** Fly to a whole region — every community in it — from its legend heading (#527). */
+    private frameWholeRegion(region: string): void {
+        this.frameBy(region, (node) => node.region === region);
+    }
+
+    private frameBy(key: string, belongs: (node: Graph3DNode) => boolean): void {
         if (!this.graph) return;
-        if (this.framedRegion === name) {
-            this.framedRegion = null;
+        if (this.framedKey === key) {
+            this.framedKey = null;
             this.graph.zoomToFit(700, 40);
         } else {
-            this.framedRegion = name;
-            this.graph.zoomToFit(700, 40, (node) => (node as Graph3DNode).region === name);
+            this.framedKey = key;
+            this.graph.zoomToFit(700, 40, (node) => belongs(node as Graph3DNode));
         }
         this.renderLegend();
     }

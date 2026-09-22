@@ -10,7 +10,7 @@ thinking looks like — all **offline**, and all **without AI** if you want.
 ## Knowledge Galaxy — see the shape of your thinking
 
 The 3D graph (**Graph surface → 3D**) renders your slip-box as an immersive **Knowledge Galaxy**: a
-starfield backdrop, notes sized by connectivity with region-hued glow halos, links coloured by relation
+starfield backdrop, notes sized by connectivity with neighbourhood-hued glow halos, links coloured by relation
 type, and a discovery lens that lights up orphans, dead-ends and contradictions in space. It respects
 reduced-motion and Lite mode, and falls back to a navigable list on mobile.
 

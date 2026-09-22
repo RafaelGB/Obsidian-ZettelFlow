@@ -254,6 +254,13 @@
     font-size: var(--font-ui-smaller);
     color: #c7ccd6;
     max-width: 15em; // region names need the room (#514)
+    // #527 took the legend from ~9 region rows to up to 17 neighbourhoods plus their region
+    // headings. Anchored to the bottom and growing upward, that runs off the top of a side panel,
+    // so it is bounded and scrolls. `pointer-events` has to be re-enabled here rather than only on
+    // the rows, or the box cannot receive the wheel.
+    max-height: calc(100% - 9em);
+    overflow-y: auto;
+    pointer-events: auto;
 }
 
 .zettelkasten-flow__graph3d-legend-title {
@@ -405,18 +412,36 @@
     font-size: var(--font-ui-smaller);
 }
 
-// Region swatches (#515) — mirrors REGION_COLORS in graph3d.ts, which a guardrail test
-// keeps in step. They are classes and not inline styles because inline styles cost score.
-.zettelkasten-flow__graph3d-swatch--region-0 { background: #7dd3fc; }
-.zettelkasten-flow__graph3d-swatch--region-1 { background: #86efac; }
-.zettelkasten-flow__graph3d-swatch--region-2 { background: #fcd34d; }
-.zettelkasten-flow__graph3d-swatch--region-3 { background: #f0abfc; }
-.zettelkasten-flow__graph3d-swatch--region-4 { background: #fda4af; }
-.zettelkasten-flow__graph3d-swatch--region-5 { background: #a5b4fc; }
-.zettelkasten-flow__graph3d-swatch--region-6 { background: #5eead4; }
-.zettelkasten-flow__graph3d-swatch--region-7 { background: #fdba74; }
-.zettelkasten-flow__graph3d-swatch--region-8 { background: #d8b4fe; }
-.zettelkasten-flow__graph3d-swatch--region-9 { background: #bef264; }
-.zettelkasten-flow__graph3d-swatch--region-10 { background: #67e8f9; }
-.zettelkasten-flow__graph3d-swatch--region-11 { background: #f9a8d4; }
-.zettelkasten-flow__graph3d-swatch--region-alone { background: #9aa4b8; }
+// Community swatches (#515, renamed and grown by #527) — mirrors COMMUNITY_COLORS in graph3d.ts,
+// which a guardrail test keeps in step. They are classes and not inline styles because inline
+// styles cost score.
+.zettelkasten-flow__graph3d-swatch--community-0 { background: #7dd3fc; }
+.zettelkasten-flow__graph3d-swatch--community-1 { background: #86efac; }
+.zettelkasten-flow__graph3d-swatch--community-2 { background: #fcd34d; }
+.zettelkasten-flow__graph3d-swatch--community-3 { background: #f0abfc; }
+.zettelkasten-flow__graph3d-swatch--community-4 { background: #fda4af; }
+.zettelkasten-flow__graph3d-swatch--community-5 { background: #a5b4fc; }
+.zettelkasten-flow__graph3d-swatch--community-6 { background: #5eead4; }
+.zettelkasten-flow__graph3d-swatch--community-7 { background: #fdba74; }
+.zettelkasten-flow__graph3d-swatch--community-8 { background: #d8b4fe; }
+.zettelkasten-flow__graph3d-swatch--community-9 { background: #bef264; }
+.zettelkasten-flow__graph3d-swatch--community-10 { background: #67e8f9; }
+.zettelkasten-flow__graph3d-swatch--community-11 { background: #f9a8d4; }
+.zettelkasten-flow__graph3d-swatch--community-12 { background: #93c5fd; }
+.zettelkasten-flow__graph3d-swatch--community-13 { background: #6ee7b7; }
+.zettelkasten-flow__graph3d-swatch--community-14 { background: #fde68a; }
+.zettelkasten-flow__graph3d-swatch--community-15 { background: #c4b5fd; }
+.zettelkasten-flow__graph3d-swatch--community-16 { background: #f8b4a0; }
+.zettelkasten-flow__graph3d-swatch--community-17 { background: #a7f3d0; }
+.zettelkasten-flow__graph3d-swatch--community-alone { background: #9aa4b8; }
+
+// A region's name over the communities inside it (#527) — a heading, so it reads above the rows.
+.zettelkasten-flow__graph3d-region {
+    display: flex;
+    align-items: center;
+    margin-top: var(--size-2-1);
+    color: #aeb6c4;
+    font-size: var(--font-ui-smaller);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}

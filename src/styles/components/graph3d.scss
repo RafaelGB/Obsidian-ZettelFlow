@@ -127,10 +127,6 @@
 
 .zettelkasten-flow__graph3d-fit,
 .zettelkasten-flow__graph3d-play,
-.zettelkasten-flow__graph3d-zoom-btn {
-    @extend %graph3d-control;
-    padding: var(--size-2-1) var(--size-4-2);
-}
 
 // Color-by segmented toggle (maturity vs cluster).
 .zettelkasten-flow__graph3d-segmented {
@@ -170,47 +166,48 @@
     }
 }
 
-// ── Bottom bar: time-lapse (centre) + zoom (right) ──────────────────────────
-.zettelkasten-flow__graph3d-bottombar {
+// The options popover (#542)
+//
+// Everything that is not *looking* lives here, grouped by the question it answers. Anchored under
+// the top bar by a class rather than positioned in JavaScript: this repo forbids inline styles,
+// and "below the bar, on the right" needs no arithmetic.
+
+.zettelkasten-flow__graph3d-settings {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
+    top: 3.2em;
+    right: var(--size-4-2);
+    z-index: 11;
     display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: var(--size-4-4);
-    padding: var(--size-4-2) var(--size-4-3);
-    pointer-events: none;
-    background: linear-gradient(to top, rgba(11, 14, 20, 0.94), rgba(11, 14, 20, 0));
-}
-
-.zettelkasten-flow__graph3d-timelapse,
-.zettelkasten-flow__graph3d-spread,
-.zettelkasten-flow__graph3d-zoom {
-    display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--size-4-2);
-    padding: var(--size-2-1) var(--size-4-2);
-    background-color: rgba(15, 18, 26, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    max-width: min(26em, calc(100% - var(--size-4-4)));
+    max-height: calc(100% - 6em);
+    overflow-y: auto;
+    padding: var(--size-4-3);
+    border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-m);
-    pointer-events: auto;
+    background-color: var(--background-primary);
+    box-shadow: var(--shadow-s);
 }
 
-.zettelkasten-flow__graph3d-timelapse {
-    flex: 1 1 auto;
-    max-width: 24em;
+.zettelkasten-flow__graph3d-settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
 }
 
-.zettelkasten-flow__graph3d-spread-slider {
-    width: 6em;
+.zettelkasten-flow__graph3d-settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__graph3d-spread-slider,
+.zettelkasten-flow__graph3d-time-slider {
+    flex: 1 1 8em;
+    min-width: 8em;
     cursor: pointer;
-}
-
-.zettelkasten-flow__graph3d-zoom {
-    margin-left: auto; // push zoom to the right edge
 }
 
 .zettelkasten-flow__graph3d-play {
@@ -218,30 +215,11 @@
     cursor: pointer;
 }
 
-.zettelkasten-flow__graph3d-time-slider {
-    flex: 1 1 auto;
-    cursor: pointer;
-}
-
-.zettelkasten-flow__graph3d-zoom-btn {
-    width: 1.9em;
-    height: 1.9em;
-    padding: 0;
-    font-size: var(--font-ui-medium);
-    line-height: 1;
-    cursor: pointer;
-}
-
-.zettelkasten-flow__graph3d-zoom-slider {
-    width: 7em; // horizontal slider — reliable and roomy
-    cursor: pointer;
-}
-
 // ── Legend (bottom-left): node-colour mode + relation types ─────────────────
 .zettelkasten-flow__graph3d-legend {
     position: absolute;
     left: var(--size-4-2);
-    bottom: 4em; // clear of the bottom bar
+    bottom: var(--size-4-3); // the bottom bar went with #542
     z-index: 9;
     pointer-events: none;
     display: flex;
@@ -286,6 +264,15 @@
 .zettelkasten-flow__graph3d-legend-row--clickable {
     pointer-events: auto;
     cursor: pointer;
+}
+
+// The row you flew to (#515). It has carried `aria-pressed` since it shipped and had no rule at
+// all, so the state was real for a screen reader and invisible to everyone else: you framed a
+// neighbourhood and nothing said which one. Found while counting this window's controls (#542).
+.zettelkasten-flow__graph3d-legend-row--framed {
+    background-color: var(--background-modifier-hover);
+    border-radius: var(--radius-s);
+    font-weight: var(--font-semibold);
 }
 
 .zettelkasten-flow__graph3d-legend-row--hidden {

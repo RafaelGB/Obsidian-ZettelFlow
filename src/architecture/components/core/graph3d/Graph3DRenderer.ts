@@ -170,6 +170,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private readonly colorCache = new Map<string, string>();
     private readonly colorButtons = new Map<ColorMode, HTMLElement>();
     private readonly lensChips = new Map<OverlayKind, HTMLElement>();
+    /** The options popover while it is open, and `null` while it is not (#542). */
+    private settingsEl: HTMLElement | null = null;
+    /** The gear that opens it — kept so its pressed state and `aria-expanded` stay true. */
+    private settingsBtn: HTMLElement | null = null;
     /**
      * How many gaps there are, or `null` until the lens is first used (#532). Kept on the renderer
      * rather than read per render for the reason in `buildTopBar`: the number costs the shared gap
@@ -191,7 +195,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private ghostMaterial: THREE.LineDashedMaterial | null = null;
     /** Logged once per activation, not once per tick, when `three` is not there to draw with. */
     private ghostWarned = false;
-    private zoomSlider: HTMLInputElement | null = null;
     private timeSlider: HTMLInputElement | null = null;
     private playBtn: HTMLElement | null = null;
 
@@ -305,7 +308,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             this.wrapperEl = this.container.createDiv({ cls: c("graph3d") });
             this.buildTopBar(this.wrapperEl);
             this.graphEl = this.wrapperEl.createDiv({ cls: c("graph3d-canvas") });
-            this.buildBottomBar(this.wrapperEl);
 
             const reduced = prefersReducedMotion();
             this.reducedMotion = reduced;
@@ -915,7 +917,18 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    // ── Top bar: search · color · lens · fit · status ───────────────────────────
+    // ── Top bar: search · fit · the gear · status ───────────────────────────
+    /**
+     * What stays on the canvas, and why so little (#542).
+     *
+     * This bar held **sixteen** controls and the bottom bar six more, grown one honest addition at
+     * a time — three lenses in #280, four more by #532, the environment, the tour, the export —
+     * until nobody could find anything. Obsidian's own graph answers this with a gear and a
+     * popover, and that is the pattern to match rather than invent (§III).
+     *
+     * So the canvas keeps what is used *while looking*: find a note, frame the graph, read what
+     * you are looking at. Everything else is one click away, grouped by the question it answers.
+     */
     private buildTopBar(parent: HTMLElement): void {
         const bar = parent.createDiv({ cls: c("graph3d-topbar") });
         const controls = bar.createDiv({ cls: c("graph3d-controls") });
@@ -925,14 +938,46 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         search.setAttribute("aria-label", t("graph3d_search_placeholder"));
         this.registerDomEvent(search, "input", () => this.focusByName(search.value));
 
-        const colorGroup = controls.createDiv({ cls: c("graph3d-group") });
-        colorGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_color") });
-        const segmented = colorGroup.createDiv({ cls: c("graph3d-segmented") });
+        const fit = controls.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
+        fit.setAttribute("aria-label", t("graph3d_fit_view"));
+        this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 24));
+
+        const gear = controls.createEl("button", { cls: c("graph3d-fit") });
+        setIcon(gear, "settings-2");
+        gear.setAttribute("aria-label", t("graph3d_settings"));
+        gear.setAttribute("aria-expanded", "false");
+        this.settingsBtn = gear;
+        this.registerDomEvent(gear, "click", () => this.toggleSettings());
+
+        this.statusEl = bar.createDiv({ cls: c("graph3d-status") });
+    }
+
+    /**
+     * Everything that is not *looking* (#542), in five groups named after the question each
+     * answers. A move, not a redesign: every control keeps its label, its handler and its state.
+     */
+    private buildSettingsPanel(parent: HTMLElement): HTMLElement {
+        const panel = parent.createDiv({ cls: c("graph3d-settings") });
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-label", t("graph3d_settings"));
+
+        // ── See ──
+        const see = this.settingsGroup(panel, "graph3d_settings_see");
+        const segmented = see.createDiv({ cls: c("graph3d-segmented") });
         this.addColorButton(segmented, "state", t("graph3d_color_state"));
         this.addColorButton(segmented, "neighbourhood", t("graph3d_color_neighbourhood"));
+        const lite = see.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_lite") });
+        lite.setAttribute("aria-pressed", this.lite ? "true" : "false");
+        lite.toggleClass(c("graph3d-chip--active"), this.lite);
+        this.liteBtn = lite;
+        this.registerDomEvent(lite, "click", () => this.toggleLite());
+        const full = see.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_fullscreen") });
+        full.setAttribute("aria-label", t("graph3d_fullscreen"));
+        this.fullscreenBtn = full;
+        this.registerDomEvent(full, "click", () => this.toggleFullscreen());
 
-        const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
-        lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
+        // ── Lenses ──
+        const lensGroup = this.settingsGroup(panel, "graph3d_group_lens");
         const stats = graph3dStats(this.data);
         // `null` is "no count yet", and only the gap lens can be in that state (#532): the other
         // six fall out of `graph3dStats`, which walks the graph the view already built, while this
@@ -940,41 +985,72 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         // second rendering a number nobody asked for is what #458 exists to prevent, so the count
         // arrives the first time the lens is used and behaves like every other one from then on.
         const counts: Record<OverlayKind, number | null> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges, "gaps": this.gapTotal };
+        this.lensChips.clear();
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
-
-        const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
-        path.setAttribute("aria-pressed", "false");
+        const path = lensGroup.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
+        path.setAttribute("aria-pressed", this.pathMode ? "true" : "false");
+        path.toggleClass(c("graph3d-chip--active"), this.pathMode);
         this.pathBtn = path;
         this.registerDomEvent(path, "click", () => this.togglePathMode());
 
-        const fit = controls.createEl("button", { cls: c("graph3d-fit"), text: t("graph3d_fit_view") });
-        fit.setAttribute("aria-label", t("graph3d_fit_view"));
-        this.registerDomEvent(fit, "click", () => this.graph?.zoomToFit(500, 24));
+        // ── Movement ──
+        const movement = this.settingsGroup(panel, "graph3d_settings_movement");
+        movement.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_spread_label") });
+        const spread = movement.createEl("input", { cls: c("graph3d-spread-slider"), type: "range" });
+        spread.min = "0"; spread.max = "100"; spread.value = String(this.spread);
+        spread.setAttribute("aria-label", t("graph3d_spread_label"));
+        this.registerDomEvent(spread, "input", () => this.applySpread(Number(spread.value)));
 
-        const full = controls.createEl("button", { cls: c("graph3d-fit") });
-        setIcon(full, "maximize");
-        full.setAttribute("aria-label", t("graph3d_fullscreen"));
-        this.fullscreenBtn = full;
-        this.registerDomEvent(full, "click", () => this.toggleFullscreen());
+        // ── Time ──
+        const time = this.settingsGroup(panel, "graph3d_settings_time");
+        this.playBtn = time.createEl("button", { cls: c("graph3d-play"), text: t("graph3d_timelapse_play") });
+        this.registerDomEvent(this.playBtn, "click", () => this.toggleTimelapse());
+        const slider = time.createEl("input", { cls: c("graph3d-time-slider"), type: "range" });
+        slider.min = "0"; slider.max = "100"; slider.value = "100";
+        slider.setAttribute("aria-label", t("graph3d_timelapse_play"));
+        this.timeSlider = slider;
+        this.registerDomEvent(slider, "input", () => this.scrubTime(Number(slider.value)));
 
-        // A3 (#386): "share your universe" — export the view as an image or a time-lapse clip.
-        const share = controls.createEl("button", { cls: c("graph3d-fit") });
-        setIcon(share, "share-2");
-        share.setAttribute("aria-label", t("graph3d_export"));
-        this.registerDomEvent(share, "click", (evt) => this.openExportMenu(evt));
-
-        // A2 (#385): a one-click cinematic tour that flies through your hubs and most-recent notes.
-        const tour = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_tour_play") });
-        tour.setAttribute("aria-pressed", "false");
+        // ── Share ──
+        const share = this.settingsGroup(panel, "graph3d_settings_share");
+        const tour = share.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_tour_play") });
+        tour.setAttribute("aria-pressed", this.tourActive ? "true" : "false");
         this.tourBtn = tour;
         this.registerDomEvent(tour, "click", () => this.toggleTour());
+        const exportBtn = share.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_export") });
+        exportBtn.setAttribute("aria-label", t("graph3d_export"));
+        this.registerDomEvent(exportBtn, "click", (evt) => this.openExportMenu(evt));
 
-        const lite = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_lite") });
-        lite.setAttribute("aria-pressed", "false");
-        this.liteBtn = lite;
-        this.registerDomEvent(lite, "click", () => this.toggleLite());
+        return panel;
+    }
 
-        this.statusEl = bar.createDiv({ cls: c("graph3d-status") });
+    /** One named group in the popover — a heading and the row of controls under it. */
+    private settingsGroup(panel: HTMLElement, labelKey: Parameters<typeof t>[0]): HTMLElement {
+        const group = panel.createDiv({ cls: c("graph3d-settings-group") });
+        group.createDiv({ cls: c("graph3d-group-label"), text: t(labelKey) });
+        return group.createDiv({ cls: c("graph3d-settings-row") });
+    }
+
+    /**
+     * Open or close the popover. Closing is three gestures, because a panel you cannot dismiss the
+     * way you expect is worse than one more button: the gear again, `Escape`, or a click outside.
+     */
+    private toggleSettings(): void {
+        if (this.settingsEl) {
+            this.closeSettings();
+            return;
+        }
+        if (!this.wrapperEl) return;
+        this.settingsEl = this.buildSettingsPanel(this.wrapperEl);
+        this.settingsBtn?.setAttribute("aria-expanded", "true");
+        this.settingsBtn?.addClass(c("graph3d-chip--active"));
+    }
+
+    private closeSettings(): void {
+        this.settingsEl?.remove();
+        this.settingsEl = null;
+        this.settingsBtn?.setAttribute("aria-expanded", "false");
+        this.settingsBtn?.removeClass(c("graph3d-chip--active"));
     }
 
     /** Lite mode: drop the per-frame effects (particles, hulls, proximity labels) for maximum FPS. */
@@ -1142,40 +1218,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.updateStatus();
     }
 
-    // ── Bottom bar: time-lapse (left/centre) + zoom (right) ─────────────────────
-    private buildBottomBar(parent: HTMLElement): void {
-        const bar = parent.createDiv({ cls: c("graph3d-bottombar") });
-
-        const timelapse = bar.createDiv({ cls: c("graph3d-timelapse") });
-        this.playBtn = timelapse.createEl("button", { cls: c("graph3d-play"), text: t("graph3d_timelapse_play") });
-        this.registerDomEvent(this.playBtn, "click", () => this.toggleTimelapse());
-        const time = timelapse.createEl("input", { cls: c("graph3d-time-slider"), type: "range" });
-        time.min = "0"; time.max = "100"; time.value = "100";
-        time.setAttribute("aria-label", t("graph3d_timelapse_play"));
-        this.timeSlider = time;
-        this.registerDomEvent(time, "input", () => this.scrubTime(Number(time.value)));
-
-        const spreadBox = bar.createDiv({ cls: c("graph3d-spread") });
-        spreadBox.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_spread_label") });
-        const spread = spreadBox.createEl("input", { cls: c("graph3d-spread-slider"), type: "range" });
-        spread.min = "0"; spread.max = "100"; spread.value = String(this.spread);
-        spread.setAttribute("aria-label", t("graph3d_spread_label"));
-        this.registerDomEvent(spread, "input", () => this.applySpread(Number(spread.value)));
-
-        const zoom = bar.createDiv({ cls: c("graph3d-zoom") });
-        const zoomOut = zoom.createEl("button", { cls: c("graph3d-zoom-btn"), text: "−" });
-        zoomOut.setAttribute("aria-label", t("graph3d_zoom_out"));
-        this.registerDomEvent(zoomOut, "click", () => this.nudgeZoom(-12));
-        const slider = zoom.createEl("input", { cls: c("graph3d-zoom-slider"), type: "range" });
-        slider.min = "1"; slider.max = "100"; slider.value = "50";
-        slider.setAttribute("aria-label", t("graph3d_zoom_label"));
-        this.zoomSlider = slider;
-        this.registerDomEvent(slider, "input", () => this.applyZoomFromSlider());
-        const zoomIn = zoom.createEl("button", { cls: c("graph3d-zoom-btn"), text: "+" });
-        zoomIn.setAttribute("aria-label", t("graph3d_zoom_in"));
-        this.registerDomEvent(zoomIn, "click", () => this.nudgeZoom(12));
-    }
-
     // ── Time-lapse ──────────────────────────────────────────────────────────────
     private scrubTime(value: number): void {
         const { min, max } = graph3dTimeRange(this.data);
@@ -1206,21 +1248,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     // ── Zoom ────────────────────────────────────────────────────────────────────
-    private nudgeZoom(delta: number): void {
-        if (!this.zoomSlider) return;
-        this.zoomSlider.value = String(Math.max(1, Math.min(100, Number(this.zoomSlider.value) + delta)));
-        this.applyZoomFromSlider();
-    }
-
-    private applyZoomFromSlider(): void {
-        if (!this.graph || !this.zoomSlider) return;
-        const MIN = 60, MAX = 1400;
-        const distance = MAX - (Number(this.zoomSlider.value) / 100) * (MAX - MIN);
-        const cam = this.graph.cameraPosition();
-        const current = Math.hypot(cam.x, cam.y, cam.z) || 1;
-        const factor = distance / current;
-        this.graph.cameraPosition({ x: cam.x * factor, y: cam.y * factor, z: cam.z * factor }, undefined, 150);
-    }
 
     // ── Focus / hover / pin ──────────────────────────────────────────────────────
     private activeFocus(): Set<string> | null {
@@ -1329,6 +1356,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     private clearFocus(): void {
+        // A click on the canvas dismisses the options the way a click outside any popover does.
+        this.closeSettings();
         this.hoverId = null;
         this.pinnedId = null;
         this.arrivedAt = null;
@@ -1799,7 +1828,6 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.three = null;
         this.colorButtons.clear();
         this.lensChips.clear();
-        this.zoomSlider = null;
         this.timeSlider = null;
         this.playBtn = null;
         this.pathBtn = null;

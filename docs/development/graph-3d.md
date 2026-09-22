@@ -94,6 +94,23 @@ the Adapter, never a server). Export lives only on the WebGL top bar, so the mob
 shows nothing to export. The capture util (`components/core/export/`) is graph-agnostic and reused by
 the evolution **idea card** (#387).
 
+## Where the controls are (#542)
+
+The window grew to **twenty-two controls** — sixteen in the top bar, six in a bottom bar — one
+honest addition at a time, until nobody could find anything. It is now what Obsidian's own graph
+does:
+
+- **On the canvas**: the **search** box, **fit**, a **gear**, the status line and the legend. That
+  is what you use *while looking*.
+- **Behind the gear**, grouped by the question each answers: **see** (colour by, lite, fullscreen)
+  · **lenses** (the seven, plus path mode) · **movement** (spread) · **time** (play, scrubber) ·
+  **share** (image, clip, tour). It closes on the gear, on `Escape` and on a click in the canvas.
+- **Gone**: the zoom buttons and slider. The wheel and pinch already do that, and three controls
+  that duplicate a gesture are three controls (§XI).
+
+Nothing else changed: every control kept its label, its handler and its active state. The active
+lens is named in the status line, which is now the only always-visible sign of it.
+
 ## Discovery lens
 
 Toolbar **chips** (with live counts) highlight an actionable class of note in space and dim the rest,

@@ -1148,6 +1148,8 @@ export default {
     graph3d_overlay_frontier: 'Frontera',
     graph3d_overlay_bridges: 'Puentes',
     graph3d_overlay_gaps: 'Huecos',
+    graph3d_status_gaps: '{0} huecos',
+    graph3d_status_gaps_drawn: '{0} huecos · {1} dibujados',
     graph3d_fallback_message: 'El grafo 3D necesita escritorio con aceleración gráfica — aquí tienes tu fichero como lista navegable, los concentradores primero.',
     graph3d_fallback_connections: '{0} conexiones',
     graph3d_fit_view: 'Ajustar vista',

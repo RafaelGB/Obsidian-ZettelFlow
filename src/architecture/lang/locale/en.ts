@@ -1148,6 +1148,8 @@ export default {
     graph3d_overlay_frontier: 'Frontier',
     graph3d_overlay_bridges: 'Bridges',
     graph3d_overlay_gaps: 'Gaps',
+    graph3d_status_gaps: '{0} gaps',
+    graph3d_status_gaps_drawn: '{0} gaps · {1} drawn',
     graph3d_fallback_message: '3D graph needs a desktop with graphics acceleration — here is your slip-box as a navigable list, hubs first.',
     graph3d_fallback_connections: '{0} connections',
     graph3d_fit_view: 'Fit view',

@@ -25,9 +25,12 @@ import {
     tourStops,
     STATE_COLOR_VARS,
     STATE_COLORS,
+    gapTally,
+    topGaps,
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
+import { GAP_DRAW_MAX, selectGhosts, type GhostEdge } from "./graph3dGhosts";
 import { environmentEnabled, starfieldPositions, haloSpec } from "./graph3dEnvironment";
 import { buildExportBaseName } from "../export/exportFilename";
 import { canvasToPngBlob, pickVideoMimeType, recordCanvasWebm } from "../export/mediaCapture";
@@ -167,6 +170,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * pass, and nothing should pay for it before someone asks.
      */
     private gapTotal: number | null = null;
+    /** The strongest gaps, as of {@link gapRevision} — the candidates the lens draws from. */
+    private gapStrongest: GhostEdge[] = [];
+    /** The model revision the two above were read at; `-1` until the lens is first used. */
+    private gapRevision = -1;
+    /** The ghost edges the scene is currently drawing, recomputed when the lens or the graph moves. */
+    private ghosts: GhostEdge[] = [];
     private zoomSlider: HTMLInputElement | null = null;
     private timeSlider: HTMLInputElement | null = null;
     private playBtn: HTMLElement | null = null;
@@ -935,12 +944,49 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * Which edges the active lens lights, and the notes they join (#526) — or `null` when the
-     * lens is about notes. Paint only: nothing here hides, filters or narrows anything, the way
-     * framing in #515 moves the camera and nothing else.
+     * Read the gap projection — the **only** place in this view that does, and only because
+     * someone switched the lens on (#532).
+     *
+     * Every other lens count falls out of `graph3dStats`, which walks the graph the view already
+     * built. This one costs the shared gap pass: 982 ms over ten thousand notes. Paying that on a
+     * render, for a number nobody asked for, is exactly what #458 exists to prevent — so it is
+     * paid here, once per model revision, after a click.
+     */
+    private ensureGapSource(): void {
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
+        if (this.gapRevision === model.revision()) return;
+        this.gapTotal = gapTally(model).size;
+        this.gapStrongest = topGaps(model, GAP_DRAW_MAX);
+        this.gapRevision = model.revision();
+        const chip = this.lensChips.get("gaps");
+        if (chip) this.labelChip(chip, "gaps", this.gapTotal);
+    }
+
+    /**
+     * Which edges the active lens lights, and the notes they join — or `null` when the lens is
+     * about notes. One branch per **kind**, never per lens:
+     *
+     * - `node` — nothing to do; the predicate runs per node while painting.
+     * - `edge` (#526) — the notes joined by the links that match.
+     * - `candidate` (#532) — the notes joined by the ghost edges, which are not in the graph at
+     *   all: the gap projection is read here (once per revision) and the strongest are selected
+     *   against what is on screen.
+     *
+     * Paint only: nothing here hides, filters or narrows anything, the way framing in #515 moves
+     * the camera and nothing else.
      */
     private syncEdgeLens(): void {
         const spec = this.overlay ? OVERLAY_SPECS[this.overlay] : null;
+        if (spec?.on === "candidate") {
+            this.ensureGapSource();
+            const selection = selectGhosts(this.displayed, this.gapStrongest);
+            this.ghosts = selection.edges;
+            this.edgeLensEndpoints = selection.endpoints;
+            return;
+        }
+        this.ghosts = [];
         if (!spec || spec.on !== "edge") {
             this.edgeLensEndpoints = null;
             return;
@@ -963,6 +1009,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private toggleOverlay(kind: OverlayKind): void {
         this.overlay = this.overlay === kind ? null : kind;
         this.syncEdgeLens();
+        // The gap chip is the one that learns its count on being used (#532). If the answer turns
+        // out to be none, the activation is dropped rather than dimming the whole graph to light
+        // nothing — and `labelChip` has just disabled the chip, so it cannot be asked again.
+        if (this.overlay === "gaps" && this.gapTotal === 0) {
+            this.overlay = null;
+            this.edgeLensEndpoints = null;
+            this.ghosts = [];
+        }
         for (const [k, el] of this.lensChips) {
             const active = k === this.overlay;
             el.toggleClass(c("graph3d-chip--active"), active);
@@ -1164,6 +1218,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.arrivedAt = null;
         this.overlay = null;
         this.edgeLensEndpoints = null;
+        this.ghosts = [];
         this.pathFrom = null;
         this.pathNodes = null;
         this.pathEdges = null;
@@ -1338,6 +1393,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_neighbourhood");
         const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
+        // How many gaps there are, and how many of them are on screen (#532). Both numbers, because
+        // a bounded view that states only what it drew is the half of the truth that flatters it.
+        if (this.overlay === "gaps" && this.gapTotal !== null) {
+            parts.push(
+                this.ghosts.length === this.gapTotal
+                    ? t("graph3d_status_gaps", String(this.gapTotal))
+                    : t("graph3d_status_gaps_drawn", String(this.gapTotal), String(this.ghosts.length))
+            );
+        }
         if (this.pinnedId) {
             const pinned = this.displayed.nodes.find((n) => n.id === this.pinnedId);
             if (pinned) parts.push(`▸ ${pinned.name}`);

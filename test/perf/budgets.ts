@@ -93,6 +93,13 @@ export const BUDGETS = {
         measured: "5.1 ms",
         because: "the Health surface's main projection",
     },
+    "analysis.gaps.seams.10k": {
+        name: "aggregate every gap into seams over 10,000 notes",
+        limit: 1_500,
+        measured: "388.5 ms",
+        because:
+            "one pass over a tally of 1.26 million pairs plus one over the ideas for the link counts (#531); the premise of the epic is that counting is cheap where sorting was not, and this is where that premise is checked",
+    },
     "analysis.gaps.tally.10k": {
         name: "tally every gap over 10,000 notes",
         limit: 5_000,

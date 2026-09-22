@@ -17,6 +17,7 @@ const MEMOISED: [string, string[]][] = [
     ["topGaps", ["architecture", "knowledge", "discovery", "discoveries.ts"]],
     ["computeKnowledgeDebt", ["architecture", "knowledge", "debt", "knowledgeDebt.ts"]],
     ["buildKnowledgeMap", ["architecture", "knowledge", "map", "knowledgeMap.ts"]],
+    ["gapSeams", ["architecture", "knowledge", "map", "gapSeams.ts"]],
 ];
 
 /**

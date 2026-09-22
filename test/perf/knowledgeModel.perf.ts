@@ -4,6 +4,7 @@ import { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
 import { parseInlineFields } from "architecture/knowledge/parse/inlineFields";
 import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
 import { communitiesOf } from "architecture/knowledge/map/communities";
+import { gapSeams } from "architecture/knowledge/map/gapSeams";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries, gapTally } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
@@ -117,6 +118,31 @@ describe("the projections the surfaces run", () => {
 
     it("analysis.debt.10k", () => {
         assertBudget("analysis.debt.10k", timed("analysis.heaviest", () => computeKnowledgeDebt(model), 10_000));
+    });
+
+    it("analysis.gaps.seams.10k", () => {
+        // Its own model, and its two dependencies warmed first: what is timed is the aggregation,
+        // not the tally underneath it (which `analysis.gaps.tally.10k` already measures).
+        const fresh = modelOf(10_000, 11);
+        gapTally(fresh);
+        communitiesOf(fresh);
+        assertBudget("analysis.gaps.seams.10k", timed("analysis.heaviest", () => gapSeams(fresh), 10_000));
+
+        // The invariant AC-4 asserts at two thousand notes in `npm test`, here at the full ten.
+        const communities = communitiesOf(fresh);
+        const communityOf = new Map<string, number>();
+        communities.forEach((community, index) => {
+            for (const path of [community.hub, ...community.members]) communityOf.set(path, index);
+        });
+        let violations = 0;
+        for (const gap of gapTally(fresh).candidates()) {
+            const from = communityOf.get(gap.a);
+            const to = communityOf.get(gap.b);
+            if (from === undefined || to === undefined || communities[from].region !== communities[to].region) {
+                violations++;
+            }
+        }
+        expect(violations).toBe(0);
     });
 
     it("analysis.gaps.tally.10k", () => {

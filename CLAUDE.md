@@ -186,6 +186,14 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
   place against the cost of complexity. When in doubt, subtract.
 - Prefer editing existing patterns over inventing new ones — actions, settings handlers, and
   modals each have an established shape; match it.
+- **Every change ships with a way to see it work ([constitution §XIV](docs/development/constitution.md)).**
+  Every spec ends with a **`How to verify`** section: an automated *command → criteria proved* table,
+  plus a numbered script a tester (or you) can walk in a real vault — preconditions, one observable
+  expectation per step, the empty state, and the negative (nothing written, no layout change).
+  Automate by default; a step that stays manual names its reason (WebGL scene · camera flight · view
+  lifecycle · a real vault's shape). Finishing an implementation includes **walking the script** and
+  fixing it where it drifted. Rules:
+  [`.claude/skills/specify/references/verification.md`](.claude/skills/specify/references/verification.md).
 - **Docs are a blocking exit criterion for every implementation.** When you finish a feature or
   fix, before committing, run a docs audit: does any page under `docs/` need to reflect the
   change? New feature → update or create a doc page. New action → `docs/actions/<Name>.md`.

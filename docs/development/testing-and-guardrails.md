@@ -140,3 +140,24 @@ writes, quick-capture, lifecycle transitions. The AI provider is tested with a s
 > service as `undefined`.
 
 Treat each closed score issue as an opportunity to add the tests that lock in the fix.
+
+## The verification script (§XIV)
+
+Jest proves the projection; it never proves the pixel. Most of what ships here is a projection
+**drawn in a view** — a lens, a chip, a hull, a camera flight — so every spec ends with a
+**`How to verify`** section holding both halves of the proof: an automated *command → criteria*
+table, and a numbered script a person walks in a real vault (`npm run dev:vault`).
+
+The rules live in
+[`.claude/skills/specify/references/verification.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/.claude/skills/specify/references/verification.md)
+and the invariant is [constitution §XIV](constitution.md). In short:
+
+- Every acceptance criterion has a prover — a command, or a numbered manual step.
+- A manual step names why it cannot be automated (WebGL scene · camera flight · view lifecycle ·
+  a real vault's shape). Anything else is a missing test.
+- The empty state and the negative ("the note is byte-identical", "the layout did not move") are
+  steps, not footnotes.
+- Finishing an implementation includes **walking the script** and fixing it where it drifted.
+
+A manual step is not a lesser test — it is the only test for a scene, and writing it down is what
+makes a 3D feature reviewable by someone who did not build it.

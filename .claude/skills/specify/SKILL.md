@@ -32,11 +32,18 @@ issue, the relevant code, and `docs/development/constitution.md`, then writes th
    - **Diagrams** — at least one Mermaid diagram (flow / state / sequence). Rules and templates:
      [`references/diagrams.md`](references/diagrams.md). Show empty/loading/error states (UX-first),
      annotate expensive edges (performance) and where logs/events fire (observability).
+   - **How to verify** — the **last** section, always: the automated proofs (command → the ACs
+     they prove) and a **hand-walkable script** a tester (or the user) can follow to see it work,
+     with preconditions, numbered steps, the empty state and the negative. Rules and template:
+     [`references/verification.md`](references/verification.md). Automate what can be automated;
+     name the reason for every step that stays manual.
    - **Out of scope / Open questions** — keep the change small; surface unknowns now.
 
 ## Quality bar (the stage-1 gate)
 
 - Every acceptance criterion is **observable and testable** — not "works well".
+- **Every acceptance criterion has a prover** in `How to verify` — a command or a numbered manual
+  step. An AC nobody can check is not an AC.
 - Capabilities are disclosed.
 - Scope is bounded (explicit *out of scope*).
 - No solution design leaked in.

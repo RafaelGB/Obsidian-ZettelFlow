@@ -79,12 +79,25 @@ workflow — ask: *would a prospective user find this in the README?*
 Like the docs audit, this is a **blocking exit criterion** — a shipped-but-unadvertised feature is
 a missed download. README and code travel in the same change.
 
-### 3. Quality check
+### 3. Walk the verification script (mandatory)
+
+Open the issue's `## How to verify` and **do it** — run every command in the automated table, then
+walk the manual steps in a real vault (`npm run dev:vault`). Two outcomes are failures, not
+paperwork:
+
+- **A step does not describe reality** → fix the spec section in the same change. A verification
+  script nobody has walked is worth less than none, because it will be trusted.
+- **A manual step turned out to be automatable** → automate it and move it up into the table.
+
+This is a **blocking exit criterion** (constitution §XIV): the change is not done until someone has
+seen it work by following the written script.
+
+### 4. Quality check
 
 Run the **`obsidian-plugin-quality`** skill and the **`obsidian-plugin-reviewer`** agent on the
 diff, and verify every acceptance criterion in the issue spec (body).
 
-### 4. Close the issue via PR
+### 5. Close the issue via PR
 
 **Closing the issue (constitution §X).** Commits only *reference* the issue (`(#N)`) — they never
 close it. The issue is closed by the **pull request** that merges the branch to `main`: put

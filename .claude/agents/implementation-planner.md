@@ -45,6 +45,12 @@ gh issue comment <N> --body "$(cat <<'EOF'
 ### Docs impact
 <docs/ page + mkdocs.yml nav entry>
 
+### Verification coverage
+| AC | Proof | Automated? |
+|---|---|---|
+| AC-1 | `test/...` | yes |
+| AC-6 | manual step 3 — WebGL scene | no, and why |
+
 ### Rollout & rollback
 <fragile areas: Canvas patcher, monkey-around, cross-platform>
 
@@ -68,6 +74,7 @@ gh issue comment <N> --body "$(cat <<'EOF'
 
 ### Definition of done
 - All tasks checked
+- The spec's `How to verify` script walked once, end to end, and its steps still describe reality
 - Every acceptance criterion from the spec met
 - `npm run verify` green
 - `npm run lint:obsidian` no new violations (for score work)

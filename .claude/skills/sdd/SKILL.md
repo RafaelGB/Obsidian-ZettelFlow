@@ -46,7 +46,8 @@ Score is a release gate (§I) · test-first (§II) · facades not globals, no `i
 styles (§III) · sentence-case i18n in `en`+`es`, clean commands/headings (§IV) · cross-platform
 (§V) · defensive Canvas patcher (§VI) · disclose capabilities (§VII) · docs ship with the change
 (§VIII) · small conventional single-branch commits (§IX) · issues close via PR merge, not manually
-(§X).
+(§X) · every spec ends with a walkable `How to verify` script, and finishing means having walked
+it (§XIV).
 
 ## Related skills
 

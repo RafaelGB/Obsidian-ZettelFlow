@@ -131,3 +131,19 @@ describe("arrival names both levels (#527)", () => {
         }
     });
 });
+
+describe("the legend has to fit on screen (#527)", () => {
+    it("is bounded and scrolls", () => {
+        // Before #527 this was about nine region rows. It is now up to seventeen neighbourhoods
+        // plus their headings, anchored to the bottom and growing upward — off the top of a side
+        // panel. Found by rendering it, which is the one thing a node test suite cannot do.
+        const scss = read("src/styles/components/graph3d.scss");
+        const box = scss.slice(scss.indexOf(".zettelkasten-flow__graph3d-legend {"));
+        const body = box.slice(0, box.indexOf("}"));
+        expect(body).toContain("max-height");
+        expect(body).toContain("overflow-y: auto");
+        // The container sets `pointer-events: none` so the gaps pass clicks to the graph; a
+        // scrollable box has to take them back or it cannot receive the wheel.
+        expect(body).toContain("pointer-events: auto");
+    });
+});

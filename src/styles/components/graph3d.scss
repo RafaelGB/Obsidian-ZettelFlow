@@ -254,6 +254,13 @@
     font-size: var(--font-ui-smaller);
     color: #c7ccd6;
     max-width: 15em; // region names need the room (#514)
+    // #527 took the legend from ~9 region rows to up to 17 neighbourhoods plus their region
+    // headings. Anchored to the bottom and growing upward, that runs off the top of a side panel,
+    // so it is bounded and scrolls. `pointer-events` has to be re-enabled here rather than only on
+    // the rows, or the box cannot receive the wheel.
+    max-height: calc(100% - 9em);
+    overflow-y: auto;
+    pointer-events: auto;
 }
 
 .zettelkasten-flow__graph3d-legend-title {

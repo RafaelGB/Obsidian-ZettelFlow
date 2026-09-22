@@ -372,8 +372,8 @@ export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): 
 }
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
-export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone" | "frontier" | "bridges";
-export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone", "frontier", "bridges"];
+export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone" | "frontier" | "bridges" | "gaps";
+export const OVERLAY_KINDS: readonly OverlayKind[] = ["orphans", "dead-ends", "contradictions", "alone", "frontier", "bridges", "gaps"];
 
 /** A lens about **notes**: matching nodes are lit and the rest dim. */
 export interface NodeOverlay {
@@ -396,7 +396,23 @@ export interface EdgeOverlay {
     matches: (edge: Graph3DLink) => boolean;
 }
 
-export type OverlaySpec = NodeOverlay | EdgeOverlay;
+/**
+ * A lens about **candidates** (#532, epic #529): edges that are *not* in the graph -- pairs of
+ * notes that share context and were never linked.
+ *
+ * It carries **no `matches`**, and that is the whole distinction rather than an omission. The other
+ * two kinds narrow what is already in {@link Graph3DData}; there is nothing in it to match here,
+ * because the thing this lens draws does not exist. What to draw comes from the gap projection and
+ * is selected against the nodes on screen, which is why the renderer branches once per *kind* and
+ * not once per lens.
+ */
+export interface CandidateOverlay {
+    labelKey: string;
+    colorVar: string;
+    on: "candidate";
+}
+
+export type OverlaySpec = NodeOverlay | EdgeOverlay | CandidateOverlay;
 
 /** Overlay kind → its label, highlight colour and match predicate. Pure; shared by the renderer. */
 export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
@@ -411,6 +427,9 @@ export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
     "frontier": { labelKey: "graph3d_overlay_frontier", colorVar: "--color-cyan", on: "node", matches: (n) => n.frontier },
     // The crossings themselves (#526) — the first lens about links rather than notes.
     "bridges": { labelKey: "graph3d_overlay_bridges", colorVar: "--color-purple", on: "edge", matches: (e) => e.bridge },
+    // And the crossings that are missing (#532): a pair that shares context and was never linked.
+    // No predicate, because there is nothing in the graph to run it against.
+    "gaps": { labelKey: "graph3d_overlay_gaps", colorVar: "--color-pink", on: "candidate" },
 };
 
 /** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */

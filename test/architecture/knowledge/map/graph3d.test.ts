@@ -164,12 +164,16 @@ describe("discovery-lens flags & overlays (#280 S4)", () => {
         expect(byId["C.md"].contradiction).toBe(false);
     });
 
-    it("every overlay kind has a spec with a label, colour var and a working predicate", () => {
+    it("every overlay kind has a spec with a label, a colour var, and a predicate when it can have one", () => {
         for (const kind of OVERLAY_KINDS) {
             const spec = OVERLAY_SPECS[kind];
             expect(typeof spec.labelKey).toBe("string");
             expect(spec.colorVar.startsWith("--")).toBe(true);
-            expect(typeof spec.matches).toBe("function");
+            // A lens about notes or links matches something that is *in* the data. A **candidate**
+            // lens (#532) draws an edge that does not exist, so there is nothing to match and it
+            // carries no predicate -- which is the distinction, not an omission.
+            if (spec.on === "candidate") expect("matches" in spec).toBe(false);
+            else expect(typeof spec.matches).toBe("function");
         }
         const model = buildModel([idea("Solo.md", "seed", [])]); // orphan + dead-end
         const node = build3DGraph(model).nodes[0];

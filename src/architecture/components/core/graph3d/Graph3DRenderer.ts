@@ -161,6 +161,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private readonly colorCache = new Map<string, string>();
     private readonly colorButtons = new Map<ColorMode, HTMLElement>();
     private readonly lensChips = new Map<OverlayKind, HTMLElement>();
+    /**
+     * How many gaps there are, or `null` until the lens is first used (#532). Kept on the renderer
+     * rather than read per render for the reason in `buildTopBar`: the number costs the shared gap
+     * pass, and nothing should pay for it before someone asks.
+     */
+    private gapTotal: number | null = null;
     private zoomSlider: HTMLInputElement | null = null;
     private timeSlider: HTMLInputElement | null = null;
     private playBtn: HTMLElement | null = null;
@@ -812,7 +818,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
         const stats = graph3dStats(this.data);
-        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges };
+        // `null` is "no count yet", and only the gap lens can be in that state (#532): the other
+        // six fall out of `graph3dStats`, which walks the graph the view already built, while this
+        // one costs the shared gap pass -- 982 ms over ten thousand notes. A view that spent a
+        // second rendering a number nobody asked for is what #458 exists to prevent, so the count
+        // arrives the first time the lens is used and behaves like every other one from then on.
+        const counts: Record<OverlayKind, number | null> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges, "gaps": this.gapTotal };
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
 
         const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
@@ -901,14 +912,26 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         });
     }
 
-    private addLensChip(group: HTMLElement, kind: OverlayKind, count: number): void {
-        const label = `${t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0])} (${count})`;
-        const chip = group.createEl("button", { cls: c("graph3d-chip"), text: label });
-        chip.setAttribute("aria-label", label);
+    private addLensChip(group: HTMLElement, kind: OverlayKind, count: number | null): void {
+        const chip = group.createEl("button", { cls: c("graph3d-chip") });
+        this.labelChip(chip, kind, count);
         chip.setAttribute("aria-pressed", "false");
-        if (count === 0) chip.setAttribute("disabled", "true");
         this.lensChips.set(kind, chip);
         this.registerDomEvent(chip, "click", () => this.toggleOverlay(kind));
+    }
+
+    /**
+     * Name a chip and say how much there is of it — the **one** place the zero rule lives, so a
+     * count that arrives later (the gap lens, #532) obeys exactly the rule the other six got at
+     * build time. A `null` count is a lens that has not been asked yet: no number, and enabled,
+     * because "no count" is not "nothing to show".
+     */
+    private labelChip(chip: HTMLElement, kind: OverlayKind, count: number | null): void {
+        const name = t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0]);
+        const label = count === null ? name : `${name} (${count})`;
+        chip.setText(label);
+        chip.setAttribute("aria-label", label);
+        if (count === 0) chip.setAttribute("disabled", "true");
     }
 
     /**
@@ -1235,12 +1258,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private computeNodeColor(node: Graph3DNode & LiveNode): string {
         if (this.overlay) {
             const spec = OVERLAY_SPECS[this.overlay];
-            // A link lens lights what its edges join, so the picture reads as what joins what
-            // rather than as a scatter of bright lines over an unlit graph (#526).
-            if (spec.on === "edge") {
-                return this.edgeLensEndpoints?.has(node.id ?? "") ? this.varColor(spec.colorVar) : DIM_NODE;
+            // Only a lens about **notes** has a predicate to run. A link lens lights what its
+            // edges join (#526) and a candidate lens lights what its ghost edges would join
+            // (#532) -- both read the same endpoint set, so the picture reads as *what joins
+            // what* rather than as bright lines over an unlit graph. One branch per kind.
+            if (spec.on === "node") {
+                return spec.matches(node) ? this.varColor(spec.colorVar) : DIM_NODE;
             }
-            return spec.matches(node) ? this.varColor(spec.colorVar) : DIM_NODE;
+            return this.edgeLensEndpoints?.has(node.id ?? "") ? this.varColor(spec.colorVar) : DIM_NODE;
         }
         if (this.pathNodes) return this.pathNodes.has(node.id ?? "") ? this.baseNodeColor(node) : DIM_NODE;
         if (this.lit && !this.lit.has(node.id ?? "")) return DIM_NODE;

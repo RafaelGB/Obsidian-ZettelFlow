@@ -149,6 +149,15 @@ describe("the popover is placed by a class, not by arithmetic (#542, AC-7)", () 
     });
 });
 
+describe("the row you flew to looks like it (#542, found while counting)", () => {
+    it("gives the framed legend row a rule, not just an aria attribute", () => {
+        // #515 shipped `aria-pressed` and `graph3d-legend-row--framed` with no style behind it:
+        // the state was real for a screen reader and invisible to everyone else.
+        expect(CODE).toContain('c("graph3d-legend-row--framed")');
+        expect(SCSS).toContain(".zettelkasten-flow__graph3d-legend-row--framed {");
+    });
+});
+
 describe("the five group names exist in both languages (#542, FR-9, AC-6)", () => {
     it("names the gear and its groups", () => {
         expect(en.graph3d_settings).toBe("Graph options");

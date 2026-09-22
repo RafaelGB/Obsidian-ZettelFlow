@@ -266,6 +266,15 @@
     cursor: pointer;
 }
 
+// The row you flew to (#515). It has carried `aria-pressed` since it shipped and had no rule at
+// all, so the state was real for a screen reader and invisible to everyone else: you framed a
+// neighbourhood and nothing said which one. Found while counting this window's controls (#542).
+.zettelkasten-flow__graph3d-legend-row--framed {
+    background-color: var(--background-modifier-hover);
+    border-radius: var(--radius-s);
+    font-weight: var(--font-semibold);
+}
+
 .zettelkasten-flow__graph3d-legend-row--hidden {
     opacity: 0.4;
     text-decoration: line-through;

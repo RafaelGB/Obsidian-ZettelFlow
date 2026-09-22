@@ -45,6 +45,14 @@ describe("zf.knowledge hands a script the model ZettelFlow uses on itself (#350,
         expect((zf.judgements as (p: string) => unknown[])("hub.md")).toHaveLength(1);
     });
 
+    it("answers where two neighbourhoods almost touch (#531)", async () => {
+        const zf = await api();
+
+        // The fixture is one small neighbourhood, so there is no seam to report -- and the answer
+        // to that is an empty array, not null and not a throw.
+        expect((zf.gapSeams as () => unknown[])()).toEqual([]);
+    });
+
     it("takes arguments where the projection does", async () => {
         const zf = await api();
 

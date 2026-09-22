@@ -25,9 +25,12 @@ import {
     tourStops,
     STATE_COLOR_VARS,
     STATE_COLORS,
+    gapTally,
+    topGaps,
 } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
+import { GAP_DRAW_MAX, ghostKey, selectGhosts, type GhostEdge } from "./graph3dGhosts";
 import { environmentEnabled, starfieldPositions, haloSpec } from "./graph3dEnvironment";
 import { buildExportBaseName } from "../export/exportFilename";
 import { canvasToPngBlob, pickVideoMimeType, recordCanvasWebm } from "../export/mediaCapture";
@@ -58,6 +61,12 @@ const HUB_LABEL_COUNT = 18;
 const HULL_MIN_NODES = 3;
 /** How often the hulls follow the moving layout (#520) — cheap, because an update reuses everything. */
 const HULL_REFRESH_MS = 250;
+/**
+ * The colour of a line that is not there (#532). Pink, because none of the relation types use it
+ * and a ghost must not read as a kind of link: `--color-pink` is the lens chip's swatch and this
+ * is its scene twin, tuned like the rest for the view's fixed dark background.
+ */
+const GHOST_COLOR = "#f9a8d4";
 
 function webglAvailable(): boolean {
     try {
@@ -161,6 +170,27 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private readonly colorCache = new Map<string, string>();
     private readonly colorButtons = new Map<ColorMode, HTMLElement>();
     private readonly lensChips = new Map<OverlayKind, HTMLElement>();
+    /**
+     * How many gaps there are, or `null` until the lens is first used (#532). Kept on the renderer
+     * rather than read per render for the reason in `buildTopBar`: the number costs the shared gap
+     * pass, and nothing should pay for it before someone asks.
+     */
+    private gapTotal: number | null = null;
+    /** The strongest gaps, as of {@link gapRevision} — the candidates the lens draws from. */
+    private gapStrongest: GhostEdge[] = [];
+    /** The model revision the two above were read at; `-1` until the lens is first used. */
+    private gapRevision = -1;
+    /** The ghost edges the scene is currently drawing, recomputed when the lens or the graph moves. */
+    private ghosts: GhostEdge[] = [];
+    /**
+     * The drawn lines, keyed by the pair, with the same lifecycle as the hulls (#520): kept across
+     * updates, repositioned in place, dropped when they stop being wanted.
+     */
+    private readonly ghostLines = new Map<string, THREE.Line>();
+    /** One material for every ghost — they are all the same faint dash. */
+    private ghostMaterial: THREE.LineDashedMaterial | null = null;
+    /** Logged once per activation, not once per tick, when `three` is not there to draw with. */
+    private ghostWarned = false;
     private zoomSlider: HTMLInputElement | null = null;
     private timeSlider: HTMLInputElement | null = null;
     private playBtn: HTMLElement | null = null;
@@ -321,7 +351,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
             }
             // #520: the hulls follow the layout instead of waiting nine seconds for it to stop.
-            this.hullTimer = window.setInterval(() => this.rebuildHulls(), HULL_REFRESH_MS);
+            this.hullTimer = window.setInterval(() => this.refreshSceneObjects(), HULL_REFRESH_MS);
 
             this.resizeObserver = new ResizeObserver(() => this.applySize());
             this.resizeObserver.observe(this.wrapperEl);
@@ -356,7 +386,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
                 this.proximityTimer = window.setInterval(() => this.updateProximityLabels(), 300);
             }
             if (this.hullTimer === undefined) {
-                this.hullTimer = window.setInterval(() => this.rebuildHulls(), HULL_REFRESH_MS);
+                this.hullTimer = window.setInterval(() => this.refreshSceneObjects(), HULL_REFRESH_MS);
             }
             if (this.tourActive && this.tourTimer === undefined) this.advanceTour(); // resume the tour on screen
         } else {
@@ -690,6 +720,98 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
     }
 
+    /**
+     * The scene objects that follow the layout (#520, #532) — the hulls and the ghost edges — on
+     * one interval, because they answer the same question: *where are the notes right now?*
+     */
+    private refreshSceneObjects(): void {
+        this.rebuildHulls();
+        this.rebuildGhosts();
+    }
+
+    /**
+     * A dashed line where a link is **not** (#532).
+     *
+     * Drawn as scene objects, never as graph links: `3d-force-graph` runs d3-force over the links
+     * it is given, so a candidate edge added there would make the layout **pull the two notes
+     * together** — the graph would rearrange itself around links that do not exist, which is worse
+     * than saying nothing. Nothing here touches `graphData`, and nothing writes a node position.
+     *
+     * The lifecycle is the hulls': one shared material, a line per pair kept across ticks and
+     * repositioned in place, and anything no longer wanted removed and disposed. The wanted set is
+     * recomputed from the active lens every tick, so clearing the lens (a background click, a
+     * reindex) self-heals within 250 ms with no hook of its own.
+     */
+    private rebuildGhosts(): void {
+        const three = this.three;
+        if (!three || !this.graph || this.lite) return;
+        const scene = this.graph.scene();
+        const wanted = this.overlay === "gaps" ? this.ghosts : [];
+
+        if (wanted.length > 0) {
+            const live = (this.graph.graphData() as unknown as { nodes: (Graph3DNode & LiveNode)[] }).nodes;
+            const at = new Map<string, Graph3DNode & LiveNode>();
+            for (const node of live) if (node.x !== undefined) at.set(node.id, node);
+
+            if (!this.ghostMaterial) {
+                this.ghostMaterial = new three.LineDashedMaterial({
+                    color: new three.Color(GHOST_COLOR),
+                    transparent: true,
+                    opacity: 0.55,
+                    dashSize: 4,
+                    gapSize: 4,
+                    depthWrite: false,
+                });
+            }
+
+            for (const ghost of wanted) {
+                const from = at.get(ghost.a);
+                const to = at.get(ghost.b);
+                if (!from || !to) continue;
+                const key = ghostKey(ghost);
+                let line = this.ghostLines.get(key);
+                if (!line) {
+                    const geometry = new three.BufferGeometry();
+                    geometry.setAttribute("position", new three.BufferAttribute(new Float32Array(6), 3));
+                    line = new three.Line(geometry, this.ghostMaterial);
+                    line.renderOrder = -1; // under the real links, so what exists reads first
+                    scene.add(line);
+                    this.ghostLines.set(key, line);
+                }
+                const position = line.geometry.getAttribute("position");
+                if (!position) continue;
+                position.array[0] = from.x ?? 0;
+                position.array[1] = from.y ?? 0;
+                position.array[2] = from.z ?? 0;
+                position.array[3] = to.x ?? 0;
+                position.array[4] = to.y ?? 0;
+                position.array[5] = to.z ?? 0;
+                position.needsUpdate = true;
+                // Dashes are measured along the line, so they stretch unless this runs after a move.
+                line.computeLineDistances();
+            }
+        }
+
+        const keep = new Set(wanted.map(ghostKey));
+        for (const key of [...this.ghostLines.keys()]) {
+            if (!keep.has(key)) this.dropGhost(scene, key);
+        }
+    }
+
+    private dropGhost(scene: THREE.Scene, key: string): void {
+        const line = this.ghostLines.get(key);
+        if (!line) return;
+        scene.remove(line);
+        line.geometry.dispose(); // the material is shared and outlives every line
+        this.ghostLines.delete(key);
+    }
+
+    private disposeGhosts(scene: THREE.Scene): void {
+        for (const key of [...this.ghostLines.keys()]) this.dropGhost(scene, key);
+        this.ghostMaterial?.dispose();
+        this.ghostMaterial = null;
+    }
+
     private dropHull(scene: THREE.Scene, group: number): void {
         const mesh = this.hulls.get(group);
         if (mesh) {
@@ -812,7 +934,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const lensGroup = controls.createDiv({ cls: c("graph3d-group") });
         lensGroup.createSpan({ cls: c("graph3d-group-label"), text: t("graph3d_group_lens") });
         const stats = graph3dStats(this.data);
-        const counts: Record<OverlayKind, number> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges };
+        // `null` is "no count yet", and only the gap lens can be in that state (#532): the other
+        // six fall out of `graph3dStats`, which walks the graph the view already built, while this
+        // one costs the shared gap pass -- 982 ms over ten thousand notes. A view that spent a
+        // second rendering a number nobody asked for is what #458 exists to prevent, so the count
+        // arrives the first time the lens is used and behaves like every other one from then on.
+        const counts: Record<OverlayKind, number | null> = { "orphans": stats.orphans, "dead-ends": stats.deadEnds, "contradictions": stats.contradictions, "alone": stats.alone, "frontier": stats.frontier, "bridges": stats.bridges, "gaps": this.gapTotal };
         for (const kind of OVERLAY_KINDS) this.addLensChip(lensGroup, kind, counts[kind]);
 
         const path = controls.createEl("button", { cls: c("graph3d-chip"), text: t("graph3d_path_mode") });
@@ -857,7 +984,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.liteBtn?.setAttribute("aria-pressed", this.lite ? "true" : "false");
         if (this.lite) {
             if (this.graph && this.three) {
-                try { this.disposeHulls(this.graph.scene()); } catch (error) { log.warn("[Graph3D] hull dispose", error); }
+                try {
+                    this.disposeHulls(this.graph.scene());
+                    this.disposeGhosts(this.graph.scene());
+                } catch (error) { log.warn("[Graph3D] hull dispose", error); }
             }
             this.clearProximityLabels();
             // A1 (#384): drop the immersive environment for maximum FPS.
@@ -901,23 +1031,72 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         });
     }
 
-    private addLensChip(group: HTMLElement, kind: OverlayKind, count: number): void {
-        const label = `${t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0])} (${count})`;
-        const chip = group.createEl("button", { cls: c("graph3d-chip"), text: label });
-        chip.setAttribute("aria-label", label);
+    private addLensChip(group: HTMLElement, kind: OverlayKind, count: number | null): void {
+        const chip = group.createEl("button", { cls: c("graph3d-chip") });
+        this.labelChip(chip, kind, count);
         chip.setAttribute("aria-pressed", "false");
-        if (count === 0) chip.setAttribute("disabled", "true");
         this.lensChips.set(kind, chip);
         this.registerDomEvent(chip, "click", () => this.toggleOverlay(kind));
     }
 
     /**
-     * Which edges the active lens lights, and the notes they join (#526) — or `null` when the
-     * lens is about notes. Paint only: nothing here hides, filters or narrows anything, the way
-     * framing in #515 moves the camera and nothing else.
+     * Name a chip and say how much there is of it — the **one** place the zero rule lives, so a
+     * count that arrives later (the gap lens, #532) obeys exactly the rule the other six got at
+     * build time. A `null` count is a lens that has not been asked yet: no number, and enabled,
+     * because "no count" is not "nothing to show".
+     */
+    private labelChip(chip: HTMLElement, kind: OverlayKind, count: number | null): void {
+        const name = t(OVERLAY_SPECS[kind].labelKey as Parameters<typeof t>[0]);
+        const label = count === null ? name : `${name} (${count})`;
+        chip.setText(label);
+        chip.setAttribute("aria-label", label);
+        if (count === 0) chip.setAttribute("disabled", "true");
+    }
+
+    /**
+     * Read the gap projection — the **only** place in this view that does, and only because
+     * someone switched the lens on (#532).
+     *
+     * Every other lens count falls out of `graph3dStats`, which walks the graph the view already
+     * built. This one costs the shared gap pass: 982 ms over ten thousand notes. Paying that on a
+     * render, for a number nobody asked for, is exactly what #458 exists to prevent — so it is
+     * paid here, once per model revision, after a click.
+     */
+    private ensureGapSource(): void {
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
+        if (this.gapRevision === model.revision()) return;
+        this.gapTotal = gapTally(model).size;
+        this.gapStrongest = topGaps(model, GAP_DRAW_MAX);
+        this.gapRevision = model.revision();
+        const chip = this.lensChips.get("gaps");
+        if (chip) this.labelChip(chip, "gaps", this.gapTotal);
+    }
+
+    /**
+     * Which edges the active lens lights, and the notes they join — or `null` when the lens is
+     * about notes. One branch per **kind**, never per lens:
+     *
+     * - `node` — nothing to do; the predicate runs per node while painting.
+     * - `edge` (#526) — the notes joined by the links that match.
+     * - `candidate` (#532) — the notes joined by the ghost edges, which are not in the graph at
+     *   all: the gap projection is read here (once per revision) and the strongest are selected
+     *   against what is on screen.
+     *
+     * Paint only: nothing here hides, filters or narrows anything, the way framing in #515 moves
+     * the camera and nothing else.
      */
     private syncEdgeLens(): void {
         const spec = this.overlay ? OVERLAY_SPECS[this.overlay] : null;
+        if (spec?.on === "candidate") {
+            this.ensureGapSource();
+            const selection = selectGhosts(this.displayed, this.gapStrongest);
+            this.ghosts = selection.edges;
+            this.edgeLensEndpoints = selection.endpoints;
+            return;
+        }
+        this.ghosts = [];
         if (!spec || spec.on !== "edge") {
             this.edgeLensEndpoints = null;
             return;
@@ -940,6 +1119,20 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private toggleOverlay(kind: OverlayKind): void {
         this.overlay = this.overlay === kind ? null : kind;
         this.syncEdgeLens();
+        // Without `three` the lens still works -- both notes of every gap stay lit -- and only the
+        // dashes are missing. Said once per activation, through `log`, and never silently.
+        if (this.overlay === "gaps" && !this.three && !this.ghostWarned) {
+            this.ghostWarned = true;
+            log.warn("[Graph3D] ghost edges unavailable (three); the gap lens lights its notes only");
+        }
+        // The gap chip is the one that learns its count on being used (#532). If the answer turns
+        // out to be none, the activation is dropped rather than dimming the whole graph to light
+        // nothing — and `labelChip` has just disabled the chip, so it cannot be asked again.
+        if (this.overlay === "gaps" && this.gapTotal === 0) {
+            this.overlay = null;
+            this.edgeLensEndpoints = null;
+            this.ghosts = [];
+        }
         for (const [k, el] of this.lensChips) {
             const active = k === this.overlay;
             el.toggleClass(c("graph3d-chip--active"), active);
@@ -1141,6 +1334,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.arrivedAt = null;
         this.overlay = null;
         this.edgeLensEndpoints = null;
+        this.ghosts = [];
         this.pathFrom = null;
         this.pathNodes = null;
         this.pathEdges = null;
@@ -1235,12 +1429,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private computeNodeColor(node: Graph3DNode & LiveNode): string {
         if (this.overlay) {
             const spec = OVERLAY_SPECS[this.overlay];
-            // A link lens lights what its edges join, so the picture reads as what joins what
-            // rather than as a scatter of bright lines over an unlit graph (#526).
-            if (spec.on === "edge") {
-                return this.edgeLensEndpoints?.has(node.id ?? "") ? this.varColor(spec.colorVar) : DIM_NODE;
+            // Only a lens about **notes** has a predicate to run. A link lens lights what its
+            // edges join (#526) and a candidate lens lights what its ghost edges would join
+            // (#532) -- both read the same endpoint set, so the picture reads as *what joins
+            // what* rather than as bright lines over an unlit graph. One branch per kind.
+            if (spec.on === "node") {
+                return spec.matches(node) ? this.varColor(spec.colorVar) : DIM_NODE;
             }
-            return spec.matches(node) ? this.varColor(spec.colorVar) : DIM_NODE;
+            return this.edgeLensEndpoints?.has(node.id ?? "") ? this.varColor(spec.colorVar) : DIM_NODE;
         }
         if (this.pathNodes) return this.pathNodes.has(node.id ?? "") ? this.baseNodeColor(node) : DIM_NODE;
         if (this.lit && !this.lit.has(node.id ?? "")) return DIM_NODE;
@@ -1313,6 +1509,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_neighbourhood");
         const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
+        // How many gaps there are, and how many of them are on screen (#532). Both numbers, because
+        // a bounded view that states only what it drew is the half of the truth that flatters it.
+        if (this.overlay === "gaps" && this.gapTotal !== null) {
+            parts.push(
+                this.ghosts.length === this.gapTotal
+                    ? t("graph3d_status_gaps", String(this.gapTotal))
+                    : t("graph3d_status_gaps_drawn", String(this.gapTotal), String(this.ghosts.length))
+            );
+        }
         if (this.pinnedId) {
             const pinned = this.displayed.nodes.find((n) => n.id === this.pinnedId);
             if (pinned) parts.push(`▸ ${pinned.name}`);

@@ -25,13 +25,14 @@ pulls back. Framing only ever moves the camera — nothing is hidden or filtered
 Opening the graph focused on a note tells you the neighbourhood you landed in and the region it
 sits inside, or that the note is alone.
 
-Four of the six discovery lenses read this structure:
+Five of the seven discovery lenses read this structure:
 
 | lens | what it lights | reference vault |
 |---|---|---|
 | **alone** | notes with no link to anything else in your knowledge | 82 (19 %) |
 | **frontier** | notes whose neighbours are not all from their own neighbourhood | 48 |
 | **bridges** | the **links** that cross from one neighbourhood into another | 26 |
+| **gaps** | a dashed line where a link is **not** — two notes that share context and never met | 217 (30 drawn) |
 | orphans · dead-ends · contradictions | as before | — |
 
 `bridges` is the only lens about links rather than notes. Both endpoints stay lit while everything
@@ -209,6 +210,7 @@ The map **writes nothing**. It is a view of the structure, distinct from the
   decision with nothing behind it yet.
 - **Normalising a seam by neighbourhood size.** Measured and rejected above; re-open it with a large
   real vault, not with an argument.
-- **Drawing the gaps.** A seam is a count today; the lens that draws a link that is not there is
-  [#532](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/532), and the legend that lets you
-  fly to the widest one is [#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533).
+- **Reading a seam on screen.** The gaps themselves are drawn since
+  [#532](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/532) — the `gaps` lens above — but a
+  seam is still a count you reach from a script; the legend that lists the widest ones and flies to
+  both sides is [#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533).

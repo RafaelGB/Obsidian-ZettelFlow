@@ -28,6 +28,8 @@ declare module "three" {
         position: Vec3Like;
         scale: Vec3Like;
         visible: boolean;
+        /** Draw order within the same depth: a ghost edge sits under the real links (#532). */
+        renderOrder: number;
         add(object: Object3D): void;
         remove(object: Object3D): void;
     }
@@ -70,9 +72,14 @@ declare module "three" {
     }
     export class BufferAttribute {
         constructor(array: ArrayLike<number>, itemSize: number);
+        /** The live buffer. A ghost edge writes its six floats straight into it (#532). */
+        array: Float32Array;
+        /** Set after writing, or the GPU keeps the old points. */
+        needsUpdate: boolean;
     }
     export class BufferGeometry {
         setAttribute(name: string, attribute: BufferAttribute): this;
+        getAttribute(name: string): BufferAttribute | undefined;
         dispose(): void;
     }
     export class PointsMaterial {
@@ -86,6 +93,22 @@ declare module "three" {
         constructor(geometry?: BufferGeometry, material?: PointsMaterial);
         geometry: BufferGeometry;
         material: PointsMaterial;
+    }
+
+    // #532 — a **ghost edge**: a dashed line where a link is not. Drawn as a scene object rather
+    // than as a graph link, because a link would reach d3-force and pull the two notes together.
+    export class LineDashedMaterial {
+        constructor(params?: Record<string, unknown>);
+        color: Color;
+        opacity: number;
+        dispose(): void;
+    }
+    export class Line extends Object3D {
+        constructor(geometry?: BufferGeometry, material?: LineDashedMaterial);
+        geometry: BufferGeometry;
+        material: LineDashedMaterial;
+        /** Dashes are measured along the line, so this is required after the ends move. */
+        computeLineDistances(): this;
     }
 }
 

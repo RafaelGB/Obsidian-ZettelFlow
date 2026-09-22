@@ -102,13 +102,49 @@ sourced from the model — click a chip to toggle it:
 - **Orphans** — notes with no outgoing links.
 - **Dead ends** — notes with no backlinks.
 - **Contradictions** — both ends of any `contradicts` relation.
+- **Alone** — notes with no link to anything else in your knowledge (#516).
+- **Frontier** — notes whose neighbours are not all from their own neighbourhood (#525).
+- **Bridges** — the **links** that cross from one neighbourhood into another (#526). The first lens
+  about links rather than notes: both endpoints stay lit, so it reads as *what joins what*.
+- **Gaps** — a faint **dashed line where a link is not** (#532): two notes that share context and
+  were never linked, with both of them lit over the dimmed graph.
+
+### The gap lens, and the two numbers it states
+
+A gap is not in the graph, so this is a third **kind** of lens: it has no predicate, because there
+is nothing in the data to match. What it draws comes from the gap projection
+([morning discovery](morning-discovery.md)), bounded two ways — at most `GAP_DRAW_MAX` lines, the
+strongest first, and only for pairs whose **both** notes are on screen. The status line states the
+total and how many of them are drawn, because a bounded view that reports only what it drew tells
+the flattering half of the truth.
+
+`GAP_DRAW_MAX` is **30**, measured rather than felt. On the reference vault (94 notes, 100 real
+links) 60 lines would be 60 % as many as the graph's real links — about 40 of them of score 1, the
+weakest evidence there is — while at ten thousand notes the same 60 is 4 % and nearly invisible. 30
+is 30 % and 2 %. A score floor is not the alternative: a floor of 2 keeps 20 of the reference
+vault's 217 gaps and deletes the widest seam, whose 14 gaps are all score 1.
+
+It is also the one chip that has **no count until you use it**. The other six fall out of a walk of
+the graph the view already built; this one costs the shared gap pass — 982 ms over ten thousand
+notes — and a view that spends a second rendering a number nobody asked for is what
+[#458](../architecture/knowledge-state.md#computed-once-per-revision-458) exists to prevent. After
+the first use it behaves like every other chip, including being disabled at `(0)`.
+
+A ghost edge is a **scene object on the hull refresh cycle**, never a graph link. That is the
+load-bearing part: `3d-force-graph` runs d3-force over the links it is given, so a candidate edge
+added there would make the layout **pull the two notes together** — the graph would rearrange
+itself around links that do not exist. Without `three`, the lens still lights both notes of every
+gap; only the dashes are missing.
 
 ## Performance & reach
 
 - The library (`3d-force-graph`, three.js) is **imported lazily** on first render and torn down on
   close, so it never sits in the plugin's startup path.
-- Large vaults are **capped to the most-connected notes** (`GRAPH3D_MAX_NODES`, default 600) for a
-  responsive layout; a hint notes when the view is capped.
+- `capGraph3D` and `GRAPH3D_MAX_NODES` (600) exist and are unit-tested, but **nothing calls them**:
+  the view draws every indexed note. This page claimed the opposite until #532 went looking, and
+  whether the cap should be applied or deleted is
+  [#539](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/539) — with the measurement it needs
+  and has never had.
 - On **mobile** or when **WebGL is unavailable**, the mode degrades to a message with a button that
   opens the 2D **Map** instead of failing.
 - The immersive **environment** (starfield, non-hub halos, selective bloom) is disabled under
@@ -123,6 +159,8 @@ sourced from the model — click a chip to toggle it:
   `RELATION_COLOR_VARS`) — Obsidian-free, unit-tested.
 - Pure environment math: `architecture/components/core/graph3d/graph3dEnvironment.ts`
   (`environmentEnabled`, `starfieldPositions`, `haloSpec`) — Obsidian-free, unit-tested (#384).
+- Pure ghost selection: `architecture/components/core/graph3d/graph3dGhosts.ts` (`selectGhosts`,
+  `GAP_DRAW_MAX`, `ghostKey`) — which gaps fit on screen, decided without a scene (#532).
 - View: `architecture/components/core/graph3d/Graph3DRenderer.ts`, mounted by `GraphSurfaceView` for
   the `3d` mode; the deep-link handoff is `graph3dFocus.ts`.
 - Styles: `styles/components/graph3d.scss` — legend/toolbar colours share Obsidian's `--color-*`

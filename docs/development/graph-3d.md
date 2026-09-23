@@ -147,6 +147,35 @@ notes — and a view that spends a second rendering a number nobody asked for is
 [#458](../architecture/knowledge-state.md#computed-once-per-revision-458) exists to prevent. After
 the first use it behaves like every other chip, including being disabled at `(0)`.
 
+### The seam list, and flying to one
+
+217 dashed lines is a picture of everything, which is a picture of nothing. So while the gap lens is
+on, the legend's **neighbourhood list becomes a seam list**
+([#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533)): the widest
+[seams](living-knowledge-map.md) first, each row carrying the two neighbourhoods' names with their
+own palette swatches and the two numbers under them — *N gaps · M links*.
+
+A row is framable exactly like a neighbourhood row: click it, or focus it and press Enter, and the
+camera frames **both** neighbourhoods, so what you see is the two places and the space between them.
+Click the framed row again and it pulls back to the whole graph. It is a camera move and nothing
+else — no filter, no hidden node, no paint change.
+
+Three details worth knowing:
+
+- **`SEAM_LEGEND_MAX` is 8**, measured against the box rather than chosen: the legend holds roughly
+  17 single-line rows before it scrolls, a seam row is two lines, and there are 24 seams on the
+  reference vault (630 over a generated ten thousand notes). When the list is cut the heading says
+  so — *Seams (8 of 24)* — rather than pretending eight is all of them.
+- **It appears in the *Neighbourhoods* colour mode only.** A seam row's two swatches are the two
+  neighbourhoods' colours; against state colours they would mean nothing. No toggle and no setting:
+  the swap is a consequence of the lens you already turned on.
+- **A seam with a side that is off screen is dropped**, the same rule the dashed lines follow. A row
+  you cannot fly to would be a row that lies.
+
+Framing keys on the **community**, not on its name. That was a defect until #533: the reference vault
+has two different neighbourhoods both called `readme`, they merged into one legend row whose count
+was the sum of both, and clicking it flew to both at once. A name is a label; a community is a place.
+
 A ghost edge is a **scene object on the hull refresh cycle**, never a graph link. That is the
 load-bearing part: `3d-force-graph` runs d3-force over the links it is given, so a candidate edge
 added there would make the layout **pull the two notes together** — the graph would rearrange
@@ -178,6 +207,9 @@ gap; only the dashes are missing.
   (`environmentEnabled`, `starfieldPositions`, `haloSpec`) — Obsidian-free, unit-tested (#384).
 - Pure ghost selection: `architecture/components/core/graph3d/graph3dGhosts.ts` (`selectGhosts`,
   `GAP_DRAW_MAX`, `ghostKey`) — which gaps fit on screen, decided without a scene (#532).
+- Pure legend geometry: `architecture/components/core/graph3d/graph3dLegend.ts` (`neighbourhoodRows`,
+  `seamRows`, `SEAM_LEGEND_MAX`, `legendShowsSeams`, `belongsToCommunity`, `belongsToSeam`, the
+  framing keys) — what the legend lists and what a row flies to, decided without a DOM (#533).
 - View: `architecture/components/core/graph3d/Graph3DRenderer.ts`, mounted by `GraphSurfaceView` for
   the `3d` mode; the deep-link handoff is `graph3dFocus.ts`.
 - Styles: `styles/components/graph3d.scss` — legend/toolbar colours share Obsidian's `--color-*`

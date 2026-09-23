@@ -20,7 +20,15 @@ Each neighbourhood is a hue, a translucent bubble, a label floating in the scene
 legend with its size. Regions appear as **headings** grouping those rows — unless a region holds
 only one neighbourhood, in which case the heading would repeat the row and is left out. Clicking a
 row flies to that neighbourhood; clicking a heading flies to the whole region; clicking again
-pulls back. Framing only ever moves the camera — nothing is hidden or filtered.
+pulls back. Framing only ever moves the camera — nothing is hidden or filtered, and it keys on the
+**neighbourhood**, not on its name: two that share a label are two places and fly separately
+([#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533) — before it, one merged row flew
+to both at once).
+
+**With the `gaps` lens on, that list becomes the seams** — the widest first, each row showing the two
+sides with their colours and *N gaps · M links*, and clicking one frames **both** neighbourhoods so
+you are looking at the space between them. At most eight rows, with the heading saying how many were
+left out. See [the seam list](graph-3d.md#the-seam-list-and-flying-to-one).
 
 Opening the graph focused on a note tells you the neighbourhood you landed in and the region it
 sits inside, or that the note is alone.
@@ -232,7 +240,5 @@ The map **writes nothing**. It is a view of the structure, distinct from the
   decision with nothing behind it yet.
 - **Normalising a seam by neighbourhood size.** Measured and rejected above; re-open it with a large
   real vault, not with an argument.
-- **Reading a seam on screen.** The gaps themselves are drawn since
-  [#532](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/532) — the `gaps` lens above — but a
-  seam is still a count you reach from a script; the legend that lists the widest ones and flies to
-  both sides is [#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533).
+- **Normalising the seam list's length to the window.** `SEAM_LEGEND_MAX` is one integer measured
+  against the legend box (8); making it depend on the viewport would be a rule with a knob behind it.

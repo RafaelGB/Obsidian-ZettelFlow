@@ -1,3 +1,5 @@
+import type { KnowledgeModel } from "../model/KnowledgeModel";
+import { gapTally, topGaps, type Discovery } from "../discovery/discoveries";
 import type { Judgement } from "./Judgement";
 
 /**
@@ -94,4 +96,51 @@ export function ruledOutGaps(history: readonly Judgement[]): RuledOutGaps {
             }
         },
     };
+}
+
+/**
+ * The strongest `limit` gaps you have **not** ruled out (FR-2).
+ *
+ * The filter is applied *after* the selection, never as an argument to it: the shared tally is
+ * memoised on the model alone (see the note above about a `Set` serialising to `{}`), and pushing a
+ * record into it would make every reader pay for the pass again. So this over-fetches by exactly the
+ * number of pairs ruled out and then slices — asking for five with three ruled out fetches eight,
+ * because a naive filter-then-slice would hand back two and look like a shorter vault.
+ *
+ * Over-fetching cannot be skipped when nothing is ruled out either: with an empty record this is
+ * `topGaps(model, limit)` and the same memo entry, so Home pays nothing for a feature it is not
+ * using.
+ */
+export function openGaps(model: KnowledgeModel, history: readonly Judgement[], limit: number): Discovery[] {
+    const ruled = ruledOutGaps(history);
+    if (ruled.size === 0) return topGaps(model, limit);
+    const cap = Math.max(0, Math.floor(limit));
+    if (cap === 0) return [];
+    const selected = topGaps(model, cap + ruled.size);
+    const open: Discovery[] = [];
+    for (const gap of selected) {
+        if (ruled.has(gap.a, gap.b)) continue;
+        open.push(gap);
+        if (open.length === cap) break;
+    }
+    return open;
+}
+
+/**
+ * How many gaps are still open (FR-2) — the number the dashboard metric reads.
+ *
+ * O(pairs you ruled out), not O(gaps): the tally's own size minus the ruled-out pairs **still in
+ * it**, each asked about in O(1). "Still in it" is what stops a pair you ruled out and then linked
+ * being subtracted twice — linking already removed it from the tally, and a count that subtracted it
+ * again would drift below the truth by one per pair, silently, forever.
+ */
+export function openGapCount(model: KnowledgeModel, history: readonly Judgement[]): number {
+    const ruled = ruledOutGaps(history);
+    const tally = gapTally(model);
+    if (ruled.size === 0) return tally.size;
+    let subtract = 0;
+    for (const pair of ruled.pairs()) {
+        if (tally.scoreOf(pair.a, pair.b) !== undefined) subtract++;
+    }
+    return Math.max(0, tally.size - subtract);
 }

@@ -1,9 +1,13 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect, jest } from "@jest/globals";
 import {
     GAP_SUBJECT_PREFIX,
     gapVerdict,
+    openGapCount,
+    openGaps,
     ruledOutGaps,
 } from "architecture/knowledge/judgement/gapVerdict";
+import { gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
+import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 import type { Judgement } from "architecture/knowledge/judgement/Judgement";
 
 /**
@@ -81,5 +85,86 @@ describe("the verdict that says two notes are not related (#534, FR-1, FR-3, AC-
 
     it("never matches a pair against itself", () => {
         expect(ruledOutGaps([entry({ subject: `${GAP_SUBJECT_PREFIX}a.md` })]).has("a.md", "a.md")).toBe(false);
+    });
+});
+
+/**
+ * **Subtraction after selection, never an argument** (#534, FR-2).
+ *
+ * The filter cannot be pushed into `gapTally`: `memoise` keys on stringified arguments and a `Set`
+ * serialises to `{}`, so two different records would quietly share one cached tally. So the shared
+ * pass stays argument-free and the verdicts are subtracted **after** it — which means asking for
+ * five gaps with three ruled out has to over-fetch eight, or a verdict would silently shorten the
+ * list it was meant to clean.
+ */
+describe("a ruled-out pair leaves every selection (#534, FR-2, AC-1)", () => {
+    // One hub citing four notes co-cites six pairs, each score 2.
+    const sixGaps = buildModel([
+        idea("hub.md", "permanent", [{ to: "a.md" }, { to: "b.md" }, { to: "c.md" }, { to: "d.md" }]),
+        idea("a.md", "permanent", []),
+        idea("b.md", "permanent", []),
+        idea("c.md", "permanent", []),
+        idea("d.md", "permanent", []),
+    ]);
+    const ruling = (a: string, b: string, when = at): Judgement => ({ at: when, ...gapVerdict(a, b) });
+
+    it("returns the gaps you have not ruled out, in the shipped order", () => {
+        const all = topGaps(sixGaps, 6);
+        const dropped = all[1];
+        const open = openGaps(sixGaps, [ruling(dropped.a, dropped.b)], 6);
+        expect(open).toEqual(all.filter((gap) => gap !== all[1]));
+        expect(openGapCount(sixGaps, [ruling(dropped.a, dropped.b)])).toBe(5);
+    });
+
+    it("removes the same pair when the verdict was recorded the other way round", () => {
+        const dropped = topGaps(sixGaps, 6)[0];
+        const backwards = openGaps(sixGaps, [ruling(dropped.b, dropped.a)], 6);
+        expect(backwards.some((gap) => gap.a === dropped.a && gap.b === dropped.b)).toBe(false);
+        expect(backwards).toHaveLength(5);
+    });
+
+    it("still fills the list you asked for, because it over-fetches what you ruled out", () => {
+        const all = topGaps(sixGaps, 6);
+        const history = all.slice(0, 3).map((gap) => ruling(gap.a, gap.b));
+        // Three of six ruled out and a limit of three: a naive filter-then-slice would return zero.
+        expect(openGaps(sixGaps, history, 3)).toEqual(all.slice(3, 6));
+    });
+
+    it("gives exactly the unfiltered answer when nothing has been ruled out", () => {
+        expect(openGaps(sixGaps, [], 5)).toEqual(topGaps(sixGaps, 5));
+        expect(openGapCount(sixGaps, [])).toBe(gapTally(sixGaps).size);
+    });
+
+    it("does not subtract a pair twice when it has since been linked", () => {
+        // b.md now links a.md, so the pair is no longer a gap at all -- and it is also ruled out.
+        const linked = buildModel([
+            idea("hub.md", "permanent", [{ to: "a.md" }, { to: "b.md" }, { to: "c.md" }, { to: "d.md" }]),
+            idea("a.md", "permanent", []),
+            idea("b.md", "permanent", [{ to: "a.md", type: "expands" }]),
+            idea("c.md", "permanent", []),
+            idea("d.md", "permanent", []),
+        ]);
+        const before = gapTally(linked).size;
+        expect(openGapCount(linked, [ruling("a.md", "b.md")])).toBe(before);
+    });
+
+    it("counts without walking the tally, so the count costs what you ruled out", () => {
+        // The O(ruled-out) proof: the count is the tally's own size minus the pairs still in it,
+        // each looked up in O(1). A count that walked 1.26 million pairs per render would be a
+        // different feature.
+        const tally = gapTally(sixGaps);
+        const spy = jest.spyOn(tally, "candidates");
+        try {
+            openGapCount(sixGaps, [ruling("a.md", "b.md")]);
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("has nothing to select from an empty model", () => {
+        const empty = buildModel([]);
+        expect(openGaps(empty, [ruling("a.md", "b.md")], 5)).toEqual([]);
+        expect(openGapCount(empty, [ruling("a.md", "b.md")])).toBe(0);
     });
 });

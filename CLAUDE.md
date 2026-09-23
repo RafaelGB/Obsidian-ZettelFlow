@@ -88,7 +88,12 @@ push to `main`.
 - **DOM:** build with `createEl`/`createDiv`/`createSpan`, clear with `el.empty()` —
   **never `innerHTML`**.
 - **Styling:** CSS classes via `c('name')` (prefix `zettelkasten-flow__`) + SCSS partials in
-  `src/styles/components/` — **never inline `el.style.*`**.
+  `src/styles/components/` — **never inline `el.style.*`**. And **the user's theme wins**
+  ([constitution §XV](docs/development/constitution.md),
+  [the guide](docs/development/obsidian-styling.md)): no hex or named colour in a stylesheet
+  (`--interactive-*` / `--background-*` / `--text-*`), no pixel the 4-grid can express
+  (`--size-4-*`), Obsidian's own classes (`mod-cta`, `clickable-icon`, `setting-item`, `is-active`)
+  before a new one, and a shape that exists twice belongs in `src/styles/utils/mixins.scss`.
 - **UI text:** **sentence case**, in the i18n layer (`architecture/lang/`); add keys to **both**
   `en.ts` and `es.ts`.
 - **State:** Zustand only for the note-builder wizard; everything else is a `getInstance()`

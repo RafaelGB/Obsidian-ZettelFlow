@@ -308,19 +308,47 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         for (const path of paths) this.renderNoteRow(list, path);
     }
 
+    /**
+     * The **gaps**: pairs of your notes that share context and are not linked (#534, epic #529).
+     *
+     * One name for one thing — the map calls this a gap, and this section used to call it a
+     * *suggested connection*. Two names for one fact is what the subtraction epic exists to
+     * prevent, and *suggested* was the surface deciding what you came for. The row states what is
+     * true of the graph; it never tells you to link anything.
+     *
+     * Each row carries **not related**, which records a verdict and writes nothing to the vault
+     * (§XII: the machine observes, the human rules, and the verdict is data). No graph statistic
+     * can tell a filing convention from a thought — the epic proved that twice with arithmetic —
+     * and a person can, in one click.
+     *
+     * A `yes` needs no memory: linking the two notes stops the pair being a gap by construction, so
+     * there is no button for it here and nothing writes a link for you.
+     */
     private renderGaps(container: HTMLElement, pairs: { a: string; b: string }[]): void {
+        // No empty state, like the questions section: a vault with nothing to show here has nothing
+        // to say, and an empty box on the front door is a box you learn to skip.
+        if (pairs.length === 0) return;
         const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t("home_section_suggested_connections"), cls: c("home-section-title") });
-        if (pairs.length === 0) {
-            section.createDiv({ cls: c("home-section-empty"), text: t("home_section_empty") });
-            return;
-        }
+        section.createEl("h5", { text: t("home_section_gaps"), cls: c("home-section-title") });
         const list = section.createDiv({ cls: c("home-list") });
+        // Absent rather than present-but-inert when the record is off: `record` is a documented
+        // no-op then, and a button that silently does nothing is worse than no button (FR-6).
+        const canRule = JudgementLog.getInstance().enabled();
         for (const pair of pairs) {
             const row = list.createDiv({ cls: c("home-connection") });
             this.renderInlineNote(row, pair.a);
             row.createSpan({ text: " · ", cls: c("home-connection-sep") });
             this.renderInlineNote(row, pair.b);
+            if (!canRule) continue;
+            const verdict = row.createEl("button", {
+                text: t("home_gap_not_related"),
+                cls: c("home-gap-verdict"),
+                attr: { "aria-label": t("home_gap_not_related_aria") },
+            });
+            verdict.addEventListener("click", () => {
+                JudgementLog.getInstance().recordGapVerdict(pair.a, pair.b);
+                this.recompute();
+            });
         }
     }
 

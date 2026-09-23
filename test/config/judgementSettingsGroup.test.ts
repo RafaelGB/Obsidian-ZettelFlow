@@ -33,6 +33,14 @@ describe("the judgement record can actually be turned off (#336)", () => {
         expect(tab).toContain("judgementSettingsGroup(plugin)");
     });
 
+    it("says what turning it off costs (#534, FR-6)", () => {
+        // An action that disappears with a setting has to be named by that setting, or the user
+        // turns the record off and finds the *not related* button gone with no way to connect the
+        // two facts.
+        expect((en as unknown as Record<string, string>).settings_judgements_enable_desc).toMatch(/\bgap\b/i);
+        expect((es as unknown as Record<string, string>).settings_judgements_enable_desc).toMatch(/\bhueco\b/i);
+    });
+
     it("speaks both languages", () => {
         for (const locale of [en, es] as unknown as Record<string, string>[]) {
             for (const key of KEYS) {

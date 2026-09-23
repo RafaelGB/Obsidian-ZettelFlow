@@ -175,12 +175,18 @@ export const gapSeams = memoise("gaps.seams", (model: KnowledgeModel): GapSeam[]
         });
     }
 
-    seams.sort(
-        (x, y) =>
-            y.gaps - x.gaps ||
-            x.links - y.links ||
-            byStr(x.labelA, y.labelA) ||
-            byStr(x.labelB, y.labelB)
-    );
+    seams.sort(bySeamWidth);
     return seams;
 });
+
+/**
+ * The one ordering a seam list comes in: **gaps desc, then links asc, then labels**. The widest seam
+ * has the most shared context and the fewest links already crossing, and that is explainable in one
+ * sentence — a ratio would be one step from an invented metric (§XI).
+ *
+ * Exported since #534 because subtracting the gaps you ruled out can change the ranking, and a
+ * second copy of this comparator is how two surfaces come to disagree about which seam is widest.
+ */
+export function bySeamWidth(x: GapSeam, y: GapSeam): number {
+    return y.gaps - x.gaps || x.links - y.links || byStr(x.labelA, y.labelA) || byStr(x.labelB, y.labelB);
+}

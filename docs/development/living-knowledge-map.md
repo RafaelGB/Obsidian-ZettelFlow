@@ -71,6 +71,28 @@ top ten is worth re-reading; if the bias is there, the fix is a consequence of t
 conductance between the two neighbourhoods, which the graph already knows) and a new spec, not a
 rate someone chose.
 
+## Ruling on a gap
+
+A seam is made of gaps, so a verdict on a gap reaches the seam it is part of
+([#534](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/534)). Saying **not related** on a
+pair in [Home](zettelflow-home.md) drops that seam's gap count by one and its score by that pair's
+own score; a seam whose every gap has been ruled out **disappears from the list**, and the survivors
+come back re-sorted, because subtraction can change which seam is widest. The map's gap lens and its
+chip count follow the same filtered pass, so the dashed line for a pair you dismissed is gone the
+next time the lens is turned on — the record is part of the cache key, since a verdict moves the
+record and not the model.
+
+Two caveats worth stating rather than discovering:
+
+- **Labels are computed before subtraction.** A qualified label (`Projects/readme` rather than
+  `readme`) can outlive the ambiguity that earned it, when the other `readme` neighbourhood drops off
+  the list. Over-qualified is never wrong, and re-deriving labels after subtraction would mean
+  re-deriving the communities to do it.
+- **The note-level verdict is the epic's open question.** *"This note is scaffolding, never propose it
+  for a gap"* was measured as genuinely cheaper — 8 verdicts would clear what needs about 20
+  pair-level ones on the reference vault — but it is a second concept next to `excludedPaths`, and
+  pair dismissal has to exist either way. It stays open, to be decided after living with this one.
+
 ## How each level is defined
 
 - A **region** is a connected component of the undirected link graph. Every note belongs to

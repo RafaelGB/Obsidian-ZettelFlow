@@ -132,7 +132,7 @@ describe("finding is a tool, not a queue (#477)", () => {
 
     it("uses no count, ranking or age warning in what it shows", () => {
         const keys = ["lab_filter_placeholder", "lab_filter_clear", "lab_filter_nothing", "lab_fold", "lab_unfold"];
-        const queueish = /(pending|overdue|waiting|remaining|unprocessed|backlog|inbox|promising|stale|old|forgotten|should)/i;
+        const queueish = /\b(pending|overdue|waiting|remaining|unprocessed|backlog|inbox|promising|stale|old|forgotten|should)\b/i;
         for (const key of keys) {
             const match = new RegExp(`${key}: '([^']*)'`).exec(EN_SRC);
             expect({ key, found: match !== null }).toEqual({ key, found: true });

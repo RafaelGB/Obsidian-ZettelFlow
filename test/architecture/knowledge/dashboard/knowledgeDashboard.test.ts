@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { buildKnowledgeDashboard } from "architecture/knowledge/dashboard/knowledgeDashboard";
 import { gapTally } from "architecture/knowledge/discovery/discoveries";
+import { gapVerdict } from "architecture/knowledge/judgement/gapVerdict";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 // 11 notes: iso is isolated (orphaned); d has a dangling out-edge (unresolved); f1/f2 are fleeting
@@ -186,3 +187,46 @@ describe("the connections metric counts only pairs of notes that exist (#538, AC
     });
 });
 
+describe("the connections metric counts what you have not ruled out (#534, FR-2, AC-1)", () => {
+    const tenGaps = buildModel([
+        idea("hub.md", "permanent", [
+            { to: "a.md" },
+            { to: "b.md" },
+            { to: "c.md" },
+            { to: "d.md" },
+            { to: "e.md" },
+        ]),
+        idea("a.md", "permanent", []),
+        idea("b.md", "permanent", []),
+        idea("c.md", "permanent", []),
+        idea("d.md", "permanent", []),
+        idea("e.md", "permanent", []),
+    ]);
+    const NOW = 1_700_000_000_000;
+    const connections = (history?: { at: number }[]) =>
+        buildKnowledgeDashboard(tenGaps, history as never)
+            .panels.find((panel) => panel.key === "today")
+            ?.metrics.find((metric) => metric.key === "connections")?.count;
+
+    it("drops by the verdicts you gave", () => {
+        expect(connections([])).toBe(10);
+        expect(connections([{ at: NOW, ...gapVerdict("a.md", "b.md") }])).toBe(9);
+        expect(
+            connections([
+                { at: NOW, ...gapVerdict("a.md", "b.md") },
+                { at: NOW + 1, ...gapVerdict("c.md", "d.md") },
+            ])
+        ).toBe(8);
+    });
+
+    it("hands the smaller number to the recommendation, so it stops asking too", () => {
+        const today = buildKnowledgeDashboard(tenGaps, [
+            { at: NOW, ...gapVerdict("a.md", "b.md") },
+        ]).panels.find((panel) => panel.key === "today");
+        expect(today?.recommendation).toEqual({ token: "make-connections", count: 9 });
+    });
+
+    it("reads the same as before when no record is passed (#530's expectation, unchanged)", () => {
+        expect(connections()).toBe(10);
+    });
+});

@@ -136,6 +136,8 @@ interface PairTally {
     scores: Map<number, number>;
     /** Index → path. */
     paths: string[];
+    /** Path → index, kept so one pair can be asked about without walking the tally (#534). */
+    indexOf: Map<string, number>;
     /** The multiplier the key was built with. */
     width: number;
 }
@@ -177,7 +179,7 @@ function candidatePairs(model: KnowledgeModel): PairTally {
         }
     }
 
-    return { scores, paths, width };
+    return { scores, paths, indexOf, width };
 }
 
 /**
@@ -216,6 +218,14 @@ function pruneToGaps(model: KnowledgeModel, tally: PairTally): void {
 export interface GapTally {
     readonly size: number;
     candidates(): Iterable<Discovery>;
+    /**
+     * This pair's score if it is a gap, `undefined` if it is not one — O(1), in either ordering
+     * (#534).
+     *
+     * It exists so a reader can ask about the handful of pairs it cares about — the ones you ruled
+     * out — without walking 1.26 million it does not. The `Map` still never escapes.
+     */
+    scoreOf(a: string, b: string): number | undefined;
 }
 
 /**
@@ -242,9 +252,15 @@ export interface GapTally {
 export const gapTally = memoise("gaps.tally", (model: KnowledgeModel): GapTally => {
     const tally = candidatePairs(model);
     pruneToGaps(model, tally);
-    const { scores, paths, width } = tally;
+    const { scores, paths, indexOf, width } = tally;
     return {
         size: scores.size,
+        scoreOf(a: string, b: string): number | undefined {
+            const ai = indexOf.get(a);
+            const bi = indexOf.get(b);
+            if (ai === undefined || bi === undefined || ai === bi) return undefined;
+            return scores.get(ai < bi ? ai * width + bi : bi * width + ai);
+        },
         *candidates(): Iterable<Discovery> {
             for (const [key, score] of scores) {
                 // `a < b` holds by construction: the paths were sorted before they were indexed and

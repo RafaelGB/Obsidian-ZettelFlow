@@ -1,6 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
 import { OVERLAY_KINDS, OVERLAY_SPECS, graph3dSignature, type Graph3DData } from "architecture/knowledge/map/graph3d";
 import { selectGhosts, GAP_DRAW_MAX, ghostKey } from "architecture/components/core/graph3d/graph3dGhosts";
+import { openGapCount, openGaps } from "architecture/knowledge/judgement/gapVerdict";
+import { gapVerdict } from "architecture/knowledge/judgement/gapVerdict";
+import { idea, buildModel } from "../../../../actions/knowledge/support/knowledgeFixture";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
@@ -153,5 +156,53 @@ describe("paint only: the graph goes in frozen and comes out untouched (#532, AC
             const live = node as unknown as Record<string, number>;
             expect([live.x, live.y, live.z]).toEqual([positions[index].x, positions[index].y, positions[index].z]);
         });
+    });
+});
+
+/**
+ * **The map honours what you ruled out** (#534, T7).
+ *
+ * The lens draws what `openGaps` hands it, so a pair you called *not related* is not among the
+ * candidates and no line is drawn for it. The wiring that chooses the filtered read is source-scanned
+ * in `gapLens.paintOnly.test.ts` (no jsdom, so the view cannot be mounted); what is exercised here is
+ * that the drawn set is exactly the filtered source, and the chip's count is the filtered count.
+ */
+describe("the map draws only the gaps you have not ruled out (#534, AC-1)", () => {
+    const model = buildModel([
+        idea("hub.md", "permanent", [{ to: "a.md" }, { to: "b.md" }, { to: "c.md" }]),
+        idea("a.md", "permanent", []),
+        idea("b.md", "permanent", []),
+        idea("c.md", "permanent", []),
+    ]);
+    const displayed: Graph3DData = {
+        nodes: ["hub.md", "a.md", "b.md", "c.md"].map((id) => ({
+            id,
+            label: id,
+            state: "permanent",
+            degree: 1,
+        })) as never,
+        links: [],
+    };
+    const ruled = [{ at: 1_700_000_000_000, ...gapVerdict("a.md", "b.md") }];
+
+    it("loses the line for the pair, and one from the count", () => {
+        expect(openGapCount(model, [])).toBe(3);
+        expect(openGapCount(model, ruled)).toBe(2);
+
+        const before = selectGhosts(displayed, openGaps(model, [], GAP_DRAW_MAX));
+        const after = selectGhosts(displayed, openGaps(model, ruled, GAP_DRAW_MAX));
+        expect(before.edges).toHaveLength(3);
+        expect(after.edges).toHaveLength(2);
+        expect(after.edges.map(ghostKey)).not.toContain(ghostKey({ a: "a.md", b: "b.md", score: 2 } as never));
+    });
+
+    it("stops drawing anything once every gap is ruled out", () => {
+        const all = [
+            { at: 1, ...gapVerdict("a.md", "b.md") },
+            { at: 2, ...gapVerdict("a.md", "c.md") },
+            { at: 3, ...gapVerdict("b.md", "c.md") },
+        ];
+        expect(openGapCount(model, all)).toBe(0);
+        expect(selectGhosts(displayed, openGaps(model, all, GAP_DRAW_MAX)).edges).toEqual([]);
     });
 });

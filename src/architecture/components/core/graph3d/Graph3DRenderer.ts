@@ -25,9 +25,10 @@ import {
     tourStops,
     STATE_COLOR_VARS,
     STATE_COLORS,
-    gapTally,
-    topGaps,
+    openGapCount,
+    openGaps,
 } from "architecture/knowledge/state";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
 import { GAP_DRAW_MAX, ghostKey, selectGhosts, type GhostEdge } from "./graph3dGhosts";
@@ -184,6 +185,13 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private gapStrongest: GhostEdge[] = [];
     /** The model revision the two above were read at; `-1` until the lens is first used. */
     private gapRevision = -1;
+    /**
+     * How many pairs were ruled out when they were read (#534). The revision alone is not enough to
+     * know they are still current: saying *not related* in Home changes the judgement record and
+     * **not** the model, so a cache keyed on the revision would draw a gap you had just dismissed
+     * until the next edit to the vault.
+     */
+    private gapVerdicts = -1;
     /** The ghost edges the scene is currently drawing, recomputed when the lens or the graph moves. */
     private ghosts: GhostEdge[] = [];
     /**
@@ -1142,10 +1150,14 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         const index = KnowledgeIndex.getInstance();
         if (index.status !== "ready") return;
         const model = index.getModel();
-        if (this.gapRevision === model.revision()) return;
-        this.gapTotal = gapTally(model).size;
-        this.gapStrongest = topGaps(model, GAP_DRAW_MAX);
+        // Both the model and the record, because a verdict moves one and not the other (#534).
+        const judgements = JudgementLog.getInstance().entries();
+        const verdicts = judgements.length;
+        if (this.gapRevision === model.revision() && this.gapVerdicts === verdicts) return;
+        this.gapTotal = openGapCount(model, judgements);
+        this.gapStrongest = openGaps(model, judgements, GAP_DRAW_MAX);
         this.gapRevision = model.revision();
+        this.gapVerdicts = verdicts;
         const chip = this.lensChips.get("gaps");
         if (chip) this.labelChip(chip, "gaps", this.gapTotal);
     }

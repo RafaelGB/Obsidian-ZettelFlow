@@ -52,6 +52,7 @@ records exactly as it did before them.
 | AI actions | a model's proposal | `ai` |
 | Cultivate moves | a proposed connection, challenge, source | `derived` |
 | **The note builder (#411)** | a suggested connection in the companion pane, accepted / modified / rejected while the note is being written | `derived` |
+| **Home's gaps (#534)** | a pair of unlinked notes the graph keeps putting together: *not related* (`rejected`, subject `gap:<path>`). Only *no* is recorded — linking the two notes stops the pair being a gap by construction | `derived` |
 
 The note-builder verdicts are buffered while the wizard runs and recorded against the note that is
 finally created; a session closed without building records nothing.

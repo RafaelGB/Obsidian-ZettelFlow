@@ -1,6 +1,8 @@
 import {
+    gapVerdict,
     recordJudgement,
     judgementDays,
+    ruledOutGaps,
     sanitizeJudgementLog,
     type Judgement,
 } from "architecture/knowledge/judgement";
@@ -83,6 +85,26 @@ export class JudgementLog {
 
         settings.judgements.log = next;
         this.scheduleSave();
+    }
+
+    /**
+     * Rule a gap out: **these two notes are not related** (#534).
+     *
+     * Writes nothing to the vault — not a link, not a property, not a line. The one thing that
+     * changes is this record, which is what makes the verdict data instead of advice (§XII).
+     *
+     * Idempotence comes from **the pair already being ruled out**, not from `recordJudgement`: its
+     * repeat guard compares `at`, so the same verdict clicked twice seconds apart is not an exact
+     * repeat of the last entry — and with another verdict landing in between it is not even the last
+     * one. Checking the ruled-out set instead also survives a reload, and matches either ordering.
+     */
+    public recordGapVerdict(a: string, b: string, now: number = Date.now()): void {
+        if (!this.host || !this.enabled()) return;
+        const left = a?.trim();
+        const right = b?.trim();
+        if (!left || !right || left === right) return;
+        if (ruledOutGaps(this.entries()).has(left, right)) return;
+        this.record(gapVerdict(left, right), now);
     }
 
     private scheduleSave(): void {

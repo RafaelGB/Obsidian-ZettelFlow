@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { buildHome } from "architecture/knowledge/home/home";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
+import { gapVerdict } from "architecture/knowledge/judgement/gapVerdict";
 
 const NOW = 1_000_000_000_000;
 const DAY = 86_400_000;
@@ -29,10 +30,15 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
             newIdeas: ["recent1.md", "recent2.md"],
             mainConcepts: ["hub.md", "n1.md", "n2.md", "n3.md", "n4.md"],
             reviewDue: ["hub.md"],
-            suggestedConnections: [
+            // **Five rows, not three** (#534). The section sliced `findDiscoveries` -- bound to a
+            // display limit of three -- to five, so it showed three however many gaps a vault had
+            // and read as if it showed five. Five is what it shows now; #530 left this one behind.
+            gaps: [
                 { a: "n1.md", b: "n2.md" },
                 { a: "n1.md", b: "n3.md" },
                 { a: "n1.md", b: "n4.md" },
+                { a: "n1.md", b: "n5.md" },
+                { a: "n2.md", b: "n3.md" },
             ],
             fleetingCount: 3,
             fleetingReady: ["recent1.md", "recent2.md", "old.md"],
@@ -46,7 +52,7 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
             newIdeas: [],
             mainConcepts: [],
             reviewDue: [],
-            suggestedConnections: [],
+            gaps: [],
             fleetingCount: 0,
             fleetingReady: [],
             openQuestions: [],
@@ -57,5 +63,27 @@ describe("buildHome (#172, FR-1..FR-6, AC-1)", () => {
         const before = model.size();
         expect(buildHome(model, { thinkingDays: 42, now: NOW })).toEqual(buildHome(model, { thinkingDays: 42, now: NOW }));
         expect(model.size()).toBe(before);
+    });
+});
+
+describe("Home shows the gaps you have not ruled out (#534, FR-2, AC-1)", () => {
+    it("drops the pair you called not related, and fills the row behind it", () => {
+        const ruled = [{ at: NOW, ...gapVerdict("n1.md", "n2.md") }];
+        const home = buildHome(model, { thinkingDays: 0, now: NOW, judgements: ruled });
+        expect(home.gaps).toEqual([
+            { a: "n1.md", b: "n3.md" },
+            { a: "n1.md", b: "n4.md" },
+            { a: "n1.md", b: "n5.md" },
+            { a: "n2.md", b: "n3.md" },
+            // The sixth gap moves up: the list still shows five, so a verdict cleans the section
+            // instead of shortening it.
+            { a: "n2.md", b: "n4.md" },
+        ]);
+    });
+
+    it("shows the unfiltered gaps when no record is passed", () => {
+        expect(buildHome(model, { thinkingDays: 0, now: NOW }).gaps).toEqual(
+            buildHome(model, { thinkingDays: 0, now: NOW, judgements: [] }).gaps
+        );
     });
 });

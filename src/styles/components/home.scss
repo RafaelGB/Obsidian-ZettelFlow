@@ -171,6 +171,23 @@
     font-size: var(--font-ui-smaller);
 }
 
+// The verdict on a gap (#534): quiet until you look at the row, and built out of Obsidian's own
+// button variables so it reads as a button in whatever theme you use (XV).
+.zettelkasten-flow__home-gap-verdict {
+    margin-left: var(--size-4-2);
+    padding: 0 var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.zettelkasten-flow__home-connection:hover .zettelkasten-flow__home-gap-verdict,
+.zettelkasten-flow__home-gap-verdict:focus-visible {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
 .zettelkasten-flow__home-connection-sep {
     color: var(--text-faint);
 }

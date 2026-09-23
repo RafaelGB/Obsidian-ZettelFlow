@@ -1,0 +1,294 @@
+import { describe, it, expect } from "@jest/globals";
+import { readFileSync } from "fs";
+import { join } from "path";
+import {
+    SEAM_LEGEND_MAX,
+    belongsToCommunity,
+    belongsToSeam,
+    communityFrameKey,
+    legendShowsSeams,
+    neighbourhoodRows,
+    paletteOf,
+    regionFrameKey,
+    seamFrameKey,
+    seamRows,
+} from "architecture/components/core/graph3d/graph3dLegend";
+import { COMMUNITY_COLORS, type Graph3DData, type Graph3DNode, type GapSeam } from "architecture/knowledge/state";
+import en from "architecture/lang/locale/en";
+import es from "architecture/lang/locale/es";
+
+/**
+ * **Fly to the widest seam** (#533, epic #529).
+ *
+ * The lens draws every gap it can, and on a real vault that is 217 dashed lines. A picture of
+ * everything is a picture of nothing — what the epic promised is a *place*, and a place is
+ * something you can **go to**. The seams are that list; the graph already knows how to fly.
+ *
+ * Every number the legend shows and every predicate the camera gets is computed here, in a pure
+ * module, because `jest.config.js` runs `testEnvironment: "node"`: the view cannot be mounted, so
+ * the arithmetic is tested directly and the wiring is source-scanned.
+ */
+const node = (id: string, community: number, name: string, region = "R"): Graph3DNode =>
+    ({ id, name: id, val: 1, group: 0, region, community, communityName: name }) as Graph3DNode;
+
+const screen = (nodes: Graph3DNode[]): Graph3DData => ({ nodes, links: [] }) as Graph3DData;
+
+const seam = (a: number, b: number, gaps: number, links: number, labelA = `n${a}`, labelB = `n${b}`): GapSeam => ({
+    a,
+    b,
+    labelA,
+    labelB,
+    gaps,
+    score: gaps * 2,
+    links,
+});
+
+describe("a neighbourhood is an index, not a name (#533, FR-4, AC-4)", () => {
+    // The defect, as the reference vault has it: two different communities both called `readme`.
+    const twoReadmes = [
+        node("a.md", 0, "readme"),
+        node("b.md", 0, "readme"),
+        node("c.md", 0, "readme"),
+        node("d.md", 3, "readme"),
+        node("e.md", 3, "readme"),
+    ];
+
+    it("keeps two same-named neighbourhoods apart, with their own sizes", () => {
+        const { rows } = neighbourhoodRows(twoReadmes);
+        expect(rows).toHaveLength(2);
+        expect(rows.map((row) => row.size)).toEqual([3, 2]);
+        expect(rows.map((row) => row.community)).toEqual([0, 3]);
+        // Distinct framing keys, or the pressed state would light both rows at once.
+        expect(new Set(rows.map((row) => communityFrameKey(row.community))).size).toBe(2);
+    });
+
+    it("frames one of them and not the other", () => {
+        const first = belongsToCommunity(0);
+        expect(twoReadmes.filter(first).map((one) => one.id)).toEqual(["a.md", "b.md", "c.md"]);
+        expect(twoReadmes.filter(belongsToCommunity(3)).map((one) => one.id)).toEqual(["d.md", "e.md"]);
+    });
+
+    it("counts an alone note as alone, and puts it in no row", () => {
+        const { rows, alone } = neighbourhoodRows([...twoReadmes, node("lonely.md", -1, "")]);
+        expect(alone).toBe(1);
+        expect(rows.flatMap((row) => row.size)).toEqual([3, 2]);
+        expect(belongsToCommunity(-1)(node("lonely.md", -1, ""))).toBe(true); // the predicate is honest…
+        expect(rows.some((row) => row.community === -1)).toBe(false); // …but no row offers it
+    });
+
+    it("orders by size, then name, then index — deterministic for a tie", () => {
+        const tied = [node("a.md", 5, "same"), node("b.md", 2, "same")];
+        expect(neighbourhoodRows(tied).rows.map((row) => row.community)).toEqual([2, 5]);
+    });
+
+    it("namespaces the framing keys, so a region and a community cannot collide", () => {
+        expect(communityFrameKey(3)).not.toBe(regionFrameKey("3"));
+        expect(seamFrameKey(1, 2)).toBe(seamFrameKey(2, 1));
+        expect(seamFrameKey(1, 2)).not.toBe(communityFrameKey(1));
+    });
+
+    it("gives a row the same colour the scene gives its nodes", () => {
+        expect(paletteOf(0)).toBe(0);
+        expect(paletteOf(COMMUNITY_COLORS.length)).toBe(0);
+        expect(paletteOf(COMMUNITY_COLORS.length + 2)).toBe(2);
+    });
+});
+
+describe("the widest seams that fit on screen (#533, FR-1, AC-1, AC-5, AC-6)", () => {
+    const displayed = screen([node("a.md", 0, "n0"), node("b.md", 1, "n1"), node("c.md", 2, "n2")]);
+
+    it("takes them in the order gapSeams handed them over, and never sorts", () => {
+        const seams = [seam(0, 1, 9, 0), seam(0, 2, 4, 1), seam(1, 2, 4, 3)];
+        const rows = seamRows(seams, displayed);
+        expect(rows.map((row) => [row.labelA, row.labelB, row.gaps, row.links])).toEqual([
+            ["n0", "n1", 9, 0],
+            ["n0", "n2", 4, 1],
+            ["n1", "n2", 4, 3],
+        ]);
+        expect(rows[0].paletteA).toBe(paletteOf(0));
+        expect(rows[0].paletteB).toBe(paletteOf(1));
+    });
+
+    it("caps at SEAM_LEGEND_MAX, keeping the widest", () => {
+        expect(SEAM_LEGEND_MAX).toBe(8);
+        const many = Array.from({ length: 12 }, (_, index) => seam(0, 1, 12 - index, 0, `x${index}`, `y${index}`));
+        const rows = seamRows(many, displayed);
+        expect(rows).toHaveLength(SEAM_LEGEND_MAX);
+        expect(rows.map((row) => row.gaps)).toEqual([12, 11, 10, 9, 8, 7, 6, 5]);
+        // No two rows show the same pair of labels — #531's qualification carries through.
+        expect(new Set(rows.map((row) => `${row.labelA}|${row.labelB}`)).size).toBe(rows.length);
+    });
+
+    it("drops a seam with a side that is not on screen", () => {
+        // The time-lapse rule, the same one the ghost edges follow: a row you cannot fly to lies.
+        const rows = seamRows([seam(0, 9, 30, 0), seam(0, 1, 2, 0)], displayed);
+        expect(rows.map((row) => [row.a, row.b])).toEqual([[0, 1]]);
+    });
+
+    it("has nothing to list when there are no seams, or no room", () => {
+        expect(seamRows([], displayed)).toEqual([]);
+        expect(seamRows([seam(0, 1, 5, 0)], displayed, 0)).toEqual([]);
+        expect(seamRows([seam(0, 1, 5, 0)], screen([]))).toEqual([]);
+    });
+
+    it("frames both sides of a seam, and nothing else", () => {
+        const belongs = belongsToSeam(0, 2);
+        const nodes = [node("a.md", 0, "n0"), node("b.md", 1, "n1"), node("c.md", 2, "n2")];
+        expect(nodes.filter(belongs).map((one) => one.id)).toEqual(["a.md", "c.md"]);
+    });
+});
+
+describe("the swap happens because of the lens, not a setting (#533, FR-6)", () => {
+    it("lists seams only with the gap lens on and colours meaning neighbourhoods", () => {
+        expect(legendShowsSeams("gaps", "neighbourhood")).toBe(true);
+        expect(legendShowsSeams(null, "neighbourhood")).toBe(false);
+        expect(legendShowsSeams("bridges", "neighbourhood")).toBe(false);
+        // In the state colour mode the two swatches on a seam row would mean nothing.
+        expect(legendShowsSeams("gaps", "state")).toBe(false);
+    });
+});
+
+/**
+ * The wiring, source-scanned (no jsdom — see the note at the top of this file).
+ */
+describe("the renderer frames the place, not the label (#533, FR-2, FR-4)", () => {
+    const ROOT = join(__dirname, "..", "..", "..", "..", "..");
+    // Comments removed, so a rule is never satisfied — or broken — by prose about the rule.
+    const CODE = readFileSync(join(ROOT, "src/architecture/components/core/graph3d/Graph3DRenderer.ts"), "utf8")
+        .split("\n")
+        .filter((line) => {
+            const trimmed = line.trim();
+            return !trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*");
+        })
+        .join("\n");
+
+    it("builds its rows through the pure module", () => {
+        expect(CODE).toContain("neighbourhoodRows(this.displayed.nodes)");
+        expect(CODE).toContain("communityFrameKey(one.community)");
+        expect(CODE).toContain("paletteOf(one.community)");
+    });
+
+    it("has no name-keyed framing left anywhere", () => {
+        expect(CODE).not.toContain("node.communityName === name");
+        expect(CODE).toContain("private frameCommunity(index: number)");
+    });
+
+    it("keeps framing a camera move and nothing else (#515's rule survives)", () => {
+        const frame = CODE.slice(CODE.indexOf("private frameBy"));
+        const body = frame.slice(0, 700);
+        expect(body).toContain("zoomToFit(");
+        for (const forbidden of ["filterGraph3D", "hiddenNodes", "setLit"]) {
+            expect(body).not.toContain(forbidden);
+        }
+    });
+});
+
+describe("the legend lists the seams, and a row flies to both sides (#533, FR-1, FR-2, FR-5, AC-7)", () => {
+    const ROOT = join(__dirname, "..", "..", "..", "..", "..");
+    const RAW = readFileSync(join(ROOT, "src/architecture/components/core/graph3d/Graph3DRenderer.ts"), "utf8");
+    const CODE = RAW.split("\n")
+        .filter((line) => {
+            const trimmed = line.trim();
+            return !trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*");
+        })
+        .join("\n");
+    const slice = (from: string, to: string): string => {
+        const start = CODE.indexOf(from);
+        expect(start).toBeGreaterThan(-1);
+        const end = CODE.indexOf(to, start + from.length);
+        return CODE.slice(start, end > start ? end : undefined);
+    };
+
+    it("swaps the list on the lens, not on a setting", () => {
+        const render = slice("private renderLegend", "private legendLinkRows");
+        expect(render).toContain("legendShowsSeams(this.overlay, this.colorMode)");
+        expect(render).toContain("this.legendSeamRows(legend)");
+        expect(render).toContain("this.legendRegionRows(legend)");
+    });
+
+    it("re-renders the legend when the lens changes and when the focus is dismissed", () => {
+        // Without both, the seam list would appear a render late and outlive the lens.
+        const toggle = slice("private toggleOverlay", "private scrubTime");
+        expect(toggle).toContain("this.renderLegend()");
+        const clear = slice("private clearFocus", "private focusByName");
+        expect(clear).toContain("this.renderLegend()");
+    });
+
+    it("gives a seam row two swatches, two numbers and a label of its own", () => {
+        const row = slice("private legendSeamRow", "private frameSeam");
+        expect(row.match(/graph3d-swatch--community-/g) ?? []).toHaveLength(2);
+        expect(row).toContain('t("graph3d_legend_seam_counts"');
+        expect(row).toContain('t("graph3d_legend_seam_aria"');
+        // The framable helper carries tabIndex, keydown, role and aria-pressed (#325, #515).
+        expect(row).toContain("this.makeFramable(");
+    });
+
+    it("says there is nothing rather than drawing an empty box", () => {
+        const rows = slice("private legendSeamRows", "private legendSeamRow");
+        expect(rows).toContain('t("graph3d_legend_seams_none")');
+        expect(rows).toContain("if (rows.length === 0)");
+        expect(rows).toContain('t("graph3d_legend_seams_capped"');
+    });
+
+    it("flies to both sides through the one framing helper", () => {
+        const frame = slice("private frameSeam", "private legendKindRow");
+        expect(frame).toContain("this.frameBy(seamFrameKey(a, b), belongsToSeam(a, b))");
+        // And `frameBy` is still the pull-back-on-second-click camera move, nothing more.
+        const by = slice("private frameBy", "private legendKindRow");
+        expect(by).toContain("zoomToFit(700, 40)");
+    });
+
+    it("reads the seams the one reader cached, never the projection", () => {
+        const rows = slice("private legendSeamRows", "private legendSeamRow");
+        expect(rows).toContain("seamRows(this.seams, this.displayed)");
+        expect(rows).not.toContain("openSeams(");
+        expect(rows).not.toContain("gapSeams(");
+    });
+});
+
+describe("the seam strings state the two numbers, and nothing more (#533, FR-7, AC-8)", () => {
+    const KEYS = [
+        "graph3d_legend_seams",
+        "graph3d_legend_seams_capped",
+        "graph3d_legend_seam_counts",
+        "graph3d_legend_seam_aria",
+        "graph3d_legend_seams_none",
+    ];
+    /** Advice verbs (#485) and reproach (#507), in both shipped locales. */
+    const OFFENDING = [
+        /\btry\b/i,
+        /\byou should\b/i,
+        /\bconsider\b/i,
+        /\bintenta\b/i,
+        /\bdeber\u00edas\b/i,
+        /\bstill\b/i,
+        /\btodav\u00eda\b/i,
+    ];
+
+    it("has all five keys in both locales, with their placeholders intact", () => {
+        for (const [name, locale] of [["en", en], ["es", es]] as const) {
+            for (const key of KEYS) {
+                const value = (locale as unknown as Record<string, string>)[key];
+                expect({ name, key, ok: typeof value === "string" && value.length > 0 }).toEqual({
+                    name,
+                    key,
+                    ok: true,
+                });
+            }
+            const strings = locale as unknown as Record<string, string>;
+            expect(strings.graph3d_legend_seam_counts).toContain("{0}");
+            expect(strings.graph3d_legend_seam_counts).toContain("{1}");
+            expect(strings.graph3d_legend_seam_aria).toContain("{3}");
+            expect(strings.graph3d_legend_seams_capped).toContain("{1}");
+        }
+    });
+
+    it("never tells you to link the two sides", () => {
+        for (const [name, locale] of [["en", en], ["es", es]] as const) {
+            const offenders = KEYS.filter((key) =>
+                OFFENDING.some((pattern) => pattern.test((locale as unknown as Record<string, string>)[key]))
+            );
+            expect({ name, offenders }).toEqual({ name, offenders: [] });
+        }
+    });
+});

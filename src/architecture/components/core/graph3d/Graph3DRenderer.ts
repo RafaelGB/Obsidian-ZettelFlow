@@ -19,7 +19,6 @@ import {
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
     RELATION_COLORS,
-    COMMUNITY_COLORS,
     communityColor,
     shortestPath,
     tourStops,
@@ -27,11 +26,26 @@ import {
     STATE_COLORS,
     openGapCount,
     openGaps,
+    openSeams,
+    type GapSeam,
 } from "architecture/knowledge/state";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
 import { GAP_DRAW_MAX, ghostKey, selectGhosts, type GhostEdge } from "./graph3dGhosts";
+import {
+    belongsToCommunity,
+    belongsToSeam,
+    communityFrameKey,
+    legendShowsSeams,
+    neighbourhoodRows,
+    paletteOf,
+    regionFrameKey,
+    seamFrameKey,
+    seamRows,
+    type NeighbourhoodRow,
+    type SeamRow,
+} from "./graph3dLegend";
 import { environmentEnabled, starfieldPositions, haloSpec } from "./graph3dEnvironment";
 import { buildExportBaseName } from "../export/exportFilename";
 import { canvasToPngBlob, pickVideoMimeType, recordCanvasWebm } from "../export/mediaCapture";
@@ -192,6 +206,11 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * until the next edit to the vault.
      */
     private gapVerdicts = -1;
+    /**
+     * The seams, as of {@link gapRevision} (#533) — what the legend lists while the gap lens is on.
+     * Ordered widest first by `gapSeams`; the legend never re-sorts them.
+     */
+    private seams: GapSeam[] = [];
     /** The ghost edges the scene is currently drawing, recomputed when the lens or the graph moves. */
     private ghosts: GhostEdge[] = [];
     /**
@@ -1156,6 +1175,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (this.gapRevision === model.revision() && this.gapVerdicts === verdicts) return;
         this.gapTotal = openGapCount(model, judgements);
         this.gapStrongest = openGaps(model, judgements, GAP_DRAW_MAX);
+        // The seams ride along (#533): the legend lists them while the lens is on, and they come
+        // from the same pass behind the same guards -- a second reader would be a second render
+        // paying for the projection.
+        this.seams = openSeams(model, judgements);
         this.gapRevision = model.revision();
         this.gapVerdicts = verdicts;
         const chip = this.lensChips.get("gaps");
@@ -1228,6 +1251,9 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
         this.refreshPaint();
         this.updateStatus();
+        // The list the legend shows depends on the lens (#533), and `ensureGapSource` has just run
+        // inside `syncEdgeLens`, so the seams exist by the time this reads them.
+        this.renderLegend();
     }
 
     // ── Time-lapse ──────────────────────────────────────────────────────────────
@@ -1385,6 +1411,8 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         }
         this.refreshPaint();
         this.updateStatus();
+        // Dismissing the lens puts the neighbourhood list back (#533).
+        this.renderLegend();
     }
 
     private focusByName(query: string): void {
@@ -1595,6 +1623,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         this.wrapperEl.querySelector("." + c("graph3d-legend"))?.remove();
         const legend = this.wrapperEl.createDiv({ cls: c("graph3d-legend") });
 
+        // The seam list replaces the neighbourhood list while the gap lens is on (#533). Not a
+        // second list and not a toggle: the lens you turned on is what asks the question, and a
+        // seam row's two swatches would mean nothing in the `state` colour mode.
+        if (legendShowsSeams(this.overlay, this.colorMode)) {
+            this.legendSeamRows(legend);
+            this.legendLinkRows(legend);
+            return;
+        }
+
         // Node colour legend — reflects the active mode so the user knows what colours mean.
         legend.createDiv({
             cls: c("graph3d-legend-title"),
@@ -1620,19 +1657,75 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             if (kinds.has("source")) this.legendKindRow(legend, "source", "◆", "graph3d_kind_source");
         }
 
-        // Relation (link) legend for the types present.
+        this.legendLinkRows(legend);
+    }
+
+    /** The relation (link) legend for the types present — shared by both legend branches. */
+    private legendLinkRows(legend: HTMLElement): void {
         const types = [...new Set(this.displayed.links.map((l) => l.type))].filter((tp) => RELATION_COLOR_VARS[tp]).sort();
-        if (types.length > 0) {
-            legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
-            for (const type of types) {
-                const row = legend.createDiv({ cls: c("graph3d-legend-row", "graph3d-legend-row--clickable") });
-                row.toggleClass(c("graph3d-legend-row--hidden"), this.hiddenRelations.has(type));
-                row.setAttribute("aria-label", this.relationLabel(type));
-                row.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--" + type) });
-                row.createSpan({ text: this.relationLabel(type) });
-                this.registerDomEvent(row, "click", () => this.toggleRelation(type));
-            }
+        if (types.length === 0) return;
+        legend.createDiv({ cls: c("graph3d-legend-title"), text: t("graph3d_legend_title") });
+        for (const type of types) {
+            const row = legend.createDiv({ cls: c("graph3d-legend-row", "graph3d-legend-row--clickable") });
+            row.toggleClass(c("graph3d-legend-row--hidden"), this.hiddenRelations.has(type));
+            row.setAttribute("aria-label", this.relationLabel(type));
+            row.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--" + type) });
+            row.createSpan({ text: this.relationLabel(type) });
+            this.registerDomEvent(row, "click", () => this.toggleRelation(type));
         }
+    }
+
+    /**
+     * **The widest seams, and a row you can fly to** (#533).
+     *
+     * The lens draws every gap it can, and on a real vault that is 217 dashed lines — a picture of
+     * everything is a picture of nothing. A seam is a *place*: two neighbourhoods, how much shared
+     * context has not become a link, and how many links already cross. This is that list, widest
+     * first, and clicking a row flies to both sides at once.
+     *
+     * The heading says how many were left out rather than pretending the cap is the whole truth,
+     * and an empty list says so instead of rendering an empty box (#516's rule).
+     */
+    private legendSeamRows(legend: HTMLElement): void {
+        const rows = seamRows(this.seams, this.displayed);
+        const total = this.seams.length;
+        legend.createDiv({
+            cls: c("graph3d-legend-title"),
+            text:
+                rows.length < total
+                    ? t("graph3d_legend_seams_capped", String(rows.length), String(total))
+                    : t("graph3d_legend_seams"),
+        });
+        if (rows.length === 0) {
+            legend.createDiv({ cls: c("graph3d-legend-empty"), text: t("graph3d_legend_seams_none") });
+            return;
+        }
+        for (const seam of rows) this.legendSeamRow(legend, seam);
+    }
+
+    /** One seam: its two sides with their own colours, its two numbers, and the flight. */
+    private legendSeamRow(legend: HTMLElement, seam: SeamRow): void {
+        const row = legend.createDiv({ cls: c("graph3d-legend-row", "graph3d-legend-seam") });
+        const sides = row.createDiv({ cls: c("graph3d-legend-seam-sides") });
+        sides.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--community-" + seam.paletteA) });
+        sides.createSpan({ text: seam.labelA });
+        sides.createSpan({ cls: c("graph3d-legend-seam-arrow"), text: "↔" });
+        sides.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--community-" + seam.paletteB) });
+        sides.createSpan({ text: seam.labelB });
+        row.createDiv({
+            cls: c("graph3d-legend-count"),
+            text: t("graph3d_legend_seam_counts", String(seam.gaps), String(seam.links)),
+        });
+        row.setAttribute(
+            "aria-label",
+            t("graph3d_legend_seam_aria", seam.labelA, seam.labelB, String(seam.gaps), String(seam.links))
+        );
+        this.makeFramable(row, seamFrameKey(seam.a, seam.b), () => this.frameSeam(seam.a, seam.b));
+    }
+
+    /** Fly to a seam: **both** neighbourhoods, so you see the space between them (FR-3). */
+    private frameSeam(a: number, b: number): void {
+        this.frameBy(seamFrameKey(a, b), belongsToSeam(a, b));
     }
 
     /**
@@ -1647,23 +1740,16 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * a single "X" is the legend saying the same thing twice.
      */
     private legendRegionRows(legend: HTMLElement): void {
-        const seen = new Map<string, { community: number; size: number; region: string }>();
-        let alone = 0;
-        for (const node of this.displayed.nodes) {
-            if (node.community < 0 || !node.communityName) {
-                alone++;
-                continue;
-            }
-            const entry = seen.get(node.communityName);
-            if (entry) entry.size++;
-            else seen.set(node.communityName, { community: node.community, size: 1, region: node.region });
-        }
+        // Grouped by **community index** since #533 (`neighbourhoodRows`): grouping by name merged
+        // two different neighbourhoods that happened to share one, and framing that row flew to
+        // both of them at once.
+        const { rows, alone } = neighbourhoodRows(this.displayed.nodes);
 
-        const byRegion = new Map<string, { name: string; community: number; size: number }[]>();
-        for (const [name, { community, size, region }] of seen) {
-            const list = byRegion.get(region) ?? [];
-            list.push({ name, community, size });
-            byRegion.set(region, list);
+        const byRegion = new Map<string, NeighbourhoodRow[]>();
+        for (const row of rows) {
+            const list = byRegion.get(row.region) ?? [];
+            list.push(row);
+            byRegion.set(row.region, list);
         }
         const regions = [...byRegion].sort(
             (a, b) =>
@@ -1672,11 +1758,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         );
 
         for (const [region, communities] of regions) {
-            communities.sort((a, b) => b.size - a.size || (a.name < b.name ? -1 : 1));
             if (communities.length > 1) this.legendRegionHeading(legend, region);
             for (const one of communities) {
-                const row = this.legendRegionRow(legend, one.name, one.size, one.community % COMMUNITY_COLORS.length);
-                this.makeFramable(row, one.name, () => this.frameCommunity(one.name));
+                const row = this.legendRegionRow(legend, one.name, one.size, paletteOf(one.community));
+                this.makeFramable(row, communityFrameKey(one.community), () => this.frameCommunity(one.community));
             }
         }
         // Alone is a state, not a neighbourhood: it is listed so the count is visible, and it does
@@ -1688,7 +1773,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private legendRegionHeading(legend: HTMLElement, region: string): void {
         const row = legend.createDiv({ cls: c("graph3d-legend-region") });
         row.createSpan({ text: region });
-        this.makeFramable(row, region, () => this.frameWholeRegion(region));
+        this.makeFramable(row, regionFrameKey(region), () => this.frameWholeRegion(region));
     }
 
     /** Give a legend row the click, the keyboard and the pressed state that framing needs (#515). */
@@ -1721,13 +1806,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * a lens and a time cursor to narrow it with, and a fourth way would be the addition this epic
      * exists to refuse. Clicking the framed region again pulls back to the whole graph.
      */
-    private frameCommunity(name: string): void {
-        this.frameBy(name, (node) => node.communityName === name);
+    private frameCommunity(index: number): void {
+        // By index, not by name (#533): two neighbourhoods can share a label, and they are two
+        // places. `node.communityName === name` framed both of them.
+        this.frameBy(communityFrameKey(index), belongsToCommunity(index));
     }
 
     /** Fly to a whole region — every community in it — from its legend heading (#527). */
     private frameWholeRegion(region: string): void {
-        this.frameBy(region, (node) => node.region === region);
+        this.frameBy(regionFrameKey(region), (node) => node.region === region);
     }
 
     private frameBy(key: string, belongs: (node: Graph3DNode) => boolean): void {

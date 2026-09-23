@@ -114,6 +114,11 @@ export const NOT_EXPOSED: Record<string, string> = {
     fromReview: "internal recommendation mapper",
     fromNextSession: "internal recommendation mapper",
     fromNextMove: "internal recommendation mapper",
+    // Ruling a gap out (#534). The verdict is a *write* into the judgement record, and the set it
+    // builds is the filter every gap reader already applies -- a script asking `discoveries` gets
+    // the raw answer on purpose, because the pinned script door is a question about the graph.
+    gapVerdict: "builds a judgement to record; scripts read the model and write only their own note",
+    ruledOutGaps: "the filter every gap reader applies for you, from a record scripts cannot read",
     isJudgement: "type guard, not a projection",
     sanitizeJudgementLog: "persistence concern, owned by JudgementLog",
     recordJudgement: "a write; scripts read the model and write only their own note",

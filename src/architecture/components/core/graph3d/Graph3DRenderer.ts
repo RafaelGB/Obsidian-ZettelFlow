@@ -19,7 +19,6 @@ import {
     OVERLAY_SPECS,
     RELATION_COLOR_VARS,
     RELATION_COLORS,
-    COMMUNITY_COLORS,
     communityColor,
     shortestPath,
     tourStops,
@@ -32,6 +31,14 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { consumeGraph3DFocus } from "./graph3dFocus";
 import { GAP_DRAW_MAX, ghostKey, selectGhosts, type GhostEdge } from "./graph3dGhosts";
+import {
+    belongsToCommunity,
+    communityFrameKey,
+    neighbourhoodRows,
+    paletteOf,
+    regionFrameKey,
+    type NeighbourhoodRow,
+} from "./graph3dLegend";
 import { environmentEnabled, starfieldPositions, haloSpec } from "./graph3dEnvironment";
 import { buildExportBaseName } from "../export/exportFilename";
 import { canvasToPngBlob, pickVideoMimeType, recordCanvasWebm } from "../export/mediaCapture";
@@ -1647,23 +1654,16 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * a single "X" is the legend saying the same thing twice.
      */
     private legendRegionRows(legend: HTMLElement): void {
-        const seen = new Map<string, { community: number; size: number; region: string }>();
-        let alone = 0;
-        for (const node of this.displayed.nodes) {
-            if (node.community < 0 || !node.communityName) {
-                alone++;
-                continue;
-            }
-            const entry = seen.get(node.communityName);
-            if (entry) entry.size++;
-            else seen.set(node.communityName, { community: node.community, size: 1, region: node.region });
-        }
+        // Grouped by **community index** since #533 (`neighbourhoodRows`): grouping by name merged
+        // two different neighbourhoods that happened to share one, and framing that row flew to
+        // both of them at once.
+        const { rows, alone } = neighbourhoodRows(this.displayed.nodes);
 
-        const byRegion = new Map<string, { name: string; community: number; size: number }[]>();
-        for (const [name, { community, size, region }] of seen) {
-            const list = byRegion.get(region) ?? [];
-            list.push({ name, community, size });
-            byRegion.set(region, list);
+        const byRegion = new Map<string, NeighbourhoodRow[]>();
+        for (const row of rows) {
+            const list = byRegion.get(row.region) ?? [];
+            list.push(row);
+            byRegion.set(row.region, list);
         }
         const regions = [...byRegion].sort(
             (a, b) =>
@@ -1672,11 +1672,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         );
 
         for (const [region, communities] of regions) {
-            communities.sort((a, b) => b.size - a.size || (a.name < b.name ? -1 : 1));
             if (communities.length > 1) this.legendRegionHeading(legend, region);
             for (const one of communities) {
-                const row = this.legendRegionRow(legend, one.name, one.size, one.community % COMMUNITY_COLORS.length);
-                this.makeFramable(row, one.name, () => this.frameCommunity(one.name));
+                const row = this.legendRegionRow(legend, one.name, one.size, paletteOf(one.community));
+                this.makeFramable(row, communityFrameKey(one.community), () => this.frameCommunity(one.community));
             }
         }
         // Alone is a state, not a neighbourhood: it is listed so the count is visible, and it does
@@ -1688,7 +1687,7 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private legendRegionHeading(legend: HTMLElement, region: string): void {
         const row = legend.createDiv({ cls: c("graph3d-legend-region") });
         row.createSpan({ text: region });
-        this.makeFramable(row, region, () => this.frameWholeRegion(region));
+        this.makeFramable(row, regionFrameKey(region), () => this.frameWholeRegion(region));
     }
 
     /** Give a legend row the click, the keyboard and the pressed state that framing needs (#515). */
@@ -1721,13 +1720,15 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
      * a lens and a time cursor to narrow it with, and a fourth way would be the addition this epic
      * exists to refuse. Clicking the framed region again pulls back to the whole graph.
      */
-    private frameCommunity(name: string): void {
-        this.frameBy(name, (node) => node.communityName === name);
+    private frameCommunity(index: number): void {
+        // By index, not by name (#533): two neighbourhoods can share a label, and they are two
+        // places. `node.communityName === name` framed both of them.
+        this.frameBy(communityFrameKey(index), belongsToCommunity(index));
     }
 
     /** Fly to a whole region — every community in it — from its legend heading (#527). */
     private frameWholeRegion(region: string): void {
-        this.frameBy(region, (node) => node.region === region);
+        this.frameBy(regionFrameKey(region), (node) => node.region === region);
     }
 
     private frameBy(key: string, belongs: (node: Graph3DNode) => boolean): void {

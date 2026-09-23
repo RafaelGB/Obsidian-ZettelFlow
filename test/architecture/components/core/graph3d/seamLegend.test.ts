@@ -1,4 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
+import { readFileSync } from "fs";
+import { join } from "path";
 import {
     SEAM_LEGEND_MAX,
     belongsToCommunity,
@@ -141,5 +143,40 @@ describe("the swap happens because of the lens, not a setting (#533, FR-6)", () 
         expect(legendShowsSeams("bridges", "neighbourhood")).toBe(false);
         // In the state colour mode the two swatches on a seam row would mean nothing.
         expect(legendShowsSeams("gaps", "state")).toBe(false);
+    });
+});
+
+/**
+ * The wiring, source-scanned (no jsdom — see the note at the top of this file).
+ */
+describe("the renderer frames the place, not the label (#533, FR-2, FR-4)", () => {
+    const ROOT = join(__dirname, "..", "..", "..", "..", "..");
+    // Comments removed, so a rule is never satisfied — or broken — by prose about the rule.
+    const CODE = readFileSync(join(ROOT, "src/architecture/components/core/graph3d/Graph3DRenderer.ts"), "utf8")
+        .split("\n")
+        .filter((line) => {
+            const trimmed = line.trim();
+            return !trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*");
+        })
+        .join("\n");
+
+    it("builds its rows through the pure module", () => {
+        expect(CODE).toContain("neighbourhoodRows(this.displayed.nodes)");
+        expect(CODE).toContain("communityFrameKey(one.community)");
+        expect(CODE).toContain("paletteOf(one.community)");
+    });
+
+    it("has no name-keyed framing left anywhere", () => {
+        expect(CODE).not.toContain("node.communityName === name");
+        expect(CODE).toContain("private frameCommunity(index: number)");
+    });
+
+    it("keeps framing a camera move and nothing else (#515's rule survives)", () => {
+        const frame = CODE.slice(CODE.indexOf("private frameBy"));
+        const body = frame.slice(0, 700);
+        expect(body).toContain("zoomToFit(");
+        for (const forbidden of ["filterGraph3D", "hiddenNodes", "setLit"]) {
+            expect(body).not.toContain(forbidden);
+        }
     });
 });

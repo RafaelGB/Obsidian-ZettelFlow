@@ -78,9 +78,13 @@ describe("the legend groups without repeating itself (#527)", () => {
 
 describe("framing works at both levels, and is still only a camera (#527)", () => {
     it("frames a community from a row and a whole region from its heading", () => {
-        expect(CODE).toContain("private frameCommunity(name: string): void");
+        // **By index since #533**, not by name: `node.communityName === name` framed every
+        // neighbourhood sharing a label, and the reference vault has two called `readme`. The
+        // assertion is kept rather than deleted, pointing at the predicate that replaced it.
+        expect(CODE).toContain("private frameCommunity(index: number): void");
         expect(CODE).toContain("private frameWholeRegion(region: string): void");
-        expect(CODE).toContain("node.communityName === name");
+        expect(CODE).toContain("belongsToCommunity(index)");
+        expect(CODE).not.toContain("node.communityName === name");
         expect(CODE).toContain("node.region === region");
     });
 

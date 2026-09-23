@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import { semanticRelationField } from "actions/createSemanticRelation/createSemanticRelationLogic";
 import { SemanticRelationSchema } from "architecture/knowledge/relations/RelationSchema";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
+import { openGapCount, openGaps, openSeams } from "architecture/knowledge/judgement/gapVerdict";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 describe("accept a discovery (#163, AC-2b)", () => {
@@ -37,5 +38,14 @@ describe("accept a discovery (#163, AC-2b)", () => {
             idea("B.md", "permanent", []),
         ]);
         expect(findDiscoveries(accepted, { limit: 10 }).map((d) => `${d.a}::${d.b}`)).not.toContain("A.md::B.md");
+
+        // **A `yes` needs no memory** (#534, FR-5, AC-6). Linking the pair removes it from every
+        // reader with an **empty** judgement record: the tally excludes linked pairs by
+        // construction, so there is no "accepted" verdict to invent for a job the model already
+        // does -- and these three assertions are what stops one being invented later.
+        const pairOf = (gap: { a: string; b: string }): string => `${gap.a}::${gap.b}`;
+        expect(openGaps(accepted, [], 10).map(pairOf)).not.toContain("A.md::B.md");
+        expect(openGapCount(accepted, [])).toBe(openGapCount(withoutEdge, []) - 1);
+        expect(openSeams(accepted, []).every((seam) => seam.gaps > 0)).toBe(true);
     });
 });

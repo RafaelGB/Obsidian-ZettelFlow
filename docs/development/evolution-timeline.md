@@ -37,6 +37,27 @@ time (a snapshot before a judgement on a tie) and reads only what it is given, s
 on renders exactly the pre-#362 timeline. Judgement events are read from the always-local judgement log
 and honour the same [knowledge scope](knowledge-scope.md) — no extra content is stored for them.
 
+## Thoughts written about the note (#540)
+
+Thinking about a note used to leave no trace on it. *Think about this note* plus a sentence recorded
+a thought in the [thinking space](thought-lab.md), but the note's own history never learned it
+happened — the Lab records a **move** only when the space is opened with a framed verb, so an
+unframed thought fell between the two logs.
+
+Each thought written **about** the active note now appears on the same axis, labelled *"Thought about
+this"* and linking to the thought itself. Two properties follow from how it is read:
+
+- **Nothing recorded it.** A thought already carries the note it is about, in its own frontmatter, so
+  the strand reads a link that was always in the data. It is therefore **retroactive**: a thought you
+  wrote months ago shows up the first time you open the note's timeline.
+- **It carries no text.** The row holds an id, a time and a path — never the thought's content. The
+  timeline is opt-in because it stores *claim* texts; a strand that smuggled more past that opt-in
+  would break the bargain it was granted under.
+
+The merge stays pure — `timelineEvents(snapshots, judgements, moves, thoughts)`, every argument
+default-empty — and the lookup reads Obsidian's **metadata cache**, not the files, because the view
+recomputes on every change of active note.
+
 ## Shareable idea card (#387)
 
 The **Share this idea** button (Timeline header, shown once there is history) turns the timeline into a

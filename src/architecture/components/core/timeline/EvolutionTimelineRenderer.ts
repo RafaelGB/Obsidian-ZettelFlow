@@ -10,10 +10,12 @@ import {
     trajectory,
     type Snapshot,
     type TimelineEvent,
+    type ThoughtRef,
     type Judgement,
 } from "architecture/knowledge/state";
 import { MOVE_VERBS, type Move } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
+import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/EvidenceMapRenderer";
@@ -84,7 +86,12 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             // opt-in because it stores claim *texts*, and a move stores none — so the reason for
             // the opt-in does not reach it (#494).
             const moves = active ? MoveLog.getInstance().forSubject(active.path) : [];
-            this.events = timelineEvents(snapshots, judgements, moves);
+            // The thoughts written about this note (#540). Nothing recorded them: a thought already
+            // carries the note it is about, so this reads a link that was always in the data --
+            // which is why a thought written months ago shows up the first time you look. Read from
+            // the metadata cache, so a strand does not cost a folder of file reads per render.
+            const thoughts = active ? ThoughtStore.getInstance().about(active.path) : [];
+            this.events = timelineEvents(snapshots, judgements, moves, thoughts);
             this.state = this.events.length === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -189,6 +196,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             if (event.kind === "snapshot" && event.snapshot) this.renderSnapshot(container, event.snapshot);
             else if (event.kind === "judgement" && event.judgement) this.renderJudgement(container, event.judgement);
             else if (event.kind === "move" && event.move) this.renderMove(container, event.move);
+            else if (event.kind === "thought" && event.thought) this.renderThought(container, event.thought);
         }
     }
 
@@ -283,6 +291,24 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
      * linked** — the Lab is a place things are deliberately thrown away, and a dead link is worse
      * than a plain fact.
      */
+    /**
+     * A thought you wrote about this note (#540).
+     *
+     * It states what happened and nothing else: no verb, because you did not pick one — you thought
+     * about the note and something came out of your head. The row carries no text from the thought,
+     * only a way to open it.
+     */
+    private renderThought(container: HTMLElement, thought: ThoughtRef): void {
+        const entry = container.createDiv({
+            cls: [c("evolution-timeline-entry"), c("evolution-timeline-thought")].join(" "),
+        });
+        entry.createSpan({ text: new Date(thought.at).toLocaleDateString(), cls: c("evolution-timeline-date") });
+
+        const line = entry.createDiv({ cls: c("evolution-timeline-line") });
+        line.createSpan({ text: t("evolution_timeline_thought_label"), cls: c("evolution-timeline-label") });
+        this.renderProduced(line, thought.path);
+    }
+
     private renderProduced(line: HTMLElement, path: string): void {
         const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
         const exists = this.app.vault.getAbstractFileByPath(path) !== null;

@@ -163,3 +163,11 @@
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
+
+// A thought written about the note (#540). It is not a move -- you did not pick a verb -- so it
+// recolours the entry's own border, the way a judgement row does, in the muted tone of
+// something that happened rather than something you decided. Colour and spacing from the theme
+// (XV).
+.zettelkasten-flow__evolution-timeline-thought {
+    border-left-color: var(--text-faint);
+}

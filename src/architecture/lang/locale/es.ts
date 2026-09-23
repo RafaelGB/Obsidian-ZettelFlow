@@ -1551,6 +1551,7 @@ export default {
     evolution_timeline_contradicts: 'Qué la contradice',
     evolution_timeline_unrevisited: 'Cerca de ella, y sin revisitar',
     evolution_timeline_move_label: 'Tú',
+    evolution_timeline_thought_label: 'Pensamiento sobre esto',
     evolution_timeline_move_produced: '→ {0}',
     evolution_timeline_move_forget: 'Olvidar este movimiento',
     evolution_timeline_judgement_label: 'Juicio',

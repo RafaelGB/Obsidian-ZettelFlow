@@ -80,6 +80,12 @@
     .zettelkasten-flow__lab-composer:focus-within & {
         opacity: 1;
     }
+
+// A hint that has become a warning: the thought did not get written, and the text is still there.
+.zettelkasten-flow__lab-hint--failed {
+    color: var(--text-error);
+    font-weight: var(--font-semibold);
+}
 }
 
 /* ── the thoughts ─────────────────────────────────────────────────────────── */

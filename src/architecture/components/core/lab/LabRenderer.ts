@@ -98,6 +98,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** Where each thought is on screen, so following a connection can actually go somewhere. */
     private readonly cards = new Map<string, HTMLElement>();
     private composerEl: HTMLTextAreaElement | undefined;
+    /** The line under the composer: how to save, or why the last attempt did not. */
+    private hintEl: HTMLElement | undefined;
 
     constructor(
         container: HTMLElement,
@@ -463,7 +465,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         });
         this.registerDomEvent(area, "blur", () => this.flush());
 
-        box.createDiv({ cls: c("lab-hint"), text: t("lab_commit_hint") });
+        this.hintEl = box.createDiv({ cls: c("lab-hint"), text: t("lab_commit_hint") });
         // Deliberately focused on render: the command's whole promise is a blinking cursor.
         window.setTimeout(() => area.focus(), 0);
     }
@@ -481,9 +483,6 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.relation = undefined;
             return;
         }
-        this.draft = "";
-        this.relation = undefined;
-        if (this.composerEl) this.composerEl.value = "";
 
         // Inherited, so a thread keeps the context you arrived with — including the answers
         // you write to your own thoughts an hour later.
@@ -492,7 +491,20 @@ export class LabRenderer extends KnowledgeModeRenderer {
             ...(relation ? { respondsTo: relation } : {}),
             ...(subject ? { about: subject } : {}),
         });
-        if (!made) return;
+
+        // The box is cleared **after** the write, not before it. It used to be cleared first, so a
+        // write that returned nothing — `ThoughtStore.folder()` swallows a failed `getOwnPlugin()`
+        // and answers `""` (#374) — took the sentence with it: text gone, nothing saved, nothing
+        // said. A thought you wrote is the one thing this surface must not lose.
+        if (!made) {
+            log.error("[lab] the thought could not be written; the lab folder answered nothing");
+            this.sayCommitFailed();
+            return;
+        }
+        this.clearCommitFailure();
+        this.draft = "";
+        this.relation = undefined;
+        if (this.composerEl) this.composerEl.value = "";
         this.thoughts.push(made);
         // The gesture, written down (#492). A fork *is* a branch and a challenge *is* a challenge
         // — the Lab has always called them moves, and now it keeps them. Recorded here rather
@@ -591,6 +603,16 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(area, "focus", () => this.focus(thought.id));
         this.registerDomEvent(area, "input", () => this.scheduleEdit(thought, area, box));
         this.registerDomEvent(area, "blur", () => this.flush());
+        // The same boundary the composer honours. Editing an existing thought had only the
+        // debounce and the blur, so the hint under the composer promised a key that did nothing
+        // once the cursor moved into a card.
+        this.registerDomEvent(area, "keydown", (event: KeyboardEvent) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                this.flush();
+                area.blur();
+            }
+        });
 
         // A connection is undirected and can cross threads, so it cannot nest. It is shown
         // beside the thought as a reference you can follow, not as a count you cannot use.
@@ -977,6 +999,26 @@ export class LabRenderer extends KnowledgeModeRenderer {
     }
 
     /** Write whatever is waiting, now. Called on blur and on close — leaving must cost nothing. */
+    /**
+     * Say that the last thought did not get written — **in the composer**, under the text that is
+     * still there.
+     *
+     * Not a `Notice`: the Lab never counts at you (#469), and a message about your sentence
+     * belongs beside your sentence rather than in the corner of the screen. The draft is kept, so
+     * the message is about retrying rather than about a loss.
+     */
+    private sayCommitFailed(): void {
+        if (!this.hintEl) return;
+        this.hintEl.setText(t("lab_commit_failed"));
+        this.hintEl.addClass(c("lab-hint--failed"));
+    }
+
+    private clearCommitFailure(): void {
+        if (!this.hintEl) return;
+        this.hintEl.setText(t("lab_commit_hint"));
+        this.hintEl.removeClass(c("lab-hint--failed"));
+    }
+
     private flush(): void {
         if (this.editTimer) {
             window.clearTimeout(this.editTimer);

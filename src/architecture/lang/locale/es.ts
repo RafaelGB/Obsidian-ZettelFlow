@@ -230,6 +230,7 @@ export default {
     blind_ask_another: 'Preguntar otra cosa',
     lab_blank: 'Todavía no hay nada. Escribe algo arriba.',
     lab_commit_hint: 'Ctrl+Enter, o haz clic fuera, para guardarlo.',
+    lab_commit_failed: 'No se ha podido guardar ese pensamiento. Revisa la carpeta del espacio de pensamiento en los ajustes.',
     lab_arming_fork: 'Una variante del pensamiento que elegiste',
     lab_arming_challenge: 'Un argumento contra el pensamiento que elegiste',
     lab_arming_cancel: 'Déjalo',

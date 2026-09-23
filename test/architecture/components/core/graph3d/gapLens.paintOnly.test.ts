@@ -31,13 +31,16 @@ function slice(from: string, to: string): string {
 describe("the render path never pays for the gap projection (#532, FR-9, AC-6)", () => {
     it("reads it in exactly one method, and calls that method from exactly one place", () => {
         const reader = slice("private ensureGapSource", "private syncEdgeLens");
-        expect(reader).toContain("gapTally(model).size");
-        expect(reader).toContain("topGaps(model, GAP_DRAW_MAX)");
+        // Through the filtered reads since #534: the chip states how many gaps are **open**, so a
+        // pair you ruled out is not drawn and not counted.
+        expect(reader).toContain("openGapCount(model, judgements)");
+        expect(reader).toContain("openGaps(model, judgements, GAP_DRAW_MAX)");
 
         // Nowhere else. A second reader is a second render paying 982 ms at ten thousand notes.
         const outside = CODE.replace(reader, "");
-        expect(outside).not.toContain("gapTally(");
-        expect(outside).not.toContain("topGaps(");
+        for (const call of ["gapTally(", "topGaps(", "openGapCount(", "openGaps("]) {
+            expect(outside).not.toContain(call);
+        }
 
         expect(CODE.match(/this\.ensureGapSource\(\)/g) ?? []).toHaveLength(1);
     });
@@ -50,14 +53,19 @@ describe("the render path never pays for the gap projection (#532, FR-9, AC-6)",
         ] as const) {
             const body = slice(from, to);
             expect(body).not.toContain("ensureGapSource");
-            expect(body).not.toContain("gapTally(");
-            expect(body).not.toContain("topGaps(");
+            expect(body).not.toContain("openGapCount(");
+            expect(body).not.toContain("openGaps(");
         }
     });
 
-    it("skips the work when the model has not moved", () => {
+    it("skips the work when neither the model nor the record has moved", () => {
         const reader = slice("private ensureGapSource", "private syncEdgeLens");
-        expect(reader).toContain("if (this.gapRevision === model.revision()) return;");
+        // The record is part of the key since #534: a verdict changes what is drawn while leaving
+        // the model's revision alone, so a cache keyed on the revision would keep drawing a pair
+        // you had just dismissed until the next edit to the vault.
+        expect(reader).toContain(
+            "if (this.gapRevision === model.revision() && this.gapVerdicts === verdicts) return;"
+        );
         expect(reader).toContain('if (index.status !== "ready") return;');
     });
 

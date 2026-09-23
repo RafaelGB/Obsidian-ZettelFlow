@@ -287,8 +287,8 @@ describe("the seam counts what you have not ruled out (#534, FR-2, AC-8)", () =>
  * asks `openGaps` / `openGapCount` / `openSeams`, and if this list has to grow the growth is a
  * decision someone wrote down rather than an omission nobody noticed.
  *
- * The 3D map is on the list because it is the one reader that needs the **unfiltered** total as
- * well: the chip states how many gaps the vault has. It passes the record to the drawn set.
+ * The 3D map is **not** on the list: its chip states how many gaps are open, so it reads the
+ * filtered count like every other surface.
  */
 describe("one filter, honoured by every reader (#534, FR-2)", () => {
     const SRC = join(__dirname, "..", "..", "..", "..", "src");
@@ -312,7 +312,6 @@ describe("one filter, honoured by every reader (#534, FR-2)", () => {
 
     it("keeps the raw gap reads to the modules that own them", () => {
         expect(callersOf(/\b(topGaps|gapTally)\(/)).toEqual([
-            "architecture/components/core/graph3d/Graph3DRenderer.ts",
             "architecture/knowledge/discovery/discoveries.ts",
             "architecture/knowledge/judgement/gapVerdict.ts",
             "architecture/knowledge/map/gapSeams.ts",
@@ -331,6 +330,7 @@ describe("one filter, honoured by every reader (#534, FR-2)", () => {
         const filtered = callersOf(/\b(openGaps|openGapCount|openSeams)\(/);
         for (const reader of [
             "architecture/api/lib/knowledge/knowledgeApi.ts",
+            "architecture/components/core/graph3d/Graph3DRenderer.ts",
             "architecture/knowledge/dashboard/knowledgeDashboard.ts",
             "architecture/knowledge/home/home.ts",
             "architecture/knowledge/state/recommendation.ts",

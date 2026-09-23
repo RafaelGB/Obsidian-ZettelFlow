@@ -30,8 +30,12 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
 - **Deserves a review** — the [weekly review](second-brain-review.md)'s *stale-important* section: hubs
   (`degree ≥ 5`) untouched for 30+ days. *(Genuinely stale hubs are rare — this is empty on a young
   vault, by design.)*
-- **Suggested connections** — the top [morning discoveries](morning-discovery.md) (#163): unlinked
-  notes that share context.
+- **Gaps** *(#534)* — the top five [morning discoveries](morning-discovery.md) (#163): pairs of your
+  notes that share context and are not linked. Each row carries **not related** — one click records
+  that verdict and the pair leaves every surface at once, writing nothing to the vault. The section
+  is silent when there is nothing in it, and the action is absent when the
+  [judgement record](cognitive-agency.md) is off. (It was called *suggested connections*; the map
+  calls the same fact a gap, and two names for one thing is what the subtraction epic prevents.)
 - **Pinned queries** *(#323 G4)* — any [*Ask your graph*](ask-your-graph.md) query you **pinned** shows
   here as a live *"N notes match …"* card, resolved against the current model on every recompute.
   Clicking it reopens *Ask your graph* on that query, pre-filled. A count is mechanical output — no

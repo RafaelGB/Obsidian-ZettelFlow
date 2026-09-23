@@ -191,7 +191,7 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
         },
         discoveries: {
             signature: "(opts?: FindDiscoveriesOptions) => Discovery[]",
-            summary: "Unlinked pairs of ideas that keep appearing together.",
+            summary: "Unlinked pairs of ideas that keep appearing together, minus the ones you ruled not related.",
             // A copy: what the projection returns *is* the memo entry, and a script that popped
             // from it would shorten the answer every surface reads for the rest of the revision.
             //
@@ -205,7 +205,7 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
         gapSeams: {
             signature: "() => GapSeam[]",
             summary:
-                "Where two neighbourhoods almost touch: the gaps between them, and the links that already cross.",
+                "Where two neighbourhoods almost touch: the gaps you have not ruled out, and the links that already cross.",
             call: () => [...openSeams(model(), history())],
         },
         openQuestions: {

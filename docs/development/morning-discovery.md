@@ -35,12 +35,34 @@ idea" choice — there is no generic *related* type in the
 [semantic vocabulary](../architecture/knowledge-model.md) (#147) — and every write goes through
 `FrontmatterService` (deduplicated, add-only, never removes anything).
 
-**Saying no is the half that needs recording**, and today nothing does: the same pairs come back for
-ever. On a real vault the strongest gaps are often the vault's own scaffolding — folder index notes
-co-cited by their parent — and no graph statistic separates a filing convention from a thought,
-which is exactly the kind of call that belongs to a person and gets recorded as a verdict
-([#534](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/534), epic
-[#529](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/529)).
+**Saying no is the half that needed recording**, and since
+[#534](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/534) (epic
+[#529](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/529)) it is. Every gap row on Home
+carries **not related**: one click records a judgement — `origin: "derived"`, `verdict: "rejected"`,
+`subject: "gap:<the other note's path>"` — and **writes nothing to the vault**. Not a link, not a
+property, not a line.
+
+Why a click and not a formula: on a real vault the strongest gaps are often the vault's own
+scaffolding — folder index notes co-cited by their parent — and the epic tried to rank them down with
+arithmetic **twice**, failing both times with numbers. Degree damping left the ranking unchanged (the
+offenders have degree 3–7; they are not hubs) and a score floor deleted the real headline seam before
+it touched the noise. No graph statistic separates a filing convention from a thought. A person does
+it in one click, which is [§XII](constitution.md) exactly: the machine observes, the human rules, and
+the verdict is data.
+
+Three properties of the verdict, each load-bearing:
+
+- **Both directions.** The record canonicalises the pair (lower path, higher subject), so a verdict
+  given either way round removes the pair either way round.
+- **Idempotent.** Clicking twice records once — and the guard is *the pair already being ruled out*,
+  not the recorder's repeat check, which compares timestamps and would let a second click through.
+- **Every reader, at once.** Home's list, the 3D map's gap lens, the seams, the dashboard's
+  connections count, *what to do next* and both script doors read one filtered pass, so a surface
+  cannot forget the verdict. A guardrail test pins the callers of the raw projections to a closed
+  list.
+
+The action is **absent** when the judgement record is turned off, never present-but-inert, and the
+setting's own description says so.
 
 ## Continuous discovery (#365, D5)
 

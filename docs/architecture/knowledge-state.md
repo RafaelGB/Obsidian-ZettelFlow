@@ -36,7 +36,8 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `buildKnowledgeDashboard` | `DashboardModel` | Dashboard |
 | `gapTally` | `GapTally` (a count and a walk) | every gap reader — the shared pass (#530); the dashboard count reads it directly |
 | `gapSeams` | `GapSeam[]` | the seams between neighbourhoods (#531) |
-| `findDiscoveries` / `topGaps` | `Discovery[]` | Home, the recommendations |
+| `findDiscoveries` / `topGaps` | `Discovery[]` | the raw selection — read only by `openGaps` and the 3D map's source |
+| `openGaps` / `openGapCount` / `openSeams` | `Discovery[]` / `number` / `GapSeam[]` | **every** gap reader (#534): Home, the map's lens, the dashboard count, the recommendations, both script doors |
 | `openQuestions` / `proposeAnswers` | `OpenQuestion[]` / answers | Open questions |
 | `buildEvidenceMap` | `EvidenceMap` | Evidence map |
 | `buildKnowledgeMap` | `KnowledgeMap` | Knowledge map |
@@ -127,6 +128,15 @@ So the expensive half was split out and takes **no arguments**:
   the method out to prove it.
 - `findDiscoveries(model, opts)` — unchanged in signature, ordering and output (it is public
   through `zf.knowledge`), now a thin read of `topGaps`.
+- `openGaps` / `openGapCount` / `openSeams` (#534) — the same three answers with the pairs you ruled
+  **not related** subtracted. **Deliberately not memoised:** `keyFor` stringifies its arguments, and a
+  judgement log is not a cache key — worse, the set built from it serialises to `{}`, so two different
+  records would quietly share one entry. The work is O(pairs you ruled out), which is a handful:
+  `openGaps` over-fetches by that number and slices; `openGapCount` subtracts the ruled-out pairs
+  **still in the tally** (so a pair ruled out and then linked is not subtracted twice), each looked up
+  in O(1) through `GapTally.scoreOf`; `openSeams` decrements the crossing seams, drops the ones that
+  reach zero and re-sorts with the exported `bySeamWidth`. With an empty record all three return the
+  unfiltered answer — `openSeams` by identity — so a vault that has ruled on nothing pays nothing.
 
 Measured A/B in one process, on one warm tally, at ten thousand notes: the step that changed went
 from **1,393 ms of sorting to 553 ms of selecting**, about three times faster. (Not measured across

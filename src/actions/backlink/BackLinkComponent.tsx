@@ -7,7 +7,7 @@ import {
 } from "architecture/plugin";
 import { App, Component, HeadingCache } from "obsidian";
 import { ObsidianApi, c } from "architecture";
-import { Input, Search } from "architecture/components/core";
+import { ConfirmStep, Input, Search } from "architecture/components/core";
 import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 
@@ -116,17 +116,18 @@ function Backlink(props: WrappedActionBuilderProps) {
             placeholder={t("backlink_select_heading")}
           />
         )}
-        <button
-          onClick={() => {
+        <ConfirmStep
+          onConfirm={() =>
             callback({
               file: finalFileValue,
               heading: finalHeadingValue,
               regex: finalRegexValue,
-            });
-          }}
-        >
-          {t("component_confirm")}
-        </button>
+            })
+          }
+          // A backlink to nothing is not a backlink: the step asked for a note and none was
+          // chosen. It used to accept that and write an empty link into the frontmatter.
+          canConfirm={() => Boolean(finalFileValue)}
+        />
       </div>
       <div className={c("backlink-right")}>
         <Input
@@ -183,13 +184,7 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
   return (
     <>
       <div ref={mdRef} />
-      <button
-        onClick={() => {
-          props.callback(null);
-        }}
-      >
-        {t("backlink_continue")}
-      </button>
+      <ConfirmStep onConfirm={() => props.callback(null)} label={t("backlink_continue")} />
     </>
   );
 }

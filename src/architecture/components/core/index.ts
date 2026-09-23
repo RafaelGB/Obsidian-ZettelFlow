@@ -14,6 +14,9 @@ export { BadgeType } from './badge/typing'
 export { SelectableSearch } from './selectableSearch/SelectableSearch'
 export { SelectableSearchType } from './selectableSearch/typing'
 
+export { ConfirmStep, confirmsOn } from './confirmStep/ConfirmStep'
+export { ConfirmStepType } from './confirmStep/typing'
+
 export { Calendar } from './calendar/Calendar'
 export { CalendarType } from './calendar/typing'
 

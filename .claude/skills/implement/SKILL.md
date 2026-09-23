@@ -38,6 +38,11 @@ has the checklist; the plan comment has the files, guardrails, and risks.
 - **Never** introduce `innerHTML`, inline `el.style.*`, Title-case UI strings, bare `console.*`,
   or global `app` — they cost score (constitution §III–IV). Build DOM with `createEl`; style with
   `c()` + SCSS; log with `log`.
+- **The user's theme wins** (§XV). No hex or named colour in a stylesheet, no pixel the
+  `--size-4-*` grid can express, Obsidian's own classes (`mod-cta`, `clickable-icon`,
+  `setting-item`, `is-active`) before inventing one, and a shape that exists twice goes in
+  `src/styles/utils/mixins.scss`. The guide, with Obsidian's own wording, is
+  [`docs/development/obsidian-styling.md`](../../../docs/development/obsidian-styling.md).
 - Touching the **Canvas patcher**? Keep every patched access guarded and uninstalled on unload
   (§VI) — see issue #91 / the reviewer agent.
 - Update the matching `docs/` page + `mkdocs.yml` nav in the **same** commit that changes behavior

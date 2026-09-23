@@ -47,7 +47,8 @@ styles (§III) · sentence-case i18n in `en`+`es`, clean commands/headings (§IV
 (§V) · defensive Canvas patcher (§VI) · disclose capabilities (§VII) · docs ship with the change
 (§VIII) · small conventional single-branch commits (§IX) · issues close via PR merge, not manually
 (§X) · every spec ends with a walkable `How to verify` script, and finishing means having walked
-it (§XIV).
+it (§XIV) · the user's theme wins: no hardcoded colour, no off-grid pixel, Obsidian's classes
+first (§XV).
 
 ## Related skills
 

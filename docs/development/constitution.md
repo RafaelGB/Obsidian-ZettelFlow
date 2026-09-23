@@ -159,3 +159,32 @@ Three consequences a reviewer can check on a diff:
 
 Written for the person verifying, in their vocabulary — the command as the palette shows it, the
 surface title, the chip label. Never a symbol name, never a file path.
+
+## XV. The user's theme wins
+
+ZettelFlow has no look of its own, and that is a decision rather than an omission: a vault runs
+Minimal, or Things, or a snippet the user wrote last Tuesday, and **we do not know which**. Every
+colour we hardcode survives their choice; every pixel we invent is one their theme cannot reach.
+Obsidian says it plainly — hardcoded styling *"makes it impossible to modify with themes and
+snippets"*, while its variables mean a plugin *"will look great even if the user has a different
+theme"*.
+
+The full guide, with the citations and the variable families, is
+[styling: the user's theme wins](obsidian-styling.md). Five consequences a reviewer can check on a
+diff:
+
+- **No hex, no `rgb()`, no named colour in a stylesheet.** Colour comes from
+  `--interactive-*`, `--background-*`, `--text-*`. The one exemption is the 3D graph's fixed dark
+  background, documented at the palette that needs it.
+- **No pixel the 4-grid can express.** `padding: 8px` is `var(--size-4-2)`. A real pixel — a
+  hairline, a sprite, a WebGL dimension — says why in a comment.
+- **Nothing styled from JavaScript**: no `el.style.*`, no `innerHTML`, a class always, because a
+  class is what a snippet can reach (already enforced by `lint:obsidian`).
+- **Obsidian's own classes before a new one**: `mod-cta`, `mod-warning`, `clickable-icon`,
+  `setting-item`, `is-active`. A button that looks like Obsidian's button *is* Obsidian's button.
+- **A shape that exists twice is a mixin**, in `src/styles/utils/mixins.scss`. A partial that
+  redefines a chip, a card, a row, a hint or an empty state is drift.
+
+The cost is that the plugin cannot look like itself. That is the point: the look belongs to the
+user, and legibility inside their choice is the whole job.
+

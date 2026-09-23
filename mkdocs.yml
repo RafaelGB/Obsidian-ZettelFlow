@@ -217,6 +217,7 @@ nav:
       - Performance budgets: development/performance-budgets.md
       - Spec-driven development: development/spec-driven-development.md
       - Constitution: development/constitution.md
+      - Styling (the user's theme wins): development/obsidian-styling.md
       - Obsidian review & scoring: development/obsidian-review-and-scoring.md
       - Project health & roadmap: development/project-health-and-roadmap.md
       - "Friction audit (epic #231)": development/friction-audit.md

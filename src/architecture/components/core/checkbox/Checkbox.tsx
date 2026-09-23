@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ConfirmStep } from "../confirmStep/ConfirmStep";
 import { CheckboxType } from "./typing";
 import { c } from "architecture";
 import { t } from "architecture/lang";
@@ -19,19 +20,11 @@ export function Checkbox(props: CheckboxType) {
         checked={value}
         onChange={() => setValue(!value)}
       />
-      <button
-        title={confirmTooltip}
-        onClick={() => {
-          onConfirm(value);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            onConfirm(value);
-          }
-        }}
-      >
-        {confirmNode}
-      </button>
+      <ConfirmStep
+        onConfirm={() => onConfirm(value)}
+        tooltip={confirmTooltip}
+        label={typeof confirmNode === "string" ? confirmNode : undefined}
+      />
     </div>
   );
 }

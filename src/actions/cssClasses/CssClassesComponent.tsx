@@ -1,6 +1,5 @@
 import { ObsidianApi, c } from "architecture";
-import { SelectableSearch } from "architecture/components/core";
-import { t } from "architecture/lang";
+import { ConfirmStep, SelectableSearch } from "architecture/components/core";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useMemo, useState } from "react";
 
@@ -25,13 +24,7 @@ export function CssClassesWrapper(props: WrappedActionBuilderProps) {
         enableCreate={true}
         autoFocus
       />
-      <button
-        onClick={() => {
-          callback(selectedCssClasses);
-        }}
-      >
-        {t("component_confirm")}
-      </button>
+      <ConfirmStep onConfirm={() => callback(selectedCssClasses)} />
     </div>
   );
 }

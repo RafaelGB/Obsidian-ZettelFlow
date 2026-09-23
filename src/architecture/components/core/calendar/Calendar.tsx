@@ -2,6 +2,7 @@ import React from "react";
 import { CalendarType } from "./typing";
 import { c } from "architecture";
 import { t } from "architecture/lang";
+import { ConfirmStep } from "../confirmStep/ConfirmStep";
 import { TypeService } from "architecture/typing";
 
 export function Calendar(info: CalendarType) {
@@ -26,17 +27,14 @@ export function Calendar(info: CalendarType) {
           input.showPicker();
         }}
       />
-      <button
-        onClick={() => {
-          if (TypeService.isDate(valueState)) {
-            onConfirm(valueState);
-          } else {
-            setInputValid(false);
-          }
+      <ConfirmStep
+        onConfirm={() => onConfirm(valueState)}
+        canConfirm={() => {
+          const valid = TypeService.isDate(valueState);
+          setInputValid(valid);
+          return valid;
         }}
-      >
-        {t("component_confirm")}
-      </button>
+      />
     </div>
   );
 }

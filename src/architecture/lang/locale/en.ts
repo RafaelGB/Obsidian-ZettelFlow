@@ -187,6 +187,8 @@ export default {
     welcome_tutorial_open_settings: 'Open settings of ZettelFlow',
     welcome_tutorial_open_canvas: 'Open canvas',
     component_confirm: 'Confirm',
+    confirm_hint_enter: 'Press Enter to confirm.',
+    confirm_hint_mod_enter: 'Press Ctrl+Enter to confirm.',
     notice_canvas_not_set: 'Canvas file not set',
     notice_codeview_registration_error: 'Error registering the code editor extension for ZettelFlow. Check the console for more information.',
     notice_canvas_patch_failed: "ZettelFlow couldn't connect to the canvas. Canvas flows may be unavailable; the rest of the plugin works normally.",

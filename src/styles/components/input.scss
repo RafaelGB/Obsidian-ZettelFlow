@@ -73,3 +73,23 @@
     padding: 0 0.2em;
     color: var(--text-normal);
 }
+
+// The control that ends a step (#547). One button for every action the wizard can ask, and the
+// hint that says which key does it -- so a promised shortcut is never a promise the interface
+// breaks. No colour of its own: `mod-cta` is Obsidian's, and the theme paints it (XV).
+.zettelkasten-flow__confirm-step {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__confirm-step-hint {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+// A step that refused. The calendar has marked itself since it shipped; now every step can.
+.zettelkasten-flow__confirm-step--invalid .zettelkasten-flow__confirm-step-hint {
+    color: var(--text-error);
+}

@@ -136,3 +136,53 @@ describe("the connections metric counts every gap (#530, FR-5, AC-3)", () => {
         expect(today()?.recommendation).toEqual({ token: "make-connections", count: 10 });
     });
 });
+
+describe("the connections metric counts only pairs of notes that exist (#538, AC-3)", () => {
+    // The same ten-gap hub, plus one note whose two links are broken. Those two broken targets used
+    // to tally as an eleventh "gap", so the panel proposed a connection between two notes that were
+    // never written -- and the recommendation was driven by that inflated count.
+    const withBroken = buildModel([
+        idea("hub.md", "permanent", [
+            { to: "a.md" },
+            { to: "b.md" },
+            { to: "c.md" },
+            { to: "d.md" },
+            { to: "e.md" },
+        ]),
+        idea("a.md", "permanent", []),
+        idea("b.md", "permanent", []),
+        idea("c.md", "permanent", []),
+        idea("d.md", "permanent", []),
+        idea("e.md", "permanent", []),
+        idea("broken.md", "permanent", [{ to: "Not a note yet" }, { to: "Also not a note" }]),
+    ]);
+
+    const connectionsOf = (target: ReturnType<typeof buildModel>) =>
+        buildKnowledgeDashboard(target)
+            .panels.find((panel) => panel.key === "today")
+            ?.metrics.find((metric) => metric.key === "connections");
+
+    it("drops by exactly the dangling pair the broken links used to add", () => {
+        expect(connectionsOf(withBroken)).toEqual({ key: "connections", count: 10 });
+        expect(gapTally(withBroken).size).toBe(10);
+    });
+
+    it("reads the same as the vault without those broken links at all", () => {
+        const withoutBroken = buildModel([
+            idea("hub.md", "permanent", [
+                { to: "a.md" },
+                { to: "b.md" },
+                { to: "c.md" },
+                { to: "d.md" },
+                { to: "e.md" },
+            ]),
+            idea("a.md", "permanent", []),
+            idea("b.md", "permanent", []),
+            idea("c.md", "permanent", []),
+            idea("d.md", "permanent", []),
+            idea("e.md", "permanent", []),
+        ]);
+        expect(connectionsOf(withBroken)).toEqual(connectionsOf(withoutBroken));
+    });
+});
+

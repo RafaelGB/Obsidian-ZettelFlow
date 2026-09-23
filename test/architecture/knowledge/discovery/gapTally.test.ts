@@ -170,3 +170,55 @@ describe("topGaps -- selection, not sorting (#530, FR-2, AC-4)", () => {
         }
     });
 });
+
+/**
+ * **A gap needs two notes that exist** (#538).
+ *
+ * `KnowledgeModel.attach()` records every `relation.to` whether or not it resolves — deliberately,
+ * because that is what makes a degree honest and `alone` meaningful. The consequence nobody had
+ * looked at: the tally walked those adjacency sets, so **two broken links in one note proposed a
+ * connection between the two notes that were never written**. Since #530 the dashboard counts them
+ * and the recommendation is driven by that count, so it stopped being invisible.
+ *
+ * The fixture below is the reproduction from the issue, verbatim.
+ */
+describe("a gap needs two notes that exist (#538)", () => {
+    it("proposes nothing between two notes that were never written (AC-1)", () => {
+        const broken = buildModel([idea("note.md", "permanent", [{ to: "Missing One" }, { to: "Missing Two" }])]);
+        expect(gapTally(broken).size).toBe(0);
+        expect(findDiscoveries(broken, { limit: 10 })).toEqual([]);
+    });
+
+    it("keeps the real gap and drops the dangling pair beside it (AC-2)", () => {
+        const mixed = buildModel([
+            // One hub cites two real notes -- a gap -- and two notes that do not exist.
+            idea("hub.md", "permanent", [
+                { to: "real/x.md" },
+                { to: "real/y.md" },
+                { to: "Missing One" },
+                { to: "Missing Two" },
+            ]),
+            idea("real/x.md", "permanent", []),
+            idea("real/y.md", "permanent", []),
+        ]);
+        expect(findDiscoveries(mixed, { limit: 10 })).toEqual([{ a: "real/x.md", b: "real/y.md", score: 2 }]);
+        expect(gapTally(mixed).size).toBe(1);
+    });
+
+    it("drops a pair with one unresolved endpoint, not only the pairs with two", () => {
+        // Half-existent is still not a gap: you cannot connect a note to a note that is not there.
+        const half = buildModel([
+            idea("hub.md", "permanent", [{ to: "real/x.md" }, { to: "Missing One" }]),
+            idea("real/x.md", "permanent", []),
+        ]);
+        expect(gapTally(half).size).toBe(0);
+        expect(findDiscoveries(half, { limit: 10 })).toEqual([]);
+    });
+
+    it("leaves the pinned answer exactly where it was (AC-4)", () => {
+        // The #530 fixture declares every target it links, so the fix moves nothing there. The pin
+        // did not have to be re-cut -- which is the strongest thing that could be said about a fix
+        // to an answer a public API returns.
+        expect(findDiscoveries(model, { limit: 1000 })).toEqual(EXPECTED_GAPS);
+    });
+});

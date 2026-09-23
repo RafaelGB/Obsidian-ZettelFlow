@@ -62,11 +62,23 @@ Two invariants hold, and a guardrail test pins them:
 There is deliberately **no parallel background engine, no badge, and no on/off toggle**: continuous
 discovery is a property of the Home surface refreshing, not a new feature bolted on (design by subtraction).
 
+## What can be a gap
+
+Both endpoints are **notes that exist** ([#538](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/538)).
+The knowledge model records a link's target whether or not it resolves — that is deliberate, and it is
+what makes a note's degree honest — so before this rule two broken links in one note proposed a
+connection between the two notes that were never written. The tally now indexes the model's own notes
+and nothing else, so an unresolved target has no index and a pair touching it can never be scored.
+
+The fix sits in the shared pass, not in each reader: Home's list, the seams, the dashboard's
+connections count, the recommendation and the map's gap lens all stopped seeing them at once. Nothing
+reports the broken links themselves — `KnowledgeDebt` already has a *dangling* category for that.
+
 ## Architecture
 
 ```
 gapTally(model)                     (pure, Obsidian-free, memoised on the model alone)
-  → every unlinked pair that shares context: a count, and a walk of them
+  → every unlinked pair of **existing notes** that shares context: a count, and a walk of them
 
 topGaps(model, limit)               (a bounded linear selection over that walk, never a sort)
   → the strongest `limit` pairs, score desc then a asc then b asc

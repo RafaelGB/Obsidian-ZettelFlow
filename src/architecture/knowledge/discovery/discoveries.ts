@@ -123,10 +123,13 @@ export const topGaps = memoise("gaps.top", (model: KnowledgeModel, limit: number
  * under 1.26 million *string* keys was measured at **200 MB** retained. It also drops 1.26 million
  * string concatenations from the hot loop.
  *
- * Indices cover **every path the model mentions**, not only the ideas — `KnowledgeModel` records a
- * link's target whether or not it resolves, and those unresolved pairs are part of today's answer
- * (see #538). They are **sorted** before they are indexed, so index order is path order and the
- * canonical `a < b` falls out of the key instead of costing a string comparison per pair.
+ * Indices cover **the model's own ideas and nothing else** (#538). `KnowledgeModel` records a link's
+ * target whether or not it resolves — deliberately, because that is what makes a degree honest — so
+ * indexing every path it mentions meant two broken links in one note proposed a connection between
+ * two notes that were never written. Here the index *is* the filter: a path with no note has no
+ * index, so a pair touching it can never be keyed. Paths are **sorted** before they are indexed, so
+ * index order is path order and the canonical `a < b` falls out of the key instead of costing a
+ * string comparison per pair.
  */
 interface PairTally {
     /** Pair key → score. */
@@ -140,15 +143,11 @@ interface PairTally {
 function candidatePairs(model: KnowledgeModel): PairTally {
     const ideas = model.all();
 
-    // Every path the model mentions, **sorted**. Sorting once is what makes index order the same as
-    // path order, so a key built with `low < high` is already canonical and reading a pair back out
-    // costs no comparison -- there are 1.26 million of them at ten thousand notes.
-    const seen = new Set<string>();
-    for (const idea of ideas) {
-        seen.add(idea.path);
-        for (const relation of idea.relations) seen.add(relation.to);
-    }
-    const paths = [...seen].sort((x, y) => (x < y ? -1 : x > y ? 1 : 0));
+    // Every note **in the model**, sorted. Sorting once is what makes index order the same as path
+    // order, so a key built with `low < high` is already canonical and reading a pair back out costs
+    // no comparison -- there are 1.26 million of them at ten thousand notes. Targets that resolve to
+    // no note are left out on purpose (#538): see `bump`.
+    const paths = ideas.map((idea) => idea.path).sort((x, y) => (x < y ? -1 : x > y ? 1 : 0));
     const indexOf = new Map(paths.map((path, index) => [path, index]));
 
     const width = paths.length;
@@ -157,8 +156,11 @@ function candidatePairs(model: KnowledgeModel): PairTally {
         if (x === y) return;
         const xi = indexOf.get(x);
         const yi = indexOf.get(y);
-        // Every path walked here came from the same pass that built the index, so neither lookup can
-        // miss; the guard is there because a silent `NaN` key would be a wrong answer, not a crash.
+        // **This is the endpoints-exist rule** (#538), and it costs nothing: the adjacency holds
+        // unresolved link targets too, and a target with no note got no index, so the miss that
+        // reads like a defensive guard is what keeps a gap between two notes that do not exist out
+        // of the tally. One `bump` rather than one filter per reader -- Home, the seams, the
+        // dashboard count, the recommendation and the lens all stop seeing them at once.
         if (xi === undefined || yi === undefined) return;
         const key = xi < yi ? xi * width + yi : yi * width + xi;
         scores.set(key, (scores.get(key) ?? 0) + weight);

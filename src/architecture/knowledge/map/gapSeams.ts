@@ -75,11 +75,14 @@ interface Bucket {
  *   cross a region: shared context means a common neighbour, and a common neighbour means one
  *   connected component. That part *is* an invariant.
  *
- *   The endpoint test next to it is **not**. `KnowledgeModel` records a link's target whether or not
- *   it resolves, so two broken links from one note produce a candidate pair between two notes that
- *   do not exist, and a note that does not exist is in no community (#538). Both measured vaults
- *   happened to contain no such pair — the generated one has no broken links — which is exactly why
- *   it read as an invariant. It is a guard, and it stays one until #538 lands.
+ *   The endpoint test next to it **became** one. It used to be a guard: `KnowledgeModel` records a
+ *   link's target whether or not it resolves, so two broken links from one note produced a candidate
+ *   pair between two notes that do not exist, and a note that does not exist is in no community.
+ *   Both measured vaults happened to contain no such pair — the generated one has no broken links —
+ *   which is exactly why it read as an invariant when it was not. Since #538 the tally indexes only
+ *   the model's own notes, so every endpoint reaching here has a community and the test cannot fire.
+ *   It stays, because a projection reading a `Map` should say what it does with a miss, and because
+ *   this comment is the only thing that would notice if that stopped being true.
  * - **Ordered gaps desc, then links asc, then labels.** The widest seam is the one with the most
  *   shared context and the fewest links already crossing, and that is explainable in one sentence.
  *   A ratio would be one step from an invented metric (§XI).
@@ -114,7 +117,8 @@ export const gapSeams = memoise("gaps.seams", (model: KnowledgeModel): GapSeam[]
     for (const gap of gapTally(model).candidates()) {
         const from = communityOf.get(gap.a);
         const to = communityOf.get(gap.b);
-        // `undefined` is the #538 case: an endpoint that is not a note is in no community.
+        // Since #538 both endpoints are notes in the model, so neither lookup can miss; the test
+        // is kept because a silent `undefined` compared against a number would read as a match.
         if (from === undefined || to === undefined || from === to) continue;
         const bucket = bucketFor(Math.min(from, to), Math.max(from, to));
         bucket.gaps++;

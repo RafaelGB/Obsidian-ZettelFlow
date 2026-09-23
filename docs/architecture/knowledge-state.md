@@ -118,8 +118,8 @@ underneath.
 So the expensive half was split out and takes **no arguments**:
 
 - `gapTally(model)` — one walk of the model, producing the candidate pairs, pruned to the ones that
-  are really gaps (not already linked, score above zero). Memoised on the model alone, so every
-  reader in the epic shares it. It exposes a **count** and a **generator**; the tally itself never
+  are really gaps (not already linked, score above zero, **both endpoints notes that exist** — #538).
+  Memoised on the model alone, so every reader in the epic shares it. It exposes a **count** and a **generator**; the tally itself never
   escapes into an array, because at ten thousand notes it holds **1,264,125 pairs**.
 - `topGaps(model, limit)` — a **bounded linear selection** over that walk. One comparison against
   the weakest gap held rejects a candidate; an accepted one is placed by binary search and the

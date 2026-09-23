@@ -260,6 +260,42 @@
     color: #8b93a7;
 }
 
+// A seam row (#533): two neighbourhoods on one line, their two numbers under them. It wraps rather
+// than truncating, because the two names are the row -- a seam you cannot read is a place you
+// cannot decide to visit.
+.zettelkasten-flow__graph3d-legend-seam {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: var(--size-4-1) 0;
+}
+
+.zettelkasten-flow__graph3d-legend-seam-sides {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    flex-wrap: wrap;
+}
+
+// The space between the two sides, in the theme's faintest text: the arrow is punctuation, not a
+// word to read.
+.zettelkasten-flow__graph3d-legend-seam-arrow {
+    color: var(--text-faint);
+}
+
+// A seam row's counts sit under its two names rather than beside them, so a long pair of names does
+// not push the numbers off the box.
+.zettelkasten-flow__graph3d-legend-seam .zettelkasten-flow__graph3d-legend-count {
+    margin-left: 0;
+    padding-left: 0;
+    flex-basis: 100%;
+}
+
+// Nothing to list, said rather than shown as an empty box (#516).
+.zettelkasten-flow__graph3d-legend-empty {
+    color: var(--text-muted);
+    padding: var(--size-4-1) 0;
+}
+
 // Relation rows are clickable to toggle that relation's visibility (#280 iteration).
 .zettelkasten-flow__graph3d-legend-row--clickable {
     pointer-events: auto;

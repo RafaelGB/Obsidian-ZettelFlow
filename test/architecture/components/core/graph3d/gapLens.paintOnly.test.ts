@@ -35,10 +35,13 @@ describe("the render path never pays for the gap projection (#532, FR-9, AC-6)",
         // pair you ruled out is not drawn and not counted.
         expect(reader).toContain("openGapCount(model, judgements)");
         expect(reader).toContain("openGaps(model, judgements, GAP_DRAW_MAX)");
+        // The third projection, carried forward (#533): the seams the legend lists come from the
+        // same one method, behind the same guards.
+        expect(reader).toContain("openSeams(model, judgements)");
 
         // Nowhere else. A second reader is a second render paying 982 ms at ten thousand notes.
         const outside = CODE.replace(reader, "");
-        for (const call of ["gapTally(", "topGaps(", "openGapCount(", "openGaps("]) {
+        for (const call of ["gapTally(", "topGaps(", "openGapCount(", "openGaps(", "openSeams(", "gapSeams("]) {
             expect(outside).not.toContain(call);
         }
 
@@ -50,11 +53,13 @@ describe("the render path never pays for the gap projection (#532, FR-9, AC-6)",
             ["private buildTopBar", "private addColorButton"],
             ["private applyGraphData", "private preservePositions"],
             ["private updateStatus", "private arrivalFact"],
+            ["private renderLegend", "private legendRegionRows"],
         ] as const) {
             const body = slice(from, to);
             expect(body).not.toContain("ensureGapSource");
             expect(body).not.toContain("openGapCount(");
             expect(body).not.toContain("openGaps(");
+            expect(body).not.toContain("openSeams(");
         }
     });
 

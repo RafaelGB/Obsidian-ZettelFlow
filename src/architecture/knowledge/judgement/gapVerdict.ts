@@ -1,5 +1,7 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { gapTally, topGaps, type Discovery } from "../discovery/discoveries";
+import { bySeamWidth, gapSeams, type GapSeam } from "../map/gapSeams";
+import { communitiesOf } from "../map/communities";
 import type { Judgement } from "./Judgement";
 
 /**
@@ -143,4 +145,58 @@ export function openGapCount(model: KnowledgeModel, history: readonly Judgement[
         if (tally.scoreOf(pair.a, pair.b) !== undefined) subtract++;
     }
     return Math.max(0, tally.size - subtract);
+}
+
+/**
+ * The seams, counting only the gaps you have **not** ruled out (FR-2, AC-8).
+ *
+ * A seam is what the gaps add up to over two neighbourhoods, so a verdict has to reach the
+ * arithmetic standing on it — or the map would go on drawing a seam made entirely of pairs you
+ * already said are not related, which is the complaint this issue answers.
+ *
+ * Each ruled-out **crossing** pair decrements its seam's count by one and its score by that pair's
+ * own score (from `GapTally.scoreOf`, O(1) — the tally is never walked); a seam reaching zero gaps
+ * disappears, and the survivors are re-sorted, because subtraction can change which seam is widest.
+ * With an empty record this returns the memoised array **itself**, so a vault that has ruled on
+ * nothing pays nothing.
+ *
+ * Two things it does not do, on purpose. It never mutates the memoised seams — every entry is
+ * copied before a number changes, or the next reader of the same revision would see the subtraction
+ * twice. And **labels are computed before subtraction**, so a qualified label (`Projects/readme`
+ * rather than `readme`) can outlive the ambiguity that earned it: over-qualified is never wrong,
+ * and re-deriving labels here would mean re-deriving the communities to do it.
+ */
+export function openSeams(model: KnowledgeModel, history: readonly Judgement[]): GapSeam[] {
+    const all = gapSeams(model);
+    const ruled = ruledOutGaps(history);
+    if (ruled.size === 0 || all.length === 0) return all;
+
+    const communities = communitiesOf(model);
+    const communityOf = new Map<string, number>();
+    communities.forEach((community, index) => {
+        for (const path of [community.hub, ...community.members]) communityOf.set(path, index);
+    });
+
+    const byKey = new Map<number, GapSeam>();
+    const width = communities.length;
+    const open = all.map((seam) => {
+        const copy = { ...seam };
+        byKey.set(seam.a * width + seam.b, copy);
+        return copy;
+    });
+
+    const tally = gapTally(model);
+    for (const pair of ruled.pairs()) {
+        const score = tally.scoreOf(pair.a, pair.b);
+        if (score === undefined) continue; // linked since, or never a gap: nothing to subtract
+        const from = communityOf.get(pair.a);
+        const to = communityOf.get(pair.b);
+        if (from === undefined || to === undefined || from === to) continue; // not a crossing gap
+        const seam = byKey.get(Math.min(from, to) * width + Math.max(from, to));
+        if (!seam) continue;
+        seam.gaps--;
+        seam.score -= score;
+    }
+
+    return open.filter((seam) => seam.gaps > 0).sort(bySeamWidth);
 }

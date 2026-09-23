@@ -7,6 +7,9 @@ import {
     ruledOutGaps,
 } from "architecture/knowledge/judgement/gapVerdict";
 import { gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
+import { gapSeams } from "architecture/knowledge/map/gapSeams";
+import { openSeams } from "architecture/knowledge/judgement/gapVerdict";
+import type { Idea } from "architecture/knowledge/model/Idea";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 import type { Judgement } from "architecture/knowledge/judgement/Judgement";
 
@@ -166,5 +169,110 @@ describe("a ruled-out pair leaves every selection (#534, FR-2, AC-1)", () => {
         const empty = buildModel([]);
         expect(openGaps(empty, [ruling("a.md", "b.md")], 5)).toEqual([]);
         expect(openGapCount(empty, [ruling("a.md", "b.md")])).toBe(0);
+    });
+});
+
+/**
+ * **The seam counts what you have not ruled out** (#534, FR-2, AC-8).
+ *
+ * A seam is what the gaps add up to over two neighbourhoods, so a verdict on a gap has to reach the
+ * arithmetic that stands on it — otherwise the map would go on drawing a seam made entirely of pairs
+ * you have already said are not related, which is the exact complaint this issue exists to answer.
+ */
+describe("the seam counts what you have not ruled out (#534, FR-2, AC-8)", () => {
+    /** A clique of `size` notes, every one linked to every other — the #531 fixture. */
+    const clique = (prefix: string, size: number): Idea[] =>
+        Array.from({ length: size }, (_, n) =>
+            idea(
+                `${prefix}-${n}.md`,
+                "permanent",
+                Array.from({ length: size }, (_, m) => m)
+                    .filter((m) => m > n)
+                    .map((m) => ({ to: `${prefix}-${m}.md` }))
+            )
+        );
+
+    // Two dense neighbourhoods joined by one link: three crossing gaps of score 2, one link.
+    const twoCliques = buildModel(
+        [...clique("x", 4), ...clique("y", 4)].map((entry) =>
+            entry.path === "x-0.md"
+                ? idea("x-0.md", "permanent", [
+                      { to: "x-1.md" },
+                      { to: "x-2.md" },
+                      { to: "x-3.md" },
+                      { to: "y-0.md" },
+                  ])
+                : entry
+        )
+    );
+    const ruling = (a: string, b: string, when = at): Judgement => ({ at: when, ...gapVerdict(a, b) });
+
+    it("drops the seam's gap count and score by the gap you ruled out", () => {
+        expect(gapSeams(twoCliques)[0]).toEqual({
+            a: 0,
+            b: 1,
+            labelA: "x-0",
+            labelB: "y-0",
+            gaps: 3,
+            score: 6,
+            links: 1,
+        });
+        const open = openSeams(twoCliques, [ruling("x-1.md", "y-0.md")]);
+        expect(open).toHaveLength(1);
+        expect(open[0]).toEqual({ a: 0, b: 1, labelA: "x-0", labelB: "y-0", gaps: 2, score: 4, links: 1 });
+    });
+
+    it("loses the seam entirely once every gap across it is ruled out", () => {
+        const history = [
+            ruling("x-1.md", "y-0.md"),
+            ruling("x-2.md", "y-0.md"),
+            ruling("x-3.md", "y-0.md"),
+        ];
+        expect(openSeams(twoCliques, history)).toEqual([]);
+    });
+
+    it("gives back the unfiltered seams, by identity, when nothing is ruled out", () => {
+        // Identity, not equality: an empty record must not cost a copy of the memoised answer.
+        expect(openSeams(twoCliques, [])).toBe(gapSeams(twoCliques));
+    });
+
+    it("leaves the tally unwalked and the memoised answer unmutated", () => {
+        const tally = gapTally(twoCliques);
+        const spy = jest.spyOn(tally, "candidates");
+        try {
+            openSeams(twoCliques, [ruling("x-1.md", "y-0.md")]);
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            spy.mockRestore();
+        }
+        // The projection is memoised: subtracting from the array it returned would corrupt every
+        // later reader of the same revision.
+        expect(gapSeams(twoCliques)[0].gaps).toBe(3);
+    });
+
+    it("comes back re-sorted when the subtraction changes the ranking", () => {
+        // Three neighbourhoods: the x/y seam has 3 gaps, the x/z seam 2. Rule out two of the x/y
+        // gaps and the ranking has to invert, or the widest seam would be the second row.
+        const three = buildModel(
+            [...clique("x", 4), ...clique("y", 4), ...clique("z", 4)].map((entry) =>
+                entry.path === "x-0.md"
+                    ? idea("x-0.md", "permanent", [
+                          { to: "x-1.md" },
+                          { to: "x-2.md" },
+                          { to: "x-3.md" },
+                          { to: "y-0.md" },
+                      ])
+                    : entry.path === "x-1.md"
+                      ? idea("x-1.md", "permanent", [{ to: "x-2.md" }, { to: "x-3.md" }, { to: "z-0.md" }])
+                      : entry
+            )
+        );
+        const before = openSeams(three, []);
+        expect(before.map((seam) => seam.gaps)).toEqual([...before.map((seam) => seam.gaps)].sort((p, q) => q - p));
+
+        const widest = before[0];
+        const after = openSeams(three, [ruling("x-2.md", "y-0.md"), ruling("x-3.md", "y-0.md")]);
+        expect(after.map((seam) => seam.gaps)).toEqual([...after.map((seam) => seam.gaps)].sort((p, q) => q - p));
+        expect(after[0]).not.toEqual(widest);
     });
 });

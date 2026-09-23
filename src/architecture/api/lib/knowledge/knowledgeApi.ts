@@ -119,6 +119,8 @@ export const NOT_EXPOSED: Record<string, string> = {
     // the raw answer on purpose, because the pinned script door is a question about the graph.
     openGaps: "discoveries is this read, already bound to the default limit -- one door, not two",
     openGapCount: "the number the dashboard metric carries, which `dashboard()` already answers",
+    openSeams: "gapSeams is this read; both script doors honour the record for you",
+    bySeamWidth: "the one ordering a seam list already comes in",
     gapVerdict: "builds a judgement to record; scripts read the model and write only their own note",
     ruledOutGaps: "the filter every gap reader applies for you, from a record scripts cannot read",
     isJudgement: "type guard, not a projection",

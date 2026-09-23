@@ -45,14 +45,17 @@ describe("Home knows what is unanswered (#507)", () => {
 });
 
 describe("and it shows each thing once (#507)", () => {
-    it("computes suggested connections in exactly one place in the model layer", () => {
+    it("computes the gaps in exactly one place in the model layer", () => {
         // Two *surfaces* rendered `findDiscoveries` before this — Home and Discovery's mode —
         // and Home had it first. The renderer count is asserted in #508, which deletes the other
         // one; what belongs here is that Home does not compute it twice. The dashboard and the
         // scripting API are different consumers, not duplicate surfaces.
+        //
+        // Moved onto `openGaps(` in #534: Home no longer calls `findDiscoveries` at all, and a
+        // guardrail left on the old name would have gone on passing for the wrong reason.
         const callers = sources(SRC)
             .map((path) => ({ rel: path.slice(SRC.length + 1).replace(/\\/g, "/"), code: readFileSync(path, "utf8") }))
-            .filter((file) => /findDiscoveries\(/.test(file.code))
+            .filter((file) => /openGaps\(/.test(file.code))
             .map((file) => file.rel)
             .filter((rel) => rel.startsWith("architecture/knowledge/home/"));
         expect(callers).toEqual(["architecture/knowledge/home/home.ts"]);

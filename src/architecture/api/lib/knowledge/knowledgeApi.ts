@@ -6,10 +6,11 @@ import {
     computeKnowledgeDebt,
     computeWeeklyReview,
     findDiscoveries,
+    openGaps,
+    openSeams,
     openQuestions,
     proposeAnswers,
     buildKnowledgeMap,
-    gapSeams,
     conceptNeighbors,
     reasoningPaths,
     runGraphQuery,
@@ -117,6 +118,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     // Ruling a gap out (#534). The verdict is a *write* into the judgement record, and the set it
     // builds is the filter every gap reader already applies -- a script asking `discoveries` gets
     // the raw answer on purpose, because the pinned script door is a question about the graph.
+    findDiscoveries: "the same answer, before the record is honoured; `discoveries` is the door",
     openGaps: "discoveries is this read, already bound to the default limit -- one door, not two",
     openGapCount: "the number the dashboard metric carries, which `dashboard()` already answers",
     openSeams: "gapSeams is this read; both script doors honour the record for you",
@@ -164,7 +166,7 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
         dashboard: {
             signature: "() => DashboardModel",
             summary: "The headline metrics of the whole vault.",
-            call: () => buildKnowledgeDashboard(model()),
+            call: () => buildKnowledgeDashboard(model(), history()),
         },
         balance: {
             signature: "() => KnowledgeBalance",
@@ -192,13 +194,19 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             summary: "Unlinked pairs of ideas that keep appearing together.",
             // A copy: what the projection returns *is* the memo entry, and a script that popped
             // from it would shorten the answer every surface reads for the rest of the revision.
-            call: (opts?: Parameters<typeof findDiscoveries>[1]) => [...findDiscoveries(model(), opts)],
+            //
+            // Through `openGaps` since #534, so the script door gives the same answer the surfaces
+            // do: a pair you ruled out is not offered to a script either. The default limit stays
+            // the three `findDiscoveries` is bound to.
+            call: (opts?: Parameters<typeof findDiscoveries>[1]) => [
+                ...openGaps(model(), history(), opts?.limit !== undefined && opts.limit > 0 ? opts.limit : 3),
+            ],
         },
         gapSeams: {
             signature: "() => GapSeam[]",
             summary:
                 "Where two neighbourhoods almost touch: the gaps between them, and the links that already cross.",
-            call: () => [...gapSeams(model())],
+            call: () => [...openSeams(model(), history())],
         },
         openQuestions: {
             signature: "() => OpenQuestion[]",

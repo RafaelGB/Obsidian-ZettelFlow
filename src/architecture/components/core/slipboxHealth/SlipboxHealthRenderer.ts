@@ -185,8 +185,11 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
                 : "ready";
             this.debt = computeKnowledgeDebt(model);
             this.balance = computeKnowledgeBalance(model);
-            this.dashboard = buildKnowledgeDashboard(model);
-            this.unexamined = unexaminedIdeas(model, JudgementLog.getInstance().entries(), { limit: 5 });
+            // One read of the record per scan, shared by both projections (#534): the connections
+            // metric counts the gaps you have not ruled out.
+            const judgements = JudgementLog.getInstance().entries();
+            this.dashboard = buildKnowledgeDashboard(model, judgements);
+            this.unexamined = unexaminedIdeas(model, judgements, { limit: 5 });
 
             log.debug(
                 `[SlipboxHealth] scan done in ${this.result.durationMs}ms — ` +

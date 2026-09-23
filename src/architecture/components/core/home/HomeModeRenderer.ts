@@ -79,8 +79,11 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const model = index.getModel();
             const counts = DevelopmentJournal.getInstance().dailyCounts();
             const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
-            this.home = buildHome(model, { thinkingDays, now: Date.now() });
-            this.recommendations = topRecommendations(model, undefined, JudgementLog.getInstance().entries());
+            // One read of the judgement record per recompute (#534), shared by the gaps section and
+            // the recommendations: two reads could disagree about what you have ruled out.
+            const judgements = JudgementLog.getInstance().entries();
+            this.home = buildHome(model, { thinkingDays, now: Date.now(), judgements });
+            this.recommendations = topRecommendations(model, undefined, judgements);
             // Pinned "ask your graph" queries (#323 G4): resolve each against the live model so Home
             // shows a current "N notes match …" card that deep-links back into the query.
             this.pinnedCards = pinnedQueries(ObsidianApi.getOwnPlugin()?.settings.savedGraphQueries).map((entry) => {
@@ -139,7 +142,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderNoteSection(container, "home_section_new_ideas", this.home.newIdeas);
         this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
-        this.renderConnections(container, this.home.suggestedConnections);
+        this.renderGaps(container, this.home.gaps ?? []);
         // Defaulted: Home is the front door, and a model shape from an older build must degrade
         // to one missing section rather than to a blank surface.
         this.renderOpenQuestions(container, this.home.openQuestions ?? []);
@@ -305,7 +308,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         for (const path of paths) this.renderNoteRow(list, path);
     }
 
-    private renderConnections(container: HTMLElement, pairs: { a: string; b: string }[]): void {
+    private renderGaps(container: HTMLElement, pairs: { a: string; b: string }[]): void {
         const section = container.createDiv({ cls: c("home-section") });
         section.createEl("h5", { text: t("home_section_suggested_connections"), cls: c("home-section-title") });
         if (pairs.length === 0) {

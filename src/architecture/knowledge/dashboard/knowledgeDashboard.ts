@@ -1,6 +1,7 @@
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { computeKnowledgeDebt, severityBucket } from "../debt/knowledgeDebt";
-import { gapTally } from "../discovery/discoveries";
+import { openGapCount } from "../judgement/gapVerdict";
+import type { Judgement } from "../judgement/Judgement";
 import { openQuestions } from "../questions/openQuestions";
 import { byState, edgesByType } from "../query/queries";
 
@@ -62,8 +63,15 @@ function todayRecommendation(
  * `contradicts` edges, #163 discoveries to connect, #167 open questions) — each panel carrying one
  * recommendation. Invents no metric. Deterministic, read-only, never throws; empty model ⇒ three
  * zeroed panels with `all-connected`/`debt-clear`/`all-clear`. Obsidian-free.
+ *
+ * `history` is the judgement record (#534), read for the gaps you have ruled out. Optional, so
+ * every pre-#534 caller keeps its answer; passing it is what stops the connections metric counting
+ * pairs you have already decided against.
  */
-export function buildKnowledgeDashboard(model: KnowledgeModel): DashboardModel {
+export function buildKnowledgeDashboard(
+    model: KnowledgeModel,
+    history?: readonly Judgement[]
+): DashboardModel {
     const total = model.size();
     const percent = (count: number): number => (total > 0 ? Math.round((count / total) * 100) : 0);
 
@@ -97,8 +105,10 @@ export function buildKnowledgeDashboard(model: KnowledgeModel): DashboardModel {
     const process = byState(model, "fleeting").length;
     const contradictions = edgesByType(model, "contradicts").length;
     // Every gap, not the strongest three: `findDiscoveries` is bound to a display limit, so
-    // reading its length capped this panel at three however many gaps a vault had (#530).
-    const connections = gapTally(model).size;
+    // reading its length capped this panel at three however many gaps a vault had (#530). Minus
+    // the pairs you ruled out (#534) -- a metric that counted them would go on reporting work you
+    // have already decided against.
+    const connections = openGapCount(model, history ?? []);
     const questions = openQuestions(model).length;
     const today: DashboardPanel = {
         key: "today",

@@ -1,7 +1,7 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { computeKnowledgeBalance } from "architecture/knowledge/balance/knowledgeBalance";
-import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
+import { openGaps } from "architecture/knowledge/judgement/gapVerdict";
 import { byState, edgesByType } from "architecture/knowledge/query/queries";
 import { unexaminedIdeas } from "architecture/knowledge/judgement/unexamined";
 import type { Judgement } from "architecture/knowledge/judgement/Judgement";
@@ -144,8 +144,9 @@ export function deriveRecommendations(
         out.push(rec("resolve-contradiction", paths));
     }
 
-    // Unexplored connections (discoveries) — a connection to make.
-    for (const d of findDiscoveries(model)) {
+    // Gaps worth a look — minus the ones you ruled out (#534), because a "what to do next" that
+    // kept naming a pair you called not related is the complaint the verdict answers.
+    for (const d of openGaps(model, history ?? [], 3)) {
         out.push(rec("connect", [d.a, d.b].sort()));
     }
 

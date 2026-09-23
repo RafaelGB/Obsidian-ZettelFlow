@@ -1,4 +1,6 @@
 import { describe, it, expect, jest } from "@jest/globals";
+import { readdirSync, readFileSync, statSync } from "fs";
+import { join } from "path";
 import {
     GAP_SUBJECT_PREFIX,
     gapVerdict,
@@ -274,5 +276,66 @@ describe("the seam counts what you have not ruled out (#534, FR-2, AC-8)", () =>
         const after = openSeams(three, [ruling("x-2.md", "y-0.md"), ruling("x-3.md", "y-0.md")]);
         expect(after.map((seam) => seam.gaps)).toEqual([...after.map((seam) => seam.gaps)].sort((p, q) => q - p));
         expect(after[0]).not.toEqual(widest);
+    });
+});
+
+/**
+ * **One filter, and no reader can forget it** (#534, FR-2).
+ *
+ * In the shape of `vaultWriteSeam.test.ts`: the three raw gap projections have a closed list of
+ * callers, so a surface added later cannot quietly read past the verdicts. A reader that wants gaps
+ * asks `openGaps` / `openGapCount` / `openSeams`, and if this list has to grow the growth is a
+ * decision someone wrote down rather than an omission nobody noticed.
+ *
+ * The 3D map is on the list because it is the one reader that needs the **unfiltered** total as
+ * well: the chip states how many gaps the vault has. It passes the record to the drawn set.
+ */
+describe("one filter, honoured by every reader (#534, FR-2)", () => {
+    const SRC = join(__dirname, "..", "..", "..", "..", "src");
+
+    const sources = (dir: string): string[] => {
+        const out: string[] = [];
+        for (const entry of readdirSync(dir)) {
+            const full = join(dir, entry);
+            if (statSync(full).isDirectory()) out.push(...sources(full));
+            else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) out.push(full);
+        }
+        return out;
+    };
+
+    const callersOf = (pattern: RegExp): string[] =>
+        sources(SRC)
+            .map((path) => ({ rel: path.slice(SRC.length + 1).replace(/\\/g, "/"), code: readFileSync(path, "utf8") }))
+            .filter((file) => pattern.test(file.code))
+            .map((file) => file.rel)
+            .sort();
+
+    it("keeps the raw gap reads to the modules that own them", () => {
+        expect(callersOf(/\b(topGaps|gapTally)\(/)).toEqual([
+            "architecture/components/core/graph3d/Graph3DRenderer.ts",
+            "architecture/knowledge/discovery/discoveries.ts",
+            "architecture/knowledge/judgement/gapVerdict.ts",
+            "architecture/knowledge/map/gapSeams.ts",
+        ]);
+    });
+
+    it("keeps the raw seam read to the module that subtracts from it", () => {
+        // One caller, and it is `openSeams`. (Not `gapSeams.ts` itself: the projection is declared
+        // as `export const gapSeams = memoise(...)`, so the module never calls its own name.)
+        expect(callersOf(/\bgapSeams\(/)).toEqual([
+            "architecture/knowledge/judgement/gapVerdict.ts",
+        ]);
+    });
+
+    it("has every surface reading the filtered ones instead", () => {
+        const filtered = callersOf(/\b(openGaps|openGapCount|openSeams)\(/);
+        for (const reader of [
+            "architecture/api/lib/knowledge/knowledgeApi.ts",
+            "architecture/knowledge/dashboard/knowledgeDashboard.ts",
+            "architecture/knowledge/home/home.ts",
+            "architecture/knowledge/state/recommendation.ts",
+        ]) {
+            expect(filtered).toContain(reader);
+        }
     });
 });

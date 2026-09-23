@@ -1,0 +1,80 @@
+@use 'variables' as *;
+
+// The five shapes the plugin already draws, named once (#546 A1/A2).
+//
+// The audit counted **six chip implementations** and **32 card-ish classes**. None of them was
+// wrong; there was simply nowhere to say the shape, so each file said it again and they drifted —
+// three radii, four paddings, two different hovers. These mixins are that missing place.
+//
+// They describe what already exists rather than proposing a new look: the plugin's look is
+// Obsidian's, on purpose (§III/§XV). Where a caller genuinely differs — the 3D graph paints over
+// its own dark scene, a filter chip is filled with the accent because it is a *choice you made* —
+// it includes the mixin and overrides the one property that differs, so the difference is visible
+// in the diff instead of hidden in a re-declaration.
+
+/// A **chip**: a small, rounded, self-contained fact or control on one line.
+/// Used for a lens, a filter, a role, a step's kind, a rehearsal's "would run".
+@mixin chip {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-tight;
+    padding: $space-hair $space-2;
+    border: $line-quiet;
+    border-radius: $radius-pill;
+    background-color: $surface-plain;
+    color: $text-quiet;
+    font-size: $text-small;
+    line-height: 1.5;
+}
+
+/// A chip that is **on** — chosen, pressed, active. One emphasis, everywhere.
+@mixin chip-active {
+    background-color: $accent-surface;
+    border-color: $accent-surface;
+    color: $accent-text;
+}
+
+/// A chip you can click, with the hover the rest of the plugin uses.
+@mixin chip-clickable {
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+/// A **card**: a bounded block you can click or read as a unit — a tile in a picker, a result, a
+/// thought. Bigger radius than a chip, and it owns its own padding.
+@mixin card {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-2;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: $surface-plain;
+}
+
+/// A **row**: one line in a list, quiet until you hover it.
+@mixin row {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-1 0;
+    font-size: $text-small;
+}
+
+/// A **hint**: the small quiet line under a control that says what it will do, or what just
+/// failed. Never a `Notice` — a thing about what is in front of you is said in front of you.
+@mixin hint {
+    color: $text-quiet;
+    font-size: $text-small;
+}
+
+/// An **empty state**: a surface with nothing to show says so, rather than rendering an empty box.
+@mixin empty-state {
+    padding: $space-2 0;
+    color: $text-quiet;
+    font-size: $text-small;
+}

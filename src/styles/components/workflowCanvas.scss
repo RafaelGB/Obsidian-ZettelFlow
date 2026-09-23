@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 // In-canvas legibility for the visual workflow language (#151). Purely cosmetic accents toggled by
 // WorkflowLegibilityExtension onto canvas node / edge-label DOM — theme-aware (Obsidian CSS vars),
 // no layout impact. Removing this partial (or the extension) leaves the canvas visually default.
@@ -65,21 +68,14 @@
 }
 
 .zettelkasten-flow__node-badge {
-    padding: 0.05rem 0.4rem;
-    border-radius: 999px;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    line-height: 1.4;
+    @include chip;
+    background-color: $surface-quiet;
     white-space: nowrap;
 }
 
 // Where a flow begins is the first thing you look for on someone else's canvas.
 .zettelkasten-flow__node-badge-start {
-    background-color: var(--interactive-accent);
-    border-color: var(--interactive-accent);
-    color: var(--text-on-accent);
+    @include chip-active;
     font-weight: var(--font-semibold);
 }
 
@@ -389,13 +385,9 @@ button.zettelkasten-flow__flow-review-finding:hover {
 
 // What the real run would do here, as chips: a list of sentences hid the shape of it.
 .zettelkasten-flow__rehearsal-would-run {
-    display: inline-flex;
-    align-items: center;
+    @include chip;
     margin: 0.15rem 0.25rem 0.15rem 0;
-    padding: 0.05rem 0.4rem;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 999px;
-    color: var(--text-muted);
+    background-color: transparent;
 }
 
 .zettelkasten-flow__rehearsal-preview {

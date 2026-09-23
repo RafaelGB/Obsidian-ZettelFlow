@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 /* ── Add button ── */
 .zettelkasten-flow__actions-management-add {
     position: relative;
@@ -138,24 +141,25 @@
 }
 
 /* ── Individual chip ── */
+// A tile in the picker, not a chip: it is 44px tall and holds two lines of meaning. It was named
+// `chip` before there was a word for either shape, and it is drawn as a **card** (#546) -- the
+// class name stays, because renaming it would touch every call site for no user-visible gain.
 .zettelkasten-flow__action-chip {
+    @include card;
     position: relative;
-    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: $space-tight;
     height: 44px;
     max-height: 80px;
-    padding: 0 8px;
-    border-radius: 4px;
-    border: 1px solid var(--background-modifier-border);
-    background-color: var(--background-primary);
+    padding: 0 $space-2;
     cursor: pointer;
-    font-size: 12px;
+    font-size: $text-small;
     transition: background-color 0.15s, box-shadow 0.15s;
 }
 
 .zettelkasten-flow__action-chip:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: $surface-hover;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 

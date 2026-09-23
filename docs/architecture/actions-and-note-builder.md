@@ -129,7 +129,16 @@ Most actions route their value by a `zone` config field:
 - **`context`** → `context[key] = value` → **not written** to the note; a shared bag so later
   actions and scripts can read earlier values.
 
-## 3. The 11 built-in actions
+## 3. The built-in actions
+
+**31 actions ship**, in five categories — manipulation 11 · knowledge 6 · ai 6 · research 4 ·
+relations 4 — and each has a page of its own under [`docs/actions/`](../actions/Prompt.md). The table
+below documents the **11 manipulation actions**: the ones that build the note itself, which is what
+this page is about. (The count said *"the 11 built-in actions"* for several epics after the other
+twenty shipped; corrected in
+[#546](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/546).)
+
+### The 11 manipulation actions
 
 | # | `type` (class) | Icon | `hasUI` | Build-time UI | Writes | Key config |
 |---|---|---|---|---|---|---|

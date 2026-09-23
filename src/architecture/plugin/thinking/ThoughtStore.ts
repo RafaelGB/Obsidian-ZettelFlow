@@ -1,4 +1,5 @@
 import { TFile } from "obsidian";
+import type { ThoughtRef } from "architecture/knowledge/timeline/timelineEvents";
 import { v4 as uuid4 } from "uuid";
 import { log } from "architecture/monitoring/Logger";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
@@ -104,6 +105,42 @@ export class ThoughtStore {
     /** The file a thought came from, when it is already on disk. */
     private pathOf(thought: Thought): string | undefined {
         return this.files().find((file) => file.path.includes(thought.id))?.path;
+    }
+
+    /**
+     * The thoughts written **about** a note (#540), oldest first.
+     *
+     * Read from the **metadata cache**, not from disk: a thought's frontmatter already carries the
+     * note it is about, so this answers *which thoughts are about this one* without opening a
+     * single file. That matters because the caller is a view that recomputes on every change of
+     * active file, and `all()` reads every thought in the folder.
+     *
+     * Returns references only — an id, a time and a path, never the text. The timeline is opt-in
+     * because it stores claim texts; a strand that carried more past that opt-in would break the
+     * bargain it was granted under.
+     */
+    public about(notePath: string): ThoughtRef[] {
+        if (!notePath) return [];
+        const out: ThoughtRef[] = [];
+        for (const file of this.files()) {
+            try {
+                const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.[
+                    "zfThought"
+                ] as Record<string, unknown> | undefined;
+                if (!front || front["about"] !== notePath) continue;
+                const at = Number(front["at"]);
+                const id = front["id"];
+                out.push({
+                    id: typeof id === "string" && id ? id : file.basename,
+                    at: Number.isFinite(at) ? at : file.stat.ctime,
+                    path: file.path,
+                });
+            } catch (error) {
+                // A half-written or hand-edited thought is not worth a broken timeline.
+                log.warn("[lab] could not read a thought's frontmatter", error);
+            }
+        }
+        return out.sort((a, b) => a.at - b.at);
     }
 
     private files(): TFile[] {

@@ -1551,6 +1551,7 @@ export default {
     evolution_timeline_contradicts: 'What contradicts it',
     evolution_timeline_unrevisited: 'Near it, and unrevisited',
     evolution_timeline_move_label: 'You',
+    evolution_timeline_thought_label: 'Thought about this',
     evolution_timeline_move_produced: '→ {0}',
     evolution_timeline_move_forget: 'Forget this move',
     evolution_timeline_judgement_label: 'Judgement',

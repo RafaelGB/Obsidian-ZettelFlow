@@ -104,10 +104,35 @@ Each move is a real, one-click operation on the target note — nothing is inven
 | **Advance** | move it to the next **lifecycle state** (validated transition) | state machine (#158) |
 | **Add a source** | ground it in a reference (`source` frontmatter) | sources (#155) |
 
-The session **refines live**: after you link a note the connect list shrinks; after you advance the
-state the next state is proposed. The header shows the idea's **degree** and **maturity** — the
+The session **refines as you act**: after you link a note the connect list shrinks; after you advance
+the state the next one is proposed. The header shows the idea's **degree** and **maturity** — the
 before/after is a *consequence* of the moves, never an invented score. Advancing a state (or adding a
 source/connection) also records a **development event** for the [thinking heatmap](thinking-heatmap.md).
+
+### Two redraws, and never one guard for both (#580)
+
+It said *refines live* for a year and did not. The card only listened to the vault-wide
+`metadataCache` *resolved* event, which a frontmatter-only write may never fire — so you could
+advance a note to `literature` and the button would still offer to advance it to `literature`. All
+five moves were affected; advance is simply the one whose result changes the whole card.
+
+There are now two named redraws, the distinction the [thinking space](../architecture/thought-lab.md)
+already paid for once:
+
+| | |
+|---|---|
+| **because you did something** | always happens, never refused. It re-reads the note before re-deriving the session, because the write, the index update and the redraw are three steps across two event loops and Obsidian does not promise their order. |
+| **because something changed while you write** | the note edited in another pane, or its state changed from the command palette. Refuses while a text box in this pane has focus, so typing cannot move the ground under you. |
+
+And the state **says what it became**: the chip carries the state, pulses once when it changes, and a
+line beneath it reads *was fleeting, now literature*. An emoji can only say where a note is; a
+promotion is a fact about two states.
+
+What it deliberately is not: there is no celebration, no level, no progress bar toward `permanent`
+and no count of notes per state — a locale scan over every `cultivate_` and `lifecycle_state_` string
+holds that line in both languages. The lifecycle is a **cycle**, not a ladder: `evergreen` goes back
+to `developing` for rework and `archived` revives to `fleeting`, so there is no final state and the
+advance control never runs out of something to offer.
 
 ## Ask before revealing
 

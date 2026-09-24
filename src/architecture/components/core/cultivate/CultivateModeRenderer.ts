@@ -2,7 +2,7 @@ import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { CultivationService } from "architecture/plugin";
-import { KnowledgeIndex } from "architecture/knowledge";
+import { KnowledgeIndex, STATE_LABEL_KEY, stateTransition } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { recordMoveOn } from "starters/zcomponents/MoveCommandsComponent";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
@@ -85,6 +85,14 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             window.clearTimeout(this.debounceTimer);
             this.debounceTimer = window.setTimeout(() => this.recompute(), DEBOUNCE_MS);
         };
+        // The note's **own** change, not the vault's (#580). A move writes frontmatter, which fires
+        // `changed`; `resolved` is the vault-wide link-resolution event and a property write that
+        // adds no link may never produce one — which is why this card used to go stale.
+        this.registerEvent(
+            this.app.metadataCache.on("changed", (file) => {
+                if (file instanceof TFile && file.path === this.targetPath) this.refreshTarget();
+            })
+        );
         this.registerEvent(this.app.metadataCache.on("resolved", debounced));
         this.registerEvent(this.app.vault.on("rename", debounced));
         this.registerEvent(this.app.vault.on("delete", debounced));
@@ -221,9 +229,36 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     private renderTarget(root: HTMLElement, session: CultivationSession): void {
         const card = root.createDiv({ cls: c("cultivate-target") });
+
+        // What just happened, if anything did (#580). The emoji says where the note *is*; a
+        // promotion is a fact about two states, and nobody can read it from one.
+        const moved =
+            this.renderedState?.path === session.path
+                ? stateTransition(this.renderedState.state, session.state)
+                : null;
+        this.renderedState = { path: session.path, state: session.state };
+
+        const stateKey = (STATE_LABEL_KEY as Record<string, string>)[session.state];
+        const chip = card.createSpan({
+            cls: c("cultivate-state-chip"),
+            text: `${session.stateEmoji} ${stateKey ? t(stateKey as Parameters<typeof t>[0]) : session.state}`.trim(),
+        });
+        if (moved) {
+            // Once, on the chip that changed, and nowhere else: the state is where you acted.
+            chip.addClass(c("cultivate-state-changed"));
+            card.createDiv({
+                cls: c("cultivate-state-transition"),
+                text: t(
+                    "cultivate_state_transition",
+                    t(moved.fromKey as Parameters<typeof t>[0]),
+                    t(moved.toKey as Parameters<typeof t>[0])
+                ),
+            });
+        }
+
         const name = card.createSpan({
             cls: c("cultivate-target-name"),
-            text: `${session.stateEmoji} ${basename(session.path)}`.trim(),
+            text: basename(session.path),
         });
         name.setAttribute("title", session.path);
         makeActivatable(name, () => void this.app.workspace.openLinkText(session.path, "", false));
@@ -468,26 +503,70 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         btn.addEventListener("click", () => submit());
     }
 
+    /**
+     * Redraw because **you** did something (#580).
+     *
+     * Always happens, and it re-reads the note before re-deriving: the write, the index upsert (on
+     * `vault.on("modify")`) and this are three steps across two event loops, and Obsidian does not
+     * guarantee their order — so the act draws what the model holds *now*, and the note's own
+     * `changed` event converges on it milliseconds later. The card is therefore never *left* stale,
+     * which is the only promise worth making here.
+     *
+     * Re-reading is free: the snapshot recorder is diff-gated, so an upsert with nothing new records
+     * nothing.
+     */
+    private async redrawAfterMove(): Promise<void> {
+        const path = this.targetPath;
+        if (path) {
+            const file = this.app.vault.getFileByPath(path);
+            if (file instanceof TFile) KnowledgeIndex.getInstance().onModify(file);
+        }
+        this.recompute();
+    }
+
+    /**
+     * Redraw for something that changed **while you write** — the note edited in another pane, or
+     * its state changed from the command palette.
+     *
+     * Refuses while a text box in this pane has focus, so typing can never move the ground under
+     * you. It is not a veto on what you asked for: that path is {@link redrawAfterMove}, and using
+     * one guard for both is the bug the Lab already paid for once.
+     */
+    private refreshTarget(): void {
+        const active = this.container.ownerDocument.activeElement;
+        const typing = active instanceof HTMLTextAreaElement || active instanceof HTMLInputElement;
+        if (typing && this.container.contains(active)) return;
+        this.recompute();
+    }
+
     // ── apply (#309 S3): delegate to the CultivationService (Workflow Engine owns the writes) ──────
     private readonly cultivation = CultivationService.getInstance();
 
-    private linkNote(target: string): Promise<void> {
-        return this.cultivation.link(this.app, this.targetPath ?? "", basename(target));
+    /** The state this card last drew, so a change can be said rather than only shown (#580). */
+    private renderedState: { path: string; state: string } | undefined;
+
+    private async linkNote(target: string): Promise<void> {
+        await this.cultivation.link(this.app, this.targetPath ?? "", basename(target));
+        await this.redrawAfterMove();
     }
 
-    private addQuestion(text: string): Promise<void> {
-        return this.cultivation.addQuestion(this.app, this.targetPath ?? "", text);
+    private async addQuestion(text: string): Promise<void> {
+        await this.cultivation.addQuestion(this.app, this.targetPath ?? "", text);
+        await this.redrawAfterMove();
     }
 
-    private addCounterpoint(text: string): Promise<void> {
-        return this.cultivation.addCounterpoint(this.app, this.targetPath ?? "", text);
+    private async addCounterpoint(text: string): Promise<void> {
+        await this.cultivation.addCounterpoint(this.app, this.targetPath ?? "", text);
+        await this.redrawAfterMove();
     }
 
-    private addSource(text: string): Promise<void> {
-        return this.cultivation.addSource(this.app, this.targetPath ?? "", text);
+    private async addSource(text: string): Promise<void> {
+        await this.cultivation.addSource(this.app, this.targetPath ?? "", text);
+        await this.redrawAfterMove();
     }
 
-    private advanceState(target: NonNullable<CultivationMove["proposedState"]>): Promise<void> {
-        return this.cultivation.advance(this.app, this.plugin, this.targetPath ?? "", target);
+    private async advanceState(target: NonNullable<CultivationMove["proposedState"]>): Promise<void> {
+        await this.cultivation.advance(this.app, this.plugin, this.targetPath ?? "", target);
+        await this.redrawAfterMove();
     }
 }

@@ -95,3 +95,49 @@ describe("readyToCultivate (#309 S4)", () => {
         expect(readyToCultivate(buildModel([]))).toBe(0);
     });
 });
+
+/**
+ * What the advance control offers (#580).
+ *
+ * The complaint that started this: promote a note and the button still names the state it is
+ * already in. The session has always computed the right answer — nothing read it a second time.
+ *
+ * And a correction to the issue's own first draft: the control **cannot** disappear. Every state
+ * has a non-`archived` target, because the lifecycle is a cycle and not a ladder — `evergreen`
+ * goes back to `developing` for rework, and `archived` revives to `fleeting`.
+ */
+describe("the next state, for every state there is (#580)", () => {
+    const advanceOf = (state: string) => {
+        const one = buildModel([idea("n.md", state as never, [])]);
+        const session = buildCultivationSession(one, "n.md", NOW);
+        return session?.moves.find((move) => move.kind === "advance");
+    };
+
+    it("offers the state after this one", () => {
+        expect(advanceOf("literature")?.proposedState).toBe("permanent");
+        expect(advanceOf("fleeting")?.proposedState).toBe("literature");
+    });
+
+    it("never offers archiving, and never offers nothing", () => {
+        const expected: Record<string, string> = {
+            fleeting: "literature",
+            literature: "permanent",
+            permanent: "developing",
+            developing: "evergreen",
+            evergreen: "developing",
+            archived: "fleeting",
+        };
+        for (const [state, target] of Object.entries(expected)) {
+            const move = advanceOf(state);
+            expect({ state, target: move?.proposedState }).toEqual({ state, target });
+            expect({ state, label: move?.proposedStateLabelKey }).toEqual({
+                state,
+                label: `lifecycle_state_${target}`,
+            });
+        }
+    });
+
+    it("carries the label key so the view needs no lifecycle vocabulary", () => {
+        expect(advanceOf("fleeting")?.proposedStateLabelKey).toBe("lifecycle_state_literature");
+    });
+});

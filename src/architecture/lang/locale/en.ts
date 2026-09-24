@@ -1267,6 +1267,8 @@ export default {
     claim_door_other_claims: 'This note says more than one thing. You are editing the first.',
     claim_door_saved: 'The claim is on the note.',
     claim_door_failed: 'The claim could not be written.',
+    // A promotion is a fact about two states (#580): the chip says where you are, this says what moved.
+    cultivate_state_transition: 'Was {0}, now {1}',
     move_pick_title: 'Make a move…',
     move_pick_placeholder: 'What are you doing to {0}?',
     move_primitive_externalize: 'Get it out',

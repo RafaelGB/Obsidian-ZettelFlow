@@ -394,3 +394,43 @@
         border-color: var(--interactive-accent);
     }
 }
+
+/* ── the state says what it became (#580) ─────────────────────────────────────
+   The chip is where you acted, so it is where the change is shown: it pulses once
+   and says the transition as a sentence. No confetti, no ladder, no progress bar. */
+
+.zettelkasten-flow__cultivate-state-chip {
+    display: inline-block;
+    margin-inline-end: var(--size-4-2);
+    padding-inline: var(--size-4-2);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__cultivate-state-transition {
+    margin-block-start: var(--size-4-1);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+@keyframes zf-state-changed {
+    from {
+        opacity: 0.4;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__cultivate-state-changed {
+    animation: zf-state-changed 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__cultivate-state-changed {
+        animation: none;
+    }
+}

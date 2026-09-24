@@ -1082,6 +1082,7 @@ export default {
     command_remove_relation: 'Eliminar una relación',
     ribbon_open_zettelflow: 'Abrir ZettelFlow',
     menu_create_note: 'Crear nota',
+    mode_header_more: 'Más acciones',
     surface_home_title: 'Inicio',
     surface_health_title: 'Salud',
     surface_explore_title: 'Explorar',

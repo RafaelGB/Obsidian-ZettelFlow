@@ -3,6 +3,7 @@ import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
 import {
@@ -296,18 +297,32 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const said = header.createDiv();
         said.createDiv({ cls: c("lab-intro"), text: t("lab_intro") });
         const actions = header.createDiv({ cls: c("lab-header-actions") });
-        this.ghostAction(actions, t("lab_legend_open"), "help-circle", () => {
-            this.showingLegend = !this.showingLegend;
-            this.render();
+        // One primary, and it is the collision: the one control here that *starts something*
+        // (#577). Crystallize is not a candidate — it lives in the picked bar, on the selection it
+        // acts upon, and promoting it would put a permanently inert button in the header, which is
+        // exactly the clutter #542 removed. The legend explains; it does not open anything.
+        const bar = new ModeHeader(actions, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        bar.primary({
+            label: this.colliding ? t("collision_close") : t("collision_open"),
+            icon: "shuffle",
+            onClick: () => {
+                this.colliding = !this.colliding;
+                if (!this.colliding) {
+                    this.anchor = undefined;
+                    this.forgetPair();
+                }
+                this.render();
+            },
         });
-        this.ghostAction(actions, this.colliding ? t("collision_close") : t("collision_open"), "shuffle", () => {
-            this.colliding = !this.colliding;
-            if (!this.colliding) {
-                this.anchor = undefined;
-                this.forgetPair();
-            }
-            this.render();
+        bar.secondary({
+            label: t("lab_legend_open"),
+            icon: "help-circle",
+            onClick: () => {
+                this.showingLegend = !this.showingLegend;
+                this.render();
+            },
         });
+        bar.done();
         if (this.showingLegend) this.renderLegend(host);
 
         // *Make a move… → analogy* on a note arrives here framed, with the note as the subject

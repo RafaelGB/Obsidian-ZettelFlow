@@ -1,6 +1,7 @@
 import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
+import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 import { KnowledgeIndex, STATE_LABEL_KEY } from "architecture/knowledge";
 import {
@@ -131,35 +132,34 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
 
         const header = container.createDiv({ cls: c("evolution-timeline-header") });
         header.createEl("h4", { text: t("evolution_timeline_view_title"), cls: c("evolution-timeline-title") });
-        const refresh = header.createEl("button", {
-            text: t("evolution_timeline_refresh_button"),
-            cls: c("evolution-timeline-refresh"),
-            attr: { "aria-label": t("evolution_timeline_refresh_button") },
-        });
-        this.registerDomEvent(refresh, "click", () => this.recompute());
+        // Share this idea's evolution as an image card (#387, B4) — only when there's history to
+        // show, and the one control here that opens anything, so the primary (#577).
+        const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        if (this.state === "ready") {
+            bar.primary({
+                label: t("evolution_timeline_share_button"),
+                icon: "image",
+                onClick: () => void this.shareIdeaCard(),
+            });
+        }
+        // A refresh and a filter are not capabilities: they move you around inside what is already
+        // here. They stay in the header, drawn plainly.
+        bar.nav({ label: t("evolution_timeline_refresh_button"), onClick: () => this.recompute() });
 
         // The filter appears only once there is a cognitive milestone to isolate, so a snapshots-only
         // note keeps the pre-#362 header.
         if (this.state === "ready" && this.events.some((event) => event.kind === "judgement")) {
-            const filter = header.createEl("button", {
-                text: this.cognitiveOnly ? t("evolution_timeline_filter_all") : t("evolution_timeline_filter_cognitive"),
-                cls: c("evolution-timeline-filter"),
-            });
-            this.registerDomEvent(filter, "click", () => {
-                this.cognitiveOnly = !this.cognitiveOnly;
-                this.render();
+            bar.nav({
+                label: this.cognitiveOnly
+                    ? t("evolution_timeline_filter_all")
+                    : t("evolution_timeline_filter_cognitive"),
+                onClick: () => {
+                    this.cognitiveOnly = !this.cognitiveOnly;
+                    this.render();
+                },
             });
         }
-
-        // Share this idea's evolution as an image card (#387, B4) — only when there's history to show.
-        if (this.state === "ready") {
-            const share = header.createEl("button", {
-                text: t("evolution_timeline_share_button"),
-                cls: c("evolution-timeline-share"),
-                attr: { "aria-label": t("evolution_timeline_share_button") },
-            });
-            this.registerDomEvent(share, "click", () => void this.shareIdeaCard());
-        }
+        bar.done();
 
         this.renderHistory(container.createDiv({ cls: c("evolution-timeline-history") }));
         this.renderAround(container);

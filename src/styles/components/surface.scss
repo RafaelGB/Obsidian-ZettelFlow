@@ -46,3 +46,29 @@
     }
 }
 
+
+/* ── a mode's header: one primary, plain navigation, one overflow (#577) ──── */
+
+.zettelkasten-flow__mode-header-primary,
+.zettelkasten-flow__mode-header-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Plain on purpose: navigation must never compete with the primary for the eye. */
+.zettelkasten-flow__mode-header-nav {
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__mode-header-icon {
+    display: inline-flex;
+}

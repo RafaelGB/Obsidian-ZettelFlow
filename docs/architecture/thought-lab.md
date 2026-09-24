@@ -110,6 +110,13 @@ Everything else — collision, constraints, perspectives, question transformatio
 operator engine in phase 2. A fifth move here would start the feature collection this epic exists
 to prevent, and a test says so.
 
+**Phase 2 arrived with one operator, and the fifth move still does not exist.** The
+[collision](collision.md) (#559) puts two notes with nothing in common in front of you and asks what
+they could share; you answer in the same composer, and the thought it makes carries **both** notes —
+`about` gained a sibling, `alsoAbout`, rather than becoming a list, so the six readers that mean
+*the one note this thread came from* did not have to be retyped. A collision is an **operator**, not
+a move: fork, challenge, connect and leave are still four.
+
 ### Thinking reads downward
 
 An answer sits **under what it answers**.

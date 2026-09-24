@@ -87,6 +87,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** Whether the collision panel is open. A choice, never a mode you are put into (#567). */
     private colliding = false;
     private collision: CollisionPanel | undefined;
+    /** The note a collision is anchored to, when you arrived here from one (#569). */
+    private anchor: string | undefined;
     /** The second note a thought is about, when it came out of a collision. */
     private alsoAbout: string | undefined;
 
@@ -308,7 +310,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
         });
         this.ghostAction(actions, this.colliding ? t("collision_close") : t("collision_open"), "shuffle", () => {
             this.colliding = !this.colliding;
-            if (!this.colliding) this.forgetPair();
+            if (!this.colliding) {
+                this.anchor = undefined;
+                this.forgetPair();
+            }
             this.render();
         });
         if (this.showingLegend) this.renderLegend(host);
@@ -320,6 +325,14 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 void this.app.workspace.openLinkText(path, "", false);
             });
             this.addChild(this.blind);
+        }
+
+        // *Make a move… → analogy* on a note arrives here framed, with the note as the subject
+        // (#499). Nothing in the move vocabulary changed to make this happen: the verb already
+        // opens the thinking space, and this is what the space now does when it does.
+        if (this.frame === "analogy" && this.about && !this.colliding && !this.anchor) {
+            this.anchor = this.about;
+            this.colliding = true;
         }
 
         if (this.colliding) {
@@ -832,6 +845,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         return drawCollision(index.getModel(), {
             distance,
             seed: Date.now(),
+            // One side is fixed when you came from a note: *this* note, against something far away.
+            ...(this.anchor ? { from: this.anchor } : {}),
             // The one filter, read where it is applied (#568).
             ruledOut: JudgementLog.getInstance().entries(),
         });

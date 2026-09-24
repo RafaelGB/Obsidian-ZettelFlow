@@ -1,4 +1,9 @@
-# Living knowledge map — regions and neighbourhoods
+# Living knowledge map
+
+> Since #566 the regions and communities on this page have a second reader, and it wants the
+> opposite of what everything else wants: [two things far apart](../architecture/collision.md) draws
+> a pair from **different** neighbourhoods, with no shared neighbour. It is also the only reader in
+> the product for which a note that stands **alone** is prime material rather than a limitation. — regions and neighbourhoods
 
 The **living knowledge map** shows the *shape* of your slip-box, at levels that nest:
 

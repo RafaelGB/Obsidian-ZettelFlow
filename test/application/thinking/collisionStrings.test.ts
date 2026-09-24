@@ -1,6 +1,11 @@
 import { describe, it, expect } from "@jest/globals";
+import { readdirSync, readFileSync, statSync } from "fs";
+import { join } from "path";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
+
+// test/application/thinking → 3 ups → repo root
+const ROOT = join(__dirname, "..", "..", "..");
 
 const PREFIX = "collision_";
 
@@ -90,5 +95,79 @@ describe("the collision poses and never proposes (#567)", () => {
             .filter(([, value]) => COUNTING.some((pattern) => pattern.test(value)))
             .map(([key]) => key);
         expect(offenders).toEqual(["collision_shown_count"]);
+    });
+});
+
+/**
+ * Nowhere in the product is a number about collisions (#569 FR-5).
+ *
+ * This is the one that is fun, which is exactly why it is the one most likely to grow a score. A
+ * count of pairs offered, a daily one, a tally of what you dismissed — each would arrive as
+ * encouragement and each would turn a free gesture into homework. The scan is over **all of
+ * `src/`**, because the count would not be added in the collision's own files.
+ */
+describe("nothing counts collisions, anywhere (#569)", () => {
+    const SRC = join(ROOT, "src");
+
+    const sources = (dir: string, out: string[] = []): string[] => {
+        for (const entry of readdirSync(dir)) {
+            const full = join(dir, entry);
+            if (statSync(full).isDirectory()) sources(full, out);
+            else if (/\.tsx?$/.test(entry)) out.push(full);
+        }
+        return out;
+    };
+
+    it("computes no tally for display", () => {
+        const forbidden = ["collisions.length", "collisionCount", "pairsShown", "dismissedCount", "shownCount"];
+        for (const file of sources(SRC)) {
+            const source = readFileSync(file, "utf8");
+            for (const name of forbidden) {
+                expect({ file: file.replace(SRC, ""), name, found: source.includes(name) }).toEqual({
+                    file: file.replace(SRC, ""),
+                    name,
+                    found: false,
+                });
+            }
+        }
+    });
+
+    it("says nothing about quotas or dailies, in either language", () => {
+        const QUOTA = [/\bquota\b/i, /\bcupo\b/i, /\btoday\b/i, /\bhoy\b/i, /\bevery day\b/i, /\bcada d/i];
+        for (const [name, locale] of [
+            ["en", en],
+            ["es", es],
+        ] as const) {
+            const offenders = stringsOf(locale as Record<string, string>)
+                .filter(([, value]) => QUOTA.some((pattern) => pattern.test(value)))
+                .map(([key, value]) => `${key}: ${value}`);
+            expect({ locale: name, offenders }).toEqual({ locale: name, offenders: [] });
+        }
+    });
+
+    it("never interpolates anything into a collision string", () => {
+        for (const [key, value] of stringsOf(en as Record<string, string>)) {
+            expect({ key, placeholder: value.includes("{0}") }).toEqual({ key, placeholder: false });
+        }
+    });
+
+    it("carries the feature in the README, where a user decides to install", () => {
+        const readme = readFileSync(join(ROOT, "README.md"), "utf8");
+        const features = readme.slice(readme.indexOf("## Features"));
+        const toolkit = readme.slice(readme.indexOf("## Zettelkasten toolkit"), readme.indexOf("## Features"));
+        expect(features.toLowerCase()).toContain("collision");
+        expect(toolkit.toLowerCase()).toContain("far apart");
+    });
+
+    it("apologises for nothing when the vault is too small", () => {
+        const empty = (en as Record<string, string>).collision_nothing_far_enough;
+        expect(empty).toBeTruthy();
+        for (const pattern of [/\bsorry\b/i, /\blo siento\b/i, /\bwrite more\b/i, /\bescribe más\b/i, /\bshould\b/i, /\bdeberías\b/i]) {
+            expect({ empty, pattern: String(pattern), found: pattern.test(empty) }).toEqual({
+                empty,
+                pattern: String(pattern),
+                found: false,
+            });
+        }
     });
 });

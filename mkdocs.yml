@@ -214,6 +214,7 @@ nav:
       - Workflow phases: architecture/workflow-phases.md
       - Event-driven & visual workflows: architecture/event-driven-workflows.md
       - Reposition map (feature → layer): architecture/reposition-map.md
+      - Capability doors (feature → how you reach it): development/capability-doors.md
   - Contributing:
       - Contributing & conventions: development/contributing-and-conventions.md
       - Testing & guardrails: development/testing-and-guardrails.md

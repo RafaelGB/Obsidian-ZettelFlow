@@ -70,3 +70,30 @@ export function applyClaim(frontmatter: Record<string, unknown>, sentence: strin
     frontmatter[CLAIM_KEY] = text;
     return true;
 }
+
+/**
+ * Take a claim off the note (#562) — the return's third answer.
+ *
+ * Returns whether anything was removed. It never leaves a husk: the last claim of a list takes the
+ * key with it, because a `claim:` with nothing under it is a note that says something nobody can
+ * read.
+ *
+ * The sentence itself is not this function's business. The caller has already put it somewhere it
+ * survives — a rejected conclusion is part of your intellectual history.
+ */
+export function removeClaim(frontmatter: Record<string, unknown>, index: number): boolean {
+    const current = frontmatter[CLAIM_KEY];
+    if (Array.isArray(current)) {
+        const texts: unknown[] = [...(current as unknown[])];
+        if (index < 0 || index >= texts.length) return false;
+        texts.splice(index, 1);
+        if (texts.length === 0) delete frontmatter[CLAIM_KEY];
+        else frontmatter[CLAIM_KEY] = texts;
+        return true;
+    }
+    if (typeof current === "string" && index === CLAIM_EDIT_INDEX) {
+        delete frontmatter[CLAIM_KEY];
+        return true;
+    }
+    return false;
+}

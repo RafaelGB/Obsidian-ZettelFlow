@@ -17,3 +17,46 @@
     gap: var(--size-4-2);
     margin-block-start: var(--size-4-1);
 }
+
+// Asked again (#562): two sentences meeting, neither of them marked as the better one.
+.zettelkasten-flow__claim-return-note {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__claim-return-intro {
+    margin-block: var(--size-4-2);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__claim-return-answer {
+    width: 100%;
+    min-height: var(--size-4-18);
+    margin-block-end: var(--size-4-2);
+    resize: vertical;
+}
+
+.zettelkasten-flow__claim-return-pair {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    margin-block: var(--size-4-3);
+}
+
+.zettelkasten-flow__claim-return-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__claim-return-sentence {
+    padding: var(--size-4-2);
+    border-left: var(--size-4-1) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__claim-return-answers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}

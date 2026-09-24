@@ -8,6 +8,7 @@ import { classifyHealth } from "architecture/knowledge/state/classifyHealth";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
 import { TFile } from "obsidian";
+import { newThought, renderThought, thoughtPath } from "application/thinking/thought";
 
 const SRC = join(__dirname, "..", "..", "..", "src");
 const LAB = "_ZettelFlow/lab";
@@ -96,5 +97,38 @@ describe("the Lab is not knowledge (#466)", () => {
         const scope = readFileSync(join(SRC, "architecture", "knowledge", "scope", "knowledgeScope.ts"), "utf8");
         const system = /const system = \[([\s\S]*?)\];/.exec(scope)?.[1] ?? "";
         expect(system).toContain("thoughtLabPath");
+    });
+});
+
+/**
+ * A withdrawn claim is not knowledge either (#562 FR-8).
+ *
+ * The return's third answer puts the sentence you no longer hold into the Lab — the inverse of
+ * crystallize. It needs **no new scope rule**: it lands in the same folder, which the one place
+ * that decides what is not knowledge already excludes. This asserts exactly that, because a
+ * withdrawal that wrote outside the Lab would put a note you deliberately retired back into the
+ * model, orphaned.
+ */
+describe("a withdrawn claim goes where thoughts go (#562)", () => {
+    const index = KnowledgeIndex.getInstance();
+
+    it("lands inside the Lab, carrying the note it came from", () => {
+        const thought = newThought({
+            text: "microservices increase organizational complexity",
+            id: "abcd1234",
+            at: 1_700_000_000_000,
+            about: "Notes/real one.md",
+        });
+        const path = thoughtPath(LAB, thought);
+        expect(path.startsWith(`${LAB}/`)).toBe(true);
+        expect(renderThought(thought)).toContain("about: Notes/real one.md");
+
+        wire();
+        index.useSettingsHost({ settings: { excludedPaths: [], thoughtLabPath: LAB } as never });
+        index.build();
+        expect([...index.getModel().all()].map((idea) => idea.path).sort()).toEqual([
+            "Notes/real one.md",
+            "Notes/real two.md",
+        ]);
     });
 });

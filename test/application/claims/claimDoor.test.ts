@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { applyClaim, claimTextsOf, CLAIM_EDIT_INDEX } from "application/claims";
+import { applyClaim, claimTextsOf, removeClaim, CLAIM_EDIT_INDEX } from "application/claims";
 
 /**
  * The claim gets a door (#561, epic #558).
@@ -55,5 +55,38 @@ describe("the sentence goes into the frontmatter, and nothing else moves (#561)"
         expect(claimTextsOf({ claim: "one" })).toEqual(["one"]);
         expect(claimTextsOf({ claim: ["one", "two"] })).toEqual(["one", "two"]);
         expect(claimTextsOf({ claim: ["  padded  ", "", 7] })).toEqual(["padded"]);
+    });
+});
+
+/**
+ * Taking a claim off the note (#562 FR-4).
+ *
+ * The third answer of the return. What it must never do is leave a husk behind — an empty list, or
+ * a key with nothing under it, would be a note that "says" something no one can read.
+ */
+describe("a claim can be taken away, and takes nothing with it (#562)", () => {
+    it("removes the key and keeps the rest", () => {
+        const frontmatter: Record<string, unknown> = { claim: "a", title: "t" };
+        expect(removeClaim(frontmatter, 0)).toBe(true);
+        expect(frontmatter).toEqual({ title: "t" });
+    });
+
+    it("removes one of several and keeps the others", () => {
+        const frontmatter: Record<string, unknown> = { claim: ["a", "b"] };
+        expect(removeClaim(frontmatter, 0)).toBe(true);
+        expect(frontmatter.claim).toEqual(["b"]);
+    });
+
+    it("deletes the key rather than leaving an empty list", () => {
+        const frontmatter: Record<string, unknown> = { claim: ["a"] };
+        expect(removeClaim(frontmatter, 0)).toBe(true);
+        expect(frontmatter).toEqual({});
+    });
+
+    it("does nothing when there is nothing to remove", () => {
+        const frontmatter: Record<string, unknown> = { title: "t" };
+        expect(removeClaim(frontmatter, 0)).toBe(false);
+        expect(removeClaim({ claim: "a" }, 3)).toBe(false);
+        expect(frontmatter).toEqual({ title: "t" });
     });
 });

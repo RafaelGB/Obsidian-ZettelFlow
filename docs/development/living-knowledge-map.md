@@ -198,7 +198,7 @@ build3DGraph(model)                 puts both levels on each node, and the cross
     node.community / node.communityName   the neighbourhood (index, name)
     node.frontier                         its neighbours are not all its own
     link.bridge                           this link crosses two neighbourhoods
-    (on the node and the link, so they survive capGraph3D / filterGraph3D / graph3dUpToTime)
+    (on the node and the link, so they survive filterGraph3D / graph3dUpToTime)
 
 COMMUNITY_COLORS + communityColor(i) one palette for node, halo, hull, scene label and legend
                                      swatch; mirrored by graph3d.scss, guarded by a test

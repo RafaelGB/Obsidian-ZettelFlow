@@ -141,7 +141,6 @@ export const NOT_EXPOSED: Record<string, string> = {
     graph3dSignature: "3D graph view helper",
     graph3dTimeRange: "3D graph view helper",
     graph3dUpToTime: "3D graph view helper",
-    capGraph3D: "3D graph view helper",
     communityColor: "3D graph palette (#515) — a colour, not a projection",
     communitiesOf: "renderer input for the 3D graph (#524) — read `map()` for the regions",
     filterGraph3D: "3D graph view helper",

@@ -51,7 +51,7 @@ describe("the node knows which region it is in (#514)", () => {
 
     it("survives a cap, because it rides on the node", () => {
         // The alternative — a `regions` field on Graph3DData — would have to be threaded through
-        // capGraph3D, filterGraph3D and graph3dUpToTime, and would go stale in all three.
+        // filterGraph3D and graph3dUpToTime, and would go stale in both.
         const source = read("src/architecture/knowledge/map/graph3d.ts");
         expect(source).not.toContain("regions:");
         expect(source).toContain("region: ");

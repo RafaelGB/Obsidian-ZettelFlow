@@ -122,6 +122,13 @@ export const BUDGETS = {
         because:
             "the tally is held for as long as the model revision stands, so it is the one thing in this epic that costs memory rather than time; as objects under string keys the same 1.26 million pairs measured 200 MB, and MEMO_MAX_ENTRIES is not a memory ceiling if one entry can be that big",
     },
+    "view.graph3d.build.10k": {
+        name: "build the 3D graph's data for 10,000 notes",
+        limit: 400,
+        measured: "70.4 ms",
+        because:
+            "the half of the 3D graph a headless runner can see (#539). The view has a documented 600-node cap that nothing ever called, and the question -- apply it or delete it -- needed evidence. This is the evidence that exists without a screen: what the *plugin* spends turning a model into nodes and links before WebGL is handed anything. Frames per second is the other half, and no Node process can measure it. Two runs measured 70.4 ms and 27.2 ms; the **slower** is recorded here, because a ceiling should clear the worst seen and because one number from one run is how the last speed claim in this repo went wrong",
+    },
     "analysis.gaps.seams.10k": {
         name: "aggregate every gap into seams over 10,000 notes",
         limit: 4_000,

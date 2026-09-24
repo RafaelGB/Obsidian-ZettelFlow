@@ -186,11 +186,22 @@ gap; only the dashes are missing.
 
 - The library (`3d-force-graph`, three.js) is **imported lazily** on first render and torn down on
   close, so it never sits in the plugin's startup path.
-- `capGraph3D` and `GRAPH3D_MAX_NODES` (600) exist and are unit-tested, but **nothing calls them**:
-  the view draws every indexed note. This page claimed the opposite until #532 went looking, and
-  whether the cap should be applied or deleted is
-  [#539](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/539) — with the measurement it needs
-  and has never had.
+- **There is no node cap. The view draws every indexed note**, and that is now true in the code as
+  well as on this page. A `capGraph3D` / `GRAPH3D_MAX_NODES = 600` pair existed from #280 S5,
+  documented here as protecting large vaults, unit-tested — and **called by nothing** for four
+  epics. [#539](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/539) deleted it rather than
+  started applying it, for three reasons worth keeping:
+    - Applying it was the change that needed evidence. It would have **silently hidden 94 % of a
+      ten-thousand-note vault** on a surface whose entire purpose is showing shape.
+    - What can be measured without a screen says the data path is not the problem:
+      `view.graph3d.build.10k` is **27-70 ms** for ten thousand notes — two runs, recorded as a
+      range because that is what was measured ([budgets](performance-budgets.md)).
+    - The cap's stated reason was mobile, and mobile never reaches WebGL at all — `render()` sends
+      it to the 2D fallback below.
+
+    What stays **unmeasured** is frames per second in the live scene: no Node process can produce
+    that number. If a real vault chokes, the fix starts with that report and a number, not with a
+    constant nobody called. Lite mode remains the FPS escape hatch.
 - On **mobile** or when **WebGL is unavailable**, the mode degrades to a message with a button that
   opens the 2D **Map** instead of failing.
 - The immersive **environment** (starfield, non-hub halos, selective bloom) is disabled under
@@ -201,8 +212,8 @@ gap; only the dashes are missing.
 ## Where it lives
 
 - Pure projection: `architecture/knowledge/map/graph3d.ts` (`build3DGraph`, `filterGraph3D`,
-  `capGraph3D`, `graph3dStats`, `buildAdjacency`, `OVERLAY_SPECS`, `STATE_COLOR_VARS`,
-  `RELATION_COLOR_VARS`) — Obsidian-free, unit-tested.
+  `graph3dStats`, `buildAdjacency`, `OVERLAY_SPECS`, `STATE_COLOR_VARS`, `RELATION_COLOR_VARS`)
+  — Obsidian-free, unit-tested.
 - Pure environment math: `architecture/components/core/graph3d/graph3dEnvironment.ts`
   (`environmentEnabled`, `starfieldPositions`, `haloSpec`) — Obsidian-free, unit-tested (#384).
 - Pure ghost selection: `architecture/components/core/graph3d/graph3dGhosts.ts` (`selectGhosts`,

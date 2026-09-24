@@ -60,3 +60,42 @@
     flex-wrap: wrap;
     gap: var(--size-4-2);
 }
+
+/* ── the reveal moves, a little (#565) ────────────────────────────────────────
+   Delight is in the moment, never in the accumulation: the two sentences meet with
+   a short fade, a save pulses once, and that is the whole of it. The Lab's amount. */
+
+@keyframes zf-claim-reveal {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes zf-claim-saved {
+    from {
+        opacity: 0.4;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__claim-revealed {
+    animation: zf-claim-reveal 160ms ease;
+}
+
+.zettelkasten-flow__claim-saved {
+    animation: zf-claim-saved 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__claim-revealed,
+    .zettelkasten-flow__claim-saved {
+        animation: none;
+    }
+}

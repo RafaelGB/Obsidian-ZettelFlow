@@ -32,7 +32,7 @@ and reserves the rest for a later slice:
 | `tag.added` | a tag is added to a note's frontmatter | ✅ wired |
 | `note.linked` / `note.unlinked` | a link is added/removed | ⏳ reserved |
 | `workflow.completed` | a workflow finishes | ⏳ reserved |
-| `review.due` | a note's review cadence lapses | ⏳ reserved |
+| `review.due` | a claim you stated is ready to be looked at again (#563) | ✅ wired |
 
 `property.changed` and `tag.added` have no native Obsidian signal — they are **derived**
 deterministically from a frontmatter/tag snapshot diff (the same approach the property hooks use).

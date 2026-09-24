@@ -80,3 +80,39 @@ describe("graph mobile fallback + reduced motion (#319 S2/S4)", () => {
         expect(GRAPH).toContain("prefers-reduced-motion");
     });
 });
+
+/**
+ * Motion in the return loop stops when asked (#565, epic #558).
+ *
+ * There was no generic guardrail for this — the only `prefers-reduced-motion` assertion in the repo
+ * was the 3D graph's, and it reads the renderer's JavaScript. This one reads the stylesheet: every
+ * animation the loop adds has its selector inside a reduced-motion block in the same file.
+ */
+describe("the return's animations honour reduced motion (#565)", () => {
+    const CLAIMS = readFileSync(
+        join(__dirname, "..", "..", "..", "..", "src", "styles", "components", "claims.scss"),
+        "utf8"
+    );
+
+    it("animates something at all", () => {
+        expect(CLAIMS).toMatch(/animation:\s*zf-claim-/);
+    });
+
+    it("turns every one of them off under reduced motion", () => {
+        const animated = [...CLAIMS.matchAll(/^\.([\w-]+)\s*\{[^}]*animation:\s*zf-claim-/gm)].map((match) => match[1]);
+        expect(animated.length).toBeGreaterThan(0);
+        const reduced = CLAIMS.slice(CLAIMS.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain("animation: none");
+        for (const selector of animated) expect(reduced).toContain(selector);
+    });
+
+    it("moves nothing from JavaScript", () => {
+        const MODAL = readFileSync(
+            join(__dirname, "..", "..", "..", "..", "src", "architecture", "components", "core", "claims", "ClaimReturnModal.ts"),
+            "utf8"
+        );
+        expect(MODAL).not.toContain("el.style.");
+        expect(MODAL).not.toContain("setInterval");
+        expect(MODAL).not.toContain("requestAnimationFrame");
+    });
+});

@@ -1235,10 +1235,11 @@ export default {
     // It comes back without a scheduler (#563, epic #558): one duration, and nothing accumulates.
     event_review_due_label: 'Review due',
     settings_return_heading: 'Coming back',
-    settings_return_intro: 'A claim you stated comes back to you once, after the time you choose here. Home offers one at a time; nothing is ever overdue.',
+    settings_return_intro: 'A claim you stated comes back to you once, after the time you choose here. Home offers one at a time, and nothing accumulates.',
     settings_return_interval_name: 'Days before a claim comes back',
     settings_return_interval_desc: 'How long a claim stands before you are asked what you say about it now.',
     settings_return_disclosure: 'This is a duration you set, not a repetition algorithm: it never adapts to your answers, nothing is counted, and nothing reminds you.',
+    home_return_none: 'Nothing is waiting to be looked at again.',
     home_claim_return_title: 'Something you wrote is ready to be looked at again',
     home_claim_return_when: 'You wrote this in {0}',
     home_claim_return_open: 'Look at it again',

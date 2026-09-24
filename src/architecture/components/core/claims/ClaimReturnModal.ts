@@ -99,7 +99,9 @@ export class ClaimReturnModal extends Modal {
 
     /** Stage two: both sentences, neither of them marked as the better one. */
     private renderReveal(contentEl: HTMLElement, said: string, says: string, historyKept: boolean): void {
-        const pair = contentEl.createDiv({ cls: c("claim-return-pair") });
+        // The moment, and the only one: the two sentences meeting. A short fade, nothing else,
+        // and nothing at all when the reader has asked for less motion (#565).
+        const pair = contentEl.createDiv({ cls: [c("claim-return-pair"), c("claim-revealed")].join(" ") });
         const before = pair.createDiv({ cls: c("claim-return-side") });
         before.createDiv({ cls: c("claim-return-label"), text: t("claim_return_then") });
         before.createDiv({ cls: c("claim-return-sentence"), text: said });
@@ -148,6 +150,7 @@ export class ClaimReturnModal extends Modal {
                 return;
             }
             clearDraft(this.session.path);
+            this.contentEl.addClass(c("claim-saved"));
             if (answer === "rejected") new Notice(t("claim_return_withdrawn"));
             this.close();
         } finally {

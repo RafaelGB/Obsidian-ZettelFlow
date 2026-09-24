@@ -6,7 +6,14 @@ import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome, runGraphQuery, dueClaims, type DueClaim } from "architecture/knowledge/state";
+import {
+    HomeModel,
+    buildHome,
+    runGraphQuery,
+    dueClaims,
+    claimBearingPaths,
+    type DueClaim,
+} from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
@@ -45,6 +52,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private pinnedCards: PinnedQueryCard[] = [];
     /** The one claim ready to be looked at again, or nothing at all (#563). */
     private claimReturn: DueClaim | null = null;
+    /** Whether this vault says anything yet. Decides between one quiet line and silence (#565). */
+    private claimsExist = false;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -83,6 +92,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 this.home = null;
                 this.pinnedCards = [];
                 this.claimReturn = null;
+                this.claimsExist = false;
                 this.render();
                 return;
             }
@@ -102,6 +112,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             });
             // At most one, and only past the interval you chose. Nothing accumulates here (#563).
             const settings = ObsidianApi.getOwnPlugin()?.settings;
+            this.claimsExist = claimBearingPaths(model).length > 0;
             this.claimReturn = settings
                 ? dueClaims({
                       model,
@@ -182,7 +193,13 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
      * is a measurement of your lateness.
      */
     private renderClaimReturn(container: HTMLElement): void {
-        if (!this.claimReturn) return;
+        // A vault that has never said anything has nothing to be asked about, so this says
+        // nothing at all — no empty box on the front door (#516), no invitation to catch up.
+        if (!this.claimsExist) return;
+        if (!this.claimReturn) {
+            container.createDiv({ cls: c("home-claim-return-quiet"), text: t("home_return_none") });
+            return;
+        }
         const due = this.claimReturn;
         const section = container.createDiv({ cls: c("home-claim-return") });
         section.createDiv({ cls: c("home-claim-return-title"), text: t("home_claim_return_title") });

@@ -96,7 +96,9 @@ push to `main`.
   (`--size-4-*`), Obsidian's own classes (`mod-cta`, `clickable-icon`, `setting-item`, `is-active`)
   before a new one, and a shape that exists twice belongs in `src/styles/utils/mixins.scss`.
 - **UI text:** **sentence case**, in the i18n layer (`architecture/lang/`); add keys to **both**
-  `en.ts` and `es.ts`.
+  `en.ts` and `es.ts`. A string with a **count** in it uses `tCount` and the `key` / `key_one`
+  pair (#546 D2) — the status bar read *"1 gaps"* for a year. Two counts in one string is not
+  supported on purpose: compose two phrases.
 - **State:** Zustand only for the note-builder wizard; everything else is a `getInstance()`
   singleton.
 - **Tests (TDD):** write a failing test first under `test/` (mirrors `src/`); `typecheck` +

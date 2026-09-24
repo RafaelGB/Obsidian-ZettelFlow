@@ -1,6 +1,6 @@
 import { App, Menu, Platform, setIcon } from "obsidian";
 import { c, log } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import {
     build3DGraph,
@@ -1576,15 +1576,24 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
     private updateStatus(): void {
         if (!this.statusEl) return;
         const colour = t(this.colorMode === "state" ? "graph3d_color_state" : "graph3d_color_neighbourhood");
-        const parts = [`${t("graph3d_group_color")}: ${colour}`, `${this.displayed.nodes.length} ${t("graph3d_status_notes")}`];
+        // Every count in this bar goes through `tCount` (#546 D2): it used to read "1 gaps" next to
+        // "1 notes", in both languages.
+        const parts = [
+            `${t("graph3d_group_color")}: ${colour}`,
+            tCount(this.displayed.nodes.length, "graph3d_status_notes_count", String(this.displayed.nodes.length)),
+        ];
         if (this.overlay) parts.push(`${t("graph3d_group_lens")}: ${t(OVERLAY_SPECS[this.overlay].labelKey as Parameters<typeof t>[0])}`);
         // How many gaps there are, and how many of them are on screen (#532). Both numbers, because
         // a bounded view that states only what it drew is the half of the truth that flatters it.
         if (this.overlay === "gaps" && this.gapTotal !== null) {
+            // Composed from two single-count phrases rather than one string with two numbers in
+            // it: a two-count string needs four forms per language, and three of them are always
+            // wrong somewhere.
+            const gaps = tCount(this.gapTotal, "graph3d_status_gaps", String(this.gapTotal));
             parts.push(
                 this.ghosts.length === this.gapTotal
-                    ? t("graph3d_status_gaps", String(this.gapTotal))
-                    : t("graph3d_status_gaps_drawn", String(this.gapTotal), String(this.ghosts.length))
+                    ? gaps
+                    : `${gaps} \u00b7 ${t("graph3d_status_drawn", String(this.ghosts.length))}`
             );
         }
         if (this.pinnedId) {
@@ -1615,7 +1624,12 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         if (!node) return null;
         if (node.community < 0 || !node.communityName) return t("graph3d_status_alone");
         const size = this.displayed.nodes.filter((candidate) => candidate.communityName === node.communityName).length;
-        return t("graph3d_status_in_region", node.communityName, String(size), node.region);
+        return t(
+            "graph3d_status_in_region",
+            node.communityName,
+            tCount(size, "graph3d_status_notes_count", String(size)),
+            node.region
+        );
     }
 
     private renderLegend(): void {
@@ -1712,14 +1726,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
         sides.createSpan({ cls: c("graph3d-legend-seam-arrow"), text: "↔" });
         sides.createSpan({ cls: c("graph3d-swatch", "graph3d-swatch--community-" + seam.paletteB) });
         sides.createSpan({ text: seam.labelB });
-        row.createDiv({
-            cls: c("graph3d-legend-count"),
-            text: t("graph3d_legend_seam_counts", String(seam.gaps), String(seam.links)),
-        });
-        row.setAttribute(
-            "aria-label",
-            t("graph3d_legend_seam_aria", seam.labelA, seam.labelB, String(seam.gaps), String(seam.links))
-        );
+        const gaps = tCount(seam.gaps, "graph3d_status_gaps", String(seam.gaps));
+        const links = tCount(seam.links, "graph3d_status_links_count", String(seam.links));
+        row.createDiv({ cls: c("graph3d-legend-count"), text: `${gaps} \u00b7 ${links}` });
+        row.setAttribute("aria-label", t("graph3d_legend_seam_aria", seam.labelA, seam.labelB, gaps, links));
         this.makeFramable(row, seamFrameKey(seam.a, seam.b), () => this.frameSeam(seam.a, seam.b));
     }
 
@@ -1797,7 +1807,10 @@ export class Graph3DRenderer extends KnowledgeModeRenderer {
             cls: c("graph3d-swatch", palette === null ? "graph3d-swatch--community-alone" : `graph3d-swatch--community-${palette}`),
         });
         row.createSpan({ text: name });
-        row.createSpan({ cls: c("graph3d-legend-count"), text: t("graph3d_legend_region_size", String(size)) });
+        row.createSpan({
+            cls: c("graph3d-legend-count"),
+            text: tCount(size, "graph3d_legend_region_size", String(size)),
+        });
         return row;
     }
 

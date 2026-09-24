@@ -60,8 +60,14 @@ describe("every translated string is actually rendered (#320)", () => {
     });
 
     it("leaves no key that no code reaches", () => {
+        // A `*_one` key is reached through its base: `tCount` builds the name (#546 D2), so the
+        // singular never appears literally in the source. It is reachable exactly when its plural
+        // is -- and a `_one` with no base is an orphan like any other.
+        const reached = (key: string): boolean =>
+            source.includes(key) ||
+            (key.endsWith("_one") && source.includes(key.slice(0, -"_one".length)));
         const orphans = keys.filter(
-            (key) => !COMPOSED_PREFIXES.some((prefix) => key.startsWith(prefix)) && !source.includes(key)
+            (key) => !COMPOSED_PREFIXES.some((prefix) => key.startsWith(prefix)) && !reached(key)
         );
 
         expect(orphans).toEqual([]);

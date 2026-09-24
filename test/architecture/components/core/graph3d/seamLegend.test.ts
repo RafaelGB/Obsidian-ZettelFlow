@@ -217,8 +217,11 @@ describe("the legend lists the seams, and a row flies to both sides (#533, FR-1,
     it("gives a seam row two swatches, two numbers and a label of its own", () => {
         const row = slice("private legendSeamRow", "private frameSeam");
         expect(row.match(/graph3d-swatch--community-/g) ?? []).toHaveLength(2);
-        expect(row).toContain('t("graph3d_legend_seam_counts"');
-        expect(row).toContain('t("graph3d_legend_seam_aria"');
+        // Each count composes its own phrase through `tCount` (#546 D2), so a seam with one gap
+        // does not read "1 gaps", and the label reuses the two phrases the row shows.
+        expect(row).toContain('tCount(seam.gaps, "graph3d_status_gaps"');
+        expect(row).toContain('tCount(seam.links, "graph3d_status_links_count"');
+        expect(row).toContain('t("graph3d_legend_seam_aria", seam.labelA, seam.labelB, gaps, links)');
         // The framable helper carries tabIndex, keydown, role and aria-pressed (#325, #515).
         expect(row).toContain("this.makeFramable(");
     });
@@ -250,7 +253,6 @@ describe("the seam strings state the two numbers, and nothing more (#533, FR-7, 
     const KEYS = [
         "graph3d_legend_seams",
         "graph3d_legend_seams_capped",
-        "graph3d_legend_seam_counts",
         "graph3d_legend_seam_aria",
         "graph3d_legend_seams_none",
     ];
@@ -276,8 +278,7 @@ describe("the seam strings state the two numbers, and nothing more (#533, FR-7, 
                 });
             }
             const strings = locale as unknown as Record<string, string>;
-            expect(strings.graph3d_legend_seam_counts).toContain("{0}");
-            expect(strings.graph3d_legend_seam_counts).toContain("{1}");
+            expect(strings.graph3d_status_gaps).toContain("{0}");
             expect(strings.graph3d_legend_seam_aria).toContain("{3}");
             expect(strings.graph3d_legend_seams_capped).toContain("{1}");
         }

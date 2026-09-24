@@ -13,12 +13,14 @@ import {
     type ThoughtRef,
     type ReturnEvent,
     type PromotionEvent,
+    type HorizonEvent,
     type Judgement,
 } from "architecture/knowledge/state";
 import { MOVE_VERBS, type Move } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { statedWager } from "architecture/plugin/claims/statedClaim";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/EvidenceMapRenderer";
 import { ResurfaceRenderer } from "architecture/components/core/resurface/ResurfaceRenderer";
@@ -107,7 +109,10 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             // which is why a thought written months ago shows up the first time you look. Read from
             // the metadata cache, so a strand does not cost a folder of file reads per render.
             const thoughts = active ? ThoughtStore.getInstance().about(active.path) : [];
-            this.events = timelineEvents(snapshots, judgements, moves, thoughts);
+            // The day you expect to know by (#572) — read from the note itself, like the wager it
+            // belongs to, and absent for every note that is not holding one.
+            const wager = active ? statedWager(active) : undefined;
+            this.events = timelineEvents(snapshots, judgements, moves, thoughts, wager);
             // Nothing at all to show, and no history being kept: say the honest thing, which is
             // that the recording is off rather than that this note has no history.
             if (this.events.length > 0) this.state = "ready";
@@ -232,6 +237,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             else if (event.kind === "thought" && event.thought) this.renderThought(container, event.thought);
             else if (event.kind === "return" && event.return) this.renderReturn(container, event.return);
             else if (event.kind === "promotion" && event.promotion) this.renderPromotion(container, event.promotion);
+            else if (event.kind === "horizon" && event.horizon) this.renderHorizon(container, event.horizon);
         }
     }
 
@@ -352,6 +358,28 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             says.createSpan({ text: t("evolution_timeline_return_now"), cls: c("evolution-timeline-label") });
             says.createSpan({ text: entry.says, cls: c("evolution-timeline-claim") });
         }
+    }
+
+    /**
+     * A day you expect to know by (#572).
+     *
+     * The first mark this axis has ever drawn that has **not happened**. A date in the future
+     * invites a countdown, a countdown invites a colour, and a colour invites a nudge — which is
+     * how a thinking tool becomes a task manager. So it is one muted row that says what it is, at
+     * every distance, before and after the day arrives.
+     */
+    private renderHorizon(container: HTMLElement, entry: HorizonEvent): void {
+        const row = container.createDiv({
+            cls: [c("evolution-timeline-entry"), c("evolution-timeline-horizon")].join(" "),
+        });
+        row.createSpan({ text: new Date(entry.at).toLocaleDateString(), cls: c("evolution-timeline-date") });
+        const line = row.createDiv({ cls: c("evolution-timeline-line") });
+        line.createSpan({ text: t("evolution_timeline_horizon_label"), cls: c("evolution-timeline-label") });
+        line.createSpan({ text: t("evolution_timeline_horizon") });
+        row.createDiv({ cls: c("evolution-timeline-line") }).createSpan({
+            text: entry.expectation,
+            cls: c("evolution-timeline-claim"),
+        });
     }
 
     /**

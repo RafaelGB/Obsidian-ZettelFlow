@@ -1227,6 +1227,9 @@ export default {
     // Una nota que promocionaste (#581): el snapshot dice qué es, esto dice que lo decidiste tú.
     evolution_timeline_promotion_label: 'Promocionada',
     evolution_timeline_promotion: 'la moviste a {0}',
+    // Un día en el que esperas saberlo (#572): la primera marca de este eje que no ha pasado.
+    evolution_timeline_horizon_label: 'Esperado',
+    evolution_timeline_horizon: 'dijiste que lo sabrías para entonces',
     // Entonces y ahora, en una línea (#564, epic #558): el veredicto y el cambio que provocó.
     evolution_timeline_return_label: 'Preguntado otra vez',
     evolution_timeline_return_confirmed: 'y sigue diciendo lo mismo',

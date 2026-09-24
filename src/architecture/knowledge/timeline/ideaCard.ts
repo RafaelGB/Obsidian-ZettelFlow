@@ -71,7 +71,10 @@ function baseName(path: string): string {
  * recorded judgements; `linksNow` is the current degree. Pure, deterministic, never mutates its input.
  */
 export function buildIdeaCard(input: IdeaCardInput): IdeaCard | null {
-    const events = input.events;
+    // A horizon has **not happened** (#572), and this card describes what did. Left in the stream
+    // it would be the last event, and `elapsedMs` would claim a span that never occurred — in an
+    // image you can post.
+    const events = input.events.filter((event) => event.kind !== "horizon");
     if (events.length === 0) return null;
 
     const snapshots = events.filter((event) => event.kind === "snapshot" && event.snapshot).map((event) => event.snapshot!);

@@ -1227,6 +1227,9 @@ export default {
     // A note you promoted (#581): the snapshot says what it is, this says you decided it.
     evolution_timeline_promotion_label: 'Promoted',
     evolution_timeline_promotion: 'you moved this to {0}',
+    // A day you expect to know by (#572): the first mark on this axis that has not happened.
+    evolution_timeline_horizon_label: 'Expected',
+    evolution_timeline_horizon: 'you said you would know by then',
     // Then and now, on one line (#564, epic #558): the verdict and the change it caused.
     evolution_timeline_return_label: 'Asked again',
     evolution_timeline_return_confirmed: 'and it still says the same',

@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 // The 3D knowledge-graph mode (#280). The WebGL canvas fills the surface; the top bar (controls +
 // status), the legend, the time-lapse and the zoom float over it. Node/link colours come from
 // Obsidian's `--color-*` palette so the WebGL and these swatches never drift.
@@ -147,12 +150,12 @@
     }
 }
 
-// Discovery-lens chips (with live counts).
+// Discovery-lens chips (with live counts). The shape is the shared one; the colours are the
+// scene's own, which is why `%graph3d-control` still comes after it (#546).
 .zettelkasten-flow__graph3d-chip {
+    @include chip;
     @extend %graph3d-control;
-    border-radius: var(--radius-l);
-    padding: var(--size-2-1) var(--size-4-2);
-    font-size: var(--font-ui-smaller);
+    border-radius: $radius-pill;
 
     &:disabled {
         opacity: 0.4;
@@ -160,9 +163,7 @@
     }
 
     &.zettelkasten-flow__graph3d-chip--active {
-        background-color: var(--interactive-accent);
-        color: var(--text-on-accent);
-        border-color: var(--interactive-accent);
+        @include chip-active;
     }
 }
 

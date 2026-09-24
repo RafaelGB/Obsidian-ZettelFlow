@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 /*
  * The Thought Lab (#467): a space that asks nothing of you.
  *
@@ -621,15 +624,11 @@
 }
 
 .zettelkasten-flow__lab-chip {
-    font-size: var(--font-ui-smaller);
-    padding: 2px 9px;
-    border-radius: 999px;
-    border: 1px solid var(--background-modifier-border);
-    background: var(--background-secondary);
-    color: var(--text-muted);
-    cursor: pointer;
+    @include chip;
+    @include chip-clickable;
+    background-color: $surface-quiet;
     box-shadow: none;
-    max-width: 240px;
+    max-width: 15em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

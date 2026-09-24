@@ -1,0 +1,52 @@
+// The plugin's style vocabulary (#546 A1).
+//
+// This file was **empty and imported** for the whole life of the project, which is the root cause
+// the audit found: there was never a place where "a chip looks like this" was said once, so fifty
+// partials each answered it again — six chip implementations, four of them redefining their own
+// padding, border and radius.
+//
+// Nothing here is a new look. Every token below is an alias for one of **Obsidian's own**
+// variables (§XV, and `docs/development/obsidian-styling.md`): the name says which shape it is for,
+// the value stays whatever the user's theme made it. A token whose value were a number of our own
+// would be exactly the opt-out this exists to stop.
+//
+// Sass variables, not CSS custom properties, on purpose: they are compile-time names for the
+// theme's runtime values, so nothing new reaches the document and a typo fails the build.
+
+// ── Spacing (Obsidian's 4-pixel grid) ─────────────────────────────────────────────────────────
+// "Obsidian uses a 4-pixel grid to structure UI elements." `--size-2-*` exists for finer work and
+// is used "sparingly"; the two sub-grid steps below are the only ones this vocabulary needs.
+//
+// What each step is worth in Obsidian's default theme is in `docs/development/obsidian-styling.md`
+// rather than here: a number written beside a variable is the first step towards someone using the
+// number instead.
+$space-hair: var(--size-2-1); // a chip's vertical breathing room
+$space-tight: var(--size-2-3); // the gap inside a chip
+$space-1: var(--size-4-1);
+$space-2: var(--size-4-2);
+$space-3: var(--size-4-3);
+$space-4: var(--size-4-4);
+
+// ── Radii ─────────────────────────────────────────────────────────────────────────────────────
+$radius-small: var(--radius-s);
+$radius-medium: var(--radius-m);
+// A pill, expressed in `em` rather than as a large pixel value: it follows the font size the theme
+// chose, and it is not a pixel that has to justify itself against the grid.
+$radius-pill: 1em;
+
+// ── Lines and surfaces ────────────────────────────────────────────────────────────────────────
+$line-quiet: 1px solid var(--background-modifier-border);
+$surface-quiet: var(--background-secondary);
+$surface-plain: var(--background-primary);
+$surface-hover: var(--background-modifier-hover);
+
+// ── Text ──────────────────────────────────────────────────────────────────────────────────────
+$text-small: var(--font-ui-smaller);
+$text-quiet: var(--text-muted);
+$text-faint: var(--text-faint);
+$text-plain: var(--text-normal);
+
+// ── The one emphasis ──────────────────────────────────────────────────────────────────────────
+// Chosen, pressed, active: one pair, so "this one is on" looks the same everywhere.
+$accent-surface: var(--interactive-accent);
+$accent-text: var(--text-on-accent);

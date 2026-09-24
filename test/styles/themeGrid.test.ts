@@ -23,15 +23,20 @@ const STYLES = join(__dirname, "..", "..", "src", "styles");
  */
 const OFF_GRID = /[^-\w.](\d+)px/g;
 
-/** What each partial held on 2026-09-23. Lower these as files are cleaned; never raise one. */
+/**
+ * What each partial held on 2026-09-23. Lower these as files are cleaned; never raise one.
+ *
+ * Four of them came down the same day the vocabulary landed (#546 A2): the six chip
+ * implementations became one mixin, and a shape defined once is a shape with one set of pixels.
+ */
 const CEILING: Record<string, number> = {
     "accordion.scss": 13,
-    "actionAddMenu.scss": 61,
+    "actionAddMenu.scss": 56,
     "agencyReview.scss": 3,
     "animations.scss": 1,
     "askGraph.scss": 2,
     "backlink.scss": 1,
-    "codeEditor.scss": 17,
+    "codeEditor.scss": 15,
     "community.scss": 29,
     "companionPane.scss": 5,
     "conceptNav.scss": 2,
@@ -42,7 +47,7 @@ const CEILING: Record<string, number> = {
     "evidenceMap.scss": 2,
     "evolutionTimeline.scss": 2,
     "flowStatus.scss": 2,
-    "flows.scss": 11,
+    "flows.scss": 4,
     "graph3d.scss": 10,
     "historyView.scss": 28,
     "home.scss": 6,
@@ -52,7 +57,7 @@ const CEILING: Record<string, number> = {
     "knowledgeDashboard.scss": 2,
     "knowledgeDebt.scss": 4,
     "knowledgeMap.scss": 1,
-    "lab.scss": 142,
+    "lab.scss": 137,
     "main.scss": 29,
     "modal.scss": 10,
     "openQuestions.scss": 1,
@@ -62,13 +67,17 @@ const CEILING: Record<string, number> = {
     "selectableSearch.scss": 11,
     "selector.scss": 11,
     "slipboxHealth.scss": 1,
-    "stepBuilder.scss": 11,
+    "stepBuilder.scss": 9,
     "surface.scss": 1,
     "thinkingHeatmap.scss": 8,
     "walkStatus.scss": 6,
+    // The one genuine pixel in the vocabulary: `$line-quiet` is a **hairline**, which the rule
+    // above allows by name. It is declared here rather than left to slip in unnoticed, and it is
+    // the only entry in this table that is not debt.
+    "variables.scss": 1,
     "welcome.scss": 1,
-    "workbench.scss": 8,
-    "workflowCanvas.scss": 30,
+    "workbench.scss": 7,
+    "workflowCanvas.scss": 26,
 };
 
 function partials(dir: string, out: string[] = []): string[] {

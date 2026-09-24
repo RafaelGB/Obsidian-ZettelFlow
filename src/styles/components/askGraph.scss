@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 // Explore — the deterministic semantic query surface (#318 S3, #483).
 //
 // Three regions, and only the middle one scrolls (#487). `min-height: 0` is the load-bearing
@@ -196,22 +199,19 @@
     margin-bottom: 0.4rem;
 }
 
+// A term you chose is **on**, so it carries the one emphasis every active chip carries (#546).
 .zettelkasten-flow__ask-graph-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    padding: 0.1rem 0.2rem 0.1rem 0.5rem;
-    border-radius: var(--radius-l);
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    font-size: var(--font-ui-smaller);
+    @include chip;
+    @include chip-active;
+    gap: $space-1;
+    padding-right: $space-1;
 }
 
 // A negated filter reads as the opposite of a chosen one, so it is drawn as an outline.
 .zettelkasten-flow__ask-graph-chip--negated {
     background-color: transparent;
-    color: var(--text-normal);
-    border: 1px dashed var(--interactive-accent);
+    color: $text-plain;
+    border: 1px dashed $accent-surface;
 }
 
 .zettelkasten-flow__ask-graph-chip-term {

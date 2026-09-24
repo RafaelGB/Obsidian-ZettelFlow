@@ -77,6 +77,43 @@ popover, dialog, tabs, navigation), **Editor**, **Plugins** and **Window**
 7. **A shape that exists twice is a mixin.** `src/styles/utils/mixins.scss` is where a chip, a card,
    a row, a hint and an empty state are defined once; a partial that redefines one is drift.
 
+## The vocabulary (#546)
+
+Rule 7 was written before it was true. `src/styles/utils/variables.scss` and
+`src/styles/utils/mixins.scss` were **empty files that `main.scss` imported** for the whole life of
+the project, which is why an audit of fifty partials found **thirteen** hand-drawn pill shapes with
+three radii, four paddings, two hovers, and an active state written out longhand in three files.
+
+They are filled now, and nothing in them is a look of our own:
+
+| file | what it holds |
+|---|---|
+| `utils/variables.scss` | `$space-*`, `$radius-*`, `$line-quiet`, `$surface-*`, `$text-*`, `$accent-*` — **every one an alias for an Obsidian variable**. The name says which shape it is for; the value stays whatever the theme made it. |
+| `utils/mixins.scss` | the five shapes the audit counted: `chip` (+ `chip-active`, `chip-clickable`), `card`, `row`, `hint`, `empty-state`. |
+
+Two exceptions are named rather than hidden. `$radius-pill` is `1em` — no Obsidian variable
+expresses a pill, and `em` at least follows the font size the theme chose (`999px` in thirteen files
+followed nothing). `$line-quiet` carries the one genuine hairline, declared in the grid ratchet's
+table so it cannot hide among the debt.
+
+**To use them**, a partial opens with:
+
+```scss
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+```
+
+and then says `@include chip;` rather than saying it again. Where a caller genuinely differs — the
+3D graph paints over its own dark scene, a query chip is filled with the accent because it is a
+*choice you made* — it includes the mixin and overrides the one property that differs, so the
+difference shows up in the diff instead of hiding in a re-declaration.
+
+`test/styles/styleVocabulary.test.ts` holds the line: no `border-radius: 999px` anywhere, no chip
+block that draws its own border *and* radius without the mixin, and no second way of saying *this
+one is on*. Its two siblings hold the colour (`themeColours.test.ts`, at zero outside the 3D graph)
+and the grid (`themeGrid.test.ts`, a ratcheting per-file ceiling that may only go down — eight of
+them came down the day the vocabulary landed).
+
 ## Why this is a rule and not a preference
 
 A theme is a promise the user made to themselves about how their vault looks. A plugin that

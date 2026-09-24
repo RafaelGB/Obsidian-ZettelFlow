@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 .zettelkasten-flow__step-builder-body {
     width: 100%;
     min-height: 120px;
@@ -56,15 +59,7 @@
 .zettelkasten-flow__step-identity-block,
 .zettelkasten-flow__step-identity-phase,
 .zettelkasten-flow__step-identity-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.1rem 0.45rem;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 999px;
-    background-color: var(--background-primary);
-    color: var(--text-muted);
-    line-height: 1.5;
+    @include chip;
 }
 
 .zettelkasten-flow__step-identity-icon {
@@ -122,9 +117,7 @@
 }
 
 .zettelkasten-flow__step-identity-badge-root {
-    background-color: var(--interactive-accent);
-    border-color: var(--interactive-accent);
-    color: var(--text-on-accent);
+    @include chip-active;
     font-weight: var(--font-semibold);
 }
 

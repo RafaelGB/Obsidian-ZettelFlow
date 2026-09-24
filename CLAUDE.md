@@ -30,7 +30,8 @@ main.ts (Plugin)
      plugin/     ObsidianApi facade, Lifecycle, canvas/ (CanvasPatcher via monkey-around), services, VaultStateManager
      components/  core (CodeView = CodeMirror .js editor, search), settings modals
      monitoring/  Logger, custom exceptions   ·   patterns/ AbstractChain   ·   lang/ i18n (en/es)   ·   styles/ c() prefixer
- → actions/      11 built-in actions, each a 4-file bundle (Action/Component/Settings/SettingsReader)
+ → actions/      **31** built-in actions in 5 categories (manipulation 11 · knowledge 6 · ai 6 ·
+                 research 4 · relations 4), each a 4-file bundle (Action/Component/Settings/SettingsReader)
  → application/  notes/ (NoteBuilder + ContentDTO + NoteDTO), components/noteBuilder (Zustand wizard), community/ (static GitHub-backed gallery)
  → zettelkasten/ step/flow editor modals (StepBuilderModal, SelectorMenuModal, installed editors)
  → hooks/        vault hooks: folder automation + property hooks + context-menu integrations

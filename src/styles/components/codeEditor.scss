@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 .zettelkasten-flow__code-editor-container {
     display: flex;
     flex-direction: column;
@@ -95,13 +98,9 @@
 }
 
 .zettelkasten-flow__bindings-palette-item {
-    padding: 0.05rem 0.45rem;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 999px;
-    background-color: var(--background-primary);
-    color: var(--text-normal);
+    @include chip;
+    color: $text-plain;
     font-family: var(--font-monospace);
-    font-size: var(--font-ui-smaller);
     cursor: pointer;
 }
 

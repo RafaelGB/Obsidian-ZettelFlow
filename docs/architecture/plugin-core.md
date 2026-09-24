@@ -16,7 +16,7 @@ Obsidian's Canvas. Read [Overview](overview.md) first.
 2. `loadVariableTextProcessors(this)` — the `{{frontmatter}}` rendering pipeline.
 3. `loadPluginComponents(this)` — registers and loads the three `ZComponent`s.
 4. `registerViews()` — the `CodeView` for `.js` files.
-5. `registerActions()` — populate the `actionsStore` with the 11 built-in actions.
+5. `registerActions()` — populate the `actionsStore` with the 31 built-in actions.
 6. `Hooks.setup(this)` — wire vault/menu events (see [Vault hooks](vault-hooks-internals.md)).
 7. `new CanvasPatcher(this)` — monkey-patch the Canvas view.
 8. Instantiate every extension in `allCanvasExtensions`.
@@ -105,7 +105,7 @@ module-level singleton. `SettingsHandlerInfo = { containerEl, plugin, section? }
   `uuidv4()` id (used when a designer drops an action onto a step)
 - `getIconOf(id)` — special-cases `"bridge"` → `zettelflow-bridge-icon`
 
-`main.registerActions()` registers all 11 built-ins. See
+`main.registerActions()` registers all 31 built-ins. See
 [Actions & note builder](actions-and-note-builder.md) for the action contract itself.
 
 ## 5. Canvas integration — `architecture/plugin/canvas/`

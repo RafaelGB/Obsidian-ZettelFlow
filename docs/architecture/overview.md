@@ -59,7 +59,7 @@ src/
 │   ├── patterns/           #   AbstractChain (chain-of-responsibility)
 │   ├── lang/               #   i18n (en/es), t()
 │   └── styles/             #   c() class-name prefixer (zettelkasten-flow__)
-├── actions/                # 11 built-in actions, each a 4-file bundle (see actions-and-note-builder.md)
+├── actions/                # 31 built-in actions in 5 categories, each a 4-file bundle (see actions-and-note-builder.md)
 ├── application/            # Product logic
 │   ├── notes/              #   NoteBuilder + NoteDTO + ContentDTO (the note-generation pipeline)
 │   ├── components/         #   noteBuilder wizard (Zustand state machine), shared React components
@@ -142,7 +142,7 @@ Two cross-cutting engines run alongside the wizard:
 - **Node / Step** — a canvas node (`text` / `file` / `group` / `link` / `javascript`) carrying
   a `StepSettings` config (stored as `zettelflowConfig`).
 - **Root** — a node eligible to start a flow (not a `.js` file).
-- **Action** — a unit attached to a step that contributes to the generated note (11 built-in
+- **Action** — a unit attached to a step that contributes to the generated note (31 built-in
   types). Has a design-time config UI and an optional build-time wizard UI.
 - **Zone** — where an action's value lands: `frontmatter`, `body` (`{{key}}` substitution), or
   `context` (ephemeral, shared between actions/scripts).

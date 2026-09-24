@@ -19,6 +19,7 @@ const SOURCES = [
     "src/architecture/plugin/claims/statedClaim.ts",
     "src/architecture/plugin/claims/answerReturn.ts",
     "src/architecture/plugin/claims/lastReviewedOf.ts",
+    "src/architecture/plugin/claims/wagersOf.ts",
     "src/architecture/knowledge/review/dueClaims.ts",
     "src/architecture/plugin/events/reviewDue.ts",
     "src/architecture/components/core/claims/ClaimDoorModal.ts",

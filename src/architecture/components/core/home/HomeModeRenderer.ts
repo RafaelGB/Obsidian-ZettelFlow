@@ -20,6 +20,7 @@ import { makeActivatable } from "architecture/components/core/a11y";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 import { pinnedQueries, savedQueryLabel } from "architecture/components/core/askGraph/savedQueries";
 import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
+import { wagersOf } from "architecture/plugin/claims/wagersOf";
 import { openReturn } from "starters/zcomponents/ClaimReturnComponent";
 
 /** A pinned "ask your graph" query resolved against the current model (#323 G4). */
@@ -119,6 +120,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                       judgements,
                       snapshots: settings.timeline?.enabled ? settings.timeline.snapshots : {},
                       lastReviewed: lastReviewedOf(model, settings.lifecycle?.lastReviewedProperty),
+                      horizons: wagersOf(model),
                       intervalDays: settings.returnIntervalDays,
                       now: Date.now(),
                   })[0] ?? null
@@ -201,10 +203,24 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             return;
         }
         const due = this.claimReturn;
+        // One line, and it says which kind of thing came back: a claim you have not looked at in a
+        // while, or a day **you** set arriving (#571).
+        const wager = due.kind === "wager";
         const section = container.createDiv({ cls: c("home-claim-return") });
-        section.createDiv({ cls: c("home-claim-return-title"), text: t("home_claim_return_title") });
-        section.createDiv({ cls: c("home-claim-return-when"), text: t("home_claim_return_when", when(due.lastTouched)) });
-        const open = section.createEl("button", { cls: "mod-cta", text: t("home_claim_return_open") });
+        section.createDiv({
+            cls: c("home-claim-return-title"),
+            text: t(wager ? "home_claim_return_wager_title" : "home_claim_return_title"),
+        });
+        section.createDiv({
+            cls: c("home-claim-return-when"),
+            text: wager
+                ? t("home_claim_return_wager_when", when(due.lastTouched))
+                : t("home_claim_return_when", when(due.lastTouched)),
+        });
+        const open = section.createEl("button", {
+            cls: "mod-cta",
+            text: t(wager ? "home_claim_return_wager_open" : "home_claim_return_open"),
+        });
         open.addEventListener("click", () => {
             const plugin = ObsidianApi.getOwnPlugin();
             // `derived` — the system brought it back. Opening it yourself records `human` (#562).

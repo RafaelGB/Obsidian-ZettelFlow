@@ -1247,6 +1247,18 @@ export default {
     home_claim_return_when: 'You wrote this in {0}',
     home_claim_return_open: 'Look at it again',
     // Asked again (#562, epic #558): the question first, the vault shut until you answer.
+    // A thought you can be wrong about (#571, epic #560): what happened, before what you expected.
+    claim_return_wager_intro: 'Answer from what you saw. What you expected stays shut until you do.',
+    claim_return_wager_placeholder: 'What happened',
+    claim_return_wager_reveal: 'Now show me what I expected',
+    claim_return_expected: 'You expected',
+    claim_return_happened: 'What happened',
+    claim_return_wager_claim: 'And the note says',
+    claim_return_wager_new_sentence: 'What it says now',
+    claim_return_wager_no_lab: 'Set a thinking-space folder to resolve a wager.',
+    home_claim_return_wager_title: 'Something you expected is ready to be looked at',
+    home_claim_return_wager_when: 'You said you would know by {0}',
+    home_claim_return_wager_open: 'See what happened',
     claim_return_command: 'Look at this claim again',
     claim_return_title: 'What do you say about this now?',
     claim_return_intro: 'Answer from what you think today. The note stays shut until you do.',

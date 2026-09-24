@@ -23,6 +23,7 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { dueClaims } from "architecture/knowledge/review/dueClaims";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
+import { wagersOf } from "architecture/plugin/claims/wagersOf";
 
 /** Debounce for the noisy metadataCache "changed" stream (mirrors the property-hook 60 ms). */
 const METADATA_DEBOUNCE_MS = 60;
@@ -186,6 +187,7 @@ export class WorkflowEventEngine {
             judgements: JudgementLog.getInstance().entries(),
             snapshots: settings.timeline?.enabled ? settings.timeline.snapshots : {},
             lastReviewed: lastReviewedOf(model, settings.lifecycle?.lastReviewedProperty),
+            horizons: wagersOf(model),
             intervalDays: settings.returnIntervalDays,
             now: Date.now(),
         });

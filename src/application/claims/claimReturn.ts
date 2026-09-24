@@ -56,6 +56,14 @@ export interface ClaimReturnState {
     answer?: string;
     /** What you have typed so far, kept outside the DOM so leaving cannot cost it. */
     draft?: string;
+    /**
+     * The wager this claim carries, when its horizon has arrived (#571). **Never handed to the
+     * view until an observation is written** — reading what you predicted before writing what
+     * happened is how a prediction confirms itself.
+     */
+    wager?: { expectation: string; at: number };
+    /** What actually happened, in your words. Its absence is what defines the wager's first stage. */
+    observation?: string;
 }
 
 export interface ClaimReturnView {
@@ -76,10 +84,25 @@ export interface ClaimReturnView {
     draft: string;
     /** What it cites, in both stages. Empty when the note declares nothing. */
     cites: readonly string[];
+    /** Whether this return is resolving a wager, and is therefore asking what happened first. */
+    asksObservation: boolean;
+    /** What you expected. Absent — not hidden — until the observation is written. */
+    expected?: string;
+    /** What you wrote happened. */
+    happened?: string;
+    /**
+     * Whether *it says this now* has to ask for a **new sentence** (#571).
+     *
+     * In a plain return the text you typed **is** the new claim. In a wager the text you typed is an
+     * observation, and committing it would write *"sales fell 4 %"* into the note's `claim`.
+     */
+    needsSentence: boolean;
 }
 
 export function claimReturnView(state: ClaimReturnState): ClaimReturnView {
     const answered = typeof state.answer === "string" && state.answer.trim().length > 0;
+    const observed = typeof state.observation === "string" && state.observation.trim().length > 0;
+    const resolving = state.wager !== undefined;
     const common = {
         path: state.path,
         claimIndex: state.claimIndex,
@@ -87,10 +110,27 @@ export function claimReturnView(state: ClaimReturnState): ClaimReturnView {
         historyKept: state.historyKept,
         draft: state.draft ?? "",
         cites: state.cites ?? [],
+        asksObservation: resolving && !observed,
+        needsSentence: resolving,
     };
+
+    // Resolving a wager asks **what happened** before it shows what you predicted — the same
+    // structural rule as the claim below it, about a different sentence.
+    if (resolving && !observed) return { ...common, answered: false };
+
     if (!answered) {
         // Not "hidden": absent. There is nothing here for a renderer to leak.
-        return { ...common, answered: false };
+        return {
+            ...common,
+            answered: false,
+            ...(resolving ? { expected: state.wager?.expectation, happened: state.observation } : {}),
+        };
     }
-    return { ...common, answered: true, said: state.stored, says: state.answer };
+    return {
+        ...common,
+        answered: true,
+        said: state.stored,
+        says: state.answer,
+        ...(resolving ? { expected: state.wager?.expectation, happened: state.observation } : {}),
+    };
 }

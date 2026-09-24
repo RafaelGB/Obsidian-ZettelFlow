@@ -1247,6 +1247,18 @@ export default {
     home_claim_return_when: 'Lo escribiste en {0}',
     home_claim_return_open: 'Volver a mirarlo',
     // Preguntado otra vez (#562, epic #558): la pregunta primero, la nota cerrada hasta que contestas.
+    // Algo en lo que puedes equivocarte (#571, epic #560): qué pasó, antes de qué esperabas.
+    claim_return_wager_intro: 'Contesta con lo que viste. Lo que esperabas sigue cerrado hasta que lo hagas.',
+    claim_return_wager_placeholder: 'Qué pasó',
+    claim_return_wager_reveal: 'Ahora enséñame lo que esperaba',
+    claim_return_expected: 'Esperabas',
+    claim_return_happened: 'Qué pasó',
+    claim_return_wager_claim: 'Y la nota dice',
+    claim_return_wager_new_sentence: 'Lo que dice ahora',
+    claim_return_wager_no_lab: 'Configura una carpeta de espacio de pensamiento para resolver una apuesta.',
+    home_claim_return_wager_title: 'Algo que esperabas está listo para mirarlo',
+    home_claim_return_wager_when: 'Dijiste que lo sabrías el {0}',
+    home_claim_return_wager_open: 'Ver qué pasó',
     claim_return_command: 'Volver a mirar esta afirmación',
     claim_return_title: '¿Qué dices de esto ahora?',
     claim_return_intro: 'Contesta con lo que piensas hoy. La nota sigue cerrada hasta que lo hagas.',

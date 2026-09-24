@@ -69,3 +69,48 @@ describe("buildIdeaCard (#387)", () => {
         expect(frozen).toHaveLength(6);
     });
 });
+
+/**
+ * The card stops being hypothetical (#564, epic #558).
+ *
+ * `buildIdeaCard` has been able to say *this idea grew* since #387 — from claim **counts**. It has
+ * never been able to say what the idea said then and says now, because no vault had two different
+ * claim sets to compose from.
+ */
+describe("the before and after are sentences now (#564)", () => {
+    const said = (at: number, ...claims: string[]) => ({
+        at,
+        kind: "snapshot" as const,
+        snapshot: { at, state: "fleeting", claims },
+    });
+
+    it("carries both sentences when the claim changed", () => {
+        const card = buildIdeaCard({
+            path: "Notes/a.md",
+            events: [said(1_000, "X"), said(2_000, "Y")],
+            linksNow: 3,
+        });
+        expect(card?.claimFirst).toBe("X");
+        expect(card?.claimCurrent).toBe("Y");
+        expect(card?.claimChanged).toBe(true);
+    });
+
+    it("says so plainly when it did not", () => {
+        const card = buildIdeaCard({
+            path: "Notes/a.md",
+            events: [said(1_000, "X"), said(2_000, "X")],
+            linksNow: 3,
+        });
+        expect(card?.claimChanged).toBe(false);
+    });
+
+    it("has nothing to say about a note with no claims", () => {
+        const card = buildIdeaCard({ path: "Notes/a.md", events: [said(1_000)], linksNow: 0 });
+        expect(card?.claimFirst).toBeUndefined();
+        expect(card?.claimChanged).toBe(false);
+    });
+
+    it("still has nothing at all to say about an empty history", () => {
+        expect(buildIdeaCard({ path: "Notes/a.md", events: [], linksNow: 0 })).toBeNull();
+    });
+});

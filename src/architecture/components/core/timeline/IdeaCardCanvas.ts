@@ -112,6 +112,19 @@ export function paintIdeaCard(canvas: HTMLCanvasElement, card: IdeaCard): HTMLCa
     ctx.font = "600 30px sans-serif";
     ctx.fillText(stats.join("   ·   "), W / 2, 480);
 
+    // The two sentences, when they are two (#564). The panels above say what *state* the note was
+    // in; this is what it actually said — which is the before/after anybody would want to post,
+    // and the one the card could never draw because no vault had two claim sets to draw from.
+    if (card.claimChanged && card.claimFirst && card.claimCurrent) {
+        ctx.textAlign = "left";
+        ctx.fillStyle = COLORS.muted;
+        ctx.font = "400 26px sans-serif";
+        ctx.fillText(truncate(ctx, `“${card.claimFirst}”`, W - pad * 2), pad, 560);
+        ctx.fillStyle = COLORS.title;
+        ctx.fillText(truncate(ctx, `“${card.claimCurrent}”`, W - pad * 2), pad, 600);
+        ctx.textAlign = "center";
+    }
+
     // Direction line, when known.
     const directionKey = card.direction ? DIRECTION_KEYS[card.direction] : undefined;
     if (directionKey) {

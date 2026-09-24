@@ -1224,6 +1224,14 @@ export default {
     ask_graph_indexing: 'Building the knowledge model…',
     ask_graph_no_results: 'No notes match this query.',
     ask_graph_result_count: '{0} notes match',
+    // Then and now, on one line (#564, epic #558): the verdict and the change it caused.
+    evolution_timeline_return_label: 'Asked again',
+    evolution_timeline_return_confirmed: 'and it still says the same',
+    evolution_timeline_return_modified: 'and you said what it says now',
+    evolution_timeline_return_withdrawn: 'and you no longer hold it',
+    evolution_timeline_return_then: 'It said',
+    evolution_timeline_return_now: 'It says now',
+    evolution_timeline_return_then_not_kept: 'The sentences themselves are not being kept — the evolution timeline is off.',
     // It comes back without a scheduler (#563, epic #558): one duration, and nothing accumulates.
     event_review_due_label: 'Review due',
     settings_return_heading: 'Coming back',

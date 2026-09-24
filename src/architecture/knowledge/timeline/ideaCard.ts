@@ -43,6 +43,12 @@ export interface IdeaCard {
     claimsCurrent: number;
     /** Honest before→after claim delta (current − first). */
     claimsGained: number;
+    /** What it said first, when a snapshot recorded one (#564). */
+    claimFirst?: string;
+    /** What it says now. */
+    claimCurrent?: string;
+    /** Whether those are two different sentences — the before/after this card exists for. */
+    claimChanged: boolean;
     /** Current link count (degree) — an absolute fact, not a delta (snapshots store no link history). */
     linksNow: number;
     /** Recorded verdicts, in time order. */
@@ -69,9 +75,13 @@ export function buildIdeaCard(input: IdeaCardInput): IdeaCard | null {
     if (events.length === 0) return null;
 
     const snapshots = events.filter((event) => event.kind === "snapshot" && event.snapshot).map((event) => event.snapshot!);
+    // A return (#564) *is* a judgement — it is the verdict and the change it caused, told as one
+    // event. Reading only `kind === "judgement"` here would quietly drop every milestone the
+    // moment the pairing shipped.
     const milestones: IdeaCardMilestone[] = events
-        .filter((event) => event.kind === "judgement" && event.judgement)
-        .map((event) => ({ at: event.judgement!.at, verdict: event.judgement!.verdict, origin: event.judgement!.origin }));
+        .map((event) => event.judgement ?? event.return?.judgement)
+        .filter((judgement): judgement is NonNullable<typeof judgement> => judgement !== undefined)
+        .map((judgement) => ({ at: judgement.at, verdict: judgement.verdict, origin: judgement.origin }));
 
     const first = snapshots[0];
     const last = snapshots[snapshots.length - 1];
@@ -79,6 +89,11 @@ export function buildIdeaCard(input: IdeaCardInput): IdeaCard | null {
     const currentState = last?.state ?? "";
     const claimsFirst = first?.claims.length ?? 0;
     const claimsCurrent = last?.claims.length ?? 0;
+    // The sentences themselves, not only how many there were (#564). The card has been able to
+    // say "this idea grew" since #387; it could not say **what it said then and says now**,
+    // which is the only before/after anybody wants to read.
+    const claimFirst = first?.claims[0];
+    const claimCurrent = last?.claims[0];
 
     const firstAt = events[0].at;
     const lastAt = events[events.length - 1].at;
@@ -93,6 +108,9 @@ export function buildIdeaCard(input: IdeaCardInput): IdeaCard | null {
         claimsFirst,
         claimsCurrent,
         claimsGained: claimsCurrent - claimsFirst,
+        ...(claimFirst === undefined ? {} : { claimFirst }),
+        ...(claimCurrent === undefined ? {} : { claimCurrent }),
+        claimChanged: claimFirst !== undefined && claimCurrent !== undefined && claimFirst !== claimCurrent,
         linksNow: input.linksNow,
         milestones,
         milestoneCount: milestones.length,

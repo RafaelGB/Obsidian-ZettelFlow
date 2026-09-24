@@ -1224,6 +1224,14 @@ export default {
     ask_graph_indexing: 'Construyendo el modelo de conocimiento…',
     ask_graph_no_results: 'Ninguna nota coincide con esta consulta.',
     ask_graph_result_count: '{0} notas coinciden',
+    // Entonces y ahora, en una línea (#564, epic #558): el veredicto y el cambio que provocó.
+    evolution_timeline_return_label: 'Preguntado otra vez',
+    evolution_timeline_return_confirmed: 'y sigue diciendo lo mismo',
+    evolution_timeline_return_modified: 'y dijiste lo que dice ahora',
+    evolution_timeline_return_withdrawn: 'y ya no lo sostienes',
+    evolution_timeline_return_then: 'Decía',
+    evolution_timeline_return_now: 'Dice ahora',
+    evolution_timeline_return_then_not_kept: 'Las frases no se están guardando: la línea de evolución está desactivada.',
     // Vuelve sin planificador (#563, epic #558): una duración, y nada se acumula.
     event_review_due_label: 'Toca revisar',
     settings_return_heading: 'La vuelta',

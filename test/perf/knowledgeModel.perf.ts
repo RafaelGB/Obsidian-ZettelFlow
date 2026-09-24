@@ -5,6 +5,7 @@ import { parseInlineFields } from "architecture/knowledge/parse/inlineFields";
 import { buildKnowledgeMap } from "architecture/knowledge/map/knowledgeMap";
 import { communitiesOf } from "architecture/knowledge/map/communities";
 import { gapSeams } from "architecture/knowledge/map/gapSeams";
+import { build3DGraph } from "architecture/knowledge/map/graph3d";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
@@ -119,6 +120,13 @@ describe("the projections the surfaces run", () => {
 
     it("analysis.debt.10k", () => {
         assertBudget("analysis.debt.10k", timed("analysis.heaviest", () => computeKnowledgeDebt(model), 10_000));
+    });
+
+    it("view.graph3d.build.10k", () => {
+        // What the plugin spends before WebGL sees anything (#539). The other half of that
+        // question -- what the scene then does per frame -- needs a screen, and is recorded as
+        // unmeasured rather than guessed at.
+        assertBudget("view.graph3d.build.10k", timed("analysis.heaviest", () => build3DGraph(model), 10_000));
     });
 
     it("analysis.gaps.seams.10k", () => {

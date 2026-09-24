@@ -2,7 +2,6 @@ import { describe, it, expect } from "@jest/globals";
 import {
     build3DGraph,
     buildAdjacency,
-    capGraph3D,
     filterGraph3D,
     graph3dSignature,
     graph3dStats,
@@ -182,25 +181,11 @@ describe("discovery-lens flags & overlays (#280 S4)", () => {
     });
 });
 
-describe("capGraph3D (#280 S5)", () => {
-    const node = (id: string, val: number): Graph3DNode => ({
-        id, name: id, val, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created: 0, kind: "note",
-    });
-    const data: Graph3DData = {
-        nodes: [node("A", 3), node("B", 2), node("C", 1)],
-        links: [{ source: "A", target: "C", type: "link" }],
-    };
-
-    it("returns the graph unchanged when it fits under the cap", () => {
-        expect(capGraph3D(data, 10)).toEqual(data);
-    });
-
-    it("keeps the most-connected nodes and prunes links to dropped nodes", () => {
-        const out = capGraph3D(data, 2);
-        expect(out.nodes.map((n) => n.id).sort()).toEqual(["A", "B"]); // C (lowest val) dropped
-        expect(out.links).toEqual([]); // A->C pruned
-    });
-});
+/*
+ * `capGraph3D`'s two cases were here and were **deleted with it in #539**. They passed for four
+ * epics while nothing in the plugin ever called the function they tested -- which is the useful
+ * part of the story: a green test is not evidence that a capability exists.
+ */
 
 describe("graph3dStats & buildAdjacency (#280 iteration)", () => {
     it("counts orphans, dead-ends and contradictions", () => {

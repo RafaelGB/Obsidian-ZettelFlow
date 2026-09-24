@@ -13,7 +13,7 @@ export interface Graph3DNode {
     /**
      * The region's **name** — its most connected note (#514). Empty when the note is alone.
      *
-     * It rides on the node rather than sitting on {@link Graph3DData} so it survives `capGraph3D`,
+     * It rides on the node rather than sitting on {@link Graph3DData} so it survives
      * `filterGraph3D` and `graph3dUpToTime` without being threaded through any of them.
      */
     region: string;
@@ -351,25 +351,24 @@ export function buildAdjacency(data: Graph3DData): Map<string, Set<string>> {
     return adjacency;
 }
 
-/** Default cap on rendered nodes (#280 S5) — keeps large vaults responsive; see {@link capGraph3D}. */
-export const GRAPH3D_MAX_NODES = 600;
-
-/**
- * Cap the graph to the `max` most-connected nodes (level-of-detail for large vaults, #280 S5). When the
- * graph already fits, it is returned unchanged. Otherwise the top `max` nodes by `val` (degree, then id
- * for determinism) are kept and links are pruned to surviving endpoints. Pure; never mutates the input.
+/*
+ * `capGraph3D` and `GRAPH3D_MAX_NODES = 600` were here from #280 S5 and were **deleted in #539**.
+ *
+ * They were documented as protecting large vaults, had their own unit tests, and were called by
+ * nothing: the view has always built its data with `filterGraph3D(baseData(), {})`, which keeps
+ * everything. A capability nothing calls is not a capability (SS XI), and the docs describing it
+ * were describing behaviour that did not exist.
+ *
+ * The alternative -- start applying it -- was the one that needed evidence, because it would have
+ * silently hidden 94 % of a ten-thousand-note vault on a surface whose whole purpose is showing
+ * *shape*. What could be measured without a screen says the data path is not the problem:
+ * `view.graph3d.build.10k` is **27-70 ms across two runs**. What could not be measured is frames per second, and the
+ * cap's stated reason -- mobile -- does not apply either: `render()` sends mobile to the 2D
+ * fallback and never reaches WebGL.
+ *
+ * If a real vault ever does choke the scene, the fix starts with that report and a number, not with
+ * a constant nobody ever called.
  */
-export function capGraph3D(data: Graph3DData, max: number = GRAPH3D_MAX_NODES): Graph3DData {
-    if (data.nodes.length <= max) return data;
-    const nodes = [...data.nodes]
-        .sort((a, b) => b.val - a.val || byStr(a.id, b.id))
-        .slice(0, max);
-    const kept = new Set(nodes.map((node) => node.id));
-    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
-    // Re-sort kept nodes by id so the capped output keeps the stable ordering callers expect.
-    nodes.sort((a, b) => byStr(a.id, b.id));
-    return { nodes, links };
-}
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
 export type OverlayKind = "orphans" | "dead-ends" | "contradictions" | "alone" | "frontier" | "bridges" | "gaps";

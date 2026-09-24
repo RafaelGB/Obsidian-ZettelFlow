@@ -1,6 +1,8 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
 import type { Judgement } from "architecture/knowledge/state";
 import {
+    drawCollision,
+    type CollisionDistance,
     buildKnowledgeDashboard,
     computeKnowledgeBalance,
     computeKnowledgeDebt,
@@ -193,6 +195,19 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             summary: "What changed, stalled and matured over a recent window.",
             call: (now?: number, windowDays?: number) =>
                 computeWeeklyReview(model(), now ?? Date.now(), windowDays),
+        },
+        collision: {
+            signature: "(opts?: { distance?: CollisionDistance; seed?: number; from?: string }) => Collision | null",
+            summary: "Two notes with nothing in common, drawn — the complement of a gap. Null when this vault has nothing far enough apart.",
+            // The seed is defaulted **here**, not in the pure function: a projection that read a
+            // clock would stop being reproducible, and a script that wants the same pair twice
+            // passes the same seed.
+            call: (opts?: { distance?: CollisionDistance; seed?: number; from?: string }) =>
+                drawCollision(model(), {
+                    distance: opts?.distance,
+                    seed: opts?.seed ?? Date.now(),
+                    ...(opts?.from === undefined ? {} : { from: opts.from }),
+                }),
         },
         discoveries: {
             signature: "(opts?: FindDiscoveriesOptions) => Discovery[]",

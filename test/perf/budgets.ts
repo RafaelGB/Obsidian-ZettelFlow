@@ -76,6 +76,13 @@ export const BUDGETS = {
         because:
             "the target this epic designs for — cheap enough that deriving on load is not the cold-start problem it was assumed to be",
     },
+    "analysis.collision.draw.10k": {
+        name: "draw one collision over 10,000 notes",
+        limit: 1,
+        measured: "0.008 ms (average of 100, warm)",
+        because:
+            "a dice roll runs while you are looking at the panel; the whole design is that it costs two index lookups rather than the 48.7 M pairs it chooses from",
+    },
     "analysis.dueclaims.10k": {
         name: "choose the one claim to offer back, over 10,000 notes",
         limit: 12,

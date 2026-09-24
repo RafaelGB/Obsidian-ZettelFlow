@@ -59,6 +59,20 @@ which validates the move and, on success, **writes only the configured state pro
 `FrontmatterService` → `processFrontMatter` facade. An invalid move performs no write. The index
 re-derives that single note when the metadata cache reports the change.
 
+Since #581 a successful transition also records **one judgement** — subject `state:<target>`,
+verdict `accepted` — in the [judgement record](../development/cognitive-agency.md). It is recorded
+here, at the choke point, rather than at either door, so a door added later cannot forget it. What
+the service cannot infer is **which act it was**, so `origin` is a *required* parameter:
+
+| Door | What happened | `origin` |
+|---|---|---|
+| Cultivate's **advance** | the session proposed the next valid state and you took it | `derived` |
+| the **change note state** command | you picked the state yourself | `human` |
+
+That distinction is not decoration: the agency index reads *interpretive* origins on purpose, so
+accepting a proposal is what it measures, and choosing a state yourself stays out of the index while
+still appearing in the record and on the timeline.
+
 ## Capability — new: file-system **write**
 
 This is the first write in the Knowledge layer. It is scoped to **one property, on one

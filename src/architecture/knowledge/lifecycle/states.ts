@@ -51,6 +51,20 @@ export const STATE_LABEL_KEY = {
     archived: "lifecycle_state_archived",
 } as const;
 
+/**
+ * What marks a judgement as being about a note's **lifecycle state** (#581).
+ *
+ * The `claim:` shape: a short, locale-free descriptor. Promoting a note is the clearest human
+ * judgement this product has a vocabulary for, and until #581 it recorded nothing — the friction
+ * step is where Cultivate records its verdicts, and `advance` deliberately has no friction.
+ */
+export const STATE_SUBJECT_PREFIX = "state:";
+
+/** The judgement subject for a transition into `target`. Carries the token, never its label. */
+export function stateSubject(target: LifecycleState): string {
+    return `${STATE_SUBJECT_PREFIX}${target}`;
+}
+
 const EMOJI_PREFIX = new RegExp(`^(?:${Object.values(STATE_EMOJI).join("|")})\\s*`, "u");
 
 /** Strip a leading state emoji, trim and lowercase — the form used for matching a stored value. */

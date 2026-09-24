@@ -65,7 +65,7 @@ describe("write paths — vault services (#317 S2)", () => {
         it("writes only the state token on a valid transition (fleeting -> literature)", async () => {
             const h = wireHarness({ files: { "a.md": { frontmatter: { state: "fleeting" } } } });
             const fm = FrontmatterService.instance(h.vault.getFileByPath("a.md")!);
-            const ok = await StateTransitionService.getInstance().transition(fm, "state", schema, "literature", "a.md");
+            const ok = await StateTransitionService.getInstance().transition(fm, "state", schema, "literature", "a.md", "human");
             expect(ok).toBe(true);
             expect(h.vault.frontmatterOf("a.md").state).toBe("literature");
         });
@@ -73,14 +73,14 @@ describe("write paths — vault services (#317 S2)", () => {
         it("REJECTS a non-adjacent transition and writes nothing (fleeting -> evergreen)", async () => {
             const setProperty = jest.fn(async () => undefined);
             const accessor = { getProperty: () => "fleeting", setProperty };
-            const ok = await StateTransitionService.getInstance().transition(accessor, "state", schema, "evergreen", "a.md");
+            const ok = await StateTransitionService.getInstance().transition(accessor, "state", schema, "evergreen", "a.md", "human");
             expect(ok).toBe(false);
             expect(setProperty).not.toHaveBeenCalled(); // the sharp edge: no write on a rejected transition
         });
 
         it("returns false (not throws) when the write fails", async () => {
             const accessor = { getProperty: () => "fleeting", setProperty: async () => { throw new Error("disk"); } };
-            const ok = await StateTransitionService.getInstance().transition(accessor, "state", schema, "literature", "a.md");
+            const ok = await StateTransitionService.getInstance().transition(accessor, "state", schema, "literature", "a.md", "human");
             expect(ok).toBe(false);
         });
     });

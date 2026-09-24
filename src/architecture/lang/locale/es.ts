@@ -1224,6 +1224,9 @@ export default {
     ask_graph_indexing: 'Construyendo el modelo de conocimiento…',
     ask_graph_no_results: 'Ninguna nota coincide con esta consulta.',
     ask_graph_result_count: '{0} notas coinciden',
+    // Una nota que promocionaste (#581): el snapshot dice qué es, esto dice que lo decidiste tú.
+    evolution_timeline_promotion_label: 'Promocionada',
+    evolution_timeline_promotion: 'la moviste a {0}',
     // Entonces y ahora, en una línea (#564, epic #558): el veredicto y el cambio que provocó.
     evolution_timeline_return_label: 'Preguntado otra vez',
     evolution_timeline_return_confirmed: 'y sigue diciendo lo mismo',

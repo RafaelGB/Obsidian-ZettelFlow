@@ -1224,6 +1224,9 @@ export default {
     ask_graph_indexing: 'Building the knowledge model…',
     ask_graph_no_results: 'No notes match this query.',
     ask_graph_result_count: '{0} notes match',
+    // A note you promoted (#581): the snapshot says what it is, this says you decided it.
+    evolution_timeline_promotion_label: 'Promoted',
+    evolution_timeline_promotion: 'you moved this to {0}',
     // Then and now, on one line (#564, epic #558): the verdict and the change it caused.
     evolution_timeline_return_label: 'Asked again',
     evolution_timeline_return_confirmed: 'and it still says the same',

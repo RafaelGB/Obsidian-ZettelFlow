@@ -19,7 +19,7 @@ describe("StateTransitionService", () => {
 
     it("writes only the configured state property on a valid transition (AC-6)", async () => {
         const { accessor, setSpy } = accessorWith("permanent");
-        const ok = await service.transition(accessor, "state", schema, "developing", "a.md");
+        const ok = await service.transition(accessor, "state", schema, "developing", "a.md", "human");
         expect(ok).toBe(true);
         expect(setSpy).toHaveBeenCalledTimes(1);
         expect(setSpy).toHaveBeenCalledWith("state", "developing");
@@ -27,7 +27,7 @@ describe("StateTransitionService", () => {
 
     it("performs no write on an invalid transition (AC-7)", async () => {
         const { accessor, setSpy } = accessorWith("permanent");
-        const ok = await service.transition(accessor, "state", schema, "literature", "a.md");
+        const ok = await service.transition(accessor, "state", schema, "literature", "a.md", "human");
         expect(ok).toBe(false);
         expect(setSpy).not.toHaveBeenCalled();
     });
@@ -35,7 +35,7 @@ describe("StateTransitionService", () => {
     it("honors a custom property name on write (AC-8)", async () => {
         const custom = new LifecycleStateSchema("phase");
         const { accessor, setSpy } = accessorWith("fleeting");
-        const ok = await service.transition(accessor, "phase", custom, "permanent", "a.md");
+        const ok = await service.transition(accessor, "phase", custom, "permanent", "a.md", "human");
         expect(ok).toBe(true);
         expect(setSpy).toHaveBeenCalledWith("phase", "permanent");
     });
@@ -48,7 +48,7 @@ describe("StateTransitionService", () => {
             getProperty: () => "fleeting" as never,
             setProperty: setSpy as never,
         };
-        const ok = await service.transition(accessor, "state", schema, "permanent", "a.md");
+        const ok = await service.transition(accessor, "state", schema, "permanent", "a.md", "human");
         expect(ok).toBe(false);
     });
 });

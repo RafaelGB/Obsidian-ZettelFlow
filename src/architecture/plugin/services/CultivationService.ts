@@ -76,7 +76,15 @@ export class CultivationService {
             const stateProperty = plugin.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
             const schema = new LifecycleStateSchema(stateProperty, buildLifecycleAliases());
             const accessor = FrontmatterService.instance(file);
-            await StateTransitionService.getInstance().transition(accessor, stateProperty, schema, target, file.path);
+            // `derived`: the session proposed the next valid state and you took it (#581).
+            await StateTransitionService.getInstance().transition(
+                accessor,
+                stateProperty,
+                schema,
+                target,
+                file.path,
+                "derived"
+            );
         } catch (error) {
             log.error("[Cultivate] advance failed", error);
             new Notice(t("cultivate_apply_failed"));

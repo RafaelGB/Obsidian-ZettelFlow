@@ -175,3 +175,69 @@ describe("a claim's verdict and the change it caused are one event (#564)", () =
         expect(events.map((event) => event.kind)).toEqual(["snapshot", "snapshot"]);
     });
 });
+
+/**
+ * A note you promoted, told as one line (#581).
+ *
+ * The same join as a claim's return, with two extra refusals: the snapshot has to *be* the state
+ * the verdict names, and a snapshot where the claims moved too is two things happening.
+ */
+describe("a promotion and the state change it caused are one event (#581)", () => {
+    const at = (moment: number, state: string, ...claims: string[]): Snapshot => ({ at: moment, state, claims });
+    const promoted = (moment: number, to: string): Judgement =>
+        judge(moment, { subject: `state:${to}`, origin: "derived", verdict: "accepted" });
+
+    it("tells the verdict and the state change as one row", () => {
+        const events = timelineEvents(
+            [at(T0, "fleeting"), at(T0 + 1_000, "literature")],
+            [promoted(T0 + 2_000, "literature")]
+        );
+        expect(events).toHaveLength(2);
+        expect(events[1].kind).toBe("promotion");
+        expect(events[1].promotion?.to).toBe("literature");
+        expect(events[1].promotion?.judgement.origin).toBe("derived");
+    });
+
+    it("does not pair a verdict ten minutes away", () => {
+        const events = timelineEvents(
+            [at(T0, "fleeting"), at(T0 + 1_000, "literature")],
+            [promoted(T0 + 10 * 60_000, "literature")]
+        );
+        expect(events).toHaveLength(3);
+        expect(events.map((event) => event.kind)).toEqual(["snapshot", "snapshot", "promotion"]);
+    });
+
+    it("does not pair a snapshot that is not the state it names", () => {
+        const events = timelineEvents(
+            [at(T0, "fleeting"), at(T0 + 1_000, "literature")],
+            [promoted(T0 + 2_000, "permanent")]
+        );
+        expect(events).toHaveLength(3);
+        expect(events[2].promotion?.to).toBe("permanent");
+    });
+
+    it("stays two rows when the claims moved too", () => {
+        // Two things happened. Telling them as one would be the fabrication the join exists to avoid.
+        const events = timelineEvents(
+            [at(T0, "fleeting", "X"), at(T0 + 1_000, "literature", "Y")],
+            [promoted(T0 + 2_000, "literature")]
+        );
+        expect(events).toHaveLength(3);
+    });
+
+    it("says what happened even with no snapshots at all", () => {
+        const events = timelineEvents([], [promoted(T0, "literature")]);
+        expect(events.map((event) => event.kind)).toEqual(["promotion"]);
+        expect(events[0].promotion?.to).toBe("literature");
+    });
+
+    it("leaves a claim's return exactly as #564 built it", () => {
+        const events = timelineEvents(
+            [at(T0, "fleeting", "X"), at(T0 + 1_000, "fleeting", "Y")],
+            [judge(T0 + 2_000, { subject: "claim:a.md", verdict: "modified" })]
+        );
+        expect(events).toHaveLength(2);
+        expect(events[1].return?.said).toBe("X");
+        expect(events[1].return?.says).toBe("Y");
+    });
+});

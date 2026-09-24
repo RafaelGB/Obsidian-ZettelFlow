@@ -2,7 +2,7 @@ import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
-import { KnowledgeIndex } from "architecture/knowledge";
+import { KnowledgeIndex, STATE_LABEL_KEY } from "architecture/knowledge";
 import {
     timelineEvents,
     judgementsFor,
@@ -12,6 +12,7 @@ import {
     type TimelineEvent,
     type ThoughtRef,
     type ReturnEvent,
+    type PromotionEvent,
     type Judgement,
 } from "architecture/knowledge/state";
 import { MOVE_VERBS, type Move } from "application/thinking/move";
@@ -212,7 +213,10 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         // A return is a judgement — the verdict and the change it caused, told as one event — so
         // the filter that isolates what you ruled has to keep it (#564).
         const events = this.cognitiveOnly
-            ? this.events.filter((event) => event.kind === "judgement" || event.kind === "return")
+            ? this.events.filter(
+                  (event) =>
+                      event.kind === "judgement" || event.kind === "return" || event.kind === "promotion"
+              )
             : this.events;
         if (!this.historyKept) {
             // Once, at the top. A sentence repeated on every row is a reproach.
@@ -227,6 +231,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             else if (event.kind === "move" && event.move) this.renderMove(container, event.move);
             else if (event.kind === "thought" && event.thought) this.renderThought(container, event.thought);
             else if (event.kind === "return" && event.return) this.renderReturn(container, event.return);
+            else if (event.kind === "promotion" && event.promotion) this.renderPromotion(container, event.promotion);
         }
     }
 
@@ -347,6 +352,35 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             says.createSpan({ text: t("evolution_timeline_return_now"), cls: c("evolution-timeline-label") });
             says.createSpan({ text: entry.says, cls: c("evolution-timeline-claim") });
         }
+    }
+
+    /**
+     * A note you promoted (#581).
+     *
+     * The state snapshot says the note is now `literature`; this says **you decided that**. Until
+     * #581 the axis had the first half and never the second, because Cultivate records its verdicts
+     * at the friction step and advancing deliberately has none.
+     *
+     * It states the act and nothing else. No word about maturity, and nothing about the note being
+     * further along — a locale scan holds that in both languages.
+     */
+    private renderPromotion(container: HTMLElement, entry: PromotionEvent): void {
+        const row = container.createDiv({
+            cls: [c("evolution-timeline-entry"), c("evolution-timeline-return")].join(" "),
+        });
+        row.createSpan({
+            text: new Date(entry.judgement.at).toLocaleDateString(),
+            cls: c("evolution-timeline-date"),
+        });
+        const line = row.createDiv({ cls: c("evolution-timeline-line") });
+        line.createSpan({
+            text: t("evolution_timeline_promotion_label"),
+            cls: c("evolution-timeline-label"),
+        });
+        const key = (STATE_LABEL_KEY as Record<string, string>)[entry.to];
+        line.createSpan({
+            text: t("evolution_timeline_promotion", key ? t(key as LocaleKey) : entry.to),
+        });
     }
 
     /**

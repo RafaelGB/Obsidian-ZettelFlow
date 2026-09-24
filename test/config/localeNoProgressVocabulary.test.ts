@@ -16,6 +16,7 @@ import es from "architecture/lang/locale/es";
  */
 const PREFIXES = [
     "evolution_timeline_return_",
+    "evolution_timeline_promotion",
     "claim_return_",
     "claim_door_",
     "home_claim_return_",

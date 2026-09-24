@@ -74,3 +74,36 @@ describe("agencyReviewModel (#389)", () => {
         expect(model.header.rejected).toBe(breakdown.byVerdict.rejected);
     });
 });
+
+/**
+ * A promotion reads as the verdict it is, for free (#581).
+ *
+ * There is no new metric here, and that is the assertion: putting the promotion in the same record
+ * as every other verdict means the review already knows what to do with it. If this needed
+ * production code, the design would be wrong.
+ */
+describe("promotions are ordinary verdicts (#581)", () => {
+    const promotion = (origin: Judgement["origin"]) =>
+        j({ subject: "state:literature", origin, verdict: "accepted" });
+
+    it("counts a promotion you accepted from Cultivate as interpretive", () => {
+        // `derived` — the session proposed the next state and you took it. That is exactly what the
+        // agency index is built to measure.
+        const model = agencyReviewModel([promotion("derived")]);
+        expect(model.header.interpretive).toBe(1);
+        expect(model.rows[0].subject).toBe("state:literature");
+    });
+
+    it("keeps a state you chose yourself out of the interpretive index, and in the record", () => {
+        // `human` — nothing was proposed, so there is nothing to have accepted.
+        const model = agencyReviewModel([promotion("human")]);
+        expect(model.header.interpretive).toBe(0);
+        expect(model.rows.map((row) => row.subject)).toEqual(["state:literature"]);
+    });
+
+    it("needs no vocabulary of its own", () => {
+        const breakdown = verdictBreakdown([promotion("derived")], { origins: INTERPRETIVE_ORIGINS });
+        expect(breakdown.total).toBe(1);
+        expect(breakdown.byVerdict.accepted).toBe(1);
+    });
+});

@@ -23,6 +23,7 @@ import { KnowledgeModeRenderer } from "architecture/components/core/surface/Know
 import { QuerySuggest } from "architecture/settings/suggesters/QuerySuggest";
 import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
 import { MapOfContentModal } from "./MapOfContentModal";
+import { BlindGate } from "./BlindGate";
 import { asLinks } from "application/explore/mapOfContent";
 import type { SavedGraphQuery } from "config";
 import {
@@ -118,6 +119,8 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private matches: Matches = [];
     /** …and the terms that produced it, which is what tells a row which facts to carry (#485). */
     private terms: readonly string[] = [];
+    private gate: BlindGate | null = null;
+    private gateEl: HTMLElement | null = null;
 
     constructor(container: HTMLElement, private readonly app: App, initialQuery?: string, initialLens?: string) {
         super(container);
@@ -157,6 +160,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         const root = this.container.createDiv({ cls: c("ask-graph") });
         const head = root.createDiv({ cls: c("ask-graph-head") });
         head.createDiv({ cls: c("ask-graph-intro"), text: t("explore_intro") });
+        this.renderThinkFirst(head);
 
         this.facetsEl = head.createDiv({ cls: c("ask-graph-facets") });
         this.chipsEl = head.createDiv({ cls: c("ask-graph-chips") });
@@ -183,6 +187,56 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.savedEl = foot.createDiv({ cls: c("ask-graph-saved") });
         this.renderSaved();
         this.run();
+    }
+
+    /** Whether you have asked for the pause. Remembered, so it is a stance and not a dialog. */
+    private thinkFirst(): boolean {
+        return ObsidianApi.getOwnPlugin()?.settings.exploreThinkFirst === true;
+    }
+
+    /**
+     * *Think before you look* — one control, where you ask (#576).
+     *
+     * **Opt-in and remembered**, which is the line §XII draws: deliberate friction is a design tool
+     * applied where judgement is genuinely at stake, never a confirmation dialog in front of every
+     * search. You turn it on once and it stays on until you turn it off.
+     *
+     * It is a control in the view showing the thing, which is a rank-1 door. Its predecessor was
+     * the ninth ghost button in another surface's header, which was a door in name only.
+     */
+    private renderThinkFirst(head: HTMLElement): void {
+        const on = this.thinkFirst();
+        const bar = head.createDiv({ cls: c("ask-graph-think-first") });
+        const toggle = bar.createEl("button", {
+            text: on ? t("blind_close") : t("blind_open"),
+            cls: c("ask-graph-lens"),
+        });
+        toggle.toggleClass(c("ask-graph-lens--active"), on);
+        this.registerDomEvent(toggle, "click", () => void this.setThinkFirst(!on));
+
+        this.gate?.unload();
+        this.gate = null;
+        this.gateEl = null;
+        if (!on) return;
+
+        this.gateEl = head.createDiv();
+        this.gate = new BlindGate(
+            this.gateEl,
+            (query) => this.setQuery(query),
+            () => this.setQuery("")
+        );
+        this.addChild(this.gate);
+    }
+
+    private async setThinkFirst(next: boolean): Promise<void> {
+        const plugin = ObsidianApi.getOwnPlugin();
+        if (!plugin) return;
+        plugin.settings.exploreThinkFirst = next;
+        await plugin.saveSettings();
+        // A whole redraw: turning it on must take the answer off the screen, not just add a box.
+        this.container.empty();
+        this.query = "";
+        this.renderShell();
     }
 
     /**
@@ -248,6 +302,15 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.chipsEl.empty();
         this.takeEl?.empty();
         this.statusEl.textContent = "";
+
+        // Nothing from your vault reaches the screen before you have said what you think (#470).
+        // The view model would not carry it either; this is the second of the two reasons.
+        if (this.gate?.waiting) {
+            this.matches = [];
+            this.terms = [];
+            this.renderResults();
+            return;
+        }
 
         const index = KnowledgeIndex.getInstance();
         if (index.status !== "ready") {

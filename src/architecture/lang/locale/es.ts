@@ -1122,6 +1122,8 @@ export default {
     cultivate_friction_placeholder: 'Tu respuesta — con una frase basta',
     cultivate_friction_reveal: 'Revelar',
     cultivate_friction_skip: 'Saltar',
+    settings_explore_think_first_name: 'Pensar antes de mirar, en Explorar',
+    settings_explore_think_first_desc: 'Desactivado por defecto. Escribe lo que piensas ahora y Explorar se queda callado hasta que lo hagas; luego responde y tú dices qué cambió en ti. Actívalo donde preguntas, o aquí.',
     settings_cultivate_friction_name: 'Preguntar antes de revelar',
     settings_cultivate_friction_desc: 'Activado por defecto. Conectar, desafiar y añadir fuente te piden tu propia lectura antes de enseñarte la suya: la pausa es donde ocurre el pensamiento. Siempre se puede saltar.',
     cultivate_counterpoint_heading: 'Contrapunto',

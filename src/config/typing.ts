@@ -109,6 +109,13 @@ export interface ZettelFlowSettings {
      */
     cultivateFriction?: boolean;
     /**
+     * **Think before you look** in Explore (#576, epic #574): write what you currently think, and
+     * the results stay hidden until you have. OFF by default and *remembered* — §XII sanctions
+     * deliberate friction where judgement is at stake and forbids it as a generic confirmation, so
+     * it is a stance you take once, never a dialog in front of every search.
+     */
+    exploreThinkFirst?: boolean;
+    /**
      * Saved "ask your graph" queries (#318 S3; enriched #323 G4). A useful query can be named,
      * reordered and pinned to Home. Persisted as {@link SavedGraphQuery} objects; a bare string is
      * the legacy shape and is migrated transparently on read (`normalizeSavedQueries`).
@@ -349,6 +356,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
+    exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.
     returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).

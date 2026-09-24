@@ -57,7 +57,9 @@ const CEILING: Record<string, number> = {
     "knowledgeDashboard.scss": 2,
     "knowledgeDebt.scss": 4,
     "knowledgeMap.scss": 1,
-    "lab.scss": 137,
+    // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
+    // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
+    "lab.scss": 120,
     "main.scss": 29,
     "modal.scss": 10,
     "openQuestions.scss": 1,

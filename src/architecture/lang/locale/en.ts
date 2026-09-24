@@ -1122,6 +1122,8 @@ export default {
     cultivate_friction_placeholder: 'Your answer — a sentence is enough',
     cultivate_friction_reveal: 'Reveal',
     cultivate_friction_skip: 'Skip',
+    settings_explore_think_first_name: 'Think before you look, in Explore',
+    settings_explore_think_first_desc: 'Off by default. Write what you currently think and Explore stays quiet until you have — then it answers, and you say what changed in you. Turn it on where you ask, or here.',
     settings_cultivate_friction_name: 'Ask before revealing',
     settings_cultivate_friction_desc: 'On by default. Connect, challenge and add a source ask for your own reading before they show you theirs — the pause is where the thinking happens. Always skippable.',
     cultivate_counterpoint_heading: 'Counterpoint',

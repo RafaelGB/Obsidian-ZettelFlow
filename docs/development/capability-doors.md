@@ -96,7 +96,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `cultivate` | zettelflow-home | 1 | ribbon → `cultivate` · surface `zettelflow-home:cultivate` · `cultivate` |
 | `inquiry` | zettelflow-home | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) |
 | `thought-lab` | zettelflow-home | 1 | ribbon → `think` · surface `zettelflow-home:lab` · `think` |
-| `blind-ask` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) |
+| `blind-ask` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) |
 | `collision` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) · note menu (`MoveCommandsComponent.ts`) |
 | `moves` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |
 | `think-about` | zettelflow-home | 1 | note menu (`ThinkAboutComponent.ts`) · `think-about-this-note` |

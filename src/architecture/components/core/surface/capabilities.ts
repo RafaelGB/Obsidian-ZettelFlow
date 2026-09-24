@@ -278,9 +278,11 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [RIBBON("think"), { kind: "surface", at: `${HOME}:lab` }, CMD("think")],
     },
     "blind-ask": {
+        // Moved out of the Lab's header and into the surface where the asking happens (#576).
+        // Same rank, a door you can actually see — which is the part a registry cannot measure.
         nameKey: "blind_title",
-        owner: HOME,
-        doors: [CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME)],
+        owner: EXPLORE,
+        doors: [CONTROL("architecture/components/core/askGraph/AskGraphRenderer.ts", EXPLORE)],
     },
     collision: {
         nameKey: "collision_title",

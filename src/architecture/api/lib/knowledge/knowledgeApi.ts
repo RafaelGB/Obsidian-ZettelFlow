@@ -113,6 +113,11 @@ export const NOT_EXPOSED: Record<string, string> = {
     ruledOutCollisions: "the draw builds and applies this itself — one filter, in one place",
     pairVerdict: "the shape a pair verdict has, shared by gaps and collisions; not a projection",
     ruledOutPairs: "internal helper of ruledOutGaps and ruledOutCollisions",
+    // The bridge from a question in words to a query (#576). A script that wants the matches
+    // calls the query engine directly; what this adds is only the translation a **person**
+    // needs, and a script does not type sentences.
+    questionQuery: "a UI bridge from free text to a query a script would write itself",
+    questionTerms: "internal helper of questionQuery",
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",

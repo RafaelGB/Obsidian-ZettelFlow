@@ -15,6 +15,7 @@ const SURFACE = [
     "src/architecture/components/core/askGraph/AskGraphRenderer.ts",
     "src/architecture/components/core/askGraph/savedQueries.ts",
     "src/architecture/components/core/askGraph/MapOfContentModal.ts",
+    "src/architecture/components/core/askGraph/BlindGate.ts",
     "src/architecture/settings/suggesters/QuerySuggest.ts",
     "src/architecture/components/core/surface/ExploreSurfaceView.ts",
 ];
@@ -62,6 +63,7 @@ function codeLines(source: string): number {
  * | after #485 | 462 | the answer explains itself: which term emptied a selection, and rows that carry the facts you asked about instead of a fixed pair |
  * | after #486 | 562 | where a selection can go: copy as links, and a previewed, undoable map of content (`MapOfContentModal`, 67 of those lines, joins the counted set rather than escaping it) |
  * | after #487 | 587 | `ExploreSurfaceView` (a workspace needs a leaf of its own) and three layout wrappers, so the controls stop scrolling away with the results |
+ * | after #576 | 746 | *think before you look* moved here from the Lab: `BlindGate` (125) plus the toggle and the gate in `run()`. It is not new code — `BlindPanel` was 128 lines and is deleted, and the hand-rolled matcher it carried went with it |
  *
  * The honest comparison for the whole epic is **435 → 562**: 421 plus the 14 lines of
  * `GraphSurfaceView`, which #484 deleted and this counter cannot see. A hundred and twenty-seven
@@ -70,10 +72,14 @@ function codeLines(source: string): number {
  * code, a grammar reference card, a worked-examples list, a redundant lens and two buttons went
  * away. Explore is bigger than Ask; it is also the only thing left where there used to be two.
  *
+ * #576 is the one row that is a **move**, not a growth. The product's total went down: a 128-line
+ * panel and its private query walk were deleted in the same change, and what arrived here is the
+ * same mechanic reading the engine Explore already had.
+ *
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 587;
+const CEILING = 746;
 
 describe("the surface does not grow by accident (#483–#487)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {

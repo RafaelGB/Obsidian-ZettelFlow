@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
+import { readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
@@ -181,5 +181,111 @@ describe("the return counts nothing (#565)", () => {
             .filter(([, value]) => DEBT_VOCABULARY.some((pattern) => pattern.test(value)))
             .map(([key]) => key);
         expect(offenders).toEqual(["home_return_due_count"]);
+    });
+});
+
+/**
+ * It never becomes a tracker (#573, epic #560).
+ *
+ * A wager is two fields and a question. A *prediction tracker* is a product, and it is one
+ * accidental feature away: a list of open bets, a count of resolved ones, a hit rate, a calibration
+ * curve, a reminder the day before, a badge when you are right. Every one of those would arrive as
+ * a convenience, and every one would change what the feature is for — from **finding out** to
+ * **being right**.
+ *
+ * That is not taste. A hit rate is an invented score (§XI: a metric is a consequence of the model,
+ * never an invented number) **about the user** (§XII: the system does not form judgements you did
+ * not make) — and this project deleted its telemetry on purpose. A self-scoring dashboard is
+ * telemetry pointed inward.
+ */
+describe("the wager never keeps score (#573)", () => {
+    const SRC = join(ROOT, "src");
+
+    const walk = (dir: string, out: string[] = []): string[] => {
+        for (const entry of readdirSync(dir)) {
+            const full = join(dir, entry);
+            if (statSync(full).isDirectory()) walk(full, out);
+            else if (/\.tsx?$/.test(entry)) out.push(full);
+        }
+        return out;
+    };
+
+    const SCORING = [
+        "accuracy",
+        "hitRate",
+        "calibrat",
+        "wasRight",
+        "wasCorrect",
+        "successRate",
+        "wagerScore",
+        "wagerCount",
+        "wagersResolved",
+        "openWagers",
+        "predictionStreak",
+    ];
+
+    it("computes nothing about how often you were right, anywhere in the product", () => {
+        for (const file of walk(SRC)) {
+            const source = code(readFileSync(file, "utf8"));
+            for (const name of SCORING) {
+                expect({ file: file.replace(SRC, ""), name, found: source.includes(name) }).toEqual({
+                    file: file.replace(SRC, ""),
+                    name,
+                    found: false,
+                });
+            }
+        }
+    });
+
+    it("aggregates nothing over wagers in the model layer", () => {
+        // A projection is where a rate would be born. There is none, so there is nothing to render.
+        const knowledge = join(SRC, "architecture", "knowledge");
+        for (const file of walk(knowledge)) {
+            const source = code(readFileSync(file, "utf8"));
+            expect({ file: file.replace(SRC, ""), aggregate: /wagers?\s*\.\s*(length|filter|reduce)/.test(source) }).toEqual({
+                file: file.replace(SRC, ""),
+                aggregate: false,
+            });
+        }
+    });
+
+    it("says nothing about accuracy or habit, in either language", () => {
+        const FORBIDDEN = [
+            /\baccuracy\b/i,
+            /\bprecisión\b/i,
+            /\bcorrect\b/i,
+            /\bacertaste\b/i,
+            /\bwrong\b/i,
+            /\bte equivocaste\b/i,
+            /\bhabit\b/i,
+            /\bhábito\b/i,
+            /\bremind/i,
+            /\brecuérda/i,
+            /\bstreak\b/i,
+            /\bracha\b/i,
+        ];
+        for (const [name, locale] of [
+            ["en", en],
+            ["es", es],
+        ] as const) {
+            const offenders = Object.entries(locale as Record<string, string>)
+                .filter(([key]) => key.includes("wager") || key.startsWith("claim_return_"))
+                .filter(([, value]) => FORBIDDEN.some((pattern) => pattern.test(value)))
+                .map(([key, value]) => `${key}: ${value}`);
+            expect({ locale: name, offenders }).toEqual({ locale: name, offenders: [] });
+        }
+    });
+
+    it("reports a planted score and a planted streak rather than trusting anyone to notice them", () => {
+        const planted = {
+            claim_return_wager_accuracy: "You were correct 7 times out of 11",
+            home_claim_return_wager_streak: "A 4-day streak — keep it up",
+        };
+        const FORBIDDEN = [/\bcorrect\b/i, /\bstreak\b/i];
+        const offenders = Object.entries(planted)
+            .filter(([, value]) => FORBIDDEN.some((pattern) => pattern.test(value)))
+            .map(([key]) => key)
+            .sort();
+        expect(offenders).toEqual(["claim_return_wager_accuracy", "home_claim_return_wager_streak"]);
     });
 });

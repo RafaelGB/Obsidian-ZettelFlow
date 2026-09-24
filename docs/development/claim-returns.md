@@ -133,6 +133,13 @@ rows told as one story would be worse than the two rows.
 
 **Share this idea** now carries both sentences, not only how many claims there were.
 
+## And a claim you can be wrong about
+
+A claim is a sentence you would defend. Add **what you expect to see** and **by when** and it
+becomes something else: a [wager](wagers.md), the only thing in this product that can be checked
+against what actually happened. The day it arrives, the return asks *what happened?* before it shows
+you what you predicted — and then the same three answers resolve the claim.
+
 ## What it deliberately does not do
 
 - **It never counts.** Not returns due, taken or missed. No streak, no badge, no status-bar number,

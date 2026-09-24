@@ -48,6 +48,13 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   you explicitly marked as used and never overwrite an existing note. No AI or workflow setup needed;
   ordinary Cultivate remains available. See [Cultivate](docs/development/cultivate.md).
 
+- **🎯 A thought you can be wrong about** — add *what you expect to see* and *by when* to a claim and
+  it becomes a **wager**: the only thing in this product that can be checked against what actually
+  happened. On the day you named, ZettelFlow asks *what happened?* — with your prediction shut until
+  you have answered — and then puts the two sentences side by side. It never scores the difference:
+  no accuracy, no hit rate, no streak, no reminder, no list of open bets. Nobody needs to be told
+  which sentence they wrote. See [a thought you can be wrong about](docs/development/wagers.md).
+
 - **🎲 Two things far apart** — the vault puts two of your notes side by side that have **nothing**
   in common — no shared neighbour, different neighbourhoods, sometimes a note nothing links to at
   all — and asks one question: *what could these two have in common?* It never answers it. Your
@@ -256,6 +263,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Knowledge with purpose** | One saved inquiry inside Home → Cultivate: user-chosen note/purpose, selected-only or one-hop context, explicitly consulted references, human-controlled provisional resolution, local pause/resume and create-only Markdown snapshots with recoverable retries. Offline; no mandatory AI, methodology or Canvas setup. |
+| **Wagers** | Two optional fields beside a claim — what you expect to see, and the day you expect to know by — in plain frontmatter you can read and edit yourself. When the day arrives it is offered once, the observation is asked for **before** the prediction is shown, and resolving clears the horizon so it never repeats. No accuracy, no calibration, no habit, no reminder and no count of open bets: the expected and the observed sit beside each other, and nothing compares them. |
 | **Two things far apart (collision)** | A pair of your notes with no shared neighbour, drawn from different neighbourhoods — or from the notes nothing links to, which no other reader in the product can see. One question between them and no answer to it: no hint, no example, no AI. Answering writes a thought carrying both notes; *nothing here* records a verdict and the pair never returns; closing it records nothing at all. The 48.7 M pairs a ten-thousand-note vault contains are never enumerated — one is drawn, in a couple of index lookups. |
 | **The return of a claim** | One gesture writes what a note claims — and, optionally, where it came from, so saying what you think does not quietly add to your debt — the field that has existed since #148 and that nobody could write without hand-editing YAML. Home then offers it back, one at a time, after a duration you choose (7–365 days, default 90): the question first, the note shut, and only then both sentences side by side. *It still says this* writes nothing; *it says this now* rewrites it; *I no longer hold this* puts the sentence in the thinking space rather than deleting it. Every verdict is recorded without its text, and the timeline tells the change and the verdict as one line. No counts, no streaks, no reminders, no adaptive schedule. |
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |

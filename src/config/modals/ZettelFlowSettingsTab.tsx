@@ -27,6 +27,7 @@ import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
+import { returnSettingsGroup } from "./handlers/returnSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
@@ -473,6 +474,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                 
                     ...itemsOf(journalSettingsGroup(plugin)),
                     ...itemsOf(judgementSettingsGroup(plugin)),
+                    ...itemsOf(returnSettingsGroup(plugin)),
                     ...itemsOf(timelineSettingsGroup(plugin)),
                     ...itemsOf(patternsSettingsGroup(plugin)),
                 ],

@@ -52,6 +52,8 @@ records exactly as it did before them.
 | AI actions | a model's proposal | `ai` |
 | Cultivate moves | a proposed connection, challenge, source | `derived` |
 | **The note builder (#411)** | a suggested connection in the companion pane, accepted / modified / rejected while the note is being written | `derived` |
+| **A claim you stated (#561)** | your own sentence about a note, subject `claim:<path>` — `accepted` when you first state it | `human` |
+| **A claim coming back (#562)** | the same subject, with the answer you gave: `confirmed` (it still says this), `modified` (it says this now) or `rejected` (you withdrew it). No claim text is recorded — the sentence is on the note | `derived` when the system brought it back, `human` when you opened the return |
 | **Home's gaps (#534)** | a pair of unlinked notes the graph keeps putting together: *not related* (`rejected`, subject `gap:<path>`). Only *no* is recorded — linking the two notes stops the pair being a gap by construction | `derived` |
 
 The note-builder verdicts are buffered while the wizard runs and recorded against the note that is

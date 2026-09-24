@@ -160,6 +160,13 @@ stripped (`[[X|alias]]` / `[[X#h]]` → `X`); unresolved links are excluded.
 
 ## Claims & sources (#148)
 
+> **The claim has a door since #561.** For a year the only way to write one was to type YAML into a
+> note by hand, and the measurement said what that meant: **0 of 94** notes in the reference vault
+> carried a claim, so every reader below — the timeline, the idea card, `CompareClaims`,
+> `FindContradiction`, the evidence map — was reading an empty field. One gesture on the note's own
+> menu writes it now, and the claim comes back to you afterwards. See
+> [the return of a claim](../development/claim-returns.md).
+
 `ClaimSourceSchema` (in the pure `src/architecture/knowledge/claims/`) fills the `ClaimSchema` slot
 so `Idea.claims` is populated, which makes `maturitySignals.hasSources` and the `unsourced` query
 meaningful. It powers *"which ideas make a claim with no evidence?"* and feeds the research actions

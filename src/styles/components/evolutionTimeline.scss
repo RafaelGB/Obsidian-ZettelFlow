@@ -171,3 +171,9 @@
 .zettelkasten-flow__evolution-timeline-thought {
     border-left-color: var(--text-faint);
 }
+
+// Then and now, on one line (#564). Two sentences, neither marked as the better one.
+.zettelkasten-flow__evolution-timeline-return {
+    border-left: var(--size-4-1) solid var(--interactive-accent);
+    padding-left: var(--size-4-2);
+}

@@ -6,6 +6,7 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { recordMoveOn } from "starters/zcomponents/MoveCommandsComponent";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
+import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { Notice, TFile, setIcon } from 'obsidian';
@@ -232,6 +233,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             text: t("cultivate_target_meta", String(session.degree), maturity),
         });
         this.renderMoveRow(card, session.path);
+        this.renderClaimRow(card, session.path);
     }
 
     /**
@@ -255,6 +257,25 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(button, "click", () =>
             new MovePicker(this.app, name, "note", (verb) => recordMoveOn(verb, path)).open()
         );
+    }
+
+    /**
+     * Say what this note claims, on the note Cultivate is already showing you (#561).
+     *
+     * One control, beside the moves, opening the same sentence box the note's own menu opens. It is
+     * the note's **claim** that is written, never anything Cultivate inferred: the door is for your
+     * sentence (§XII).
+     */
+    private renderClaimRow(card: HTMLElement, path: string): void {
+        const row = card.createDiv({ cls: c("cultivate-target-claim") });
+        const button = row.createEl("button", {
+            cls: c("cultivate-target-move"),
+            text: t("claim_door_cultivate"),
+        });
+        this.registerDomEvent(button, "click", () => {
+            const file = this.app.vault.getFileByPath(path);
+            if (file instanceof TFile) new ClaimDoorModal(this.app, file).open();
+        });
     }
 
     private renderMove(list: HTMLElement, move: CultivationMove): void {

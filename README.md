@@ -48,6 +48,14 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   you explicitly marked as used and never overwrite an existing note. No AI or workflow setup needed;
   ordinary Cultivate remains available. See [Cultivate](docs/development/cultivate.md).
 
+- **💬 What this note claims, asked again** — say in one sentence what a note claims, from the note's
+  own menu. Weeks later ZettelFlow brings it back **one at a time** and asks what you say about it
+  now — with the note shut until you have answered, so what comes back is your own thinking and not
+  an agreement with yourself. Then the two sentences meet: *in June you said X, today you say Y*, on
+  one line of the evolution timeline. Nothing is counted, nothing is overdue, nothing reminds you,
+  and a claim you withdraw goes back to the thinking space instead of being deleted. See
+  [the return of a claim](docs/development/claim-returns.md).
+
 - **🏠 ZettelFlow Home** — *open ZettelFlow, not Obsidian.* A single front door: a greeting and
   "you've been thinking for N days", a one-click **3D-graph teaser**, a **growth nudge** ("N fleeting
   notes ready to develop") that jumps straight to the latest capture, a **Cultivate** on-ramp
@@ -240,6 +248,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Knowledge with purpose** | One saved inquiry inside Home → Cultivate: user-chosen note/purpose, selected-only or one-hop context, explicitly consulted references, human-controlled provisional resolution, local pause/resume and create-only Markdown snapshots with recoverable retries. Offline; no mandatory AI, methodology or Canvas setup. |
+| **The return of a claim** | One gesture writes what a note claims — the field that has existed since #148 and that nobody could write without hand-editing YAML. Home then offers it back, one at a time, after a duration you choose (7–365 days, default 90): the question first, the note shut, and only then both sentences side by side. *It still says this* writes nothing; *it says this now* rewrites it; *I no longer hold this* puts the sentence in the thinking space rather than deleting it. Every verdict is recorded without its text, and the timeline tells the change and the verdict as one line. No counts, no streaks, no reminders, no adaptive schedule. |
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
 | **Knowledge patterns** | Templates that carry behavior — on creation a pattern runs its attached offline knowledge/relation actions through the standard pipeline. The shipped **Permanent Note** pattern wires find related · find contradictions · suggest links · calculate maturity, computed against your existing graph. Results are **recomputed once, automatically, after the note is indexed**, so a brand-new note lands already connected (on by default, offline). Additive & backward-compatible; legacy templates are unchanged. |
 | **31 built-in actions** | Prompt, Number, Checkbox, Calendar, Selector, Dynamic selector, Tags, Backlink, CSS classes, Task management, Script, Zettel ID, 🧠 knowledge actions — detect orphan, calculate maturity, find contradiction, find unanswered question, suggest next move, thinking simulator — 🔗 relation actions — find related, suggest link, create semantic relation — 🔍 research actions — extract claims, compare claims, find sources, attach source — and 🤖 optional AI actions (off by default) — summarize, classify, generate questions, challenge idea, synthesize, suggest connections. |

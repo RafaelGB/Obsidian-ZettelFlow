@@ -25,6 +25,8 @@ import { ZettelFlowMenuComponent } from "../zcomponents/ZettelFlowMenuComponent"
 import { QuickCaptureComponent } from "../zcomponents/QuickCaptureComponent";
 import { ThinkAboutComponent } from "../zcomponents/ThinkAboutComponent";
 import { MoveCommandsComponent } from "../zcomponents/MoveCommandsComponent";
+import { ClaimDoorComponent } from "../zcomponents/ClaimDoorComponent";
+import { ClaimReturnComponent } from "../zcomponents/ClaimReturnComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -53,6 +55,10 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ThinkAboutComponent(plugin));
     // A move on a note (#493): the eleven verbs, one command each, gated on an active note.
     ZComponentsManager.registerComponent(new MoveCommandsComponent(plugin));
+    // The claim gets a door (#561): the last thing you could only write as YAML by hand.
+    ZComponentsManager.registerComponent(new ClaimDoorComponent(plugin));
+    // Asked again (#562): the re-entry point, until Home brings the claim back on its own.
+    ZComponentsManager.registerComponent(new ClaimReturnComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

@@ -11,6 +11,7 @@ import {
     type Snapshot,
     type TimelineEvent,
     type ThoughtRef,
+    type ReturnEvent,
     type Judgement,
 } from "architecture/knowledge/state";
 import { MOVE_VERBS, type Move } from "application/thinking/move";
@@ -28,6 +29,15 @@ import { ExportShareModal } from "architecture/components/core/export/ExportShar
 
 const DEBOUNCE_MS = 400;
 
+type LocaleKey = Parameters<typeof t>[0];
+
+/** What each verdict is called on the line. A literal map, so the locale guardrail sees it. */
+const VERDICT_KEY: Record<string, LocaleKey> = {
+    confirmed: "evolution_timeline_return_confirmed",
+    modified: "evolution_timeline_return_modified",
+    rejected: "evolution_timeline_return_withdrawn",
+};
+
 type ViewState = "loading" | "ready" | "empty" | "disabled" | "error";
 
 /**
@@ -42,6 +52,8 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
     /** Show only the cognitive milestones (judgements), hiding the structural snapshots (#362, D2). */
     private cognitiveOnly = false;
     private debounceTimer: number | undefined;
+    /** Whether snapshots are being recorded. Decides the history, never the strand (#564). */
+    private historyKept = true;
 
     constructor(container: HTMLElement, private readonly app: App) {
         super(container);
@@ -71,14 +83,17 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
     private recompute(): void {
         try {
             const timeline = ConceptualTimeline.getInstance();
-            if (!timeline.enabled()) {
-                this.events = [];
-                this.state = "disabled";
-                this.render();
-                return;
-            }
+            // Snapshots are opt-in because they store claim **texts**. That reason does not reach
+            // the moves, the thoughts or the verdicts — none of them carries any — so the opt-in
+            // decides whether there is a *history*, never whether there is a *timeline* (#564).
+            //
+            // It used to decide both: `recompute()` emptied the stream and returned before any of
+            // the other three strands were read, so a user with snapshots off had moves and
+            // nowhere to read them. The test that was supposed to catch it only checked that
+            // `timeline.enabled()` appeared before `timelineEvents`, which it did.
+            this.historyKept = timeline.enabled();
             const active = this.app.workspace.getActiveFile();
-            const snapshots = active ? timeline.snapshotsFor(active.path) : [];
+            const snapshots = active && this.historyKept ? timeline.snapshotsFor(active.path) : [];
             // The judgement log is scope-filtered and path-exact; an idea with no verdicts adds nothing,
             // so a note that was never ruled on renders exactly the pre-#362 timeline.
             const judgements = active ? judgementsFor(JudgementLog.getInstance().entries(), active.path) : [];
@@ -92,7 +107,10 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             // the metadata cache, so a strand does not cost a folder of file reads per render.
             const thoughts = active ? ThoughtStore.getInstance().about(active.path) : [];
             this.events = timelineEvents(snapshots, judgements, moves, thoughts);
-            this.state = this.events.length === 0 ? "empty" : "ready";
+            // Nothing at all to show, and no history being kept: say the honest thing, which is
+            // that the recording is off rather than that this note has no history.
+            if (this.events.length > 0) this.state = "ready";
+            else this.state = this.historyKept ? "empty" : "disabled";
         } catch (error) {
             this.state = "error";
             log.error(`[EvolutionTimeline] recompute failed: ${error instanceof Error ? error.message : "unknown error"}`);
@@ -191,12 +209,24 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             return;
         }
 
-        const events = this.cognitiveOnly ? this.events.filter((event) => event.kind === "judgement") : this.events;
+        // A return is a judgement — the verdict and the change it caused, told as one event — so
+        // the filter that isolates what you ruled has to keep it (#564).
+        const events = this.cognitiveOnly
+            ? this.events.filter((event) => event.kind === "judgement" || event.kind === "return")
+            : this.events;
+        if (!this.historyKept) {
+            // Once, at the top. A sentence repeated on every row is a reproach.
+            container.createDiv({
+                cls: c("evolution-timeline-status"),
+                text: t("evolution_timeline_return_then_not_kept"),
+            });
+        }
         for (const event of events) {
             if (event.kind === "snapshot" && event.snapshot) this.renderSnapshot(container, event.snapshot);
             else if (event.kind === "judgement" && event.judgement) this.renderJudgement(container, event.judgement);
             else if (event.kind === "move" && event.move) this.renderMove(container, event.move);
             else if (event.kind === "thought" && event.thought) this.renderThought(container, event.thought);
+            else if (event.kind === "return" && event.return) this.renderReturn(container, event.return);
         }
     }
 
@@ -281,6 +311,42 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             MoveLog.getInstance().remove(move.id);
             this.recompute();
         });
+    }
+
+    /**
+     * A claim you were asked about again (#564, epic #558).
+     *
+     * This is the row the epic exists for, and it reads as one sentence: *in June it said X, today
+     * it says Y.* Before this, the same day produced two unrelated rows — a snapshot, and a verdict
+     * — which is the difference between a log and a mirror.
+     *
+     * It states and never assesses. There is no word here about improvement, depth or progress, in
+     * either language, and a locale scan holds the line.
+     */
+    private renderReturn(container: HTMLElement, entry: ReturnEvent): void {
+        const row = container.createDiv({
+            cls: [c("evolution-timeline-entry"), c("evolution-timeline-return")].join(" "),
+        });
+        row.createSpan({
+            text: new Date(entry.judgement.at).toLocaleDateString(),
+            cls: c("evolution-timeline-date"),
+        });
+
+        const head = row.createDiv({ cls: c("evolution-timeline-line") });
+        head.createSpan({ text: t("evolution_timeline_return_label"), cls: c("evolution-timeline-label") });
+        head.createSpan({ text: t(VERDICT_KEY[entry.verdict] ?? "evolution_timeline_return_confirmed") });
+        if (entry.thought) this.renderProduced(head, entry.thought.path);
+
+        if (entry.said !== undefined) {
+            const said = row.createDiv({ cls: c("evolution-timeline-line") });
+            said.createSpan({ text: t("evolution_timeline_return_then"), cls: c("evolution-timeline-label") });
+            said.createSpan({ text: entry.said, cls: c("evolution-timeline-claim") });
+        }
+        if (entry.says !== undefined) {
+            const says = row.createDiv({ cls: c("evolution-timeline-line") });
+            says.createSpan({ text: t("evolution_timeline_return_now"), cls: c("evolution-timeline-label") });
+            says.createSpan({ text: entry.says, cls: c("evolution-timeline-claim") });
+        }
     }
 
     /**

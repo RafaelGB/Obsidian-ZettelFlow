@@ -124,10 +124,36 @@ describe("it costs no new place to look (#494)", () => {
         // The timeline is opt-in because it stores claim *texts*. A move stores none, so the
         // reason for the opt-in does not reach it — and a user with snapshots off would
         // otherwise have moves and nowhere to read them.
+        //
+        // This assertion was weaker than its own title until #564, and the feature it describes
+        // did not work: `recompute()` did `if (!timeline.enabled()) { this.events = []; return; }`
+        // before any of the other three strands were read, so with snapshots off the view drew
+        // nothing at all. The old test only checked that `timeline.enabled()` appeared somewhere
+        // before `timelineEvents`, which it did — the bug was in what happened in between.
         const recompute = TIMELINE.slice(TIMELINE.indexOf("private recompute()"));
-        const disabled = recompute.slice(0, recompute.indexOf("this.events = timelineEvents"));
-        expect(disabled).toContain("timeline.enabled()");
-        expect(TIMELINE).toContain("MoveLog.getInstance().forSubject(active.path)");
+        const decided = recompute.slice(
+            recompute.indexOf("timeline.enabled()"),
+            recompute.indexOf("this.events = timelineEvents")
+        );
+        expect(decided).not.toContain("this.events = []");
+        expect(decided).not.toContain("return;");
+        for (const strand of [
+            "MoveLog.getInstance().forSubject(active.path)",
+            "ThoughtStore.getInstance().about(active.path)",
+            "judgementsFor(",
+        ]) {
+            expect(decided).toContain(strand);
+        }
+    });
+
+    it("tells a claim's verdict and the change it caused as one line (#564)", () => {
+        expect(TIMELINE).toContain("renderReturn(");
+        expect(TIMELINE).toContain("evolution_timeline_return_then");
+        expect(TIMELINE).toContain("evolution_timeline_return_now");
+        // A return is a judgement; the filter that isolates what you ruled has to keep it.
+        expect(TIMELINE).toContain('event.kind === "return"');
+        expect(TIMELINE).not.toContain("innerHTML");
+        expect(TIMELINE).not.toContain("el.style.");
     });
 
     it("lets you take a move back from where you can see it is wrong", () => {

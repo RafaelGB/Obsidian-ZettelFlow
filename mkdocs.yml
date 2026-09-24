@@ -173,7 +173,8 @@ nav:
           - Morning discovery: development/morning-discovery.md
       - Think & cultivate:
           - Cultivate and purpose-led work: development/cultivate.md
-          - Cognitive agency (judgement record): development/cognitive-agency.md
+          - The return of a claim: development/claim-returns.md
+      - Cognitive agency (judgement record): development/cognitive-agency.md
   - Automation:
       - Property hooks:
           - Overview: vault-hooks/property-hooks/overview.md

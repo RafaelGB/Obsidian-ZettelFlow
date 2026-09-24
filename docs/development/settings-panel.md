@@ -8,7 +8,7 @@ written. Eight groups, in this order:
 | **Your flows** | the canvases that have a role, the gallery, the triggers that are bound |
 | **Creating notes** | drafts, the builder's friction, density, colour by phase, target folder, the title prefix |
 | **Your vault's vocabulary** | excluded folders, the lifecycle properties, inline relations |
-| **Thinking** | cultivate, judgement, patterns, the journal, the timeline |
+| **Thinking** | cultivate, judgement, patterns, the journal, the timeline, [coming back](claim-returns.md#how-it-comes-back) (how long before a claim returns, 7–365 days, default 90) |
 | **AI** | one group, off by default |
 | **Automation** | property hooks |
 | **Advanced** | where ZettelFlow keeps its own files, script type declarations, logging — folded |

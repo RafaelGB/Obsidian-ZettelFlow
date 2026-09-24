@@ -37,6 +37,38 @@ time (a snapshot before a judgement on a tie) and reads only what it is given, s
 on renders exactly the pre-#362 timeline. Judgement events are read from the always-local judgement log
 and honour the same [knowledge scope](knowledge-scope.md) — no extra content is stored for them.
 
+## Then and now, on one line (#564)
+
+A claim you were **asked about again** is drawn as one event rather than two: the verdict you gave
+and the change it caused, together.
+
+> **Asked again** — and you said what it says now
+> *It said* — "microservices increase organizational complexity"
+> *It says now* — "microservices move complexity rather than add it"
+
+A confirmation is its own line — *and it still says the same* — which is a milestone this axis could
+never draw before, because nothing ever asked you. A withdrawal names the thought the sentence
+became (#562) and opens it.
+
+The pairing is a **join, never a guess**: the verdict has to be about this note's claim, land within
+five minutes of the snapshot, and the claim set has to have moved by exactly one sentence out and
+one in. A bulk edit, a distant verdict, or a claim change nobody ruled on renders exactly as it did
+before — two unrelated rows told as one story would be worse than the two rows.
+
+The *only my judgements* toggle keeps it, because a return **is** a judgement.
+
+### The strands render with snapshots off (fixed in #564)
+
+The timeline is opt-in because it stores claim **texts**. That reason never reached the moves, the
+thoughts or the verdicts — none of them carries any text — and yet with snapshots off the view drew
+*nothing at all*: `recompute()` emptied the stream and returned before those three strands were
+read. The guardrail that was supposed to prevent it only asserted that `timeline.enabled()` appeared
+somewhere before the merge, which it did.
+
+Snapshots now decide whether there is a **history**, never whether there is a **timeline**. With
+them off you still see what you did, what you thought and what you ruled; the missing *it said*
+sentence is stated once, at the top, rather than on every row.
+
 ## Thoughts written about the note (#540)
 
 Thinking about a note used to leave no trace on it. *Think about this note* plus a sentence recorded

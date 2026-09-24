@@ -1,7 +1,9 @@
 import { App, Modal, Notice, TFile } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { declaredSourcesOf, stateClaim, statedClaims } from "architecture/plugin/claims/statedClaim";
+import { declaredSourcesOf, stateClaim, statedClaims, statedWager } from "architecture/plugin/claims/statedClaim";
+// Through the top barrel: a view reaches the model there or at the State surface, never deeper (#266).
+import { toDateInput } from "architecture/knowledge";
 import { SourceNoteSuggest } from "./SourceNoteSuggest";
 
 /**
@@ -20,7 +22,12 @@ export class ClaimDoorModal extends Modal {
     constructor(
         app: App,
         private readonly file: TFile,
-        private readonly save: (path: string, sentence: string, source?: string) => Promise<boolean> = stateClaim
+        private readonly save: (
+            path: string,
+            sentence: string,
+            source?: string,
+            wager?: { expectation: string; by: string }
+        ) => Promise<boolean> = stateClaim
     ) {
         super(app);
     }
@@ -53,13 +60,32 @@ export class ClaimDoorModal extends Modal {
         source.setAttribute("aria-label", t("claim_door_source_placeholder"));
         new SourceNoteSuggest(source);
 
+        // And what you expect to see, by when (#570) — two more optional lines, and the normal path
+        // is to skip them. Most claims are not wagers, and a form that insists is a form nobody uses
+        // twice. What they add is the one thing nothing else in this product has: something you can
+        // be **wrong** about.
+        const wager = statedWager(this.file);
+        const expectation = contentEl.createEl("input", { type: "text", cls: c("claim-door-expect") });
+        expectation.value = wager?.expectation ?? "";
+        expectation.placeholder = t("claim_door_expect_placeholder");
+        expectation.setAttribute("aria-label", t("claim_door_expect_placeholder"));
+
+        const by = contentEl.createEl("input", { type: "date", cls: c("claim-door-by") });
+        by.value = wager ? toDateInput(wager.at) : "";
+        by.setAttribute("aria-label", t("claim_door_by_label"));
+
         const submit = async (): Promise<void> => {
             const sentence = input.value.trim();
             if (!sentence || this.busy) return;
             this.busy = true;
             button.disabled = true;
             try {
-                const written = await this.save(this.file.path, sentence, source.value.trim() || undefined);
+                const written = await this.save(
+                    this.file.path,
+                    sentence,
+                    source.value.trim() || undefined,
+                    { expectation: expectation.value, by: by.value }
+                );
                 new Notice(written ? t("claim_door_saved") : t("claim_door_failed"));
                 if (written) this.close();
             } finally {
@@ -68,7 +94,7 @@ export class ClaimDoorModal extends Modal {
             }
         };
 
-        for (const box of [input, source]) {
+        for (const box of [input, source, expectation, by]) {
             box.addEventListener("keydown", (event) => {
                 if (event.key === "Enter") void submit();
             });

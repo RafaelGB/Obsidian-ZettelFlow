@@ -11,6 +11,8 @@ const ROOT = join(__dirname, "..", "..", "..");
 const SOURCES = [
     "src/application/claims/claimEdit.ts",
     "src/application/claims/sourceEdit.ts",
+    "src/application/claims/wagerEdit.ts",
+    "src/architecture/knowledge/claims/wager.ts",
     "src/application/claims/claimReturn.ts",
     "src/application/claims/returnDraft.ts",
     "src/application/claims/index.ts",

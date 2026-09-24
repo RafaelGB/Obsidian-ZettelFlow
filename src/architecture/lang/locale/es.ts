@@ -1270,6 +1270,8 @@ export default {
     claim_door_other_claims: 'Esta nota dice más de una cosa. Estás editando la primera.',
     claim_door_source_placeholder: 'Y de dónde viene: una nota o una referencia (opcional)',
     claim_return_cites: 'Cita {0}',
+    claim_door_expect_placeholder: 'Y qué esperas ver (opcional)',
+    claim_door_by_label: 'El día en que esperas saberlo',
     claim_door_saved: 'La afirmación está en la nota.',
     claim_door_failed: 'No se ha podido escribir la afirmación.',
     // Una promoción es un hecho sobre dos estados (#580): el chip dice dónde estás, esto qué se movió.

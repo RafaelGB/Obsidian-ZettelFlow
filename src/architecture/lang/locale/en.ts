@@ -1270,6 +1270,8 @@ export default {
     claim_door_other_claims: 'This note says more than one thing. You are editing the first.',
     claim_door_source_placeholder: 'And where it came from — a note or a reference (optional)',
     claim_return_cites: 'It cites {0}',
+    claim_door_expect_placeholder: 'And what you expect to see (optional)',
+    claim_door_by_label: 'The day you expect to know by',
     claim_door_saved: 'The claim is on the note.',
     claim_door_failed: 'The claim could not be written.',
     // A promotion is a fact about two states (#580): the chip says where you are, this says what moved.

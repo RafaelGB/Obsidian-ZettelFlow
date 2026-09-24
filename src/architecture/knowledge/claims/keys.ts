@@ -22,3 +22,17 @@ export function isSourceKey(value: string): boolean {
 export function isClaimOrSourceKey(value: string): boolean {
     return CLAIM_SET.has(value) || SOURCE_SET.has(value);
 }
+
+/**
+ * What marks a judgement as being about a note's claim (#561, epic #558).
+ *
+ * The `GAP_SUBJECT_PREFIX` shape: the subject is a short, locale-free descriptor, never the text
+ * that was stated. A claim is a sentence, and the sentence is exactly what the judgement record
+ * must never hold — that is why the record is on by default (#336).
+ */
+export const CLAIM_SUBJECT_PREFIX = "claim:";
+
+/** The judgement subject for a claim on this note. */
+export function claimSubject(path: string): string {
+    return `${CLAIM_SUBJECT_PREFIX}${path}`;
+}

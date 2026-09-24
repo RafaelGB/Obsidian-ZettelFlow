@@ -1,0 +1,19 @@
+// The claim gets a door (#561, epic #558): one sentence box, and one control in Cultivate.
+// Obsidian's own vocabulary only — the box is an input, the button is `mod-cta`, and the theme wins.
+.zettelkasten-flow__claim-door-input {
+    width: 100%;
+    margin-block: var(--size-4-2);
+}
+
+.zettelkasten-flow__claim-door-hint {
+    margin-block-end: var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__cultivate-target-claim {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-block-start: var(--size-4-1);
+}

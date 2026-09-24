@@ -66,14 +66,23 @@ describe("guardrail A — every capability has a real door (#575)", () => {
         expect(stale).toEqual([]);
     });
 
-    it("names the issue that empties each row", () => {
-        const vague = Object.entries(DOORLESS).filter(([, reason]) => !reason?.includes("#578"));
+    it("would name the issue that empties any future row", () => {
+        // Empty today. The shape survives the emptying on purpose: the next capability that cannot
+        // ship its door in the same change must arrive here with a number, never with a shrug.
+        const vague = Object.entries(DOORLESS).filter(([, reason]) => !/#\d+/.test(reason ?? ""));
         expect(vague).toEqual([]);
     });
 
-    it("leaves most of the product already compliant", () => {
-        // If the register held half the inventory this guardrail would be a wish, not a rule.
-        expect(doorless().length).toBeLessThan(CAPABILITIES.length / 2);
+    it("has no exceptions left at all (#578)", () => {
+        // #575 shipped this guardrail with eleven, each keyed to #578. #578 emptied it: nine got a
+        // real door and two left the inventory because they are configuration, not capabilities.
+        // The register stays for the next one; what it may not do is quietly refill.
+        expect(doorless()).toEqual([]);
+        expect(DOORLESS).toEqual({});
+    });
+
+    it("reads an inventory big enough for the rule to mean something", () => {
+        expect(CAPABILITIES.length).toBeGreaterThan(25);
     });
 
     it("reports a capability that quietly loses its last real door", () => {

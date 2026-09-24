@@ -216,5 +216,12 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
   table, and for a headline capability also a bullet in the **Zettelkasten toolkit** section. The
   README is how new users decide to install — a shipped-but-unadvertised feature is a missed
   download. This is a blocking exit criterion (see the `implement` skill).
+- **Every capability ships with a door of rank 1–3** ([capability doors](docs/development/capability-doors.md)).
+  A control where you already are, a surface, or a line on Home — **not** a command. The palette is a
+  hotkey and a re-entry point, never a discovery path (#496): *think before you look* was specified,
+  built, documented, shipped, and then could not be found by the person who asked for it. Add the id
+  to `CAPABILITIES` and TypeScript demands the rest; `capabilityDoors.test.ts` demands the door. And
+  **a mode's header carries one primary action** — `ModeHeader.primary()` once, `nav()` for moving
+  around inside the mode, `secondary()` for the overflow ([surfaces](docs/architecture/surfaces.md)).
 - Don't introduce `innerHTML`, inline styles, or Title-case UI strings — they cost score.
 - Keep the two locale files (`en.ts`/`es.ts`) in sync.

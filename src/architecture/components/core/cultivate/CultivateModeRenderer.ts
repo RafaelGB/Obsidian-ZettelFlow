@@ -2,6 +2,7 @@ import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
+import { StateTransitionComponent } from "starters/zcomponents/StateTransitionComponent";
 import { CultivationService } from "architecture/plugin";
 import { KnowledgeIndex, STATE_LABEL_KEY, stateTransition } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
@@ -252,6 +253,14 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             cls: c("cultivate-state-chip"),
             text: `${session.stateEmoji} ${stateKey ? t(stateKey as Parameters<typeof t>[0]) : session.state}`.trim(),
         });
+        // The door for changing a note's state (#578). It was in the palette and nowhere else — and
+        // the state is *right here*, on the object the change is about, which is rank 1 by the
+        // ranking this epic wrote down. The same picker the command opens, not a second one.
+        chip.setAttribute("title", t("state_transition_modal_title"));
+        makeActivatable(chip, () => {
+            const file = this.app.vault.getAbstractFileByPath(session.path);
+            if (file instanceof TFile) StateTransitionComponent.pickState(this.plugin, file);
+        }, "button");
         if (moved) {
             // Once, on the chip that changed, and nowhere else: the state is where you acted.
             chip.addClass(c("cultivate-state-changed"));

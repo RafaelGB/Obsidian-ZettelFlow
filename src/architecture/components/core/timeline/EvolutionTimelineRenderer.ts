@@ -2,6 +2,7 @@ import { App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
+import { runCommand } from "architecture/components/core/surface/runCommand";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 import { KnowledgeIndex, STATE_LABEL_KEY } from "architecture/knowledge";
 import {
@@ -157,6 +158,16 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
                     this.cognitiveOnly = !this.cognitiveOnly;
                     this.render();
                 },
+            });
+        }
+        // Tracing the reasoning that leaves this note was in the palette and nowhere else (#578).
+        // It is a per-note question, and this is the per-note mode — the same active file the
+        // strands above are already read from. The command keeps working; this is its door.
+        if (this.app.workspace.getActiveFile()) {
+            bar.secondary({
+                label: t("command_explore_reasoning_paths"),
+                icon: "route",
+                onClick: () => runCommand("explore-reasoning-paths"),
             });
         }
         bar.done();

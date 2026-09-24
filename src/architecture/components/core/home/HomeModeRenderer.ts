@@ -3,6 +3,8 @@ import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { App } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
+import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
+import { runCommand } from "architecture/components/core/surface/runCommand";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -140,12 +142,17 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
 
         const header = container.createDiv({ cls: c("home-header") });
         header.createEl("h4", { text: t("home_view_title"), cls: c("home-title") });
-        const refresh = header.createEl("button", {
-            text: t("home_refresh_button"),
-            cls: c("home-refresh"),
-            attr: { "aria-label": t("home_refresh_button") },
+        // Capturing a thought was in the palette and nowhere else (#578) — the lowest-friction
+        // thing this plugin does, reachable only by someone who already knew it existed. Home is
+        // where you are when you have one, so Home is where it is offered.
+        const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        bar.primary({
+            label: t("command_quick_capture"),
+            icon: "pencil-line",
+            onClick: () => runCommand("quick-capture"),
         });
-        refresh.addEventListener("click", () => this.recompute());
+        bar.nav({ label: t("home_refresh_button"), onClick: () => this.recompute() });
+        bar.done();
 
         this.renderCultivateTeaser(container);
         this.renderUnfinishedNote(container);

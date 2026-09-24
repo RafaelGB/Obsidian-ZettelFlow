@@ -35,6 +35,16 @@ A capability whose only door is a command is a capability nobody discovers. The 
 go looking for something you already know is there — which is exactly the population that does not
 need help finding it.
 
+And the line that keeps the rule from being argued away:
+
+> **A capability is something you do to something.** If there is no object — no note, no selection,
+> no question — and the thing is a standing rule the plugin follows while you are elsewhere, it is
+> **configuration**, and settings is its home by design rather than by neglect.
+
+Knowledge patterns and the vault hooks are configuration. Both have a name, a settings group and a
+docs page; neither is something you *open*. Quick capture, deriving a project and the weekly review
+all have an object, and all three got a real door instead of an exemption.
+
 This is enforced, not encouraged. Two guardrails, in `test/config/capabilityDoors.test.ts`:
 
 - **Guardrail A** — the rule above. Rows that fail today are carried in the `DOORLESS` register with
@@ -73,23 +83,22 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 |---|---|---|---|
 | `note-creation` | workflow | 1 | ribbon → `open-workflow` · `open-workflow` |
 | `run-a-flow` | workflow | 1 | ribbon → `run-canvas-flow` · `run-canvas-flow` · `editor-menu-flow` |
-| `canvas-editing` | workflow | 4 | settings → `settings_group_creating` · `open-canvas` ⚠️ #578 — the ribbon, beside the flow it edits |
-| `quick-capture` | zettelflow-home | 5 | `quick-capture` ⚠️ #578 — a control in Home's header |
+| `canvas-editing` | workflow | 1 | ribbon → `open-canvas` · settings → `settings_group_creating` · `open-canvas` |
+| `quick-capture` | zettelflow-home | 1 | control in zettelflow-home (`HomeModeRenderer.ts`) · `quick-capture` |
 | `home` | zettelflow-home | 1 | ribbon → `show-home` · surface `zettelflow-home:home` · `show-home` |
 | `moc-builder` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) · `build-map-of-content` |
-| `derive-project` | projects | 5 | `derive-project` ⚠️ #578 — the folder's context menu |
+| `derive-project` | projects | 1 | note menu (`DeriveProjectComponent.ts`) · `derive-project` |
 | `knowledge-map` | zettelflow-explore | 2 | surface `zettelflow-explore:explore` · `show-knowledge-map` |
 | `concept-nav` | zettelflow-explore | 2 | surface `zettelflow-explore:explore` · `show-concept-nav` |
 | `explore` | zettelflow-explore | 1 | ribbon → `ask-your-graph` · surface `zettelflow-explore:explore` · `ask-your-graph` |
 | `graph-lens` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) · `explore-in-3d` · `show-graph` |
-| `reasoning-paths` | zettelflow-explore | 5 | `explore-reasoning-paths` ⚠️ #578 — merged into Explore's graph lens, which already traces routes |
+| `reasoning-paths` | zettelflow-health | 1 | control in zettelflow-health (`EvolutionTimelineRenderer.ts`) · `explore-reasoning-paths` |
 | `slipbox-health` | zettelflow-health | 1 | ribbon → `show-health` · surface `zettelflow-health:health` · `show-slipbox-health` |
 | `knowledge-dashboard` | zettelflow-health | 2 | surface `zettelflow-health:health` · `show-knowledge-dashboard` |
-| `weekly-review` | zettelflow-health | 5 | `generate-weekly-review` ⚠️ #578 — a control in Health |
+| `weekly-review` | zettelflow-health | 1 | control in zettelflow-health (`SlipboxHealthRenderer.ts`) · `generate-weekly-review` |
 | `thinking-heatmap` | zettelflow-health | 2 | surface `zettelflow-health:momentum` · `show-thinking-heatmap` |
 | `evolution-timeline` | zettelflow-health | 2 | surface `zettelflow-health:timeline` · `show-evolution-timeline` · `show-notes-history` |
 | `evidence-map` | zettelflow-health | 2 | surface `zettelflow-health:timeline` · `show-evidence-map` |
-| `knowledge-patterns` | workflow | 4 | settings → `settings_patterns_heading` ⚠️ #578 — a control where a pattern actually runs |
 | `open-questions` | zettelflow-home | 2 | surface `zettelflow-home:home` · `show-open-questions` |
 | `resurface` | zettelflow-home | 3 | recommended on `zettelflow-home:home` · `resurface-related-notes` · `show-discoveries` · `show-discovery` |
 | `atomicity-split` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · `split-note-into-atomic-notes` |
@@ -104,32 +113,61 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `claim-return` | claims | 3 | recommended on `zettelflow-home:home` · `return-to-this-claim` |
 | `wager` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · recommended on `zettelflow-home:home` |
 | `agency-review` | zettelflow-health | 2 | surface `zettelflow-health:agency` |
-| `note-state` | lifecycle | 5 | `change-note-state` ⚠️ #578 — the note's move picker |
-| `remove-relation` | relations | 5 | `remove-relation` ⚠️ #578 — the note's move picker |
+| `note-state` | lifecycle | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) · `change-note-state` |
+| `remove-relation` | relations | 1 | note menu (`RemoveRelationComponent.ts`) · `remove-relation` |
 | `script-workbench` | scripting | 1 | control in editor (`CodeView.ts`) · `open-script-workbench` |
 | `systems-gallery` | community | 1 | ribbon → `browse-systems` · `browse-systems` · `open-community-templates` |
 | `template-export` | community | 1 | ribbon → `export-canvas-template` · `export-canvas-template` |
-| `template-import` | community | 5 | `import-canvas-template` ⚠️ #578 — the ribbon's systems group, beside export |
-| `manage-templates` | community | 4 | settings → `settings_group_creating` · `open-manage-templates` ⚠️ #578 — the ribbon's systems group |
-| `vault-hooks` | hooks | 4 | settings → `settings_group_automation` ⚠️ #578 — reachable from the flow whose events it binds |
+| `template-import` | community | 1 | ribbon → `import-canvas-template` · `import-canvas-template` |
+| `manage-templates` | community | 1 | ribbon → `open-manage-templates` · settings → `settings_group_creating` · `open-manage-templates` |
 
 <!-- generated: capabilityAudit -->
 
-## What the first measurement said
+## What the first measurement said, and what happened to it
 
-Forty-one capabilities. **Eleven** of them — better than one in four — have no door above a settings
-row, and eight of those eleven sit at rank 5: the command palette and nowhere else.
+[#575](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/575) measured forty-one capabilities
+and found **eleven** — better than one in four — with no door above a settings row. Eight of the
+eleven sat at rank 5: the command palette and nowhere else.
 
-The eleven are not the ten the plan predicted, and the difference is the interesting part. The plan
-counted *command-only ids*; the registry counts *capabilities*. Opening the canvas turns out to have
-a settings row and the 3D graph a lens control, so both drop off — while knowledge patterns and the
-vault hooks, which have no command at all and so were never scanned for, take their places. **A
-capability with no command was invisible even to the audit looking for invisible capabilities.**
+They were not the ten the plan predicted, and the difference is the interesting part. The plan
+counted *command-only ids*; the registry counts *capabilities*. Opening the canvas turned out to
+have a settings row and the 3D graph a lens control, so both dropped off — while knowledge patterns
+and the vault hooks, which have **no command at all** and so were never scanned for, took their
+places. A capability with no command was invisible even to the audit looking for invisible
+capabilities.
 
-Note also what *passes*. *Think before you look*, the mechanic that started the epic, sits at
-**depth 1** — its `eye-off` button really is "a control in the view showing it", by the letter of
-the rule. That is not a hole in the guardrail; it is the guardrail being honest about what a static
-registry can see. A door exists. It is not *visible*, and no table will ever know the difference —
-which is why [#576](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/576) and
-[#577](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/577) are the part of this epic that
-has to be argued rather than asserted.
+[#578](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/578) emptied the register:
+
+| | outcome | where it is now |
+|---|---|---|
+| capture a thought | door | the primary control of Home's header |
+| generate the weekly review | door | the primary control of Health's header |
+| open the canvas | door | the ribbon's systems group |
+| import a system | door | the ribbon's systems group |
+| manage installed systems | door | the ribbon's systems group |
+| derive a project | door | the **folder's** context menu — a project is derived from a folder |
+| change a note's state | door | the state chip on Cultivate's target card, which is where the state already was |
+| remove a relation | door | the note's menu, on notes that have one |
+| trace a reasoning path | **merge** | the per-note mode, which already answers per-note questions |
+| knowledge patterns | not a capability | configuration; settings is its home by design |
+| vault hooks | not a capability | configuration; settings is its home by design |
+
+**Nothing was deleted.** Every one of the nine was a thing a person would want; what they lacked was
+a way in. What the epic actually removed is duplication and litter: a second query engine (the blind
+panel's hand-rolled matcher, [#576](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/576)),
+one dead stylesheet, and seventeen off-grid pixels that went on the grid while their block moved
+house.
+
+## What a table cannot see
+
+*Think before you look* — the mechanic that started the epic, the one its author could not find in
+their own vault — **passed guardrail A from the first measurement**. Its `eye-off` button really was
+"a control in the view showing it": rank 1, by the letter of the rule.
+
+That is not a hole in the guardrail. It is the guardrail being honest about what a static registry
+can know. A door existed; it was not *visible*, because it was one of ten identically weighted
+controls in one header. No table will ever measure that, which is why
+[#576](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/576) (move it where you ask) and
+[#577](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/577) (one primary action per header)
+had to be argued rather than asserted — and why the [surfaces page](../architecture/surfaces.md)
+carries the header rule beside this one.

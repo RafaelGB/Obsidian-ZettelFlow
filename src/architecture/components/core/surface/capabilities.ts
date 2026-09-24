@@ -72,7 +72,19 @@ export interface Capability {
     doors: readonly [Door, ...Door[]];
 }
 
-/** Every capability, in one list. A new one without an entry below is a compile error. */
+/**
+ * Every capability, in one list. A new one without an entry below is a compile error.
+ *
+ * **A capability is something you do to something.** If there is no object — no note, no selection,
+ * no question — and the thing is a standing rule the plugin follows while you are elsewhere, it is
+ * **configuration**, and settings is its home by design rather than by neglect.
+ *
+ * That line is why knowledge patterns and the vault hooks are not here (#578). Both have a name, a
+ * settings group and a docs page; neither is something you *open*. Writing the line down matters
+ * more than the two rows it removes, because without it "it is only configuration" becomes the
+ * excuse that empties guardrail A of meaning. Quick capture, deriving a project and the weekly
+ * review all have an object, and all three got a real door instead.
+ */
 export const CAPABILITIES = [
     "note-creation",
     "run-a-flow",
@@ -92,7 +104,6 @@ export const CAPABILITIES = [
     "thinking-heatmap",
     "evolution-timeline",
     "evidence-map",
-    "knowledge-patterns",
     "open-questions",
     "resurface",
     "atomicity-split",
@@ -114,7 +125,6 @@ export const CAPABILITIES = [
     "template-export",
     "template-import",
     "manage-templates",
-    "vault-hooks",
 ] as const;
 
 export type CapabilityId = (typeof CAPABILITIES)[number];
@@ -149,12 +159,12 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "canvas-editing": {
         nameKey: "command_settings_open_canvas",
         owner: "workflow",
-        doors: [{ kind: "settings", at: "settings_group_creating" }, CMD("open-canvas")],
+        doors: [RIBBON("open-canvas"), { kind: "settings", at: "settings_group_creating" }, CMD("open-canvas")],
     },
     "quick-capture": {
         nameKey: "command_quick_capture",
         owner: HOME,
-        doors: [CMD("quick-capture")],
+        doors: [CONTROL("architecture/components/core/home/HomeModeRenderer.ts", HOME), CMD("quick-capture")],
     },
     home: {
         nameKey: "surface_home_title",
@@ -170,9 +180,10 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         ],
     },
     "derive-project": {
+        // The folder's context menu, not the note's: a project is derived *from a folder*.
         nameKey: "derive_project_command_name",
         owner: "projects",
-        doors: [CMD("derive-project")],
+        doors: [NOTE_MENU("starters/zcomponents/DeriveProjectComponent.ts"), CMD("derive-project")],
     },
     "knowledge-map": {
         nameKey: "command_show_knowledge_map",
@@ -199,9 +210,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         ],
     },
     "reasoning-paths": {
+        // Merged into the per-note mode rather than given a door of its own (#578): tracing what
+        // leaves a note is a question about *that* note, and this is the mode that answers those.
         nameKey: "command_explore_reasoning_paths",
-        owner: EXPLORE,
-        doors: [CMD("explore-reasoning-paths")],
+        owner: HEALTH,
+        doors: [
+            CONTROL("architecture/components/core/timeline/EvolutionTimelineRenderer.ts", HEALTH),
+            CMD("explore-reasoning-paths"),
+        ],
     },
     "slipbox-health": {
         nameKey: "surface_health_title",
@@ -216,7 +232,10 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "weekly-review": {
         nameKey: "weekly_review_command_name",
         owner: HEALTH,
-        doors: [CMD("generate-weekly-review")],
+        doors: [
+            CONTROL("architecture/components/core/slipboxHealth/SlipboxHealthRenderer.ts", HEALTH),
+            CMD("generate-weekly-review"),
+        ],
     },
     "thinking-heatmap": {
         nameKey: "surface_mode_momentum",
@@ -236,11 +255,6 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "command_show_evidence_map",
         owner: HEALTH,
         doors: [{ kind: "surface", at: `${HEALTH}:timeline` }, CMD("show-evidence-map")],
-    },
-    "knowledge-patterns": {
-        nameKey: "settings_patterns_heading",
-        owner: "workflow",
-        doors: [{ kind: "settings", at: "settings_patterns_heading" }],
     },
     "open-questions": {
         nameKey: "command_show_open_questions",
@@ -334,14 +348,21 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [{ kind: "surface", at: `${HEALTH}:agency` }],
     },
     "note-state": {
+        // The state chip on Cultivate's target card. The state is right there, on the object the
+        // change is about — and it opens the same picker the command does, not a second one.
         nameKey: "command_change_note_state",
         owner: "lifecycle",
-        doors: [CMD("change-note-state")],
+        doors: [
+            CONTROL("architecture/components/core/cultivate/CultivateModeRenderer.ts", HOME),
+            CMD("change-note-state"),
+        ],
     },
     "remove-relation": {
+        // On the note, and only on a note that has a relation: the menu is not ours to fill, so
+        // the entry earns its line by never appearing where it would do nothing.
         nameKey: "command_remove_relation",
         owner: "relations",
-        doors: [CMD("remove-relation")],
+        doors: [NOTE_MENU("starters/zcomponents/RemoveRelationComponent.ts"), CMD("remove-relation")],
     },
     "script-workbench": {
         nameKey: "workbench_title",
@@ -361,17 +382,16 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "template-import": {
         nameKey: "command_import_canvas_template",
         owner: "community",
-        doors: [CMD("import-canvas-template")],
+        doors: [RIBBON("import-canvas-template"), CMD("import-canvas-template")],
     },
     "manage-templates": {
         nameKey: "command_open_manage_templates",
         owner: "community",
-        doors: [{ kind: "settings", at: "settings_group_creating" }, CMD("open-manage-templates")],
-    },
-    "vault-hooks": {
-        nameKey: "hooks_flows_selector_title",
-        owner: "hooks",
-        doors: [{ kind: "settings", at: "settings_group_automation" }],
+        doors: [
+            RIBBON("open-manage-templates"),
+            { kind: "settings", at: "settings_group_creating" },
+            CMD("open-manage-templates"),
+        ],
     },
 };
 
@@ -395,28 +415,26 @@ export function doorless(): CapabilityId[] {
 }
 
 /**
- * The rows that fail **guardrail A** today, and what #578 gives each.
+ * Empty, and that is the point (#578).
  *
- * A register rather than a relaxation: the guardrail ships green in the same commit that introduces
- * it, every entry names what will fix it, and a key that has stopped failing **breaks the build** —
- * so the list can only shrink. #578 empties it. A register with entries left when this epic closes
- * is the epic failing, not the test being lenient.
+ * It shipped with eleven rows in #575 — every one of them a capability whose only door was a
+ * command or a settings switch — and each was keyed to the issue that would fix it, so the
+ * guardrail could ship green without the failures being forgiven. #578 emptied it.
  *
- * *These eleven are what the registry measured, and they are not the ten the plan predicted.* The
- * plan counted command-only ids; this counts capabilities. Opening the canvas turns out to have a
- * settings row and the 3D graph a lens control, so both drop off — and knowledge patterns and the
- * vault hooks, which have no command at all and so were never scanned for, take their places.
+ * The register stays: a capability that genuinely cannot ship its door in the same change goes
+ * here with an issue number, and `capabilityDoors.test.ts` fails when a row stops failing and keeps
+ * its excuse — so it can only shrink.
+ *
+ * *What actually happened to the eleven.* Nine got a real door: quick capture and the weekly review
+ * became the primary control of the surface that owns them, editing the canvas and both template
+ * doors joined the ribbon's systems group, deriving a project went to the folder's context menu,
+ * changing a note's state to the chip that displays it, removing a relation to the note's menu, and
+ * tracing a reasoning path merged into the per-note mode. **Nothing was deleted** — every one of
+ * the eleven was a thing a person would want; what they lacked was a way in.
+ *
+ * The other two left the inventory, and the line they failed is written above {@link CAPABILITIES}:
+ * knowledge patterns and the vault hooks are **configuration**, not capabilities. That is not the
+ * guardrail being talked out of a failure — it is the definition it was always enforcing, applied
+ * to two rows that never satisfied it.
  */
-export const DOORLESS: Partial<Record<CapabilityId, string>> = {
-    "quick-capture": "#578 — a control in Home's header",
-    "canvas-editing": "#578 — the ribbon, beside the flow it edits",
-    "derive-project": "#578 — the folder's context menu",
-    "reasoning-paths": "#578 — merged into Explore's graph lens, which already traces routes",
-    "weekly-review": "#578 — a control in Health",
-    "knowledge-patterns": "#578 — a control where a pattern actually runs",
-    "note-state": "#578 — the note's move picker",
-    "remove-relation": "#578 — the note's move picker",
-    "template-import": "#578 — the ribbon's systems group, beside export",
-    "manage-templates": "#578 — the ribbon's systems group",
-    "vault-hooks": "#578 — reachable from the flow whose events it binds",
-};
+export const DOORLESS: Partial<Record<CapabilityId, string>> = {};

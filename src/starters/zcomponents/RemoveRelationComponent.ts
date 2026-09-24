@@ -1,4 +1,4 @@
-import { App, MarkdownView, Notice, SuggestModal, TFile } from "obsidian";
+import { App, MarkdownView, Menu, Notice, SuggestModal, TFile } from "obsidian";
 import { PluginComponent, log } from "architecture";
 import { FrontmatterService } from "architecture/plugin";
 import { ConfirmModal } from "architecture/components/settings";
@@ -60,6 +60,24 @@ export class RemoveRelationComponent extends PluginComponent {
                 return true;
             },
         });
+        // The door (#578, epic #574). This was in the palette and nowhere else, and a relation is
+        // a property **of a note**, so the note's own menu is where removing one belongs.
+        //
+        // It appears only on a note that actually has one. The note's menu is not ours to fill —
+        // the move picker deliberately adds one entry rather than eleven — so this earns its line
+        // by never showing up where it would do nothing.
+        this.plugin.registerEvent(
+            this.plugin.app.workspace.on("file-menu", (menu: Menu, file) => {
+                if (!(file instanceof TFile) || file.extension !== "md") return;
+                if (listRelationEdges(FrontmatterService.instance(file).getFrontmatter()).length === 0) return;
+                menu.addItem((item) =>
+                    item
+                        .setTitle(t("command_remove_relation"))
+                        .setIcon("unlink")
+                        .onClick(() => this.pick(file))
+                );
+            })
+        );
     }
 
     private pick(file: TFile): void {

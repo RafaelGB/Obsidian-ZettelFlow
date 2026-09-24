@@ -33,7 +33,7 @@ export interface HeaderAction {
 }
 
 /** How the owning `Component` registers a listener, so teardown stays the component's. */
-export type RegisterDomEvent = (el: HTMLElement, type: "click" | "mousedown", handler: () => void) => void;
+export type RegisterDomEvent = (el: HTMLElement, type: "click", handler: () => void) => void;
 
 export class ModeHeader {
     private primaryDrawn = false;
@@ -60,7 +60,11 @@ export class ModeHeader {
         });
         setIcon(button.createSpan({ cls: c("mode-header-icon") }), action.icon);
         button.createSpan({ text: action.label });
-        this.register(button, "mousedown", action.onClick);
+        // `click`, not `mousedown`: Enter on a focused button fires a click and nothing else, so a
+        // mousedown-only handler is a control the keyboard cannot reach. The Lab's own helper made
+        // that trade for a reason — mousedown does not steal focus from a textarea — and a header
+        // has no textarea to protect.
+        this.register(button, "click", action.onClick);
         return button;
     }
 
@@ -74,11 +78,16 @@ export class ModeHeader {
      */
     nav(action: Omit<HeaderAction, "icon"> & { icon?: string }): HTMLElement {
         const button = this.host.createEl("button", {
+            // The label on the button itself when there is no icon: a wrapper span for one string
+            // is markup for its own sake, and it moves the text off the element a reader inspects.
+            ...(action.icon ? {} : { text: action.label }),
             cls: c("mode-header-nav"),
             attr: { type: "button", "aria-label": action.label },
         });
-        if (action.icon) setIcon(button.createSpan({ cls: c("mode-header-icon") }), action.icon);
-        button.createSpan({ text: action.label });
+        if (action.icon) {
+            setIcon(button.createSpan({ cls: c("mode-header-icon") }), action.icon);
+            button.createSpan({ text: action.label });
+        }
         this.register(button, "click", action.onClick);
         return button;
     }

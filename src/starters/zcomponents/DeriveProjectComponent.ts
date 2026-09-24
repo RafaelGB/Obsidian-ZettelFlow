@@ -1,7 +1,7 @@
 import { PluginComponent, log } from "architecture";
 import ZettelFlow from "main";
 import { t } from "architecture/lang";
-import { Notice } from "obsidian";
+import { Menu, Notice, TFolder } from "obsidian";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { deriveOutline } from "architecture/knowledge/projects/deriveOutline";
 import { renderOutlineMarkdown } from "architecture/knowledge/projects/renderOutlineMarkdown";
@@ -27,16 +27,34 @@ export class DeriveProjectComponent extends PluginComponent {
             name: t("derive_project_command_name"),
             callback: () => void this.derive(),
         });
+        // The door (#578, epic #574). This was in the palette and nowhere else, which is how a
+        // capability goes a year unused — and a project is derived *from a folder*, so the folder
+        // is where the offer belongs. The command keeps working from the active note.
+        this.plugin.registerEvent(
+            this.plugin.app.workspace.on("file-menu", (menu: Menu, file) => {
+                if (!(file instanceof TFolder)) return;
+                const path = file.path;
+                menu.addItem((item) =>
+                    item
+                        .setTitle(t("derive_project_command_name"))
+                        .setIcon("list-tree")
+                        .onClick(() => void this.derive(path))
+                );
+            })
+        );
     }
 
-    private async derive(): Promise<void> {
+    private async derive(folderPath?: string): Promise<void> {
         const index = KnowledgeIndex.getInstance();
         if (index.status !== "ready") {
             new Notice(t("derive_project_not_ready"));
             return;
         }
-        const folder = this.plugin.app.workspace.getActiveFile()?.parent;
-        if (!folder) {
+        const folder =
+            folderPath === undefined
+                ? this.plugin.app.workspace.getActiveFile()?.parent
+                : this.plugin.app.vault.getAbstractFileByPath(folderPath);
+        if (!folder || !(folder instanceof TFolder)) {
             new Notice(t("derive_project_no_active_note"));
             return;
         }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { c } from "architecture";
-import { t } from "architecture/lang";
+import { tCount } from "architecture/lang";
 import { explainBranch } from "application/notes/branchExplanationText";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 
@@ -27,9 +27,7 @@ export function HiddenBranches() {
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        {hidden.length === 1
-          ? t("note_builder_hidden_one")
-          : t("note_builder_hidden_many", String(hidden.length))}
+        {tCount(hidden.length, "note_builder_hidden", String(hidden.length))}
       </button>
       {open && (
         <ul className={c("hidden-branches-list")}>

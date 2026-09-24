@@ -37,6 +37,12 @@ Examples from history: `feat(clipboard): option to copy paste actions between st
   partials under `src/styles/components/` — never inline `el.style.*`.
 - **UI text** is **sentence case** and lives in the i18n layer (`architecture/lang/`); add keys
   to both `en.ts` and `es.ts`.
+- **A string with a count in it uses `tCount`** and the `key` / `key_one` pair. The plural lives
+  under `key`, the singular under `key_one`, and a key with no `_one` sibling keeps its one form.
+  The 3D graph's status bar read *"1 gaps"* next to *"1 notes"*, in both languages, until
+  [#546](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/546) D2. **Two counts in one string
+  is deliberately not supported** — it needs four forms per language and three of them are always
+  wrong somewhere; a row with two numbers composes two phrases instead.
 
 ## Styling architecture
 
@@ -79,7 +85,7 @@ Add a handler under `src/config/modals/handlers/` and wire it into the relevant 
 
 - [ ] `npm run release` passes (type-check + build).
 - [ ] `npm run lint` is clean; ideally `eslint-plugin-obsidianmd` too.
-- [ ] New UI strings are sentence case and in `en.ts` + `es.ts`.
+- [ ] New UI strings are sentence case and in `en.ts` + `es.ts`, and any with a count go through `tCount`.
 - [ ] No `innerHTML` / inline styles introduced.
 - [ ] Docs updated (`docs/…` + `mkdocs.yml` nav) if behavior or API changed.
 - [ ] Commit messages follow Conventional Commits.

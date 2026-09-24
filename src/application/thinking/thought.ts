@@ -58,6 +58,15 @@ export interface Thought {
      * Inherited by every response, so a thread keeps the context you came with.
      */
     about?: string;
+    /**
+     * The **second** note this thought is about (#567), when it came out of a collision.
+     *
+     * A separate field rather than widening `about` to a list: `about` is read by six places (the
+     * Lab's banner, the subject row, crystallize's consensus, the timeline strand) and each of them
+     * means *the one note this thread came from*. Widening it would retype all six to serve one
+     * feature; this adds one clause to each of the three that need to see both.
+     */
+    alsoAbout?: string;
     /** Set aside (#469). Absent is the normal state, and it generates nothing. */
     incubated?: Incubation;
 }
@@ -68,6 +77,7 @@ export interface NewThought {
     at: number;
     respondsTo?: Response;
     about?: string;
+    alsoAbout?: string;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -78,6 +88,7 @@ export function newThought(input: NewThought): Thought {
         links: [],
         ...(input.respondsTo ? { respondsTo: input.respondsTo } : {}),
         ...(input.about ? { about: input.about } : {}),
+        ...(input.alsoAbout ? { alsoAbout: input.alsoAbout } : {}),
     };
 }
 
@@ -122,6 +133,7 @@ export function renderThought(thought: Thought): string {
         lines.push(`  respondsTo: ${thought.respondsTo.to}`, `  respondsAs: ${thought.respondsTo.as}`);
     }
     if (thought.about) lines.push(`  about: ${thought.about}`);
+    if (thought.alsoAbout) lines.push(`  alsoAbout: ${thought.alsoAbout}`);
     if (thought.incubated) {
         lines.push(`  asideReason: ${thought.incubated.reason}`, `  asideAt: ${thought.incubated.at}`);
         if (thought.incubated.stuckOn) lines.push(`  stuckOn: ${thought.incubated.stuckOn}`);
@@ -161,6 +173,7 @@ export function parseThought(content: string, path: string): Thought {
     const at = Number(read("at"));
     const respondsTo = readResponse(read);
     const about = read("about");
+    const alsoAbout = read("alsoAbout");
     const asideReason = read("asideReason");
     const stuckOn = read("stuckOn");
     const incubated: Incubation | undefined =
@@ -178,6 +191,7 @@ export function parseThought(content: string, path: string): Thought {
         links,
         ...(respondsTo ? { respondsTo } : {}),
         ...(about ? { about } : {}),
+        ...(alsoAbout ? { alsoAbout } : {}),
         ...(incubated ? { incubated } : {}),
     };
 }

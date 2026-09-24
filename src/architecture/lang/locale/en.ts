@@ -1274,6 +1274,16 @@ export default {
     claim_door_failed: 'The claim could not be written.',
     // A promotion is a fact about two states (#580): the chip says where you are, this says what moved.
     cultivate_state_transition: 'Was {0}, now {1}',
+    // Two things nowhere near each other (#567, epic #559): the question, and no answer to it.
+    collision_open: 'Two things far apart',
+    collision_close: 'Close',
+    collision_title: 'What could these two have in common?',
+    collision_intro: 'Two notes with nothing between them. The answer is yours — nothing here will offer one.',
+    collision_another: 'Another pair',
+    collision_distance_far: 'Far apart',
+    collision_distance_very_far: 'As far as this vault goes',
+    collision_nothing_far_enough: 'Nothing here is far enough apart yet.',
+    collision_open_note: 'Open this note',
     move_pick_title: 'Make a move…',
     move_pick_placeholder: 'What are you doing to {0}?',
     move_primitive_externalize: 'Get it out',

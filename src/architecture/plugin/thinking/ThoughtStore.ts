@@ -64,7 +64,7 @@ export class ThoughtStore {
     /** Start one. No title is asked for, because a thought does not have one. */
     public async write(
         text: string,
-        options: { respondsTo?: Response; about?: string } = {}
+        options: { respondsTo?: Response; about?: string; alsoAbout?: string } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
         if (!folder) return undefined;
@@ -127,7 +127,10 @@ export class ThoughtStore {
                 const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.[
                     "zfThought"
                 ] as Record<string, unknown> | undefined;
-                if (!front || front["about"] !== notePath) continue;
+                // Either subject counts (#567): a collision's answer is about **two** notes, and
+                // both of their timelines read this same link that was already in the data.
+                if (!front) continue;
+                if (front["about"] !== notePath && front["alsoAbout"] !== notePath) continue;
                 const at = Number(front["at"]);
                 const id = front["id"];
                 out.push({

@@ -91,7 +91,7 @@ describe("graph mobile fallback + reduced motion (#319 S2/S4)", () => {
  */
 describe("animations honour reduced motion (#565, #580)", () => {
     const STYLES = join(__dirname, "..", "..", "..", "..", "src", "styles", "components");
-    const ANIMATED = ["claims.scss", "cultivate.scss"];
+    const ANIMATED = ["claims.scss", "cultivate.scss", "collision.scss"];
 
     it("scans the partials it says it scans", () => {
         for (const name of ANIMATED) {

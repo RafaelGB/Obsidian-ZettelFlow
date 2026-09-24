@@ -1,7 +1,8 @@
 import { App, Modal, Notice, TFile } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { stateClaim, statedClaims } from "architecture/plugin/claims/statedClaim";
+import { declaredSourcesOf, stateClaim, statedClaims } from "architecture/plugin/claims/statedClaim";
+import { SourceNoteSuggest } from "./SourceNoteSuggest";
 
 /**
  * The sentence box (#561, epic #558).
@@ -19,7 +20,7 @@ export class ClaimDoorModal extends Modal {
     constructor(
         app: App,
         private readonly file: TFile,
-        private readonly save: (path: string, sentence: string) => Promise<boolean> = stateClaim
+        private readonly save: (path: string, sentence: string, source?: string) => Promise<boolean> = stateClaim
     ) {
         super(app);
     }
@@ -43,13 +44,22 @@ export class ClaimDoorModal extends Modal {
             contentEl.createDiv({ cls: c("claim-door-hint"), text: t("claim_door_other_claims") });
         }
 
+        // And where it came from (#582) — **optional**, and the normal path is to skip it. A claim
+        // with no source is `unsourced` by definition, which is why the line belongs here rather
+        // than in YAML; it is not a requirement, and nothing here says it is missing.
+        const source = contentEl.createEl("input", { type: "text", cls: c("claim-door-source") });
+        source.value = declaredSourcesOf(this.file)[0] ?? "";
+        source.placeholder = t("claim_door_source_placeholder");
+        source.setAttribute("aria-label", t("claim_door_source_placeholder"));
+        new SourceNoteSuggest(source);
+
         const submit = async (): Promise<void> => {
             const sentence = input.value.trim();
             if (!sentence || this.busy) return;
             this.busy = true;
             button.disabled = true;
             try {
-                const written = await this.save(this.file.path, sentence);
+                const written = await this.save(this.file.path, sentence, source.value.trim() || undefined);
                 new Notice(written ? t("claim_door_saved") : t("claim_door_failed"));
                 if (written) this.close();
             } finally {
@@ -58,9 +68,11 @@ export class ClaimDoorModal extends Modal {
             }
         };
 
-        input.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") void submit();
-        });
+        for (const box of [input, source]) {
+            box.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") void submit();
+            });
+        }
         const button = contentEl.createEl("button", { text: t("claim_door_button"), cls: "mod-cta" });
         button.addEventListener("click", () => void submit());
     }

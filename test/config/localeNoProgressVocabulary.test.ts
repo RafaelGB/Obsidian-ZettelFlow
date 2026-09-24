@@ -3,7 +3,7 @@ import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
 /**
- * The loop says what happened, and never what it was worth (#564, epic #558).
+ * The return loop says what happened, and never what it was worth (#564, epic #558).
  *
  * A claim that changed invites a conclusion — *you have gone deeper*, *this idea has grown*, *well
  * done* — and every one of those would be the system forming a judgement about the user, which §XII
@@ -16,6 +16,7 @@ import es from "architecture/lang/locale/es";
  */
 const PREFIXES = [
     "evolution_timeline_return_",
+    "evolution_timeline_promotion",
     "claim_return_",
     "claim_door_",
     "home_claim_return_",
@@ -66,5 +67,55 @@ describe("the return loop states, and never assesses (#564)", () => {
                 .filter((key) => PREFIXES.some((prefix) => key.startsWith(prefix)))
                 .sort();
         expect(keysOf(es as Record<string, string>)).toEqual(keysOf(en as Record<string, string>));
+    });
+});
+
+/**
+ * A lifecycle is not a ladder (#580).
+ *
+ * Promoting a note is the most event-like thing in the product, which is exactly why it is the most
+ * likely place to grow a celebration. The reward is seeing that it happened — not being told you
+ * levelled up, and not a bar filling toward `permanent`.
+ */
+const CELEBRATION = [
+    /\blevel\b/i,
+    /\bnivel\b/i,
+    /\bunlocked\b/i,
+    /\bdesbloque/i,
+    /\bcongratulations\b/i,
+    /\benhorabuena\b/i,
+    /\bfelicidades\b/i,
+    /\bwell done\b/i,
+    /\bbien hecho\b/i,
+];
+
+describe("Cultivate never celebrates (#580)", () => {
+    const lifecycleStrings = (locale: Record<string, string>) =>
+        Object.entries(locale).filter(
+            ([key]) => key.startsWith("cultivate_") || key.startsWith("lifecycle_state_")
+        );
+
+    it("scans the strings it says it scans", () => {
+        expect(lifecycleStrings(en as Record<string, string>).length).toBeGreaterThan(20);
+    });
+
+    it("says nothing about levels or congratulations, in either language", () => {
+        for (const [name, locale] of [
+            ["en", en],
+            ["es", es],
+        ] as const) {
+            const offenders = lifecycleStrings(locale as Record<string, string>)
+                .filter(([, value]) => CELEBRATION.some((pattern) => pattern.test(value)))
+                .map(([key, value]) => `${key}: ${value}`);
+            expect({ locale: name, offenders }).toEqual({ locale: name, offenders: [] });
+        }
+    });
+
+    it("reports a planted celebration rather than trusting anyone to notice one", () => {
+        const planted = { cultivate_state_level: "Level 3 unlocked — well done!" };
+        const offenders = lifecycleStrings(planted)
+            .filter(([, value]) => CELEBRATION.some((pattern) => pattern.test(value)))
+            .map(([key]) => key);
+        expect(offenders).toEqual(["cultivate_state_level"]);
     });
 });

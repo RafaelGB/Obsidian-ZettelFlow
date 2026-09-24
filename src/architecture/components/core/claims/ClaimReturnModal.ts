@@ -3,7 +3,7 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { statedClaims } from "architecture/plugin/claims/statedClaim";
+import { declaredSourcesOf, statedClaims } from "architecture/plugin/claims/statedClaim";
 import { answerReturn } from "architecture/plugin/claims/answerReturn";
 // The Experience layer reaches the model through the State surface, never a deep analysis (#266).
 import type { JudgementOrigin } from "architecture/knowledge/state";
@@ -48,6 +48,7 @@ export class ClaimReturnModal extends Modal {
             claimCount: claims.length,
             historyKept: ConceptualTimeline.getInstance().enabled(),
             draft: readDraft(file.path),
+            cites: declaredSourcesOf(file),
         };
     }
 
@@ -69,6 +70,14 @@ export class ClaimReturnModal extends Modal {
 
         if (view.oneOfSeveral) {
             contentEl.createDiv({ cls: c("claim-door-hint"), text: t("claim_return_one_of_several") });
+        }
+
+        // What it cites, while you are being asked (#582) — and it is not asked for again here.
+        if (view.cites.length > 0) {
+            contentEl.createDiv({
+                cls: c("claim-return-cites"),
+                text: t("claim_return_cites", view.cites.join(", ")),
+            });
         }
 
         if (!view.answered) {

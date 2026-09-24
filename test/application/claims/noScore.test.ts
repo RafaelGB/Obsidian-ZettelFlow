@@ -10,6 +10,7 @@ const ROOT = join(__dirname, "..", "..", "..");
 /** Every file the return loop added or took over (#558). */
 const SOURCES = [
     "src/application/claims/claimEdit.ts",
+    "src/application/claims/sourceEdit.ts",
     "src/application/claims/claimReturn.ts",
     "src/application/claims/returnDraft.ts",
     "src/application/claims/index.ts",
@@ -19,6 +20,7 @@ const SOURCES = [
     "src/architecture/knowledge/review/dueClaims.ts",
     "src/architecture/plugin/events/reviewDue.ts",
     "src/architecture/components/core/claims/ClaimDoorModal.ts",
+    "src/architecture/components/core/claims/SourceNoteSuggest.ts",
     "src/architecture/components/core/claims/ClaimReturnModal.ts",
     "src/starters/zcomponents/ClaimDoorComponent.ts",
     "src/starters/zcomponents/ClaimReturnComponent.ts",

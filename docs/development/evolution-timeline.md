@@ -69,6 +69,22 @@ Snapshots now decide whether there is a **history**, never whether there is a **
 them off you still see what you did, what you thought and what you ruled; the missing *it said*
 sentence is stated once, at the top, rather than on every row.
 
+## A note you promoted (#581)
+
+The axis has always shown the state **changing** — a snapshot records it. It could not show that
+**you decided it**, because Cultivate records its verdicts at the friction step and advancing
+deliberately has none.
+
+> **Promoted** — you moved this to literature
+
+It is the same join the return uses, with two extra refusals so a coincidence cannot become a
+sentence: the snapshot has to *be* the state the verdict names, and a snapshot where the claim set
+also moved stays two rows — two things happened. A verdict it cannot pair renders as the plain
+judgement row it already was.
+
+It states the act and nothing else: no word about maturity, and nothing about the note being further
+along.
+
 ## Thoughts written about the note (#540)
 
 Thinking about a note used to leave no trace on it. *Think about this note* plus a sentence recorded

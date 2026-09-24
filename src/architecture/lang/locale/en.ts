@@ -1224,6 +1224,9 @@ export default {
     ask_graph_indexing: 'Building the knowledge model…',
     ask_graph_no_results: 'No notes match this query.',
     ask_graph_result_count: '{0} notes match',
+    // A note you promoted (#581): the snapshot says what it is, this says you decided it.
+    evolution_timeline_promotion_label: 'Promoted',
+    evolution_timeline_promotion: 'you moved this to {0}',
     // Then and now, on one line (#564, epic #558): the verdict and the change it caused.
     evolution_timeline_return_label: 'Asked again',
     evolution_timeline_return_confirmed: 'and it still says the same',
@@ -1265,8 +1268,12 @@ export default {
     claim_door_placeholder: 'One sentence you would defend',
     claim_door_button: 'Save the claim',
     claim_door_other_claims: 'This note says more than one thing. You are editing the first.',
+    claim_door_source_placeholder: 'And where it came from — a note or a reference (optional)',
+    claim_return_cites: 'It cites {0}',
     claim_door_saved: 'The claim is on the note.',
     claim_door_failed: 'The claim could not be written.',
+    // A promotion is a fact about two states (#580): the chip says where you are, this says what moved.
+    cultivate_state_transition: 'Was {0}, now {1}',
     move_pick_title: 'Make a move…',
     move_pick_placeholder: 'What are you doing to {0}?',
     move_primitive_externalize: 'Get it out',

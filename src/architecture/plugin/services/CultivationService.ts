@@ -1,6 +1,7 @@
 import { Notice, TFile, type App } from "obsidian";
 import { log } from "architecture/monitoring/Logger";
 import { t } from "architecture/lang";
+import { applySource } from "application/claims";
 import { FileService, type CreateFileResult } from "./FileService";
 import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 import { FrontmatterService } from "./FrontmatterService";
@@ -11,7 +12,6 @@ import {
     LifecycleStateSchema,
 } from "architecture/knowledge/lifecycle";
 import { buildLifecycleAliases } from "architecture/knowledge/lifecycleAliases";
-import { SOURCE_KEYS } from "architecture/knowledge/claims/keys";
 
 /**
  * Applies a Cultivate move to an existing note (#309 S3) — the Workflow-Engine write path, kept out of
@@ -58,12 +58,22 @@ export class CultivationService {
         await this.write(app, path, (file) => this.appendToBody(file, block), "cultivate_counterpoint_notice");
     }
 
-    /** Set the note's `source` frontmatter. */
+    /**
+     * Set the note's source frontmatter (#155, corrected in #582).
+     *
+     * Through the shared `applySource` rather than `setProperty(SOURCE_KEYS[0], text)`, which
+     * **clobbered an existing source list** — a note grounded in three references kept one. It also
+     * writes under the key the note already uses, so a note declaring `sources:` no longer sprouts
+     * a `source:` beside it.
+     */
     async addSource(app: App, path: string, text: string): Promise<void> {
         await this.write(
             app,
             path,
-            (file) => FrontmatterService.instance(file).setProperty(SOURCE_KEYS[0], text),
+            (file) =>
+                FrontmatterService.instance(file).update((frontmatter) => {
+                    applySource(frontmatter, text);
+                }),
             "cultivate_source_notice"
         );
     }
@@ -76,7 +86,15 @@ export class CultivationService {
             const stateProperty = plugin.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
             const schema = new LifecycleStateSchema(stateProperty, buildLifecycleAliases());
             const accessor = FrontmatterService.instance(file);
-            await StateTransitionService.getInstance().transition(accessor, stateProperty, schema, target, file.path);
+            // `derived`: the session proposed the next valid state and you took it (#581).
+            await StateTransitionService.getInstance().transition(
+                accessor,
+                stateProperty,
+                schema,
+                target,
+                file.path,
+                "derived"
+            );
         } catch (error) {
             log.error("[Cultivate] advance failed", error);
             new Notice(t("cultivate_apply_failed"));

@@ -47,6 +47,11 @@ export interface ClaimReturnState {
     claimCount: number;
     /** Whether the evolution timeline is on. With it off you lose the history, not the loop. */
     historyKept: boolean;
+    /**
+     * What the note says it came from (#582). Shown in **both** stages, because *do you still
+     * say this* and *on what evidence* are the same question — and it is never asked for here.
+     */
+    cites?: readonly string[];
     /** Undefined until you answer. Its absence is what defines the stage. */
     answer?: string;
     /** What you have typed so far, kept outside the DOM so leaving cannot cost it. */
@@ -69,6 +74,8 @@ export interface ClaimReturnView {
     oneOfSeveral: boolean;
     historyKept: boolean;
     draft: string;
+    /** What it cites, in both stages. Empty when the note declares nothing. */
+    cites: readonly string[];
 }
 
 export function claimReturnView(state: ClaimReturnState): ClaimReturnView {
@@ -79,6 +86,7 @@ export function claimReturnView(state: ClaimReturnState): ClaimReturnView {
         oneOfSeveral: state.claimCount > 1,
         historyKept: state.historyKept,
         draft: state.draft ?? "",
+        cites: state.cites ?? [],
     };
     if (!answered) {
         // Not "hidden": absent. There is nothing here for a renderer to leak.

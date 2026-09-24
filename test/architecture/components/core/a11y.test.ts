@@ -82,37 +82,55 @@ describe("graph mobile fallback + reduced motion (#319 S2/S4)", () => {
 });
 
 /**
- * Motion in the return loop stops when asked (#565, epic #558).
+ * Motion stops when asked (#565, generalised in #580).
  *
  * There was no generic guardrail for this — the only `prefers-reduced-motion` assertion in the repo
- * was the 3D graph's, and it reads the renderer's JavaScript. This one reads the stylesheet: every
- * animation the loop adds has its selector inside a reduced-motion block in the same file.
+ * read the 3D graph's JavaScript. This one reads the stylesheets: every animation these features add
+ * has its selector inside a reduced-motion block in the same file. It is a **table** rather than one
+ * hard-coded partial, because the second feature to need it arrived within the week.
  */
-describe("the return's animations honour reduced motion (#565)", () => {
-    const CLAIMS = readFileSync(
-        join(__dirname, "..", "..", "..", "..", "src", "styles", "components", "claims.scss"),
-        "utf8"
-    );
+describe("animations honour reduced motion (#565, #580)", () => {
+    const STYLES = join(__dirname, "..", "..", "..", "..", "src", "styles", "components");
+    const ANIMATED = ["claims.scss", "cultivate.scss"];
 
-    it("animates something at all", () => {
-        expect(CLAIMS).toMatch(/animation:\s*zf-claim-/);
+    it("scans the partials it says it scans", () => {
+        for (const name of ANIMATED) {
+            const source = readFileSync(join(STYLES, name), "utf8");
+            expect({ name, animates: /animation:\s*zf-/.test(source) }).toEqual({ name, animates: true });
+        }
     });
 
     it("turns every one of them off under reduced motion", () => {
-        const animated = [...CLAIMS.matchAll(/^\.([\w-]+)\s*\{[^}]*animation:\s*zf-claim-/gm)].map((match) => match[1]);
-        expect(animated.length).toBeGreaterThan(0);
-        const reduced = CLAIMS.slice(CLAIMS.indexOf("@media (prefers-reduced-motion: reduce)"));
-        expect(reduced).toContain("animation: none");
-        for (const selector of animated) expect(reduced).toContain(selector);
+        for (const name of ANIMATED) {
+            const source = readFileSync(join(STYLES, name), "utf8");
+            const animated = [...source.matchAll(/^\.([\w-]+)\s*\{[^}]*animation:\s*zf-/gm)].map((match) => match[1]);
+            expect({ name, count: animated.length > 0 }).toEqual({ name, count: true });
+            const reduced = source.slice(source.indexOf("@media (prefers-reduced-motion: reduce)"));
+            expect({ name, off: reduced.includes("animation: none") }).toEqual({ name, off: true });
+            for (const selector of animated) {
+                expect({ name, selector, covered: reduced.includes(selector) }).toEqual({
+                    name,
+                    selector,
+                    covered: true,
+                });
+            }
+        }
     });
 
     it("moves nothing from JavaScript", () => {
-        const MODAL = readFileSync(
-            join(__dirname, "..", "..", "..", "..", "src", "architecture", "components", "core", "claims", "ClaimReturnModal.ts"),
-            "utf8"
-        );
-        expect(MODAL).not.toContain("el.style.");
-        expect(MODAL).not.toContain("setInterval");
-        expect(MODAL).not.toContain("requestAnimationFrame");
+        for (const rel of [
+            ["claims", "ClaimReturnModal.ts"],
+            ["cultivate", "CultivateModeRenderer.ts"],
+        ]) {
+            const source = readFileSync(
+                join(__dirname, "..", "..", "..", "..", "src", "architecture", "components", "core", rel[0], rel[1]),
+                "utf8"
+            );
+            expect({ file: rel[1], inline: source.includes("el.style.") }).toEqual({ file: rel[1], inline: false });
+            expect({ file: rel[1], timer: source.includes("requestAnimationFrame") }).toEqual({
+                file: rel[1],
+                timer: false,
+            });
+        }
     });
 });

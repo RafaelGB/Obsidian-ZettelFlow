@@ -1224,6 +1224,9 @@ export default {
     ask_graph_indexing: 'Construyendo el modelo de conocimiento…',
     ask_graph_no_results: 'Ninguna nota coincide con esta consulta.',
     ask_graph_result_count: '{0} notas coinciden',
+    // Una nota que promocionaste (#581): el snapshot dice qué es, esto dice que lo decidiste tú.
+    evolution_timeline_promotion_label: 'Promocionada',
+    evolution_timeline_promotion: 'la moviste a {0}',
     // Entonces y ahora, en una línea (#564, epic #558): el veredicto y el cambio que provocó.
     evolution_timeline_return_label: 'Preguntado otra vez',
     evolution_timeline_return_confirmed: 'y sigue diciendo lo mismo',
@@ -1265,8 +1268,12 @@ export default {
     claim_door_placeholder: 'Una frase que defenderías',
     claim_door_button: 'Guardar la afirmación',
     claim_door_other_claims: 'Esta nota dice más de una cosa. Estás editando la primera.',
+    claim_door_source_placeholder: 'Y de dónde viene: una nota o una referencia (opcional)',
+    claim_return_cites: 'Cita {0}',
     claim_door_saved: 'La afirmación está en la nota.',
     claim_door_failed: 'No se ha podido escribir la afirmación.',
+    // Una promoción es un hecho sobre dos estados (#580): el chip dice dónde estás, esto qué se movió.
+    cultivate_state_transition: 'Era {0}, ahora {1}',
     move_pick_title: 'Hacer un movimiento…',
     move_pick_placeholder: '¿Qué le estás haciendo a {0}?',
     move_primitive_externalize: 'Sacarlo fuera',

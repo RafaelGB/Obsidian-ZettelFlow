@@ -54,6 +54,7 @@ records exactly as it did before them.
 | **The note builder (#411)** | a suggested connection in the companion pane, accepted / modified / rejected while the note is being written | `derived` |
 | **A claim you stated (#561)** | your own sentence about a note, subject `claim:<path>` — `accepted` when you first state it | `human` |
 | **A claim coming back (#562)** | the same subject, with the answer you gave: `confirmed` (it still says this), `modified` (it says this now) or `rejected` (you withdrew it). No claim text is recorded — the sentence is on the note | `derived` when the system brought it back, `human` when you opened the return |
+| **A note you promoted (#581)** | the lifecycle state it became, subject `state:<target>`, always `accepted`. Recorded at the one place a transition happens, so no door can forget it — and recorded **only** on success: a transition the machine refuses is not a decision | `derived` from Cultivate's advance (the session proposed the next state and you took it), `human` from the *change note state* command (you picked it) |
 | **Home's gaps (#534)** | a pair of unlinked notes the graph keeps putting together: *not related* (`rejected`, subject `gap:<path>`). Only *no* is recorded — linking the two notes stops the pair being a gap by construction | `derived` |
 
 The note-builder verdicts are buffered while the wizard runs and recorded against the note that is

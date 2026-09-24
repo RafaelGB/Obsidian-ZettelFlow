@@ -78,12 +78,14 @@ export class StateTransitionComponent extends PluginComponent {
             return;
         }
         new StatePickerModal(this.plugin.app, targets, (target) => {
+            // `human`: you picked the state yourself, so it is not an accepted proposal (#581).
             void StateTransitionService.getInstance().transition(
                 accessor,
                 stateProperty,
                 schema,
                 target,
-                file.path
+                file.path,
+                "human"
             );
         }).open();
     }

@@ -32,9 +32,18 @@ One entry on the note's own menu — right-click in the note, on its tab, or on 
 *Make a move…*: **say what this note claims**. There is also one control in
 [Cultivate](cultivate.md), on the note it is already showing you.
 
-It opens a single sentence box, prefilled with what the note already says. That is the whole
-gesture: no kind picker, no source field, no confidence, no tags. A gesture that opens a form is a
-gesture nobody repeats.
+It opens a single sentence box, prefilled with what the note already says — and **one optional
+second line**: where it came from. Type a note name and pick it (it is written as a `[[link]]`), or
+type anything else and it is kept verbatim. Skipping it is the normal path.
+
+That line exists because of what #561 shipped without it: a claim with no `source` **is**
+`unsourced` by definition, and that category carries weight in the
+[knowledge debt](knowledge-dashboard.md). The door asked you for a sentence, got one, and answered
+with a penalty it never mentioned. The interface still never says a claim is missing anything —
+that conversation lives on the debt page, which is a page you choose to open.
+
+Beyond those two lines the gesture asks nothing: no kind picker, no confidence, no tags. A gesture
+that opens a form is a gesture nobody repeats.
 
 - It writes the `claim` property through `FrontmatterService`, so the write lands in the
   [write record](../architecture/reversibility.md) and can be taken back like any other.
@@ -55,6 +64,9 @@ month you wrote it. Open it and the question comes first, with the note shut:
 
 > **What do you say about this now?**
 > *Answer from what you think today. The note stays shut until you do.*
+
+While it asks, it shows **what the claim cites**, because *do you still say this* and *on what
+evidence* are the same question. It does not ask you to re-source it.
 
 You write. **Then** it shows you what you wrote before, beside what you just wrote. Reading it first
 would take your own answer away — you would agree with yourself and learn nothing — so the stored

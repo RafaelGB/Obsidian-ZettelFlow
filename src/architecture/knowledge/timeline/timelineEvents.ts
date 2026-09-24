@@ -2,13 +2,14 @@ import type { Judgement } from "architecture/knowledge/judgement";
 import type { Move } from "application/thinking/move";
 import type { Snapshot } from "./recordSnapshot";
 import { CLAIM_SUBJECT_PREFIX } from "architecture/knowledge/claims/keys";
+import { STATE_SUBJECT_PREFIX } from "architecture/knowledge/lifecycle/states";
 
 /**
  * What a point on the timeline is: a conceptual snapshot (#168), a recorded verdict (#336), a
  * **move** (#494), a **thought written about the note** (#540), or a **return** (#564) — what
  * changed, what you ruled, what you did, what you thought, and what you now say.
  */
-export type TimelineEventKind = "snapshot" | "judgement" | "move" | "thought" | "return";
+export type TimelineEventKind = "snapshot" | "judgement" | "move" | "thought" | "return" | "promotion";
 
 /**
  * A thought, as the timeline needs it (#540): where it is and when it was written, and nothing
@@ -58,6 +59,20 @@ export interface ReturnEvent {
 }
 
 /**
+ * A note you promoted (#581).
+ *
+ * The same shape as a return and deliberately **not** the same object: `said`/`says` name
+ * *sentences*, and a lifecycle token printed under "It said" would misdescribe the row. What this
+ * carries is the state it became — the state it came from is the snapshot before it, which the
+ * timeline is already showing.
+ */
+export interface PromotionEvent {
+    /** The state it became, as a token. The row looks its label up; the record never held one. */
+    to: string;
+    judgement: Judgement;
+}
+
+/**
  * How far apart the snapshot and the verdict may be and still be one act.
  *
  * Five minutes. The write and the verdict are milliseconds apart when the return does them, so the
@@ -80,10 +95,19 @@ export interface TimelineEvent {
     thought?: ThoughtRef;
     /** Present when `kind === "return"` (#564). */
     return?: ReturnEvent;
+    /** Present when `kind === "promotion"` (#581). */
+    promotion?: PromotionEvent;
 }
 
 // A return sits where its verdict sat, because that is the moment it describes.
-const RANK: Record<TimelineEventKind, number> = { snapshot: 0, judgement: 1, return: 1, move: 2, thought: 3 };
+const RANK: Record<TimelineEventKind, number> = {
+    snapshot: 0,
+    judgement: 1,
+    return: 1,
+    promotion: 1,
+    move: 2,
+    thought: 3,
+};
 
 function kindRank(kind: TimelineEventKind): number {
     return RANK[kind];
@@ -145,79 +169,121 @@ function previousSnapshot(events: readonly TimelineEvent[], index: number): Snap
     return undefined;
 }
 
+/** Whether two claim sets hold the same sentences, order-insensitively. */
+function sameClaims(a: readonly string[], b: readonly string[]): boolean {
+    return a.length === b.length && difference(a, b).length === 0;
+}
+
 /**
- * Tell a claim's verdict and the change it caused as **one** event (#564).
+ * The nearest unconsumed snapshot inside the window that `accept` is happy with.
+ *
+ * One join for both kinds of verdict (#581). What differs between a rewritten claim and a promoted
+ * note is only *which snapshot counts*, so that is the parameter and the rest is shared — a second
+ * pairing mechanism is exactly what #564 forbade when it wrote the first one.
+ */
+function nearestSnapshot(
+    events: readonly TimelineEvent[],
+    at: number,
+    consumed: ReadonlySet<number>,
+    accept: (snapshot: Snapshot, previous: Snapshot | undefined) => boolean
+): number | undefined {
+    let best: number | undefined;
+    events.forEach((candidate, index) => {
+        if (candidate.kind !== "snapshot" || !candidate.snapshot || consumed.has(index)) return;
+        if (Math.abs(candidate.at - at) > RETURN_PAIR_WINDOW_MS) return;
+        if (!accept(candidate.snapshot, previousSnapshot(events, index))) return;
+        if (best !== undefined && Math.abs(events[best].at - at) <= Math.abs(candidate.at - at)) return;
+        best = index;
+    });
+    return best;
+}
+
+/**
+ * Tell a verdict and the change it caused as **one** event (#564, generalised in #581).
  *
  * Pure, and conservative by construction: a verdict it cannot pair renders as the judgement it
- * always was. The three cases differ only in where *then* and *now* come from — a rewrite has both,
- * a confirmation has only *then*, and a withdrawal has *then* plus the thought the sentence became.
+ * always was. Two subjects are understood — a claim you were asked about again, and a note you
+ * promoted — and the window is the same five minutes for both.
  */
 function pairReturns(events: TimelineEvent[]): TimelineEvent[] {
     const consumed = new Set<number>();
-    const paired = new Map<number, ReturnEvent>();
+    const paired = new Map<number, TimelineEvent>();
 
     events.forEach((event, index) => {
         const judgement = event.judgement;
         if (event.kind !== "judgement" || !judgement) return;
-        if (!judgement.subject?.startsWith(CLAIM_SUBJECT_PREFIX)) return;
+        const subject = judgement.subject ?? "";
 
-        const entry: ReturnEvent = { verdict: judgement.verdict, judgement };
+        if (subject.startsWith(CLAIM_SUBJECT_PREFIX)) {
+            const entry: ReturnEvent = { verdict: judgement.verdict, judgement };
 
-        if (judgement.verdict === "modified") {
-            // The snapshot this verdict produced: nearest in the window, and only when the claim
-            // set moved by exactly one sentence out and one in. Two-for-two is a bulk edit, and
-            // pairing it would invent a story.
-            let best: { index: number; out: string; arrived: string } | undefined;
-            events.forEach((candidate, other) => {
-                if (candidate.kind !== "snapshot" || !candidate.snapshot || consumed.has(other)) return;
-                if (Math.abs(candidate.at - event.at) > RETURN_PAIR_WINDOW_MS) return;
-                const previous = previousSnapshot(events, other);
-                if (!previous) return;
-                const gone = difference(previous.claims, candidate.snapshot.claims);
-                const arrived = difference(candidate.snapshot.claims, previous.claims);
-                if (gone.length !== 1 || arrived.length !== 1) return;
-                if (best && Math.abs(events[best.index].at - event.at) <= Math.abs(candidate.at - event.at)) return;
-                best = { index: other, out: gone[0], arrived: arrived[0] };
-            });
-            if (best) {
-                consumed.add(best.index);
-                entry.said = best.out;
-                entry.says = best.arrived;
-            }
-        } else {
-            entry.said = saidAt(events, event.at);
-        }
-
-        if (judgement.verdict === "rejected") {
-            // The sentence you withdrew went to the thinking space (#562). When that thought is in
-            // the window it belongs to this line, not to a row of its own.
-            let nearest: number | undefined;
-            events.forEach((candidate, other) => {
-                if (candidate.kind !== "thought" || !candidate.thought || consumed.has(other)) return;
-                if (Math.abs(candidate.at - event.at) > RETURN_PAIR_WINDOW_MS) return;
-                if (
-                    nearest !== undefined &&
-                    Math.abs(events[nearest].at - event.at) <= Math.abs(candidate.at - event.at)
-                ) {
-                    return;
+            if (judgement.verdict === "modified") {
+                // The snapshot this verdict produced: only when the claim set moved by exactly one
+                // sentence out and one in. Two-for-two is a bulk edit, and pairing it would invent
+                // a story.
+                let moved: { out: string; arrived: string } | undefined;
+                const at = nearestSnapshot(events, event.at, consumed, (snapshot, previous) => {
+                    if (!previous) return false;
+                    const gone = difference(previous.claims, snapshot.claims);
+                    const arrived = difference(snapshot.claims, previous.claims);
+                    if (gone.length !== 1 || arrived.length !== 1) return false;
+                    moved = { out: gone[0], arrived: arrived[0] };
+                    return true;
+                });
+                if (at !== undefined && moved) {
+                    consumed.add(at);
+                    entry.said = moved.out;
+                    entry.says = moved.arrived;
                 }
-                nearest = other;
-            });
-            if (nearest !== undefined) {
-                consumed.add(nearest);
-                entry.thought = events[nearest].thought;
+            } else {
+                entry.said = saidAt(events, event.at);
             }
+
+            if (judgement.verdict === "rejected") {
+                // The sentence you withdrew went to the thinking space (#562). When that thought is
+                // in the window it belongs to this line, not to a row of its own.
+                let nearest: number | undefined;
+                events.forEach((candidate, other) => {
+                    if (candidate.kind !== "thought" || !candidate.thought || consumed.has(other)) return;
+                    if (Math.abs(candidate.at - event.at) > RETURN_PAIR_WINDOW_MS) return;
+                    if (
+                        nearest !== undefined &&
+                        Math.abs(events[nearest].at - event.at) <= Math.abs(candidate.at - event.at)
+                    ) {
+                        return;
+                    }
+                    nearest = other;
+                });
+                if (nearest !== undefined) {
+                    consumed.add(nearest);
+                    entry.thought = events[nearest].thought;
+                }
+            }
+
+            paired.set(index, { at: event.at, kind: "return", return: entry });
+            return;
         }
 
-        paired.set(index, entry);
+        if (subject.startsWith(STATE_SUBJECT_PREFIX)) {
+            const to = subject.slice(STATE_SUBJECT_PREFIX.length);
+            // Two extra refusals beyond the window, both there to stop a coincidence becoming a
+            // sentence: the snapshot has to *be* the state this verdict names, and a snapshot where
+            // the claims moved too is two things happening, so it stays two rows.
+            const at = nearestSnapshot(events, event.at, consumed, (snapshot, previous) => {
+                if (snapshot.state !== to || !previous) return false;
+                if (previous.state === snapshot.state) return false;
+                return sameClaims(previous.claims, snapshot.claims);
+            });
+            if (at !== undefined) consumed.add(at);
+            paired.set(index, { at: event.at, kind: "promotion", promotion: { to, judgement } });
+        }
     });
 
     if (paired.size === 0) return events;
     const out: TimelineEvent[] = [];
     events.forEach((event, index) => {
         if (consumed.has(index)) return;
-        const entry = paired.get(index);
-        out.push(entry ? { at: event.at, kind: "return", return: entry } : event);
+        out.push(paired.get(index) ?? event);
     });
     return out;
 }

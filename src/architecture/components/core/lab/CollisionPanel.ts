@@ -13,11 +13,16 @@ export interface CollisionCard {
 
 export interface CollisionDeps {
     /** Draw a pair at this distance, or nothing. The seed and the model belong to the caller. */
-    draw(distance: CollisionDistance): Collision | null;
-    card(path: string): CollisionCard;
-    open(path: string): void;
+    draw: (distance: CollisionDistance) => Collision | null;
+    card: (path: string) => CollisionCard;
+    open: (path: string) => void;
     /** Tells the surface which pair is on screen, so the composer can be armed about both notes. */
-    onPair(pair: Collision | null): void;
+    onPair: (pair: Collision | null) => void;
+    /**
+     * Rule the pair out (#568). **Absent** — not disabled — when the judgement record is off: a
+     * control that cannot do what it says is worse than one that is not there.
+     */
+    dismiss?: (pair: Collision) => void;
 }
 
 /**
@@ -85,8 +90,26 @@ export class CollisionPanel extends Component {
         this.renderCard(pair, this.deps.card(this.pair.a));
         this.renderCard(pair, this.deps.card(this.pair.b));
 
-        const again = this.host.createEl("button", { cls: c("collision-again"), text: t("collision_another") });
+        const actions = this.host.createDiv({ cls: c("collision-actions") });
+        const again = actions.createEl("button", { cls: c("collision-again"), text: t("collision_another") });
         this.registerDomEvent(again, "click", () => this.again());
+
+        // Nothing here is a finding, and it is **not** the same as declining: skipping is free and
+        // records nothing, this says the pair is not worth anyone's time again.
+        const dismiss = this.deps.dismiss;
+        if (dismiss) {
+            const nothing = actions.createEl("button", {
+                cls: c("collision-nothing"),
+                text: t("collision_nothing_here"),
+            });
+            nothing.setAttribute("title", t("collision_nothing_here_tooltip"));
+            this.registerDomEvent(nothing, "click", () => {
+                if (this.pair) dismiss(this.pair);
+                // Straight on to the next one: dismissing and then being asked to press another
+                // button is the interaction this feature cannot have.
+                this.again();
+            });
+        }
     }
 
     /**

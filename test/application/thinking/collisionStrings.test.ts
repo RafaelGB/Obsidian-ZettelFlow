@@ -40,10 +40,10 @@ const COUNTING = [
  * as encouragement and each would turn it into homework.
  */
 describe("the collision poses and never proposes (#567)", () => {
-    it("has all nine strings, in both languages", () => {
+    it("has every string in both languages", () => {
         const enKeys = stringsOf(en as Record<string, string>).map(([key]) => key).sort();
         const esKeys = stringsOf(es as Record<string, string>).map(([key]) => key).sort();
-        expect(enKeys).toHaveLength(9);
+        expect(enKeys).toHaveLength(11);
         expect(esKeys).toEqual(enKeys);
     });
 

@@ -20,6 +20,7 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { CrystallizeModal } from "./CrystallizeModal";
 import { BlindPanel } from "./BlindPanel";
 import { CollisionPanel } from "./CollisionPanel";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { drawCollision, type Collision, type CollisionDistance } from "architecture/knowledge/state";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -329,6 +330,13 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 card: (path: string) => this.cardFor(path),
                 open: (path: string) => void this.app.workspace.openLinkText(path, "", false),
                 onPair: (pair: Collision | null) => this.armPair(pair),
+                // Absent when the record is off, so the control is never there to do nothing.
+                ...(JudgementLog.getInstance().enabled()
+                    ? {
+                          dismiss: (pair: Collision) =>
+                              JudgementLog.getInstance().recordCollisionVerdict(pair.a, pair.b),
+                      }
+                    : {}),
             });
             this.addChild(this.collision);
         }
@@ -821,7 +829,12 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private drawPair(distance: CollisionDistance): Collision | null {
         const index = KnowledgeIndex.getInstance();
         if (index.status !== "ready") return null;
-        return drawCollision(index.getModel(), { distance, seed: Date.now() });
+        return drawCollision(index.getModel(), {
+            distance,
+            seed: Date.now(),
+            // The one filter, read where it is applied (#568).
+            ruledOut: JudgementLog.getInstance().entries(),
+        });
     }
 
     /** Two titles and what each note claims, if it claims anything. Nothing inferred. */

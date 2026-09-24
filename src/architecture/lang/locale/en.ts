@@ -1280,6 +1280,8 @@ export default {
     collision_title: 'What could these two have in common?',
     collision_intro: 'Two notes with nothing between them. The answer is yours — nothing here will offer one.',
     collision_another: 'Another pair',
+    collision_nothing_here: 'Nothing here',
+    collision_nothing_here_tooltip: 'This pair will not be offered again',
     collision_distance_far: 'Far apart',
     collision_distance_very_far: 'As far as this vault goes',
     collision_nothing_far_enough: 'Nothing here is far enough apart yet.',

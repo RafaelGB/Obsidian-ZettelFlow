@@ -127,3 +127,37 @@ describe("the pair arms the composer, and writing is the act (#567)", () => {
         }
     });
 });
+
+/**
+ * Nothing here, and then the next pair (#568).
+ *
+ * Skipping and ruling out are two different acts and must not look like one: closing the panel
+ * records nothing and the pair can come back, while *nothing here* says it is not worth anyone's
+ * time again.
+ */
+describe("ruling a pair out is a decision, not a skip (#568)", () => {
+    it("records the verdict and moves straight on", () => {
+        const panel = PANEL.slice(PANEL.indexOf("const dismiss = this.deps.dismiss;"));
+        expect(panel).toContain("dismiss(this.pair)");
+        expect(panel).toContain("this.again()");
+        // No confirmation, no toast, no empty state in between.
+        expect(panel).not.toContain("ConfirmModal");
+        expect(panel).not.toContain("Notice");
+    });
+
+    it("offers the control only when the record can hold it", () => {
+        // Absent, not disabled: a control that cannot do what it says is worse than none.
+        expect(LAB).toContain("JudgementLog.getInstance().enabled()");
+        expect(LAB).toContain("recordCollisionVerdict(pair.a, pair.b)");
+    });
+
+    it("honours the record where the pair is drawn, not only where it is shown", () => {
+        expect(LAB).toContain("ruledOut: JudgementLog.getInstance().entries()");
+    });
+
+    it("declining still records nothing", () => {
+        const unload = PANEL.slice(PANEL.indexOf("onunload()"), PANEL.indexOf("private again("));
+        expect(unload).not.toContain("dismiss");
+        expect(unload).not.toContain("record");
+    });
+});

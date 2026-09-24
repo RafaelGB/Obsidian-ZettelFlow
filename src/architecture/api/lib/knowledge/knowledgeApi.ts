@@ -106,6 +106,13 @@ export const NOT_EXPOSED: Record<string, string> = {
     dueClaims: "the product's own choice of what to offer back, not a projection a script can ask for",
     claimBearingPaths: "internal input of dueClaims; a script reads idea.claims off the model it already has",
     lastClaimChangeAt: "internal helper of dueClaims over the timeline's snapshots",
+    // Ruling a pair out is an act, not a query (#568). A script that could record one on your
+    // behalf would be exactly the §XII hole the verdict exists to close — and reading the set is
+    // the draw's own business, which already honours it.
+    collisionVerdict: "records a verdict a human gives; the draw already honours the ones you gave",
+    ruledOutCollisions: "the draw builds and applies this itself — one filter, in one place",
+    pairVerdict: "the shape a pair verdict has, shared by gaps and collisions; not a projection",
+    ruledOutPairs: "internal helper of ruledOutGaps and ruledOutCollisions",
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",
@@ -207,6 +214,9 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
                     distance: opts?.distance,
                     seed: opts?.seed ?? Date.now(),
                     ...(opts?.from === undefined ? {} : { from: opts.from }),
+                    // A pair you ruled out is not offered to a script either (#568), exactly as
+                    // `discoveries` goes through `openGaps` since #534.
+                    ruledOut: history(),
                 }),
         },
         discoveries: {

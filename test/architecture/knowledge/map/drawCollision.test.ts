@@ -5,6 +5,7 @@ import {
     type Collision,
 } from "architecture/knowledge/map/drawCollision";
 import { gapTally } from "architecture/knowledge/discovery/discoveries";
+import { collisionVerdict } from "architecture/knowledge/judgement/collisionVerdict";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 /**
@@ -134,10 +135,11 @@ describe("what the draw refuses (#566)", () => {
     it("never returns a pair you have ruled out", () => {
         const first = drawCollision(twoClusters, { seed: 1, distance: "very-far" });
         expect(first).not.toBeNull();
-        const ruledOut = {
-            has: (a: string, b: string) =>
-                (a === first?.a && b === first?.b) || (a === first?.b && b === first?.a),
-        };
+        // The real record, not a stub: the draw reads the ruled-out pairs out of it itself, so
+        // this is the same path the panel and a script take (#568).
+        const ruledOut = [
+            { at: 1, ...collisionVerdict(first?.a ?? "", first?.b ?? "") },
+        ];
         for (const pair of draws(twoClusters, 300, { distance: "very-far", ruledOut })) {
             expect(`${pair.a}|${pair.b}`).not.toBe(`${first?.a}|${first?.b}`);
         }

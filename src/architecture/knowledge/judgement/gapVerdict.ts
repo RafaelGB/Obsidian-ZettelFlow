@@ -3,6 +3,7 @@ import { gapTally, topGaps, type Discovery } from "../discovery/discoveries";
 import { bySeamWidth, gapSeams, type GapSeam } from "../map/gapSeams";
 import { communitiesOf } from "../map/communities";
 import type { Judgement } from "./Judgement";
+import { pairVerdict, ruledOutPairs, type RuledOutPairs } from "./pairVerdict";
 
 /**
  * **A gap you have ruled on stops asking** (#534, epic #529).
@@ -44,31 +45,18 @@ export type GapVerdict = Omit<Judgement, "at">;
  * because of what it does not hold (#336).
  */
 export function gapVerdict(a: string, b: string): GapVerdict {
-    const [low, high] = a <= b ? [a, b] : [b, a];
-    return {
-        path: low,
-        subject: `${GAP_SUBJECT_PREFIX}${high}`,
-        origin: "derived",
-        verdict: "rejected",
-    };
+    return pairVerdict(GAP_SUBJECT_PREFIX, a, b);
 }
 
-/** The pairs you have ruled out: how many, whether one is among them, and a way to walk them. */
-export interface RuledOutGaps {
-    /** How many **pairs** (not entries) have been ruled out. */
-    readonly size: number;
-    /** Whether this pair has been ruled out, in either direction (FR-3). */
-    has(a: string, b: string): boolean;
-    /** The pairs themselves, canonical `a < b`. */
-    pairs(): Iterable<{ a: string; b: string }>;
-}
-
-/** The separator inside a pair key — a character no vault path can contain. */
-const PAIR_SEPARATOR = "\u0000";
-
-function pairKey(a: string, b: string): string {
-    return a <= b ? `${a}${PAIR_SEPARATOR}${b}` : `${b}${PAIR_SEPARATOR}${a}`;
-}
+/**
+ * The pairs you have ruled out (#534).
+ *
+ * The shape moved to `pairVerdict.ts` in #568, when a second feature — a collision you found
+ * nothing in — needed exactly the same thing. Copying it is what would make the two disagree, and a
+ * ruled-out set that disagreed with the one Home reads would make a pair vanish from the front door
+ * for ever.
+ */
+export type RuledOutGaps = RuledOutPairs;
 
 /**
  * Read the ruled-out pairs out of the judgement record (FR-3).
@@ -79,25 +67,7 @@ function pairKey(a: string, b: string): string {
  * hand-edited `data.json` degrades to *nothing is ruled out* instead of breaking Home.
  */
 export function ruledOutGaps(history: readonly Judgement[]): RuledOutGaps {
-    const keys = new Set<string>();
-    for (const judgement of history) {
-        if (judgement.verdict !== "rejected") continue;
-        if (!judgement.subject.startsWith(GAP_SUBJECT_PREFIX)) continue;
-        const other = judgement.subject.slice(GAP_SUBJECT_PREFIX.length).trim();
-        const path = judgement.path.trim();
-        if (!other || !path || other === path) continue;
-        keys.add(pairKey(path, other));
-    }
-    return {
-        size: keys.size,
-        has: (a: string, b: string): boolean => a !== b && keys.has(pairKey(a, b)),
-        *pairs(): Iterable<{ a: string; b: string }> {
-            for (const key of keys) {
-                const [a, b] = key.split(PAIR_SEPARATOR);
-                yield { a, b };
-            }
-        },
-    };
+    return ruledOutPairs(history, GAP_SUBJECT_PREFIX);
 }
 
 /**

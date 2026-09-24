@@ -2,6 +2,8 @@ import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { memoise } from "../model/memo";
 import { buildKnowledgeMap } from "./knowledgeMap";
 import { communitiesOf } from "./communities";
+import { ruledOutCollisions } from "../judgement/collisionVerdict";
+import type { Judgement } from "../judgement/Judgement";
 
 /**
  * Two things nowhere near each other (#566, epic #559) — pure.
@@ -44,8 +46,12 @@ export interface DrawCollisionOptions {
     seed: number;
     /** Fix one side, for *make a move → analogy* on the note you are reading (#569). */
     from?: string;
-    /** The pairs you have said there is nothing in. Filled by #568; empty means nothing is ruled out. */
-    ruledOut?: { has(a: string, b: string): boolean };
+    /**
+     * The judgement record (#568). The draw reads the ruled-out pairs out of it **itself**, so
+     * building the filter and applying it live in one place — a verdict only one reader honoured
+     * would put the pair back from another door and make the button look broken.
+     */
+    ruledOut?: readonly Judgement[];
 }
 
 /**
@@ -180,6 +186,7 @@ export function drawCollision(model: KnowledgeModel, options: DrawCollisionOptio
     const buckets = distance === "far" ? partition.byCommunity : partition.byRegion;
     const bucketOf = distance === "far" ? partition.community : partition.region;
     const random = mulberry32(options.seed);
+    const ruledOut = ruledOutCollisions(options.ruledOut ?? []);
 
     if (options.from !== undefined && !model.get(options.from)) return null;
 
@@ -209,7 +216,7 @@ export function drawCollision(model: KnowledgeModel, options: DrawCollisionOptio
         if (b === undefined || a === b) continue;
         if (linked(partition, a, b)) continue;
         if (sharesNeighbour(partition, a, b)) continue;
-        if (options.ruledOut?.has(a, b)) continue;
+        if (ruledOut.has(a, b)) continue;
 
         return a <= b ? { a, b, distance } : { a: b, b: a, distance };
     }

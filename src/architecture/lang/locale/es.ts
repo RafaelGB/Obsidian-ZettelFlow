@@ -1280,6 +1280,8 @@ export default {
     collision_title: '¿Qué podrían tener en común estas dos?',
     collision_intro: 'Dos notas sin nada entre ellas. La respuesta es tuya: aquí no se te va a ofrecer ninguna.',
     collision_another: 'Otro par',
+    collision_nothing_here: 'Aquí no hay nada',
+    collision_nothing_here_tooltip: 'Este par no se volverá a ofrecer',
     collision_distance_far: 'Lejos',
     collision_distance_very_far: 'Lo más lejos que llega este vault',
     collision_nothing_far_enough: 'Aquí todavía no hay nada lo bastante lejos.',

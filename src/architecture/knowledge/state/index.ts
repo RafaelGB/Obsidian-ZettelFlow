@@ -49,6 +49,7 @@ export * from "architecture/knowledge/journal/heatmap";
 export * from "architecture/knowledge/projects/deriveOutline";
 export * from "architecture/knowledge/cultivate/cultivationSession";
 export * from "architecture/knowledge/judgement";
+export * from "architecture/knowledge/review/dueClaims";
 export type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 export * from "architecture/knowledge/timeline/timelineEvents";
 export * from "architecture/knowledge/timeline/ideaCard";

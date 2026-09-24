@@ -98,6 +98,12 @@ export const NOT_EXPOSED: Record<string, string> = {
     explainEmpty: "names the term that emptied a selection — an explanation for a surface, not a query",
     rowFacts: "which facts a result row should carry; a script reads the idea it already has",
 
+    // What comes back (#563). The selection needs the user's interval, their judgement record and
+    // the timeline's snapshots, which is the product asking its own question — a script reading it
+    // would be reading the interface's decision, not the model.
+    dueClaims: "the product's own choice of what to offer back, not a projection a script can ask for",
+    claimBearingPaths: "internal input of dueClaims; a script reads idea.claims off the model it already has",
+    lastClaimChangeAt: "internal helper of dueClaims over the timeline's snapshots",
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",

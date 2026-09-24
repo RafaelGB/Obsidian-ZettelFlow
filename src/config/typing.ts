@@ -8,6 +8,7 @@ import {
     DEFAULT_CREATED_PROPERTY,
     DEFAULT_LAST_REVIEWED_PROPERTY,
 } from "architecture/knowledge/lifecycle/states";
+import { DEFAULT_RETURN_INTERVAL_DAYS } from "architecture/knowledge/review/dueClaims";
 import type { AiSettings } from "architecture/ai";
 import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 import type { Judgement } from "architecture/knowledge/judgement";
@@ -188,6 +189,15 @@ export interface ZettelFlowSettings {
     };
 
     /**
+     * How long before a claim comes back (#563, epic #558).
+     *
+     * A duration **you** choose, in days, bounded by `RETURN_INTERVAL_MIN_DAYS` and
+     * `RETURN_INTERVAL_MAX_DAYS`. The system never tunes it and it does not adapt to your answers:
+     * this is a return, not a repetition algorithm.
+     */
+    returnIntervalDays: number;
+
+    /**
      * Conceptual evolution timeline (#168). **OFF by default (opt-in)** — unlike the journal's
      * path-free counts, this stores per-note lifecycle `state` + claim texts + timestamps, so it is
      * consent-first: strictly **local** (never networked), **bounded** (per-note and total-notes
@@ -339,6 +349,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
+    returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.
     ai: { enabled: false, endpoint: "", apiKey: "", model: "" }, // AI is opt-in, off by default (#156).
     journal: { enabled: true, counts: {} }, // Development-event journal on by default (#162).

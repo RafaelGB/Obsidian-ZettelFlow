@@ -17,8 +17,8 @@ export type WorkflowEvent =
     | "workflow.completed"
     | "review.due";
 
-/** The events actually observed & dispatched in v1 (maintainer decision, OQ-1). */
-export type WiredEvent = "note.created" | "note.modified" | "property.changed" | "tag.added";
+/** The events actually observed & dispatched (four from v1, plus `review.due` since #563). */
+export type WiredEvent = "note.created" | "note.modified" | "property.changed" | "tag.added" | "review.due";
 
 /** The eight tokens, in canonical order. */
 export const WORKFLOW_EVENTS: readonly WorkflowEvent[] = [
@@ -32,12 +32,13 @@ export const WORKFLOW_EVENTS: readonly WorkflowEvent[] = [
     "review.due",
 ] as const;
 
-/** The four wired v1 events, in canonical order. Everything else is deferred. */
+/** The wired events, in canonical order. Everything else is deferred. */
 export const WIRED_EVENTS: readonly WiredEvent[] = [
     "note.created",
     "note.modified",
     "property.changed",
     "tag.added",
+    "review.due",
 ] as const;
 
 export function isWorkflowEvent(value: unknown): value is WorkflowEvent {
@@ -76,4 +77,5 @@ export const EVENT_LABEL_KEY = {
     "note.modified": "event_note_modified_label",
     "property.changed": "event_property_changed_label",
     "tag.added": "event_tag_added_label",
+    "review.due": "event_review_due_label",
 } as const satisfies Record<WiredEvent, string>;

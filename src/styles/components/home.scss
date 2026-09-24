@@ -236,3 +236,24 @@
         text-decoration: underline;
     }
 }
+
+// Something you wrote is ready to be looked at again (#563). One line, never a list.
+.zettelkasten-flow__home-claim-return {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    margin-block: var(--size-4-3);
+    padding: var(--size-4-3);
+    border-left: var(--size-4-1) solid var(--interactive-accent);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__home-claim-return-title {
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__home-claim-return-when {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

@@ -1224,6 +1224,16 @@ export default {
     ask_graph_indexing: 'Construyendo el modelo de conocimiento…',
     ask_graph_no_results: 'Ninguna nota coincide con esta consulta.',
     ask_graph_result_count: '{0} notas coinciden',
+    // Vuelve sin planificador (#563, epic #558): una duración, y nada se acumula.
+    event_review_due_label: 'Toca revisar',
+    settings_return_heading: 'La vuelta',
+    settings_return_intro: 'Una afirmación que escribiste vuelve a ti una vez, pasado el tiempo que elijas aquí. Inicio ofrece una cada vez; nada vence nunca.',
+    settings_return_interval_name: 'Días antes de que vuelva una afirmación',
+    settings_return_interval_desc: 'Cuánto se sostiene una afirmación antes de que se te pregunte qué dices de ella ahora.',
+    settings_return_disclosure: 'Es una duración que fijas tú, no un algoritmo de repetición: nunca se adapta a tus respuestas, no se cuenta nada y nada te avisa.',
+    home_claim_return_title: 'Algo que escribiste está listo para volver a mirarlo',
+    home_claim_return_when: 'Lo escribiste en {0}',
+    home_claim_return_open: 'Volver a mirarlo',
     // Preguntado otra vez (#562, epic #558): la pregunta primero, la nota cerrada hasta que contestas.
     claim_return_command: 'Volver a mirar esta afirmación',
     claim_return_title: '¿Qué dices de esto ahora?',

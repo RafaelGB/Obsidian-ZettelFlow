@@ -76,6 +76,13 @@ export const BUDGETS = {
         because:
             "the target this epic designs for — cheap enough that deriving on load is not the cold-start problem it was assumed to be",
     },
+    "analysis.dueclaims.10k": {
+        name: "choose the one claim to offer back, over 10,000 notes",
+        limit: 12,
+        measured: "2.1 ms",
+        because:
+            "it runs where Home already computes its recommendations, and on the event engine's debounced pass — a return that costs a visible pause is a return nobody keeps on",
+    },
     "derive.one": {
         name: "derive one note into an idea",
         limit: 0.05,

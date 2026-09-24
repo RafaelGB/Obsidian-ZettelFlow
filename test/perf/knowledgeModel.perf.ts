@@ -14,6 +14,7 @@ import { clearSamples, lastSample, measure, type Measurable } from "architecture
 import { clearMemo } from "architecture/knowledge/model/memo";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 import { generateBody, generateVault } from "./generateVault";
+import { dueClaims } from "architecture/knowledge/review/dueClaims";
 import { newThought, type Thought } from "application/thinking/thought";
 import { filterThreads, threadThoughts } from "application/thinking/thread";
 
@@ -334,5 +335,21 @@ describe("the move record (#491)", () => {
         );
         // Per render, which is what the number has to mean for it to be honest.
         assertBudget("moves.read", ms / 50);
+    });
+});
+
+describe("what comes back (#563)", () => {
+    it("analysis.dueclaims.10k", () => {
+        // Every tenth note says something, which is a generous reading of a real vault: the
+        // reference vault had **zero** claims the day this shipped. The selection walks the whole
+        // model regardless, so the shape of the work does not depend on how many bear claims.
+        const model = modelOf(10_000);
+        let index = 0;
+        for (const idea of model.all()) {
+            if (index++ % 10 === 0) idea.claims = [{ text: `claim ${index}`, sources: [] }];
+        }
+        const now = Date.now();
+        const ms = timed("analysis.heaviest", () => dueClaims({ model, intervalDays: 90, now }), 10_000);
+        assertBudget("analysis.dueclaims.10k", ms);
     });
 });

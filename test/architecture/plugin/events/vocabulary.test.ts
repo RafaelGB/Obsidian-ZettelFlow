@@ -21,19 +21,16 @@ describe("workflow-trigger event vocabulary (FR-1)", () => {
         ]);
     });
 
-    it("WIRED_EVENTS is exactly the four v1 tokens (deferred four excluded)", () => {
+    it("WIRED_EVENTS is the five wired tokens (the deferred three excluded)", () => {
+        // `review.due` joined them in #563: a claim you stated is ready to be looked at again.
         expect([...WIRED_EVENTS]).toEqual([
             "note.created",
             "note.modified",
             "property.changed",
             "tag.added",
-        ]);
-        for (const deferred of [
-            "note.linked",
-            "note.unlinked",
-            "workflow.completed",
             "review.due",
-        ]) {
+        ]);
+        for (const deferred of ["note.linked", "note.unlinked", "workflow.completed"]) {
             expect(WIRED_EVENTS as readonly string[]).not.toContain(deferred);
         }
     });
@@ -47,7 +44,7 @@ describe("workflow-trigger event vocabulary (FR-1)", () => {
 
     it("isWiredEvent accepts the four wired and rejects deferred + junk", () => {
         for (const event of WIRED_EVENTS) expect(isWiredEvent(event)).toBe(true);
-        for (const notWired of ["note.linked", "review.due", "workflow.completed", "foo", null]) {
+        for (const notWired of ["note.linked", "note.unlinked", "workflow.completed", "foo", null]) {
             expect(isWiredEvent(notWired)).toBe(false);
         }
     });

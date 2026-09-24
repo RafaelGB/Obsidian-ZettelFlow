@@ -6,12 +6,14 @@ import { t } from "architecture/lang";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { HomeModel, buildHome, runGraphQuery } from "architecture/knowledge/state";
+import { HomeModel, buildHome, runGraphQuery, dueClaims, type DueClaim } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { makeActivatable } from "architecture/components/core/a11y";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 import { pinnedQueries, savedQueryLabel } from "architecture/components/core/askGraph/savedQueries";
+import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
+import { openReturn } from "starters/zcomponents/ClaimReturnComponent";
 
 /** A pinned "ask your graph" query resolved against the current model (#323 G4). */
 type PinnedQueryCard = { label: string; query: string; count: number };
@@ -20,6 +22,11 @@ const DEBOUNCE_MS = 400;
 
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type LocaleKey = Parameters<typeof t>[0];
+
+/** A month and a year, in the reader's locale. Never a count of days (#563). */
+function when(at: number): string {
+    return new Date(at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+}
 
 function basename(path: string): string {
     const file = path.split("/").pop() ?? path;
@@ -36,6 +43,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private home: HomeModel | null = null;
     private recommendations: KnowledgeRecommendation[] = [];
     private pinnedCards: PinnedQueryCard[] = [];
+    /** The one claim ready to be looked at again, or nothing at all (#563). */
+    private claimReturn: DueClaim | null = null;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -73,6 +82,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 this.state = "indexing";
                 this.home = null;
                 this.pinnedCards = [];
+                this.claimReturn = null;
                 this.render();
                 return;
             }
@@ -90,6 +100,18 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 const result = runGraphQuery(model, entry.query);
                 return { label: savedQueryLabel(entry), query: entry.query, count: result.error ? 0 : result.matches.length };
             });
+            // At most one, and only past the interval you chose. Nothing accumulates here (#563).
+            const settings = ObsidianApi.getOwnPlugin()?.settings;
+            this.claimReturn = settings
+                ? dueClaims({
+                      model,
+                      judgements,
+                      snapshots: settings.timeline?.enabled ? settings.timeline.snapshots : {},
+                      lastReviewed: lastReviewedOf(model, settings.lifecycle?.lastReviewedProperty),
+                      intervalDays: settings.returnIntervalDays,
+                      now: Date.now(),
+                  })[0] ?? null
+                : null;
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
@@ -135,6 +157,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             cls: c("home-thinking-days"),
         });
 
+        this.renderClaimReturn(container);
         this.renderGrowthNudge(container);
         this.renderGraphTeaser(container);
         this.renderPinnedQueries(container);
@@ -146,6 +169,30 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         // Defaulted: Home is the front door, and a model shape from an older build must degrade
         // to one missing section rather than to a blank surface.
         this.renderOpenQuestions(container, this.home.openQuestions ?? []);
+    }
+
+    /**
+     * Something you wrote is ready to be looked at again (#563, epic #558).
+     *
+     * **One** line, or none. No queue, no count, no badge, and nothing that grows while you are not
+     * looking — an inbox is a debt that greets you with how far behind you are, and this is the
+     * front door. A return you ignore looks exactly the same tomorrow.
+     *
+     * It says when you wrote it — a month and a year, never a number of days, because *93 days ago*
+     * is a measurement of your lateness.
+     */
+    private renderClaimReturn(container: HTMLElement): void {
+        if (!this.claimReturn) return;
+        const due = this.claimReturn;
+        const section = container.createDiv({ cls: c("home-claim-return") });
+        section.createDiv({ cls: c("home-claim-return-title"), text: t("home_claim_return_title") });
+        section.createDiv({ cls: c("home-claim-return-when"), text: t("home_claim_return_when", when(due.lastTouched)) });
+        const open = section.createEl("button", { cls: "mod-cta", text: t("home_claim_return_open") });
+        open.addEventListener("click", () => {
+            const plugin = ObsidianApi.getOwnPlugin();
+            // `derived` — the system brought it back. Opening it yourself records `human` (#562).
+            if (plugin) openReturn(plugin, due.path, "derived");
+        });
     }
 
     /**

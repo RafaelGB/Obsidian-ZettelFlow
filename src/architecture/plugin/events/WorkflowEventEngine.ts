@@ -18,6 +18,11 @@ import { dispatchEvent, type DispatchDeps, type DispatchResult } from "./dispatc
 import { ThrottleGate } from "./throttle";
 import { CascadeGuard, type SelfWriteState } from "./loopGuard";
 import type { WorkflowEventPayload } from "./vocabulary";
+import { REVIEW_DUE_DAY_MS, reviewDuePayload, reviewDueThrottleKey, wantsReviewDue } from "./reviewDue";
+import { KnowledgeIndex } from "architecture/knowledge";
+import { dueClaims } from "architecture/knowledge/review/dueClaims";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
 
 /** Debounce for the noisy metadataCache "changed" stream (mirrors the property-hook 60 ms). */
 const METADATA_DEBOUNCE_MS = 60;
@@ -45,6 +50,8 @@ export class WorkflowEventEngine {
     private readonly lastFrontmatter = new Map<string, Record<string, unknown>>();
     private bindings: WorkflowBinding[] = [];
     private readonly throttle = new ThrottleGate();
+    /** One claim, one day. A second gate, same class, its own window (#563). */
+    private readonly reviewDueThrottle = new ThrottleGate(REVIEW_DUE_DAY_MS);
     private readonly cascade = new CascadeGuard();
 
     private constructor(private readonly plugin: ZettelFlow) {}
@@ -80,7 +87,7 @@ export class WorkflowEventEngine {
         this.track(vault.on("delete", this.onDelete));
         this.track(metadataCache.on("changed", this.onMetadataChanged));
         this.armed = true;
-        void this.rebuildBindings();
+        void this.rebuildBindings().then(() => this.sweepReviewDue());
         log.info("[WorkflowEventEngine] Armed event-driven workflows.");
     }
 
@@ -97,6 +104,7 @@ export class WorkflowEventEngine {
         for (const handle of this.debounceTimers.values()) window.clearTimeout(handle);
         this.debounceTimers.clear();
         this.throttle.reset();
+        this.reviewDueThrottle.reset();
         this.cascade.reset();
         this.bindings = [];
         this.lastFrontmatter.clear();
@@ -154,6 +162,37 @@ export class WorkflowEventEngine {
         const derived = deriveFrontmatterEvents(file.path, oldFrontmatter, newFrontmatter);
         this.lastFrontmatter.set(file.path, newFrontmatter);
         for (const payload of derived) void this.dispatch(payload);
+        // The sweep rides this callback rather than a timer of its own: the day a claim comes
+        // back, the first thing you touch in the vault is what notices (#563).
+        this.sweepReviewDue();
+    }
+
+    /**
+     * Offer a claim back through the event vocabulary (#563).
+     *
+     * **No timer and no listener of its own** — this is called from `arm()` and from the tail of
+     * the debounced metadata pass, so `disarm()` stays complete by construction. It returns
+     * immediately unless a flow is actually bound to `review.due`, because the selection costs a
+     * projection over the model and the overwhelming majority of vaults bind nothing.
+     */
+    private sweepReviewDue(): void {
+        if (!this.armed || !wantsReviewDue(this.bindings)) return;
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return;
+        const model = index.getModel();
+        const settings = this.plugin.settings;
+        const due = dueClaims({
+            model,
+            judgements: JudgementLog.getInstance().entries(),
+            snapshots: settings.timeline?.enabled ? settings.timeline.snapshots : {},
+            lastReviewed: lastReviewedOf(model, settings.lifecycle?.lastReviewedProperty),
+            intervalDays: settings.returnIntervalDays,
+            now: Date.now(),
+        });
+        for (const claim of due) {
+            if (!this.reviewDueThrottle.shouldFire(reviewDueThrottleKey(claim.path), Date.now())) continue;
+            void this.dispatch(reviewDuePayload(claim.path));
+        }
     }
 
     // ── Dispatch wiring ─────────────────────────────────────────────────────────

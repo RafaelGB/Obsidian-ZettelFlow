@@ -85,6 +85,21 @@ judgement row it already was.
 It states the act and nothing else: no word about maturity, and nothing about the note being further
 along.
 
+## One mark in the future (#572)
+
+Every event above is in the past. A [wager](wagers.md)'s horizon is the first exception — a day you
+said you would know by, sitting where it falls on the list until it arrives.
+
+The axis is an **ordered list**, not a scaled one, so a date two years out costs nothing and moves
+nothing: the past events are identical with a horizon present and absent, which is asserted rather
+than assumed. The row is muted and says the same thing at every distance, before and after the day
+passes — a date in the future invites a countdown, a countdown invites a colour, and a colour
+invites a nudge.
+
+It is hidden by *only my judgements*, because a date you set is not a verdict. And **the shared idea
+card ignores it**: that card measures the span from the first event to the last, and a horizon has
+not happened.
+
 ## Thoughts written about the note (#540)
 
 Thinking about a note used to leave no trace on it. *Think about this note* plus a sentence recorded

@@ -1227,6 +1227,9 @@ export default {
     // A note you promoted (#581): the snapshot says what it is, this says you decided it.
     evolution_timeline_promotion_label: 'Promoted',
     evolution_timeline_promotion: 'you moved this to {0}',
+    // A day you expect to know by (#572): the first mark on this axis that has not happened.
+    evolution_timeline_horizon_label: 'Expected',
+    evolution_timeline_horizon: 'you said you would know by then',
     // Then and now, on one line (#564, epic #558): the verdict and the change it caused.
     evolution_timeline_return_label: 'Asked again',
     evolution_timeline_return_confirmed: 'and it still says the same',
@@ -1247,6 +1250,18 @@ export default {
     home_claim_return_when: 'You wrote this in {0}',
     home_claim_return_open: 'Look at it again',
     // Asked again (#562, epic #558): the question first, the vault shut until you answer.
+    // A thought you can be wrong about (#571, epic #560): what happened, before what you expected.
+    claim_return_wager_intro: 'Answer from what you saw. What you expected stays shut until you do.',
+    claim_return_wager_placeholder: 'What happened',
+    claim_return_wager_reveal: 'Now show me what I expected',
+    claim_return_expected: 'You expected',
+    claim_return_happened: 'What happened',
+    claim_return_wager_claim: 'And the note says',
+    claim_return_wager_new_sentence: 'What it says now',
+    claim_return_wager_no_lab: 'Set a thinking-space folder to resolve a wager.',
+    home_claim_return_wager_title: 'Something you expected is ready to be looked at',
+    home_claim_return_wager_when: 'You said you would know by {0}',
+    home_claim_return_wager_open: 'See what happened',
     claim_return_command: 'Look at this claim again',
     claim_return_title: 'What do you say about this now?',
     claim_return_intro: 'Answer from what you think today. The note stays shut until you do.',
@@ -1270,6 +1285,8 @@ export default {
     claim_door_other_claims: 'This note says more than one thing. You are editing the first.',
     claim_door_source_placeholder: 'And where it came from — a note or a reference (optional)',
     claim_return_cites: 'It cites {0}',
+    claim_door_expect_placeholder: 'And what you expect to see (optional)',
+    claim_door_by_label: 'The day you expect to know by',
     claim_door_saved: 'The claim is on the note.',
     claim_door_failed: 'The claim could not be written.',
     // A promotion is a fact about two states (#580): the chip says where you are, this says what moved.

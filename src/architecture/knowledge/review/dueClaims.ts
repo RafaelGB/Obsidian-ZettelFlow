@@ -2,6 +2,7 @@ import type { KnowledgeModel } from "../model/KnowledgeModel";
 import type { Snapshot } from "../timeline/recordSnapshot";
 import type { Judgement } from "../judgement/Judgement";
 import { claimSubject } from "../claims/keys";
+import type { Wager } from "../claims/wager";
 
 /**
  * When a claim comes back (#563, epic #558) — pure.
@@ -39,6 +40,17 @@ export interface DueClaim {
     claim: string;
     /** When this claim was last touched, by any of the four things that count as touching it. */
     lastTouched: number;
+    /**
+     * Which kind of thing is coming back (#571).
+     *
+     * A **wager** is a claim whose horizon has arrived — a date you set, which is why it outranks
+     * an interval nobody chose. It comes through this selector and not a sibling one, so *at most
+     * one at a time* stays true across both kinds by the same line that already makes it true for
+     * claims.
+     */
+    kind: "claim" | "wager";
+    /** The wager, when `kind` is `"wager"` — what you expected, and the day you said. */
+    wager?: Wager;
 }
 
 export interface DueClaimsInput {
@@ -49,6 +61,8 @@ export interface DueClaimsInput {
     snapshots?: Record<string, Snapshot[]>;
     /** The note's `last-reviewed` property, resolved by the caller (the model carries no frontmatter). */
     lastReviewed?: Record<string, number>;
+    /** The wagers the vault is holding, resolved by the caller for the same reason (#571). */
+    horizons?: Record<string, Wager>;
     intervalDays: number;
     now: number;
 }
@@ -107,10 +121,26 @@ export function dueClaims(input: DueClaimsInput): DueClaim[] {
     const judgements = input.judgements ?? [];
     const snapshots = input.snapshots ?? {};
     const lastReviewed = input.lastReviewed ?? {};
+    const horizons = input.horizons ?? {};
     const interval = Math.max(1, intervalDays) * DAY_MS;
 
     let oldest: DueClaim | undefined;
+    let dueWager: DueClaim | undefined;
     for (const { path, claim } of claimBearingPaths(model)) {
+        // A horizon is a date **you** set, so it outranks an interval you merely accepted. Still
+        // one thing at a time: the wager wins the single slot, it does not get a second one.
+        const wager = horizons[path];
+        if (wager && now >= wager.at) {
+            if (
+                !dueWager ||
+                wager.at < (dueWager.wager?.at ?? 0) ||
+                (wager.at === dueWager.wager?.at && path < dueWager.path)
+            ) {
+                dueWager = { path, claim, lastTouched: wager.at, kind: "wager", wager };
+            }
+            continue;
+        }
+
         const idea = model.get(path);
         const lastTouched = Math.max(
             idea?.modified ?? 0,
@@ -124,8 +154,8 @@ export function dueClaims(input: DueClaimsInput): DueClaim[] {
             lastTouched < oldest.lastTouched ||
             (lastTouched === oldest.lastTouched && path < oldest.path)
         ) {
-            oldest = { path, claim, lastTouched };
+            oldest = { path, claim, lastTouched, kind: "claim" };
         }
     }
-    return oldest ? [oldest] : [];
+    return dueWager ? [dueWager] : oldest ? [oldest] : [];
 }

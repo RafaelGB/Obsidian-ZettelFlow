@@ -135,7 +135,11 @@ matters to you.
   ZettelFlow gathers, proposes and challenges — it does not treat its output as your answer without
   your verdict.
 - **A judge of your intelligence or a productivity scoreboard.** We describe records and expose gaps;
-  we do not rank people by their notes, clicks, streaks or agreement with a machine.
+  we do not rank people by their notes, clicks, streaks or agreement with a machine. Since #560 that
+  includes the sharpest temptation of all: a [wager](development/wagers.md) puts what you expected
+  beside what happened and **never scores the difference** — no accuracy, no hit rate, no
+  calibration. The two sentences are the whole feedback, and nobody needs to be told which one they
+  wrote.
 - **"Another plugin to create Zettelkasten notes."** That ceiling is too low.
 - A generic manager that pleases everyone and marks no one.
 

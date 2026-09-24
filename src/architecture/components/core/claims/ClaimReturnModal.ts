@@ -3,8 +3,8 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { ConceptualTimeline } from "architecture/plugin";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { declaredSourcesOf, statedClaims } from "architecture/plugin/claims/statedClaim";
-import { answerReturn } from "architecture/plugin/claims/answerReturn";
+import { declaredSourcesOf, statedClaims, statedWager } from "architecture/plugin/claims/statedClaim";
+import { answerReturn, observeWager } from "architecture/plugin/claims/answerReturn";
 // The Experience layer reaches the model through the State surface, never a deep analysis (#266).
 import type { JudgementOrigin } from "architecture/knowledge/state";
 import {
@@ -16,6 +16,7 @@ import {
     keepDraft,
     readDraft,
     type ClaimReturnState,
+    type ClaimReturnView,
     type ReturnAnswer,
 } from "application/claims";
 
@@ -41,6 +42,7 @@ export class ClaimReturnModal extends Modal {
     ) {
         super(app);
         const claims = statedClaims(file);
+        const wager = statedWager(file);
         this.session = {
             path: file.path,
             stored: claims[CLAIM_EDIT_INDEX] ?? "",
@@ -49,6 +51,9 @@ export class ClaimReturnModal extends Modal {
             historyKept: ConceptualTimeline.getInstance().enabled(),
             draft: readDraft(file.path),
             cites: declaredSourcesOf(file),
+            // A wager only resolves once its day has come; before that this is an ordinary return
+            // about the claim, and the prediction is nobody's business yet (#571).
+            ...(wager && wager.at <= Date.now() ? { wager } : {}),
         };
     }
 
@@ -80,11 +85,92 @@ export class ClaimReturnModal extends Modal {
             });
         }
 
+        // Resolving a wager has its own first stage — what happened — and the prediction is not
+        // in the view model until it is written (#571).
+        if (view.asksObservation) {
+            this.renderObservation(contentEl);
+            return;
+        }
+        if (this.session.wager) {
+            this.renderWagerReveal(contentEl, view);
+            return;
+        }
+
         if (!view.answered) {
             this.renderQuestion(contentEl, view.draft);
             return;
         }
         this.renderReveal(contentEl, view.said ?? "", view.says ?? "", view.historyKept);
+    }
+
+    /** A wager's first stage: what actually happened, with what you predicted nowhere on screen. */
+    private renderObservation(contentEl: HTMLElement): void {
+        if (!ThoughtStore.getInstance().folder()) {
+            // The observation is a thought, and a wager that resolves with nowhere to put the
+            // answer is an invitation the product cannot honour (#562's precedent).
+            contentEl.createDiv({ cls: c("claim-door-hint"), text: t("claim_return_wager_no_lab") });
+            return;
+        }
+        contentEl.createDiv({ cls: c("claim-return-intro"), text: t("claim_return_wager_intro") });
+        const box = contentEl.createEl("textarea", { cls: c("claim-return-answer") });
+        box.placeholder = t("claim_return_wager_placeholder");
+        box.setAttribute("aria-label", t("claim_return_wager_placeholder"));
+        box.focus();
+
+        const reveal = contentEl.createEl("button", { text: t("claim_return_wager_reveal"), cls: "mod-cta" });
+        reveal.addEventListener("click", () => {
+            void this.observe(box.value);
+        });
+    }
+
+    /**
+     * Write what happened, then show what was expected.
+     *
+     * In that order, and the order is the whole point: the sentence survives first — the #562
+     * ordering — and the expectation reaches the view model only once it has.
+     */
+    private async observe(text: string): Promise<void> {
+        const observation = text.trim();
+        if (!observation || this.busy) return;
+        this.busy = true;
+        try {
+            if (!(await observeWager(this.session.path, observation))) {
+                new Notice(t("claim_door_failed"));
+                return;
+            }
+            this.session = { ...this.session, observation };
+            this.render();
+        } finally {
+            this.busy = false;
+        }
+    }
+
+    /**
+     * A wager's second stage: what you expected, what happened, and the claim's three answers.
+     *
+     * Nothing compares the two sentences. There is no tick, no cross, no word about which one you
+     * wrote — nobody needs to be told.
+     */
+    private renderWagerReveal(contentEl: HTMLElement, view: ClaimReturnView): void {
+        const pair = contentEl.createDiv({ cls: [c("claim-return-pair"), c("claim-revealed")].join(" ") });
+        const expected = pair.createDiv({ cls: c("claim-return-side") });
+        expected.createDiv({ cls: c("claim-return-label"), text: t("claim_return_expected") });
+        expected.createDiv({ cls: c("claim-return-sentence"), text: view.expected ?? "" });
+        const happened = pair.createDiv({ cls: c("claim-return-side") });
+        happened.createDiv({ cls: c("claim-return-label"), text: t("claim_return_happened") });
+        happened.createDiv({ cls: c("claim-return-sentence"), text: view.happened ?? "" });
+
+        const claim = contentEl.createDiv({ cls: c("claim-return-side") });
+        claim.createDiv({ cls: c("claim-return-label"), text: t("claim_return_wager_claim") });
+        claim.createDiv({ cls: c("claim-return-sentence"), text: this.session.stored });
+
+        // The new sentence, for *it says this now* — because here the text you typed is an
+        // observation, and committing it would write what happened into the note's claim.
+        const sentence = contentEl.createEl("input", { type: "text", cls: c("claim-door-input") });
+        sentence.placeholder = t("claim_return_wager_new_sentence");
+        sentence.setAttribute("aria-label", t("claim_return_wager_new_sentence"));
+
+        this.renderAnswers(contentEl, () => (view.needsSentence ? sentence.value : this.session.answer ?? ""));
     }
 
     /** Stage one: your answer, and nothing else on screen. */
@@ -128,6 +214,18 @@ export class ClaimReturnModal extends Modal {
             contentEl.createDiv({ cls: c("claim-door-hint"), text: t("claim_return_no_lab") });
         }
 
+        this.renderAnswers(contentEl, () => says);
+    }
+
+    /**
+     * The three answers, wherever they are asked from.
+     *
+     * `sentenceOf` is a callback rather than a value because a wager reads the new sentence out of
+     * its own box at the moment you choose — the text you typed in the first stage was an
+     * observation, not a claim.
+     */
+    private renderAnswers(contentEl: HTMLElement, sentenceOf: () => string): void {
+        const canWithdraw = ThoughtStore.getInstance().folder().length > 0;
         const row = contentEl.createDiv({ cls: c("claim-return-answers") });
         const buttons: HTMLButtonElement[] = [];
         for (const answer of RETURN_ANSWERS) {
@@ -137,7 +235,7 @@ export class ClaimReturnModal extends Modal {
                 cls: answer === "confirmed" ? "mod-cta" : c("claim-return-answer-button"),
             });
             buttons.push(button);
-            button.addEventListener("click", () => void this.commit(answer, says, buttons));
+            button.addEventListener("click", () => void this.commit(answer, sentenceOf(), buttons));
         }
     }
 
@@ -153,6 +251,9 @@ export class ClaimReturnModal extends Modal {
                 origin: this.origin,
                 answer,
                 sentence,
+                // Resolving a wager takes its horizon off in the same write — otherwise it would
+                // come due again for ever (#571).
+                ...(this.session.wager ? { clearHorizon: true } : {}),
             });
             if (!done) {
                 new Notice(t("claim_door_failed"));

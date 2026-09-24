@@ -9,7 +9,14 @@ import { STATE_SUBJECT_PREFIX } from "architecture/knowledge/lifecycle/states";
  * **move** (#494), a **thought written about the note** (#540), or a **return** (#564) — what
  * changed, what you ruled, what you did, what you thought, and what you now say.
  */
-export type TimelineEventKind = "snapshot" | "judgement" | "move" | "thought" | "return" | "promotion";
+export type TimelineEventKind =
+    | "snapshot"
+    | "judgement"
+    | "move"
+    | "thought"
+    | "return"
+    | "promotion"
+    | "horizon";
 
 /**
  * A thought, as the timeline needs it (#540): where it is and when it was written, and nothing
@@ -73,6 +80,20 @@ export interface PromotionEvent {
 }
 
 /**
+ * A day you expect to know by (#572).
+ *
+ * The first thing this axis has ever drawn that **has not happened**. Every other event is a log
+ * entry — a snapshot, a verdict, a move, a thought — and a horizon is none of those: it is a date
+ * you set, sitting to the right of today until it arrives.
+ */
+export interface HorizonEvent {
+    /** What you expect to see. */
+    expectation: string;
+    /** The day, as a local day start. */
+    at: number;
+}
+
+/**
  * How far apart the snapshot and the verdict may be and still be one act.
  *
  * Five minutes. The write and the verdict are milliseconds apart when the return does them, so the
@@ -97,6 +118,8 @@ export interface TimelineEvent {
     return?: ReturnEvent;
     /** Present when `kind === "promotion"` (#581). */
     promotion?: PromotionEvent;
+    /** Present when `kind === "horizon"` (#572). The only event that has not happened. */
+    horizon?: HorizonEvent;
 }
 
 // A return sits where its verdict sat, because that is the moment it describes.
@@ -107,6 +130,8 @@ const RANK: Record<TimelineEventKind, number> = {
     promotion: 1,
     move: 2,
     thought: 3,
+    // Last on a tie, because a day you expect to know by is not something that happened then.
+    horizon: 4,
 };
 
 function kindRank(kind: TimelineEventKind): number {
@@ -133,7 +158,12 @@ export function timelineEvents(
      * a link that has been in the data all along. Which is also why the strand is **retroactive** —
      * a thought written before this shipped appears the first time the note is opened.
      */
-    thoughts: readonly ThoughtRef[] = []
+    thoughts: readonly ThoughtRef[] = [],
+    /**
+     * The wager this note is holding, if it holds one (#572). Default-absent, like every strand
+     * before it, so a note without one renders exactly as it did.
+     */
+    horizon?: HorizonEvent
 ): TimelineEvent[] {
     const events: TimelineEvent[] = [];
     for (const snapshot of snapshots) events.push({ at: snapshot.at, kind: "snapshot", snapshot });
@@ -141,7 +171,21 @@ export function timelineEvents(
     for (const move of moves) events.push({ at: move.at, kind: "move", move });
     for (const thought of thoughts) events.push({ at: thought.at, kind: "thought", thought });
     events.sort((a, b) => a.at - b.at || kindRank(a.kind) - kindRank(b.kind));
-    return pairReturns(events);
+
+    // **After** the joins, never into them. `pairReturns` exists to refuse a coincidence becoming a
+    // sentence, and feeding it an event that can be neither half of one is how it would start
+    // fabricating them. Inserting afterwards makes #564's and #581's output identical by
+    // construction — asserted, not assumed.
+    return withHorizon(pairReturns(events), horizon);
+}
+
+/** Put the day you expect to know by where it belongs in time — which is usually last. */
+function withHorizon(events: TimelineEvent[], horizon?: HorizonEvent): TimelineEvent[] {
+    if (!horizon) return events;
+    const mark: TimelineEvent = { at: horizon.at, kind: "horizon", horizon };
+    const before = events.filter((event) => event.at <= horizon.at);
+    const after = events.filter((event) => event.at > horizon.at);
+    return [...before, mark, ...after];
 }
 
 /** The claim texts one set has and the other does not, in note order. */

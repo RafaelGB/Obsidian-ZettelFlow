@@ -54,7 +54,14 @@ describe("at most one, and only past the boundary (#563)", () => {
         const exactly = modelOf([idea("Notes/a.md", "a claim", NOW - INTERVAL * DAY)]);
         const due = dueClaims({ model: exactly, intervalDays: INTERVAL, now: NOW });
         expect(due).toHaveLength(1);
-        expect(due[0]).toEqual({ path: "Notes/a.md", claim: "a claim", lastTouched: NOW - INTERVAL * DAY });
+        // `kind` since #571: the same selector now answers for claims and wagers, so every
+        // entry says which it is.
+        expect(due[0]).toEqual({
+            path: "Notes/a.md",
+            claim: "a claim",
+            lastTouched: NOW - INTERVAL * DAY,
+            kind: "claim",
+        });
     });
 
     it("offers one even when five are due, and it is the oldest", () => {

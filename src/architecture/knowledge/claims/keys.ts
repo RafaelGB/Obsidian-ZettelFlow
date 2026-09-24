@@ -5,6 +5,15 @@
 export const CLAIM_KEYS = ["claim"] as const;
 export const SOURCE_KEYS = ["source", "sources"] as const;
 
+/**
+ * A wager's two halves (#570): what you expect to see, and the day you expect to know by.
+ *
+ * Declared here, beside the claim and source keys, because this is the file every reader of a
+ * note's vocabulary already imports — a fifth reader cannot invent a sixth spelling.
+ */
+export const EXPECTATION_KEYS = ["expect"] as const;
+export const HORIZON_KEYS = ["by"] as const;
+
 const CLAIM_SET: ReadonlySet<string> = new Set(CLAIM_KEYS);
 const SOURCE_SET: ReadonlySet<string> = new Set(SOURCE_KEYS);
 
@@ -16,6 +25,11 @@ export function isClaimKey(value: string): boolean {
 /** True for a source key (`source` / `sources`). */
 export function isSourceKey(value: string): boolean {
     return SOURCE_SET.has(value);
+}
+
+/** True for a wager key (`expect` / `by`). */
+export function isWagerKey(value: string): boolean {
+    return (EXPECTATION_KEYS as readonly string[]).includes(value) || (HORIZON_KEYS as readonly string[]).includes(value);
 }
 
 /** True for any claim or source key — used to pick claim/source-bearing fields. */

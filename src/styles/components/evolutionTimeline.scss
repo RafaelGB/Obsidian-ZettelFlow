@@ -177,3 +177,10 @@
     border-left: var(--size-4-1) solid var(--interactive-accent);
     padding-left: var(--size-4-2);
 }
+
+// A day you expect to know by (#572). Muted at every distance: no countdown, no colour of alarm.
+.zettelkasten-flow__evolution-timeline-horizon {
+    border-left: var(--size-4-1) dashed var(--background-modifier-border);
+    padding-left: var(--size-4-2);
+    color: var(--text-muted);
+}

@@ -1227,6 +1227,9 @@ export default {
     // Una nota que promocionaste (#581): el snapshot dice qué es, esto dice que lo decidiste tú.
     evolution_timeline_promotion_label: 'Promocionada',
     evolution_timeline_promotion: 'la moviste a {0}',
+    // Un día en el que esperas saberlo (#572): la primera marca de este eje que no ha pasado.
+    evolution_timeline_horizon_label: 'Esperado',
+    evolution_timeline_horizon: 'dijiste que lo sabrías para entonces',
     // Entonces y ahora, en una línea (#564, epic #558): el veredicto y el cambio que provocó.
     evolution_timeline_return_label: 'Preguntado otra vez',
     evolution_timeline_return_confirmed: 'y sigue diciendo lo mismo',
@@ -1247,6 +1250,18 @@ export default {
     home_claim_return_when: 'Lo escribiste en {0}',
     home_claim_return_open: 'Volver a mirarlo',
     // Preguntado otra vez (#562, epic #558): la pregunta primero, la nota cerrada hasta que contestas.
+    // Algo en lo que puedes equivocarte (#571, epic #560): qué pasó, antes de qué esperabas.
+    claim_return_wager_intro: 'Contesta con lo que viste. Lo que esperabas sigue cerrado hasta que lo hagas.',
+    claim_return_wager_placeholder: 'Qué pasó',
+    claim_return_wager_reveal: 'Ahora enséñame lo que esperaba',
+    claim_return_expected: 'Esperabas',
+    claim_return_happened: 'Qué pasó',
+    claim_return_wager_claim: 'Y la nota dice',
+    claim_return_wager_new_sentence: 'Lo que dice ahora',
+    claim_return_wager_no_lab: 'Configura una carpeta de espacio de pensamiento para resolver una apuesta.',
+    home_claim_return_wager_title: 'Algo que esperabas está listo para mirarlo',
+    home_claim_return_wager_when: 'Dijiste que lo sabrías el {0}',
+    home_claim_return_wager_open: 'Ver qué pasó',
     claim_return_command: 'Volver a mirar esta afirmación',
     claim_return_title: '¿Qué dices de esto ahora?',
     claim_return_intro: 'Contesta con lo que piensas hoy. La nota sigue cerrada hasta que lo hagas.',
@@ -1270,6 +1285,8 @@ export default {
     claim_door_other_claims: 'Esta nota dice más de una cosa. Estás editando la primera.',
     claim_door_source_placeholder: 'Y de dónde viene: una nota o una referencia (opcional)',
     claim_return_cites: 'Cita {0}',
+    claim_door_expect_placeholder: 'Y qué esperas ver (opcional)',
+    claim_door_by_label: 'El día en que esperas saberlo',
     claim_door_saved: 'La afirmación está en la nota.',
     claim_door_failed: 'No se ha podido escribir la afirmación.',
     // Una promoción es un hecho sobre dos estados (#580): el chip dice dónde estás, esto qué se movió.

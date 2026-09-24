@@ -1,11 +1,14 @@
 import { TFile } from "obsidian";
 import { log } from "architecture/monitoring/Logger";
-import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
+// Through the barrel, which is the seam the write-path harness fakes — a deep import here would
+// make every write of a claim untestable offline.
+import { ObsidianApi } from "architecture";
 import { FrontmatterService } from "architecture/plugin/services/FrontmatterService";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { claimSubject } from "architecture/knowledge/claims";
-import { applyClaim, applySource, claimTextsOf, declaredSources } from "application/claims";
+import { applyClaim, applySource, applyWager, claimTextsOf, declaredSources, type WagerInput } from "application/claims";
+import { wagerOf, type Wager } from "architecture/knowledge/claims";
 
 /**
  * Stating what a note claims (#561, epic #558) — the impure half.
@@ -35,16 +38,27 @@ export function declaredSourcesOf(file: TFile): string[] {
     return declaredSources(FrontmatterService.instance(file).getAllFrontmatter());
 }
 
+/** The wager this note carries, if it carries one (#570). Both halves, or nothing. */
+export function statedWager(file: TFile): Wager | undefined {
+    return wagerOf(FrontmatterService.instance(file).getAllFrontmatter());
+}
+
 /**
  * Write the sentence onto the note and record the verdict. Returns whether anything was written.
  *
  * A blank sentence, a path that is not a note, or a failed write all return `false` having changed
  * nothing — the caller says so on screen rather than this pretending it worked.
  *
- * The optional `source` (#582) goes in the **same** frontmatter update and the same write batch:
- * the sentence and where it came from are one thing you said, so they are one thing to undo.
+ * The optional `source` (#582) and `wager` (#570) go in the **same** frontmatter update and the
+ * same write batch: the sentence, where it came from and what you expect to see are one thing you
+ * said, so they are one thing to undo.
  */
-export async function stateClaim(path: string, sentence: string, source?: string): Promise<boolean> {
+export async function stateClaim(
+    path: string,
+    sentence: string,
+    source?: string,
+    wager?: WagerInput
+): Promise<boolean> {
     const text = sentence?.trim() ?? "";
     if (text.length === 0) return false;
 
@@ -56,7 +70,10 @@ export async function stateClaim(path: string, sentence: string, source?: string
             let applied = false;
             await FrontmatterService.instance(file).update((frontmatter) => {
                 applied = applyClaim(frontmatter, text);
-                if (applied && source) applySource(frontmatter, source);
+                if (!applied) return;
+                if (source) applySource(frontmatter, source);
+                // An incomplete pair writes nothing rather than half a wager (#570).
+                if (wager) applyWager(frontmatter, wager);
             });
             if (!applied) return false;
             // Your own initiative, not a proposal you accepted: `origin: "human"` (#336).

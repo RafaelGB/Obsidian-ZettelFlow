@@ -24,6 +24,12 @@ For the active note, `buildEvidenceMap` composes existing graph primitives:
 - **Evidence** — the **sourced** claims (#148) on the note *and* its supporting notes: each entry is
   a real claim grounded to a real note and a real source (`[[link]]` or a citation). **Only sourced
   claims appear here** — that's the "no unsourced claims" rule.
+> **Where the claims come from now (#582).** Until #561 this map was empty in every vault, because
+> a claim could only be written by hand-editing YAML — and the first version of that door wrote the
+> claim without its source, which landed every new claim straight in *Gaps* below. The
+> [claim door](claim-returns.md) now offers the source on the same line, so an idea arrives here
+> grounded rather than thin.
+
 - **Gaps** — where the position is thin: the note's **unsourced claims** (claims with no evidence)
   and its **open questions** (the #153 `findUnansweredQuestions`).
 

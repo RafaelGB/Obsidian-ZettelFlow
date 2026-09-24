@@ -1,4 +1,10 @@
-# Attach source action
+# Attach source
+
+> Since #582 this action is no longer the only way to write a source: the
+> [claim door](../development/claim-returns.md) offers it as an optional second line, and
+> Cultivate's *add a source* move writes it too. All three build the field through this action's
+> `sourceField`, so there is **one** writer — and the Cultivate path no longer clobbers a note that
+> already declares several sources. action
 
 🔍 A **Research** action (#155). Attaches a **source** — a `[[wikilink]]` to a note or free text
 (URL / DOI / citation) — to the **note being built**, written under the `source` frontmatter key so

@@ -5,7 +5,7 @@ import { FrontmatterService } from "architecture/plugin/services/FrontmatterServ
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { claimSubject } from "architecture/knowledge/claims";
-import { applyClaim, claimTextsOf } from "application/claims";
+import { applyClaim, applySource, claimTextsOf, declaredSources } from "application/claims";
 
 /**
  * Stating what a note claims (#561, epic #558) — the impure half.
@@ -30,13 +30,21 @@ export function statedClaims(file: TFile): string[] {
     return claimTextsOf(FrontmatterService.instance(file).getAllFrontmatter());
 }
 
+/** What it says it came from, for the second line to arrive prefilled too (#582). */
+export function declaredSourcesOf(file: TFile): string[] {
+    return declaredSources(FrontmatterService.instance(file).getAllFrontmatter());
+}
+
 /**
  * Write the sentence onto the note and record the verdict. Returns whether anything was written.
  *
  * A blank sentence, a path that is not a note, or a failed write all return `false` having changed
  * nothing — the caller says so on screen rather than this pretending it worked.
+ *
+ * The optional `source` (#582) goes in the **same** frontmatter update and the same write batch:
+ * the sentence and where it came from are one thing you said, so they are one thing to undo.
  */
-export async function stateClaim(path: string, sentence: string): Promise<boolean> {
+export async function stateClaim(path: string, sentence: string, source?: string): Promise<boolean> {
     const text = sentence?.trim() ?? "";
     if (text.length === 0) return false;
 
@@ -48,6 +56,7 @@ export async function stateClaim(path: string, sentence: string): Promise<boolea
             let applied = false;
             await FrontmatterService.instance(file).update((frontmatter) => {
                 applied = applyClaim(frontmatter, text);
+                if (applied && source) applySource(frontmatter, source);
             });
             if (!applied) return false;
             // Your own initiative, not a proposal you accepted: `origin: "human"` (#336).

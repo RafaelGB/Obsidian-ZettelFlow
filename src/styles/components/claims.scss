@@ -5,6 +5,17 @@
     margin-block: var(--size-4-2);
 }
 
+.zettelkasten-flow__claim-door-source {
+    width: 100%;
+    margin-block-end: var(--size-4-2);
+}
+
+.zettelkasten-flow__claim-return-cites {
+    margin-block-end: var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
 .zettelkasten-flow__claim-door-hint {
     margin-block-end: var(--size-4-2);
     color: var(--text-muted);

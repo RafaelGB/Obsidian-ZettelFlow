@@ -93,6 +93,17 @@ describe("the claim is absent until you have answered (#562)", () => {
         expect(claimReturnView(state()).oneOfSeveral).toBe(false);
     });
 
+    it("says what the claim cites, in both stages, and never asks for one (#582)", () => {
+        const cites = ["[[Team topologies]]"];
+        expect(claimReturnView(state({ cites })).cites).toEqual(cites);
+        const answered = claimReturnView(state({ cites, answer: "something else" }));
+        expect(answered.cites).toEqual(cites);
+        // And the promise of #562 is untouched by it.
+        expect(claimReturnView(state({ cites })).said).toBeUndefined();
+        expect(claimReturnView(state()).cites).toEqual([]);
+        expect(RETURN).not.toContain("applySource");
+    });
+
     it("carries the draft, and says whether the history is being kept", () => {
         expect(claimReturnView(state({ draft: "half a sentence" })).draft).toBe("half a sentence");
         expect(claimReturnView(state()).draft).toBe("");

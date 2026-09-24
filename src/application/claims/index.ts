@@ -9,4 +9,5 @@ export {
     type ClaimReturnState,
     type ClaimReturnView,
 } from "./claimReturn";
+export { applySource, declaredSources, SOURCE_EDIT_INDEX } from "./sourceEdit";
 export { keepDraft, readDraft, clearDraft } from "./returnDraft";

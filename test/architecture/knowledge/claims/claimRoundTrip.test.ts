@@ -2,7 +2,7 @@ import { describe, it, expect, jest } from "@jest/globals";
 import { __setMockObsidianApi } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge/KnowledgeIndex";
 import { ClaimSourceSchema } from "architecture/knowledge/claims";
-import { applyClaim } from "application/claims";
+import { applyClaim, applySource } from "application/claims";
 import { TFile } from "obsidian";
 
 function file(path: string): TFile {
@@ -38,6 +38,9 @@ describe("a stated claim reaches the model (#561)", () => {
                     frontmatter: target.path === "Notes/real one.md" ? stated : {},
                     tags: [],
                 }),
+                // A wikilink source is resolved through the cache, exactly as the real snapshot does.
+                getFirstLinkpathDest: (name: string) =>
+                    files.find((file) => file.basename === name) ?? null,
                 resolvedLinks: {},
                 on: jest.fn(() => ({})),
             } as never,
@@ -48,6 +51,18 @@ describe("a stated claim reaches the model (#561)", () => {
         index.useSettingsHost({ settings: { excludedPaths: [], thoughtLabPath: "_ZettelFlow/lab" } as never });
         index.build();
     }
+
+    it("calls the note sourced once the door wrote where it came from (#582)", () => {
+        // The point of #582: using the door must not leave the note in the `unsourced` category.
+        const frontmatter: Record<string, unknown> = {};
+        applyClaim(frontmatter, "microservices move complexity");
+        applySource(frontmatter, "[[real two]]");
+        buildWith(frontmatter);
+
+        const idea = index.getModel().get("Notes/real one.md");
+        expect(idea?.maturitySignals.hasSources).toBe(true);
+        expect(idea?.claims[0].sources).toEqual([{ ref: "Notes/real two.md", kind: "link" }]);
+    });
 
     it("turns the sentence into the note's claim, and leaves the untouched note empty", () => {
         const frontmatter: Record<string, unknown> = {};

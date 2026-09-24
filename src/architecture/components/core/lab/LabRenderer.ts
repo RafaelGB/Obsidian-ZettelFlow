@@ -19,6 +19,9 @@ import { appearedSince, isIncubated, pickBackUp, setAside } from "application/th
 import { KnowledgeIndex } from "architecture/knowledge";
 import { CrystallizeModal } from "./CrystallizeModal";
 import { BlindPanel } from "./BlindPanel";
+import { CollisionPanel } from "./CollisionPanel";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { drawCollision, type Collision, type CollisionDistance } from "architecture/knowledge/state";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -81,6 +84,13 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** Whether the short explanation of the moves is on screen. */
     private showingLegend = false;
     private blind: BlindPanel | undefined;
+    /** Whether the collision panel is open. A choice, never a mode you are put into (#567). */
+    private colliding = false;
+    private collision: CollisionPanel | undefined;
+    /** The note a collision is anchored to, when you arrived here from one (#569). */
+    private anchor: string | undefined;
+    /** The second note a thought is about, when it came out of a collision. */
+    private alsoAbout: string | undefined;
 
     /** What you are looking for. Empty is the normal state, and it shows everything. */
     private filter = "";
@@ -298,6 +308,14 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.asking = !this.asking;
             this.render();
         });
+        this.ghostAction(actions, this.colliding ? t("collision_close") : t("collision_open"), "shuffle", () => {
+            this.colliding = !this.colliding;
+            if (!this.colliding) {
+                this.anchor = undefined;
+                this.forgetPair();
+            }
+            this.render();
+        });
         if (this.showingLegend) this.renderLegend(host);
 
         if (this.asking) {
@@ -309,7 +327,36 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.addChild(this.blind);
         }
 
-        if (this.about) {
+        // *Make a move… → analogy* on a note arrives here framed, with the note as the subject
+        // (#499). Nothing in the move vocabulary changed to make this happen: the verb already
+        // opens the thinking space, and this is what the space now does when it does.
+        if (this.frame === "analogy" && this.about && !this.colliding && !this.anchor) {
+            this.anchor = this.about;
+            this.colliding = true;
+        }
+
+        if (this.colliding) {
+            const panel = host.createDiv();
+            this.collision?.unload();
+            this.collision = new CollisionPanel(panel, {
+                draw: (distance: CollisionDistance) => this.drawPair(distance),
+                card: (path: string) => this.cardFor(path),
+                open: (path: string) => void this.app.workspace.openLinkText(path, "", false),
+                onPair: (pair: Collision | null) => this.armPair(pair),
+                // Absent when the record is off, so the control is never there to do nothing.
+                ...(JudgementLog.getInstance().enabled()
+                    ? {
+                          dismiss: (pair: Collision) =>
+                              JudgementLog.getInstance().recordCollisionVerdict(pair.a, pair.b),
+                      }
+                    : {}),
+            });
+            this.addChild(this.collision);
+        }
+
+        // The banner names *the* note a thread came from. A collision has two, and the panel above
+        // is already showing both — a banner naming one of them would be a third, wrong, answer.
+        if (this.about && !this.colliding) {
             const banner = host.createDiv({ cls: c("lab-about-banner") });
             setIcon(banner.createSpan({ cls: c("lab-subject-icon") }), "file-text");
             banner.createSpan({
@@ -487,9 +534,13 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // Inherited, so a thread keeps the context you arrived with — including the answers
         // you write to your own thoughts an hour later.
         const subject = relation ? this.subjectOf(relation.to) ?? this.about : this.about;
+        // A collision's answer is about **both** notes, and a response inherits both, so a thread
+        // that came out of one keeps the pair it came from (#567).
+        const alsoSubject = relation ? this.alsoSubjectOf(relation.to) ?? this.alsoAbout : this.alsoAbout;
         const made = await ThoughtStore.getInstance().write(text, {
             ...(relation ? { respondsTo: relation } : {}),
             ...(subject ? { about: subject } : {}),
+            ...(alsoSubject ? { alsoAbout: alsoSubject } : {}),
         });
 
         // The box is cleared **after** the write, not before it. It used to be cleared first, so a
@@ -776,6 +827,63 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** What an existing thought is about, so a response inherits it rather than losing it. */
     private subjectOf(id: string): string | undefined {
         return this.thoughts.find((thought) => thought.id === id)?.about;
+    }
+
+    /** The second subject a thread carries, when it came out of a collision (#567). */
+    private alsoSubjectOf(id: string): string | undefined {
+        return this.thoughts.find((thought) => thought.id === id)?.alsoAbout;
+    }
+
+    /**
+     * Draw a pair. The seed is the clock, read **here** — the projection takes it as an argument so
+     * that it stays reproducible, and this is the one place where "another one" honestly means a
+     * different roll.
+     */
+    private drawPair(distance: CollisionDistance): Collision | null {
+        const index = KnowledgeIndex.getInstance();
+        if (index.status !== "ready") return null;
+        return drawCollision(index.getModel(), {
+            distance,
+            seed: Date.now(),
+            // One side is fixed when you came from a note: *this* note, against something far away.
+            ...(this.anchor ? { from: this.anchor } : {}),
+            // The one filter, read where it is applied (#568).
+            ruledOut: JudgementLog.getInstance().entries(),
+        });
+    }
+
+    /** Two titles and what each note claims, if it claims anything. Nothing inferred. */
+    private cardFor(path: string): { path: string; title: string; claim?: string } {
+        const idea = KnowledgeIndex.getInstance().getModel().get(path);
+        const claim = idea?.claims[0]?.text?.trim();
+        return {
+            path,
+            title: (path.split("/").pop() ?? path).replace(/\.md$/i, ""),
+            ...(claim ? { claim } : {}),
+        };
+    }
+
+    /**
+     * Arm the composer about the pair on screen (#567).
+     *
+     * The frame is `analogy` — the verb the move vocabulary already has for *what could these two
+     * share* — so writing the thought records `explore · analogy` through the path #499 built, at
+     * the moment the thought is written and never when the pair appears (#500).
+     */
+    private armPair(pair: Collision | null): void {
+        if (!pair) {
+            this.forgetPair();
+            return;
+        }
+        this.about = pair.a;
+        this.alsoAbout = pair.b;
+        this.frame = "analogy";
+    }
+
+    private forgetPair(): void {
+        this.about = undefined;
+        this.alsoAbout = undefined;
+        this.frame = undefined;
     }
 
     /**

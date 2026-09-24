@@ -48,6 +48,14 @@ canvas wizard, it ships a set of tools that grow and maintain your slip-box:
   you explicitly marked as used and never overwrite an existing note. No AI or workflow setup needed;
   ordinary Cultivate remains available. See [Cultivate](docs/development/cultivate.md).
 
+- **🎲 Two things far apart** — the vault puts two of your notes side by side that have **nothing**
+  in common — no shared neighbour, different neighbourhoods, sometimes a note nothing links to at
+  all — and asks one question: *what could these two have in common?* It never answers it. Your
+  connection is the thinking, and the answer becomes a thought carrying both notes, so both of their
+  timelines remember it. Found nothing? Say so, and that pair never comes back. Nothing is counted,
+  nothing is due, and there is no right answer. See
+  [two things far apart](docs/architecture/collision.md).
+
 - **💬 What this note claims, asked again** — say in one sentence what a note claims, from the note's
   own menu. Weeks later ZettelFlow brings it back **one at a time** and asks what you say about it
   now — with the note shut until you have answered, so what comes back is your own thinking and not
@@ -248,6 +256,7 @@ Stuck? Read the [Getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 | Feature | Description |
 |---|---|
 | **Knowledge with purpose** | One saved inquiry inside Home → Cultivate: user-chosen note/purpose, selected-only or one-hop context, explicitly consulted references, human-controlled provisional resolution, local pause/resume and create-only Markdown snapshots with recoverable retries. Offline; no mandatory AI, methodology or Canvas setup. |
+| **Two things far apart (collision)** | A pair of your notes with no shared neighbour, drawn from different neighbourhoods — or from the notes nothing links to, which no other reader in the product can see. One question between them and no answer to it: no hint, no example, no AI. Answering writes a thought carrying both notes; *nothing here* records a verdict and the pair never returns; closing it records nothing at all. The 48.7 M pairs a ten-thousand-note vault contains are never enumerated — one is drawn, in a couple of index lookups. |
 | **The return of a claim** | One gesture writes what a note claims — and, optionally, where it came from, so saying what you think does not quietly add to your debt — the field that has existed since #148 and that nobody could write without hand-editing YAML. Home then offers it back, one at a time, after a duration you choose (7–365 days, default 90): the question first, the note shut, and only then both sentences side by side. *It still says this* writes nothing; *it says this now* rewrites it; *I no longer hold this* puts the sentence in the thinking space rather than deleting it. Every verdict is recorded without its text, and the timeline tells the change and the verdict as one line. No counts, no streaks, no reminders, no adaptive schedule. |
 | **Canvas-based flows** | Use Obsidian's native canvas as the workflow engine — no custom DSL to learn. |
 | **Knowledge patterns** | Templates that carry behavior — on creation a pattern runs its attached offline knowledge/relation actions through the standard pipeline. The shipped **Permanent Note** pattern wires find related · find contradictions · suggest links · calculate maturity, computed against your existing graph. Results are **recomputed once, automatically, after the note is indexed**, so a brand-new note lands already connected (on by default, offline). Additive & backward-compatible; legacy templates are unchanged. |

@@ -15,6 +15,7 @@ import { clearMemo } from "architecture/knowledge/model/memo";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 import { generateBody, generateVault } from "./generateVault";
 import { dueClaims } from "architecture/knowledge/review/dueClaims";
+import { drawCollision } from "architecture/knowledge/map/drawCollision";
 import { newThought, type Thought } from "application/thinking/thought";
 import { filterThreads, threadThoughts } from "application/thinking/thread";
 
@@ -351,5 +352,24 @@ describe("what comes back (#563)", () => {
         const now = Date.now();
         const ms = timed("analysis.heaviest", () => dueClaims({ model, intervalDays: 90, now }), 10_000);
         assertBudget("analysis.dueclaims.10k", ms);
+    });
+});
+
+describe("two things nowhere near each other (#566)", () => {
+    it("analysis.collision.draw.10k", () => {
+        const model = modelOf(10_000);
+        // The partition is a function of the model and memoised like the projections it reads, so
+        // the honest number is the **warm** one: what one draw costs while the panel is open. The
+        // cold pass is `buildKnowledgeMap` + `communitiesOf`, both already budgeted above.
+        drawCollision(model, { seed: 0, distance: "very-far" });
+        const ms = timed(
+            "analysis.heaviest",
+            () => {
+                for (let seed = 1; seed <= 100; seed++) drawCollision(model, { seed, distance: "very-far" });
+            },
+            10_000
+        );
+        // Per draw, which is what the number has to mean for it to be honest.
+        assertBudget("analysis.collision.draw.10k", ms / 100);
     });
 });

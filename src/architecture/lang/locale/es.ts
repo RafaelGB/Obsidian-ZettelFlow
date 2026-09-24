@@ -1274,6 +1274,18 @@ export default {
     claim_door_failed: 'No se ha podido escribir la afirmación.',
     // Una promoción es un hecho sobre dos estados (#580): el chip dice dónde estás, esto qué se movió.
     cultivate_state_transition: 'Era {0}, ahora {1}',
+    // Dos cosas que no se tocan (#567, epic #559): la pregunta, y ninguna respuesta.
+    collision_open: 'Dos cosas lejanas',
+    collision_close: 'Cerrar',
+    collision_title: '¿Qué podrían tener en común estas dos?',
+    collision_intro: 'Dos notas sin nada entre ellas. La respuesta es tuya: aquí no se te va a ofrecer ninguna.',
+    collision_another: 'Otro par',
+    collision_nothing_here: 'Aquí no hay nada',
+    collision_nothing_here_tooltip: 'Este par no se volverá a ofrecer',
+    collision_distance_far: 'Lejos',
+    collision_distance_very_far: 'Lo más lejos que llega este vault',
+    collision_nothing_far_enough: 'Aquí todavía no hay nada lo bastante lejos.',
+    collision_open_note: 'Abrir esta nota',
     move_pick_title: 'Hacer un movimiento…',
     move_pick_placeholder: '¿Qué le estás haciendo a {0}?',
     move_primitive_externalize: 'Sacarlo fuera',

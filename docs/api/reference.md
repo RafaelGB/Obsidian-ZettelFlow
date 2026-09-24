@@ -16,6 +16,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `agency` | `(path: string) => AgencySignals` | Counts of the verdicts you have given on one idea. Never a score. |
 | `agencyIndex` | `(opts?: AgencyMetricsOptions) => AgencyIndex` | How much you shaped interpretive output vs accepted it as-is. A description, never a score. |
 | `balance` | `() => KnowledgeBalance` | How the vault is composed across fleeting, literature and permanent ideas. |
+| `collision` | `(opts?: { distance?: CollisionDistance; seed?: number; from?: string }) => Collision \| null` | Two notes with nothing in common, drawn — the complement of a gap. Null when this vault has nothing far enough apart. |
 | `cultivationQueue` | `(exclude?: string[], limit?: number) => string[]` | Ideas most worth thinking about next. |
 | `dashboard` | `() => DashboardModel` | The headline metrics of the whole vault. |
 | `debt` | `() => KnowledgeDebt` | Ideas carrying structural debt — orphans, stubs, unsourced claims. |

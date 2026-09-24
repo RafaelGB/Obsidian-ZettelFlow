@@ -1,4 +1,6 @@
 import {
+    collisionVerdict,
+    ruledOutCollisions,
     gapVerdict,
     recordJudgement,
     judgementDays,
@@ -105,6 +107,22 @@ export class JudgementLog {
         if (!left || !right || left === right) return;
         if (ruledOutGaps(this.entries()).has(left, right)) return;
         this.record(gapVerdict(left, right), now);
+    }
+
+    /**
+     * Rule a collision out: **there is nothing between these two** (#568).
+     *
+     * The same act as a gap verdict about the opposite object — a pair that almost touches, and a
+     * pair nowhere near each other — so it is the same shape, the same idempotence and the same
+     * promise: nothing is written to either note.
+     */
+    public recordCollisionVerdict(a: string, b: string, now: number = Date.now()): void {
+        if (!this.host || !this.enabled()) return;
+        const left = a?.trim();
+        const right = b?.trim();
+        if (!left || !right || left === right) return;
+        if (ruledOutCollisions(this.entries()).has(left, right)) return;
+        this.record(collisionVerdict(left, right), now);
     }
 
     private scheduleSave(): void {

@@ -12,7 +12,17 @@ import { CAPABILITIES } from "architecture/components/core/surface/capabilities"
  * precisely because nobody noticed a capability going quiet. Comparing the committed block against
  * the generator means a door can move — but not silently.
  */
-const PAGE = readFileSync(join(__dirname, "..", "..", "docs", "development", "capability-doors.md"), "utf8");
+/**
+ * Read with line endings normalised. The generator joins with a bare newline; git hands a Windows
+ * checkout the same file with a carriage return in front of every one — so a raw comparison passes
+ * on CI and fails on half the machines that would run it, which is the worst kind of guardrail.
+ */
+const CRLF = new RegExp(String.fromCharCode(13) + String.fromCharCode(10), "g");
+const LF = String.fromCharCode(10);
+const PAGE = readFileSync(join(__dirname, "..", "..", "docs", "development", "capability-doors.md"), "utf8").replace(
+    CRLF,
+    LF
+);
 
 describe("docs/development/capability-doors.md (#575)", () => {
     it("carries the generated block, unedited", () => {

@@ -214,7 +214,9 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         toggle.toggleClass(c("ask-graph-lens--active"), on);
         this.registerDomEvent(toggle, "click", () => void this.setThinkFirst(!on));
 
-        this.gate?.unload();
+        // `removeChild`, not `unload`: an unloaded child that is still in the parent's list gets
+        // unloaded a second time when the surface closes. Harmless today and not worth inheriting.
+        if (this.gate) this.removeChild(this.gate);
         this.gate = null;
         this.gateEl = null;
         if (!on) return;

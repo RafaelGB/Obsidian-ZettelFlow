@@ -4,7 +4,7 @@ ZettelFlow doesn't just *store* your notes; it makes your knowledge **evolve**, 
 This page is the tour: the immersive graph, the cinematic fly-through, and the ways to share what your
 thinking looks like — all **offline**, and all **without AI** if you want.
 
-> The captures below are placeholders while the 3.2.0 features settle; they're replaced with real
+> The captures below are placeholders while the 3.3.0 features settle; they're replaced with real
 > screenshots/GIFs before release.
 
 ## Knowledge Galaxy — see the shape of your thinking

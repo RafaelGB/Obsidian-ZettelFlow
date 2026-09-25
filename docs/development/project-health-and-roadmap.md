@@ -1,7 +1,7 @@
 # Project health & roadmap
 
 A candid snapshot of ZettelFlow's technical debt and a plan to give it a new life. Audit date:
-**2026-07-31** (plugin `v2.11.0`).
+**2026-09-25** (plugin `v3.3.0`).
 
 ## Health snapshot
 
@@ -21,7 +21,7 @@ A candid snapshot of ZettelFlow's technical debt and a plan to give it a new lif
 |---|---|---|---|
 | 1 | ~~**`versions.json` missing**~~ — present; maps `2.11.0→1.7.2`, `2.12.0→1.13.1` | — | repo root |
 | 2 | ~~**`version-bump.mjs` missing**~~ — present; run by `npm version` | — | repo root |
-| 3 | **Thin tests on the write paths** — pure-logic breadth is now high (~189 suites); the vault-mutating paths are the remaining gap, addressed by **epic #317 (E2, the safety net)** | Limited regression safety net on writes | whole repo |
+| 3 | **Thin tests on the write paths** — pure-logic breadth is now high (405 suites / 3,062 tests at 3.3.0); the vault-mutating paths are the remaining gap, addressed by **epic #317 (E2, the safety net)** | Limited regression safety net on writes | whole repo |
 | 4 | ~~**Obsidian-rule backlog** (was 475 problems)~~ — **cleared and blocking, zero relaxations** (#85, #111, #112) | — | tooling |
 | 5 | ~~**`innerHTML` usage (~8)**~~ — 0 remaining; enforced by the blocking Obsidian lint | — | — |
 | 6 | ~~**Widespread inline styles** (`el.style.*`)~~ — 0 remaining, enforced by the blocking Obsidian lint | — | — |

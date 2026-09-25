@@ -17,7 +17,7 @@ each step's **actions**. It's a monorepo:
   **fully static**: `docs/main_template.json` + `docs/systems/*.zftemplate` served over GitHub raw
   (no backend — #294).
 
-Current version: `3.1.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
+Current version: `3.3.0`, `minAppVersion 1.13.1`, desktop **and** mobile (`isDesktopOnly:false`).
 
 ## Architecture in 60 seconds
 
@@ -116,7 +116,7 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 ## Known gaps (don't be surprised)
 
 - **`versions.json` and `version-bump.mjs` are present** — `npm version <x.y.z>` bumps
-  `manifest.json` and records the `version → minAppVersion` map. Current release line: `3.1.0`.
+  `manifest.json` and records the `version → minAppVersion` map. Current release line: `3.3.0`.
 - **Tests are only seeded** — a jest + TDD harness now exists (pure-logic suites); breadth must
   grow (tracked by issues).
 - `eslint-plugin-obsidianmd` is **clean and blocking** (was a 475-problem baseline; #85). All

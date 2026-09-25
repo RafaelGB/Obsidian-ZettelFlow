@@ -3,6 +3,7 @@ import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
 import {
@@ -18,7 +19,6 @@ import { planCrystallization } from "application/thinking/crystallize";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { CrystallizeModal } from "./CrystallizeModal";
-import { BlindPanel } from "./BlindPanel";
 import { CollisionPanel } from "./CollisionPanel";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { drawCollision, type Collision, type CollisionDistance } from "architecture/knowledge/state";
@@ -79,11 +79,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
      * come back because you decided to, never because something told you how many were waiting.
      */
     private showingAside = false;
-    /** Whether the blind question panel is open. A choice, never a mode you are put into. */
-    private asking = false;
     /** Whether the short explanation of the moves is on screen. */
     private showingLegend = false;
-    private blind: BlindPanel | undefined;
     /** Whether the collision panel is open. A choice, never a mode you are put into (#567). */
     private colliding = false;
     private collision: CollisionPanel | undefined;
@@ -300,32 +297,33 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const said = header.createDiv();
         said.createDiv({ cls: c("lab-intro"), text: t("lab_intro") });
         const actions = header.createDiv({ cls: c("lab-header-actions") });
-        this.ghostAction(actions, t("lab_legend_open"), "help-circle", () => {
-            this.showingLegend = !this.showingLegend;
-            this.render();
+        // One primary, and it is the collision: the one control here that *starts something*
+        // (#577). Crystallize is not a candidate — it lives in the picked bar, on the selection it
+        // acts upon, and promoting it would put a permanently inert button in the header, which is
+        // exactly the clutter #542 removed. The legend explains; it does not open anything.
+        const bar = new ModeHeader(actions, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        bar.primary({
+            label: this.colliding ? t("collision_close") : t("collision_open"),
+            icon: "shuffle",
+            onClick: () => {
+                this.colliding = !this.colliding;
+                if (!this.colliding) {
+                    this.anchor = undefined;
+                    this.forgetPair();
+                }
+                this.render();
+            },
         });
-        this.ghostAction(actions, this.asking ? t("blind_close") : t("blind_open"), "eye-off", () => {
-            this.asking = !this.asking;
-            this.render();
+        bar.secondary({
+            label: t("lab_legend_open"),
+            icon: "help-circle",
+            onClick: () => {
+                this.showingLegend = !this.showingLegend;
+                this.render();
+            },
         });
-        this.ghostAction(actions, this.colliding ? t("collision_close") : t("collision_open"), "shuffle", () => {
-            this.colliding = !this.colliding;
-            if (!this.colliding) {
-                this.anchor = undefined;
-                this.forgetPair();
-            }
-            this.render();
-        });
+        bar.done();
         if (this.showingLegend) this.renderLegend(host);
-
-        if (this.asking) {
-            const panel = host.createDiv();
-            this.blind?.unload();
-            this.blind = new BlindPanel(panel, (path) => {
-                void this.app.workspace.openLinkText(path, "", false);
-            });
-            this.addChild(this.blind);
-        }
 
         // *Make a move… → analogy* on a note arrives here framed, with the note as the subject
         // (#499). Nothing in the move vocabulary changed to make this happen: the verb already

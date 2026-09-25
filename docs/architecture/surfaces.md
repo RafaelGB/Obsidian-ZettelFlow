@@ -59,6 +59,48 @@ Every mode reuses the retired view's rendering **verbatim** — same numbers, sa
 inside the surface as a `KnowledgeModeRenderer` (an Obsidian `Component`, so its listeners are cleaned
 up on every mode switch).
 
+## One primary action per header (#577)
+
+A mode's header may carry **one** control that opens a capability. A refresh, a filter, and moving
+around inside the mode are not that.
+
+The reason is measured rather than aesthetic. The Lab drew its legend and the mechanic that starts a
+collision through one private helper, with one class and one weight — so nothing on screen said
+which of them mattered, and *think before you look* sat in that row for a release without being
+found. It is the same shape [#509](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/509) found
+in the move buttons (*"the thing the picker exists to avoid, put back by hand"*) and
+[#542](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/542) in the 3D view (*subtract, then a
+gear*), one level down.
+
+`ModeHeader` is the shared helper, and its three calls are the three ranks:
+
+| call | what it draws | for |
+|---|---|---|
+| `primary()` | one `mod-cta` button, with an icon | the control that opens something. Calling it twice **throws** |
+| `nav()` | a plain, muted button, in the header | next idea, refresh, a filter — navigation inside the mode |
+| `secondary()` | an item in one overflow menu | everything else the header used to carry |
+
+What the rule does **not** reach: a cancel that appears while a composer is armed, an undo drawn
+where the card was, a clear beside the filter it clears. Those are controls on the thing they act
+upon, and two of them were placed deliberately, against a toast, for reasons written down at the
+time.
+
+The three headers it re-ranked:
+
+| mode | primary | header navigation | overflow |
+|---|---|---|---|
+| Lab | start a collision | — | the legend |
+| Cultivate | work on your own question | another idea | think about this instead |
+| This note (timeline) | share the idea card | refresh, cognitive-only filter | — |
+
+Crystallize is deliberately **not** the Lab's primary. It lives in the picked bar, on the selection
+it acts upon; promoting it would put a permanently inert button in the header, which is exactly the
+clutter #542 removed.
+
+`onePrimaryAction.test.ts` counts the `primary()` calls per renderer. It cannot tell a capability
+from navigation — that is a judgement — but it makes the judgement singular and visible in a diff,
+and `ModeHeader` throws on the second call, so the two halves cover each other.
+
 ## Open as tabs
 
 Surfaces open as normal **main-area tabs** (`getLeaf('tab')`), not only in the right sidebar — so you

@@ -55,6 +55,10 @@ describe("makeActivatable (#319 S3)", () => {
 const ROOT = join(__dirname, "..", "..", "..", "..");
 const MODE_HOST = readFileSync(join(ROOT, "src", "architecture", "components", "core", "surface", "ModeHostView.ts"), "utf8");
 const GRAPH = readFileSync(join(ROOT, "src", "architecture", "components", "core", "graph3d", "Graph3DRenderer.ts"), "utf8");
+const MODE_HEADER = readFileSync(
+    join(ROOT, "src", "architecture", "components", "core", "surface", "ModeHeader.ts"),
+    "utf8"
+);
 
 describe("surface tablist keyboard semantics (#319 S3)", () => {
     it("declares a proper tablist/tab/tabpanel with roving tabindex and arrow-key navigation", () => {
@@ -65,6 +69,31 @@ describe("surface tablist keyboard semantics (#319 S3)", () => {
         expect(MODE_HOST).toContain("aria-labelledby");
         expect(MODE_HOST).toContain("onTabKeydown");
         expect(MODE_HOST).toMatch(/ArrowRight|ArrowLeft/);
+    });
+});
+
+describe("a mode header's overflow is operable without a mouse (#577)", () => {
+    it("is a real button, so it is in the tab order at all", () => {
+        // A `clickable-icon` div would look identical and be unreachable. Obsidian's own class on
+        // an actual `<button>` gets the theme and the semantics both.
+        expect(MODE_HEADER).toContain('createEl("button"');
+        expect(MODE_HEADER).toContain('"clickable-icon"');
+    });
+
+    it("says what it is, and that it opens a menu", () => {
+        expect(MODE_HEADER).toContain('"aria-label": t("mode_header_more")');
+        expect(MODE_HEADER).toContain('"aria-haspopup": "menu"');
+    });
+
+    it("opens where the control is, not where the pointer is", () => {
+        // `showAtMouseEvent` has no position when the button was activated with Enter, and the
+        // menu would appear in the last place the mouse happened to be.
+        expect(MODE_HEADER).toContain("menu.showAtPosition(");
+        expect(MODE_HEADER).not.toContain("showAtMouseEvent");
+    });
+
+    it("labels every item by what it does (#496)", () => {
+        expect(MODE_HEADER).toContain("item.setTitle(action.label)");
     });
 });
 

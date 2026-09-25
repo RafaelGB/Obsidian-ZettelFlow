@@ -2,6 +2,8 @@ import { App, Notice, moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
+import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
+import { runCommand } from "architecture/components/core/surface/runCommand";
 import { activateSurface } from "architecture/plugin";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
@@ -216,12 +218,17 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
         // Header
         const header = container.createDiv({ cls: c("slipbox-health-header") });
         header.createEl("h4", { text: t("slipbox_health_view_title"), cls: c("slipbox-health-title") });
-        const refreshBtn = header.createEl("button", {
-            text: t("slipbox_health_refresh_button"),
-            cls: c("slipbox-health-refresh-button"),
-            attr: { "aria-label": t("slipbox_health_refresh_button") },
+        // The weekly review was in the palette and nowhere else (#578). It reads exactly what this
+        // mode shows and writes the note that summarises it, so the offer belongs here — beside
+        // the numbers it is about, not behind a name you have to already know.
+        const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        bar.primary({
+            label: t("weekly_review_command_name"),
+            icon: "calendar-check",
+            onClick: () => runCommand("generate-weekly-review"),
         });
-        this.registerDomEvent(refreshBtn, "click", () => void this.recompute(true));
+        bar.nav({ label: t("slipbox_health_refresh_button"), onClick: () => void this.recompute(true) });
+        bar.done();
 
         // State rendering
         switch (this.state) {

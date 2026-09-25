@@ -59,14 +59,25 @@ export class StateTransitionComponent extends PluginComponent {
             checkCallback: (checking: boolean) => {
                 const file = this.plugin.app.workspace.getActiveViewOfType(MarkdownView)?.file;
                 if (!file) return false;
-                if (!checking) this.pick(file);
+                if (!checking) StateTransitionComponent.pickState(this.plugin, file);
                 return true;
             },
         });
     }
 
-    private pick(file: TFile): void {
-        const stateProperty = this.plugin.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
+    /**
+     * The picker, exported so the **door** and the command share one implementation (#578).
+     *
+     * Changing a note's state was in the palette and nowhere else; Cultivate's target card shows
+     * the state on a chip, which is the object the change is about, so the chip became the door.
+     * Re-implementing the flow there would be two code paths for one capability — the duplication
+     * this epic exists to remove — so both call this.
+     *
+     * A static rather than a free function so the modal and the settings read stay in one file
+     * with the command that has always owned them.
+     */
+    static pickState(plugin: ZettelFlow, file: TFile): void {
+        const stateProperty = plugin.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
         const schema = new LifecycleStateSchema(stateProperty, buildLifecycleAliases());
         const accessor = FrontmatterService.instance(file);
         const current = schema.parse({
@@ -77,7 +88,7 @@ export class StateTransitionComponent extends PluginComponent {
             new Notice(t("state_transition_no_targets"));
             return;
         }
-        new StatePickerModal(this.plugin.app, targets, (target) => {
+        new StatePickerModal(plugin.app, targets, (target) => {
             // `human`: you picked the state yourself, so it is not an accepted proposal (#581).
             void StateTransitionService.getInstance().transition(
                 accessor,

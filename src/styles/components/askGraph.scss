@@ -298,3 +298,91 @@
     font-size: var(--font-ui-smaller);
     margin-bottom: 0.6rem;
 }
+
+/* ── think before you look (#576; the mechanic is #470's) ─────────────────── */
+
+/* Moved here with the gate. The two-column layout and the note rows came out rather than moving:
+   what you knew is Explore's own answer, in Explore's own results region. */
+
+.zettelkasten-flow__ask-graph-think-first {
+    display: flex;
+    padding-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__blind-knew {
+    margin: var(--size-4-2) 0 0;
+}
+
+.zettelkasten-flow__blind {
+    border: var(--border-width) solid var(--interactive-accent);
+    border-radius: var(--radius-m);
+    padding: var(--size-4-3) var(--size-4-4);
+    margin-bottom: var(--size-4-4);
+    background: var(--background-primary-alt);
+
+    h5 {
+        margin: 0 0 var(--size-4-1);
+    }
+}
+
+.zettelkasten-flow__blind-intro,
+.zettelkasten-flow__blind-prompt {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    padding: var(--size-4-1) 0;
+}
+
+.zettelkasten-flow__blind-question,
+.zettelkasten-flow__blind-answer {
+    width: 100%;
+    font-family: var(--font-text);
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__blind-answer {
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.zettelkasten-flow__blind-column {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.zettelkasten-flow__blind-answer-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+.zettelkasten-flow__blind-nothing {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__blind-movements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    padding-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__blind-action {
+    font-size: var(--font-ui-smaller);
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    border: var(--border-width) solid var(--background-modifier-border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    box-shadow: none;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__blind-chosen {
+    border-color: var(--interactive-accent);
+    color: var(--text-normal);
+}

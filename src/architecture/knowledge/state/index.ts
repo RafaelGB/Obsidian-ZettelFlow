@@ -45,6 +45,7 @@ export * from "architecture/knowledge/query/graphQuery";
 export * from "architecture/knowledge/query/facets";
 export * from "architecture/knowledge/query/selection";
 export * from "architecture/knowledge/query/answer";
+export * from "architecture/knowledge/query/askedInWords";
 export * from "architecture/knowledge/synthesis/evidenceMap";
 export * from "architecture/knowledge/journal/heatmap";
 export * from "architecture/knowledge/projects/deriveOutline";

@@ -33,6 +33,12 @@ export class Component {
   removeChild<T extends Component>(child: T): T { this.children = this.children.filter(x => x !== child); child.unload(); return child; }
   register(fn: () => void): void { this.cleanups.push(fn); }
   registerEvent(_event: unknown): void { }
+  // The real thing: attach, and drop it again on unload. Renderers register their header
+  // controls this way (#577), so a fake without it would make every migrated header throw.
+  registerDomEvent(el: any, type: string, handler: (event: any) => void): void {
+    el.addEventListener(type, handler);
+    this.cleanups.push(() => el.removeEventListener(type, handler));
+  }
 }
 export class Modal {
   constructor(public app?: any) { }

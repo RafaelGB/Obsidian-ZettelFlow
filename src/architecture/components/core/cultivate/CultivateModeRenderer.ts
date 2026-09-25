@@ -1,6 +1,8 @@
 import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
+import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
+import { StateTransitionComponent } from "starters/zcomponents/StateTransitionComponent";
 import { CultivationService } from "architecture/plugin";
 import { KnowledgeIndex, STATE_LABEL_KEY, stateTransition } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
@@ -155,27 +157,35 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
         const header = root.createDiv({ cls: c("cultivate-header") });
         header.createEl("h4", { text: t("cultivate_title"), cls: c("cultivate-title") });
-        const own = header.createEl('button', { text: t('inquiry_start'), cls: c('inquiry-onramp') });
-        own.addEventListener('click', () => { this.inquiryMode = true; this.mountInquiry(); });
-        const another = header.createEl("button", {
-            text: t("cultivate_another"),
-            cls: c("cultivate-another"),
-            attr: { "aria-label": t("cultivate_another") },
+        // Three buttons of equal weight until #577, and the one that opened something was in the
+        // middle. The primary is working on your own question — it is what this mode is *for*.
+        const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        bar.primary({
+            label: t("inquiry_start"),
+            icon: "compass",
+            onClick: () => {
+                this.inquiryMode = true;
+                this.mountInquiry();
+            },
         });
-        another.addEventListener("click", () => this.anotherIdea());
+        // Not buried: moving to the next idea is the most-used control here, and hiding
+        // navigation behind an overflow is its own usability failure. It is drawn plainly so it
+        // never competes with the primary for the eye.
+        bar.nav({ label: t("cultivate_another"), onClick: () => this.anotherIdea() });
 
         // The exit for the case this surface cannot serve (#473). Cultivate offers "write the
         // counterpoint"; when you do not know it yet, there was nowhere to go. Taking this door
-        // writes nothing — leaving a question unanswered is not an edit.
+        // writes nothing — leaving a question unanswered is not an edit. It opens another
+        // capability, so by the rule it cannot sit beside the primary that opens this one.
         if (this.targetPath) {
             const path = this.targetPath;
-            const think = header.createEl("button", {
-                text: t("cultivate_think_instead"),
-                cls: c("cultivate-another"),
-                attr: { "aria-label": t("cultivate_think_instead") },
+            bar.secondary({
+                label: t("cultivate_think_instead"),
+                icon: "lightbulb",
+                onClick: () => thinkAbout(this.plugin, path),
             });
-            think.addEventListener("click", () => thinkAbout(this.plugin, path));
         }
+        bar.done();
 
         if (this.state === "indexing") {
             root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_building") });
@@ -243,6 +253,14 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             cls: c("cultivate-state-chip"),
             text: `${session.stateEmoji} ${stateKey ? t(stateKey as Parameters<typeof t>[0]) : session.state}`.trim(),
         });
+        // The door for changing a note's state (#578). It was in the palette and nowhere else — and
+        // the state is *right here*, on the object the change is about, which is rank 1 by the
+        // ranking this epic wrote down. The same picker the command opens, not a second one.
+        chip.setAttribute("title", t("state_transition_modal_title"));
+        makeActivatable(chip, () => {
+            const file = this.app.vault.getAbstractFileByPath(session.path);
+            if (file instanceof TFile) StateTransitionComponent.pickState(this.plugin, file);
+        }, "button");
         if (moved) {
             // Once, on the chip that changed, and nowhere else: the state is where you acted.
             chip.addClass(c("cultivate-state-changed"));

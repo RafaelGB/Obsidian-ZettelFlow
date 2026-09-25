@@ -2,6 +2,7 @@ import { Component } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { questionQuery, runGraphQuery } from "architecture/knowledge/state";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import {
@@ -10,31 +11,37 @@ import {
     MOVEMENTS,
     MOVEMENT_LABEL_KEY,
     type BlindState,
-    type Revealed,
 } from "application/thinking/blindReveal";
 
 type LocaleKey = Parameters<typeof t>[0];
 
 /**
- * Think first, then look (#470, epic #465).
+ * Think first, then look — now where you ask (#576, epic #574; the mechanic is #470's).
  *
- * When you ask your vault a question it answers immediately, and the moment it does your own
- * answer is gone. You never learn what you thought before you read it — and never notice that you
- * had already worked this out two years ago and forgot.
+ * It used to be the `eye-off` button in the Lab's header, and the person who specified it could not
+ * find it in their own vault. That was the whole of its discoverability, and no amount of good copy
+ * survives a door nobody opens.
  *
- * So this waits. You answer; the answer is stored as a thought; **then** it looks.
+ * Moving it deleted something, which is the part that justifies the move: the panel carried its own
+ * matching — a walk asking whether an idea's title contained any word of the question — beside a
+ * query engine that has shipped `about:<term>` since #318. Now the question becomes a query
+ * (`questionQuery`) and **Explore answers it**. What you knew is not a list this draws; it is the
+ * surface doing its own job, one region below.
  *
- * The leak this must not have is structural, not disciplinary: `blindView` does not return what
- * the vault holds until you have answered, so a careless re-render has nothing to show. This class
- * draws only what the view model gives it.
+ * The leak this must not have is structural, not disciplinary: `blindView` does not return what the
+ * vault holds until you have answered, and the renderer hosting this one refuses to run its query
+ * while the gate is unanswered. Two independent reasons nothing can appear early.
  */
-export class BlindPanel extends Component {
+export class BlindGate extends Component {
     private state: BlindState = { question: "" };
     private answerDraft = "";
 
     constructor(
         private readonly host: HTMLElement,
-        private readonly openNote: (path: string) => void
+        /** Told the query to run once you have committed your own answer. Never called before. */
+        private readonly onRevealed: (query: string) => void,
+        /** Told when you clear it, so the surface can go back to showing everything. */
+        private readonly onReset: () => void
     ) {
         super();
     }
@@ -43,17 +50,21 @@ export class BlindPanel extends Component {
         this.render();
     }
 
+    /** Whether the surface is still waiting for your answer — the renderer's gate. */
+    get waiting(): boolean {
+        return blindView(this.state).stage === "asking";
+    }
+
     private render(): void {
         const view = blindView(this.state);
         this.host.empty();
         this.host.addClass(c("blind"));
-        this.host.createEl("h4", { text: t("blind_title") });
         this.host.createDiv({ cls: c("blind-intro"), text: t("blind_intro") });
 
         const question = this.host.createEl("input", {
             type: "text",
             cls: c("blind-question"),
-            attr: { placeholder: t("blind_question_placeholder") },
+            attr: { placeholder: t("blind_question_placeholder"), "aria-label": t("blind_title") },
         });
         question.value = this.state.question;
         this.registerDomEvent(question, "input", () => (this.state.question = question.value));
@@ -62,7 +73,7 @@ export class BlindPanel extends Component {
             this.renderAsking();
             return;
         }
-        this.renderRevealed(view.thought ?? "", view.knew, view.knewNothing);
+        this.renderRevealed(view.thought ?? "", view.knewNothing);
     }
 
     /** The whole point: your answer, and nothing else on screen. */
@@ -80,23 +91,10 @@ export class BlindPanel extends Component {
         this.registerDomEvent(button, "click", () => void this.reveal());
     }
 
-    private renderRevealed(thought: string, knew: readonly Revealed[], knewNothing: boolean): void {
-        const columns = this.host.createDiv({ cls: c("blind-columns") });
-
-        const mine = columns.createDiv({ cls: c("blind-column") });
+    private renderRevealed(thought: string, knewNothing: boolean): void {
+        const mine = this.host.createDiv({ cls: c("blind-column") });
         mine.createEl("h5", { text: t("blind_you_thought") });
         mine.createDiv({ cls: c("blind-answer-text"), text: thought });
-
-        const theirs = columns.createDiv({ cls: c("blind-column") });
-        theirs.createEl("h5", { text: t("blind_you_knew") });
-        if (knewNothing) {
-            // A real answer, and often the interesting one.
-            theirs.createDiv({ cls: c("blind-nothing"), text: t("blind_knew_nothing") });
-        }
-        for (const note of knew) {
-            const row = theirs.createDiv({ cls: c("blind-note"), text: note.title });
-            this.registerDomEvent(row, "click", () => this.openNote(note.path));
-        }
 
         // Your words about your own mind. The system has no opinion on whether you were right.
         this.host.createDiv({ cls: c("blind-prompt"), text: t("blind_what_changed") });
@@ -120,7 +118,13 @@ export class BlindPanel extends Component {
             this.state = { question: "" };
             this.answerDraft = "";
             this.render();
+            this.onReset();
         });
+
+        // The heading for what the surface is about to show, one region below. An empty vault is a
+        // real answer and often the interesting one, so it is said rather than left blank.
+        this.host.createEl("h5", { cls: c("blind-knew"), text: t("blind_you_knew") });
+        if (knewNothing) this.host.createDiv({ cls: c("blind-nothing"), text: t("blind_knew_nothing") });
     }
 
     /** Store the answer first, then look. The order is the feature. */
@@ -128,29 +132,27 @@ export class BlindPanel extends Component {
         const answer = this.answerDraft.trim();
         if (!answer || !this.state.question.trim()) return;
 
-        // Kept as a thought, before anything is revealed — so what you thought survives even if
-        // you close the panel the moment you see what you knew.
+        // Kept as a thought, before anything is revealed — so what you thought survives even if you
+        // close the surface the moment you see what you knew.
         await ThoughtStore.getInstance().write(`${this.state.question}\n\n${answer}`);
 
-        this.state = { ...this.state, answer, revealed: this.look(this.state.question) };
+        const query = questionQuery(this.state.question);
+        this.state = { ...this.state, answer, revealed: this.look(query) };
         this.render();
+        this.onRevealed(query);
     }
 
-    /** What the vault holds. The existing model, read plainly — no new query surface. */
-    private look(question: string): Revealed[] {
-        const words = [
-            ...new Set(question.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 4)),
-        ];
-        if (words.length === 0) return [];
+    /**
+     * Only to know whether the vault held anything — the list itself is Explore's to draw. The
+     * engine is the one that already exists; there is no second query here and there must not be.
+     */
+    private look(query: string): { path: string; title: string }[] {
+        if (query === "") return [];
         try {
-            return KnowledgeIndex.getInstance()
-                .getModel()
-                .all()
-                .filter((idea) => words.some((word) => idea.title.toLowerCase().includes(word)))
-                .slice(0, 8)
-                .map((idea) => ({ path: idea.path, title: idea.title }));
+            const model = KnowledgeIndex.getInstance().getModel();
+            return runGraphQuery(model, query).matches.map((idea) => ({ path: idea.path, title: idea.title }));
         } catch (error) {
-            log.warn("[lab] could not look at what you knew", error);
+            log.warn("[explore] could not look at what you knew", error);
             return [];
         }
     }
@@ -168,7 +170,7 @@ export class BlindPanel extends Component {
                 verdict: movement === "unchanged" ? "confirmed" : "modified",
             });
         } catch (error) {
-            log.warn("[lab] could not record what changed", error);
+            log.warn("[explore] could not record what changed", error);
         }
         this.render();
     }

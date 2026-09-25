@@ -442,6 +442,24 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
+                        // The same idea as Cultivate's friction, one surface over (#576). Off by
+                        // default: Explore's job is to answer, and the pause is offered rather
+                        // than imposed. The control that turns it on lives in Explore itself —
+                        // this row is for finding it again, not for discovering it (§XIII).
+                        name: t("settings_explore_think_first_name"),
+                        desc: t("settings_explore_think_first_desc"),
+                        render: (setting: Setting) => {
+                            setting.addToggle((toggle) =>
+                                toggle
+                                    .setValue(plugin.settings.exploreThinkFirst === true)
+                                    .onChange(async (value) => {
+                                        plugin.settings.exploreThinkFirst = value;
+                                        await plugin.saveSettings();
+                                    })
+                            );
+                        },
+                    },
+                    {
                         name: t("settings_cultivate_friction_name"),
                         desc: t("settings_cultivate_friction_desc"),
                         render: (setting: Setting) => {

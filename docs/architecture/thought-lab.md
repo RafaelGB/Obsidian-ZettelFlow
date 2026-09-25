@@ -490,47 +490,18 @@ Mechanical, and deliberately dull. *"This appeared since"* is a fact; *"this is 
 a judgement, and it is yours (§XII). A test asserts `appearedSince` sorts by creation time and
 that the module's code contains no notion of score, rank, relevance or weight.
 
-## Think before you look
+## Think before you look — moved to Explore (#576)
 
-When you ask your vault a question it answers immediately — and the moment it does, **your own
-answer is gone**. You never learn what you thought before you read it, and you never notice the
-thing worth noticing: that you had already worked this out two years ago and forgot.
+This lived in the Lab's header until epic #574, as one `eye-off` button among ten identically
+weighted controls. The person who specified it could not find it in their own vault, which is the
+measurement that started the epic.
 
-Every tool in this space optimises for retrieving what you knew. None preserve what you thought
-*before* you retrieved it, which is the only way to watch your own reasoning move.
+It now lives **where you ask** — a control in Explore, off by default and remembered once you turn
+it on. Nothing about what it does changed; what changed is that a second query engine came out with
+it, and the question you type is run through the `about:` predicate the product already had.
 
-So the Lab can wait:
-
-1. You ask a question.
-2. It asks **what do you currently think?** — and shows nothing.
-3. Your answer is stored as a thought, **before** anything is revealed.
-4. Then it shows what your vault holds, side by side with what you said.
-5. You say what changed in you: *nothing* · *I had forgotten this* · *I was wrong* · *I still
-   think so*.
-
-That last step is recorded as a verdict in the same `JudgementLog` as every other — subject only,
-never content.
-
-### The leak is impossible, not forbidden
-
-The one requirement this feature exists for is that nothing from your vault appears before you
-answer. A careless re-render would break that silently, and a source scan would not catch it.
-
-So `blindView` **does not return** what the vault holds until there is an answer. Before you
-submit, it is not hidden — it is **absent from the view model**, and the renderer has nothing to
-draw even if it tried. A test asserts the serialised view contains no trace of a note that was
-already fetched.
-
-### It is a choice, and it is not a quiz
-
-The normal *ask your graph* surface is untouched; nobody is made to guess before searching.
-
-And there is no tally, no accuracy and no streak — that would turn thinking into a game with a
-loser. *"I was wrong"* is available because it is **your** word about **yourself**; what must not
-exist is the system saying it. A guardrail scans the strings for *correct*, *accuracy*, *score*
-and their relatives.
-
-Offline, and no AI.
+See [Ask your graph → think before you look](../development/ask-your-graph.md#think-before-you-look)
+and [capability doors](../development/capability-doors.md).
 
 ## Arriving from somewhere (#473)
 

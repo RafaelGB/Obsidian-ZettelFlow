@@ -122,6 +122,67 @@ does it is already there. A third button would have been a worse version of a do
 There is no new export either: the graph lens already exports an image or a WebM clip, with its own
 confirmation. Two answers to one question is the disease this epic exists to treat.
 
+## Think before you look
+
+*Moved here from the Thought Lab by [#576](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/576).
+The mechanic is [#470](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/470)'s, unchanged.*
+
+
+When you ask your vault a question it answers immediately — and the moment it does, **your own
+answer is gone**. You never learn what you thought before you read it, and you never notice the
+thing worth noticing: that you had already worked this out two years ago and forgot.
+
+Every tool in this space optimises for retrieving what you knew. None preserve what you thought
+*before* you retrieved it, which is the only way to watch your own reasoning move.
+
+So Explore can wait:
+
+1. You ask a question.
+2. It asks **what do you currently think?** — and shows nothing.
+3. Your answer is stored as a thought, **before** anything is revealed.
+4. Then **Explore answers** — the same facets, the same list, the same lenses — beside what you
+   said.
+5. You say what changed in you: *nothing* · *I had forgotten this* · *I was wrong* · *I still
+   think so*.
+
+That last step is recorded as a verdict in the same `JudgementLog` as every other — subject only,
+never content.
+
+### The leak is impossible, not forbidden
+
+The one requirement this feature exists for is that nothing from your vault appears before you
+answer. A careless re-render would break that silently, and a source scan would not catch it.
+
+So `blindView` **does not return** what the vault holds until there is an answer. Before you
+submit, it is not hidden — it is **absent from the view model**, and the renderer has nothing to
+draw even if it tried. A test asserts the serialised view contains no trace of a note that was
+already fetched.
+
+### It is a choice, and it is not a quiz
+
+It is **off by default**, and turning it on is a stance you take once — not a dialog in front
+of every search. §XII allows deliberate friction where judgement is genuinely at stake and
+forbids it as a generic confirmation, and that line is exactly where the setting sits.
+
+And there is no tally, no accuracy and no streak — that would turn thinking into a game with a
+loser. *"I was wrong"* is available because it is **your** word about **yourself**; what must not
+exist is the system saying it. A guardrail scans the strings for *correct*, *accuracy*, *score*
+and their relatives.
+
+Offline, and no AI.
+
+### One engine, not two
+
+The panel that did this in the Lab carried its own matching: a walk over the model asking whether an
+idea's title contained any word of your question. That is `about:<term>` — the predicate this
+product has shipped since #318 — reimplemented smaller, and of the two only one would ever get a
+fix.
+
+`questionQuery()` is the whole of what moving it needed: words in, a query out
+(`about:attention OR about:memory`). The matching belongs to `graphQuery` and stays there. **You
+never have to learn a predicate to use it** — §XIII's rule that syntax is an export format and an
+escape hatch, never the front door.
+
 ## The query language
 
 You do not have to write this. It is here because you can, and because it is what a saved query

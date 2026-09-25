@@ -46,7 +46,13 @@ export class ZettelFlowMenuComponent extends PluginComponent {
         [
             { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
             { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },
+            { command: "open-canvas", labelKey: "command_settings_open_canvas", icon: "layout-dashboard" },
+            // The three that were in the palette and nowhere else (#578). Editing the canvas,
+            // importing a system and managing what is installed belong beside exporting one: the
+            // group is *systems*, and half of what you do with a system was missing from it.
+            { command: "import-canvas-template", labelKey: "command_import_canvas_template", icon: "package-open" },
             { command: "export-canvas-template", labelKey: "command_export_canvas_template", icon: "package-plus" },
+            { command: "open-manage-templates", labelKey: "command_open_manage_templates", icon: "settings-2" },
         ],
         [
             { command: "show-home", labelKey: "command_show_home", icon: "house" },

@@ -1,0 +1,47 @@
+{
+    "title": "Add contact",
+    "description": "This step will include contact information when you create a new profile.",
+    "author": "RafaelGB",
+    "root": true,
+    "id": "1737731928",
+    "actions": [
+        {
+            "type": "prompt",
+            "hasUI": true,
+            "id": "74b053aa-a2a2-4ab9-aec3-e8b499e0580b",
+            "zone": "frontmatter",
+            "description": "email prompt",
+            "key": "email",
+            "label": "Associated email",
+            "placeholder": "email@example.com"
+        },
+        {
+            "type": "dynamic-selector",
+            "hasUI": true,
+            "id": "9a2d4d95-094a-42ac-b616-f0047eb820d1",
+            "zone": "frontmatter",
+            "description": "Projects",
+            "multiple": true,
+            "code": "const result = app.plugins.plugins.dataview.api\\n.pages()\\n.where(p => p.projects)\\n.map(b => [`[[${b.projects[0].fileName()}]]`,b.projects[0].fileName()])\\n.distinct()\\n\\nreturn result;"
+        },
+        {
+            "type": "dynamic-selector",
+            "hasUI": true,
+            "id": "45d82bad-1e9e-4347-8a9f-839f790ca30d",
+            "zone": "frontmatter",
+            "description": "team",
+            "multiple": true,
+            "code": "const result = app.plugins.plugins.dataview.api\\n.pages()\\n.where(p => Array.isArray(p.team) && p.team.length>0)\\n.map(b => [b.team[0],b.team[0]])\\n.distinct()\\n\\nreturn result;"
+        },
+        {
+            "type": "dynamic-selector",
+            "hasUI": true,
+            "id": "b01aeac2-91ce-4c89-a9b5-5d4600c43ab4",
+            "zone": "frontmatter",
+            "description": "roles",
+            "code": "const result = app.plugins.plugins.dataview.api\\n.pages()\\n.where(p => p.roles)\\n.map(b => [b.roles[0],b.roles[0]])\\n.distinct()\\n\\nconsole.log(result)\\nreturn result;"
+        }
+    ],
+    "label": "Propiedades asociadas a un perfil",
+    "childrenHeader": ""
+}

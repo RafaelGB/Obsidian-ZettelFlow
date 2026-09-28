@@ -106,6 +106,7 @@ extra:
 nav:
   - Home: index.md
   - Showcase: showcase.md
+  - Everything it does: reference/capabilities.md
   - Get started:
       - Getting started: development/getting-started.md
       - AI provider setup: development/ai-provider-setup.md

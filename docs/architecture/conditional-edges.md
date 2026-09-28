@@ -105,3 +105,5 @@ if: (frontmatter.priority === "high") && (canvas.name === "Daily")
 A conditional edge is the **IF** block of the
 [visual workflow language](event-driven-workflows.md#visual-workflow-language-when-if-action-wait)
 (WHEN / IF / ACTION / WAIT).
+
+_README vocabulary for this page: **Steps own their exits**, **Inline steps are first-class**._

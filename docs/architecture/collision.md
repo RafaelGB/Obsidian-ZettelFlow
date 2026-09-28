@@ -122,3 +122,5 @@ an **operator**, which is a different thing.
   outside the knowledge model by construction — so nothing about having answered removes the pair.
   Two people read this as a bug and one as a feature; it is written down rather than fixed, because
   a second answer to the same absurd pair is not obviously a mistake.
+
+_README vocabulary for this page: **Two things far apart (collision)**._

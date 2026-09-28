@@ -169,3 +169,5 @@ you what you predicted — and then the same three answers resolve the claim.
   anything stored.
 - **A verdict does not follow a rename**, exactly as a move or any other judgement does not. The
   claim itself does, because it lives in the file.
+
+_README vocabulary for this page: **The return of a claim**._

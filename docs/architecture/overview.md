@@ -148,3 +148,5 @@ Two cross-cutting engines run alongside the wizard:
   `context` (ephemeral, shared between actions/scripts).
 - **`zf`** — the scripting API object injected into Script actions and property hooks
   (`{ external: { tp, dv }, internal: { vault, user } }`).
+
+_README vocabulary for this page: **Canvas-based flows**, **Go back to any step**, **One flow, two connected notes**._

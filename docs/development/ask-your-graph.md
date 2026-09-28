@@ -259,3 +259,5 @@ on **Home** as a live count — mechanical output, no judgement written
 The list persists in `settings.savedGraphQueries` as `SavedGraphQuery` objects
 (`{ query, name?, pinned? }`); an install predating the enrichment stored bare strings, which migrate
 transparently on read (`normalizeSavedQueries`).
+
+_README vocabulary for this page: **Explore your graph**._

@@ -677,3 +677,5 @@ is that the command id and the mode id never changed, so nobody's hotkey or deep
 | Clipboard | No |
 | Script execution | No |
 | AI | No |
+
+_README vocabulary for this page: **Cognitive moves**._

@@ -1,6 +1,8 @@
 # ZettelFlow
 
-**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph, configure each step with actions, and the plugin walks you through it every time you want to create a note — filling in frontmatter, body content, dates, and more automatically.
+**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard — and then helps you *think* about what you wrote.** Draw your workflow as a graph, configure each step with actions, and the plugin walks you through it every time you create a note. Around that engine sit the tools that make the knowledge evolve: explore it, review its health, and practise on it.
+
+New here? The [README](https://github.com/RafaelGB/Obsidian-ZettelFlow#readme) is the front door — it opens with the handful of things ZettelFlow *asks you to do*. This site is the **map**: where each area lives, one entry each.
 
 ---
 
@@ -56,27 +58,27 @@ Canvas file          ZettelFlow wizard          Note in your vault
 
 ---
 
-## Feature overview
+## The map — where each area lives
 
-| Feature | Docs |
-|---|---|
-| Immersive **Knowledge Galaxy** 3D graph | [Showcase →](showcase.md) · [3D graph →](development/graph-3d.md) |
-| Cinematic guided tour | [Showcase →](showcase.md) |
-| Share your universe (graph export) | [Showcase →](showcase.md) |
-| Before/after idea card | [Showcase →](showcase.md) · [Evolution timeline →](development/evolution-timeline.md) |
-| Agency review & index | [Showcase →](showcase.md) · [Cognitive agency →](development/cognitive-agency.md) |
-| Guided first-run with example flow | [Getting started →](development/getting-started.md) |
-| Systems Gallery (one-click) | [Systems gallery →](how-to-contribute/systems-gallery.md) |
-| Built-in actions (form + knowledge) | [Actions →](actions/Prompt.md) |
-| Canvas-native workflow engine | [Architecture overview →](architecture/overview.md) |
-| Conditional edges (`if: expr`) | [Conditional edges →](architecture/conditional-edges.md) |
-| Dynamic template variables | [Actions & note builder →](architecture/actions-and-note-builder.md) |
-| Live preview in step builder | [Actions & note builder →](architecture/actions-and-note-builder.md) |
-| Vault hooks (folder / property) | [Vault hooks →](vault-hooks/OnCreate.md) |
-| Community templates browser | [Community gallery →](architecture/community.md) |
-| `.zftemplate` export/import | [.zftemplate schema →](architecture/zftemplate-schema.md) |
-| Notes history sidebar | [Architecture overview →](architecture/overview.md) |
-| Active flow status widget | [Architecture overview →](architecture/overview.md) |
+One entry per area; each links to the page that owns it. For the **complete, ranked** list of every
+capability, see [Everything it does](reference/capabilities.md).
+
+- **Create & run** — draw a Canvas workflow and let the wizard build the note.
+  → [Architecture overview](architecture/overview.md) · [Actions](actions/Prompt.md) · [Conditional edges](architecture/conditional-edges.md) · [Flow roles](architecture/flow-roles.md)
+- **Explore** — narrow your vault by clicking, walk it by relation, fly the 3D graph.
+  → [Explore your graph](development/ask-your-graph.md) · [The graph](development/graph-3d.md) · [Concept navigation](development/concept-navigation.md) · [Living knowledge map](development/living-knowledge-map.md)
+- **Review** — the health of your slip-box, the weekly review, the timeline of an idea.
+  → [Slip-box health](development/slipbox-health-dashboard.md) · [Second-brain review](development/second-brain-review.md) · [Evolution timeline](development/evolution-timeline.md) · [Open questions](development/open-questions.md)
+- **Think & cultivate** — make one idea evolve, think before it's knowledge, place a wager, collide two notes, re-judge a claim.
+  → [Cultivate](development/cultivate.md) · [Think](architecture/thought-lab.md) · [A thought you can be wrong about](development/wagers.md) · [Two things far apart](architecture/collision.md) · [The return of a claim](development/claim-returns.md)
+- **Automation** — react to vault events, run scripts on property changes.
+  → [Property hooks](vault-hooks/property-hooks/overview.md) · [Folder automation](vault-hooks/OnCreate.md)
+- **Scripting** — the `zf` API your scripts get, and a workbench to try them.
+  → [Scripting](architecture/scripting.md) · [The script workbench](architecture/script-workbench.md) · [API reference](api/ZettelFlowAPI.md)
+- **Community** — install a complete knowledge system in one click, or share your own.
+  → [Systems gallery](how-to-contribute/systems-gallery.md)
+- **Architecture** — how the plugin is built, layer by layer.
+  → [Overview](architecture/overview.md) · [The four surfaces](architecture/surfaces.md) · [Reposition map](architecture/reposition-map.md)
 
 ---
 
@@ -86,4 +88,4 @@ Canvas file          ZettelFlow wizard          Note in your vault
 - [Bug reports & feature requests](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues)
 - [Discussions](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)
 - [Changelog / releases](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases)
-- [Project roadmap](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/project-health-and-roadmap/)
+- [Manifesto](manifesto.md) · [Project roadmap](development/project-health-and-roadmap.md)

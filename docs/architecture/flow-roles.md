@@ -46,3 +46,5 @@ made a canvas two things at once: the automation of a folder (by its filename) *
 
 The two folders may be neither the same nor inside one another — the setting refuses a value that
 collides and says which folder it collided with, keeping the previous one.
+
+_README vocabulary for this page: **Your flows have a role**, **Systems install into a role**._

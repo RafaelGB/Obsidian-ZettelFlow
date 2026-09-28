@@ -210,12 +210,25 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
   `implement` skill exit step encodes the full checklist.
 - When you change behavior or a public surface, update the matching page under `docs/` (and the
   `mkdocs.yml` nav) in the same change.
-- **Surface important features in the README (adoption is a first-class goal).** If a change ships
-  a feature a *user* would care about (a new command, view, action, or workflow — not an internal
-  refactor), it must appear in the main `README.md` in the same change: add a row to the **Features**
-  table, and for a headline capability also a bullet in the **Zettelkasten toolkit** section. The
-  README is how new users decide to install — a shipped-but-unadvertised feature is a missed
-  download. This is a blocking exit criterion (see the `implement` skill).
+- **A capability is placed by its door rank, never appended to a list (adoption is a first-class
+  goal).** The README is how new users decide to install, so anything a *user* would care about must
+  be reachable from it in the same change — but **where** it lands is decided by its
+  [door rank](docs/development/capability-doors.md), not by merge order:
+    - **Rank 1–3 and it asks something of the reader** (a practice loop — return a claim, collide
+      two notes, place a wager, make a move on an idea) → name it on the README's **first screen**:
+      one sentence in the reader's words, the door it is reached by, a link to its page.
+    - **Rank 1–3, an ordinary capability** → a **headline entry**: a few lines in the README, linked
+      to the page that owns it.
+    - **Rank 4–5, or configuration** → **one line in the generated capability reference**
+      (`docs/reference/capabilities.md`, rendered from `CAPABILITIES` — regenerate with
+      `UPDATE_DOCS=1 npx jest capabilityIndex`) plus its own docs page. Nothing is added to the
+      README for it.
+
+  Every route ends the same way: **its own page under `docs/`, in the `mkdocs.yml` nav**. The README
+  is bounded — ≤200 lines, ≤3,500 words, ≤25 rows in any table
+  (`test/docs/readmeCeiling.test.ts`) — so adding to the first screen means deciding what leaves it.
+  A shipped-but-unfindable feature is a missed download; a README nobody can rank is the same
+  failure with more words (#588).
 - **Every capability ships with a door of rank 1–3** ([capability doors](docs/development/capability-doors.md)).
   A control where you already are, a surface, or a line on Home — **not** a command. The palette is a
   hotkey and a re-entry point, never a discovery path (#496): *think before you look* was specified,

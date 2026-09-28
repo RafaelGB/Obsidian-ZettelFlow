@@ -60,3 +60,5 @@ listed in `docs/main_template.json` with `template_type: "system"`; the communit
 `CommunitySystemModal` fetches it, lets the user pick a folder, and writes the canvas + steps in one
 click (no clipboard). See [Community gallery](community.md). Authoring guide:
 [Contribute a community system](../how-to-contribute/community-examples.md).
+
+_README vocabulary for this page: **zftemplate export/import**._

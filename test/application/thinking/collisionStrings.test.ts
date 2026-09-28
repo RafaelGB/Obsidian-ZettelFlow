@@ -151,12 +151,13 @@ describe("nothing counts collisions, anywhere (#569)", () => {
         }
     });
 
-    it("carries the feature in the README, where a user decides to install", () => {
-        const readme = readFileSync(join(ROOT, "README.md"), "utf8");
-        const features = readme.slice(readme.indexOf("## Features"));
-        const toolkit = readme.slice(readme.indexOf("## Zettelkasten toolkit"), readme.indexOf("## Features"));
-        expect(features.toLowerCase()).toContain("collision");
-        expect(toolkit.toLowerCase()).toContain("far apart");
+    it("carries the feature on the README's first screen, where a user decides to install (#588)", () => {
+        // #588 moved the practice loops onto the first screen and removed the ## Features table and
+        // ## Zettelkasten toolkit; collision is one of the four loops named there.
+        const readme = readFileSync(join(ROOT, "README.md"), "utf8").replace(/\r\n/g, "\n");
+        const firstScreen = readme.split("\n").slice(0, 60).join("\n").toLowerCase();
+        expect(firstScreen).toContain("far apart");
+        expect(firstScreen).toContain("collision");
     });
 
     it("apologises for nothing when the vault is too small", () => {

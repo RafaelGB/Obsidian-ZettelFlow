@@ -154,12 +154,15 @@ export function buildCultivationSession(
  * fleeting, then best-connected): the review should feel intentional — you develop the rawest ideas
  * first — rather than arbitrary. An unknown or empty state folds to `fleeting` via `asLifecycleState`,
  * so a hand-edited note still sorts somewhere honest.
+ *
+ * An optional `stageFilter` narrows the pool to a single lifecycle stage — the reader's chosen level
+ * (#589); `undefined` means every stage.
  */
-function rankCultivationCandidates(model: KnowledgeModel): string[] {
+function rankCultivationCandidates(model: KnowledgeModel, stageFilter?: LifecycleState): string[] {
     const stageRank = (state: string): number => LIFECYCLE_STATES.indexOf(asLifecycleState(state));
     return model
         .all()
-        .slice()
+        .filter((idea) => !stageFilter || asLifecycleState(idea.state) === stageFilter)
         .sort(
             (a, b) =>
                 stageRank(a.state) - stageRank(b.state) ||
@@ -176,9 +179,10 @@ function rankCultivationCandidates(model: KnowledgeModel): string[] {
  */
 export function selectCultivationTarget(
     model: KnowledgeModel,
-    exclude: ReadonlySet<string> = new Set()
+    exclude: ReadonlySet<string> = new Set(),
+    stageFilter?: LifecycleState
 ): string | null {
-    for (const path of rankCultivationCandidates(model)) {
+    for (const path of rankCultivationCandidates(model, stageFilter)) {
         if (!exclude.has(path) && model.get(path)) return path;
     }
     return null;
@@ -192,10 +196,11 @@ export function selectCultivationTarget(
 export function cultivationQueue(
     model: KnowledgeModel,
     exclude: ReadonlySet<string> = new Set(),
-    limit = 5
+    limit = 5,
+    stageFilter?: LifecycleState
 ): string[] {
     const out: string[] = [];
-    for (const path of rankCultivationCandidates(model)) {
+    for (const path of rankCultivationCandidates(model, stageFilter)) {
         if (!exclude.has(path) && model.get(path)) out.push(path);
         if (out.length >= limit) break;
     }

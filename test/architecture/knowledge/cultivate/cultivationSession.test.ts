@@ -105,6 +105,34 @@ describe("embryonic-first ordering (#589, FR-1 / AC-1)", () => {
     });
 });
 
+describe("a chosen stage restricts the session (#589, FR-2 / AC-2 / AC-4)", () => {
+    const staged = buildModel([
+        idea("f1.md", "fleeting", []),
+        idea("f2.md", "fleeting", [{ to: "lit.md" }]),
+        idea("lit.md", "literature", [{ to: "p1.md" }]),
+        idea("p1.md", "permanent", []),
+    ]);
+
+    it("selects and queues only notes in the chosen stage", () => {
+        expect(selectCultivationTarget(staged, new Set(), "literature")).toBe("lit.md");
+        expect(cultivationQueue(staged, new Set(), 99, "literature")).toEqual(["lit.md"]);
+        expect(cultivationQueue(staged, new Set(), 99, "fleeting")).toEqual(["f2.md", "f1.md"]);
+    });
+
+    it("keeps the exclude walk within the stage", () => {
+        expect(selectCultivationTarget(staged, new Set(["f2.md"]), "fleeting")).toBe("f1.md");
+    });
+
+    it("yields null / [] for a stage nothing is in (AC-4)", () => {
+        expect(selectCultivationTarget(staged, new Set(), "evergreen")).toBeNull();
+        expect(cultivationQueue(staged, new Set(), 99, "evergreen")).toEqual([]);
+    });
+
+    it("is unrestricted when no stage is given (any)", () => {
+        expect(cultivationQueue(staged, new Set(), 99)).toEqual(["f2.md", "f1.md", "lit.md", "p1.md"]);
+    });
+});
+
 describe("readyToCultivate (#309 S4)", () => {
     it("counts every non-evergreen, non-archived idea", () => {
         const m = buildModel([

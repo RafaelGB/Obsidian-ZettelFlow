@@ -4,6 +4,7 @@ import { rankRelated } from "../relations/relationRankingLogic";
 import { findContradictions } from "../query/findContradictionLogic";
 import { computeMaturity } from "../derive/maturityLogic";
 import { allowedTargets } from "../lifecycle/machine";
+import { statePartition } from "../query/queries";
 import {
     FALLBACK_STATE,
     isLifecycleState,
@@ -205,6 +206,47 @@ export function cultivationQueue(
         if (out.length >= limit) break;
     }
     return out;
+}
+
+/** One lifecycle stage in the Cultivate distribution: its count and a discrete bar magnitude. */
+export interface StageCount {
+    stage: LifecycleState;
+    /** Display emoji for the stage (so the view needs no lifecycle import). */
+    emoji: string;
+    /** i18n key for the stage's label. */
+    labelKey: string;
+    count: number;
+    /** Bar magnitude 0–4: 0 when empty, else 1–4 scaled against the fullest stage — a class, not a pixel. */
+    level: number;
+}
+
+/**
+ * How many in-scope notes sit at each lifecycle stage (#589, FR-3/FR-4), for the Cultivate
+ * distribution chart. One entry per stage in canonical order — an empty stage present with `count: 0`
+ * — reusing {@link statePartition} and **folding any non-lifecycle state** (a hand-edited `🔒 Closed`)
+ * into `fleeting`, exactly as the ranking treats it, so the counts sum to `model.size()`.
+ *
+ * Whole-vault by decision: it includes `evergreen` and `archived`, so a reader sees the full shape of
+ * their thinking, not only the cultivable pool. `level` is a discrete magnitude the stylesheet reads
+ * as a class (`--l0…--l4`) — never a pixel width, so the user's theme keeps control of the bar. Pure.
+ */
+export function stageDistribution(model: KnowledgeModel): StageCount[] {
+    const counts = new Map<LifecycleState, number>(LIFECYCLE_STATES.map((stage) => [stage, 0]));
+    for (const [state, ideas] of statePartition(model)) {
+        const stage = asLifecycleState(state);
+        counts.set(stage, (counts.get(stage) ?? 0) + ideas.length);
+    }
+    const max = Math.max(0, ...counts.values());
+    return LIFECYCLE_STATES.map((stage) => {
+        const count = counts.get(stage) ?? 0;
+        return {
+            stage,
+            emoji: STATE_EMOJI[stage] ?? "",
+            labelKey: STATE_LABEL_KEY[stage],
+            count,
+            level: count === 0 || max === 0 ? 0 : Math.max(1, Math.ceil((4 * count) / max)),
+        };
+    });
 }
 
 /**

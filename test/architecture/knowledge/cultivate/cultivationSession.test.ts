@@ -4,7 +4,9 @@ import {
     selectCultivationTarget,
     readyToCultivate,
     cultivationQueue,
+    stageDistribution,
 } from "architecture/knowledge/cultivate/cultivationSession";
+import { LIFECYCLE_STATES } from "architecture/knowledge/lifecycle/states";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 
 const NOW = 1_000_000_000_000;
@@ -130,6 +132,45 @@ describe("a chosen stage restricts the session (#589, FR-2 / AC-2 / AC-4)", () =
 
     it("is unrestricted when no stage is given (any)", () => {
         expect(cultivationQueue(staged, new Set(), 99)).toEqual(["f2.md", "f1.md", "lit.md", "p1.md"]);
+    });
+});
+
+describe("stageDistribution (#589, FR-3/FR-4 / AC-3)", () => {
+    const m = buildModel([
+        idea("a.md", "fleeting", []),
+        idea("b.md", "fleeting", []),
+        idea("c.md", "literature", []),
+        idea("g.md", "🔒 Closed", []), // an unknown, hand-edited state
+    ]);
+    const dist = stageDistribution(m);
+
+    it("has one entry per lifecycle stage, in canonical order", () => {
+        expect(dist.map((e) => e.stage)).toEqual([...LIFECYCLE_STATES]);
+    });
+
+    it("counts every note, folds an unknown state into fleeting, and sums to model size", () => {
+        const byStage = Object.fromEntries(dist.map((e) => [e.stage, e.count]));
+        expect(byStage.fleeting).toBe(3); // a, b, and the garbage-state note folded in
+        expect(byStage.literature).toBe(1);
+        expect(byStage.permanent).toBe(0);
+        expect(dist.reduce((sum, e) => sum + e.count, 0)).toBe(m.size());
+    });
+
+    it("carries emoji, label key, and a discrete bar level per stage", () => {
+        const fleeting = dist.find((e) => e.stage === "fleeting")!;
+        expect(fleeting.emoji).toBeTruthy();
+        expect(fleeting.labelKey).toBe("lifecycle_state_fleeting");
+        expect(fleeting.level).toBeGreaterThan(0);
+        expect(dist.find((e) => e.stage === "permanent")!.level).toBe(0); // empty stage → level 0
+        for (const e of dist) {
+            expect(e.level).toBeGreaterThanOrEqual(0);
+            expect(e.level).toBeLessThanOrEqual(4);
+        }
+    });
+
+    it("is all-zero, all-level-0 for an empty model", () => {
+        const empty = stageDistribution(buildModel([]));
+        expect(empty.every((e) => e.count === 0 && e.level === 0)).toBe(true);
     });
 });
 

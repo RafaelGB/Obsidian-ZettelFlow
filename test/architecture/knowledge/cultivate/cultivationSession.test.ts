@@ -83,6 +83,28 @@ describe("selectCultivationTarget (#309 S1)", () => {
     });
 });
 
+describe("embryonic-first ordering (#589, FR-1 / AC-1)", () => {
+    // f1 fleeting deg 0 · f2 fleeting deg 1 · lit literature deg 2 · p1 permanent deg 1
+    const staged = buildModel([
+        idea("f1.md", "fleeting", []),
+        idea("f2.md", "fleeting", [{ to: "lit.md" }]),
+        idea("lit.md", "literature", [{ to: "p1.md" }]),
+        idea("p1.md", "permanent", []),
+    ]);
+
+    it("selects the most-embryonic note, highest-degree within the stage", () => {
+        expect(selectCultivationTarget(staged)).toBe("f2.md");
+    });
+
+    it("orders the whole queue by lifecycle stage ascending, then -degree then path", () => {
+        expect(cultivationQueue(staged, new Set(), 99)).toEqual(["f2.md", "f1.md", "lit.md", "p1.md"]);
+    });
+
+    it("is deterministic across calls", () => {
+        expect(cultivationQueue(staged, new Set(), 99)).toEqual(cultivationQueue(staged, new Set(), 99));
+    });
+});
+
 describe("readyToCultivate (#309 S4)", () => {
     it("counts every non-evergreen, non-archived idea", () => {
         const m = buildModel([

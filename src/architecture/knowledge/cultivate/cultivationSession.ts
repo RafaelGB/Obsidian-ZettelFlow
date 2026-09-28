@@ -4,9 +4,14 @@ import { rankRelated } from "../relations/relationRankingLogic";
 import { findContradictions } from "../query/findContradictionLogic";
 import { computeMaturity } from "../derive/maturityLogic";
 import { allowedTargets } from "../lifecycle/machine";
-import { FALLBACK_STATE, isLifecycleState, STATE_EMOJI, STATE_LABEL_KEY, type LifecycleState } from "../lifecycle/states";
-import { byState } from "../query/queries";
-import { nextSession } from "../home/nextSession";
+import {
+    FALLBACK_STATE,
+    isLifecycleState,
+    LIFECYCLE_STATES,
+    STATE_EMOJI,
+    STATE_LABEL_KEY,
+    type LifecycleState,
+} from "../lifecycle/states";
 import type { JudgementVerdict } from "../judgement";
 
 /**
@@ -89,7 +94,7 @@ export function buildCultivationSession(
     model: KnowledgeModel,
     path: string,
     now: number,
-    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES,
+    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES,
     opts: { friction?: boolean } = {}
 ): CultivationSession | null {
     const idea = model.get(path);
@@ -141,29 +146,34 @@ export function buildCultivationSession(
 }
 
 /**
- * Pick the highest-leverage idea to cultivate now (#309, S1): the `nextSession` heuristic
- * (well-connected yet under-developed), then the newest fleeting note, then the best-connected note.
- * `exclude` skips notes already cultivated this sitting (the "another idea" action). Returns `null`
- * for an empty model or when everything is excluded. Deterministic.
+ * Rank the ideas to cultivate, **most-embryonic first** (#589): by lifecycle stage ascending
+ * (`fleeting → literature → permanent → developing → evergreen → archived`), then by descending
+ * degree so the best-connected note within a stage leads, then by path so it is deterministic.
+ *
+ * This replaced the `nextSession`-led order (well-connected yet under-developed, then newest
+ * fleeting, then best-connected): the review should feel intentional — you develop the rawest ideas
+ * first — rather than arbitrary. An unknown or empty state folds to `fleeting` via `asLifecycleState`,
+ * so a hand-edited note still sorts somewhere honest.
  */
 function rankCultivationCandidates(model: KnowledgeModel): string[] {
-    const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-    const ranked: string[] = [];
-    const seen = new Set<string>();
-    const push = (path: string) => {
-        if (!seen.has(path)) {
-            seen.add(path);
-            ranked.push(path);
-        }
-    };
-
-    const next = nextSession(model);
-    if (next) push(next.path);
-    for (const idea of byState(model, "fleeting").sort((a, b) => b.created - a.created || byPath(a.path, b.path))) push(idea.path);
-    for (const idea of model.all().sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || byPath(a.path, b.path))) push(idea.path);
-    return ranked;
+    const stageRank = (state: string): number => LIFECYCLE_STATES.indexOf(asLifecycleState(state));
+    return model
+        .all()
+        .slice()
+        .sort(
+            (a, b) =>
+                stageRank(a.state) - stageRank(b.state) ||
+                b.maturitySignals.degree - a.maturitySignals.degree ||
+                (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)
+        )
+        .map((idea) => idea.path);
 }
 
+/**
+ * The most-embryonic idea to cultivate now (#309 S1, #589): the head of the ranked candidates that
+ * is not excluded. `exclude` skips notes already cultivated this sitting (the "another idea" action).
+ * Returns `null` for an empty model or when everything is excluded. Deterministic.
+ */
 export function selectCultivationTarget(
     model: KnowledgeModel,
     exclude: ReadonlySet<string> = new Set()
@@ -175,9 +185,9 @@ export function selectCultivationTarget(
 }
 
 /**
- * The cultivation **queue** (#318 S2): the highest-leverage ideas due for development, most-leverage
- * first, excluding notes already cultivated this sitting. Deterministic. The "another idea" action
- * walks this list; Home shows its size.
+ * The cultivation **queue** (#318 S2, #589): the ideas due for development, **most-embryonic first**,
+ * excluding notes already cultivated this sitting. Deterministic. The "another idea" action walks
+ * this list; Home shows its size.
  */
 export function cultivationQueue(
     model: KnowledgeModel,

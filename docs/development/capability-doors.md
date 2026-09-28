@@ -6,6 +6,11 @@ The [reposition map](../architecture/reposition-map.md) answers the other questi
 product can do, and which layer owns each piece. This page answers the one that decides whether a
 feature gets used at all.
 
+> **Reader-facing sibling:** this page is for maintainers — every door of every capability. The
+> reader-facing rendering, one line each and grouped by *how you reach it*, is
+> [Everything it does](../reference/capabilities.md), generated from the same `CAPABILITIES` registry
+> (#588).
+
 It exists because of a small, embarrassing measurement. *Think before you look* — the Thought Lab's
 mechanic that asks what you expect before it shows you anything — was specified, built, documented
 and shipped, and the person who asked for it **could not find it in their own vault**. It was not

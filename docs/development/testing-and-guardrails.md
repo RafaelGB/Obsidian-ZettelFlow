@@ -127,6 +127,31 @@ The same suite hands the generated `.d.ts` to the **real TypeScript compiler** i
 declaration that referenced a type it never declared would autocomplete happily and then show an error
 in a file ZettelFlow wrote into the user's vault — so it is checked, not assumed.
 
+## The front door (#588)
+
+`README.md` and `docs/index.md` are the doors a person uses to decide whether to install, so #588
+holds them to the same rule as the plugin: a capability nobody can find does not exist. Five
+guardrails under `test/docs/` keep them honest:
+
+| Guardrail | What it asserts |
+|---|---|
+| `readmeCeiling.test.ts` | the README stays **≤200 lines · ≤3,500 words · ≤25 rows in any table** — a **ratcheting** ceiling (like `themeGrid.test.ts`; the numbers may only go down) |
+| `readmeNames.ts` + `readmeNamesKept.test.ts` | the **84** capability names the README carried at `2f6198f5` (frozen, extracted in Node so an astral-plane emoji bullet is not dropped) still occur in `README.md` or under `docs/**` — nothing shipped disappears |
+| `frontDoor.test.ts` | the four practice loops are named and linked on the README's first screen; `docs/index.md` carries no second inventory; every relative link resolves; no shipped work is called *proposed*; the privacy disclosure is intact (`privacyBullets.ts`) |
+| `placementRule.test.ts` | `CLAUDE.md` and the `implement` skill route a capability by **door rank**, and neither says *"add a row to the Features table"* |
+| `capabilityIndex.test.ts` | the reader-facing [Everything it does](../reference/capabilities.md) page equals its generator and names every capability |
+
+That page is a **third generated artefact** — a second rendering of `CAPABILITIES`, keyed by door
+rather than symbol id (the maintainer-facing sibling is [capability doors](capability-doors.md)).
+Regenerate it, exactly as with the API reference, rather than editing the page:
+
+```bash
+UPDATE_DOCS=1 npx jest capabilityIndex
+```
+
+Its generator lives in `test/docs/capabilityIndex.ts` rather than beside `capabilityAudit.ts` because
+#588's AC-10 froze `src/`; it moves next to its sibling the next time `src/` is unfrozen.
+
 ## The write-path harness (#317, E2)
 
 `test/support/harness.ts` (`wireHarness`) gives a test an **in-memory Obsidian** whose

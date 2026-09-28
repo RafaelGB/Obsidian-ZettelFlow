@@ -109,6 +109,12 @@ export interface ZettelFlowSettings {
      */
     cultivateFriction?: boolean;
     /**
+     * Which lifecycle stage the Cultivate review is restricted to (#589) — a `LifecycleState` name, or
+     * `"any"` (the default) for every stage. Persisted so the choice survives a sitting (§XIII); the
+     * selector on the surface writes it. Undefined reads as `"any"`.
+     */
+    cultivateStage?: string;
+    /**
      * **Think before you look** in Explore (#576, epic #574): write what you currently think, and
      * the results stay hidden until you have. OFF by default and *remembered* — §XII sanctions
      * deliberate friction where judgement is at stake and forbids it as a generic confirmation, so
@@ -356,6 +362,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
         lastReviewedProperty: DEFAULT_LAST_REVIEWED_PROPERTY,
     },
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
+    cultivateStage: "any", // Cultivate every stage until you pick one (#589); embryonic-first within it.
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.
     returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.

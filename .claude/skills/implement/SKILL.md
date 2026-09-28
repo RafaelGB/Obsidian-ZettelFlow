@@ -68,21 +68,30 @@ changed UI text — ask: *does the existing docs page cover this?*
 This audit is a **blocking exit criterion** — do not commit the implementation without it.
 Docs and code travel in the same commit (or a `docs:` follow-up commit immediately after).
 
-### 2. README showcase audit (mandatory for user-facing features)
+### 2. README placement audit — by door rank (mandatory for user-facing features)
 
-Adoption is a first-class goal: the main `README.md` is how new users decide to install. For every
-change that ships something a *user* would care about — a new command, sidebar view, action, or
-workflow — ask: *would a prospective user find this in the README?*
+Adoption is a first-class goal and the README is the front door. For every change that ships
+something a *user* would care about, do not ask *"where do I add a row?"* — ask **what is this
+capability's door rank** ([capability doors](../../../docs/development/capability-doors.md)), and
+place it accordingly:
 
-- **New user-facing feature** → add a row to the **Features** table. For a **headline** capability
-  (a whole new tool/view/workflow, not a minor option) also add a bullet to the
-  **Zettelkasten toolkit** section near the top, phrased as user value (what it does for them).
-- **New action** → also bump the "N built-in actions" row count and list.
-- **No user-facing surface** (pure refactor, internal fix) → state explicitly that no README change
-  is needed.
+- **Rank 1–3, and it asks something of the reader** (a practice loop) → the README's **first
+  screen**: one sentence, its door, a link to its page. The first screen is bounded — something else
+  has to leave.
+- **Rank 1–3, ordinary capability** → a **headline entry** in the README, a few lines, linked.
+- **Rank 4–5 or configuration** → **one line in the generated capability reference**
+  (`docs/reference/capabilities.md`; regenerate with `UPDATE_DOCS=1 npx jest capabilityIndex`) plus
+  its own docs page. The README does not grow.
+- **New action** → the actions page and the action count; no README row.
+- **No user-facing surface** (pure refactor, internal fix) → say so explicitly.
 
-Like the docs audit, this is a **blocking exit criterion** — a shipped-but-unadvertised feature is
-a missed download. README and code travel in the same change.
+Never *"add a row to the Features table"* — that table was removed in #588 precisely because one row
+per epic produced a 69-row changelog in which nothing could be ranked. `npm test` enforces the
+ceiling (`test/docs/readmeCeiling.test.ts`), that nothing shipped disappeared
+(`test/docs/readmeNamesKept.test.ts`) and that this rule still reads this way
+(`test/docs/placementRule.test.ts`).
+
+Blocking exit criterion, like the docs audit.
 
 ### 3. Walk the verification script (mandatory)
 

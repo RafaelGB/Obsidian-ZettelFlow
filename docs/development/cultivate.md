@@ -187,3 +187,5 @@ architecture/knowledge/cultivate/cultivationSession.ts   (pure: session + target
 architecture/plugin/services/CultivationService.ts        (the writes: link / question / counterpoint / source / advance)
 architecture/components/core/cultivate/CultivateModeRenderer.ts  (the Cultivate mode on the Home surface)
 ```
+
+_README vocabulary for this page: **Cultivate (thinking sessions)**._

@@ -110,3 +110,5 @@ the light and dark default themes define and keep legible. ZettelFlow adds no cu
 theme that adjusts the canvas palette adjusts ours with it. The badges use
 `--background-secondary` / `--text-muted`, a pair that is theme-defined and covered by the colour
 pair test above.
+
+_README vocabulary for this page: **Accessibility**._

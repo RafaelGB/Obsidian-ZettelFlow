@@ -76,3 +76,5 @@ Each run performs **exactly one body write** — a single file creation for a ne
 `modify` for an existing one. The frontmatter marker is applied separately through Obsidian's
 `processFrontMatter` API. On failure the error is logged and surfaced as a notice, leaving nothing
 half-written where avoidable.
+
+_README vocabulary for this page: **Map-of-content builder**._

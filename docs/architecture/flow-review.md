@@ -135,3 +135,5 @@ A `Flow` object is replaced whenever its canvas changes on disk (#226). The obje
 revision, so caching on the instance is correct by construction — the same reasoning as the
 model-revision memo in
 [Knowledge State](knowledge-state.md#computed-once-per-revision-458).
+
+_README vocabulary for this page: **Rehearse a flow**._

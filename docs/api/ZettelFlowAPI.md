@@ -218,3 +218,5 @@ console.log(context.myData.value); // 42
 ### `app`
 
 The Obsidian API instance for advanced operations.
+
+_README vocabulary for this page: **Scriptable knowledge API**._

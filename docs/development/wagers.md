@@ -120,3 +120,5 @@ be told which one they wrote.
   written, so unlike the neighbourhoods or the gaps, its premise could not be checked against data
   that already existed. The first real evidence is someone setting a horizon two days out and
   resolving it.
+
+_README vocabulary for this page: **Wagers**._

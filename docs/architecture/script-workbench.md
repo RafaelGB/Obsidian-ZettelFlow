@@ -75,3 +75,5 @@ against a real note.
 
 The `// TODO: linter button action` that sat in the code view is gone: the gutter already lints as
 you type, so the button would have duplicated it. A dead affordance is worse than no affordance.
+
+_README vocabulary for this page: **Script workbench**._

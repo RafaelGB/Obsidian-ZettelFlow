@@ -99,3 +99,5 @@ A system is a single `.zftemplate` JSON bundle: a `canvas` (a real `.canvas`) pl
    current canvas as .zftemplate** (also in the *Open ZettelFlow* ribbon menu), then submit it through
    the community browser's **Add template** link. That closes the loop — your system in the gallery for
    everyone.
+
+_README vocabulary for this page: **Community Hub**, **Try a system before installing**._

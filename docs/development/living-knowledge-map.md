@@ -247,3 +247,5 @@ The map **writes nothing**. It is a view of the structure, distinct from the
   real vault, not with an argument.
 - **Normalising the seam list's length to the window.** `SEAM_LEGEND_MAX` is one integer measured
   against the legend box (8); making it depend on the viewport would be a rule with a knob behind it.
+
+_README vocabulary for this page: **A gap you ruled on stops asking**._

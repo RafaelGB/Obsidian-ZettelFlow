@@ -51,3 +51,5 @@ event.notePath.startsWith('Projects/')                 // only inside the Projec
 - **A single `=`** where you meant `===` — `event.property = 'status'` *assigns*; use `event.property === 'status'` to *compare*.
 
 Everything is offline and deterministic; a condition only reads the event payload.
+
+_README vocabulary for this page: **Triggers only where they fire**._

@@ -98,3 +98,5 @@ When the step already has one or more actions added, a **"Suggested for this ste
 above the tab strip. It shows up to three complementary action chips derived from a static
 affinity map (for example, adding a *Prompt* action surfaces *Create semantic relation*). The row
 is absent when there are no existing actions or when the affinity map yields no new suggestions.
+
+_README vocabulary for this page: **Knowledge phases for steps**._

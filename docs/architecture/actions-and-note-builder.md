@@ -793,3 +793,5 @@ at will. The honest moment to reconsider is **after #400**, when inline boxes ar
 authoring surface and the canvas is denser.
 
 **#400 stays independent**: B does not touch canvas authoring.
+
+_README vocabulary for this page: **Dynamic templates**, **Note-builder companion pane**, **Honest progress**, **Unfinished notes survive**, **Knowledge actions**, **Research actions**, **AI actions — optional, off by default**, **Action picker by capability**._

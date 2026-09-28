@@ -223,3 +223,5 @@ worse than no record.
 
 Under [§XII](../development/constitution.md), a change record is a **mechanical** account of what
 already happened: no severity, no ranking, no advice about whether a write was a good idea.
+
+_README vocabulary for this page: **See what will change**._

@@ -88,3 +88,5 @@ classify every note. The maturity *score* over these states is #158.
 > **State ≠ phase.** A note's lifecycle **state** (here) is orthogonal to a step's
 > [workflow phase](workflow-phases.md) (#149): a note has a *state* (how mature it is), a step has a
 > *phase* (the kind of knowledge work it performs).
+
+_README vocabulary for this page: **Note lifecycle states**._

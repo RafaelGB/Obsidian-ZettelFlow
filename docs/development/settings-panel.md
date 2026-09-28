@@ -35,3 +35,5 @@ The advanced group starts collapsed behind an explicit toggle, because nobody sh
 level on their first day. It holds only things that do not change what ZettelFlow does for you:
 the folders it keeps its own files in, the script type declarations, and the log level — which now
 includes **off**, the state its separate toggle used to mean (#439).
+
+_README vocabulary for this page: **Settings you can read**._

@@ -87,10 +87,13 @@ export class CrystallizeModal extends Modal {
         }
         contentEl.createDiv({ cls: c("crystallize-keeps"), text: t("crystallize_keeps_thoughts") });
 
+        // "Create the note" is a lie when the thinking is going back into the note it came from —
+        // that is an update, and the button has to say so (#590 follow-up).
+        const confirm = this.destination === "back" ? "crystallize_confirm_back" : "crystallize_confirm";
         new Setting(contentEl)
             .addButton((button) =>
                 button
-                    .setButtonText(t("crystallize_confirm"))
+                    .setButtonText(t(confirm))
                     .setCta()
                     .onClick(() => void this.apply())
             )
@@ -99,9 +102,10 @@ export class CrystallizeModal extends Modal {
 
     private async apply(): Promise<void> {
         this.close();
+        const appending = this.destination === "back" && Boolean(this.subject);
         try {
             const path =
-                this.destination === "back" && this.subject
+                appending && this.subject
                     ? await crystallizeInto(this.subject, this.plan, this.body)
                     : await crystallize({
                           plan: this.plan,
@@ -109,7 +113,7 @@ export class CrystallizeModal extends Modal {
                           body: this.body,
                           folder: "",
                       });
-            new Notice(path ? t("crystallize_done", path) : t("crystallize_failed"));
+            new Notice(path ? t(appending ? "crystallize_done_back" : "crystallize_done", path) : t("crystallize_failed"));
             this.onDone(path);
         } catch (error) {
             log.error("[lab] crystallization failed", error);

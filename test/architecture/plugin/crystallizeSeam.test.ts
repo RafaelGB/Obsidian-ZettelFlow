@@ -37,7 +37,10 @@ describe("nothing crystallizes by itself (#468)", () => {
     });
 
     it("has that one caller behind a button you press, not a lifecycle hook", () => {
-        expect(MODAL).toContain("setButtonText(t(\"crystallize_confirm\"))");
+        // The confirm label depends on the destination — "create the note" vs. "update the one it
+        // came from" (#590 follow-up) — so match the call and both labels, not a frozen literal.
+        expect(MODAL).toContain("crystallize_confirm");
+        expect(MODAL).toContain("crystallize_confirm_back");
         expect(MODAL).toContain("onClick(() => void this.apply())");
         // Nothing that could fire it unattended.
         for (const automatic of ["onLayoutReady", "registerEvent", "setInterval", "onload("]) {

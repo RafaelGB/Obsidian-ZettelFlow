@@ -16,10 +16,12 @@ import type { Thought } from "./thought";
  */
 
 /**
- * Why something is set aside. Two reasons, one state — *not now* and *I decided against this* are
- * different sentences about the same act, and both keep the thought.
+ * Why something is set aside. Three reasons, one state — *not now*, *I decided against this*, and
+ * *it became a note* are different sentences about the same act, and all three keep the thought.
+ * `crystallized` (#590) is the door out of the bench: the thinking turned into a note, so it leaves
+ * the front of the room without being deleted — the same chaos can still produce another idea.
  */
-export type IncubationReason = "not-now" | "decided-against";
+export type IncubationReason = "not-now" | "decided-against" | "crystallized";
 
 export interface Incubation {
     reason: IncubationReason;

@@ -177,7 +177,7 @@ export function parseThought(content: string, path: string): Thought {
     const asideReason = read("asideReason");
     const stuckOn = read("stuckOn");
     const incubated: Incubation | undefined =
-        asideReason === "not-now" || asideReason === "decided-against"
+        asideReason === "not-now" || asideReason === "decided-against" || asideReason === "crystallized"
             ? {
                   reason: asideReason,
                   at: Number(read("asideAt")) || 0,

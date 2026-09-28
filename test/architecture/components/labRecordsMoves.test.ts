@@ -54,8 +54,18 @@ describe("the four gestures are written down (#492)", () => {
 
     it("records crystallize with what it produced, once the note exists", () => {
         expect(MODAL).toContain("this.onDone(path)");
-        const open = methodBody(LAB, "private openCrystallize()");
-        expect(open).toContain('this.remember("crystallize"');
+        // Recorded in afterCrystallize, which the modal's onDone calls with the path it wrote (#590):
+        // the crystallize move now sits beside the set-aside that follows it.
+        const done = methodBody(LAB, "private async afterCrystallize(");
+        expect(done).toContain('this.remember("crystallize"');
+    });
+
+    it("sets the crystallized thoughts aside instead of leaving them on the bench (#590)", () => {
+        // The thinking became a note, so it leaves the front of the room — set aside, never deleted,
+        // and picked back up in one click. The write of the note itself never touches a thought.
+        const done = methodBody(LAB, "private async afterCrystallize(");
+        expect(done).toContain('setAside(thought, "crystallized"');
+        expect(CRYSTALLIZE).not.toContain("ThoughtStore");
     });
 
     it("keeps the verdict and the operation apart", () => {

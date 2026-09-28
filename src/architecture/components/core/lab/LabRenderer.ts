@@ -938,8 +938,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /**
      * Propose a note, and let you rewrite it before it exists (#468).
      *
-     * The thoughts are not consumed: the same chaos can produce a second idea next month, and a
-     * door that eats the room behind it is not a door.
+     * The thoughts are not deleted: crystallizing **sets them aside** (#590), so the bench does not
+     * fill with what you already made, but the same chaos can produce a second idea next month and
+     * picking them back up is one click — a door that eats the room behind it is not a door.
      */
     private openCrystallize(): void {
         const chosen = this.thoughts.filter((thought) => this.selected.has(thought.id));
@@ -951,20 +952,35 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // about, there is no honest single note to go back to.
         const subjects = new Set(chosen.map((thought) => thought.about).filter(Boolean));
         const subject = subjects.size === 1 ? [...subjects][0] : undefined;
-        new CrystallizeModal(
-            this.app,
-            plan,
-            (path) => {
+        new CrystallizeModal(this.app, plan, (path) => void this.afterCrystallize(chosen, path), subject).open();
+    }
+
+    /**
+     * The thinking became a note (#590). The thoughts it came from **leave the bench** — set aside,
+     * never deleted — so it does not fill with things already made. Picking them back up is one
+     * click, because the same chaos can produce a second idea next month.
+     *
+     * The set-aside happens **here**, in the renderer, and never in `crystallize`: the applier the
+     * seam test guards stays a pure write of the note, touching no thought.
+     */
+    private async afterCrystallize(chosen: readonly Thought[], path?: string): Promise<void> {
+        try {
+            if (path && chosen.length > 0) {
                 // Thinking became knowledge, here, out of these thoughts. The judgement recorded
                 // inside `crystallize` is the *verdict* — a human decided this chaos was an idea;
-                // this is the *operation*. One answers "was it accepted", the other "how did it
-                // get here", and collapsing them would lose the genealogy.
-                if (path && chosen.length > 0) this.remember("crystallize", chosen[0].id, path);
-                this.selected.clear();
-                void this.readLab();
-            },
-            subject
-        ).open();
+                // this is the *operation*. One answers "was it accepted", the other "how did it get
+                // here", and collapsing them would lose the genealogy.
+                this.remember("crystallize", chosen[0].id, path);
+                const store = ThoughtStore.getInstance();
+                const at = Date.now();
+                for (const thought of chosen) await store.save(setAside(thought, "crystallized", at));
+            }
+        } catch (error) {
+            log.warn("[lab] could not set aside the crystallized thoughts", error);
+        } finally {
+            this.selected.clear();
+            void this.readLab();
+        }
     }
 
     /** A door, not a queue. It says the room exists; it never says how full it is. */
@@ -1003,12 +1019,16 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private renderAside(list: HTMLElement, node: ThoughtNode): void {
         const thought = node.thought;
         const box = list.createDiv({ cls: [c("lab-card"), c("lab-aside")].join(" ") });
-        const decided = thought.incubated?.reason === "decided-against";
-        this.ribbon(
-            box,
-            decided ? t("lab_reason_decided_against") : t("lab_reason_not_now"),
-            decided ? "archive" : "moon"
-        );
+        const reason = thought.incubated?.reason;
+        // Three reasons a thought sits on the shelf, each with its own word and icon: you set it
+        // down, you decided against it, or it became a note (#590).
+        const badge =
+            reason === "decided-against"
+                ? { key: "lab_reason_decided_against" as const, icon: "archive" }
+                : reason === "crystallized"
+                  ? { key: "lab_reason_crystallized" as const, icon: "gem" }
+                  : { key: "lab_reason_not_now" as const, icon: "moon" };
+        this.ribbon(box, t(badge.key), badge.icon);
         box.createDiv({ cls: c("lab-aside-text"), text: thought.text });
 
         const stuckOn = thought.incubated?.stuckOn;

@@ -120,6 +120,18 @@ describe("every applied move asks for the redraw (#580)", () => {
         expect(listener).toContain("this.registerEvent(");
     });
 
+    it("re-reads the note when its own metadata changes, so the chip is never left stale (#590)", () => {
+        // A state change from the chip's picker or the command palette fires `changed` but reaches
+        // no applier — the card refreshes only through this listener. The `modify` event that ran
+        // `onModify` fired before Obsidian re-parsed the frontmatter, so the model was left holding
+        // the old state; the handler must re-index before it recomputes, or the card redraws exactly
+        // as it was and the user sees only a notice.
+        const start = RENDERER.indexOf('metadataCache.on("changed"');
+        const handler = RENDERER.slice(start, RENDERER.indexOf("this.registerEvent", start + 1));
+        expect(handler).toContain("onModify(");
+        expect(handler.indexOf("onModify(")).toBeLessThan(handler.indexOf("refreshTarget("));
+    });
+
     it("keeps the vault-wide debounce for the vault-wide events", () => {
         for (const event of ["resolved", "rename", "delete"]) {
             expect(RENDERER).toContain(`"${event}", debounced`);

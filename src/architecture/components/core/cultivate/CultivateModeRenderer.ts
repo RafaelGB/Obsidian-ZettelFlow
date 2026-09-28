@@ -92,7 +92,16 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         // adds no link may never produce one — which is why this card used to go stale.
         this.registerEvent(
             this.app.metadataCache.on("changed", (file) => {
-                if (file instanceof TFile && file.path === this.targetPath) this.refreshTarget();
+                if (file instanceof TFile && file.path === this.targetPath) {
+                    // Re-read the note before re-deriving (#590 follow-up). `changed` fires *after*
+                    // Obsidian re-parses the frontmatter, so the cache is fresh here — while the
+                    // `modify` event that already ran `onModify` fired *before* the re-parse, leaving
+                    // the model holding the old state. Recomputing without re-indexing would redraw
+                    // the card exactly as it was, which is why changing the state from the chip's
+                    // picker or the command palette showed only a notice and never moved the card.
+                    KnowledgeIndex.getInstance().onModify(file);
+                    this.refreshTarget();
+                }
             })
         );
         this.registerEvent(this.app.metadataCache.on("resolved", debounced));

@@ -9,6 +9,15 @@ import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "appl
 import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
 import { searchThreads, isEmptyQuery, type LabQuery } from "application/thinking/labSearch";
 import { parseTags } from "application/thinking/tags";
+import { LAB_PAGE, windowOf, grow, ensureIndexShown } from "application/thinking/labPage";
+import {
+    dayKey,
+    presentDays,
+    presentMonths,
+    monthDays,
+    leadingBlanks,
+    monthsOfYear,
+} from "application/thinking/labCalendar";
 import { keyFor, keyLabel, LAB_KEYS, moveFor, type LabMove } from "application/thinking/labKeys";
 import { LAB_MOVE_VOCABULARY, MOVE_VERBS, type MovePrimitive } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
@@ -54,6 +63,13 @@ const EDIT_SAVE_AFTER_MS = 600;
  * Fork and challenge do not create an empty card either. They **arm the composer**, so a relation
  * costs a sentence rather than an empty file you have to go back and fill.
  */
+
+/** How close to the foot of the scroller brings the next page in. A feel, not a grid value. */
+const LAB_SCROLL_MARGIN = 480;
+
+/** Monday, like most of the calendar-using world. Obsidian exposes no week-start we could read here. */
+const WEEK_STARTS_ON = 1;
+
 export class LabRenderer extends KnowledgeModeRenderer {
     private thoughts: Thought[] = [];
 
@@ -97,6 +113,22 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** Where you were, so returning is as cheap as arriving. */
     private scrollTop = 0;
 
+    /**
+     * How many top-level threads are on screen (#596). Infinite scroll grows it, newest first; it is
+     * **never** shown as a number, because "how many are left" is the debt the Lab refuses (#469).
+     */
+    private shown = LAB_PAGE;
+    /** The filtered roots currently backing the list, so growing appends without recomputing. */
+    private roots: ThoughtNode[] = [];
+    /** The "older thoughts" affordance at the foot of the window, removed and re-added as it grows. */
+    private sentinelEl: HTMLElement | undefined;
+    /** Whether the calendar panel — the other way into time — is open. Off by default. */
+    private calendarOpen = false;
+    /** Which year and month the calendar is showing, and whether it shows days or months. */
+    private calYear = new Date().getFullYear();
+    private calMonth = new Date().getMonth();
+    private calMode: "days" | "months" = "days";
+
     /** The thought the keys act on. Visible, never guessed. */
     private focused: string | undefined;
     /** Every node on screen, in the order the eye reads them — what `next`/`previous` walk. */
@@ -130,6 +162,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     onload(): void {
         // View-local, so a single letter never steals a key from the rest of Obsidian.
         this.registerDomEvent(this.container, "keydown", (event: KeyboardEvent) => this.onKey(event));
+        // Infinite scroll: the container is the scroller, and the window grows as you near the foot.
+        this.registerDomEvent(this.container, "scroll", () => this.onScroll());
         void this.readLab();
     }
 
@@ -374,27 +408,17 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.renderComposer(host);
         if (this.selected.size > 0) this.renderPicked(host);
 
-        const open = this.thoughts.filter((thought) => !isIncubated(thought));
         // Always available now: finding is a retrieval aid, not something you earn at eight thoughts.
         this.renderFindBar(host);
+        // The other way into time: a calendar to jump to a day, a month, a year (#596). Off by default.
+        if (this.calendarOpen) this.renderCalendar(host);
 
+        // Threads, not a pile sorted by clock: a counterpoint belongs under what it answers. The list
+        // is a window on them, newest first, that grows as you scroll — never the whole pile at once.
         this.listEl = host.createDiv({ cls: c("lab-list") });
-        if (open.length === 0) {
-            this.listEl.createDiv({ cls: c("lab-blank"), text: t("lab_blank") });
-        }
-        // Threads, not a pile sorted by clock: a counterpoint belongs under what it answers.
-        this.order = [];
-        const query = this.query();
-        const shown = searchThreads(threadThoughts(open), query);
-        if (shown.length === 0 && !isEmptyQuery(query)) {
-            this.listEl.createDiv({ cls: c("lab-blank"), text: t("lab_filter_nothing") });
-        }
-        for (const node of shown) this.renderNode(this.listEl, node);
-        if (this.focused && this.cards.has(this.focused)) this.focus(this.focused);
-
         // The set-aside region lives in one element so the find bar can refresh it in place.
         this.asideEl = host.createDiv();
-        this.renderAsideDoor(this.asideEl, this.thoughts.filter(isIncubated));
+        this.renderList();
 
         // Returning should be as cheap as arriving.
         if (this.scrollTop > 0) window.setTimeout(() => (host.scrollTop = this.scrollTop), 0);
@@ -454,9 +478,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
         });
         input.value = this.filter;
         this.findInputEl = input;
-        // List-only redraw: a full render would let the composer's auto-focus steal the cursor.
+        // List-only redraw: a full render would let the composer's auto-focus steal the cursor. A new
+        // query starts at the top of its results, so the window resets to the first page.
         this.registerDomEvent(input, "input", () => {
             this.filter = input.value;
+            this.shown = LAB_PAGE;
             this.renderList();
         });
         for (const tag of this.activeTags) {
@@ -468,6 +494,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
             setIcon(chip.createSpan({ cls: c("lab-tag-remove") }), "x");
             this.registerDomEvent(chip, "click", () => {
                 this.activeTags.delete(tag);
+                this.shown = LAB_PAGE;
                 this.render();
             });
         }
@@ -475,9 +502,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.ghostAction(bar, t("lab_filter_clear"), "x", () => {
                 this.filter = "";
                 this.activeTags.clear();
+                this.shown = LAB_PAGE;
                 this.render();
             });
         }
+        // The calendar toggle: the other way into time, tucked at the end of the find bar.
+        const cal = bar.createEl("button", {
+            cls: ["clickable-icon", c("lab-cal-toggle")].join(" "),
+            attr: { type: "button", "aria-label": t("lab_calendar") },
+        });
+        setIcon(cal, "calendar");
+        if (this.calendarOpen) cal.addClass("is-active");
+        this.registerDomEvent(cal, "click", () => this.toggleCalendar());
     }
 
     /** The current find query, from the text box and the active tag chips. */
@@ -489,31 +525,212 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private toggleTag(tag: string): void {
         if (this.activeTags.has(tag)) this.activeTags.delete(tag);
         else this.activeTags.add(tag);
+        this.shown = LAB_PAGE;
         this.render();
     }
 
     /** Redraw only the results, so typing in the find bar never touches the box you are typing in. */
     private renderList(): void {
-        const list = this.listEl;
-        if (!list) return;
-        list.empty();
-        this.cards.clear();
-        this.order = [];
-        const open = this.thoughts.filter((thought) => !isIncubated(thought));
-        const query = this.query();
-        const shown = searchThreads(threadThoughts(open), query);
-        if (shown.length === 0) {
-            list.createDiv({
-                cls: c("lab-blank"),
-                text: isEmptyQuery(query) ? t("lab_blank") : t("lab_filter_nothing"),
-            });
-        }
-        for (const node of shown) this.renderNode(list, node);
+        this.paintList();
         // Keep the set-aside matches in step with the query, without disturbing the find input.
         if (this.asideEl) {
             this.asideEl.empty();
             this.renderAsideDoor(this.asideEl, this.thoughts.filter(isIncubated));
         }
+    }
+
+    /**
+     * Paint the current window of filtered roots into the list (#596). Newest first, and only the
+     * first `shown` of them — the rest arrive as you scroll. Shared by the full render and the
+     * list-only redraw, so the two can never fall out of step.
+     */
+    private paintList(): void {
+        const list = this.listEl;
+        if (!list) return;
+        list.empty();
+        this.cards.clear();
+        this.order = [];
+        this.sentinelEl = undefined;
+        const open = this.thoughts.filter((thought) => !isIncubated(thought));
+        const query = this.query();
+        this.roots = searchThreads(threadThoughts(open), query);
+        if (this.roots.length === 0) {
+            list.createDiv({
+                cls: c("lab-blank"),
+                text: isEmptyQuery(query) ? t("lab_blank") : t("lab_filter_nothing"),
+            });
+        }
+        const { items, hasMore } = windowOf(this.roots, this.shown);
+        for (const node of items) this.renderNode(list, node);
+        if (hasMore) this.addSentinel(list);
+        if (this.focused && this.cards.has(this.focused)) this.focus(this.focused);
+        // If the first window does not fill the view, grow until it does — otherwise a tall screen
+        // could leave threads unreachable because there is nothing to scroll.
+        window.setTimeout(() => this.fillViewport(), 0);
+    }
+
+    /** The scroller neared its foot — bring the next page of older threads into the window. */
+    private onScroll(): void {
+        const el = this.container;
+        if (this.shown >= this.roots.length) return;
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - LAB_SCROLL_MARGIN) this.growList();
+    }
+
+    /** Append one page more of older threads, in place — no full redraw, so your scroll stays put. */
+    private growList(): void {
+        const list = this.listEl;
+        if (!list || this.shown >= this.roots.length) return;
+        const previous = this.shown;
+        this.shown = grow(this.shown, this.roots.length);
+        this.sentinelEl?.remove();
+        this.sentinelEl = undefined;
+        for (const node of this.roots.slice(previous, this.shown)) this.renderNode(list, node);
+        if (this.shown < this.roots.length) this.addSentinel(list);
+    }
+
+    /**
+     * The foot of the window: a quiet mark that there is older thinking below, and a click that
+     * brings it in — so the list works without a scroll wheel. It is a **door, never a number**: a
+     * "23 more" here would be the backlog count the Lab exists to refuse (#469).
+     */
+    private addSentinel(list: HTMLElement): void {
+        const more = list.createEl("button", { cls: c("lab-more"), attr: { type: "button" } });
+        setIcon(more.createSpan({ cls: c("lab-more-icon") }), "more-horizontal");
+        more.createSpan({ cls: c("lab-more-label"), text: t("lab_more") });
+        this.registerDomEvent(more, "click", () => this.growList());
+        this.sentinelEl = more;
+    }
+
+    /** Grow the window until the content fills the viewport, so nothing is stranded below the fold. */
+    private fillViewport(): void {
+        const el = this.container;
+        if (el.clientHeight <= 0) return;
+        let guard = 0;
+        while (this.shown < this.roots.length && el.scrollHeight <= el.clientHeight && guard++ < 200) {
+            this.growList();
+        }
+    }
+
+    /** Open the calendar where the thinking is — the newest thought's month, or today if empty. */
+    private toggleCalendar(): void {
+        this.calendarOpen = !this.calendarOpen;
+        if (this.calendarOpen) {
+            const open = this.thoughts.filter((thought) => !isIncubated(thought));
+            const newest = open.reduce((max, thought) => Math.max(max, thought.at), 0);
+            const at = newest > 0 ? new Date(newest) : new Date();
+            this.calYear = at.getFullYear();
+            this.calMonth = at.getMonth();
+            this.calMode = "days";
+        }
+        this.render();
+    }
+
+    /**
+     * The calendar (#596): a way *to* a day, never a report *of* one. It shows which days (or months)
+     * hold thinking as a **dot** — presence, never how many (#469) — and a click jumps the list there.
+     * It reflects the current find query, so finding and the calendar compose.
+     */
+    private renderCalendar(host: HTMLElement): void {
+        const open = this.thoughts.filter((thought) => !isIncubated(thought));
+        const roots = searchThreads(threadThoughts(open), this.query());
+        const times = roots.map((node) => node.thought.at);
+
+        const panel = host.createDiv({ cls: c("lab-cal") });
+        const head = panel.createDiv({ cls: c("lab-cal-head") });
+        this.calNav(head, "chevron-left", t("lab_cal_prev"), () => this.stepCalendar(-1));
+        const title = head.createEl("button", { cls: c("lab-cal-title"), attr: { type: "button" } });
+        title.setText(this.calMode === "days" ? monthTitle(this.calYear, this.calMonth) : String(this.calYear));
+        this.registerDomEvent(title, "click", () => {
+            this.calMode = this.calMode === "days" ? "months" : "days";
+            this.render();
+        });
+        this.calNav(head, "chevron-right", t("lab_cal_next"), () => this.stepCalendar(1));
+
+        if (this.calMode === "days") this.renderMonthGrid(panel, presentDays(times));
+        else this.renderYearGrid(panel, presentMonths(times));
+    }
+
+    /** A calendar arrow — a native clickable icon, so it inherits the theme's own affordance. */
+    private calNav(host: HTMLElement, icon: string, label: string, onClick: () => void): void {
+        const button = host.createEl("button", {
+            cls: ["clickable-icon", c("lab-cal-nav")].join(" "),
+            attr: { type: "button", "aria-label": label },
+        });
+        setIcon(button, icon);
+        this.registerDomEvent(button, "click", onClick);
+    }
+
+    /** Step the calendar by one unit of whatever it is showing — a month, or (in the year view) a year. */
+    private stepCalendar(delta: number): void {
+        if (this.calMode === "months") {
+            this.calYear += delta;
+        } else {
+            const month = this.calMonth + delta;
+            this.calYear += Math.floor(month / 12);
+            this.calMonth = ((month % 12) + 12) % 12;
+        }
+        this.render();
+    }
+
+    /** The month grid: weekday initials, the leading blanks, then a cell per day — dotted if it holds thinking. */
+    private renderMonthGrid(panel: HTMLElement, present: Set<string>): void {
+        const grid = panel.createDiv({ cls: c("lab-cal-grid") });
+        for (const initial of weekdayInitials(WEEK_STARTS_ON)) {
+            grid.createSpan({ cls: c("lab-cal-dow"), text: initial });
+        }
+        for (let blank = 0; blank < leadingBlanks(this.calYear, this.calMonth, WEEK_STARTS_ON); blank++) {
+            grid.createSpan({ cls: c("lab-cal-blank") });
+        }
+        for (const { day, key } of monthDays(this.calYear, this.calMonth)) {
+            const cell = grid.createEl("button", { cls: c("lab-cal-day"), attr: { type: "button" } });
+            cell.createSpan({ cls: c("lab-cal-num"), text: String(day) });
+            if (present.has(key)) {
+                cell.addClass("is-present");
+                cell.createSpan({ cls: c("lab-cal-dot") });
+                cell.setAttribute("aria-label", t("lab_cal_day", key));
+                this.registerDomEvent(cell, "click", () => this.jumpToDay(key));
+            } else {
+                cell.addClass("is-empty");
+                cell.setAttribute("disabled", "true");
+            }
+        }
+    }
+
+    /** The year grid: twelve months to pick from, each dotted if it holds thinking. */
+    private renderYearGrid(panel: HTMLElement, present: Set<string>): void {
+        const grid = panel.createDiv({ cls: c("lab-cal-months") });
+        const short = new Intl.DateTimeFormat(undefined, { month: "short" });
+        for (const { month, key } of monthsOfYear(this.calYear)) {
+            const cell = grid.createEl("button", { cls: c("lab-cal-month"), attr: { type: "button" } });
+            cell.createSpan({ text: short.format(new Date(this.calYear, month, 1)) });
+            if (present.has(key)) {
+                cell.addClass("is-present");
+                cell.createSpan({ cls: c("lab-cal-dot") });
+                this.registerDomEvent(cell, "click", () => {
+                    this.calMonth = month;
+                    this.calMode = "days";
+                    this.render();
+                });
+            } else {
+                cell.addClass("is-empty");
+                cell.setAttribute("disabled", "true");
+            }
+        }
+    }
+
+    /**
+     * Jump the list to a day: grow the window just enough to include that day's newest thread, close
+     * the calendar (it has done its job), and scroll the thread into view. A day with no *thread* of
+     * its own is not clickable, so this always finds one.
+     */
+    private jumpToDay(key: string): void {
+        const index = this.roots.findIndex((node) => dayKey(node.thought.at) === key);
+        if (index < 0) return;
+        this.shown = ensureIndexShown(this.shown, index);
+        this.calendarOpen = false;
+        const target = this.roots[index].thought.id;
+        this.render();
+        window.setTimeout(() => this.scrollTo(target), 0);
     }
 
     /**
@@ -1291,4 +1508,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
 function firstWords(text: string): string {
     const single = text.replace(/\s+/g, " ").trim();
     return single.length <= 32 ? single : `${single.slice(0, 31).trimEnd()}…`;
+}
+
+/** "September 2026", in the reader's own locale. */
+function monthTitle(year: number, month0: number): string {
+    return new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(new Date(year, month0, 1));
+}
+
+/** The seven weekday initials, starting on the given day (0 = Sunday), in the reader's locale. */
+function weekdayInitials(weekStartsOn: number): string[] {
+    const narrow = new Intl.DateTimeFormat(undefined, { weekday: "narrow" });
+    // 7 Jan 2024 is a Sunday, so day 0 lands on Sunday before the rotation is applied.
+    return Array.from({ length: 7 }, (_unused, index) =>
+        narrow.format(new Date(2024, 0, 7 + ((weekStartsOn + index) % 7)))
+    );
 }

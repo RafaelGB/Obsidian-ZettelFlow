@@ -52,6 +52,20 @@ describe("hoverPreview (#594)", () => {
         );
     });
 
+    it("is wired onto Cultivate's note names — target and connect/challenge candidates (#594)", () => {
+        const renderer = readFileSync(
+            join(
+                __dirname,
+                "..", "..", "..", "..",
+                "src", "architecture", "components", "core", "cultivate", "CultivateModeRenderer.ts"
+            ),
+            "utf8"
+        );
+        expect(renderer).toContain("hoverPreview(this.app, name, session.path");
+        expect(renderer).toMatch(/hoverPreview\(this\.app, link, candidate/);
+        expect(renderer).toMatch(/hoverPreview\(this\.app, link, path/);
+    });
+
     it("reads and triggers only — it never writes to the vault", () => {
         // The affordance shows a read-only popover; a write would be a different feature entirely.
         const src = readFileSync(

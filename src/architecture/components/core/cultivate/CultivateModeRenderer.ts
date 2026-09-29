@@ -9,7 +9,7 @@ import { KnowledgeModeRenderer } from "architecture/components/core/surface/Know
 import { recordMoveOn } from "starters/zcomponents/MoveCommandsComponent";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
 import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
-import { makeActivatable } from "architecture/components/core/a11y";
+import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { Notice, TFile, setIcon } from 'obsidian';
 import { InquiryPanel } from './InquiryPanel';
@@ -358,6 +358,8 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         });
         name.setAttribute("title", session.path);
         makeActivatable(name, () => void this.app.workspace.openLinkText(session.path, "", false));
+        // Ctrl/Cmd-hover shows the native Page preview without leaving Cultivate (#594).
+        hoverPreview(this.app, name, session.path, this);
         const maturity = session.maturity === null ? "—" : session.maturity.toFixed(2);
         card.createDiv({
             cls: c("cultivate-target-meta"),
@@ -451,6 +453,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             const link = row.createSpan({ cls: c("cultivate-candidate-name"), text: basename(candidate) });
             link.setAttribute("title", candidate);
             makeActivatable(link, () => void this.app.workspace.openLinkText(candidate, "", false));
+            hoverPreview(this.app, link, candidate, this);
             const btn = row.createEl("button", { cls: c("cultivate-candidate-btn"), text: t("cultivate_link_button") });
             btn.addEventListener("click", () => void this.linkNote(candidate));
         }
@@ -463,6 +466,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
                 const link = row.createSpan({ cls: c("cultivate-candidate-name"), text: basename(path) });
                 link.setAttribute("title", path);
                 makeActivatable(link, () => void this.app.workspace.openLinkText(path, "", false));
+                hoverPreview(this.app, link, path, this);
             }
         } else {
             body.createDiv({ cls: c("cultivate-move-hint"), text: t("cultivate_no_contradictions") });

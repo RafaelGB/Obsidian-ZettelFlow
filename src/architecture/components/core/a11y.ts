@@ -4,7 +4,54 @@
  * Many surfaces render a clickable `<span>` (a note name, a candidate, a result). A bare click handler
  * is invisible to keyboard and screen-reader users. {@link makeActivatable} promotes such an element to
  * a first-class control: focusable, with an ARIA role, activated by both click and Enter/Space.
+ *
+ * {@link hoverPreview} is the sibling for the *pointer*: it wires a note-name element to Obsidian's
+ * native "Page preview" popover (#594), so a Ctrl/Cmd-hover shows the note without leaving the surface.
  */
+
+import type { App } from "obsidian";
+
+/**
+ * The id ZettelFlow registers with the "Page preview" core plugin (#594). A `HoverPreviewComponent`
+ * registers it once on load with `defaultMod: true`; every {@link hoverPreview} call emits under it.
+ */
+export const HOVER_PREVIEW_SOURCE = "zettelflow";
+
+/** The `hover-link` event payload Obsidian's Page preview plugin consumes. */
+export interface HoverPreviewPayload {
+    event: MouseEvent;
+    source: string;
+    hoverParent: unknown;
+    targetEl: HTMLElement;
+    linktext: string;
+    sourcePath: string;
+}
+
+/** Build the `hover-link` payload — pure, so it can be tested without a DOM (#594). */
+export function hoverPreviewPayload(
+    event: MouseEvent,
+    el: HTMLElement,
+    path: string,
+    hoverParent: unknown
+): HoverPreviewPayload {
+    return { event, source: HOVER_PREVIEW_SOURCE, hoverParent, targetEl: el, linktext: path, sourcePath: "" };
+}
+
+/**
+ * Show Obsidian's native **Page preview** when the pointer hovers `el` over the note at `path` (#594).
+ *
+ * Complements a click-to-open affordance (e.g. {@link makeActivatable}); it never replaces it, and it
+ * **writes nothing** — the trigger only asks the core plugin to render a read-only popover. A **no-op**
+ * when the "Page preview" core plugin is disabled: nothing listens for the event, and nothing throws.
+ * Whether the Mod key is required is the source's `defaultMod` and the user's Page-preview settings.
+ *
+ * `hoverParent` is the view/component the popover attaches its lifecycle to (pass the renderer/`this`).
+ */
+export function hoverPreview(app: App, el: HTMLElement, path: string, hoverParent: unknown): void {
+    el.addEventListener("mouseover", (event) => {
+        app.workspace.trigger("hover-link", hoverPreviewPayload(event, el, path, hoverParent));
+    });
+}
 
 /**
  * Make a non-button element keyboard-operable and screen-reader-announced. Adds the ARIA `role`, makes

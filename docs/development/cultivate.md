@@ -107,6 +107,14 @@ the control (you never hand-edit YAML for it), defaulting to *any stage*. When a
 notes left, the selector and distribution stay on screen with a quiet *"No notes at this stage yet."*
 — never an empty surface you cannot get out of.
 
+### Peek at a note without leaving (#594)
+
+Every note name in Cultivate — the target and the connect/challenge candidates — supports Obsidian's
+native **Page preview**: hold **Ctrl/Cmd** and hover to see the note in a popover without opening it.
+It is the core *Page preview* plugin, so it honours your settings there (including whether the
+modifier key is required); with that plugin disabled, hovering simply does nothing. Clicking still
+opens the note as before — the preview is an addition, not a replacement.
+
 ## The moves
 
 Each move is a real, one-click operation on the target note — nothing is invented:

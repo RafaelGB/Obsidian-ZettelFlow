@@ -54,7 +54,7 @@ describe("the gesture records nothing (#500)", () => {
 });
 
 describe("writing is the act (#500)", () => {
-    const commit = methodBody(code(LAB), "private async commit()");
+    const commit = methodBody(code(LAB), "private async commit(");
 
     it("records the framed move against the note, naming the thought it produced", () => {
         // The **path**, not the id: what a move produced is rendered on the note's timeline, and

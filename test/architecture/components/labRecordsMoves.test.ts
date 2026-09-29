@@ -37,7 +37,7 @@ describe("the four gestures are written down (#492)", () => {
     it("records a branch or a challenge when the response is actually written", () => {
         // Not in `arm()`: arming only opens the composer. The move is the thing you did, never
         // the thing you were about to do.
-        const commit = methodBody(LAB, "private async commit()");
+        const commit = methodBody(LAB, "private async commit(");
         expect(commit).toContain("this.remember(");
         expect(commit).toContain('"challenge"');
         expect(commit).toContain('"fork"');

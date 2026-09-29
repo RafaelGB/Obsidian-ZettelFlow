@@ -114,6 +114,23 @@
     }
 }
 
+/*
+ * A picked thought stays visibly picked (#596).
+ *
+ * Selection used to live only in the `lab-pick` checkbox inside `.lab-actions`, which is hidden
+ * (`opacity: 0`) until you hover — so a selected card looked unselected the moment the pointer left.
+ * This is the persistent cue: a standing accent on the card, and the action row (with its checked
+ * checkbox) kept visible while selected. Deliberately **not** nested under `:hover`/`:focus-within`.
+ */
+.zettelkasten-flow__lab-selected {
+    border-left-color: var(--interactive-accent);
+    background: var(--background-primary-alt);
+
+    .zettelkasten-flow__lab-actions {
+        opacity: 1;
+    }
+}
+
 .zettelkasten-flow__lab-connecting {
     border-color: var(--interactive-accent);
     border-left-color: var(--interactive-accent);

@@ -116,7 +116,7 @@ function keep(node: ThoughtNode, needle: string): ThoughtNode | undefined {
  * Case- and accent-insensitive, because you will not remember whether you typed *análisis* or
  * *analisis* at eleven at night.
  */
-function normalise(text: string): string {
+export function normalise(text: string): string {
     return text
         .toLowerCase()
         .normalize("NFD")

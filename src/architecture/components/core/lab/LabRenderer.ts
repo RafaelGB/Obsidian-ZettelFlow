@@ -16,6 +16,7 @@ import { keyFor, keyLabel, LAB_KEYS, moveFor, type LabMove } from "application/t
 import { LAB_MOVE_VOCABULARY, MOVE_VERBS, type MovePrimitive } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { planCrystallization } from "application/thinking/crystallize";
+import { commitDraft } from "application/thinking/commit";
 import { appearedSince, isIncubated, pickBackUp, setAside } from "application/thinking/incubation";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { CrystallizeModal } from "./CrystallizeModal";
@@ -505,7 +506,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(area, "keydown", (event: KeyboardEvent) => {
             if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
                 event.preventDefault();
-                void this.commit();
+                // Commit the **live** textarea value (not a possibly-unsynced this.draft), and catch as
+                // the blur path already does — the two together are the Ctrl/Cmd+Enter fix (#596).
+                void this.commit(area.value).catch((error: unknown) => log.warn("[lab] could not save", error));
             }
         });
         this.registerDomEvent(area, "blur", () => this.flush());
@@ -521,13 +524,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
      * Deliberately does **not** redraw: the card is inserted and the composer cleared in place,
      * so committing never moves the ground under you.
      */
-    private async commit(): Promise<void> {
-        const text = this.draft.trim();
+    private async commit(explicit?: string): Promise<void> {
+        // The live textarea value when the caller has it (the Ctrl/Cmd+Enter handler): a commit must
+        // not depend on `this.draft` having been synced by an `input` event that may not have landed.
+        const draft = explicit ?? this.draft;
         const relation = this.relation;
-        if (!text) {
-            this.relation = undefined;
-            return;
-        }
 
         // Inherited, so a thread keeps the context you arrived with — including the answers
         // you write to your own thoughts an hour later.
@@ -535,25 +536,38 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // A collision's answer is about **both** notes, and a response inherits both, so a thread
         // that came out of one keeps the pair it came from (#567).
         const alsoSubject = relation ? this.alsoSubjectOf(relation.to) ?? this.alsoAbout : this.alsoAbout;
-        const made = await ThoughtStore.getInstance().write(text, {
-            ...(relation ? { respondsTo: relation } : {}),
-            ...(subject ? { about: subject } : {}),
-            ...(alsoSubject ? { alsoAbout: alsoSubject } : {}),
-        });
 
-        // The box is cleared **after** the write, not before it. It used to be cleared first, so a
-        // write that returned nothing — `ThoughtStore.folder()` swallows a failed `getOwnPlugin()`
-        // and answers `""` (#374) — took the sentence with it: text gone, nothing saved, nothing
-        // said. A thought you wrote is the one thing this surface must not lose.
+        // The empty-guard and the clear-**after**-write ordering live in `commitDraft` (#596/#544): a
+        // write that returned nothing (`ThoughtStore.folder()` swallows a failed `getOwnPlugin()` and
+        // answers `""` — #374) must never take the sentence with it.
+        let made: Thought | undefined;
+        const outcome = await commitDraft(
+            draft,
+            async (text) => {
+                made = await ThoughtStore.getInstance().write(text, {
+                    ...(relation ? { respondsTo: relation } : {}),
+                    ...(subject ? { about: subject } : {}),
+                    ...(alsoSubject ? { alsoAbout: alsoSubject } : {}),
+                });
+                return made !== undefined;
+            },
+            () => {
+                this.draft = "";
+                this.relation = undefined;
+                if (this.composerEl) this.composerEl.value = "";
+            }
+        );
+
+        if (outcome === "empty") {
+            this.relation = undefined;
+            return;
+        }
         if (!made) {
             log.error("[lab] the thought could not be written; the lab folder answered nothing");
             this.sayCommitFailed();
             return;
         }
         this.clearCommitFailure();
-        this.draft = "";
-        this.relation = undefined;
-        if (this.composerEl) this.composerEl.value = "";
         this.thoughts.push(made);
         // The gesture, written down (#492). A fork *is* a branch and a challenge *is* a challenge
         // — the Lab has always called them moves, and now it keeps them. Recorded here rather

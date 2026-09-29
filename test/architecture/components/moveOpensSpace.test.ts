@@ -64,7 +64,7 @@ describe("the frame is a frame, not a data model (#499)", () => {
     });
 
     it("is consumed once, so the next thought is not still framed", () => {
-        const commit = code(LAB).slice(code(LAB).indexOf("private async commit()"));
+        const commit = code(LAB).slice(code(LAB).indexOf("private async commit("));
         expect(commit.slice(0, commit.indexOf("\n    }"))).toContain("this.frame = undefined;");
     });
 });

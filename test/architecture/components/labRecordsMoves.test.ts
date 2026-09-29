@@ -97,6 +97,7 @@ describe("nothing about the Lab changed (#492)", () => {
             "s:setAside",
             "Shift+a:decidedAgainst",
             "Shift+d:discard",
+            "/:find",
             "escape:leave",
         ]);
     });

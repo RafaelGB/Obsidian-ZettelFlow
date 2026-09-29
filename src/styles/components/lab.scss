@@ -564,6 +564,50 @@
     }
 }
 
+/* Inline #tags on a card, and in the find bar as active filters (#596). A chip, drawn by the mixin. */
+.zettelkasten-flow__lab-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-tight;
+    padding-top: $space-1;
+}
+
+.zettelkasten-flow__lab-tags-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    .svg-icon {
+        width: 1em;
+        height: 1em;
+    }
+}
+
+.zettelkasten-flow__lab-tag-chip {
+    @include chip;
+    @include chip-clickable;
+    box-shadow: none;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__lab-tag-remove {
+    display: inline-flex;
+
+    .svg-icon {
+        width: 1em;
+        height: 1em;
+    }
+}
+
+/* While searching, the set-aside room labels its matches — a phrase, never a count (#469). */
+.zettelkasten-flow__lab-aside-match {
+    color: var(--text-faint);
+    font-size: $text-small;
+}
+
 .zettelkasten-flow__lab-chip-gone {
     cursor: default;
     opacity: 0.6;

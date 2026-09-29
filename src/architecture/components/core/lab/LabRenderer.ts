@@ -6,12 +6,9 @@ import { KnowledgeModeRenderer } from "architecture/components/core/surface/Know
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
-import {
-    filterThreads,
-    flattenThread,
-    threadThoughts,
-    type ThoughtNode,
-} from "application/thinking/thread";
+import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
+import { searchThreads, isEmptyQuery, type LabQuery } from "application/thinking/labSearch";
+import { parseTags } from "application/thinking/tags";
 import { keyFor, keyLabel, LAB_KEYS, moveFor, type LabMove } from "application/thinking/labKeys";
 import { LAB_MOVE_VOCABULARY, MOVE_VERBS, type MovePrimitive } from "application/thinking/move";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
@@ -30,9 +27,6 @@ type LocaleKey = Parameters<typeof t>[0];
 
 /** How long after you stop typing an **existing** thought is written back to its file. */
 const EDIT_SAVE_AFTER_MS = 600;
-
-/** How many thoughts before a filter is worth its space. A search box over four is furniture. */
-const FILTER_APPEARS_AT = 8;
 
 /**
  * **The Thought Lab** (#467, epic #465) — a mode of the Home surface.
@@ -92,6 +86,12 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     /** What you are looking for. Empty is the normal state, and it shows everything. */
     private filter = "";
+    /** Tag chips you have clicked to narrow by — a thought must carry all of them (#596). */
+    private readonly activeTags = new Set<string>();
+    /** The find input, so `/` can focus it (#596). */
+    private findInputEl: HTMLInputElement | undefined;
+    /** The set-aside region, kept as one element so the find bar can refresh it without a full redraw. */
+    private asideEl: HTMLElement | undefined;
     /** Threads you have folded away. View state: it survives a redraw, not a restart. */
     private readonly collapsed = new Set<string>();
     /** Where you were, so returning is as cheap as arriving. */
@@ -154,6 +154,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     private run(move: LabMove): void {
         if (move === "next" || move === "previous") return this.step(move === "next" ? 1 : -1);
+        if (move === "find") {
+            this.findInputEl?.focus();
+            return;
+        }
         if (move === "leave") {
             const active = this.container.ownerDocument.activeElement;
             if (active instanceof HTMLElement) active.blur();
@@ -371,9 +375,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (this.selected.size > 0) this.renderPicked(host);
 
         const open = this.thoughts.filter((thought) => !isIncubated(thought));
-        // Only once there is enough here to lose something in. A search box over four thoughts
-        // is furniture.
-        if (open.length >= FILTER_APPEARS_AT) this.renderFilter(host);
+        // Always available now: finding is a retrieval aid, not something you earn at eight thoughts.
+        this.renderFindBar(host);
 
         this.listEl = host.createDiv({ cls: c("lab-list") });
         if (open.length === 0) {
@@ -381,14 +384,17 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
         // Threads, not a pile sorted by clock: a counterpoint belongs under what it answers.
         this.order = [];
-        const shown = filterThreads(threadThoughts(open), this.filter);
-        if (shown.length === 0 && this.filter) {
+        const query = this.query();
+        const shown = searchThreads(threadThoughts(open), query);
+        if (shown.length === 0 && !isEmptyQuery(query)) {
             this.listEl.createDiv({ cls: c("lab-blank"), text: t("lab_filter_nothing") });
         }
         for (const node of shown) this.renderNode(this.listEl, node);
         if (this.focused && this.cards.has(this.focused)) this.focus(this.focused);
 
-        this.renderAsideDoor(host, this.thoughts.filter(isIncubated));
+        // The set-aside region lives in one element so the find bar can refresh it in place.
+        this.asideEl = host.createDiv();
+        this.renderAsideDoor(this.asideEl, this.thoughts.filter(isIncubated));
 
         // Returning should be as cheap as arriving.
         if (this.scrollTop > 0) window.setTimeout(() => (host.scrollTop = this.scrollTop), 0);
@@ -422,7 +428,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
 
         // Moving around is a move too, and the least discoverable of them.
-        for (const move of ["next", "previous", "leave"] as const) {
+        for (const move of ["find", "next", "previous", "leave"] as const) {
             const entry = keyFor(move);
             if (!entry) continue;
             const row = legend.createDiv({ cls: c("lab-legend-row") });
@@ -434,33 +440,59 @@ export class LabRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * A way to find the thing you are looking for, when you are looking (#477).
-     *
-     * Empty by default, and it narrows without ever reordering. It is a tool you pick up, not a
-     * queue you are handed — which is why there is no saved filter, no suggestion and no count.
+     * One always-on find bar (#596): free text over the body, its `#tags`, and the subject note, plus
+     * the tag chips you have clicked to narrow by. It narrows and never reorders — a tool you pick up,
+     * not a queue you are handed (#469): no saved filter, no suggestion, no count.
      */
-    private renderFilter(host: HTMLElement): void {
-        const row = host.createDiv({ cls: c("lab-filter") });
-        setIcon(row.createSpan({ cls: c("lab-filter-icon") }), "search");
-        const input = row.createEl("input", {
+    private renderFindBar(host: HTMLElement): void {
+        const bar = host.createDiv({ cls: c("lab-filter") });
+        setIcon(bar.createSpan({ cls: c("lab-filter-icon") }), "search");
+        const input = bar.createEl("input", {
             type: "text",
             cls: c("lab-filter-input"),
             attr: { placeholder: t("lab_filter_placeholder") },
         });
         input.value = this.filter;
+        this.findInputEl = input;
+        // List-only redraw: a full render would let the composer's auto-focus steal the cursor.
         this.registerDomEvent(input, "input", () => {
             this.filter = input.value;
             this.renderList();
         });
-        if (this.filter) {
-            this.ghostAction(row, t("lab_filter_clear"), "x", () => {
+        for (const tag of this.activeTags) {
+            const chip = bar.createEl("button", {
+                cls: [c("lab-tag-chip"), "is-active"].join(" "),
+                attr: { type: "button", "aria-label": t("lab_tag", tag) },
+            });
+            chip.createSpan({ text: `#${tag}` });
+            setIcon(chip.createSpan({ cls: c("lab-tag-remove") }), "x");
+            this.registerDomEvent(chip, "click", () => {
+                this.activeTags.delete(tag);
+                this.render();
+            });
+        }
+        if (this.filter || this.activeTags.size > 0) {
+            this.ghostAction(bar, t("lab_filter_clear"), "x", () => {
                 this.filter = "";
+                this.activeTags.clear();
                 this.render();
             });
         }
     }
 
-    /** Redraw only the list, so typing in the filter never touches the box you are typing in. */
+    /** The current find query, from the text box and the active tag chips. */
+    private query(): LabQuery {
+        return { text: this.filter, ...(this.activeTags.size > 0 ? { tags: [...this.activeTags] } : {}) };
+    }
+
+    /** Toggle a tag as an active filter (clicked from a card's chip). */
+    private toggleTag(tag: string): void {
+        if (this.activeTags.has(tag)) this.activeTags.delete(tag);
+        else this.activeTags.add(tag);
+        this.render();
+    }
+
+    /** Redraw only the results, so typing in the find bar never touches the box you are typing in. */
     private renderList(): void {
         const list = this.listEl;
         if (!list) return;
@@ -468,14 +500,20 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.cards.clear();
         this.order = [];
         const open = this.thoughts.filter((thought) => !isIncubated(thought));
-        const shown = filterThreads(threadThoughts(open), this.filter);
+        const query = this.query();
+        const shown = searchThreads(threadThoughts(open), query);
         if (shown.length === 0) {
             list.createDiv({
                 cls: c("lab-blank"),
-                text: this.filter ? t("lab_filter_nothing") : t("lab_blank"),
+                text: isEmptyQuery(query) ? t("lab_blank") : t("lab_filter_nothing"),
             });
         }
         for (const node of shown) this.renderNode(list, node);
+        // Keep the set-aside matches in step with the query, without disturbing the find input.
+        if (this.asideEl) {
+            this.asideEl.empty();
+            this.renderAsideDoor(this.asideEl, this.thoughts.filter(isIncubated));
+        }
     }
 
     /**
@@ -683,6 +721,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // beside the thought as a reference you can follow, not as a count you cannot use.
         if (thought.links.length > 0) this.renderLinks(box, thought);
 
+        // Inline #tags as chips you can click to narrow by (#596). Emergent, never a count.
+        const tags = parseTags(thought.text);
+        if (tags.length > 0) this.renderTags(box, tags);
+
         const footer = box.createDiv({ cls: c("lab-card-footer") });
         const meta = footer.createDiv({ cls: c("lab-meta") });
         meta.createSpan({ text: moment(thought.at).fromNow() });
@@ -825,6 +867,25 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.registerDomEvent(chip, "mousedown", (event: MouseEvent) => {
                 event.preventDefault();
                 this.scrollTo(other.id);
+            });
+        }
+    }
+
+    /** The inline #tags of a thought, as chips that add themselves to the find bar (#596). */
+    private renderTags(box: HTMLElement, tags: string[]): void {
+        const row = box.createDiv({ cls: c("lab-tags") });
+        setIcon(row.createSpan({ cls: c("lab-tags-icon") }), "hash");
+        for (const tag of tags) {
+            const active = this.activeTags.has(tag);
+            const chip = row.createEl("button", {
+                cls: active ? [c("lab-tag-chip"), "is-active"].join(" ") : c("lab-tag-chip"),
+                text: `#${tag}`,
+                attr: { type: "button", "aria-label": t("lab_tag", tag) },
+            });
+            // `mousedown`, like the connection chips: a click that lands after a redraw never happened.
+            this.registerDomEvent(chip, "mousedown", (event: MouseEvent) => {
+                event.preventDefault();
+                this.toggleTag(tag);
             });
         }
     }
@@ -1002,20 +1063,31 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** A door, not a queue. It says the room exists; it never says how full it is. */
     private renderAsideDoor(host: HTMLElement, aside: readonly Thought[]): void {
         if (aside.length === 0) return;
+        const query = this.query();
+        const searching = !isEmptyQuery(query);
+        const threads = searchThreads(threadThoughts(aside), query);
+        // While searching, the room opens itself to the matches — still clearly "set aside" (#596).
+        // With nothing matching there is nothing to reveal, so the door stays shut.
+        if (searching && threads.length === 0) return;
+
         const door = host.createDiv({ cls: c("lab-aside-door") });
-        this.ghostAction(
-            door,
-            this.showingAside ? t("lab_hide_aside") : t("lab_show_aside"),
-            this.showingAside ? "chevron-up" : "chevron-down",
-            () => {
-                this.showingAside = !this.showingAside;
-                this.render();
-            }
-        );
-        if (!this.showingAside) return;
+        if (searching) {
+            door.createSpan({ cls: c("lab-aside-match"), text: t("lab_aside_match") });
+        } else {
+            this.ghostAction(
+                door,
+                this.showingAside ? t("lab_hide_aside") : t("lab_show_aside"),
+                this.showingAside ? "chevron-up" : "chevron-down",
+                () => {
+                    this.showingAside = !this.showingAside;
+                    this.render();
+                }
+            );
+        }
+        if (!searching && !this.showingAside) return;
         const room = host.createDiv({ cls: c("lab-list") });
         // Threaded here too: a thread set down together should be read together.
-        for (const node of threadThoughts(aside)) this.renderAsideNode(room, node);
+        for (const node of threads) this.renderAsideNode(room, node);
     }
 
     /**

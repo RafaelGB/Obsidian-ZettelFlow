@@ -264,7 +264,10 @@ describe("actions act on the whole thread (#467 follow-up)", () => {
 
     it("threads what was set aside too, so a thread set down together reads together", () => {
         expect(LAB).toContain("private renderAsideNode(");
-        expect(LAB).toContain("for (const node of threadThoughts(aside))");
+        // The set-aside room is threaded through the same search as the open list (#596), so a
+        // filter reaches it too — but a thread set down together still reads together.
+        expect(LAB).toContain("searchThreads(threadThoughts(aside), query)");
+        expect(LAB).toContain("for (const node of threads) this.renderAsideNode(room, node);");
     });
 });
 
@@ -330,6 +333,6 @@ describe("every move is reachable without the mouse (#476)", () => {
 
     it("shows the keys in the legend, including how to move", () => {
         expect(LAB).toContain('c("lab-legend-key")');
-        expect(LAB).toContain('for (const move of ["next", "previous", "leave"] as const)');
+        expect(LAB).toContain('for (const move of ["find", "next", "previous", "leave"] as const)');
     });
 });

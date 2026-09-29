@@ -148,3 +148,61 @@ describe("finding is a tool, not a queue (#477)", () => {
         expect(store.includes("collapsed")).toBe(false);
     });
 });
+
+/**
+ * Tags are a lens too, never a tally (#596).
+ *
+ * The find bar grew a second way to narrow — the `#tags` you wrote, as chips you can click — and a
+ * new place matches open on: the set-aside room. Every one of those is a fresh chance to slip a
+ * count in: "#idea (12)", a wall of your most-used tags, a badge on the room that just opened. The
+ * rule from #469 has to reach all of them.
+ */
+describe("finding by tag stays a lens (#596)", () => {
+    const EN_SRC = readFileSync(join(SRC, "architecture", "lang", "locale", "en.ts"), "utf8");
+    const SEARCH = withoutComments(readFileSync(join(SRC, "application", "thinking", "labSearch.ts"), "utf8"));
+
+    it("searches without ever ranking, scoring or ordering the matches", () => {
+        // The same guarantee as `filterThreads`, now on the shared searcher that both the open list
+        // and the set-aside room run through.
+        for (const ordering of [".sort(", "rank", "score", "relevance"]) {
+            expect({ ordering, used: SEARCH.includes(ordering) }).toEqual({ ordering, used: false });
+        }
+    });
+
+    it("puts no number next to a tag — a chip is the tag, and nothing else", () => {
+        const tags = LAB.slice(LAB.indexOf("private renderTags("), LAB.indexOf("private scrollTo("));
+        expect(tags).toContain("`#${tag}`");
+        for (const counting of [".length", "count", "total", "tally"]) {
+            expect({ counting, used: tags.includes(counting) }).toEqual({ counting, used: false });
+        }
+    });
+
+    it("reads tags only from what you wrote, and keeps no registry of them", () => {
+        // A stored list of tags — most-used, suggested, remembered — is a count wearing a coat.
+        // The only tags that exist are the ones parsed back out of a body, every render.
+        const tagsMod = withoutComments(readFileSync(join(SRC, "application", "thinking", "tags.ts"), "utf8"));
+        // Its only input is the text you wrote, and its only output is a fresh array — no state.
+        expect(tagsMod).toContain("parseTags(body: string): string[]");
+        for (const stored of ["popularTags", "allTags", "tagCounts", "tagHistory", "suggestTag", "recentTags"]) {
+            expect({ stored, used: LAB.includes(stored) }).toEqual({ stored, used: false });
+        }
+    });
+
+    it("labels the set-aside matches with a phrase, and the room still never says how full it is", () => {
+        // Search reaches the room you set things down in, but "matching set-aside thoughts" is a
+        // name for what you are looking at, not a count of it.
+        expect(LAB).toContain('t("lab_aside_match")');
+        expect(LAB).not.toMatch(/lab_aside_match.*\.length/);
+    });
+
+    it("uses no count or queue word in the strings the tags and search added", () => {
+        const keys = ["lab_tag", "lab_aside_match", "lab_key_find"];
+        const queueish =
+            /\b(pending|overdue|waiting|remaining|unprocessed|backlog|inbox|count|total|promising|stale|should)\b/i;
+        for (const key of keys) {
+            const match = new RegExp(`${key}: '([^']*)'`).exec(EN_SRC);
+            expect({ key, found: match !== null }).toEqual({ key, found: true });
+            expect({ key, queueish: queueish.test(match?.[1] ?? "") }).toEqual({ key, queueish: false });
+        }
+    });
+});

@@ -245,11 +245,12 @@ export const LAB_MOVE_VOCABULARY: Record<LabMove, { primitive: MovePrimitive; ve
     // a second home would be two places for one thing.
     connect: null,
     // Selecting, deleting and navigating are not acts of thinking. Discarding in particular is the
-    // absence of a move rather than one.
+    // absence of a move rather than one; finding is how you get back to a thought, not a move on it.
     pick: null,
     discard: null,
     next: null,
     previous: null,
+    find: null,
     leave: null,
 };
 

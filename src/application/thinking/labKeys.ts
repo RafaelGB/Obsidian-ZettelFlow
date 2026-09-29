@@ -20,6 +20,7 @@ export type LabMove =
     | "decidedAgainst"
     | "discard"
     | "crystallize"
+    | "find"
     | "next"
     | "previous"
     | "leave";
@@ -50,6 +51,7 @@ export const LAB_KEYS: readonly LabKey[] = [
     { move: "setAside", key: "s", labelKey: "lab_set_aside" },
     { move: "decidedAgainst", key: "a", shift: true, labelKey: "lab_decided_against", destructive: true },
     { move: "discard", key: "d", shift: true, labelKey: "lab_discard", destructive: true },
+    { move: "find", key: "/", labelKey: "lab_key_find" },
     { move: "leave", key: "escape", labelKey: "lab_key_leave" },
 ];
 

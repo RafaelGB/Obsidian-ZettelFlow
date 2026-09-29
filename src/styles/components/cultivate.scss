@@ -149,6 +149,122 @@
     font-size: var(--font-ui-smaller);
 }
 
+/* ── the stage selector + per-stage distribution (#589) ───────────────────────
+   The chart is the selector: each bar sets the stage filter. Magnitude is the
+   --l{level} class — a background fill by percentage — never a pixel width, so the
+   theme keeps control of the bar and nothing leaves the 4-grid. */
+
+.zettelkasten-flow__cultivate-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__cultivate-stage-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__cultivate-dist-title {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__cultivate-stage-any {
+    font-size: var(--font-ui-smaller);
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-m);
+    border: var(--border-width) solid var(--background-modifier-border);
+    background: transparent;
+    color: var(--text-muted);
+    box-shadow: none;
+    cursor: pointer;
+    min-height: 0;
+
+    &:hover {
+        background: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__cultivate-dist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+/* One row per stage; the background fill is the bar, its width the level class. */
+.zettelkasten-flow__cultivate-dist-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    border: var(--border-width) solid transparent;
+    background: linear-gradient(
+        to right,
+        var(--background-modifier-hover) var(--zf-bar, 0%),
+        transparent var(--zf-bar, 0%)
+    );
+    color: var(--text-normal);
+    box-shadow: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: var(--font-ui-smaller);
+
+    &:hover {
+        border-color: var(--background-modifier-border);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__cultivate-dist-emoji {
+    order: 0;
+    flex-shrink: 0;
+}
+
+.zettelkasten-flow__cultivate-dist-label {
+    order: 1;
+    flex: 1;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__cultivate-dist-count {
+    order: 2;
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__cultivate-dist-bar--l0 {
+    --zf-bar: 0%;
+}
+
+.zettelkasten-flow__cultivate-dist-bar--l1 {
+    --zf-bar: 25%;
+}
+
+.zettelkasten-flow__cultivate-dist-bar--l2 {
+    --zf-bar: 50%;
+}
+
+.zettelkasten-flow__cultivate-dist-bar--l3 {
+    --zf-bar: 75%;
+}
+
+.zettelkasten-flow__cultivate-dist-bar--l4 {
+    --zf-bar: 100%;
+}
+
 /* ── the subject: the one thing that leads ────────────────────────────────── */
 
 .zettelkasten-flow__cultivate-target {

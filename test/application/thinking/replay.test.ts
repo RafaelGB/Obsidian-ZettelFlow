@@ -181,7 +181,10 @@ describe("one story, across the boundary (#502)", () => {
         // click fails.
         expect(TIMELINE_SRC).toContain("this.app.vault.getAbstractFileByPath(path) !== null");
         expect(TIMELINE_SRC).toContain("evolution-timeline-produced-gone");
-        expect(TIMELINE_SRC).toContain("if (exists) makeActivatable");
+        // Both the click and the Ctrl-hover preview (#594) live inside the existence guard, so a
+        // gone thought is neither linked nor previewable — a dead popover is as wrong as a dead link.
+        expect(TIMELINE_SRC).toMatch(/if \(exists\) \{\s*makeActivatable\(span,/);
+        expect(TIMELINE_SRC).toMatch(/if \(exists\) \{[\s\S]*hoverPreview\(this\.app, span,[\s\S]*\}/);
     });
 
     it("reads the loop in order, out to the thought and back into the note", () => {

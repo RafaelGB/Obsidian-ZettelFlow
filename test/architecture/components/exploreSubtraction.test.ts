@@ -64,6 +64,7 @@ function codeLines(source: string): number {
  * | after #486 | 562 | where a selection can go: copy as links, and a previewed, undoable map of content (`MapOfContentModal`, 67 of those lines, joins the counted set rather than escaping it) |
  * | after #487 | 587 | `ExploreSurfaceView` (a workspace needs a leaf of its own) and three layout wrappers, so the controls stop scrolling away with the results |
  * | after #576 | 746 | *think before you look* moved here from the Lab: `BlindGate` (125) plus the toggle and the gate in `run()`. It is not new code — `BlindPanel` was 128 lines and is deleted, and the hand-rolled matcher it carried went with it |
+ * | hover preview | 747 | one line: the `hoverPreview` sibling beside the result name (#594), so a Ctrl-hover previews the note like every other surface. Not a feature of Explore — a rule applied to it |
  *
  * The honest comparison for the whole epic is **435 → 562**: 421 plus the 14 lines of
  * `GraphSurfaceView`, which #484 deleted and this counter cannot see. A hundred and twenty-seven
@@ -79,7 +80,7 @@ function codeLines(source: string): number {
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 746;
+const CEILING = 747;
 
 describe("the surface does not grow by accident (#483–#487)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {

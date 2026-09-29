@@ -26,7 +26,7 @@ import { statedWager } from "architecture/plugin/claims/statedClaim";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { EvidenceMapRenderer } from "architecture/components/core/evidenceMap/EvidenceMapRenderer";
 import { ResurfaceRenderer } from "architecture/components/core/resurface/ResurfaceRenderer";
-import { makeActivatable } from "architecture/components/core/a11y";
+import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { paintIdeaCard } from "./IdeaCardCanvas";
 import { canvasToPngBlob } from "architecture/components/core/export/mediaCapture";
 import { buildExportBaseName } from "architecture/components/core/export/exportFilename";
@@ -455,7 +455,10 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             cls: c(exists ? "evolution-timeline-produced" : "evolution-timeline-produced-gone"),
             text: t("evolution_timeline_move_produced", name),
         });
-        if (exists) makeActivatable(span, () => void this.app.workspace.openLinkText(path, "", false));
+        if (exists) {
+            makeActivatable(span, () => void this.app.workspace.openLinkText(path, "", false));
+            hoverPreview(this.app, span, path, this);
+        }
     }
 
     private renderSnapshot(container: HTMLElement, snapshot: Snapshot): void {

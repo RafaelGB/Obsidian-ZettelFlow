@@ -3,7 +3,7 @@ import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { reasoningPaths, type Path } from "architecture/knowledge/state";
 import { proposeReasoningLinks, type ReasoningLinkCandidate } from "architecture/knowledge/traverse/reasoningLinks";
-import { makeActivatable } from "architecture/components/core/a11y";
+import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { App, Modal } from "obsidian";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -99,5 +99,6 @@ export class ReasoningPathsModal extends Modal {
             void this.app.workspace.openLinkText(path, "", false);
             this.close();
         });
+        hoverPreview(this.app, link, path, this);
     }
 }

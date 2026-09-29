@@ -2,7 +2,7 @@ import { App } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
-import { makeActivatable } from "architecture/components/core/a11y";
+import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import {
     agencyReviewModel,
@@ -117,6 +117,7 @@ export class AgencyReviewRenderer extends KnowledgeModeRenderer {
             const name = item.createSpan({ cls: c("agency-review-name"), text: row.basename });
             name.setAttribute("aria-label", t("agency_review_open_note", row.basename));
             makeActivatable(name, () => void this.app.workspace.openLinkText(row.path, "", false), "link");
+            hoverPreview(this.app, name, row.path, this);
 
             item.createSpan({
                 cls: c("agency-review-verdict", "agency-review-verdict--" + row.verdict),

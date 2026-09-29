@@ -1,5 +1,6 @@
 import { App, MarkdownView } from "obsidian";
 import { c, log } from "architecture";
+import { hoverPreview } from "architecture/components/core/a11y";
 import { t } from "architecture/lang";
 import {
     ResurfaceCandidate,
@@ -168,6 +169,7 @@ export class ResurfaceRenderer extends KnowledgeModeRenderer {
         const nameEl = main.createSpan({ text: basename, cls: c("resurface-item-name") });
         nameEl.setAttribute("title", path);
         this.registerDomEvent(nameEl, "click", () => void this.app.workspace.openLinkText(path, "", false));
+        hoverPreview(this.app, nameEl, path, this);
         if (reason) {
             main.createSpan({ text: reason, cls: c("resurface-item-reason") });
         }

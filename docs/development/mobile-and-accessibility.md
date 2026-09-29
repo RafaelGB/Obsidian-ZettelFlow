@@ -10,9 +10,18 @@ baseline for our custom UI, and the manual matrix a contributor walks before a r
 - **Segmented surface tabs** are a real WAI-ARIA tablist: `role="tablist"` / `role="tab"` /
   `role="tabpanel"`, `aria-selected`, `aria-controls`/`aria-labelledby`, **roving `tabindex`**, and
   **arrow / Home / End** keyboard navigation (`ModeHostView`).
-- **Clickable note names** across the core loop (Home, Cultivate, Ask-your-graph, Reasoning paths) are
-  keyboard-operable through `makeActivatable` — focusable, `role="link"`, activated by click **and**
-  Enter/Space (`architecture/components/core/a11y.ts`).
+- **Clickable note names** across the surfaces (Home, Cultivate, Ask-your-graph, Reasoning paths,
+  Agency review, Health, Resurface, Evidence map, the Evolution timeline) are keyboard-operable through
+  `makeActivatable` — focusable, `role="link"`, activated by click **and** Enter/Space
+  (`architecture/components/core/a11y.ts`).
+- **Every clickable note name also previews** on a `Ctrl`/`Cmd`-hover (#594): the pointer sibling
+  `hoverPreview` wires the same element to Obsidian's native **Page preview** popover, so you can peek at
+  a note without leaving the surface. It is the core *Page preview* plugin, honouring its settings
+  (including whether the modifier is required); with it disabled, hovering simply does nothing, and a
+  gone note is neither linked nor previewable. Clicking still opens — the preview is an addition, never a
+  replacement. The Lab is the one deliberate exception: it **names** its subject note and by design never
+  shows it. `test/architecture/components/hoverPreviewCoverage.test.ts` fails the build on a surface that
+  opens a note without offering the preview (or names why it is exempt).
 - **The 3D graph degrades gracefully** on mobile / when WebGL is unavailable: instead of a dead-end
   message it renders a **navigable list** of the same model (hubs first, live connection counts, each row
   a 44px button that opens the note). It never blanks or crashes.

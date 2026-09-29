@@ -634,6 +634,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // Only on the thread's root: repeating it on every answer would be noise.
         if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about);
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
+        // Picked stays visibly picked — a persistent card class, not gated behind hover (#596).
+        if (this.selected.has(thought.id)) box.addClass(c("lab-selected"));
 
         // Colour distinguishes what a thought *is* to the one above it, never who is right.
         const response = thought.respondsTo;

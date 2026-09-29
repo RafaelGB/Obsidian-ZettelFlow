@@ -4,9 +4,15 @@ import { rankRelated } from "../relations/relationRankingLogic";
 import { findContradictions } from "../query/findContradictionLogic";
 import { computeMaturity } from "../derive/maturityLogic";
 import { allowedTargets } from "../lifecycle/machine";
-import { FALLBACK_STATE, isLifecycleState, STATE_EMOJI, STATE_LABEL_KEY, type LifecycleState } from "../lifecycle/states";
-import { byState } from "../query/queries";
-import { nextSession } from "../home/nextSession";
+import { statePartition } from "../query/queries";
+import {
+    FALLBACK_STATE,
+    isLifecycleState,
+    LIFECYCLE_STATES,
+    STATE_EMOJI,
+    STATE_LABEL_KEY,
+    type LifecycleState,
+} from "../lifecycle/states";
 import type { JudgementVerdict } from "../judgement";
 
 /**
@@ -89,7 +95,7 @@ export function buildCultivationSession(
     model: KnowledgeModel,
     path: string,
     now: number,
-    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES,
+    recipe: readonly CultivationMoveKind[] = ALL_CULTIVATION_MOVES,
     opts: { friction?: boolean } = {}
 ): CultivationSession | null {
     const idea = model.get(path);
@@ -141,55 +147,106 @@ export function buildCultivationSession(
 }
 
 /**
- * Pick the highest-leverage idea to cultivate now (#309, S1): the `nextSession` heuristic
- * (well-connected yet under-developed), then the newest fleeting note, then the best-connected note.
- * `exclude` skips notes already cultivated this sitting (the "another idea" action). Returns `null`
- * for an empty model or when everything is excluded. Deterministic.
+ * Rank the ideas to cultivate, **most-embryonic first** (#589): by lifecycle stage ascending
+ * (`fleeting → literature → permanent → developing → evergreen → archived`), then by descending
+ * degree so the best-connected note within a stage leads, then by path so it is deterministic.
+ *
+ * This replaced the `nextSession`-led order (well-connected yet under-developed, then newest
+ * fleeting, then best-connected): the review should feel intentional — you develop the rawest ideas
+ * first — rather than arbitrary. An unknown or empty state folds to `fleeting` via `asLifecycleState`,
+ * so a hand-edited note still sorts somewhere honest.
+ *
+ * An optional `stageFilter` narrows the pool to a single lifecycle stage — the reader's chosen level
+ * (#589); `undefined` means every stage.
  */
-function rankCultivationCandidates(model: KnowledgeModel): string[] {
-    const byPath = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-    const ranked: string[] = [];
-    const seen = new Set<string>();
-    const push = (path: string) => {
-        if (!seen.has(path)) {
-            seen.add(path);
-            ranked.push(path);
-        }
-    };
-
-    const next = nextSession(model);
-    if (next) push(next.path);
-    for (const idea of byState(model, "fleeting").sort((a, b) => b.created - a.created || byPath(a.path, b.path))) push(idea.path);
-    for (const idea of model.all().sort((a, b) => b.maturitySignals.degree - a.maturitySignals.degree || byPath(a.path, b.path))) push(idea.path);
-    return ranked;
+function rankCultivationCandidates(model: KnowledgeModel, stageFilter?: LifecycleState): string[] {
+    const stageRank = (state: string): number => LIFECYCLE_STATES.indexOf(asLifecycleState(state));
+    return model
+        .all()
+        .filter((idea) => !stageFilter || asLifecycleState(idea.state) === stageFilter)
+        .sort(
+            (a, b) =>
+                stageRank(a.state) - stageRank(b.state) ||
+                b.maturitySignals.degree - a.maturitySignals.degree ||
+                (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)
+        )
+        .map((idea) => idea.path);
 }
 
+/**
+ * The most-embryonic idea to cultivate now (#309 S1, #589): the head of the ranked candidates that
+ * is not excluded. `exclude` skips notes already cultivated this sitting (the "another idea" action).
+ * Returns `null` for an empty model or when everything is excluded. Deterministic.
+ */
 export function selectCultivationTarget(
     model: KnowledgeModel,
-    exclude: ReadonlySet<string> = new Set()
+    exclude: ReadonlySet<string> = new Set(),
+    stageFilter?: LifecycleState
 ): string | null {
-    for (const path of rankCultivationCandidates(model)) {
+    for (const path of rankCultivationCandidates(model, stageFilter)) {
         if (!exclude.has(path) && model.get(path)) return path;
     }
     return null;
 }
 
 /**
- * The cultivation **queue** (#318 S2): the highest-leverage ideas due for development, most-leverage
- * first, excluding notes already cultivated this sitting. Deterministic. The "another idea" action
- * walks this list; Home shows its size.
+ * The cultivation **queue** (#318 S2, #589): the ideas due for development, **most-embryonic first**,
+ * excluding notes already cultivated this sitting. Deterministic. The "another idea" action walks
+ * this list; Home shows its size.
  */
 export function cultivationQueue(
     model: KnowledgeModel,
     exclude: ReadonlySet<string> = new Set(),
-    limit = 5
+    limit = 5,
+    stageFilter?: LifecycleState
 ): string[] {
     const out: string[] = [];
-    for (const path of rankCultivationCandidates(model)) {
+    for (const path of rankCultivationCandidates(model, stageFilter)) {
         if (!exclude.has(path) && model.get(path)) out.push(path);
         if (out.length >= limit) break;
     }
     return out;
+}
+
+/** One lifecycle stage in the Cultivate distribution: its count and a discrete bar magnitude. */
+export interface StageCount {
+    stage: LifecycleState;
+    /** Display emoji for the stage (so the view needs no lifecycle import). */
+    emoji: string;
+    /** i18n key for the stage's label. */
+    labelKey: string;
+    count: number;
+    /** Bar magnitude 0–4: 0 when empty, else 1–4 scaled against the fullest stage — a class, not a pixel. */
+    level: number;
+}
+
+/**
+ * How many in-scope notes sit at each lifecycle stage (#589, FR-3/FR-4), for the Cultivate
+ * distribution chart. One entry per stage in canonical order — an empty stage present with `count: 0`
+ * — reusing {@link statePartition} and **folding any non-lifecycle state** (a hand-edited `🔒 Closed`)
+ * into `fleeting`, exactly as the ranking treats it, so the counts sum to `model.size()`.
+ *
+ * Whole-vault by decision: it includes `evergreen` and `archived`, so a reader sees the full shape of
+ * their thinking, not only the cultivable pool. `level` is a discrete magnitude the stylesheet reads
+ * as a class (`--l0…--l4`) — never a pixel width, so the user's theme keeps control of the bar. Pure.
+ */
+export function stageDistribution(model: KnowledgeModel): StageCount[] {
+    const counts = new Map<LifecycleState, number>(LIFECYCLE_STATES.map((stage) => [stage, 0]));
+    for (const [state, ideas] of statePartition(model)) {
+        const stage = asLifecycleState(state);
+        counts.set(stage, (counts.get(stage) ?? 0) + ideas.length);
+    }
+    const max = Math.max(0, ...counts.values());
+    return LIFECYCLE_STATES.map((stage) => {
+        const count = counts.get(stage) ?? 0;
+        return {
+            stage,
+            emoji: STATE_EMOJI[stage] ?? "",
+            labelKey: STATE_LABEL_KEY[stage],
+            count,
+            level: count === 0 || max === 0 ? 0 : Math.max(1, Math.ceil((4 * count) / max)),
+        };
+    });
 }
 
 /**

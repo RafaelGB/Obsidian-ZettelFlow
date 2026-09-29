@@ -1094,6 +1094,12 @@ export default {
     // Cultivate — thinking sessions (#309)
     cultivate_title: 'Cultivate',
     cultivate_another: 'Another idea',
+    cultivate_stage_any: 'Any stage',
+    cultivate_stage_filter_label: 'Stage to cultivate',
+    cultivate_distribution_title: 'Notes by stage',
+    cultivate_empty_stage: 'No notes at this stage yet.',
+    cultivate_stage_count: '{0} notes',
+    cultivate_stage_count_one: '1 note',
     cultivate_building: 'Building your session…',
     cultivate_error: 'Could not start a session.',
     cultivate_empty: 'Your slip-box is empty — capture an idea first.',

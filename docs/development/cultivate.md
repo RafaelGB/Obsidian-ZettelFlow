@@ -89,8 +89,23 @@ passive. It doesn't just *tell* you what to do; it *walks you through doing it*.
 
 - **Home surface → Cultivate mode**, the **`Cultivate — start a thinking session`** command, or the
   ribbon menu (🌱). Home offers **Cultivate without a purpose** alongside the own-material entry.
-- ZettelFlow picks the **highest-leverage** idea (well-connected yet under-developed, via the same
-  `nextSession` heuristic Home uses). **Another idea** moves on to the next one.
+- ZettelFlow reviews your **most embryonic** ideas first (#589): the target is ordered by lifecycle
+  stage — `fleeting → literature → permanent → developing → evergreen → archived` — and within a
+  stage by how connected the note is, deterministically. You develop the rawest ideas first, so the
+  review feels intentional rather than arbitrary. **Another idea** moves on to the next one in order.
+
+### Choosing a stage, and seeing the shape of your vault (#589)
+
+Above the target sits a **per-stage distribution** — one bar for every lifecycle stage, counting
+**every note in your vault** (evergreen and archived included), so you see the whole shape of your
+thinking at a glance. The bars are the **selector**: click one and Cultivate narrows the review to
+that stage; click **Any stage** to clear it. Each bar's magnitude comes from a level class, so the
+chart respects your theme rather than painting a fixed pixel width.
+
+The choice is **remembered** between sittings — it is a setting, `cultivateStage`, that ships with
+the control (you never hand-edit YAML for it), defaulting to *any stage*. When a chosen stage has no
+notes left, the selector and distribution stay on screen with a quiet *"No notes at this stage yet."*
+— never an empty surface you cannot get out of.
 
 ## The moves
 

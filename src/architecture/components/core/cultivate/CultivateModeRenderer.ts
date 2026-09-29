@@ -1,6 +1,7 @@
 import ZettelFlow from "main";
 import { c, log } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
+import { isLifecycleState, type LifecycleState } from "architecture/knowledge/lifecycle/states";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { StateTransitionComponent } from "starters/zcomponents/StateTransitionComponent";
 import { CultivationService } from "architecture/plugin";
@@ -23,6 +24,7 @@ import {
     buildCultivationSession,
     selectCultivationTarget,
     cultivationQueue,
+    stageDistribution,
     developmentStreak,
     JUDGEMENT_CONFIDENCES,
     withReasoning,
@@ -30,6 +32,7 @@ import {
     type CultivationMoveKind,
     type CultivationSession,
     type JudgementConfidence,
+    type StageCount,
 } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 500;
@@ -45,7 +48,7 @@ const MOVE_ICON: Record<CultivationMoveKind, string> = {
     advance: "trending-up",
     source: "book-marked",
 };
-type ViewState = "indexing" | "ready" | "empty" | "error";
+type ViewState = "indexing" | "ready" | "empty" | "emptyStage" | "error";
 
 function basename(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
@@ -71,6 +74,8 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     /** What the user wrote at the prompt, so `challenge` can pre-fill the counterpoint field. */
     private readonly frictionAnswers = new Map<CultivationMoveKind, string>();
     private debounceTimer: number | undefined;
+    /** Notes per lifecycle stage, for the distribution chart and stage selector (#589). */
+    private distribution: StageCount[] = [];
 
     constructor(container: HTMLElement, private readonly plugin: ZettelFlow, state?: Record<string, unknown>) {
         super(container);
@@ -142,16 +147,22 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
                 this.render();
                 return;
             }
+            // The reader's chosen lifecycle stage (#589), or undefined for every stage.
+            const stage = this.stageFilter();
+            this.distribution = stageDistribution(model);
             // Keep the current target across recomputes so applying a move refines the session in place.
             if (!this.targetPath || !model.get(this.targetPath)) {
-                this.targetPath = selectCultivationTarget(model, this.visited) ?? selectCultivationTarget(model);
+                this.targetPath =
+                    selectCultivationTarget(model, this.visited, stage) ?? selectCultivationTarget(model, new Set(), stage);
                 this.forgetFriction();
             }
             const recipe = this.plugin.settings.cultivateMoves as CultivationMoveKind[] | undefined;
             this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now(), recipe, { friction: this.plugin.settings.cultivateFriction ?? true }) : null;
-            this.queueCount = cultivationQueue(model, this.visited, 99).length;
+            this.queueCount = cultivationQueue(model, this.visited, 99, stage).length;
             this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
-            this.state = this.session ? "ready" : "empty";
+            // A chosen stage with nothing in it is not an empty vault — keep the selector and chart on
+            // screen so the reader can pick another stage (#589, AC-4).
+            this.state = this.session ? "ready" : stage ? "emptyStage" : "empty";
         } catch (error) {
             this.state = "error";
             log.error(`[Cultivate] recompute failed: ${error instanceof Error ? error.message : "unknown error"}`);
@@ -204,19 +215,78 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_error") });
             return;
         }
-        if (this.state === "empty" || !this.session) {
+        if (this.state === "empty") {
             root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty") });
             return;
         }
 
         root.createDiv({ cls: c("cultivate-intro"), text: t("cultivate_intro") });
+        // The stage selector and per-stage distribution (#589), shown whenever the vault has notes —
+        // so a chosen stage with nothing in it still offers a way back.
+        this.renderStageControls(root);
         const momentum: string[] = [];
         if (this.streak > 0) momentum.push(t("cultivate_streak", String(this.streak)));
         if (this.queueCount > 0) momentum.push(t("cultivate_queue", String(this.queueCount)));
         if (momentum.length > 0) root.createDiv({ cls: c("cultivate-momentum"), text: momentum.join(" · ") });
+        if (this.state === "emptyStage" || !this.session) {
+            root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty_stage") });
+            return;
+        }
         this.renderTarget(root, this.session);
         const list = root.createDiv({ cls: c("cultivate-moves") });
         for (const move of this.session.moves) this.renderMove(list, move);
+    }
+
+    /** The reader's chosen lifecycle stage (#589), or undefined for "any". */
+    private stageFilter(): LifecycleState | undefined {
+        const chosen = this.plugin.settings.cultivateStage ?? "any";
+        return chosen !== "any" && isLifecycleState(chosen) ? chosen : undefined;
+    }
+
+    /**
+     * The stage selector and the per-stage distribution, in one control (#589).
+     *
+     * The chart *is* the selector — each bar sets the filter to its stage (chart-as-selector) — with
+     * an "Any stage" chip to clear it. Bars are `<button>`s, so they are keyboard-activatable; the
+     * magnitude comes from the `--l{level}` class, never a pixel width, so the user's theme keeps
+     * control of the bar. Whole-vault by decision: every stage shows, including empty ones.
+     */
+    private renderStageControls(root: HTMLElement): void {
+        const current = this.plugin.settings.cultivateStage ?? "any";
+        const wrap = root.createDiv({ cls: c("cultivate-stage") });
+        const head = wrap.createDiv({ cls: c("cultivate-stage-head") });
+        head.createSpan({ cls: c("cultivate-dist-title"), text: t("cultivate_distribution_title") });
+        const any = head.createEl("button", {
+            cls: c("cultivate-stage-any"),
+            text: t("cultivate_stage_any"),
+            attr: { type: "button", "aria-label": t("cultivate_stage_filter_label") },
+        });
+        if (current === "any") any.addClass("is-active");
+        this.registerDomEvent(any, "click", () => this.pickStage("any"));
+
+        const dist = wrap.createDiv({ cls: c("cultivate-dist") });
+        for (const bucket of this.distribution) {
+            const label = t(bucket.labelKey as Parameters<typeof t>[0]);
+            const count = tCount(bucket.count, "cultivate_stage_count", String(bucket.count));
+            const bar = dist.createEl("button", {
+                cls: [c("cultivate-dist-bar"), c(`cultivate-dist-bar--l${bucket.level}`)].join(" "),
+                attr: { type: "button", "aria-label": `${label} — ${count}` },
+            });
+            if (current === bucket.stage) bar.addClass("is-active");
+            bar.createSpan({ cls: c("cultivate-dist-emoji"), text: bucket.emoji });
+            bar.createSpan({ cls: c("cultivate-dist-count"), text: count });
+            bar.createSpan({ cls: c("cultivate-dist-label"), text: label });
+            this.registerDomEvent(bar, "click", () => this.pickStage(bucket.stage));
+        }
+    }
+
+    /** Set the stage filter (chart-as-selector), persist it, and re-select within the new stage. */
+    private pickStage(stage: string): void {
+        this.plugin.settings.cultivateStage = stage;
+        void this.plugin.saveSettings();
+        this.visited.clear();
+        this.targetPath = null;
+        this.recompute();
     }
 
     private mountInquiry(): void {

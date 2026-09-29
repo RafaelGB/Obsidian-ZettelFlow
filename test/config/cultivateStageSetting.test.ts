@@ -16,3 +16,23 @@ describe("the Cultivate stage preference (#589, FR-7 / AC-8)", () => {
         expect(read("src/config/typing.ts")).toMatch(/cultivateStage\?:\s*string/);
     });
 });
+
+describe("the Cultivate surface wires the stage (#589, AC-2 / AC-8)", () => {
+    const renderer = read("src/architecture/components/core/cultivate/CultivateModeRenderer.ts");
+
+    it("reads, filters by, and persists the chosen stage", () => {
+        expect(renderer).toMatch(/settings\.cultivateStage\s*\?\?\s*"any"/); // reads it; undefined = any
+        expect(renderer).toMatch(/settings\.cultivateStage\s*=/); // writes it back
+        expect(renderer).toContain("saveSettings");
+        expect(renderer).toMatch(/selectCultivationTarget\(model,[^;]*stage/); // the filter reaches selection
+        expect(renderer).toMatch(/cultivationQueue\(model,[^;]*stage/);
+    });
+
+    it("shows the distribution and an empty-stage state, built with createEl (not innerHTML)", () => {
+        expect(renderer).toContain("stageDistribution");
+        expect(renderer).toContain("cultivate-dist-bar--l");
+        expect(renderer).toContain('t("cultivate_empty_stage")');
+        expect(renderer).toContain('"emptyStage"');
+        expect(renderer).not.toContain("innerHTML");
+    });
+});

@@ -231,7 +231,7 @@ export default {
     blind_movement_unchanged: 'I still think so',
     blind_ask_another: 'Ask something else',
     lab_blank: 'Nothing here yet. Write something above.',
-    lab_commit_hint: 'Ctrl+Enter, or click away, to keep it.',
+    lab_commit_hint: 'Ctrl+Shift+Enter, or click away, to keep it.',
     lab_commit_failed: 'That thought could not be saved. Check the thinking space folder in settings.',
     lab_arming_fork: 'A variant of the thought you picked',
     lab_arming_challenge: 'An argument against the thought you picked',

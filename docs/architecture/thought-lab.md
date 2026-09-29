@@ -171,13 +171,14 @@ A pause while writing is **thinking, not a boundary**. The first version of this
 new thought on a debounce, and it was unusable: stopping for half a second turned half a sentence
 into a card, the surface rebuilt itself, and the cursor was gone.
 
-So a new thought is written down only at a real boundary — `Ctrl`/`Cmd`+`Enter`, or leaving the
-box — and committing **never rebuilds the surface**: the card is inserted and the composer cleared
-in place. Editing a thought that already exists *does* save on a debounce, because there the file
-exists and nothing moves on screen.
+So a new thought is written down only at a real boundary — `Ctrl`/`Cmd`+`Shift`+`Enter`, or leaving
+the box — and committing **never rebuilds the surface**: the card is inserted and the composer
+cleared in place. Editing a thought that already exists *does* save on a debounce, because there the
+file exists and nothing moves on screen.
 
-`Ctrl`/`Cmd`+`Enter` commits **what is in the box** — the live text — rather than a cached copy, so
-it can never quietly do nothing while your sentence sits there unsaved (#596).
+The shortcut is `Ctrl`/`Cmd`+`Shift`+`Enter`, not plain `Ctrl`/`Cmd`+`Enter`: Obsidian (or a user
+hotkey) can swallow `Mod`+`Enter` before the box ever sees it, so the combo adds `Shift` to reach the
+composer reliably (#596). It commits **what is in the box** — the live text — never a cached copy.
 
 There are **two** kinds of redraw, and confusing them was a real bug — an undo restored the file
 and nothing on screen, because the guard below refused while the composer held the cursor:

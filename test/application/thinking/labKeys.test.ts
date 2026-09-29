@@ -60,4 +60,10 @@ describe("one table of keys (#476)", () => {
         expect(keyFor("next")).toBeDefined();
         expect(keyFor("previous")).toBeDefined();
     });
+
+    it("has a find move on / that the legend can show (#596)", () => {
+        expect(moveFor("/", false)).toBe("find");
+        expect(keyFor("find")?.key).toBe("/");
+        expect(keyLabel({ move: "find", key: "/", labelKey: "lab_key_find" })).toBe("/");
+    });
 });

@@ -640,8 +640,7 @@ Every obvious fix is the wrong shape. A list of what to process is an **inbox**.
 What is actually needed is narrower: **a way to find the thing you are looking for, when you are
 looking for it.**
 
-- **A filter**, appearing only once there are enough thoughts to lose one in — a search box over
-  four thoughts is furniture. Empty by default, it narrows and **never reorders**.
+- **A filter.** Empty by default, it narrows and **never reorders**.
 - **A match keeps its thread.** If an answer matches but its question does not, the question comes
   with it: an answer alone is a fragment.
 - Case- and accent-insensitive, because you will not remember whether you typed *análisis* or
@@ -653,6 +652,34 @@ looking for it.**
 No saved filters — *one you keep is a queue with a different name* — no suggestions, no counts.
 The guardrail from #469 is extended over all of it, and `lab.thread.500` measures a
 five-hundred-thought lab in CI: **0.65 ms per keystroke**, against a ceiling of 8.
+
+### Finding a thought (#596)
+
+The filter used to appear only once there were enough thoughts to lose one in. That threshold was
+the wrong idea: the find bar is now **always there**, quiet and empty, because it also carries the
+tags — and a control that comes and goes is one more thing to learn. It is `renderFindBar`, one bar
+that does three things.
+
+- **It searches what you wrote.** Free text runs over the thought's **body**, the inline `#tags`
+  inside it, and the **subject note's name** when the thread came from one — so *the thing about
+  that note* is findable by the note.
+- **`#tags`, written inline, become chips.** A `#idea` in the body of a thought shows as a chip on
+  the card; clicking it adds it to the find bar as an **active filter**, and a thought must carry
+  **all** the active tags to show. The tags are parsed back out of the body on every render —
+  there is no registry of them to keep in sync, and *a stored list of your most-used tags is a
+  count wearing a coat.*
+- **Search reaches the room you set things down in.** When a query is running, the set-aside room
+  opens itself to its matches under *matching set-aside thoughts* — a phrase for what you are
+  looking at, still **never** a number for how full it is.
+
+`/` puts the cursor in the find bar; `Esc` returns you to the list — the find bar is in the one key
+table (`labKeys.ts`) with every other move, so it cannot be mouse-only. It is not, itself, an act of
+thinking: `LAB_MOVE_VOCABULARY` records `find` as `null`, the same as *next*, *previous* and
+*leave* — getting back to a thought is not a move on it.
+
+The #469 guardrail grew to cover all of this: `searchThreads` may never rank, a tag chip may never
+carry a number beside it, and the strings the tags and the find added are scanned for the
+vocabulary of a queue.
 
 ## What is not here yet
 

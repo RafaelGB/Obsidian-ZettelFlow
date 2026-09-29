@@ -27,6 +27,7 @@ import { ThinkAboutComponent } from "../zcomponents/ThinkAboutComponent";
 import { MoveCommandsComponent } from "../zcomponents/MoveCommandsComponent";
 import { ClaimDoorComponent } from "../zcomponents/ClaimDoorComponent";
 import { ClaimReturnComponent } from "../zcomponents/ClaimReturnComponent";
+import { HoverPreviewComponent } from "../zcomponents/HoverPreviewComponent";
 
 /**
  * Load all components of the plugin with the ZComponent interface
@@ -59,6 +60,8 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ClaimDoorComponent(plugin));
     // Asked again (#562): the re-entry point, until Home brings the claim back on its own.
     ZComponentsManager.registerComponent(new ClaimReturnComponent(plugin));
+    // Native Page preview on hover of a note name (#594): register ZettelFlow as a hover-link source.
+    ZComponentsManager.registerComponent(new HoverPreviewComponent(plugin));
     ZComponentsManager.loadComponents();
 }
 

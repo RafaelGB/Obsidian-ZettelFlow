@@ -681,6 +681,35 @@ The #469 guardrail grew to cover all of this: `searchThreads` may never rank, a 
 carry a number beside it, and the strings the tags and the find added are scanned for the
 vocabulary of a queue.
 
+### The list is time, and a calendar to move through it (#596)
+
+Time is the honest default order, and it always was — roots come **newest first**, the thread you
+were just in at the top. What changed is that the list stopped rendering *all* of them. A year of
+thinking is thousands of thoughts, and putting all of them in the document is DOM weight, not
+compute: the model stays cheap (`lab.thread.500` measures a five-hundred-thought lab at 0.65 ms per
+keystroke). So the list is now a **window**.
+
+- **Infinite scroll.** The newest `LAB_PAGE` threads render; scrolling toward the foot brings the
+  next page, appended in place so your position never jumps. The window is a pure function
+  (`labPage.ts`, `windowOf`) that slices and **never reorders** — and the one number it could carry,
+  *how many are left*, it does not: what waits below is a boolean, `hasMore`, nothing more.
+- **The foot is a door, not a number.** A quiet *older thoughts* affordance sits under the window —
+  a click loads the next page, so the list works without a scroll wheel. It never says "23 more":
+  that is the backlog count the Lab exists to refuse (#469).
+- **A calendar is the other way in.** A toggle in the find bar opens a small month grid; its header
+  steps by month, and clicking it opens a year of months to pick from — so you can reach a **day, a
+  month, or a year**. A day (or month) that holds thinking carries a **dot**: presence, never *"14
+  on Tuesday"*, because counting what you wrote per day is exactly the productivity report the Lab
+  is not. Clicking a marked day jumps the list to that day's newest thread and gets out of the way.
+- **Local, not UTC.** The day a thought belongs to is the day *you* were in when you wrote it, so a
+  thought at 1 a.m. stays on its day. The buckets (`labCalendar.ts`) are `Set`s — membership is the
+  whole of what they say — and they reflect the current find query, so finding and the calendar
+  **compose**: filter to a tag, and the calendar marks only the days that tag appears.
+
+The #469 guardrail reaches all of it: the window exposes `hasMore` and no remaining count, the foot
+renders no total, the calendar cells carry a dot and never a tally, and the strings the window and
+calendar added are scanned for the vocabulary of a queue.
+
 ## What is not here yet
 
 Phase 2 of [epic #465](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/465): the operator

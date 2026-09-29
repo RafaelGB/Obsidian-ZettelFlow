@@ -206,3 +206,56 @@ describe("finding by tag stays a lens (#596)", () => {
         }
     });
 });
+
+/**
+ * Time is a window, not a backlog (#596, slice 3).
+ *
+ * Time became the default order — newest first — reached two ways: infinite scroll, and a calendar.
+ * Both are the shapes most likely to grow a number. Scroll wants to say "23 more below"; a calendar
+ * wants to say "14 thoughts on Tuesday". Neither may (#469): the foot of the list is a **door**, and
+ * a day on the calendar is a **dot**.
+ */
+describe("time is a window, not a backlog (#596)", () => {
+    const EN_SRC = readFileSync(join(SRC, "architecture", "lang", "locale", "en.ts"), "utf8");
+
+    it("pages the list without ranking, reordering, or a remaining count", () => {
+        const page = withoutComments(readFileSync(join(SRC, "application", "thinking", "labPage.ts"), "utf8"));
+        for (const ordering of [".sort(", "rank", "score", "relevance"]) {
+            expect({ ordering, used: page.includes(ordering) }).toEqual({ ordering, used: false });
+        }
+        // What waits below is a boolean, never a count of what is left.
+        expect(page).toContain("hasMore: boolean");
+        for (const counting of ["remaining", "countLeft", "leftToShow", "howMany"]) {
+            expect({ counting, used: page.includes(counting) }).toEqual({ counting, used: false });
+        }
+    });
+
+    it("foots the window with a door, not a number of what is left", () => {
+        const sentinel = LAB.slice(LAB.indexOf("private addSentinel("), LAB.indexOf("private fillViewport("));
+        expect(sentinel).toContain('t("lab_more")');
+        for (const counting of [".length", "count", "total", "remaining"]) {
+            expect({ counting, used: sentinel.includes(counting) }).toEqual({ counting, used: false });
+        }
+    });
+
+    it("marks a calendar day by presence, and never counts what is on it", () => {
+        // Presence is Set membership — the pure buckets return a `Set` (tested in labCalendar.test).
+        expect(LAB).toContain("presentDays(");
+        expect(LAB).toContain("presentMonths(");
+        const cal = LAB.slice(LAB.indexOf("private renderMonthGrid("), LAB.indexOf("private jumpToDay("));
+        for (const counting of [".length", "count", "total", "tally"]) {
+            expect({ counting, used: cal.includes(counting) }).toEqual({ counting, used: false });
+        }
+    });
+
+    it("uses no count or queue word in the strings the window and calendar added", () => {
+        const keys = ["lab_more", "lab_calendar", "lab_cal_prev", "lab_cal_next", "lab_cal_day"];
+        const queueish =
+            /\b(pending|overdue|waiting|remaining|unprocessed|backlog|inbox|count|total|promising|stale|should)\b/i;
+        for (const key of keys) {
+            const match = new RegExp(`${key}: '([^']*)'`).exec(EN_SRC);
+            expect({ key, found: match !== null }).toEqual({ key, found: true });
+            expect({ key, queueish: queueish.test(match?.[1] ?? "") }).toEqual({ key, queueish: false });
+        }
+    });
+});

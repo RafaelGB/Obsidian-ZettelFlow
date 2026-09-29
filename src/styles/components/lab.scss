@@ -786,3 +786,159 @@
 .zettelkasten-flow__lab-card {
     position: relative;
 }
+
+/* The window's foot: a quiet door to older thinking, and a click that brings it in — never a
+   count of what is left (#596, #469). */
+.zettelkasten-flow__lab-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-tight;
+    width: 100%;
+    margin-top: $space-2;
+    padding: $space-2;
+    border: none;
+    border-radius: $radius-medium;
+    background: transparent;
+    color: $text-quiet;
+    font-size: $text-small;
+    cursor: pointer;
+
+    &:hover {
+        background: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__lab-more-icon {
+    display: inline-flex;
+
+    .svg-icon {
+        width: 1em;
+        height: 1em;
+    }
+}
+
+/* The calendar — a way *to* a day, never a report *of* one. Presence is a dot; a day is never a
+   number (#596, #469). */
+.zettelkasten-flow__lab-cal {
+    margin-top: $space-2;
+    padding: $space-2;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background: $surface-quiet;
+}
+
+.zettelkasten-flow__lab-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    margin-bottom: $space-2;
+}
+
+.zettelkasten-flow__lab-cal-title {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    text-align: center;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-accent);
+    }
+}
+
+.zettelkasten-flow__lab-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: $space-hair;
+}
+
+.zettelkasten-flow__lab-cal-dow {
+    padding-bottom: $space-hair;
+    color: $text-faint;
+    font-size: $text-small;
+    text-align: center;
+}
+
+.zettelkasten-flow__lab-cal-blank {
+    aspect-ratio: 1;
+}
+
+.zettelkasten-flow__lab-cal-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-hair;
+    aspect-ratio: 1;
+    border: none;
+    border-radius: $radius-small;
+    background: transparent;
+    color: $text-plain;
+    font-size: $text-small;
+    cursor: pointer;
+
+    &.is-present {
+        font-weight: var(--font-semibold);
+    }
+
+    &.is-present:hover {
+        background: $surface-hover;
+    }
+
+    &.is-empty {
+        color: $text-faint;
+        opacity: 0.5;
+        cursor: default;
+    }
+}
+
+.zettelkasten-flow__lab-cal-num {
+    line-height: 1;
+}
+
+.zettelkasten-flow__lab-cal-dot {
+    width: 0.35em;
+    height: 0.35em;
+    border-radius: 50%;
+    background: $accent-surface;
+}
+
+.zettelkasten-flow__lab-cal-months {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $space-tight;
+}
+
+.zettelkasten-flow__lab-cal-month {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-hair;
+    padding: $space-2;
+    border: none;
+    border-radius: $radius-small;
+    background: transparent;
+    color: $text-plain;
+    font-size: $text-small;
+    cursor: pointer;
+
+    &.is-present {
+        font-weight: var(--font-semibold);
+    }
+
+    &.is-present:hover {
+        background: $surface-hover;
+    }
+
+    &.is-empty {
+        color: $text-faint;
+        opacity: 0.5;
+        cursor: default;
+    }
+}

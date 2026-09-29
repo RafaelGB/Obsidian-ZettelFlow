@@ -1,11 +1,10 @@
 import ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
-import { isLifecycleState, type LifecycleState } from "architecture/knowledge/lifecycle/states";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { StateTransitionComponent } from "starters/zcomponents/StateTransitionComponent";
 import { CultivationService } from "architecture/plugin";
-import { KnowledgeIndex, STATE_LABEL_KEY, stateTransition } from "architecture/knowledge";
+import { KnowledgeIndex, STATE_LABEL_KEY, stateTransition, isLifecycleState, type LifecycleState } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { recordMoveOn } from "starters/zcomponents/MoveCommandsComponent";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";

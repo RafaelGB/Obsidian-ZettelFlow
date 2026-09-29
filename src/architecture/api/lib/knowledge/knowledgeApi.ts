@@ -169,6 +169,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     tourStops: "3D graph camera-tour choreography, not a model answer",
     buildCultivationSession: "an interactive session with deliberate friction; not a pure answer",
     selectCultivationTarget: "internal to the cultivation session",
+    stageDistribution: "Cultivate-surface chart data (counts + emoji + bar level); a script counts states from the model directly",
     timelineEvents: "merges the timeline + judgement log for the Evolution timeline view, not a model answer",
     agencyReviewModel: "builds the Agency review view model (header + rows), not a model answer",
     buildIdeaCard: "builds the shareable idea-card view model, not a model answer",

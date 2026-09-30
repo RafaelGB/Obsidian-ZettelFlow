@@ -68,7 +68,7 @@
     "template_type": "system",
     "ref": "/docs/systems/gtd.zftemplate",
     "title": "GTD",
-    "description": "Getting Things Done as a note-creation system: Inbox capture, Next action and Project entry points that move a thought from capture through clarify to a context-tagged next action, connected with find-related on creation. Offline, no AI.",
+    "description": "Getting Things Done, drawn as a flow: one capture clarifies what a thought is and branches to a context-tagged next action, a project with an outcome, or a reference/someday note — each a phased step filed in its GTD folder and connected on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {

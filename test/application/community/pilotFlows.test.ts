@@ -31,6 +31,7 @@ const PILOTS: string[] = [
     join(FIXTURES, "reference-flow.zftemplate"),
     join(SYSTEMS, "zettelkasten-v2.zftemplate"),
     join(SYSTEMS, "para-v2.zftemplate"),
+    join(SYSTEMS, "gtd.zftemplate"),
 ];
 
 describe("the inline-flow pilot pattern (#612)", () => {
@@ -122,6 +123,33 @@ describe("PARA v2 — the classify branch files into one category (#612, Slice D
                 para,
                 open: [outcome],
                 closed: 3,
+            });
+        }
+    });
+});
+
+describe("GTD — clarify branches to one disposition (#612, Slice E)", () => {
+    const template = loadPilot(join(SYSTEMS, "gtd.zftemplate"));
+    const graph = templateGraph(template, (yaml: string) => JSON.parse(yaml));
+    const stateFor = (disposition: string) =>
+        startRehearsal(graph.rehearsal, { frontmatter: { disposition }, noteTitle: "", canvasName: "" });
+
+    it("walks from the single capture root", () => {
+        expect(graph.rehearsal.steps.filter((step) => step.root)).toHaveLength(1);
+        expect(graph.rehearsal.steps.find((step) => step.root)?.label).toBe("Capture & clarify");
+    });
+
+    it("opens exactly the chosen disposition, closing the other two", () => {
+        for (const [disposition, outcome] of [
+            ["next", "Next action"],
+            ["project", "Project"],
+            ["reference", "Reference / someday"],
+        ] as const) {
+            const state = stateFor(disposition);
+            expect({ disposition, open: state?.options.map((o) => o.label), closed: state?.closed.length }).toEqual({
+                disposition,
+                open: [outcome],
+                closed: 2,
             });
         }
     });

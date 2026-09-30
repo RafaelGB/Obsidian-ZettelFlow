@@ -41,9 +41,6 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 2. **Configure** — right-click any canvas node → *Edit ZettelFlow step* to add actions (prompt, calendar, selector, tags…).
 3. **Run** — click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to the *Open workflow* command). ZettelFlow walks the graph and builds the note.
 
-![Canvas example](docs/resources/readme/Canvas-Sample.png)
-![Wizard demo](docs/resources/readme/demogif.gif)
-
 **…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk:
 
 <!-- PLACEHOLDER IMAGES — replace the three files in docs/resources/readme/ with clean, same-theme, ~same-width screenshots. -->

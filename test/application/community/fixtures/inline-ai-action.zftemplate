@@ -1,0 +1,11 @@
+{
+  "zfVersion": "1.0",
+  "name": "inline-ai-action",
+  "description": "negative fixture for the inline-lint guardrail (#612)",
+  "author": "ZettelFlow",
+  "canvas": {
+    "filename": "inline-ai-action.canvas",
+    "content": "{\"nodes\":[{\"id\":\"bad\",\"type\":\"text\",\"x\":0,\"y\":0,\"width\":200,\"height\":120,\"zettelflowConfig\":\"{\\\"root\\\":true,\\\"label\\\":\\\"Bad\\\",\\\"actions\\\":[{\\\"type\\\":\\\"prompt\\\",\\\"id\\\":\\\"p\\\",\\\"hasUI\\\":true,\\\"key\\\":\\\"title\\\",\\\"zone\\\":\\\"context\\\"}],\\\"onCreation\\\":[{\\\"type\\\":\\\"summarize\\\",\\\"id\\\":\\\"s\\\",\\\"hasUI\\\":false,\\\"key\\\":\\\"sum\\\",\\\"zone\\\":\\\"frontmatter\\\"}]}\"}],\"edges\":[]}"
+  },
+  "steps": []
+}

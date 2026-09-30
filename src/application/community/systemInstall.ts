@@ -20,6 +20,17 @@ export const REGISTERED_ACTION_IDS: ReadonlySet<string> = new Set([
     "challenge-idea", "synthesize", "suggest-connections",
 ]);
 
+/**
+ * The **AI-category** action ids (#612). Community systems are offline, one-click, remotely-installed
+ * content, so a shipped system may never carry an action that makes an AI call — the offline rule
+ * (`docs/how-to-contribute/systems-gallery.md`) and AC-6. These ids are all *registered* (a user's own
+ * flow may use them), so `REGISTERED_ACTION_IDS` alone would let them through; the validator rejects
+ * them for shipped systems on top of the unknown-id check. Kept in sync with the `category:"ai"` actions.
+ */
+export const AI_ACTION_IDS: ReadonlySet<string> = new Set([
+    "summarize", "classify", "generate-questions", "challenge-idea", "synthesize", "suggest-connections",
+]);
+
 /** Last path segment of a vault path, handling both separators. Pure. */
 function basename(path: string): string {
     const idx = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
@@ -194,6 +205,28 @@ function extractActionTypes(frontmatter: string): string[] {
     return types;
 }
 
+/**
+ * Every action `type` in a parsed inline `zettelflowConfig` object (#612): its `actions` and its
+ * `onCreation`. A step drawn as an inline `text`/`group` canvas box stores its `StepSettings` as JSON
+ * here instead of in a file's frontmatter, so it needs its own type collector — a real object walk,
+ * not the frontmatter regex. Pure.
+ */
+function inlineActionTypes(config: unknown): string[] {
+    const types: string[] = [];
+    const collect = (list: unknown): void => {
+        if (!Array.isArray(list)) return;
+        for (const action of list) {
+            const type = (action as { type?: unknown } | null)?.type;
+            if (typeof type === "string") types.push(type);
+        }
+    };
+    if (config && typeof config === "object") {
+        collect((config as { actions?: unknown }).actions);
+        collect((config as { onCreation?: unknown }).onCreation);
+    }
+    return types;
+}
+
 /** YAML indicator characters that must not start an unquoted plain scalar value. */
 const YAML_UNSAFE_LEAD: ReadonlySet<string> = new Set([
     "[", "]", "{", "}", ",", "#", "&", "*", "!", "|", ">", "%", "@", "`",
@@ -266,6 +299,30 @@ export function validateSystemTemplate(template: ZfTemplate, knownActionTypes: R
             if (fileNode.type === "file" && typeof fileNode.file === "string" && fileNode.file.endsWith(".md") && !stepFilenames.has(basename(fileNode.file))) {
                 problems.push(`Canvas file-node "${fileNode.file}" has no matching step`);
             }
+            // Inline steps carry their config on the node (#612). The file-node path is linted via the
+            // step's frontmatter; an inline node is never a step file, so it would otherwise ship
+            // unlinted — losing the unknown-action, offline (no-AI) and parse-safety checks.
+            const inlineNode = node as { type?: unknown; id?: unknown; zettelflowConfig?: unknown };
+            if ((inlineNode.type === "text" || inlineNode.type === "group") && typeof inlineNode.zettelflowConfig === "string" && inlineNode.zettelflowConfig.trim() !== "") {
+                const id = typeof inlineNode.id === "string" ? inlineNode.id : "?";
+                let config: unknown;
+                try {
+                    config = JSON.parse(inlineNode.zettelflowConfig);
+                } catch {
+                    problems.push(`Inline node "${id}" has an unparseable zettelflowConfig`);
+                    continue;
+                }
+                const seen = new Set<string>();
+                for (const type of inlineActionTypes(config)) {
+                    if (seen.has(type)) continue;
+                    seen.add(type);
+                    if (!knownActionTypes.has(type)) {
+                        problems.push(`Inline node "${id}" uses unknown action type "${type}"`);
+                    } else if (AI_ACTION_IDS.has(type)) {
+                        problems.push(`Inline node "${id}" uses AI action "${type}" (offline rule)`);
+                    }
+                }
+            }
         }
     }
     for (const step of template.steps) {
@@ -280,6 +337,8 @@ export function validateSystemTemplate(template: ZfTemplate, knownActionTypes: R
         for (const type of extractActionTypes(frontmatter)) {
             if (!knownActionTypes.has(type)) {
                 problems.push(`Step "${step.filename}" uses unknown action type "${type}"`);
+            } else if (AI_ACTION_IDS.has(type)) {
+                problems.push(`Step "${step.filename}" uses AI action "${type}" (offline rule)`);
             }
         }
         for (const key of unsafeYamlValueKeys(frontmatter)) {

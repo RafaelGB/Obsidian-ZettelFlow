@@ -1,0 +1,11 @@
+{
+  "zfVersion": "1.0",
+  "name": "inline-unknown-action",
+  "description": "negative fixture for the inline-lint guardrail (#612)",
+  "author": "ZettelFlow",
+  "canvas": {
+    "filename": "inline-unknown-action.canvas",
+    "content": "{\"nodes\":[{\"id\":\"bad\",\"type\":\"text\",\"x\":0,\"y\":0,\"width\":200,\"height\":120,\"zettelflowConfig\":\"{\\\"root\\\":true,\\\"label\\\":\\\"Bad\\\",\\\"actions\\\":[{\\\"type\\\":\\\"teleport-note\\\",\\\"id\\\":\\\"x\\\",\\\"hasUI\\\":false,\\\"key\\\":\\\"x\\\",\\\"zone\\\":\\\"frontmatter\\\"}]}\"}],\"edges\":[]}"
+  },
+  "steps": []
+}

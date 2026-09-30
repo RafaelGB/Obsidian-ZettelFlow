@@ -150,6 +150,59 @@ describe("validateSystemTemplate (#214, FR-7, AC-2)", () => {
     });
 });
 
+describe("the offline + inline guardrail (#612)", () => {
+    /** A canvas whose only node is one inline `text` box carrying `zettelflowConfig`. */
+    const inlineCanvas = (config: unknown, id = "b"): string =>
+        JSON.stringify({
+            nodes: [
+                {
+                    id,
+                    type: "text",
+                    x: 0,
+                    y: 0,
+                    width: 100,
+                    height: 100,
+                    zettelflowConfig: typeof config === "string" ? config : JSON.stringify(config),
+                },
+            ],
+            edges: [],
+        });
+    const inlineSystem = (config: unknown): ZfTemplate => ({
+        ...template,
+        steps: [],
+        canvas: { filename: "flow.canvas", content: inlineCanvas(config) },
+    });
+
+    it("rejects an AI-category action in a file-node step (offline rule, AC-6)", () => {
+        const aiStep = "---\nzettelFlowSettings:\n  root: true\n  actions:\n    - type: summarize\n      key: x\n---\n# x\n";
+        expect(validateSystemTemplate({ ...template, steps: [{ filename: "AI.md", content: aiStep }] }, REGISTERED_ACTION_IDS)).toEqual([
+            'Step "AI.md" uses AI action "summarize" (offline rule)',
+        ]);
+    });
+
+    it("walks an inline node and rejects an unknown action type (AC-4)", () => {
+        expect(validateSystemTemplate(inlineSystem({ root: true, label: "B", actions: [{ type: "teleport-note" }] }), REGISTERED_ACTION_IDS)).toEqual([
+            'Inline node "b" uses unknown action type "teleport-note"',
+        ]);
+    });
+
+    it("walks an inline node and rejects an AI action, including in onCreation (AC-4/AC-6)", () => {
+        expect(validateSystemTemplate(inlineSystem({ root: true, label: "B", actions: [{ type: "prompt" }], onCreation: [{ type: "summarize" }] }), REGISTERED_ACTION_IDS)).toEqual([
+            'Inline node "b" uses AI action "summarize" (offline rule)',
+        ]);
+    });
+
+    it("accepts an inline node using only registered, non-AI actions", () => {
+        expect(validateSystemTemplate(inlineSystem({ root: true, label: "B", actions: [{ type: "prompt" }, { type: "selector" }], onCreation: [{ type: "find-related" }] }), REGISTERED_ACTION_IDS)).toEqual([]);
+    });
+
+    it("flags an inline node whose zettelflowConfig is not parseable", () => {
+        expect(validateSystemTemplate(inlineSystem("not json"), REGISTERED_ACTION_IDS)).toEqual([
+            'Inline node "b" has an unparseable zettelflowConfig',
+        ]);
+    });
+});
+
 describe("isUnsafeFilename (#214 hardening)", () => {
     it("accepts a bare in-folder filename", () => {
         expect(isUnsafeFilename("Capture.md")).toBe(false);

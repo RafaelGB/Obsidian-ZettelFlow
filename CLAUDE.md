@@ -128,6 +128,11 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
   configured — errors are never silently swallowed.
 - Canvas integration **monkey-patches** internal Obsidian APIs — fragile across app updates; keep
   patches defensive.
+- **Dependabot alerts are dev/docs tooling, not the plugin.** The bundle ships only the runtime
+  `dependencies`; every alert so far is a transitive **dev** dep (`package-lock.json`) or **docs**
+  tooling (`docs/requirements.txt`), so none reach a user. Fix with `npm audit fix` (never `--force`)
+  and same-major docs pin bumps; `.github/dependabot.yml` groups them weekly. Detail + accepted
+  residue in the roadmap doc.
 
 Full list + roadmap: [`docs/development/project-health-and-roadmap.md`](docs/development/project-health-and-roadmap.md).
 

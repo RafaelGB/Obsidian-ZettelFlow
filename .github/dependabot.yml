@@ -1,0 +1,50 @@
+# Dependabot config (#546).
+#
+# Context that decides everything below: **nothing here ships in the plugin.** The plugin bundles
+# only its runtime `dependencies` (react, three, @dnd-kit, uuid, …) into `main.js`; every alert so
+# far has been against *dev/build tooling* in `package-lock.json` or *docs tooling* in
+# `docs/requirements.txt`, none of which reach a user. So updates are grouped and weekly, not urgent
+# and per-package — a wall of individual PRs for dev tooling would be noise, and the security surface
+# that would justify the urgency is not there. See docs/development/project-health-and-roadmap.md.
+
+version: 2
+updates:
+  # Build, test and lint tooling. Grouped into as few PRs as possible.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        patterns: ["*"]
+      production-dependencies:
+        dependency-type: "production"
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+
+  # The MkDocs documentation site (GitHub Pages) — never part of the plugin.
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      docs-tooling:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(docs-deps)"
+
+  # The CI / release / docs workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(ci)"

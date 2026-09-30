@@ -106,3 +106,29 @@ docs-only rows and the retired toggles out for good.
 
 The tab renders **28 rows**; the ceiling asserted by the guardrail is 35, so the next addition is
 a decision rather than an accident.
+
+## Dependencies & security (Dependabot)
+
+**Nothing flagged so far ships in the plugin.** The bundle (`main.js`) contains only the runtime
+`dependencies` in `package.json` — react, react-dom, three, three-spritetext, 3d-force-graph,
+@dnd-kit/\*, uuid, monkey-around, json-stable-stringify, tiny-jsonc, use-sync-external-store. Every
+Dependabot alert to date has been against **dev/build tooling** (transitive deps of esbuild, jest,
+eslint, sass, commitlint — in `package-lock.json`) or the **docs site tooling** (`docs/requirements.txt`,
+which builds GitHub Pages). None reach a user, so severity is read through that lens.
+
+The policy, and how to keep it:
+
+- **JavaScript:** `npm run` build/test never touch a flagged package at runtime. Fix with
+  `npm audit fix` (semver-compatible, lockfile only — never `--force`, which would downgrade the
+  `obsidian` **type-stub** devDependency to an ancient version and break the build). A bump that
+  needs a major of a dev tool is a deliberate change, not a security scramble.
+- **Docs (`docs/requirements.txt`):** bump the pinned versions to the patched release, staying within
+  the same major so the MkDocs build does not change behaviour. A major bump (e.g. `pymdown-extensions`
+  10 → 11) is deferred until it can be validated against a real `mkdocs build`.
+- **`.github/dependabot.yml`** groups updates weekly per ecosystem so this stays managed without a
+  wall of per-package PRs.
+
+**Accepted, documented residue** (dev/docs-only, no runtime exposure, revisited on the next major
+bump): the `obsidian` type-stub → `moment` path-traversal advisory (fixable only by downgrading the
+type stubs), and the two `pymdown-extensions` advisories that need v11. Both act only on
+attacker-controlled input, which for a static docs site of our own authoring does not exist.

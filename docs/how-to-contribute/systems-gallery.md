@@ -19,7 +19,8 @@ Everything is **offline** (no network, no AI) and additive (nothing in your vaul
 
 ## Shipped systems
 
-Each system offers several **independent entry points** on one canvas — pick the note type you want to create.
+Each system is a **drawn workflow** on one canvas: a single entry that branches — with real edges and
+phase colours — to each note type it makes. Pick the flow, answer its questions, and it lands the note.
 Every system carries a **difficulty badge** in the browser — *easy* (a light workflow, few actions), *medium*
 (more steps and the relation/research actions), *hard* (the full pipeline). Start easy and grow into the richer
 systems; the on-creation cognitive work scales with the difficulty.
@@ -70,21 +71,26 @@ judgement, using [`zf.knowledge`](../api/ZettelFlowAPI.md) — something no stoc
 
 ## Author your own system
 
-A system is a single `.zftemplate` JSON bundle: a `canvas` (a real `.canvas`) plus its `steps` (the
-`.md` files with `zettelFlowSettings` frontmatter). To contribute one:
+A system is a single `.zftemplate` JSON bundle: a `canvas` (a real `.canvas`) and its `steps`. The
+reference pattern (see the three pilots — `zettelkasten-v2`, `para-v2`, `gtd`) is **fully inline**:
+the steps live *on the canvas nodes*, not in external `.md` files, and `steps` is `[]`. To contribute one:
 
-1. **Build it in Obsidian.** Compose a canvas whose step nodes are `.md` files carrying valid
-   `zettelFlowSettings` frontmatter (the same frontmatter the Step Builder writes). Run the command
-   **`ZettelFlow: Export current canvas as .zftemplate`** to produce the bundle.
-2. **Use independent entry points, not a chain.** For a system that offers several note types, give
-   each its own `root: true` step and leave the canvas **edges empty** — a chained child auto-advances
-   and merges the notes into one. (See any shipped system under `docs/systems/`.)
-3. **Stay offline.** Compose the graph-computing actions in an `onCreation` block (`find-related`,
-   `suggest-link`, `find-contradiction`, `calculate-maturity`, `extract-claims`, `find-sources`).
-   Do **not** use the AI actions (`classify`, `summarize`, `generate-questions`) — a shipped system
-   must run with no network. Avoid actions whose value is a build-time-fixed target
-   (`attach-source`, `create-semantic-relation`) — they are no-ops in a template; capture relations
-   with `find-related`/`suggest-link` and a plain wikilink prompt instead.
+1. **Draw the flow with inline boxes.** Make each step a native **text** canvas node whose
+   `zettelFlowSettings` live in its `zettelflowConfig` (the Step Builder writes this when you *Edit embed*
+   an inline box), and give the step an inline `body` template. The canvas **is** the system — a reader
+   should see the methodology in the drawing.
+2. **One root, and branch with edges.** Give the system **one** `root: true` step and connect the rest
+   with canvas **edges**. Model a decision as a **branch** — several edges out of one step, each gated by
+   a `StepExit` keyed by the edge id (`when: frontmatter.<key> === "..."`, with a human `says`) — and set
+   each step's `phase` so its canvas colour reads the arc at a glance. **One walk makes one note** (a
+   *chain* merges its steps into a single note), so a choice between note types is a branch, never a chain.
+3. **Stay offline, and don't auto-write a judgement (§XII).** On creation, auto-write only **mechanical**
+   outputs: `find-related`, `calculate-maturity`, `detect-orphan`, `find-contradiction`,
+   `find-unanswered-question`, `extract-claims`, `find-sources`, `compare-claims`. Do **not** auto-write
+   the *interpretive* `suggest-link`/`suggest-next-move` — those are moves a human invokes, not silent
+   writes. Never use an **AI action** (`classify`, `summarize`, `generate-questions`, `challenge-idea`,
+   `synthesize`, `suggest-connections`): a shipped system runs with no network. Avoid build-time-fixed
+   targets (`attach-source`, `create-semantic-relation`) — they are no-ops in a template.
 4. **Quote YAML-unsafe values.** A prompt `placeholder`/`label` that starts with `[[`, `@`, `{`, `*`
    (or contains `: `) must be single-quoted, or the frontmatter fails to parse and the step is dropped.
 5. **Declare a difficulty.** Set a top-level `"difficulty": "easy" | "medium" | "hard"` on the bundle so
@@ -92,9 +98,12 @@ A system is a single `.zftemplate` JSON bundle: a `canvas` (a real `.canvas`) pl
    actions, *hard* for the full on-creation pipeline. Optional; omit it and the badge is simply hidden.
 6. **Catalog it.** Add the `.zftemplate` under `docs/systems/`, a sibling `<id>.png` preview, and a
    `template_type: "system"` row to `docs/main_template.json` (`ref` = the `.zftemplate` path).
-7. **Validate.** `npm test` runs the validity harness (`shippedSystems.test.ts` + `catalog.test.ts`):
-   every shipped system must parse, reference only registered non-AI actions, use YAML-safe frontmatter,
-   and resolve its canvas file-nodes to real steps.
+7. **Validate.** `npm test` runs the validity harness. `shippedSystems.test.ts` + `catalog.test.ts`:
+   every shipped system parses, references only registered **non-AI** actions, uses YAML-safe
+   frontmatter, and resolves its canvas file-nodes to real steps — and now **lints the inline nodes too**
+   (`validateSystemTemplate` walks each `zettelflowConfig`, rejecting unknown or AI actions). For a
+   branched flow, `pilotFlows.test.ts` proves the shape (edges, one root), the §XII mechanical-only
+   on-creation, no AI, the phase colours, and that each branch rehearses to exactly one outcome.
 8. **Publish.** The fastest in-app route: build the workflow on a canvas, run **ZettelFlow → Export
    current canvas as .zftemplate** (also in the *Open ZettelFlow* ribbon menu), then submit it through
    the community browser's **Add template** link. That closes the loop — your system in the gallery for

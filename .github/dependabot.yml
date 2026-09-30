@@ -6,6 +6,13 @@
 # `docs/requirements.txt`, none of which reach a user. So updates are grouped and weekly, not urgent
 # and per-package — a wall of individual PRs for dev tooling would be noise, and the security surface
 # that would justify the urgency is not there. See docs/development/project-health-and-roadmap.md.
+#
+# **Major versions are ignored** for npm and pip (#546): a major is a deliberate decision, not an
+# automated one. Grouping majors in with the safe minor/patch bumps is what turned two update PRs red
+# and unmergeable — TypeScript 7, ESLint 10, pymdown-extensions 12 — the "big refactor" this project
+# does not take on a schedule. Bump a major by hand when you actually want it; minor/patch (including
+# the docs security fixes) still flow weekly. github-actions still gets majors: low-risk, and
+# sometimes required for runner compatibility.
 
 version: 2
 updates:
@@ -25,6 +32,10 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
+    ignore:
+      # Majors are a hand decision, not a weekly one (see the header).
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # The MkDocs documentation site (GitHub Pages) — never part of the plugin.
   - package-ecosystem: "pip"
@@ -37,6 +48,9 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "chore(docs-deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   # The CI / release / docs workflows.
   - package-ecosystem: "github-actions"

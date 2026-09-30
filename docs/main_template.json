@@ -44,7 +44,7 @@
     "template_type": "system",
     "ref": "/docs/systems/academic-research.zftemplate",
     "title": "Academic research",
-    "description": "Literature-to-permanent research with two entry points: a literature note mined for claims, matched to sources, cross-checked and scored on creation, and a permanent note that lands already related, link-suggested and scored. Offline, no AI.",
+    "description": "Academic research, drawn as a flow: one capture asks whether you're taking notes on a source or recording a finding, and branches to a literature note (author, venue, method, claims) or a finding (claim, evidence, tensions) — cross-checked and maturity-scored on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -76,7 +76,7 @@
     "template_type": "system",
     "ref": "/docs/systems/reading.zftemplate",
     "title": "Reading",
-    "description": "Turn reading into knowledge: a Reading source entry point captures a book or article with its highlights and mines them for claims and candidate sources on creation; a Reading note entry point distills an insight and connects it to your graph. Offline, no AI.",
+    "description": "Reading, drawn as a flow: one capture asks whether you're logging a source or writing a note from your reading, and branches to a source card (type, status, link) or a reading note (the idea in your words, a quote, your take) — connected and claim-extracted on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -84,7 +84,7 @@
     "template_type": "system",
     "ref": "/docs/systems/writing.zftemplate",
     "title": "Writing",
-    "description": "From idea to finished draft: a Draft entry point sets the thesis and pulls in related source notes, a Section entry point develops one point and suggests connections, and a Review entry point surfaces contradictions to resolve. Offline, no AI.",
+    "description": "Writing, drawn as a flow: one capture asks where you are — starting a draft, drafting a section, or reviewing — and branches to the matching note (thesis + outline, section points, or a works/fix/next review), phased and connected on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -92,7 +92,7 @@
     "template_type": "system",
     "ref": "/docs/systems/software-architecture-kb.zftemplate",
     "title": "Software architecture KB",
-    "description": "A decision log for software architecture: an ADR entry point records context, decision and consequences and checks the new decision against existing ones for contradictions on creation; a Component entry point captures a component and its dependencies. Offline, no AI.",
+    "description": "A software architecture knowledge base, drawn as a flow: one capture asks whether you're recording a decision or a component, and branches to an ADR (context, decision, status, consequences, alternatives) or a component note (responsibility, interfaces, dependencies) — cross-checked on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -100,7 +100,7 @@
     "template_type": "system",
     "ref": "/docs/systems/meeting-notes.zftemplate",
     "title": "Meeting notes",
-    "description": "Capture attendees, agenda, discussion and action items, tag it, stamp a stable Zettel ID, and link it to related meetings and projects on creation. Offline, no AI.",
+    "description": "Meeting notes as one inline step: title, date, attendees, agenda, the notes themselves, decisions and action items — related to the rest of your vault on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -108,7 +108,7 @@
     "template_type": "system",
     "ref": "/docs/systems/daily-journal.zftemplate",
     "title": "Daily journal",
-    "description": "A frictionless daily note — highlights, gratitude and one thing for tomorrow — connected to related days and notes on creation. Offline, no AI.",
+    "description": "A daily journal as one inline step: the date, a mood, today's highlights, a line of gratitude and one intention for tomorrow — related to the rest of your notes on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -116,7 +116,7 @@
     "template_type": "system",
     "ref": "/docs/systems/concept-note.zftemplate",
     "title": "Concept note",
-    "description": "Grow an evergreen concept: on creation it is ranked, cross-checked, link-suggested, maturity-scored, challenged with thinking prompts and given a recommended next move. The full knowledge treatment. Offline, no AI.",
+    "description": "An evergreen concept note as a single rich step: name it, define it, say why it matters and give an example, stamp a Zettel id, and on creation get it related, cross-checked, maturity-scored and questioned — all in one inline box. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -124,7 +124,7 @@
     "template_type": "system",
     "ref": "/docs/systems/decision-journal.zftemplate",
     "title": "Decision journal",
-    "description": "Record a decision with the options you weighed, the rationale and a review date; stamped with a Zettel ID and checked against your earlier decisions for contradictions on creation. Offline, no AI.",
+    "description": "A decision journal as one inline step: the decision, its context, the options weighed, your rationale, the outcome you expect and a date to review it — cross-checked on creation so you can learn from it later. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {
@@ -132,7 +132,7 @@
     "template_type": "system",
     "ref": "/docs/systems/inquiry.zftemplate",
     "title": "Inquiry",
-    "description": "Start from a question, not an answer: on creation ZettelFlow surfaces your other open questions, related notes and the claims you're implicitly making. Offline, no AI.",
+    "description": "An inquiry as one inline step: a question worth your attention, why it matters, what you already know, a provisional response you own, and a next step — related and probed for open questions on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {

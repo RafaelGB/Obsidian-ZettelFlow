@@ -8,9 +8,8 @@
 
 **Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine that makes the knowledge inside it evolve.** It turns a native Canvas into a note-creation wizard — and then gives you a small set of **practice loops** that ask something of *you*, so a slip-box becomes thinking you actually do rather than notes you merely keep. Every loop is offline, works with AI switched off, and writes nothing to your vault you did not decide.
 
-<!-- PLACEHOLDER IMAGE — replace docs/resources/readme/hero-think.gif with a short (8–15s) loop of the Think space: writing a thought, forking it, challenging it. ~1200px wide, ≤5 MB. -->
 <p align="center">
-  <img src="docs/resources/readme/hero-think.gif" width="100%" alt="ZettelFlow's Think space: writing a thought, then forking and challenging it into a thread.">
+  <img src="docs/resources/readme/hero-think.gif" width="100%" alt="ZettelFlow in action: developing an idea in Cultivate — make a move on a note, say what it claims, and connect it to others.">
 </p>
 
 ## What it asks of you
@@ -43,7 +42,6 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 
 **…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk:
 
-<!-- PLACEHOLDER IMAGES — replace the three files in docs/resources/readme/ with clean, same-theme, ~same-width screenshots. -->
 <p align="center">
   <a href="docs/architecture/thought-lab.md"><img src="docs/resources/readme/think-space.png" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
   <a href="docs/development/graph-3d.md"><img src="docs/resources/readme/explore-graph.png" width="31%" alt="Explore — your notes as a living, queryable graph"></a>

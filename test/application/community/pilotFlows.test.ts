@@ -30,6 +30,7 @@ const SYSTEMS = join(__dirname, "..", "..", "..", "docs", "systems");
 const PILOTS: string[] = [
     join(FIXTURES, "reference-flow.zftemplate"),
     join(SYSTEMS, "zettelkasten-v2.zftemplate"),
+    join(SYSTEMS, "para-v2.zftemplate"),
 ];
 
 describe("the inline-flow pilot pattern (#612)", () => {
@@ -93,6 +94,34 @@ describe("Zettelkasten v2 — the origin branch routes to one outcome (#612, Sli
                 origin,
                 open: [outcome],
                 closed: 2,
+            });
+        }
+    });
+});
+
+describe("PARA v2 — the classify branch files into one category (#612, Slice D)", () => {
+    const template = loadPilot(join(SYSTEMS, "para-v2.zftemplate"));
+    const graph = templateGraph(template, (yaml: string) => JSON.parse(yaml));
+    const stateFor = (para: string) =>
+        startRehearsal(graph.rehearsal, { frontmatter: { para }, noteTitle: "", canvasName: "" });
+
+    it("walks from the single classify root", () => {
+        expect(graph.rehearsal.steps.filter((step) => step.root)).toHaveLength(1);
+        expect(graph.rehearsal.steps.find((step) => step.root)?.label).toBe("Classify");
+    });
+
+    it("opens exactly the chosen category, closing the other three", () => {
+        for (const [para, outcome] of [
+            ["project", "Project"],
+            ["area", "Area"],
+            ["resource", "Resource"],
+            ["archive", "Archive"],
+        ] as const) {
+            const state = stateFor(para);
+            expect({ para, open: state?.options.map((o) => o.label), closed: state?.closed.length }).toEqual({
+                para,
+                open: [outcome],
+                closed: 3,
             });
         }
     });

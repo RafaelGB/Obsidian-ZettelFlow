@@ -60,7 +60,7 @@
     "template_type": "system",
     "ref": "/docs/systems/para-v2.zftemplate",
     "title": "PARA v2",
-    "description": "PARA as a note-creation system: four entry points — Project, Area, Resource, Archive — each landing a note in its PARA folder, tagged by category and connected with find-related on creation. Repositions the original PARA classify flow. Offline, no AI.",
+    "description": "PARA, drawn as a flow: one classify step decides where an item belongs and branches to a Project, Area, Resource or Archive note — each a phased step with its own prompts, dates and a scaffolded body, filed in its PARA folder and connected on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {

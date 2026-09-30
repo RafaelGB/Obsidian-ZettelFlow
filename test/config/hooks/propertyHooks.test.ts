@@ -28,7 +28,9 @@ describe("property hooks manager (#327 S1)", () => {
     it("persists atomically through one guarded write path, via the pure ops", () => {
         expect(MANAGER).toContain("const persist = (next: HookItem[])");
         expect(MANAGER).toContain("plugin.settings.hooks.properties = toRecord(next)");
-        expect(MANAGER).toContain("plugin.saveSettings()");
+        // The awaited save is now a chained `.saveSettings().then().catch()` so a failed save is
+        // surfaced rather than `void`ed (#546 C3), hence the relaxed match.
+        expect(MANAGER).toMatch(/\.saveSettings\(\)/);
         expect(MANAGER).toMatch(/from "\.\.\/hookItems"/); // mutations delegated to the tested pure ops
     });
 

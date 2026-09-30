@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Notice } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { Keyboard, ObsidianNativeTypesManager } from "architecture/plugin";
@@ -71,11 +72,21 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
     setItems(next);
     try {
       plugin.settings.hooks.properties = toRecord(next);
-      void plugin.saveSettings();
-      log.debug("[PropertyHooks] saved", next.length, "hook(s)");
     } catch (error) {
+      // Never silent (#546 C3): a hook you configured that did not save, with no word, is #544.
       log.error("[PropertyHooks] failed to persist hooks", error);
+      new Notice(t("property_hooks_save_failed"));
+      return;
     }
+    // The save is async, and it used to be `void`ed — a rejection escaped and vanished. Catch it,
+    // so a disk failure is heard rather than swallowed.
+    void plugin
+      .saveSettings()
+      .then(() => log.debug("[PropertyHooks] saved", next.length, "hook(s)"))
+      .catch((error: unknown) => {
+        log.error("[PropertyHooks] failed to save hooks", error);
+        new Notice(t("property_hooks_save_failed"));
+      });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {

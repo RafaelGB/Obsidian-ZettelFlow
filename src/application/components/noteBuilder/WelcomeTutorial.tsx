@@ -9,14 +9,20 @@ export function WelcomeTutorial({ plugin, modal }: TutorialType) {
     const { settings } = plugin;
     const { ribbonCanvas } = settings;
     const [isCreating, setIsCreating] = useState(false);
+    // On-surface, so the failure is an inline line rather than a toast (#546 C1): the button used to
+    // fail silently — you clicked, nothing happened, and nothing was said (#546 C3).
+    const [failed, setFailed] = useState(false);
 
     const handleCreateExample = async () => {
         setIsCreating(true);
+        setFailed(false);
         const path = await createExampleFlow(plugin);
         setIsCreating(false);
         if (path) {
             await FileService.openFile(path);
             modal.close();
+        } else {
+            setFailed(true);
         }
     };
 
@@ -36,6 +42,11 @@ export function WelcomeTutorial({ plugin, modal }: TutorialType) {
                 >
                     {t("onboarding_create_example")}
                 </button>
+                {failed && (
+                    <p className={c("welcome-error")} role="alert">
+                        {t("onboarding_create_example_failed")}
+                    </p>
+                )}
                 <button
                     className={c("welcome-btn")}
                     onClick={() => {

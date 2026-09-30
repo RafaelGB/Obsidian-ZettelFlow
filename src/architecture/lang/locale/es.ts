@@ -156,6 +156,7 @@ export default {
     note_builder_draft_discard_confirm: 'Empezar de cero descarta lo que habías respondido. ¿Continuar?',
     note_builder_draft_restored_step: 'Respondido antes de la pausa: su resultado ya está en la nota.',
     note_builder_draft_resume_failed: 'No se pudo retomar ese borrador; se empieza de cero.',
+    note_builder_draft_keep_failed: 'No se pudo conservar tu nota sin terminar.',
     note_builder_draft_untitled: 'Nota sin título',
     home_nudge_unfinished: 'Dejaste "{0}" sin terminar en {1}',
     companion_pane_modify_label: 'Enlazar con otras palabras',
@@ -981,6 +982,7 @@ export default {
     onboarding_welcome_tagline: 'Flujos de creación de notas basados en Canvas para Obsidian.',
     onboarding_what_is: 'Diseña un flujo en un Canvas de Obsidian, configura cada paso con acciones y ZettelFlow te guiará como un asistente cada vez que crees una nota.',
     onboarding_create_example: 'Crear flujo de ejemplo',
+    onboarding_create_example_failed: 'No se pudo crear el flujo de ejemplo. Revisa la consola para más detalles.',
     onboarding_create_example_tooltip: 'Crea un canvas de ejemplo y una plantilla de paso en tu bóveda para que puedas explorar ZettelFlow de inmediato.',
     onboarding_open_docs: 'Ver documentación',
     settings_get_started_title: 'Empezar',
@@ -1544,6 +1546,7 @@ export default {
     dynamic_selector_error: 'El script de opciones ha fallado. Revisa el registro de ZettelFlow para más detalles.',
     dynamic_selector_invalid_result: 'El script debe devolver un array de pares [clave, etiqueta].',
     property_hooks_script_error_notice: 'El script del hook ha fallado: {0}',
+    property_hooks_save_failed: 'No se pudieron guardar tus hooks de propiedad.',
     // Knowledge actions (#153)
     knowledge_action_orphan_label: 'Detectar huérfana',
     knowledge_action_orphan_desc: 'Marca si la nota no tiene enlaces entrantes ni salientes (una huérfana).',

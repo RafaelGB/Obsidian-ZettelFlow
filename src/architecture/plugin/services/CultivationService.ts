@@ -81,7 +81,12 @@ export class CultivationService {
     /** Advance the note's lifecycle state via the sanctioned validated transition (emits its own Notice). */
     async advance(app: App, plugin: { settings?: { lifecycle?: { stateProperty?: string } } }, path: string, target: LifecycleState): Promise<void> {
         const file = this.fileFor(app, path);
-        if (!file) return;
+        if (!file) {
+            // Never a silent no-op (#546 C3): the note is gone and a click with no word is #544 again.
+            log.error("[Cultivate] advance target is missing", path);
+            new Notice(t("cultivate_apply_failed"));
+            return;
+        }
         try {
             const stateProperty = plugin.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
             const schema = new LifecycleStateSchema(stateProperty, buildLifecycleAliases());
@@ -109,7 +114,12 @@ export class CultivationService {
         noticeArg?: string
     ): Promise<void> {
         const file = this.fileFor(app, path);
-        if (!file) return;
+        if (!file) {
+            // Same rule as advance(): a missing target is a failure the user must hear about (#546 C3).
+            log.error("[Cultivate] move target is missing", path);
+            new Notice(t("cultivate_apply_failed"));
+            return;
+        }
         try {
             await op(file);
             new Notice(noticeArg === undefined ? t(noticeKey) : t(noticeKey, noticeArg));

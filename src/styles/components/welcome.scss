@@ -34,6 +34,13 @@
     margin: 0;
 }
 
+/* An inline failure line for the create-example button (#546 C1/C3): on-surface, so not a toast. */
+.zettelkasten-flow__welcome-error {
+    font-size: 0.9rem;
+    color: var(--text-error);
+    margin: 0;
+}
+
 .zettelkasten-flow__welcome-actions {
     display: flex;
     flex-wrap: wrap;

@@ -156,6 +156,7 @@ export default {
     note_builder_draft_discard_confirm: 'Starting fresh discards what you had answered. Continue?',
     note_builder_draft_restored_step: 'Answered before you paused — its result is already in the note.',
     note_builder_draft_resume_failed: 'That draft could not be resumed; starting fresh.',
+    note_builder_draft_keep_failed: 'Your unfinished note could not be kept.',
     note_builder_draft_untitled: 'Untitled note',
     home_nudge_unfinished: 'You left "{0}" unfinished in {1}',
     companion_pane_modify_label: 'Link it with different words',
@@ -981,6 +982,7 @@ export default {
     onboarding_welcome_tagline: 'Canvas-based note-creation workflows for Obsidian.',
     onboarding_what_is: 'Design a workflow on an Obsidian Canvas, configure each step with actions, and ZettelFlow walks you through it as a wizard whenever you create a note.',
     onboarding_create_example: 'Create example flow',
+    onboarding_create_example_failed: 'The example flow could not be created. See the console for details.',
     onboarding_create_example_tooltip: 'Creates a sample canvas and step template in your vault so you can explore ZettelFlow immediately.',
     onboarding_open_docs: 'View documentation',
     settings_get_started_title: 'Get started',
@@ -1544,6 +1546,7 @@ export default {
     dynamic_selector_error: 'The options script failed. Check the ZettelFlow log for details.',
     dynamic_selector_invalid_result: 'The script must return an array of [key, label] pairs.',
     property_hooks_script_error_notice: 'Hook script failed: {0}',
+    property_hooks_save_failed: 'Your property hooks could not be saved.',
     // Knowledge actions (#153)
     knowledge_action_orphan_label: 'Detect orphan',
     knowledge_action_orphan_desc: 'Flag whether the note has no incoming or outgoing links (an orphan).',

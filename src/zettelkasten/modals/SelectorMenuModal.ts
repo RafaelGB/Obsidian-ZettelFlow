@@ -1,4 +1,4 @@
-import { App, MarkdownFileInfo, MarkdownView, Modal, Platform, TFile } from "obsidian";
+import { App, MarkdownFileInfo, MarkdownView, Modal, Notice, Platform, TFile } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import ZettelFlow from "main";
 import { buildSelectorMenu } from "application/components/noteBuilder";
@@ -81,7 +81,10 @@ export class SelectorMenuModal extends Modal {
                     .actions.snapshotDraft(this.flow.canvasPath);
                 draftStore.save(snapshot);
             } catch (error) {
+                // The draft is what "resume later" relies on; losing it silently is the #544 shape
+                // on the way out (#546 C3). The surface is closing, so a Notice, not an inline line.
                 log.error(`Could not keep the unfinished note: ${String(error)}`);
+                new Notice(t("note_builder_draft_keep_failed"));
             }
         }
         this.root.unmount();

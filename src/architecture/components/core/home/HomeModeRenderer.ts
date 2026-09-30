@@ -18,7 +18,7 @@ import {
 } from "architecture/knowledge/state";
 import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
-import { makeActivatable } from "architecture/components/core/a11y";
+import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 import { pinnedQueries, savedQueryLabel } from "architecture/components/core/askGraph/savedQueries";
 import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
@@ -380,6 +380,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 const name = row.createSpan({ text: basename(target), cls: c("home-note-name") });
                 name.setAttribute("title", target);
                 makeActivatable(name, () => void this.app.workspace.openLinkText(target, "", false));
+                hoverPreview(this.app, name, target, this);
             }
         }
     }
@@ -448,5 +449,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         const name = parent.createSpan({ text: basename(path), cls: c("home-note-name") });
         name.setAttribute("title", path);
         makeActivatable(name, () => void this.app.workspace.openLinkText(path, "", false));
+        hoverPreview(this.app, name, path, this);
     }
 }

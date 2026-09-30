@@ -1,6 +1,7 @@
 import { App, Notice, moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
+import { hoverPreview } from "architecture/components/core/a11y";
 import { t } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { runCommand } from "architecture/components/core/surface/runCommand";
@@ -353,6 +354,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(nameEl, "click", () => {
             void this.app.workspace.openLinkText(path, "", false);
         });
+        hoverPreview(this.app, nameEl, path, this);
         const openBtn = row.createEl("button", {
             text: t("slipbox_health_connect_now"),
             cls: c("knowledge-debt-open-button"),
@@ -510,6 +512,7 @@ export class SlipboxHealthRenderer extends KnowledgeModeRenderer {
             this.registerDomEvent(name, "click", () => {
                 void this.app.workspace.openLinkText(entry.path, "", false);
             });
+            hoverPreview(this.app, name, entry.path, this);
         }
     }
 

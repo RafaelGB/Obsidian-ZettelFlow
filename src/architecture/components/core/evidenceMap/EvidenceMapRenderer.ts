@@ -1,5 +1,6 @@
 import { App } from "obsidian";
 import { c, log } from "architecture";
+import { hoverPreview } from "architecture/components/core/a11y";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { EvidenceEntry, EvidenceMap, buildEvidenceMap } from "architecture/knowledge/state";
@@ -149,6 +150,7 @@ export class EvidenceMapRenderer extends KnowledgeModeRenderer {
             const note = meta.createSpan({ text: basename(entry.note), cls: c("evidence-map-note") });
             note.setAttribute("title", entry.note);
             this.registerDomEvent(note, "click", () => void this.app.workspace.openLinkText(entry.note, "", false));
+            hoverPreview(this.app, note, entry.note, this);
             meta.createSpan({ text: ` · ${entry.source.ref}`, cls: c("evidence-map-source") });
         }
     }
@@ -181,5 +183,6 @@ export class EvidenceMapRenderer extends KnowledgeModeRenderer {
         const name = row.createSpan({ text: basename(path), cls: c("evidence-map-row-name") });
         name.setAttribute("title", path);
         this.registerDomEvent(name, "click", () => void this.app.workspace.openLinkText(path, "", false));
+        hoverPreview(this.app, name, path, this);
     }
 }

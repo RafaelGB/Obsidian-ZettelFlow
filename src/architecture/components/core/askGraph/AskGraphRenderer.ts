@@ -18,7 +18,7 @@ import {
     type FacetValue,
     type GraphQueryResult,
 } from "architecture/knowledge/state";
-import { makeActivatable } from "architecture/components/core/a11y";
+import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { QuerySuggest } from "architecture/settings/suggesters/QuerySuggest";
 import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
@@ -505,6 +505,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         const name = parent.createSpan({ cls: c("ask-graph-result-name"), text: basename(path) });
         name.setAttribute("title", path);
         makeActivatable(name, () => this.openNote(path));
+        hoverPreview(this.app, name, path, this);
     }
 
     /**

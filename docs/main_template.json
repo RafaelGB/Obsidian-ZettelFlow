@@ -52,7 +52,7 @@
     "template_type": "system",
     "ref": "/docs/systems/zettelkasten-v2.zftemplate",
     "title": "Zettelkasten v2",
-    "description": "The classic slip-box upgraded: three independent note types on one canvas — fleeting, literature and permanent, each its own entry point — where the permanent note is related, cross-checked, link-suggested and maturity-scored on creation. Offline, no AI.",
+    "description": "The slip-box, drawn as a flow: one capture asks what kind of note this is and branches to a fleeting, literature or permanent note — each a phased step with its own prompts and a scaffolded body, cross-checked and maturity-scored on creation. Offline, no AI.",
     "author": "ZettelFlow"
   },
   {

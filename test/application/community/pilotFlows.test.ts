@@ -1,6 +1,11 @@
 import { describe, it, expect } from "@jest/globals";
 import { join } from "path";
 import { validateSystemTemplate, REGISTERED_ACTION_IDS } from "application/community/systemInstall";
+import { templateGraph } from "application/community/templateGraph";
+import { startRehearsal } from "application/notes/rehearsal";
+import { stepCanvasColor } from "zettelkasten/phases/phaseColor";
+import { PHASE_CANVAS_COLOR } from "zettelkasten/phases/phaseColor";
+import type { StepPhase } from "zettelkasten/phases/phases";
 import {
     loadPilot,
     shapeProblems,
@@ -19,9 +24,13 @@ import {
  * drawn with edges + exits, mechanical-only on-creation.
  */
 const FIXTURES = join(__dirname, "fixtures");
+const SYSTEMS = join(__dirname, "..", "..", "..", "docs", "systems");
 
 // Grows as the pilots land: Slice C adds zettelkasten-v2, D adds para-v2, E adds gtd.
-const PILOTS: string[] = [join(FIXTURES, "reference-flow.zftemplate")];
+const PILOTS: string[] = [
+    join(FIXTURES, "reference-flow.zftemplate"),
+    join(SYSTEMS, "zettelkasten-v2.zftemplate"),
+];
 
 describe("the inline-flow pilot pattern (#612)", () => {
     for (const file of PILOTS) {
@@ -45,6 +54,46 @@ describe("the inline-flow pilot pattern (#612)", () => {
             it("carries no AI-category action (offline)", () => {
                 expect(aiProblems(template)).toEqual([]);
             });
+
+            it("colours every step by its phase (AC-3)", () => {
+                const nodes = JSON.parse(template.canvas.content).nodes as { id: string; color?: string; zettelflowConfig?: string }[];
+                for (const node of nodes) {
+                    if (typeof node.zettelflowConfig !== "string") continue;
+                    const phase = (JSON.parse(node.zettelflowConfig) as { phase?: StepPhase }).phase;
+                    if (!phase) continue;
+                    expect({ id: node.id, colour: stepCanvasColor(node.color, phase) }).toEqual({
+                        id: node.id,
+                        colour: PHASE_CANVAS_COLOR[phase],
+                    });
+                }
+            });
         });
     }
+});
+
+describe("Zettelkasten v2 — the origin branch routes to one outcome (#612, Slice C)", () => {
+    const template = loadPilot(join(SYSTEMS, "zettelkasten-v2.zftemplate"));
+    const graph = templateGraph(template, (yaml: string) => JSON.parse(yaml));
+    const stateFor = (origin: string) =>
+        startRehearsal(graph.rehearsal, { frontmatter: { origin }, noteTitle: "", canvasName: "" });
+
+    it("walks from the single capture root", () => {
+        expect(graph.rehearsal.steps.filter((step) => step.root)).toHaveLength(1);
+        expect(graph.rehearsal.steps.find((step) => step.root)?.label).toBe("Capture a Zettel");
+    });
+
+    it("opens exactly the chosen maturity, closing the other two", () => {
+        for (const [origin, outcome] of [
+            ["fleeting", "Fleeting note"],
+            ["source", "Literature note"],
+            ["idea", "Permanent note"],
+        ] as const) {
+            const state = stateFor(origin);
+            expect({ origin, open: state?.options.map((o) => o.label), closed: state?.closed.length }).toEqual({
+                origin,
+                open: [outcome],
+                closed: 2,
+            });
+        }
+    });
 });

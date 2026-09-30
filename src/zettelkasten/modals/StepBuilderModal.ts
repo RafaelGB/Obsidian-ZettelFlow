@@ -174,7 +174,10 @@ export class StepBuilderModal extends AbstractStepModal {
                             id: this.info.nodeId
                         });
                         if (this.plugin.settings.installedTemplates.steps[stepSettings.id]) {
+                            // The warning has to be true: it used to say "already exists" and then
+                            // overwrite the template on the next line anyway (#546 C3). Abort instead.
                             new Notice(t("step_template_already_exists"));
+                            return;
                         }
                         this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
                         void this.plugin.saveSettings();

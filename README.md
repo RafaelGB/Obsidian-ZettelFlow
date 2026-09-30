@@ -8,6 +8,11 @@
 
 **Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine that makes the knowledge inside it evolve.** It turns a native Canvas into a note-creation wizard — and then gives you a small set of **practice loops** that ask something of *you*, so a slip-box becomes thinking you actually do rather than notes you merely keep. Every loop is offline, works with AI switched off, and writes nothing to your vault you did not decide.
 
+<!-- PLACEHOLDER IMAGE — replace docs/resources/readme/hero-think.gif with a short (8–15s) loop of the Think space: writing a thought, forking it, challenging it. ~1200px wide, ≤5 MB. -->
+<p align="center">
+  <img src="docs/resources/readme/hero-think.gif" width="100%" alt="ZettelFlow's Think space: writing a thought, then forking and challenging it into a thread.">
+</p>
+
 ## What it asks of you
 
 Before any feature list, the handful of things ZettelFlow asks you to **do** — each a small loop on your own notes, each reached where you already are:
@@ -38,6 +43,16 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 
 ![Canvas example](docs/resources/readme/Canvas-Sample.png)
 ![Wizard demo](docs/resources/readme/demogif.gif)
+
+**…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk:
+
+<!-- PLACEHOLDER IMAGES — replace the three files in docs/resources/readme/ with clean, same-theme, ~same-width screenshots. -->
+<p align="center">
+  <a href="docs/architecture/thought-lab.md"><img src="docs/resources/readme/think-space.png" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
+  <a href="docs/development/graph-3d.md"><img src="docs/resources/readme/explore-graph.png" width="31%" alt="Explore — your notes as a living, queryable graph"></a>
+  <a href="docs/development/cultivate.md"><img src="docs/resources/readme/cultivate-session.png" width="31%" alt="Cultivate — grow one idea, one guided move at a time"></a>
+</p>
+<p align="center"><sub><b>Think</b> · a place for what isn't knowledge yet &nbsp;·&nbsp; <b>Explore</b> · the graph as a query &nbsp;·&nbsp; <b>Cultivate</b> · grow an idea by hand</sub></p>
 
 ---
 

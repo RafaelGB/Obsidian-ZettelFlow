@@ -32,6 +32,12 @@ const PILOTS: string[] = [
     join(SYSTEMS, "zettelkasten-v2.zftemplate"),
     join(SYSTEMS, "para-v2.zftemplate"),
     join(SYSTEMS, "gtd.zftemplate"),
+    // The rebuilt branch systems (#612 FR-10). Single-note systems are inline but have no flow to
+    // rehearse, so they are covered by shippedSystems/inlineLint, not by the pilot shape harness.
+    join(SYSTEMS, "academic-research.zftemplate"),
+    join(SYSTEMS, "reading.zftemplate"),
+    join(SYSTEMS, "writing.zftemplate"),
+    join(SYSTEMS, "software-architecture-kb.zftemplate"),
 ];
 
 describe("the inline-flow pilot pattern (#612)", () => {
@@ -153,4 +159,35 @@ describe("GTD — clarify branches to one disposition (#612, Slice E)", () => {
             });
         }
     });
+});
+
+describe("the rebuilt branch systems each route to one outcome (#612 FR-10)", () => {
+    const BRANCHES = [
+        { file: "academic-research.zftemplate", root: "Research capture", key: "kind", cases: [["literature", "Literature note"], ["finding", "Finding"]] },
+        { file: "reading.zftemplate", root: "Reading", key: "kind", cases: [["source", "Reading source"], ["note", "Reading note"]] },
+        { file: "writing.zftemplate", root: "Writing", key: "stage", cases: [["draft", "Draft"], ["section", "Section"], ["review", "Review"]] },
+        { file: "software-architecture-kb.zftemplate", root: "Architecture KB", key: "kind", cases: [["decision", "Decision record"], ["component", "Component"]] },
+    ] as const;
+
+    for (const system of BRANCHES) {
+        describe(system.file, () => {
+            const graph = templateGraph(loadPilot(join(SYSTEMS, system.file)), (yaml: string) => JSON.parse(yaml));
+
+            it("walks from one root", () => {
+                expect(graph.rehearsal.steps.filter((step) => step.root)).toHaveLength(1);
+                expect(graph.rehearsal.steps.find((step) => step.root)?.label).toBe(system.root);
+            });
+
+            it("opens exactly the chosen branch", () => {
+                for (const [value, outcome] of system.cases) {
+                    const state = startRehearsal(graph.rehearsal, { frontmatter: { [system.key]: value }, noteTitle: "", canvasName: "" });
+                    expect({ value, open: state?.options.map((o) => o.label), closed: state?.closed.length }).toEqual({
+                        value,
+                        open: [outcome],
+                        closed: system.cases.length - 1,
+                    });
+                }
+            });
+        });
+    }
 });

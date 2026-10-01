@@ -1,0 +1,10 @@
+#!/bin/sh
+# Direct git hook (core.hooksPath=.githooks) — no husky shim chain, so one sh spawn instead of the
+# .git/hooks → .husky/_/<name> → /h → hook relay that cost ~2s per hook on Windows.
+#
+# Lint only when source actually changed: oxlint has a fixed ~3s start-up cost regardless of file
+# count, so linting a docs/system/test-only commit is pure waiting. Full `npm run lint` over all of
+# src still runs in CI and on pre-push (`npm run verify`).
+if git diff --cached --name-only --diff-filter=ACM | grep -qE '^src/.*\.(ts|tsx)$'; then
+  node_modules/.bin/oxlint ./src
+fi

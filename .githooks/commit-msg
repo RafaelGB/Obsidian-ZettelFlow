@@ -1,6 +1,7 @@
-# Fast Conventional-Commits gate. Loading commitlint here cost ~5-8s on every commit (a real tax when
-# you commit often); this is an instant grep of the same rule. The authoritative, full commitlint
-# (header length, subject-case, body rules) runs in CI over every PR's commits — see .github/workflows/ci.yml.
+#!/bin/sh
+# Fast Conventional-Commits gate — an instant grep of the rule, instead of loading commitlint
+# (~5-8s per commit). The authoritative commitlint (header length, subject-case, body rules) runs in
+# CI over every PR's commits — see .github/workflows/ci.yml.
 first=$(head -n1 "$1")
 case "$first" in
   "Merge "*|"Revert "*|"fixup!"*|"squash!"*) exit 0 ;;

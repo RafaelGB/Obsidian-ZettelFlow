@@ -1,6 +1,0 @@
-# Lint only when source actually changed. oxlint has a fixed ~3s start-up cost regardless of how many
-# files you pass, so linting on a docs/system/test-only commit is pure waiting — skip it then. The
-# full `npm run lint` over all of src still runs in CI and on pre-push (`npm run verify`).
-if git diff --cached --name-only --diff-filter=ACM | grep -qE '^src/.*\.(ts|tsx)$'; then
-  node_modules/.bin/oxlint ./src
-fi

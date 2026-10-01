@@ -19,14 +19,18 @@ import {
     PanelConfig,
     cycleWidth,
     emptyDashboard,
+    migrateDashboard,
     movePanel,
     panelLayout,
     type ChartTheme,
+    type ComputedFields,
 } from "dashboards/panels";
 import { adaptResult } from "./adaptEntry";
 import { FieldInspector } from "./FieldInspector";
 import { PanelHost, type PanelHostActions } from "./PanelHost";
 import { PanelConfigModal } from "./PanelConfigModal";
+import { ComputedFieldsModal } from "./ComputedFieldsModal";
+import { ComputedResolver } from "./scriptTransform";
 import { readChartTheme } from "./themeReader";
 
 export const DASHBOARD_VIEW_TYPE = "zettelflow-dashboard";
@@ -45,8 +49,12 @@ export class DashboardBasesView extends BasesView {
      * populated when the view loads, so reading it there returned an empty model and lost panels. */
     private loaded = false;
     private readonly hosts = new Map<string, PanelHost>();
+    /** The un-enriched snapshot from the last data update — the base computed fields enrich. */
+    private baseSnapshot: DataStoreSnapshot | null = null;
     private snapshot: DataStoreSnapshot | null = null;
     private prevSnapshot: DataStoreSnapshot | null = null;
+    private readonly resolver = new ComputedResolver();
+    private errorEl: HTMLElement | null = null;
 
     constructor(controller: QueryController, containerEl: HTMLElement) {
         super(controller);
@@ -77,6 +85,15 @@ export class DashboardBasesView extends BasesView {
         add.createSpan({ text: t("dashboard_add_panel") });
         this.registerDomEvent(add, "click", () => this.openPanelModal(null));
 
+        const computed = toolbar.createEl("button", { cls: c("base-dashboard-computed-btn") });
+        setIcon(computed.createSpan({ cls: c("base-dashboard-add-icon") }), "function-square");
+        computed.createSpan({ text: t("dashboard_computed_open") });
+        this.registerDomEvent(computed, "click", () => this.openComputedModal());
+
+        // Inline, contextual error banner for a failed computed field (the messaging policy prefers
+        // inline over a toast, #546) — hidden until something fails.
+        this.errorEl = root.createDiv({ cls: `${c("base-dashboard-error")} zettelkasten-flow__is-hidden` });
+
         this.inspectorHostEl = root.createDiv({ cls: c("base-dashboard-inspector-host") });
         this.panelsEl = root.createDiv({ cls: c("base-dashboard-panels") });
     }
@@ -91,18 +108,62 @@ export class DashboardBasesView extends BasesView {
         }
         try {
             const adapted = adaptResult(result, this.allProperties, this.config);
-            this.prevSnapshot = this.snapshot;
-            this.snapshot = normalize(
+            const base = normalize(
                 adapted.entries,
                 adapted.properties,
                 adapted.signature,
-                this.prevSnapshot ?? undefined,
+                this.baseSnapshot ?? undefined,
             );
+            this.baseSnapshot = base;
+            this.prevSnapshot = this.snapshot;
+            this.snapshot = base; // draw the un-enriched data now; enrich off the render path
             this.renderLayout();
+            void this.enrichComputed(base);
         } catch (error) {
             // Bases is a young API; a malformed result must not take the Base down (risk #1).
             log.error("Base dashboard failed to process a data update", error);
         }
+    }
+
+    /**
+     * Resolve dashboard-level computed fields (#632) off the render path, then redraw with the
+     * enriched snapshot — applied only if a newer data update has not superseded this one. On error
+     * the panels keep the un-enriched data (fail-safe) and the failure is surfaced once.
+     */
+    private async enrichComputed(base: DataStoreSnapshot): Promise<void> {
+        if (!this.model.computed?.enabled || !this.model.computed.code.trim()) return;
+        const { snapshot: enriched, error } = await this.resolver.resolve(base, this.model.computed);
+        this.setComputedError(error);
+        if (!error && this.baseSnapshot === base && enriched !== base) {
+            this.prevSnapshot = this.snapshot;
+            this.snapshot = enriched;
+            this.renderLayout();
+        }
+    }
+
+    private setComputedError(message: string | null): void {
+        const el = this.errorEl;
+        if (!el) return;
+        if (message) {
+            el.setText(t("dashboard_computed_error", message));
+            el.removeClass("zettelkasten-flow__is-hidden");
+        } else {
+            el.empty();
+            el.addClass("zettelkasten-flow__is-hidden");
+        }
+    }
+
+    private openComputedModal(): void {
+        new ComputedFieldsModal(this.app, this.model.computed, (computed: ComputedFields) => {
+            this.model.computed = computed;
+            this.saveModel();
+            const base = this.baseSnapshot;
+            if (base) {
+                this.snapshot = base; // drop any previous enrichment, then re-resolve
+                this.renderLayout();
+                void this.enrichComputed(base);
+            }
+        }).open();
     }
 
     private theme(): ChartTheme {
@@ -213,7 +274,8 @@ export class DashboardBasesView extends BasesView {
             // Stored as a JSON string (most reliable to persist); tolerate a parsed object too.
             const parsed: unknown = typeof raw === "string" ? JSON.parse(raw) : raw;
             if (parsed && typeof parsed === "object" && Array.isArray((parsed as DashboardModel).panels)) {
-                return parsed as DashboardModel;
+                // Fold a legacy per-panel script (S6) into the dashboard-level computed field (#632).
+                return migrateDashboard(parsed as DashboardModel);
             }
         } catch (error) {
             log.warn("Base dashboard config could not be read", error);

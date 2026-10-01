@@ -133,6 +133,13 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
+            // The hero tiles are drawn before the state gate now (#620), so a failed recompute must
+            // not leave the Return tile showing a claim from the last good pass — reset like indexing.
+            this.home = null;
+            this.recommendations = [];
+            this.pinnedCards = [];
+            this.claimReturn = null;
+            this.claimsExist = false;
             log.error(`[ZettelFlowHome] recompute failed: ${error instanceof Error ? error.message : "unknown error"}`);
         }
         this.render();
@@ -287,6 +294,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         const open = tile.createEl("button", {
             cls: "mod-cta",
             text: t(wager ? "home_claim_return_wager_open" : "home_claim_return_open"),
+            attr: { type: "button" },
         });
         this.registerDomEvent(open, "click", () => {
             const plugin = ObsidianApi.getOwnPlugin();
@@ -327,11 +335,16 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         const btn = tile.createEl("button", {
             cls: "mod-cta",
             text: t(resume ? "inquiry_resume" : "inquiry_start"),
+            attr: { type: "button" },
         });
         this.registerDomEvent(btn, "click", () =>
             void activateSurface(this.app, "zettelflow-home", "cultivate", { inquiry: resume ? "resume" : "start" })
         );
-        const ordinary = tile.createEl("button", { cls: c("inquiry-onramp"), text: t("inquiry_ordinary") });
+        const ordinary = tile.createEl("button", {
+            cls: c("inquiry-onramp"),
+            text: t("inquiry_ordinary"),
+            attr: { type: "button" },
+        });
         this.registerDomEvent(ordinary, "click", () =>
             void activateSurface(this.app, "zettelflow-home", "cultivate", { inquiry: "ordinary" })
         );

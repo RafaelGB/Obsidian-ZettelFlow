@@ -83,7 +83,7 @@ export class DashboardBasesView extends BasesView {
         const result = this.data;
         if (!result) return;
         try {
-            const adapted = adaptResult(result, this.config);
+            const adapted = adaptResult(result, this.allProperties, this.config);
             this.prevSnapshot = this.snapshot;
             this.snapshot = normalize(
                 adapted.entries,

@@ -71,24 +71,24 @@ describe("deriveSignature (AC-2 — changes iff paths / props / sort change)", (
         getDisplayName: (id: string) => id,
         getSort: () => [{ property: "note.when", direction: "ASC" }],
     };
-    const result = (paths: string[], propIds: string[]) =>
-        new BasesQueryResult(paths.map((p) => new BasesEntry(file(p), {})), propIds);
+    const result = (paths: string[]) =>
+        new BasesQueryResult(paths.map((p) => new BasesEntry(file(p), {})), []);
 
     it("is stable for the same paths, properties and sort", () => {
-        const a = deriveSignature(result(["a.md", "b.md"], ["note.x"]), config);
-        const b = deriveSignature(result(["a.md", "b.md"], ["note.x"]), config);
+        const a = deriveSignature(result(["a.md", "b.md"]), ["note.x"], config);
+        const b = deriveSignature(result(["a.md", "b.md"]), ["note.x"], config);
         expect(a).toBe(b);
     });
 
     it("changes when the paths change", () => {
-        const a = deriveSignature(result(["a.md"], ["note.x"]), config);
-        const b = deriveSignature(result(["a.md", "b.md"], ["note.x"]), config);
+        const a = deriveSignature(result(["a.md"]), ["note.x"], config);
+        const b = deriveSignature(result(["a.md", "b.md"]), ["note.x"], config);
         expect(a).not.toBe(b);
     });
 
-    it("changes when the visible properties change", () => {
-        const a = deriveSignature(result(["a.md"], ["note.x"]), config);
-        const b = deriveSignature(result(["a.md"], ["note.x", "note.y"]), config);
+    it("changes when the mapped properties change", () => {
+        const a = deriveSignature(result(["a.md"]), ["note.x"], config);
+        const b = deriveSignature(result(["a.md"]), ["note.x", "note.y"], config);
         expect(a).not.toBe(b);
     });
 });

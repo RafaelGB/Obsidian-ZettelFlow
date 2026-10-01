@@ -64,18 +64,21 @@ export function adaptEntry(entry: BasesEntry, properties: FieldDescriptor[]): Ad
     return { path: entry.file?.path ?? "", cells };
 }
 
-function buildDescriptors(result: BasesQueryResult, config?: BasesViewConfig): FieldDescriptor[] {
-    const ids = result.properties ?? [];
+function buildDescriptors(ids: readonly BasesPropertyId[], config?: BasesViewConfig): FieldDescriptor[] {
     return ids.map((id) => ({
         id,
         name: config?.getDisplayName ? config.getDisplayName(id) : String(id),
     }));
 }
 
-/** The derived signature — changes iff file paths, visible properties, or sort change. */
-export function deriveSignature(result: BasesQueryResult, config?: BasesViewConfig): string {
+/** The derived signature — changes iff file paths, the mapped properties, or sort change. */
+export function deriveSignature(
+    result: BasesQueryResult,
+    propertyIds: readonly string[],
+    config?: BasesViewConfig,
+): string {
     const paths = (result.data ?? []).map((entry) => entry.file?.path ?? "");
-    const props = (result.properties ?? []).map((id) => String(id));
+    const props = propertyIds.map((id) => String(id));
     const sort = config?.getSort
         ? config.getSort().map((entry) => `${entry.property}:${entry.direction}`)
         : [];
@@ -88,9 +91,19 @@ export interface AdaptedResult {
     signature: string;
 }
 
-/** Adapt the whole query result in one pass (entries + visible fields + signature). */
-export function adaptResult(result: BasesQueryResult, config?: BasesViewConfig): AdaptedResult {
-    const properties = buildDescriptors(result, config);
+/**
+ * Adapt the whole query result in one pass (entries + fields + signature). Fields come from the
+ * view's `allProperties` (every property in the dataset) so a fresh Base — one the user has set no
+ * visible columns on — still exposes every field to map; it falls back to the visible
+ * `result.properties` only when `allProperties` is empty.
+ */
+export function adaptResult(
+    result: BasesQueryResult,
+    allProperties: readonly BasesPropertyId[] = [],
+    config?: BasesViewConfig,
+): AdaptedResult {
+    const ids = (allProperties.length > 0 ? allProperties : (result.properties ?? [])) as BasesPropertyId[];
+    const properties = buildDescriptors(ids, config);
     const entries = (result.data ?? []).map((entry) => adaptEntry(entry, properties));
-    return { entries, properties, signature: deriveSignature(result, config) };
+    return { entries, properties, signature: deriveSignature(result, ids, config) };
 }

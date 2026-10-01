@@ -45,4 +45,10 @@ describe("the dashboard fills the pane instead of a narrow centred column (#620)
         const lab = read("lab.scss");
         expect(lab).not.toMatch(/max-width:\s*780px/);
     });
+
+    it("lays the Cultivate moves out as a fluid grid, not a tall column (#620)", () => {
+        const cultivate = read("cultivate.scss");
+        const moves = cultivate.slice(cultivate.indexOf(".zettelkasten-flow__cultivate-moves"));
+        expect(moves).toMatch(/grid-template-columns:\s*repeat\(\s*auto-fit\s*,\s*minmax\(/);
+    });
 });

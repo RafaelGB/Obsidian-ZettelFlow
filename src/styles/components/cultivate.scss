@@ -273,14 +273,8 @@
 
 /* ── the subject: the one thing that leads ────────────────────────────────── */
 
-.zettelkasten-flow__cultivate-target {
-    padding: var(--size-4-4);
-    border-radius: var(--radius-l);
-    /* The theme's own surface. The old card hardcoded greens and broke every light theme. */
-    background: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-left: 3px solid var(--interactive-accent);
-}
+// The box — surface, hairline, accent edge, radius, padding — comes from `dashboard-card--hero`
+// now (#620), so the idea card wears the same shape as Home's hero. Nothing to re-declare here.
 
 .zettelkasten-flow__cultivate-target-name {
     display: inline-block;
@@ -303,10 +297,13 @@
 
 /* ── the moves: quiet until you reach one ─────────────────────────────────── */
 
+// The moves reflow into columns on a wide pane and stack when it is narrow (#620) — a grid, not a
+// tall column. `align-items: start` so a move that opens its body does not stretch its neighbours.
 .zettelkasten-flow__cultivate-moves {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-2);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--size-4-3);
+    align-items: start;
 }
 
 .zettelkasten-flow__cultivate-move {

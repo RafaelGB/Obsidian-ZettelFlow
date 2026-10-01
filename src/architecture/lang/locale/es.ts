@@ -1930,4 +1930,19 @@ export default {
     challenge_idea_purpose: 'Argumenta con IA en contra de la tesis de la nota para revelar sus puntos débiles.',
     synthesize_purpose: 'Sintetiza con IA en un único resumen las notas que esta enlaza.',
     suggest_connections_purpose: 'Sugiere con IA notas que merece la pena enlazar.',
+
+    // Base Dashboards (epic #622, S1 #623).
+    dashboard_view_name: 'Panel',
+    dashboard_inspector_empty_title: 'Aún no hay paneles',
+    dashboard_inspector_empty_hint: 'Añade un panel para empezar a graficar. Por ahora, esto es lo que contiene esta Base.',
+    dashboard_inspector_fields_heading: 'Campos',
+    dashboard_inspector_no_fields: 'Esta Base no tiene propiedades visibles',
+    dashboard_inspector_row_count: '{0} filas',
+    dashboard_inspector_row_count_one: '1 fila',
+    dashboard_type_date: 'Fecha',
+    dashboard_type_number: 'Número',
+    dashboard_type_category: 'Categoría',
+    dashboard_type_boolean: 'Booleano',
+    dashboard_type_link: 'Enlace',
+    dashboard_type_unknown: 'Desconocido',
 };

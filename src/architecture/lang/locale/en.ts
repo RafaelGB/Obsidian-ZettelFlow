@@ -1929,4 +1929,19 @@ export default {
     challenge_idea_purpose: "Argue against the note's thesis to surface its weak points, with AI.",
     synthesize_purpose: 'Synthesize the notes this one links into one summary, with AI.',
     suggest_connections_purpose: 'Suggest notes worth linking with AI.',
+
+    // Base Dashboards (epic #622, S1 #623) — the Bases dashboard view + field inspector.
+    dashboard_view_name: 'Dashboard',
+    dashboard_inspector_empty_title: 'No panels yet',
+    dashboard_inspector_empty_hint: 'Add a panel to start charting. For now, here is what this Base contains.',
+    dashboard_inspector_fields_heading: 'Fields',
+    dashboard_inspector_no_fields: 'This Base has no visible properties',
+    dashboard_inspector_row_count: '{0} rows',
+    dashboard_inspector_row_count_one: '1 row',
+    dashboard_type_date: 'Date',
+    dashboard_type_number: 'Number',
+    dashboard_type_category: 'Category',
+    dashboard_type_boolean: 'Boolean',
+    dashboard_type_link: 'Link',
+    dashboard_type_unknown: 'Unknown',
 };

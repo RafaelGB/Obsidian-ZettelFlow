@@ -1,0 +1,100 @@
+/*
+*  Base Dashboards — the field inspector (epic #622, S1 #623).
+*  Theme variables only; the user's theme wins (§XV). No hex, no inline styles.
+*/
+.zettelkasten-flow__base-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4);
+    height: 100%;
+    padding: var(--size-4-4);
+    overflow: auto;
+}
+
+.zettelkasten-flow__base-dashboard-empty {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-3);
+    padding: var(--size-4-3);
+    border: var(--border-width) dashed var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__base-dashboard-empty-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__base-dashboard-empty-title {
+    margin: 0 0 var(--size-4-1);
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__base-dashboard-empty-hint {
+    margin: 0;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__base-dashboard-fields-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__base-dashboard-fields-heading {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__base-dashboard-row-count {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__base-dashboard-field-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__base-dashboard-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__base-dashboard-field-name {
+    font-weight: var(--font-medium);
+    color: var(--text-normal);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__base-dashboard-field-type {
+    flex-shrink: 0;
+    padding: 0 var(--size-4-2);
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__base-dashboard-field-empty {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}

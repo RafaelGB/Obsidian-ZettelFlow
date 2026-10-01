@@ -2004,4 +2004,10 @@ export default {
     dashboard_tf_new_field: 'Campo nuevo',
     dashboard_direction_asc: 'Ascendente',
     dashboard_direction_desc: 'Descendente',
+    // S6 (#628): el transformador por script opcional.
+    dashboard_script_section: 'Transformador por script (avanzado)',
+    dashboard_script_enable: 'Activar el transformador por script',
+    dashboard_script_warning: 'Ejecuta el JavaScript que escribas sobre las filas de este panel. Desactivado por defecto; no puede acceder a tu bóveda ni a la red.',
+    dashboard_script_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
+    workbench_surface_dashboard: 'Panel de Base',
 };

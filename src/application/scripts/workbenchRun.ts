@@ -27,6 +27,7 @@ export const SURFACE_LABEL_KEY: Record<ScriptSurface, string> = {
     condition: "workbench_surface_condition",
     library: "workbench_surface_library",
     workbench: "workbench_surface_workbench",
+    dashboard: "workbench_surface_dashboard",
 };
 
 /** Whether a surface's script is handed the note it runs on. */

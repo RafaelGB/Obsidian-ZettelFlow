@@ -281,3 +281,17 @@
     /* A swatch carries no text, but a strong accent fill states its foreground (#431). */
     color: var(--text-on-accent);
 }
+
+/* S6 (#628) — script transformer error state + code input. */
+.zettelkasten-flow__base-dashboard-panel-error {
+    margin: auto;
+    color: var(--text-error);
+    font-size: var(--font-ui-small);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__base-dashboard-script-input {
+    width: 100%;
+    font-family: var(--font-monospace);
+}

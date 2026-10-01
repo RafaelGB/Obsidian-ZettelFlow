@@ -53,6 +53,26 @@ The three levels, lowest first: (1) **Base formulas** (the native, preferred way
 (2) these **visual transforms**; (3) the **script transformer** (an advanced escape hatch). Reach for
 the lowest level that answers your question.
 
+## Script transformer (S6, advanced)
+
+For the rare shape the visual transforms cannot express, a panel can run a small **JavaScript**
+transformer: a `rows => rows` function over plain value rows (`{ fieldId: value }`). It is **off by
+default** and, when enabled, shows a warning — because it executes code you provide.
+
+The sandbox is deliberately tiny: the script receives **only the rows**. It is given no access to
+your vault, the filesystem, the network, or the app — and its output is used only to draw the panel,
+never written back to a note. A script that throws or returns the wrong shape fails safe: the panel
+shows the error and the rest of the dashboard keeps working.
+
+> **Capability — script execution.** Enabling this runs user-provided JavaScript. It is opt-in per
+> panel and routes through ZettelFlow's single function-constructor home, the same one the Script
+> action and vault hooks use.
+
+```js
+// Example: a productivity score the Base doesn't store.
+return rows.map(r => ({ ...r, score: r.realWorkingHours / r.expectedHours }));
+```
+
 ## How it reads the Base
 
 - The **Base owns the query**: filters, formulas, properties, sort and grouping are configured in

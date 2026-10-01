@@ -13,6 +13,7 @@ import { t } from "architecture/lang";
 import { c } from "architecture/styles/helper";
 import type { DataStoreSnapshot } from "dashboards/datastore";
 import { applyTransforms } from "dashboards/transform";
+import { applyScriptTransform } from "./scriptTransform";
 import {
     buildBarOption,
     buildHeatmapMatrixOption,
@@ -124,7 +125,18 @@ export class PanelHost extends Component {
         }
 
         // Level-2 transforms reshape the data this panel draws — in memory only (§XII).
-        const data = applyTransforms(snapshot, this.config.transforms ?? []);
+        let data = applyTransforms(snapshot, this.config.transforms ?? []);
+        // Level-3: the opt-in script transformer, after the visual pipeline. Fail-safe.
+        if (this.config.script?.enabled && this.config.script.code) {
+            const applied = applyScriptTransform(data, this.config.script.code);
+            if (applied.error) {
+                this.disposeChart();
+                body.empty();
+                body.createDiv({ cls: c("base-dashboard-panel-error"), text: applied.error });
+                return;
+            }
+            data = applied.snapshot;
+        }
         switch (this.config.type) {
             case "stat":
                 this.renderStat(data, body);

@@ -11,8 +11,9 @@
  * become a second copy of your vault.
  */
 
-/** The five places ZettelFlow runs code, plus the workbench where you try it (#446). */
-export type ScriptSurface = "action" | "selector" | "hook" | "condition" | "library" | "workbench";
+/** The places ZettelFlow runs code: the five surfaces, the workbench where you try it (#446), and
+ * a Base dashboard panel's opt-in script transformer (#622, S6). */
+export type ScriptSurface = "action" | "selector" | "hook" | "condition" | "library" | "workbench" | "dashboard";
 
 /** Where the script lives and what it ran on. */
 export interface ScriptRunOrigin {

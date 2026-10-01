@@ -56,6 +56,8 @@ export interface PanelConfig {
     layout?: PanelLayout;
     /** Per-panel transform pipeline (S5) — reshapes the data this panel draws, in memory only. */
     transforms?: TransformStep[];
+    /** Optional, opt-in script transformer (S6) — advanced, off by default. */
+    script?: { enabled: boolean; code: string };
 }
 
 /** The persisted dashboard: an ordered list of panels (layout arrives in S3). */

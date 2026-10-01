@@ -2003,4 +2003,10 @@ export default {
     dashboard_tf_new_field: 'New field',
     dashboard_direction_asc: 'Ascending',
     dashboard_direction_desc: 'Descending',
+    // S6 (#628): the opt-in script transformer.
+    dashboard_script_section: 'Script transformer (advanced)',
+    dashboard_script_enable: 'Enable script transformer',
+    dashboard_script_warning: "Runs JavaScript you write against this panel's rows. Off by default; it cannot reach your vault or the network.",
+    dashboard_script_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
+    workbench_surface_dashboard: 'Base dashboard',
 };

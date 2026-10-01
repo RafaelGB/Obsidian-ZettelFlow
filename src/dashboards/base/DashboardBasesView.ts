@@ -41,6 +41,9 @@ export class DashboardBasesView extends BasesView {
     private panelsEl: HTMLElement | null = null;
     private inspector: FieldInspector | null = null;
     private model: DashboardModel = emptyDashboard();
+    /** The config is loaded on the first data update, not in onload: `this.config` is not yet
+     * populated when the view loads, so reading it there returned an empty model and lost panels. */
+    private loaded = false;
     private readonly hosts = new Map<string, PanelHost>();
     private snapshot: DataStoreSnapshot | null = null;
     private prevSnapshot: DataStoreSnapshot | null = null;
@@ -56,7 +59,6 @@ export class DashboardBasesView extends BasesView {
     }
 
     onload(): void {
-        this.model = this.loadModel();
         this.buildShell();
         this.registerEvent(this.app.workspace.on("css-change", () => this.applyTheme()));
         this.renderLayout();
@@ -82,6 +84,11 @@ export class DashboardBasesView extends BasesView {
     onDataUpdated(): void {
         const result = this.data;
         if (!result) return;
+        // Load the saved panels the first time data arrives — config is ready now, unlike in onload.
+        if (!this.loaded) {
+            this.model = this.loadModel();
+            this.loaded = true;
+        }
         try {
             const adapted = adaptResult(result, this.allProperties, this.config);
             this.prevSnapshot = this.snapshot;
@@ -203,8 +210,10 @@ export class DashboardBasesView extends BasesView {
     private loadModel(): DashboardModel {
         try {
             const raw = this.config.get(CONFIG_KEY);
-            if (raw && typeof raw === "object" && Array.isArray((raw as DashboardModel).panels)) {
-                return raw as DashboardModel;
+            // Stored as a JSON string (most reliable to persist); tolerate a parsed object too.
+            const parsed: unknown = typeof raw === "string" ? JSON.parse(raw) : raw;
+            if (parsed && typeof parsed === "object" && Array.isArray((parsed as DashboardModel).panels)) {
+                return parsed as DashboardModel;
             }
         } catch (error) {
             log.warn("Base dashboard config could not be read", error);
@@ -214,7 +223,7 @@ export class DashboardBasesView extends BasesView {
 
     private saveModel(): void {
         try {
-            this.config.set(CONFIG_KEY, this.model);
+            this.config.set(CONFIG_KEY, JSON.stringify(this.model));
         } catch (error) {
             log.error("Base dashboard config could not be saved", error);
         }

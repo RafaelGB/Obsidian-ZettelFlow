@@ -2006,10 +2006,12 @@ export default {
     dashboard_direction_asc: 'Ascendente',
     dashboard_direction_desc: 'Descendente',
     // S6 (#628): el transformador por script opcional.
-    dashboard_script_section: 'Transformador por script (avanzado)',
-    dashboard_script_enable: 'Activar el transformador por script',
-    dashboard_script_warning: 'Ejecuta el JavaScript que escribas sobre las filas de este panel. Desactivado por defecto; no puede acceder a tu bóveda ni a la red.',
-    dashboard_script_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
+    dashboard_computed_section: 'Campos calculados (avanzado)',
+    dashboard_computed_enable: 'Activar campos calculados',
+    dashboard_computed_warning: 'Ejecuta el JavaScript que escribas. Lee tus filas y la API zf de solo lectura; no puede acceder a la red ni escribir una nota.',
+    dashboard_computed_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
+    dashboard_computed_open: 'Campos calculados',
+    dashboard_computed_error: 'Un campo calculado falló; mostrando datos sin enriquecer. {0}',
     workbench_surface_dashboard: 'Panel de Base',
     dashboard_capability_name: 'Paneles de Base',
 };

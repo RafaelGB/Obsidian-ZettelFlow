@@ -283,15 +283,27 @@
 }
 
 /* S6 (#628) — script transformer error state + code input. */
-.zettelkasten-flow__base-dashboard-panel-error {
-    margin: auto;
-    color: var(--text-error);
+/* #632 — inline computed-field error banner (a tint, with the normal text colour as the legible pair). */
+.zettelkasten-flow__base-dashboard-error {
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-error);
+    color: var(--text-normal);
     font-size: var(--font-ui-small);
-    text-align: center;
     overflow-wrap: anywhere;
 }
 
-.zettelkasten-flow__base-dashboard-script-input {
-    width: 100%;
-    font-family: var(--font-monospace);
+/* #632 — computed-fields toolbar button + editor host. */
+.zettelkasten-flow__base-dashboard-computed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__base-dashboard-computed-editor {
+    margin-top: var(--size-4-2);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
 }

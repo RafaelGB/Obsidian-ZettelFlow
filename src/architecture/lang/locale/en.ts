@@ -2005,10 +2005,12 @@ export default {
     dashboard_direction_asc: 'Ascending',
     dashboard_direction_desc: 'Descending',
     // S6 (#628): the opt-in script transformer.
-    dashboard_script_section: 'Script transformer (advanced)',
-    dashboard_script_enable: 'Enable script transformer',
-    dashboard_script_warning: "Runs JavaScript you write against this panel's rows. Off by default; it cannot reach your vault or the network.",
-    dashboard_script_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
+    dashboard_computed_section: 'Computed fields (advanced)',
+    dashboard_computed_enable: 'Enable computed fields',
+    dashboard_computed_warning: "Runs JavaScript you write. It reads your rows and the read-only zf API; it cannot reach the network or write a note.",
+    dashboard_computed_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
+    dashboard_computed_open: 'Computed fields',
+    dashboard_computed_error: 'A computed field failed; showing un-enriched data. {0}',
     workbench_surface_dashboard: 'Base dashboard',
     dashboard_capability_name: 'Base dashboards',
 };

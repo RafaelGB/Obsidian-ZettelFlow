@@ -56,10 +56,8 @@ export class PanelConfigModal extends Modal {
     private mapping: PanelMapping;
     private transforms: TransformStep[];
     private title: string;
-    private script: { enabled: boolean; code: string };
     private channelsEl: HTMLElement | null = null;
     private transformsEl: HTMLElement | null = null;
-    private scriptBodyEl: HTMLElement | null = null;
 
     constructor(
         app: App,
@@ -72,7 +70,6 @@ export class PanelConfigModal extends Modal {
         this.mapping = initial ? { ...initial.mapping } : suggestMapping(this.type, schema);
         this.transforms = initial?.transforms ? initial.transforms.map((step) => ({ ...step })) : [];
         this.title = initial?.title ?? "";
-        this.script = { enabled: initial?.script?.enabled ?? false, code: initial?.script?.code ?? "" };
     }
 
     onOpen(): void {
@@ -102,41 +99,9 @@ export class PanelConfigModal extends Modal {
         this.transformsEl = contentEl.createDiv({ cls: c("base-dashboard-transforms") });
         this.renderTransforms();
 
-        this.renderScript(contentEl);
-
         new Setting(contentEl).addButton((btn) =>
             btn.setButtonText(t("dashboard_save")).setCta().onClick(() => this.submit()),
         );
-    }
-
-    private renderScript(container: HTMLElement): void {
-        container.createEl("h4", { text: t("dashboard_script_section") });
-        const section = container.createDiv({ cls: c("base-dashboard-script") });
-        new Setting(section)
-            .setName(t("dashboard_script_enable"))
-            .setDesc(t("dashboard_script_warning"))
-            .addToggle((tg) =>
-                tg.setValue(this.script.enabled).onChange((on) => {
-                    this.script.enabled = on;
-                    this.renderScriptBody();
-                }),
-            );
-        this.scriptBodyEl = section.createDiv();
-        this.renderScriptBody();
-    }
-
-    private renderScriptBody(): void {
-        const host = this.scriptBodyEl;
-        if (!host) return;
-        host.empty();
-        if (!this.script.enabled) return;
-        new Setting(host).addTextArea((ta) => {
-            ta.setPlaceholder(t("dashboard_script_placeholder"))
-                .setValue(this.script.code)
-                .onChange((value) => (this.script.code = value));
-            ta.inputEl.addClass(c("base-dashboard-script-input"));
-            ta.inputEl.rows = 6;
-        });
     }
 
     private bag(): Record<string, unknown> {
@@ -317,7 +282,6 @@ export class PanelConfigModal extends Modal {
             title: this.title.trim() || undefined,
             mapping: this.mapping,
             transforms: this.transforms.length > 0 ? this.transforms : undefined,
-            script: this.script.enabled || this.script.code.trim() ? { ...this.script } : undefined,
         });
         this.close();
     }

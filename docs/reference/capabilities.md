@@ -42,6 +42,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Export current canvas as .zftemplate** — bundle a canvas and its steps into one portable .zftemplate file. [docs →](../architecture/zftemplate-schema.md)
 - **Import .zftemplate** — install a .zftemplate bundle into your vault. [docs →](../architecture/zftemplate-schema.md)
 - **Open manage templates** — manage the systems and templates you have installed. [docs →](../how-to-contribute/systems-gallery.md)
+- **Base dashboards** — compose chart panels over an Obsidian Base — a local Grafana for your vault. [docs →](../development/base-dashboards.md)
 
 ## On a ZettelFlow surface
 

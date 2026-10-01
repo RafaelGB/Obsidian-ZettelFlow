@@ -125,6 +125,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `template-export` | community | 1 | ribbon → `export-canvas-template` · `export-canvas-template` |
 | `template-import` | community | 1 | ribbon → `import-canvas-template` · `import-canvas-template` |
 | `manage-templates` | community | 1 | ribbon → `open-manage-templates` · settings → `settings_group_creating` · `open-manage-templates` |
+| `base-dashboard` | dashboards | 1 | control in bases (`register.ts`) |
 
 <!-- generated: capabilityAudit -->
 

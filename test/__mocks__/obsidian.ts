@@ -22,7 +22,9 @@ export class Notice {
   hide(): void { }
 }
 
-export class Plugin { }
+export class Plugin {
+  registerBasesView(_viewId: string, _registration: unknown): boolean { return true; }
+}
 export class Component {
   private cleanups: (() => void)[] = [];
   private children: Component[] = [];
@@ -64,6 +66,79 @@ export function normalizePath(path: string): string {
 
 export function getLanguage(): string {
   return "en";
+}
+
+// --- Bases API stubs (epic #622) ---------------------------------------------------------------
+// The typed `Value` lattice + the Bases view surface, enough for the dashboard boundary tests
+// (instanceof + toString/isTruthy). Mirrors obsidian.d.ts @since 1.10.
+
+export class Value {
+  toString(): string { return ""; }
+  isTruthy(): boolean { return false; }
+  renderTo(_el: unknown): void { }
+}
+export class NotNullValue extends Value { }
+export class PrimitiveValue<T> extends NotNullValue {
+  constructor(public value: T) { super(); }
+  toString(): string { return String(this.value); }
+  isTruthy(): boolean { return Boolean(this.value); }
+}
+export class NumberValue extends PrimitiveValue<number> { }
+export class StringValue extends PrimitiveValue<string> { }
+export class BooleanValue extends PrimitiveValue<boolean> { }
+export class LinkValue extends StringValue { }
+export class DateValue extends NotNullValue {
+  constructor(public iso: string) { super(); }
+  toString(): string { return this.iso; }
+  isTruthy(): boolean { return true; }
+  dateOnly(): this { return this; }
+  relative(): string { return this.iso; }
+}
+export class ListValue extends NotNullValue {
+  constructor(public values: unknown[] = []) { super(); }
+  toString(): string { return this.values.join(", "); }
+  isTruthy(): boolean { return this.values.length > 0; }
+}
+export class ObjectValue extends NotNullValue {
+  toString(): string { return "[object]"; }
+  isTruthy(): boolean { return true; }
+}
+export class NullValue extends Value {
+  static value = new NullValue();
+  toString(): string { return ""; }
+  isTruthy(): boolean { return false; }
+}
+export class ErrorValue extends Value {
+  constructor(public message = "error") { super(); }
+  toString(): string { return this.message; }
+  isTruthy(): boolean { return false; }
+}
+
+export class QueryController extends Component { }
+
+export class BasesEntry {
+  constructor(public file: TFile, private values: Record<string, Value | null> = {}) { }
+  getValue(id: string): Value | null { return this.values[id] ?? null; }
+}
+
+export class BasesQueryResult {
+  constructor(public data: BasesEntry[] = [], private _properties: string[] = []) { }
+  get groupedData(): { key: Value | undefined; entries: BasesEntry[]; hasKey: () => boolean }[] {
+    return [{ key: undefined, entries: this.data, hasKey: () => false }];
+  }
+  get properties(): string[] { return this._properties; }
+  getSummaryValue(): Value { return NullValue.value; }
+}
+
+export class BasesView extends Component {
+  type = "";
+  app: Record<string, unknown> = {};
+  config: unknown = undefined;
+  allProperties: string[] = [];
+  data: BasesQueryResult | undefined = undefined;
+  constructor(_controller?: unknown) { super(); }
+  onDataUpdated(): void { }
+  createFileForView(): Promise<void> { return Promise.resolve(); }
 }
 
 export class SuggestModal<T> {

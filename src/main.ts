@@ -23,6 +23,7 @@ import { HomeSurfaceView } from 'architecture/components/core/surface/HomeSurfac
 import { HealthSurfaceView } from 'architecture/components/core/surface/HealthSurfaceView';
 import { ExploreSurfaceView } from 'architecture/components/core/surface/ExploreSurfaceView';
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
+import { registerDashboardBasesView } from 'dashboards/base/register';
 import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
 import { WorkflowEventEngine } from 'architecture/plugin/events/WorkflowEventEngine';
@@ -177,6 +178,9 @@ export default class ZettelFlow extends Plugin {
 		this.registerView("zettelflow-explore", (leaf) => new ExploreSurfaceView(leaf));
 		// The script workbench (#446): its own view, like the four surfaces.
 		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));
+		// Base Dashboards (epic #622): a Bases view type, registered through the Bases door
+		// (guarded so an older Obsidian without the Bases API still loads).
+		registerDashboardBasesView(this);
 		// Back-compat: the retired view types redirect a restored/pinned leaf to its surface + mode.
 		for (const legacyType of Object.keys(LEGACY_VIEW_TARGETS)) {
 			this.registerView(legacyType, (leaf) => new LegacyRedirectView(leaf, legacyType));

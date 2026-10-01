@@ -22,6 +22,8 @@ export function buildLineOption(
             type: "line" as const,
             name: snapshot.schema.byId[field]?.name ?? field,
             showSymbol: false,
+            // Largest-triangle-three-buckets downsampling keeps a long series readable and cheap.
+            sampling: "lttb" as const,
             areaStyle: area ? {} : undefined,
             lineStyle: { color },
             itemStyle: { color },

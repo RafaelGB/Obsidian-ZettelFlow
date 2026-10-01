@@ -49,6 +49,9 @@ export function buildScatterOption(
             {
                 type: "scatter",
                 data: points,
+                large: true,
+                largeThreshold: 2000,
+                progressive: 2000,
                 symbolSize:
                     bubble && size ? (value: number[]) => Math.max(6, Math.sqrt(Math.abs(value[2])) * 6) : 10,
                 itemStyle: { color: theme.palette[0] },

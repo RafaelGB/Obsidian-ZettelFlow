@@ -198,6 +198,27 @@ export const BUDGETS = {
         measured: "44.9 MB",
         because: "decides whether a 50k vault is usable at all, not merely slow to load",
     },
+    "dashboard.normalize.10k": {
+        name: "normalize a 10,000-row Base result into the DataStore",
+        limit: 250,
+        measured: "4.2 ms",
+        because:
+            "runs on every Base update (onDataUpdated); a visible pause here would be felt on every filter change (#622, S8)",
+    },
+    "dashboard.transform.10k": {
+        name: "run a filter → group → aggregate pipeline over 10,000 rows",
+        limit: 250,
+        measured: "5.9 ms",
+        because:
+            "a panel re-runs its pipeline on every data update, so this is interaction latency, not load time (#622, S8)",
+    },
+    "dashboard.bundle.kb": {
+        name: "the built plugin bundle (main.js) in KB, ECharts included",
+        limit: 5_000,
+        measured: "3,589 KB",
+        because:
+            "ECharts is imported tree-shaken on purpose; this ceiling catches an accidental `import * as echarts` or a chart that drags the whole library in (#622, S8)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

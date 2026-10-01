@@ -23,6 +23,8 @@ export function buildBarOption(
     const series = seriesFields.map((field, index) => ({
         type: "bar" as const,
         name: snapshot.schema.byId[field]?.name ?? field,
+        large: true,
+        largeThreshold: 2000,
         itemStyle: { color: theme.palette[index % theme.palette.length] },
         data: snapshot.rows.map((row) => {
             const cell = row[field];

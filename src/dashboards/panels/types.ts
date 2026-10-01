@@ -2,6 +2,8 @@
  * Panel model for Base Dashboards (epic #622, S2 #624). Pure vocabulary — a panel is the product's
  * unit; it reads the shared `DataStoreSnapshot` and never re-queries the Base.
  */
+import type { TransformStep } from "dashboards/transform/types";
+
 export type PanelType =
     | "stat"
     | "bar"
@@ -52,6 +54,8 @@ export interface PanelConfig {
     mapping: PanelMapping;
     /** Grid placement (S3). Order on the grid is the array order in `DashboardModel.panels`. */
     layout?: PanelLayout;
+    /** Per-panel transform pipeline (S5) — reshapes the data this panel draws, in memory only. */
+    transforms?: TransformStep[];
 }
 
 /** The persisted dashboard: an ordered list of panels (layout arrives in S3). */

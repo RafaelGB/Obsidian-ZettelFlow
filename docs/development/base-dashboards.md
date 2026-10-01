@@ -42,6 +42,17 @@ The type dropdown offers **stat, bar, line, area, scatter, bubble, pie, donut, t
 ZettelFlow's own day-grid, so a date field plus an optional value lights up a contribution-style
 calendar. (Treemap, radar and sankey are intentionally left for later.)
 
+## Transforms (S5)
+
+Each panel can reshape its data with a small pipeline of **transforms**, applied in order before the
+chart is drawn: **filter, sort, group by, aggregate, bin, calculate, normalize, moving average** and
+**cumulative**. A calculated, binned or averaged field is **virtual** — it exists only for the render
+and is never written back to your notes.
+
+The three levels, lowest first: (1) **Base formulas** (the native, preferred way to derive a value);
+(2) these **visual transforms**; (3) the **script transformer** (an advanced escape hatch). Reach for
+the lowest level that answers your question.
+
 ## How it reads the Base
 
 - The **Base owns the query**: filters, formulas, properties, sort and grouping are configured in

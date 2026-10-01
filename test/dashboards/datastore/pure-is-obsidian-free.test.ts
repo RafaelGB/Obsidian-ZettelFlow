@@ -2,8 +2,11 @@ import { describe, it, expect } from "@jest/globals";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
-// src/dashboards/datastore, reached from test/dashboards/datastore/
-const DATASTORE_ROOT = join(__dirname, "..", "..", "..", "src", "dashboards", "datastore");
+// The pure dashboards core, reached from test/dashboards/datastore/
+const PURE_ROOTS = [
+    join(__dirname, "..", "..", "..", "src", "dashboards", "datastore"),
+    join(__dirname, "..", "..", "..", "src", "dashboards", "transform"),
+];
 
 function collectTsFiles(dir: string): string[] {
     const out: string[] = [];
@@ -15,8 +18,8 @@ function collectTsFiles(dir: string): string[] {
     return out;
 }
 
-describe("Base Dashboards DataStore stays Obsidian-free (AC-6)", () => {
-    const files = collectTsFiles(DATASTORE_ROOT);
+describe("Base Dashboards pure core stays Obsidian-free (AC-6)", () => {
+    const files = PURE_ROOTS.flatMap((root) => collectTsFiles(root));
 
     it("has files to guard", () => {
         expect(files.length).toBeGreaterThan(0);

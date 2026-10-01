@@ -12,6 +12,7 @@ import { CanvasRenderer } from "echarts/renderers";
 import { t } from "architecture/lang";
 import { c } from "architecture/styles/helper";
 import type { DataStoreSnapshot } from "dashboards/datastore";
+import { applyTransforms } from "dashboards/transform";
 import {
     buildBarOption,
     buildHeatmapMatrixOption,
@@ -122,18 +123,20 @@ export class PanelHost extends Component {
             return;
         }
 
+        // Level-2 transforms reshape the data this panel draws — in memory only (§XII).
+        const data = applyTransforms(snapshot, this.config.transforms ?? []);
         switch (this.config.type) {
             case "stat":
-                this.renderStat(snapshot, body);
+                this.renderStat(data, body);
                 return;
             case "table":
-                this.renderTable(snapshot, body);
+                this.renderTable(data, body);
                 return;
             case "calendar":
-                this.renderCalendar(snapshot, body);
+                this.renderCalendar(data, body);
                 return;
             default:
-                this.renderChart(body, this.chartOption(snapshot, theme));
+                this.renderChart(body, this.chartOption(data, theme));
         }
     }
 

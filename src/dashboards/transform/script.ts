@@ -7,7 +7,7 @@
  * the function and binds `zf` is `dashboards/base/scriptTransform.ts`.
  */
 import { inferFieldType } from "dashboards/datastore";
-import type { DataStoreSnapshot, Row, SchemaField, TaggedCell } from "dashboards/datastore";
+import type { DataStoreSnapshot, FieldType, Row, SchemaField, TaggedCell } from "dashboards/datastore";
 
 export type PlainRow = Record<string, number | string | boolean | null>;
 export type ScriptRun = (rows: PlainRow[]) => unknown;
@@ -23,23 +23,51 @@ export function toPlainRows(rows: Row[]): PlainRow[] {
     });
 }
 
+const FIELD_TYPES: ReadonlySet<string> = new Set(["date", "number", "category", "boolean", "link", "unknown"]);
+
+/**
+ * A script may **declare** a cell's type instead of leaving it to inference, by returning
+ * `{ value, type }` for that field (#632) — e.g. `{ value: "2026-01-01", type: "date" }` so a
+ * string-shaped date charts as a date. A plain value still infers its type.
+ */
+function isTypedCell(value: unknown): value is { value: unknown; type: FieldType } {
+    if (typeof value !== "object" || value === null) return false;
+    if (!("value" in value) || !("type" in value)) return false;
+    const type = (value as { type: unknown }).type;
+    return typeof type === "string" && FIELD_TYPES.has(type);
+}
+
+/** Defensive string form of any value, without tripping `no-base-to-string` on an object. */
+function display(value: unknown): string {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    try {
+        return typeof value === "object" && value !== null ? (JSON.stringify(value) ?? "") : "";
+    } catch {
+        return "";
+    }
+}
+
+function tagTyped(value: unknown, type: FieldType): TaggedCell {
+    if (value === null || value === undefined) return { kind: type, display: "", raw: null };
+    if (type === "number") {
+        const n = Number(value);
+        return { kind: "number", display: display(value), raw: Number.isNaN(n) ? null : n };
+    }
+    if (type === "boolean") return { kind: "boolean", display: display(value), raw: Boolean(value) };
+    return { kind: type, display: display(value), raw: display(value) };
+}
+
 function tag(value: unknown): TaggedCell {
+    if (isTypedCell(value)) return tagTyped(value.value, value.type);
     if (value === null || value === undefined) return { kind: null, display: "", raw: null };
     if (typeof value === "number") return { kind: "number", display: String(value), raw: value };
     if (typeof value === "boolean") return { kind: "boolean", display: String(value), raw: value };
     if (typeof value === "string") return { kind: "category", display: value, raw: value };
-    // A script may return an object/array in a cell; show it defensively, keep it a category.
-    let display = "";
-    try {
-        if (typeof value === "object") display = JSON.stringify(value) ?? "";
-        else if (typeof value === "bigint" || typeof value === "symbol") display = value.toString();
-    } catch {
-        display = "";
-    }
-    return { kind: "category", display, raw: display };
+    return { kind: "category", display: display(value), raw: display(value) };
 }
 
-export function fromPlainRows(plain: PlainRow[]): { fields: SchemaField[]; rows: Row[] } {
+export function fromPlainRows(plain: Record<string, unknown>[]): { fields: SchemaField[]; rows: Row[] } {
     const ids: string[] = [];
     const seen = new Set<string>();
     for (const row of plain) {

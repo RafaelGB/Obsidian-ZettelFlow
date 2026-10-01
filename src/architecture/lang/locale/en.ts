@@ -2011,6 +2011,9 @@ export default {
     dashboard_computed_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
     dashboard_computed_open: 'Computed fields',
     dashboard_computed_error: 'A computed field failed; showing un-enriched data. {0}',
+    dashboard_computed_guide_intro: 'You get `rows` — one object per note, keyed by field. Return the rows; add a field with map(), and declare its type with { value, type } (date, number, category, boolean) or let it be inferred.',
+    dashboard_computed_fields_label: 'Fields in this Base',
+    dashboard_computed_guide_link: 'How computed fields work',
     workbench_surface_dashboard: 'Base dashboard',
     dashboard_capability_name: 'Base dashboards',
 };

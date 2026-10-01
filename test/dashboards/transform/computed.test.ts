@@ -32,6 +32,19 @@ describe("computed fields core (#632)", () => {
         expect(result.rows[0]["note.ref"]).toEqual({ kind: "link", display: "[[A]]", raw: "[[A]]" });
     });
 
+    it("honours an explicitly declared cell type over inference", async () => {
+        const run = (rows: PlainRow[]) =>
+            rows.map((r) => ({ ...r, when: { value: "2026-01-01", type: "date" }, label: "x" }));
+        const result = await runComputed(snap, run);
+        expect(result.ok).toBe(true);
+        if (!result.ok) return;
+        // `when` is a string, but declared a date → typed as date, not inferred as category.
+        expect(result.fields.find((f) => f.id === "when")?.type).toBe("date");
+        // `label` is a plain string → inferred as category.
+        expect(result.fields.find((f) => f.id === "label")?.type).toBe("category");
+        expect(result.rows[0]["when"]).toEqual({ kind: "date", display: "2026-01-01", raw: "2026-01-01" });
+    });
+
     it("passes through unchanged when no new column is added (AC-7)", async () => {
         const result = await runComputed(snap, (rows) => rows);
         expect(result.ok).toBe(true);

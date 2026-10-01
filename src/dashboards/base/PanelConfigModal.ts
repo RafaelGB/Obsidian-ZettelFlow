@@ -4,7 +4,7 @@
  * Defaults come from `suggestMapping`. The channel loop is generic (channel key == PanelMapping
  * field) and reads the **effective** fields, so a transform's virtual output is mappable. Epic #622.
  */
-import { Modal, Setting } from "obsidian";
+import { Modal, Setting, setIcon } from "obsidian";
 import type { App } from "obsidian";
 import { v4 as uuid } from "uuid";
 import { t } from "architecture/lang";
@@ -56,6 +56,7 @@ export class PanelConfigModal extends Modal {
     private mapping: PanelMapping;
     private transforms: TransformStep[];
     private title: string;
+    private typeChooserEl: HTMLElement | null = null;
     private channelsEl: HTMLElement | null = null;
     private transformsEl: HTMLElement | null = null;
 
@@ -79,14 +80,9 @@ export class PanelConfigModal extends Modal {
             text: this.initial ? t("dashboard_edit_panel") : t("dashboard_new_panel_title"),
         });
 
-        new Setting(contentEl).setName(t("dashboard_panel_type")).addDropdown((dd) => {
-            for (const spec of panelTypeList()) dd.addOption(spec.type, t(spec.labelKey as Parameters<typeof t>[0]));
-            dd.setValue(this.type).onChange((value) => {
-                this.type = value as PanelType;
-                this.mapping = suggestMapping(this.type, this.schema);
-                this.renderChannels();
-            });
-        });
+        contentEl.createDiv({ cls: c("base-dashboard-channel-label"), text: t("dashboard_panel_type") });
+        this.typeChooserEl = contentEl.createDiv({ cls: c("base-dashboard-type-chooser") });
+        this.renderTypeChooser();
 
         new Setting(contentEl)
             .setName(t("dashboard_panel_title"))
@@ -165,6 +161,28 @@ export class PanelConfigModal extends Modal {
 
     private selected(key: string): string[] {
         return (this.bag()[key] as string[] | undefined) ?? [];
+    }
+
+    private renderTypeChooser(): void {
+        const host = this.typeChooserEl;
+        if (!host) return;
+        host.empty();
+        for (const spec of panelTypeList()) {
+            const option = host.createEl("button", { cls: c("base-dashboard-type-option") });
+            if (spec.type === this.type) option.addClass("is-active");
+            setIcon(option.createSpan({ cls: c("base-dashboard-type-icon") }), spec.icon);
+            option.createSpan({
+                cls: c("base-dashboard-type-label"),
+                text: t(spec.labelKey as Parameters<typeof t>[0]),
+            });
+            option.addEventListener("click", () => {
+                if (this.type === spec.type) return;
+                this.type = spec.type;
+                this.mapping = suggestMapping(this.type, this.schema);
+                this.renderTypeChooser();
+                this.renderChannels();
+            });
+        }
     }
 
     private renderChannels(): void {

@@ -79,6 +79,17 @@ names the error.
 return rows.map(r => ({ ...r, score: r.realWorkingHours / r.expectedHours }));
 ```
 
+A new field's type is **inferred** from its values, but you can **declare** it when inference would
+get it wrong — return `{ value, type }` for that field (`date`, `number`, `category`, `boolean`,
+`link`), so a string-shaped date charts on a time axis:
+
+```js
+return rows.map(r => ({ ...r, due: { value: r.deadline, type: "date" } }));
+```
+
+The editor opens on the plugin's JavaScript surface with completions for `rows` and `zf`, and lists
+**this Base's fields and their types** beside it, so you build on what the folder actually contains.
+
 ## Worked example — daily tracking
 
 This rebuilds a journaling dashboard — the kind people wire up with `dataviewjs` today — as **pure

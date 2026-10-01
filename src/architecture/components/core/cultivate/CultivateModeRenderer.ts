@@ -220,18 +220,28 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         }
 
         root.createDiv({ cls: c("cultivate-intro"), text: t("cultivate_intro") });
-        // The stage selector and per-stage distribution (#589), shown whenever the vault has notes —
-        // so a chosen stage with nothing in it still offers a way back.
-        this.renderStageControls(root);
+
+        // ── the top row: the idea you are on (the one accent card), beside Notes by stage ──
+        // A dashboard grid so the two sit side by side on a wide pane and stack when it is narrow.
+        const top = root.createDiv({ cls: c("dashboard-grid") });
+        const session = this.session;
+        const hasSession = this.state !== "emptyStage" && !!session;
+        // The idea leads, so it is drawn first and wears the accent. Absent only when the chosen
+        // stage is empty — the stage control below still offers the way back.
+        if (hasSession && session) this.renderTarget(top, session);
+        // The stage selector and per-stage distribution (#589), shown whenever the vault has notes.
+        this.renderStageControls(top);
+
         const momentum: string[] = [];
         if (this.streak > 0) momentum.push(t("cultivate_streak", String(this.streak)));
         if (this.queueCount > 0) momentum.push(t("cultivate_queue", String(this.queueCount)));
         if (momentum.length > 0) root.createDiv({ cls: c("cultivate-momentum"), text: momentum.join(" · ") });
-        if (this.state === "emptyStage" || !this.session) {
+
+        if (!hasSession || !this.session) {
             root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty_stage") });
             return;
         }
-        this.renderTarget(root, this.session);
+        // ── the moves: a responsive grid of cards, not a tall column (#620) ──
         const list = root.createDiv({ cls: c("cultivate-moves") });
         for (const move of this.session.moves) this.renderMove(list, move);
     }
@@ -252,7 +262,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
      */
     private renderStageControls(root: HTMLElement): void {
         const current = this.plugin.settings.cultivateStage ?? "any";
-        const wrap = root.createDiv({ cls: c("cultivate-stage") });
+        const wrap = root.createDiv({ cls: `${c("dashboard-card")} ${c("cultivate-stage")}` });
         const head = wrap.createDiv({ cls: c("cultivate-stage-head") });
         head.createSpan({ cls: c("cultivate-dist-title"), text: t("cultivate_distribution_title") });
         const any = head.createEl("button", {
@@ -316,7 +326,9 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     }
 
     private renderTarget(root: HTMLElement, session: CultivationSession): void {
-        const card = root.createDiv({ cls: c("cultivate-target") });
+        // The idea under cultivation is the one accent card on the surface (#620) — the shared hero
+        // shape, so "this is where to look" reads the same here as it does on Home.
+        const card = root.createDiv({ cls: `${c("dashboard-card")} ${c("dashboard-card--hero")} ${c("cultivate-target")}` });
 
         // What just happened, if anything did (#580). The emoji says where the note *is*; a
         // promotion is a fact about two states, and nobody can read it from one.

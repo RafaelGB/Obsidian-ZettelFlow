@@ -97,6 +97,11 @@ The command's whole promise is a **blinking cursor**. No modal, no folder prompt
 no title — a guardrail asserts there is nothing in its path that asks a question, because the
 moment a thought matters most is the moment it is most likely to be lost.
 
+Like the rest of the Home surface, the Lab **fills the pane** (#620): the 780px centred cage is gone,
+and on a wide pane the thread list reflows into **grid columns** — a grid, not CSS `columns`, so the
+newest-first order still reads left-to-right rather than down each column. One column when the pane
+is docked narrow.
+
 ### Four moves, and there will not be a fifth
 
 | | |

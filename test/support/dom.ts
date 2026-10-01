@@ -17,6 +17,12 @@ export class FakeElement {
     setText(text: string): void { this.textContent = text; }
     setAttribute(name: string, value: string): void { this.attrs[name] = value; }
     addClass(...names: string[]): void { this.attrs.class = `${this.attrs.class ?? ''} ${names.join(' ')}`; }
+    toggleClass(name: string, force?: boolean): void {
+        const classes = new Set((this.attrs.class ?? '').split(/\s+/).filter(Boolean));
+        const on = force ?? !classes.has(name);
+        if (on) classes.add(name); else classes.delete(name);
+        this.attrs.class = [...classes].join(' ');
+    }
     addEventListener(name: string, fn: (event: any) => void): void { (this.listeners[name] ??= []).push(fn); }
     removeEventListener(name: string, fn: (event: any) => void): void { this.listeners[name] = (this.listeners[name] ?? []).filter(x => x !== fn); }
     fire(name: string, event: any = {}): void { for (const fn of this.listeners[name] ?? []) fn(event); }

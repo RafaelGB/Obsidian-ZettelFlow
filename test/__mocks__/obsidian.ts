@@ -144,6 +144,8 @@ export class Setting {
 
 export function setIcon(_el: unknown, _icon: string): void { }
 
+export function setTooltip(_el: unknown, _tooltip: string, _options?: unknown): void { }
+
 /** Mutable platform flags so tests can exercise the desktop/mobile default + the bug-report mapping. */
 export const Platform = {
   isMobile: false,

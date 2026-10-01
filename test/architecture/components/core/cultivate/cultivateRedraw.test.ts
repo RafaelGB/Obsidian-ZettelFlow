@@ -151,3 +151,29 @@ describe("every applied move asks for the redraw (#580)", () => {
         expect(RENDERER).not.toMatch(/FrontmatterService|processFrontMatter|\.modify\(/);
     });
 });
+
+/**
+ * The dashboard is a re-dress, not a re-wire (#620).
+ *
+ * The idea card and the Notes-by-stage control move into the shared card shape and the moves reflow
+ * into a grid — but every handler stays exactly where it was: the stage chart still writes
+ * `settings.cultivateStage`, and the five moves still iterate in session order through `renderMove`.
+ */
+describe("Cultivate wears the dashboard without losing its wiring (#620)", () => {
+    it("renders the idea as the one accent card", () => {
+        expect(RENDERER).toContain('c("dashboard-card--hero")');
+    });
+
+    it("keeps the Notes-by-stage control a dashboard card that still writes the stage filter", () => {
+        const stage = method(RENDERER, "private renderStageControls(");
+        expect(stage).toContain('c("dashboard-card")');
+        // chart-as-selector, untouched: the per-level bar and the setting write both survive.
+        expect(stage).toContain("cultivate-dist-bar--l");
+        expect(RENDERER).toContain("this.plugin.settings.cultivateStage = stage;");
+    });
+
+    it("still iterates the five moves in session order through renderMove", () => {
+        const body = method(RENDERER, "private render(");
+        expect(body).toContain("for (const move of this.session.moves) this.renderMove(");
+    });
+});

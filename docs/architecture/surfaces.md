@@ -101,6 +101,28 @@ clutter #542 removed.
 from navigation — that is a judgement — but it makes the judgement singular and visible in a diff,
 and `ModeHeader` throws on the second call, so the two halves cover each other.
 
+## A dashboard that fills the pane (#620)
+
+The Home surface's modes are a **minimalist, responsive dashboard** rather than a tall single column.
+The shared primitives live in `src/styles/components/dashboard.scss`: a root that fills the pane
+(centred only past a generous `rem` cap, never a fixed-pixel cage) and a `dashboard-grid` of
+`repeat(auto-fit, minmax(…, 1fr))` — one column when the pane is docked narrow, two or three when
+Obsidian's side panels are collapsed, with no breakpoint and no script. The retired cages
+(`.cultivate` 44rem, `.inquiry` 52rem, `.lab` 780px, each `margin: 0 auto`) are gone.
+
+- **Home** leads with a header strip (greeting + a single `Capture a thought` primary + a fixed,
+  icon-only *Ask your graph* door that deep-links to Explore) and **three hero tiles** — *what to do
+  next* (the one accent card), *cultivate an idea*, *ready to look at again*. Everything else (new
+  ideas, main concepts, review, gaps, open questions, pinned queries, the 3D-graph teaser) folds
+  behind one **"show everything"** disclosure, collapsed by default.
+- **Cultivate** wears the same shape: the idea under cultivation is the one accent card, *Notes by
+  stage* is a card that is also the stage filter, and the five moves reflow as a grid.
+- **Think (the Thought Lab)** keeps its composer and thread list; the list reflows into grid columns
+  on a wide pane (grid, not CSS `columns`, so the newest-first order still reads left-to-right).
+
+The *Ask your graph* door is an **icon-only `nav()`** variant of `ModeHeader` (icon + tooltip +
+`aria-label`, no visible label) — a fixed door where you already are, never a second `primary()`.
+
 ## Open as tabs
 
 Surfaces open as normal **main-area tabs** (`getLeaf('tab')`), not only in the right sidebar — so you
@@ -128,3 +150,4 @@ can move, split or pin them like any Obsidian document.
 - Host + renderer contract: `architecture/components/core/surface/{ModeHostView,KnowledgeModeRenderer,LegacyRedirectView}.ts`.
 - The three surfaces: `architecture/components/core/surface/{Home,Health,Explore}SurfaceView.ts`.
 - Deep-linking to a mode: `activateSurface(app, surfaceType, mode)` in `architecture/plugin/services/ViewActivation.ts`.
+- The dashboard primitives + header: `src/styles/components/dashboard.scss` (fluid grid + cards) and `architecture/components/core/surface/ModeHeader.ts` (one `primary()`, plus the icon-only `nav()` door, #620).

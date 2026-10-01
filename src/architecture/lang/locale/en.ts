@@ -2009,4 +2009,5 @@ export default {
     dashboard_script_warning: "Runs JavaScript you write against this panel's rows. Off by default; it cannot reach your vault or the network.",
     dashboard_script_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
     workbench_surface_dashboard: 'Base dashboard',
+    dashboard_capability_name: 'Base dashboards',
 };

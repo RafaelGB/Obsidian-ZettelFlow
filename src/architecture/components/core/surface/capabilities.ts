@@ -125,6 +125,7 @@ export const CAPABILITIES = [
     "template-export",
     "template-import",
     "manage-templates",
+    "base-dashboard",
 ] as const;
 
 export type CapabilityId = (typeof CAPABILITIES)[number];
@@ -392,6 +393,13 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             { kind: "settings", at: "settings_group_creating" },
             CMD("open-manage-templates"),
         ],
+    },
+    "base-dashboard": {
+        // The door is Obsidian's own "add view" menu on a Base, enabled by `register.ts`; its host
+        // is Bases rather than a ZettelFlow surface (epic #622).
+        nameKey: "dashboard_capability_name",
+        owner: "dashboards",
+        doors: [CONTROL("dashboards/base/register.ts", "bases")],
     },
 };
 

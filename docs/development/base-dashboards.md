@@ -73,6 +73,33 @@ shows the error and the rest of the dashboard keeps working.
 return rows.map(r => ({ ...r, score: r.realWorkingHours / r.expectedHours }));
 ```
 
+## Daily tracking (worked example)
+
+This reproduces a common journaling dashboard — the kind people build today with `dataviewjs` — as
+**pure configuration**. Start from this Base ([`daily-tracking.base`](../examples/daily-tracking.base)),
+point the folder filter at your own journal, open the **Dashboard** view, and add four panels:
+
+1. **Stat** — *Working hours*: value `realWorkingHours`, aggregate **average**.
+2. **Stat** — *Mood*: value `dayFeeling`, aggregate **average**.
+3. **Bubble** — *Productivity*: x a date field, y `realWorkingHours`, size `productivitySize`, colour `realWorkingHours`.
+4. **Bar** — *Focus & mood*: category the date, series `focusLevel` and `dayFeeling`.
+
+Every panel is built from the dialog, not by hand-editing YAML — the `.base` is just a starting point
+you copy. Change the Base's filter from the last 45 days to the last 90 and every panel follows, with
+no `dataviewjs` to rewrite.
+
+```yaml
+filters:
+  and:
+    - 'file.inFolder("Journal")'
+    - 'file.name != "readme"'
+formulas:
+  productivitySize: 'if(goalsAchieved, 3, 1) + file.tasks.completed.length'
+views:
+  - type: zettelflow-dashboard
+    name: Daily dashboard
+```
+
 ## How it reads the Base
 
 - The **Base owns the query**: filters, formulas, properties, sort and grouping are configured in

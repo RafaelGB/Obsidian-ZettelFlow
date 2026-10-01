@@ -126,6 +126,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "template-export": { summary: "bundle a canvas and its steps into one portable .zftemplate file.", page: "../architecture/zftemplate-schema.md" },
     "template-import": { summary: "install a .zftemplate bundle into your vault.", page: "../architecture/zftemplate-schema.md" },
     "manage-templates": { summary: "manage the systems and templates you have installed.", page: "../how-to-contribute/systems-gallery.md" },
+    "base-dashboard": { summary: "compose chart panels over an Obsidian Base — a local Grafana for your vault.", page: "../development/base-dashboards.md" },
 };
 
 /** The best (first) door decides the section; the registry keeps doors best-first. */

@@ -2010,4 +2010,5 @@ export default {
     dashboard_script_warning: 'Ejecuta el JavaScript que escribas sobre las filas de este panel. Desactivado por defecto; no puede acceder a tu bóveda ni a la red.',
     dashboard_script_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
     workbench_surface_dashboard: 'Panel de Base',
+    dashboard_capability_name: 'Paneles de Base',
 };

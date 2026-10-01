@@ -1,7 +1,8 @@
 /**
  * The panel authoring surface (§XIII — a capability is authorable from the UI, not hand-edited
  * YAML). Pick a type, map its channels from the Base's fields, name it. Defaults come from
- * `suggestMapping` so a new panel renders immediately. Epic #622, S2 #624.
+ * `suggestMapping` so a new panel renders immediately. The channel loop is generic: each channel key
+ * is also the `PanelMapping` field name, so any panel type is configured by the same code. Epic #622.
  */
 import { Modal, Setting } from "obsidian";
 import type { App } from "obsidian";
@@ -14,6 +15,8 @@ import {
     panelTypeList,
     suggestMapping,
     type AggregateFn,
+    type ChannelKey,
+    type ChannelSpec,
     type PanelConfig,
     type PanelMapping,
     type PanelType,
@@ -75,45 +78,55 @@ export class PanelConfigModal extends Modal {
         );
     }
 
+    private bag(): Record<string, unknown> {
+        return this.mapping as Record<string, unknown>;
+    }
+
     private eligibleFields(accepts: readonly string[]): Schema["fields"] {
         const eligible = this.schema.fields.filter((field) => accepts.includes(field.type));
         return eligible.length > 0 ? eligible : this.schema.fields;
+    }
+
+    private renderSingle(host: HTMLElement, channel: ChannelSpec): void {
+        new Setting(host).setName(t(channel.labelKey as Parameters<typeof t>[0])).addDropdown((dd) => {
+            if (!channel.required) dd.addOption("", "—");
+            for (const field of this.eligibleFields(channel.accepts)) dd.addOption(field.id, field.name);
+            const current = this.bag()[channel.key] as string | undefined;
+            dd.setValue(current ?? "").onChange((value) => {
+                this.bag()[channel.key] = value || undefined;
+            });
+        });
+    }
+
+    private renderMultiple(host: HTMLElement, channel: ChannelSpec): void {
+        host.createDiv({
+            cls: c("base-dashboard-channel-label"),
+            text: t(channel.labelKey as Parameters<typeof t>[0]),
+        });
+        for (const field of this.eligibleFields(channel.accepts)) {
+            new Setting(host).setName(field.name).addToggle((tg) =>
+                tg.setValue(this.selected(channel.key).includes(field.id)).onChange((on) => {
+                    const set = new Set(this.selected(channel.key));
+                    if (on) set.add(field.id);
+                    else set.delete(field.id);
+                    this.bag()[channel.key] = [...set];
+                }),
+            );
+        }
+    }
+
+    private selected(key: ChannelKey): string[] {
+        return (this.bag()[key] as string[] | undefined) ?? [];
     }
 
     private renderChannels(): void {
         const host = this.channelsEl;
         if (!host) return;
         host.empty();
-        const spec = PANEL_TYPES[this.type];
 
-        for (const channel of spec.channels) {
-            if (channel.key === "series") {
-                host.createDiv({
-                    cls: c("base-dashboard-channel-label"),
-                    text: t(channel.labelKey as Parameters<typeof t>[0]),
-                });
-                for (const field of this.eligibleFields(channel.accepts)) {
-                    new Setting(host).setName(field.name).addToggle((tg) =>
-                        tg.setValue((this.mapping.series ?? []).includes(field.id)).onChange((on) => {
-                            const set = new Set(this.mapping.series ?? []);
-                            if (on) set.add(field.id);
-                            else set.delete(field.id);
-                            this.mapping.series = [...set];
-                        }),
-                    );
-                }
-                continue;
-            }
-
-            new Setting(host).setName(t(channel.labelKey as Parameters<typeof t>[0])).addDropdown((dd) => {
-                dd.addOption("", "—");
-                for (const field of this.eligibleFields(channel.accepts)) dd.addOption(field.id, field.name);
-                const current = channel.key === "value" ? this.mapping.value : this.mapping.category;
-                dd.setValue(current ?? "").onChange((value) => {
-                    if (channel.key === "value") this.mapping.value = value || undefined;
-                    else this.mapping.category = value || undefined;
-                });
-            });
+        for (const channel of PANEL_TYPES[this.type].channels) {
+            if (channel.multiple) this.renderMultiple(host, channel);
+            else this.renderSingle(host, channel);
         }
 
         if (this.type === "stat") {

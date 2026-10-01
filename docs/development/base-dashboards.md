@@ -37,6 +37,11 @@ Each panel's header carries **move** (left/right) and **resize** (cycle its widt
 controls; the arrangement is saved with the Base and reflows to a single column on a narrow pane or
 on mobile.
 
+The type dropdown offers **stat, bar, line, area, scatter, bubble, pie, donut, table, heatmap** and a
+**calendar** heatmap. Bubble maps size and colour to extra numeric fields; the calendar reuses
+ZettelFlow's own day-grid, so a date field plus an optional value lights up a contribution-style
+calendar. (Treemap, radar and sankey are intentionally left for later.)
+
 ## How it reads the Base
 
 - The **Base owns the query**: filters, formulas, properties, sort and grouping are configured in

@@ -2,20 +2,41 @@
  * Panel model for Base Dashboards (epic #622, S2 #624). Pure vocabulary — a panel is the product's
  * unit; it reads the shared `DataStoreSnapshot` and never re-queries the Base.
  */
-export type PanelType = "stat" | "bar";
+export type PanelType =
+    | "stat"
+    | "bar"
+    | "line"
+    | "area"
+    | "scatter"
+    | "bubble"
+    | "pie"
+    | "donut"
+    | "table"
+    | "heatmap"
+    | "calendar";
 
 export type AggregateFn = "sum" | "avg" | "min" | "max" | "count";
 
-/** Which property feeds which visual channel. */
+/** Which property feeds which visual channel. The keys match `ChannelKey` so the config form is generic. */
 export interface PanelMapping {
-    /** Stat: the numeric field to aggregate (ignored when the aggregate is `count`). */
+    /** Stat/pie: the numeric field to aggregate / size the slice. */
     value?: string;
     /** Stat: how to reduce the value field to one number. */
     aggregate?: AggregateFn;
-    /** Bar: the category / x-axis field. */
+    /** Bar/line/area axis; pie slice name; calendar date field. */
     category?: string;
-    /** Bar: one or more numeric series fields. */
+    /** Bar/line/area: one or more numeric series fields. */
     series?: string[];
+    /** Scatter/bubble/heatmap x. */
+    x?: string;
+    /** Scatter/bubble/heatmap y. */
+    y?: string;
+    /** Bubble: the numeric field sizing each point. */
+    size?: string;
+    /** Bubble/heatmap: the numeric field driving colour. */
+    color?: string;
+    /** Table: the columns to show (defaults to every visible field). */
+    columns?: string[];
 }
 
 /** A panel's place on the grid: width in columns (1–3) and height in rows (1–2). */

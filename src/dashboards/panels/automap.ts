@@ -13,12 +13,27 @@ export function suggestMapping(type: PanelType, schema: Schema): PanelMapping {
     const numbers = idsOfType(schema, "number");
     const dates = idsOfType(schema, "date");
     const categories = [...idsOfType(schema, "category"), ...idsOfType(schema, "boolean")];
+    const axis = dates[0] ?? categories[0] ?? schema.fields[0]?.id;
 
-    if (type === "stat") {
-        return numbers.length > 0 ? { value: numbers[0], aggregate: "avg" } : { aggregate: "count" };
+    switch (type) {
+        case "stat":
+            return numbers.length > 0 ? { value: numbers[0], aggregate: "avg" } : { aggregate: "count" };
+        case "bar":
+        case "line":
+        case "area":
+            return { category: axis, series: numbers.slice(0, 1) };
+        case "pie":
+        case "donut":
+            return { category: categories[0] ?? axis, value: numbers[0] };
+        case "scatter":
+            return { x: numbers[0], y: numbers[1] ?? numbers[0] };
+        case "bubble":
+            return { x: dates[0] ?? numbers[0], y: numbers[0], size: numbers[1], color: numbers[2] ?? numbers[1] };
+        case "heatmap":
+            return { x: categories[0] ?? axis, y: categories[1] ?? categories[0], value: numbers[0] };
+        case "calendar":
+            return { category: dates[0], value: numbers[0] };
+        case "table":
+            return { columns: schema.fields.slice(0, 4).map((field) => field.id) };
     }
-    // bar: prefer a date or category for the axis, a number for the series.
-    const category = dates[0] ?? categories[0] ?? schema.fields[0]?.id;
-    const series = numbers.slice(0, 1);
-    return { category, series };
 }

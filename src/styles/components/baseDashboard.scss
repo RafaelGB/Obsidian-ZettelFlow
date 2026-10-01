@@ -220,3 +220,64 @@
         grid-column: span 1;
     }
 }
+
+/* S4 (#626) — table + calendar-heatmap panels. */
+.zettelkasten-flow__base-dashboard-table-wrap {
+    width: 100%;
+    overflow: auto;
+}
+
+.zettelkasten-flow__base-dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__base-dashboard-table th,
+.zettelkasten-flow__base-dashboard-table td {
+    padding: var(--size-4-1) var(--size-4-2);
+    border-bottom: var(--border-width) solid var(--background-modifier-border);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__base-dashboard-table th {
+    position: sticky;
+    top: 0;
+    cursor: pointer;
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__base-dashboard-cal {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 1fr);
+    gap: var(--size-2-1);
+    margin: auto;
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: var(--size-2-1);
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell.is-l1 {
+    background-color: color-mix(in srgb, var(--interactive-accent) 25%, var(--background-modifier-border));
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell.is-l2 {
+    background-color: color-mix(in srgb, var(--interactive-accent) 50%, var(--background-modifier-border));
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell.is-l3 {
+    background-color: color-mix(in srgb, var(--interactive-accent) 75%, var(--background-modifier-border));
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell.is-l4 {
+    background-color: var(--interactive-accent);
+    /* A swatch carries no text, but a strong accent fill states its foreground (#431). */
+    color: var(--text-on-accent);
+}

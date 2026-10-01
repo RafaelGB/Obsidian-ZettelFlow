@@ -1,0 +1,2 @@
+# Git hooks are POSIX sh scripts: keep them LF so `sh` on Windows never chokes on a stray \r.
+.githooks/** text eol=lf

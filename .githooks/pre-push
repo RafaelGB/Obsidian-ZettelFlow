@@ -1,0 +1,3 @@
+#!/bin/sh
+# The full gate, once per push (not per commit): type-check + lint + obsidian-lint + tests.
+npm run verify

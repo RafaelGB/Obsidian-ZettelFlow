@@ -27,7 +27,11 @@ jobs:
     name: Type-check, lint & test
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 so commitlint can see the PR's full commit range (local commit-msg does only a
+      # fast format grep; the authoritative commitlint rules run here — #612 follow-up, faster commits).
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -36,6 +40,10 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Commit messages (commitlint)
+        if: github.event_name == 'pull_request'
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
       - name: Type-check
         run: npm run typecheck

@@ -19,7 +19,7 @@
     "lint:fix": "oxlint ./src --fix",
     "lint:obsidian": "eslint \"src/**/*.{ts,tsx}\" --max-warnings 0",
     "verify": "npm run typecheck && npm run lint && npm run lint:obsidian && npm test",
-    "prepare": "husky",
+    "prepare": "git config core.hooksPath .githooks",
     "commitlint": "commitlint --edit"
   },
   "keywords": [],

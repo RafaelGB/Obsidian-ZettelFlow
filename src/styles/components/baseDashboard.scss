@@ -221,6 +221,44 @@
     }
 }
 
+/* #632 — visual panel-type chooser (icon + label), lower entry curve than a text dropdown. */
+.zettelkasten-flow__base-dashboard-type-chooser {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+    gap: var(--size-4-1);
+    margin-bottom: var(--size-4-3);
+}
+
+.zettelkasten-flow__base-dashboard-type-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: var(--size-4-2);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__base-dashboard-type-option:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__base-dashboard-type-option.is-active {
+    border-color: var(--interactive-accent);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__base-dashboard-type-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__base-dashboard-type-label {
+    font-size: var(--font-ui-smaller);
+}
+
 /* S4 (#626) — table + calendar-heatmap panels. */
 .zettelkasten-flow__base-dashboard-table-wrap {
     width: 100%;
@@ -306,4 +344,31 @@
     border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     overflow: hidden;
+}
+
+.zettelkasten-flow__base-dashboard-computed-guide {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__base-dashboard-computed-guide p {
+    margin: 0 0 var(--size-4-1);
+}
+
+.zettelkasten-flow__base-dashboard-computed-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+    margin: var(--size-4-1) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__base-dashboard-computed-fields li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: 0 var(--size-4-1);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
 }

@@ -154,7 +154,8 @@ export class DashboardBasesView extends BasesView {
     }
 
     private openComputedModal(): void {
-        new ComputedFieldsModal(this.app, this.model.computed, (computed: ComputedFields) => {
+        const fields = this.baseSnapshot?.schema.fields ?? [];
+        new ComputedFieldsModal(this.app, fields, this.model.computed, (computed: ComputedFields) => {
             this.model.computed = computed;
             this.saveModel();
             const base = this.baseSnapshot;

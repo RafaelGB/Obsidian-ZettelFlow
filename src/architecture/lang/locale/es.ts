@@ -2012,6 +2012,9 @@ export default {
     dashboard_computed_placeholder: 'return rows.map(r => ({ ...r, score: r.hours / 8 }))',
     dashboard_computed_open: 'Campos calculados',
     dashboard_computed_error: 'Un campo calculado falló; mostrando datos sin enriquecer. {0}',
+    dashboard_computed_guide_intro: 'Recibes `rows` — un objeto por nota, indexado por campo. Devuelve las filas; añade un campo con map() y declara su tipo con { value, type } (date, number, category, boolean) o deja que se infiera.',
+    dashboard_computed_fields_label: 'Campos de esta Base',
+    dashboard_computed_guide_link: 'Cómo funcionan los campos calculados',
     workbench_surface_dashboard: 'Panel de Base',
     dashboard_capability_name: 'Paneles de Base',
 };

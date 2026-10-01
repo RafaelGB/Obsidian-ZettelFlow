@@ -219,6 +219,13 @@ export const BUDGETS = {
         because:
             "ECharts is imported tree-shaken on purpose; this ceiling catches an accidental `import * as echarts` or a chart that drags the whole library in (#622, S8)",
     },
+    "dashboard.computed.10k": {
+        name: "resolve a cheap computed field over 10,000 rows",
+        limit: 250,
+        measured: "14 ms",
+        because:
+            "a computed field re-resolves off the render path on each data update; a cheap one must add negligible overhead vs the un-enriched normalize (#632, against the #452 ~103 ms 50k-derive baseline)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

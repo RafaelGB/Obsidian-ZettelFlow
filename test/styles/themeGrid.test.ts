@@ -41,6 +41,9 @@ const CEILING: Record<string, number> = {
     "companionPane.scss": 5,
     "conceptNav.scss": 2,
     "cultivate.scss": 15,
+    // The single accent edge the hero tile wears — the same `3px` `.cultivate-target` draws, named
+    // here as the one genuine pixel this primitive owns (#620).
+    "dashboard.scss": 1,
     "discoveries.scss": 1,
     "dragAndDrop.scss": 1,
     "dynamicSelector.scss": 10,
@@ -59,7 +62,8 @@ const CEILING: Record<string, number> = {
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
-    "lab.scss": 120,
+    // 120 → 119: the 780px centred cage removed when the Lab went fluid (#620).
+    "lab.scss": 119,
     "main.scss": 29,
     "modal.scss": 10,
     "openQuestions.scss": 1,

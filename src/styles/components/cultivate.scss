@@ -3,8 +3,11 @@
     display: flex;
     flex-direction: column;
     gap: var(--size-4-3);
-    max-width: 52rem;
-    margin: 0 auto;
+    // Fills the pane, centred only past a generous measure (#620). The old 52rem cage wasted the
+    // width a collapsed sidebar handed back; the reading measure now lives on the fields below.
+    width: 100%;
+    max-width: 100rem;
+    margin-inline: auto;
     padding: var(--size-4-3);
     overflow-wrap: anywhere;
 
@@ -99,8 +102,11 @@
     flex-direction: column;
     gap: var(--size-4-4);
     padding: var(--size-4-3) var(--size-4-4) var(--size-4-8);
-    max-width: 44rem;
-    margin: 0 auto;
+    // Fills the pane, centred only past a generous measure (#620) — the 44rem cage is gone, the
+    // cards inside carry the reading width.
+    width: 100%;
+    max-width: 100rem;
+    margin-inline: auto;
 }
 
 .zettelkasten-flow__cultivate-header {

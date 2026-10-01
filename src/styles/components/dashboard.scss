@@ -1,0 +1,53 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * Dashboard primitives (#620): a fluid card grid that fills the pane instead of a narrow centred
+ * column.
+ *
+ * The three Home-surface modes used to pin their content to a fixed width and centre it, so
+ * collapsing Obsidian's side panels bought nothing but margin. These primitives replace that cage:
+ * the root fills the pane (centred only past a generous measure so an ultra-wide monitor doesn't
+ * stretch one line edge to edge), and the grid lays cards in columns that follow the width — one
+ * when docked, two or three when the panels are away — with no breakpoint and no script.
+ *
+ * The look is the plugin's existing one on purpose (§III/§XV): the shared `card` shape, the theme's
+ * own surfaces, and one accent on the single tile that leads.
+ */
+
+/* The mode root: fills the pane, centred only past a generous measure so an ultra-wide monitor
+   doesn't stretch one line edge to edge. A rem cap, never a pixel cage — it follows the font size
+   the theme chose and stays off the pixel grid's books. */
+.zettelkasten-flow__dashboard {
+    width: 100%;
+    max-width: 100rem;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-5);
+    padding: var(--size-4-5) var(--size-4-5) var(--size-4-12);
+}
+
+/* The fluid grid: auto-fit columns that never fall below a readable card width, so the row
+   reflows to the pane rather than a media query guessing at it. */
+.zettelkasten-flow__dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--size-4-4);
+    align-items: start;
+}
+
+/* A dashboard card: the shared card shape, on the theme's recessed surface. */
+.zettelkasten-flow__dashboard-card {
+    @include card;
+    gap: var(--size-4-3);
+    padding: var(--size-4-5);
+    border-radius: var(--radius-l);
+    background-color: $surface-quiet;
+}
+
+/* The one tile that leads, wearing the same accent edge Cultivate's target already uses — so
+   "this is the thing to do" looks the same across the surface. */
+.zettelkasten-flow__dashboard-card--hero {
+    border-left: 3px solid var(--interactive-accent);
+}

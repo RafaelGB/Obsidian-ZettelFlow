@@ -33,6 +33,10 @@ inferred schema, so a panel renders immediately and you adjust from there. Chart
 from your Obsidian theme and re-paint when you switch light/dark. Panels are saved in the Base's view
 config — nothing is written to your notes.
 
+Each panel's header carries **move** (left/right) and **resize** (cycle its width across the grid)
+controls; the arrangement is saved with the Base and reflows to a single column on a narrow pane or
+on mobile.
+
 ## How it reads the Base
 
 - The **Base owns the query**: filters, formulas, properties, sort and grouping are configured in

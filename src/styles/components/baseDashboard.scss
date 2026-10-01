@@ -199,3 +199,24 @@
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
+
+/* S3 (#625) — class-driven grid placement (width in columns, height in rows). */
+.zettelkasten-flow__base-dashboard-panel.is-w2 {
+    grid-column: span 2;
+}
+
+.zettelkasten-flow__base-dashboard-panel.is-w3 {
+    grid-column: span 3;
+}
+
+.zettelkasten-flow__base-dashboard-panel.is-h2 {
+    min-height: 24rem;
+}
+
+/* On a narrow pane (and mobile) every panel takes the single available column. */
+@media (max-width: 40rem) {
+    .zettelkasten-flow__base-dashboard-panel.is-w2,
+    .zettelkasten-flow__base-dashboard-panel.is-w3 {
+        grid-column: span 1;
+    }
+}

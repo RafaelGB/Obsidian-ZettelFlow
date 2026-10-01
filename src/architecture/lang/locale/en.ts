@@ -1964,4 +1964,8 @@ export default {
     dashboard_agg_min: 'Minimum',
     dashboard_agg_max: 'Maximum',
     dashboard_agg_count: 'Count',
+    // S3 (#625): grid placement controls.
+    dashboard_move_left: 'Move left',
+    dashboard_move_right: 'Move right',
+    dashboard_resize: 'Resize',
 };

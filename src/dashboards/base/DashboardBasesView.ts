@@ -14,10 +14,18 @@ import { log } from "architecture";
 import { t } from "architecture/lang";
 import { c } from "architecture/styles/helper";
 import { DataStoreSnapshot, normalize, reconcilePlan } from "dashboards/datastore";
-import { DashboardModel, PanelConfig, emptyDashboard, type ChartTheme } from "dashboards/panels";
+import {
+    DashboardModel,
+    PanelConfig,
+    cycleWidth,
+    emptyDashboard,
+    movePanel,
+    panelLayout,
+    type ChartTheme,
+} from "dashboards/panels";
 import { adaptResult } from "./adaptEntry";
 import { FieldInspector } from "./FieldInspector";
-import { PanelHost } from "./PanelHost";
+import { PanelHost, type PanelHostActions } from "./PanelHost";
 import { PanelConfigModal } from "./PanelConfigModal";
 import { readChartTheme } from "./themeReader";
 
@@ -122,6 +130,12 @@ export class DashboardBasesView extends BasesView {
     private syncHosts(): void {
         if (!this.panelsEl || !this.snapshot) return;
         const theme = this.theme();
+        const actions: PanelHostActions = {
+            edit: (panel) => this.openPanelModal(panel),
+            remove: (panel) => this.removePanel(panel),
+            move: (panel, dir) => this.reorderPanel(panel, dir),
+            resize: (panel) => this.resizePanel(panel),
+        };
         const live = new Set(this.model.panels.map((panel) => panel.id));
         for (const [id, host] of this.hosts) {
             if (!live.has(id)) {
@@ -132,20 +146,15 @@ export class DashboardBasesView extends BasesView {
         for (const config of this.model.panels) {
             let host = this.hosts.get(config.id);
             if (!host) {
-                host = this.addChild(
-                    new PanelHost(
-                        this.panelsEl,
-                        config,
-                        (panel) => this.openPanelModal(panel),
-                        (panel) => this.removePanel(panel),
-                    ),
-                );
+                host = this.addChild(new PanelHost(this.panelsEl, config, actions));
                 this.hosts.set(config.id, host);
             } else {
                 host.setConfig(config);
             }
             host.update(this.snapshot, theme);
         }
+        // Reflect the model's order in the DOM (a move is a reorder of the array).
+        for (const config of this.model.panels) this.hosts.get(config.id)?.orderInto(this.panelsEl);
     }
 
     private clearHosts(): void {
@@ -173,6 +182,20 @@ export class DashboardBasesView extends BasesView {
 
     private removePanel(config: PanelConfig): void {
         this.model.panels = this.model.panels.filter((panel) => panel.id !== config.id);
+        this.saveModel();
+        this.renderLayout();
+    }
+
+    private reorderPanel(config: PanelConfig, dir: -1 | 1): void {
+        this.model.panels = movePanel(this.model.panels, config.id, dir);
+        this.saveModel();
+        this.renderLayout();
+    }
+
+    private resizePanel(config: PanelConfig): void {
+        const index = this.model.panels.findIndex((panel) => panel.id === config.id);
+        if (index < 0) return;
+        this.model.panels[index] = { ...config, layout: cycleWidth(panelLayout(config)) };
         this.saveModel();
         this.renderLayout();
     }

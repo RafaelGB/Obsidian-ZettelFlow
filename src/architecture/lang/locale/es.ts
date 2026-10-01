@@ -1965,4 +1965,8 @@ export default {
     dashboard_agg_min: 'Mínimo',
     dashboard_agg_max: 'Máximo',
     dashboard_agg_count: 'Recuento',
+    // S3 (#625): controles de colocación en la rejilla.
+    dashboard_move_left: 'Mover a la izquierda',
+    dashboard_move_right: 'Mover a la derecha',
+    dashboard_resize: 'Redimensionar',
 };

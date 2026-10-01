@@ -11,3 +11,4 @@ export type { ChartTheme } from "./theme";
 export { buildStat } from "./stat/statOption";
 export type { StatView } from "./stat/statOption";
 export { buildBarOption } from "./bar/barOption";
+export { DEFAULT_LAYOUT, panelLayout, cycleWidth, cycleHeight, movePanel, layoutClasses } from "./layout";

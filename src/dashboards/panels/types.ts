@@ -18,11 +18,19 @@ export interface PanelMapping {
     series?: string[];
 }
 
+/** A panel's place on the grid: width in columns (1–3) and height in rows (1–2). */
+export interface PanelLayout {
+    w: 1 | 2 | 3;
+    h: 1 | 2;
+}
+
 export interface PanelConfig {
     id: string;
     type: PanelType;
     title?: string;
     mapping: PanelMapping;
+    /** Grid placement (S3). Order on the grid is the array order in `DashboardModel.panels`. */
+    layout?: PanelLayout;
 }
 
 /** The persisted dashboard: an ordered list of panels (layout arrives in S3). */

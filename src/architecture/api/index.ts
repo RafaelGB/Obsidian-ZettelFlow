@@ -16,6 +16,7 @@ export {
     HOOK_BINDINGS,
     CONDITION_BINDINGS,
     LIBRARY_SCRIPT_BINDINGS,
+    DASHBOARD_BINDINGS,
     bindingNames,
     bindingArgs,
 } from './bindings/scriptBindings';

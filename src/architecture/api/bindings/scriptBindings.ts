@@ -33,6 +33,9 @@ const APP: ScriptBinding = { name: "app", type: "Obsidian App" };
 /** The ZettelFlow script API. */
 const ZF: ScriptBinding = { name: "zf", type: "ZettelFlow script API" };
 
+/** The plain value rows a Base dashboard computed-field script receives. */
+const ROWS: ScriptBinding = { name: "rows", type: "plain value rows" };
+
 /**
  * The Script action. `element` is the action's own configuration; it has always been in scope, so it is
  * documented here rather than silently withdrawn from whoever already relies on it.
@@ -69,6 +72,15 @@ export const CONDITION_BINDINGS: readonly ScriptBinding[] = [
  * editor offers.
  */
 export const LIBRARY_SCRIPT_BINDINGS: readonly ScriptBinding[] = [ZF, APP];
+
+/**
+ * A Base dashboard **computed field** (#632): a `rows => rows` given the rows and a **read-only,
+ * offline `zf`** — `zf.knowledge` + vault reads only. `app` is deliberately **not** bound, so "a
+ * panel never writes the vault" is a property of the binding set, not a convention (§XII). No `ai`
+ * member reaches it either — a computed field resolves automatically, and AI never auto-fires in an
+ * automation (#301–#304).
+ */
+export const DASHBOARD_BINDINGS: readonly ScriptBinding[] = [ROWS, ZF];
 
 /** The formal parameter names, in order, for {@link buildAsyncScriptFunction}. */
 export function bindingNames(bindings: readonly ScriptBinding[]): string[] {

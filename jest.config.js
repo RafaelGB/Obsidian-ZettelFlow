@@ -27,6 +27,8 @@ module.exports = {
     "^architecture/(.*)$": "<rootDir>/src/architecture/$1",
     "^dashboards$": "<rootDir>/src/dashboards",
     "^dashboards/(.*)$": "<rootDir>/src/dashboards/$1",
+    "^echarts$": "<rootDir>/test/__mocks__/echarts.ts",
+    "^echarts/(.*)$": "<rootDir>/test/__mocks__/echarts.ts",
     "^config$": "<rootDir>/src/config",
     "^config/(.*)$": "<rootDir>/src/config/$1",
     "^actions$": "<rootDir>/src/actions",

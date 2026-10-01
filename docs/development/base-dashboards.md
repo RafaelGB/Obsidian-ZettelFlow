@@ -21,6 +21,18 @@ the inspector reconciles live.
 Types are inferred from Obsidian's own typed values — not guessed from raw text — so a date reads
 as a date and a link reads as a link.
 
+## Panels (S2)
+
+Use **Add panel** to place a panel over the same filtered Base. Two types ship first:
+
+- **Stat** — one number from a numeric field (sum, average, minimum, maximum, or a row count).
+- **Bar** — a category or date on the x-axis and one or more numeric series.
+
+Pick the type and map its fields in the panel dialog; ZettelFlow suggests a working mapping from the
+inferred schema, so a panel renders immediately and you adjust from there. Charts take their colours
+from your Obsidian theme and re-paint when you switch light/dark. Panels are saved in the Base's view
+config — nothing is written to your notes.
+
 ## How it reads the Base
 
 - The **Base owns the query**: filters, formulas, properties, sort and grouping are configured in

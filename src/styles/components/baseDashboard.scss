@@ -98,3 +98,104 @@
     color: var(--text-muted);
     font-size: var(--font-ui-small);
 }
+
+.zettelkasten-flow__base-dashboard-inspector {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4);
+}
+
+/* S2 (#624) — toolbar + panel grid + cards + stat tile. */
+.zettelkasten-flow__base-dashboard-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__base-dashboard-add {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__base-dashboard-add-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__base-dashboard-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__base-dashboard-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    min-height: 14rem;
+    padding: var(--size-4-3);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__base-dashboard-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__base-dashboard-panel-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__base-dashboard-panel-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__base-dashboard-panel-body {
+    display: flex;
+    flex: 1;
+    min-height: 10rem;
+}
+
+.zettelkasten-flow__base-dashboard-panel-empty {
+    margin: auto;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    text-align: center;
+}
+
+.zettelkasten-flow__base-dashboard-stat {
+    margin: auto;
+    text-align: center;
+}
+
+.zettelkasten-flow__base-dashboard-stat-value {
+    font-size: 2.4rem;
+    font-weight: var(--font-bold);
+    line-height: 1.1;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__base-dashboard-stat-label {
+    margin-top: var(--size-4-1);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__base-dashboard-channel-label {
+    margin-top: var(--size-4-2);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}

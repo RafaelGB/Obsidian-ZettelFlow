@@ -24,7 +24,7 @@ export class FieldInspector extends Component {
 
     onload(): void {
         this.containerEl.empty();
-        const root = this.containerEl.createDiv({ cls: c("base-dashboard") });
+        const root = this.containerEl.createDiv({ cls: c("base-dashboard-inspector") });
         this.root = root;
 
         const empty = root.createDiv({ cls: c("base-dashboard-empty") });

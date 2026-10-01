@@ -166,15 +166,35 @@ export class PanelConfigModal extends Modal {
 
     private renderMultiple(host: HTMLElement, channel: ChannelSpec): void {
         host.createDiv({ cls: c("base-dashboard-channel-label"), text: t(channel.labelKey as Parameters<typeof t>[0]) });
-        for (const field of this.eligibleFields(channel.accepts)) {
-            new Setting(host).setName(field.name).addToggle((tg) =>
-                tg.setValue(this.selected(channel.key).includes(field.id)).onChange((on) => {
-                    const set = new Set(this.selected(channel.key));
-                    if (on) set.add(field.id);
-                    else set.delete(field.id);
-                    this.bag()[channel.key] = [...set];
-                }),
+        const selected = this.selected(channel.key);
+        const fields = this.eligibleFields(channel.accepts);
+
+        // One removable row per chosen field — you see only what you picked, not a toggle per field.
+        for (const id of selected) {
+            const field = fields.find((candidate) => candidate.id === id);
+            new Setting(host).setName(field?.name ?? id).addExtraButton((btn) =>
+                btn
+                    .setIcon("x")
+                    .setTooltip(t("dashboard_remove_transform"))
+                    .onClick(() => {
+                        this.bag()[channel.key] = this.selected(channel.key).filter((other) => other !== id);
+                        this.renderChannels();
+                    }),
             );
+        }
+
+        // A dropdown that adds one more — scales to a Base with many fields.
+        const remaining = fields.filter((field) => !selected.includes(field.id));
+        if (remaining.length > 0) {
+            new Setting(host).addDropdown((dd) => {
+                dd.addOption("", t("dashboard_channel_add"));
+                for (const field of remaining) dd.addOption(field.id, field.name);
+                dd.setValue("").onChange((value) => {
+                    if (!value) return;
+                    this.bag()[channel.key] = [...this.selected(channel.key), value];
+                    this.renderChannels();
+                });
+            });
         }
     }
 

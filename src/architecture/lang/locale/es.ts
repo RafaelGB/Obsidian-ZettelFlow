@@ -1985,6 +1985,7 @@ export default {
     dashboard_channel_color: 'Color',
     dashboard_channel_columns: 'Columnas',
     dashboard_channel_date: 'Fecha',
+    dashboard_channel_add: 'Añadir un campo…',
     // S5 (#627): transformaciones visuales.
     dashboard_transforms_heading: 'Transformaciones',
     dashboard_add_transform: 'Añadir transformación',

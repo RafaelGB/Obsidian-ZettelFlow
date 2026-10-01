@@ -52,25 +52,30 @@ Three levels, lowest first — reach for the lowest that answers your question:
 
 1. **Base formulas** — the native, preferred way to derive a value.
 2. **Visual transforms** — the no-code pipeline above.
-3. **Script transformer** — an advanced escape hatch (below).
+3. **Computed fields** — a dashboard-level `rows => rows` in the JS editor, given `rows` + a read-only `zf` (below).
 
-## Script transformer (advanced)
+## Computed fields (advanced)
 
-For the rare shape the visual transforms cannot express, a panel can run a small **JavaScript**
-transformer — a `rows => rows` over plain value rows (`{ fieldId: value }`). It is **off by default**
-and shows a warning when enabled, because it executes code you provide.
+For the rare value the visual transforms cannot express, define a **computed field**: a small
+`rows => rows` JavaScript, authored once at the **dashboard level** in the plugin's own editor (with
+completions and hover for the API). Every column it adds becomes a first-class field that appears in
+**every** panel's picker. It is **off by default** and shows a warning when enabled, because it runs
+code you provide.
 
-The sandbox is deliberately tiny: the script receives **only the rows** — no access to your vault, the
-filesystem, the network or the app — and its output is used only to draw the panel, never written to a
-note. A script that throws or returns the wrong shape fails safe: the panel shows the error and the
-rest of the dashboard keeps working.
+The sandbox is deliberately small and **offline**: the script is handed **only the rows** and a
+**read-only `zf`** — `zf.knowledge` plus vault reads. It gets no `app`, makes no vault write and
+reaches no network (so it never auto-calls AI — a computed field resolves automatically, and AI never
+auto-fires in an automation). Its output enriches the shared snapshot **in memory only**, never a
+note. Resolution runs **off the render path** and is cached per data signature; a script that throws
+or returns the wrong shape fails safe — the panels keep the un-enriched data and an inline message
+names the error.
 
-> **Capability — script execution.** Enabling this runs user-provided JavaScript, opt-in per panel,
+> **Capability — script execution, no network.** Enabling this runs user-provided JavaScript, opt-in,
 > through ZettelFlow's single function-constructor home (the same one the Script action and vault
-> hooks use), and every run is recorded in the [script run log](script-workbench.md).
+> hooks use); every run is recorded in the [script run log](script-workbench.md).
 
 ```js
-// A productivity score the Base doesn't store.
+// A productivity score the Base doesn't store — add it once, chart it in any panel.
 return rows.map(r => ({ ...r, score: r.realWorkingHours / r.expectedHours }));
 ```
 
@@ -107,7 +112,3 @@ views:
 - ZettelFlow reads the already-filtered result and normalises it **once** into a shared, in-memory
   model every panel reads; it updates in place on each change and stays fast on vaults of thousands of
   notes. Read-only throughout.
-
-*Coming next ([#632](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/632)):* dashboard-level
-**computed fields** — author a value once with the plugin's own JS editor and the read-only `zf` API,
-and use it in every panel.

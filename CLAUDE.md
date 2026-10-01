@@ -73,8 +73,10 @@ push to `main`.
 
 ## Conventions (follow these)
 
-- **Commits:** Conventional Commits, enforced by a commit-msg hook
-  (`feat(scope): …`, `fix: …`, `docs: …`). Pre-commit runs `npm run lint`.
+- **Commits:** Conventional Commits (`feat(scope): …`, `fix: …`, `docs: …`). Hooks are kept **fast**:
+  `commit-msg` does an instant format grep and `pre-commit` runs oxlint **only when `src/**` changed**
+  (it is skipped for docs/system/test-only commits). The **full** rules — commitlint over the PR's
+  commits, and `oxlint` over all of `src` — run in **CI** and on `pre-push` (`npm run verify`).
   **Do not add a `Co-Authored-By: Claude` (or any AI) trailer to commit messages.**
 - **Branches:** work on `feature/*`; open PRs into `main`. Only commit/push when asked.
 - **Imports:** bare-specifier aliases via `tsconfig` `baseUrl: src` — `architecture`, `config`,

@@ -1,1 +1,13 @@
-npm run commitlint ${1}
+# Fast Conventional-Commits gate. Loading commitlint here cost ~5-8s on every commit (a real tax when
+# you commit often); this is an instant grep of the same rule. The authoritative, full commitlint
+# (header length, subject-case, body rules) runs in CI over every PR's commits — see .github/workflows/ci.yml.
+first=$(head -n1 "$1")
+case "$first" in
+  "Merge "*|"Revert "*|"fixup!"*|"squash!"*) exit 0 ;;
+esac
+printf '%s' "$first" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?!?: .+' && exit 0
+echo "✖ Commit message must follow Conventional Commits:"
+echo "    type(scope): subject      e.g.  feat(systems): rebuild GTD as a drawn clarify branch"
+echo "    types: feat fix docs style refactor perf test build ci chore revert"
+echo "  (the full commitlint rules run in CI)"
+exit 1

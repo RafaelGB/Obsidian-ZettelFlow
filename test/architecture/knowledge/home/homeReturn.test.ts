@@ -71,7 +71,7 @@ describe("Home offers one return, and never keeps score (#563)", () => {
     it("draws nothing at all in a vault that has never said anything", () => {
         // Two branches, in this order: no claims anywhere is silence; claims but none due is one
         // quiet sentence. An empty box on the front door is a box you learn to skip (#516).
-        const render = code(HOME).slice(code(HOME).indexOf("private renderClaimReturn"));
+        const render = code(HOME).slice(code(HOME).indexOf("private renderReturnTile"));
         const silence = render.indexOf("if (!this.claimsExist) return;");
         const quiet = render.indexOf('t("home_return_none")');
         const firstDraw = render.indexOf("createDiv");
@@ -82,7 +82,7 @@ describe("Home offers one return, and never keeps score (#563)", () => {
 
     it("counts nothing in the line it draws", () => {
         const render = code(HOME).slice(
-            code(HOME).indexOf("private renderClaimReturn"),
+            code(HOME).indexOf("private renderReturnTile"),
             code(HOME).indexOf("private renderOpenQuestions")
         );
         expect(render).not.toContain("tCount(");

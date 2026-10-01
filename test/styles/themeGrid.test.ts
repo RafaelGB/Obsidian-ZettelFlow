@@ -53,7 +53,9 @@ const CEILING: Record<string, number> = {
     "flows.scss": 4,
     "graph3d.scss": 10,
     "historyView.scss": 28,
-    "home.scss": 6,
+    // 6 → 4: the cultivate-teaser card (1px border + 3px accent) left Home when it became a hero
+    // tile, and the fold's divider uses var(--border-width) rather than a literal pixel (#620).
+    "home.scss": 4,
     "hooksConfig.scss": 94,
     "input.scss": 5,
     "knowledgeBalance.scss": 1,

@@ -1,45 +1,132 @@
-.zettelkasten-flow__home {
-    padding: 0.5rem;
-}
+// Home — the minimalist dashboard (#620).
+//
+// Home used to be one tall column of ~15 narrative blocks; on a wide pane it was sparse across and
+// overloaded down. It is a dashboard now: a header strip, three hero tiles that reflow with the
+// pane (the shared `dashboard` + `dashboard-grid` primitives), and everything else folded behind one
+// disclosure. The look stays Obsidian's — theme surfaces, one accent on the single tile that leads.
 
+// ── header strip: greeting + the one primary + the fixed Ask-your-graph door ──
 .zettelkasten-flow__home-header {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: var(--size-4-4);
+    margin-bottom: var(--size-4-6);
+}
+
+.zettelkasten-flow__home-greet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    min-width: 0;
 }
 
 .zettelkasten-flow__home-title {
     margin: 0;
-    font-size: var(--font-ui-medium);
+    font-size: var(--font-ui-larger);
+    font-weight: var(--font-bold);
     color: var(--text-normal);
 }
 
-.zettelkasten-flow__home-refresh {
+.zettelkasten-flow__home-thinking-days {
     font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__home-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    flex-shrink: 0;
 }
 
 .zettelkasten-flow__home-status {
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
-    padding: 0.5rem 0;
+    padding: var(--size-4-2) 0;
 }
 
-.zettelkasten-flow__home-greeting {
+// ── the hero tiles: one decision each, one of them wearing the accent ──
+.zettelkasten-flow__home-tile-eyebrow {
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+}
+
+// In the one accent tile the eyebrow carries the accent too, so "this leads" is legible at a glance.
+.zettelkasten-flow__dashboard-card--hero .zettelkasten-flow__home-tile-eyebrow {
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__home-tile-sub {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    line-height: 1.45;
+}
+
+.zettelkasten-flow__home-tile button {
+    align-self: flex-start;
+    cursor: pointer;
+}
+
+// ── the fold: everything the dashboard does not lead with ──
+.zettelkasten-flow__home-fold {
     display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    margin-bottom: 0.75rem;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-6);
+    padding-top: var(--size-4-4);
+    border-top: var(--border-width) solid var(--background-modifier-border);
 }
 
-// The 3D-graph teaser (#285 S2) — the eye-catching hook on Home.
+.zettelkasten-flow__home-fold-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1) 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__home-fold-chevron {
+    display: inline-flex;
+    transition: transform 150ms ease;
+
+    .svg-icon {
+        width: 1em;
+        height: 1em;
+    }
+}
+
+.zettelkasten-flow__home-fold.is-open .zettelkasten-flow__home-fold-chevron {
+    transform: rotate(90deg);
+}
+
+.zettelkasten-flow__home-more {
+    margin-top: var(--size-4-4);
+}
+
+// Inside the fold the grid gap owns the spacing, so a section does not add its own margin on top.
+.zettelkasten-flow__home-more .zettelkasten-flow__home-section {
+    margin-bottom: 0;
+}
+
+// The 3D-graph teaser (#285 S2) — the eye-catching hook, now one card in the fold.
 .zettelkasten-flow__home-graph-teaser {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     padding: 0.9rem 1rem;
-    margin-bottom: 0.9rem;
     border-radius: var(--radius-m);
     /* The theme's own surface: the hardcoded gradient broke every light theme (#472 follow-up). */
     color: var(--text-normal);
@@ -66,7 +153,7 @@
     cursor: pointer;
 }
 
-// Growth nudge (#285 S4): fleeting notes waiting to be developed.
+// Growth nudge (#285 S4): fleeting notes waiting to be developed; and the unfinished-note nudge.
 .zettelkasten-flow__home-nudge {
     display: flex;
     align-items: center;
@@ -89,56 +176,6 @@
     margin-left: auto;
     cursor: pointer;
     font-size: var(--font-ui-smaller);
-}
-
-// Cultivate on-ramp (#309 S4).
-.zettelkasten-flow__home-cultivate-teaser {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.9rem 1rem;
-    margin-bottom: 0.9rem;
-    border-radius: var(--radius-m);
-    /* The theme's own surface: the hardcoded gradient broke every light theme (#472 follow-up). */
-    color: var(--text-normal);
-    background: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-left: 3px solid var(--interactive-accent);
-}
-
-.zettelkasten-flow__home-cultivate-teaser-title {
-    font-weight: var(--font-bold);
-    font-size: var(--font-ui-medium);
-}
-
-.zettelkasten-flow__home-cultivate-teaser-sub {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__home-cultivate-teaser-streak {
-    color: var(--text-accent);
-    font-size: var(--font-ui-smaller);
-    font-weight: var(--font-semibold);
-}
-
-.zettelkasten-flow__home-cultivate-teaser-btn {
-    align-self: flex-start;
-    margin-top: 0.25rem;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    cursor: pointer;
-}
-
-.zettelkasten-flow__home-greeting-hello {
-    font-size: var(--font-ui-small);
-    color: var(--text-normal);
-    font-weight: var(--font-semibold);
-}
-
-.zettelkasten-flow__home-thinking-days {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
 }
 
 .zettelkasten-flow__home-section {
@@ -201,7 +238,7 @@
     text-decoration: underline;
 }
 
-// "What to do next" recommendation rows (#273).
+// "What to do next" recommendation rows (#273), now inside the hero tile.
 .zettelkasten-flow__home-recommendation {
     display: flex;
     flex-wrap: wrap;
@@ -237,29 +274,12 @@
     }
 }
 
-// Something you wrote is ready to be looked at again (#563). One line, never a list.
-.zettelkasten-flow__home-claim-return {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-1);
-    margin-block: var(--size-4-3);
-    padding: var(--size-4-3);
-    border-left: var(--size-4-1) solid var(--interactive-accent);
-    border-radius: var(--radius-s);
-    background-color: var(--background-secondary);
-}
-
+// Something you wrote is ready to be looked at again (#563), now the third hero tile.
 .zettelkasten-flow__home-claim-return-title {
     font-weight: var(--font-semibold);
 }
 
 .zettelkasten-flow__home-claim-return-when {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__home-claim-return-quiet {
-    margin-block: var(--size-4-3);
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }

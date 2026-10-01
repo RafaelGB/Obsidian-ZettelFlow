@@ -1,4 +1,4 @@
-import { Menu, setIcon } from "obsidian";
+import { Menu, setIcon, setTooltip } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 
@@ -76,15 +76,22 @@ export class ModeHeader {
      * The line: if activating it opens a capability, it is not this. `onePrimaryAction.test.ts`
      * cannot tell the two apart — but the call says which one you meant, in a diff someone reads.
      */
-    nav(action: Omit<HeaderAction, "icon"> & { icon?: string }): HTMLElement {
+    nav(action: Omit<HeaderAction, "icon"> & { icon?: string; iconOnly?: boolean }): HTMLElement {
+        // A fixed icon door (e.g. Ask your graph, #620): a single glyph whose name lives in the
+        // tooltip and the aria-label, so it stays reachable and named without spending header width
+        // on a label — and without becoming a second primary (#577).
+        const iconOnly = action.iconOnly === true && !!action.icon;
         const button = this.host.createEl("button", {
             // The label on the button itself when there is no icon: a wrapper span for one string
             // is markup for its own sake, and it moves the text off the element a reader inspects.
             ...(action.icon ? {} : { text: action.label }),
-            cls: c("mode-header-nav"),
+            cls: iconOnly ? ["clickable-icon", c("mode-header-nav")].join(" ") : c("mode-header-nav"),
             attr: { type: "button", "aria-label": action.label },
         });
-        if (action.icon) {
+        if (iconOnly && action.icon) {
+            setIcon(button, action.icon);
+            setTooltip(button, action.label);
+        } else if (action.icon) {
             setIcon(button.createSpan({ cls: c("mode-header-icon") }), action.icon);
             button.createSpan({ text: action.label });
         }

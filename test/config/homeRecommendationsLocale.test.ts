@@ -4,12 +4,13 @@ import es from "architecture/lang/locale/es";
 import { RECOMMENDATION_REASONS } from "architecture/knowledge/state/recommendation";
 
 const KEYS = [
-    "home_section_recommendations",
+    // The section title is the hero tile's eyebrow now (#620): "what to do next" leads the dashboard.
+    "home_hero_next",
     ...RECOMMENDATION_REASONS.map((r) => `home_recommendation_reason_${r}`),
 ];
 
 describe("Home recommendation i18n (#273, AC-1/AC-6)", () => {
-    it("references the section title + one label per reason (14 keys)", () => {
+    it("references the section title + one label per reason (14 keys)", () => {
         expect(KEYS).toHaveLength(14);
     });
 

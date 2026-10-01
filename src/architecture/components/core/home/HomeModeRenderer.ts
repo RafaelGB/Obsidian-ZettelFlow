@@ -1,6 +1,6 @@
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
-import { App } from "obsidian";
+import { App, setIcon } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
@@ -57,6 +57,9 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private claimReturn: DueClaim | null = null;
     /** Whether this vault says anything yet. Decides between one quiet line and silence (#565). */
     private claimsExist = false;
+    /** The fold is closed on arrival (#620, minimalist): three tiles lead, the rest waits behind
+     *  one disclosure. The choice survives a recompute so a background change never closes it. */
+    private showEverything = false;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -138,24 +141,52 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private render(): void {
         const host = this.container;
         host.empty();
-        const container = host.createDiv({ cls: c("home") });
+        // The dashboard root fills the pane (#620): collapsing Obsidian's side panels now widens the
+        // content instead of the margins, and the hero grid reflows into its columns.
+        const container = host.createDiv({ cls: `${c("dashboard")} ${c("home")}` });
 
+        // ── header strip: who you are, the one thing to do, and the door you reach from here ──
         const header = container.createDiv({ cls: c("home-header") });
-        header.createEl("h4", { text: t("home_view_title"), cls: c("home-title") });
+        const greet = header.createDiv({ cls: c("home-greet") });
+        greet.createEl("h2", { text: t("home_greeting"), cls: c("home-title") });
+        if (this.state === "ready" && this.home) {
+            greet.createSpan({
+                cls: c("home-thinking-days"),
+                text: t("home_thinking_days", String(this.home.thinkingDays)),
+            });
+        }
+        const actions = header.createDiv({ cls: c("home-header-actions") });
         // Capturing a thought was in the palette and nowhere else (#578) — the lowest-friction
         // thing this plugin does, reachable only by someone who already knew it existed. Home is
         // where you are when you have one, so Home is where it is offered.
-        const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        const bar = new ModeHeader(actions, (el, type, handler) => this.registerDomEvent(el, type, handler));
         bar.primary({
             label: t("command_quick_capture"),
             icon: "pencil-line",
             onClick: () => runCommand("quick-capture"),
         });
+        // A fixed door to Ask your graph (#620): a control where you already are, not a command —
+        // an icon-only nav named by its tooltip, never a second primary (#577).
+        bar.nav({
+            label: t("home_ask_graph"),
+            icon: "search",
+            iconOnly: true,
+            onClick: () => void activateSurface(this.app, "zettelflow-explore", "explore"),
+        });
         bar.nav({ label: t("home_refresh_button"), onClick: () => this.recompute() });
         bar.done();
 
-        this.renderCultivateTeaser(container);
+        // A wizard left mid-flow: one nudge, above the fold, only when there is a draft.
         this.renderUnfinishedNote(container);
+
+        // ── the hero: three tiles, one decision each, one of them leading ──
+        // The grid is drawn in every state so the Cultivate on-ramp is reachable from the first
+        // moment — indexing, empty, error — because starting a thought must never wait on the
+        // index (#309). The other two tiles stay silent until the model is ready.
+        const hero = container.createDiv({ cls: c("dashboard-grid") });
+        this.renderNextTile(hero);
+        this.renderCultivateTile(hero);
+        this.renderReturnTile(hero);
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("home-status"), text: t("home_indexing") });
@@ -170,25 +201,51 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             return;
         }
 
-        const greeting = container.createDiv({ cls: c("home-greeting") });
-        greeting.createSpan({ text: t("home_greeting"), cls: c("home-greeting-hello") });
-        greeting.createSpan({
-            text: t("home_thinking_days", String(this.home.thinkingDays)),
-            cls: c("home-thinking-days"),
+        // ── everything else, folded away by default (minimalist, user-chosen) ──
+        this.renderFold(container);
+    }
+
+    /**
+     * Everything the dashboard does not lead with, folded away by default (#620).
+     *
+     * Three tiles decide the day; your newest ideas and main concepts, what deserves a review, the
+     * gaps and open questions, the pinned queries, the growth nudge and the way into the 3D graph
+     * all wait behind one disclosure. Collapsed by a class, never an inline style — and the open
+     * state survives a recompute, so a background change never closes what you opened.
+     */
+    private renderFold(container: HTMLElement): void {
+        if (!this.home) return;
+        const foldBar = container.createDiv({ cls: c("home-fold") });
+        foldBar.toggleClass(c("is-open"), this.showEverything);
+        const toggle = foldBar.createEl("button", {
+            cls: c("home-fold-toggle"),
+            attr: { type: "button", "aria-expanded": String(this.showEverything) },
+        });
+        setIcon(toggle.createSpan({ cls: c("home-fold-chevron") }), "chevron-right");
+        const label = toggle.createSpan({
+            text: t(this.showEverything ? "home_hide_extras" : "home_show_everything"),
         });
 
-        this.renderClaimReturn(container);
-        this.renderGrowthNudge(container);
-        this.renderGraphTeaser(container);
-        this.renderPinnedQueries(container);
-        this.renderRecommendations(container);
-        this.renderNoteSection(container, "home_section_new_ideas", this.home.newIdeas);
-        this.renderNoteSection(container, "home_section_main_concepts", this.home.mainConcepts);
-        this.renderNoteSection(container, "home_section_review_due", this.home.reviewDue);
-        this.renderGaps(container, this.home.gaps ?? []);
-        // Defaulted: Home is the front door, and a model shape from an older build must degrade
-        // to one missing section rather than to a blank surface.
-        this.renderOpenQuestions(container, this.home.openQuestions ?? []);
+        const more = container.createDiv({ cls: `${c("dashboard-grid")} ${c("home-more")}` });
+        if (!this.showEverything) more.addClass(c("is-hidden"));
+
+        this.renderGrowthNudge(more);
+        this.renderGraphTeaser(more);
+        this.renderPinnedQueries(more);
+        this.renderNoteSection(more, "home_section_new_ideas", this.home.newIdeas);
+        this.renderNoteSection(more, "home_section_main_concepts", this.home.mainConcepts);
+        this.renderNoteSection(more, "home_section_review_due", this.home.reviewDue);
+        this.renderGaps(more, this.home.gaps ?? []);
+        // Defaulted: a model shape from an older build degrades to one missing section, not a blank.
+        this.renderOpenQuestions(more, this.home.openQuestions ?? []);
+
+        this.registerDomEvent(toggle, "click", () => {
+            this.showEverything = !this.showEverything;
+            more.toggleClass(c("is-hidden"), !this.showEverything);
+            foldBar.toggleClass(c("is-open"), this.showEverything);
+            toggle.setAttribute("aria-expanded", String(this.showEverything));
+            label.setText(t(this.showEverything ? "home_hide_extras" : "home_show_everything"));
+        });
     }
 
     /**
@@ -201,34 +258,37 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
      * It says when you wrote it — a month and a year, never a number of days, because *93 days ago*
      * is a measurement of your lateness.
      */
-    private renderClaimReturn(container: HTMLElement): void {
-        // A vault that has never said anything has nothing to be asked about, so this says
-        // nothing at all — no empty box on the front door (#516), no invitation to catch up.
+    private renderReturnTile(parent: HTMLElement): void {
+        // No claims anywhere is silence — no empty box on the front door (#516), no invitation to
+        // catch up, nothing that grows while you are not looking. The tile appears only once the
+        // vault has said something.
         if (!this.claimsExist) return;
+        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("home-tile")}` });
+        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("home_hero_return") });
+        // Claims exist but none is due: one quiet sentence, never a card pretending to have content.
         if (!this.claimReturn) {
-            container.createDiv({ cls: c("home-claim-return-quiet"), text: t("home_return_none") });
+            tile.createDiv({ cls: c("home-tile-sub"), text: t("home_return_none") });
             return;
         }
         const due = this.claimReturn;
         // One line, and it says which kind of thing came back: a claim you have not looked at in a
         // while, or a day **you** set arriving (#571).
         const wager = due.kind === "wager";
-        const section = container.createDiv({ cls: c("home-claim-return") });
-        section.createDiv({
+        tile.createDiv({
             cls: c("home-claim-return-title"),
             text: t(wager ? "home_claim_return_wager_title" : "home_claim_return_title"),
         });
-        section.createDiv({
+        tile.createDiv({
             cls: c("home-claim-return-when"),
             text: wager
                 ? t("home_claim_return_wager_when", when(due.lastTouched))
                 : t("home_claim_return_when", when(due.lastTouched)),
         });
-        const open = section.createEl("button", {
+        const open = tile.createEl("button", {
             cls: "mod-cta",
             text: t(wager ? "home_claim_return_wager_open" : "home_claim_return_open"),
         });
-        open.addEventListener("click", () => {
+        this.registerDomEvent(open, "click", () => {
             const plugin = ObsidianApi.getOwnPlugin();
             // `derived` — the system brought it back. Opening it yourself records `human` (#562).
             if (plugin) openReturn(plugin, due.path, "derived");
@@ -259,21 +319,22 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
      * The Cultivate on-ramp (#309 S4): a one-click start of a guided thinking session on the
      * highest-leverage idea, with the count of ideas that still have development headroom.
      */
-    private renderCultivateTeaser(container: HTMLElement): void {
-        const teaser = container.createDiv({ cls: c("home-cultivate-teaser") });
-        teaser.createDiv({ cls: c("home-cultivate-teaser-title"), text: t("home_inquiry_title") });
-        teaser.createDiv({
-            cls: c("home-cultivate-teaser-sub"),
-            text: t("home_inquiry_desc"),
-        });
+    private renderCultivateTile(parent: HTMLElement): void {
+        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("home-tile")}` });
+        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("home_hero_cultivate") });
+        tile.createDiv({ cls: c("home-tile-sub"), text: t("home_inquiry_desc") });
         const resume = !!InquiryRuntime.getInstance().getSnapshot().current;
-        const btn = teaser.createEl("button", {
-            cls: c("home-cultivate-teaser-btn"),
-            text: t(resume ? 'inquiry_resume' : 'inquiry_start'),
+        const btn = tile.createEl("button", {
+            cls: "mod-cta",
+            text: t(resume ? "inquiry_resume" : "inquiry_start"),
         });
-        btn.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: resume ? 'resume' : 'start' }));
-        const ordinary = teaser.createEl('button', { text: t('inquiry_ordinary'), cls: c('inquiry-onramp') });
-        ordinary.addEventListener('click', () => void activateSurface(this.app, 'zettelflow-home', 'cultivate', { inquiry: 'ordinary' }));
+        this.registerDomEvent(btn, "click", () =>
+            void activateSurface(this.app, "zettelflow-home", "cultivate", { inquiry: resume ? "resume" : "start" })
+        );
+        const ordinary = tile.createEl("button", { cls: c("inquiry-onramp"), text: t("inquiry_ordinary") });
+        this.registerDomEvent(ordinary, "click", () =>
+            void activateSurface(this.app, "zettelflow-home", "cultivate", { inquiry: "ordinary" })
+        );
     }
 
     /**
@@ -360,17 +421,24 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         );
     }
 
-    /** The "What to do next" section (#273): top recommendations, each row navigating to its target. */
-    private renderRecommendations(container: HTMLElement): void {
-        const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t("home_section_recommendations"), cls: c("home-section-title") });
+    /**
+     * The one thing to do next (#273), re-ranked as the dashboard hero (#620): the top
+     * recommendations, each row navigating to its target. The single tile that wears the accent —
+     * so "this is where to look" reads the same here as it does in Cultivate.
+     */
+    private renderNextTile(parent: HTMLElement): void {
+        // Silent until the model is ready: recommendations over a half-built index would be wrong,
+        // and an "all caught up" line while still indexing worse.
+        if (this.state !== "ready" || !this.home) return;
+        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("dashboard-card--hero")} ${c("home-tile")}` });
+        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("home_hero_next") });
 
         if (isAllCaughtUp(this.recommendations)) {
-            section.createDiv({ cls: c("home-recommendation-clear"), text: t("home_recommendation_reason_all-clear") });
+            tile.createDiv({ cls: c("home-recommendation-clear"), text: t("home_recommendation_reason_all-clear") });
             return;
         }
 
-        const list = section.createDiv({ cls: c("home-list") });
+        const list = tile.createDiv({ cls: c("home-list") });
         for (const rec of this.recommendations) {
             if (rec.reason === "all-clear") continue;
             const row = list.createDiv({ cls: c("home-recommendation") });

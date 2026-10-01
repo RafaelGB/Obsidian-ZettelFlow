@@ -85,6 +85,12 @@ Where the canvas wizard and quick-capture serve **creation**, and the dashboards
 Cultivate serves the middle of the lifecycle — `DEVELOP → REVIEW → CONSOLIDATE` — that used to be
 passive. It doesn't just *tell* you what to do; it *walks you through doing it*.
 
+Cultivate is laid out as a **dashboard** (#620): the idea under cultivation is the one accent card,
+beside a *Notes by stage* card that is also the stage filter, and the five moves reflow as a grid of
+cards rather than a tall column. Like the rest of the Home surface it **fills the pane** — collapse
+Obsidian's side panels and the cards spread into two or three columns instead of a narrow centred
+strip. See [the surfaces page](../architecture/surfaces.md#a-dashboard-that-fills-the-pane-620).
+
 ## Starting a session
 
 - **Home surface → Cultivate mode**, the **`Cultivate — start a thinking session`** command, or the

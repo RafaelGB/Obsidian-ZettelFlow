@@ -51,4 +51,13 @@ describe("the dashboard fills the pane instead of a narrow centred column (#620)
         const moves = cultivate.slice(cultivate.indexOf(".zettelkasten-flow__cultivate-moves"));
         expect(moves).toMatch(/grid-template-columns:\s*repeat\(\s*auto-fit\s*,\s*minmax\(/);
     });
+
+    it("reflows the Lab thread list into a grid that keeps newest-first order (#620, decision #2)", () => {
+        const lab = read("lab.scss");
+        const list = lab.slice(lab.indexOf(".zettelkasten-flow__lab-list"), lab.indexOf(".zettelkasten-flow__lab-card"));
+        expect(list).toMatch(/grid-template-columns:\s*repeat\(\s*auto-fit\s*,\s*minmax\(/);
+        // CSS grid, not CSS `columns` — columns fill top-to-bottom and reorder a time-ordered list.
+        expect(list).toMatch(/align-items:\s*start/);
+        expect(list).not.toMatch(/^\s*columns:\s*\d/m);
+    });
 });

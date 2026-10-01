@@ -96,10 +96,20 @@
 
 /* ── the thoughts ─────────────────────────────────────────────────────────── */
 
+// On a wide pane the threads reflow into columns (#620): a grid, not CSS `columns`, so the
+// newest-first order still reads left-to-right, top-to-bottom. One column when the pane is narrow.
+// `align-items: start` so a tall thread never stretches the one beside it.
 .zettelkasten-flow__lab-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+    gap: var(--size-4-3);
+    align-items: start;
+}
+
+// The window's foot and the empty line speak for the whole list, so they span every column.
+.zettelkasten-flow__lab-more,
+.zettelkasten-flow__lab-blank {
+    grid-column: 1 / -1;
 }
 
 .zettelkasten-flow__lab-card {

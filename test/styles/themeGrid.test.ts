@@ -67,7 +67,8 @@ const CEILING: Record<string, number> = {
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
     // 120 → 119: the 780px centred cage removed when the Lab went fluid (#620).
-    "lab.scss": 119,
+    // 119 → 118: the thread list's `12px` gap became `var(--size-4-3)` when it became a grid (#620).
+    "lab.scss": 118,
     "main.scss": 29,
     "modal.scss": 10,
     "openQuestions.scss": 1,

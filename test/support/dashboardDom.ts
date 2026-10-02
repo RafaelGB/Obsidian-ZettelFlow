@@ -16,6 +16,10 @@ export class DomNode {
     disabled = false;
     draggable = false;
     tabIndex = -1;
+    /** `<details>` disclosure state (#640). */
+    open = false;
+    /** Every `scrollIntoView` call, with its options — the companion's hand-over is asserted on these. */
+    scrolls: any[] = [];
     href = "";
     type = "";
     listeners: Record<string, ((event: any) => void)[]> = {};
@@ -131,6 +135,9 @@ export class DomNode {
         return { left: 0, top: 0, width: 100, height: 100 };
     }
     focus(): void { }
+    scrollIntoView(options?: any): void {
+        this.scrolls.push(options);
+    }
 
     find(predicate: (el: DomNode) => boolean): DomNode | undefined {
         for (const child of this.children) {

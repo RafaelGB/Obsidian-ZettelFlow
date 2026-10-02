@@ -14,7 +14,7 @@ function snap(sig: string): DataStoreSnapshot {
 const COMPUTED = { enabled: true, code: "return rows" };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const scoreCompile = () => async (rows: any) => rows.map((r: any) => ({ ...r, score: r["note.n"] * 10 }));
+const scoreCompile = () => async (row: any) => ({ score: row.n * 10 });
 
 function makeDeps(over: Partial<ResolverDeps> = {}): { deps: ResolverDeps; records: { ok: boolean }[] } {
     const records: { ok: boolean }[] = [];
@@ -50,6 +50,32 @@ describe("ComputedResolver (#632)", () => {
         expect(result.error).toBe("boom");
         expect(result.snapshot.schema.byId["score"]).toBeUndefined(); // un-enriched input returned
         expect(bad.records).toEqual([{ ok: false }]);
+    });
+
+    it("evaluate() runs uncached and reports skipped notes (the editor's preview)", async () => {
+        const { deps, records } = makeDeps({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            compile: () => async (row: any) => {
+                if (row.n === 4) throw new Error("bad note");
+                return { half: row.n / 2 };
+            },
+        });
+        const resolver = new ComputedResolver(deps);
+        const outcome = await resolver.evaluate(snap("p"), "ignored");
+        expect(outcome.ok).toBe(true);
+        if (!outcome.ok) return;
+        expect(outcome.added.map((f) => f.id)).toEqual(["half"]);
+        expect(outcome.skipped).toBe(1);
+        expect(outcome.warnings).toEqual([{ row: 1, message: "bad note" }]);
+        await resolver.evaluate(snap("p"), "ignored");
+        expect(records).toHaveLength(2); // uncached — every preview is a recorded run
+    });
+
+    it("a compile (syntax) error fails safe like a runtime throw", async () => {
+        const { deps, records } = makeDeps({ compile: () => { throw new SyntaxError("Unexpected token"); } });
+        const result = await new ComputedResolver(deps).resolve(snap("x"), COMPUTED);
+        expect(result.error).toBe("Unexpected token");
+        expect(records).toEqual([{ ok: false }]);
     });
 
     it("is a no-op (passthrough) when disabled or empty (AC-7)", async () => {

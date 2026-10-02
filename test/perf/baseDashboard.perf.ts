@@ -76,7 +76,7 @@ describe("the Base dashboard data path (#622)", () => {
         const resolver = new ComputedResolver({
             loadZf: async () => ({ knowledge: {}, internal: { vault: {} } }),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            compile: () => async (rows: any) => rows.map((r: any) => ({ ...r, score: (r["note.n"] as number) + 1 })),
+            compile: () => async (row: any) => ({ score: (row.n as number) + 1 }),
             record: () => undefined,
         });
         const started = Date.now();

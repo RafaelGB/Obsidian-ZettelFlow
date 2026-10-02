@@ -3,27 +3,37 @@
  * YAML). Pick a type, map its channels from the Base's fields, add level-2 transforms, name it.
  * Defaults come from `suggestMapping`. The channel loop is generic (channel key == PanelMapping
  * field) and reads the **effective** fields, so a transform's virtual output is mappable. Epic #622.
+ *
+ * Built from Obsidian's own parts (#632 UX): `setTitle`, `Setting` rows under `setHeading()`
+ * sections, and the native `modal-button-container` footer. Beside the form, a **live preview** draws
+ * the panel exactly as the dashboard will — with this Base's real data — as you change it, so a
+ * mapping is something you see rather than something you guess.
  */
-import { Modal, Setting, setIcon } from "obsidian";
+import { Modal, Setting } from "obsidian";
 import type { App } from "obsidian";
 import { v4 as uuid } from "uuid";
 import { t } from "architecture/lang";
 import { c } from "architecture/styles/helper";
-import type { Schema, SchemaField } from "dashboards/datastore";
+import type { DataStoreSnapshot, FieldType, SchemaField } from "dashboards/datastore";
 import {
     PANEL_TYPES,
     panelTypeList,
     suggestMapping,
     type AggregateFn,
     type ChannelSpec,
+    type ChartTheme,
     type PanelConfig,
     type PanelMapping,
     type PanelType,
 } from "dashboards/panels";
 import { effectiveFields } from "dashboards/transform";
 import type { CalcOp, FilterOp, TransformStep, TransformType } from "dashboards/transform";
+import { PanelHost } from "./PanelHost";
+import { setIconWithFallback } from "./icons";
 
-const AGG_LABEL_KEYS: Record<AggregateFn, string> = {
+type LocaleKey = Parameters<typeof t>[0];
+
+const AGG_LABEL_KEYS: Record<AggregateFn, LocaleKey> = {
     sum: "dashboard_agg_sum",
     avg: "dashboard_agg_avg",
     min: "dashboard_agg_min",
@@ -31,7 +41,7 @@ const AGG_LABEL_KEYS: Record<AggregateFn, string> = {
     count: "dashboard_agg_count",
 };
 
-const TF_LABEL_KEYS: Record<TransformType, string> = {
+const TF_LABEL_KEYS: Record<TransformType, LocaleKey> = {
     filter: "dashboard_tf_filter",
     sort: "dashboard_tf_sort",
     groupBy: "dashboard_tf_groupby",
@@ -51,6 +61,10 @@ const OP_SYMBOL: Record<FilterOp | CalcOp, string> = {
 };
 const AGG_ORDER: AggregateFn[] = ["avg", "sum", "min", "max", "count"];
 
+function typeLabelKey(type: FieldType): LocaleKey {
+    return `dashboard_type_${type}` as LocaleKey;
+}
+
 export class PanelConfigModal extends Modal {
     private type: PanelType;
     private mapping: PanelMapping;
@@ -59,16 +73,19 @@ export class PanelConfigModal extends Modal {
     private typeChooserEl: HTMLElement | null = null;
     private channelsEl: HTMLElement | null = null;
     private transformsEl: HTMLElement | null = null;
+    private preview: PanelHost | null = null;
+    private previewFrame = 0;
 
     constructor(
         app: App,
-        private readonly schema: Schema,
+        private readonly snapshot: DataStoreSnapshot,
+        private readonly theme: ChartTheme,
         private readonly initial: PanelConfig | null,
         private readonly onSubmit: (config: PanelConfig) => void,
     ) {
         super(app);
         this.type = initial?.type ?? "stat";
-        this.mapping = initial ? { ...initial.mapping } : suggestMapping(this.type, schema);
+        this.mapping = initial ? { ...initial.mapping } : suggestMapping(this.type, snapshot.schema);
         this.transforms = initial?.transforms ? initial.transforms.map((step) => ({ ...step })) : [];
         this.title = initial?.title ?? "";
     }
@@ -76,28 +93,74 @@ export class PanelConfigModal extends Modal {
     onOpen(): void {
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.createEl("h3", {
-            text: this.initial ? t("dashboard_edit_panel") : t("dashboard_new_panel_title"),
-        });
+        this.modalEl.addClass(c("base-dashboard-modal"));
+        this.setTitle(this.initial ? t("dashboard_edit_panel") : t("dashboard_new_panel_title"));
 
-        contentEl.createDiv({ cls: c("base-dashboard-channel-label"), text: t("dashboard_panel_type") });
-        this.typeChooserEl = contentEl.createDiv({ cls: c("base-dashboard-type-chooser") });
+        const layout = contentEl.createDiv({ cls: c("base-dashboard-modal-layout") });
+        const form = layout.createDiv({ cls: c("base-dashboard-modal-form") });
+        const aside = layout.createDiv({ cls: c("base-dashboard-modal-preview") });
+
+        this.typeChooserEl = form.createDiv({
+            cls: c("base-dashboard-type-chooser"),
+            attr: { role: "radiogroup", "aria-label": t("dashboard_panel_type") },
+        });
         this.renderTypeChooser();
 
-        new Setting(contentEl)
-            .setName(t("dashboard_panel_title"))
-            .addText((txt) => txt.setValue(this.title).onChange((value) => (this.title = value)));
+        new Setting(form).setName(t("dashboard_panel_title")).addText((txt) =>
+            txt
+                .setPlaceholder(this.typeLabel(this.type))
+                .setValue(this.title)
+                .onChange((value) => {
+                    this.title = value;
+                    this.changed();
+                }),
+        );
 
-        this.channelsEl = contentEl.createDiv({ cls: c("base-dashboard-channels") });
+        new Setting(form).setName(t("dashboard_data_heading")).setHeading();
+        this.channelsEl = form.createDiv({ cls: c("base-dashboard-channels") });
         this.renderChannels();
 
-        contentEl.createEl("h4", { text: t("dashboard_transforms_heading") });
-        this.transformsEl = contentEl.createDiv({ cls: c("base-dashboard-transforms") });
+        new Setting(form).setName(t("dashboard_transforms_heading")).setDesc(t("dashboard_transforms_desc")).setHeading();
+        this.transformsEl = form.createDiv({ cls: c("base-dashboard-transforms") });
         this.renderTransforms();
 
-        new Setting(contentEl).addButton((btn) =>
-            btn.setButtonText(t("dashboard_save")).setCta().onClick(() => this.submit()),
-        );
+        aside.createDiv({ cls: c("base-dashboard-preview-label"), text: t("dashboard_preview") });
+        this.preview = new PanelHost(aside, this.draft(), null, { preview: true });
+        this.preview.load();
+        this.changed();
+
+        const footer = contentEl.createDiv({ cls: "modal-button-container" });
+        footer.createEl("button", { text: t("dashboard_cancel") }).addEventListener("click", () => this.close());
+        footer
+            .createEl("button", { cls: "mod-cta", text: t("dashboard_save") })
+            .addEventListener("click", () => this.submit());
+    }
+
+    private typeLabel(type: PanelType): string {
+        return t(PANEL_TYPES[type].labelKey as LocaleKey);
+    }
+
+    /** The panel as it stands in the form — what the preview draws and what Save stores. */
+    private draft(): PanelConfig {
+        return {
+            id: this.initial?.id ?? "preview",
+            type: this.type,
+            title: this.title.trim() || undefined,
+            mapping: this.mapping,
+            transforms: this.transforms.length > 0 ? this.transforms : undefined,
+            layout: this.initial?.layout,
+        };
+    }
+
+    /** Redraw the preview on the next frame — a burst of edits paints once. */
+    private changed(): void {
+        if (this.previewFrame) window.cancelAnimationFrame(this.previewFrame);
+        this.previewFrame = window.requestAnimationFrame(() => {
+            this.previewFrame = 0;
+            if (!this.preview) return;
+            this.preview.setConfig(this.draft());
+            this.preview.update(this.snapshot, this.theme);
+        });
     }
 
     private bag(): Record<string, unknown> {
@@ -106,7 +169,7 @@ export class PanelConfigModal extends Modal {
 
     /** The fields available to map — the Base's fields after the configured transforms (S5). */
     private fields(): SchemaField[] {
-        return effectiveFields(this.schema.fields, this.transforms);
+        return effectiveFields(this.snapshot.schema.fields, this.transforms);
     }
 
     private eligibleFields(accepts: readonly string[]): SchemaField[] {
@@ -115,45 +178,54 @@ export class PanelConfigModal extends Modal {
         return eligible.length > 0 ? eligible : fields;
     }
 
+    /** A field as the picker shows it: its name, and the type it charts as. */
+    private optionLabel(field: SchemaField): string {
+        return `${field.name} · ${t(typeLabelKey(field.type)).toLowerCase()}`;
+    }
+
     private renderSingle(host: HTMLElement, channel: ChannelSpec): void {
-        new Setting(host).setName(t(channel.labelKey as Parameters<typeof t>[0])).addDropdown((dd) => {
+        new Setting(host).setName(t(channel.labelKey as LocaleKey)).addDropdown((dd) => {
             if (!channel.required) dd.addOption("", "—");
-            for (const field of this.eligibleFields(channel.accepts)) dd.addOption(field.id, field.name);
+            for (const field of this.eligibleFields(channel.accepts)) dd.addOption(field.id, this.optionLabel(field));
             dd.setValue((this.bag()[channel.key] as string | undefined) ?? "").onChange((value) => {
                 this.bag()[channel.key] = value || undefined;
+                this.changed();
             });
         });
     }
 
     private renderMultiple(host: HTMLElement, channel: ChannelSpec): void {
-        host.createDiv({ cls: c("base-dashboard-channel-label"), text: t(channel.labelKey as Parameters<typeof t>[0]) });
         const selected = this.selected(channel.key);
         const fields = this.eligibleFields(channel.accepts);
+        const remaining = fields.filter((field) => !selected.includes(field.id));
 
-        // One removable row per chosen field — you see only what you picked, not a toggle per field.
+        // The channel is one row: its chosen fields as removable pills, and a dropdown adding one more
+        // — you see what you picked, and it scales to a Base with many fields.
+        const setting = new Setting(host).setName(t(channel.labelKey as LocaleKey));
+        const pills = setting.controlEl.createDiv({ cls: c("base-dashboard-pills") });
         for (const id of selected) {
             const field = fields.find((candidate) => candidate.id === id);
-            new Setting(host).setName(field?.name ?? id).addExtraButton((btn) =>
-                btn
-                    .setIcon("x")
-                    .setTooltip(t("dashboard_remove_transform"))
-                    .onClick(() => {
-                        this.bag()[channel.key] = this.selected(channel.key).filter((other) => other !== id);
-                        this.renderChannels();
-                    }),
-            );
+            const pill = pills.createSpan({ cls: c("base-dashboard-pill"), text: field?.name ?? id });
+            const remove = pill.createEl("button", {
+                cls: `clickable-icon ${c("base-dashboard-pill-remove")}`,
+                attr: { type: "button", "aria-label": t("dashboard_remove_transform") },
+            });
+            setIconWithFallback(remove, "x");
+            remove.addEventListener("click", () => {
+                this.bag()[channel.key] = this.selected(channel.key).filter((other) => other !== id);
+                this.renderChannels();
+                this.changed();
+            });
         }
-
-        // A dropdown that adds one more — scales to a Base with many fields.
-        const remaining = fields.filter((field) => !selected.includes(field.id));
         if (remaining.length > 0) {
-            new Setting(host).addDropdown((dd) => {
+            setting.addDropdown((dd) => {
                 dd.addOption("", t("dashboard_channel_add"));
-                for (const field of remaining) dd.addOption(field.id, field.name);
+                for (const field of remaining) dd.addOption(field.id, this.optionLabel(field));
                 dd.setValue("").onChange((value) => {
                     if (!value) return;
                     this.bag()[channel.key] = [...this.selected(channel.key), value];
                     this.renderChannels();
+                    this.changed();
                 });
             });
         }
@@ -168,19 +240,21 @@ export class PanelConfigModal extends Modal {
         if (!host) return;
         host.empty();
         for (const spec of panelTypeList()) {
-            const option = host.createEl("button", { cls: c("base-dashboard-type-option") });
-            if (spec.type === this.type) option.addClass("is-active");
-            setIcon(option.createSpan({ cls: c("base-dashboard-type-icon") }), spec.icon);
-            option.createSpan({
-                cls: c("base-dashboard-type-label"),
-                text: t(spec.labelKey as Parameters<typeof t>[0]),
+            const active = spec.type === this.type;
+            const option = host.createEl("button", {
+                cls: c("base-dashboard-type-option"),
+                attr: { type: "button", role: "radio", "aria-checked": String(active) },
             });
+            option.toggleClass("is-active", active);
+            setIconWithFallback(option.createSpan({ cls: c("base-dashboard-type-icon") }), spec.icon);
+            option.createSpan({ cls: c("base-dashboard-type-label"), text: this.typeLabel(spec.type) });
             option.addEventListener("click", () => {
                 if (this.type === spec.type) return;
                 this.type = spec.type;
-                this.mapping = suggestMapping(this.type, this.schema);
+                this.mapping = suggestMapping(this.type, this.snapshot.schema);
                 this.renderTypeChooser();
                 this.renderChannels();
+                this.changed();
             });
         }
     }
@@ -195,9 +269,10 @@ export class PanelConfigModal extends Modal {
         }
         if (this.type === "stat") {
             new Setting(host).setName(t("dashboard_aggregate")).addDropdown((dd) => {
-                for (const agg of AGG_ORDER) dd.addOption(agg, t(AGG_LABEL_KEYS[agg] as Parameters<typeof t>[0]));
+                for (const agg of AGG_ORDER) dd.addOption(agg, t(AGG_LABEL_KEYS[agg]));
                 dd.setValue(this.mapping.aggregate ?? "avg").onChange((value) => {
                     this.mapping.aggregate = value as AggregateFn;
+                    this.changed();
                 });
             });
         }
@@ -212,23 +287,28 @@ export class PanelConfigModal extends Modal {
         new Setting(host).setName(t("dashboard_add_transform")).addDropdown((dd) => {
             dd.addOption("", "—");
             for (const type of Object.keys(TF_LABEL_KEYS) as TransformType[]) {
-                dd.addOption(type, t(TF_LABEL_KEYS[type] as Parameters<typeof t>[0]));
+                dd.addOption(type, t(TF_LABEL_KEYS[type]));
             }
             dd.setValue("").onChange((value) => {
                 if (!value) return;
                 this.transforms.push({ id: uuid(), type: value as TransformType });
                 this.renderTransforms();
                 this.renderChannels();
+                this.changed();
             });
         });
     }
 
     private renderStep(host: HTMLElement, step: TransformStep, index: number): void {
-        const setting = new Setting(host).setName(t(TF_LABEL_KEYS[step.type] as Parameters<typeof t>[0]));
+        const setting = new Setting(host).setName(`${index + 1}. ${t(TF_LABEL_KEYS[step.type])}`);
+        setting.settingEl.addClass(c("base-dashboard-step"));
         const refresh = (): void => {
             this.renderTransforms();
             this.renderChannels();
+            this.changed();
         };
+        // A value typed into a step redraws the preview without rebuilding the form under the caret.
+        const changed = (): void => this.changed();
 
         const fieldDropdown = (get: () => string | undefined, set: (v: string | undefined) => void): void => {
             setting.addDropdown((dd) => {
@@ -240,46 +320,76 @@ export class PanelConfigModal extends Modal {
                 });
             });
         };
+        const aggregateDropdown = (fallback: AggregateFn): void => {
+            setting.addDropdown((dd) => {
+                for (const agg of AGG_ORDER) dd.addOption(agg, t(AGG_LABEL_KEYS[agg]));
+                dd.setValue(step.aggregate ?? fallback).onChange((v) => {
+                    step.aggregate = v as AggregateFn;
+                    changed();
+                });
+            });
+        };
+        const valueText = (placeholder: LocaleKey): void => {
+            setting.addText((txt) =>
+                txt
+                    .setPlaceholder(t(placeholder))
+                    .setValue(step.value ?? "")
+                    .onChange((v) => {
+                        step.value = v;
+                        changed();
+                    }),
+            );
+        };
 
         fieldDropdown(() => step.field, (v) => (step.field = v));
 
         if (step.type === "filter") {
             setting.addDropdown((dd) => {
                 for (const op of FILTER_OPS) dd.addOption(op, OP_SYMBOL[op]);
-                dd.setValue(step.op ?? "eq").onChange((v) => (step.op = v as FilterOp));
+                dd.setValue(step.op ?? "eq").onChange((v) => {
+                    step.op = v as FilterOp;
+                    changed();
+                });
             });
-            setting.addText((txt) => txt.setPlaceholder(t("dashboard_tf_value")).setValue(step.value ?? "").onChange((v) => (step.value = v)));
+            valueText("dashboard_tf_value");
         } else if (step.type === "sort") {
             setting.addDropdown((dd) => {
                 dd.addOption("asc", t("dashboard_direction_asc"));
                 dd.addOption("desc", t("dashboard_direction_desc"));
-                dd.setValue(step.direction ?? "asc").onChange((v) => (step.direction = v as "asc" | "desc"));
+                dd.setValue(step.direction ?? "asc").onChange((v) => {
+                    step.direction = v as "asc" | "desc";
+                    changed();
+                });
             });
         } else if (step.type === "groupBy") {
             fieldDropdown(() => step.field2, (v) => (step.field2 = v));
-            setting.addDropdown((dd) => {
-                for (const agg of AGG_ORDER) dd.addOption(agg, t(AGG_LABEL_KEYS[agg] as Parameters<typeof t>[0]));
-                dd.setValue(step.aggregate ?? "sum").onChange((v) => (step.aggregate = v as AggregateFn));
-            });
+            aggregateDropdown("sum");
         } else if (step.type === "aggregate") {
-            setting.addDropdown((dd) => {
-                for (const agg of AGG_ORDER) dd.addOption(agg, t(AGG_LABEL_KEYS[agg] as Parameters<typeof t>[0]));
-                dd.setValue(step.aggregate ?? "sum").onChange((v) => (step.aggregate = v as AggregateFn));
-            });
+            aggregateDropdown("sum");
         } else if (step.type === "bin") {
-            setting.addText((txt) => txt.setPlaceholder(t("dashboard_tf_size")).setValue(step.value ?? "").onChange((v) => (step.value = v)));
+            valueText("dashboard_tf_size");
         } else if (step.type === "calculate") {
             setting.addDropdown((dd) => {
                 for (const op of CALC_OPS) dd.addOption(op, OP_SYMBOL[op]);
-                dd.setValue(step.op ?? "mul").onChange((v) => (step.op = v as CalcOp));
+                dd.setValue(step.op ?? "mul").onChange((v) => {
+                    step.op = v as CalcOp;
+                    changed();
+                });
             });
-            setting.addText((txt) => txt.setPlaceholder(t("dashboard_tf_value")).setValue(step.value ?? "").onChange((v) => (step.value = v)));
-            setting.addText((txt) => txt.setPlaceholder(t("dashboard_tf_new_field")).setValue(step.newField ?? "").onChange((v) => {
-                step.newField = v || undefined;
-                refresh();
-            }));
+            valueText("dashboard_tf_value");
+            setting.addText((txt) =>
+                txt
+                    .setPlaceholder(t("dashboard_tf_new_field"))
+                    .setValue(step.newField ?? "")
+                    .onChange((v) => {
+                        // The new field becomes mappable at once; the step row keeps the caret.
+                        step.newField = v || undefined;
+                        this.renderChannels();
+                        changed();
+                    }),
+            );
         } else if (step.type === "movingAverage") {
-            setting.addText((txt) => txt.setPlaceholder(t("dashboard_tf_window")).setValue(step.value ?? "").onChange((v) => (step.value = v)));
+            valueText("dashboard_tf_window");
         }
 
         setting.addExtraButton((btn) =>
@@ -294,17 +404,14 @@ export class PanelConfigModal extends Modal {
     }
 
     private submit(): void {
-        this.onSubmit({
-            id: this.initial?.id ?? uuid(),
-            type: this.type,
-            title: this.title.trim() || undefined,
-            mapping: this.mapping,
-            transforms: this.transforms.length > 0 ? this.transforms : undefined,
-        });
+        this.onSubmit({ ...this.draft(), id: this.initial?.id ?? uuid() });
         this.close();
     }
 
     onClose(): void {
+        if (this.previewFrame) window.cancelAnimationFrame(this.previewFrame);
+        this.preview?.unload();
+        this.preview = null;
         this.contentEl.empty();
     }
 }

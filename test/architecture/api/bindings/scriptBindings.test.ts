@@ -52,7 +52,7 @@ describe("the binding contract of a scripting surface (#349, FR-2/AC-3)", () => 
         const names = bindingNames(DASHBOARD_BINDINGS);
         expect(names).toContain("zf");
         expect(names).not.toContain("app");
-        expect(names).toEqual(["rows", "zf"]);
+        expect(names).toEqual(["row", "index", "rows", "zf"]);
     });
 
     it.each(Object.entries(NAMED_SURFACES))("%s names every binding exactly once", (_name, bindings) => {

@@ -7,7 +7,7 @@
  * return the previous snapshot by `===`, so an unchanged result is a genuine no-op (AC-3) and
  * downstream panels can skip re-rendering.
  */
-import { AdaptedEntry, DataStoreSnapshot, FieldDescriptor, Row } from "./types";
+import { AdaptedEntry, DataStoreSnapshot, FieldDescriptor, Row, withRowPath } from "./types";
 import { inferSchema } from "./schema";
 
 function buildIndexes(rows: Row[], fieldIds: string[]): Record<string, Record<string, number[]>> {
@@ -35,7 +35,7 @@ export function normalize(
 
     const schema = inferSchema(entries, properties);
     const fieldIds = schema.fields.map((field) => field.id);
-    const rows: Row[] = entries.map((entry) => entry.cells);
+    const rows: Row[] = entries.map((entry) => withRowPath(entry.cells, entry.path));
     const indexes = buildIndexes(rows, fieldIds);
 
     return {

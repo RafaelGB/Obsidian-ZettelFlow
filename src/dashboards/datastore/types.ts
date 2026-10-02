@@ -56,6 +56,26 @@ export interface Schema {
 export type Row = Record<string, TaggedCell>;
 
 /**
+ * The note a row came from, carried under a **symbol** key so it travels with the row (object spread
+ * copies it, so transforms and computed fields keep it) yet never appears as a field: `Object.keys`,
+ * `Object.entries` and JSON all skip symbols. It is what lets a click on a chart open the note.
+ */
+export const ROW_PATH: unique symbol = Symbol("zettelflow.rowPath");
+
+type PathedRow = Row & { [ROW_PATH]?: string };
+
+/** The vault path of the note a row came from — `undefined` for a row a transform aggregated. */
+export function rowPath(row: Row): string | undefined {
+    return (row as PathedRow)[ROW_PATH];
+}
+
+/** Tag a row with its note's path (mutates and returns it — rows are built fresh per snapshot). */
+export function withRowPath(row: Row, path: string): Row {
+    (row as PathedRow)[ROW_PATH] = path;
+    return row;
+}
+
+/**
  * An in-memory derived field. It is evaluated only while a panel is processed and is **never
  * written back to the vault** (constitution §XII); it lives on the snapshot, not on a note.
  */

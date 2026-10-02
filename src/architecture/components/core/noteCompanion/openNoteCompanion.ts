@@ -1,0 +1,34 @@
+import type { App } from "obsidian";
+import type { NextMoveToken } from "architecture/knowledge/state";
+import { NOTE_COMPANION_VIEW, type CompanionFocus, type NoteCompanionState } from "./noteCompanionContract";
+
+export interface CompanionRequest {
+    /** Show this note. Absent: keep showing what it shows (or follow the active note). */
+    path?: string;
+    /** Land here on arrival (#641 next step, #644 Tend hand-over). */
+    focus?: CompanionFocus;
+    /** The move to preselect when `focus` is `next`. */
+    move?: NextMoveToken;
+}
+
+/**
+ * The one way to open **This note** (#640 FR-1/2/20).
+ *
+ * There is only ever one: an existing companion is updated and revealed where it is — a user who
+ * dragged it into the main area keeps it there — and only when there is none is a leaf made, in
+ * the right sidebar, where Backlinks and Outline live.
+ */
+export async function openNoteCompanion(app: App, request: CompanionRequest = {}): Promise<void> {
+    const state: NoteCompanionState & Record<string, unknown> = {};
+    if (request.path) state.path = request.path;
+    if (request.focus) state.focus = request.focus;
+    if (request.move) state.move = request.move;
+
+    const existing = app.workspace.getLeavesOfType(NOTE_COMPANION_VIEW)[0];
+    if (existing) {
+        await existing.setViewState({ type: NOTE_COMPANION_VIEW, state, active: true });
+        await app.workspace.revealLeaf(existing);
+        return;
+    }
+    await app.workspace.ensureSideLeaf(NOTE_COMPANION_VIEW, "right", { active: true, reveal: true, state });
+}

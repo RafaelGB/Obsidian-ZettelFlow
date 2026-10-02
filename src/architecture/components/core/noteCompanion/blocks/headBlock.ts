@@ -1,6 +1,7 @@
 import { setIcon } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
+import { hoverPreview } from "architecture/components/core/a11y";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
 import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBlock";
 
@@ -132,5 +133,6 @@ export class HeadBlock extends CompanionBlock {
             attr: { type: "button", title: last },
         });
         this.registerDomEvent(link, "click", () => ctx.open(last));
+        hoverPreview(ctx.app, link, last, ctx.owner);
     }
 }

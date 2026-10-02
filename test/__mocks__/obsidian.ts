@@ -42,6 +42,31 @@ export class Component {
     this.cleanups.push(() => el.removeEventListener(type, handler));
   }
 }
+/**
+ * A leaf and a view, small enough to construct a sidebar view under jest (#640). The test hands the
+ * leaf its `app` and a `contentEl` (a `DomNode`), and reads back what the view drew there.
+ */
+export class WorkspaceLeaf {
+  view: any = null;
+  constructor(public app?: any, public contentEl?: any) { }
+  async setViewState(_state: unknown): Promise<void> { }
+}
+export class ItemView extends Component {
+  app: any;
+  containerEl: any;
+  contentEl: any;
+  constructor(public leaf: any) {
+    super();
+    this.app = leaf?.app;
+    this.contentEl = leaf?.contentEl;
+    this.containerEl = leaf?.contentEl;
+  }
+  getViewType(): string { return ""; }
+  getDisplayText(): string { return ""; }
+  getIcon(): string { return ""; }
+  getState(): Record<string, unknown> { return {}; }
+  async setState(_state: unknown, _result: unknown): Promise<void> { }
+}
 export class Modal {
   /** What `setTitle` was given — a test reads the title the user would see. */
   titleText = "";

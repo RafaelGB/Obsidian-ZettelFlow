@@ -110,6 +110,14 @@ export class KnowledgeIndex {
     }
 
     /** Register concrete vocabularies (#146/#147/#148) before the (re)build that should use them. */
+    /**
+     * Whether a note's frontmatter states a lifecycle state the registered schema recognises (#640).
+     * With no schema, or one that cannot tell, every note counts as stated.
+     */
+    public recognisesState(frontmatter: Record<string, unknown>): boolean {
+        return this.schemas.state?.recognises?.(frontmatter) ?? true;
+    }
+
     public registerSchemas(schemas: KnowledgeSchemas): void {
         this.schemas = { ...this.schemas, ...schemas };
         // A new vocabulary changes what enrichment concludes from the same text (#459).

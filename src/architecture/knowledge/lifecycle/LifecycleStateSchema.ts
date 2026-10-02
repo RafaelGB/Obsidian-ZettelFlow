@@ -31,6 +31,17 @@ export class LifecycleStateSchema implements StateSchema {
         }
     }
 
+    /**
+     * Whether the note **states** a state this schema knows (#640). `parse` reads a missing or
+     * unknown value as fleeting (decision #1); a view that draws where a note stands must not.
+     */
+    recognises(frontmatter: Record<string, unknown>): boolean {
+        const raw = frontmatter?.[this.property];
+        if (typeof raw !== "string") return false;
+        const value = normalize(raw);
+        return value !== "" && (isLifecycleState(value) || this.aliases[value] !== undefined);
+    }
+
     parse(frontmatter: Record<string, unknown>): IdeaState {
         const raw = frontmatter?.[this.property];
         if (typeof raw !== "string") return FALLBACK_STATE;

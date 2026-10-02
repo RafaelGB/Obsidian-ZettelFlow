@@ -2074,5 +2074,6 @@ export default {
     note_companion_none_nearby: 'nada cerca y olvidado',
     note_companion_linked: 'Enlazada {0}.',
     note_companion_link_removed: 'Enlace quitado.',
+    note_companion_unlink_failed: 'No se pudo quitar el enlace.',
     note_companion_link_failed: 'No se pudo añadir el enlace.',
 };

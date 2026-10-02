@@ -2073,5 +2073,6 @@ export default {
     note_companion_none_nearby: 'nothing near and forgotten',
     note_companion_linked: 'Linked {0}.',
     note_companion_link_removed: 'Link removed.',
+    note_companion_unlink_failed: 'Could not remove the link.',
     note_companion_link_failed: 'Could not add the link.',
 };

@@ -40,9 +40,14 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: var(--background-primary);
+    // The sidebar's surface when docked; the editor's when dragged into the main area.
+    background-color: var(--background-secondary);
     padding-bottom: $space-2;
     border-bottom: $line-quiet;
+}
+
+.mod-root .zettelkasten-flow__note-companion-col-head {
+    background-color: var(--background-primary);
 }
 
 .zettelkasten-flow__note-companion-head {
@@ -266,6 +271,10 @@ button.zettelkasten-flow__note-companion-vital {
 .zettelkasten-flow__note-companion-link-status {
     @include hint;
     @include row;
+
+    &:empty {
+        display: none;
+    }
 }
 
 /* A hand-over lands here: one brief ring, once (#644 → #640 FR-21). */

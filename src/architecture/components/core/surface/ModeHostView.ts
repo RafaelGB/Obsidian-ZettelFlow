@@ -87,6 +87,8 @@ export abstract class ModeHostView extends ItemView {
             // mode, and the view opens where it lives — once the workspace has finished restoring.
             if (this.bodyEl) await this.showMode(this.surface.modes[0].id);
             else this.activeMode = this.surface.modes[0].id;
+            // Saved, or the stale mode would reopen the companion on every start.
+            this.app.workspace.requestSaveLayout();
             this.app.workspace.onLayoutReady(() => void openNoteCompanion(this.app));
             return;
         }

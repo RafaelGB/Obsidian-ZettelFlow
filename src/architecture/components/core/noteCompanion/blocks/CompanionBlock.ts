@@ -51,8 +51,30 @@ export abstract class CompanionBlock extends Component {
     abstract readonly id: string;
     abstract readonly column: CompanionColumn;
 
+    /** The current render's listeners. Replaced on every render, so they never pile up. */
+    private pass: Component | null = null;
+
     constructor(protected readonly el: HTMLElement) {
         super();
+    }
+
+    /**
+     * Start a render. A block redraws its DOM on every refresh; registering listeners on the block
+     * itself would keep every past render's handlers (and their detached elements) alive until the
+     * view closed. They belong to the render instead, and go with it.
+     */
+    protected beginRender(): void {
+        if (this.pass) this.removeChild(this.pass);
+        this.pass = this.addChild(new Component());
+    }
+
+    /** Listen on an element drawn by the current render. */
+    protected on<K extends keyof HTMLElementEventMap>(
+        el: HTMLElement,
+        type: K,
+        handler: (event: HTMLElementEventMap[K]) => unknown
+    ): void {
+        (this.pass ?? this).registerDomEvent(el, type, handler);
     }
 
     abstract update(ctx: CompanionContext): void;

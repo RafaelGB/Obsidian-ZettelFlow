@@ -115,6 +115,7 @@ export function wireHarness(opts: { files?: Record<string, FileSpec>; settings?:
         getFileCache: (file: TFile) => ({ frontmatter: vault.entries.get(file.path)?.frontmatter ?? {} }),
         resolvedLinks: {},
         getFirstLinkpathDest: () => null,
+        fileToLinktext: (file: TFile) => file.basename,
         on: () => ({ unload: () => undefined }),
     };
     const workspace = {

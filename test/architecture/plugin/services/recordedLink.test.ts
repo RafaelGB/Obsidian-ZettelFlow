@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import * as obsidian from "obsidian";
 import { linkNotes } from "architecture/plugin/services/recordedLink";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
-import { bufferedWrites, replaceBufferedWrites } from "architecture/plugin/writes/recordVaultWrite";
+import { bufferedWrites, replaceBufferedWrites, withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { filterWrites } from "application/writes/vaultWriteLog";
 import { wireHarness } from "../../../support/harness";
 
@@ -22,17 +22,17 @@ describe("linkNotes (#640)", () => {
 
     it("appends the link to the companion's note, not the active one", async () => {
         const h = wireHarness({
-            files: { "a.md": { frontmatter: {}, body: "A." }, "b.md": { frontmatter: {}, body: "B." } },
+            files: { "a.md": { frontmatter: {}, body: "A." }, "B.md": { frontmatter: {}, body: "B." } },
         });
-        const result = await linkNotes(h.app as never, "a.md", "B");
+        const result = await linkNotes(h.app as never, "a.md", "B.md");
         expect(result.ok).toBe(true);
         expect(h.vault.contentOf("a.md")).toContain("[[B]]");
-        expect(h.vault.contentOf("b.md")).not.toContain("[[B]]");
+        expect(h.vault.contentOf("B.md")).not.toContain("[[B]]");
     });
 
     it("records one append in its own batch, attributed to you", async () => {
         const h = wireHarness({ files: { "a.md": { frontmatter: {}, body: "A." } } });
-        const { batch } = await linkNotes(h.app as never, "a.md", "B");
+        const { batch } = await linkNotes(h.app as never, "a.md", "B.md");
         expect(batch).toBeDefined();
         const writes = filterWrites(bufferedWrites(), { batch });
         expect(writes).toHaveLength(1);
@@ -49,7 +49,7 @@ describe("linkNotes (#640)", () => {
             return new Original(message);
         }) as never);
         const h = wireHarness({ files: { "a.md": { frontmatter: {}, body: "A." } } });
-        await linkNotes(h.app as never, "a.md", "B");
+        await linkNotes(h.app as never, "a.md", "B.md");
         expect(constructed).not.toHaveBeenCalled();
         expect(notice).not.toHaveBeenCalled();
         spy.mockRestore();
@@ -57,7 +57,7 @@ describe("linkNotes (#640)", () => {
 
     it("can be taken back exactly", async () => {
         const h = wireHarness({ files: { "a.md": { frontmatter: {}, body: "A." } } });
-        const { batch } = await linkNotes(h.app as never, "a.md", "B");
+        const { batch } = await linkNotes(h.app as never, "a.md", "B.md");
         const outcome = await undoBatch(batch!);
         expect(outcome.done).toBeGreaterThan(0);
         expect(h.vault.contentOf("a.md")).not.toContain("[[B]]");
@@ -65,6 +65,13 @@ describe("linkNotes (#640)", () => {
 
     it("reports a missing note instead of throwing", async () => {
         const h = wireHarness({});
-        await expect(linkNotes(h.app as never, "missing.md", "B")).resolves.toEqual({ ok: false });
+        await expect(linkNotes(h.app as never, "missing.md", "B.md")).resolves.toEqual({ ok: false });
+    });
+
+    it("offers no undo when another batch is already open, but still writes", async () => {
+        const h = wireHarness({ files: { "a.md": { frontmatter: {}, body: "A." }, "B.md": { frontmatter: {}, body: "B." } } });
+        const result = await withWriteBatch({ kind: "hook", ref: "hook:status" }, () => linkNotes(h.app as never, "a.md", "B.md"));
+        expect(result).toEqual({ ok: true });
+        expect(h.vault.contentOf("a.md")).toContain("[[B]]");
     });
 });

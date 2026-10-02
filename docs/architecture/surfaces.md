@@ -162,6 +162,6 @@ allowed ones, so a new view cannot quietly become a fourth surface.
 The redirect maps in `legacyTargets.ts` therefore have two kinds of target: a **surface + mode**
 (`{ surface, mode, lens? }`) and a **view** (`{ view }`). Every door that led to Health's Timeline
 mode — four commands, three retired view types, a saved `timeline` leaf, Discovery's *forgotten* and
-*challenges* — now leads to `{ view: "zettelflow-note" }`. A restored retired leaf becomes the
-companion in place only when it is already in the right sidebar and no companion exists
-(`placeViewRedirect`); otherwise it closes and the one companion opens where it lives.
+*challenges* — now leads to `{ view: "zettelflow-note" }`. A restored retired leaf closes and
+the one companion opens where it lives, through `openNoteCompanion`, which serialises requests so a
+workspace holding several retired leaves still ends up with exactly one.

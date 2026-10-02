@@ -27,19 +27,6 @@ export function isViewTarget(target: LegacyTarget): target is ViewTarget {
     return "view" in target;
 }
 
-/**
- * What a restored leaf of a type that now means *This note* should do (#640 decision 2). It becomes
- * the companion in place only when it already sits in the right sidebar and there is no companion
- * yet; otherwise it goes away and the one companion opens where it lives. A main-area tab never
- * quietly turns into a sidebar companion, and there is never a second one.
- */
-export function placeViewRedirect(where: {
-    inRightSidebar: boolean;
-    companionExists: boolean;
-}): "transform" | "detach-and-open" {
-    return where.inRightSidebar && !where.companionExists ? "transform" : "detach-and-open";
-}
-
 /** Retired opener command id → the source view it used to open. */
 const COMMAND_SOURCE: Record<string, string> = {
     "show-home": "zettelflow-home",

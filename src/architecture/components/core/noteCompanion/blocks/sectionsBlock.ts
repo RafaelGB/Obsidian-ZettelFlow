@@ -35,14 +35,15 @@ export interface SectionsDeps {
 }
 
 type LinkStatus =
-    | { kind: "linked"; target: string; batch: string; at: number }
+    | { kind: "linked"; target: string; batch?: string; at: number }
     | { kind: "removed"; at: number }
-    | { kind: "failed"; at: number };
+    | { kind: "failed"; at: number }
+    | { kind: "unlink-failed"; at: number };
 
-/** The window the view is in (a popout has its own); absent under a test runner. */
-function prefersReducedMotion(): boolean {
-    if (typeof activeWindow === "undefined") return false;
-    return activeWindow.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+/** Ask the window the element is in — a popout has its own. Absent under a test runner. */
+function prefersReducedMotion(el: HTMLElement): boolean {
+    const win = (el as HTMLElement & { win?: Window }).win ?? (typeof activeWindow === "undefined" ? undefined : activeWindow);
+    return win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
 /**
@@ -60,6 +61,10 @@ export class SectionsBlock extends CompanionBlock {
     private readonly expanded = new Set<CompanionSectionId>(OPEN_BY_DEFAULT);
     private ctx: CompanionContext | null = null;
     private status: LinkStatus | null = null;
+    /** Rebuilt on every render. */
+    private listHost: HTMLElement | null = null;
+    /** Built once: a live region a screen reader can follow only if it is there before it speaks. */
+    private statusEl: HTMLElement | null = null;
     private readonly nodes = new Map<CompanionSectionId, HTMLDetailsElement>();
     private folded: HTMLElement | null = null;
     private nonEmpty: CompanionSectionId[] = [];
@@ -73,14 +78,23 @@ export class SectionsBlock extends CompanionBlock {
 
     update(ctx: CompanionContext): void {
         this.ctx = ctx;
-        this.el.empty();
+        this.beginRender();
+        if (!this.listHost || !this.statusEl) {
+            this.el.empty();
+            this.listHost = this.el.createDiv();
+            this.statusEl = this.el.createDiv({ cls: c("note-companion-link-status"), attr: { role: "status" } });
+        }
+        this.listHost.empty();
         this.nodes.clear();
         this.folded = null;
-        if (ctx.screen.kind !== "note") return;
+        if (ctx.screen.kind !== "note") {
+            this.renderStatus();
+            return;
+        }
 
         const { sections, folded } = ctx.screen.model.sections;
         this.nonEmpty = sections.map((section) => section.id);
-        const list = this.el.createDiv({ cls: c("note-companion-sections") });
+        const list = this.listHost.createDiv({ cls: c("note-companion-sections") });
         for (const section of sections) this.renderSection(list, ctx, section);
         if (folded.length > 0) {
             const line = folded.map((id) => t(NONE[id])).join(" · ");
@@ -89,7 +103,7 @@ export class SectionsBlock extends CompanionBlock {
                 text: line.charAt(0).toUpperCase() + line.slice(1),
             });
         }
-        this.renderStatus(list);
+        this.renderStatus();
     }
 
     claims(focus: CompanionFocus): boolean {
@@ -105,8 +119,11 @@ export class SectionsBlock extends CompanionBlock {
             this.expanded.add(plan.expand);
             (target as HTMLDetailsElement).open = true;
         }
-        target.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-        target.addClass(c("note-companion-highlight"));
+        target.scrollIntoView({ behavior: prefersReducedMotion(target) ? "auto" : "smooth", block: "start" });
+        // Once: the class goes when the ring has played, so a second hand-over plays it again.
+        const highlight = c("note-companion-highlight");
+        target.addClass(highlight);
+        target.addEventListener("animationend", () => target.removeClass(highlight), { once: true });
     }
 
     private renderSection(list: HTMLElement, ctx: CompanionContext, section: CompanionSection<ResurfaceReason>): void {
@@ -115,7 +132,7 @@ export class SectionsBlock extends CompanionBlock {
             attr: { "data-section": section.id },
         });
         details.open = this.expanded.has(section.id);
-        this.registerDomEvent(details, "toggle", () => {
+        this.on(details, "toggle", () => {
             if (details.open) this.expanded.add(section.id);
             else this.expanded.delete(section.id);
         });
@@ -161,7 +178,11 @@ export class SectionsBlock extends CompanionBlock {
                         text: t("resurface_insert_link"),
                         attr: { type: "button" },
                     });
-                    this.registerDomEvent(insert, "click", () => void this.insertLink(ctx, row.basename));
+                    this.on(insert, "click", () => {
+                        // One click, one link: a double-click must not append it twice.
+                        insert.disabled = true;
+                        void this.insertLink(ctx, row.path);
+                    });
                 }
                 break;
         }
@@ -178,19 +199,23 @@ export class SectionsBlock extends CompanionBlock {
     }
 
     /** Into the companion's note, never the editor with the cursor (amendment 2). */
-    private async insertLink(ctx: CompanionContext, target: string): Promise<void> {
+    private async insertLink(ctx: CompanionContext, targetPath: string): Promise<void> {
         if (ctx.screen.kind !== "note") return;
-        const result = await this.deps.linkNotes(ctx.app, ctx.screen.model.path, target);
-        this.status =
-            result.ok && result.batch
-                ? { kind: "linked", target, batch: result.batch, at: Date.now() }
-                : { kind: "failed", at: Date.now() };
+        const result = await this.deps.linkNotes(ctx.app, ctx.screen.model.path, targetPath);
+        this.status = result.ok
+            ? { kind: "linked", target: noteName(targetPath), batch: result.batch, at: Date.now() }
+            : { kind: "failed", at: Date.now() };
         this.redraw();
     }
 
     private async undo(batch: string): Promise<void> {
-        await this.deps.undoBatch(batch);
-        this.status = { kind: "removed", at: Date.now() };
+        const result = await this.deps.undoBatch(batch);
+        // Say what happened, not what was hoped: an undo with nothing left to take back, or one
+        // that failed, does not get to say the link is gone.
+        this.status =
+            result.hadWork && result.failed.length === 0
+                ? { kind: "removed", at: Date.now() }
+                : { kind: "unlink-failed", at: Date.now() };
         this.redraw();
     }
 
@@ -199,28 +224,30 @@ export class SectionsBlock extends CompanionBlock {
     }
 
     /** The one line that answers an insert: what happened, and the way back for thirty seconds. */
-    private renderStatus(list: HTMLElement): void {
+    private renderStatus(): void {
+        const line = this.statusEl;
+        if (!line) return;
+        line.empty();
         const status = this.status;
         if (!status || Date.now() - status.at >= UNDO_OFFER_MS) {
             this.status = null;
             return;
         }
-        const line = list.createDiv({ cls: c("note-companion-link-status"), attr: { role: "status" } });
-        if (status.kind === "failed") {
-            line.setText(t("note_companion_link_failed"));
-            return;
-        }
-        if (status.kind === "removed") {
-            line.setText(t("note_companion_link_removed"));
+        if (status.kind !== "linked") {
+            const key = { failed: "note_companion_link_failed", removed: "note_companion_link_removed", "unlink-failed": "note_companion_unlink_failed" } as const;
+            line.setText(t(key[status.kind]));
             return;
         }
         line.createSpan({ text: `${t("note_companion_linked", status.target)} ` });
+        // No undo when the link shared a batch with another write in flight (see linkNotes).
+        const batch = status.batch;
+        if (!batch) return;
         const undo = line.createEl("button", {
             cls: c("note-companion-undo"),
             text: t("changes_undo"),
             attr: { type: "button" },
         });
-        this.registerDomEvent(undo, "click", () => void this.undo(status.batch));
+        this.on(undo, "click", () => void this.undo(batch));
     }
 
     private reasonText(reasons: readonly ResurfaceReason[]): string {

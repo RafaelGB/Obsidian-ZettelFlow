@@ -124,13 +124,47 @@ describe("the counted sections (#640 FR-11..16, AC-6)", () => {
         const { host, linkNotes, undoBatch } = setup();
         host.oneByClass("note-companion-insert").click();
         await flush();
-        expect(linkNotes).toHaveBeenCalledWith(expect.anything(), "A.md", "B");
+        expect(linkNotes).toHaveBeenCalledWith(expect.anything(), "A.md", "old/B.md");
         const status = host.oneByClass("note-companion-link-status");
         expect(status.textContent).toContain("Linked B.");
         host.oneByClass("note-companion-undo").click();
         await flush();
         expect(undoBatch).toHaveBeenCalledWith("b1");
         expect(host.oneByClass("note-companion-link-status").textContent).toBe("Link removed.");
+    });
+
+    it("does not claim a link is gone when the undo did not take it back", async () => {
+        const { host } = setup({ undoBatch: jest.fn(async () => ({ hadWork: false, done: 0, failed: [] })) as never });
+        host.oneByClass("note-companion-insert").click();
+        await flush();
+        host.oneByClass("note-companion-undo").click();
+        await flush();
+        expect(host.oneByClass("note-companion-link-status").textContent).toBe("Could not remove the link.");
+    });
+
+    it("offers no undo when the link shared its batch with another write", async () => {
+        const { host } = setup({ linkNotes: jest.fn(async () => ({ ok: true })) as never });
+        host.oneByClass("note-companion-insert").click();
+        await flush();
+        expect(host.oneByClass("note-companion-link-status").textContent).toContain("Linked B.");
+        expect(host.byClass("note-companion-undo")).toEqual([]);
+    });
+
+    it("writes one link per click, however fast the clicks", async () => {
+        const { host, linkNotes } = setup();
+        const insert = host.oneByClass("note-companion-insert");
+        insert.click();
+        expect(insert.disabled).toBe(true);
+        await flush();
+        expect(linkNotes).toHaveBeenCalledTimes(1);
+    });
+
+    it("drops the listeners of the last render when it redraws", () => {
+        const { host, block, ctx } = setup();
+        const before = host.oneByClass("note-companion-insert");
+        expect(before.listeners.click).toHaveLength(1);
+        block.update(ctx(model()));
+        expect(before.listeners.click).toEqual([]);
     });
 
     it("says so inline when the link could not be written", async () => {

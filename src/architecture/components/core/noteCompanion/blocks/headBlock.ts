@@ -18,6 +18,7 @@ export class HeadBlock extends CompanionBlock {
     readonly column = "head";
 
     update(ctx: CompanionContext): void {
+        this.beginRender();
         this.el.empty();
         const head = this.el.createDiv({ cls: c("note-companion-head") });
         const screen = ctx.screen;
@@ -50,19 +51,19 @@ export class HeadBlock extends CompanionBlock {
             cls: [c("note-companion-pin"), "clickable-icon", ...(ctx.pinned ? ["is-active"] : [])].join(" "),
             attr: {
                 type: "button",
-                "aria-label": t(ctx.pinned ? "note_companion_follow_active" : "note_companion_pin"),
+                "aria-label": t("note_companion_pin"),
                 "aria-pressed": String(ctx.pinned),
             },
         });
         setIcon(pin, "pin");
-        this.registerDomEvent(pin, "click", () => (ctx.pinned ? ctx.follow() : ctx.pin()));
+        this.on(pin, "click", () => (ctx.pinned ? ctx.follow() : ctx.pin()));
 
         const refresh = row.createEl("button", {
             cls: [c("note-companion-refresh"), "clickable-icon"].join(" "),
             attr: { type: "button", "aria-label": t("note_companion_refresh") },
         });
         setIcon(refresh, "refresh-cw");
-        this.registerDomEvent(refresh, "click", () => ctx.refresh());
+        this.on(refresh, "click", () => ctx.refresh());
     }
 
     private renderPinned(head: HTMLElement, ctx: CompanionContext): void {
@@ -73,7 +74,7 @@ export class HeadBlock extends CompanionBlock {
             text: t("note_companion_follow_active"),
             attr: { type: "button" },
         });
-        this.registerDomEvent(follow, "click", () => ctx.follow());
+        this.on(follow, "click", () => ctx.follow());
     }
 
     private renderStepper(head: HTMLElement, steps: LifecycleStep[]): void {
@@ -117,7 +118,7 @@ export class HeadBlock extends CompanionBlock {
                 text: tCount(count, key, String(count)),
                 attr: { type: "button" },
             });
-            this.registerDomEvent(button, "click", () => ctx.reveal("gaps"));
+            this.on(button, "click", () => ctx.reveal("gaps"));
         }
     }
 
@@ -132,7 +133,7 @@ export class HeadBlock extends CompanionBlock {
             text: noteName(last),
             attr: { type: "button", title: last },
         });
-        this.registerDomEvent(link, "click", () => ctx.open(last));
+        this.on(link, "click", () => ctx.open(last));
         hoverPreview(ctx.app, link, last, ctx.owner);
     }
 }

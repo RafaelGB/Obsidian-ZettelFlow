@@ -5,7 +5,6 @@ import {
     LEGACY_OPEN_TARGETS,
     LEGACY_VIEW_TARGETS,
     isViewTarget,
-    placeViewRedirect,
     relocateMode,
     type LegacyTarget,
 } from "architecture/components/core/surface/legacyTargets";
@@ -104,13 +103,6 @@ describe("This note's doors lead to its own view (#640 FR-23/24, AC-10)", () => 
         expect(relocateMode("zettelflow-health", "timeline")).toEqual(THIS_NOTE);
         expect(relocateMode("zettelflow-discovery", "forgotten")).toEqual(THIS_NOTE);
         expect(relocateMode("zettelflow-discovery", "challenges")).toEqual(THIS_NOTE);
-    });
-
-    it("turns a restored leaf into the companion only in the right sidebar, and only if there is none", () => {
-        expect(placeViewRedirect({ inRightSidebar: true, companionExists: false })).toBe("transform");
-        expect(placeViewRedirect({ inRightSidebar: true, companionExists: true })).toBe("detach-and-open");
-        expect(placeViewRedirect({ inRightSidebar: false, companionExists: false })).toBe("detach-and-open");
-        expect(placeViewRedirect({ inRightSidebar: false, companionExists: true })).toBe("detach-and-open");
     });
 
     it("the Health surface no longer has a Timeline mode", () => {

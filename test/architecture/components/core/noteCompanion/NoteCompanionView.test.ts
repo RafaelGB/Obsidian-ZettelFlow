@@ -30,6 +30,7 @@ function mount(active: TFile | null = markdown("zettel/A.md")) {
             openLinkText: jest.fn(),
             requestSaveLayout: jest.fn(),
             trigger: jest.fn(),
+            onLayoutReady: jest.fn(),
         },
         metadataCache: { on, getFileCache: () => null },
         vault: { on, getAbstractFileByPath: () => null, getMarkdownFiles: () => [] },

@@ -27,6 +27,8 @@ export class NoteCompanionView extends ItemView {
     /** A hand-over waiting for the next render — consumed once, never persisted. */
     private pending: Pick<NoteCompanionState, "focus" | "move"> | null = null;
     private debounceTimer: number | undefined;
+    /** A refresh skipped while the view was hidden, owed for when it is shown again. */
+    private stale = false;
 
     constructor(leaf: WorkspaceLeaf) {
         super(leaf);
@@ -61,6 +63,13 @@ export class NoteCompanionView extends ItemView {
                 this.schedule();
             })
         );
+        // Hidden behind another tab or in a collapsed sidebar, the view skips its work and owes it.
+        this.registerEvent(this.app.workspace.on("layout-change", () => this.catchUp()));
+        this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.catchUp()));
+        // The index builds when the layout is ready; a warm cache may have fired "resolved" before
+        // that, so ask again once it has — otherwise a restored view would say "indexing" until you
+        // switched notes. Registered after the index's own callback, so it runs after the build.
+        this.app.workspace.onLayoutReady(() => this.schedule());
         // A restored pin keeps its note; otherwise start on whatever note is in front of you.
         if (!this.subject.pinned) this.subject = reduceSubject(this.subject, this.activeEvent(this.app.workspace.getActiveFile()));
         this.render();
@@ -86,6 +95,10 @@ export class NoteCompanionView extends ItemView {
         if (request.path) {
             this.subject = reduceSubject(this.subject, { kind: "open", path: request.path });
             if (request.pinned) this.subject = reduceSubject(this.subject, { kind: "pin" });
+        }
+        // A deep link can unpin, too.
+        if (request.pinned === false && this.subject.pinned) {
+            this.subject = reduceSubject(this.subject, { kind: "follow", active: this.activeMarkdown() });
         }
         if (request.focus) this.pending = { focus: request.focus, move: request.move };
         if (this.columns) this.render();
@@ -132,9 +145,25 @@ export class NoteCompanionView extends ItemView {
         this.debounceTimer = window.setTimeout(() => this.render(), DEBOUNCE_MS);
     }
 
+    /** Whether anyone can see the view. The vault-wide ranking is not worth running for nobody. */
+    private visible(): boolean {
+        const el = this.containerEl as HTMLElement & { isShown?: () => boolean };
+        return typeof el?.isShown !== "function" || el.isShown();
+    }
+
+    private catchUp(): void {
+        if (this.stale && this.visible()) this.render();
+    }
+
     private render(): void {
         if (!this.columns) return;
         window.clearTimeout(this.debounceTimer);
+        // A hand-over always renders: it is how the view was just revealed.
+        if (!this.visible() && !this.pending) {
+            this.stale = true;
+            return;
+        }
+        this.stale = false;
         const screen: CompanionScreen = buildCompanionScreen(this.app, this.subject);
         const pending = this.pending;
         this.pending = null;

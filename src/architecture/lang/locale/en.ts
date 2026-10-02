@@ -2003,6 +2003,7 @@ export default {
     dashboard_tf_new_field: 'New field',
     dashboard_direction_asc: 'Ascending',
     dashboard_direction_desc: 'Descending',
+    dashboard_op_last_days: 'in the last … days',
     // S6 (#628): the opt-in script transformer.
     dashboard_computed_section: 'Computed fields (advanced)',
     dashboard_computed_enable: 'Enable computed fields',

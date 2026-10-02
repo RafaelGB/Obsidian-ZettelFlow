@@ -2004,6 +2004,7 @@ export default {
     dashboard_tf_new_field: 'Campo nuevo',
     dashboard_direction_asc: 'Ascendente',
     dashboard_direction_desc: 'Descendente',
+    dashboard_op_last_days: 'en los últimos … días',
     // S6 (#628): el transformador por script opcional.
     dashboard_computed_section: 'Campos calculados (avanzado)',
     dashboard_computed_enable: 'Activar campos calculados',

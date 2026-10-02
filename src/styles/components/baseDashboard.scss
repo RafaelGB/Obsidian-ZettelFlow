@@ -199,6 +199,23 @@
     color: var(--text-normal);
 }
 
+/* Drag to reorder: the header is the handle; the drop lands on the marked side of the target. */
+.zettelkasten-flow__base-dashboard-panel-handle {
+    cursor: grab;
+}
+
+.zettelkasten-flow__base-dashboard-panel.is-dragging {
+    opacity: 0.5;
+}
+
+.zettelkasten-flow__base-dashboard-panel.is-drop-before {
+    box-shadow: inset var(--size-2-2) 0 0 var(--interactive-accent);
+}
+
+.zettelkasten-flow__base-dashboard-panel.is-drop-after {
+    box-shadow: inset calc(-1 * var(--size-2-2)) 0 0 var(--interactive-accent);
+}
+
 /* The "more" button stays out of the way until you reach for the panel. */
 .zettelkasten-flow__base-dashboard-panel-more {
     opacity: 0;

@@ -39,3 +39,16 @@ export function movePanel(panels: PanelConfig[], id: string, dir: -1 | 1): Panel
 export function layoutClasses(layout: PanelLayout): string[] {
     return [`is-w${layout.w}`, `is-h${layout.h}`];
 }
+
+/**
+ * Drop panel `id` before or after `targetId` — what a drag on the grid does. A no-op when either is
+ * missing or the panel is dropped on itself.
+ */
+export function placePanel(panels: PanelConfig[], id: string, targetId: string, after: boolean): PanelConfig[] {
+    if (id === targetId) return panels;
+    const moved = panels.find((panel) => panel.id === id);
+    if (!moved || !panels.some((panel) => panel.id === targetId)) return panels;
+    const rest = panels.filter((panel) => panel.id !== id);
+    const at = rest.findIndex((panel) => panel.id === targetId) + (after ? 1 : 0);
+    return [...rest.slice(0, at), moved, ...rest.slice(at)];
+}

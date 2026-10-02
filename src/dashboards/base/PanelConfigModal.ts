@@ -53,12 +53,17 @@ const TF_LABEL_KEYS: Record<TransformType, LocaleKey> = {
     cumulative: "dashboard_tf_cumulative",
 };
 
-const FILTER_OPS: FilterOp[] = ["eq", "neq", "gt", "gte", "lt", "lte", "contains"];
+const FILTER_OPS: FilterOp[] = ["eq", "neq", "gt", "gte", "lt", "lte", "contains", "lastDays"];
 const CALC_OPS: CalcOp[] = ["add", "sub", "mul", "div"];
-const OP_SYMBOL: Record<FilterOp | CalcOp, string> = {
+const OP_SYMBOL: Record<Exclude<FilterOp, "lastDays"> | CalcOp, string> = {
     eq: "=", neq: "≠", gt: ">", gte: "≥", lt: "<", lte: "≤", contains: "⊃",
     add: "+", sub: "−", mul: "×", div: "÷",
 };
+
+/** A filter operator as the dropdown shows it — a symbol, or words where a symbol would not read. */
+function filterOpLabel(op: FilterOp): string {
+    return op === "lastDays" ? t("dashboard_op_last_days") : OP_SYMBOL[op];
+}
 const AGG_ORDER: AggregateFn[] = ["avg", "sum", "min", "max", "count"];
 
 function typeLabelKey(type: FieldType): LocaleKey {
@@ -345,7 +350,7 @@ export class PanelConfigModal extends Modal {
 
         if (step.type === "filter") {
             setting.addDropdown((dd) => {
-                for (const op of FILTER_OPS) dd.addOption(op, OP_SYMBOL[op]);
+                for (const op of FILTER_OPS) dd.addOption(op, filterOpLabel(op));
                 dd.setValue(step.op ?? "eq").onChange((v) => {
                     step.op = v as FilterOp;
                     changed();

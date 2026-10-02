@@ -6,7 +6,8 @@
  */
 import type { AggregateFn } from "dashboards/panels";
 
-export type FilterOp = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "contains";
+/** `lastDays`: a date within the last N days, today included (`value` is N) — "this week" without editing a date. */
+export type FilterOp = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "contains" | "lastDays";
 export type CalcOp = "add" | "sub" | "mul" | "div";
 
 export type TransformType =

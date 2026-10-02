@@ -6,11 +6,15 @@ an *idea* changed: the sequence of a note's lifecycle **state** and **claims** o
 > 2024 "AI will replace programmers" → 2025 "not exactly" → 2026 "automates repetitive tasks" →
 > 2027 "becomes a copilot"
 
+!!! note "Now in *This note*"
+    Since #640 this lives in **[This note](this-note.md)**, the per-note companion in the right
+    sidebar. The timeline is its history block, below the sections (or beside them when the pane is wide).
+
 ## Opening it
 
-Run **"Show evolution timeline"** from the command palette, or click **Open** next to *Evolution
-timeline* in **Settings → ZettelFlow → Zettelkasten toolkit**. The pane follows the **active note**
-and updates as you switch notes or edit.
+Open **[This note](this-note.md)** from the ribbon menu, or run **"Show evolution timeline"** from
+the command palette — the command lands there. It follows the **active note** (or the note you
+pinned) and updates as you switch notes or edit.
 
 ## What is captured, and when
 
@@ -170,7 +174,7 @@ ConceptualTimeline (singleton, structural TimelineHost, mirrors DevelopmentJourn
 timelineEvents(snapshots, judgements)             (pure, Obsidian-free, unit-tested)
   → TimelineEvent[]   interleave snapshots (#168) + judgements (#336) by time; snapshot-before-judgement tie-break
 
-EvolutionTimelineRenderer (Timeline mode of the Health surface)
+EvolutionTimelineRenderer (the history block of This note, #640)
   reads snapshotsFor(path) + judgementsFor(log, path) → timelineEvents(...) → renders snapshots and
   cognitive milestones (verdict · confidence · rationale) oldest→newest, with an "only my judgements"
   filter; writes nothing

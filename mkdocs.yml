@@ -162,6 +162,7 @@ nav:
           - The graph lens: development/graph-3d.md
           - Canvas integration: development/canvas-integration.md
       - Review & analyze:
+          - This note: development/this-note.md
           - Slip-box health dashboard: development/slipbox-health-dashboard.md
           - Knowledge dashboard: development/knowledge-dashboard.md
           - Base dashboards: development/base-dashboards.md

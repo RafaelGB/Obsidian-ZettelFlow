@@ -22,7 +22,7 @@ surfaces. Note creation is no longer its own ribbon icon.
 | Surface | Modes | Folds in (former views) |
 |---|---|---|
 | **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + **[What ZettelFlow changed](reversibility.md)** (#454) |
-| **Health** | Health · Timeline · Momentum | Slip-box health **+ the knowledge dashboard folded in** (#314) + Evolution timeline + Thinking heatmap |
+| **Health** | Health · Momentum · Agency | Slip-box health **+ the knowledge dashboard folded in** (#314) + Thinking heatmap + Agency review. The Timeline mode became **[This note](../development/this-note.md)** (#640) |
 | *(Discovery — dissolved, #504)* | — | its four modes answered two questions that already had homes: see below |
 | **[Explore](../development/ask-your-graph.md)** | *(one mode, so no mode bar)* | Ask your graph + the retired **Graph** surface (#484), whose 3D view is now one of Explore's [lenses](../development/graph-3d.md) |
 
@@ -91,7 +91,7 @@ The three headers it re-ranked:
 |---|---|---|---|
 | Lab | start a collision | — | the legend |
 | Cultivate | work on your own question | another idea | think about this instead |
-| This note (timeline) | share the idea card | refresh, cognitive-only filter | — |
+| This note (its own view, #640) | share the idea card | cognitive-only filter (refresh is the view's) | reasoning paths |
 
 Crystallize is deliberately **not** the Lab's primary. It lives in the picked bar, on the selection
 it acts upon; promoting it would put a permanently inert button in the header, which is exactly the
@@ -151,3 +151,17 @@ can move, split or pin them like any Obsidian document.
 - The three surfaces: `architecture/components/core/surface/{Home,Health,Explore}SurfaceView.ts`.
 - Deep-linking to a mode: `activateSurface(app, surfaceType, mode)` in `architecture/plugin/services/ViewActivation.ts`.
 - The dashboard primitives + header: `src/styles/components/dashboard.scss` (fluid grid + cards) and `architecture/components/core/surface/ModeHeader.ts` (one `primary()`, plus the icon-only `nav()` door, #620).
+
+## Standalone views (#640)
+
+Not everything is a surface. A **standalone view** answers one thing in one place and has no modes:
+the script workbench (#446), and **[This note](../development/this-note.md)** (#640) — the per-note
+companion docked in the right sidebar, following the active note. `surfaceCount.test.ts` names the
+allowed ones, so a new view cannot quietly become a fourth surface.
+
+The redirect maps in `legacyTargets.ts` therefore have two kinds of target: a **surface + mode**
+(`{ surface, mode, lens? }`) and a **view** (`{ view }`). Every door that led to Health's Timeline
+mode — four commands, three retired view types, a saved `timeline` leaf, Discovery's *forgotten* and
+*challenges* — now leads to `{ view: "zettelflow-note" }`. A restored retired leaf becomes the
+companion in place only when it is already in the right sidebar and no companion exists
+(`placeViewRedirect`); otherwise it closes and the one companion opens where it lives.

@@ -92,6 +92,10 @@ export const NOT_EXPOSED: Record<string, string> = {
     // the same facts for a sidebar and would publish a layout as if it were knowledge.
     lifecycleStepper: "how the companion draws a state as steps — a layout, not a query",
     companionSections: "how the companion folds the evidence map — buildEvidenceMap is the query",
+    // The neighbourhood's own filter (#643): `vitals` already counts through it, and the graph's
+    // projection takes the companion's ranked nearby rows, which scripts do not have.
+    isNoteNeighbour: "the filter vitals counts through — a predicate, not a query",
+    noteNeighbourhood: "the companion's graph data, shaped by its near ring — vitals and links answer it",
     // The note's story (#642) arranges the timeline for reading; the facts are timelineEvents'.
     projectStory: "how the companion lays the timeline out to read — a layout, not a query",
     relativeAge: "a date helper for the story's labels, not a projection of the model",

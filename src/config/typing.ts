@@ -114,6 +114,8 @@ export interface ZettelFlowSettings {
      * selector on the surface writes it. Undefined reads as `"any"`.
      */
     cultivateStage?: string;
+    /** How This note shows the neighbourhood: the ego graph or the list (#643). */
+    noteNeighbourhoodView?: "graph" | "list";
     /**
      * **Think before you look** in Explore (#576, epic #574): write what you currently think, and
      * the results stay hidden until you have. OFF by default and *remembered* — §XII sanctions
@@ -363,6 +365,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     },
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
     cultivateStage: "any", // Cultivate every stage until you pick one (#589); embryonic-first within it.
+    noteNeighbourhoodView: "graph", // the picture first; the list is one click away (#643).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.
     returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.

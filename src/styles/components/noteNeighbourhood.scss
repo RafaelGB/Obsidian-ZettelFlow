@@ -1,0 +1,241 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The note's neighbourhood (#643, epic #639) — an ego graph inside the This note companion.
+ *
+ * Colour is the relation and nothing else: supports in the theme's green, contradicts in its red, an
+ * example in its blue, a plain link (and every other relation) faint. A near-but-unlinked note is
+ * dashed. The SVG scales to its column through its viewBox, so the graph fills whatever width the
+ * pane gives it; labels are sized in rem so the picture keeps its proportions.
+ */
+
+.zettelkasten-flow__note-companion-neighbourhood {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__note-companion-neighbourhood-head {
+    @include row;
+    justify-content: space-between;
+}
+
+.zettelkasten-flow__note-companion-eyebrow {
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    color: $text-faint;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Graph | List: a segmented pair, the chosen one on the plain surface. */
+.zettelkasten-flow__note-companion-toggle {
+    display: inline-flex;
+    padding: $space-hair;
+    border-radius: $radius-small;
+    background-color: $surface-hover;
+}
+
+.zettelkasten-flow__note-companion-toggle-option {
+    height: auto;
+    padding: $space-hair $space-2;
+    border: none;
+    box-shadow: none;
+    background: none;
+    border-radius: $radius-small;
+    font-size: $text-small;
+    color: $text-quiet;
+    cursor: pointer;
+
+    &.is-active {
+        background-color: $surface-plain;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__note-companion-graph {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-plain;
+}
+
+/* ── Edges: the relation's colour, or faint ─────────────────────────────────────────────────── */
+
+.zettelkasten-flow__note-companion-edge {
+    stroke: var(--text-faint);
+    stroke-width: 1.5;
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__note-companion-edge--supports {
+    stroke: var(--color-green);
+}
+
+.zettelkasten-flow__note-companion-edge--contradicts {
+    stroke: var(--color-red);
+}
+
+.zettelkasten-flow__note-companion-edge--example {
+    stroke: var(--color-blue);
+}
+
+.zettelkasten-flow__note-companion-edge--near {
+    stroke-dasharray: 3 3;
+    opacity: 0.55;
+}
+
+.zettelkasten-flow__note-companion-edge.is-highlighted {
+    opacity: 1;
+    stroke-width: 2.5;
+}
+
+.zettelkasten-flow__note-companion-centre {
+    fill: var(--interactive-accent);
+}
+
+/* ── Nodes ─────────────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__note-companion-node {
+    cursor: pointer;
+    outline: none;
+
+    circle {
+        fill: var(--background-primary);
+        stroke: var(--text-muted);
+        stroke-width: 2;
+    }
+
+    &:hover circle,
+    &:focus-visible circle {
+        stroke: var(--interactive-accent);
+        stroke-width: 3;
+    }
+}
+
+.zettelkasten-flow__note-companion-node--supports circle {
+    stroke: var(--color-green);
+}
+
+.zettelkasten-flow__note-companion-node--contradicts circle {
+    stroke: var(--color-red);
+}
+
+.zettelkasten-flow__note-companion-node--example circle {
+    stroke: var(--color-blue);
+}
+
+.zettelkasten-flow__note-companion-node--link circle {
+    fill: var(--text-faint);
+    stroke: var(--text-faint);
+}
+
+.zettelkasten-flow__note-companion-node--near circle {
+    stroke: var(--text-faint);
+    stroke-dasharray: 2 2;
+}
+
+.zettelkasten-flow__note-companion-node-label {
+    font-size: 0.625rem;
+    fill: var(--text-muted);
+    pointer-events: none;
+}
+
+.zettelkasten-flow__note-companion-node--near .zettelkasten-flow__note-companion-node-label {
+    fill: var(--text-faint);
+    font-style: italic;
+}
+
+.zettelkasten-flow__note-companion-more-links {
+    align-self: flex-start;
+    height: auto;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: none;
+    font-size: $text-small;
+    color: var(--text-accent);
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+/* ── Legend: the five marks, said once ─────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__note-companion-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1 $space-3;
+    @include hint;
+}
+
+.zettelkasten-flow__note-companion-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__note-companion-legend-mark {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-pill;
+    border: var(--border-width) solid var(--text-faint);
+}
+
+.zettelkasten-flow__note-companion-legend-mark--supports {
+    border-color: var(--color-green);
+}
+
+.zettelkasten-flow__note-companion-legend-mark--contradicts {
+    border-color: var(--color-red);
+}
+
+.zettelkasten-flow__note-companion-legend-mark--example {
+    border-color: var(--color-blue);
+}
+
+.zettelkasten-flow__note-companion-legend-mark--link {
+    background-color: var(--text-faint);
+}
+
+.zettelkasten-flow__note-companion-legend-mark--near {
+    border-style: dashed;
+}
+
+/* ── The list: the same facts, for a keyboard and a screen reader first ───────────────────── */
+
+.zettelkasten-flow__note-companion-link-group {
+    display: flex;
+    flex-direction: column;
+    gap: $space-hair;
+    border-radius: $radius-small;
+    scroll-margin-top: var(--size-4-12);
+}
+
+.zettelkasten-flow__note-companion-link-group-title {
+    font-weight: var(--font-semibold);
+    font-size: $text-small;
+    color: $text-plain;
+    padding-top: $space-1;
+}
+
+.zettelkasten-flow__note-companion-chip {
+    @include chip;
+}
+
+.zettelkasten-flow__note-companion-quiet {
+    @include hint;
+}
+
+/* Wide pane: the graph may grow, but never beyond what keeps its labels readable. */
+@container note-companion (min-width: 37.5rem) {
+    .zettelkasten-flow__note-companion-graph {
+        max-height: 22rem;
+    }
+}

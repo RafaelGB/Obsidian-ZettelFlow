@@ -7,7 +7,9 @@ import {
     connectCandidates,
     lifecycleStepper,
     nextStepCard,
+    noteNeighbourhood,
     noteVitals,
+    type NoteNeighbourhood,
 } from "architecture/knowledge/state";
 import { sourceKeyOf } from "application/claims";
 import { rankResurfacedNotes } from "application/notes/resurfaceRanking";
@@ -42,8 +44,20 @@ export function buildCompanionScreen(app: App, subject: SubjectState): Companion
                 active: inputs.buildActiveSignals(file),
                 candidates: inputs.candidates,
                 now: Date.now(),
-                excludePaths: [path],
+                // A note you already link with is not forgotten (#643 decision 2): leaving the
+                // neighbours out here keeps both the section and the graph's near ring for notes
+                // you could still connect — and keeps the top five full of them.
+                excludePaths: [path, ...model.outNeighborSet(path), ...model.inNeighborSet(path)],
             });
+        }
+
+        // Its own try: the graph failing must not take the rest of the companion with it.
+        let neighbourhood: NoteNeighbourhood | null;
+        try {
+            neighbourhood = noteNeighbourhood(model, path, nearby);
+        } catch (error) {
+            log.error(`[NoteCompanion] could not read the links of ${path}: ${error instanceof Error ? error.message : String(error)}`);
+            neighbourhood = null;
         }
 
         return {
@@ -59,6 +73,7 @@ export function buildCompanionScreen(app: App, subject: SubjectState): Companion
                 revision: model.revision(),
                 sourceKey: sourceKeyOf(frontmatter),
                 linksOut: model.outNeighbors(path),
+                neighbourhood,
             },
         };
     } catch (error) {

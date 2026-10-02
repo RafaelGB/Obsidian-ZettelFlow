@@ -111,11 +111,11 @@ describe("the This note view (#640 FR-1..6, FR-19)", () => {
         expect(content.children).toEqual([]);
     });
 
-    it("reads in order: head, next step, sections, story (#641, #642)", async () => {
+    it("reads in order: head, next step, neighbourhood, sections, story (#641, #643, #642)", async () => {
         const { view, content } = mount();
         await view.onOpen();
         const blocks = (view as unknown as { blocks: { id: string }[] }).blocks.map((block) => block.id);
-        expect(blocks).toEqual(["head", "next", "sections", "story"]);
+        expect(blocks).toEqual(["head", "next", "neighbourhood", "sections", "story"]);
         expect(content.byClass("note-companion-col-main")).toHaveLength(1);
     });
 
@@ -141,5 +141,27 @@ describe("the This note view (#640 FR-1..6, FR-19)", () => {
         jest.spyOn(story, "menuItems").mockReturnValue([{ label: "story" }]);
         const items = (view as unknown as { menuItems: () => { label: string }[] }).menuItems();
         expect(items.map((item) => item.label)).toEqual(["head", "story"]);
+    });
+
+    it("remembers graph or list in the settings it is handed (#643 FR-11)", async () => {
+        const listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
+        const on = (name: string, fn: (...args: unknown[]) => void) => {
+            (listeners[name] ??= []).push(fn);
+            return { name };
+        };
+        const app = {
+            workspace: { on, getActiveFile: () => null, openLinkText: jest.fn(), requestSaveLayout: jest.fn(), trigger: jest.fn(), onLayoutReady: jest.fn() },
+            metadataCache: { on, getFileCache: () => null },
+            vault: { on, getAbstractFileByPath: () => null, getMarkdownFiles: () => [] },
+        };
+        const plugin = { settings: { noteNeighbourhoodView: "list" as "graph" | "list" }, saveSettings: jest.fn(async () => undefined) };
+        const view = new NoteCompanionView(new WorkspaceLeaf(app, new DomNode()) as never, plugin);
+        await view.onOpen();
+        const set = (view as unknown as { setNeighbourhoodView: (v: "graph" | "list") => void }).setNeighbourhoodView.bind(view);
+        set("graph");
+        expect(plugin.settings.noteNeighbourhoodView).toBe("graph");
+        expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
+        set("graph");
+        expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     });
 });

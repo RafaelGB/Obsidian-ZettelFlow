@@ -60,6 +60,14 @@ export class DomNode {
         this.children.push(el);
         return el;
     }
+    /** Obsidian's `createSvg`: the same as createEl, marked as SVG so a test can tell (#643). */
+    createSvg(tag: string, options: any = {}): any {
+        const el = this.createEl(tag, options);
+        el.svg = true;
+        return el;
+    }
+    /** True for a node made by {@link createSvg}. */
+    svg = false;
     createDiv(options: any = {}): any {
         return this.createEl("div", options);
     }

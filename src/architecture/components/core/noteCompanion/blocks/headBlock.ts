@@ -163,21 +163,20 @@ export class HeadBlock extends CompanionBlock {
         const cls = (count: number) =>
             [c("note-companion-vital"), ...(count === 0 ? [c("note-companion-vital--zero")] : [])].join(" ");
 
-        // Links in/out are plain counts until the neighbourhood exists to show them (#643).
-        row.createSpan({ cls: cls(vitals.linksIn), text: tCount(vitals.linksIn, "note_companion_links_in", String(vitals.linksIn)) });
-        row.createSpan({ cls: cls(vitals.linksOut), text: tCount(vitals.linksOut, "note_companion_links_out", String(vitals.linksOut)) });
-
-        // Claims and sources are read in the gaps — the claims without a source are listed there.
-        for (const [count, key] of [
-            [vitals.claims, "note_companion_claims"],
-            [vitals.sources, "note_companion_sources"],
+        // Each count opens where it is read: the links in the neighbourhood's list (#643), claims
+        // and sources in the gaps — the claims without a source are listed there.
+        for (const [count, key, focus] of [
+            [vitals.linksIn, "note_companion_links_in", "links-in"],
+            [vitals.linksOut, "note_companion_links_out", "links-out"],
+            [vitals.claims, "note_companion_claims", "gaps"],
+            [vitals.sources, "note_companion_sources", "gaps"],
         ] as const) {
             const button = row.createEl("button", {
                 cls: cls(count),
                 text: tCount(count, key, String(count)),
                 attr: { type: "button" },
             });
-            this.on(button, "click", () => ctx.reveal("gaps"));
+            this.on(button, "click", () => ctx.reveal(focus));
         }
     }
 

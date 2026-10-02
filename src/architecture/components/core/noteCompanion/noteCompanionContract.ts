@@ -10,10 +10,13 @@ import { NEXT_MOVE_TOKENS, type NextMoveToken } from "architecture/knowledge/sta
  */
 export const NOTE_COMPANION_VIEW = "zettelflow-note";
 
-/** Where a hand-over lands: the next-step card, or one of the sections. */
-export type CompanionFocus = "next" | "nearby" | "gaps";
+/**
+ * Where a hand-over lands: the next-step card, one of the sections, or the neighbourhood's list of
+ * links in / links out (#643 — what the head's two link counts open).
+ */
+export type CompanionFocus = "next" | "nearby" | "gaps" | "links-in" | "links-out";
 
-const FOCUSES: readonly CompanionFocus[] = ["next", "nearby", "gaps"];
+const FOCUSES: readonly CompanionFocus[] = ["next", "nearby", "gaps", "links-in", "links-out"];
 
 export interface NoteCompanionState {
     /** The note to show. Absent: follow the active note. */

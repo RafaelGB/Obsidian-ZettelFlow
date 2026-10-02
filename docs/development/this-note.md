@@ -38,8 +38,11 @@ changes.
   a decision, and it has its own place.
 - **Four counts** — links in, links out, claims, and distinct sources. They are facts, never a
   grade: there is no score, no band and no percentage, and a zero is drawn faint, never in a
-  warning colour ([cognitive agency](cognitive-agency.md), constitution §XII). *Claims* and
-  *sources* open the **Gaps** section, where the claims without a source are listed.
+  warning colour ([cognitive agency](cognitive-agency.md), constitution §XII). Each count opens
+  where it is read: *links in* and *links out* open the **Neighbourhood**'s list on that group;
+  *claims* and *sources* open the **Gaps** section, where the claims without a source are listed.
+  A link counts when it is to another note: never to the note itself, to a note that does not
+  exist yet, or to an attachment — the same rule the neighbourhood uses, so the two always agree.
 
 ## Next step
 
@@ -76,6 +79,35 @@ open move.
 A hand-over can land here: `openNoteCompanion(app, { path, focus: "next", move: "connect" })` opens the
 card on that move with its panel open — or on the first move, if the note no longer has that one.
 
+## Neighbourhood
+
+Under the next step, the note's **neighbourhood**: the notes it links to and the notes that link to
+it, drawn as a small graph with the note in the centre.
+
+![The neighbourhood: an ego graph coloured by relation, a dashed near ring, the legend and the list](../resources/this-note/neighbourhood.svg)
+
+- **Colour is the relation.** A note that supports it is drawn in the theme's green, one that
+  contradicts it in its red, an example in its blue. A plain link — and every other relation type
+  (*expands*, *inspired by*, *question*, *implements*) — is drawn faint, and named in the list.
+- **Order is meaning.** Neighbours go round clockwise from twelve o'clock: contradicts, supports,
+  example, other relations, plain links; within each, notes linked both ways first, then by title.
+- **The dashed ring** holds up to three notes that are near it but not linked — the first of
+  *Near and forgotten*, so the graph and the section never disagree.
+- **Hubs.** At most twelve neighbours are drawn; past that, **+N more notes** opens the list, which
+  holds them all.
+- **Hover** shows Obsidian's page preview and lights the node's line; **click** opens the note
+  (with your modifier, in a new tab); every node is reachable with the keyboard, opens with
+  **Enter**, and is named for a screen reader (*Rival, Contradicts, links to this note*).
+
+**Graph | List** switches to the same facts as two lists — *Links in · N* and *Links out · N* — with
+a chip naming any relation that is not a plain link. The counts are exactly the head's. Your choice
+is remembered (it is a setting, so it survives closing the pane and restarting).
+
+The neighbourhood writes nothing. It reads only the note's own links, so it costs what the note's
+links cost — about a fifth of a millisecond for an 80-link hub — whatever the size of the vault
+(the `analysis.neighbourhood.*` [performance budgets](performance-budgets.md)). Notes outside the
+[knowledge scope](knowledge-scope.md) are not in the model, so they never appear here.
+
 ## What surrounds it
 
 One list of sections, each with a title and a count, collapsible, in a fixed order:
@@ -85,7 +117,7 @@ One list of sections, each with a title and a count, collapsible, in a fixed ord
 | **In tension** | notes that contradict it | the [evidence map](evidence-map.md) |
 | **Supports** | notes that support it, and the sourced evidence (claim · source) | the evidence map |
 | **Gaps** | its unsourced claims and open questions | the evidence map |
-| **Near and forgotten** | nearby notes you have not revisited, with the reason | [connection resurfacing](connection-resurfacing.md) |
+| **Near and forgotten** | nearby notes you have not revisited and do not link with, with the reason | [connection resurfacing](connection-resurfacing.md) |
 
 Sections with nothing in them are not drawn as empty boxes: they are said once, on one quiet line
 (*No supports · nothing near and forgotten*). What you expand or collapse stays that way while the
@@ -161,13 +193,14 @@ the existing view or creates one with `ensureSideLeaf(…, "right")`.
 | Field | Meaning |
 |---|---|
 | `path` | show this note (a pinned companion moves its pin to it) |
-| `focus` | one-shot landing: `"next"` opens the next-step card (on `move`, if given); `"nearby"` and `"gaps"` expand, scroll to and highlight that section (the quiet line when it is empty) |
+| `focus` | one-shot landing: `"next"` opens the next-step card (on `move`, if given); `"nearby"` and `"gaps"` expand, scroll to and highlight that section (the quiet line when it is empty); `"links-in"` and `"links-out"` switch the neighbourhood to its list and scroll to that group |
 | `move` | the next move to preselect with `focus: "next"` |
 
 `focus` and `move` are used once on arrival and never persisted; only `{ path, pinned }` of a pinned
 companion survive a restart. The view is a host for **blocks** (`noteCompanion/blocks/`): head,
-next step, sections and story today, each rendering from one `CompanionModel` built per refresh from the
-State-layer projections `noteVitals`, `lifecycleStepper` and `companionSections`. A block adds to the
+next step, neighbourhood, sections and story, each rendering from one `CompanionModel` built per
+refresh from the State-layer projections `noteVitals`, `lifecycleStepper`, `companionSections` and
+`noteNeighbourhood`; the graph's geometry is the pure `layoutNeighbourhood`. A block adds to the
 head's ⋯ menu through `menuItems()`, read when the menu opens.
 
 ## What moved here

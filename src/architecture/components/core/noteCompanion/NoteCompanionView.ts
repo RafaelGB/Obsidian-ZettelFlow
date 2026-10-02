@@ -5,7 +5,14 @@ import { CompanionBlock, type CompanionContext, type CompanionScreen } from "./b
 import { HeadBlock } from "./blocks/headBlock";
 import { SectionsBlock } from "./blocks/sectionsBlock";
 import { NextStepBlock } from "./blocks/nextStepBlock";
+import { NeighbourhoodBlock } from "./blocks/neighbourhoodBlock";
 import type { StateSettingsHost } from "architecture/plugin/services/noteNextStepWrites";
+
+/** What the view reads and remembers through the plugin it is handed. */
+export interface CompanionHost extends StateSettingsHost {
+    settings?: StateSettingsHost["settings"] & { noteNeighbourhoodView?: "graph" | "list" };
+    saveSettings?(): Promise<void>;
+}
 import { StoryBlock } from "./blocks/storyBlock";
 import { buildCompanionScreen } from "./companionModel";
 import { INITIAL_SUBJECT, reduceSubject, type SubjectEvent, type SubjectState } from "./companionSubject";
@@ -38,7 +45,7 @@ export class NoteCompanionView extends ItemView {
      */
     constructor(
         leaf: WorkspaceLeaf,
-        private readonly plugin?: StateSettingsHost
+        private readonly plugin?: CompanionHost
     ) {
         super(leaf);
     }
@@ -128,6 +135,7 @@ export class NoteCompanionView extends ItemView {
             new HeadBlock(columns.head.createDiv()),
             // Order is the reading order: what to do, then what surrounds it (#639).
             new NextStepBlock(columns.main.createDiv(), this.plugin),
+            new NeighbourhoodBlock(columns.main.createDiv()),
             new SectionsBlock(columns.main.createDiv()),
             // The story starts at the top of the right column when the pane is wide (#642).
             new StoryBlock(columns.side.createDiv()),
@@ -167,6 +175,14 @@ export class NoteCompanionView extends ItemView {
         if (this.stale && this.visible()) this.render();
     }
 
+    /** Remember graph or list across notes, panes and restarts (#643 FR-11). */
+    private setNeighbourhoodView(view: "graph" | "list"): void {
+        const settings = this.plugin?.settings;
+        if (!settings || settings.noteNeighbourhoodView === view) return;
+        settings.noteNeighbourhoodView = view;
+        void this.plugin?.saveSettings?.();
+    }
+
     /** The head's ⋯ menu: what every block offers right now, in block order (#642). */
     private menuItems(): ReturnType<CompanionBlock["menuItems"]> {
         return this.blocks.flatMap((block) => block.menuItems());
@@ -193,7 +209,10 @@ export class NoteCompanionView extends ItemView {
             follow: () => this.dispatch({ kind: "follow", active: this.activeMarkdown() }),
             refresh: () => this.render(),
             reveal: (focus, move) => this.blocks.find((block) => block.claims(focus))?.reveal(focus, move),
-            open: (path) => void this.app.workspace.openLinkText(path, screen.kind === "note" ? screen.model.path : "", false),
+            open: (path, newLeaf) =>
+                void this.app.workspace.openLinkText(path, screen.kind === "note" ? screen.model.path : "", newLeaf ?? false),
+            neighbourhoodView: this.plugin?.settings?.noteNeighbourhoodView ?? "graph",
+            setNeighbourhoodView: (view) => this.setNeighbourhoodView(view),
             menu: () => this.menuItems(),
         };
         for (const block of this.blocks) block.update(ctx);

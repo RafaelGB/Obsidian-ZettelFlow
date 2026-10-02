@@ -185,6 +185,20 @@ export const BUDGETS = {
         because:
             "the shape matters more than the number: pairwise work that slips to quadratic would pass an absolute ceiling at 10k and be unusable at 50k",
     },
+    "analysis.neighbourhood.hub": {
+        name: "a hub's neighbourhood and its layout (80 links), 1,000 renders, in a 10,000-note vault",
+        limit: 600,
+        measured: "186 ms",
+        because:
+            "This note draws it on every note switch; it must cost what the note's links cost, never what the vault costs",
+    },
+    "analysis.neighbourhood.scaling": {
+        name: "how a hub's neighbourhood grows when the vault around it doubles (20k ÷ 10k)",
+        limit: 1.5,
+        measured: "1.01×",
+        because:
+            "the projection reads only the note's own links; a ratio near 1 is that promise, and a vault walk would double it",
+    },
     "lab.thread.500": {
         name: "thread and filter a lab of 500 thoughts",
         limit: 8,

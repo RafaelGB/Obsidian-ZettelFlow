@@ -1,4 +1,5 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
+import { isNoteNeighbour } from "./neighbourhood";
 import type { EvidenceEntry, EvidenceMap, UnsourcedClaim } from "architecture/knowledge/synthesis/evidenceMap";
 import {
     LIFECYCLE_STATES,
@@ -29,9 +30,15 @@ export function noteVitals(model: KnowledgeModel, path: string): NoteVitals {
     // A source cited by two claims is still one source.
     const sources = new Set<string>();
     for (const claim of idea.claims) for (const source of claim.sources) sources.add(source.ref);
+    // Counted through the neighbourhood's own test (#643 FR-10): only other notes, never a self-link,
+    // an unresolved target or an attachment — so the header and the neighbourhood's list agree.
+    let linksIn = 0;
+    for (const from of model.inNeighborSet(path)) if (isNoteNeighbour(model, path, from)) linksIn++;
+    let linksOut = 0;
+    for (const to of model.outNeighborSet(path)) if (isNoteNeighbour(model, path, to)) linksOut++;
     return {
-        linksIn: idea.maturitySignals.inDegree,
-        linksOut: idea.maturitySignals.outDegree,
+        linksIn,
+        linksOut,
         claims: idea.claims.length,
         sources: sources.size,
     };

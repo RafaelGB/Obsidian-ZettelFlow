@@ -22,7 +22,7 @@ export interface HoverPreviewPayload {
     event: MouseEvent;
     source: string;
     hoverParent: unknown;
-    targetEl: HTMLElement;
+    targetEl: HTMLElement | SVGElement;
     linktext: string;
     sourcePath: string;
 }
@@ -30,7 +30,7 @@ export interface HoverPreviewPayload {
 /** Build the `hover-link` payload — pure, so it can be tested without a DOM (#594). */
 export function hoverPreviewPayload(
     event: MouseEvent,
-    el: HTMLElement,
+    el: HTMLElement | SVGElement,
     path: string,
     hoverParent: unknown
 ): HoverPreviewPayload {
@@ -47,9 +47,9 @@ export function hoverPreviewPayload(
  *
  * `hoverParent` is the view/component the popover attaches its lifecycle to (pass the renderer/`this`).
  */
-export function hoverPreview(app: App, el: HTMLElement, path: string, hoverParent: unknown): void {
+export function hoverPreview(app: App, el: HTMLElement | SVGElement, path: string, hoverParent: unknown): void {
     el.addEventListener("mouseover", (event) => {
-        app.workspace.trigger("hover-link", hoverPreviewPayload(event, el, path, hoverParent));
+        app.workspace.trigger("hover-link", hoverPreviewPayload(event as MouseEvent, el, path, hoverParent));
     });
 }
 
@@ -59,14 +59,15 @@ export function hoverPreview(app: App, el: HTMLElement, path: string, hoverParen
  * element per render (elements are recreated on re-render, so listeners are discarded with them).
  */
 export function makeActivatable(
-    el: HTMLElement,
+    el: HTMLElement | SVGElement,
     onActivate: () => void,
     role: "link" | "button" = "link"
 ): void {
     el.setAttribute("role", role);
     el.tabIndex = 0;
     el.addEventListener("click", onActivate);
-    el.addEventListener("keydown", (evt) => {
+    el.addEventListener("keydown", (event) => {
+        const evt = event as KeyboardEvent;
         if (evt.key === "Enter" || evt.key === " ") {
             evt.preventDefault();
             onActivate();

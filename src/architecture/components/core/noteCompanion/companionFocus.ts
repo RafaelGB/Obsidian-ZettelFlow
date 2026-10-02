@@ -11,9 +11,10 @@ export interface FocusPlan {
 /**
  * Where a hand-over lands among the sections (#640 FR-21/22). An empty section still gets you
  * somewhere: the folded line that says it is empty, so the hand-over never looks like it failed.
- * `next` belongs to the next-step card (#641), so the sections decline it.
+ * `next` belongs to the next-step card (#641) and the link lists to the neighbourhood (#643), so the
+ * sections decline them.
  */
 export function focusPlan(focus: CompanionFocus, nonEmpty: readonly CompanionSectionId[]): FocusPlan | null {
-    if (focus === "next") return null;
+    if (focus === "next" || focus === "links-in" || focus === "links-out") return null;
     return nonEmpty.includes(focus) ? { expand: focus, scrollTo: "section" } : { expand: null, scrollTo: "folded" };
 }

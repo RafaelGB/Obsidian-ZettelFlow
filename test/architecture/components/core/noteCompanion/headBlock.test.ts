@@ -73,15 +73,12 @@ describe("the companion head (#640 FR-6..10, AC-4/AC-5)", () => {
         ]);
     });
 
-    it("keeps links in/out as plain counts and sends claims and sources to the gaps", () => {
+    it("opens each count where it is read: links in the neighbourhood (#643), claims and sources in the gaps", () => {
         const { host, ctx } = render({ kind: "note", model: model() });
-        const [linksIn, linksOut, claims, sources] = host.byClass("note-companion-vital");
-        expect([linksIn.tag, linksOut.tag]).toEqual(["span", "span"]);
-        expect([claims.tag, sources.tag]).toEqual(["button", "button"]);
-        claims.click();
-        sources.click();
-        expect(ctx.reveal).toHaveBeenNthCalledWith(1, "gaps");
-        expect(ctx.reveal).toHaveBeenNthCalledWith(2, "gaps");
+        const vitals = host.byClass("note-companion-vital");
+        expect(vitals.map((vital) => vital.tag)).toEqual(["button", "button", "button", "button"]);
+        for (const vital of vitals) vital.click();
+        expect(ctx.reveal.mock.calls.map((call) => call[0])).toEqual(["links-in", "links-out", "gaps", "gaps"]);
     });
 
     it("draws the lifecycle as steps you cannot click", () => {

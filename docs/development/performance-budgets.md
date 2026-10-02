@@ -85,6 +85,8 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `model.memory.50k` | 44.9 MB | 150 |
 | `facets.50k` | 190 ms (69 ms idle) | 600 |
 | `moves.read` | 0.016 ms | 2 |
+| `analysis.neighbourhood.hub` (1,000 renders, 80-link hub, #643) | 186 ms | 600 |
+| `analysis.neighbourhood.scaling` (20k ÷ 10k) | 1.01× | 1.5 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:

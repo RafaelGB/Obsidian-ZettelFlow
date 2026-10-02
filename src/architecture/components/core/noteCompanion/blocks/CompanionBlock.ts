@@ -1,10 +1,11 @@
-import { Component, type App } from "obsidian";
+import { Component, type App, type PaneType } from "obsidian";
 import type {
     CompanionSections,
     LifecycleStep,
     NearbyRow,
     NextMoveToken,
     NextStepCard,
+    NoteNeighbourhood,
     NoteVitals,
 } from "architecture/knowledge/state";
 import type { ResurfaceReason } from "application/notes/resurfaceRanking";
@@ -28,6 +29,8 @@ export interface CompanionModel {
     sourceKey: string;
     /** The notes it links to — what *Connect* will not offer again. */
     linksOut: string[];
+    /** Its neighbours and the near notes the graph draws (#643); null when they could not be read. */
+    neighbourhood: NoteNeighbourhood | null;
 }
 
 /** What is on screen: a note, the empty state, or the two moments before a note can be read. */
@@ -49,7 +52,12 @@ export interface CompanionContext {
     refresh(): void;
     /** Bring a focus into view; `move` preselects a next move (#641). */
     reveal(focus: CompanionFocus, move?: NextMoveToken): void;
-    open(path: string): void;
+    /** Open a note; `newLeaf` follows Obsidian's modifier-click (#643). */
+    open(path: string, newLeaf?: PaneType | boolean): void;
+    /** How the neighbourhood is shown, from the settings (#643 FR-11). */
+    neighbourhoodView: "graph" | "list";
+    /** Remember how the neighbourhood is shown. */
+    setNeighbourhoodView(view: "graph" | "list"): void;
     /** What the head's ⋯ menu offers right now — every block's items, in block order (#642). */
     menu(): HeaderAction[];
 }

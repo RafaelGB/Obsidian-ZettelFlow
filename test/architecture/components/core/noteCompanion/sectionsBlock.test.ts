@@ -1,4 +1,6 @@
 import { describe, it, expect, jest, afterEach } from "@jest/globals";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { Component } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { SectionsBlock } from "architecture/components/core/noteCompanion/blocks/sectionsBlock";
@@ -183,5 +185,24 @@ describe("a hand-over lands on a section (#640 FR-21, amendment 1)", () => {
         block.update(ctx(model("A.md", [])));
         block.reveal("nearby");
         expect(host.oneByClass("note-companion-folded").scrolls).toHaveLength(1);
+    });
+});
+
+describe("the stylesheet (#640 FR-7/18, AC-8)", () => {
+    const scss = readFileSync(join(__dirname, "../../../../../src/styles/components/noteCompanion.scss"), "utf8");
+
+    it("lays out by the width of the pane, not the window", () => {
+        expect(scss).toContain("container-type: inline-size");
+        expect(scss).toMatch(/@container[^{]*\(min-width: 37\.5rem\)/);
+    });
+
+    it("keeps the head in view and respects reduced motion", () => {
+        expect(scss).toContain("position: sticky");
+        expect(scss).toContain("prefers-reduced-motion: reduce");
+    });
+
+    it("never paints a zero as a warning", () => {
+        const zero = scss.slice(scss.indexOf("note-companion-vital--zero"));
+        expect(zero.slice(0, zero.indexOf("}"))).not.toMatch(/--color-(red|orange|yellow)|--text-error/);
     });
 });

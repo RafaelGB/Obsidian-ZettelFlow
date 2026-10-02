@@ -1,0 +1,297 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * This note (#640, epic #639) — the note you are reading, from the right sidebar.
+ *
+ * Laid out by the width of its own pane, not the window: docked at sidebar width it is one column;
+ * dragged into the main area (or a wide sidebar) the history moves beside the sections. Everything
+ * is the theme's — surfaces, text, the one accent on the current step — and a zero is faint, never
+ * a warning colour: the counts are facts, not a grade (§XII).
+ */
+
+.zettelkasten-flow__note-companion {
+    container-type: inline-size;
+    container-name: note-companion;
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+}
+
+/* The two body columns stack until the pane is wide enough to hold both. */
+.zettelkasten-flow__note-companion-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+}
+
+@container note-companion (min-width: 37.5rem) {
+    .zettelkasten-flow__note-companion-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
+        gap: $space-4;
+    }
+}
+
+/* ── Head: stays in view while the rest scrolls ───────────────────────────────────────────── */
+
+.zettelkasten-flow__note-companion-col-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--background-primary);
+    padding-bottom: $space-2;
+    border-bottom: $line-quiet;
+}
+
+.zettelkasten-flow__note-companion-head {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__note-companion-title-row {
+    @include row;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__note-companion-title {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__note-companion-pinned {
+    @include hint;
+    @include row;
+}
+
+.zettelkasten-flow__note-companion-follow,
+.zettelkasten-flow__note-companion-last,
+.zettelkasten-flow__note-companion-undo,
+.zettelkasten-flow__note-companion-insert {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: var(--text-accent);
+    font-size: $text-small;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__note-companion-status {
+    @include empty-state;
+}
+
+.zettelkasten-flow__note-companion-empty {
+    @include empty-state;
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+/* The stepper: where the note stands. Read-only here; moving it is the next step's job (#641). */
+.zettelkasten-flow__note-companion-stepper {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__note-companion-step {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $text-small;
+    color: $text-faint;
+
+    & + &::before {
+        content: "";
+        width: var(--size-4-3);
+        border-top: $line-quiet;
+        margin-right: $space-1;
+    }
+}
+
+.zettelkasten-flow__note-companion-step-dot {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-pill;
+    border: var(--border-width) solid currentColor;
+}
+
+.zettelkasten-flow__note-companion-step--done {
+    color: $text-quiet;
+
+    .zettelkasten-flow__note-companion-step-dot {
+        background-color: currentColor;
+    }
+}
+
+.zettelkasten-flow__note-companion-step--current {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+
+    .zettelkasten-flow__note-companion-step-dot {
+        background-color: var(--interactive-accent);
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__note-companion-no-state {
+    @include hint;
+}
+
+/* Four counts at a glance. Faint at zero; never red, never green (§XII). */
+.zettelkasten-flow__note-companion-vitals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+    gap: $space-1;
+}
+
+.zettelkasten-flow__note-companion-vital {
+    padding: $space-1 $space-2;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: $surface-plain;
+    color: $text-plain;
+    font-size: $text-small;
+    text-align: left;
+    height: auto;
+    box-shadow: none;
+}
+
+button.zettelkasten-flow__note-companion-vital {
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__note-companion-vital--zero {
+    color: $text-faint;
+}
+
+/* ── Sections: one heading level, a count, folded when empty ────────────────────────────────── */
+
+.zettelkasten-flow__note-companion-sections {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__note-companion-section {
+    border-bottom: $line-quiet;
+    scroll-margin-top: var(--size-4-12);
+}
+
+.zettelkasten-flow__note-companion-summary {
+    padding: $space-2 0;
+    cursor: pointer;
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__note-companion-summary-count {
+    color: $text-quiet;
+    font-weight: var(--font-normal);
+}
+
+.zettelkasten-flow__note-companion-section-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding-bottom: $space-2;
+}
+
+.zettelkasten-flow__note-companion-sublabel {
+    @include hint;
+    margin-top: $space-1;
+}
+
+.zettelkasten-flow__note-companion-row {
+    @include row;
+    justify-content: space-between;
+    padding: $space-hair $space-1;
+    border-radius: $radius-small;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__note-companion-row-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.zettelkasten-flow__note-companion-row-name {
+    color: var(--text-accent);
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__note-companion-row-reason {
+    @include hint;
+}
+
+.zettelkasten-flow__note-companion-claim {
+    padding: $space-hair $space-1;
+    color: $text-plain;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__note-companion-folded {
+    @include empty-state;
+    scroll-margin-top: var(--size-4-12);
+}
+
+.zettelkasten-flow__note-companion-link-status {
+    @include hint;
+    @include row;
+}
+
+/* A hand-over lands here: one brief ring, once (#644 → #640 FR-21). */
+.zettelkasten-flow__note-companion-highlight {
+    animation: zf-note-companion-arrive 1.4s ease-out 1;
+    border-radius: $radius-small;
+}
+
+@keyframes zf-note-companion-arrive {
+    from {
+        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--interactive-accent) 45%, transparent);
+    }
+    to {
+        box-shadow: 0 0 0 var(--size-4-3) transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__note-companion-highlight {
+        animation: none;
+        outline: var(--border-width) solid var(--interactive-accent);
+    }
+}
+
+/* The history keeps its own look; inside the companion it scrolls with the view, not on its own. */
+.zettelkasten-flow__note-companion-history .zettelkasten-flow__evolution-timeline-history {
+    max-height: none;
+    overflow-y: visible;
+}

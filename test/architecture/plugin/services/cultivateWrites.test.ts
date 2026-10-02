@@ -1,4 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import * as obsidian from "obsidian";
 import { CultivationService } from "architecture/plugin/services/CultivationService";
 import { QuickCaptureModal } from "zettelkasten/modals/QuickCaptureModal";
 import { wireHarness } from "../../../support/harness";
@@ -35,9 +36,24 @@ describe("Cultivate writes (#317 S3)", () => {
         expect(h.vault.frontmatterOf("a.md").state).toBe("developing");
     });
 
+    it("link quiet raises no toast and says whether it wrote (#640)", async () => {
+        const constructed = jest.fn();
+        const Original = obsidian.Notice;
+        const spy = jest.spyOn(obsidian, "Notice").mockImplementation(((message?: string) => {
+            constructed(message);
+            return new Original(message);
+        }) as never);
+        const h = wireHarness({ files: { "a.md": { frontmatter: {}, body: "Body." } } });
+        await expect(cultivation().link(h.app as never, "a.md", "B", { quiet: true })).resolves.toBe(true);
+        expect(constructed).not.toHaveBeenCalled();
+        await cultivation().link(h.app as never, "a.md", "C");
+        expect(constructed).toHaveBeenCalledTimes(1);
+        spy.mockRestore();
+    });
+
     it("a missing target file is a safe no-op (never throws)", async () => {
         const h = wireHarness({});
-        await expect(cultivation().link(h.app as never, "missing.md", "X")).resolves.toBeUndefined();
+        await expect(cultivation().link(h.app as never, "missing.md", "X")).resolves.toBe(false);
         await expect(cultivation().addSource(h.app as never, "missing.md", "s")).resolves.toBeUndefined();
     });
 });

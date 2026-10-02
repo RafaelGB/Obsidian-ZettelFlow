@@ -46,15 +46,33 @@ export function offerUndo(batch: string, notePath: string): void {
     notice.setMessage(fragment);
 }
 
-async function takeItBack(batch: string): Promise<void> {
+/** What taking a batch back did: how many writes were undone, and which could not be. */
+export interface UndoResult {
+    /** False when the batch had nothing left to undo. */
+    hadWork: boolean;
+    done: number;
+    failed: string[];
+}
+
+/**
+ * Take one batch back, with no notice of its own (#640). The toast below wraps it; a surface that
+ * offers its undo inline (the This note companion) calls it directly and says the result itself.
+ */
+export async function undoBatch(batch: string): Promise<UndoResult> {
     const writes = filterWrites(bufferedWrites(), { batch });
     const plan = planUndo(writes, readVaultFacts(writes));
-    if (!hasWork(plan)) {
+    if (!hasWork(plan)) return { hadWork: false, done: 0, failed: [] };
+    const outcome = await applyUndo(plan, obsidianUndoVault);
+    if (outcome.failed.length === 0 && plan.possible) rememberUndone(batch, Date.now());
+    return { hadWork: true, done: outcome.done, failed: outcome.failed };
+}
+
+async function takeItBack(batch: string): Promise<void> {
+    const outcome = await undoBatch(batch);
+    if (!outcome.hadWork) {
         new Notice(t("changes_nothing_to_undo"));
         return;
     }
-    const outcome = await applyUndo(plan, obsidianUndoVault);
-    if (outcome.failed.length === 0 && plan.possible) rememberUndone(batch, Date.now());
     new Notice(
         outcome.failed.length > 0
             ? t("changes_undo_partial_done", String(outcome.done), outcome.failed.join(", "))

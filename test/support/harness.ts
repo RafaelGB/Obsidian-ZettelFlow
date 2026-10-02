@@ -25,6 +25,8 @@ function makeTFile(path: string): TFile {
     file.name = path.split("/").pop() ?? path;
     file.basename = file.name.replace(/\.md$/i, "");
     file.extension = "md";
+    // Undo reads mtimes to tell a write it made from one you made since (#455); 0 = untouched.
+    (file as unknown as { stat: { mtime: number; ctime: number; size: number } }).stat = { mtime: 0, ctime: 0, size: 0 };
     return file;
 }
 

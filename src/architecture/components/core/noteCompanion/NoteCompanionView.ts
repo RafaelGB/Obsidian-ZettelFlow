@@ -4,6 +4,8 @@ import { t } from "architecture/lang";
 import { CompanionBlock, type CompanionContext, type CompanionScreen } from "./blocks/CompanionBlock";
 import { HeadBlock } from "./blocks/headBlock";
 import { SectionsBlock } from "./blocks/sectionsBlock";
+import { NextStepBlock } from "./blocks/nextStepBlock";
+import type { StateSettingsHost } from "architecture/plugin/services/noteNextStepWrites";
 import { HistoryBlock } from "./blocks/historyBlock";
 import { buildCompanionScreen } from "./companionModel";
 import { INITIAL_SUBJECT, reduceSubject, type SubjectEvent, type SubjectState } from "./companionSubject";
@@ -30,7 +32,14 @@ export class NoteCompanionView extends ItemView {
     /** A refresh skipped while the view was hidden, owed for when it is shown again. */
     private stale = false;
 
-    constructor(leaf: WorkspaceLeaf) {
+    /**
+     * @param plugin injected, never looked up: during load `getOwnPlugin()` is not there yet (#374).
+     * The next-step card reads where the lifecycle state lives from its settings.
+     */
+    constructor(
+        leaf: WorkspaceLeaf,
+        private readonly plugin?: StateSettingsHost
+    ) {
         super(leaf);
     }
 
@@ -117,6 +126,8 @@ export class NoteCompanionView extends ItemView {
         const columns = this.columns;
         this.blocks = [
             new HeadBlock(columns.head.createDiv()),
+            // Order is the reading order: what to do, then what surrounds it (#639).
+            new NextStepBlock(columns.main.createDiv(), this.plugin),
             new SectionsBlock(columns.main.createDiv()),
             new HistoryBlock(columns.side.createDiv()),
         ].map((block) => this.addChild(block));
@@ -172,18 +183,17 @@ export class NoteCompanionView extends ItemView {
             screen,
             pinned: this.subject.pinned,
             owner: this,
-            move: pending?.move,
             pin: () => this.dispatch({ kind: "pin" }),
             follow: () => this.dispatch({ kind: "follow", active: this.activeMarkdown() }),
             refresh: () => this.render(),
-            reveal: (focus) => this.blocks.find((block) => block.claims(focus))?.reveal(focus),
+            reveal: (focus, move) => this.blocks.find((block) => block.claims(focus))?.reveal(focus, move),
             open: (path) => void this.app.workspace.openLinkText(path, screen.kind === "note" ? screen.model.path : "", false),
         };
         for (const block of this.blocks) block.update(ctx);
 
         if (pending?.focus) {
             const owner = this.blocks.find((block) => block.claims(pending.focus!));
-            if (owner) owner.reveal(pending.focus);
+            if (owner) owner.reveal(pending.focus, pending.move);
             else log.debug(`[NoteCompanion] nothing here handles focus "${pending.focus}" yet`);
         }
     }

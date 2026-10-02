@@ -1,7 +1,7 @@
 import { Notice, TFile, type App } from "obsidian";
 import { log } from "architecture/monitoring/Logger";
 import { t } from "architecture/lang";
-import { applySource } from "application/claims";
+import { appendSource } from "application/claims";
 import { FileService, type CreateFileResult } from "./FileService";
 import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 import { FrontmatterService } from "./FrontmatterService";
@@ -78,15 +78,19 @@ export class CultivationService {
      * writes under the key the note already uses, so a note declaring `sources:` no longer sprouts
      * a `source:` beside it.
      */
-    async addSource(app: App, path: string, text: string): Promise<void> {
-        await this.write(
+    async addSource(app: App, path: string, text: string, opts: { quiet?: boolean } = {}): Promise<boolean> {
+        // Appends since #641: the old edit replaced the first entry of a list, so a note whose
+        // `sources:` held a link to a note not written yet lost it to the new reference.
+        return this.write(
             app,
             path,
             (file) =>
                 FrontmatterService.instance(file).update((frontmatter) => {
-                    applySource(frontmatter, text);
+                    appendSource(frontmatter, text);
                 }),
-            "cultivate_source_notice"
+            "cultivate_source_notice",
+            undefined,
+            opts.quiet === true
         );
     }
 

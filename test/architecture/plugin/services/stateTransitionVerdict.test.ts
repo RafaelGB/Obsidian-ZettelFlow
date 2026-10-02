@@ -115,3 +115,38 @@ describe("a transition records one verdict, at the one place it happens (#581)",
         expect(read("src/starters/zcomponents/StateTransitionComponent.ts")).toContain('"human"');
     });
 });
+
+describe("a quiet transition says nothing and hands back its verdict (#641)", () => {
+    const service = StateTransitionService.getInstance();
+    const schema = new LifecycleStateSchema();
+
+    it("raises no toast on success, rejection or failure", async () => {
+        hostWith();
+        const obsidian = await import("obsidian");
+        const constructed = jest.fn();
+        const Original = obsidian.Notice;
+        const spy = jest.spyOn(obsidian, "Notice").mockImplementation(((message?: string) => {
+            constructed(message);
+            return new Original(message);
+        }) as never);
+        await service.transition(accessorWith("fleeting").accessor, "state", schema, "literature", "a.md", "derived", { quiet: true });
+        await service.transition(accessorWith("fleeting").accessor, "state", schema, "evergreen", "a.md", "derived", { quiet: true });
+        const failing: FrontmatterAccessor = { getProperty: () => "fleeting" as never, setProperty: async () => { throw new Error("x"); } };
+        await service.transition(failing, "state", schema, "literature", "a.md", "derived", { quiet: true });
+        expect(constructed).not.toHaveBeenCalled();
+        spy.mockRestore();
+    });
+
+    it("hands the stored verdict to the caller, once, and nothing for a refused move", async () => {
+        hostWith();
+        const recorded = jest.fn();
+        await service.transition(accessorWith("fleeting").accessor, "state", schema, "literature", "a.md", "derived", { quiet: true, recorded });
+        expect(recorded).toHaveBeenCalledTimes(1);
+        expect(recorded.mock.calls[0][0]).toMatchObject({ path: "a.md", subject: "state:literature", origin: "derived", verdict: "accepted" });
+        const refused = jest.fn();
+        const { accessor, setSpy } = accessorWith("fleeting");
+        await service.transition(accessor, "state", schema, "evergreen", "a.md", "derived", { quiet: true, recorded: refused });
+        expect(refused).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
+    });
+});

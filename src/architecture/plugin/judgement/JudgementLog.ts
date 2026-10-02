@@ -3,6 +3,7 @@ import {
     ruledOutCollisions,
     gapVerdict,
     recordJudgement,
+    withdrawJudgement,
     judgementDays,
     ruledOutGaps,
     sanitizeJudgementLog,
@@ -74,18 +75,41 @@ export class JudgementLog {
      * Record one verdict. Silently does nothing when the log is disabled, before `init`, for a
      * malformed entry, or for a note **outside the knowledge scope** (#311) — an excluded path never
      * becomes an idea, so it never accrues judgements either. Never throws.
+     *
+     * Returns the entry as stored, or `null` when nothing was recorded — what a caller needs to take
+     * that one verdict back again (#641).
      */
-    public record(entry: JudgementEntry, now: number = Date.now()): void {
-        if (!this.host || !this.enabled()) return;
+    public record(entry: JudgementEntry, now: number = Date.now()): Judgement | null {
+        if (!this.host || !this.enabled()) return null;
 
         const settings = this.host.settings;
-        if (isPathExcluded(entry.path ?? "", scopeExcludedPaths(settings))) return;
+        if (isPathExcluded(entry.path ?? "", scopeExcludedPaths(settings))) return null;
 
         const current = this.entries();
         const next = recordJudgement(current, { ...entry, at: entry.at ?? now });
-        if (next === current && settings.judgements.log === current) return;
+        if (next === current) {
+            if (settings.judgements.log !== current) {
+                settings.judgements.log = next;
+                this.scheduleSave();
+            }
+            return null;
+        }
 
         settings.judgements.log = next;
+        this.scheduleSave();
+        return next[next.length - 1];
+    }
+
+    /**
+     * Withdraw one verdict this session recorded (#641 Q1) — the undo of a promotion. Like
+     * `MoveLog.remove`, it touches the record and nothing else. A no-op when it is not there.
+     */
+    public remove(entry: Judgement): void {
+        if (!this.host) return;
+        const current = this.entries();
+        const next = withdrawJudgement(current, entry);
+        if (next === current) return;
+        this.host.settings.judgements.log = next;
         this.scheduleSave();
     }
 

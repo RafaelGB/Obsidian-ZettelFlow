@@ -3,7 +3,14 @@ import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { hoverPreview } from "architecture/components/core/a11y";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
-import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, noteName, type CompanionContext, type CompanionModel } from "./CompanionBlock";
+
+/** The state the card would move the note to, when advancing is one of its moves. */
+function proposedStep(model: CompanionModel): string | null {
+    if (model.next.kind !== "proposing") return null;
+    const advance = model.next.moves.find((move) => move.token === "advance-state");
+    return advance && advance.token === "advance-state" ? advance.proposed : null;
+}
 
 
 /**
@@ -11,7 +18,8 @@ import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBloc
  *
  * It stays on screen while the rest scrolls, so it carries the view's only two controls — pin and
  * refresh. Nothing in it grades the note: a zero is drawn faint, never in a warning colour, and the
- * stepper says where the note is without offering to move it (that is the next step's job, #641).
+ * stepper says where the note is. Its next step is a control only when the next-step card proposes
+ * advancing, and it opens the card's confirm rather than writing anything itself (#641).
  */
 export class HeadBlock extends CompanionBlock {
     readonly id = "head";
@@ -39,7 +47,7 @@ export class HeadBlock extends CompanionBlock {
             });
             return;
         }
-        this.renderStepper(head, screen.model.steps);
+        this.renderStepper(head, ctx, screen.model.steps, proposedStep(screen.model));
         this.renderVitals(head, ctx, screen.model.vitals);
     }
 
@@ -77,7 +85,7 @@ export class HeadBlock extends CompanionBlock {
         this.on(follow, "click", () => ctx.follow());
     }
 
-    private renderStepper(head: HTMLElement, steps: LifecycleStep[]): void {
+    private renderStepper(head: HTMLElement, ctx: CompanionContext, steps: LifecycleStep[], proposed: string | null): void {
         const list = head.createEl("ol", {
             cls: c("note-companion-stepper"),
             attr: { "aria-label": t("note_companion_stepper_label") },
@@ -87,8 +95,18 @@ export class HeadBlock extends CompanionBlock {
                 cls: [c("note-companion-step"), c(`note-companion-step--${step.status}`)].join(" "),
             });
             if (step.status === "current") item.setAttribute("aria-current", "step");
-            item.createSpan({ cls: c("note-companion-step-dot") });
-            item.createSpan({ cls: c("note-companion-step-label"), text: t(step.labelKey) });
+            // The one step you can take from here, when the next-step card proposes it (FR-15): the
+            // same confirm as the card's, never a write of its own.
+            const host =
+                step.state === proposed
+                    ? item.createEl("button", {
+                          cls: c("note-companion-step-next"),
+                          attr: { type: "button", "aria-label": t("note_next_do_advance", t(step.labelKey)) },
+                      })
+                    : item;
+            if (host !== item) this.on(host, "click", () => ctx.reveal("next", "advance-state"));
+            host.createSpan({ cls: c("note-companion-step-dot") });
+            host.createSpan({ cls: c("note-companion-step-label"), text: t(step.labelKey) });
         }
         // A note that never stated a state is not "fleeting" — it is unstated, and says so.
         if (!steps.some((step) => step.status !== "todo")) {

@@ -61,3 +61,4 @@ export * from "./trajectory";
 export * from "./speedFacts";
 export * from "./noteCompanion";
 export * from "./nextMoveLogic";
+export * from "./nextStepCard";

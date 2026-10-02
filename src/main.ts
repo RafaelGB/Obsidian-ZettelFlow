@@ -181,7 +181,7 @@ export default class ZettelFlow extends Plugin {
 		// The script workbench (#446): its own view, like the four surfaces.
 		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));
 		// This note (#640): a per-note companion docked in the right sidebar, like Backlinks.
-		this.registerView(NOTE_COMPANION_VIEW, (leaf) => new NoteCompanionView(leaf));
+		this.registerView(NOTE_COMPANION_VIEW, (leaf) => new NoteCompanionView(leaf, this));
 		// Base Dashboards (epic #622): a Bases view type, registered through the Bases door
 		// (guarded so an older Obsidian without the Bases API still loads).
 		registerDashboardBasesView(this);

@@ -110,4 +110,24 @@ describe("the This note view (#640 FR-1..6, FR-19)", () => {
         await view.onClose();
         expect(content.children).toEqual([]);
     });
+
+    it("reads in order: head, next step, sections, history (#641)", async () => {
+        const { view, content } = mount();
+        await view.onOpen();
+        const blocks = (view as unknown as { blocks: { id: string }[] }).blocks.map((block) => block.id);
+        expect(blocks).toEqual(["head", "next", "sections", "history"]);
+        expect(content.byClass("note-companion-col-main")).toHaveLength(1);
+    });
+
+    it("hands a next-step focus and its move to the block that owns it", async () => {
+        const { view } = mount();
+        await view.onOpen();
+        const next = (view as unknown as { blocks: { id: string; reveal: (...args: unknown[]) => void }[] }).blocks.find(
+            (block) => block.id === "next"
+        )!;
+        const reveal = jest.spyOn(next, "reveal");
+        await view.setState({ focus: "next", move: "connect" }, {} as never);
+        expect(reveal).toHaveBeenCalledWith("next", "connect");
+        expect(reveal).toHaveBeenCalledTimes(1);
+    });
 });

@@ -4,7 +4,8 @@ import { t } from 'architecture/lang';
 
 /** Literal title/path picker, using the existing index, never a body or natural-language search. */
 export class InquiryNoteSuggest extends SuggestModal<TFile> {
-    constructor(app: App, private readonly selected: (path: string) => void) { super(app); this.setPlaceholder(t('inquiry_choose_note')); }
+    /** `placeholder` lets another door reuse the picker in its own words (#641). */
+    constructor(app: App, private readonly selected: (path: string) => void, placeholder?: string) { super(app); this.setPlaceholder(placeholder ?? t('inquiry_choose_note')); }
     getSuggestions(query: string): TFile[] {
         const index = KnowledgeIndex.getInstance(); const term = query.toLocaleLowerCase(); const result: TFile[] = [];
         for (const idea of index.getModel().all()) {

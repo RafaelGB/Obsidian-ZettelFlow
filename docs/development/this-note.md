@@ -41,6 +41,41 @@ changes.
   warning colour ([cognitive agency](cognitive-agency.md), constitution §XII). *Claims* and
   *sources* open the **Gaps** section, where the claims without a source are listed.
 
+## Next step
+
+Under the head, one card says the note's **next step** and lets you finish it where you are.
+
+![The next-step card: one move, one primary action, finished in place](../resources/this-note/next-step.svg)
+
+The moves come from `suggestNextMoves()`, in its order, unchanged: **add a source**, **connect**,
+**mark an example**, **move it on**. The card shows one at a time — *1 of 3*, with **Another step**
+to look at the next — and says the fact the move rests on (*Makes 2 claims with no source*), never
+how good the note is. When nothing is pending it says so once: *Nothing is pending — what remains is
+to think with it.*
+
+The primary action opens a small panel, and nothing is written until you confirm:
+
+| Move | What you do | What is written, and where |
+|---|---|---|
+| **Add a source** | type a citation, a URL or a `[[note]]` | appended to the note's `source` property — or `sources`, if that is the key it uses. Existing entries are kept, including links to notes that do not exist yet. |
+| **Connect** | pick one of up to four nearby notes, or **Choose another note…** | `[[that note]]` appended to the note's body |
+| **Mark an example** | pick one of its links — *Links out* or *Links in* | `example: [[that note]]` in its properties. If `example:` already holds plain text, that value is left untouched and an inline `example:: [[that note]]` goes in the body instead. |
+| **Move it on** | confirm *Move to Literature* | the lifecycle state property, set to the state Cultivate would propose; recorded in the note's story as your decision |
+
+The stepper's proposed step opens the same confirm. From *permanent* the card does not propose a
+move (the note is developed enough); from *developing* it proposes *evergreen*, which the stepper
+only draws once a note is there — so that one is offered by the card alone.
+
+Every write goes **into the companion's note** — the pinned one, if it is pinned — in a batch of its
+own, through the write record. The card answers on one line, *Linked to B. Undo*, for thirty seconds;
+there is no toast. Undoing a promotion also withdraws the decision it recorded, so the story never
+tells something you took back. If the step is still open after the write (a source that points to a
+note that does not exist yet does not count), the card says so; otherwise it moves on to the next
+open move.
+
+A hand-over can land here: `openNoteCompanion(app, { path, focus: "next", move: "connect" })` opens the
+card on that move with its panel open — or on the first move, if the note no longer has that one.
+
 ## What surrounds it
 
 One list of sections, each with a title and a count, collapsible, in a fixed order:
@@ -85,12 +120,12 @@ the existing view or creates one with `ensureSideLeaf(…, "right")`.
 | Field | Meaning |
 |---|---|
 | `path` | show this note (a pinned companion moves its pin to it) |
-| `focus` | one-shot landing: `"nearby"` and `"gaps"` expand, scroll to and highlight that section (the quiet line when it is empty); `"next"` is reserved for the next-step card (#641) |
+| `focus` | one-shot landing: `"next"` opens the next-step card (on `move`, if given); `"nearby"` and `"gaps"` expand, scroll to and highlight that section (the quiet line when it is empty) |
 | `move` | the next move to preselect with `focus: "next"` |
 
 `focus` and `move` are used once on arrival and never persisted; only `{ path, pinned }` of a pinned
 companion survive a restart. The view is a host for **blocks** (`noteCompanion/blocks/`): head,
-sections and history today, each rendering from one `CompanionModel` built per refresh from the
+next step, sections and history today, each rendering from one `CompanionModel` built per refresh from the
 State-layer projections `noteVitals`, `lifecycleStepper` and `companionSections`.
 
 ## What moved here

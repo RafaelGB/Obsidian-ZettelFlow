@@ -32,6 +32,12 @@ It composes naturally after the maturity score: [calculate maturity](CalculateMa
 mature, this says *what to do next*. If the index isn't ready or the note isn't indexed, the action
 safely no-ops.
 
+## Finish it in place
+
+The same suggestion drives **This note**'s [next-step card](../development/this-note.md#next-step):
+it shows one move at a time and lets you finish it — add the source, link the note, mark the example,
+move the state on — without leaving the sidebar, with an undo.
+
 ## Capabilities
 
 File-system read + the disclosed result-property write. **No network, no AI.**

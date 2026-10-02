@@ -4,9 +4,12 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import {
     buildEvidenceMap,
     companionSections,
+    connectCandidates,
     lifecycleStepper,
+    nextStepCard,
     noteVitals,
 } from "architecture/knowledge/state";
+import { sourceKeyOf } from "application/claims";
 import { rankResurfacedNotes } from "application/notes/resurfaceRanking";
 import { buildResurfaceInputs } from "architecture/components/core/resurface/resurfaceInputs";
 import { noteName, type CompanionScreen } from "./blocks/CompanionBlock";
@@ -51,6 +54,11 @@ export function buildCompanionScreen(app: App, subject: SubjectState): Companion
                 vitals: noteVitals(model, path),
                 steps: lifecycleStepper(idea?.state ?? "", index.recognisesState(frontmatter)).steps,
                 sections: companionSections(map, nearby),
+                next: nextStepCard(model, path),
+                connect: connectCandidates(nearby, model.outNeighborSet(path)),
+                revision: model.revision(),
+                sourceKey: sourceKeyOf(frontmatter),
+                linksOut: model.outNeighbors(path),
             },
         };
     } catch (error) {

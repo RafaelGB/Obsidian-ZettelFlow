@@ -2,7 +2,9 @@ import { Component, type App } from "obsidian";
 import type {
     CompanionSections,
     LifecycleStep,
+    NearbyRow,
     NextMoveToken,
+    NextStepCard,
     NoteVitals,
 } from "architecture/knowledge/state";
 import type { ResurfaceReason } from "application/notes/resurfaceRanking";
@@ -15,6 +17,16 @@ export interface CompanionModel {
     vitals: NoteVitals;
     steps: LifecycleStep[];
     sections: CompanionSections<ResurfaceReason>;
+    /** The next-step card's facts (#641). */
+    next: NextStepCard;
+    /** The nearby notes *Connect* offers: unlinked, best first, at most four. */
+    connect: NearbyRow<ResurfaceReason>[];
+    /** The model's revision when this was built — how the card tells a write has landed. */
+    revision: number;
+    /** The source property a new source goes under (`source`, or the `sources` the note uses). */
+    sourceKey: string;
+    /** The notes it links to — what *Connect* will not offer again. */
+    linksOut: string[];
 }
 
 /** What is on screen: a note, the empty state, or the two moments before a note can be read. */
@@ -31,12 +43,11 @@ export interface CompanionContext {
     pinned: boolean;
     /** The component hover previews hang from. */
     owner: Component;
-    /** The move a hand-over asked for (S2 #641), if any. */
-    move?: NextMoveToken;
     pin(): void;
     follow(): void;
     refresh(): void;
-    reveal(focus: CompanionFocus): void;
+    /** Bring a focus into view; `move` preselects a next move (#641). */
+    reveal(focus: CompanionFocus, move?: NextMoveToken): void;
     open(path: string): void;
 }
 
@@ -85,7 +96,7 @@ export abstract class CompanionBlock extends Component {
     }
 
     /** Bring `focus` into view, once. Only called when {@link claims} said yes. */
-    reveal(_focus: CompanionFocus): void {}
+    reveal(_focus: CompanionFocus, _move?: NextMoveToken): void {}
 }
 
 /** A note's file name without folders or `.md` — what a row shows; the path goes in the tooltip. */

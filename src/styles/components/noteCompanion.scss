@@ -192,6 +192,114 @@ button.zettelkasten-flow__note-companion-vital {
     color: $text-faint;
 }
 
+/* ── Next step (#641): one move, one primary action, finished in place ─────────────────────── */
+
+.zettelkasten-flow__note-next {
+    @include card;
+    gap: $space-2;
+    padding: $space-3;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-plain;
+}
+
+.zettelkasten-flow__note-next-head {
+    @include row;
+    justify-content: space-between;
+}
+
+.zettelkasten-flow__note-next-eyebrow {
+    @include hint;
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.zettelkasten-flow__note-next-count {
+    @include hint;
+}
+
+.zettelkasten-flow__note-next-why {
+    color: $text-plain;
+    line-height: var(--line-height-normal);
+}
+
+.zettelkasten-flow__note-next-actions {
+    @include row;
+    flex-wrap: wrap;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__note-next-another,
+.zettelkasten-flow__note-next-cancel,
+.zettelkasten-flow__note-next-choose,
+.zettelkasten-flow__note-next-pick,
+.zettelkasten-flow__note-next-undo,
+.zettelkasten-flow__note-companion-step-next {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: var(--text-accent);
+    font-size: $text-small;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__note-next-another,
+.zettelkasten-flow__note-next-cancel {
+    color: $text-quiet;
+}
+
+/* The stepper's proposed step keeps the step's own look; it only becomes something you can press. */
+.zettelkasten-flow__note-companion-step-next {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    color: inherit;
+}
+
+.zettelkasten-flow__note-next-panel {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    padding-top: $space-2;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__note-next-hint,
+.zettelkasten-flow__note-next-sublabel {
+    @include hint;
+    margin: 0;
+}
+
+.zettelkasten-flow__note-next-input {
+    width: 100%;
+}
+
+.zettelkasten-flow__note-next-candidate {
+    @include row;
+    justify-content: space-between;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__note-next-name {
+    color: var(--text-accent);
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__note-next-complete,
+.zettelkasten-flow__note-next-status {
+    @include hint;
+}
+
 /* ── Sections: one heading level, a count, folded when empty ────────────────────────────────── */
 
 .zettelkasten-flow__note-companion-sections {

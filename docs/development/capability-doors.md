@@ -103,6 +103,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `weekly-review` | zettelflow-health | 1 | control in zettelflow-health (`SlipboxHealthRenderer.ts`) · `generate-weekly-review` |
 | `thinking-heatmap` | zettelflow-health | 2 | surface `zettelflow-health:momentum` · `show-thinking-heatmap` |
 | `note-companion` | zettelflow-note | 1 | ribbon → `open-note-companion` · `open-note-companion` |
+| `next-step` | zettelflow-note | 1 | control in zettelflow-note (`nextStepBlock.ts`) |
 | `evolution-timeline` | zettelflow-note | 1 | control in zettelflow-note (`historyBlock.ts`) · `show-evolution-timeline` · `show-notes-history` |
 | `evidence-map` | zettelflow-note | 1 | control in zettelflow-note (`sectionsBlock.ts`) · `show-evidence-map` |
 | `open-questions` | zettelflow-home | 2 | surface `zettelflow-home:home` · `show-open-questions` |

@@ -31,6 +31,11 @@ const model = (path = "A.md", near = nearby): CompanionModel => ({
     vitals: { linksIn: 0, linksOut: 0, claims: 2, sources: 0 },
     steps: lifecycleStepper("fleeting", true).steps,
     sections: companionSections({ ...map, focus: path }, near),
+    next: { kind: "complete" },
+    connect: [],
+    revision: 1,
+    sourceKey: "source",
+    linksOut: [],
 });
 
 function setup(deps: Partial<ConstructorParameters<typeof SectionsBlock>[1]> = {}) {

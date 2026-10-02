@@ -104,6 +104,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "weekly-review": { summary: "a weekly review note: created, orphaned, forgotten, and unreviewed ideas.", page: "../development/second-brain-review.md" },
     "thinking-heatmap": { summary: "a calendar of ideas developed — momentum, not note-count volume.", page: "../development/thinking-heatmap.md" },
     "note-companion": { summary: "the note you are reading, from the right sidebar — where it stands, what surrounds it, how it got here.", page: "../development/this-note.md" },
+    "next-step": { summary: "the note's next step — add a source, connect, mark an example or move it on — finished in place, with an undo.", page: "../development/this-note.md#next-step" },
     "evolution-timeline": { summary: "the conceptual history of one idea — states, claims, moves, and verdicts.", page: "../development/evolution-timeline.md" },
     "evidence-map": { summary: "a grounded synthesis of a note from your own graph (experimental).", page: "../development/evidence-map.md" },
     "open-questions": { summary: "every unanswered question in your vault, made first-class.", page: "../development/open-questions.md" },

@@ -63,7 +63,7 @@ Point an **[Obsidian Base](https://help.obsidian.md/bases)** at any folder and Z
 
 ## This note, beside every note
 
-Open **This note** from the ribbon menu and the note you are reading gets a companion in the right sidebar: where it stands on its lifecycle, four plain counts, what argues with it, what supports it, what it is missing and what you wrote near it and forgot — then how it got here. Pin it to one note while you work in another; link a forgotten note into it with one click and an Undo.
+Open **This note** from the ribbon menu and the note you are reading gets a companion in the right sidebar: where it stands on its lifecycle, four plain counts, what argues with it, what supports it, what it is missing and what you wrote near it and forgot — then how it got here. It says the note's next step and lets you finish it in place. Pin it to one note while you work in another; link a forgotten note into it with one click and an Undo.
 
 ![This note, docked in the right sidebar](docs/resources/this-note/companion.svg)
 

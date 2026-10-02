@@ -166,3 +166,16 @@ export function sanitizeJudgementLog(raw: unknown): Judgement[] {
     }
     return out;
 }
+
+/**
+ * Take back the verdict a click just recorded (#641 Q1): the **last** entry equal to `entry` on its
+ * identity tuple (`at`, `path`, `subject`, `origin`, `verdict` — a judgement has no id). Returns a new
+ * array without it, or the same reference when it is not there. The record stays append-only for
+ * everything else; this exists so an undone promotion does not stay told in the note's story.
+ */
+export function withdrawJudgement(history: Judgement[], entry: Judgement): Judgement[] {
+    for (let i = history.length - 1; i >= 0; i--) {
+        if (sameEntry(history[i], entry)) return [...history.slice(0, i), ...history.slice(i + 1)];
+    }
+    return history;
+}

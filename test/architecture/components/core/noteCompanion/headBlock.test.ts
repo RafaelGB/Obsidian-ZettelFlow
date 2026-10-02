@@ -15,6 +15,11 @@ const model = (over: Partial<CompanionModel> = {}): CompanionModel => ({
     vitals: { linksIn: 3, linksOut: 0, claims: 2, sources: 0 },
     steps: lifecycleStepper("literature", true).steps,
     sections: { sections: [], folded: ["tension", "supports", "gaps", "nearby"] },
+    next: { kind: "complete" },
+    connect: [],
+    revision: 1,
+    sourceKey: "source",
+    linksOut: [],
     ...over,
 });
 
@@ -127,5 +132,21 @@ describe("the companion head (#640 FR-6..10, AC-4/AC-5)", () => {
         const { host } = render({ kind: "indexing", path: "zettel/A.md" });
         expect(host.oneByClass("note-companion-title").textContent).toBe("A");
         expect(host.oneByClass("note-companion-status").textContent).toBe("Indexing your vault…");
+    });
+
+    it("makes the proposed next step a control only when the card proposes advancing (#641 FR-15, AC-10)", () => {
+        const proposing = render({
+            kind: "note",
+            model: model({
+                next: { kind: "proposing", moves: [{ token: "advance-state", current: "literature", proposed: "permanent" }] },
+            }),
+        });
+        const buttons = proposing.host.querySelector("ol")!.findAll((el) => el.tag === "button");
+        expect(buttons.map((button) => button.textContent)).toEqual(["Permanent"]);
+        buttons[0].click();
+        expect(proposing.ctx.reveal).toHaveBeenCalledWith("next", "advance-state");
+
+        const otherwise = render({ kind: "note", model: model({ next: { kind: "proposing", moves: [{ token: "connect" }] } }) });
+        expect(otherwise.host.querySelector("ol")!.findAll((el) => el.tag === "button")).toEqual([]);
     });
 });

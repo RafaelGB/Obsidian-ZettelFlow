@@ -103,6 +103,7 @@ export const CAPABILITIES = [
     "weekly-review",
     "thinking-heatmap",
     "note-companion",
+    "next-step",
     "evolution-timeline",
     "evidence-map",
     "open-questions",
@@ -253,6 +254,13 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "note_companion_title",
         owner: NOTE,
         doors: [RIBBON("open-note-companion"), CMD("open-note-companion")],
+    },
+    "next-step": {
+        // What to do with the note you are reading, finished where you are (#641): a control on the
+        // companion, the place you already are.
+        nameKey: "note_next_eyebrow",
+        owner: NOTE,
+        doors: [CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE)],
     },
     "evolution-timeline": {
         nameKey: "evolution_timeline_view_title",

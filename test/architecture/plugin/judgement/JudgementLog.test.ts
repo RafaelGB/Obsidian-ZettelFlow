@@ -143,3 +143,24 @@ describe("the recorded shape carries no content (#336, the privacy promise)", ()
         expect(Object.keys(recorded).sort()).toEqual(["at", "origin", "path", "subject", "verdict"]);
     });
 });
+
+describe("JudgementLog record/remove (#641 Q1)", () => {
+    it("returns the entry it stored, and null when it stored nothing", () => {
+        fresh();
+        const log = JudgementLog.getInstance();
+        const stored = log.record({ ...move, subject: "state:literature" }, NOW);
+        expect(stored).toEqual({ ...move, subject: "state:literature", at: NOW });
+        expect(log.record({ ...move, subject: "state:literature" }, NOW)).toBeNull();
+        fresh({ judgements: { enabled: false, log: [] } } as never);
+        expect(JudgementLog.getInstance().record(move, NOW)).toBeNull();
+    });
+
+    it("withdraws that one entry and nothing else", () => {
+        const h = fresh();
+        const log = JudgementLog.getInstance();
+        log.record(move, NOW);
+        const stored = log.record({ ...move, subject: "state:literature" }, NOW + 1)!;
+        log.remove(stored);
+        expect(h.settings.judgements.log).toEqual([{ ...move, at: NOW }]);
+    });
+});

@@ -20,6 +20,15 @@ const SOURCES = (function collect(dir: string): string {
 
 const SURFACE_TYPES = ["zettelflow-home", "zettelflow-health", "zettelflow-explore"];
 
+/**
+ * Views that are not surfaces and are allowed to be: each answers one thing in one place, with no
+ * modes. The workbench (#446) and This note (#640), the per-note companion docked beside the editor.
+ */
+const ALLOWED_STANDALONE_VIEWS: Record<string, string> = {
+    "zettelflow-workbench": "WorkbenchView.NAME",
+    "zettelflow-note": "NOTE_COMPANION_VIEW",
+};
+
 /** The 12 retired opener commands kept as aliases (must still be registered somewhere). */
 const ALIAS_COMMANDS = [
     "show-home",
@@ -53,9 +62,23 @@ describe("surface consolidation (#272, AC-3/AC-4; the count's history is in surf
         expect(main).not.toMatch(/new (SlipboxHealthView|KnowledgeDashboardView|DiscoveriesView|ConceptNavView)\(/);
     });
 
+    it("registers the standalone views, and none of them is a surface in disguise", () => {
+        const main = read("src/main.ts");
+        for (const constant of Object.values(ALLOWED_STANDALONE_VIEWS)) {
+            expect(main).toContain(`this.registerView(${constant},`);
+        }
+        const surfaceTypes = SURFACES.map((surface) => surface.viewType);
+        for (const type of Object.keys(ALLOWED_STANDALONE_VIEWS)) expect(surfaceTypes).not.toContain(type);
+    });
+
+    it("never detaches a view on unload — registerView already tears it down (#640 AC-13)", () => {
+        expect(read("src/main.ts")).not.toContain("detachLeavesOfType");
+    });
+
     it("the ribbon menu references only the surface commands, none of the retired per-view openers", () => {
         const menu = read("src/starters/zcomponents/ZettelFlowMenuComponent.ts");
         expect(menu).toContain("show-health");
+        expect(menu).toContain('"open-note-companion"');
         for (const retired of RETIRED_IN_MENU) {
             expect(menu.includes(`"${retired}"`)).toBe(false);
         }

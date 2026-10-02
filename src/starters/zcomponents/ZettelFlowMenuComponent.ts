@@ -5,6 +5,7 @@ import { activateSurface } from "architecture/plugin";
 import { requestGraph3DFocus } from "architecture/components/core/graph3d/graph3dFocus";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import { CommunityTemplatesModal } from "application/community";
+import { openNoteCompanion } from "architecture/components/core/noteCompanion/openNoteCompanion";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -59,6 +60,8 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             { command: "cultivate", labelKey: "command_cultivate", icon: "sprout" },
             { command: "ask-your-graph", labelKey: "command_ask_graph", icon: "telescope" },
             { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
+            // The note you are reading, from the right sidebar (#640): the always-visible door.
+            { command: "open-note-companion", labelKey: "note_companion_title", icon: "file-search" },
         ],
     ];
 
@@ -70,6 +73,11 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             callback: () => new CommunityTemplatesModal(this.plugin).open(),
         });
         // The three surface-opening commands (#272); `show-home` lives in HomeComponent.
+        this.plugin.addCommand({
+            id: "open-note-companion",
+            name: t("command_open_note_companion"),
+            callback: () => void openNoteCompanion(this.plugin.app),
+        });
         this.plugin.addCommand({
             id: "show-health",
             name: t("command_show_health"),

@@ -30,6 +30,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `map` | `() => KnowledgeMap` | The connected regions of the idea graph, and the notes that are alone. |
 | `model` | `() => KnowledgeModel` | The raw idea graph, for questions no projection answers. |
 | `neighbors` | `(path: string) => ConceptNeighbors` | What sits next to one idea in the graph, by relation type. |
+| `nextMoves` | `(path: string) => NextMoveToken[]` | The concrete next moves for one note, in order: add-source, connect, add-example, advance-state. |
 | `openQuestions` | `() => OpenQuestion[]` | Questions recorded in the vault that nothing has answered yet. |
 | `outline` | `(selectedPaths: string[], opts?: DeriveOutlineOptions) => Outline` | An outline derived from a set of notes. |
 | `proposeAnswers` | `(path: string) => AnswerProposal[]` | Existing notes that could answer an open question. |

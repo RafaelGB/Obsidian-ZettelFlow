@@ -19,6 +19,7 @@ import {
     deriveFacets,
     buildEvidenceMap,
     noteVitals,
+    suggestNextMoves,
     deriveOutline,
     cultivationQueue,
     readyToCultivate,
@@ -293,6 +294,11 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(path: string) => EvidenceMap",
             summary: "What supports and what contradicts one idea.",
             call: (path: string) => buildEvidenceMap(model(), path),
+        },
+        nextMoves: {
+            signature: "(path: string) => NextMoveToken[]",
+            summary: "The concrete next moves for one note, in order: add-source, connect, add-example, advance-state.",
+            call: (path: string) => suggestNextMoves(model(), path),
         },
         vitals: {
             signature: "(path: string) => NoteVitals",

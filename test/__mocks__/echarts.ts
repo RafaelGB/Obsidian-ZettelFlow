@@ -11,8 +11,9 @@ export function init(_el?: unknown, _theme?: unknown, _opts?: unknown): {
     setOption: (o: unknown) => void;
     resize: () => void;
     dispose: () => void;
+    on: (event: string, handler: (params: unknown) => void) => void;
 } {
-    return { setOption() { }, resize() { }, dispose() { } };
+    return { setOption() { }, resize() { }, dispose() { }, on() { } };
 }
 
 // Tree-shakeable members the host registers via `use([...])`.

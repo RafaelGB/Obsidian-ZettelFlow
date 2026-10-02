@@ -17,15 +17,22 @@ export function buildScatterOption(
     const { x, y, size, color } = config.mapping;
     const xIsDate = x ? snapshot.schema.byId[x]?.type === "date" : false;
 
+    // The 5th dimension is the row index — not drawn, but it is how a click finds its note.
     const points = snapshot.rows
-        .map((row) => {
+        .map((row, rowIndex) => {
             const xRaw = x ? row[x]?.raw : null;
             const yRaw = y ? row[y]?.raw : null;
             const sizeRaw = bubble && size ? row[size]?.raw : null;
             const colorRaw = bubble && color ? row[color]?.raw : null;
             const xVal = xIsDate && typeof xRaw === "string" ? Date.parse(xRaw) : typeof xRaw === "number" ? xRaw : NaN;
             const yVal = typeof yRaw === "number" ? yRaw : NaN;
-            return [xVal, yVal, typeof sizeRaw === "number" ? sizeRaw : 0, typeof colorRaw === "number" ? colorRaw : 0];
+            return [
+                xVal,
+                yVal,
+                typeof sizeRaw === "number" ? sizeRaw : 0,
+                typeof colorRaw === "number" ? colorRaw : 0,
+                rowIndex,
+            ];
         })
         .filter((point) => !Number.isNaN(point[0]) && !Number.isNaN(point[1]));
 

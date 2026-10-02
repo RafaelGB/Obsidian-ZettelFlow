@@ -118,7 +118,7 @@ export const PANEL_TYPES: Record<PanelType, PanelTypeSpec> = {
     heatmap: {
         type: "heatmap",
         labelKey: "dashboard_panel_heatmap",
-        icon: "grid-3x3",
+        icon: "layout-grid",
         channels: [
             CAT("x", "dashboard_channel_x"),
             CAT("y", "dashboard_channel_y"),

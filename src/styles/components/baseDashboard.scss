@@ -1,11 +1,13 @@
+@use '../utils/mixins' as *;
+
 /*
-*  Base Dashboards — the field inspector (epic #622, S1 #623).
-*  Theme variables only; the user's theme wins (§XV). No hex, no inline styles.
+*  Base Dashboards (epic #622, #632). Theme variables only; the user's theme wins (§XV).
+*  No hex, no inline styles. The look is Obsidian's: quiet surfaces, its own buttons and menus.
 */
 .zettelkasten-flow__base-dashboard {
     display: flex;
     flex-direction: column;
-    gap: var(--size-4-4);
+    gap: var(--size-4-3);
     height: 100%;
     padding: var(--size-4-4);
     overflow: auto;
@@ -87,10 +89,7 @@
 
 .zettelkasten-flow__base-dashboard-field-type {
     flex-shrink: 0;
-    padding: 0 var(--size-4-2);
-    border-radius: var(--radius-s);
-    background-color: var(--background-modifier-border);
-    color: var(--text-muted);
+    color: var(--text-faint);
     font-size: var(--font-ui-smaller);
 }
 
@@ -105,24 +104,68 @@
     gap: var(--size-4-4);
 }
 
-/* S2 (#624) — toolbar + panel grid + cards + stat tile. */
+/* The toolbar: a quiet count on the left, the two things you do here on the right. */
 .zettelkasten-flow__base-dashboard-toolbar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
     gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__base-dashboard-add {
+.zettelkasten-flow__base-dashboard-count {
+    margin-right: auto;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__base-dashboard-tool {
     display: inline-flex;
     align-items: center;
     gap: var(--size-4-1);
     cursor: pointer;
 }
 
-.zettelkasten-flow__base-dashboard-add-icon {
+.zettelkasten-flow__base-dashboard-tool-icon {
     display: inline-flex;
+    --icon-size: var(--icon-s);
 }
 
+/* The inline notice (#546: said in front of you, never a toast). Clickable — it opens the editor. */
+.zettelkasten-flow__base-dashboard-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-2);
+    padding: var(--size-4-2) var(--size-4-3);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__base-dashboard-notice.is-error {
+    background-color: var(--background-modifier-error);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__base-dashboard-notice ul {
+    margin: var(--size-4-1) 0 0;
+    padding-left: var(--size-4-4);
+}
+
+.zettelkasten-flow__base-dashboard-notice-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--text-warning);
+    --icon-size: var(--icon-s);
+}
+
+.zettelkasten-flow__base-dashboard-notice.is-error .zettelkasten-flow__base-dashboard-notice-icon {
+    color: var(--text-error);
+}
+
+/* The grid and its cards. */
 .zettelkasten-flow__base-dashboard-panels {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
@@ -137,7 +180,7 @@
     padding: var(--size-4-3);
     border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-m);
-    background-color: var(--background-secondary);
+    background-color: var(--background-primary);
 }
 
 .zettelkasten-flow__base-dashboard-panel-header {
@@ -145,6 +188,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--size-4-2);
+    min-height: var(--size-4-6);
 }
 
 .zettelkasten-flow__base-dashboard-panel-title {
@@ -155,10 +199,20 @@
     color: var(--text-normal);
 }
 
-.zettelkasten-flow__base-dashboard-panel-actions {
-    display: flex;
-    flex-shrink: 0;
-    gap: var(--size-4-1);
+/* The "more" button stays out of the way until you reach for the panel. */
+.zettelkasten-flow__base-dashboard-panel-more {
+    opacity: 0;
+    transition: opacity 120ms ease-in-out;
+}
+
+.zettelkasten-flow__base-dashboard-panel:hover .zettelkasten-flow__base-dashboard-panel-more,
+.zettelkasten-flow__base-dashboard-panel-more:focus-visible {
+    opacity: 1;
+}
+
+/* Touch has no hover: the button is always there. */
+.is-mobile .zettelkasten-flow__base-dashboard-panel-more {
+    opacity: 1;
 }
 
 .zettelkasten-flow__base-dashboard-panel-body {
@@ -168,6 +222,10 @@
 }
 
 .zettelkasten-flow__base-dashboard-panel-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-2);
     margin: auto;
     color: var(--text-muted);
     font-size: var(--font-ui-small);
@@ -184,6 +242,7 @@
     font-weight: var(--font-bold);
     line-height: 1.1;
     color: var(--text-normal);
+    font-variant-numeric: tabular-nums;
 }
 
 .zettelkasten-flow__base-dashboard-stat-label {
@@ -194,13 +253,11 @@
 
 .zettelkasten-flow__base-dashboard-channel-label {
     margin-top: var(--size-4-2);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
 
-/* S3 (#625) — class-driven grid placement (width in columns, height in rows). */
+/* Class-driven grid placement (width in columns, height in rows). */
 .zettelkasten-flow__base-dashboard-panel.is-w2 {
     grid-column: span 2;
 }
@@ -221,45 +278,114 @@
     }
 }
 
-/* #632 — visual panel-type chooser (icon + label), lower entry curve than a text dropdown. */
+/* The config modal: the form beside a live preview of the panel it builds. */
+.modal.zettelkasten-flow__base-dashboard-modal {
+    width: min(60rem, 92vw);
+}
+
+.zettelkasten-flow__base-dashboard-modal-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--size-4-6);
+    align-items: start;
+}
+
+@media (max-width: 48rem) {
+    .zettelkasten-flow__base-dashboard-modal-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.zettelkasten-flow__base-dashboard-modal-preview {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__base-dashboard-preview-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__base-dashboard-panel.is-preview {
+    min-height: 18rem;
+    background-color: var(--background-secondary);
+}
+
+/* The panel-type tiles: an icon and a word, quiet until hovered, one of them chosen. */
 .zettelkasten-flow__base-dashboard-type-chooser {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
     gap: var(--size-4-1);
-    margin-bottom: var(--size-4-3);
+    margin-bottom: var(--size-4-2);
 }
 
 .zettelkasten-flow__base-dashboard-type-option {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: var(--size-4-1);
-    padding: var(--size-4-2);
-    border: var(--border-width) solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    background-color: var(--background-secondary);
+    height: auto;
+    padding: var(--size-4-2) var(--size-4-1);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-m);
+    background-color: transparent;
+    box-shadow: none;
     color: var(--text-muted);
     cursor: pointer;
 }
 
 .zettelkasten-flow__base-dashboard-type-option:hover {
     background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
 }
 
 .zettelkasten-flow__base-dashboard-type-option.is-active {
-    border-color: var(--interactive-accent);
+    border-color: var(--background-modifier-border-focus);
+    background-color: var(--background-modifier-active-hover);
     color: var(--text-normal);
 }
 
 .zettelkasten-flow__base-dashboard-type-icon {
     display: inline-flex;
+    --icon-size: var(--icon-l);
+}
+
+.zettelkasten-flow__base-dashboard-type-option.is-active .zettelkasten-flow__base-dashboard-type-icon {
+    color: var(--text-accent);
 }
 
 .zettelkasten-flow__base-dashboard-type-label {
     font-size: var(--font-ui-smaller);
 }
 
-/* S4 (#626) — table + calendar-heatmap panels. */
+/* A multi-field channel: its chosen fields as removable pills beside the "add" dropdown. */
+.zettelkasten-flow__base-dashboard-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__base-dashboard-pill {
+    @include chip;
+    padding-right: 0;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__base-dashboard-pill-remove {
+    padding: 0 var(--size-4-1);
+    --icon-size: var(--icon-xs);
+}
+
+.zettelkasten-flow__base-dashboard-step .setting-item-name {
+    color: var(--text-muted);
+}
+
+/* Table + calendar panels. */
 .zettelkasten-flow__base-dashboard-table-wrap {
     width: 100%;
     overflow: auto;
@@ -269,6 +395,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
 }
 
 .zettelkasten-flow__base-dashboard-table th,
@@ -283,8 +410,24 @@
     position: sticky;
     top: 0;
     cursor: pointer;
-    background-color: var(--background-secondary);
+    background-color: var(--background-primary);
     color: var(--text-muted);
+    font-weight: var(--font-medium);
+}
+
+.zettelkasten-flow__base-dashboard-table tr.is-clickable {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__base-dashboard-table tr.is-clickable:hover td {
+    background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__base-dashboard-sort-icon {
+    display: inline-flex;
+    margin-left: var(--size-4-1);
+    vertical-align: middle;
+    --icon-size: var(--icon-xs);
 }
 
 .zettelkasten-flow__base-dashboard-cal {
@@ -300,6 +443,14 @@
     height: 0.7rem;
     border-radius: var(--size-2-1);
     background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell.is-clickable {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__base-dashboard-cal-cell.is-clickable:hover {
+    outline: var(--border-width) solid var(--text-muted);
 }
 
 .zettelkasten-flow__base-dashboard-cal-cell.is-l1 {
@@ -320,55 +471,70 @@
     color: var(--text-on-accent);
 }
 
-/* S6 (#628) — script transformer error state + code input. */
-/* #632 — inline computed-field error banner (a tint, with the normal text colour as the legible pair). */
-.zettelkasten-flow__base-dashboard-error {
-    padding: var(--size-4-2) var(--size-4-3);
-    border-radius: var(--radius-s);
-    background-color: var(--background-modifier-error);
-    color: var(--text-normal);
-    font-size: var(--font-ui-small);
-    overflow-wrap: anywhere;
+/* The computed-fields editor (#632): a guide, the Base's fields, the editor, a preview. */
+.zettelkasten-flow__base-dashboard-computed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
 }
 
-/* #632 — computed-fields toolbar button + editor host. */
-.zettelkasten-flow__base-dashboard-computed-btn {
-    display: inline-flex;
+.zettelkasten-flow__base-dashboard-computed-guide {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__base-dashboard-computed-steps {
+    margin: 0 0 var(--size-4-1);
+    padding-left: var(--size-4-4);
+}
+
+.zettelkasten-flow__base-dashboard-computed-steps li {
+    margin-bottom: var(--size-4-1);
+}
+
+.zettelkasten-flow__base-dashboard-computed-fields,
+.zettelkasten-flow__base-dashboard-computed-summary {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--size-4-1);
-    cursor: pointer;
+    margin-top: var(--size-4-1);
+}
+
+.zettelkasten-flow__base-dashboard-field-chip {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+}
+
+/* A field some notes lack — the case `?? default` is for. */
+.zettelkasten-flow__base-dashboard-field-chip.is-partial {
+    border-style: dashed;
+}
+
+.zettelkasten-flow__base-dashboard-field-coverage {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    font-variant-numeric: tabular-nums;
 }
 
 .zettelkasten-flow__base-dashboard-computed-editor {
-    margin-top: var(--size-4-2);
     border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     overflow: hidden;
 }
 
-.zettelkasten-flow__base-dashboard-computed-guide {
-    font-size: var(--font-ui-small);
-    color: var(--text-muted);
-}
-
-.zettelkasten-flow__base-dashboard-computed-guide p {
-    margin: 0 0 var(--size-4-1);
-}
-
-.zettelkasten-flow__base-dashboard-computed-fields {
+.zettelkasten-flow__base-dashboard-computed-preview {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4-1);
-    margin: var(--size-4-1) 0 0;
-    padding: 0;
-    list-style: none;
+    flex-direction: column;
+    gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__base-dashboard-computed-fields li {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--size-4-1);
-    padding: 0 var(--size-4-1);
-    border: var(--border-width) solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
+.zettelkasten-flow__base-dashboard-computed-preview .zettelkasten-flow__base-dashboard-notice {
+    cursor: default;
+}
+
+.zettelkasten-flow__base-dashboard-muted {
+    @include hint;
 }

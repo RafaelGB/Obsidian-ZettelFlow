@@ -1,4 +1,4 @@
-import { App } from "obsidian";
+import { App, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
@@ -60,13 +60,30 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
     /** Whether snapshots are being recorded. Decides the history, never the strand (#564). */
     private historyKept = true;
 
-    constructor(container: HTMLElement, private readonly app: App) {
+    /**
+     * @param subject the note this history is about (#640). Inside the This note companion that is
+     * the companion's note — pinned, or followed — and the companion drives the refreshes, so the
+     * renderer listens to nothing itself. Standalone, it is the workspace's active file.
+     */
+    constructor(
+        container: HTMLElement,
+        private readonly app: App,
+        private readonly subject: (() => string | null) | null = null
+    ) {
         super(container);
     }
 
     onload(): void {
-        this.registerVaultListeners();
+        if (!this.subject) this.registerVaultListeners();
         this.recompute();
+    }
+
+    /** The note to read: the injected subject, else the active file. */
+    private subjectFile(): TFile | null {
+        const path = this.subject ? this.subject() : this.app.workspace.getActiveFile()?.path ?? null;
+        if (!path) return null;
+        const file = this.app.vault.getAbstractFileByPath(path);
+        return file instanceof TFile ? file : null;
     }
 
     onunload(): void {
@@ -85,7 +102,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         this.registerEvent(this.app.vault.on("delete", debounced));
     }
 
-    private recompute(): void {
+    recompute(): void {
         try {
             const timeline = ConceptualTimeline.getInstance();
             // Snapshots are opt-in because they store claim **texts**. That reason does not reach
@@ -97,7 +114,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
             // nowhere to read them. The test that was supposed to catch it only checked that
             // `timeline.enabled()` appeared before `timelineEvents`, which it did.
             this.historyKept = timeline.enabled();
-            const active = this.app.workspace.getActiveFile();
+            const active = this.subjectFile();
             const snapshots = active && this.historyKept ? timeline.snapshotsFor(active.path) : [];
             // The judgement log is scope-filtered and path-exact; an idea with no verdicts adds nothing,
             // so a note that was never ruled on renders exactly the pre-#362 timeline.
@@ -163,7 +180,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
         // Tracing the reasoning that leaves this note was in the palette and nowhere else (#578).
         // It is a per-note question, and this is the per-note mode — the same active file the
         // strands above are already read from. The command keeps working; this is its door.
-        if (this.app.workspace.getActiveFile()) {
+        if (this.subjectFile()) {
             bar.secondary({
                 label: t("command_explore_reasoning_paths"),
                 icon: "route",
@@ -259,7 +276,7 @@ export class EvolutionTimelineRenderer extends KnowledgeModeRenderer {
      */
     private async shareIdeaCard(): Promise<void> {
         try {
-            const active = this.app.workspace.getActiveFile();
+            const active = this.subjectFile();
             if (!active) return;
             const index = KnowledgeIndex.getInstance();
             if (index.status !== "ready") return;

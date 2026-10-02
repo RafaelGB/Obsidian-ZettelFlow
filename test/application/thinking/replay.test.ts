@@ -130,7 +130,7 @@ describe("it costs no new place to look (#494)", () => {
         // before any of the other three strands were read, so with snapshots off the view drew
         // nothing at all. The old test only checked that `timeline.enabled()` appeared somewhere
         // before `timelineEvents`, which it did — the bug was in what happened in between.
-        const recompute = TIMELINE.slice(TIMELINE.indexOf("private recompute()"));
+        const recompute = TIMELINE.slice(TIMELINE.indexOf("recompute(): void"));
         const decided = recompute.slice(
             recompute.indexOf("timeline.enabled()"),
             recompute.indexOf("this.events = timelineEvents")

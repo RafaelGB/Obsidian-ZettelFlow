@@ -16,6 +16,7 @@ import { init, use, type EChartsType } from "echarts/core";
 import { BarChart, HeatmapChart, LineChart, PieChart, ScatterChart } from "echarts/charts";
 import { GridComponent, LegendComponent, TooltipComponent, VisualMapComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
+import { log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { c } from "architecture/styles/helper";
 import { rowPath, type DataStoreSnapshot } from "dashboards/datastore";
@@ -413,9 +414,22 @@ export class PanelHost extends Component {
             body.empty();
             return;
         }
+        // Coming from another type (or a first draw), say so at once rather than leaving the previous
+        // panel on screen while the notes are read; an existing task list stays until the new one is ready.
+        if (!body.querySelector(`.${c("base-dashboard-tasks")}`)) {
+            body.empty();
+            body.createDiv({ cls: c("base-dashboard-panel-empty"), text: t("dashboard_tasks_loading") });
+        }
         const paths = [...new Set(snapshot.rows.map(rowPath).filter((path): path is string => Boolean(path)))];
-        const items = await port.load(paths);
-        if (token !== this.taskRender || !this.bodyEl) return; // superseded, or unloaded meanwhile
+        let items: TaskItem[];
+        try {
+            items = await port.load(paths);
+        } catch (error) {
+            log.error("Base dashboard could not read tasks", error);
+            items = [];
+        }
+        // Superseded by a newer render, switched to another type meanwhile, or unloaded: paint nothing.
+        if (token !== this.taskRender || this.config.type !== "tasks" || !this.bodyEl) return;
 
         const mapping = this.config.mapping;
         const show: TaskShow = mapping.taskShow ?? "open";
@@ -423,9 +437,10 @@ export class PanelHost extends Component {
         body.empty();
         const panel = body.createDiv({ cls: c("base-dashboard-tasks") });
         const counts = panel.createDiv({ cls: c("base-dashboard-tasks-counts") });
-        counts.setText(
-            `${tCount(view.open, "dashboard_tasks_open", String(view.open))} · ${tCount(view.done, "dashboard_tasks_done", String(view.done))}`,
-        );
+        // The count says what you asked to see: open tasks count the open ones, and only "All" shows both.
+        const open = tCount(view.open, "dashboard_tasks_open", String(view.open));
+        const done = tCount(view.done, "dashboard_tasks_done", String(view.done));
+        counts.setText(show === "open" ? open : show === "done" ? done : `${open} · ${done}`);
         if (this.taskNotice) panel.createDiv({ cls: `${c("base-dashboard-notice")} is-error`, text: this.taskNotice });
         this.taskNotice = null;
 

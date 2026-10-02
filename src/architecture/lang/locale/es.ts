@@ -1986,6 +1986,7 @@ export default {
     dashboard_tasks_none_open: 'No hay tareas pendientes',
     dashboard_tasks_none_done: 'No hay tareas hechas',
     dashboard_tasks_none: 'No hay tareas en estas notas',
+    dashboard_tasks_loading: 'Leyendo tareas…',
     dashboard_tasks_more: '…y {0} tareas más',
     dashboard_tasks_more_one: '…y 1 tarea más',
     dashboard_tasks_changed: 'Esta tarea cambió desde que el dashboard la leyó, así que no se ha escrito nada.',

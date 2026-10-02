@@ -1985,6 +1985,7 @@ export default {
     dashboard_tasks_none_open: 'No open tasks',
     dashboard_tasks_none_done: 'No done tasks',
     dashboard_tasks_none: 'No tasks in these notes',
+    dashboard_tasks_loading: 'Reading tasks…',
     dashboard_tasks_more: '…and {0} more tasks',
     dashboard_tasks_more_one: '…and 1 more task',
     dashboard_tasks_changed: 'This task changed since the dashboard read it, so nothing was written.',

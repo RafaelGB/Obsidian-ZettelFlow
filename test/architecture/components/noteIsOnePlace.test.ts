@@ -1,32 +1,15 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
 import { LEGACY_OPEN_TARGETS, relocateMode } from "architecture/components/core/surface/legacyTargets";
 
 const ROOT = join(__dirname, "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
-const VIEW = read("src/architecture/components/core/timeline/EvolutionTimelineRenderer.ts");
+const TIMELINE = read("src/architecture/components/core/timeline/EvolutionTimelineRenderer.ts");
+const MODEL = read("src/architecture/components/core/noteCompanion/companionModel.ts");
 const EN = read("src/architecture/lang/locale/en.ts");
 const ES = read("src/architecture/lang/locale/es.ts");
-
-/**
- * **What is around this note, in one place** (#506, epic #504).
- *
- * Two of Discovery's modes were never about discovery. **Challenges** asked what supports and
- * contradicts *the active note*; **Forgotten** ranked notes near *the active note* you had not
- * revisited. Both sat in a surface named for browsing the vault, while the question they answer
- * had no home — except that it did: this view is already per-note.
- */
-
-/** One method's body, so a rule can be about *where* something happens. */
-function methodBody(source: string, signature: string): string {
-    const at = source.indexOf(signature);
-    if (at === -1) return "";
-    const rest = source.slice(at);
-    const end = rest.indexOf("\n    }");
-    return end === -1 ? rest : rest.slice(0, end);
-}
 
 function code(source: string): string {
     return source
@@ -38,31 +21,39 @@ function code(source: string): string {
         .join("\n");
 }
 
-describe("the note's view holds what is around the note (#506)", () => {
-    it("mounts both renderers rather than reimplementing them", () => {
-        // A move, not a rewrite: the sections keep their behaviour because they keep their code,
-        // and their listeners are cleaned up by this component's lifecycle.
-        expect(code(VIEW)).toContain("new EvidenceMapRenderer(host, this.app)");
-        expect(code(VIEW)).toContain("new ResurfaceRenderer(host, this.app)");
-        expect(code(VIEW)).toContain("this.addChild(build(");
+/**
+ * **What is around this note, in one place** (#506, then #640).
+ *
+ * Two of Discovery's modes were never about discovery: *what contradicts the note I am reading* and
+ * *what near it have I forgotten*. #506 mounted both inside the note's own mode, each still with its
+ * own heading and refresh button. #640 gave the note its own view and turned the two panels into
+ * that view's counted sections — computed by the **same** analyses, drawn once, outside the
+ * history's opt-in gate.
+ */
+describe("the companion holds what is around the note (#640)", () => {
+    it("reads the same two analyses rather than re-deriving them", () => {
+        expect(code(MODEL)).toContain("buildEvidenceMap(model, path)");
+        expect(code(MODEL)).toContain("rankResurfacedNotes(");
     });
 
-    it("shows them even when the history is off", () => {
-        // The history is opt-in because it stores claim texts. Neither of these does, so a user
-        // with snapshots off must still see what contradicts the note in front of them — the
-        // same reasoning #494 used for moves.
-        const body = methodBody(code(VIEW), "private render()");
-        expect(body.indexOf("renderAround(")).toBeGreaterThan(body.indexOf("renderHistory("));
-        expect(methodBody(code(VIEW), "private renderHistory(")).toContain('this.state === "disabled"');
-        // The state gate belongs to the history alone.
-        expect(methodBody(code(VIEW), "private renderAround(")).not.toContain("this.state");
+    it("draws them outside the history, so they show when snapshots are off", () => {
+        // The history is opt-in because it stores claim texts; neither of these does.
+        expect(code(MODEL)).not.toContain("ConceptualTimeline");
     });
 
-    it("names each section in both locales", () => {
-        for (const [name, locale] of [["en", EN], ["es", ES]] as const) {
-            for (const key of ["evolution_timeline_contradicts", "evolution_timeline_unrevisited"]) {
-                expect({ name, key, present: locale.includes(`${key}:`) }).toEqual({ name, key, present: true });
-            }
+    it("no longer mounts the two panels inside the history, nor gives it a refresh of its own", () => {
+        expect(code(TIMELINE)).not.toContain("renderAround(");
+        expect(code(TIMELINE)).not.toContain("new EvidenceMapRenderer(");
+        expect(code(TIMELINE)).not.toContain("new ResurfaceRenderer(");
+        expect(code(TIMELINE)).not.toContain("evolution_timeline_refresh_button");
+    });
+
+    it("deleted the panels it absorbed", () => {
+        for (const file of [
+            "src/architecture/components/core/evidenceMap/EvidenceMapRenderer.ts",
+            "src/architecture/components/core/resurface/ResurfaceRenderer.ts",
+        ]) {
+            expect({ file, exists: existsSync(join(ROOT, file)) }).toEqual({ file, exists: false });
         }
     });
 });
@@ -83,7 +74,7 @@ describe("renamed, never re-keyed (#506)", () => {
 
     it("and the three aliases resolve to it", () => {
         for (const id of ["show-evolution-timeline", "show-evidence-map", "resurface-related-notes"]) {
-            expect({ id, target: LEGACY_OPEN_TARGETS[id] }).toEqual({ id, target: expect.any(Object) });
+            expect({ id, target: LEGACY_OPEN_TARGETS[id] }).toEqual({ id, target: { view: "zettelflow-note" } });
         }
     });
 });

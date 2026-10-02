@@ -152,18 +152,6 @@
     overflow-y: auto;
 }
 
-.zettelkasten-flow__evolution-timeline-section {
-    margin-top: 1rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--background-modifier-border);
-}
-
-.zettelkasten-flow__evolution-timeline-section-title {
-    margin: 0 0 0.4rem;
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
 // A thought written about the note (#540). It is not a move -- you did not pick a verb -- so it
 // recolours the entry's own border, the way a judgement row does, in the muted tone of
 // something that happened rather than something you decided. Colour and spacing from the theme

@@ -43,11 +43,49 @@ export class Component {
   }
 }
 export class Modal {
+  /** What `setTitle` was given — a test reads the title the user would see. */
+  titleText = "";
   constructor(public app?: any) { }
   onOpen(): void { } onClose(): void { }
   open(): void { this.onOpen(); }
   close(): void { this.onClose(); }
+  setTitle(title: string): this { this.titleText = title; return this; }
 }
+
+/** Obsidian's native context menu, recorded: a test reads the items and clicks one. */
+export class MenuItem {
+  title = ""; icon = ""; checked = false; disabled = false; warning = false;
+  private handler: ((evt: any) => void) | null = null;
+  setTitle(title: string): this { this.title = title; return this; }
+  setIcon(icon: string): this { this.icon = icon; return this; }
+  setChecked(on: boolean): this { this.checked = on; return this; }
+  setDisabled(on: boolean): this { this.disabled = on; return this; }
+  setWarning(on: boolean): this { this.warning = on; return this; }
+  setSection(_section: string): this { return this; }
+  onClick(handler: (evt: any) => void): this { this.handler = handler; return this; }
+  click(evt: any = {}): void { this.handler?.(evt); }
+}
+export class Menu {
+  /** The menu most recently shown. */
+  static last: Menu | null = null;
+  items: MenuItem[] = [];
+  separators = 0;
+  addItem(build: (item: MenuItem) => void): this { const item = new MenuItem(); build(item); this.items.push(item); return this; }
+  addSeparator(): this { this.separators++; return this; }
+  showAtMouseEvent(_evt: unknown): this { Menu.last = this; return this; }
+  showAtPosition(_pos: unknown): this { Menu.last = this; return this; }
+  item(title: string): MenuItem {
+    const found = this.items.find((item) => item.title === title);
+    if (!found) throw new Error(`no menu item "${title}" in [${this.items.map((i) => i.title).join(", ")}]`);
+    return found;
+  }
+}
+
+/** `Keymap.isModEvent`: Ctrl/Meta asks for a new tab, as in Obsidian. */
+export const Keymap = {
+  isModEvent: (evt?: { ctrlKey?: boolean; metaKey?: boolean } | null): boolean | "tab" =>
+    evt?.ctrlKey || evt?.metaKey ? "tab" : false,
+};
 export class TAbstractFile {
   path = "";
   name = "";
@@ -173,16 +211,74 @@ export class AbstractInputSuggest<T> {
   }
 }
 
-/** Chainable no-op stub of Obsidian's declarative Setting builder. */
+/**
+ * Opt-in capture (#632 tests): with it on, a `Setting` builds real child elements in its container
+ * and **runs** the component callbacks with recording fakes, so a test can pick a dropdown option or
+ * flip a toggle the way a user would. Off (the default), `Setting` stays the chainable no-op every
+ * other suite relies on.
+ */
+let settingCapture: ((setting: Setting) => void) | null = null;
+export function __captureSettings(onSetting: ((setting: Setting) => void) | null): void {
+  settingCapture = onSetting;
+}
+
+export class FakeDropdown {
+  options: [string, string][] = []; value = ""; private cb: ((v: string) => void) | null = null;
+  addOption(value: string, label: string): this { this.options.push([value, label]); return this; }
+  setValue(value: string): this { this.value = value; return this; }
+  getValue(): string { return this.value; }
+  onChange(cb: (v: string) => void): this { this.cb = cb; return this; }
+  select(value: string): void { this.value = value; this.cb?.(value); }
+}
+export class FakeText {
+  value = ""; placeholder = ""; private cb: ((v: string) => void) | null = null;
+  setValue(value: string): this { this.value = value; return this; }
+  getValue(): string { return this.value; }
+  setPlaceholder(text: string): this { this.placeholder = text; return this; }
+  onChange(cb: (v: string) => void): this { this.cb = cb; return this; }
+  type(value: string): void { this.value = value; this.cb?.(value); }
+}
+export class FakeToggle {
+  value = false; private cb: ((v: boolean) => void) | null = null;
+  setValue(on: boolean): this { this.value = on; return this; }
+  getValue(): boolean { return this.value; }
+  onChange(cb: (v: boolean) => void): this { this.cb = cb; return this; }
+  flip(on = !this.value): void { this.value = on; this.cb?.(on); }
+}
+export class FakeButton {
+  text = ""; icon = ""; tooltip = ""; cta = false; private cb: (() => void) | null = null;
+  setButtonText(text: string): this { this.text = text; return this; }
+  setIcon(icon: string): this { this.icon = icon; return this; }
+  setTooltip(tip: string): this { this.tooltip = tip; return this; }
+  setCta(): this { this.cta = true; return this; }
+  setWarning(): this { return this; }
+  setDisabled(): this { return this; }
+  onClick(cb: () => void): this { this.cb = cb; return this; }
+  click(): void { this.cb?.(); }
+}
+
+/** Chainable no-op stub of Obsidian's declarative Setting builder (with an opt-in capture above). */
 export class Setting {
-  constructor(_containerEl?: unknown) { }
-  setName(): this {
+  name = ""; desc = ""; heading = false;
+  settingEl: any; controlEl: any;
+  dropdowns: FakeDropdown[] = []; texts: FakeText[] = []; toggles: FakeToggle[] = [];
+  buttons: FakeButton[] = []; extraButtons: FakeButton[] = [];
+  constructor(containerEl?: any) {
+    if (!settingCapture) return;
+    this.settingEl = containerEl?.createDiv ? containerEl.createDiv({ cls: "setting-item" }) : undefined;
+    this.controlEl = this.settingEl?.createDiv ? this.settingEl.createDiv({ cls: "setting-item-control" }) : undefined;
+    settingCapture(this);
+  }
+  setName(name?: unknown): this {
+    if (typeof name === "string") this.name = name;
     return this;
   }
-  setDesc(): this {
+  setDesc(desc?: unknown): this {
+    if (typeof desc === "string") this.desc = desc;
     return this;
   }
   setHeading(): this {
+    this.heading = true;
     return this;
   }
   setClass(): this {
@@ -191,22 +287,27 @@ export class Setting {
   setDisabled(): this {
     return this;
   }
-  addText(): this {
+  addText(build?: (text: FakeText) => void): this {
+    if (settingCapture && build) { const text = new FakeText(); build(text); this.texts.push(text); }
     return this;
   }
   addTextArea(): this {
     return this;
   }
-  addToggle(): this {
+  addToggle(build?: (toggle: FakeToggle) => void): this {
+    if (settingCapture && build) { const toggle = new FakeToggle(); build(toggle); this.toggles.push(toggle); }
     return this;
   }
-  addDropdown(): this {
+  addDropdown(build?: (dropdown: FakeDropdown) => void): this {
+    if (settingCapture && build) { const dropdown = new FakeDropdown(); build(dropdown); this.dropdowns.push(dropdown); }
     return this;
   }
-  addButton(): this {
+  addButton(build?: (button: FakeButton) => void): this {
+    if (settingCapture && build) { const button = new FakeButton(); build(button); this.buttons.push(button); }
     return this;
   }
-  addExtraButton(): this {
+  addExtraButton(build?: (button: FakeButton) => void): this {
+    if (settingCapture && build) { const button = new FakeButton(); build(button); this.extraButtons.push(button); }
     return this;
   }
   addSlider(): this {

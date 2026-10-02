@@ -102,6 +102,7 @@ export const CAPABILITIES = [
     "knowledge-dashboard",
     "weekly-review",
     "thinking-heatmap",
+    "note-companion",
     "evolution-timeline",
     "evidence-map",
     "open-questions",
@@ -133,6 +134,9 @@ export type CapabilityId = (typeof CAPABILITIES)[number];
 const HOME = "zettelflow-home";
 const HEALTH = "zettelflow-health";
 const EXPLORE = "zettelflow-explore";
+/** This note — a standalone view in the right sidebar, not a surface (#640). */
+const NOTE = "zettelflow-note";
+const COMPANION = "architecture/components/core/noteCompanion";
 
 const RIBBON = (command: string): Door => ({ kind: "object", at: command, via: "ribbon" });
 const NOTE_MENU = (file: string): Door => ({ kind: "object", at: file, via: "menu" });
@@ -211,12 +215,12 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         ],
     },
     "reasoning-paths": {
-        // Merged into the per-note mode rather than given a door of its own (#578): tracing what
-        // leaves a note is a question about *that* note, and this is the mode that answers those.
+        // Merged into the per-note view rather than given a door of its own (#578): tracing what
+        // leaves a note is a question about *that* note, and This note answers those (#640).
         nameKey: "command_explore_reasoning_paths",
-        owner: HEALTH,
+        owner: NOTE,
         doors: [
-            CONTROL("architecture/components/core/timeline/EvolutionTimelineRenderer.ts", HEALTH),
+            CONTROL("architecture/components/core/timeline/EvolutionTimelineRenderer.ts", NOTE),
             CMD("explore-reasoning-paths"),
         ],
     },
@@ -243,19 +247,26 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         owner: HEALTH,
         doors: [{ kind: "surface", at: `${HEALTH}:momentum` }, CMD("show-thinking-heatmap")],
     },
+    "note-companion": {
+        // The note you are reading, from the right sidebar (#640): the ribbon menu is the door
+        // that is always visible, whatever you have open.
+        nameKey: "note_companion_title",
+        owner: NOTE,
+        doors: [RIBBON("open-note-companion"), CMD("open-note-companion")],
+    },
     "evolution-timeline": {
-        nameKey: "surface_mode_timeline",
-        owner: HEALTH,
+        nameKey: "evolution_timeline_view_title",
+        owner: NOTE,
         doors: [
-            { kind: "surface", at: `${HEALTH}:timeline` },
+            CONTROL(`${COMPANION}/blocks/historyBlock.ts`, NOTE),
             CMD("show-evolution-timeline"),
             CMD("show-notes-history"),
         ],
     },
     "evidence-map": {
         nameKey: "command_show_evidence_map",
-        owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:timeline` }, CMD("show-evidence-map")],
+        owner: NOTE,
+        doors: [CONTROL(`${COMPANION}/blocks/sectionsBlock.ts`, NOTE), CMD("show-evidence-map")],
     },
     "open-questions": {
         nameKey: "command_show_open_questions",
@@ -266,6 +277,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "resurface_view_title",
         owner: HOME,
         doors: [
+            // Near and forgotten, beside the note it is near (#640) — and it still comes to you on Home.
+            CONTROL(`${COMPANION}/blocks/sectionsBlock.ts`, NOTE),
             { kind: "recommendation", at: `${HOME}:home` },
             CMD("resurface-related-notes"),
             CMD("show-discoveries"),

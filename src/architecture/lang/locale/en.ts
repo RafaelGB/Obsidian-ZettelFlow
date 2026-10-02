@@ -1153,7 +1153,6 @@ export default {
     cultivate_source_notice: 'Source added.',
     cultivate_apply_failed: 'Could not apply that move.',
     surface_mode_health: 'Health',
-    surface_mode_timeline: 'This note',
     surface_mode_momentum: 'Momentum',
     surface_mode_agency: 'Agency',
     surface_mode_ask: 'Explore',

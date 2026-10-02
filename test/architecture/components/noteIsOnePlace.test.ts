@@ -2,7 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
-import { LEGACY_OPEN_TARGETS } from "architecture/components/core/surface/legacyTargets";
+import { LEGACY_OPEN_TARGETS, relocateMode } from "architecture/components/core/surface/legacyTargets";
 
 const ROOT = join(__dirname, "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
@@ -68,14 +68,17 @@ describe("the note's view holds what is around the note (#506)", () => {
 });
 
 describe("renamed, never re-keyed (#506)", () => {
-    it("keeps the mode id, so every alias and deep link still lands", () => {
+    it("keeps every alias and deep link landing, now on the note's own view (#640)", () => {
+        // The mode left Health for the right sidebar; a saved `timeline` leaf is relocated, not lost.
         const health = SURFACES.find((surface) => surface.viewType === "zettelflow-health");
-        expect(health?.modes.map((mode) => mode.id)).toContain("timeline");
+        expect(health?.modes.map((mode) => mode.id)).not.toContain("timeline");
+        expect(relocateMode("zettelflow-health", "timeline")).toEqual({ view: "zettelflow-note" });
     });
 
     it("reads as what it is now", () => {
-        expect(EN).toContain("surface_mode_timeline: 'This note',");
-        expect(ES).toContain("surface_mode_timeline: 'Esta nota',");
+        // The view, not a mode, carries the name since #640.
+        expect(EN).toContain("note_companion_title: 'This note',");
+        expect(ES).toContain("note_companion_title: 'Esta nota',");
     });
 
     it("and the three aliases resolve to it", () => {

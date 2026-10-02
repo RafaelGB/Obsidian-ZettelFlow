@@ -57,7 +57,6 @@ export const SURFACES: readonly Surface[] = [
         titleKey: "surface_health_title",
         modes: [
             { id: "health", sourceView: "zettelflow-slipbox-health", labelKey: "surface_mode_health" },
-            { id: "timeline", sourceView: "zettelflow-evolution-timeline", labelKey: "surface_mode_timeline" },
             { id: "momentum", sourceView: "zettelflow-thinking-heatmap", labelKey: "surface_mode_momentum" },
             { id: "agency", labelKey: "surface_mode_agency" },
         ],

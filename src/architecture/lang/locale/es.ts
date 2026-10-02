@@ -1153,7 +1153,6 @@ export default {
     cultivate_source_notice: 'Fuente añadida.',
     cultivate_apply_failed: 'No se pudo aplicar ese movimiento.',
     surface_mode_health: 'Salud',
-    surface_mode_timeline: 'Esta nota',
     surface_mode_momentum: 'Impulso',
     surface_mode_agency: 'Agencia',
     surface_mode_ask: 'Explorar',

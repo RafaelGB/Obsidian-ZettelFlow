@@ -25,6 +25,10 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Trace reasoning paths from the active note** — read the argument chains leaving a note (supports → expands → example). [docs →](../development/concept-navigation.md)
 - **Health** — one home for the state of your system — connectivity, debt, and balance. [docs →](../development/slipbox-health-dashboard.md)
 - **Generate weekly review** — a weekly review note: created, orphaned, forgotten, and unreviewed ideas. [docs →](../development/second-brain-review.md)
+- **This note** — the note you are reading, from the right sidebar — where it stands, what surrounds it, how it got here. [docs →](../development/this-note.md)
+- **Evolution timeline** — the conceptual history of one idea — states, claims, moves, and verdicts. [docs →](../development/evolution-timeline.md)
+- **Show evidence map** — a grounded synthesis of a note from your own graph (experimental). [docs →](../development/evidence-map.md)
+- **Resurface** — older related notes worth revisiting, plus a daily spark of forgotten ideas. [docs →](../development/connection-resurfacing.md)
 - **Split note into atomic notes** — split a multi-topic note into linked atomic notes, leaving a hub. [docs →](../development/atomicity-split.md)
 - **Cultivate** — a guided thinking session that makes one idea evolve, one real move at a time. [docs →](../development/cultivate.md)
 - **Work on your own question** — start from your own question, inspect bounded context, and write a provisional response. [docs →](../development/cultivate.md)
@@ -52,8 +56,6 @@ Open the surface, or one of its modes.
 - **Show concept navigation** — walk your vault by typed relation, note to note, like a wiki you wrote. [docs →](../development/concept-navigation.md)
 - **Show knowledge dashboard** — the dashboard read-out of your knowledge health. [docs →](../development/knowledge-dashboard.md)
 - **Momentum** — a calendar of ideas developed — momentum, not note-count volume. [docs →](../development/thinking-heatmap.md)
-- **This note** — the conceptual history of one idea — states, claims, moves, and verdicts. [docs →](../development/evolution-timeline.md)
-- **Show evidence map** — a grounded synthesis of a note from your own graph (experimental). [docs →](../development/evidence-map.md)
 - **Show open questions** — every unanswered question in your vault, made first-class. [docs →](../development/open-questions.md)
 - **Agency** — how much you are still deciding — your accept/modify/reject mix, never a grade. [docs →](../development/cognitive-agency.md)
 
@@ -61,7 +63,6 @@ Open the surface, or one of its modes.
 
 A line on Home that arrives without being looked for.
 
-- **Resurface** — older related notes worth revisiting, plus a daily spark of forgotten ideas. [docs →](../development/connection-resurfacing.md)
 - **What do you say about this now?** — a claim you wrote comes back, blind, to be re-judged after a while. [docs →](../development/claim-returns.md)
 
 ## In settings

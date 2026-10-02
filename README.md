@@ -53,7 +53,9 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 
 ## Dashboards for your vault
 
-Point an **[Obsidian Base](https://help.obsidian.md/bases)** at any folder and ZettelFlow turns it into a **dashboard** — a local "Grafana" that never leaves Obsidian. Compose **stat, bar, line, area, scatter, bubble, pie, donut, table, heatmap and calendar** panels over the same filtered notes: map fields with working defaults, reshape them with no-code transforms (filter · group · aggregate · moving average…), and match light/dark automatically. Track daily productivity, mood or habits with **no `dataviewjs`** — and nothing is ever written back to your notes.
+Point an **[Obsidian Base](https://help.obsidian.md/bases)** at any folder and ZettelFlow turns it into a **dashboard** — a local "Grafana" that never leaves Obsidian. Compose **stat, bar, line, area, scatter, bubble, pie, donut, table, heatmap and calendar** panels over the same filtered notes: map fields with working defaults, reshape them with no-code transforms (filter · group · aggregate · moving average…), and match light/dark automatically. Track daily productivity, mood or habits with **no `dataviewjs`**, click any bar or day to open its note, and tick off the notes' tasks right from the dashboard — the one thing it ever writes.
+
+![A Base dashboard with stats, a bubble chart, tasks and a calendar](docs/resources/dashboards/dashboard-hero.svg)
 
 **[Base dashboards →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/base-dashboards/)**
 

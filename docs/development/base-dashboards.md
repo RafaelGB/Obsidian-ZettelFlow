@@ -5,11 +5,15 @@ dashboard** — a local "Grafana for your vault". One Base is the datasource; yo
 **panels** over the same filtered result. The unit is the *panel*, not the chart: stat, bar, line,
 area, scatter, bubble, pie, donut, table, heatmap and a contribution-style calendar, all reading one
 shared, in-memory projection of your notes. No backend, nothing leaves Obsidian, and **nothing is
-written back to your notes** — a dashboard is read-only.
+written back to your notes** — a dashboard is read-only, with one deliberate exception: the
+checkbox of a task you tick in a [Tasks panel](#tasks).
+
 
 It is distinct from the [knowledge dashboard](knowledge-dashboard.md), which reports on the *idea
 graph*. Base dashboards chart the **metadata** of whatever notes a Base selects — daily working
 hours, mood, habits, reading, sleep — the things you used to chart with hand-written `dataviewjs`.
+
+![A Base dashboard with stats, a bubble chart, tasks and a calendar](../resources/dashboards/dashboard-hero.svg)
 
 ## Open one
 
@@ -18,6 +22,8 @@ a **field inspector**: every property the Base exposes, the type ZettelFlow infe
 number, category, boolean, link) and the current row count. Edit the Base's filters and it reconciles
 live. Types come from Obsidian's own typed values — not guessed from raw text — so a date reads as a
 date and a link as a link.
+
+![Adding the Dashboard view and the field inspector](../resources/dashboards/add-view-inspector.svg)
 
 ## Panels
 
@@ -28,6 +34,8 @@ the inferred schema, so it renders immediately and you adjust from there. Charts
 from your Obsidian theme and **re-paint when you switch light/dark**. Panels (and their layout) are
 saved in the Base's view config.
 
+![The panel dialog: type tiles, field mapping and a live preview](../resources/dashboards/panel-dialog.svg)
+
 | Panel | What it draws |
 |---|---|
 | **Stat** | one number from a numeric field — sum, average, min, max, or a row count |
@@ -37,18 +45,47 @@ saved in the Base's view config.
 | **Table** | the mapped columns, sortable, rendered read-only |
 | **Heatmap** | a category × category grid, coloured by a value |
 | **Calendar** | a contribution-style day grid from a date field (+ optional value) |
+| **Tasks** | the `- [ ]` tasks of the Base's notes — tick them off from the dashboard ([below](#tasks)) |
 
 A panel's card is quiet: its title and a **⋯** button. That button — or a **right-click anywhere on
 the panel** — opens Obsidian's own menu: *Edit*, *Duplicate*, *Move left/right*, the width (1, 2 or
 3 columns), *Tall*, and *Remove*. Double-click the title to edit. **Drag a panel by its header** to
 reorder the grid — it lands before or after the panel you release over (on touch, use *Move
-left/right* from the menu). The grid reflows to a single column
+left/right* from the menu).
+
+![The native panel menu and drag-to-reorder](../resources/dashboards/panel-menu-drag.svg) The grid reflows to a single column
 on a narrow pane or on mobile. (Treemap, radar and sankey are intentionally left for later.)
 
 **A chart is a way into your notes.** Click a bar, a point, a slice, a table row or a calendar day
 to open the note behind it — Mod-click opens it in a new tab, as everywhere in Obsidian. A day that
 holds several notes offers a menu to pick one. Hover a table row (with Mod, per your *Page preview*
 settings) for a page preview. A row a transform aggregated has no single note, so it opens nothing.
+
+![Clicking a bar opens the note behind it](../resources/dashboards/click-to-note.svg)
+
+## Tasks
+
+The **Tasks** panel lists the Markdown tasks (`- [ ]`, `* [ ]`, `1. [ ]`) of the notes the Base
+selects, read from Obsidian's own index. There is no field to map, and no query language to learn:
+the Base already chose the notes. It shows `N open · M done`, then the tasks under each note's name,
+subtasks indented, in the order they appear. In the panel dialog choose **Show** (*Open*, *Done* or
+*All*) and whether to **Group by note**. Transforms apply to the **notes** first, so *this week's
+open tasks* is a Tasks panel with one **Filter** · `date` · *in the last … days* · `7`.
+
+![The Tasks panel: the Base's tasks, ticked off from the dashboard](../resources/dashboards/tasks-panel.svg)
+
+- **Tick a task off where you see it.** The checkbox changes that one character in the note
+  (`[ ]` → `[x]`), and nothing else. It is the only thing a dashboard ever writes, it happens only
+  when you click, and it goes through ZettelFlow's single write path, which records it (without the
+  task's text). If the line changed since the dashboard read it — you edited the task, or it moved —
+  **nothing is written** and the panel says so, then shows the note as it is now.
+- **The checkbox is its own undo**: click it again and the line is exactly as it was.
+- Click a task's text to open its note **at that line** (Mod-click: a new tab); hover for a page
+  preview. Click a note's name to open the note.
+- Edit a task in its note and the panel follows.
+
+The text is shown as plain text, as written — including any Tasks-plugin emoji. Due dates,
+priorities and custom statuses (`[/]`, `[-]`, shown as done) are left for later.
 
 ## Transform the data
 
@@ -62,6 +99,8 @@ window for dates — **in the last … days** — so a panel can stay on *this w
 a date. *Average hours worked in the last week* is a **Stat** (value `realWorkingHours`, aggregate
 **average**) with one step: **Filter** · `date` · *in the last … days* · `7`. Today counts as one of
 the seven; a date in the future never matches.
+
+![A Stat over the last 7 days, and a moving average](../resources/dashboards/transforms.svg)
 
 Three levels, lowest first — reach for the lowest that answers your question:
 
@@ -116,6 +155,8 @@ return { due: { value: row.deadline, type: "date" } };
 ```
 
 ### The editor
+
+![The computed-fields editor: guide, field chips, autocomplete and a preview](../resources/dashboards/computed-fields.svg)
 
 Everything you need is on one screen:
 

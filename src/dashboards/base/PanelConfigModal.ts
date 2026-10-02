@@ -28,7 +28,7 @@ import {
 } from "dashboards/panels";
 import { effectiveFields } from "dashboards/transform";
 import type { CalcOp, FilterOp, TransformStep, TransformType } from "dashboards/transform";
-import { PanelHost } from "./PanelHost";
+import { PanelHost, type TaskPort } from "./PanelHost";
 import { setIconWithFallback } from "./icons";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -85,6 +85,8 @@ export class PanelConfigModal extends Modal {
         app: App,
         private readonly snapshot: DataStoreSnapshot,
         private readonly theme: ChartTheme,
+        /** Reading tasks, for a Tasks panel's preview — the preview never writes. */
+        private readonly tasks: Pick<TaskPort, "load">,
         private readonly initial: PanelConfig | null,
         private readonly onSubmit: (config: PanelConfig) => void,
     ) {
@@ -130,7 +132,7 @@ export class PanelConfigModal extends Modal {
         this.renderTransforms();
 
         aside.createDiv({ cls: c("base-dashboard-preview-label"), text: t("dashboard_preview") });
-        this.preview = new PanelHost(aside, this.draft(), null, { preview: true });
+        this.preview = new PanelHost(aside, this.draft(), null, { preview: true, tasks: { load: this.tasks.load } });
         this.preview.load();
         this.changed();
 
@@ -272,6 +274,7 @@ export class PanelConfigModal extends Modal {
             if (channel.multiple) this.renderMultiple(host, channel);
             else this.renderSingle(host, channel);
         }
+        if (this.type === "tasks") this.renderTaskOptions(host);
         if (this.type === "stat") {
             new Setting(host).setName(t("dashboard_aggregate")).addDropdown((dd) => {
                 for (const agg of AGG_ORDER) dd.addOption(agg, t(AGG_LABEL_KEYS[agg]));
@@ -281,6 +284,25 @@ export class PanelConfigModal extends Modal {
                 });
             });
         }
+    }
+
+    /** A Tasks panel maps no field: it asks which tasks, and whether to group them by note (#635). */
+    private renderTaskOptions(host: HTMLElement): void {
+        new Setting(host).setName(t("dashboard_tasks_show")).addDropdown((dd) => {
+            dd.addOption("open", t("dashboard_tasks_show_open"));
+            dd.addOption("done", t("dashboard_tasks_show_done"));
+            dd.addOption("all", t("dashboard_tasks_show_all"));
+            dd.setValue(this.mapping.taskShow ?? "open").onChange((value) => {
+                this.mapping.taskShow = value as "open" | "done" | "all";
+                this.changed();
+            });
+        });
+        new Setting(host).setName(t("dashboard_tasks_group")).addToggle((tg) =>
+            tg.setValue(this.mapping.taskGroup ?? true).onChange((on) => {
+                this.mapping.taskGroup = on;
+                this.changed();
+            }),
+        );
     }
 
     private renderTransforms(): void {

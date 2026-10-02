@@ -7,6 +7,7 @@ import type { AdaptedEntry, FieldDescriptor } from "dashboards/datastore";
 import { applyTransforms } from "dashboards/transform";
 import type { TransformStep } from "dashboards/transform";
 import { ComputedResolver } from "dashboards/base/scriptTransform";
+import { buildTaskView, parseTaskLine, type TaskItem } from "dashboards/panels";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
@@ -82,6 +83,22 @@ describe("the Base dashboard data path (#622)", () => {
         const started = Date.now();
         await resolver.resolve(base, { enabled: true, code: "return rows" });
         assertBudget("dashboard.computed.10k", Date.now() - started);
+    });
+
+    it("dashboard.tasks.1k", () => {
+        const paths = Array.from({ length: 1_000 }, (_, i) => `Daily/${i}.md`);
+        const lines = paths.flatMap((path, n) =>
+            Array.from({ length: 5 }, (_, k) => ({ path, line: k, raw: `- [${(n + k) % 3 === 0 ? "x" : " "}] task ${n}.${k} 📅 2026-10-05` })),
+        );
+        const started = Date.now();
+        const items: TaskItem[] = [];
+        for (const { path, line, raw } of lines) {
+            const parsed = parseTaskLine(raw);
+            if (parsed) items.push({ path, line, mark: parsed.mark, text: parsed.text, depth: 0 });
+        }
+        const view = buildTaskView(items, paths, { show: "open", group: true });
+        expect(view.open + view.done).toBe(5_000);
+        assertBudget("dashboard.tasks.1k", Date.now() - started);
     });
 
     it("dashboard.bundle.kb", () => {

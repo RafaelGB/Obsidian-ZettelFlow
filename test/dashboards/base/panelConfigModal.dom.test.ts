@@ -5,7 +5,7 @@ import { normalize } from "dashboards/datastore";
 import type { AdaptedEntry, FieldDescriptor } from "dashboards/datastore";
 import type { ChartTheme, PanelConfig } from "dashboards/panels";
 import { PanelConfigModal } from "dashboards/base/PanelConfigModal";
-import { DomNode, installBrowserGlobals } from "../../support/dashboardDom";
+import { DomNode, flush, installBrowserGlobals } from "../../support/dashboardDom";
 
 const theme = { text: "", axis: "", split: "", palette: ["", "", "", "", ""] } as ChartTheme;
 const props: FieldDescriptor[] = [
@@ -28,12 +28,13 @@ function open(initial: PanelConfig | null = null) {
     settings = [];
     __captureSettings((s) => settings.push(s));
     const onSubmit = jest.fn();
-    const modal = new PanelConfigModal({} as any, snapshot, theme, initial, onSubmit);
+    const load = jest.fn(async () => []);
+    const modal = new PanelConfigModal({} as any, snapshot, theme, { load }, initial, onSubmit);
     const content = new DomNode();
     (modal as any).contentEl = content;
     (modal as any).modalEl = new DomNode();
     modal.open();
-    return { modal, content, onSubmit };
+    return { modal, content, onSubmit, load };
 }
 /** The live (most recent) setting with that name — re-renders leave detached copies behind. */
 const setting = (name: string): Setting => {
@@ -52,7 +53,7 @@ describe("PanelConfigModal (#632) — built from Obsidian's own parts", () => {
     it("titles itself, offers every panel type as a tile, and defaults to a working stat", () => {
         const { modal, content } = open();
         expect((modal as any).titleText).toBe("New panel");
-        expect(content.byClass("base-dashboard-type-option")).toHaveLength(11);
+        expect(content.byClass("base-dashboard-type-option")).toHaveLength(12);
         expect(tile(content, "Stat").getAttribute("aria-checked")).toBe("true");
         expect(setting("Value").dropdowns[0].value).toBe("note.hours");
         // Each option says the type it charts as.
@@ -133,6 +134,18 @@ describe("PanelConfigModal (#632) — built from Obsidian's own parts", () => {
         expect(saved.transforms?.[5]).toMatchObject({ type: "calculate", op: "div", value: "8", newField: "ratio" });
     });
 
+    it("a Tasks panel maps no field — it asks which tasks and whether to group them", async () => {
+        const { content, onSubmit, load } = open();
+        tile(content, "Tasks").click();
+        expect(setting("Show").dropdowns[0].value).toBe("open");
+        expect(setting("Group by note").toggles[0].value).toBe(true);
+        await flush();
+        expect(load).toHaveBeenCalled(); // the preview reads the Base's tasks
+        setting("Show").dropdowns[0].select("all");
+        setting("Group by note").toggles[0].flip(false);
+        button(content, "Save").click();
+        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ type: "tasks", mapping: { taskShow: "all", taskGroup: false } }));
+    });
 
     it("editing keeps the panel's id and layout, and titles itself Edit panel", () => {
         const initial: PanelConfig = { id: "keep", type: "line", mapping: { category: "note.date", series: ["note.hours"] }, layout: { w: 2, h: 1 } };

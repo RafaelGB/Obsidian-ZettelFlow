@@ -4,9 +4,9 @@ import { Menu } from "obsidian";
 import { __charts } from "echarts/core";
 import { normalize } from "dashboards/datastore";
 import type { AdaptedEntry, FieldDescriptor } from "dashboards/datastore";
-import type { ChartTheme, PanelConfig } from "dashboards/panels";
-import { PanelHost, type PanelHostActions } from "dashboards/base/PanelHost";
-import { DomNode, installBrowserGlobals } from "../../support/dashboardDom";
+import type { ChartTheme, PanelConfig, TaskItem } from "dashboards/panels";
+import { PanelHost, type PanelHostActions, type TaskPort } from "dashboards/base/PanelHost";
+import { DomNode, flush, installBrowserGlobals } from "../../support/dashboardDom";
 
 const theme: ChartTheme = { text: "t", axis: "a", split: "s", palette: ["p0", "p1", "p2", "p3", "p4"] } as ChartTheme;
 const props: FieldDescriptor[] = [
@@ -242,3 +242,117 @@ describe("PanelHost — the panel menu, drag and preview (#632)", () => {
     });
 });
 
+describe("PanelHost — the Tasks panel (#635)", () => {
+    const tasks: TaskItem[] = [
+        { path: "a.md", line: 3, mark: " ", text: "call the supplier", depth: 0 },
+        { path: "a.md", line: 4, mark: " ", text: "find the number", depth: 1 },
+        { path: "b.md", line: 1, mark: "x", text: "send the invoice", depth: 0 },
+    ];
+    function port(over: Partial<TaskPort> = {}): TaskPort & { load: jest.Mock; toggle: jest.Mock; openAt: jest.Mock } {
+        return {
+            load: jest.fn(async () => tasks),
+            toggle: jest.fn(async () => true),
+            openAt: jest.fn(),
+            ...over,
+        } as any;
+    }
+
+    it("counts only what you asked to see, and lists it grouped by note with subtasks indented", async () => {
+        const p = port();
+        const { host, parent } = mount(cfg("tasks", { taskShow: "open", taskGroup: true }), actions(), { tasks: p });
+        host.update(snap(), theme);
+        expect(parent.byText("Reading tasks…")).toBeDefined();
+        await flush();
+        expect(p.load).toHaveBeenCalledWith(["a.md", "b.md", "c.md"]);
+        expect(parent.oneByClass("base-dashboard-tasks-counts").text).toBe("2 open");
+        expect(parent.byClass("base-dashboard-task-note").map((n) => n.text)).toEqual(["a"]);
+        const rows = parent.byClass("base-dashboard-task");
+        expect(rows.map((r) => r.oneByClass("base-dashboard-task-text").text)).toEqual(["call the supplier", "find the number"]);
+        expect(rows[1].hasClass("is-depth-1")).toBe(true);
+    });
+
+    it("done and all say their own counts; an empty list says so", async () => {
+        const { host, parent } = mount(cfg("tasks", { taskShow: "all", taskGroup: false }), actions(), { tasks: port() });
+        host.update(snap(), theme);
+        await flush();
+        expect(parent.oneByClass("base-dashboard-tasks-counts").text).toBe("2 open · 1 done");
+        expect(parent.byClass("base-dashboard-task-note")).toHaveLength(0);
+        expect(parent.byClass("base-dashboard-task").filter((r) => r.hasClass("is-checked"))).toHaveLength(1);
+
+        host.setConfig(cfg("tasks", { taskShow: "done" }));
+        host.update(snap(), theme);
+        await flush();
+        expect(parent.oneByClass("base-dashboard-tasks-counts").text).toBe("1 done");
+
+        const empty = mount(cfg("tasks", { taskShow: "open" }), actions(), { tasks: port({ load: jest.fn(async () => []) as any }) });
+        empty.host.update(snap(), theme);
+        await flush();
+        expect(empty.parent.byText("No open tasks")).toBeDefined();
+    });
+
+    it("ticking a box writes through the port and redraws; a refused toggle says why", async () => {
+        const p = port();
+        const { host, parent } = mount(cfg("tasks", { taskShow: "open" }), actions(), { tasks: p });
+        host.update(snap(), theme);
+        await flush();
+        const box = parent.querySelectorAll("input")[0];
+        expect(box.disabled).toBe(false);
+        box.fire("change");
+        expect(box.disabled).toBe(true);
+        await flush();
+        expect(p.toggle).toHaveBeenCalledWith(tasks[0]);
+        expect(p.load).toHaveBeenCalledTimes(2);
+
+        p.toggle.mockImplementation(async () => false);
+        parent.querySelectorAll("input")[0].fire("change");
+        await flush();
+        expect(parent.byText("This task changed since the dashboard read it, so nothing was written.")).toBeDefined();
+    });
+
+    it("a task's text opens its note at the line; its note's name opens the note", async () => {
+        const p = port();
+        const act = actions();
+        const { host, parent } = mount(cfg("tasks", { taskShow: "open" }), act, { tasks: p });
+        host.update(snap(), theme);
+        await flush();
+        parent.oneByClass("base-dashboard-task-text").click();
+        expect(p.openAt).toHaveBeenCalledWith(tasks[0], expect.anything());
+        parent.oneByClass("base-dashboard-task-note").click();
+        expect(act.openNotes).toHaveBeenCalledWith(["a.md"], expect.anything());
+    });
+
+    it("the preview reads tasks but cannot tick them", async () => {
+        const { host, parent } = mount(cfg("tasks", { taskShow: "open" }), null, { preview: true, tasks: { load: async () => tasks } });
+        host.update(snap(), theme);
+        await flush();
+        expect(parent.querySelectorAll("input").every((box) => box.disabled)).toBe(true);
+    });
+
+    it("a slower, older read never paints over a newer render or another type", async () => {
+        let release: (items: TaskItem[]) => void = () => undefined;
+        const slow = port({ load: jest.fn(() => new Promise<TaskItem[]>((resolve) => (release = resolve))) as any });
+        const { host, parent } = mount(cfg("tasks", { taskShow: "open" }), actions(), { tasks: slow });
+        host.update(snap(), theme);
+        host.setConfig(cfg("stat", { aggregate: "count" }));
+        host.update(snap(), theme);
+        release(tasks);
+        await flush();
+        expect(parent.byClass("base-dashboard-tasks")).toHaveLength(0);
+        expect(parent.byClass("base-dashboard-stat")).toHaveLength(1);
+    });
+
+    it("a failing read shows an empty list rather than breaking the panel", async () => {
+        const failing = port({ load: jest.fn(async () => { throw new Error("disk"); }) as any });
+        const { host, parent } = mount(cfg("tasks", { taskShow: "open" }), actions(), { tasks: failing });
+        host.update(snap(), theme);
+        await flush();
+        expect(parent.byText("No open tasks")).toBeDefined();
+    });
+
+    it("with no task port the panel stays empty", async () => {
+        const { host, parent } = mount(cfg("tasks", {}), actions());
+        host.update(snap(), theme);
+        await flush();
+        expect(parent.byClass("base-dashboard-task")).toHaveLength(0);
+    });
+});

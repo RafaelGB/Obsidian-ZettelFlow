@@ -15,7 +15,8 @@ export type PanelType =
     | "donut"
     | "table"
     | "heatmap"
-    | "calendar";
+    | "calendar"
+    | "tasks";
 
 export type AggregateFn = "sum" | "avg" | "min" | "max" | "count";
 
@@ -39,6 +40,10 @@ export interface PanelMapping {
     color?: string;
     /** Table: the columns to show (defaults to every visible field). */
     columns?: string[];
+    /** Tasks (#635): which tasks to list — open (default), done, or all. */
+    taskShow?: "open" | "done" | "all";
+    /** Tasks (#635): group the tasks under their note (default true). */
+    taskGroup?: boolean;
 }
 
 /** A panel's place on the grid: width in columns (1–3) and height in rows (1–2). */

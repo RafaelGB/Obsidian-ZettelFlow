@@ -32,12 +32,13 @@ One entry per change, newest first:
 
 | Field | What it holds |
 |---|---|
-| `kind` | `note-created` · `file-created` · `file-moved` · `properties-set` · `content-appended` · `content-replaced` |
+| `kind` | `note-created` · `file-created` · `file-moved` · `properties-set` · `content-appended` · `content-replaced` · `task-toggled` |
 | `path` | what was written |
 | `from` | where a moved file came from |
 | `origin` | who did it: a flow (and its step), a hook (and its property), an action, a gallery install, or you |
 | `batch` | the id every write of **one action** shares |
 | `before` / `after` | for a property change: the touched keys, as they were and as they were left |
+| `task` | for `task-toggled` (a box ticked in a Base dashboard's Tasks panel, #635): the line, the box before → after, and a **fingerprint** of the line — never its text |
 | `at` | when |
 
 ### No note content, ever

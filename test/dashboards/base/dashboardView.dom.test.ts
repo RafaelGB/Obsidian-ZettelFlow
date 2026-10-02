@@ -140,7 +140,7 @@ describe("DashboardBasesView — what the panel actions do to the model", () => 
     });
 });
 
-describe("DashboardBasesView — computed fields", () => {
+describe("DashboardBasesView — computed fields and tasks", () => {
     function withResolver(h: Harness, compile: ResolverDeps["compile"]): void {
         (h.view as any).resolver = new ComputedResolver({
             loadZf: async () => ({ knowledge: {}, internal: { vault: {} } }),
@@ -181,4 +181,20 @@ describe("DashboardBasesView — computed fields", () => {
         expect(fail.view.currentSnapshot?.schema.byId["half"]).toBeUndefined();
     });
 
+    it("an edit to one of its notes redraws the Tasks panels (debounced), and only for its notes", () => {
+        jest.useFakeTimers();
+        try {
+            const h = harness({ panels: [{ id: "t", type: "tasks", mapping: { taskShow: "open" } }] });
+            h.view.onDataUpdated();
+            const host = (h.view as any).hosts.get("t");
+            const update = jest.spyOn(host, "update");
+            h.changed.fn?.({ path: "Elsewhere/x.md" });
+            h.changed.fn?.({ path: "Daily/a.md" });
+            h.changed.fn?.({ path: "Daily/a.md" });
+            jest.advanceTimersByTime(400);
+            expect(update).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
 });

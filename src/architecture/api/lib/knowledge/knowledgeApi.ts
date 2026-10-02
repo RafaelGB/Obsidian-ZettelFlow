@@ -18,6 +18,7 @@ import {
     runGraphQuery,
     deriveFacets,
     buildEvidenceMap,
+    noteVitals,
     deriveOutline,
     cultivationQueue,
     readyToCultivate,
@@ -86,6 +87,10 @@ export const NOT_EXPOSED: Record<string, string> = {
     // projection of your knowledge — and a script that could read them would invite exactly the
     // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
     speedFacts: "the plugin's own timings, not a projection of the model",
+    // The This note companion's view shapes (#640). The counts are on `vitals`; these two arrange
+    // the same facts for a sidebar and would publish a layout as if it were knowledge.
+    lifecycleStepper: "how the companion draws a state as steps — a layout, not a query",
+    companionSections: "how the companion folds the evidence map — buildEvidenceMap is the query",
     // The selection's own plumbing (#483). `zf.knowledge.query` already answers the question these
     // serve; exposing the pieces the Explore surface composes them from would publish an interface
     // shape as if it were knowledge.
@@ -288,6 +293,11 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(path: string) => EvidenceMap",
             summary: "What supports and what contradicts one idea.",
             call: (path: string) => buildEvidenceMap(model(), path),
+        },
+        vitals: {
+            signature: "(path: string) => NoteVitals",
+            summary: "Links in, links out, claims and distinct sources of one note — counts only.",
+            call: (path: string) => noteVitals(model(), path),
         },
         outline: {
             signature: "(selectedPaths: string[], opts?: DeriveOutlineOptions) => Outline",

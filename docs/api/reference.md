@@ -42,6 +42,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `trajectory` | `(now?: number, opts?: TrajectoryOptions) => IdeaTrajectory[]` | Which important ideas are advancing, steady or stalled by how recently you ruled on them. |
 | `unexamined` | `(opts?: { limit?: number }) => UnexaminedIdea[]` | Ideas that gained structure but carry no judgement of yours. |
 | `verdictBreakdown` | `(opts?: AgencyMetricsOptions) => VerdictBreakdown` | Counts of the verdicts you gave, optionally scoped to AI/derived output. |
+| `vitals` | `(path: string) => NoteVitals` | Links in, links out, claims and distinct sources of one note — counts only. |
 
 ## AI — `zf.ai`
 

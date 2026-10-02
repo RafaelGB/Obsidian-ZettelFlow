@@ -59,3 +59,4 @@ export * from "./classifyHealth";
 export * from "./recommendation";
 export * from "./trajectory";
 export * from "./speedFacts";
+export * from "./noteCompanion";

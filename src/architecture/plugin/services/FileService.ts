@@ -2,6 +2,7 @@ import { log, ObsidianApi } from "architecture";
 import { DataWriteOptions, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 import { safeInquiryPath } from 'architecture/knowledge/inquiry/inquiryState';
 import { recordVaultWrite } from "architecture/plugin/writes/recordVaultWrite";
+import { fingerprint, toggleInContent, type ToggledContent } from "dashboards/panels/tasks/taskModel";
 export type CreateFileVault = Pick<Vault, 'getAbstractFileByPath' | 'read' | 'create'>;
 export interface CreateFileOperation { path: string; content: string }
 export interface CreateFileResult { status: 'created' | 'already-created' | 'conflict' | 'failed'; path: string }
@@ -177,6 +178,30 @@ export class FileService {
 
     public static async getContent(file: TFile): Promise<string> {
         return await ObsidianApi.vault().cachedRead(file);
+    }
+
+    /**
+     * Tick or untick one task (#635) — the only write a Base dashboard makes, and only when you click.
+     *
+     * Atomic (`vault.process`), and it **refuses** rather than guessing: unless `line` is still the
+     * task the dashboard showed (same box, same text), the note is left exactly as it is and this
+     * returns `false`. Otherwise exactly one character changes. Recorded as `task-toggled` with a
+     * fingerprint of the line, never its text.
+     */
+    public static async toggleTask(file: TFile, line: number, expected: { mark: string; text: string }): Promise<boolean> {
+        let toggled: ToggledContent | null = null;
+        await ObsidianApi.vault().process(file, (content) => {
+            toggled = toggleInContent(content, line, expected);
+            return toggled ? toggled.content : content;
+        });
+        const done = toggled as ToggledContent | null;
+        if (!done) return false;
+        recordVaultWrite({
+            kind: "task-toggled",
+            path: file.path,
+            task: { line, from: expected.mark, to: done.mark, fingerprint: fingerprint(done.line) },
+        });
+        return true;
     }
 
     public static async modify(file: TFile, content: string, options?: DataWriteOptions): Promise<void> {

@@ -226,6 +226,13 @@ export const BUDGETS = {
         because:
             "a computed field re-resolves off the render path on each data update; a cheap one must add negligible overhead vs the un-enriched normalize (#632, against the #452 ~103 ms 50k-derive baseline)",
     },
+    "dashboard.tasks.1k": {
+        name: "parse and shape 5,000 tasks across 1,000 notes for a Tasks panel",
+        limit: 250,
+        measured: "6.2 ms",
+        because:
+            "a Tasks panel redraws on every data update and on every edit to one of its notes; parsing the lines and grouping them must stay well under a frame budget's worth of work (#635)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

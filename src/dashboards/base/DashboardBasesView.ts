@@ -9,13 +9,15 @@
  * renders each from the shared snapshot. The panel list persists via `BasesViewConfig` only — no
  * `vault.*` (read-only over the vault, §XII).
  */
-import { BasesView, Keymap, Menu, QueryController, setIcon, type PaneType } from "obsidian";
+import { BasesView, Keymap, Menu, QueryController, TFile, setIcon, type PaneType } from "obsidian";
 import { v4 as uuid } from "uuid";
 import { log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { c } from "architecture/styles/helper";
 import { hoverPreview } from "architecture/components/core/a11y";
-import { DataStoreSnapshot, normalize, reconcilePlan } from "dashboards/datastore";
+import { FileService } from "architecture/plugin/services/FileService";
+import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { DataStoreSnapshot, normalize, reconcilePlan, rowPath } from "dashboards/datastore";
 import {
     DashboardModel,
     PanelConfig,
@@ -30,7 +32,8 @@ import {
 import type { ComputedWarning } from "dashboards/transform";
 import { adaptResult } from "./adaptEntry";
 import { FieldInspector } from "./FieldInspector";
-import { PanelHost, type PanelHostActions } from "./PanelHost";
+import { PanelHost, type PanelHostActions, type TaskPort } from "./PanelHost";
+import { readTasks } from "./taskSource";
 import { PanelConfigModal } from "./PanelConfigModal";
 import { ComputedFieldsModal } from "./ComputedFieldsModal";
 import { ComputedResolver } from "./scriptTransform";
@@ -40,6 +43,10 @@ export const DASHBOARD_VIEW_TYPE = "zettelflow-dashboard";
 const CONFIG_KEY = "zfDashboard";
 /** A click on a busy day lists at most this many notes — the menu is a picker, not a search. */
 const MAX_MENU_NOTES = 25;
+/** Who ticked a task: you, from a dashboard — recorded so a write is never unexplained (#635). */
+const TASK_ORIGIN = { kind: "manual", ref: "base-dashboard", label: "Base dashboard" } as const;
+/** A burst of edits in a note (typing in it) redraws the Tasks panels once. */
+const TASK_REFRESH_MS = 300;
 
 export class DashboardBasesView extends BasesView {
     readonly type = DASHBOARD_VIEW_TYPE;
@@ -61,6 +68,7 @@ export class DashboardBasesView extends BasesView {
     private readonly resolver = new ComputedResolver();
     private noticeEl: HTMLElement | null = null;
     private countEl: HTMLElement | null = null;
+    private taskRefresh: number | null = null;
 
     constructor(controller: QueryController, containerEl: HTMLElement) {
         super(controller);
@@ -75,6 +83,8 @@ export class DashboardBasesView extends BasesView {
     onload(): void {
         this.buildShell();
         this.registerEvent(this.app.workspace.on("css-change", () => this.applyTheme()));
+        // A task ticked here, or edited in its note, shows up without a Base re-query (#635).
+        this.registerEvent(this.app.metadataCache.on("changed", (file) => this.onNoteChanged(file.path)));
         this.renderLayout();
     }
 
@@ -233,7 +243,7 @@ export class DashboardBasesView extends BasesView {
         for (const config of this.model.panels) {
             let host = this.hosts.get(config.id);
             if (!host) {
-                host = this.addChild(new PanelHost(this.panelsEl, config, actions));
+                host = this.addChild(new PanelHost(this.panelsEl, config, actions, { tasks: this.taskPort() }));
                 this.hosts.set(config.id, host);
             } else {
                 host.setConfig(config);
@@ -260,6 +270,50 @@ export class DashboardBasesView extends BasesView {
             openNotes: (paths, evt) => this.openNotes(paths, evt),
             previewNote: (el, path) => hoverPreview(this.app, el, path, this),
         };
+    }
+
+    /**
+     * What a Tasks panel reads and writes (#635). Reading is Obsidian's index; the one write is the
+     * box you clicked, through `FileService.toggleTask`, attributed to you and refused if the line
+     * changed under it.
+     */
+    private taskPort(): TaskPort {
+        return {
+            load: (paths) => readTasks(paths),
+            toggle: async (task) => {
+                const file = this.app.vault.getFileByPath(task.path);
+                if (!(file instanceof TFile)) return false;
+                try {
+                    return await withWriteBatch(TASK_ORIGIN, () =>
+                        FileService.toggleTask(file, task.line, { mark: task.mark, text: task.text }),
+                    );
+                } catch (error) {
+                    log.error("Base dashboard could not toggle a task", error);
+                    return false;
+                }
+            },
+            openAt: (task, evt) => {
+                void this.app.workspace.openLinkText(task.path, "", Keymap.isModEvent(evt), {
+                    eState: { line: task.line },
+                });
+            },
+        };
+    }
+
+    /** A note in this dashboard changed: redraw the Tasks panels (only), once per burst. */
+    private onNoteChanged(path: string): void {
+        if (!this.snapshot || !this.model.panels.some((panel) => panel.type === "tasks")) return;
+        if (!this.snapshot.rows.some((row) => rowPath(row) === path)) return;
+        if (this.taskRefresh !== null) window.clearTimeout(this.taskRefresh);
+        this.taskRefresh = window.setTimeout(() => {
+            this.taskRefresh = null;
+            const snapshot = this.snapshot;
+            if (!snapshot) return;
+            const theme = this.theme();
+            for (const config of this.model.panels) {
+                if (config.type === "tasks") this.hosts.get(config.id)?.update(snapshot, theme);
+            }
+        }, TASK_REFRESH_MS);
     }
 
     /**
@@ -302,7 +356,7 @@ export class DashboardBasesView extends BasesView {
 
     private openPanelModal(existing: PanelConfig | null): void {
         if (!this.snapshot) return;
-        new PanelConfigModal(this.app, this.snapshot, this.theme(), existing, (config) => {
+        new PanelConfigModal(this.app, this.snapshot, this.theme(), { load: (paths) => readTasks(paths) }, existing, (config) => {
             const index = this.model.panels.findIndex((panel) => panel.id === config.id);
             if (index >= 0) this.model.panels[index] = config;
             else this.model.panels.push(config);

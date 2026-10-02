@@ -42,6 +42,8 @@ export interface VaultWriteFacts {
     after?: Record<string, unknown>;
     /** For `content-appended`: the text added, so it can be removed again. */
     appended?: string;
+    /** For `task-toggled`: the line, the box before → after, and a fingerprint (no text). */
+    task?: VaultWrite["task"];
 }
 
 /**
@@ -146,6 +148,7 @@ export function recordVaultWrite(facts: VaultWriteFacts, sink: VaultWriteSink = 
             ...(facts.from ? { from: facts.from } : {}),
             ...(facts.after ? { after: facts.after } : {}),
             ...(facts.appended ? { appended: facts.appended } : {}),
+            ...(facts.task ? { task: facts.task } : {}),
         };
         const before = narrowBefore(facts.before, facts.after);
         if (before) entry.before = before;

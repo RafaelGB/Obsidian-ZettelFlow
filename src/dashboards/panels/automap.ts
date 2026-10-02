@@ -35,5 +35,7 @@ export function suggestMapping(type: PanelType, schema: Schema): PanelMapping {
             return { category: dates[0], value: numbers[0] };
         case "table":
             return { columns: schema.fields.slice(0, 4).map((field) => field.id) };
+        case "tasks":
+            return { taskShow: "open", taskGroup: true };
     }
 }

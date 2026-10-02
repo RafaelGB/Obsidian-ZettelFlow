@@ -18,7 +18,7 @@ import { GridComponent, LegendComponent, TooltipComponent, VisualMapComponent } 
 import { CanvasRenderer } from "echarts/renderers";
 import { t, tCount } from "architecture/lang";
 import { c } from "architecture/styles/helper";
-import type { DataStoreSnapshot } from "dashboards/datastore";
+import { rowPath, type DataStoreSnapshot } from "dashboards/datastore";
 import { applyTransforms } from "dashboards/transform";
 import {
     buildBarOption,
@@ -28,6 +28,8 @@ import {
     buildScatterOption,
     buildStat,
     buildTable,
+    buildTaskView,
+    isOpen,
     calendarGrid,
     isMappingComplete,
     layoutClasses,
@@ -40,6 +42,8 @@ import {
     type ChartTheme,
     type PanelConfig,
     type PanelLayout,
+    type TaskItem,
+    type TaskShow,
 } from "dashboards/panels";
 
 // Register only what the shipped panel types need (tree-shaking — never the whole library).
@@ -82,10 +86,30 @@ export interface PanelHostActions {
     previewNote: (el: HTMLElement, path: string) => void;
 }
 
+/** What a Tasks panel needs from outside (#635): reading is always there, the rest only on the dashboard. */
+export interface TaskPort {
+    load: (paths: readonly string[]) => Promise<TaskItem[]>;
+    /** Tick or untick; `false` when the note's line is no longer that task (nothing was written). */
+    toggle?: (task: TaskItem) => Promise<boolean>;
+    /** Open the note at the task's line. */
+    openAt?: (task: TaskItem, evt: MouseEvent) => void;
+}
+
 export interface PanelHostOptions {
     /** The config modal's live preview: no header, no menu, nothing clickable. */
     preview?: boolean;
+    tasks?: TaskPort;
 }
+
+function noteName(path: string): string {
+    return (path.split("/").pop() ?? path).replace(/\.md$/, "");
+}
+
+const EMPTY_TASKS: Record<TaskShow, Parameters<typeof t>[0]> = {
+    open: "dashboard_tasks_none_open",
+    done: "dashboard_tasks_none_done",
+    all: "dashboard_tasks_none",
+};
 
 export class PanelHost extends Component {
     private cardEl: HTMLElement | null = null;
@@ -95,6 +119,10 @@ export class PanelHost extends Component {
     private tableSort: { column: number; dir: 1 | -1 } | null = null;
     /** The data the panel last drew — what a chart click resolves its notes against. */
     private drawn: DataStoreSnapshot | null = null;
+    /** Bumped per Tasks render, so an older (slower) read never paints over a newer one. */
+    private taskRender = 0;
+    /** Said once, on the next Tasks render: a toggle the note refused. */
+    private taskNotice: string | null = null;
 
     constructor(
         private readonly parentEl: HTMLElement,
@@ -285,6 +313,9 @@ export class PanelHost extends Component {
             case "calendar":
                 this.renderCalendar(data, body);
                 return;
+            case "tasks":
+                void this.renderTasks(data, body);
+                return;
             default:
                 this.renderChart(body, this.chartOption(data, theme));
         }
@@ -368,6 +399,84 @@ export class PanelHost extends Component {
                 this.actions?.openNotes(notesOnDay(snapshot, this.config, cell.date), evt),
             );
         }
+    }
+
+    /**
+     * The tasks of the notes this panel draws (#635), read from Obsidian's index. Asynchronous, so the
+     * previous list stays on screen until the new one is ready (no flicker), and a newer render wins.
+     */
+    private async renderTasks(snapshot: DataStoreSnapshot, body: HTMLElement): Promise<void> {
+        this.disposeChart();
+        const port = this.options.tasks;
+        const token = ++this.taskRender;
+        if (!port) {
+            body.empty();
+            return;
+        }
+        const paths = [...new Set(snapshot.rows.map(rowPath).filter((path): path is string => Boolean(path)))];
+        const items = await port.load(paths);
+        if (token !== this.taskRender || !this.bodyEl) return; // superseded, or unloaded meanwhile
+
+        const mapping = this.config.mapping;
+        const show: TaskShow = mapping.taskShow ?? "open";
+        const view = buildTaskView(items, paths, { show, group: mapping.taskGroup ?? true });
+        body.empty();
+        const panel = body.createDiv({ cls: c("base-dashboard-tasks") });
+        const counts = panel.createDiv({ cls: c("base-dashboard-tasks-counts") });
+        counts.setText(
+            `${tCount(view.open, "dashboard_tasks_open", String(view.open))} · ${tCount(view.done, "dashboard_tasks_done", String(view.done))}`,
+        );
+        if (this.taskNotice) panel.createDiv({ cls: `${c("base-dashboard-notice")} is-error`, text: this.taskNotice });
+        this.taskNotice = null;
+
+        if (view.groups.length === 0) {
+            panel.createDiv({ cls: c("base-dashboard-panel-empty"), text: t(EMPTY_TASKS[show]) });
+            return;
+        }
+        const list = panel.createDiv({ cls: c("base-dashboard-task-list") });
+        for (const group of view.groups) {
+            if (group.path) {
+                const heading = list.createDiv({ cls: c("base-dashboard-task-note"), text: noteName(group.path) });
+                if (this.interactive) {
+                    heading.addClass("is-clickable");
+                    this.actions?.previewNote(heading, group.path);
+                    heading.addEventListener("click", (evt) => this.actions?.openNotes([group.path], evt));
+                }
+            }
+            for (const task of group.tasks) this.renderTask(list, task, snapshot, body);
+        }
+        if (view.hidden > 0) {
+            panel.createDiv({ cls: c("base-dashboard-muted"), text: tCount(view.hidden, "dashboard_tasks_more", String(view.hidden)) });
+        }
+    }
+
+    private renderTask(list: HTMLElement, task: TaskItem, snapshot: DataStoreSnapshot, body: HTMLElement): void {
+        const port = this.options.tasks;
+        const row = list.createDiv({ cls: `${c("base-dashboard-task")} is-depth-${Math.min(task.depth, 4)}` });
+        row.toggleClass("is-checked", !isOpen(task.mark));
+        // Obsidian's own checkbox class and `data-task`, so the theme (and custom statuses) style it.
+        row.setAttribute("data-task", task.mark);
+        const box = row.createEl("input", { cls: "task-list-item-checkbox", attr: { type: "checkbox", "data-task": task.mark } });
+        box.checked = !isOpen(task.mark);
+        const canToggle = this.interactive && port?.toggle !== undefined;
+        box.disabled = !canToggle;
+        // Plain text, never Markdown: the dashboard renders nothing a note could inject.
+        const text = row.createSpan({ cls: c("base-dashboard-task-text"), text: task.text });
+        if (this.interactive && port?.openAt) {
+            text.addClass("is-clickable");
+            this.actions?.previewNote(text, task.path);
+            text.addEventListener("click", (evt) => port.openAt?.(task, evt));
+        }
+        if (!canToggle || !port?.toggle) return;
+        const toggle = port.toggle;
+        box.addEventListener("change", () => {
+            box.disabled = true;
+            void toggle(task).then((ok) => {
+                if (!ok) this.taskNotice = t("dashboard_tasks_changed");
+                // Redraw from the index either way — the note is the truth, not the checkbox.
+                void this.renderTasks(snapshot, body);
+            });
+        });
     }
 
     private renderChart(body: HTMLElement, option: ChartOption): void {

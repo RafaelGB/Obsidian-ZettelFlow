@@ -38,7 +38,9 @@ export type WriteKind =
     | "file-moved"
     | "properties-set"
     | "content-appended"
-    | "content-replaced";
+    | "content-replaced"
+    /** A task's checkbox ticked or unticked from a Base dashboard (#635). The checkbox is its own undo. */
+    | "task-toggled";
 
 /** The kinds an undo can reverse. `content-replaced` is deliberately not one of them. */
 export const UNDOABLE_KINDS: readonly WriteKind[] = [
@@ -71,6 +73,11 @@ export interface VaultWrite {
     after?: Record<string, unknown>;
     /** Only for `content-appended`: the text added, so it can be removed again. */
     appended?: string;
+    /**
+     * Only for `task-toggled`: which line, the box before → after, and a fingerprint of the line as
+     * left — never its text ("no note content, ever").
+     */
+    task?: { line: number; from: string; to: string; fingerprint: string };
     /** Unix ms of when this write was taken back. */
     undone?: number;
 }

@@ -134,6 +134,13 @@ export const PANEL_TYPES: Record<PanelType, PanelTypeSpec> = {
             NUMERIC("value", "dashboard_channel_value"),
         ],
     },
+    // The notes' own `- [ ]` tasks (#635): no field to map — its data is the tasks of the notes.
+    tasks: {
+        type: "tasks",
+        labelKey: "dashboard_panel_tasks",
+        icon: "list-checks",
+        channels: [],
+    },
 };
 
 export function panelTypeList(): PanelTypeSpec[] {

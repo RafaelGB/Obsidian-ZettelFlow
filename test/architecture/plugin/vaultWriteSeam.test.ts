@@ -18,7 +18,7 @@ function sources(dir: string): string[] {
  * is structure, not content, and there is nothing to record or take back about one.
  */
 const DIRECT_WRITE =
-    /\bvault(?:\(\))?\s*\.\s*(?:createBinary|create|modifyBinary|modify|delete|trash)\(|\bfileManager(?:\(\))?\s*\.\s*(?:renameFile|trashFile|processFrontMatter)\(/;
+    /\bvault(?:\(\))?\s*\.\s*(?:createBinary|create|modifyBinary|modify|process|delete|trash)\(|\bfileManager(?:\(\))?\s*\.\s*(?:renameFile|trashFile|processFrontMatter)\(/;
 
 /**
  * One door, and the test that keeps it shut (#456, epic #451).

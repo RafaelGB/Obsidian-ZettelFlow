@@ -23,6 +23,7 @@ export function isMappingComplete(type: PanelType, mapping: PanelMapping): boole
         case "calendar":
             return Boolean(mapping.category);
         case "table":
+        case "tasks":
             return true;
     }
 }

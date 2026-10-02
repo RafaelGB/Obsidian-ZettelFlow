@@ -555,3 +555,71 @@
 .zettelkasten-flow__base-dashboard-muted {
     @include hint;
 }
+
+/* The Tasks panel (#635): Obsidian's own checkbox, the counts above, notes as quiet headings. */
+.zettelkasten-flow__base-dashboard-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: 100%;
+    min-height: 0;
+    overflow: auto;
+}
+
+.zettelkasten-flow__base-dashboard-tasks-counts {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__base-dashboard-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__base-dashboard-task-note {
+    margin-top: var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-medium);
+}
+
+.zettelkasten-flow__base-dashboard-task-note:first-child {
+    margin-top: 0;
+}
+
+.zettelkasten-flow__base-dashboard-task {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-2);
+    padding: var(--size-2-1) 0;
+    font-size: var(--font-ui-small);
+    line-height: var(--line-height-tight);
+}
+
+.zettelkasten-flow__base-dashboard-task .task-list-item-checkbox {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.zettelkasten-flow__base-dashboard-task.is-depth-1 { padding-left: var(--size-4-6); }
+.zettelkasten-flow__base-dashboard-task.is-depth-2 { padding-left: var(--size-4-12); }
+.zettelkasten-flow__base-dashboard-task.is-depth-3 { padding-left: var(--size-4-16); }
+.zettelkasten-flow__base-dashboard-task.is-depth-4 { padding-left: var(--size-4-18); }
+
+.zettelkasten-flow__base-dashboard-task.is-checked .zettelkasten-flow__base-dashboard-task-text {
+    color: var(--checklist-done-color, var(--text-muted));
+    text-decoration: var(--checklist-done-decoration, line-through);
+}
+
+.zettelkasten-flow__base-dashboard-task-text {
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__base-dashboard-task-text.is-clickable:hover,
+.zettelkasten-flow__base-dashboard-task-note.is-clickable:hover {
+    color: var(--text-normal);
+    text-decoration: underline;
+    cursor: pointer;
+}

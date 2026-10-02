@@ -21,4 +21,6 @@ export { calendarCounts, calendarGrid } from "./calendar/calendarModel";
 export { DEFAULT_LAYOUT, panelLayout, cycleWidth, cycleHeight, movePanel, placePanel, layoutClasses } from "./layout";
 export { migrateDashboard } from "./migrate";
 export { notesAtPoint, notesOnDay } from "./notesAt";
+export { buildTaskView, fingerprint, isOpen, parseTaskLine, toggledLine, MAX_TASKS_SHOWN } from "./tasks/taskModel";
+export type { ParsedTaskLine, TaskGroup, TaskItem, TaskShow, TaskView } from "./tasks/taskModel";
 export type { ChartPoint } from "./notesAt";

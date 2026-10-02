@@ -7,13 +7,31 @@
  */
 export function use(_features?: unknown): void { }
 
-export function init(_el?: unknown, _theme?: unknown, _opts?: unknown): {
+export interface FakeChart {
+    options: unknown[];
+    handlers: Record<string, (params: unknown) => void>;
+    disposed: boolean;
     setOption: (o: unknown) => void;
     resize: () => void;
     dispose: () => void;
     on: (event: string, handler: (params: unknown) => void) => void;
-} {
-    return { setOption() { }, resize() { }, dispose() { }, on() { } };
+}
+
+/** Every chart `init` created, newest last — so a test can read the option or fire a click. */
+export const __charts: FakeChart[] = [];
+
+export function init(_el?: unknown, _theme?: unknown, _opts?: unknown): FakeChart {
+    const chart: FakeChart = {
+        options: [],
+        handlers: {},
+        disposed: false,
+        setOption(o: unknown) { chart.options.push(o); },
+        resize() { },
+        dispose() { chart.disposed = true; },
+        on(event: string, handler: (params: unknown) => void) { chart.handlers[event] = handler; },
+    };
+    __charts.push(chart);
+    return chart;
 }
 
 // Tree-shakeable members the host registers via `use([...])`.

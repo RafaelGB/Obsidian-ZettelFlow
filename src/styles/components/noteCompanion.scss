@@ -406,9 +406,3 @@ button.zettelkasten-flow__note-companion-vital {
         outline: var(--border-width) solid var(--interactive-accent);
     }
 }
-
-/* The history keeps its own look; inside the companion it scrolls with the view, not on its own. */
-.zettelkasten-flow__note-companion-history .zettelkasten-flow__evolution-timeline-history {
-    max-height: none;
-    overflow-y: visible;
-}

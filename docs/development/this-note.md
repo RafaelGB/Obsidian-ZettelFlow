@@ -98,18 +98,59 @@ and answers inline: *Linked X. Undo* for thirty seconds. There is no toast.
 These sections show whether or not snapshots are recorded: neither stores claim texts, so the
 history's opt-in does not reach them.
 
-## The history
+## Story
 
-Below the sections — or beside them, when the pane is wide — is the note's
-[evolution timeline](evolution-timeline.md): snapshots, verdicts, moves, thoughts, returns,
-promotions and the day you expect to know by. It reads the companion's note, so a pinned
-companion shows the pinned note's history.
+Below the sections — or at the top of the right column, when the pane is wide — is how the note got
+here, told as **one rail, newest first**. It reads the companion's note, so a pinned companion tells
+the pinned note's story.
+
+![The note's story: a pinned day above, chips, month headings, a before/now return and a fold](../resources/this-note/story.svg)
+
+- **Months.** Events sit under a heading for their month (*October 2026* / *octubre de 2026*), newest
+  month first. A month with nothing in it has no heading.
+- **One icon per kind.** Snapshot, judgement, move, thought, return, promotion and a passed horizon
+  each have their own icon. What you **decided** — a judgement, a return, a promotion — carries the
+  accent; a thought the theme's purple; a snapshot is faint. Nothing else changes colour.
+- **When.** Every event says how long ago in words (*today*, *yesterday*, *3 days ago*, *2 months
+  ago*), with the day itself on hover and for screen readers.
+- **Chips.** *All · Decisions · Moves · Thoughts*, each with how many it would show. A chip with
+  nothing to show is not drawn, and with no chip but *All* there is no chip row. The filter goes back
+  to *All* when the companion moves to another note.
+- **Unchanged snapshots fold.** A run of snapshots in the same month whose state did not change shows
+  its newest one and *+N more snapshots with no state change*; click it to see them in place. A
+  snapshot shows its state and how many claims it had; the claim texts are inside it, on demand.
+- **Before and now.** A claim you were asked about again is one bordered unit: *Before* (what it
+  said) and *Now* (what it says), plus the verdict. A *Before* that was not kept is simply absent;
+  a withdrawal has no *Now*.
+- **The day you expect to know by.** A [wager](wagers.md)'s day, while it is today or later, is
+  pinned **above** the rail as one quiet card with the **date** — no countdown, no colour that warms
+  as it approaches, under every filter (#572). Once the day has passed it sits in the rail at its date.
+- **Empty and not kept.** A note with no story yet explains how one starts — *the first time you
+  decide something about it, make a move on it, or write a thought about it*. With snapshot recording
+  off, one line at the top says the sentences themselves are not being kept; moves, thoughts, verdicts
+  and promotions still show.
+- **Forget this move** stays on each move. It removes the move from the move log and changes nothing
+  else — never the note.
+
+The story writes nothing: reading, filtering and unfolding touch no file. The grouping, folding,
+filtering and pinning are one pure function, `projectStory(events, { now, filter, expanded })`, in
+the State layer.
+
+## The ⋯ menu
+
+The head's **⋯** offers what you can do *with* this note:
+
+- **Share this idea** — the before→after [idea card](evolution-timeline.md#shareable-idea-card-387),
+  offered once the story has at least one event.
+- **Trace reasoning paths from this note** — the [reasoning paths](concept-navigation.md#reasoning-paths) from the
+  companion's note. A pinned companion traces the **pinned** note, not whichever editor has the
+  cursor (the palette command still traces the active note).
 
 ## Narrow and wide
 
 The layout follows the width of its own pane, not the window. Docked at sidebar width it is one
 column. From about 37.5rem of pane width — a wide sidebar, or the view dragged into the main area —
-the history moves into a second column beside the sections.
+the story moves into a second column and starts at its top, beside the sections.
 
 ## For contributors: opening it from code
 
@@ -125,8 +166,9 @@ the existing view or creates one with `ensureSideLeaf(…, "right")`.
 
 `focus` and `move` are used once on arrival and never persisted; only `{ path, pinned }` of a pinned
 companion survive a restart. The view is a host for **blocks** (`noteCompanion/blocks/`): head,
-next step, sections and history today, each rendering from one `CompanionModel` built per refresh from the
-State-layer projections `noteVitals`, `lifecycleStepper` and `companionSections`.
+next step, sections and story today, each rendering from one `CompanionModel` built per refresh from the
+State-layer projections `noteVitals`, `lifecycleStepper` and `companionSections`. A block adds to the
+head's ⋯ menu through `menuItems()`, read when the menu opens.
 
 ## What moved here
 

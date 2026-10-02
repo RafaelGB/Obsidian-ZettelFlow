@@ -91,7 +91,7 @@ The three headers it re-ranked:
 |---|---|---|---|
 | Lab | start a collision | — | the legend |
 | Cultivate | work on your own question | another idea | think about this instead |
-| This note (its own view, #640) | share the idea card | cognitive-only filter (refresh is the view's) | reasoning paths |
+| This note (its own view, #640) | — | — (the story's chips filter inside the story, #642) | share the idea card, reasoning paths |
 
 Crystallize is deliberately **not** the Lab's primary. It lives in the picked bar, on the selection
 it acts upon; promoting it would put a permanently inert button in the header, which is exactly the

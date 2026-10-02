@@ -6,7 +6,8 @@ import { LEGACY_OPEN_TARGETS, relocateMode } from "architecture/components/core/
 
 const ROOT = join(__dirname, "..", "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
-const TIMELINE = read("src/architecture/components/core/timeline/EvolutionTimelineRenderer.ts");
+// The history is the companion's story since #642.
+const TIMELINE = read("src/architecture/components/core/noteCompanion/blocks/storyBlock.ts");
 const MODEL = read("src/architecture/components/core/noteCompanion/companionModel.ts");
 const EN = read("src/architecture/lang/locale/en.ts");
 const ES = read("src/architecture/lang/locale/es.ts");
@@ -52,6 +53,8 @@ describe("the companion holds what is around the note (#640)", () => {
         for (const file of [
             "src/architecture/components/core/evidenceMap/EvidenceMapRenderer.ts",
             "src/architecture/components/core/resurface/ResurfaceRenderer.ts",
+            // And the timeline's own view, replaced by the story block (#642).
+            "src/architecture/components/core/timeline/EvolutionTimelineRenderer.ts",
         ]) {
             expect({ file, exists: existsSync(join(ROOT, file)) }).toEqual({ file, exists: false });
         }

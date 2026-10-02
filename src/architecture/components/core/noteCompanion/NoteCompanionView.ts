@@ -6,7 +6,7 @@ import { HeadBlock } from "./blocks/headBlock";
 import { SectionsBlock } from "./blocks/sectionsBlock";
 import { NextStepBlock } from "./blocks/nextStepBlock";
 import type { StateSettingsHost } from "architecture/plugin/services/noteNextStepWrites";
-import { HistoryBlock } from "./blocks/historyBlock";
+import { StoryBlock } from "./blocks/storyBlock";
 import { buildCompanionScreen } from "./companionModel";
 import { INITIAL_SUBJECT, reduceSubject, type SubjectEvent, type SubjectState } from "./companionSubject";
 import { NOTE_COMPANION_VIEW, parseCompanionState, type NoteCompanionState } from "./noteCompanionContract";
@@ -129,7 +129,8 @@ export class NoteCompanionView extends ItemView {
             // Order is the reading order: what to do, then what surrounds it (#639).
             new NextStepBlock(columns.main.createDiv(), this.plugin),
             new SectionsBlock(columns.main.createDiv()),
-            new HistoryBlock(columns.side.createDiv()),
+            // The story starts at the top of the right column when the pane is wide (#642).
+            new StoryBlock(columns.side.createDiv()),
         ].map((block) => this.addChild(block));
     }
 
@@ -166,6 +167,11 @@ export class NoteCompanionView extends ItemView {
         if (this.stale && this.visible()) this.render();
     }
 
+    /** The head's ⋯ menu: what every block offers right now, in block order (#642). */
+    private menuItems(): ReturnType<CompanionBlock["menuItems"]> {
+        return this.blocks.flatMap((block) => block.menuItems());
+    }
+
     private render(): void {
         if (!this.columns) return;
         window.clearTimeout(this.debounceTimer);
@@ -188,6 +194,7 @@ export class NoteCompanionView extends ItemView {
             refresh: () => this.render(),
             reveal: (focus, move) => this.blocks.find((block) => block.claims(focus))?.reveal(focus, move),
             open: (path) => void this.app.workspace.openLinkText(path, screen.kind === "note" ? screen.model.path : "", false),
+            menu: () => this.menuItems(),
         };
         for (const block of this.blocks) block.update(ctx);
 

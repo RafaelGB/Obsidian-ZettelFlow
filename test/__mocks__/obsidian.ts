@@ -343,7 +343,10 @@ export class Setting {
   }
 }
 
-export function setIcon(_el: unknown, _icon: string): void { }
+/** Records the icon on the element (#642), so a test can tell one kind's icon from another's. */
+export function setIcon(el: unknown, icon: string): void {
+  (el as { setAttribute?: (name: string, value: string) => void } | null)?.setAttribute?.("data-icon", icon);
+}
 
 export function setTooltip(_el: unknown, _tooltip: string, _options?: unknown): void { }
 

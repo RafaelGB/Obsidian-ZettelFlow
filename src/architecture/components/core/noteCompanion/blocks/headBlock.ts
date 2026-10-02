@@ -1,7 +1,9 @@
-import { setIcon } from "obsidian";
+import { Menu, setIcon } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { hoverPreview } from "architecture/components/core/a11y";
+import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
+import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
 import { CompanionBlock, noteName, type CompanionContext, type CompanionModel } from "./CompanionBlock";
 
@@ -25,7 +27,28 @@ export class HeadBlock extends CompanionBlock {
     readonly id = "head";
     readonly column = "head";
 
+    private ctx: CompanionContext | null = null;
+
+    /**
+     * *Trace reasoning paths* from the companion's note (#578 → #642). The command traces the
+     * active file, which is the wrong note while the companion is pinned — so the menu opens the
+     * modal on this note directly.
+     */
+    menuItems(): HeaderAction[] {
+        const ctx = this.ctx;
+        if (!ctx || ctx.screen.kind !== "note") return [];
+        const path = ctx.screen.model.path;
+        return [
+            {
+                label: t("note_companion_trace"),
+                icon: "route",
+                onClick: () => new ReasoningPathsModal(ctx.app, path).open(),
+            },
+        ];
+    }
+
     update(ctx: CompanionContext): void {
+        this.ctx = ctx;
         this.beginRender();
         this.el.empty();
         const head = this.el.createDiv({ cls: c("note-companion-head") });
@@ -37,7 +60,7 @@ export class HeadBlock extends CompanionBlock {
         }
 
         const path = screen.kind === "note" ? screen.model.path : screen.path;
-        this.renderTitle(head, ctx, screen.kind === "note" ? screen.model.title : noteName(path), path);
+        this.renderTitle(head, ctx, screen.kind === "note" ? screen.model.title : noteName(path), path, screen.kind === "note");
         if (ctx.pinned) this.renderPinned(head, ctx);
 
         if (screen.kind === "indexing" || screen.kind === "error") {
@@ -51,7 +74,7 @@ export class HeadBlock extends CompanionBlock {
         this.renderVitals(head, ctx, screen.model.vitals);
     }
 
-    private renderTitle(head: HTMLElement, ctx: CompanionContext, title: string, path: string): void {
+    private renderTitle(head: HTMLElement, ctx: CompanionContext, title: string, path: string, withMenu: boolean): void {
         const row = head.createDiv({ cls: c("note-companion-title-row") });
         row.createDiv({ cls: c("note-companion-title"), text: title, attr: { title: path } });
 
@@ -72,6 +95,24 @@ export class HeadBlock extends CompanionBlock {
         });
         setIcon(refresh, "refresh-cw");
         this.on(refresh, "click", () => ctx.refresh());
+
+        // The ⋯ overflow (#642): what you can do *with* this note, read when it opens — the
+        // story's share depends on what the story holds at that moment.
+        if (!withMenu) return;
+        const more = row.createEl("button", {
+            cls: [c("note-companion-more"), "clickable-icon"].join(" "),
+            attr: { type: "button", "aria-label": t("mode_header_more"), "aria-haspopup": "menu" },
+        });
+        setIcon(more, "more-horizontal");
+        this.on(more, "click", () => {
+            const menu = new Menu();
+            for (const action of ctx.menu()) {
+                menu.addItem((item) => item.setTitle(action.label).setIcon(action.icon).onClick(action.onClick));
+            }
+            // From the button's own corner, so the keyboard opens it where the control is.
+            const box = more.getBoundingClientRect();
+            menu.showAtPosition({ x: box.left, y: box.bottom });
+        });
     }
 
     private renderPinned(head: HTMLElement, ctx: CompanionContext): void {

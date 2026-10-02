@@ -8,6 +8,7 @@ import type {
     NoteVitals,
 } from "architecture/knowledge/state";
 import type { ResurfaceReason } from "application/notes/resurfaceRanking";
+import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
 import type { CompanionFocus } from "../noteCompanionContract";
 
 /** Everything the companion draws about one note, built once per recompute. */
@@ -49,6 +50,8 @@ export interface CompanionContext {
     /** Bring a focus into view; `move` preselects a next move (#641). */
     reveal(focus: CompanionFocus, move?: NextMoveToken): void;
     open(path: string): void;
+    /** What the head's ⋯ menu offers right now — every block's items, in block order (#642). */
+    menu(): HeaderAction[];
 }
 
 export type CompanionColumn = "head" | "main" | "side";
@@ -97,6 +100,11 @@ export abstract class CompanionBlock extends Component {
 
     /** Bring `focus` into view, once. Only called when {@link claims} said yes. */
     reveal(_focus: CompanionFocus, _move?: NextMoveToken): void {}
+
+    /** What this block adds to the head's ⋯ menu. Read when the menu opens, never cached (#642). */
+    menuItems(): HeaderAction[] {
+        return [];
+    }
 }
 
 /** A note's file name without folders or `.md` — what a row shows; the path goes in the tooltip. */

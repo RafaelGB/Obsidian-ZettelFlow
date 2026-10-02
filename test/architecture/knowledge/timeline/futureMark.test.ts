@@ -1,4 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
+import { DECISION_KINDS } from "architecture/knowledge/state";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { timelineEvents, type HorizonEvent } from "architecture/knowledge/timeline/timelineEvents";
@@ -8,8 +9,9 @@ import type { Judgement } from "architecture/knowledge/judgement";
 
 // test/architecture/knowledge/timeline → 4 ups → repo root
 const ROOT = join(__dirname, "..", "..", "..", "..");
+// The timeline became the companion's story (#642): the horizon row lives in `storyRows.ts`.
 const RENDERER = readFileSync(
-    join(ROOT, "src/architecture/components/core/timeline/EvolutionTimelineRenderer.ts"),
+    join(ROOT, "src/architecture/components/core/noteCompanion/storyRows.ts"),
     "utf8"
 );
 
@@ -78,14 +80,16 @@ describe("a day you expect to know by (#572)", () => {
 
     it("is not something you ruled, so the judgements filter hides it", () => {
         // The filter is an allow-list of what you decided — and a date you set is not a verdict.
-        expect(RENDERER).toContain('event.kind === "judgement" || event.kind === "return" || event.kind === "promotion"');
-        expect(RENDERER).not.toContain('event.kind === "horizon" || event.kind === "judgement"');
+        // The allow-list is `DECISION_KINDS` now (#642), and a horizon is not in it.
+        expect([...DECISION_KINDS].sort()).toEqual(["judgement", "promotion", "return"]);
+        expect(DECISION_KINDS.has("horizon")).toBe(false);
     });
 
     it("counts nothing down", () => {
         // The method's own body: the file goes on to render four other kinds of row.
-        const start = RENDERER.indexOf("private renderHorizon(");
-        const row = RENDERER.slice(start, RENDERER.indexOf(`${String.fromCharCode(10)}    }`, start));
+        const start = RENDERER.indexOf("function renderHorizon(");
+        expect(start).toBeGreaterThan(-1);
+        const row = RENDERER.slice(start, RENDERER.indexOf(`${String.fromCharCode(10)}}`, start));
         for (const word of ["days", "remaining", "left", "soon", "overdue"]) {
             expect({ word, found: row.includes(word) }).toEqual({ word, found: false });
         }

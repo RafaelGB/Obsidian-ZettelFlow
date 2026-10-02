@@ -49,7 +49,6 @@ const CEILING: Record<string, number> = {
     "discoveries.scss": 1,
     "dragAndDrop.scss": 1,
     "dynamicSelector.scss": 10,
-    "evolutionTimeline.scss": 1,
     "flowStatus.scss": 2,
     "flows.scss": 4,
     "graph3d.scss": 10,

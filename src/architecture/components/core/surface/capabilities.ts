@@ -221,7 +221,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "command_explore_reasoning_paths",
         owner: NOTE,
         doors: [
-            CONTROL("architecture/components/core/timeline/EvolutionTimelineRenderer.ts", NOTE),
+            // The companion's ⋯ menu, on the companion's own note (#642).
+            CONTROL(`${COMPANION}/blocks/headBlock.ts`, NOTE),
             CMD("explore-reasoning-paths"),
         ],
     },
@@ -266,7 +267,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "evolution_timeline_view_title",
         owner: NOTE,
         doors: [
-            CONTROL(`${COMPANION}/blocks/historyBlock.ts`, NOTE),
+            CONTROL(`${COMPANION}/blocks/storyBlock.ts`, NOTE),
             CMD("show-evolution-timeline"),
             CMD("show-notes-history"),
         ],

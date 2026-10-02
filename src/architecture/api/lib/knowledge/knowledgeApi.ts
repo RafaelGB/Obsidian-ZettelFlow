@@ -92,6 +92,10 @@ export const NOT_EXPOSED: Record<string, string> = {
     // the same facts for a sidebar and would publish a layout as if it were knowledge.
     lifecycleStepper: "how the companion draws a state as steps — a layout, not a query",
     companionSections: "how the companion folds the evidence map — buildEvidenceMap is the query",
+    // The note's story (#642) arranges the timeline for reading; the facts are timelineEvents'.
+    projectStory: "how the companion lays the timeline out to read — a layout, not a query",
+    relativeAge: "a date helper for the story's labels, not a projection of the model",
+    startOfLocalDay: "a calendar helper for the story, not a projection of the model",
     // The next-step card's shapes (#641). `nextMoves` is the query; these dress it for one card.
     nextStepCard: "the facts the next-step card says beside each move — nextMoves is the query",
     connectCandidates: "the first nearby rows the card offers to link — a layout cap, not knowledge",

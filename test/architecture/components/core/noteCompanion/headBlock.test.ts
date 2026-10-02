@@ -1,5 +1,5 @@
 import { describe, it, expect, jest } from "@jest/globals";
-import { Component } from "obsidian";
+import { Component, Menu } from "obsidian";
 import { DomNode } from "../../../../support/dashboardDom";
 import { HeadBlock } from "architecture/components/core/noteCompanion/blocks/headBlock";
 import type {
@@ -36,10 +36,14 @@ function render(screen: CompanionScreen, pinned = false) {
         refresh: jest.fn(),
         reveal: jest.fn(),
         open: jest.fn(),
+        menu: jest.fn(() => [
+            { label: "Trace reasoning paths from this note", icon: "route", onClick: jest.fn() },
+            { label: "Share this idea", icon: "image", onClick: jest.fn() },
+        ]),
     };
     block.load();
     block.update(ctx as unknown as CompanionContext);
-    return { host, ctx };
+    return { host, ctx, block };
 }
 
 describe("the companion head (#640 FR-6..10, AC-4/AC-5)", () => {
@@ -148,5 +152,33 @@ describe("the companion head (#640 FR-6..10, AC-4/AC-5)", () => {
 
         const otherwise = render({ kind: "note", model: model({ next: { kind: "proposing", moves: [{ token: "connect" }] } }) });
         expect(otherwise.host.querySelector("ol")!.findAll((el) => el.tag === "button")).toEqual([]);
+    });
+});
+
+describe("the ⋯ menu (#642 AC-12, FR-20)", () => {
+    it("offers what the blocks add, read when it opens", () => {
+        const { host, ctx } = render({ kind: "note", model: model() });
+        const more = host.oneByClass("note-companion-more");
+        expect(more.getAttribute("aria-haspopup")).toBe("menu");
+        expect(more.getAttribute("aria-label")).toBe("More actions");
+        more.click();
+        expect(ctx.menu).toHaveBeenCalledTimes(1);
+        expect(Menu.last!.items.map((item) => item.title)).toEqual(["Trace reasoning paths from this note", "Share this idea"]);
+    });
+
+    it("is not there without a note", () => {
+        for (const screen of [
+            { kind: "empty", last: null },
+            { kind: "indexing", path: "a.md" },
+            { kind: "error", path: "a.md" },
+        ] as CompanionScreen[]) {
+            expect(render(screen).host.byClass("note-companion-more")).toEqual([]);
+        }
+    });
+
+    it("traces reasoning paths from the companion's own note", () => {
+        const { block } = render({ kind: "note", model: model() });
+        expect(block.menuItems().map((item) => item.label)).toEqual(["Trace reasoning paths from this note"]);
+        expect(render({ kind: "empty", last: null }).block.menuItems()).toEqual([]);
     });
 });

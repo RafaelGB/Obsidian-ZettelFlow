@@ -8,7 +8,8 @@ an *idea* changed: the sequence of a note's lifecycle **state** and **claims** o
 
 !!! note "Now in *This note*"
     Since #640 this lives in **[This note](this-note.md)**, the per-note companion in the right
-    sidebar. The timeline is its history block, below the sections (or beside them when the pane is wide).
+    sidebar. The timeline is told there as the note's **[story](this-note.md#story)** (#642): one rail,
+    newest first, by month, with chips instead of the old toggle.
 
 ## Opening it
 
@@ -33,8 +34,9 @@ bulk startup rebuild records nothing.
 The timeline also shows *when you exercised judgement*, not only when the note changed. Each
 [judgement](cognitive-agency.md) about the active note — a verdict on an AI proposal, or a Cultivate
 friction move you answered — appears on the **same axis** as the snapshots, marked with the accent
-colour and carrying its verdict, its optional confidence, and its rationale (on hover). A **"only my
-judgements"** toggle isolates the cognitive milestones from the structural snapshots.
+colour and carrying its verdict, its optional confidence, and its rationale. The story's **Decisions**
+chip (#642) isolates what you decided from the structural snapshots; it replaced the old *only my
+judgements* toggle.
 
 The merge is a pure projection, `timelineEvents(snapshots, judgements)`: it interleaves the two logs by
 time (a snapshot before a judgement on a tie) and reads only what it is given, so a note you never ruled
@@ -47,8 +49,8 @@ A claim you were **asked about again** is drawn as one event rather than two: th
 and the change it caused, together.
 
 > **Asked again** — and you said what it says now
-> *It said* — "microservices increase organizational complexity"
-> *It says now* — "microservices move complexity rather than add it"
+> *Before* — "microservices increase organizational complexity"
+> *Now* — "microservices move complexity rather than add it"
 
 A confirmation is its own line — *and it still says the same* — which is a milestone this axis could
 never draw before, because nothing ever asked you. A withdrawal names the thought the sentence
@@ -59,7 +61,8 @@ five minutes of the snapshot, and the claim set has to have moved by exactly one
 one in. A bulk edit, a distant verdict, or a claim change nobody ruled on renders exactly as it did
 before — two unrelated rows told as one story would be worse than the two rows.
 
-The *only my judgements* toggle keeps it, because a return **is** a judgement.
+The *Decisions* chip keeps it, because a return **is** a judgement. Since #642 the two lines sit in
+one bordered unit.
 
 ### The strands render with snapshots off (fixed in #564)
 
@@ -100,8 +103,9 @@ than assumed. The row is muted and says the same thing at every distance, before
 passes — a date in the future invites a countdown, a countdown invites a colour, and a colour
 invites a nudge.
 
-It is hidden by *only my judgements*, because a date you set is not a verdict. And **the shared idea
-card ignores it**: that card measures the span from the first event to the last, and a horizon has
+Since #642 a day that is still ahead is **pinned above the story** as one card with its date, under
+every filter, and drops into the rail once it has passed. It is not a *Decision*, because a date you
+set is not a verdict. And **the shared idea card ignores it**: that card measures the span from the first event to the last, and a horizon has
 not happened.
 
 ## Thoughts written about the note (#540)
@@ -127,7 +131,7 @@ recomputes on every change of active note.
 
 ## Shareable idea card (#387)
 
-The **Share this idea** button (Timeline header, shown once there is history) turns the timeline into a
+**Share this idea** (the companion's ⋯ menu since #642, offered once there is a story) turns the timeline into a
 single **before→after image** you can post — *"how my idea X grew"*:
 
 - A pure `buildIdeaCard` composes the card from **already-accepted data only** — the first vs current
@@ -174,8 +178,11 @@ ConceptualTimeline (singleton, structural TimelineHost, mirrors DevelopmentJourn
 timelineEvents(snapshots, judgements)             (pure, Obsidian-free, unit-tested)
   → TimelineEvent[]   interleave snapshots (#168) + judgements (#336) by time; snapshot-before-judgement tie-break
 
-EvolutionTimelineRenderer (the history block of This note, #640)
-  reads snapshotsFor(path) + judgementsFor(log, path) → timelineEvents(...) → renders snapshots and
-  cognitive milestones (verdict · confidence · rationale) oldest→newest, with an "only my judgements"
-  filter; writes nothing
+projectStory(events, { now, filter, expanded })  (pure, Obsidian-free, unit-tested, #642)
+  → { pinned?, chips, groups, total }   newest first by local month; unchanged snapshot runs folded;
+                                        a horizon still ahead pinned outside every group
+
+StoryBlock (This note's story, #642)
+  readStory(app, path) → timelineEvents(...) → projectStory(...) → renders the rail; writes nothing
+  (Forget this move touches the move log only)
 ```

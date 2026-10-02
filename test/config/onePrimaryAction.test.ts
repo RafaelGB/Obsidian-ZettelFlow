@@ -69,9 +69,10 @@ describe("one primary action per mode header (#577)", () => {
     });
 
     it("has migrated the headers this epic is about", () => {
-        // A rule nothing uses is a rule nobody follows. These three are the ones #577 re-ranked;
-        // a fourth header arriving without `ModeHeader` is not caught here, and is caught in review.
-        for (const file of ["LabRenderer.ts", "CultivateModeRenderer.ts", "EvolutionTimelineRenderer.ts"]) {
+        // A rule nothing uses is a rule nobody follows. These are the ones #577 re-ranked; the
+        // evolution timeline's header became the companion's ⋯ menu (#642), which carries no
+        // primary at all. A header arriving without `ModeHeader` is not caught here; review does.
+        for (const file of ["LabRenderer.ts", "CultivateModeRenderer.ts"]) {
             const source = readFileSync(files.find((f) => name(f) === file) as string, "utf8");
             expect({ file, uses: source.includes("new ModeHeader(") }).toEqual({ file, uses: true });
             expect({ file, declares: primaries(source) }).toEqual({ file, declares: 1 });

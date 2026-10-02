@@ -111,11 +111,11 @@ describe("the This note view (#640 FR-1..6, FR-19)", () => {
         expect(content.children).toEqual([]);
     });
 
-    it("reads in order: head, next step, sections, history (#641)", async () => {
+    it("reads in order: head, next step, sections, story (#641, #642)", async () => {
         const { view, content } = mount();
         await view.onOpen();
         const blocks = (view as unknown as { blocks: { id: string }[] }).blocks.map((block) => block.id);
-        expect(blocks).toEqual(["head", "next", "sections", "history"]);
+        expect(blocks).toEqual(["head", "next", "sections", "story"]);
         expect(content.byClass("note-companion-col-main")).toHaveLength(1);
     });
 
@@ -129,5 +129,17 @@ describe("the This note view (#640 FR-1..6, FR-19)", () => {
         await view.setState({ focus: "next", move: "connect" }, {} as never);
         expect(reveal).toHaveBeenCalledWith("next", "connect");
         expect(reveal).toHaveBeenCalledTimes(1);
+    });
+
+    it("builds the ⋯ menu from every block's items, in block order (#642)", async () => {
+        const { view } = mount();
+        await view.onOpen();
+        const blocks = (view as unknown as { blocks: { id: string; menuItems: () => unknown[] }[] }).blocks;
+        const head = blocks.find((block) => block.id === "head")!;
+        const story = blocks.find((block) => block.id === "story")!;
+        jest.spyOn(head, "menuItems").mockReturnValue([{ label: "head" }]);
+        jest.spyOn(story, "menuItems").mockReturnValue([{ label: "story" }]);
+        const items = (view as unknown as { menuItems: () => { label: string }[] }).menuItems();
+        expect(items.map((item) => item.label)).toEqual(["head", "story"]);
     });
 });

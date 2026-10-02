@@ -21,6 +21,8 @@ const PREFIXES = [
     "claim_door_",
     "home_claim_return_",
     "settings_return_",
+    // The note's story (#642): it states what happened, never how far along anything is.
+    "note_story_",
 ];
 
 const FORBIDDEN = [

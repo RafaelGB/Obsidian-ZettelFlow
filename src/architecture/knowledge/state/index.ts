@@ -54,6 +54,7 @@ export * from "architecture/knowledge/judgement";
 export * from "architecture/knowledge/review/dueClaims";
 export type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 export * from "architecture/knowledge/timeline/timelineEvents";
+export * from "architecture/knowledge/timeline/storyProjection";
 export * from "architecture/knowledge/timeline/ideaCard";
 export * from "./classifyHealth";
 export * from "./recommendation";

@@ -29,12 +29,30 @@ function withField(fields: SchemaField[], id: string, name: string, type: FieldT
     return [...rest, { id, name, type }];
 }
 
-function compare(cell: TaggedCell | undefined, op: FilterOp, value: string | undefined): boolean {
+const DAY_MS = 86_400_000;
+
+/** A local `YYYY-MM-DD` — the same day key a date cell's raw value starts with. */
+function dayKey(time: number): string {
+    const d = new Date(time);
+    const pad = (n: number): string => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** A date cell's day key, or null when the cell is not a date. */
+function dateOf(cell: TaggedCell | undefined): string | null {
+    return cell?.kind === "date" && typeof cell.raw === "string" && cell.raw.length >= 10 ? cell.raw.slice(0, 10) : null;
+}
+
+function compare(cell: TaggedCell | undefined, op: FilterOp, value: string | undefined, now: number): boolean {
     const display = cell?.display ?? "";
     const target = value ?? "";
     const num = numOf(cell);
     const targetNum = Number(target);
     const numeric = num !== null && target !== "" && !Number.isNaN(targetNum);
+    // Dates order as their day keys: `> 2026-01-01` works the way it reads.
+    const day = dateOf(cell);
+    const targetDay = /^\d{4}-\d{2}-\d{2}/.test(target) ? target.slice(0, 10) : null;
+    const dated = day !== null && targetDay !== null;
     switch (op) {
         case "eq":
             return display === target;
@@ -43,13 +61,18 @@ function compare(cell: TaggedCell | undefined, op: FilterOp, value: string | und
         case "contains":
             return display.toLowerCase().includes(target.toLowerCase());
         case "gt":
-            return numeric && num > targetNum;
+            return dated ? day > targetDay : numeric && num > targetNum;
         case "gte":
-            return numeric && num >= targetNum;
+            return dated ? day >= targetDay : numeric && num >= targetNum;
         case "lt":
-            return numeric && num < targetNum;
+            return dated ? day < targetDay : numeric && num < targetNum;
         case "lte":
-            return numeric && num <= targetNum;
+            return dated ? day <= targetDay : numeric && num <= targetNum;
+        case "lastDays": {
+            const days = Math.floor(targetNum);
+            if (day === null || !Number.isFinite(days) || days < 1) return false;
+            return day >= dayKey(now - (days - 1) * DAY_MS) && day <= dayKey(now);
+        }
     }
 }
 
@@ -66,12 +89,12 @@ function calc(left: number, op: CalcOp, right: number): number {
     }
 }
 
-function applyStep(table: Table, step: TransformStep): Table {
+function applyStep(table: Table, step: TransformStep, now: number): Table {
     switch (step.type) {
         case "filter": {
             if (!step.field || !step.op) return table;
             const op = step.op as FilterOp;
-            return { fields: table.fields, rows: table.rows.filter((row) => compare(row[step.field as string], op, step.value)) };
+            return { fields: table.fields, rows: table.rows.filter((row) => compare(row[step.field as string], op, step.value, now)) };
         }
         case "sort": {
             if (!step.field) return table;
@@ -243,10 +266,11 @@ export function effectiveFields(fields: SchemaField[], steps: TransformStep[]): 
     return current;
 }
 
-export function applyTransforms(snapshot: DataStoreSnapshot, steps: TransformStep[]): DataStoreSnapshot {
+/** `now` is injectable so a relative filter ("last 7 days") is testable; it defaults to the clock. */
+export function applyTransforms(snapshot: DataStoreSnapshot, steps: TransformStep[], now: number = Date.now()): DataStoreSnapshot {
     if (!steps || steps.length === 0) return snapshot;
     let table: Table = { fields: snapshot.schema.fields, rows: snapshot.rows };
-    for (const step of steps) table = applyStep(table, step);
+    for (const step of steps) table = applyStep(table, step, now);
     const byId: Record<string, SchemaField> = {};
     for (const field of table.fields) byId[field.id] = field;
     return {

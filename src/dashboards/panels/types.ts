@@ -56,13 +56,25 @@ export interface PanelConfig {
     layout?: PanelLayout;
     /** Per-panel transform pipeline (S5) — reshapes the data this panel draws, in memory only. */
     transforms?: TransformStep[];
-    /** Optional, opt-in script transformer (S6) — advanced, off by default. */
-    script?: { enabled: boolean; code: string };
+    /**
+     * Legacy per-panel script transformer (S6), superseded by dashboard-level
+     * {@link DashboardModel.computed} (#632). Still **loaded** (folded in by `migrateDashboard`) so
+     * old view config keeps working; no longer authored.
+     */
+    script?: ComputedFields;
 }
 
-/** The persisted dashboard: an ordered list of panels (layout arrives in S3). */
+/** A dashboard-level computed-field script (#632): one definition, used by every panel's schema. */
+export interface ComputedFields {
+    enabled: boolean;
+    code: string;
+}
+
+/** The persisted dashboard: an ordered list of panels + optional dashboard-level computed fields. */
 export interface DashboardModel {
     panels: PanelConfig[];
+    /** Computed fields (#632): a `rows => rows` that enriches the shared snapshot for every panel. */
+    computed?: ComputedFields;
 }
 
 export function emptyDashboard(): DashboardModel {

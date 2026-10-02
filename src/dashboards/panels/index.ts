@@ -18,4 +18,7 @@ export { buildHeatmapMatrixOption } from "./heatmap/heatmapOption";
 export { buildTable, sortTable } from "./table/tableModel";
 export type { TableColumn, TableModel } from "./table/tableModel";
 export { calendarCounts, calendarGrid } from "./calendar/calendarModel";
-export { DEFAULT_LAYOUT, panelLayout, cycleWidth, cycleHeight, movePanel, layoutClasses } from "./layout";
+export { DEFAULT_LAYOUT, panelLayout, cycleWidth, cycleHeight, movePanel, placePanel, layoutClasses } from "./layout";
+export { migrateDashboard } from "./migrate";
+export { notesAtPoint, notesOnDay } from "./notesAt";
+export type { ChartPoint } from "./notesAt";

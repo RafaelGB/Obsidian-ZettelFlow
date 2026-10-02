@@ -6,6 +6,7 @@ import {
     DYNAMIC_SELECTOR_BINDINGS,
     HOOK_BINDINGS,
     CONDITION_BINDINGS,
+    DASHBOARD_BINDINGS,
     bindingNames,
     bindingArgs,
     type ScriptBinding,
@@ -25,11 +26,18 @@ function sourceFiles(dir: string): string[] {
     return out;
 }
 
+/** The surfaces that offer Obsidian's `app` escape hatch. The dashboard is deliberately NOT here. */
 const ALL_SURFACES: Record<string, readonly ScriptBinding[]> = {
     "script action": SCRIPT_ACTION_BINDINGS,
     "dynamic selector": DYNAMIC_SELECTOR_BINDINGS,
     "hook body": HOOK_BINDINGS,
     "condition": CONDITION_BINDINGS,
+};
+
+/** Every surface, including the dashboard — for the shape checks that hold for all of them. */
+const NAMED_SURFACES: Record<string, readonly ScriptBinding[]> = {
+    ...ALL_SURFACES,
+    "dashboard computed field": DASHBOARD_BINDINGS,
 };
 
 describe("the binding contract of a scripting surface (#349, FR-2/AC-3)", () => {
@@ -38,12 +46,21 @@ describe("the binding contract of a scripting surface (#349, FR-2/AC-3)", () => 
         expect(bindingNames(bindings)).toContain("app");
     });
 
-    it.each(Object.entries(ALL_SURFACES))("%s names every binding exactly once", (_name, bindings) => {
+    // #632: the dashboard computed-field surface is the exception — read-only and offline, so it
+    // offers `zf` but NOT `app` (no vault write) and nothing else (no AI/network member).
+    it("the dashboard computed-field surface offers zf but not app (offline, no writes)", () => {
+        const names = bindingNames(DASHBOARD_BINDINGS);
+        expect(names).toContain("zf");
+        expect(names).not.toContain("app");
+        expect(names).toEqual(["row", "index", "rows", "zf"]);
+    });
+
+    it.each(Object.entries(NAMED_SURFACES))("%s names every binding exactly once", (_name, bindings) => {
         const names = bindingNames(bindings);
         expect(new Set(names).size).toBe(names.length);
     });
 
-    it.each(Object.entries(ALL_SURFACES))("%s describes every binding it offers", (_name, bindings) => {
+    it.each(Object.entries(NAMED_SURFACES))("%s describes every binding it offers", (_name, bindings) => {
         for (const binding of bindings) {
             expect(binding.type.trim()).not.toBe("");
         }

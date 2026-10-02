@@ -21,10 +21,12 @@ date and a link as a link.
 
 ## Panels
 
-**Add panel** places a panel over the same filtered Base. Pick a type, map its fields in the dialog —
-ZettelFlow suggests a working mapping from the inferred schema, so it renders immediately and you
-adjust from there. Charts take their colours from your Obsidian theme and **re-paint when you switch
-light/dark**. Panels (and their layout) are saved in the Base's view config.
+**Add panel** opens the panel dialog: pick a type from the icon tiles, map its fields (each picker
+shows the field's type, e.g. *hours · number*), and watch the **live preview** beside the form draw
+the panel with this Base's real data as you change it. ZettelFlow suggests a working mapping from
+the inferred schema, so it renders immediately and you adjust from there. Charts take their colours
+from your Obsidian theme and **re-paint when you switch light/dark**. Panels (and their layout) are
+saved in the Base's view config.
 
 | Panel | What it draws |
 |---|---|
@@ -36,10 +38,17 @@ light/dark**. Panels (and their layout) are saved in the Base's view config.
 | **Heatmap** | a category × category grid, coloured by a value |
 | **Calendar** | a contribution-style day grid from a date field (+ optional value) |
 
-Each panel's header carries **move** (left/right) and **resize** (cycle its width) controls; the grid
-reflows to a single column on a narrow pane or on mobile. The bubble reproduces a date × hours chart
-sized and coloured by two more fields; the calendar reuses ZettelFlow's own day-grid. (Treemap, radar
-and sankey are intentionally left for later.)
+A panel's card is quiet: its title and a **⋯** button. That button — or a **right-click anywhere on
+the panel** — opens Obsidian's own menu: *Edit*, *Duplicate*, *Move left/right*, the width (1, 2 or
+3 columns), *Tall*, and *Remove*. Double-click the title to edit. **Drag a panel by its header** to
+reorder the grid — it lands before or after the panel you release over (on touch, use *Move
+left/right* from the menu). The grid reflows to a single column
+on a narrow pane or on mobile. (Treemap, radar and sankey are intentionally left for later.)
+
+**A chart is a way into your notes.** Click a bar, a point, a slice, a table row or a calendar day
+to open the note behind it — Mod-click opens it in a new tab, as everywhere in Obsidian. A day that
+holds several notes offers a menu to pick one. Hover a table row (with Mod, per your *Page preview*
+settings) for a page preview. A row a transform aggregated has no single note, so it opens nothing.
 
 ## Transform the data
 
@@ -48,31 +57,92 @@ chart is drawn: **filter, sort, group by, aggregate, bin, calculate, normalize, 
 **cumulative**. A calculated, binned or averaged field is **virtual** — it exists only for the render
 and is never written back to your notes.
 
+**Filter** compares numbers and dates as you'd read them (`date ≥ 2026-09-01`), and has a relative
+window for dates — **in the last … days** — so a panel can stay on *this week* without anyone editing
+a date. *Average hours worked in the last week* is a **Stat** (value `realWorkingHours`, aggregate
+**average**) with one step: **Filter** · `date` · *in the last … days* · `7`. Today counts as one of
+the seven; a date in the future never matches.
+
 Three levels, lowest first — reach for the lowest that answers your question:
 
 1. **Base formulas** — the native, preferred way to derive a value.
 2. **Visual transforms** — the no-code pipeline above.
-3. **Script transformer** — an advanced escape hatch (below).
+3. **Computed fields** — a dashboard-level script in the JS editor that runs once per note, given its `row` + a read-only `zf` (below).
 
-## Script transformer (advanced)
+## Computed fields (advanced)
 
-For the rare shape the visual transforms cannot express, a panel can run a small **JavaScript**
-transformer — a `rows => rows` over plain value rows (`{ fieldId: value }`). It is **off by default**
-and shows a warning when enabled, because it executes code you provide.
+For the rare value the visual transforms cannot express, define a **computed field**: a small
+JavaScript body, authored once at the **dashboard level** (the **Computed fields** button) in the
+plugin's own editor. Every field it returns becomes a first-class field that appears in **every**
+panel's picker. It is **off by default** and says so when enabled, because it runs code you provide.
 
-The sandbox is deliberately tiny: the script receives **only the rows** — no access to your vault, the
-filesystem, the network or the app — and its output is used only to draw the panel, never written to a
-note. A script that throws or returns the wrong shape fails safe: the panel shows the error and the
-rest of the dashboard keeps working.
+### How it works
 
-> **Capability — script execution.** Enabling this runs user-provided JavaScript, opt-in per panel,
-> through ZettelFlow's single function-constructor home (the same one the Script action and vault
-> hooks use), and every run is recorded in the [script run log](script-workbench.md).
+The body runs **once per note** and returns an object of the **new** fields for that note:
 
 ```js
-// A productivity score the Base doesn't store.
-return rows.map(r => ({ ...r, score: r.realWorkingHours / r.expectedHours }));
+return { score: row.realWorkingHours / 8 };
 ```
+
+- **`row`** is that note's fields, by short name (`row.realWorkingHours`) and by full id
+  (`row["note.realWorkingHours"]`). Note properties win a short-name clash; formulas are
+  `row["formula.x"]` when a property has the same name.
+- **`index`** and **`rows`** are there for a field that needs its neighbours (a day-over-day change:
+  `rows[index - 1]`).
+- **`zf`** is the read-only, offline script API (below).
+
+### Missing values are handled for you
+
+Most fields are not in every note. A field a note does not have is **`undefined`** in its `row` —
+never a fake `0` or `""` — and arithmetic on it yields `NaN`, which ZettelFlow stores as **empty**.
+So `row.realWorkingHours / 8` is simply empty for a day you did not log hours; no guard needed.
+
+- Want a default instead? `row.realWorkingHours ?? 0`.
+- Return nothing (`return;`) for a note to leave its new fields empty.
+- A note whose code **throws** (say, `row.tags.length` on a note without tags) is **skipped**: its new
+  fields are empty, every other note still computes, and the dashboard says how many notes were
+  skipped and why. The script only fails as a whole if it fails for *every* note.
+- A returned name that is already a field of the Base is ignored (with a warning) — a computed field
+  adds, it never overwrites your data.
+
+### Types
+
+A new field's type is **inferred** from its values (empty cells don't count), but you can
+**declare** it when inference would get it wrong — return `{ value, type }` for that field (`date`,
+`number`, `category`, `boolean`, `link`), so a string-shaped date charts on a time axis:
+
+```js
+return { due: { value: row.deadline, type: "date" } };
+```
+
+### The editor
+
+Everything you need is on one screen:
+
+- the three rules above, in three lines, with a link here;
+- **this Base's fields** as chips — name, type and **how many notes carry it** (a dashed chip is a
+  field some notes lack) — click one to insert `row.<name>` at the caret;
+- **`row.` autocompletes** those fields, and `zf.` completes the API, with hover docs;
+- **Run** previews the code over the real notes — in memory, nothing saved or written — and shows
+  the new columns, their inferred types, the first rows, and any note it skipped, with the reason.
+
+### The sandbox
+
+The sandbox is deliberately small and **offline**: the script gets the rows and a **read-only
+`zf`** — `zf.knowledge` plus vault reads. It gets no `app`, makes no vault write and reaches no
+network (so it never auto-calls AI — a computed field resolves automatically, and AI never
+auto-fires in an automation). Its output enriches the shared snapshot **in memory only**, never a
+note. Resolution runs **off the render path** and is cached per data signature; a script that fails
+for every note fails safe — the panels keep the un-enriched data and an inline message names the
+error (click it to open the editor).
+
+> **Capability — script execution, no network.** Enabling this runs user-provided JavaScript, opt-in,
+> through ZettelFlow's single function-constructor home (the same one the Script action and vault
+> hooks use); every run — including each preview — is recorded in the
+> [script run log](script-workbench.md).
+
+A script written for the earlier `rows => rows` contract (`return rows.map(...)`) still works: an
+array returned for the first note is taken as the whole result.
 
 ## Worked example — daily tracking
 
@@ -107,7 +177,3 @@ views:
 - ZettelFlow reads the already-filtered result and normalises it **once** into a shared, in-memory
   model every panel reads; it updates in place on each change and stays fast on vaults of thousands of
   notes. Read-only throughout.
-
-*Coming next ([#632](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/632)):* dashboard-level
-**computed fields** — author a value once with the plugin's own JS editor and the read-only `zf` API,
-and use it in every panel.

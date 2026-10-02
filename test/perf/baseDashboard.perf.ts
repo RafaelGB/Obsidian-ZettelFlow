@@ -6,6 +6,7 @@ import { normalize } from "dashboards/datastore";
 import type { AdaptedEntry, FieldDescriptor } from "dashboards/datastore";
 import { applyTransforms } from "dashboards/transform";
 import type { TransformStep } from "dashboards/transform";
+import { ComputedResolver } from "dashboards/base/scriptTransform";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
@@ -68,6 +69,19 @@ describe("the Base dashboard data path (#622)", () => {
         ];
         const ms = timed("analysis.heaviest", () => applyTransforms(snap, steps), 10_000);
         assertBudget("dashboard.transform.10k", ms);
+    });
+
+    it("dashboard.computed.10k", async () => {
+        const base = normalize(entries(10_000), PROPS, "fixed");
+        const resolver = new ComputedResolver({
+            loadZf: async () => ({ knowledge: {}, internal: { vault: {} } }),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            compile: () => async (row: any) => ({ score: (row.n as number) + 1 }),
+            record: () => undefined,
+        });
+        const started = Date.now();
+        await resolver.resolve(base, { enabled: true, code: "return rows" });
+        assertBudget("dashboard.computed.10k", Date.now() - started);
     });
 
     it("dashboard.bundle.kb", () => {

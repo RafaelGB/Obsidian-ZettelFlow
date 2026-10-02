@@ -22,6 +22,7 @@ import {
     emptyDashboard,
     migrateDashboard,
     movePanel,
+    placePanel,
     type ChartTheme,
     type ComputedFields,
     type PanelLayout,
@@ -255,6 +256,7 @@ export class DashboardBasesView extends BasesView {
                 return index >= 0 && target >= 0 && target < this.model.panels.length;
             },
             setLayout: (panel, layout) => this.setPanelLayout(panel, layout),
+            place: (id, target, after) => this.dropPanel(id, target, after),
             openNotes: (paths, evt) => this.openNotes(paths, evt),
             previewNote: (el, path) => hoverPreview(this.app, el, path, this),
         };
@@ -317,6 +319,14 @@ export class DashboardBasesView extends BasesView {
 
     private reorderPanel(config: PanelConfig, dir: -1 | 1): void {
         this.model.panels = movePanel(this.model.panels, config.id, dir);
+        this.saveModel();
+        this.renderLayout();
+    }
+
+    private dropPanel(id: string, target: PanelConfig, after: boolean): void {
+        const next = placePanel(this.model.panels, id, target.id, after);
+        if (next === this.model.panels) return;
+        this.model.panels = next;
         this.saveModel();
         this.renderLayout();
     }

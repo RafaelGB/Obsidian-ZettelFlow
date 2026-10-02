@@ -58,6 +58,9 @@ use([
 
 type ChartOption = Parameters<EChartsType["setOption"]>[0];
 
+/** The drag payload type — our own, so a file or text dragged in from elsewhere is never mistaken for a panel. */
+const PANEL_MIME = "application/x-zettelflow-panel";
+
 function formatNumber(value: number): string {
     return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
@@ -71,6 +74,8 @@ export interface PanelHostActions {
     move: (config: PanelConfig, dir: -1 | 1) => void;
     canMove: (config: PanelConfig, dir: -1 | 1) => boolean;
     setLayout: (config: PanelConfig, layout: PanelLayout) => void;
+    /** Drop the panel `id` before or after `target` — the end of a drag on the grid. */
+    place: (id: string, target: PanelConfig, after: boolean) => void;
     /** Open the note(s) under a click — one opens directly, several offer a menu. */
     openNotes: (paths: string[], evt: MouseEvent) => void;
     /** Wire Obsidian's page preview to an element standing for one note. */
@@ -122,6 +127,7 @@ export class PanelHost extends Component {
                 this.showMenu(evt);
             });
             this.registerDomEvent(this.titleEl, "dblclick", () => this.actions?.edit(this.config));
+            this.wireDrag(card, header);
         }
         this.bodyEl = card.createDiv({ cls: c("base-dashboard-panel-body") });
         // Follow the panel's own box, not the window: a sidebar toggle or a width change resizes it too.
@@ -132,6 +138,47 @@ export class PanelHost extends Component {
         } else {
             this.registerDomEvent(window, "resize", () => this.chart?.resize());
         }
+    }
+
+    /**
+     * Drag to reorder: the header is the handle (so dragging inside a chart still pans/brushes the
+     * chart), the whole card is the drop target, and the drop lands before or after it depending on
+     * which half you release over. Touch has no HTML drag — the menu's move items remain there.
+     */
+    private wireDrag(card: HTMLElement, header: HTMLElement): void {
+        header.draggable = true;
+        header.addClass(c("base-dashboard-panel-handle"));
+        const clearMarks = (): void => card.removeClasses(["is-drop-before", "is-drop-after"]);
+
+        this.registerDomEvent(header, "dragstart", (evt) => {
+            if (!evt.dataTransfer) return;
+            evt.dataTransfer.setData(PANEL_MIME, this.config.id);
+            evt.dataTransfer.effectAllowed = "move";
+            const box = card.getBoundingClientRect();
+            evt.dataTransfer.setDragImage(card, evt.clientX - box.left, evt.clientY - box.top);
+            card.addClass("is-dragging");
+        });
+        this.registerDomEvent(header, "dragend", () => card.removeClass("is-dragging"));
+        this.registerDomEvent(card, "dragover", (evt) => {
+            if (!evt.dataTransfer?.types.includes(PANEL_MIME) || card.hasClass("is-dragging")) return;
+            evt.preventDefault();
+            evt.dataTransfer.dropEffect = "move";
+            const box = card.getBoundingClientRect();
+            const after = evt.clientX > box.left + box.width / 2;
+            card.toggleClass("is-drop-after", after);
+            card.toggleClass("is-drop-before", !after);
+        });
+        this.registerDomEvent(card, "dragleave", (evt) => {
+            if (!(evt.relatedTarget instanceof Node) || !card.contains(evt.relatedTarget)) clearMarks();
+        });
+        this.registerDomEvent(card, "drop", (evt) => {
+            const id = evt.dataTransfer?.getData(PANEL_MIME);
+            const after = card.hasClass("is-drop-after");
+            clearMarks();
+            if (!id) return;
+            evt.preventDefault();
+            this.actions?.place(id, this.config, after);
+        });
     }
 
     /** Obsidian's own context menu — the same place a file's or a tab's actions live. */

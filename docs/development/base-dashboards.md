@@ -40,7 +40,9 @@ saved in the Base's view config.
 
 A panel's card is quiet: its title and a **⋯** button. That button — or a **right-click anywhere on
 the panel** — opens Obsidian's own menu: *Edit*, *Duplicate*, *Move left/right*, the width (1, 2 or
-3 columns), *Tall*, and *Remove*. Double-click the title to edit. The grid reflows to a single column
+3 columns), *Tall*, and *Remove*. Double-click the title to edit. **Drag a panel by its header** to
+reorder the grid — it lands before or after the panel you release over (on touch, use *Move
+left/right* from the menu). The grid reflows to a single column
 on a narrow pane or on mobile. (Treemap, radar and sankey are intentionally left for later.)
 
 **A chart is a way into your notes.** Click a bar, a point, a slice, a table row or a calendar day
@@ -54,6 +56,12 @@ Each panel can reshape its data with a small pipeline of **transforms**, applied
 chart is drawn: **filter, sort, group by, aggregate, bin, calculate, normalize, moving average** and
 **cumulative**. A calculated, binned or averaged field is **virtual** — it exists only for the render
 and is never written back to your notes.
+
+**Filter** compares numbers and dates as you'd read them (`date ≥ 2026-09-01`), and has a relative
+window for dates — **in the last … days** — so a panel can stay on *this week* without anyone editing
+a date. *Average hours worked in the last week* is a **Stat** (value `realWorkingHours`, aggregate
+**average**) with one step: **Filter** · `date` · *in the last … days* · `7`. Today counts as one of
+the seven; a date in the future never matches.
 
 Three levels, lowest first — reach for the lowest that answers your question:
 

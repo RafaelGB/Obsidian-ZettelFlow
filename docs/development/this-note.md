@@ -13,6 +13,9 @@ Backlinks and Outline do, so the answer to *"what about this note?"* is always o
 - **Every command that opened the old Timeline mode** still works and lands here:
   *Show evolution timeline*, *Show notes history*, *Show evidence map* and
   *Resurface related notes*. Their ids did not change, so existing hotkeys keep working.
+- **From Health › [Tend](slipbox-health-dashboard.md)** — a row opens its note *and* This note,
+  landed on what the row said was missing: the next-step card on *Add a source* or *Connect*,
+  *Near and forgotten* for a note nobody links, *Gaps* for an open question.
 
 There is only ever one. Opening it again reveals the one you have, wherever you put it. If you
 drag it into the main area it stays there.

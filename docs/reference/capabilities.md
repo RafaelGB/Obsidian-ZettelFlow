@@ -23,7 +23,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Explore** — narrow your vault by clicking; the query is what that produces. [docs →](../development/ask-your-graph.md)
 - **Explore the active note in the graph** — your slip-box as a 3D Knowledge Galaxy, and a lens on your Explore selection. [docs →](../development/graph-3d.md)
 - **Trace reasoning paths from the active note** — read the argument chains leaving a note (supports → expands → example). [docs →](../development/concept-navigation.md)
-- **Health** — one home for the state of your system — connectivity, debt, and balance. [docs →](../development/slipbox-health-dashboard.md)
+- **Health** — which notes need you, each handed to This note on what it is missing. [docs →](../development/slipbox-health-dashboard.md)
 - **Generate weekly review** — a weekly review note: created, orphaned, forgotten, and unreviewed ideas. [docs →](../development/second-brain-review.md)
 - **This note** — the note you are reading, from the right sidebar — where it stands, what surrounds it, how it got here. [docs →](../development/this-note.md)
 - **Next step** — the note's next step — add a source, connect, mark an example or move it on — finished in place, with an undo. [docs →](../development/this-note.md#next-step)
@@ -55,7 +55,7 @@ Open the surface, or one of its modes.
 
 - **Show knowledge map** — the connected regions and named neighbourhoods of your graph. [docs →](../development/living-knowledge-map.md)
 - **Show concept navigation** — walk your vault by typed relation, note to note, like a wiki you wrote. [docs →](../development/concept-navigation.md)
-- **Show knowledge dashboard** — the dashboard read-out of your knowledge health. [docs →](../development/knowledge-dashboard.md)
+- **Show knowledge dashboard** — the knowledge read-out for scripts; its panels became Tend and Home. [docs →](../development/knowledge-dashboard.md)
 - **Momentum** — a calendar of ideas developed — momentum, not note-count volume. [docs →](../development/thinking-heatmap.md)
 - **Show open questions** — every unanswered question in your vault, made first-class. [docs →](../development/open-questions.md)
 - **Agency** — how much you are still deciding — your accept/modify/reject mix, never a grade. [docs →](../development/cognitive-agency.md)

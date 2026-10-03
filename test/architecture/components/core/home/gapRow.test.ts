@@ -74,9 +74,7 @@ describe("the row states, and never advises (#534, FR-7, AC-10)", () => {
         Object.entries(locale).filter(
             ([key]) =>
                 key === "home_section_gaps" ||
-                key.startsWith("home_gap_") ||
-                key === "knowledge_dashboard_metric_connections" ||
-                key === "knowledge_dashboard_rec_make_connections"
+                key.startsWith("home_gap_")
         );
 
     it("never tells you to link anything, in either locale", () => {

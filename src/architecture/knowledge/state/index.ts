@@ -64,3 +64,4 @@ export * from "./noteCompanion";
 export * from "./nextMoveLogic";
 export * from "./nextStepCard";
 export * from "./neighbourhood";
+export * from "./tend";

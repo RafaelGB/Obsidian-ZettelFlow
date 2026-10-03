@@ -19,6 +19,7 @@ import {
     deriveFacets,
     buildEvidenceMap,
     noteVitals,
+    deriveTend,
     suggestNextMoves,
     deriveOutline,
     cultivationQueue,
@@ -88,6 +89,11 @@ export const NOT_EXPOSED: Record<string, string> = {
     // projection of your knowledge — and a script that could read them would invite exactly the
     // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
     speedFacts: "the plugin's own timings, not a projection of the model",
+    // Tend's own plumbing (#644). `tend` is the list; these are its uncached twin and the two things
+    // a click does to it, which would publish the mode's interaction as if it were knowledge.
+    tendRowsOf: "the uncached twin of tend, kept for the performance budget",
+    filterTend: "what a Tend filter chip does to the list",
+    tendFocus: "where a Tend row hands its note to This note — the view's routing",
     // The This note companion's view shapes (#640). The counts are on `vitals`; these two arrange
     // the same facts for a sidebar and would publish a layout as if it were knowledge.
     lifecycleStepper: "how the companion draws a state as steps — a layout, not a query",
@@ -312,6 +318,11 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(path: string) => NextMoveToken[]",
             summary: "The concrete next moves for one note, in order: add-source, connect, add-example, advance-state.",
             call: (path: string) => suggestNextMoves(model(), path),
+        },
+        tend: {
+            signature: "() => TendList",
+            summary: "The notes that need attention, one row each with what they are missing (Health › Tend).",
+            call: () => deriveTend(model()),
         },
         vitals: {
             signature: "(path: string) => NoteVitals",

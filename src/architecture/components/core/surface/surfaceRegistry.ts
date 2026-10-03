@@ -56,7 +56,9 @@ export const SURFACES: readonly Surface[] = [
         viewType: "zettelflow-health",
         titleKey: "surface_health_title",
         modes: [
-            { id: "health", sourceView: "zettelflow-slipbox-health", labelKey: "surface_mode_health" },
+            // Tend (#644): which notes need you, each handed to This note on its fix. It keeps the
+            // retired health view's source, so its command and saved leaves land here for free.
+            { id: "tend", sourceView: "zettelflow-slipbox-health", labelKey: "surface_mode_tend" },
             { id: "momentum", sourceView: "zettelflow-thinking-heatmap", labelKey: "surface_mode_momentum" },
             { id: "agency", labelKey: "surface_mode_agency" },
         ],

@@ -58,9 +58,6 @@ const CEILING: Record<string, number> = {
     "home.scss": 4,
     "hooksConfig.scss": 94,
     "input.scss": 5,
-    "knowledgeBalance.scss": 1,
-    "knowledgeDashboard.scss": 2,
-    "knowledgeDebt.scss": 4,
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
@@ -75,7 +72,6 @@ const CEILING: Record<string, number> = {
     "search.scss": 7,
     "selectableSearch.scss": 11,
     "selector.scss": 11,
-    "slipboxHealth.scss": 1,
     "stepBuilder.scss": 9,
     "surface.scss": 1,
     "thinkingHeatmap.scss": 8,

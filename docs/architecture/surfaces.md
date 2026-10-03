@@ -22,7 +22,7 @@ surfaces. Note creation is no longer its own ribbon icon.
 | Surface | Modes | Folds in (former views) |
 |---|---|---|
 | **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + **[What ZettelFlow changed](reversibility.md)** (#454) |
-| **Health** | Health · Momentum · Agency | Slip-box health **+ the knowledge dashboard folded in** (#314) + Thinking heatmap + Agency review. The Timeline mode became **[This note](../development/this-note.md)** (#640) |
+| **Health** | Tend · Momentum · Agency | **[Tend](../development/slipbox-health-dashboard.md)** (#644): one row per note that needs you, handed to This note on the fix — replacing the slip-box health ops console and the knowledge dashboard folded into it (#314) — + Thinking heatmap + Agency review. The Timeline mode became **[This note](../development/this-note.md)** (#640) |
 | *(Discovery — dissolved, #504)* | — | its four modes answered two questions that already had homes: see below |
 | **[Explore](../development/ask-your-graph.md)** | *(one mode, so no mode bar)* | Ask your graph + the retired **Graph** surface (#484), whose 3D view is now one of Explore's [lenses](../development/graph-3d.md) |
 
@@ -131,7 +131,7 @@ can move, split or pin them like any Obsidian document.
 ## No visible breakage (§XI)
 
 - The **12 retired `show-*` opener commands** are kept as **aliases** that open the owning surface at
-  the right mode (e.g. `show-slipbox-health` → Health/Health, `resurface-related-notes` →
+  the right mode (e.g. `show-slipbox-health` → Health/Tend, `resurface-related-notes` →
   Discovery/Forgotten, `show-notes-history` → Home/Recent). Bind hotkeys to them as before.
 - The **Graph surface's own view type** joined that alias list when it was retired (#484), so a
   workspace saved before the merge reopens Explore instead of an empty pane, and `show-graph` /
@@ -165,3 +165,13 @@ mode — four commands, three retired view types, a saved `timeline` leaf, Disco
 *challenges* — now leads to `{ view: "zettelflow-note" }`. A restored retired leaf closes and
 the one companion opens where it lives, through `openNoteCompanion`, which serialises requests so a
 workspace holding several retired leaves still ends up with exactly one.
+
+## A mode renamed inside its surface (#644)
+
+When a surface renames one of its own modes — Health's `health` became `tend` — a saved leaf on the
+old id is switched **in place**: `RELOCATED_MODES` maps `zettelflow-health:health` to
+`{ surface: "zettelflow-health", mode: "tend" }`, and `ModeHostView.setState` sees the target is its
+own surface, shows the new mode and saves the layout. It does not round-trip through
+`setViewState` to the same view type, which would land back in `setState` and leave the stale id in
+the saved workspace.
+

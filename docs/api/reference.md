@@ -40,6 +40,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `reasoningPaths` | `(start: string, opts?: ReasoningPathsOptions) => Path[]` | Chains of reasoning leading out of an idea. |
 | `recommendations` | `() => KnowledgeRecommendation[]` | What to do next, ranked — the same list the Home surface shows. |
 | `review` | `(now?: number, windowDays?: number) => WeeklyReview` | What changed, stalled and matured over a recent window. |
+| `tend` | `() => TendList` | The notes that need attention, one row each with what they are missing (Health › Tend). |
 | `trajectory` | `(now?: number, opts?: TrajectoryOptions) => IdeaTrajectory[]` | Which important ideas are advancing, steady or stalled by how recently you ruled on them. |
 | `unexamined` | `(opts?: { limit?: number }) => UnexaminedIdea[]` | Ideas that gained structure but carry no judgement of yours. |
 | `verdictBreakdown` | `(opts?: AgencyMetricsOptions) => VerdictBreakdown` | Counts of the verdicts you gave, optionally scoped to AI/derived output. |

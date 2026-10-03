@@ -1,0 +1,173 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * Health › Tend (#644, epic #639) — the notes that need you, one row each.
+ *
+ * Facts, never a grade (§XII): an issue is a quiet chip, not a warning colour, and the only accent
+ * is the filter you pressed. Everything is the theme's.
+ */
+
+.zettelkasten-flow__tend {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+}
+
+.zettelkasten-flow__tend-header {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__tend-title {
+    flex: 1;
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__tend-status {
+    @include empty-state;
+}
+
+.zettelkasten-flow__tend-status--error {
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__tend-lede {
+    font-size: var(--font-ui-medium);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__tend-hint {
+    @include hint;
+    margin-top: calc(-1 * #{$space-2});
+}
+
+/* The live enrichment pass: the one thing here that is happening now. Empty when idle. */
+.zettelkasten-flow__tend-pass {
+    @include row;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__tend-pass-text {
+    @include hint;
+}
+
+.zettelkasten-flow__tend-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__tend-filter {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__tend-filter-count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+}
+
+.zettelkasten-flow__tend-list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__tend-row {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-2;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: $surface-plain;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__tend-row-name {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__tend-row-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__tend-chip {
+    @include chip;
+}
+
+.zettelkasten-flow__tend-chip--state {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__tend-more,
+.zettelkasten-flow__tend-clear {
+    @include hint;
+    color: $text-faint;
+}
+
+/* The timings from this vault (#462): facts in a row, no colour and no grading. */
+.zettelkasten-flow__tend-section {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding-top: $space-3;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__tend-section-heading {
+    margin: 0;
+    font-size: $text-small;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__tend-section-intro {
+    @include hint;
+}
+
+.zettelkasten-flow__tend-speed {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__tend-speed-row {
+    @include row;
+}
+
+.zettelkasten-flow__speed-value {
+    font-variant-numeric: tabular-nums;
+    color: $text-plain;
+    margin-left: auto;
+}
+
+.zettelkasten-flow__speed-scale,
+.zettelkasten-flow__speed-when {
+    font-size: $text-small;
+    color: $text-faint;
+    white-space: nowrap;
+}

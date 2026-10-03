@@ -8,7 +8,7 @@ import {
     relocateMode,
     type LegacyTarget,
 } from "architecture/components/core/surface/legacyTargets";
-import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
+import { SURFACES, defaultMode } from "architecture/components/core/surface/surfaceRegistry";
 
 /** The standalone views a door may lead to instead of a surface mode (#640). */
 const STANDALONE = ["zettelflow-note"];
@@ -107,6 +107,34 @@ describe("This note's doors lead to its own view (#640 FR-23/24, AC-10)", () => 
 
     it("the Health surface no longer has a Timeline mode", () => {
         const health = SURFACES.find((surface) => surface.viewType === "zettelflow-health");
-        expect(health?.modes.map((mode) => mode.id)).toEqual(["health", "momentum", "agency"]);
+        expect(health?.modes.map((mode) => mode.id)).toEqual(["tend", "momentum", "agency"]);
+    });
+});
+
+describe("Health's first mode is Tend, and every door to the old one lands there (#644 AC-1/AC-2)", () => {
+    const TEND = { surface: "zettelflow-health", mode: "tend" };
+    const en = readFileSync(join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "lang", "locale", "en.ts"), "utf8");
+    const es = readFileSync(join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "lang", "locale", "es.ts"), "utf8");
+
+    it("opens on Tend, called Tend / Cuidar", () => {
+        expect(defaultMode("zettelflow-health")).toBe("tend");
+        expect(en).toContain("surface_mode_tend: 'Tend',");
+        expect(es).toContain("surface_mode_tend: 'Cuidar',");
+    });
+
+    it("relocates a saved health leaf, both commands and both retired views to Tend", () => {
+        expect(relocateMode("zettelflow-health", "health")).toEqual(TEND);
+        expect(LEGACY_OPEN_TARGETS["show-slipbox-health"]).toEqual(TEND);
+        expect(LEGACY_OPEN_TARGETS["show-knowledge-dashboard"]).toEqual(TEND);
+        expect(LEGACY_VIEW_TARGETS["zettelflow-slipbox-health"]).toEqual(TEND);
+        expect(LEGACY_VIEW_TARGETS["zettelflow-knowledge-dashboard"]).toEqual(TEND);
+    });
+
+    it("switches a renamed mode in place instead of reopening the same view type", () => {
+        const host = readFileSync(
+            join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "surface", "ModeHostView.ts"),
+            "utf8"
+        );
+        expect(host).toContain("moved.surface === this.getViewType()");
     });
 });

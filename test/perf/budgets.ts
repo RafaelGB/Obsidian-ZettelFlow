@@ -122,6 +122,13 @@ export const BUDGETS = {
         measured: "5.1 ms",
         because: "the Health surface's main projection",
     },
+    "analysis.tend.10k": {
+        name: "derive Tend's list over 10,000 notes",
+        limit: 100,
+        measured: "12.7 ms",
+        because:
+            "Health's first mode (#644): the next moves of every note plus the debt categories it composes, re-read on every model revision while Tend is open",
+    },
     "analysis.gaps.top.all.10k": {
         name: "ask for every gap at once over 10,000 notes",
         limit: 5_000,

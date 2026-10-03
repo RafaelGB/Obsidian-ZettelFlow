@@ -1,14 +1,14 @@
 import { ModeHostView } from "./ModeHostView";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
-import { SlipboxHealthRenderer } from "architecture/components/core/slipboxHealth/SlipboxHealthRenderer";
+import { TendRenderer } from "architecture/components/core/tend/TendRenderer";
 import { ThinkingHeatmapRenderer } from "architecture/components/core/thinkingHeatmap/ThinkingHeatmapRenderer";
 import { AgencyReviewRenderer } from "architecture/components/core/agencyReview/AgencyReviewRenderer";
 
 /**
  * The **Health** surface (#272) — one destination for the state of your slip-box, with modes:
- * Health (connectivity · today · debt · balance · orphans/dead-ends — the ops console merged in,
- * #314) · Momentum (the development heatmap) · Agency. A note's own history left for the right
- * sidebar as This note (#640).
+ * Tend (which notes need you, each handed to This note on its fix — #644, replacing the ops
+ * console of #314) · Momentum (the development heatmap) · Agency. A note's own history left for
+ * the right sidebar as This note (#640).
  */
 export class HealthSurfaceView extends ModeHostView {
     getViewType(): string {
@@ -25,9 +25,9 @@ export class HealthSurfaceView extends ModeHostView {
                 return new ThinkingHeatmapRenderer(container);
             case "agency":
                 return new AgencyReviewRenderer(container, this.app);
-            case "health":
+            case "tend":
             default:
-                return new SlipboxHealthRenderer(container, this.app);
+                return new TendRenderer(container, this.app);
         }
     }
 }

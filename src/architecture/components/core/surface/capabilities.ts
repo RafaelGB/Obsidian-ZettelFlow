@@ -229,18 +229,19 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "slipbox-health": {
         nameKey: "surface_health_title",
         owner: HEALTH,
-        doors: [RIBBON("show-health"), { kind: "surface", at: `${HEALTH}:health` }, CMD("show-slipbox-health")],
+        doors: [RIBBON("show-health"), { kind: "surface", at: `${HEALTH}:tend` }, CMD("show-slipbox-health")],
     },
     "knowledge-dashboard": {
         nameKey: "command_show_knowledge_dashboard",
         owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:health` }, CMD("show-knowledge-dashboard")],
+        // Its panels left with the old Health mode (#644); the door lands on Tend's list.
+        doors: [{ kind: "surface", at: `${HEALTH}:tend` }, CMD("show-knowledge-dashboard")],
     },
     "weekly-review": {
         nameKey: "weekly_review_command_name",
         owner: HEALTH,
         doors: [
-            CONTROL("architecture/components/core/slipboxHealth/SlipboxHealthRenderer.ts", HEALTH),
+            CONTROL("architecture/components/core/tend/TendRenderer.ts", HEALTH),
             CMD("generate-weekly-review"),
         ],
     },
@@ -254,7 +255,12 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // that is always visible, whatever you have open.
         nameKey: "note_companion_title",
         owner: NOTE,
-        doors: [RIBBON("open-note-companion"), CMD("open-note-companion")],
+        doors: [
+            RIBBON("open-note-companion"),
+            // A Tend row opens the note and This note on its fix (#644): the loop Health never closed.
+            CONTROL("architecture/components/core/tend/TendRenderer.ts", HEALTH),
+            CMD("open-note-companion"),
+        ],
     },
     "next-step": {
         // What to do with the note you are reading, finished where you are (#641): a control on the

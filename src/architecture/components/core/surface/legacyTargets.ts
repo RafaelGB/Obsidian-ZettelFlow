@@ -80,7 +80,8 @@ const RETIRED_TARGETS: Record<string, LegacyTarget> = {
     "zettelflow-graph": EXPLORE,
     "zettelflow-knowledge-map": EXPLORE,
     "zettelflow-concept-nav": EXPLORE,
-    "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "health" },
+    // The dashboard's panels left with the Health mode (#644); what it pointed at is Tend's list.
+    "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "tend" },
     // The wizard's note history, then the write record's panel that replaced it, then nothing
     // (#511): the undo it existed for is offered in the moment now. Home is where it pointed.
     "zettelflow-history": HOME,
@@ -103,6 +104,8 @@ const RETIRED_TARGETS: Record<string, LegacyTarget> = {
 export const RELOCATED_MODES: Record<string, LegacyTarget> = {
     // A Health leaf saved on the Timeline mode, before This note had a view of its own (#640).
     "zettelflow-health:timeline": THIS_NOTE,
+    // Health's own first mode became Tend (#644): a saved leaf on `health` switches in place.
+    "zettelflow-health:health": { surface: "zettelflow-health", mode: "tend" },
     "zettelflow-discovery:ask": { surface: "zettelflow-explore", mode: "explore", lens: undefined },
     // The four modes of the dissolved surface (#504), for a workspace saved before it went.
     "zettelflow-discovery:connections": HOME,

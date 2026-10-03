@@ -92,6 +92,16 @@ export abstract class ModeHostView extends ItemView {
             this.app.workspace.onLayoutReady(() => void openNoteCompanion(this.app));
             return;
         }
+        if (moved && moved.surface === this.getViewType() && this.hasMode(moved.mode)) {
+            // A mode renamed inside this surface (#644 health → tend, #645 momentum/agency →
+            // practice): switch in place. A setViewState round-trip to the same view type would
+            // land back in this setState, and a stale mode would survive in the saved layout.
+            this.pendingState = { ...payload, mode: moved.mode };
+            if (this.bodyEl) await this.showMode(moved.mode);
+            else this.activeMode = moved.mode;
+            this.app.workspace.requestSaveLayout();
+            return;
+        }
         if (moved) {
             await this.leaf.setViewState({
                 type: moved.surface,

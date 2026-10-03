@@ -7,6 +7,7 @@ import { communitiesOf } from "architecture/knowledge/map/communities";
 import { gapSeams } from "architecture/knowledge/map/gapSeams";
 import { build3DGraph } from "architecture/knowledge/map/graph3d";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
+import { tendRowsOf } from "architecture/knowledge/state/tend";
 import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
 import { movesFor, MOVE_CEILING, type Move } from "application/thinking/move";
@@ -124,6 +125,12 @@ describe("the projections the surfaces run", () => {
 
     it("analysis.debt.10k", () => {
         assertBudget("analysis.debt.10k", timed("analysis.heaviest", () => computeKnowledgeDebt(model), 10_000));
+    });
+
+    it("analysis.tend.10k", () => {
+        // Uncached, and with the debt it reads cleared too: a primed memo would time a lookup (#644).
+        clearMemo(model);
+        assertBudget("analysis.tend.10k", timed("analysis.heaviest", () => tendRowsOf(model), 10_000));
     });
 
     it("view.graph3d.build.10k", () => {

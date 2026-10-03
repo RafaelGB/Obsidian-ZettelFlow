@@ -76,6 +76,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.map.10k` | 13.9 ms | 120 |
 | `analysis.communities.10k` | 157.3 ms | 400 |
 | `analysis.debt.10k` | 5.1 ms | 60 |
+| `analysis.tend.10k` | 12.7 ms | 100 |
 | `analysis.gaps.tally.10k` | 1,310 ms | 5,000 |
 | `analysis.gaps.seams.10k` | 1,341 ms | 4,000 |
 | `analysis.gaps.top.all.10k` | 1,685 ms | 5,000 |

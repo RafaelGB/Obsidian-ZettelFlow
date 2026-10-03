@@ -163,7 +163,7 @@ nav:
           - Canvas integration: development/canvas-integration.md
       - Review & analyze:
           - This note: development/this-note.md
-          - Slip-box health dashboard: development/slipbox-health-dashboard.md
+          - Health › Tend: development/slipbox-health-dashboard.md
           - Knowledge dashboard: development/knowledge-dashboard.md
           - Base dashboards: development/base-dashboards.md
           - Second-brain review: development/second-brain-review.md

@@ -1,0 +1,57 @@
+{
+  "title": "Add a new Book",
+  "description": "This step will help you to add a new book to the library",
+  "template_type": "step",
+  "author": "RafaelGB",
+  "id": "dae608ae-7930-46a3-a161-03f58c03a514",
+  "root": false,
+  "actions": [
+    {
+      "type": "prompt",
+      "hasUI": true,
+      "id": "ee079837-5f55-4b4b-acc2-d2aff6ccf2d4",
+      "zone": "frontmatter",
+      "description": "Author of the book",
+      "key": "author",
+      "label": "Author of the Book",
+      "placeholder": "Write here the author of the book"
+    },
+    {
+      "type": "selector",
+      "hasUI": true,
+      "id": "db4eced5-6f81-4f49-867b-762e4c6ced44",
+      "zone": "frontmatter",
+      "description": "Current status of the book",
+      "key": "status",
+      "label": "Status",
+      "defaultOption": "to start",
+      "options": [
+        [
+          "to start",
+          "The book is not started yet"
+        ],
+        [
+          "reading",
+          "I am reading the book"
+        ],
+        [
+          "finished",
+          "Finished"
+        ]
+      ]
+    },
+    {
+      "type": "dynamic-selector",
+      "hasUI": true,
+      "id": "e30d3b5e-9219-46c8-9d32-729be7ae109f",
+      "zone": "frontmatter",
+      "description": "Theme of the book",
+      "multiple": true,
+      "code": "return [\n  [\"fiction\", \"Ficción\"],\n  [\"non_fiction\", \"No Ficción\"],\n  [\"mystery\", \"Misterio\"],\n  [\"fantasy\", \"Fantasía\"],\n  [\"science_fiction\", \"Ciencia Ficción\"],\n  [\"romance\", \"Romance\"],\n  [\"horror\", \"Terror\"],\n  [\"thriller\", \"Suspense\"],\n  [\"biography\", \"Biografía\"],\n  [\"self_help\", \"Autoayuda\"],\n  [\"history\", \"Historia\"],\n  [\"philosophy\", \"Filosofía\"],\n  [\"poetry\", \"Poesía\"],\n  [\"graphic_novels\", \"Novelas Gráficas\"],\n  [\"young_adult\", \"Juvenil\"],\n  [\"children\", \"Infantil\"],\n  [\"classic\", \"Clásicos\"],\n  [\"adventure\", \"Aventura\"],\n  [\"humor\", \"Humor\"],\n  [\"science\", \"Ciencia\"],\n  [\"business\", \"Negocios\"],\n  [\"travel\", \"Viajes\"],\n  [\"religion\", \"Religión\"],\n  [\"art\", \"Arte\"],\n  [\"education\", \"Educación\"],\n  [\"sports\", \"Deportes\"],\n  [\"technology\", \"Tecnología\"]\n];",
+      "key": "themes"
+    }
+  ],
+  "label": "Add a new Book",
+  "childrenHeader": "",
+  "targetFolder": "🌊 Datalake/📖 Books"
+}

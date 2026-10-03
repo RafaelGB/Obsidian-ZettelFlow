@@ -245,3 +245,58 @@ describe("the stylesheet (#640 FR-7/18, AC-8)", () => {
         expect(zero.slice(0, zero.indexOf("}"))).not.toMatch(/--color-(red|orange|yellow)|--text-error/);
     });
 });
+
+describe("the inline answer after the epic's review (#639)", () => {
+    it("never shows one note's answer, or its Undo, on another", async () => {
+        let finish: (value: { ok: boolean; batch: string }) => void = () => undefined;
+        const linkNotes = jest.fn(() => new Promise<{ ok: boolean; batch: string }>((resolve) => (finish = resolve)));
+        const { host, block, ctx } = setup({ linkNotes } as never);
+        host.oneByClass("note-companion-insert").click();
+        block.update(ctx(model("C.md")));
+        finish({ ok: true, batch: "b1" });
+        await flush();
+        expect(host.oneByClass("note-companion-link-status").textContent).toBe("");
+        expect(host.byClass("note-companion-undo")).toEqual([]);
+    });
+
+    it("undoes once, however fast the clicks", async () => {
+        const { host, undoBatch } = setup();
+        host.oneByClass("note-companion-insert").click();
+        await flush();
+        const undo = host.oneByClass("note-companion-undo");
+        undo.click();
+        expect(undo.disabled).toBe(true);
+        undo.click();
+        await flush();
+        expect(undoBatch).toHaveBeenCalledTimes(1);
+    });
+
+    it("takes the Undo away when its thirty seconds are up, even in an idle pane", async () => {
+        jest.useFakeTimers({ doNotFake: ["setImmediate", "nextTick"] });
+        try {
+            const { host } = setup();
+            host.oneByClass("note-companion-insert").click();
+            await flush();
+            expect(host.byClass("note-companion-undo")).toHaveLength(1);
+            jest.advanceTimersByTime(30_000);
+            expect(host.byClass("note-companion-undo")).toEqual([]);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it("takes the arrival outline off again when motion is reduced", () => {
+        jest.useFakeTimers({ doNotFake: ["setImmediate", "nextTick"] });
+        try {
+            (globalThis as { activeWindow?: unknown }).activeWindow = { matchMedia: () => ({ matches: true }) };
+            const { host, block } = setup();
+            block.reveal("gaps");
+            const gaps = host.byClass("note-companion-section").find((section) => section.getAttribute("data-section") === "gaps")!;
+            expect(gaps.hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
+            jest.advanceTimersByTime(1400);
+            expect(gaps.hasClass("zettelkasten-flow__note-companion-highlight")).toBe(false);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+});

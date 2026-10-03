@@ -75,3 +75,15 @@ describe("which note the companion shows (#640 FR-3/4/6, AC-2/AC-3)", () => {
         expect(reduceSubject(pinned, { kind: "open", path: "b.md" })).toEqual({ shown: "b.md", pinned: true, last: "b.md" });
     });
 });
+
+describe("an unchanged subject is the same object (#639 review)", () => {
+    it("returns the state itself when the active note is the one already shown", () => {
+        const state = following("a.md");
+        expect(reduceSubject(state, { kind: "active", path: "a.md", markdown: true })).toBe(state);
+    });
+
+    it("returns the state itself for a canvas after a canvas", () => {
+        const empty = reduceSubject(following("a.md"), { kind: "active", path: "x.canvas", markdown: false });
+        expect(reduceSubject(empty, { kind: "active", path: "y.canvas", markdown: false })).toBe(empty);
+    });
+});

@@ -256,3 +256,32 @@ describe("Tend's words and sources (#644 AC-18, FR-12)", () => {
         }
     });
 });
+
+describe("Tend keeps no listener from a draw it replaced (#639 review)", () => {
+    const clickers = (host: DomNode) => host.findAll((el) => el.tag === "button" && (el.listeners.click ?? []).length > 0);
+
+    it("drops the last draw's header listeners when it redraws", () => {
+        const { host, renderer } = mount(needy(2));
+        const before = clickers(host);
+        expect(before.length).toBeGreaterThan(0);
+        renderer.recompute(true);
+        renderer.recompute(true);
+        for (const button of before) expect(button.listeners.click).toEqual([]);
+    });
+
+    it("drops a chip row's listeners when a chip redraws it", () => {
+        const { host } = mount(needy(2));
+        const chips = host.byClass("tend-filter");
+        chips[1].click();
+        for (const chip of chips) expect(chip.listeners.click).toEqual([]);
+    });
+
+    it("drops the last Stop button's listener on every progress tick", () => {
+        const { host } = mount(needy(2));
+        progress?.({ done: 1, total: 10 });
+        const first = host.oneByClass("speed-stop");
+        progress?.({ done: 2, total: 10 });
+        expect(first.listeners.click).toEqual([]);
+        expect(host.oneByClass("speed-stop").listeners.click).toHaveLength(1);
+    });
+});

@@ -32,7 +32,16 @@ function showing(path: string | null, pinned: boolean, last: string | null): Sub
     return { shown: path, pinned: path !== null && pinned, last: path ?? last };
 }
 
+/**
+ * The next subject — the **same object** when nothing changed, so a caller can tell "still this
+ * note" (switching between two tabs of it, a canvas after a canvas) from a real change by identity.
+ */
 export function reduceSubject(state: SubjectState, event: SubjectEvent): SubjectState {
+    const next = reduce(state, event);
+    return next.shown === state.shown && next.pinned === state.pinned && next.last === state.last ? state : next;
+}
+
+function reduce(state: SubjectState, event: SubjectEvent): SubjectState {
     switch (event.kind) {
         case "active":
             if (state.pinned) return state;

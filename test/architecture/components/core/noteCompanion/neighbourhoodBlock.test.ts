@@ -156,7 +156,8 @@ describe("hubs (#643 FR-7, AC-4)", () => {
         const more = host.oneByClass("note-companion-more-links");
         expect(more.textContent).toBe("+8 more notes");
         more.click();
-        expect(ctx.setNeighbourhoodView).toHaveBeenCalledWith("list");
+        // A hand-over to the list, not a preference: the saved Graph / List is left alone.
+        expect(ctx.setNeighbourhoodView).not.toHaveBeenCalled();
         expect(host.byClass("note-companion-link-group")).toHaveLength(2);
     });
 
@@ -236,10 +237,11 @@ describe("the head's link counts land here (#643 decision 4)", () => {
         expect(block.claims("gaps")).toBe(false);
     });
 
-    it("switches to the list, remembers it, and scrolls to that group", () => {
+    it("switches to the list and scrolls to that group, without changing the saved view (#639 review)", () => {
         const { host, block, ctx } = setup();
         block.reveal("links-out");
-        expect(ctx.setNeighbourhoodView).toHaveBeenCalledWith("list");
+        // Clicking a count is not choosing a preference: only the toggle saves (FR-11).
+        expect(ctx.setNeighbourhoodView).not.toHaveBeenCalled();
         const out = host.byClass("note-companion-link-group").find((g) => g.getAttribute("data-group") === "out")!;
         expect(out.scrolls).toHaveLength(1);
         expect(out.hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);

@@ -276,3 +276,85 @@ describe("arriving focused (#641 FR-21/22, AC-14)", () => {
         expect(host.byClass("note-next-panel")).toEqual([]);
     });
 });
+
+describe("the card after the epic's review (#639)", () => {
+    it("keeps what you are typing when the card redraws", () => {
+        const { host, block, ctxFor } = setup();
+        primary(host).click();
+        const input = host.querySelector("input")!;
+        input.value = "Ahrens 2017";
+        input.fire("input");
+        block.update(ctxFor(model({ revision: 2 })));
+        expect(host.querySelector("input")!.value).toBe("Ahrens 2017");
+    });
+
+    it("never shows one note's answer, or its Undo, on another", async () => {
+        let finish: (value: { ok: boolean; batch: string }) => void = () => undefined;
+        const addSourceTo = jest.fn(() => new Promise<{ ok: boolean; batch: string }>((resolve) => (finish = resolve)));
+        const { host, block, ctxFor } = setup({}, { addSourceTo } as never);
+        primary(host).click();
+        const input = host.querySelector("input")!;
+        input.value = "A book";
+        input.fire("input");
+        host.findAll((el) => el.tag === "button" && el.text === "Add")[0].click();
+        block.update(ctxFor(model({ path: "zettel/B.md", title: "B" })));
+        finish({ ok: true, batch: "b1" });
+        await flush();
+        expect(host.byClass("note-next-status")).toEqual([]);
+        expect(host.byClass("note-next-undo")).toEqual([]);
+    });
+
+    it("undoes once, however fast the clicks", async () => {
+        const { host, deps } = setup();
+        primary(host).click();
+        const input = host.querySelector("input")!;
+        input.value = "A book";
+        input.fire("input");
+        host.findAll((el) => el.tag === "button" && el.text === "Add")[0].click();
+        await flush();
+        const undo = host.oneByClass("note-next-undo");
+        undo.click();
+        expect(undo.disabled).toBe(true);
+        undo.click();
+        await flush();
+        expect(deps.undoBatch).toHaveBeenCalledTimes(1);
+    });
+
+    it("says a link is already an example instead of claiming it marked one", async () => {
+        const { host } = setup(
+            { next: { kind: "proposing", moves: [{ token: "add-example", linksOut: ["x/L.md"], linksIn: [] }] } },
+            { markExample: jest.fn(async () => ({ ok: true, written: false })) } as never
+        );
+        primary(host).click();
+        host.oneByClass("note-next-pick").click();
+        await flush();
+        expect(text(host, "note-next-status")).toBe("Already an example — nothing to write.");
+        expect(host.byClass("note-next-undo")).toEqual([]);
+    });
+
+    it("says the write failed when it throws, and offers no undo", async () => {
+        const { host } = setup({}, { addSourceTo: jest.fn(async () => Promise.reject(new Error("disk"))) } as never);
+        primary(host).click();
+        const input = host.querySelector("input")!;
+        input.value = "A book";
+        input.fire("input");
+        host.findAll((el) => el.tag === "button" && el.text === "Add")[0].click();
+        await flush();
+        expect(text(host, "note-next-status")).toBe("Could not write to this note. Nothing was changed.");
+        expect(host.byClass("note-next-undo")).toEqual([]);
+    });
+
+    it("takes the Undo away when its thirty seconds are up, even in an idle pane", async () => {
+        jest.useFakeTimers({ doNotFake: ["setImmediate", "nextTick"] });
+        const { host } = setup();
+        primary(host).click();
+        const input = host.querySelector("input")!;
+        input.value = "A book";
+        input.fire("input");
+        host.findAll((el) => el.tag === "button" && el.text === "Add")[0].click();
+        await flush();
+        expect(host.byClass("note-next-undo")).toHaveLength(1);
+        jest.advanceTimersByTime(30_000);
+        expect(host.byClass("note-next-undo")).toEqual([]);
+    });
+});

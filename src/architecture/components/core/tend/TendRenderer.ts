@@ -139,7 +139,9 @@ export class TendRenderer extends KnowledgeModeRenderer {
         header.createEl("h4", { text: t("surface_mode_tend"), cls: c("tend-title") });
         // The weekly review reads what this mode shows and writes the note that summarises it, so
         // the offer belongs beside the list it is about (#578) — the header's one primary (#577).
-        const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
+        // This draw's listeners go with this draw: a redraw on every vault change must not pile up.
+        const scope = this.scope("render");
+        const bar = new ModeHeader(header, (el, type, handler) => scope.registerDomEvent(el, type, handler));
         bar.primary({
             label: t("weekly_review_command_name"),
             icon: "calendar-check",
@@ -186,6 +188,7 @@ export class TendRenderer extends KnowledgeModeRenderer {
         const list = this.list;
         if (!host || !list) return;
         host.empty();
+        const scope = this.scope("chips");
         const chip = (issue: TendIssue | null, label: string, count: number) => {
             const active = this.filter === issue;
             const button = host.createEl("button", {
@@ -194,7 +197,7 @@ export class TendRenderer extends KnowledgeModeRenderer {
             });
             button.createSpan({ text: label });
             button.createSpan({ cls: c("tend-filter-count"), text: String(count) });
-            this.registerDomEvent(button, "click", () => {
+            scope.registerDomEvent(button, "click", () => {
                 this.filter = issue;
                 this.renderChips();
                 this.renderList();
@@ -230,7 +233,14 @@ export class TendRenderer extends KnowledgeModeRenderer {
             cls: [c("tend-chip"), c("tend-chip--state")].join(" "),
             text: stateKey ? t(stateKey as LocaleKey) : row.state,
         });
-        makeActivatable(el, () => void this.handOver(row), "button");
+        makeActivatable(
+            el,
+            () =>
+                void this.handOver(row).catch((error: unknown) =>
+                    log.error(`[Tend] could not hand ${row.path} over: ${error instanceof Error ? error.message : String(error)}`)
+                ),
+            "button"
+        );
         hoverPreview(this.app, name, row.path, this);
     }
 
@@ -254,6 +264,8 @@ export class TendRenderer extends KnowledgeModeRenderer {
     private renderPassRow(): void {
         if (!this.passHost) return;
         this.passHost.empty();
+        // A tick redraws this row; its Stop button's listener goes with the tick that drew it.
+        const scope = this.scope("pass");
         if (!this.pass) return;
         this.passHost.createSpan({
             cls: c("tend-pass-text"),
@@ -264,7 +276,7 @@ export class TendRenderer extends KnowledgeModeRenderer {
             cls: c("speed-stop"),
             attr: { type: "button" },
         });
-        this.registerDomEvent(stop, "click", () => {
+        scope.registerDomEvent(stop, "click", () => {
             const stopped = this.pass?.done ?? 0;
             KnowledgeIndex.getInstance().cancelEnrichment();
             this.pass = undefined;

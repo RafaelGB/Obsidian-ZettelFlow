@@ -5,7 +5,7 @@ import type { Neighbour, NoteNeighbourhood } from "architecture/knowledge/state"
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { layoutNeighbourhood, type LayoutNode } from "../neighbourhoodLayout";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, noteName, prefersReducedMotion, type CompanionContext } from "./CompanionBlock";
 
 type LocaleKey = Parameters<typeof t>[0];
 type View = "graph" | "list";
@@ -24,12 +24,6 @@ const TYPE_KEY: Record<string, LocaleKey> = {
 function typeName(type: string | undefined): string {
     const key = type ? TYPE_KEY[type] : undefined;
     return key ? t(key) : t("note_companion_legend_link");
-}
-
-/** Ask the window the element is in — a popout has its own. Absent under a test runner. */
-function prefersReducedMotion(el: HTMLElement): boolean {
-    const win = (el as HTMLElement & { win?: Window }).win ?? (typeof activeWindow === "undefined" ? undefined : activeWindow);
-    return win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
 /**
@@ -78,18 +72,18 @@ export class NeighbourhoodBlock extends CompanionBlock {
     /** The head's link counts land here: the list, scrolled to that group, highlighted once. */
     reveal(focus: CompanionFocus): void {
         if (!this.ctx || !this.claims(focus)) return;
-        this.choose("list");
+        // Shown as a list for this hand-over only: clicking a count is not choosing a preference,
+        // so the saved Graph / List (FR-11) is left as it was. Only the toggle saves.
+        this.choose("list", false);
         const target = this.groups.get(focus === "links-in" ? "in" : "out");
         if (!target) return;
         target.scrollIntoView({ behavior: prefersReducedMotion(target) ? "auto" : "smooth", block: "start" });
-        const highlight = c("note-companion-highlight");
-        target.addClass(highlight);
-        target.addEventListener("animationend", () => target.removeClass(highlight), { once: true });
+        this.highlightOnce(target);
     }
 
-    private choose(view: View): void {
+    private choose(view: View, remember = true): void {
         this.chosen = view;
-        this.ctx?.setNeighbourhoodView(view);
+        if (remember) this.ctx?.setNeighbourhoodView(view);
         if (this.ctx) this.update(this.ctx);
     }
 
@@ -148,7 +142,7 @@ export class NeighbourhoodBlock extends CompanionBlock {
                 text: tCount(layout.overflow, "note_companion_neighbourhood_more", String(layout.overflow)),
                 attr: { type: "button" },
             });
-            this.on(more, "click", () => this.choose("list"));
+            this.on(more, "click", () => this.choose("list", false));
         }
         this.renderLegend(root);
     }
@@ -165,12 +159,12 @@ export class NeighbourhoodBlock extends CompanionBlock {
         }).setText(node.label);
 
         const lit = (on: boolean) => edge?.toggleClass("is-highlighted", on);
-        this.on(g as unknown as HTMLElement, "mouseenter", () => lit(true));
-        this.on(g as unknown as HTMLElement, "mouseleave", () => lit(false));
-        this.on(g as unknown as HTMLElement, "focus", () => lit(true));
-        this.on(g as unknown as HTMLElement, "blur", () => lit(false));
-        this.on(g as unknown as HTMLElement, "click", (evt) => ctx.open(node.path, Keymap.isModEvent(evt)));
-        this.on(g as unknown as HTMLElement, "keydown", (evt) => {
+        this.on(g, "mouseenter", () => lit(true));
+        this.on(g, "mouseleave", () => lit(false));
+        this.on(g, "focus", () => lit(true));
+        this.on(g, "blur", () => lit(false));
+        this.on(g, "click", (evt) => ctx.open(node.path, Keymap.isModEvent(evt)));
+        this.on(g, "keydown", (evt) => {
             if (evt.key !== "Enter") return;
             evt.preventDefault();
             ctx.open(node.path, Keymap.isModEvent(evt));

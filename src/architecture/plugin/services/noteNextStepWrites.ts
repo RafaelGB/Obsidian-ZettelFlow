@@ -60,7 +60,8 @@ export async function markExample(app: App, path: string, targetPath: string): P
     const name = linkTextFor(app, path, targetPath);
     const service = FrontmatterService.instance(file);
     const placement = addRelationValue({ ...service.getAllFrontmatter() }, "example", name).placement;
-    if (placement === "none") return { ok: true };
+    // Already an example: nothing to write, and the card must not say it marked one.
+    if (placement === "none") return { ok: true, written: false };
     return inOwnBatch("note-example", path, async () => {
         try {
             if (placement === "inline") {

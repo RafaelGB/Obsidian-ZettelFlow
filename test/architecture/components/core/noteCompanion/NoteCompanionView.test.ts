@@ -165,3 +165,29 @@ describe("the This note view (#640 FR-1..6, FR-19)", () => {
         expect(plugin.saveSettings).toHaveBeenCalledTimes(1);
     });
 });
+
+describe("a render that would draw the same thing is skipped (#639 review)", () => {
+    it("keeps the DOM you are looking at when nothing it reads has moved", async () => {
+        const { view, content } = mount();
+        await view.onOpen();
+        const before = content.oneByClass("note-companion-title");
+        (view as unknown as { render(): void }).render();
+        expect(content.oneByClass("note-companion-title")).toBe(before);
+    });
+
+    it("redraws on the refresh button even so", async () => {
+        const { view, content } = mount();
+        await view.onOpen();
+        const before = content.oneByClass("note-companion-title");
+        content.oneByClass("note-companion-refresh").click();
+        expect(content.oneByClass("note-companion-title")).not.toBe(before);
+    });
+
+    it("redraws when you open another note", async () => {
+        const { view, content, fire } = mount();
+        await view.onOpen();
+        const before = content.oneByClass("note-companion-title");
+        fire("file-open", markdown("zettel/B.md"));
+        expect(content.oneByClass("note-companion-title")).not.toBe(before);
+    });
+});

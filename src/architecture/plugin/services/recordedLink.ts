@@ -6,6 +6,8 @@ import { currentWriteBatch, withWriteBatch, writeBatchActive } from "architectur
 export interface LinkResult {
     ok: boolean;
     batch?: string;
+    /** False when the note already said it and nothing was written (#639 review). */
+    written?: boolean;
 }
 
 /**

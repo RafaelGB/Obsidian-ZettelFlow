@@ -1,5 +1,8 @@
 import { ItemView, TFile, type TAbstractFile, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
+import { KnowledgeIndex } from "architecture/knowledge";
+import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
+import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { t } from "architecture/lang";
 import { CompanionBlock, type CompanionContext, type CompanionScreen } from "./blocks/CompanionBlock";
 import { HeadBlock } from "./blocks/headBlock";
@@ -38,6 +41,8 @@ export class NoteCompanionView extends ItemView {
     private debounceTimer: number | undefined;
     /** A refresh skipped while the view was hidden, owed for when it is shown again. */
     private stale = false;
+    /** What the last render drew from — a render that would draw the same thing is skipped. */
+    private lastKey: string | null = null;
 
     /**
      * @param plugin injected, never looked up: during load `getOwnPlugin()` is not there yet (#374).
@@ -85,7 +90,10 @@ export class NoteCompanionView extends ItemView {
         // The index builds when the layout is ready; a warm cache may have fired "resolved" before
         // that, so ask again once it has — otherwise a restored view would say "indexing" until you
         // switched notes. Registered after the index's own callback, so it runs after the build.
-        this.app.workspace.onLayoutReady(() => this.schedule());
+        this.app.workspace.onLayoutReady(() => {
+            // The view may have closed before the layout was ready; nothing to schedule for then.
+            if (this.columns) this.schedule();
+        });
         // A restored pin keeps its note; otherwise start on whatever note is in front of you.
         if (!this.subject.pinned) this.subject = reduceSubject(this.subject, this.activeEvent(this.app.workspace.getActiveFile()));
         this.render();
@@ -93,6 +101,7 @@ export class NoteCompanionView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.debounceTimer);
+        this.lastKey = null;
         for (const block of this.blocks) this.removeChild(block);
         this.blocks = [];
         this.columns = null;
@@ -188,7 +197,21 @@ export class NoteCompanionView extends ItemView {
         return this.blocks.flatMap((block) => block.menuItems());
     }
 
-    private render(): void {
+    /**
+     * What a render draws from: the note, the pin, the index and its revision, and the two records
+     * the story reads. `resolved` fires for every save anywhere in the vault; when none of these
+     * moved, the view already shows the truth, and redrawing it would only cost a vault-wide ranking
+     * and take a half-typed source or an open disclosure from you (#639 review).
+     */
+    private renderKey(): string {
+        const index = KnowledgeIndex.getInstance();
+        const revision = index.status === "ready" ? index.getModel().revision() : -1;
+        const records = `${JudgementLog.getInstance().entries().length}:${MoveLog.getInstance().all().length}`;
+        return `${this.subject.shown ?? ""}|${this.subject.pinned}|${index.status}|${revision}|${records}`;
+    }
+
+    /** @param force redraw even when nothing it reads has moved (the refresh button). */
+    private render(force = false): void {
         if (!this.columns) return;
         window.clearTimeout(this.debounceTimer);
         // A hand-over always renders: it is how the view was just revealed.
@@ -197,6 +220,9 @@ export class NoteCompanionView extends ItemView {
             return;
         }
         this.stale = false;
+        const key = this.renderKey();
+        if (!force && !this.pending && key === this.lastKey) return;
+        this.lastKey = key;
         const screen: CompanionScreen = buildCompanionScreen(this.app, this.subject);
         const pending = this.pending;
         this.pending = null;
@@ -207,7 +233,7 @@ export class NoteCompanionView extends ItemView {
             owner: this,
             pin: () => this.dispatch({ kind: "pin" }),
             follow: () => this.dispatch({ kind: "follow", active: this.activeMarkdown() }),
-            refresh: () => this.render(),
+            refresh: () => this.render(true),
             reveal: (focus, move) => this.blocks.find((block) => block.claims(focus))?.reveal(focus, move),
             open: (path, newLeaf) =>
                 void this.app.workspace.openLinkText(path, screen.kind === "note" ? screen.model.path : "", newLeaf ?? false),

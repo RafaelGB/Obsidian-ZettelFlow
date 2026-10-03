@@ -27,7 +27,15 @@ note to show, offering the last note it showed.
 
 **📌 Pin** keeps it on one note while you open others. Click the pin again, or **Follow the active
 note** in the banner, to go back to following. A pin survives a restart; a renamed note keeps its
-pin; deleting the pinned note unpins it.
+pin; deleting the pinned note unpins it. Anything that opens This note **on a named note** — a
+Tend row, a deep link — moves a pin to that note rather than ignoring it: you asked for that note by
+name.
+
+It redraws only when something it shows has moved — the note, the pin, the knowledge model, or the
+decisions and moves its story reads. A save elsewhere in the vault does not take a half-typed source
+or an open section from you; **↻ Refresh** always redraws. An inline answer (*Linked X · Undo*)
+belongs to the note it was made on, leaves when you switch notes, and goes after thirty seconds even
+if nothing else redraws.
 
 **↻ Refresh** is the only refresh in the view. It also refreshes itself shortly after the vault
 changes.

@@ -103,6 +103,8 @@ export class PracticeRenderer extends KnowledgeModeRenderer {
 
     render(): void {
         this.container.empty();
+        // This draw's listeners go with this draw: it redraws on every settled vault change.
+        const scope = this.scope("render");
         const root = this.container.createDiv({ cls: c("practice") });
         this.renderStrip(root);
 
@@ -111,7 +113,7 @@ export class PracticeRenderer extends KnowledgeModeRenderer {
             const off = root.createDiv({ cls: c("practice-recording-off") });
             off.createSpan({ text: t("practice_recording_off") });
             const open = off.createEl("button", { text: t("practice_recording_off_open"), attr: { type: "button" } });
-            this.registerDomEvent(open, "click", () => this.deps.openSettings());
+            scope.registerDomEvent(open, "click", () => this.deps.openSettings());
             return;
         }
         this.renderMix(root, practiceMix(record.entries));

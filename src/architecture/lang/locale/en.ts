@@ -2023,6 +2023,7 @@ export default {
     note_next_done_advance: 'Moved to {0}.',
     note_next_undone: 'Taken back.',
     note_next_undo_failed: 'Could not take it back — the note changed since.',
+    note_next_already_example: 'Already an example — nothing to write.',
     note_next_failed: 'Could not write to this note. Nothing was changed.',
     note_next_still_open_source: 'The source points to a note that does not exist yet, so it does not count.',
     note_next_still_open: 'This step is still open.',

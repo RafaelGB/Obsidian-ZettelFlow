@@ -2024,6 +2024,7 @@ export default {
     note_next_done_advance: 'Pasada a {0}.',
     note_next_undone: 'Deshecho.',
     note_next_undo_failed: 'No se pudo deshacer: la nota cambió desde entonces.',
+    note_next_already_example: 'Ya es un ejemplo: no hay nada que escribir.',
     note_next_failed: 'No se pudo escribir en esta nota. No se cambió nada.',
     note_next_still_open_source: 'La fuente apunta a una nota que aún no existe, así que no cuenta.',
     note_next_still_open: 'Este paso sigue abierto.',

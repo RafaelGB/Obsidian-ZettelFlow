@@ -8,7 +8,7 @@ import { undoBatch, type UndoResult } from "architecture/plugin/writes/undoNotic
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { focusPlan } from "../companionFocus";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, noteName, prefersReducedMotion, type CompanionContext } from "./CompanionBlock";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -34,17 +34,13 @@ export interface SectionsDeps {
     undoBatch: (batch: string) => Promise<UndoResult>;
 }
 
-type LinkStatus =
-    | { kind: "linked"; target: string; batch?: string; at: number }
-    | { kind: "removed"; at: number }
-    | { kind: "failed"; at: number }
-    | { kind: "unlink-failed"; at: number };
-
-/** Ask the window the element is in — a popout has its own. Absent under a test runner. */
-function prefersReducedMotion(el: HTMLElement): boolean {
-    const win = (el as HTMLElement & { win?: Window }).win ?? (typeof activeWindow === "undefined" ? undefined : activeWindow);
-    return win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-}
+/** What answers an insert — always about the note it was made on (`path`), never another. */
+type LinkStatus = { path: string; at: number } & (
+    | { kind: "linked"; target: string; batch?: string }
+    | { kind: "removed" }
+    | { kind: "failed" }
+    | { kind: "unlink-failed" }
+);
 
 /**
  * What surrounds the note (#640 FR-11..16), as one counted list of disclosures.
@@ -68,6 +64,8 @@ export class SectionsBlock extends CompanionBlock {
     private readonly nodes = new Map<CompanionSectionId, HTMLDetailsElement>();
     private folded: HTMLElement | null = null;
     private nonEmpty: CompanionSectionId[] = [];
+    /** An undo in flight: a second click must not plan the same batch again. */
+    private undoing = false;
 
     constructor(
         el: HTMLElement,
@@ -120,10 +118,8 @@ export class SectionsBlock extends CompanionBlock {
             (target as HTMLDetailsElement).open = true;
         }
         target.scrollIntoView({ behavior: prefersReducedMotion(target) ? "auto" : "smooth", block: "start" });
-        // Once: the class goes when the ring has played, so a second hand-over plays it again.
-        const highlight = c("note-companion-highlight");
-        target.addClass(highlight);
-        target.addEventListener("animationend", () => target.removeClass(highlight), { once: true });
+        // Once: the ring goes when it has played, so a second hand-over plays it again.
+        this.highlightOnce(target);
     }
 
     private renderSection(list: HTMLElement, ctx: CompanionContext, section: CompanionSection<ResurfaceReason>): void {
@@ -201,21 +197,32 @@ export class SectionsBlock extends CompanionBlock {
     /** Into the companion's note, never the editor with the cursor (amendment 2). */
     private async insertLink(ctx: CompanionContext, targetPath: string): Promise<void> {
         if (ctx.screen.kind !== "note") return;
-        const result = await this.deps.linkNotes(ctx.app, ctx.screen.model.path, targetPath);
+        // The note the link goes into: the answer belongs to it, even if you move on meanwhile.
+        const path = ctx.screen.model.path;
+        const result = await this.deps.linkNotes(ctx.app, path, targetPath);
         this.status = result.ok
-            ? { kind: "linked", target: noteName(targetPath), batch: result.batch, at: Date.now() }
-            : { kind: "failed", at: Date.now() };
+            ? { kind: "linked", path, target: noteName(targetPath), batch: result.batch, at: Date.now() }
+            : { kind: "failed", path, at: Date.now() };
         this.redraw();
     }
 
-    private async undo(batch: string): Promise<void> {
-        const result = await this.deps.undoBatch(batch);
+    private async undo(path: string, batch: string): Promise<void> {
+        if (this.undoing) return;
+        this.undoing = true;
+        let result: UndoResult;
+        try {
+            result = await this.deps.undoBatch(batch);
+        } catch {
+            result = { hadWork: true, done: 0, failed: [batch] };
+        } finally {
+            this.undoing = false;
+        }
         // Say what happened, not what was hoped: an undo with nothing left to take back, or one
         // that failed, does not get to say the link is gone.
         this.status =
             result.hadWork && result.failed.length === 0
-                ? { kind: "removed", at: Date.now() }
-                : { kind: "unlink-failed", at: Date.now() };
+                ? { kind: "removed", path, at: Date.now() }
+                : { kind: "unlink-failed", path, at: Date.now() };
         this.redraw();
     }
 
@@ -229,10 +236,14 @@ export class SectionsBlock extends CompanionBlock {
         if (!line) return;
         line.empty();
         const status = this.status;
-        if (!status || Date.now() - status.at >= UNDO_OFFER_MS) {
+        const shown = this.ctx?.screen.kind === "note" ? this.ctx.screen.model.path : null;
+        // Another note on screen: the answer was about the last one, and its Undo would act on it.
+        if (!status || status.path !== shown || Date.now() - status.at >= UNDO_OFFER_MS) {
             this.status = null;
             return;
         }
+        // In an idle pane nothing else would redraw it: the line goes when its window closes.
+        this.later(UNDO_OFFER_MS - (Date.now() - status.at), () => this.redraw());
         if (status.kind !== "linked") {
             const key = { failed: "note_companion_link_failed", removed: "note_companion_link_removed", "unlink-failed": "note_companion_unlink_failed" } as const;
             line.setText(t(key[status.kind]));
@@ -247,7 +258,11 @@ export class SectionsBlock extends CompanionBlock {
             text: t("changes_undo"),
             attr: { type: "button" },
         });
-        this.on(undo, "click", () => void this.undo(batch));
+        this.on(undo, "click", () => {
+            // One undo per offer: a double-click must not plan the same batch twice.
+            undo.disabled = true;
+            void this.undo(status.path, batch);
+        });
     }
 
     private reasonText(reasons: readonly ResurfaceReason[]): string {

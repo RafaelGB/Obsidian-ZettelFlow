@@ -90,13 +90,36 @@ export abstract class CompanionBlock extends Component {
         this.pass = this.addChild(new Component());
     }
 
-    /** Listen on an element drawn by the current render. */
+    /** Listen on an element drawn by the current render — HTML or SVG (the neighbourhood's nodes). */
     protected on<K extends keyof HTMLElementEventMap>(
-        el: HTMLElement,
+        el: HTMLElement | SVGElement,
         type: K,
         handler: (event: HTMLElementEventMap[K]) => unknown
     ): void {
-        (this.pass ?? this).registerDomEvent(el, type, handler);
+        // An SVG element dispatches the same events; Obsidian's signature only names HTMLElement.
+        (this.pass ?? this).registerDomEvent(el as HTMLElement, type, handler);
+    }
+
+    /**
+     * Run `fn` after `ms`, unless the render that asked has been replaced by then. How an inline undo
+     * expires on time in an idle pane, without a timer outliving the line it was for.
+     */
+    protected later(ms: number, fn: () => void): void {
+        const id = window.setTimeout(fn, ms);
+        // Never keep a test runner (or a closing app) alive for a thirty-second offer.
+        (id as unknown as { unref?: () => void }).unref?.();
+        (this.pass ?? this).register(() => window.clearTimeout(id));
+    }
+
+    /**
+     * Ring `target` once to say "you landed here". The ring is an animation that removes itself;
+     * with reduced motion it is an outline instead, taken off after the same moment.
+     */
+    protected highlightOnce(target: HTMLElement): void {
+        const highlight = "zettelkasten-flow__note-companion-highlight";
+        target.addClass(highlight);
+        if (prefersReducedMotion(target)) this.later(HIGHLIGHT_MS, () => target.removeClass(highlight));
+        else target.addEventListener("animationend", () => target.removeClass(highlight), { once: true });
     }
 
     abstract update(ctx: CompanionContext): void;
@@ -113,6 +136,15 @@ export abstract class CompanionBlock extends Component {
     menuItems(): HeaderAction[] {
         return [];
     }
+}
+
+/** How long the arrival ring lasts — the animation's own length, used when motion is reduced. */
+export const HIGHLIGHT_MS = 1400;
+
+/** Ask the window the element is in — a popout has its own. Absent under a test runner. */
+export function prefersReducedMotion(el: HTMLElement): boolean {
+    const win = (el as HTMLElement & { win?: Window }).win ?? (typeof activeWindow === "undefined" ? undefined : activeWindow);
+    return win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
 /** A note's file name without folders or `.md` — what a row shows; the path goes in the tooltip. */

@@ -160,3 +160,21 @@ describe("Practice (#645 FR-2..14, AC-3..8)", () => {
         }
     });
 });
+
+describe("Practice keeps no listener from a draw it replaced (#639 review)", () => {
+    it("drops the last draw's Open settings listener when it redraws", () => {
+        const host = new DomNode();
+        const app = { workspace: { openLinkText: jest.fn(), trigger: jest.fn() }, metadataCache: { on: () => ({}) } };
+        const renderer = new PracticeRenderer(host as never, app as never, {
+            dailyCounts: () => ({}),
+            judgements: () => ({ enabled: false, entries: [] }),
+            now: () => NOW,
+            openSettings: jest.fn(),
+        });
+        renderer.load();
+        const first = host.findAll((el) => el.tag === "button")[0];
+        expect(first.listeners.click).toHaveLength(1);
+        renderer.render();
+        expect(first.listeners.click).toEqual([]);
+    });
+});

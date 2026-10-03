@@ -63,14 +63,15 @@ on:
 This is the hand-over contract `openNoteCompanion(app, { path, focus, move })` described on the
 [This note](this-note.md) page.
 
-## The header, the pass and the timings
+## The header and the pass
 
 - **Weekly review** is the header's one primary action: it reads what this list shows and writes the
   note that summarises it ([second-brain review](second-brain-review.md)). **Refresh** sits beside it.
 - **Reading notes: N of M — Stop.** When the inline-relation enrichment pass is running, its progress
   and a *Stop* button sit right under the lede. Stopping leaves the model consistent.
-- **How fast it is here** — the timings from your last launch — is at the bottom, as facts with no
-  grade. It is moving to Settings › Advanced (#645).
+- The **timings from this vault** (how long the index and the analyses took on this machine) are not
+  here: they are read-only rows in **Settings › Advanced** since #645. Health's other mode,
+  **[Practice](practice.md)**, shows what you have been doing.
 
 ## States
 
@@ -109,7 +110,7 @@ deriveTend(model)                      (pure State projection, once per model re
 
 TendRenderer (Health surface, mode "tend")
   debounced resolved/rename/delete → recompute (skipped when the revision did not move)
-  header: weekly review (primary) + refresh · lede · pass row · chips · ≤200 rows · clear line · timings
+  header: weekly review (primary) + refresh · lede · pass row · chips · ≤200 rows · clear line
   row click → openLinkText(path) + openNoteCompanion(app, { path, focus, move })
 ```
 

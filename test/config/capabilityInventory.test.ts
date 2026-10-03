@@ -66,3 +66,16 @@ describe("the capability inventory (#575)", () => {
         expect(enMap[planted.nameKey]).toBeUndefined();
     });
 });
+
+describe("Practice is one capability, not two (#645 FR-20, AC-10)", () => {
+    it("leaves no door on a mode Health no longer has", () => {
+        const stale = CAPABILITIES.flatMap((id) => CAPABILITY_DOORS[id].doors.map((door) => door.at)).filter((at) =>
+            /:(momentum|agency)$/.test(at)
+        );
+        expect(stale).toEqual([]);
+    });
+
+    it("opens Practice first", () => {
+        expect(CAPABILITY_DOORS.practice.doors[0].at).toBe("zettelflow-health:practice");
+    });
+});

@@ -81,17 +81,29 @@ as it was and as it is now. It is built only from what was already recorded.
 
 ![A before/after idea card](resources/showcase/idea-card.svg)
 
-## Agency review — see how much you're still deciding
+## This note — the companion beside every note
 
-On the **Health** surface, the agency review lists your recorded decisions newest first — the note,
-your verdict, where the proposal came from, your confidence and your rationale — under a compact
-header: the cognitive agency index, the accepted/modified/rejected breakdown and a one-line reading.
-It describes your verdict mix; it is **never a grade**, and it is computed locally and never
-transmitted.
+**This note** docks in the right sidebar and follows the note you are reading: where it stands on
+its lifecycle, four plain counts, the **one next step** you can finish right there (add a source,
+connect, mark an example, move it on — each with an Undo), its **neighbourhood** as a small graph,
+what argues with it and what it is missing, and its **story** — every decision, move and thought,
+month by month. Pin it to one note while you work in another. **Health › Tend** hands you notes that
+need attention, already open on their fix.
 
-![The agency review: the header and the decisions, newest first](resources/showcase/agency-review.svg)
+![This note, docked in the right sidebar and in two columns when the pane is wide](resources/this-note/companion.svg)
 
-→ Details: [Cognitive agency](development/cognitive-agency.md).
+→ Details: [This note](development/this-note.md) and [Tend](development/slipbox-health-dashboard.md).
+
+## Practice — what you have been doing
+
+**Health › Practice** shows twelve weeks of ideas developed, a cell a day; how you answered
+proposals — accepted, changed or rejected — as one bar and one plain sentence; and your latest
+decisions, each opening its note. It is facts, **never a grade**: no percentage, no index, computed
+locally and never transmitted.
+
+![Practice: twelve weeks of ideas developed, the decisions on proposals, and the latest decisions](resources/showcase/practice.svg)
+
+→ Details: [Practice](development/practice.md) and [Cognitive agency](development/cognitive-agency.md).
 
 ## Dashboards for your vault
 

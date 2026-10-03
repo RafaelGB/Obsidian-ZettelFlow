@@ -484,7 +484,7 @@ Accepting one used to write a link and record nothing, and there was no way to r
 - **Navigation is not a verdict.** Choosing a step is not recorded; inflating the log would make the
   agency index dishonest.
 
-Effect: the surface where most decisions are made now feeds the agency index and the Health → Agency
+Effect: the surface where most decisions are made now feeds the agency index and the Health → Practice
 tab, which until now only saw AI actions and Cultivate.
 
 ### Drafts: closing the wizard no longer destroys the walk (#410)

@@ -41,6 +41,8 @@ describe("the settings panel reads as a sequence of questions (#440)", () => {
     it("folds the advanced group behind an explicit toggle", () => {
         const advanced = TAB.slice(TAB.indexOf("settings_group_advanced"));
         expect(advanced).toContain("visible: () => this.showAdvanced");
+        // The timings left the Health surface for here, beside the log level (#645).
+        expect(advanced.slice(0, advanced.indexOf("settings_group_about"))).toContain("...speedSettingsItems()");
         expect(TAB).toContain("settings_advanced_toggle");
     });
 

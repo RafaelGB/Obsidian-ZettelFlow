@@ -32,7 +32,6 @@ const OFF_GRID = /[^-\w.](\d+)px/g;
 const CEILING: Record<string, number> = {
     "accordion.scss": 13,
     "actionAddMenu.scss": 56,
-    "agencyReview.scss": 3,
     "animations.scss": 1,
     "askGraph.scss": 2,
     "backlink.scss": 1,
@@ -74,7 +73,6 @@ const CEILING: Record<string, number> = {
     "selector.scss": 11,
     "stepBuilder.scss": 9,
     "surface.scss": 1,
-    "thinkingHeatmap.scss": 8,
     "walkStatus.scss": 6,
     // The one genuine pixel in the vocabulary: `$line-quiet` is a **hairline**, which the rule
     // above allows by name. It is declared here rather than left to slip in unnoticed, and it is

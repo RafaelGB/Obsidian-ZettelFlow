@@ -11,7 +11,7 @@ baseline for our custom UI, and the manual matrix a contributor walks before a r
   `role="tabpanel"`, `aria-selected`, `aria-controls`/`aria-labelledby`, **roving `tabindex`**, and
   **arrow / Home / End** keyboard navigation (`ModeHostView`).
 - **Clickable note names** across the surfaces (Home, Cultivate, Ask-your-graph, Reasoning paths,
-  Agency review, Health, Resurface, Evidence map, the Evolution timeline) are keyboard-operable through
+  Practice, Health, Resurface, Evidence map, the Evolution timeline) are keyboard-operable through
   `makeActivatable` — focusable, `role="link"`, activated by click **and** Enter/Space
   (`architecture/components/core/a11y.ts`).
 - **Every clickable note name also previews** on a `Ctrl`/`Cmd`-hover (#594): the pointer sibling

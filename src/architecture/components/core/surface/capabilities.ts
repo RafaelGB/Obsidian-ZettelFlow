@@ -101,7 +101,7 @@ export const CAPABILITIES = [
     "slipbox-health",
     "knowledge-dashboard",
     "weekly-review",
-    "thinking-heatmap",
+    "practice",
     "note-companion",
     "next-step",
     "evolution-timeline",
@@ -119,7 +119,6 @@ export const CAPABILITIES = [
     "claim-door",
     "claim-return",
     "wager",
-    "agency-review",
     "note-state",
     "remove-relation",
     "script-workbench",
@@ -245,10 +244,12 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             CMD("generate-weekly-review"),
         ],
     },
-    "thinking-heatmap": {
-        nameKey: "surface_mode_momentum",
+    practice: {
+        // Momentum and Agency, merged (#645): what you have developed lately and how you answered
+        // proposals — facts, never a grade.
+        nameKey: "surface_mode_practice",
         owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:momentum` }, CMD("show-thinking-heatmap")],
+        doors: [{ kind: "surface", at: `${HEALTH}:practice` }, CMD("show-thinking-heatmap")],
     },
     "note-companion": {
         // The note you are reading, from the right sidebar (#640): the ribbon menu is the door
@@ -370,11 +371,6 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             NOTE_MENU("starters/zcomponents/ClaimDoorComponent.ts"),
             { kind: "recommendation", at: `${HOME}:home` },
         ],
-    },
-    "agency-review": {
-        nameKey: "surface_mode_agency",
-        owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:agency` }],
     },
     "note-state": {
         // The state chip on Cultivate's target card. The state is right there, on the object the

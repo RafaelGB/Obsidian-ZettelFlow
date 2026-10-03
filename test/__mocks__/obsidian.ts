@@ -445,3 +445,6 @@ export function stringifyYaml(value: Record<string, unknown>): string {
     .join("\n")
     .concat("\n");
 }
+
+/** Obsidian's re-exported moment, as small as the views need: relative time and a month name. */
+export const moment = (_at?: unknown) => ({ fromNow: () => "3 days ago", format: () => "Sep" });

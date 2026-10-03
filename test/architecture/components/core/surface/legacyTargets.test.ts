@@ -107,7 +107,21 @@ describe("This note's doors lead to its own view (#640 FR-23/24, AC-10)", () => 
 
     it("the Health surface no longer has a Timeline mode", () => {
         const health = SURFACES.find((surface) => surface.viewType === "zettelflow-health");
-        expect(health?.modes.map((mode) => mode.id)).toEqual(["tend", "momentum", "agency"]);
+        expect(health?.modes.map((mode) => mode.id)).toEqual(["tend", "practice"]);
+    });
+});
+
+describe("Momentum and Agency land on Practice (#645 FR-18/19, AC-2)", () => {
+    const PRACTICE = { surface: "zettelflow-health", mode: "practice" };
+
+    it("switches a leaf saved on either old mode to Practice, in place", () => {
+        expect(relocateMode("zettelflow-health", "momentum")).toEqual(PRACTICE);
+        expect(relocateMode("zettelflow-health", "agency")).toEqual(PRACTICE);
+    });
+
+    it("keeps the heatmap's command and view type landing", () => {
+        expect(LEGACY_OPEN_TARGETS["show-thinking-heatmap"]).toEqual(PRACTICE);
+        expect(LEGACY_VIEW_TARGETS["zettelflow-thinking-heatmap"]).toEqual(PRACTICE);
     });
 });
 

@@ -22,7 +22,7 @@ surfaces. Note creation is no longer its own ribbon icon.
 | Surface | Modes | Folds in (former views) |
 |---|---|---|
 | **Home** | Home · Cultivate · Recent | ZettelFlow Home (+ a **"What to do next"** recommendation surface, #273) + **[Cultivate](../development/cultivate.md)** (#309) + **[What ZettelFlow changed](reversibility.md)** (#454) |
-| **Health** | Tend · Momentum · Agency | **[Tend](../development/slipbox-health-dashboard.md)** (#644): one row per note that needs you, handed to This note on the fix — replacing the slip-box health ops console and the knowledge dashboard folded into it (#314) — + Thinking heatmap + Agency review. The Timeline mode became **[This note](../development/this-note.md)** (#640) |
+| **Health** | Tend · Practice | **[Tend](../development/slipbox-health-dashboard.md)** (#644): one row per note that needs you, handed to This note on the fix — replacing the slip-box health ops console and the knowledge dashboard folded into it (#314) — + **[Practice](../development/practice.md)** (#645): Momentum and Agency merged — the 12-week development strip, the decisions on proposals and the latest decisions. The Timeline mode became **[This note](../development/this-note.md)** (#640) |
 | *(Discovery — dissolved, #504)* | — | its four modes answered two questions that already had homes: see below |
 | **[Explore](../development/ask-your-graph.md)** | *(one mode, so no mode bar)* | Ask your graph + the retired **Graph** surface (#484), whose 3D view is now one of Explore's [lenses](../development/graph-3d.md) |
 

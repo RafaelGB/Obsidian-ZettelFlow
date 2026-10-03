@@ -1,5 +1,4 @@
-import { App, Notice, moment as obsidianMoment } from "obsidian";
-import type MomentFn from "moment";
+import { App, Notice } from "obsidian";
 import { c, log } from "architecture";
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { t, tCount } from "architecture/lang";
@@ -10,8 +9,6 @@ import {
     TEND_ISSUES,
     deriveTend,
     filterTend,
-    formatDuration,
-    speedFacts,
     tendFocus,
     type TendIssue,
     type TendList,
@@ -27,8 +24,6 @@ const DEBOUNCE_MS = 400;
 /** Cap the DOM rows (#302 S5): a huge vault can have thousands of notes that need you. */
 export const MAX_TEND_ROWS = 200;
 
-/** Obsidian re-exports moment without its call signature; the app's own tabs do the same cast. */
-const moment = obsidianMoment as unknown as typeof MomentFn;
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -57,7 +52,7 @@ type ViewState = "indexing" | "ready" | "clear" | "error";
  *
  * Reads the model only (`deriveTend`, once per revision); writes nothing. The weekly review stays
  * the header's one primary action. The live enrichment pass sits under the lede, the one thing here
- * that is happening now; the Speed history stays at the bottom until it moves to settings (#645).
+ * that is happening now; the Speed history lives in Settings › Advanced (#645).
  */
 export class TendRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
@@ -183,7 +178,6 @@ export class TendRenderer extends KnowledgeModeRenderer {
         if (list.clear > 0 && this.state === "ready") {
             root.createDiv({ cls: c("tend-clear"), text: tCount(list.clear, "tend_clear", String(list.clear)) });
         }
-        this.renderSpeedSection(root);
     }
 
     /** One chip per issue that some row carries, with its count; *All* first. */
@@ -277,31 +271,5 @@ export class TendRenderer extends KnowledgeModeRenderer {
             this.renderPassRow();
             new Notice(t("speed_pass_stopped", String(stopped)));
         });
-    }
-
-    /**
-     * **How fast it is here** (#462): your numbers, from your last launch. Facts only (§XII) — a
-     * duration, a note count, when it was measured; no score, no band, no colour, no advice.
-     */
-    private renderSpeedSection(root: HTMLElement): void {
-        const facts = speedFacts();
-        const section = root.createDiv({ cls: c("tend-section") });
-        section.createEl("h5", { text: t("speed_title"), cls: c("tend-section-heading") });
-        section.createDiv({ cls: c("tend-section-intro"), text: t("speed_intro") });
-        if (facts.empty) {
-            // Said once, without ceremony, instead of a table of zeros.
-            section.createDiv({ cls: c("tend-section-intro"), text: t("speed_never_measured") });
-            return;
-        }
-        const list = section.createDiv({ cls: c("tend-speed") });
-        for (const fact of facts.facts) {
-            const row = list.createDiv({ cls: c("tend-speed-row") });
-            row.createSpan({ text: t(fact.labelKey as LocaleKey) });
-            row.createSpan({ cls: c("speed-value"), text: formatDuration(fact.ms) });
-            if (fact.scale !== undefined) {
-                row.createSpan({ cls: c("speed-scale"), text: t("speed_over_notes", String(fact.scale)) });
-            }
-            row.createSpan({ cls: c("speed-when"), text: t("speed_measured_at", moment(fact.at).fromNow()) });
-        }
     }
 }

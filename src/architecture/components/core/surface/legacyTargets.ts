@@ -106,6 +106,9 @@ export const RELOCATED_MODES: Record<string, LegacyTarget> = {
     "zettelflow-health:timeline": THIS_NOTE,
     // Health's own first mode became Tend (#644): a saved leaf on `health` switches in place.
     "zettelflow-health:health": { surface: "zettelflow-health", mode: "tend" },
+    // Momentum and Agency merged into Practice (#645): a saved leaf on either switches in place.
+    "zettelflow-health:momentum": { surface: "zettelflow-health", mode: "practice" },
+    "zettelflow-health:agency": { surface: "zettelflow-health", mode: "practice" },
     "zettelflow-discovery:ask": { surface: "zettelflow-explore", mode: "explore", lens: undefined },
     // The four modes of the dissolved surface (#504), for a workspace saved before it went.
     "zettelflow-discovery:connections": HOME,

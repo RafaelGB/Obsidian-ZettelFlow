@@ -226,11 +226,10 @@ describe("the live pass sits under the lede; nothing else moves (#644 AC-14/AC-1
         expect(host.oneByClass("tend-list")).toBe(list);
     });
 
-    it("keeps the timings at the bottom, with no pass of their own", () => {
+    it("draws no timing history — it moved to Settings › Advanced (#645)", () => {
         const { host } = mount(needy(3));
-        const root = host.oneByClass("tend");
-        expect([...root.children[root.children.length - 1].classes]).toContain("zettelkasten-flow__tend-section");
-        expect(root.children[root.children.length - 1].byClass("speed-stop")).toEqual([]);
+        expect(host.byClass("tend-section")).toEqual([]);
+        expect(host.textContent).not.toContain("Timings from this vault");
     });
 });
 

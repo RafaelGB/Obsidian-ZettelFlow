@@ -171,8 +171,10 @@ That gap is why the app reports its own timings too.
 
 ## Timings from this vault (#462)
 
-The Health surface has a small section fed by the **same instrument**. What you read there is what
-was measured on your last launch, on your machine, over your notes:
+**Settings › Advanced** (behind *Show advanced settings*) lists read-only rows fed by the **same
+instrument** — they left the Health surface in #645; the live enrichment pass, with its *Stop*, stays
+on Tend. What you read there is what was measured on your last launch, on your machine, over your
+notes:
 
 | Row | What it timed |
 |---|---|

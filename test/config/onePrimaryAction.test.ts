@@ -58,7 +58,9 @@ describe("one primary action per mode header (#577)", () => {
     const files = renderers(CORE);
 
     it("reads every renderer, not a corner of them", () => {
-        expect(files.length).toBeGreaterThan(8);
+        // Epic #639 subtracted five (This note's panels became blocks; Health became Tend and
+        // Practice), so the floor follows it down rather than the scan reaching wider.
+        expect(files.length).toBeGreaterThan(6);
     });
 
     it("lets no renderer declare a second one", () => {

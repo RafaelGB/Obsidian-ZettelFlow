@@ -59,8 +59,9 @@ export const SURFACES: readonly Surface[] = [
             // Tend (#644): which notes need you, each handed to This note on its fix. It keeps the
             // retired health view's source, so its command and saved leaves land here for free.
             { id: "tend", sourceView: "zettelflow-slipbox-health", labelKey: "surface_mode_tend" },
-            { id: "momentum", sourceView: "zettelflow-thinking-heatmap", labelKey: "surface_mode_momentum" },
-            { id: "agency", labelKey: "surface_mode_agency" },
+            // Practice (#645): Momentum and Agency, merged — what you have been doing, as facts. It
+            // keeps the retired heatmap view's source, so its command and saved leaves land here.
+            { id: "practice", sourceView: "zettelflow-thinking-heatmap", labelKey: "surface_mode_practice" },
         ],
     },
     {

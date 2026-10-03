@@ -56,9 +56,8 @@ Open the surface, or one of its modes.
 - **Show knowledge map** — the connected regions and named neighbourhoods of your graph. [docs →](../development/living-knowledge-map.md)
 - **Show concept navigation** — walk your vault by typed relation, note to note, like a wiki you wrote. [docs →](../development/concept-navigation.md)
 - **Show knowledge dashboard** — the knowledge read-out for scripts; its panels became Tend and Home. [docs →](../development/knowledge-dashboard.md)
-- **Momentum** — a calendar of ideas developed — momentum, not note-count volume. [docs →](../development/thinking-heatmap.md)
+- **Practice** — what you have developed lately and how you answered proposals — facts, never a grade. [docs →](../development/practice.md)
 - **Show open questions** — every unanswered question in your vault, made first-class. [docs →](../development/open-questions.md)
-- **Agency** — how much you are still deciding — your accept/modify/reject mix, never a grade. [docs →](../development/cognitive-agency.md)
 
 ## It comes to you
 

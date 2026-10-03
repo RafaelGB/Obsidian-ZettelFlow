@@ -26,7 +26,8 @@ export const STORY_ICON: Record<TimelineEventKind, string> = {
     move: "footprints",
     thought: "lightbulb",
     return: "repeat",
-    promotion: "arrow-up-circle",
+    // A name every Lucide Obsidian has shipped knows; `arrow-up-circle` was renamed upstream.
+    promotion: "chevrons-up",
     horizon: "flag",
 };
 

@@ -4,7 +4,8 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { t } from "architecture/lang";
-import { CompanionBlock, type CompanionContext, type CompanionScreen } from "./blocks/CompanionBlock";
+import { CompanionBlock, prefersReducedMotion, type CompanionContext, type CompanionScreen } from "./blocks/CompanionBlock";
+import { companionWriting, onCompanionWriting } from "./companionWrites";
 import { HeadBlock } from "./blocks/headBlock";
 import { SectionsBlock } from "./blocks/sectionsBlock";
 import { NextStepBlock } from "./blocks/nextStepBlock";
@@ -94,6 +95,9 @@ export class NoteCompanionView extends ItemView {
             // The view may have closed before the layout was ready; nothing to schedule for then.
             if (this.columns) this.schedule();
         });
+        // While a companion write is in flight the other write buttons wait (see companionWrites).
+        this.register(onCompanionWriting((busy) => this.markBusy(busy)));
+        this.markBusy(companionWriting());
         // A restored pin keeps its note; otherwise start on whatever note is in front of you.
         if (!this.subject.pinned) this.subject = reduceSubject(this.subject, this.activeEvent(this.app.workspace.getActiveFile()));
         this.render();
@@ -184,6 +188,33 @@ export class NoteCompanionView extends ItemView {
         if (this.stale && this.visible()) this.render();
     }
 
+    /**
+     * Obsidian calls this when the view is resized — and when it is first shown: a sidebar tab
+     * opened behind another one, or a collapsed sidebar expanded. A render skipped while hidden is
+     * owed then (#639 runtime audit: a freshly opened companion could stay blank).
+     */
+    onResize(): void {
+        this.catchUp();
+    }
+
+    private markBusy(busy: boolean): void {
+        this.contentEl.querySelector?.(`.${c("note-companion")}`)?.setAttribute("aria-busy", String(busy));
+    }
+
+    /**
+     * Scroll the view's own container so `target` sits just below the sticky head. Never the
+     * target's `scrollIntoView`: it scrolls every scrollable ancestor too, Obsidian's panes included,
+     * and it would leave the target hidden under the head (#639 runtime audit).
+     */
+    private scrollTo(target: HTMLElement): void {
+        const scroller = this.contentEl;
+        const head = this.columns?.head;
+        const below = (head?.offsetHeight ?? 0) + 8;
+        const top =
+            target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + (scroller.scrollTop ?? 0) - below;
+        scroller.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion(target) ? "auto" : "smooth" });
+    }
+
     /** Remember graph or list across notes, panes and restarts (#643 FR-11). */
     private setNeighbourhoodView(view: "graph" | "list"): void {
         const settings = this.plugin?.settings;
@@ -240,6 +271,7 @@ export class NoteCompanionView extends ItemView {
             neighbourhoodView: this.plugin?.settings?.noteNeighbourhoodView ?? "graph",
             setNeighbourhoodView: (view) => this.setNeighbourhoodView(view),
             menu: () => this.menuItems(),
+            scrollTo: (target) => this.scrollTo(target),
         };
         // Each block on its own: a block that throws says so in its own place and the rest still
         // draw. They used to render in a chain, so one bad graph took the story down with it.

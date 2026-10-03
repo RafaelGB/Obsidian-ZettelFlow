@@ -5,7 +5,7 @@ import type { Neighbour, NoteNeighbourhood } from "architecture/knowledge/state"
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { layoutNeighbourhood, type LayoutNode } from "../neighbourhoodLayout";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { CompanionBlock, noteName, prefersReducedMotion, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBlock";
 
 type LocaleKey = Parameters<typeof t>[0];
 type View = "graph" | "list";
@@ -41,8 +41,13 @@ export class NeighbourhoodBlock extends CompanionBlock {
     private ctx: CompanionContext | null = null;
     /** Where each list group is, for a hand-over from the head's link counts. */
     private groups = new Map<"in" | "out", HTMLElement>();
-    /** The view chosen on screen, ahead of the settings round-trip. */
+    /** The view chosen with the toggle, ahead of the settings round-trip. */
     private chosen: View | null = null;
+    /**
+     * The note a hand-over showed as a list (a head count, "+N more"). One-shot: the list stays
+     * while you are on that note and the saved Graph / List takes over again on the next one.
+     */
+    private forcedFor: string | null = null;
 
     update(ctx: CompanionContext): void {
         this.ctx = ctx;
@@ -52,7 +57,8 @@ export class NeighbourhoodBlock extends CompanionBlock {
         if (ctx.screen.kind !== "note") return;
 
         const model = ctx.screen.model;
-        const view = this.chosen ?? ctx.neighbourhoodView;
+        if (this.forcedFor !== model.path) this.forcedFor = null;
+        const view: View = this.forcedFor ? "list" : (this.chosen ?? ctx.neighbourhoodView);
         const root = this.el.createDiv({ cls: c("note-companion-neighbourhood") });
         this.renderHeader(root, view);
 
@@ -77,13 +83,19 @@ export class NeighbourhoodBlock extends CompanionBlock {
         this.choose("list", false);
         const target = this.groups.get(focus === "links-in" ? "in" : "out");
         if (!target) return;
-        target.scrollIntoView({ behavior: prefersReducedMotion(target) ? "auto" : "smooth", block: "start" });
+        this.ctx.scrollTo(target);
         this.highlightOnce(target);
     }
 
+    /** `remember`: the toggle — saved. Otherwise a hand-over: a list for this note only. */
     private choose(view: View, remember = true): void {
-        this.chosen = view;
-        if (remember) this.ctx?.setNeighbourhoodView(view);
+        if (remember) {
+            this.chosen = view;
+            this.forcedFor = null;
+            this.ctx?.setNeighbourhoodView(view);
+        } else if (this.ctx?.screen.kind === "note") {
+            this.forcedFor = this.ctx.screen.model.path;
+        }
         if (this.ctx) this.update(this.ctx);
     }
 
@@ -113,7 +125,8 @@ export class NeighbourhoodBlock extends CompanionBlock {
             root.createDiv({ cls: c("note-companion-quiet"), text: t("note_companion_neighbourhood_empty") });
             return;
         }
-        const layout = layoutNeighbourhood(hood.neighbours, hood.near);
+        // Measured, so one unit is one pixel and labels keep their size in a narrow sidebar.
+        const layout = layoutNeighbourhood(hood.neighbours, hood.near, root.clientWidth || undefined);
         const svg = root.createSvg("svg", {
             cls: c("note-companion-graph"),
             attr: {
@@ -135,7 +148,7 @@ export class NeighbourhoodBlock extends CompanionBlock {
         svg.createSvg("circle", { cls: c("note-companion-centre"), attr: { cx: layout.cx, cy: layout.cy, r: 9 } });
 
         // DOM order is the reading order: clockwise from twelve, then the near ring.
-        for (const node of layout.nodes) this.renderNode(svg, root, ctx, node, edges.get(node.path));
+        for (const node of layout.nodes) this.renderNode(svg, ctx, node, edges.get(node.path));
 
         if (layout.overflow > 0) {
             const more = root.createEl("button", {
@@ -148,18 +161,14 @@ export class NeighbourhoodBlock extends CompanionBlock {
         this.renderLegend(root);
     }
 
-    private renderNode(
-        svg: SVGElement,
-        box: HTMLElement,
-        ctx: CompanionContext,
-        node: LayoutNode,
-        edge: SVGElement | undefined
-    ): void {
+    private renderNode(svg: SVGElement, ctx: CompanionContext, node: LayoutNode, edge: SVGElement | undefined): void {
         const g = svg.createSvg("g", {
             cls: [c("note-companion-node"), c(`note-companion-node--${node.cls}`)],
             attr: { tabindex: 0, role: "link", "aria-label": this.nodeName(node) },
         });
-        g.createSvg("circle", { attr: { cx: node.x, cy: node.y, r: 6 } });
+        // A finger-sized target around a small dot; the label is part of the target too.
+        g.createSvg("circle", { cls: c("note-companion-node-hit"), attr: { cx: node.x, cy: node.y, r: 12 } });
+        g.createSvg("circle", { cls: c("note-companion-node-dot"), attr: { cx: node.x, cy: node.y, r: 6 } });
         g.createSvg("text", {
             cls: c("note-companion-node-label"),
             attr: { x: node.labelX, y: node.labelY, "text-anchor": node.anchor },
@@ -176,9 +185,11 @@ export class NeighbourhoodBlock extends CompanionBlock {
             evt.preventDefault();
             ctx.open(node.path, Keymap.isModEvent(evt));
         });
-        // Obsidian's hover handler calls `targetEl.isShown()`, which an SVG element does not have;
-        // the popover is anchored on the graph's own (HTML) box instead.
-        hoverPreview(ctx.app, g, node.path, ctx.owner, box);
+        // Obsidian's hover handler calls `targetEl.isShown()`, which an SVG element does not have.
+        // Each node gets its own (it needs nothing else: SVG elements have getBoundingClientRect),
+        // so the popover anchors on the node hovered — a shared anchor kept showing the first one.
+        const anchor = Object.assign(g, { isShown: () => g.isConnected }) as unknown as HTMLElement;
+        hoverPreview(ctx.app, g, node.path, ctx.owner, anchor);
     }
 
     /** "Title, relation, direction" — or "Title, near but not linked". */

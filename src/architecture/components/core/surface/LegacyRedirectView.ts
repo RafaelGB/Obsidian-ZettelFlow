@@ -43,8 +43,12 @@ export class LegacyRedirectView extends ItemView {
                 // This note lives in the right sidebar and there is only one (#640 decision 2): the
                 // retired leaf closes and the one companion opens where it lives. Through the
                 // serialised opener, so a workspace holding several retired leaves makes one.
-                this.leaf.detach();
-                void openNoteCompanion(this.app);
+                // Once the workspace has finished restoring: a sidebar leaf made mid-restore can
+                // be lost.
+                this.app.workspace.onLayoutReady(() => {
+                    this.leaf.detach();
+                    void openNoteCompanion(this.app);
+                });
                 return;
             }
             const state = { mode: target.mode, ...(target.lens ? { lens: target.lens } : {}) };

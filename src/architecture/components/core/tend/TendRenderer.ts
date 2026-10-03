@@ -253,6 +253,10 @@ export class TendRenderer extends KnowledgeModeRenderer {
     /**
      * Watch the enrichment pass while this mode is open (#462 FR-1/FR-2): progress at each yield
      * boundary and a **Stop** that leaves the model consistent — every note applied whole or not at all.
+     *
+     * Known limit (#639 runtime audit): the index has **one** progress slot. With two Health tabs
+     * open, the last to load gets the progress, and closing either clears it for both. The pass
+     * itself is unaffected; only the row is. Left as is: two Health tabs is not a supported layout.
      */
     private watchPass(): void {
         KnowledgeIndex.getInstance().onEnrichmentProgress((progress) => {

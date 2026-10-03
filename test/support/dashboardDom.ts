@@ -18,8 +18,13 @@ export class DomNode {
     tabIndex = -1;
     /** `<details>` disclosure state (#640). */
     open = false;
-    /** Every `scrollIntoView` call, with its options — the companion's hand-over is asserted on these. */
+    /** Every `scrollIntoView` / `scrollTo` call, with its options — hand-overs are asserted on these. */
     scrolls: any[] = [];
+    /** No layout here: a container's scroll position and an element's size are what a test sets. */
+    scrollTop = 0;
+    offsetHeight = 0;
+    offsetWidth = 0;
+    clientWidth = 0;
     href = "";
     type = "";
     listeners: Record<string, ((event: any) => void)[]> = {};
@@ -155,6 +160,9 @@ export class DomNode {
         return this.isConnected;
     }
     scrollIntoView(options?: any): void {
+        this.scrolls.push(options);
+    }
+    scrollTo(options?: any): void {
         this.scrolls.push(options);
     }
 

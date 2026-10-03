@@ -3,6 +3,8 @@ import {
     CAP,
     CHAR_W,
     LABEL_CHARS,
+    cut,
+    glyphUnits,
     layoutNeighbourhood,
     type LayoutNode,
 } from "architecture/components/core/noteCompanion/neighbourhoodLayout";
@@ -62,9 +64,43 @@ describe("the neighbourhood layout (#643 FR-5/7/8, AC-1)", () => {
     });
 
     it("shortens a long title to fit, with an ellipsis", () => {
-        const [node] = layoutNeighbourhood([neighbour(0, "A very long title that never ends")], []).nodes;
-        expect(node.label).toBe(`${"A very long title that never ends".slice(0, LABEL_CHARS)}…`);
+        const layout = layoutNeighbourhood([neighbour(0, "A very long title that never ends")], []);
+        const [node] = layout.nodes;
+        expect(node.label).toBe(`${"A very long title that never ends".slice(0, layout.labelChars)}…`);
         expect(node.title).toBe("A very long title that never ends");
+    });
+});
+
+describe("legible in a sidebar (#639 runtime audit)", () => {
+    it("draws in the pane's own pixels: the viewBox is the measured width", () => {
+        expect(layoutNeighbourhood(many(3), [], 280).width).toBe(280);
+        expect(layoutNeighbourhood(many(3), [], 600).width).toBe(600);
+    });
+
+    it("shows shorter labels in a narrow pane rather than smaller ones, within bounds", () => {
+        const narrow = layoutNeighbourhood(many(3), [], 280).labelChars;
+        const wide = layoutNeighbourhood(many(3), [], 600).labelChars;
+        expect(narrow).toBeLessThan(wide);
+        expect(narrow).toBeGreaterThanOrEqual(6);
+        expect(wide).toBeLessThanOrEqual(LABEL_CHARS);
+    });
+
+    for (const width of [240, 280, 360, 600]) {
+        it(`keeps every label inside a ${width}px box`, () => {
+            const layout = layoutNeighbourhood(many(12), near(3), width);
+            for (const node of layout.nodes) {
+                const box = labelBox(node);
+                expect(box.left).toBeGreaterThanOrEqual(0);
+                expect(box.right).toBeLessThanOrEqual(layout.width);
+            }
+        });
+    }
+
+    it("counts a wide glyph as two, so CJK titles are cut sooner", () => {
+        expect(glyphUnits("a")).toBe(1);
+        expect(glyphUnits("漢")).toBe(2);
+        expect(cut("漢字漢字漢字", 6)).toBe("漢字漢…");
+        expect(cut("abcdef", 6)).toBe("abcdef");
     });
 });
 

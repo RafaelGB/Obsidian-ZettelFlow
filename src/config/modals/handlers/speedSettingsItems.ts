@@ -17,21 +17,39 @@ type LocaleKey = Parameters<typeof t>[0];
  * They are the same numbers: the last sample of each kind, read, never measured here. A name and a
  * description each; no control, nothing written. Facts only (§XII): no band, no colour, no advice.
  */
-export function speedSettingsItems(
-    read: (name: Measurable) => Sample | undefined = lastSample
-): SettingGroupItem[] {
+/** The lines the timings row shows, read now: the intro, then one line per timing. */
+export function speedLines(read: (name: Measurable) => Sample | undefined = lastSample): string[] {
     const facts = speedFacts(read);
     // Said once, without ceremony, instead of a table of zeros.
-    if (facts.empty) return [{ name: t("speed_never_measured") }];
+    if (facts.empty) return [t("speed_never_measured")];
     return [
-        { name: t("speed_title"), desc: t("speed_intro") },
-        ...facts.facts.map((fact) => ({
-            name: t(fact.labelKey as LocaleKey),
-            desc: [
+        t("speed_intro"),
+        ...facts.facts.map((fact) =>
+            [
+                t(fact.labelKey as LocaleKey),
                 formatDuration(fact.ms),
                 ...(fact.scale === undefined ? [] : [tCount(fact.scale, "speed_over_notes", String(fact.scale))]),
                 t("speed_measured_at", moment(fact.at).fromNow()),
-            ].join(" · "),
-        })),
+            ].join(" · ")
+        ),
+    ];
+}
+
+/**
+ * One read-only row whose lines are read **when it is drawn** (#639 runtime audit): the definitions
+ * can be built once and kept (settings search), and a list computed then would freeze at whatever
+ * the first build saw — "nothing measured yet", say — for the rest of the session.
+ */
+export function speedSettingsItems(
+    read: (name: Measurable) => Sample | undefined = lastSample
+): SettingGroupItem[] {
+    return [
+        {
+            name: t("speed_title"),
+            render: (setting) => {
+                setting.descEl.empty();
+                for (const line of speedLines(read)) setting.descEl.createDiv({ text: line });
+            },
+        },
     ];
 }

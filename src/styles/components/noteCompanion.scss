@@ -417,3 +417,9 @@ button.zettelkasten-flow__note-companion-vital {
         outline: var(--border-width) solid var(--interactive-accent);
     }
 }
+
+/* One companion write at a time (#639): while one is in flight, the others wait visibly. */
+.zettelkasten-flow__note-companion[aria-busy="true"] [data-writes] {
+    pointer-events: none;
+    opacity: 0.5;
+}

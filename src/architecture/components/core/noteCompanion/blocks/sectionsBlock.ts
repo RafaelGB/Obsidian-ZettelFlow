@@ -8,7 +8,8 @@ import { undoBatch, type UndoResult } from "architecture/plugin/writes/undoNotic
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { focusPlan } from "../companionFocus";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { CompanionBlock, noteName, prefersReducedMotion, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, marksWrite, noteName, type CompanionContext } from "./CompanionBlock";
+import { queueCompanionWrite } from "../companionWrites";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -117,7 +118,7 @@ export class SectionsBlock extends CompanionBlock {
             this.expanded.add(plan.expand);
             (target as HTMLDetailsElement).open = true;
         }
-        target.scrollIntoView({ behavior: prefersReducedMotion(target) ? "auto" : "smooth", block: "start" });
+        this.ctx?.scrollTo(target);
         // Once: the ring goes when it has played, so a second hand-over plays it again.
         this.highlightOnce(target);
     }
@@ -174,6 +175,7 @@ export class SectionsBlock extends CompanionBlock {
                         text: t("resurface_insert_link"),
                         attr: { type: "button" },
                     });
+                    marksWrite(insert);
                     this.on(insert, "click", () => {
                         // One click, one link: a double-click must not append it twice.
                         insert.disabled = true;
@@ -199,7 +201,8 @@ export class SectionsBlock extends CompanionBlock {
         if (ctx.screen.kind !== "note") return;
         // The note the link goes into: the answer belongs to it, even if you move on meanwhile.
         const path = ctx.screen.model.path;
-        const result = await this.deps.linkNotes(ctx.app, path, targetPath);
+        // Its turn among the companion's writes, so two never race on one note.
+        const result = await queueCompanionWrite(() => this.deps.linkNotes(ctx.app, path, targetPath));
         this.status = result.ok
             ? { kind: "linked", path, target: noteName(targetPath), batch: result.batch, at: Date.now() }
             : { kind: "failed", path, at: Date.now() };
@@ -211,7 +214,7 @@ export class SectionsBlock extends CompanionBlock {
         this.undoing = true;
         let result: UndoResult;
         try {
-            result = await this.deps.undoBatch(batch);
+            result = await queueCompanionWrite(() => this.deps.undoBatch(batch));
         } catch {
             result = { hadWork: true, done: 0, failed: [batch] };
         } finally {
@@ -258,6 +261,7 @@ export class SectionsBlock extends CompanionBlock {
             text: t("changes_undo"),
             attr: { type: "button" },
         });
+        marksWrite(undo);
         this.on(undo, "click", () => {
             // One undo per offer: a double-click must not plan the same batch twice.
             undo.disabled = true;

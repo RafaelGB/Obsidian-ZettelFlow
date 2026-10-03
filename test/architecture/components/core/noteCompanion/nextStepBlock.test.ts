@@ -2,6 +2,7 @@ import { describe, it, expect, jest, afterEach } from "@jest/globals";
 import { Component } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { NextStepBlock, type NextStepDeps } from "architecture/components/core/noteCompanion/blocks/nextStepBlock";
+import { resetCompanionWrites } from "architecture/components/core/noteCompanion/companionWrites";
 import type {
     CompanionContext,
     CompanionModel,
@@ -58,6 +59,7 @@ function setup(over: Partial<CompanionModel> = {}, depsOver: Partial<NextStepDep
             refresh: jest.fn(),
             reveal: jest.fn(),
             open: jest.fn(),
+            scrollTo: jest.fn(),
         }) as unknown as CompanionContext;
     block.load();
     block.update(ctxFor(model(over)));
@@ -69,6 +71,7 @@ const primary = (host: DomNode) => host.oneByClass("note-next-primary");
 
 afterEach(() => {
     jest.useRealTimers();
+    resetCompanionWrites();
 });
 
 describe("the next-step card (#641 FR-1..9, AC-1..4)", () => {
@@ -265,7 +268,8 @@ describe("arriving focused (#641 FR-21/22, AC-14)", () => {
         expect(primary(host).textContent).toBe("Connect");
         expect(host.byClass("note-next-panel")).toHaveLength(1);
         const card = host.oneByClass("note-next");
-        expect(card.scrolls).toHaveLength(1);
+        // Through the view's own scroll container — never scrollIntoView (#639 runtime audit).
+        expect(card.scrolls).toEqual([]);
         expect(card.hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
     });
 

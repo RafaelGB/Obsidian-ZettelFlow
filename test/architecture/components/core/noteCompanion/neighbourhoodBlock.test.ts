@@ -57,6 +57,7 @@ function setup(view: "graph" | "list" = "graph", m: CompanionModel = model()) {
         menu: () => [],
         neighbourhoodView: view,
         setNeighbourhoodView: jest.fn(),
+        scrollTo: jest.fn(),
     };
     block.load();
     block.update(ctx as unknown as CompanionContext);
@@ -246,7 +247,42 @@ describe("the head's link counts land here (#643 decision 4)", () => {
         // Clicking a count is not choosing a preference: only the toggle saves (FR-11).
         expect(ctx.setNeighbourhoodView).not.toHaveBeenCalled();
         const out = host.byClass("note-companion-link-group").find((g) => g.getAttribute("data-group") === "out")!;
-        expect(out.scrolls).toHaveLength(1);
+        expect(ctx.scrollTo).toHaveBeenCalledWith(out);
         expect(out.hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
+    });
+});
+
+describe("in the real app (#639 runtime audit)", () => {
+    it("anchors each node's preview on that node, so hovering another shows the other", () => {
+        const { host, ctx } = setup();
+        const [first, second] = nodes(host);
+        first.fire("mouseover");
+        second.fire("mouseover");
+        const calls = (ctx.app.workspace.trigger as jest.Mock).mock.calls as [string, { targetEl: unknown }][];
+        expect(calls[0][1].targetEl).toBe(first);
+        expect(calls[1][1].targetEl).toBe(second);
+        expect(calls[0][1].targetEl).not.toBe(calls[1][1].targetEl);
+        // Obsidian calls isShown() on the target: each node carries one.
+        expect(typeof (first as unknown as { isShown: unknown }).isShown).toBe("function");
+    });
+
+    it("gives every node a bigger, invisible hit target under its dot", () => {
+        const { host } = setup();
+        for (const node of nodes(host)) {
+            expect(node.byClass("note-companion-node-hit")).toHaveLength(1);
+            expect(node.byClass("note-companion-node-dot")).toHaveLength(1);
+        }
+    });
+
+    it("shows a hand-over's list on that note only; the next note is back to the saved view", () => {
+        const { host, block, ctx } = setup("graph");
+        block.reveal("links-in");
+        expect(host.byClass("note-companion-link-group")).toHaveLength(2);
+        block.update(ctx as unknown as CompanionContext); // the same note, redrawn: still the list
+        expect(host.byClass("note-companion-link-group")).toHaveLength(2);
+        block.update({ ...ctx, screen: { kind: "note", model: { ...ctx.screen.model, path: "other.md" } } } as never);
+        expect(host.byClass("note-companion-link-group")).toEqual([]);
+        expect(host.querySelector("svg")).not.toBeNull();
+        expect(ctx.setNeighbourhoodView).not.toHaveBeenCalled();
     });
 });

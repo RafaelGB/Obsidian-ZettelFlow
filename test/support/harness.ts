@@ -67,6 +67,13 @@ export class FakeVault {
         const e = this.entries.get(file.path);
         if (e) e.content = content;
     }
+    /** Obsidian's atomic read-modify-write: nothing can run between the read and the write. */
+    async process(file: TFile, fn: (data: string) => string): Promise<string> {
+        const e = this.entries.get(file.path);
+        if (!e) throw new Error(`no file ${file.path}`);
+        e.content = fn(e.content);
+        return e.content;
+    }
     async create(path: string, content: string): Promise<TFile> {
         if (this.getAbstractFileByPath(path)) throw new Error('File exists');
         const file = makeTFile(path);

@@ -214,6 +214,22 @@ refresh from the State-layer projections `noteVitals`, `lifecycleStepper`, `comp
 `noteNeighbourhood`; the graph's geometry is the pure `layoutNeighbourhood`. A block adds to the
 head's ⋯ menu through `menuItems()`, read when the menu opens.
 
+### Rules the real app enforces
+
+The jest DOM has no layout, popout windows or Page-preview internals, so these are held by tests
+that read the code (`realApp.structural.test.ts`) and by a stricter fake DOM:
+
+- **SVG classes go as an array** to `createSvg`: Obsidian adds `cls` as one `classList` token.
+- **A hover preview's target needs `isShown()`**: graph nodes get their own, so each node anchors
+  its own popover.
+- **Scrolling goes through `ctx.scrollTo(el)`**, which scrolls the view's own container to just under
+  the sticky head. `scrollIntoView` is never used: it also scrolls Obsidian's panes.
+- **Writes take turns** (`companionWrites.ts`): insert link, the next-step moves and their undos run
+  one at a time, and `FileService.appendTo` is atomic (`vault.process`). While one is in flight the
+  view is `aria-busy` and the other write buttons wait.
+- **A view first shown late renders then**: Obsidian calls `onResize()` when a hidden sidebar tab or
+  a collapsed sidebar is shown, and a render skipped while hidden is caught up there.
+
 ## What moved here
 
 This view replaces the **Timeline** mode of the Health surface (#640, epic #639). A workspace that

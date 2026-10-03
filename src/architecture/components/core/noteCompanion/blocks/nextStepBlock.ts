@@ -27,10 +27,11 @@ import {
     type NextStepUi,
 } from "../nextStepUi";
 import type { CompanionFocus } from "../noteCompanionContract";
+import { queueCompanionWrite } from "../companionWrites";
 import {
     CompanionBlock,
+    marksWrite,
     noteName,
-    prefersReducedMotion,
     type CompanionContext,
     type CompanionModel,
 } from "./CompanionBlock";
@@ -192,7 +193,7 @@ export class NextStepBlock extends CompanionBlock {
         this.update(ctx);
         const card = this.card;
         if (!card) return;
-        card.scrollIntoView({ behavior: prefersReducedMotion(card) ? "auto" : "smooth", block: "start" });
+        ctx.scrollTo(card);
         this.highlightOnce(card);
         // Straight to the first thing you would touch: the field, or the first choice.
         const panel = card.querySelector<HTMLElement>(`.${c("note-next-panel")}`);
@@ -243,6 +244,7 @@ export class NextStepBlock extends CompanionBlock {
                 input.value = this.draft;
                 const row = panel.createDiv({ cls: c("note-next-actions") });
                 const add = row.createEl("button", { cls: "mod-cta", text: t("note_next_add"), attr: { type: "button" } });
+                marksWrite(add);
                 add.disabled = this.draft.trim().length === 0;
                 cancel(row);
                 const submit = () => {
@@ -255,7 +257,8 @@ export class NextStepBlock extends CompanionBlock {
                     add.disabled = input.value.trim().length === 0;
                 });
                 this.on(input, "keydown", (event) => {
-                    if (event.key === "Enter") submit();
+                    // Enter that ends an IME composition (CJK input) confirms the text, not the form.
+                    if (event.key === "Enter" && !event.isComposing) submit();
                     if (event.key === "Escape") this.redraw((this.ui = closePanel(this.ui)));
                 });
                 this.on(add, "click", submit);
@@ -269,6 +272,7 @@ export class NextStepBlock extends CompanionBlock {
                     const line = panel.createDiv({ cls: c("note-next-candidate") });
                     this.renderName(line, ctx, row.path);
                     const link = line.createEl("button", { cls: c("note-next-pick"), text: t("note_next_link"), attr: { type: "button" } });
+                    marksWrite(link);
                     this.on(link, "click", () => this.connect(ctx, model, row.path));
                 }
                 const row = panel.createDiv({ cls: c("note-next-actions") });
@@ -301,6 +305,7 @@ export class NextStepBlock extends CompanionBlock {
                         const line = panel.createDiv({ cls: c("note-next-candidate") });
                         this.renderName(line, ctx, path);
                         const mark = line.createEl("button", { cls: c("note-next-pick"), text: t("note_next_mark_example"), attr: { type: "button" } });
+                        marksWrite(mark);
                         this.on(mark, "click", () =>
                             void this.write("add-example", t("note_next_done_example", noteName(path)), () =>
                                 this.deps.markExample(ctx.app, model.path, path)
@@ -319,6 +324,7 @@ export class NextStepBlock extends CompanionBlock {
                 });
                 const row = panel.createDiv({ cls: c("note-next-actions") });
                 const confirm = row.createEl("button", { cls: "mod-cta", text: this.label(move), attr: { type: "button" } });
+                marksWrite(confirm);
                 cancel(row);
                 this.on(confirm, "click", () =>
                     void this.write("advance-state", t("note_next_done_advance", stateLabel(move.proposed)), () =>
@@ -348,7 +354,8 @@ export class NextStepBlock extends CompanionBlock {
         const path = ctx.screen.model.path;
         const revision = ctx.screen.model.revision;
         try {
-            const result = await op();
+            // Its turn among the companion's writes, so two never race on one note.
+            const result = await queueCompanionWrite(op);
             if (!result.ok) this.status = { kind: "failed", path, at: Date.now() };
             else if ("written" in result && result.written === false) {
                 // Nothing was written: the link already is an example. Say that, not "marked".
@@ -380,7 +387,8 @@ export class NextStepBlock extends CompanionBlock {
         if (!status.batch || this.busy) return;
         this.busy = true;
         try {
-            const result = await this.deps.undoBatch(status.batch);
+            const batch = status.batch;
+            const result = await queueCompanionWrite(() => this.deps.undoBatch(batch));
             if (result.hadWork && result.failed.length === 0) {
                 if (status.judgement) this.deps.withdrawPromotion(status.judgement);
                 this.status = { kind: "undone", path: status.path, at: Date.now() };
@@ -424,6 +432,7 @@ export class NextStepBlock extends CompanionBlock {
         line.createSpan({ text: `${said} ` });
         if (!status.batch) return;
         const undo = line.createEl("button", { cls: c("note-next-undo"), text: t("changes_undo"), attr: { type: "button" } });
+        marksWrite(undo);
         this.on(undo, "click", () => {
             // One undo per offer: a double-click must not plan the same batch twice.
             undo.disabled = true;

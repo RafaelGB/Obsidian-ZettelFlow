@@ -1,4 +1,4 @@
-import { t, tCount } from "architecture/lang";
+import { OBSIDIAN_LOCALE, t, tCount } from "architecture/lang";
 import { relativeAge } from "architecture/knowledge/state";
 
 /**
@@ -8,12 +8,20 @@ import { relativeAge } from "architecture/knowledge/state";
  */
 
 /** *October 2026* / *octubre de 2026*. */
-export function monthHeading(year: number, month0: number, locale?: string): string {
+/**
+ * The language Obsidian is in. Intl's own default is the operating system's, which in Electron
+ * need not be Obsidian's: a Spanish vault on an English OS read "October 2026" among Spanish rows.
+ */
+function readerLocale(): string {
+    return OBSIDIAN_LOCALE || "en";
+}
+
+export function monthHeading(year: number, month0: number, locale: string = readerLocale()): string {
     return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(new Date(year, month0, 1));
 }
 
 /** The full day, for the hover and for assistive technology — and for the one pinned date. */
-export function absoluteDay(at: number, locale?: string): string {
+export function absoluteDay(at: number, locale: string = readerLocale()): string {
     return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(at));
 }
 

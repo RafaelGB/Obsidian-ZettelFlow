@@ -215,8 +215,9 @@ export class FileService {
      * because removing it again is the only way an append can be taken back.
      */
     public static async appendTo(file: TFile, text: string): Promise<void> {
-        const content = await ObsidianApi.vault().cachedRead(file);
-        await ObsidianApi.vault().modify(file, `${content.trimEnd()}\n\n${text}\n`);
+        // Atomic (#639 runtime audit): a read-then-modify lost the first of two quick appends, and
+        // read a cache that had not caught up with the editor's unsaved text.
+        await ObsidianApi.vault().process(file, (content) => `${content.trimEnd()}\n\n${text}\n`);
         recordVaultWrite(
             text.length <= FileService.MAX_RECORDED_APPEND
                 ? { kind: "content-appended", path: file.path, appended: text }

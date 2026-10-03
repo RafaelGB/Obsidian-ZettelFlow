@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import * as obsidian from "obsidian";
 import { linkNotes } from "architecture/plugin/services/recordedLink";
@@ -73,5 +75,29 @@ describe("linkNotes (#640)", () => {
         const result = await withWriteBatch({ kind: "hook", ref: "hook:status" }, () => linkNotes(h.app as never, "a.md", "B.md"));
         expect(result).toEqual({ ok: true });
         expect(h.vault.contentOf("a.md")).toContain("[[B]]");
+    });
+});
+
+describe("appends are atomic (#639 runtime audit)", () => {
+    beforeEach(() => replaceBufferedWrites([]));
+
+    it("keeps both links when two land at once", async () => {
+        const h = wireHarness({
+            files: {
+                "a.md": { frontmatter: {}, body: "A." },
+                "B.md": { frontmatter: {}, body: "B." },
+                "C.md": { frontmatter: {}, body: "C." },
+            },
+        });
+        await Promise.all([linkNotes(h.app as never, "a.md", "B.md"), linkNotes(h.app as never, "a.md", "C.md")]);
+        expect(h.vault.contentOf("a.md")).toContain("[[B]]");
+        expect(h.vault.contentOf("a.md")).toContain("[[C]]");
+    });
+
+    it("appends through the vault's atomic process, not a read and a separate modify", () => {
+        const source = readFileSync(join(__dirname, "../../../../src/architecture/plugin/services/FileService.ts"), "utf8");
+        const append = source.slice(source.indexOf("public static async appendTo("), source.indexOf("MAX_RECORDED_APPEND = "));
+        expect(append).toContain(".process(file");
+        expect(append).not.toContain("cachedRead");
     });
 });

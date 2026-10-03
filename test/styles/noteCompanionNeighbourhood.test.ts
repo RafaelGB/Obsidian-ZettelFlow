@@ -30,11 +30,27 @@ describe("the neighbourhood's colours are the theme's (#643 AC-10)", () => {
 
     it("dashes the near ring", () => {
         expect(rule(".zettelkasten-flow__note-companion-edge--near")).toContain("stroke-dasharray");
-        expect(rule(".zettelkasten-flow__note-companion-node--near circle")).toContain("stroke-dasharray");
+        expect(rule(".zettelkasten-flow__note-companion-node--near .zettelkasten-flow__note-companion-node-dot")).toContain(
+            "stroke-dasharray"
+        );
     });
 
     it("fills its column at any width", () => {
         expect(rule(".zettelkasten-flow__note-companion-graph")).toContain("width: 100%");
         expect(SCSS).toMatch(/@container note-companion \(min-width: 37\.5rem\)/);
+    });
+});
+
+describe("easy to hit and to read in a sidebar (#639 runtime audit)", () => {
+    it("has an invisible hit target bigger than the dot", () => {
+        const hit = rule(".zettelkasten-flow__note-companion-node-hit");
+        expect(hit).toContain("fill: transparent");
+        expect(hit).toContain("stroke: none");
+    });
+
+    it("lets the label take clicks, at the UI's small size", () => {
+        const label = rule(".zettelkasten-flow__note-companion-node-label");
+        expect(label).not.toContain("pointer-events: none");
+        expect(label).toContain("var(--font-ui-smaller)");
     });
 });

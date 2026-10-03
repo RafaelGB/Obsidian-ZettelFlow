@@ -61,6 +61,11 @@ export interface CompanionContext {
     setNeighbourhoodView(view: "graph" | "list"): void;
     /** What the head's ⋯ menu offers right now — every block's items, in block order (#642). */
     menu(): HeaderAction[];
+    /**
+     * Bring `target` into view inside the companion's own scroll container, just under its sticky
+     * head — never `scrollIntoView`, which also scrolls Obsidian's own panes (#639 runtime audit).
+     */
+    scrollTo(target: HTMLElement): void;
 }
 
 export type CompanionColumn = "head" | "main" | "side";
@@ -118,9 +123,21 @@ export abstract class CompanionBlock extends Component {
      */
     protected highlightOnce(target: HTMLElement): void {
         const highlight = "zettelkasten-flow__note-companion-highlight";
+        // A second hand-over while the ring is still on restarts it: off, a reflow, on again.
+        target.removeClass(highlight);
+        void target.offsetWidth;
         target.addClass(highlight);
-        if (prefersReducedMotion(target)) this.later(HIGHLIGHT_MS, () => target.removeClass(highlight));
-        else target.addEventListener("animationend", () => target.removeClass(highlight), { once: true });
+        if (prefersReducedMotion(target)) {
+            this.later(HIGHLIGHT_MS, () => target.removeClass(highlight));
+            return;
+        }
+        // `animationend` bubbles: only the ring's own end takes the ring off, not a child's.
+        const done = (event: AnimationEvent) => {
+            if (event.target !== target) return;
+            target.removeEventListener("animationend", done);
+            target.removeClass(highlight);
+        };
+        target.addEventListener("animationend", done);
     }
 
     abstract update(ctx: CompanionContext): void;
@@ -152,6 +169,11 @@ export const HIGHLIGHT_MS = 1400;
 export function prefersReducedMotion(el: HTMLElement): boolean {
     const win = (el as HTMLElement & { win?: Window }).win ?? (typeof activeWindow === "undefined" ? undefined : activeWindow);
     return win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+}
+
+/** Mark a button that writes to the note: greyed out while another companion write is in flight. */
+export function marksWrite(button: HTMLElement): void {
+    button.setAttribute("data-writes", "");
 }
 
 /** A note's file name without folders or `.md` — what a row shows; the path goes in the tooltip. */

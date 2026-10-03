@@ -39,6 +39,8 @@ async function open(app: App, request: CompanionRequest): Promise<void> {
 
     const existing = app.workspace.getLeavesOfType(NOTE_COMPANION_VIEW)[0];
     if (existing) {
+        // After a restart a leaf can be deferred: load it first, so the state reaches the real view.
+        await (existing as { loadIfDeferred?: () => Promise<void> }).loadIfDeferred?.();
         await existing.setViewState({ type: NOTE_COMPANION_VIEW, state, active: false });
         await app.workspace.revealLeaf(existing);
         return;

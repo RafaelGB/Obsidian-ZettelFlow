@@ -2,7 +2,8 @@ import { describe, it, expect, jest } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { TFile, WorkspaceLeaf } from "obsidian";
-import { DomNode } from "../../../../support/dashboardDom";
+import { DomNode, flush } from "../../../../support/dashboardDom";
+import { queueCompanionWrite, resetCompanionWrites } from "architecture/components/core/noteCompanion/companionWrites";
 import { NoteCompanionView } from "architecture/components/core/noteCompanion/NoteCompanionView";
 import { HeadBlock } from "architecture/components/core/noteCompanion/blocks/headBlock";
 
@@ -207,5 +208,57 @@ describe("one block failing does not take the others down (#639 walk)", () => {
         // The main column still rendered its blocks.
         expect(content.oneByClass("note-companion-col-main").children.length).toBeGreaterThan(0);
         spy.mockRestore();
+    });
+});
+
+describe("in the real app (#639 runtime audit)", () => {
+    it("scrolls its own container to put a target just under the sticky head, never scrollIntoView", async () => {
+        const { view, content } = mount();
+        await view.onOpen();
+        const head = content.oneByClass("note-companion-col-head");
+        head.offsetHeight = 120;
+        content.scrollTop = 300;
+        const target = new DomNode();
+        target.getBoundingClientRect = () => ({ left: 0, top: 500, width: 100, height: 20 });
+        (view as unknown as { scrollTo(el: unknown): void }).scrollTo(target);
+        // 500 below the container's top + 300 already scrolled − 120 of head − 8 of air.
+        expect(content.scrolls).toEqual([{ top: 672, behavior: "smooth" }]);
+        expect(target.scrolls).toEqual([]);
+    });
+
+    it("jumps instead of gliding when motion is reduced", async () => {
+        (globalThis as { activeWindow?: unknown }).activeWindow = { matchMedia: () => ({ matches: true }) };
+        try {
+            const { view, content } = mount();
+            await view.onOpen();
+            (view as unknown as { scrollTo(el: unknown): void }).scrollTo(new DomNode());
+            expect(content.scrolls[0].behavior).toBe("auto");
+        } finally {
+            delete (globalThis as { activeWindow?: unknown }).activeWindow;
+        }
+    });
+
+    it("draws what it owes when it is first shown (Obsidian calls onResize then)", async () => {
+        const { view, content } = mount();
+        let shown = false;
+        content.isShown = () => shown;
+        await view.onOpen();
+        expect(content.byClass("note-companion-title")).toEqual([]);
+        shown = true;
+        view.onResize();
+        expect(content.oneByClass("note-companion-title").textContent).toBe("A");
+    });
+
+    it("says it is busy while a companion write is in flight", async () => {
+        const { view, content } = mount();
+        await view.onOpen();
+        let release: () => void = () => undefined;
+        const write = queueCompanionWrite(() => new Promise<void>((resolve) => (release = resolve)));
+        expect(content.oneByClass("note-companion").getAttribute("aria-busy")).toBe("true");
+        await flush();
+        release();
+        await write;
+        expect(content.oneByClass("note-companion").getAttribute("aria-busy")).toBe("false");
+        resetCompanionWrites();
     });
 });

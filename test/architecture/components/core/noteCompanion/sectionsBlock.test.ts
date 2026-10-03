@@ -4,6 +4,7 @@ import { join } from "path";
 import { Component } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { SectionsBlock } from "architecture/components/core/noteCompanion/blocks/sectionsBlock";
+import { resetCompanionWrites } from "architecture/components/core/noteCompanion/companionWrites";
 import type {
     CompanionContext,
     CompanionModel,
@@ -54,6 +55,7 @@ function setup(deps: Partial<ConstructorParameters<typeof SectionsBlock>[1]> = {
             refresh: jest.fn(),
             reveal: jest.fn(),
             open: jest.fn(),
+            scrollTo: jest.fn(),
         }) as unknown as CompanionContext;
     block.load();
     const first = ctx(model());
@@ -65,6 +67,7 @@ const summaries = (host: DomNode) => host.querySelectorAll("summary").map((summa
 
 afterEach(() => {
     delete (globalThis as { activeWindow?: unknown }).activeWindow;
+    resetCompanionWrites();
 });
 
 describe("the counted sections (#640 FR-11..16, AC-6)", () => {
@@ -200,30 +203,25 @@ describe("a hand-over lands on a section (#640 FR-21, amendment 1)", () => {
     });
 
     it("expands, scrolls to and highlights the section, once", () => {
-        const { host, block } = setup();
+        const { host, block, first } = setup();
         const near = () =>
             host.byClass("note-companion-section").find((section) => section.getAttribute("data-section") === "nearby")!;
         near().open = false;
         near().fire("toggle");
         block.reveal("nearby");
         expect(near().open).toBe(true);
-        expect(near().scrolls).toEqual([{ behavior: "smooth", block: "start" }]);
+        // Through the view's own scroll container — never scrollIntoView (#639 runtime audit).
+        expect(first.scrollTo).toHaveBeenCalledWith(near());
+        expect(near().scrolls).toEqual([]);
         expect(near().hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
-    });
-
-    it("scrolls without animation when motion is reduced", () => {
-        (globalThis as { activeWindow?: unknown }).activeWindow = { matchMedia: () => ({ matches: true }) };
-        const { host, block } = setup();
-        block.reveal("gaps");
-        const gaps = host.byClass("note-companion-section").find((section) => section.getAttribute("data-section") === "gaps")!;
-        expect(gaps.scrolls).toEqual([{ behavior: "auto", block: "start" }]);
     });
 
     it("scrolls to the quiet line when the section is empty", () => {
         const { host, block, ctx } = setup();
-        block.update(ctx(model("A.md", [])));
+        const empty = ctx(model("A.md", []));
+        block.update(empty);
         block.reveal("nearby");
-        expect(host.oneByClass("note-companion-folded").scrolls).toHaveLength(1);
+        expect(empty.scrollTo).toHaveBeenCalledWith(host.oneByClass("note-companion-folded"));
     });
 });
 
@@ -252,6 +250,7 @@ describe("the inline answer after the epic's review (#639)", () => {
         const linkNotes = jest.fn(() => new Promise<{ ok: boolean; batch: string }>((resolve) => (finish = resolve)));
         const { host, block, ctx } = setup({ linkNotes } as never);
         host.oneByClass("note-companion-insert").click();
+        await flush(); // the write takes its turn in the companion's queue first
         block.update(ctx(model("C.md")));
         finish({ ok: true, batch: "b1" });
         await flush();

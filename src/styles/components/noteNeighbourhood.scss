@@ -6,8 +6,8 @@
  *
  * Colour is the relation and nothing else: supports in the theme's green, contradicts in its red, an
  * example in its blue, a plain link (and every other relation) faint. A near-but-unlinked note is
- * dashed. The SVG scales to its column through its viewBox, so the graph fills whatever width the
- * pane gives it; labels are sized in rem so the picture keeps its proportions.
+ * dashed. The layout measures the pane and sizes the viewBox to it, so one unit is one pixel: the
+ * graph fills its column and labels stay at the UI's small size, even in a narrow sidebar.
  */
 
 .zettelkasten-flow__note-companion-neighbourhood {
@@ -104,45 +104,51 @@
     cursor: pointer;
     outline: none;
 
-    circle {
+    .zettelkasten-flow__note-companion-node-dot {
         fill: var(--background-primary);
         stroke: var(--text-muted);
         stroke-width: 2;
     }
 
-    &:hover circle,
-    &:focus-visible circle {
+    &:hover .zettelkasten-flow__note-companion-node-dot,
+    &:focus-visible .zettelkasten-flow__note-companion-node-dot {
         stroke: var(--interactive-accent);
         stroke-width: 3;
     }
 }
 
-.zettelkasten-flow__note-companion-node--supports circle {
+.zettelkasten-flow__note-companion-node--supports .zettelkasten-flow__note-companion-node-dot {
     stroke: var(--color-green);
 }
 
-.zettelkasten-flow__note-companion-node--contradicts circle {
+.zettelkasten-flow__note-companion-node--contradicts .zettelkasten-flow__note-companion-node-dot {
     stroke: var(--color-red);
 }
 
-.zettelkasten-flow__note-companion-node--example circle {
+.zettelkasten-flow__note-companion-node--example .zettelkasten-flow__note-companion-node-dot {
     stroke: var(--color-blue);
 }
 
-.zettelkasten-flow__note-companion-node--link circle {
+.zettelkasten-flow__note-companion-node--link .zettelkasten-flow__note-companion-node-dot {
     fill: var(--text-faint);
     stroke: var(--text-faint);
 }
 
-.zettelkasten-flow__note-companion-node--near circle {
+.zettelkasten-flow__note-companion-node--near .zettelkasten-flow__note-companion-node-dot {
     stroke: var(--text-faint);
     stroke-dasharray: 2 2;
 }
 
+/* The hit target: invisible, bigger than the dot, so a node is easy to hover and tap. */
+.zettelkasten-flow__note-companion-node-hit {
+    fill: transparent;
+    stroke: none;
+}
+
+/* One viewBox unit is one pixel (the layout measures the pane), so this is the real size. */
 .zettelkasten-flow__note-companion-node-label {
-    font-size: 0.625rem;
+    font-size: var(--font-ui-smaller);
     fill: var(--text-muted);
-    pointer-events: none;
 }
 
 .zettelkasten-flow__note-companion-node--near .zettelkasten-flow__note-companion-node-label {

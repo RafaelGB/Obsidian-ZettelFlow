@@ -112,7 +112,8 @@ export class HeadBlock extends CompanionBlock {
             }
             // From the button's own corner, so the keyboard opens it where the control is.
             const box = more.getBoundingClientRect();
-            menu.showAtPosition({ x: box.left, y: box.bottom });
+            // In the window the button is in: a companion in a popout opens its menu there.
+            menu.showAtPosition({ x: box.left, y: box.bottom }, more.doc);
         });
     }
 

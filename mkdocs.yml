@@ -7,8 +7,8 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   language: en
-  logo: resources/obsidian.png
-  favicon: resources/obsidian.png
+  logo: resources/logo.svg
+  favicon: resources/logo.svg
   icon:
     repo: fontawesome/brands/github-alt
   font:

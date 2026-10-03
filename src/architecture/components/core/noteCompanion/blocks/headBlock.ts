@@ -1,6 +1,7 @@
 import { Menu, setIcon } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
+import { STATE_EMOJI } from "architecture/knowledge";
 import { hoverPreview } from "architecture/components/core/a11y";
 import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
@@ -147,7 +148,10 @@ export class HeadBlock extends CompanionBlock {
                     : item;
             if (host !== item) this.on(host, "click", () => ctx.reveal("next", "advance-state"));
             host.createSpan({ cls: c("note-companion-step-dot") });
-            host.createSpan({ cls: c("note-companion-step-label"), text: t(step.labelKey) });
+            // Where the note is now reads at a glance: the current step is a filled pill with the
+            // state's own emoji, the way the state chip draws it everywhere else (#639 walk).
+            const label = step.status === "current" ? `${STATE_EMOJI[step.state]} ${t(step.labelKey)}` : t(step.labelKey);
+            host.createSpan({ cls: c("note-companion-step-label"), text: label });
         }
         // A note that never stated a state is not "fleeting" — it is unstated, and says so.
         if (!steps.some((step) => step.status !== "todo")) {

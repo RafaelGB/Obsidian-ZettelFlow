@@ -1,3 +1,4 @@
+import { t } from "architecture/lang";
 import { Component, type App, type PaneType } from "obsidian";
 import type {
     CompanionSections,
@@ -123,6 +124,12 @@ export abstract class CompanionBlock extends Component {
     }
 
     abstract update(ctx: CompanionContext): void;
+
+    /** What a block shows when its own render threw: one quiet line, in its own place (#639). */
+    showFailure(): void {
+        this.el.empty();
+        this.el.createDiv({ cls: "zettelkasten-flow__note-companion-quiet", text: t("note_companion_block_failed") });
+    }
 
     /** Whether this block is where `focus` lands. */
     claims(_focus: CompanionFocus): boolean {

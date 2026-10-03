@@ -147,13 +147,15 @@
     }
 }
 
+/* Where the note is now: a filled accent pill with the state's emoji — the one thing in the head that
+   carries the accent, so it is the first thing read (#639 walk: the dot alone did not say it). */
 .zettelkasten-flow__note-companion-step--current {
-    color: $text-plain;
+    @include chip;
+    @include chip-active;
     font-weight: var(--font-semibold);
 
     .zettelkasten-flow__note-companion-step-dot {
-        background-color: var(--interactive-accent);
-        border-color: var(--interactive-accent);
+        display: none;
     }
 }
 
@@ -255,12 +257,21 @@ button.zettelkasten-flow__note-companion-vital {
     color: $text-quiet;
 }
 
-/* The stepper's proposed step keeps the step's own look; it only becomes something you can press. */
+/* The stepper's proposed step: a dashed outline in the accent says "you can go here" without
+   competing with the filled pill that says "you are here". */
 .zettelkasten-flow__note-companion-step-next {
     display: inline-flex;
     align-items: center;
     gap: $space-1;
-    color: inherit;
+    color: var(--text-accent);
+    border: var(--border-width) dashed var(--interactive-accent);
+    border-radius: $radius-pill;
+    padding: $space-hair $space-2;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
 }
 
 .zettelkasten-flow__note-next-panel {

@@ -1959,6 +1959,7 @@ export default {
     dashboard_capability_name: 'Base dashboards',
     // This note companion (#640)
     command_open_note_companion: 'Show this note in the sidebar',
+    note_companion_block_failed: 'This part could not be drawn. Try refresh.',
     note_companion_title: 'This note',
     note_companion_empty: 'Open a note to see where it stands, what surrounds it and how it got here.',
     note_companion_last_note: 'Last note',

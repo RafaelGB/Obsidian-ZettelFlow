@@ -62,8 +62,15 @@ export class DomNode {
     }
     /** Obsidian's `createSvg`: the same as createEl, marked as SVG so a test can tell (#643). */
     createSvg(tag: string, options: any = {}): any {
-        const el = this.createEl(tag, options);
+        // Obsidian adds `cls` with classList.add — one token per entry. A space-joined string throws
+        // InvalidCharacterError in the app (#639), so it throws here too.
+        if (typeof options.cls === "string" && /\s/.test(options.cls.trim())) {
+            throw new Error(`InvalidCharacterError: createSvg cls "${options.cls}" contains a space`);
+        }
+        const el = this.createEl(tag, { ...options, cls: Array.isArray(options.cls) ? options.cls.join(" ") : options.cls });
         el.svg = true;
+        // Like Obsidian: only HTML elements have isShown(); an SVG element does not.
+        el.isShown = undefined;
         return el;
     }
     /** True for a node made by {@link createSvg}. */
@@ -143,6 +150,10 @@ export class DomNode {
         return { left: 0, top: 0, width: 100, height: 100 };
     }
     focus(): void { }
+    /** Obsidian's HTMLElement.isShown — absent on SVG nodes (see createSvg). */
+    isShown(): boolean {
+        return this.isConnected;
+    }
     scrollIntoView(options?: any): void {
         this.scrolls.push(options);
     }

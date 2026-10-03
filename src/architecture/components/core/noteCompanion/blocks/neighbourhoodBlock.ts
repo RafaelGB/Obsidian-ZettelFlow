@@ -125,8 +125,9 @@ export class NeighbourhoodBlock extends CompanionBlock {
 
         const edges = new Map<string, SVGElement>();
         for (const node of layout.nodes) {
+            // Obsidian's createSvg adds `cls` as ONE classList token: several classes go as an array.
             const edge = svg.createSvg("line", {
-                cls: [c("note-companion-edge"), c(`note-companion-edge--${node.cls}`)].join(" "),
+                cls: [c("note-companion-edge"), c(`note-companion-edge--${node.cls}`)],
                 attr: { x1: layout.cx, y1: layout.cy, x2: node.x, y2: node.y },
             });
             edges.set(node.path, edge);
@@ -134,7 +135,7 @@ export class NeighbourhoodBlock extends CompanionBlock {
         svg.createSvg("circle", { cls: c("note-companion-centre"), attr: { cx: layout.cx, cy: layout.cy, r: 9 } });
 
         // DOM order is the reading order: clockwise from twelve, then the near ring.
-        for (const node of layout.nodes) this.renderNode(svg, ctx, node, edges.get(node.path));
+        for (const node of layout.nodes) this.renderNode(svg, root, ctx, node, edges.get(node.path));
 
         if (layout.overflow > 0) {
             const more = root.createEl("button", {
@@ -147,9 +148,15 @@ export class NeighbourhoodBlock extends CompanionBlock {
         this.renderLegend(root);
     }
 
-    private renderNode(svg: SVGElement, ctx: CompanionContext, node: LayoutNode, edge: SVGElement | undefined): void {
+    private renderNode(
+        svg: SVGElement,
+        box: HTMLElement,
+        ctx: CompanionContext,
+        node: LayoutNode,
+        edge: SVGElement | undefined
+    ): void {
         const g = svg.createSvg("g", {
-            cls: [c("note-companion-node"), c(`note-companion-node--${node.cls}`)].join(" "),
+            cls: [c("note-companion-node"), c(`note-companion-node--${node.cls}`)],
             attr: { tabindex: 0, role: "link", "aria-label": this.nodeName(node) },
         });
         g.createSvg("circle", { attr: { cx: node.x, cy: node.y, r: 6 } });
@@ -169,7 +176,9 @@ export class NeighbourhoodBlock extends CompanionBlock {
             evt.preventDefault();
             ctx.open(node.path, Keymap.isModEvent(evt));
         });
-        hoverPreview(ctx.app, g, node.path, ctx.owner);
+        // Obsidian's hover handler calls `targetEl.isShown()`, which an SVG element does not have;
+        // the popover is anchored on the graph's own (HTML) box instead.
+        hoverPreview(ctx.app, g, node.path, ctx.owner, box);
     }
 
     /** "Title, relation, direction" — or "Title, near but not linked". */

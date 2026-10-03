@@ -81,6 +81,12 @@ describe("the companion head (#640 FR-6..10, AC-4/AC-5)", () => {
         expect(ctx.reveal.mock.calls.map((call) => call[0])).toEqual(["links-in", "links-out", "gaps", "gaps"]);
     });
 
+    it("names the current state at a glance, with its emoji, and only that one", () => {
+        const { host } = render({ kind: "note", model: model() });
+        const labels = host.byClass("note-companion-step-label").map((label) => label.textContent);
+        expect(labels).toEqual(["Fleeting", "📝 Literature", "Permanent"]);
+    });
+
     it("draws the lifecycle as steps you cannot click", () => {
         const { host, ctx } = render({ kind: "note", model: model() });
         const steps = host.querySelector("ol")!.children;

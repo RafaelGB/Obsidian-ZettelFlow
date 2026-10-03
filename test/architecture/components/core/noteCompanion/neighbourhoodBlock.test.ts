@@ -131,6 +131,9 @@ describe("hover, click and keyboard (#643 AC-7)", () => {
         const { host, ctx } = setup();
         nodes(host)[0].fire("mouseover");
         expect(ctx.app.workspace.trigger).toHaveBeenCalledWith("hover-link", expect.objectContaining({ linktext: "E.md" }));
+        // Obsidian calls isShown() on the target; an SVG node has none, so the box is the target.
+        const payload = (ctx.app.workspace.trigger as jest.Mock).mock.calls[0][1] as { targetEl: { isShown?: unknown } };
+        expect(typeof payload.targetEl.isShown).toBe("function");
     });
 
     it("opens on click, in a new tab with a modifier, and with Enter", () => {

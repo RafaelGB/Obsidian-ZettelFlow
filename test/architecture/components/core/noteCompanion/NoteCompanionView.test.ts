@@ -4,6 +4,7 @@ import { join } from "path";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode } from "../../../../support/dashboardDom";
 import { NoteCompanionView } from "architecture/components/core/noteCompanion/NoteCompanionView";
+import { HeadBlock } from "architecture/components/core/noteCompanion/blocks/headBlock";
 
 const SOURCE = readFileSync(
     join(__dirname, "../../../../../src/architecture/components/core/noteCompanion/NoteCompanionView.ts"),
@@ -189,5 +190,22 @@ describe("a render that would draw the same thing is skipped (#639 review)", () 
         const before = content.oneByClass("note-companion-title");
         fire("file-open", markdown("zettel/B.md"));
         expect(content.oneByClass("note-companion-title")).not.toBe(before);
+    });
+});
+
+describe("one block failing does not take the others down (#639 walk)", () => {
+    it("says so in the failing block's own place and still draws the rest", async () => {
+        // In the vault a graph threw while drawing and the story below it never rendered: blocks
+        // were updated in one chain. Each one is on its own now.
+        const spy = jest.spyOn(HeadBlock.prototype, "update").mockImplementation(() => {
+            throw new Error("boom");
+        });
+        const { view, content } = mount();
+        await view.onOpen();
+        const head = content.oneByClass("note-companion-col-head");
+        expect(head.textContent).toBe("This part could not be drawn. Try refresh.");
+        // The main column still rendered its blocks.
+        expect(content.oneByClass("note-companion-col-main").children.length).toBeGreaterThan(0);
+        spy.mockRestore();
     });
 });

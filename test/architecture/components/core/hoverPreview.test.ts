@@ -14,6 +14,8 @@ function fakeEl() {
         fire(type: string, event: unknown) {
             (listeners[type] ?? []).forEach((h) => h(event));
         },
+        // Obsidian's hover handler calls this on the target; HTML elements have it.
+        isShown: () => true,
     };
 }
 
@@ -50,6 +52,24 @@ describe("hoverPreview (#594)", () => {
                 sourcePath: "",
             })
         );
+    });
+
+    it("anchors an SVG element on an HTML box, because Obsidian calls isShown() on the target (#639)", () => {
+        const svgNode = { ...fakeEl(), isShown: undefined };
+        const box = fakeEl();
+        const trigger = jest.fn();
+        const app = { workspace: { trigger } } as unknown as App;
+        hoverPreview(app, svgNode as unknown as SVGElement, "Notes/Idea.md", {}, box as unknown as HTMLElement);
+        svgNode.fire("mouseover", {});
+        expect(trigger).toHaveBeenCalledWith("hover-link", expect.objectContaining({ targetEl: box }));
+    });
+
+    it("never hands Obsidian an SVG target with no box to anchor on", () => {
+        const svgNode = { ...fakeEl(), isShown: undefined };
+        const trigger = jest.fn();
+        hoverPreview({ workspace: { trigger } } as unknown as App, svgNode as unknown as SVGElement, "a.md", {});
+        svgNode.fire("mouseover", {});
+        expect(trigger).not.toHaveBeenCalled();
     });
 
     it("is wired onto Cultivate's note names — target and connect/challenge candidates (#594)", () => {

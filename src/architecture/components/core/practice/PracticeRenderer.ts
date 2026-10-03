@@ -191,7 +191,7 @@ export class PracticeRenderer extends KnowledgeModeRenderer {
         let x = 0;
         for (const segment of mix.segments) {
             bar.createSvg("rect", {
-                cls: [c("practice-seg"), c(`practice-seg--${segment.kind}`)].join(" "),
+                cls: [c("practice-seg"), c(`practice-seg--${segment.kind}`)],
                 attr: { x, y: 0, width: segment.count, height: 1 },
             });
             x += segment.count;

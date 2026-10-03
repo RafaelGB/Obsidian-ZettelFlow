@@ -241,7 +241,16 @@ export class NoteCompanionView extends ItemView {
             setNeighbourhoodView: (view) => this.setNeighbourhoodView(view),
             menu: () => this.menuItems(),
         };
-        for (const block of this.blocks) block.update(ctx);
+        // Each block on its own: a block that throws says so in its own place and the rest still
+        // draw. They used to render in a chain, so one bad graph took the story down with it.
+        for (const block of this.blocks) {
+            try {
+                block.update(ctx);
+            } catch (error) {
+                log.error(`[NoteCompanion] the ${block.id} block failed: ${error instanceof Error ? error.message : String(error)}`);
+                block.showFailure();
+            }
+        }
 
         if (pending?.focus) {
             const owner = this.blocks.find((block) => block.claims(pending.focus!));

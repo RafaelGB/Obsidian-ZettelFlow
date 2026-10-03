@@ -1960,6 +1960,7 @@ export default {
     dashboard_capability_name: 'Paneles de Base',
     // This note companion (#640)
     command_open_note_companion: 'Mostrar esta nota en la barra lateral',
+    note_companion_block_failed: 'Esta parte no se pudo dibujar. Prueba a actualizar.',
     note_companion_title: 'Esta nota',
     note_companion_empty: 'Abre una nota para ver dónde está, qué la rodea y cómo llegó hasta aquí.',
     note_companion_last_note: 'Última nota',

@@ -9,9 +9,9 @@ Create some options to select one of them and add it into the built-in note temp
   - Value: the value that will be inserted into the property.
   - Description: An explanatory description for the option.
 
-![gif](../resources/actions/selector/Select-step.gif)
+![Configuring the Selector action: zone, key, multiple and the options](../resources/actions/selector/selector-settings.svg)
 
 ## Component
-The component is a dropdown with the options you have defined. Select one of them and press `Confirm` to continue.
+The component lists the options you defined. Click one (or move with the arrow keys and press `Enter`) to choose it and continue. With **Enable multiple**, tick several and press **Confirm**.
 
-![gif](../resources/actions/selector/Select-component.gif)
+![The Selector step in the wizard: one option chosen from the list](../resources/actions/selector/selector-step.svg)

@@ -6,4 +6,4 @@ N/A
 
 ## Component
 Multi-select component to add tags to the built-in note template as property.
-![gif](../resources/actions/tags/Tags-component.gif)
+![The Tags step in the wizard: chosen tags as chips, search and create](../resources/actions/tags/tags-step.svg)

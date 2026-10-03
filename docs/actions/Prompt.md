@@ -7,9 +7,9 @@ Include a textarea to save text as a property in the built-in note template.
 - Label: An explanatory label for the property.
 - Placeholder: A placeholder as a hint for the user (yourself).
 
-![gif](../resources/actions/prompt/Prompt-tutorial.gif)
+![Configuring the Prompt action: zone, key, label, placeholder and static value](../resources/actions/prompt/prompt-settings.svg)
 
 ## Component
-The component is a simple input field with a label and a placeholder. Write the value you want and press `enter` to continue.
+The component is a text area with your label as the question and your placeholder as a hint. `Enter` starts a new line; `Ctrl`/`Cmd`+`Enter` (or **Confirm**) saves the answer and continues.
 
-![gif](../resources/actions/prompt/Prompt-action-view.gif)
+![The Prompt step in the wizard: a text area, Ctrl+Enter to confirm](../resources/actions/prompt/prompt-step.svg)

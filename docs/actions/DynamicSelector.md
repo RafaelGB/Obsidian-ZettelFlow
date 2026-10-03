@@ -40,7 +40,7 @@ const testFolders = app.vault.getAllFolders();
 return testFolders.map(folder => [folder.path,folder.name]);
 ```
 
-![gif](../resources/actions/dynamic-selector/example-settings.png)
+![Configuring the Dynamic selector: the options script and a debug run](../resources/actions/dynamic-selector/dynamic-selector-settings.svg)
 
 ### Requirements:
 

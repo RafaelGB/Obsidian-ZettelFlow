@@ -7,7 +7,7 @@ Insert the backlink of the built-in note template into the note you have configu
   - Default file: Select the default file to be used.
   - Default file heading: Select the default heading to be used.
 
-![gif](../resources/actions/backlink/Backlink-tutorial.gif)
+![Configuring the Backlink action: insert pattern, default file and heading](../resources/actions/backlink/backlink-settings.svg)
 
 ## Component
 The component is disabled by default. To enable it, you must set the `Enable default backlink` option to `false`.
@@ -16,4 +16,4 @@ When you select the target file, the input of heading will be enabled with the p
 
 The pattern will be `{{wikilink}}` by default. Once the file and heading are selected, a preview markdown will be shown with the pattern applied.
 
-![gif](../resources/actions/backlink/Backlink-component.gif)
+![The Backlink step in the wizard: pick a note and a heading, with a preview of the inserted link](../resources/actions/backlink/backlink-step.svg)

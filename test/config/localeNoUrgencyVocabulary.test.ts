@@ -12,7 +12,13 @@ import es from "architecture/lang/locale/es";
  * So the horizon says the same thing at every distance, before and after the day arrives, and this
  * is the scan that keeps it that way.
  */
-const PREFIXES = ["evolution_timeline_horizon", "claim_return_wager", "home_claim_return_wager"];
+const PREFIXES = [
+    "evolution_timeline_horizon",
+    "claim_return_wager",
+    "home_claim_return_wager",
+    // The pinned horizon above the story (#642): an absolute day, never a countdown.
+    "note_story_horizon",
+];
 
 const URGENT = [
     /\bdeadline\b/i,

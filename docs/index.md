@@ -68,7 +68,7 @@ capability, see [Everything it does](reference/capabilities.md).
 - **Explore** — narrow your vault by clicking, walk it by relation, fly the 3D graph.
   → [Explore your graph](development/ask-your-graph.md) · [The graph](development/graph-3d.md) · [Concept navigation](development/concept-navigation.md) · [Living knowledge map](development/living-knowledge-map.md)
 - **Review** — the health of your slip-box, the weekly review, the timeline of an idea.
-  → [Slip-box health](development/slipbox-health-dashboard.md) · [Second-brain review](development/second-brain-review.md) · [Evolution timeline](development/evolution-timeline.md) · [Open questions](development/open-questions.md)
+  → [Health › Tend](development/slipbox-health-dashboard.md) · [Second-brain review](development/second-brain-review.md) · [Evolution timeline](development/evolution-timeline.md) · [Open questions](development/open-questions.md)
 - **Think & cultivate** — make one idea evolve, think before it's knowledge, place a wager, collide two notes, re-judge a claim.
   → [Cultivate](development/cultivate.md) · [Think](architecture/thought-lab.md) · [A thought you can be wrong about](development/wagers.md) · [Two things far apart](architecture/collision.md) · [The return of a claim](development/claim-returns.md)
 - **Automation** — react to vault events, run scripts on property changes.

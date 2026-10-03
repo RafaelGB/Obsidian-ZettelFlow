@@ -120,7 +120,7 @@ native **Page preview**: hold **Ctrl/Cmd** and hover to see the note in a popove
 Clicking still opens the note as before — the preview is an addition, not a replacement.
 
 This started in Cultivate and is now the rule **everywhere a note name is clickable** — Home,
-Ask-your-graph, Reasoning paths, Agency review, Health, Resurface, the Evidence map and the Evolution
+Ask-your-graph, Reasoning paths, Practice, Health, Resurface, the Evidence map and the Evolution
 timeline. See [Mobile & accessibility → what the code guarantees](mobile-and-accessibility.md#what-the-code-guarantees)
 for the shared helper and the guardrail that keeps a new surface from forgetting it.
 

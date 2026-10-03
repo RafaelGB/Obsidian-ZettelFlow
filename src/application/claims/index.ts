@@ -9,6 +9,6 @@ export {
     type ClaimReturnState,
     type ClaimReturnView,
 } from "./claimReturn";
-export { applySource, declaredSources, SOURCE_EDIT_INDEX } from "./sourceEdit";
+export { applySource, appendSource, declaredSources, sourceKeyOf, SOURCE_EDIT_INDEX } from "./sourceEdit";
 export { applyWager, clearWager, type WagerInput } from "./wagerEdit";
 export { keepDraft, readDraft, clearDraft } from "./returnDraft";

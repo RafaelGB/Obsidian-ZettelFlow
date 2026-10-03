@@ -162,11 +162,13 @@ nav:
           - The graph lens: development/graph-3d.md
           - Canvas integration: development/canvas-integration.md
       - Review & analyze:
-          - Slip-box health dashboard: development/slipbox-health-dashboard.md
+          - This note: development/this-note.md
+          - Health › Tend: development/slipbox-health-dashboard.md
           - Knowledge dashboard: development/knowledge-dashboard.md
           - Base dashboards: development/base-dashboards.md
           - Second-brain review: development/second-brain-review.md
-          - Thinking heatmap: development/thinking-heatmap.md
+          - Practice: development/practice.md
+          - Development journal: development/thinking-heatmap.md
           - Evolution timeline: development/evolution-timeline.md
           - Evidence map: development/evidence-map.md
           - Knowledge patterns: development/knowledge-patterns.md

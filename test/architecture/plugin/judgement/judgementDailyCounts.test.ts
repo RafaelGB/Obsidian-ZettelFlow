@@ -58,7 +58,8 @@ describe("Cultivate streak remains descriptive; purpose-led Home has no streak (
     it("leaves the thinking heatmap on development events, deliberately", () => {
         // The heatmap is a history of what you developed, not a reward mechanic — switching it would
         // discard a year of journal data and show every existing user an empty grid. See #339.
-        const heatmap = read("src/architecture/components/core/thinkingHeatmap/ThinkingHeatmapRenderer.ts");
+        // The strip lives in Practice since #645; it reads the same journal.
+        const heatmap = read("src/architecture/components/core/practice/PracticeRenderer.ts");
         expect(heatmap).toContain("DevelopmentJournal.getInstance().dailyCounts()");
     });
 });

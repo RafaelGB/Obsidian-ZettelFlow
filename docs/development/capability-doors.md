@@ -97,15 +97,17 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `concept-nav` | zettelflow-explore | 2 | surface `zettelflow-explore:explore` · `show-concept-nav` |
 | `explore` | zettelflow-explore | 1 | ribbon → `ask-your-graph` · surface `zettelflow-explore:explore` · `ask-your-graph` |
 | `graph-lens` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) · `explore-in-3d` · `show-graph` |
-| `reasoning-paths` | zettelflow-health | 1 | control in zettelflow-health (`EvolutionTimelineRenderer.ts`) · `explore-reasoning-paths` |
-| `slipbox-health` | zettelflow-health | 1 | ribbon → `show-health` · surface `zettelflow-health:health` · `show-slipbox-health` |
-| `knowledge-dashboard` | zettelflow-health | 2 | surface `zettelflow-health:health` · `show-knowledge-dashboard` |
-| `weekly-review` | zettelflow-health | 1 | control in zettelflow-health (`SlipboxHealthRenderer.ts`) · `generate-weekly-review` |
-| `thinking-heatmap` | zettelflow-health | 2 | surface `zettelflow-health:momentum` · `show-thinking-heatmap` |
-| `evolution-timeline` | zettelflow-health | 2 | surface `zettelflow-health:timeline` · `show-evolution-timeline` · `show-notes-history` |
-| `evidence-map` | zettelflow-health | 2 | surface `zettelflow-health:timeline` · `show-evidence-map` |
+| `reasoning-paths` | zettelflow-note | 1 | control in zettelflow-note (`headBlock.ts`) · `explore-reasoning-paths` |
+| `slipbox-health` | zettelflow-health | 1 | ribbon → `show-health` · surface `zettelflow-health:tend` · `show-slipbox-health` |
+| `knowledge-dashboard` | zettelflow-health | 2 | surface `zettelflow-health:tend` · `show-knowledge-dashboard` |
+| `weekly-review` | zettelflow-health | 1 | control in zettelflow-health (`TendRenderer.ts`) · `generate-weekly-review` |
+| `practice` | zettelflow-health | 2 | surface `zettelflow-health:practice` · `show-thinking-heatmap` |
+| `note-companion` | zettelflow-note | 1 | ribbon → `open-note-companion` · control in zettelflow-health (`TendRenderer.ts`) · `open-note-companion` |
+| `next-step` | zettelflow-note | 1 | control in zettelflow-note (`nextStepBlock.ts`) |
+| `evolution-timeline` | zettelflow-note | 1 | control in zettelflow-note (`storyBlock.ts`) · `show-evolution-timeline` · `show-notes-history` |
+| `evidence-map` | zettelflow-note | 1 | control in zettelflow-note (`sectionsBlock.ts`) · `show-evidence-map` |
 | `open-questions` | zettelflow-home | 2 | surface `zettelflow-home:home` · `show-open-questions` |
-| `resurface` | zettelflow-home | 3 | recommended on `zettelflow-home:home` · `resurface-related-notes` · `show-discoveries` · `show-discovery` |
+| `resurface` | zettelflow-home | 1 | control in zettelflow-note (`sectionsBlock.ts`) · recommended on `zettelflow-home:home` · `resurface-related-notes` · `show-discoveries` · `show-discovery` |
 | `atomicity-split` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · `split-note-into-atomic-notes` |
 | `cultivate` | zettelflow-home | 1 | ribbon → `cultivate` · surface `zettelflow-home:cultivate` · `cultivate` |
 | `inquiry` | zettelflow-home | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) |
@@ -117,7 +119,6 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `claim-door` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |
 | `claim-return` | claims | 3 | recommended on `zettelflow-home:home` · `return-to-this-claim` |
 | `wager` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · recommended on `zettelflow-home:home` |
-| `agency-review` | zettelflow-health | 2 | surface `zettelflow-health:agency` |
 | `note-state` | lifecycle | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) · `change-note-state` |
 | `remove-relation` | relations | 1 | note menu (`RemoveRelationComponent.ts`) · `remove-relation` |
 | `script-workbench` | scripting | 1 | control in editor (`CodeView.ts`) · `open-script-workbench` |

@@ -17,7 +17,8 @@ const SURFACE_COMMANDS: { id: string; nameKey: LocaleKey }[] = [
     { id: "show-slipbox-health", nameKey: "command_show_slipbox_health" },
     { id: "show-knowledge-dashboard", nameKey: "command_show_knowledge_dashboard" },
     { id: "show-evolution-timeline", nameKey: "command_show_evolution_timeline" },
-    { id: "show-thinking-heatmap", nameKey: "command_show_thinking_heatmap" },
+    // The id is kept so hotkeys survive; the name says where it lands now (#645).
+    { id: "show-thinking-heatmap", nameKey: "command_show_practice" },
     { id: "show-discoveries", nameKey: "command_show_discoveries" },
     { id: "resurface-related-notes", nameKey: "command_resurface" },
     { id: "show-open-questions", nameKey: "command_show_open_questions" },

@@ -1,15 +1,13 @@
-# Thinking heatmap
+# Development journal (formerly the thinking heatmap)
 
-The **thinking heatmap** is a GitHub-style calendar of **ideas developed** over the last 52 weeks —
-momentum you actually care about, not a "notes created" volume chart. It rewards *developing* ideas:
-advancing a note's state, adding a source, adding a connection.
+!!! note "Shown in Practice"
+    Since #645 the journal is drawn as the **Ideas developed** strip of
+    **[Health › Practice](practice.md)** — the last 12 weeks, a cell per day. The separate *Momentum*
+    mode and its 52-week grid (the old *Thinking heatmap*) were merged into Practice. *Show practice*
+    (`show-thinking-heatmap`, id kept) opens it.
 
-## Opening it
-
-Run **"Show thinking heatmap"** from the command palette, or click **Open** next to *Thinking
-heatmap* in **Settings → ZettelFlow → Zettelkasten toolkit**. Each cell is one day, coloured by how
-many development events happened, and is keyboard-focusable with a descriptive label ("N ideas
-developed on YYYY-MM-DD").
+The **development journal** counts **ideas developed** per day — not a "notes created" volume chart.
+It rewards *developing* ideas: advancing a note's state, adding a source, adding a connection.
 
 ## What counts as "development"
 
@@ -46,8 +44,8 @@ DevelopmentJournal (runtime singleton, host injected at load)
   fed at KnowledgeIndex.upsert (best-effort, wrapped so it can never break indexing)
   reads/writes settings.journal.counts, debounced saveSettings
 
-ThinkingHeatmapView (ItemView) + ThinkingHeatmapComponent (command, no hotkey)
-  intensity is a --l0…--l4 CSS class (theme-aware), each cell aria-labelled + focusable
+PracticeRenderer (Health › Practice, #645) — the 12-week strip
+  intensity is a --l0…--l4 CSS class (theme-aware), each cell aria-labelled with a tooltip
 ```
 
 ## What this is *not*

@@ -93,7 +93,8 @@ describe("there is one source writer in the product (#582)", () => {
 
     it("no longer sets the source key straight from Cultivate", () => {
         const cultivation = code(read("src/architecture/plugin/services/CultivationService.ts"));
-        expect(cultivation).toContain("applySource(");
+        // Through the shared module: `appendSource` since #641, which adds rather than replaces.
+        expect(cultivation).toContain("appendSource(");
         expect(cultivation).not.toContain("setProperty(SOURCE_KEYS");
     });
 

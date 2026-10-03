@@ -43,7 +43,7 @@ export type StateProjection<Params extends unknown[] = [], Result = unknown> =
 | `buildKnowledgeMap` | `KnowledgeMap` | Knowledge map |
 | `conceptNeighbors` | `ConceptNeighbors` | Concept navigation |
 | `computeWeeklyReview` | `WeeklyReview` | Review |
-| `buildHeatmapGrid` | `HeatmapGrid` | Thinking heatmap |
+| `buildHeatmapGrid` | `HeatmapGrid` | Practice (strip, #645) |
 | `deriveOutline` | `Outline` | Projects / synthesis |
 | `classifyHealth` | `HealthResult` | Health (orphans / dead-ends, over the model's edges) |
 | `deriveRecommendations` | `KnowledgeRecommendation[]` | Home / Health / Discovery (via #268) |

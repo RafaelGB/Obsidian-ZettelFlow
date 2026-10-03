@@ -9,3 +9,4 @@ export {
 export type { SemanticRelationType } from "./vocabulary";
 export { stripWikilink, extractWikilinks } from "./wikilink";
 export { SemanticRelationSchema } from "./RelationSchema";
+export { addRelationValue, type AddRelationResult, type RelationPlacement } from "./addRelation";

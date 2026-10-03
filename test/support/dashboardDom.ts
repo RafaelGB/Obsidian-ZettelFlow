@@ -16,6 +16,15 @@ export class DomNode {
     disabled = false;
     draggable = false;
     tabIndex = -1;
+    /** `<details>` disclosure state (#640). */
+    open = false;
+    /** Every `scrollIntoView` / `scrollTo` call, with its options — hand-overs are asserted on these. */
+    scrolls: any[] = [];
+    /** No layout here: a container's scroll position and an element's size are what a test sets. */
+    scrollTop = 0;
+    offsetHeight = 0;
+    offsetWidth = 0;
+    clientWidth = 0;
     href = "";
     type = "";
     listeners: Record<string, ((event: any) => void)[]> = {};
@@ -56,6 +65,21 @@ export class DomNode {
         this.children.push(el);
         return el;
     }
+    /** Obsidian's `createSvg`: the same as createEl, marked as SVG so a test can tell (#643). */
+    createSvg(tag: string, options: any = {}): any {
+        // Obsidian adds `cls` with classList.add — one token per entry. A space-joined string throws
+        // InvalidCharacterError in the app (#639), so it throws here too.
+        if (typeof options.cls === "string" && /\s/.test(options.cls.trim())) {
+            throw new Error(`InvalidCharacterError: createSvg cls "${options.cls}" contains a space`);
+        }
+        const el = this.createEl(tag, { ...options, cls: Array.isArray(options.cls) ? options.cls.join(" ") : options.cls });
+        el.svg = true;
+        // Like Obsidian: only HTML elements have isShown(); an SVG element does not.
+        el.isShown = undefined;
+        return el;
+    }
+    /** True for a node made by {@link createSvg}. */
+    svg = false;
     createDiv(options: any = {}): any {
         return this.createEl("div", options);
     }
@@ -131,6 +155,16 @@ export class DomNode {
         return { left: 0, top: 0, width: 100, height: 100 };
     }
     focus(): void { }
+    /** Obsidian's HTMLElement.isShown — absent on SVG nodes (see createSvg). */
+    isShown(): boolean {
+        return this.isConnected;
+    }
+    scrollIntoView(options?: any): void {
+        this.scrolls.push(options);
+    }
+    scrollTo(options?: any): void {
+        this.scrolls.push(options);
+    }
 
     find(predicate: (el: DomNode) => boolean): DomNode | undefined {
         for (const child of this.children) {

@@ -122,6 +122,13 @@ export const BUDGETS = {
         measured: "5.1 ms",
         because: "the Health surface's main projection",
     },
+    "analysis.tend.10k": {
+        name: "derive Tend's list over 10,000 notes",
+        limit: 100,
+        measured: "12.7 ms",
+        because:
+            "Health's first mode (#644): the next moves of every note plus the debt categories it composes, re-read on every model revision while Tend is open",
+    },
     "analysis.gaps.top.all.10k": {
         name: "ask for every gap at once over 10,000 notes",
         limit: 5_000,
@@ -184,6 +191,20 @@ export const BUDGETS = {
         measured: "2.24×",
         because:
             "the shape matters more than the number: pairwise work that slips to quadratic would pass an absolute ceiling at 10k and be unusable at 50k",
+    },
+    "analysis.neighbourhood.hub": {
+        name: "a hub's neighbourhood and its layout (80 links), 1,000 renders, in a 10,000-note vault",
+        limit: 600,
+        measured: "186 ms",
+        because:
+            "This note draws it on every note switch; it must cost what the note's links cost, never what the vault costs",
+    },
+    "analysis.neighbourhood.scaling": {
+        name: "how a hub's neighbourhood grows when the vault around it doubles (20k ÷ 10k)",
+        limit: 1.5,
+        measured: "1.01×",
+        because:
+            "the projection reads only the note's own links; a ratio near 1 is that promise, and a vault walk would double it",
     },
     "lab.thread.500": {
         name: "thread and filter a lab of 500 thoughts",

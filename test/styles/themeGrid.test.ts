@@ -32,7 +32,6 @@ const OFF_GRID = /[^-\w.](\d+)px/g;
 const CEILING: Record<string, number> = {
     "accordion.scss": 13,
     "actionAddMenu.scss": 56,
-    "agencyReview.scss": 3,
     "animations.scss": 1,
     "askGraph.scss": 2,
     "backlink.scss": 1,
@@ -49,8 +48,6 @@ const CEILING: Record<string, number> = {
     "discoveries.scss": 1,
     "dragAndDrop.scss": 1,
     "dynamicSelector.scss": 10,
-    "evidenceMap.scss": 2,
-    "evolutionTimeline.scss": 2,
     "flowStatus.scss": 2,
     "flows.scss": 4,
     "graph3d.scss": 10,
@@ -60,9 +57,6 @@ const CEILING: Record<string, number> = {
     "home.scss": 4,
     "hooksConfig.scss": 94,
     "input.scss": 5,
-    "knowledgeBalance.scss": 1,
-    "knowledgeDashboard.scss": 2,
-    "knowledgeDebt.scss": 4,
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
@@ -77,10 +71,8 @@ const CEILING: Record<string, number> = {
     "search.scss": 7,
     "selectableSearch.scss": 11,
     "selector.scss": 11,
-    "slipboxHealth.scss": 1,
     "stepBuilder.scss": 9,
     "surface.scss": 1,
-    "thinkingHeatmap.scss": 8,
     "walkStatus.scss": 6,
     // The one genuine pixel in the vocabulary: `$line-quiet` is a **hairline**, which the rule
     // above allows by name. It is declared here rather than left to slip in unnoticed, and it is

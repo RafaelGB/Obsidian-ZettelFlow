@@ -9,8 +9,17 @@ import es from "architecture/lang/locale/es";
 import { SURFACES } from "architecture/components/core/surface/surfaceRegistry";
 
 const ROOT = join(__dirname, "..", "..", "..");
+// The evolution timeline's renderer became the companion's story (#642): its strand read moved to
+// `storySource.ts`, its rows to `storyRows.ts`, its filter to the State layer's `storyProjection.ts`.
+const COMPANION = join(ROOT, "src", "architecture", "components", "core", "noteCompanion");
+const SOURCE = readFileSync(join(COMPANION, "storySource.ts"), "utf8");
+const ROWS = readFileSync(join(COMPANION, "storyRows.ts"), "utf8");
+const PROJECTION = readFileSync(
+    join(ROOT, "src", "architecture", "knowledge", "timeline", "storyProjection.ts"),
+    "utf8"
+);
 const TIMELINE = readFileSync(
-    join(ROOT, "src", "architecture", "components", "core", "timeline", "EvolutionTimelineRenderer.ts"),
+    join(COMPANION, "blocks", "storyBlock.ts"),
     "utf8"
 );
 
@@ -105,8 +114,10 @@ describe("it restates, and never concludes (#494)", () => {
     it("the timeline counts nothing about the run", () => {
         // Counting transformations is still counting, and the manifesto refuses productivity
         // metrics. The moves are shown; the sequence is not scored.
-        expect(TIMELINE).not.toMatch(/moves\.length\s*[><]/);
-        expect(TIMELINE).not.toContain("moveScore");
+        for (const source of [TIMELINE, ROWS, PROJECTION]) {
+            expect(source).not.toMatch(/moves\.length\s*[><]/);
+            expect(source).not.toContain("moveScore");
+        }
     });
 });
 
@@ -116,8 +127,8 @@ describe("it costs no new place to look (#494)", () => {
     });
 
     it("renders the moves where the question already lives", () => {
-        expect(TIMELINE).toContain("renderMove(");
-        expect(TIMELINE).toContain("MoveLog.getInstance().forSubject(");
+        expect(ROWS).toContain("renderMove(");
+        expect(SOURCE).toContain("MoveLog.getInstance().forSubject(");
     });
 
     it("shows them even when snapshot recording is off", () => {
@@ -130,12 +141,10 @@ describe("it costs no new place to look (#494)", () => {
         // before any of the other three strands were read, so with snapshots off the view drew
         // nothing at all. The old test only checked that `timeline.enabled()` appeared somewhere
         // before `timelineEvents`, which it did — the bug was in what happened in between.
-        const recompute = TIMELINE.slice(TIMELINE.indexOf("private recompute()"));
-        const decided = recompute.slice(
-            recompute.indexOf("timeline.enabled()"),
-            recompute.indexOf("this.events = timelineEvents")
-        );
-        expect(decided).not.toContain("this.events = []");
+        const read = SOURCE.slice(SOURCE.indexOf("export function readStory("));
+        const decided = read.slice(read.indexOf("timeline.enabled()"), read.indexOf("const events = timelineEvents"));
+        expect(decided.length).toBeGreaterThan(0);
+        expect(decided).not.toContain("events = []");
         expect(decided).not.toContain("return;");
         for (const strand of [
             "MoveLog.getInstance().forSubject(active.path)",
@@ -147,27 +156,27 @@ describe("it costs no new place to look (#494)", () => {
     });
 
     it("tells a claim's verdict and the change it caused as one line (#564)", () => {
-        expect(TIMELINE).toContain("renderReturn(");
-        expect(TIMELINE).toContain("evolution_timeline_return_then");
-        expect(TIMELINE).toContain("evolution_timeline_return_now");
+        expect(ROWS).toContain("renderReturn(");
+        expect(ROWS).toContain("evolution_timeline_return_then");
+        expect(ROWS).toContain("evolution_timeline_return_now");
         // A return is a judgement; the filter that isolates what you ruled has to keep it.
-        expect(TIMELINE).toContain('event.kind === "return"');
-        expect(TIMELINE).not.toContain("innerHTML");
-        expect(TIMELINE).not.toContain("el.style.");
+        expect(PROJECTION).toContain('DECISION_KINDS: ReadonlySet<TimelineEventKind> = new Set<TimelineEventKind>(["judgement", "return", "promotion"])');
+        for (const source of [TIMELINE, ROWS]) {
+            expect(source).not.toContain("innerHTML");
+            expect(source).not.toContain("el.style.");
+        }
     });
 
     it("lets you take a move back from where you can see it is wrong", () => {
-        expect(TIMELINE).toContain("MoveLog.getInstance().remove(move.id)");
+        expect(TIMELINE).toContain("MoveLog.getInstance().remove(id)");
+        expect(TIMELINE).toContain("this.deps.forget(move.id)");
         // And taking it back touches the log, never the note.
-        expect(TIMELINE).not.toMatch(/FileService|FrontmatterService/);
+        for (const source of [TIMELINE, ROWS, SOURCE]) expect(source).not.toMatch(/FileService|FrontmatterService/);
     });
 });
 
 describe("one story, across the boundary (#502)", () => {
-    const TIMELINE_SRC = readFileSync(
-        join(ROOT, "src", "architecture", "components", "core", "timeline", "EvolutionTimelineRenderer.ts"),
-        "utf8"
-    );
+    const TIMELINE_SRC = ROWS;
 
     it("names what a move produced, and opens it", () => {
         expect(TIMELINE_SRC).toContain("renderProduced(");
@@ -179,12 +188,12 @@ describe("one story, across the boundary (#502)", () => {
         // The Lab is a place things are deliberately thrown away, and a dead link is worse than
         // a plain fact. Existence is checked before the entry is made activatable, not after a
         // click fails.
-        expect(TIMELINE_SRC).toContain("this.app.vault.getAbstractFileByPath(path) !== null");
-        expect(TIMELINE_SRC).toContain("evolution-timeline-produced-gone");
+        expect(TIMELINE_SRC).toContain("app.vault.getAbstractFileByPath(path) !== null");
+        expect(TIMELINE_SRC).toContain("note-story-produced-gone");
         // Both the click and the Ctrl-hover preview (#594) live inside the existence guard, so a
         // gone thought is neither linked nor previewable — a dead popover is as wrong as a dead link.
         expect(TIMELINE_SRC).toMatch(/if \(exists\) \{\s*makeActivatable\(span,/);
-        expect(TIMELINE_SRC).toMatch(/if \(exists\) \{[\s\S]*hoverPreview\(this\.app, span,[\s\S]*\}/);
+        expect(TIMELINE_SRC).toMatch(/if \(exists\) \{[\s\S]*hoverPreview\(app, span,[\s\S]*\}/);
     });
 
     it("reads the loop in order, out to the thought and back into the note", () => {

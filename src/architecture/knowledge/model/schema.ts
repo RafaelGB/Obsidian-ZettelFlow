@@ -42,6 +42,8 @@ export interface StateSchema {
     /** The full, ordered set of states this schema recognises. */
     readonly all: readonly IdeaState[];
     parse(frontmatter: Record<string, unknown>): IdeaState;
+    /** Whether the frontmatter states a recognised state, rather than falling back (#640). */
+    recognises?(frontmatter: Record<string, unknown>): boolean;
 }
 
 export interface RelationSchema {

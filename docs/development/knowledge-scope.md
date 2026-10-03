@@ -19,7 +19,7 @@ autosuggest** (add/remove, no free-text list). Every note whose path is under an
 **never enters the index** — so it drops out of *every* mechanism at once:
 
 - the **3D graph** and the living knowledge map
-- **slip-box health**, knowledge debt and balance
+- **Health › Tend**, and the knowledge debt and balance projections scripts read
 - **discovery**, open questions, evidence maps
 - **Cultivate** sessions and **Home** (recommendations, next session, counts)
 - maturity, the thinking heatmap, the weekly review — everything downstream of the model

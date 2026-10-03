@@ -42,6 +42,31 @@ export class Component {
     this.cleanups.push(() => el.removeEventListener(type, handler));
   }
 }
+/**
+ * A leaf and a view, small enough to construct a sidebar view under jest (#640). The test hands the
+ * leaf its `app` and a `contentEl` (a `DomNode`), and reads back what the view drew there.
+ */
+export class WorkspaceLeaf {
+  view: any = null;
+  constructor(public app?: any, public contentEl?: any) { }
+  async setViewState(_state: unknown): Promise<void> { }
+}
+export class ItemView extends Component {
+  app: any;
+  containerEl: any;
+  contentEl: any;
+  constructor(public leaf: any) {
+    super();
+    this.app = leaf?.app;
+    this.contentEl = leaf?.contentEl;
+    this.containerEl = leaf?.contentEl;
+  }
+  getViewType(): string { return ""; }
+  getDisplayText(): string { return ""; }
+  getIcon(): string { return ""; }
+  getState(): Record<string, unknown> { return {}; }
+  async setState(_state: unknown, _result: unknown): Promise<void> { }
+}
 export class Modal {
   /** What `setTitle` was given — a test reads the title the user would see. */
   titleText = "";
@@ -318,7 +343,10 @@ export class Setting {
   }
 }
 
-export function setIcon(_el: unknown, _icon: string): void { }
+/** Records the icon on the element (#642), so a test can tell one kind's icon from another's. */
+export function setIcon(el: unknown, icon: string): void {
+  (el as { setAttribute?: (name: string, value: string) => void } | null)?.setAttribute?.("data-icon", icon);
+}
 
 export function setTooltip(_el: unknown, _tooltip: string, _options?: unknown): void { }
 
@@ -417,3 +445,6 @@ export function stringifyYaml(value: Record<string, unknown>): string {
     .join("\n")
     .concat("\n");
 }
+
+/** Obsidian's re-exported moment, as small as the views need: relative time and a month name. */
+export const moment = (_at?: unknown) => ({ fromNow: () => "3 days ago", format: () => "Sep" });

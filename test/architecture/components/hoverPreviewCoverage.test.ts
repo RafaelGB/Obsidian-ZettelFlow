@@ -30,6 +30,7 @@ describe("every clickable note name offers the native preview (#594)", () => {
         "LabRenderer.ts": "the thinking space names its subject note, and by design never shows it (#473)",
         "FileService.ts": "a service that opens files in code — there is no name element here",
         "SettingsTab.ts": "settings links, not a list of knowledge notes",
+        "NoteCompanionView.ts": "hands `open` to its blocks; the names they draw carry the preview (#640)",
     };
 
     const opensANote = sources(SRC).filter((path) => readFileSync(path, "utf8").includes("openLinkText("));

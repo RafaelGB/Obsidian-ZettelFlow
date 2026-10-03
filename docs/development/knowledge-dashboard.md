@@ -1,68 +1,35 @@
 # Knowledge dashboard
 
-A DataviewJS dashboard shows *a query with your notes*. The **Knowledge dashboard** shows the *state
-of your knowledge system* — an ops console. It reads live from the knowledge model and, crucially,
-**every panel proposes a recommended next action** (no dead dashboards).
+The knowledge dashboard was an "ops console" for your vault: three panels — **connectivity**,
+**knowledge debt** and **today** — each carrying a recommended next action. It lived as its own view,
+then inside the Health mode (#314).
 
-> **Merged into Slip-box health (#314).** The dashboard is no longer a separate mode — its
-> connectivity and "today" panels are folded into the **[Health](slipbox-health-dashboard.md)** mode
-> (Health surface), alongside the debt drill-down, balance and orphan/dead-end lists. One home for
-> "the state of your system." The `Show knowledge dashboard` command still exists as an alias that
-> opens Health.
+> **Its panels are gone from the screen (#644).** The Health surface opens on
+> **[Tend](slipbox-health-dashboard.md)** instead: one row per note that needs you, handed to
+> [This note](this-note.md) on the fix. The *Show knowledge dashboard* command still exists and opens
+> Tend. What each panel said now lives here:
+>
+> | Panel | Now |
+> |---|---|
+> | Connectivity (connected · orphaned · unresolved) | Tend's *Links nowhere* and *Nobody links it* chips; Obsidian itself shows unresolved links |
+> | Knowledge debt (the 0–100 score) | not drawn — a score of your vault is a grade (§XII); its categories are Tend's chips |
+> | Today (to process · contradictions · gaps · open questions) | Home (to process, gaps, open questions); This note's *In tension* and Cultivate (contradictions) |
 
-## Opening it
+## For scripts: `zf.knowledge.dashboard()`
 
-Open the **Health** surface (ribbon → *Health*, or the retained **"Show knowledge dashboard"**
-command). It updates automatically (debounced) as the vault changes.
+The pure aggregate is still there, unchanged, for anyone who wants these numbers in a note of their
+own: **[`zf.knowledge.dashboard()`](../api/ZettelFlowAPI.md)** (#350), callable from any Script
+action, hook or dynamic selector.
 
-## The three panels
+`buildKnowledgeDashboard(model, judgements)` returns `{ panels: [{ key, metrics, recommendation }] }`:
 
-Everything is a **composition** of existing State-layer functions — the dashboard invents no metric.
+- **connectivity** — `connected` (degree ≥ 1), `orphaned` (degree 0) and `unresolved` (a dangling
+  outgoing link), each with a count and a percent of the vault;
+- **debt** — the [knowledge-debt](../api/ZettelFlowAPI.md) score (`zf.knowledge.debt()` gives the
+  categories);
+- **today** — `process` (fleeting notes), `contradictions`, `connections` (the [gaps](morning-discovery.md)
+  you have not ruled *not related*, #534) and `questions` (#167).
 
-### Connectivity
-- **Connected** — notes with at least one edge (`degree ≥ 1`).
-- **Orphaned** — fully isolated notes (`degree === 0`). *(Distinct from the "no incoming" primitive.)*
-- **Unresolved** — notes with a dangling outgoing link (its target isn't in the vault).
-- Each is shown as a count and a % of the vault. **Recommendation:** connect the orphaned notes (opens the [slip-box health](slipbox-health-dashboard.md) pane), or "everything is connected".
-
-### Knowledge debt
-- The **Knowledge Debt** score (0–100) and its severity band (low / medium / high), from the #159
-  [debt engine](slipbox-health-dashboard.md). **Recommendation:** reduce debt (opens the health pane), or "no debt — clean".
-
-### Today
-- **To process** — `fleeting` notes awaiting processing.
-- **Contradictions** — `contradicts` edges to resolve.
-- **Gaps** — how many [gaps](morning-discovery.md) are still open: pairs of notes
-  that share context and are not linked (#163). Every one of them, not the strongest few — the
-  metric used to read the length of a list bound to a display limit of three, so it could never
-  report more than three however many a vault had ([#530](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/530)).
-  Minus the pairs you have ruled **not related** ([#534](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/534)):
-  a metric that counted them would go on reporting work you have already decided against, and the
-  recommendation beside it would go on naming it.
-- **Open questions** — unanswered questions across the vault (#167).
-- **Recommendation:** the single most-pressing of these (priority: contradictions → questions → to-process → connections), opening the matching pane; or "all clear".
-
-## Every panel recommends
-
-The pure aggregate `buildKnowledgeDashboard(model)` returns panels where **each panel structurally
-carries a recommendation** (a token + the count it concerns), so a dead panel is impossible. The view
-maps each recommendation token to the surface where you act on it — the evidence map, open questions,
-morning discoveries, or slip-box health.
-
-## DataviewJS interop
-
-This ships as a native sidebar view; the existing DataviewJS (`dv`) interop is untouched. The read-only
-accessor this page used to list as a planned follow-up now exists as
-**[`zf.knowledge.dashboard()`](../api/ZettelFlowAPI.md)** (#350) — the same pure aggregate, callable
-from any Script action, hook or dynamic selector, so you can embed these metrics in a note yourself.
-
-## Architecture
-
-```
-buildKnowledgeDashboard(model)                    (pure, Obsidian-free, unit-tested)
-  → { panels: [{ key, metrics, recommendation }] }   composes debt (#159), discoveries (#163),
-                                                       openQuestions (#167), byState, edgesByType
-KnowledgeDashboardView (ItemView) + KnowledgeDashboardComponent (show-knowledge-dashboard, no hotkey)
-  reads the KnowledgeIndex model → buildKnowledgeDashboard; renders 3 panels
-  each recommendation row opens its target view via activateSidebarView; writes nothing
-```
+Every panel structurally carries a recommendation token and the count it concerns, so a dead panel is
+impossible. It is a composition of existing State-layer functions and invents no metric; it reads the
+in-memory knowledge model and writes nothing.

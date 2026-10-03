@@ -18,6 +18,9 @@ import {
     runGraphQuery,
     deriveFacets,
     buildEvidenceMap,
+    noteVitals,
+    deriveTend,
+    suggestNextMoves,
     deriveOutline,
     cultivationQueue,
     readyToCultivate,
@@ -86,6 +89,28 @@ export const NOT_EXPOSED: Record<string, string> = {
     // projection of your knowledge — and a script that could read them would invite exactly the
     // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
     speedFacts: "the plugin's own timings, not a projection of the model",
+    // Tend's own plumbing (#644). `tend` is the list; these are its uncached twin and the two things
+    // a click does to it, which would publish the mode's interaction as if it were knowledge.
+    tendRowsOf: "the uncached twin of tend, kept for the performance budget",
+    filterTend: "what a Tend filter chip does to the list",
+    tendFocus: "where a Tend row hands its note to This note — the view's routing",
+    // The This note companion's view shapes (#640). The counts are on `vitals`; these two arrange
+    // the same facts for a sidebar and would publish a layout as if it were knowledge.
+    lifecycleStepper: "how the companion draws a state as steps — a layout, not a query",
+    companionSections: "how the companion folds the evidence map — buildEvidenceMap is the query",
+    // The neighbourhood's own filter (#643): `vitals` already counts through it, and the graph's
+    // projection takes the companion's ranked nearby rows, which scripts do not have.
+    isNoteNeighbour: "the filter vitals counts through — a predicate, not a query",
+    noteNeighbourhood: "the companion's graph data, shaped by its near ring — vitals and links answer it",
+    // The note's story (#642) arranges the timeline for reading; the facts are timelineEvents'.
+    projectStory: "how the companion lays the timeline out to read — a layout, not a query",
+    relativeAge: "a date helper for the story's labels, not a projection of the model",
+    startOfLocalDay: "a calendar helper for the story, not a projection of the model",
+    // The next-step card's shapes (#641). `nextMoves` is the query; these dress it for one card.
+    nextStepCard: "the facts the next-step card says beside each move — nextMoves is the query",
+    connectCandidates: "the first nearby rows the card offers to link — a layout cap, not knowledge",
+    // A record edit (#641): scripts read the record and never write to it.
+    withdrawJudgement: "edits the judgement record — scripts read it, they never rewrite it",
     // The selection's own plumbing (#483). `zf.knowledge.query` already answers the question these
     // serve; exposing the pieces the Explore surface composes them from would publish an interface
     // shape as if it were knowledge.
@@ -288,6 +313,21 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "(path: string) => EvidenceMap",
             summary: "What supports and what contradicts one idea.",
             call: (path: string) => buildEvidenceMap(model(), path),
+        },
+        nextMoves: {
+            signature: "(path: string) => NextMoveToken[]",
+            summary: "The concrete next moves for one note, in order: add-source, connect, add-example, advance-state.",
+            call: (path: string) => suggestNextMoves(model(), path),
+        },
+        tend: {
+            signature: "() => TendList",
+            summary: "The notes that need attention, one row each with what they are missing (Health › Tend).",
+            call: () => deriveTend(model()),
+        },
+        vitals: {
+            signature: "(path: string) => NoteVitals",
+            summary: "Links in, links out, claims and distinct sources of one note — counts only.",
+            call: (path: string) => noteVitals(model(), path),
         },
         outline: {
             signature: "(selectedPaths: string[], opts?: DeriveOutlineOptions) => Outline",

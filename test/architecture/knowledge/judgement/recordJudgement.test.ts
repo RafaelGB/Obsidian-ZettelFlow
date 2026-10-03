@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import {
     DEFAULT_MAX_JUDGEMENTS,
     recordJudgement,
+    withdrawJudgement,
     sanitizeJudgementLog,
     withReasoning,
     type Judgement,
@@ -171,5 +172,22 @@ describe("withReasoning (#361, D1) — the one home for optional rationale + con
         const copy = { ...base };
         withReasoning(copy, "x", "high");
         expect(copy).toEqual(base);
+    });
+});
+
+describe("withdrawJudgement (#641 Q1)", () => {
+    const entry = { at: 10, path: "a.md", subject: "state:literature", origin: "derived", verdict: "accepted" } as const;
+    const other = { ...entry, at: 11, subject: "connect" };
+
+    it("removes only the last entry equal to the one given", () => {
+        const history = [entry, other, { ...entry }];
+        const next = withdrawJudgement(history, entry);
+        expect(next).toEqual([entry, other]);
+        expect(next).not.toBe(history);
+    });
+
+    it("returns the same reference when it is not there", () => {
+        const history = [other];
+        expect(withdrawJudgement(history, entry)).toBe(history);
     });
 });

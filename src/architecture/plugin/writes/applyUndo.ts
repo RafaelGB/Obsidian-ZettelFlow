@@ -1,6 +1,6 @@
 import { TFile } from "obsidian";
 import { log } from "architecture/monitoring/Logger";
-import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
+import { ObsidianApi } from "architecture";
 import { FileService } from "architecture/plugin/services/FileService";
 import { FrontmatterService } from "architecture/plugin/services/FrontmatterService";
 import type { Literal } from "architecture/plugin/model/FrontmatterModel";

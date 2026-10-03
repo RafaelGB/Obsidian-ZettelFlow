@@ -101,7 +101,9 @@ export const CAPABILITIES = [
     "slipbox-health",
     "knowledge-dashboard",
     "weekly-review",
-    "thinking-heatmap",
+    "practice",
+    "note-companion",
+    "next-step",
     "evolution-timeline",
     "evidence-map",
     "open-questions",
@@ -117,7 +119,6 @@ export const CAPABILITIES = [
     "claim-door",
     "claim-return",
     "wager",
-    "agency-review",
     "note-state",
     "remove-relation",
     "script-workbench",
@@ -133,6 +134,9 @@ export type CapabilityId = (typeof CAPABILITIES)[number];
 const HOME = "zettelflow-home";
 const HEALTH = "zettelflow-health";
 const EXPLORE = "zettelflow-explore";
+/** This note — a standalone view in the right sidebar, not a surface (#640). */
+const NOTE = "zettelflow-note";
+const COMPANION = "architecture/components/core/noteCompanion";
 
 const RIBBON = (command: string): Door => ({ kind: "object", at: command, via: "ribbon" });
 const NOTE_MENU = (file: string): Door => ({ kind: "object", at: file, via: "menu" });
@@ -211,51 +215,74 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         ],
     },
     "reasoning-paths": {
-        // Merged into the per-note mode rather than given a door of its own (#578): tracing what
-        // leaves a note is a question about *that* note, and this is the mode that answers those.
+        // Merged into the per-note view rather than given a door of its own (#578): tracing what
+        // leaves a note is a question about *that* note, and This note answers those (#640).
         nameKey: "command_explore_reasoning_paths",
-        owner: HEALTH,
+        owner: NOTE,
         doors: [
-            CONTROL("architecture/components/core/timeline/EvolutionTimelineRenderer.ts", HEALTH),
+            // The companion's ⋯ menu, on the companion's own note (#642).
+            CONTROL(`${COMPANION}/blocks/headBlock.ts`, NOTE),
             CMD("explore-reasoning-paths"),
         ],
     },
     "slipbox-health": {
         nameKey: "surface_health_title",
         owner: HEALTH,
-        doors: [RIBBON("show-health"), { kind: "surface", at: `${HEALTH}:health` }, CMD("show-slipbox-health")],
+        doors: [RIBBON("show-health"), { kind: "surface", at: `${HEALTH}:tend` }, CMD("show-slipbox-health")],
     },
     "knowledge-dashboard": {
         nameKey: "command_show_knowledge_dashboard",
         owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:health` }, CMD("show-knowledge-dashboard")],
+        // Its panels left with the old Health mode (#644); the door lands on Tend's list.
+        doors: [{ kind: "surface", at: `${HEALTH}:tend` }, CMD("show-knowledge-dashboard")],
     },
     "weekly-review": {
         nameKey: "weekly_review_command_name",
         owner: HEALTH,
         doors: [
-            CONTROL("architecture/components/core/slipboxHealth/SlipboxHealthRenderer.ts", HEALTH),
+            CONTROL("architecture/components/core/tend/TendRenderer.ts", HEALTH),
             CMD("generate-weekly-review"),
         ],
     },
-    "thinking-heatmap": {
-        nameKey: "surface_mode_momentum",
+    practice: {
+        // Momentum and Agency, merged (#645): what you have developed lately and how you answered
+        // proposals — facts, never a grade.
+        nameKey: "surface_mode_practice",
         owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:momentum` }, CMD("show-thinking-heatmap")],
+        doors: [{ kind: "surface", at: `${HEALTH}:practice` }, CMD("show-thinking-heatmap")],
+    },
+    "note-companion": {
+        // The note you are reading, from the right sidebar (#640): the ribbon menu is the door
+        // that is always visible, whatever you have open.
+        nameKey: "note_companion_title",
+        owner: NOTE,
+        doors: [
+            RIBBON("open-note-companion"),
+            // A Tend row opens the note and This note on its fix (#644): the loop Health never closed.
+            CONTROL("architecture/components/core/tend/TendRenderer.ts", HEALTH),
+            CMD("open-note-companion"),
+        ],
+    },
+    "next-step": {
+        // What to do with the note you are reading, finished where you are (#641): a control on the
+        // companion, the place you already are.
+        nameKey: "note_next_eyebrow",
+        owner: NOTE,
+        doors: [CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE)],
     },
     "evolution-timeline": {
-        nameKey: "surface_mode_timeline",
-        owner: HEALTH,
+        nameKey: "evolution_timeline_view_title",
+        owner: NOTE,
         doors: [
-            { kind: "surface", at: `${HEALTH}:timeline` },
+            CONTROL(`${COMPANION}/blocks/storyBlock.ts`, NOTE),
             CMD("show-evolution-timeline"),
             CMD("show-notes-history"),
         ],
     },
     "evidence-map": {
         nameKey: "command_show_evidence_map",
-        owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:timeline` }, CMD("show-evidence-map")],
+        owner: NOTE,
+        doors: [CONTROL(`${COMPANION}/blocks/sectionsBlock.ts`, NOTE), CMD("show-evidence-map")],
     },
     "open-questions": {
         nameKey: "command_show_open_questions",
@@ -266,6 +293,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "resurface_view_title",
         owner: HOME,
         doors: [
+            // Near and forgotten, beside the note it is near (#640) — and it still comes to you on Home.
+            CONTROL(`${COMPANION}/blocks/sectionsBlock.ts`, NOTE),
             { kind: "recommendation", at: `${HOME}:home` },
             CMD("resurface-related-notes"),
             CMD("show-discoveries"),
@@ -342,11 +371,6 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             NOTE_MENU("starters/zcomponents/ClaimDoorComponent.ts"),
             { kind: "recommendation", at: `${HOME}:home` },
         ],
-    },
-    "agency-review": {
-        nameKey: "surface_mode_agency",
-        owner: HEALTH,
-        doors: [{ kind: "surface", at: `${HEALTH}:agency` }],
     },
     "note-state": {
         // The state chip on Cultivate's target card. The state is right there, on the object the

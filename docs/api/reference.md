@@ -30,6 +30,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `map` | `() => KnowledgeMap` | The connected regions of the idea graph, and the notes that are alone. |
 | `model` | `() => KnowledgeModel` | The raw idea graph, for questions no projection answers. |
 | `neighbors` | `(path: string) => ConceptNeighbors` | What sits next to one idea in the graph, by relation type. |
+| `nextMoves` | `(path: string) => NextMoveToken[]` | The concrete next moves for one note, in order: add-source, connect, add-example, advance-state. |
 | `openQuestions` | `() => OpenQuestion[]` | Questions recorded in the vault that nothing has answered yet. |
 | `outline` | `(selectedPaths: string[], opts?: DeriveOutlineOptions) => Outline` | An outline derived from a set of notes. |
 | `proposeAnswers` | `(path: string) => AnswerProposal[]` | Existing notes that could answer an open question. |
@@ -39,9 +40,11 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `reasoningPaths` | `(start: string, opts?: ReasoningPathsOptions) => Path[]` | Chains of reasoning leading out of an idea. |
 | `recommendations` | `() => KnowledgeRecommendation[]` | What to do next, ranked — the same list the Home surface shows. |
 | `review` | `(now?: number, windowDays?: number) => WeeklyReview` | What changed, stalled and matured over a recent window. |
+| `tend` | `() => TendList` | The notes that need attention, one row each with what they are missing (Health › Tend). |
 | `trajectory` | `(now?: number, opts?: TrajectoryOptions) => IdeaTrajectory[]` | Which important ideas are advancing, steady or stalled by how recently you ruled on them. |
 | `unexamined` | `(opts?: { limit?: number }) => UnexaminedIdea[]` | Ideas that gained structure but carry no judgement of yours. |
 | `verdictBreakdown` | `(opts?: AgencyMetricsOptions) => VerdictBreakdown` | Counts of the verdicts you gave, optionally scoped to AI/derived output. |
+| `vitals` | `(path: string) => NoteVitals` | Links in, links out, claims and distinct sources of one note — counts only. |
 
 ## AI — `zf.ai`
 

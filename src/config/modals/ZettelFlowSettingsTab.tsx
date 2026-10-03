@@ -26,6 +26,7 @@ import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksM
 import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
 import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
+import { speedSettingsItems } from "./handlers/speedSettingsItems";
 import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
 import { returnSettingsGroup } from "./handlers/returnSettingsGroup";
 import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
@@ -682,7 +683,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             },
                         },
                     },
-                
+                    // The timings from this vault, read-only (#645): what you look at when something
+                    // feels slow — beside the log level, not on the Health surface.
+                    ...speedSettingsItems(),
                 ],
             },
             // ── 8 · About ─────────────────────────────────────────────────────

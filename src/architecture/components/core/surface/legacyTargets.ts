@@ -13,10 +13,25 @@ export interface SurfaceTarget {
     lens?: string;
 }
 
+/**
+ * A standalone view rather than a surface mode (#640): This note left the Health surface for the
+ * right sidebar, so the doors that led to its mode now lead to the view itself.
+ */
+export interface ViewTarget {
+    view: string;
+}
+
+export type LegacyTarget = SurfaceTarget | ViewTarget;
+
+export function isViewTarget(target: LegacyTarget): target is ViewTarget {
+    return "view" in target;
+}
+
 /** Retired opener command id → the source view it used to open. */
 const COMMAND_SOURCE: Record<string, string> = {
     "show-home": "zettelflow-home",
-    "show-notes-history": "zettelflow-history",
+    // The note's history lives in the note's own view now (#640), not on Home.
+    "show-notes-history": "zettelflow-evolution-timeline",
     "show-slipbox-health": "zettelflow-slipbox-health",
     "show-knowledge-dashboard": "zettelflow-knowledge-dashboard",
     "show-evolution-timeline": "zettelflow-evolution-timeline",
@@ -54,13 +69,19 @@ const REDIRECT_VIEW_TYPES = [
 const EXPLORE: SurfaceTarget = { surface: "zettelflow-explore", mode: "explore", lens: "graph" };
 /** What to do next. Home has answered this all along — Discovery was the second place (#504). */
 const HOME: SurfaceTarget = { surface: "zettelflow-home", mode: "home" };
-/** What is around the note you are reading: its history, what contradicts it, what is unrevisited. */
-const THIS_NOTE: SurfaceTarget = { surface: "zettelflow-health", mode: "timeline" };
-const RETIRED_TARGETS: Record<string, SurfaceTarget> = {
+/**
+ * What is around the note you are reading: its history, what contradicts it, what is unrevisited.
+ * Its own view since #640 — the literal is the companion's view type, kept here as pure data.
+ */
+const THIS_NOTE: ViewTarget = { view: "zettelflow-note" };
+const RETIRED_TARGETS: Record<string, LegacyTarget> = {
+    // The Timeline mode left Health for the right sidebar (#640).
+    "zettelflow-evolution-timeline": THIS_NOTE,
     "zettelflow-graph": EXPLORE,
     "zettelflow-knowledge-map": EXPLORE,
     "zettelflow-concept-nav": EXPLORE,
-    "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "health" },
+    // The dashboard's panels left with the Health mode (#644); what it pointed at is Tend's list.
+    "zettelflow-knowledge-dashboard": { surface: "zettelflow-health", mode: "tend" },
     // The wizard's note history, then the write record's panel that replaced it, then nothing
     // (#511): the undo it existed for is offered in the moment now. Home is where it pointed.
     "zettelflow-history": HOME,
@@ -80,7 +101,14 @@ const RETIRED_TARGETS: Record<string, SurfaceTarget> = {
  * the `ask` mode. Without this it would open Discovery and quietly show Connections instead —
  * the failure that looks like nothing went wrong, which is the worst kind.
  */
-export const RELOCATED_MODES: Record<string, SurfaceTarget> = {
+export const RELOCATED_MODES: Record<string, LegacyTarget> = {
+    // A Health leaf saved on the Timeline mode, before This note had a view of its own (#640).
+    "zettelflow-health:timeline": THIS_NOTE,
+    // Health's own first mode became Tend (#644): a saved leaf on `health` switches in place.
+    "zettelflow-health:health": { surface: "zettelflow-health", mode: "tend" },
+    // Momentum and Agency merged into Practice (#645): a saved leaf on either switches in place.
+    "zettelflow-health:momentum": { surface: "zettelflow-health", mode: "practice" },
+    "zettelflow-health:agency": { surface: "zettelflow-health", mode: "practice" },
     "zettelflow-discovery:ask": { surface: "zettelflow-explore", mode: "explore", lens: undefined },
     // The four modes of the dissolved surface (#504), for a workspace saved before it went.
     "zettelflow-discovery:connections": HOME,
@@ -90,11 +118,11 @@ export const RELOCATED_MODES: Record<string, SurfaceTarget> = {
 };
 
 /** Where a mode this surface no longer has went, or `null` if it never existed. */
-export function relocateMode(surface: string, mode: string): SurfaceTarget | null {
+export function relocateMode(surface: string, mode: string): LegacyTarget | null {
     return RELOCATED_MODES[`${surface}:${mode}`] ?? null;
 }
 
-function resolve(sourceView: string): SurfaceTarget {
+function resolve(sourceView: string): LegacyTarget {
     const located = locateSourceView(sourceView);
     if (located) return located;
     const retired = RETIRED_TARGETS[sourceView];
@@ -102,12 +130,12 @@ function resolve(sourceView: string): SurfaceTarget {
     throw new Error(`[surface] no surface hosts the view "${sourceView}"`);
 }
 
-/** Retired opener command id → (surface, mode) it should now open. */
-export const LEGACY_OPEN_TARGETS: Record<string, SurfaceTarget> = Object.fromEntries(
+/** Retired opener command id → the (surface, mode) or view it should now open. */
+export const LEGACY_OPEN_TARGETS: Record<string, LegacyTarget> = Object.fromEntries(
     Object.entries(COMMAND_SOURCE).map(([command, sourceView]) => [command, resolve(sourceView)])
 );
 
 /** Old (now unregistered-as-primary) view type → (surface, mode) a redirect leaf should open. */
-export const LEGACY_VIEW_TARGETS: Record<string, SurfaceTarget> = Object.fromEntries(
+export const LEGACY_VIEW_TARGETS: Record<string, LegacyTarget> = Object.fromEntries(
     REDIRECT_VIEW_TYPES.map((viewType) => [viewType, resolve(viewType)])
 );

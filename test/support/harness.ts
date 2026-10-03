@@ -25,6 +25,8 @@ function makeTFile(path: string): TFile {
     file.name = path.split("/").pop() ?? path;
     file.basename = file.name.replace(/\.md$/i, "");
     file.extension = "md";
+    // Undo reads mtimes to tell a write it made from one you made since (#455); 0 = untouched.
+    (file as unknown as { stat: { mtime: number; ctime: number; size: number } }).stat = { mtime: 0, ctime: 0, size: 0 };
     return file;
 }
 
@@ -64,6 +66,13 @@ export class FakeVault {
     async modify(file: TFile, content: string): Promise<void> {
         const e = this.entries.get(file.path);
         if (e) e.content = content;
+    }
+    /** Obsidian's atomic read-modify-write: nothing can run between the read and the write. */
+    async process(file: TFile, fn: (data: string) => string): Promise<string> {
+        const e = this.entries.get(file.path);
+        if (!e) throw new Error(`no file ${file.path}`);
+        e.content = fn(e.content);
+        return e.content;
     }
     async create(path: string, content: string): Promise<TFile> {
         if (this.getAbstractFileByPath(path)) throw new Error('File exists');
@@ -113,6 +122,7 @@ export function wireHarness(opts: { files?: Record<string, FileSpec>; settings?:
         getFileCache: (file: TFile) => ({ frontmatter: vault.entries.get(file.path)?.frontmatter ?? {} }),
         resolvedLinks: {},
         getFirstLinkpathDest: () => null,
+        fileToLinktext: (file: TFile) => file.basename,
         on: () => ({ unload: () => undefined }),
     };
     const workspace = {

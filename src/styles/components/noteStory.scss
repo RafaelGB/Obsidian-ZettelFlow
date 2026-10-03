@@ -1,0 +1,262 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The note's story (#642, epic #639) — one rail, newest first, inside the This note companion.
+ *
+ * The rail is a hairline in the theme's border colour; every event hangs from it by its icon. What
+ * you decided carries the accent, a thought the theme's purple, a snapshot the faint text — and
+ * nothing else changes colour. The pinned day you expect to know by is one dashed card that reads
+ * the same at every distance (#572): no colour that warms as it approaches.
+ */
+
+.zettelkasten-flow__note-story {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__note-story-title {
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    color: $text-faint;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.zettelkasten-flow__note-story-status,
+.zettelkasten-flow__note-story-not-kept {
+    @include hint;
+}
+
+.zettelkasten-flow__note-story-empty {
+    @include card;
+    border-style: dashed;
+    color: $text-quiet;
+    font-size: $text-small;
+    line-height: var(--line-height-normal);
+}
+
+/* The one event that has not happened: a date, said plainly (FR-12/13). */
+.zettelkasten-flow__note-story-pinned {
+    @include card;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: $space-2;
+    border-style: dashed;
+    color: $text-quiet;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__note-story-pinned-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    min-width: 0;
+}
+
+/* ── Chips: All · Decisions · Moves · Thoughts ─────────────────────────────────────────────── */
+
+.zettelkasten-flow__note-story-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__note-story-chip {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+}
+
+.zettelkasten-flow__note-story-chip--active {
+    @include chip-active;
+}
+
+.zettelkasten-flow__note-story-chip-count {
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── The rail ───────────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__note-story-month {
+    margin-top: $space-1;
+    font-size: var(--font-ui-smaller);
+    color: $text-faint;
+}
+
+.zettelkasten-flow__note-story-rail {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    // The thread every event hangs from, behind the icons.
+    &::before {
+        content: "";
+        position: absolute;
+        top: $space-2;
+        bottom: $space-2;
+        left: calc(var(--size-4-3) - var(--border-width) / 2);
+        border-left: var(--border-width) solid var(--background-modifier-border);
+    }
+}
+
+.zettelkasten-flow__note-story-ev {
+    position: relative;
+    display: flex;
+    gap: $space-2;
+    padding: $space-hair 0;
+}
+
+.zettelkasten-flow__note-story-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--size-4-6);
+    height: var(--size-4-6);
+    border: $line-quiet;
+    border-radius: $radius-pill;
+    background-color: $surface-quiet;
+    color: $text-quiet;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+// What you decided stands apart; nothing else does (FR-3).
+.zettelkasten-flow__note-story-ev--decision .zettelkasten-flow__note-story-icon {
+    color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__note-story-ev--thought .zettelkasten-flow__note-story-icon {
+    color: var(--color-purple);
+}
+
+.zettelkasten-flow__note-story-ev--snapshot .zettelkasten-flow__note-story-icon {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__note-story-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    flex: 1;
+    min-width: 0;
+    padding-top: $space-hair;
+    font-size: $text-small;
+    color: $text-plain;
+}
+
+.zettelkasten-flow__note-story-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__note-story-label {
+    font-weight: var(--font-semibold);
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__note-story-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__note-story-quiet,
+.zettelkasten-flow__note-story-when {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__note-story-when {
+    margin-left: auto;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__note-story-ev--snapshot .zettelkasten-flow__note-story-body {
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__note-story-snapshot > summary {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__note-story-claims {
+    display: flex;
+    flex-direction: column;
+    gap: $space-hair;
+    padding: $space-1 0 0 $space-2;
+}
+
+.zettelkasten-flow__note-story-claim {
+    color: $text-plain;
+}
+
+.zettelkasten-flow__note-story-note {
+    padding-left: $space-2;
+    border-left: var(--border-width) solid var(--background-modifier-border);
+    color: $text-quiet;
+}
+
+/* A return: what it said, and what it says now, as one unit (FR-10). Neither is marked better. */
+.zettelkasten-flow__note-story-diff {
+    display: flex;
+    flex-direction: column;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__note-story-diff-line {
+    display: flex;
+    gap: $space-2;
+    padding: $space-1 $space-2;
+}
+
+.zettelkasten-flow__note-story-diff-before {
+    background-color: $surface-hover;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__note-story-produced {
+    color: var(--text-accent);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__note-story-produced-gone {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__note-story-forget,
+.zettelkasten-flow__note-story-fold {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: $text-faint;
+    font-size: $text-small;
+    cursor: pointer;
+
+    &:hover {
+        color: $text-plain;
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__note-story-fold-row {
+    padding-left: calc(var(--size-4-6) + #{$space-2});
+}

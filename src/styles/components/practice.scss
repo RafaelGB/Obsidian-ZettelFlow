@@ -1,0 +1,178 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * Health › Practice (#645, epic #639) — what you have been doing, as facts.
+ *
+ * Nothing here means good or bad (§XII): the strip carries the journal's intensity in one hue, and
+ * the three decision kinds are three neutral tints — accepted is not green, rejected is not red.
+ * Everything is the theme's own: surfaces, text, the accent, the 4-pixel grid.
+ */
+
+.zettelkasten-flow__practice {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-3 $space-4;
+}
+
+.zettelkasten-flow__practice-section {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__practice-heading {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__practice-subtitle {
+    @include hint;
+}
+
+.zettelkasten-flow__practice-quiet {
+    @include empty-state;
+}
+
+/* ── The strip: twelve weeks, a column each, a cell per day ────────────────────────────────── */
+
+.zettelkasten-flow__practice-strip {
+    display: flex;
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__practice-week {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__practice-month {
+    height: var(--size-4-4);
+    font-size: var(--font-ui-smaller);
+    color: $text-faint;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__practice-cell {
+    width: var(--size-4-3);
+    height: var(--size-4-3);
+    border-radius: $radius-small;
+}
+
+.zettelkasten-flow__practice-cell--l0 {
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__practice-cell--l1 {
+    background-color: color-mix(in srgb, var(--color-green) 30%, var(--background-primary));
+}
+
+.zettelkasten-flow__practice-cell--l2 {
+    background-color: color-mix(in srgb, var(--color-green) 55%, var(--background-primary));
+}
+
+.zettelkasten-flow__practice-cell--l3 {
+    background-color: color-mix(in srgb, var(--color-green) 78%, var(--background-primary));
+}
+
+.zettelkasten-flow__practice-cell--l4 {
+    background-color: var(--color-green);
+}
+
+/* ── The decision mix: one proportional bar, three neutral tints ───────────────────────────── */
+
+.zettelkasten-flow__practice-bar {
+    width: 100%;
+    height: var(--size-4-3);
+    border-radius: $radius-small;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__practice-seg--accepted,
+.zettelkasten-flow__practice-swatch--accepted {
+    fill: var(--text-faint);
+    background-color: var(--text-faint);
+}
+
+.zettelkasten-flow__practice-seg--changed,
+.zettelkasten-flow__practice-swatch--changed {
+    fill: var(--interactive-accent);
+    background-color: var(--interactive-accent);
+    // A swatch holds no text, but a strong fill states its foreground anyway (#431).
+    color: var(--text-on-accent);
+}
+
+.zettelkasten-flow__practice-seg--rejected,
+.zettelkasten-flow__practice-swatch--rejected {
+    fill: var(--text-muted);
+    background-color: var(--text-muted);
+}
+
+.zettelkasten-flow__practice-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1 $space-3;
+    font-size: $text-small;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__practice-legend-item {
+    @include row;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__practice-swatch {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-small;
+}
+
+.zettelkasten-flow__practice-reading {
+    color: $text-plain;
+    font-size: $text-small;
+}
+
+/* ── Recent decisions ────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__practice-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__practice-row {
+    @include row;
+    padding: $space-hair $space-1;
+    border-radius: $radius-small;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__practice-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-accent);
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__practice-chip {
+    @include chip;
+}
+
+.zettelkasten-flow__practice-when {
+    font-size: $text-small;
+    color: $text-faint;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__practice-recording-off {
+    @include hint;
+    @include row;
+}

@@ -23,6 +23,8 @@ import { HomeSurfaceView } from 'architecture/components/core/surface/HomeSurfac
 import { HealthSurfaceView } from 'architecture/components/core/surface/HealthSurfaceView';
 import { ExploreSurfaceView } from 'architecture/components/core/surface/ExploreSurfaceView';
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
+import { NoteCompanionView } from 'architecture/components/core/noteCompanion/NoteCompanionView';
+import { NOTE_COMPANION_VIEW } from 'architecture/components/core/noteCompanion/noteCompanionContract';
 import { registerDashboardBasesView } from 'dashboards/base/register';
 import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
 import { allCanvasExtensions, canvas, CanvasExtension, CanvasPatcher } from 'architecture/plugin/canvas';
@@ -178,6 +180,8 @@ export default class ZettelFlow extends Plugin {
 		this.registerView("zettelflow-explore", (leaf) => new ExploreSurfaceView(leaf));
 		// The script workbench (#446): its own view, like the four surfaces.
 		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));
+		// This note (#640): a per-note companion docked in the right sidebar, like Backlinks.
+		this.registerView(NOTE_COMPANION_VIEW, (leaf) => new NoteCompanionView(leaf, this));
 		// Base Dashboards (epic #622): a Bases view type, registered through the Bases door
 		// (guarded so an older Obsidian without the Bases API still loads).
 		registerDashboardBasesView(this);

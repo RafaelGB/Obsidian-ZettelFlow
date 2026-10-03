@@ -2,7 +2,8 @@ import { ItemView, ViewStateResult } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { surfaceByType, type Surface } from "./surfaceRegistry";
-import { relocateMode } from "./legacyTargets";
+import { isViewTarget, relocateMode } from "./legacyTargets";
+import { openNoteCompanion } from "architecture/components/core/noteCompanion/openNoteCompanion";
 import { KnowledgeModeRenderer } from "./KnowledgeModeRenderer";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -81,6 +82,26 @@ export abstract class ModeHostView extends ItemView {
         // A mode this surface no longer has (#487). Hand the leaf over rather than falling back
         // to the first mode: showing the wrong thing without saying so is the worst failure here.
         const moved = relocateMode(this.getViewType(), mode);
+        if (moved && isViewTarget(moved)) {
+            // A mode that became its own view (#640): this leaf keeps the surface on its default
+            // mode, and the view opens where it lives — once the workspace has finished restoring.
+            if (this.bodyEl) await this.showMode(this.surface.modes[0].id);
+            else this.activeMode = this.surface.modes[0].id;
+            // Saved, or the stale mode would reopen the companion on every start.
+            this.app.workspace.requestSaveLayout();
+            this.app.workspace.onLayoutReady(() => void openNoteCompanion(this.app));
+            return;
+        }
+        if (moved && moved.surface === this.getViewType() && this.hasMode(moved.mode)) {
+            // A mode renamed inside this surface (#644 health → tend, #645 momentum/agency →
+            // practice): switch in place. A setViewState round-trip to the same view type would
+            // land back in this setState, and a stale mode would survive in the saved layout.
+            this.pendingState = { ...payload, mode: moved.mode };
+            if (this.bodyEl) await this.showMode(moved.mode);
+            else this.activeMode = moved.mode;
+            this.app.workspace.requestSaveLayout();
+            return;
+        }
         if (moved) {
             await this.leaf.setViewState({
                 type: moved.surface,

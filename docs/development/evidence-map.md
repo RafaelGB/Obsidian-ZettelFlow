@@ -8,6 +8,10 @@ graph**: which ideas support it, which contradict it, what evidence exists, and 
 Every row links to the exact source note. It is not "an AI's opinion" — it's a view of *your*
 knowledge, with **no invented content**.
 
+!!! note "Now in *This note*"
+    Since #640 this lives in **[This note](this-note.md)**, the per-note companion in the right
+    sidebar. Its findings are the companion's *In tension*, *Supports* and *Gaps* sections, computed by the same `buildEvidenceMap`; *Show evidence map* opens the companion.
+
 ## Opening it
 
 Run **"Show evidence map"** from the command palette, or click **Open** next to *Evidence map* in

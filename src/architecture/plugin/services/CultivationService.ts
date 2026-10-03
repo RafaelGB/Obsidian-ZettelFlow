@@ -1,7 +1,7 @@
 import { Notice, TFile, type App } from "obsidian";
 import { log } from "architecture/monitoring/Logger";
 import { t } from "architecture/lang";
-import { applySource } from "application/claims";
+import { appendSource } from "application/claims";
 import { FileService, type CreateFileResult } from "./FileService";
 import type { InquiryOperation } from 'architecture/knowledge/inquiry/inquiryState';
 import { FrontmatterService } from "./FrontmatterService";
@@ -42,9 +42,21 @@ export class CultivationService {
         await FileService.appendTo(file, text);
     }
 
-    /** Append a `[[wikilink]]` to the note body (a new outgoing connection). */
-    async link(app: App, path: string, targetName: string): Promise<void> {
-        await this.write(app, path, (file) => this.appendToBody(file, `[[${targetName}]]`), "cultivate_linked_notice", targetName);
+    /**
+     * Append a `[[wikilink]]` to the note body (a new outgoing connection).
+     *
+     * `quiet` is for a surface that says what happened inline, next to an undo (#640): it raises no
+     * toast either way and answers whether the link was written. Failures are still logged.
+     */
+    async link(app: App, path: string, targetName: string, opts: { quiet?: boolean } = {}): Promise<boolean> {
+        return this.write(
+            app,
+            path,
+            (file) => this.appendToBody(file, `[[${targetName}]]`),
+            "cultivate_linked_notice",
+            targetName,
+            opts.quiet === true
+        );
     }
 
     /** Append a `question:: …` inline field to the note body. */
@@ -66,15 +78,19 @@ export class CultivationService {
      * writes under the key the note already uses, so a note declaring `sources:` no longer sprouts
      * a `source:` beside it.
      */
-    async addSource(app: App, path: string, text: string): Promise<void> {
-        await this.write(
+    async addSource(app: App, path: string, text: string, opts: { quiet?: boolean } = {}): Promise<boolean> {
+        // Appends since #641: the old edit replaced the first entry of a list, so a note whose
+        // `sources:` held a link to a note not written yet lost it to the new reference.
+        return this.write(
             app,
             path,
             (file) =>
                 FrontmatterService.instance(file).update((frontmatter) => {
-                    applySource(frontmatter, text);
+                    appendSource(frontmatter, text);
                 }),
-            "cultivate_source_notice"
+            "cultivate_source_notice",
+            undefined,
+            opts.quiet === true
         );
     }
 
@@ -111,21 +127,25 @@ export class CultivationService {
         path: string,
         op: (file: TFile) => Promise<void>,
         noticeKey: Parameters<typeof t>[0],
-        noticeArg?: string
-    ): Promise<void> {
+        noticeArg?: string,
+        quiet = false
+    ): Promise<boolean> {
         const file = this.fileFor(app, path);
         if (!file) {
-            // Same rule as advance(): a missing target is a failure the user must hear about (#546 C3).
+            // Same rule as advance(): a missing target is a failure the user must hear about (#546 C3)
+            // — from a toast, or from the quiet caller's own inline line.
             log.error("[Cultivate] move target is missing", path);
-            new Notice(t("cultivate_apply_failed"));
-            return;
+            if (!quiet) new Notice(t("cultivate_apply_failed"));
+            return false;
         }
         try {
             await op(file);
-            new Notice(noticeArg === undefined ? t(noticeKey) : t(noticeKey, noticeArg));
+            if (!quiet) new Notice(noticeArg === undefined ? t(noticeKey) : t(noticeKey, noticeArg));
+            return true;
         } catch (error) {
             log.error("[Cultivate] move write failed", error);
-            new Notice(t("cultivate_apply_failed"));
+            if (!quiet) new Notice(t("cultivate_apply_failed"));
+            return false;
         }
     }
 }

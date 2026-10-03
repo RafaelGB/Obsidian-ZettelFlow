@@ -7,6 +7,10 @@ keep re-entering the conversation instead of being buried.
 
 It ships as **both** a command and a dedicated sidebar view, plus an on-demand **daily spark**.
 
+!!! note "Now in *This note*"
+    Since #640 this lives in **[This note](this-note.md)**, the per-note companion in the right
+    sidebar. The ranked list is the companion's *Near and forgotten* section, and *Insert link* now writes into the companion's note through the write record, with an inline Undo. *Resurface related notes* opens the companion. The daily spark button was retired with the old panel; `pickDailySpark` remains for scripts.
+
 ## Opening it
 
 - **Command** — run **"Resurface related notes"** from the command palette. It activates (or

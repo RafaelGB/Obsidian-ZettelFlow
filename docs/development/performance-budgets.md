@@ -76,6 +76,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.map.10k` | 13.9 ms | 120 |
 | `analysis.communities.10k` | 157.3 ms | 400 |
 | `analysis.debt.10k` | 5.1 ms | 60 |
+| `analysis.tend.10k` | 12.7 ms | 100 |
 | `analysis.gaps.tally.10k` | 1,310 ms | 5,000 |
 | `analysis.gaps.seams.10k` | 1,341 ms | 4,000 |
 | `analysis.gaps.top.all.10k` | 1,685 ms | 5,000 |
@@ -85,6 +86,8 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `model.memory.50k` | 44.9 MB | 150 |
 | `facets.50k` | 190 ms (69 ms idle) | 600 |
 | `moves.read` | 0.016 ms | 2 |
+| `analysis.neighbourhood.hub` (1,000 renders, 80-link hub, #643) | 186 ms | 600 |
+| `analysis.neighbourhood.scaling` (20k ÷ 10k) | 1.01× | 1.5 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:
@@ -168,8 +171,10 @@ That gap is why the app reports its own timings too.
 
 ## Timings from this vault (#462)
 
-The Health surface has a small section fed by the **same instrument**. What you read there is what
-was measured on your last launch, on your machine, over your notes:
+**Settings › Advanced** (behind *Show advanced settings*) lists read-only rows fed by the **same
+instrument** — they left the Health surface in #645; the live enrichment pass, with its *Stop*, stays
+on Tend. What you read there is what was measured on your last launch, on your machine, over your
+notes:
 
 | Row | What it timed |
 |---|---|

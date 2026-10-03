@@ -42,23 +42,20 @@
 @use 'components/welcome.scss';
 @use 'components/walkStatus.scss';
 @use 'components/companionPane.scss';
-@use 'components/slipboxHealth.scss';
-@use 'components/knowledgeDebt.scss';
-@use 'components/knowledgeBalance.scss';
-@use 'components/thinkingHeatmap.scss';
+@use 'components/practice.scss';
 @use 'components/discoveries.scss';
 @use 'components/knowledgeMap.scss';
 @use 'components/conceptNav.scss';
 @use 'components/openQuestions.scss';
-@use 'components/evolutionTimeline.scss';
-@use 'components/evidenceMap.scss';
-@use 'components/knowledgeDashboard.scss';
+@use 'components/noteCompanion.scss';
+@use 'components/tend.scss';
+@use 'components/noteNeighbourhood.scss';
+@use 'components/noteStory.scss';
 @use 'components/home.scss';
 @use 'components/cultivate.scss';
 @use 'components/claims.scss';
 @use 'components/quickCapture.scss';
 @use 'components/settingsToolkit.scss';
-@use 'components/resurface.scss';
 @use 'components/mocBuilder.scss';
 @use 'components/reasoningPaths.scss';
 @use 'components/askGraph.scss';
@@ -69,7 +66,6 @@
 @use 'components/dashboard.scss';
 @use 'components/baseDashboard.scss';
 @use 'components/graph3d.scss';
-@use 'components/agencyReview.scss';
 
 /* Utility: hide an element without inline styles (see no-static-styles-assignment). */
 .zettelkasten-flow__is-hidden {

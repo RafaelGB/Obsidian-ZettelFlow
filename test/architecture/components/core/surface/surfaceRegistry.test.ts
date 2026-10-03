@@ -21,14 +21,15 @@ describe("surface registry (#272, AC-1/AC-6)", () => {
     });
 
     it("hosts the retired views as modes, each exactly once (net-new modes have no sourceView)", () => {
-        // 5 retired views survive as modes; the rest redirect via legacyTargets rather than being
-        // modes: the 2 Graph views (#280/#484), knowledge-dashboard (#314), and Discovery's four
-        // (#504 — two to Home, two to the note's own view).
+        // The retired views that survive as modes; the rest redirect via legacyTargets rather than
+        // being modes: the 2 Graph views (#280/#484), knowledge-dashboard (#314), Discovery's four
+        // (#504 — two to Home, two to the note's own view), and the Timeline, which became the
+        // This note view in the right sidebar (#640).
         const sources = SURFACES.flatMap((s) => s.modes.map((m) => m.sourceView)).filter(
             (s): s is string => s !== undefined
         );
-        expect(sources).toHaveLength(4);
-        expect(new Set(sources).size).toBe(4);
+        expect(sources).toHaveLength(3);
+        expect(new Set(sources).size).toBe(3);
     });
 
     it("locateSourceView resolves every retired source to its (surface, mode); defaultMode is the first mode", () => {

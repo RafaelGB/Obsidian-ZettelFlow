@@ -10,7 +10,7 @@ import {
     canTransition,
     stateSubject,
 } from "architecture/knowledge/lifecycle";
-import type { JudgementOrigin } from "architecture/knowledge/judgement";
+import type { Judgement, JudgementOrigin } from "architecture/knowledge/judgement";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 
 /**
@@ -20,6 +20,16 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 export interface FrontmatterAccessor {
     getProperty(property: string): Literal;
     setProperty(property: string, value: Literal): Promise<void>;
+}
+
+/**
+ * How a caller wants the transition told (#641). `quiet` is for a surface that says what happened
+ * inline, next to its undo: no toast on any branch (the log lines stay). `recorded` receives the
+ * verdict as stored, so the caller can withdraw exactly that one when the change is undone.
+ */
+export interface TransitionOptions {
+    quiet?: boolean;
+    recorded?: (judgement: Judgement) => void;
 }
 
 function displayLabel(state: LifecycleState): string {
@@ -53,12 +63,13 @@ export class StateTransitionService {
         schema: LifecycleStateSchema,
         target: LifecycleState,
         path: string,
-        origin: JudgementOrigin
+        origin: JudgementOrigin,
+        opts: TransitionOptions = {}
     ): Promise<boolean> {
         const current = schema.parse({ [stateProperty]: accessor.getProperty(stateProperty) }) as LifecycleState;
 
         if (!canTransition(current, target)) {
-            new Notice(t("state_transition_rejected", displayLabel(current), displayLabel(target)));
+            if (!opts.quiet) new Notice(t("state_transition_rejected", displayLabel(current), displayLabel(target)));
             log.warn(`[Lifecycle] rejected transition ${current} -> ${target} (${path})`);
             return false;
         }
@@ -67,17 +78,18 @@ export class StateTransitionService {
             await accessor.setProperty(stateProperty, target);
             // A human decided this note is now that. Recorded on the success branch only: a refused
             // transition is not a decision, it is a no-op (§XII, and the record holds no label).
-            JudgementLog.getInstance().record({
+            const judgement = JudgementLog.getInstance().record({
                 path,
                 subject: stateSubject(target),
                 origin,
                 verdict: "accepted",
             });
-            new Notice(t("state_transition_success", displayLabel(target)));
+            if (judgement) opts.recorded?.(judgement);
+            if (!opts.quiet) new Notice(t("state_transition_success", displayLabel(target)));
             log.info(`[Lifecycle] ${path}: ${current} -> ${target}`);
             return true;
         } catch (error) {
-            new Notice(t("state_transition_error"));
+            if (!opts.quiet) new Notice(t("state_transition_error"));
             log.error(`[Lifecycle] transition failed (${path}): ${String(error)}`);
             return false;
         }

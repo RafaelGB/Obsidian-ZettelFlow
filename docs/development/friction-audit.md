@@ -49,7 +49,7 @@ Counted from source on `main`: `addCommand` ids, `registerView` names, the commu
 | `open-questions` (`show-open-questions`) | "Every unanswered question" | Home (a Home panel already) |
 | `evolution-timeline` (`show-evolution-timeline`) | "How did this idea evolve?" | — (distinct, per-note) |
 | `evidence-map` (`show-evidence-map`) *(experimental)* | "Grounded synthesis of a note" | — (distinct) |
-| `thinking-heatmap` (`show-thinking-heatmap`) | "Momentum — ideas developed over time" | — (distinct cadence) |
+| `practice` (`show-thinking-heatmap`) | "Practice — ideas developed and decisions on proposals" (#645) | — (distinct cadence) |
 | `history` (`show-notes-history`) | "Recently built notes" | — (utility) |
 
 **Finding F2 (biggest surface win).** `home` + `knowledge-dashboard` + `slipbox-health` all answer

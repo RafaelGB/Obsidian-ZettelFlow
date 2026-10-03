@@ -47,9 +47,23 @@ export function hoverPreviewPayload(
  *
  * `hoverParent` is the view/component the popover attaches its lifecycle to (pass the renderer/`this`).
  */
-export function hoverPreview(app: App, el: HTMLElement, path: string, hoverParent: unknown): void {
+export function hoverPreview(
+    app: App,
+    el: HTMLElement | SVGElement,
+    path: string,
+    hoverParent: unknown,
+    /**
+     * Where the popover anchors. Required for an SVG `el`: Obsidian's handler calls `isShown()` on
+     * the target, which only HTML elements have (#639 — a graph node threw on every hover).
+     */
+    anchor?: HTMLElement
+): void {
+    // What Obsidian needs of the target is `isShown()` — HTML elements have it, SVG ones do not.
+    const shown = (node: unknown): node is HTMLElement => typeof (node as { isShown?: unknown })?.isShown === "function";
+    const target = anchor ?? (shown(el) ? el : null);
+    if (!target) return;
     el.addEventListener("mouseover", (event) => {
-        app.workspace.trigger("hover-link", hoverPreviewPayload(event, el, path, hoverParent));
+        app.workspace.trigger("hover-link", hoverPreviewPayload(event as MouseEvent, target, path, hoverParent));
     });
 }
 
@@ -59,14 +73,15 @@ export function hoverPreview(app: App, el: HTMLElement, path: string, hoverParen
  * element per render (elements are recreated on re-render, so listeners are discarded with them).
  */
 export function makeActivatable(
-    el: HTMLElement,
+    el: HTMLElement | SVGElement,
     onActivate: () => void,
     role: "link" | "button" = "link"
 ): void {
     el.setAttribute("role", role);
     el.tabIndex = 0;
     el.addEventListener("click", onActivate);
-    el.addEventListener("keydown", (evt) => {
+    el.addEventListener("keydown", (event) => {
+        const evt = event as KeyboardEvent;
         if (evt.key === "Enter" || evt.key === " ") {
             evt.preventDefault();
             onActivate();

@@ -5,7 +5,7 @@
 > [manifesto](../manifesto.md)'s meta-principle: *ZettelFlow removes mechanical work and protects
 > cognitive work.*
 
-> See the agency review in action → the [Showcase](../showcase.md).
+> See it in action → **[Health › Practice](practice.md)** and the [Showcase](../showcase.md).
 
 ## The problem this solves
 
@@ -113,19 +113,21 @@ but *"has their understanding changed?"*
 
 ## Reviewing your decisions
 
-The **Agency** tab on the Health surface (#389) makes the record something you can *look at*. It is a
-**read-only, local** view — nothing is written back, nothing is transmitted:
+The record is something you can *look at* in **[Health › Practice](practice.md)** (#645), which
+replaced the **Agency review** tab (#389) and the Momentum heatmap. It is **read-only and local** —
+nothing is written back, nothing is transmitted:
 
-- A compact **header** — the cognitive agency index (`agencyIndex`), the interpretive
-  accept · modify · reject breakdown (`verdictBreakdown`), and a one-line plain-language **reading**
-  (*deciding · mixed · accepting · unknown*). The reading is a description of your verdict mix, **not a
-  grade**; below a small sample it reads *unknown*, never zero.
-- A **newest-first list** of every recorded decision — the note, the verdict, its origin, your
-  confidence and rationale when you gave them, and when. Each row opens the note.
+- **Your decisions on proposals** — the interpretive accepted · changed · rejected counts
+  (`verdictBreakdown`) as one proportional bar, a total, and one plain sentence describing the mix
+  (*deciding · mixed · accepting · unknown*, same thresholds). Below five decisions it reads
+  *unknown*, never zero.
+- **Recent** — the ten latest decisions, newest first: the note, the verdict, when. Each opens the
+  note.
 
-The header numbers come straight from the C5 queries (`agencyReviewModel` composes them), so the tab
-and a script's `zf.knowledge.agencyIndex()` can never disagree. Empty log ⇒ a friendly empty state;
-recording off ⇒ a prompt to enable it in settings.
+There is **no percentage on screen**. The cognitive agency index (`agencyIndex`) still exists for
+scripts — `zf.knowledge.agencyIndex()` — but a number about you, drawn on screen, is a grade; the
+counts say the same thing without being one. Empty log ⇒ one sentence; recording off ⇒ a line that
+opens ZettelFlow's settings tab.
 
 ## The other half: your own readings
 

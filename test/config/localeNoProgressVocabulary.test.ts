@@ -21,6 +21,11 @@ const PREFIXES = [
     "claim_door_",
     "home_claim_return_",
     "settings_return_",
+    // The note's story (#642): it states what happened, never how far along anything is.
+    "note_story_",
+    // Practice (#645): what you did, stated — never how well. (It holds no future date, so the
+    // urgency scan, which is about horizons, has nothing of it to read.)
+    "practice_",
 ];
 
 const FORBIDDEN = [

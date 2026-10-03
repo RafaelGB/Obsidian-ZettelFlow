@@ -60,3 +60,27 @@ export function applySource(frontmatter: Record<string, unknown>, raw: string): 
     frontmatter[key] = field.value;
     return true;
 }
+
+/**
+ * Add a reference to the note, keeping every one it already declares (#641). Under the key the
+ * note already uses; a scalar becomes a list of two, a list grows. Returns whether anything was
+ * written — a blank reference writes nothing. Unlike {@link applySource}, which edits the first
+ * entry for the claim door, this never replaces one: a list holding a link to a note that does not
+ * exist yet keeps it.
+ */
+export function appendSource(frontmatter: Record<string, unknown>, raw: string): boolean {
+    const field = sourceField(raw);
+    if (!field) return false;
+
+    const key = keyOf(frontmatter);
+    const current = frontmatter[key];
+    if (Array.isArray(current)) frontmatter[key] = [...(current as unknown[]), field.value];
+    else if (typeof current === "string" && current.trim().length > 0) frontmatter[key] = [current, field.value];
+    else frontmatter[key] = field.value;
+    return true;
+}
+
+/** The source key this note uses, or the one a new source goes under. */
+export function sourceKeyOf(frontmatter: Record<string, unknown>): string {
+    return keyOf(frontmatter);
+}

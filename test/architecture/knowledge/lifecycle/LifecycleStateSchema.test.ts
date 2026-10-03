@@ -43,3 +43,20 @@ describe("LifecycleStateSchema (AC-2, AC-3)", () => {
         ]);
     });
 });
+
+describe("LifecycleStateSchema.recognises (#640 AC-5)", () => {
+    const schema = new LifecycleStateSchema("state", { Fugaz: "fleeting" });
+
+    it("recognises a stated token, its emoji form and a localized alias", () => {
+        expect(schema.recognises({ state: "literature" })).toBe(true);
+        expect(schema.recognises({ state: "📝 Literature" })).toBe(true);
+        expect(schema.recognises({ state: "fugaz" })).toBe(true);
+    });
+
+    it("does not recognise a missing, empty or unknown value, even though parse reads it as fleeting", () => {
+        for (const frontmatter of [{}, { state: "" }, { state: "someday" }, { state: 3 }]) {
+            expect(schema.parse(frontmatter)).toBe("fleeting");
+            expect(schema.recognises(frontmatter)).toBe(false);
+        }
+    });
+});

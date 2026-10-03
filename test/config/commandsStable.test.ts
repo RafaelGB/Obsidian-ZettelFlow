@@ -57,6 +57,15 @@ const FROZEN = [
     "think-about-this-note",
 ];
 
+/**
+ * Commands added since the freeze, each with the issue that justified it. The palette may grow only
+ * through this list — a name and a reason, reviewed like any other change to the freeze.
+ */
+const ADDED: Record<string, string> = {
+    // The ribbon menu runs commands by id; This note's rank-1 door needs one to run (#640).
+    "open-note-companion": "#640 — backs the ribbon menu's This note entry",
+};
+
 describe("the frozen palette (#575)", () => {
     it("registers thirty-nine commands", () => {
         expect(FROZEN).toHaveLength(39);
@@ -67,17 +76,23 @@ describe("the frozen palette (#575)", () => {
         expect(missing).toEqual([]);
     });
 
-    it("has not grown", () => {
+    it("has not grown, except by a named addition", () => {
         // #578 may make this list *shorter* — a capability that is merged takes its command with
-        // it. It may never make it longer: a new command is the door this epic exists to refuse.
-        expect(registeredCommands().length).toBeLessThanOrEqual(FROZEN.length);
+        // it. It may not make it longer behind anyone's back: a new command is the door this epic
+        // exists to refuse, unless it is written into ADDED with the reason it had to exist.
+        expect(registeredCommands().length).toBeLessThanOrEqual(FROZEN.length + Object.keys(ADDED).length);
+        expect(registeredCommands().filter((id) => !FROZEN.includes(id) && !(id in ADDED))).toEqual([]);
+    });
+
+    it("registers every named addition", () => {
+        expect(Object.keys(ADDED).filter((id) => !registeredCommands().includes(id))).toEqual([]);
     });
 
     it("keeps every id a literal, so the scan cannot be evaded", () => {
-        // 29 call sites: 28 with a literal id, plus the one loop over `SURFACE_COMMANDS` whose
-        // eleven ids the scan reads from the table instead. A 30th site means a registration the
-        // frozen list above does not know about.
-        expect(addCommandCallSites()).toBe(29);
+        // 30 call sites: 29 with a literal id (28 frozen + open-note-companion, #640), plus the
+        // one loop over `SURFACE_COMMANDS` whose eleven ids the scan reads from the table instead.
+        // A 31st site means a registration neither list above knows about.
+        expect(addCommandCallSites()).toBe(30);
     });
 
     it("reports a command that vanished rather than trusting anyone to notice", () => {

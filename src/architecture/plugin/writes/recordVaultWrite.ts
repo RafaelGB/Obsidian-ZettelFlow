@@ -98,6 +98,11 @@ export function currentWriteBatch(): string | undefined {
     return stack.length > 0 ? stack[0].batch : undefined;
 }
 
+/** Whether some batch is already open — a new unit of work started now would join it (#640). */
+export function writeBatchActive(): boolean {
+    return stack.length > 0;
+}
+
 /** The origin a write would inherit right now — exported for the tests and for R4's seam. */
 export function currentWriteOrigin(): WriteOrigin | undefined {
     return stack.length > 0 ? stack[stack.length - 1].origin : undefined;

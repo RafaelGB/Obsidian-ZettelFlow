@@ -7,6 +7,7 @@ import { communitiesOf } from "architecture/knowledge/map/communities";
 import { gapSeams } from "architecture/knowledge/map/gapSeams";
 import { build3DGraph } from "architecture/knowledge/map/graph3d";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
+import { tendRowsOf } from "architecture/knowledge/state/tend";
 import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
 import { movesFor, MOVE_CEILING, type Move } from "application/thinking/move";
@@ -18,6 +19,8 @@ import { dueClaims } from "architecture/knowledge/review/dueClaims";
 import { drawCollision } from "architecture/knowledge/map/drawCollision";
 import { newThought, type Thought } from "application/thinking/thought";
 import { filterThreads, threadThoughts } from "application/thinking/thread";
+import { noteNeighbourhood } from "architecture/knowledge/state/neighbourhood";
+import { layoutNeighbourhood } from "architecture/components/core/noteCompanion/neighbourhoodLayout";
 
 /**
  * The budget suite (#457, epic #452).
@@ -122,6 +125,12 @@ describe("the projections the surfaces run", () => {
 
     it("analysis.debt.10k", () => {
         assertBudget("analysis.debt.10k", timed("analysis.heaviest", () => computeKnowledgeDebt(model), 10_000));
+    });
+
+    it("analysis.tend.10k", () => {
+        // Uncached, and with the debt it reads cleared too: a primed memo would time a lookup (#644).
+        clearMemo(model);
+        assertBudget("analysis.tend.10k", timed("analysis.heaviest", () => tendRowsOf(model), 10_000));
     });
 
     it("view.graph3d.build.10k", () => {
@@ -371,5 +380,59 @@ describe("two things nowhere near each other (#566)", () => {
         );
         // Per draw, which is what the number has to mean for it to be honest.
         assertBudget("analysis.collision.draw.10k", ms / 100);
+    });
+});
+
+/**
+ * The note's neighbourhood (#643): what This note draws on every note switch.
+ *
+ * A hub with a fixed degree — forty links out, forty in — inside vaults of two sizes. The projection
+ * reads only that note's adjacency, so the number should follow the hub, not the vault: the
+ * absolute budget says it is cheap, the ratio says it stays cheap as the vault grows.
+ */
+describe("the note's neighbourhood", () => {
+    const HUB = "Hub.md";
+    const RENDERS = 1_000;
+
+    function neighbourhoodHub(count: number): KnowledgeModel {
+        const model = modelOf(count);
+        const others = model.all().map((idea) => idea.path);
+        const out = others.slice(0, 40);
+        const into = others.slice(40, 80);
+        model.upsert(
+            deriveIdea({ path: HUB, title: "Hub", frontmatter: {}, tags: [], outgoingLinks: out, inlineFields: [] }, {})
+        );
+        for (const path of into) {
+            const idea = model.get(path)!;
+            model.upsert({ ...idea, relations: [...idea.relations, { type: "link", from: path, to: HUB }] });
+        }
+        return model;
+    }
+
+    function draw(model: KnowledgeModel): number {
+        return timed(
+            "analysis.heaviest",
+            () => {
+                for (let render = 0; render < RENDERS; render++) {
+                    const hood = noteNeighbourhood(model, HUB, []);
+                    layoutNeighbourhood(hood.neighbours, hood.near);
+                }
+            },
+            model.size()
+        );
+    }
+
+    it("analysis.neighbourhood.hub", () => {
+        const model = neighbourhoodHub(10_000);
+        expect(noteNeighbourhood(model, HUB, []).neighbours).toHaveLength(80);
+        assertBudget("analysis.neighbourhood.hub", draw(model));
+    });
+
+    it("analysis.neighbourhood.scaling", () => {
+        const at10k = draw(neighbourhoodHub(10_000));
+        const at20k = draw(neighbourhoodHub(20_000));
+        // eslint-disable-next-line no-console
+        console.log(`neighbourhood — 10k ${at10k.toFixed(1)} ms, 20k ${at20k.toFixed(1)} ms per ${RENDERS} renders`);
+        assertBudget("analysis.neighbourhood.scaling", at20k / Math.max(at10k, 1));
     });
 });

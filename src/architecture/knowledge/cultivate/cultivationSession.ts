@@ -3,7 +3,7 @@ import type { IdeaState } from "../model/Idea";
 import { rankRelated } from "../relations/relationRankingLogic";
 import { findContradictions } from "../query/findContradictionLogic";
 import { computeMaturity } from "../derive/maturityLogic";
-import { allowedTargets } from "../lifecycle/machine";
+import { proposedNextState } from "../lifecycle/machine";
 import { statePartition } from "../query/queries";
 import {
     FALLBACK_STATE,
@@ -118,8 +118,7 @@ export function buildCultivationSession(
     if (enabled.has("question")) moves.push({ kind: "question" });
 
     if (enabled.has("advance")) {
-        const targets = allowedTargets(asLifecycleState(idea.state));
-        const proposedState = targets.find((target) => target !== "archived") ?? targets[0];
+        const proposedState = proposedNextState(asLifecycleState(idea.state));
         if (proposedState) {
             moves.push({ kind: "advance", proposedState, proposedStateLabelKey: STATE_LABEL_KEY[proposedState] });
         }

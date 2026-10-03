@@ -124,7 +124,7 @@ export class ModeHeader {
             // From the button's own corner, so opening it with the keyboard puts the menu where
             // the control is rather than wherever the pointer happens to be.
             const box = trigger.getBoundingClientRect();
-            menu.showAtPosition({ x: box.left, y: box.bottom });
+            menu.showAtPosition({ x: box.left, y: box.bottom }, trigger.doc);
         };
         this.register(trigger, "click", open);
     }

@@ -17,6 +17,7 @@ import { installDestination, type InstallRole } from "./installDestination";
 import { flowFolders, FLOW_ROLE_LABEL_KEY } from "architecture/plugin/canvas/flowRole";
 import { ConfirmModal } from "architecture/components/settings";
 import { SystemRehearsalPanel } from "./SystemRehearsalPanel";
+import { previewBlobType, systemPreviewUrls } from "./systemPreview";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -52,10 +53,8 @@ export class CommunitySystemModal extends Modal {
   private installButton: ButtonComponent | null = null;
   private installStatus: HTMLElement | null = null;
   private targetFolder: string;
-  private imageUrl = `${COMMUNITY_BASE_URL}${this.refUrl.replace(
-    /\.zftemplate$/,
-    ".png"
-  )}`;
+  /** The preview drawing, SVG first, then the PNG older releases read (#651). */
+  private imageUrls = systemPreviewUrls(COMMUNITY_BASE_URL, this.refUrl);
   private objectUrl: string | null = null;
   /** Set in `onClose`; guards the async image load against a close-before-fetch race. */
   private disposed = false;
@@ -238,22 +237,26 @@ export class CommunitySystemModal extends Modal {
   }
 
   /**
-   * Fetches the optional sibling preview image (`<id>.png`) and appends it. Systems may ship without
-   * one (the author drops it in later), so a miss is expected — logged at debug, not surfaced. Bails
-   * if the modal was closed while fetching, revoking the just-created object URL.
+   * Fetches the optional sibling preview drawing (`<id>.svg`, else `<id>.png`) and appends it.
+   * Systems may ship without one (the author drops it in later), so a miss is expected — logged at
+   * debug, not surfaced. Bails if the modal was closed while fetching, revoking the object URL.
    */
   private async loadImage(section: HTMLDivElement): Promise<void> {
     let objectUrl: string | null = null;
-    try {
-      const response = await requestUrl({ url: this.imageUrl });
-      const mimeType =
-        response.headers["content-type"] ?? "application/octet-stream";
-      const blob = new Blob([response.arrayBuffer], { type: mimeType });
-      objectUrl = URL.createObjectURL(blob);
-    } catch (error) {
-      log.debug("No preview image for system:", this.imageUrl, error);
-      return;
+    for (const url of this.imageUrls) {
+      try {
+        const response = await requestUrl({ url });
+        // GitHub raw serves SVG as text/plain, which an <img> would not draw (#651).
+        const blob = new Blob([response.arrayBuffer], {
+          type: previewBlobType(url, response.headers["content-type"]),
+        });
+        objectUrl = URL.createObjectURL(blob);
+        break;
+      } catch (error) {
+        log.debug("No preview image for system at", url, error);
+      }
     }
+    if (!objectUrl) return;
     if (this.disposed) {
       URL.revokeObjectURL(objectUrl);
       return;

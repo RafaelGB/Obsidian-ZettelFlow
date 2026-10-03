@@ -42,8 +42,64 @@ systems; the on-creation cognitive work scales with the difficulty.
 | **Weekly focus** | hard | Weekly focus | **the scripting showcase** — picks this week's idea from the ones that grew without your judgement and stamps the vault's state so next week has something to compare against; uses [`zf.knowledge`](../api/ZettelFlowAPI.md) |
 | **Software architecture KB** | hard | Decision record (ADR) · Component | new decisions are checked against existing ones for contradictions and linked to related decisions |
 
-> Previews: each system shows a preview image in the browser. Previews currently ship as placeholders
-> pending final artwork (tracked in issue #223) — the system itself is fully functional regardless.
+### See the flows
+
+Each drawing is the system's own canvas, read from its `.zftemplate`: the steps, their phase
+colours, the questions each one asks and what runs on creation. The same drawing is the preview
+in the in-app browser.
+
+=== "Zettelkasten v2"
+
+    ![Zettelkasten v2: the system's canvas flow](../systems/zettelkasten-v2.svg)
+
+=== "PARA v2"
+
+    ![PARA v2: the system's canvas flow](../systems/para-v2.svg)
+
+=== "GTD"
+
+    ![GTD: the system's canvas flow](../systems/gtd.svg)
+
+=== "Academic research"
+
+    ![Academic research: the system's canvas flow](../systems/academic-research.svg)
+
+=== "Reading"
+
+    ![Reading: the system's canvas flow](../systems/reading.svg)
+
+=== "Writing"
+
+    ![Writing: the system's canvas flow](../systems/writing.svg)
+
+=== "Software architecture KB"
+
+    ![Software architecture KB: the system's canvas flow](../systems/software-architecture-kb.svg)
+
+=== "Decision journal"
+
+    ![Decision journal: the system's canvas flow](../systems/decision-journal.svg)
+
+=== "Concept note"
+
+    ![Concept note: the system's canvas flow](../systems/concept-note.svg)
+
+=== "Daily journal"
+
+    ![Daily journal: the system's canvas flow](../systems/daily-journal.svg)
+
+=== "Meeting notes"
+
+    ![Meeting notes: the system's canvas flow](../systems/meeting-notes.svg)
+
+=== "Inquiry"
+
+    ![Inquiry: the system's canvas flow](../systems/inquiry.svg)
+
+=== "Weekly focus"
+
+    ![Weekly focus: the system's canvas flow](../systems/weekly-focus.svg)
+
 
 ## Systems that run code
 
@@ -96,7 +152,8 @@ the steps live *on the canvas nodes*, not in external `.md` files, and `steps` i
 5. **Declare a difficulty.** Set a top-level `"difficulty": "easy" | "medium" | "hard"` on the bundle so
    the gallery shows the right badge — *easy* for a light workflow, *medium* once you add relation/research
    actions, *hard* for the full on-creation pipeline. Optional; omit it and the badge is simply hidden.
-6. **Catalog it.** Add the `.zftemplate` under `docs/systems/`, a sibling `<id>.png` preview, and a
+6. **Catalog it.** Add the `.zftemplate` under `docs/systems/`, a sibling `<id>.svg` drawing of its
+   canvas flow (plus the `<id>.png` rendered from it, which releases before #651 read), and a
    `template_type: "system"` row to `docs/main_template.json` (`ref` = the `.zftemplate` path).
 7. **Validate.** `npm test` runs the validity harness. `shippedSystems.test.ts` + `catalog.test.ts`:
    every shipped system parses, references only registered **non-AI** actions, uses YAML-safe

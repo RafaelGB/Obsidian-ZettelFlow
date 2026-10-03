@@ -52,7 +52,7 @@ describe("community catalog systems (#215, AC-3/AC-6, FR-9)", () => {
         expect(new Set(systemRefs).size).toBe(systemRefs.length);
     });
 
-    it("every system entry resolves to a valid .zftemplate with a sibling preview image", () => {
+    it("every system entry resolves to a valid .zftemplate with a sibling preview drawing", () => {
         for (const entry of systems) {
             expect(entry.ref.endsWith(".zftemplate")).toBe(true);
             const templatePath = resolveRef(entry.ref);
@@ -64,9 +64,12 @@ describe("community catalog systems (#215, AC-3/AC-6, FR-9)", () => {
                 problems: [],
             });
 
-            // The modal derives the preview URL as the sibling `.png`; ship at least a placeholder.
-            const imagePath = resolveRef(entry.ref.replace(/\.zftemplate$/, ".png"));
-            expect({ ref: entry.ref, image: existsSync(imagePath) }).toEqual({ ref: entry.ref, image: true });
+            // The preview is an SVG drawing of the system's canvas (#651); its PNG sibling is rendered
+            // from it for releases that only ever asked for `<id>.png`.
+            for (const ext of [".svg", ".png"]) {
+                const imagePath = resolveRef(entry.ref.replace(/\.zftemplate$/, ext));
+                expect({ ref: entry.ref, ext, image: existsSync(imagePath) }).toEqual({ ref: entry.ref, ext, image: true });
+            }
         }
     });
 

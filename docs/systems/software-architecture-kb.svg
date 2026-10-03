@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="908" viewBox="0 0 1200 908" role="img" aria-label="Software architecture KB — the system's canvas flow: 3 steps">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker>
+</defs>
+<rect width="1200" height="908" fill="#1e1e1e"/>
+<text x="32" y="50" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="700">Software architecture KB</text>
+<rect x="398.4" y="28" width="64" height="28" rx="14" fill="#fb464c" fill-opacity="0.18" stroke="#fb464c" stroke-width="1.5"/>
+<text x="430.4" y="47" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">hard</text>
+<text x="1168" y="48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="15" text-anchor="end">3 steps · 1 branch point</text>
+<text x="32" y="86" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">A software architecture knowledge base, drawn as a flow: one capture asks whether you're recording a decision or a</text>
+<text x="32" y="110" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">component, and branches to an ADR (context, decision, status, consequences, alternatives) or a component note…</text>
+<rect x="24" y="138" width="1152" height="734.0" rx="12" fill="#191919" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="25" y="139" width="1150" height="732.0" rx="11" fill="url(#dots)"/>
+<g transform="translate(90.0,150.0) scale(1.0000) translate(630,370)">
+<path d="M-220,145.0 C-120.0,145.0 -120.0,-165.0 -24,-165.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-154.0" y="-180.0" width="108.0" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-100.0" y="-160.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">A decision</text>
+<path d="M-220,145.0 C-120.0,145.0 -120.0,135.0 -24,135.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-162.6" y="120.0" width="116.6" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-104.3" y="140.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">A component</text>
+<rect x="-560" y="20" width="340" height="250" rx="12" fill="#262626" stroke="#fb464c" stroke-width="3"/>
+<path d="M-560,32 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#fb464c" fill-opacity="0.16"/>
+<text x="-544" y="51" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Architecture KB</text>
+<rect x="-284" y="33" width="50" height="22" rx="11" fill="#7f6df2"/>
+<text x="-259" y="49" fill="#fff" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700" text-anchor="middle">ROOT</text>
+<text x="-544" y="90" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">capture · → Architecture</text>
+<circle cx="-539" cy="111" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="116" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Title<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-539" cy="133" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="138" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">What is it?<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<circle cx="-539" cy="155" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="160" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Tags<tspan fill="#5c5f66" font-size="12.5">  tags</tspan></text>
+<circle cx="-539" cy="177" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="182" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Zettel id<tspan fill="#5c5f66" font-size="12.5">  zettel-id · automatic</tspan></text>
+<rect x="-20" y="-300" width="340" height="270" rx="12" fill="#262626" stroke="#53dfdd" stroke-width="3"/>
+<path d="M-20,-288 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#53dfdd" fill-opacity="0.16"/>
+<text x="-4" y="-269" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Decision record</text>
+<text x="-4" y="-230" fill="#53dfdd" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">develop · → Architecture/Decisions</text>
+<circle cx="1" cy="-209" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-204" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Context<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="-187" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-182" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Decision<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="-165" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-160" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Status<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<circle cx="1" cy="-143" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-138" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Consequences<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="-121" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-116" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Alternatives<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="-86" x2="304" y2="-86" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="-68" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Find</text>
+<text x="-4" y="-48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">contradiction, Calculate maturity</text>
+<rect x="-20" y="10" width="340" height="250" rx="12" fill="#262626" stroke="#44cf6e" stroke-width="3"/>
+<path d="M-20,22 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#44cf6e" fill-opacity="0.16"/>
+<text x="-4" y="41" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Component</text>
+<text x="-4" y="80" fill="#44cf6e" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">connect · → Architecture/Components</text>
+<circle cx="1" cy="101" r="3.5" fill="#8b8e94"/>
+<text x="12" y="106" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Responsibility<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="123" r="3.5" fill="#8b8e94"/>
+<text x="12" y="128" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Interfaces<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="145" r="3.5" fill="#8b8e94"/>
+<text x="12" y="150" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Dependencies<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="167" r="3.5" fill="#8b8e94"/>
+<text x="12" y="172" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Tech<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="224" x2="304" y2="224" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="242" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Detect orphan</text>
+</g>
+<text x="32" y="892" fill="#5c5f66" font-family="Inter, Segoe UI, sans-serif" font-size="13">Installs as a canvas flow in one click from the ZettelFlow Systems gallery.</text>
+</svg>

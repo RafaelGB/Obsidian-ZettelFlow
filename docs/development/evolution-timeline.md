@@ -111,7 +111,7 @@ not happened.
 ## Thoughts written about the note (#540)
 
 Thinking about a note used to leave no trace on it. *Think about this note* plus a sentence recorded
-a thought in the [thinking space](thought-lab.md), but the note's own history never learned it
+a thought in the [thinking space](../architecture/thought-lab.md), but the note's own history never learned it
 happened — the Lab records a **move** only when the space is opened with a framed verb, so an
 unframed thought fell between the two logs.
 

@@ -71,3 +71,54 @@
 .md-search__form {
   border-radius: 0.5rem;
 }
+
+/* ── Landing page (#653) ───────────────────────────────────────────────────────────────────
+   A centred hero and illustrated cards. Theme-aware: colours come from Material's variables. */
+.zf-hero {
+  text-align: center;
+  margin: 0 auto 1.5rem;
+}
+.md-typeset .zf-hero h1 {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 2.6rem;
+}
+.zf-hero__logo {
+  width: 4.5rem;
+  height: auto;
+}
+.md-typeset .zf-hero__tagline {
+  font-size: 1.15rem;
+  color: var(--md-default-fg-color--light);
+  margin: 0 auto 1.2rem;
+  max-width: 38rem;
+}
+.md-typeset .zf-hero .md-button {
+  margin: 0 0.3rem 0.6rem;
+}
+.zf-hero__image {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 0.6rem;
+  box-shadow: var(--md-shadow-z2);
+}
+/* Card illustrations: full width, one height, the scene's own frame kept. */
+.md-typeset .grid.cards > ul > li img,
+.md-typeset .grid.cards > ol > li img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top left;
+  border-radius: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+/* Three across on the landing page, so each illustration is big enough to read. */
+.md-typeset .grid.cards.zf-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+@media screen and (min-width: 60em) {
+  .md-typeset .grid.cards.zf-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -34,6 +34,26 @@ as **seven sections** organised by what you are doing, not by when each feature 
 | **Automation** | property hooks |
 | **Advanced** | the folders ZettelFlow keeps its own files in, script type declarations, logging, and the timings from this vault — folded |
 
+### Flows, drawn as objects
+
+**Flows** reads as three cards: *Your flows*, the *Systems gallery* and *Triggers*.
+
+- **Your flows** shows each canvas that has a role as one row: a tile coloured by its role, the
+  canvas name, its path, a dropdown to change the role, and buttons to open it and (for an
+  exclusive role) to drop the role. The tile colours come from the theme: create uses the accent,
+  edit green, folder orange, event blue, hook purple. Changing a role still goes through the
+  confirmation dialog, which says what it changes before it does.
+- **Systems gallery** has two buttons: *Browse* the community systems and *Manage* what you
+  installed.
+- **Triggers** lists the bound triggers and holds the events folder.
+
+### Creating notes
+
+- **Note ID prefix** shows what the pattern produces as you type it: *Today it reads 202610041432*.
+  An empty pattern reads *No prefix: a new note keeps the name you give it.*
+- **Wizard density** is a two-way choice, with both sides always visible: *Comfortable* or
+  *Compact*.
+
 The tab ends on one line: the version, the documentation, where to report a problem, and how to
 support the project.
 

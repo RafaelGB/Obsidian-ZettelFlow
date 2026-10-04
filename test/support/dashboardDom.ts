@@ -186,6 +186,10 @@ export class DomNode {
     }
     /** `.a`, `.a.b` or a tag name — the selectors the dashboard uses. */
     querySelector(selector: string): DomNode | null {
+        // `:scope > .x` — a direct child only, as the real DOM reads it (rowContainer relies on it).
+        if (selector.startsWith(":scope > ")) {
+            return this.children.find(matcher(selector.slice(":scope > ".length))) ?? null;
+        }
         return this.find(matcher(selector)) ?? null;
     }
     querySelectorAll(selector: string): DomNode[] {

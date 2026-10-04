@@ -49,7 +49,7 @@ const CEILING: Record<string, number> = {
     "dragAndDrop.scss": 1,
     "dynamicSelector.scss": 10,
     "flowStatus.scss": 2,
-    "flows.scss": 4,
+    "flows.scss": 3,
     "graph3d.scss": 10,
     "historyView.scss": 28,
     // 6 → 4: the cultivate-teaser card (1px border + 3px accent) left Home when it became a hero

@@ -1,6 +1,5 @@
 import ZettelFlow from "main";
-import { App, moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
-import type MomentFn from "moment";
+import { App, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
@@ -10,7 +9,6 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
 import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
 import { ModeHostView } from "architecture/components/core/surface/ModeHostView";
-import { normalizeDensity } from "application/components/noteBuilder/presentation";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -33,6 +31,7 @@ import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
 import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup, flowsWithRole } from "./handlers/flowsSettingsGroup";
+import { creatingSettingsGroup } from "./handlers/creatingSettingsGroup";
 import { settingsGlance } from "config/settingsSummary";
 import {
     SETTINGS_SECTIONS,
@@ -50,8 +49,6 @@ import {
 import { openCultivateFromSettings } from "./startActions";
 import { hasRowContainer, rowContainer } from "architecture/components/settings";
 
-// Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
-const moment = obsidianMoment as unknown as typeof MomentFn;
 
 // Debounce the (expensive) index re-register + rebuild when the user edits the state property name.
 let lifecycleRebuildTimer: number | undefined;
@@ -87,93 +84,11 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
 
             // ── 1 · Flows: the canvases that have a role (#435) ──────────────────────────────────
             this.sectionHead("flows"),
-            flowsSettingsGroup(plugin, () => this.update()),
+            ...flowsSettingsGroup(plugin, () => this.update()),
 
             // ── 2 · Creating notes ────────────────────────────────────────────────────────────────
             this.sectionHead("creating"),
-            {
-                type: "group",
-                items: [
-                    {
-                        // Unfinished thinking deserves continuity (#410) — on by default.
-                        name: t("settings_wizard_drafts_name"),
-                        desc: t("settings_wizard_drafts_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(plugin.settings.wizardDraftsEnabled ?? true)
-                                    .onChange(async (value) => {
-                                        plugin.settings.wizardDraftsEnabled = value;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("create_in_current_folder_toggle_title"),
-                        desc: t("create_in_current_folder_toggle_description"),
-                        control: { type: "toggle", key: "createInCurrentFolder" },
-                    },
-                    {
-                        name: t("unique_prefix_pattern_title"),
-                        desc: buildPrefixDescription(plugin.settings.uniquePrefix),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setValue(plugin.settings.uniquePrefix)
-                                    .setPlaceholder(
-                                        DEFAULT_SETTINGS.uniquePrefix ?? ""
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.uniquePrefix = value;
-                                        setting.setDesc(buildPrefixDescription(value));
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        // Density of the creation wizard (#409). A preference about the reader's eyes,
-                        // so it is global rather than per flow.
-                        name: t("settings_wizard_density_name"),
-                        desc: t("settings_wizard_density_desc"),
-                        render: (setting) => {
-                            setting.addDropdown((dropdown) =>
-                                dropdown
-                                    .addOption("comfortable", t("settings_wizard_density_comfortable"))
-                                    .addOption("compact", t("settings_wizard_density_compact"))
-                                    .setValue(normalizeDensity(plugin.settings.wizardDensity))
-                                    .onChange(async (value) => {
-                                        plugin.settings.wizardDensity = normalizeDensity(value);
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        // Colour as meaning (#429). Off by default: the step editor offers the
-                        // colour one click at a time, and this makes it automatic for people who
-                        // want the canvas to paint itself.
-                        name: t("settings_colour_by_phase_title"),
-                        desc: t("settings_colour_by_phase_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(plugin.settings.colourNodesByPhase ?? false)
-                                    .onChange(async (value) => {
-                                        plugin.settings.colourNodesByPhase = value;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("open_home_on_startup_toggle_title"),
-                        desc: t("open_home_on_startup_toggle_description"),
-                        control: { type: "toggle", key: "openHomeOnStartup" },
-                    },
-                ],
-            },
+            creatingSettingsGroup(plugin),
 
             // ── 3 · Your knowledge: what counts, and how it is read ──────────────────────────────
             this.sectionHead("knowledge"),
@@ -855,9 +770,5 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         }
         await super.setControlValue(key, value);
     }
-}
-
-function buildPrefixDescription(pattern: string): string {
-    return `${t("unique_prefix_pattern_description")}\n${t("unique_prefix_pattern_helper")}: ${moment().format(pattern)}`;
 }
 

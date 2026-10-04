@@ -285,12 +285,16 @@ export class FakeButton {
 /** Chainable no-op stub of Obsidian's declarative Setting builder (with an opt-in capture above). */
 export class Setting {
   name = ""; desc = ""; heading = false;
-  settingEl: any; controlEl: any;
+  settingEl: any; infoEl: any; nameEl: any; descEl: any; controlEl: any;
   dropdowns: FakeDropdown[] = []; texts: FakeText[] = []; toggles: FakeToggle[] = [];
   buttons: FakeButton[] = []; extraButtons: FakeButton[] = [];
   constructor(containerEl?: any) {
     if (!settingCapture) return;
     this.settingEl = containerEl?.createDiv ? containerEl.createDiv({ cls: "setting-item" }) : undefined;
+    // The same anatomy as Obsidian's row: an info column (name + description) and a control column.
+    this.infoEl = this.settingEl?.createDiv ? this.settingEl.createDiv({ cls: "setting-item-info" }) : undefined;
+    this.nameEl = this.infoEl?.createDiv ? this.infoEl.createDiv({ cls: "setting-item-name" }) : undefined;
+    this.descEl = this.infoEl?.createDiv ? this.infoEl.createDiv({ cls: "setting-item-description" }) : undefined;
     this.controlEl = this.settingEl?.createDiv ? this.settingEl.createDiv({ cls: "setting-item-control" }) : undefined;
     settingCapture(this);
   }

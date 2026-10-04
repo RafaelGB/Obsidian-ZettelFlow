@@ -1,0 +1,133 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The settings sections' own visuals (#661, epic #659): flows drawn as objects, the prefix that says
+ * what it produces, and a two-way choice drawn as a segmented control.
+ *
+ * Theme variables only (§XV). A role's tint is the theme's own colour for it, mixed down into a tile,
+ * so a theme that recolours green or orange recolours the roles too.
+ */
+
+/* A row that draws its own content: its built-in name and control columns step aside. The name is
+   still there for Obsidian's settings search. */
+.zettelkasten-flow__settings-object-row {
+    display: block;
+
+    > .setting-item-info,
+    > .setting-item-control {
+        display: none;
+    }
+}
+
+/* ── Flows as objects ─────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__settings-flow {
+    @include row;
+    gap: $space-3;
+    padding: $space-2 0;
+    border-top: $line-quiet;
+
+    &:first-child {
+        border-top: none;
+    }
+}
+
+.zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--interactive-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--size-4-8);
+    height: var(--size-4-8);
+    border-radius: $radius-medium;
+    color: var(--zf-role-colour);
+    background-color: color-mix(in srgb, var(--zf-role-colour) 16%, transparent);
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+.zettelkasten-flow__settings-flow--edit .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-green);
+}
+
+.zettelkasten-flow__settings-flow--folder .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-orange);
+}
+
+.zettelkasten-flow__settings-flow--event .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-blue);
+}
+
+.zettelkasten-flow__settings-flow--hook .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-purple);
+}
+
+.zettelkasten-flow__settings-flow-words {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__settings-flow-name {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__settings-flow-path {
+    color: $text-faint;
+    font-family: var(--font-monospace);
+    font-size: $text-small;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__settings-flow-role {
+    flex: none;
+}
+
+/* ── Creating notes ───────────────────────────────────────────────────────────────────────── */
+
+/* What the prefix pattern turns into today, under the row's own description. */
+.zettelkasten-flow__settings-prefix-preview {
+    margin-top: $space-1;
+    color: $text-plain;
+}
+
+/* A two-way choice, both sides visible: Obsidian's own button look, joined into one control. */
+.zettelkasten-flow__settings-segment {
+    display: inline-flex;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__settings-segment-option {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: $surface-plain;
+    color: $text-quiet;
+    cursor: pointer;
+
+    & + & {
+        border-left: $line-quiet;
+    }
+
+    &:hover {
+        background-color: $surface-hover;
+        color: $text-plain;
+    }
+
+    &.is-active {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+    }
+}

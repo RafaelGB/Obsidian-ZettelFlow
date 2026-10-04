@@ -1,4 +1,4 @@
-import { Notice, Setting, SettingDefinitionItem } from "obsidian";
+import { Setting, SettingDefinitionItem } from "obsidian";
 import type ZettelFlow from "main";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
@@ -6,14 +6,13 @@ import { FileService } from "architecture/plugin";
 import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { FILE_EXTENSIONS } from "architecture/plugin/services/FileService";
-import { FileSuggest, FolderSuggest } from "architecture/settings";
+import { FileSuggest } from "architecture/settings";
 import { rowContainer } from "architecture/components/settings";
 import {
     ASSIGNABLE_ROLES,
     FLOW_ROLE_LABEL_KEY,
     flowFolders,
     flowRole,
-    validateFlowFolders,
     type FlowRole,
 } from "architecture/plugin/canvas/flowRole";
 import { planRoleRemoval } from "config/roles/assignRole";
@@ -174,7 +173,8 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
             ],
         },
         {
-            // The triggers that are actually bound, and where the flows that react to events live.
+            // The triggers that are actually bound. Where event flows live is a folder, and the
+            // folders are together now, under Advanced › Folders ZettelFlow uses (#663).
             type: "group",
             heading: t("settings_card_triggers"),
             items: [
@@ -184,32 +184,6 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                         setting.setClass(c("readable-setting-item"));
                         const list = rowContainer(setting, "event-bindings-list");
                         void renderBindings(list);
-                    },
-                },
-                {
-                    name: t("settings_event_flows_title"),
-                    desc: t("settings_event_flows_description"),
-                    render: (setting) => {
-                        setting.setClass(c("readable-setting-item"));
-                        setting.addSearch((search) => {
-                            new FolderSuggest(search.inputEl);
-                            search
-                                .setPlaceholder(t("folders_flows_selector_placeholder"))
-                                .setValue(plugin.settings.eventFlowsPath)
-                                .onChange(async (value) => {
-                                    const folders = { ...flowFolders(plugin.settings), eventFlowsPath: value };
-                                    const conflict = validateFlowFolders(folders);
-                                    if (conflict) {
-                                        // The value is refused, and the old one stays: two homes that
-                                        // overlap would make a canvas two things at once.
-                                        new Notice(t("settings_flow_folders_conflict", conflict.against));
-                                        search.setValue(plugin.settings.eventFlowsPath);
-                                        return;
-                                    }
-                                    plugin.settings.eventFlowsPath = value;
-                                    await plugin.saveSettings();
-                                });
-                        });
                     },
                 },
             ],

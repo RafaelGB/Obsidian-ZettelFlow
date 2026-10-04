@@ -3,6 +3,8 @@
 ZettelFlow's settings tab says who it is and what is on before it asks you anything, then reads
 as **seven sections** organised by what you are doing, not by when each feature was written.
 
+![The ZettelFlow settings tab: a header, four at-a-glance cards, the section bar and the sections](../resources/settings/settings.svg)
+
 ## The top of the tab
 
 - **The header** — the ZettelFlow mark, what it does in one line, and three small links: the
@@ -26,13 +28,13 @@ as **seven sections** organised by what you are doing, not by when each feature 
 
 | Section | Holds |
 |---|---|
-| **Flows** | the canvases that have a role, giving a role to another canvas, the triggers that are bound, the systems gallery, the events folder |
+| **Flows** | the canvases that have a role, giving a role to another canvas, the triggers that are bound, the systems gallery |
 | **Creating notes** | drafts, the target folder, the note ID prefix, density, colour by phase, opening Home at startup |
 | **Your knowledge** | excluded folders as removable chips with a folder search to add one; the three lifecycle properties side by side; typed links |
 | **Thinking** | *Pauses* (your reading before theirs, in Cultivate, the wizard and Explore); *Cultivate moves* as a grid of five tiles that says how many are on; *Returns and the thinking space* — [coming back](claim-returns.md#how-it-comes-back) as a slider that says its duration (7–365 days, default 90), the thinking space folder, re-running patterns; *What ZettelFlow remembers — local only*: three tiles (development journal, your decisions, idea snapshots), each with its switch and a lock line saying exactly what is stored |
-| **AI** | one switch, off by default, and the provider it calls when on |
-| **Automation** | property hooks |
-| **Advanced** | the folders ZettelFlow keeps its own files in, script type declarations, logging, and the timings from this vault — folded |
+| **AI** | one switch, off by default; the provider it calls, shown only when it is on; what leaves your vault, always shown |
+| **Automation** | property hooks, and a link to worked examples |
+| **Advanced** | every folder ZettelFlow keeps its own files in, in one grid; script type declarations; logging; the timings from this vault — folded |
 
 ### Flows, drawn as objects
 
@@ -45,7 +47,8 @@ as **seven sections** organised by what you are doing, not by when each feature 
   confirmation dialog, which says what it changes before it does.
 - **Systems gallery** has two buttons: *Browse* the community systems and *Manage* what you
   installed.
-- **Triggers** lists the bound triggers and holds the events folder.
+- **Triggers** lists the bound triggers. Where event flows live is a folder, and it sits with the
+  other folders under **Advanced**.
 
 ### Creating notes
 
@@ -53,6 +56,22 @@ as **seven sections** organised by what you are doing, not by when each feature 
   An empty pattern reads *No prefix: a new note keeps the name you give it.*
 - **Wizard density** is a two-way choice, with both sides always visible: *Comfortable* or
   *Compact*.
+
+### AI, behind one switch
+
+**AI** is off by default and everything works with it off. The endpoint, model, API key and the two
+limits — characters sent per request and tokens requested back, one row with two inputs — appear
+only once you turn it on. Whatever the switch says, a callout states what leaves your vault: only
+the bounded content of an action you run, only to the endpoint you set, and nothing reaches a note
+until you accept it.
+
+### Automation
+
+The property-hooks card puts its actions on the right — the native properties pane, *Property
+types*, and *Add hook* as the primary one. Each hook reads as one line: what it is for, *when
+`status` changes* under it, the property's type, a *Paused* badge when it is off, Obsidian's own
+switch, and *Edit*. Under the card's name, one sentence says what a hook is for and links to
+[worked examples](../vault-hooks/property-hooks/examples.md).
 
 The tab ends on one line: the version, the documentation, where to report a problem, and how to
 support the project.
@@ -73,7 +92,16 @@ support the project.
 
 The Advanced section starts folded behind the toggle on its own head, because nobody should meet a
 log level on their first day. It remembers whether you left it open. It holds only things that do
-not change what ZettelFlow does for you: the folders it keeps its own files in, the script type
-declarations, the log level — which includes **off** (#439) — and the timings measured on your vault.
+not change what ZettelFlow does for you:
+
+- **Folders ZettelFlow uses** — one grid, one cell per folder, each with a folder search and a reset
+  to its default: *Folder flows*, *Event flows*, *Hook flows*, *Scripts* and *Markdown templates*.
+  The three flow homes still refuse a folder that is the same as, or inside, another one — a canvas
+  cannot be two things at once. The *Thinking space* cell shows its folder and takes you to the one
+  place it is edited, under Thinking: one setting, one editor.
+- **Script type declarations** — writes `zettelflow.d.ts` into your scripts folder.
+- **Logging** — *Off*, *Errors only*, *Warnings*, *Information*, *Debugging* or *Everything* (#439).
+- **Timings from this vault** — a small table of what ran, how long, and over how many notes, read
+  each time the tab is drawn.
 
 _README vocabulary for this page: **Settings you can read**._

@@ -13,7 +13,11 @@ const HANDLERS = readdirSync(join(ROOT, "src", "config", "modals", "handlers"))
 /** Every row the tab and its group modules declare, by the locale key of its name. */
 function rowNames(): Set<string> {
     const names = new Set<string>();
-    for (const source of [TAB, ...HANDLERS]) for (const m of source.matchAll(/name: t\("([^"]+)"/g)) names.add(m[1]);
+    for (const source of [TAB, ...HANDLERS]) {
+        for (const m of source.matchAll(/name: t\("([^"]+)"/g)) names.add(m[1]);
+        // A row built from a table (the folders grid, #663) names itself through `nameKey`.
+        for (const m of source.matchAll(/nameKey: "([^"]+)"/g)) names.add(m[1]);
+    }
     return names;
 }
 
@@ -66,6 +70,11 @@ const REPLACED: Record<string, string> = {
     settings_journal_disclosure: "the journal tile's lock line — what is stored, said in the tile",
     settings_judgements_disclosure: "the decisions tile's lock line",
     settings_timeline_disclosure: "the snapshots tile's lock line",
+    // #663 — the AI card: one switch, the provider only when it is on.
+    settings_ai_intro: "the AI section head's purpose — optional, everything works with it off",
+    settings_ai_max_input_name: "settings_ai_limits_name — one row, two inputs (still found by this name)",
+    settings_ai_max_output_name: "settings_ai_limits_name — one row, two inputs (still found by this name)",
+    settings_ai_disclosure: "settings_ai_privacy_name — the same promise, as a callout that is always shown",
 };
 
 /**
@@ -111,12 +120,16 @@ describe("the settings tab is seven sections (#660)", () => {
 
     it("folds Advanced behind a toggle that is remembered, not reset on every visit", () => {
         const advanced = TAB.slice(TAB.indexOf('this.sectionHead("advanced")'), TAB.indexOf("this.footerGroup()"));
-        expect(advanced.match(/visible: advanced/g)).toHaveLength(2);
+        // #663: the two cards live in their own module and take the fold as their `visible`.
+        expect(advanced).toContain("foldersSettingsGroup(plugin, advanced,");
+        expect(advanced).toContain("scriptsLoggingGroup(advanced)");
+        const module = read("src", "config", "modals", "handlers", "advancedSettingsGroups.ts");
+        expect(module.match(/^\s+visible,$/gm)).toHaveLength(2);
         expect(TAB).toContain("const advanced = () => plugin.settings.showAdvancedSettings === true;");
         expect(TAB).toContain("plugin.settings.showAdvancedSettings = value;");
         expect(TAB).not.toContain("private showAdvanced");
         // The timings left the Health surface for here, beside the log level (#645).
-        expect(advanced).toContain("...speedSettingsItems()");
+        expect(module).toContain("...speedSettingsItems()");
     });
 
     it("shows the start card only while nothing creates notes", () => {

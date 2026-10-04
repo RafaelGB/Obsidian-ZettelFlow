@@ -1,18 +1,15 @@
 import ZettelFlow from "main";
-import { Notice, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
-import { FolderSuggest } from "architecture/settings";
-import { fnsManager, writeTypeDeclarations } from "architecture/api";
-import { DEFAULT_SETTINGS } from "config";
 import { CommunityTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
 import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
-import { speedSettingsItems } from "./handlers/speedSettingsItems";
+import { foldersSettingsGroup, scriptsLoggingGroup } from "./handlers/advancedSettingsGroups";
 import { returnSettingsGroup } from "./handlers/returnSettingsGroup";
 import { knowledgeSettingsGroups } from "./handlers/knowledgeSettingsGroups";
 import { movesSettingsGroup } from "./handlers/movesSettingsGroup";
@@ -35,7 +32,10 @@ import {
     type SectionId,
 } from "./settingsShell";
 import { openCultivateFromSettings } from "./startActions";
-import { hasRowContainer, rowContainer } from "architecture/components/settings";
+import { descContainer, hasRowContainer, rowContainer } from "architecture/components/settings";
+
+/** The worked hook examples: what to show someone who has just read what a hook is for. */
+const HOOK_EXAMPLES_URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/vault-hooks/property-hooks/examples/";
 
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
@@ -125,9 +125,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             returnSettingsGroup(plugin),
             rememberedSettingsGroup(plugin),
 
-            // ── 5 · AI (optional, off by default): the section head names it, so the group does not
+            // ── 5 · AI (optional, off by default): one switch, and the provider only when it is on ──
             this.sectionHead("ai"),
-            { ...aiSettingsGroup(plugin), heading: undefined } as SettingDefinitionItem,
+            aiSettingsGroup(plugin, () => this.refreshDomState()),
 
             // ── 6 · Automation ────────────────────────────────────────────────────────────────────
             this.sectionHead("automation"),
@@ -139,6 +139,12 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         desc: t("property_hooks_setting_description"),
                         render: (setting) => {
                             setting.settingEl.addClass(c("property-hooks-setting-item"));
+                            // One line of what a hook is for, and where the worked examples are (#663).
+                            const examples = descContainer(setting, "property-hooks-examples");
+                            examples.createEl("a", {
+                                text: t("property_hooks_examples_link"),
+                                href: HOOK_EXAMPLES_URL,
+                            });
                             // Already mounted: a repeated render must not start a second React root.
                             if (hasRowContainer(setting, "property-hooks-container")) return;
                             const container = rowContainer(setting, "property-hooks-container");
@@ -158,151 +164,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
 
             // ── 7 · Advanced, folded: nobody meets a log level on their first day (#440) ──────────
             this.sectionHead("advanced"),
-            {
-                type: "group",
-                heading: t("settings_card_folders"),
-                visible: advanced,
-                items: [
-                    {
-                        name: t("folders_flows_selector_title"),
-                        desc: t("folders_flows_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting
-                                .addSearch((cb) => {
-                                    new FolderSuggest(cb.inputEl);
-                                    cb.setPlaceholder(t("folders_flows_selector_placeholder"))
-                                        .setValue(plugin.settings.foldersFlowsPath)
-                                        .onChange(async (value) => {
-                                            plugin.settings.foldersFlowsPath = value;
-                                            await plugin.saveSettings();
-                                        });
-                                })
-                                .addButton((btn) =>
-                                    btn
-                                        .setClass("mod-cta")
-                                        .setButtonText(t("reset_to_default"))
-                                        .setIcon("reset")
-                                        .onClick(async () => {
-                                            plugin.settings.foldersFlowsPath =
-                                                DEFAULT_SETTINGS.foldersFlowsPath!;
-                                            await plugin.saveSettings();
-                                            this.update();
-                                        })
-                                );
-                        },
-                    },
-                    {
-                        name: t("hooks_flows_selector_title"),
-                        desc: t("hooks_flows_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting
-                                .addSearch((cb) => {
-                                    new FolderSuggest(cb.inputEl);
-                                    cb.setPlaceholder(t("folders_flows_selector_placeholder"))
-                                        .setValue(plugin.settings.hooks.folderFlowPath)
-                                        .onChange(async (value) => {
-                                            plugin.settings.hooks.folderFlowPath = value;
-                                            await plugin.saveSettings();
-                                        });
-                                })
-                                .addButton((btn) =>
-                                    btn
-                                        .setClass("mod-cta")
-                                        .setButtonText(t("reset_to_default"))
-                                        .setIcon("reset")
-                                        .onClick(async () => {
-                                            plugin.settings.hooks.folderFlowPath =
-                                                DEFAULT_SETTINGS.hooks!.folderFlowPath;
-                                            await plugin.saveSettings();
-                                            this.update();
-                                        })
-                                );
-                        },
-                    },
-                    {
-                        name: t("scripts_folder_selector_title"),
-                        desc: t("scripts_folder_selector_description"),
-                        render: (setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("scripts_folder_selector_placeholder"))
-                                    .setValue(plugin.settings.jsLibraryFolderPath)
-                                    .onChange(async (value) => {
-                                        plugin.settings.jsLibraryFolderPath = value;
-                                        await plugin.saveSettings();
-                                        // Rebuild the `zf` script API so it reads from the new folder.
-                                        fnsManager.invalidateCache();
-                                    });
-                            });
-                        },
-                    },
-                    {
-                        name: t("markdown_templates_folder_title"),
-                        desc: t("markdown_templates_folder_description"),
-                        render: (setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("markdown_templates_folder_placeholder"))
-                                    .setValue(
-                                        plugin.settings.communitySettings
-                                            .markdownTemplateFolder
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.communitySettings.markdownTemplateFolder =
-                                            value;
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
-                ],
-            },
-            {
-                type: "group",
-                heading: t("settings_card_scripts_logging"),
-                visible: advanced,
-                items: [
-                    {
-                        name: t("generate_types_name"),
-                        desc: t("generate_types_description"),
-                        render: (setting) => {
-                            setting.addButton((button) => {
-                                button.setButtonText(t("generate_types_button")).onClick(async () => {
-                                    const result = await writeTypeDeclarations();
-                                    if (result.status === "written") {
-                                        new Notice(t("generate_types_written", result.path));
-                                    } else if (result.status === "no-folder") {
-                                        new Notice(t("generate_types_no_folder"));
-                                    } else {
-                                        new Notice(t("generate_types_failed", result.message));
-                                    }
-                                });
-                            });
-                        },
-                    },
-                    {
-                        name: t("logger_level_title"),
-                        desc: t("logger_level_description"),
-                        control: {
-                            type: "dropdown",
-                            key: "logLevel",
-                            options: {
-                                off: t("logger_level_off"),
-                                trace: "trace",
-                                debug: "debug",
-                                info: "info",
-                                warn: "warn",
-                                error: "error",
-                            },
-                        },
-                    },
-                    // The timings from this vault, read-only (#645): what you look at when something
-                    // feels slow — beside the log level, not on the Health surface.
-                    ...speedSettingsItems(),
-                ],
-            },
+            // Every folder the plugin keeps its files in, in one grid with a reset each (#663).
+            foldersSettingsGroup(plugin, advanced, () => this.go("thinking")),
+            scriptsLoggingGroup(advanced),
 
             // ── The footer: version, docs, where to report a problem, support ────────────────────
             this.footerGroup(),

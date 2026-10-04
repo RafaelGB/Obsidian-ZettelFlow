@@ -239,3 +239,98 @@
     border-top: none;
     padding-bottom: 0;
 }
+
+/* ── AI, Automation and Advanced (#663) ────────────────────────────────────────────────────── */
+
+/* The endpoint wants room for a whole URL; the two limits are short numbers side by side. */
+.zettelkasten-flow__settings-input-wide {
+    min-width: 18rem;
+}
+
+.zettelkasten-flow__settings-input-number {
+    width: 6rem;
+}
+
+/* A promise, said where it is always seen: the shield first, the words after, no control. */
+.zettelkasten-flow__settings-callout.setting-item {
+    gap: $space-2;
+    align-items: flex-start;
+    border-radius: $radius-medium;
+    padding: $space-3;
+    background-color: $surface-quiet;
+
+    > .setting-item-control {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__settings-callout-icon {
+    order: -1;
+    display: inline-flex;
+    flex: none;
+    color: var(--color-green);
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+/* The hooks card: a line about what a hook is for, and a link to the worked examples. */
+.zettelkasten-flow__property-hooks-examples {
+    margin-top: $space-1;
+}
+
+/* Every folder ZettelFlow uses, in one grid: two cells a row where there is room, one where not. */
+.zettelkasten-flow__settings-folders-grid :has(> .zettelkasten-flow__settings-folder-cell) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: $space-2;
+}
+
+.zettelkasten-flow__settings-folder-cell.setting-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-1;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    padding: $space-3;
+
+    > .setting-item-control {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+    }
+
+    .search-input-container {
+        flex: 1;
+    }
+
+    .search-input-container input {
+        width: 100%;
+        font-family: var(--font-monospace);
+    }
+}
+
+/* The thinking space is edited under Thinking: here its path is a way there, not a second field. */
+.zettelkasten-flow__settings-folder-pointer.setting-item > .setting-item-control button {
+    font-family: var(--font-monospace);
+}
+
+/* The timings as a small table: what ran, how long (the column you read down), over what, when. */
+.zettelkasten-flow__settings-timing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: $space-3;
+    padding-top: $space-1;
+}
+
+.zettelkasten-flow__settings-timing-duration {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+.zettelkasten-flow__settings-timing-detail {
+    color: $text-faint;
+}

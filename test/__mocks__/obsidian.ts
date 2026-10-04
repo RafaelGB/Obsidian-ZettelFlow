@@ -257,6 +257,12 @@ export class FakeDropdown {
 }
 export class FakeText {
   value = ""; placeholder = ""; private cb: ((v: string) => void) | null = null;
+  /** The input Obsidian gives a text control: a type, attributes and classes a row may set (#663). */
+  inputEl: any = {
+    type: "text", attrs: {} as Record<string, string>, classes: new Set<string>(),
+    setAttribute(name: string, value: string) { this.attrs[name] = value; },
+    addClass(...names: string[]) { for (const name of names) this.classes.add(name); },
+  };
   setValue(value: string): this { this.value = value; return this; }
   getValue(): string { return this.value; }
   setPlaceholder(text: string): this { this.placeholder = text; return this; }

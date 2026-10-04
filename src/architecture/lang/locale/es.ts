@@ -308,7 +308,6 @@ export default {
     crystallize_untitled: 'Sin título',
     settings_thought_lab_name: 'Carpeta del espacio de pensamiento',
     settings_thought_lab_desc: 'Donde vive el pensamiento antes de tener que ser conocimiento. Todo lo que hay en esta carpeta queda fuera del modelo de conocimiento: nunca es huérfano, nunca es deuda y nunca aparece en Salud. Apunta a una carpeta vacía.',
-    settings_thought_lab_placeholder: '_ZettelFlow/thinking',
     speed_title: 'Tiempos de esta bóveda',
     speed_intro: 'Medido en tu bóveda, en esta máquina, la última vez que se ejecutó cada uno.',
     speed_never_measured: 'Todavía no se ha medido nada en esta sesión.',
@@ -1216,11 +1215,8 @@ export default {
     evolution_timeline_return_now: 'Ahora',
     // Vuelve sin planificador (#563, epic #558): una duración, y nada se acumula.
     event_review_due_label: 'Toca revisar',
-    settings_return_heading: 'La vuelta',
-    settings_return_intro: 'Una afirmación que escribiste vuelve a ti una vez, pasado el tiempo que elijas aquí. Inicio ofrece una cada vez y nada se acumula.',
     settings_return_interval_name: 'Días antes de que vuelva una afirmación',
-    settings_return_interval_desc: 'Cuánto se sostiene una afirmación antes de que se te pregunte qué dices de ella ahora.',
-    settings_return_disclosure: 'Es una duración que fijas tú, no un algoritmo de repetición: nunca se adapta a tus respuestas, no se cuenta nada y nada te avisa.',
+    settings_return_interval_desc: 'Una afirmación que formulaste vuelve una sola vez, pasado este tiempo, de una en una en Home. Una duración que eliges, no un algoritmo de repetición: nunca se adapta a tus respuestas y nada te lo recuerda.',
     home_return_none: 'No hay nada esperando a que lo vuelvas a mirar.',
     home_claim_return_title: 'Algo que escribiste está listo para volver a mirarlo',
     home_claim_return_when: 'Lo escribiste en {0}',
@@ -1383,9 +1379,8 @@ export default {
     remove_relation_removed: 'Relación eliminada.',
     remove_relation_noop: 'No se encontró esa relación — no se cambió nada.',
     remove_relation_error: 'No se pudo eliminar la relación. Revisa la consola para más detalles.',
-    settings_scope_intro: 'Mantén la configuración, plantillas y otras herramientas del vault fuera del sistema de pensamiento. Las notas bajo una ruta excluida no entran en el índice, así que desaparecen de todos los mecanismos a la vez: grafo, salud, descubrimiento, cultivar e inicio.',
     settings_excluded_paths_name: 'Carpetas excluidas',
-    settings_excluded_paths_desc: 'Elige las carpetas que quedan fuera del sistema de pensamiento. Cada una, y todo lo que contiene, desaparece de todos los mecanismos a la vez: grafo, salud, descubrimiento, cultivo e inicio. Las carpetas propias de ZettelFlow (flujos, hooks, librería JS) se excluyen siempre de forma automática.',
+    settings_excluded_paths_desc: 'Deja fuera del sistema de pensamiento la configuración, las plantillas y otras herramientas. Las notas de estas carpetas nunca entran en el grafo, Health, el descubrimiento, Cultivate ni Home. Las carpetas propias de ZettelFlow quedan siempre fuera.',
     settings_excluded_paths_placeholder: 'Busca una carpeta para excluir…',
     settings_excluded_paths_add: 'Añadir',
     settings_excluded_paths_remove: 'Quitar',
@@ -1397,7 +1392,6 @@ export default {
     settings_created_property_desc: 'Propiedad del frontmatter que lleva la marca de tiempo de captura.',
     settings_last_reviewed_property_name: 'Propiedad de última revisión',
     settings_last_reviewed_property_desc: 'Propiedad del frontmatter que lleva la marca de tiempo de última revisión.',
-    settings_relations_intro: 'Convierte los enlaces con tipo (apoya, contradice, amplía, …) en un grafo con significado para poder preguntar qué apoya o contradice una idea.',
     settings_parse_inline_relations_name: 'Analizar relaciones inline',
     settings_parse_inline_relations_desc: 'Lee también los campos inline "clave:: [[nota]]" del cuerpo de la nota, no solo el frontmatter. Se ejecuta tras la carga; activado por defecto en escritorio, desactivado en móvil.',
     // Event-driven workflows (#150)
@@ -1544,23 +1538,16 @@ export default {
     // Deuda de conocimiento (#159)
     // Balance de conocimiento (#161)
     // Mapa de calor del pensamiento + diario (#162)
-    settings_journal_heading: 'Diario del pensamiento',
-    settings_journal_intro: 'ZettelFlow lleva un recuento privado y local de las ideas que desarrollas — los datos del mapa de calor.',
     settings_journal_enable_name: 'Registrar eventos de desarrollo',
     settings_journal_enable_desc: 'Lleva un recuento diario de ideas desarrolladas (estado avanzado, fuente o conexión añadida). Activado por defecto.',
     settings_journal_disclosure: 'Se guarda en local solo como día → recuento — sin nombres de notas, sin contenido, sin red.',
-    settings_judgements_heading: 'Registro de decisiones',
-    settings_judgements_intro: 'ZettelFlow recuerda las decisiones que tomas sobre tus propias ideas, para poder distinguir una idea que ha crecido de una sobre la que de verdad has razonado.',
     settings_judgements_enable_name: 'Registrar mis decisiones',
     settings_judgements_enable_desc: 'Activado por defecto. Al desactivarlo dejan de guardarse registros nuevos y desaparece la acción no relacionados de un hueco; no cambia nada más.',
     settings_judgements_disclosure: 'Solo local: un registro acotado con la ruta de la nota, una etiqueta corta y si aceptaste, editaste, rechazaste, confirmaste o desafiaste. Nunca el contenido de la nota, nunca la salida de la IA, nunca por red.',
     // Ajustes de la línea temporal de evolución (#168)
-    settings_timeline_heading: 'Línea temporal de evolución',
-    settings_timeline_intro: 'ZettelFlow guarda por nota un historial de cómo evolucionó una idea — su estado de ciclo de vida y los textos de sus afirmaciones a lo largo del tiempo.',
     settings_timeline_enable_name: 'Registrar instantáneas conceptuales',
     settings_timeline_enable_desc: 'Captura una instantánea cuando una nota cambia de estado o de afirmaciones de forma significativa (no en cada pulsación). Desactivado por defecto — guarda contenido de la nota, así que es opcional; al desactivarlo se borra lo capturado.',
     settings_timeline_disclosure: 'Se guarda en local por nota — estado del ciclo de vida, textos de afirmaciones y marcas de tiempo — acotado y purgado al borrar; sin red.',
-    settings_patterns_heading: 'Patrones de conocimiento',
     settings_patterns_enable_name: 'Reejecutar un patrón tras indexar la nota',
     settings_patterns_enable_desc: 'Vuelve a ejecutar el patrón de creación de una nota una vez que la bóveda la indexa, para que los resultados del grafo (relacionadas, contradicciones, madurez) se rellenen en la primera pasada. Activado por defecto; solo escribe las claves propias del patrón.',
     // Descubrimiento matinal (#163)
@@ -2151,7 +2138,6 @@ export default {
     settings_card_relations: 'Enlaces tipados',
     settings_card_pauses: 'Pausas — tu lectura antes que la suya',
     settings_card_moves: 'Movimientos de Cultivar',
-    settings_card_thinking_space: 'Espacio para pensar',
     settings_card_folders: 'Carpetas que usa ZettelFlow',
     settings_card_scripts_logging: 'Scripts y registro',
     settings_footer_name: 'Acerca de ZettelFlow',
@@ -2167,4 +2153,11 @@ export default {
     settings_flows_role_label: 'Rol de {0}',
     settings_prefix_preview: 'Hoy quedaría {0}',
     settings_prefix_preview_empty: 'Sin prefijo: una nota nueva conserva el nombre que le des.',
+    // Settings: your knowledge and thinking (#662)
+    settings_card_returns: 'Las vueltas y el espacio para pensar',
+    settings_card_remembers: 'Lo que ZettelFlow recuerda — solo en local',
+    settings_moves_count: '{0} de {1} activos',
+    settings_moves_count_one: '{0} de {1} activo',
+    settings_duration_days: '{0} días',
+    settings_duration_days_one: '{0} día',
 };

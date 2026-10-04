@@ -1,21 +1,10 @@
 import ZettelFlow from "main";
-import { App, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { Notice, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { FolderSuggest } from "architecture/settings";
 import { fnsManager, writeTypeDeclarations } from "architecture/api";
-import { KnowledgeIndex } from "architecture/knowledge";
-import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
-import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
-import { ModeHostView } from "architecture/components/core/surface/ModeHostView";
-import {
-    DEFAULT_STATE_PROPERTY,
-    DEFAULT_CREATED_PROPERTY,
-    DEFAULT_LAST_REVIEWED_PROPERTY,
-    LifecycleStateSchema,
-} from "architecture/knowledge/lifecycle";
-import { buildLifecycleAliases } from "architecture/knowledge/lifecycleAliases";
 import { DEFAULT_SETTINGS } from "config";
 import { CommunityTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
@@ -23,12 +12,11 @@ import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
 import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
-import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
 import { speedSettingsItems } from "./handlers/speedSettingsItems";
-import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
 import { returnSettingsGroup } from "./handlers/returnSettingsGroup";
-import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
-import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
+import { knowledgeSettingsGroups } from "./handlers/knowledgeSettingsGroups";
+import { movesSettingsGroup } from "./handlers/movesSettingsGroup";
+import { rememberedSettingsGroup } from "./handlers/rememberedSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup, flowsWithRole } from "./handlers/flowsSettingsGroup";
 import { creatingSettingsGroup } from "./handlers/creatingSettingsGroup";
@@ -49,23 +37,6 @@ import {
 import { openCultivateFromSettings } from "./startActions";
 import { hasRowContainer, rowContainer } from "architecture/components/settings";
 
-
-// Debounce the (expensive) index re-register + rebuild when the user edits the state property name.
-let lifecycleRebuildTimer: number | undefined;
-// Debounce the index rebuild when the user edits the excluded-paths list (#311).
-let scopeRebuildTimer: number | undefined;
-
-/**
- * Refresh any open knowledge surface (Home / Cultivate / Timeline / Health, and the Graph) after a scope
- * change (#374), so an exclusion takes effect on-screen immediately — not only on the next vault event.
- */
-function refreshKnowledgeSurfaces(app: App): void {
-    for (const type of ["zettelflow-home", "zettelflow-graph"]) {
-        app.workspace.getLeavesOfType(type).forEach((leaf) => {
-            if (leaf.view instanceof ModeHostView) leaf.view.refresh();
-        });
-    }
-}
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
     plugin: ZettelFlow;
@@ -92,200 +63,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
 
             // ── 3 · Your knowledge: what counts, and how it is read ──────────────────────────────
             this.sectionHead("knowledge"),
-            {
-                type: "group",
-                heading: t("settings_card_scope"),
-                items: [
-                    {
-                        name: t("settings_scope_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_excluded_paths_name"),
-                        desc: t("settings_excluded_paths_desc"),
-                        render: (setting) => {
-                            // A folder-picker CRUD (#374): each row is one excluded folder, added from a
-                            // vault-folder autosuggest so the stored value is the *exact* `folder.path` —
-                            // no typo, case or emoji-encoding mismatch can silently make an exclusion no-op.
-                            setting.setClass(c("excluded-paths-setting-item"));
-                            const list = rowContainer(setting, "excluded-paths-list");
-                            const draft = { value: "" };
-
-                            const apply = async () => {
-                                await plugin.saveSettings();
-                                if (scopeRebuildTimer) window.clearTimeout(scopeRebuildTimer);
-                                // Reindex once editing settles, then refresh open surfaces so the change shows now.
-                                scopeRebuildTimer = window.setTimeout(() => {
-                                    KnowledgeIndex.getInstance().build();
-                                    refreshKnowledgeSurfaces(plugin.app);
-                                }, 300);
-                            };
-
-                            const renderRows = () => {
-                                list.empty();
-                                const paths = plugin.settings.excludedPaths ?? [];
-                                if (paths.length === 0) {
-                                    list.createDiv({
-                                        cls: c("excluded-paths-empty"),
-                                        text: t("settings_excluded_paths_empty"),
-                                    });
-                                }
-                                for (const path of paths) {
-                                    new Setting(list)
-                                        .setClass(c("excluded-paths-row"))
-                                        .setName(path)
-                                        .addExtraButton((btn) =>
-                                            btn
-                                                .setIcon("trash")
-                                                .setTooltip(t("settings_excluded_paths_remove"))
-                                                .onClick(async () => {
-                                                    plugin.settings.excludedPaths = (plugin.settings.excludedPaths ?? []).filter(
-                                                        (p) => p !== path
-                                                    );
-                                                    await apply();
-                                                    renderRows();
-                                                })
-                                        );
-                                }
-                                new Setting(list)
-                                    .setClass(c("excluded-paths-add"))
-                                    .addSearch((cb) => {
-                                        new FolderSuggest(cb.inputEl);
-                                        cb.setPlaceholder(t("settings_excluded_paths_placeholder"))
-                                            .setValue(draft.value)
-                                            .onChange((value) => (draft.value = value));
-                                    })
-                                    .addButton((btn) =>
-                                        btn
-                                            .setButtonText(t("settings_excluded_paths_add"))
-                                            .setCta()
-                                            .onClick(async () => {
-                                                if (draft.value.trim().length === 0) return;
-                                                plugin.settings.excludedPaths = normalizeExcludedPaths([
-                                                    ...(plugin.settings.excludedPaths ?? []),
-                                                    draft.value,
-                                                ]);
-                                                draft.value = "";
-                                                await apply();
-                                                renderRows();
-                                            })
-                                    );
-                            };
-                            renderRows();
-                        },
-                    },
-                ],
-            },
-            {
-                type: "group",
-                heading: t("settings_card_lifecycle"),
-                items: [
-                    {
-                        name: t("settings_lifecycle_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_state_property_name"),
-                        desc: t("settings_state_property_desc"),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setPlaceholder(DEFAULT_STATE_PROPERTY)
-                                    .setValue(plugin.settings.lifecycle.stateProperty)
-                                    .onChange(async (value) => {
-                                        const next = value.trim() || DEFAULT_STATE_PROPERTY;
-                                        plugin.settings.lifecycle.stateProperty = next;
-                                        await plugin.saveSettings();
-                                        if (lifecycleRebuildTimer) {
-                                            window.clearTimeout(lifecycleRebuildTimer);
-                                        }
-                                        // Re-register the schema and rebuild once typing settles.
-                                        lifecycleRebuildTimer = window.setTimeout(() => {
-                                            const index = KnowledgeIndex.getInstance();
-                                            index.registerSchemas({
-                                                state: new LifecycleStateSchema(
-                                                    next,
-                                                    buildLifecycleAliases()
-                                                ),
-                                            });
-                                            index.build();
-                                        }, 500);
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("settings_created_property_name"),
-                        desc: t("settings_created_property_desc"),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setPlaceholder(DEFAULT_CREATED_PROPERTY)
-                                    .setValue(plugin.settings.lifecycle.createdProperty)
-                                    .onChange(async (value) => {
-                                        plugin.settings.lifecycle.createdProperty =
-                                            value.trim() || DEFAULT_CREATED_PROPERTY;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("settings_last_reviewed_property_name"),
-                        desc: t("settings_last_reviewed_property_desc"),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setPlaceholder(DEFAULT_LAST_REVIEWED_PROPERTY)
-                                    .setValue(plugin.settings.lifecycle.lastReviewedProperty)
-                                    .onChange(async (value) => {
-                                        plugin.settings.lifecycle.lastReviewedProperty =
-                                            value.trim() || DEFAULT_LAST_REVIEWED_PROPERTY;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                ],
-            },
-            {
-                type: "group",
-                heading: t("settings_card_relations"),
-                items: [
-                    {
-                        name: t("settings_relations_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_parse_inline_relations_name"),
-                        desc: t("settings_parse_inline_relations_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(
-                                        plugin.settings.relations?.parseInlineRelations ??
-                                            !Platform.isMobile
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.relations = { parseInlineRelations: value };
-                                        await plugin.saveSettings();
-                                        // Rebuild frontmatter edges, then re-enrich inline ones if on.
-                                        const index = KnowledgeIndex.getInstance();
-                                        index.build();
-                                        index.setEnrichmentEnabled(value);
-                                        if (value) void index.enrichInlineRelations();
-                                    })
-                            );
-                        },
-                    },
-                ],
-            },
+            ...knowledgeSettingsGroups(plugin),
 
             // ── 4 · Thinking: one card per question, the sub-headings it had lost restored ────────
             this.sectionHead("thinking"),
@@ -343,63 +121,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     },
                 ],
             },
-            {
-                type: "group",
-                heading: t("settings_card_moves"),
-                items: [
-                    {
-                        name: t("settings_cultivate_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                ...ALL_CULTIVATION_MOVES.map((kind) => ({
-                    name: t(`cultivate_move_${kind}_title` as Parameters<typeof t>[0]),
-                    desc: t(`cultivate_move_${kind}_desc` as Parameters<typeof t>[0]),
-                    render: (setting: Setting) => {
-                        const current = plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
-                        setting.addToggle((toggle) =>
-                            toggle.setValue(current.includes(kind)).onChange(async (value) => {
-                                const base = plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
-                                const next = value ? [...new Set([...base, kind])] : base.filter((m) => m !== kind);
-                                // Keep the canonical order so the session reads predictably.
-                                plugin.settings.cultivateMoves = ALL_CULTIVATION_MOVES.filter((m) => next.includes(m));
-                                await plugin.saveSettings();
-                            })
-                        );
-                    },
-                })),
-                ],
-            },
+            movesSettingsGroup(plugin),
             returnSettingsGroup(plugin),
-            {
-                type: "group",
-                heading: t("settings_card_thinking_space"),
-                items: [
-                    {
-                        // The Thought Lab (#466). Its folder is excluded from the knowledge model
-                        // by the same scope that hides ZettelFlow's own folders, so nothing you
-                        // write here is ever an orphan, debt, or a line in Health.
-                        name: t("settings_thought_lab_name"),
-                        desc: t("settings_thought_lab_desc"),
-                        render: (setting: Setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("settings_thought_lab_placeholder"))
-                                    .setValue(plugin.settings.thoughtLabPath ?? "")
-                                    .onChange(async (value) => {
-                                        plugin.settings.thoughtLabPath = value.trim();
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
-                ],
-            },
-            patternsSettingsGroup(plugin),
-            journalSettingsGroup(plugin),
-            judgementSettingsGroup(plugin),
-            timelineSettingsGroup(plugin),
+            rememberedSettingsGroup(plugin),
 
             // ── 5 · AI (optional, off by default): the section head names it, so the group does not
             this.sectionHead("ai"),

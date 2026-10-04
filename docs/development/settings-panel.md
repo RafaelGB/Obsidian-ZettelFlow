@@ -28,8 +28,8 @@ as **seven sections** organised by what you are doing, not by when each feature 
 |---|---|
 | **Flows** | the canvases that have a role, giving a role to another canvas, the triggers that are bound, the systems gallery, the events folder |
 | **Creating notes** | drafts, the target folder, the note ID prefix, density, colour by phase, opening Home at startup |
-| **Your knowledge** | what is kept out of the thinking system (excluded folders), the lifecycle properties, typed links |
-| **Thinking** | *Pauses* (your reading before theirs, in Cultivate, the wizard and Explore), *Cultivate moves*, [coming back](claim-returns.md#how-it-comes-back) (7–365 days, default 90), the thinking space, re-running patterns, and what ZettelFlow remembers: the development journal, your decisions, idea snapshots |
+| **Your knowledge** | excluded folders as removable chips with a folder search to add one; the three lifecycle properties side by side; typed links |
+| **Thinking** | *Pauses* (your reading before theirs, in Cultivate, the wizard and Explore); *Cultivate moves* as a grid of five tiles that says how many are on; *Returns and the thinking space* — [coming back](claim-returns.md#how-it-comes-back) as a slider that says its duration (7–365 days, default 90), the thinking space folder, re-running patterns; *What ZettelFlow remembers — local only*: three tiles (development journal, your decisions, idea snapshots), each with its switch and a lock line saying exactly what is stored |
 | **AI** | one switch, off by default, and the provider it calls when on |
 | **Automation** | property hooks |
 | **Advanced** | the folders ZettelFlow keeps its own files in, script type declarations, logging, and the timings from this vault — folded |

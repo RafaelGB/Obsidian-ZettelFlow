@@ -55,6 +55,17 @@ const REPLACED: Record<string, string> = {
     settings_about_version: "settings_footer_name — one footer line",
     settings_about_docs: "settings_footer_name — one footer line",
     support_coffee_button: "settings_footer_name — one footer line",
+    // #662 — rows that only repeated what their card or the row beside them already said.
+    settings_scope_intro: "settings_excluded_paths_desc — the same sentence was said twice",
+    settings_relations_intro: "the Typed links card heading and the toggle's own description",
+    settings_return_intro: "settings_return_interval_desc — the slider's description now says it",
+    settings_return_disclosure: "settings_return_interval_desc — never adapts, nothing reminds you",
+    settings_journal_intro: "the journal tile's own description",
+    settings_judgements_intro: "the decisions tile's own description",
+    settings_timeline_intro: "the snapshots tile's own description",
+    settings_journal_disclosure: "the journal tile's lock line — what is stored, said in the tile",
+    settings_judgements_disclosure: "the decisions tile's lock line",
+    settings_timeline_disclosure: "the snapshots tile's lock line",
 };
 
 /**
@@ -80,15 +91,13 @@ describe("the settings tab is seven sections (#660)", () => {
 
     it("gives Thinking its cards back, in order", () => {
         const thinking = TAB.slice(TAB.indexOf('this.sectionHead("thinking")'), TAB.indexOf('this.sectionHead("ai")'));
+        // #662: the pauses, the moves as a grid, the returns with the thinking space and the
+        // pattern re-run, then what ZettelFlow remembers as three privacy tiles.
         const order = [
             "settings_card_pauses",
-            "settings_card_moves",
+            "movesSettingsGroup(plugin)",
             "returnSettingsGroup(plugin)",
-            "settings_card_thinking_space",
-            "patternsSettingsGroup(plugin)",
-            "journalSettingsGroup(plugin)",
-            "judgementSettingsGroup(plugin)",
-            "timelineSettingsGroup(plugin)",
+            "rememberedSettingsGroup(plugin)",
         ];
         const at = order.map((marker) => thinking.indexOf(marker));
         expect(at.every((index) => index >= 0)).toBe(true);

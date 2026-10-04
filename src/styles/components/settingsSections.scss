@@ -131,3 +131,111 @@
         color: var(--text-on-accent);
     }
 }
+
+/* ── Your knowledge and Thinking (#662) ──────────────────────────────────────────────────── */
+
+/* A card whose rows read as one decision lays them out as a grid. The grid sits on whatever element
+   holds the rows directly — found by its children, so it does not depend on Obsidian's own class for
+   a group's item list. A row that introduces the card spans the whole width. */
+.zettelkasten-flow__settings-tiles :has(> .zettelkasten-flow__settings-tile),
+.zettelkasten-flow__settings-fields :has(> .zettelkasten-flow__settings-field) {
+    display: grid;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__settings-tiles :has(> .zettelkasten-flow__settings-tile) {
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+}
+
+.zettelkasten-flow__settings-fields :has(> .zettelkasten-flow__settings-field) {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+
+.zettelkasten-flow__settings-span-all {
+    grid-column: 1 / -1;
+}
+
+/* A tile: a bounded card with its name, what it does, and its switch at the bottom. */
+.zettelkasten-flow__settings-tile.setting-item {
+    @include card;
+    flex-direction: column;
+    align-items: stretch;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    padding: $space-3;
+    background-color: $surface-quiet;
+
+    > .setting-item-control {
+        justify-content: flex-start;
+    }
+}
+
+/* A field: the name above, the input below, full width. */
+.zettelkasten-flow__settings-field.setting-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-1;
+    border-top: none;
+
+    > .setting-item-control input {
+        width: 100%;
+    }
+}
+
+/* What a privacy tile keeps, said under it, with a lock. */
+.zettelkasten-flow__settings-lock-line {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-1;
+    margin-top: $space-2;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__settings-lock-icon {
+    display: inline-flex;
+    flex: none;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+/* How many moves are on, said above the grid. */
+.zettelkasten-flow__settings-moves-count {
+    margin-top: $space-1;
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+/* The duration a slider stands for, beside it. */
+.zettelkasten-flow__settings-slider-value {
+    min-width: 5em;
+    color: $text-plain;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+/* Excluded folders as chips, then the folder search that adds one. */
+.zettelkasten-flow__settings-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    padding-top: $space-2;
+}
+
+.zettelkasten-flow__settings-chip {
+    @include chip;
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__settings-chip-remove {
+    padding: 0;
+    height: auto;
+}
+
+.zettelkasten-flow__settings-chip-add .setting-item {
+    border-top: none;
+    padding-bottom: 0;
+}

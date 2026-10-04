@@ -308,7 +308,6 @@ export default {
     crystallize_untitled: 'Untitled',
     settings_thought_lab_name: 'Thinking space folder',
     settings_thought_lab_desc: 'Where thinking lives before it has to be knowledge. Everything in this folder is left out of the knowledge model, so it is never an orphan, never debt, and never appears in Health. Point it at an empty folder.',
-    settings_thought_lab_placeholder: '_ZettelFlow/thinking',
     speed_title: 'Timings from this vault',
     speed_intro: 'Measured on your vault, on this machine, the last time each ran.',
     speed_never_measured: 'Nothing measured yet this session.',
@@ -1216,11 +1215,8 @@ export default {
     evolution_timeline_return_now: 'Now',
     // It comes back without a scheduler (#563, epic #558): one duration, and nothing accumulates.
     event_review_due_label: 'Review due',
-    settings_return_heading: 'Coming back',
-    settings_return_intro: 'A claim you stated comes back to you once, after the time you choose here. Home offers one at a time, and nothing accumulates.',
     settings_return_interval_name: 'Days before a claim comes back',
-    settings_return_interval_desc: 'How long a claim stands before you are asked what you say about it now.',
-    settings_return_disclosure: 'This is a duration you set, not a repetition algorithm: it never adapts to your answers, nothing is counted, and nothing reminds you.',
+    settings_return_interval_desc: 'A claim you stated comes back to you once, after this long, one at a time on Home. A duration you set, not a repetition algorithm: it never adapts to your answers and nothing reminds you.',
     home_return_none: 'Nothing is waiting to be looked at again.',
     home_claim_return_title: 'Something you wrote is ready to be looked at again',
     home_claim_return_when: 'You wrote this in {0}',
@@ -1383,9 +1379,8 @@ export default {
     remove_relation_removed: 'Relation removed.',
     remove_relation_noop: 'That relation was not found — nothing changed.',
     remove_relation_error: 'Could not remove the relation. Check the console for details.',
-    settings_scope_intro: 'Keep config, templates and other vault tooling out of the thinking system. Notes under an excluded path never enter the index, so they drop out of every mechanism at once — graph, health, discovery, cultivate and home.',
     settings_excluded_paths_name: 'Excluded folders',
-    settings_excluded_paths_desc: 'Pick the folders to keep out of the thinking system. Each one, and everything under it, drops out of every mechanism at once — graph, health, discovery, cultivate and home. ZettelFlow\'s own system folders (flows, hooks, JS library) are always excluded automatically.',
+    settings_excluded_paths_desc: 'Keep config, templates and other tooling out of the thinking system. Notes under these folders never enter the graph, Health, discovery, Cultivate or Home. ZettelFlow\'s own folders are always left out.',
     settings_excluded_paths_placeholder: 'Search a folder to exclude…',
     settings_excluded_paths_add: 'Add',
     settings_excluded_paths_remove: 'Remove',
@@ -1397,7 +1392,6 @@ export default {
     settings_created_property_desc: 'Frontmatter property that carries the capture timestamp.',
     settings_last_reviewed_property_name: 'Last-reviewed property',
     settings_last_reviewed_property_desc: 'Frontmatter property that carries the last-reviewed timestamp.',
-    settings_relations_intro: 'Turn typed links (supports, contradicts, expands, …) into a meaningful graph so you can ask what supports or contradicts an idea.',
     settings_parse_inline_relations_name: 'Parse inline relations',
     settings_parse_inline_relations_desc: 'Also read inline "key:: [[note]]" fields from note bodies, not just frontmatter. Runs after load; on by default on desktop, off on mobile.',
     // Event-driven workflows (#150)
@@ -1544,23 +1538,16 @@ export default {
     // Knowledge debt (#159)
     // Knowledge balance (#161)
     // Thinking heatmap + journal (#162)
-    settings_journal_heading: 'Thinking journal',
-    settings_journal_intro: 'ZettelFlow keeps a private, local tally of ideas you develop — the data behind the thinking heatmap.',
     settings_journal_enable_name: 'Record development events',
     settings_journal_enable_desc: 'Keep a per-day count of ideas developed (state advanced, source or connection added). On by default.',
     settings_journal_disclosure: 'Stored locally as day → count only — no note names, no content, no network.',
-    settings_judgements_heading: 'Judgement record',
-    settings_judgements_intro: 'ZettelFlow remembers the decisions you make on your own ideas, so it can tell an idea that grew from one you actually reasoned about.',
     settings_judgements_enable_name: 'Record my decisions',
     settings_judgements_enable_desc: 'On by default. Turning it off stops new records, and the not related action on a gap goes with it; nothing else changes.',
     settings_judgements_disclosure: 'Local only: a bounded log of a note path, a short label, and whether you accepted, edited, rejected, confirmed or challenged. Never note content, never AI output, never networked.',
     // Evolution timeline settings (#168)
-    settings_timeline_heading: 'Evolution timeline',
-    settings_timeline_intro: 'ZettelFlow keeps a per-note history of how an idea evolved — its lifecycle state and claim texts over time.',
     settings_timeline_enable_name: 'Record conceptual snapshots',
     settings_timeline_enable_desc: 'Capture a snapshot when a note changes state or claims meaningfully (not every keystroke). Off by default — it stores note content, so it is opt-in; turning it off clears what was captured.',
     settings_timeline_disclosure: 'Stored locally per note — lifecycle state, claim texts and timestamps — bounded and pruned on delete; no network.',
-    settings_patterns_heading: 'Knowledge patterns',
     settings_patterns_enable_name: 'Re-run a pattern after the note is indexed',
     settings_patterns_enable_desc: "Run a note's on-creation pattern once more after the vault indexes it, so graph results (related, contradictions, maturity) fill in on the first pass. On by default; writes only the pattern's own keys.",
     // Morning discovery (#163)
@@ -2150,7 +2137,6 @@ export default {
     settings_card_relations: 'Typed links',
     settings_card_pauses: 'Pauses — your reading before theirs',
     settings_card_moves: 'Cultivate moves',
-    settings_card_thinking_space: 'Thinking space',
     settings_card_folders: 'Folders ZettelFlow uses',
     settings_card_scripts_logging: 'Scripts and logging',
     settings_footer_name: 'About ZettelFlow',
@@ -2166,4 +2152,11 @@ export default {
     settings_flows_role_label: 'Role of {0}',
     settings_prefix_preview: 'Today it reads {0}',
     settings_prefix_preview_empty: 'No prefix: a new note keeps the name you give it.',
+    // Settings: your knowledge and thinking (#662)
+    settings_card_returns: 'Returns and the thinking space',
+    settings_card_remembers: 'What ZettelFlow remembers — local only',
+    settings_moves_count: '{0} of {1} are on',
+    settings_moves_count_one: '{0} of {1} is on',
+    settings_duration_days: '{0} days',
+    settings_duration_days_one: '{0} day',
 };

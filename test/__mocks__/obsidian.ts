@@ -270,6 +270,27 @@ export class FakeToggle {
   onChange(cb: (v: boolean) => void): this { this.cb = cb; return this; }
   flip(on = !this.value): void { this.value = on; this.cb?.(on); }
 }
+export class FakeSearch {
+  value = ""; placeholder = ""; inputEl: any = { addEventListener: () => undefined };
+  private cb: ((v: string) => void) | null = null;
+  setValue(value: string): this { this.value = value; return this; }
+  getValue(): string { return this.value; }
+  setPlaceholder(text: string): this { this.placeholder = text; return this; }
+  onChange(cb: (v: string) => void): this { this.cb = cb; return this; }
+  type(value: string): void { this.value = value; this.cb?.(value); }
+}
+/** A slider with the element Obsidian gives it, so a test can drag it (fire "input") or release it. */
+export class FakeSlider {
+  value = 0; min = 0; max = 100; step = 1; sliderEl: any = null;
+  private cb: ((v: number) => void) | null = null;
+  setLimits(min: number, max: number, step: number): this { this.min = min; this.max = max; this.step = step; return this; }
+  setValue(value: number): this { this.value = value; return this; }
+  getValue(): number { return this.value; }
+  setDynamicTooltip(): this { return this; }
+  onChange(cb: (v: number) => void): this { this.cb = cb; return this; }
+  /** Drag: the element's input event, then the release that fires onChange. */
+  slide(value: number): void { this.value = value; this.sliderEl?.fire?.("input"); this.cb?.(value); }
+}
 export class FakeButton {
   text = ""; icon = ""; tooltip = ""; cta = false; private cb: (() => void) | null = null;
   setButtonText(text: string): this { this.text = text; return this; }
@@ -288,6 +309,7 @@ export class Setting {
   settingEl: any; infoEl: any; nameEl: any; descEl: any; controlEl: any;
   dropdowns: FakeDropdown[] = []; texts: FakeText[] = []; toggles: FakeToggle[] = [];
   buttons: FakeButton[] = []; extraButtons: FakeButton[] = [];
+  searches: FakeSearch[] = []; sliders: FakeSlider[] = [];
   constructor(containerEl?: any) {
     if (!settingCapture) return;
     this.settingEl = containerEl?.createDiv ? containerEl.createDiv({ cls: "setting-item" }) : undefined;
@@ -339,7 +361,17 @@ export class Setting {
     if (settingCapture && build) { const button = new FakeButton(); build(button); this.extraButtons.push(button); }
     return this;
   }
-  addSlider(): this {
+  addSlider(build?: (slider: FakeSlider) => void): this {
+    if (settingCapture && build) {
+      const slider = new FakeSlider();
+      slider.sliderEl = this.controlEl?.createEl ? this.controlEl.createEl("input", { attr: { type: "range" } }) : null;
+      build(slider);
+      this.sliders.push(slider);
+    }
+    return this;
+  }
+  addSearch(build?: (search: FakeSearch) => void): this {
+    if (settingCapture && build) { const search = new FakeSearch(); build(search); this.searches.push(search); }
     return this;
   }
   then(): this {

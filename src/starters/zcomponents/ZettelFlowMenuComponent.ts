@@ -7,6 +7,7 @@ import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import { CommunityTemplatesModal } from "application/community";
 import { openNoteCompanion } from "architecture/components/core/noteCompanion/openNoteCompanion";
 import ZettelFlow from "main";
+import { RibbonIcon } from "./RibbonIcon";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -134,7 +135,7 @@ export class ZettelFlowMenuComponent extends PluginComponent {
                 return true;
             },
         });
-        this.plugin.addRibbonIcon("brain-circuit", t("ribbon_open_zettelflow"), (evt: MouseEvent) => {
+        this.plugin.addRibbonIcon(RibbonIcon.ID, t("ribbon_open_zettelflow"), (evt: MouseEvent) => {
             const menu = new Menu();
             const prefix = `${this.plugin.manifest.id}:`;
             ZettelFlowMenuComponent.GROUPS.forEach((group, index) => {

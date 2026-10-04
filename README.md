@@ -1,16 +1,30 @@
-# ZettelFlow
+<p align="center"><img src="docs/resources/logo.svg" width="72" alt="ZettelFlow logo"></p>
 
-[![GitHub release](https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest)
-[![Total downloads](https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge)](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge)](https://github.com/sponsors/RafaelGB)
+<h1 align="center">ZettelFlow</h1>
+
+<p align="center"><b>Draw your note workflow on a Canvas once — then think with every note it makes.</b></p>
+
+<p align="center">
+  <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest"><img src="https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver" alt="GitHub release"></a>
+  <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/releases"><img src="https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge" alt="Total downloads"></a>
+  <a href="https://github.com/sponsors/RafaelGB"><img src="https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge" alt="GitHub Sponsors"></a>
+</p>
+
+<p align="center">
+  <a href="#get-started-in-5-minutes"><b>Get started</b></a> ·
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/why/">Why ZettelFlow</a> ·
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/showcase/">Showcase</a> ·
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/">Documentation</a> ·
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/reference/capabilities/">Everything it does</a>
+</p>
+
+<p align="center">
+  <img src="docs/resources/readme/hero.svg" width="100%" alt="ZettelFlow at a glance: a Canvas flow, the wizard it drives for every new note, and the This note companion that helps you think with the result.">
+</p>
 
 > **Most plugins help you _write_. Almost none help you _think_.**
 
 **Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine that makes the knowledge inside it evolve.** It turns a native Canvas into a note-creation wizard — and then gives you a small set of **practice loops** that ask something of *you*, so a slip-box becomes thinking you actually do rather than notes you merely keep. Every loop is offline, works with AI switched off, and writes nothing to your vault you did not decide.
-
-<p align="center">
-  <img src="docs/resources/readme/hero-think.gif" width="100%" alt="ZettelFlow in action: developing an idea in Cultivate — make a move on a note, say what it claims, and connect it to others.">
-</p>
 
 ## What it asks of you
 
@@ -31,10 +45,7 @@ Everything else — the Canvas wizard, the semantic graph, health, discovery, cu
 
 **ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates and selectors without you touching a template by hand. Each step is a piece of the cognitive engine; each note lands already related, cross-checked and scored.
 
-```
-Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
-(your workflow)   (step-by-step UI)      (frontmatter + body merged)
-```
+![Your first flow in three steps: design a Canvas, configure a step, run the wizard](docs/resources/readme/first-flow.svg)
 
 1. **Design** — create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
 2. **Configure** — right-click any canvas node → *Edit ZettelFlow step* to add actions (prompt, calendar, selector, tags…).
@@ -43,9 +54,9 @@ Canvas file  ──►  ZettelFlow wizard  ──►  Note in your vault
 **…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk:
 
 <p align="center">
-  <a href="docs/architecture/thought-lab.md"><img src="docs/resources/readme/think-space.png" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
-  <a href="docs/development/graph-3d.md"><img src="docs/resources/readme/explore-graph.png" width="31%" alt="Explore — your notes as a living, queryable graph"></a>
-  <a href="docs/development/cultivate.md"><img src="docs/resources/readme/cultivate-session.png" width="31%" alt="Cultivate — grow one idea, one guided move at a time"></a>
+  <a href="docs/architecture/thought-lab.md"><img src="docs/resources/showcase/think.svg" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
+  <a href="docs/development/graph-3d.md"><img src="docs/resources/showcase/explore.svg" width="31%" alt="Explore — your notes as a living, queryable graph"></a>
+  <a href="docs/development/cultivate.md"><img src="docs/resources/showcase/cultivate.svg" width="31%" alt="Cultivate — grow one idea, one guided move at a time"></a>
 </p>
 <p align="center"><sub><b>Think</b> · a place for what isn't knowledge yet &nbsp;·&nbsp; <b>Explore</b> · the graph as a query &nbsp;·&nbsp; <b>Cultivate</b> · grow an idea by hand</sub></p>
 
@@ -89,7 +100,7 @@ Open **This note** from the ribbon menu and the note you are reading gets a comp
 
 Stuck? Read the [getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).
 
-![Install screenshot](docs/resources/readme/install-plugin.png)
+![Installing ZettelFlow: Settings → Community plugins → Browse, search ZettelFlow, Install and Enable](docs/resources/readme/install.svg)
 
 ---
 

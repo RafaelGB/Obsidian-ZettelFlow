@@ -180,7 +180,7 @@ error (click it to open the editor).
 > **Capability — script execution, no network.** Enabling this runs user-provided JavaScript, opt-in,
 > through ZettelFlow's single function-constructor home (the same one the Script action and vault
 > hooks use); every run — including each preview — is recorded in the
-> [script run log](script-workbench.md).
+> [script run log](../architecture/script-workbench.md).
 
 A script written for the earlier `rows => rows` contract (`return rows.map(...)`) still works: an
 array returned for the first note is taken as the whole result.

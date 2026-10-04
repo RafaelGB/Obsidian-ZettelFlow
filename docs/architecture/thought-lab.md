@@ -275,7 +275,7 @@ without asking.
 
 Every move comes from a gesture you made. A log a vault event could append to is not a record of
 your thinking — it is telemetry, and this project [deleted its telemetry on
-purpose](project-health-and-roadmap.md). The rule is enforced the way the
+purpose](../development/project-health-and-roadmap.md). The rule is enforced the way the
 [write seam](reversibility.md#one-door-and-the-test-that-keeps-it-shut) is: the callers are
 derived from the source, and one that also listens to a vault event fails the build.
 

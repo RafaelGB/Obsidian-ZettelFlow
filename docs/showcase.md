@@ -1,3 +1,7 @@
+---
+description: The ZettelFlow tour — a thinking space, one idea grown at a time, a query you build by clicking, a companion beside every note, dashboards over your vault and a living graph. Offline, AI optional.
+---
+
 # Showcase
 
 ZettelFlow doesn't just *store* your notes. It gives you somewhere to think before an idea is a note,

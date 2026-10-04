@@ -1,6 +1,6 @@
 # ZettelFlow Community Resources Guide
 
-![](../resources/community/communityPreview.png)
+![The Community browser: browse systems by type and difficulty, then open one to try or install it](../resources/community/community-browser.svg)
 
 ## Introduction to Community Resources
 ZettelFlow allows the community to share templates, flows, and actions to help users enhance their note-taking experience. The Community section provides pre-built resources that you can easily import and use in your own Obsidian vault.

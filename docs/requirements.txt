@@ -22,9 +22,9 @@ platformdirs==3.10.0
 Pygments==2.20.0
 pymdown-extensions==10.21.3
 python-dateutil==2.8.2
-PyYAML==6.0.1
+PyYAML==6.0.3
 pyyaml_env_tag==0.1
-regex==2023.8.8
+regex==2025.9.18
 requests==2.33.0
 six==1.16.0
 urllib3==2.7.0

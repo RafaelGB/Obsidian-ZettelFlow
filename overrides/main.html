@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{#
+  Link previews (#654): Open Graph and Twitter cards for every page, so a shared link shows the
+  ZettelFlow card instead of a bare URL. The image is rendered from docs/resources/social-card.svg.
+  A page's `description:` front matter wins over the site description.
+#}
+{% block extrahead %}
+  {% set zf_title = (page.meta.title if page and page.meta and page.meta.title else (page.title if page and page.title else "")) %}
+  {% set zf_home = page and page.is_homepage %}
+  {% set zf_full_title = config.site_name if zf_home or not zf_title or zf_title == config.site_name else (zf_title ~ " · " ~ config.site_name) %}
+  {% set zf_description = (page.meta.description if page and page.meta and page.meta.description else config.site_description) %}
+  {% set zf_image = config.site_url ~ "resources/social-card.png" %}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ zf_full_title }}">
+  <meta property="og:description" content="{{ zf_description }}">
+  <meta property="og:image" content="{{ zf_image }}">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="ZettelFlow — draw your note workflow on a Canvas once, then think with every note it makes.">
+  {% if page and page.canonical_url %}<meta property="og:url" content="{{ page.canonical_url }}">{% endif %}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ zf_full_title }}">
+  <meta name="twitter:description" content="{{ zf_description }}">
+  <meta name="twitter:image" content="{{ zf_image }}">
+{% endblock %}

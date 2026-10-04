@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="ZettelFlow — Draw your note workflow on a Canvas once, then think with every note it makes.">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#191823"/>
+    <stop offset="1" stop-color="#14131c"/>
+  </linearGradient>
+  <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#8f7ff5"/>
+    <stop offset="1" stop-color="#5b45d6"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.78" cy="0.5" r="0.55">
+    <stop offset="0" stop-color="#7f6df2" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#7f6df2" stop-opacity="0"/>
+  </radialGradient>
+  <clipPath id="scene">
+    <rect x="640" y="64" width="600" height="512" rx="14"/>
+  </clipPath>
+</defs>
+<rect width="1280" height="640" fill="url(#bg)"/>
+<rect width="1280" height="640" fill="url(#glow)"/>
+
+<!-- The mark -->
+<g transform="translate(72 96) scale(1.5)">
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <path d="M17 18 H47 L17 46 H47" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+  <circle cx="17" cy="18" r="5.5" fill="#fff"/>
+  <circle cx="47" cy="18" r="5.5" fill="#fff"/>
+  <circle cx="17" cy="46" r="5.5" fill="#fff"/>
+  <circle cx="47" cy="46" r="5.5" fill="#e0a351"/>
+</g>
+
+<!-- Name and promise -->
+<text x="72" y="268" fill="#f2f1f8" font-family="Inter, 'Segoe UI', sans-serif" font-size="68" font-weight="700" letter-spacing="-1">ZettelFlow</text>
+<text font-family="Inter, 'Segoe UI', sans-serif" font-size="30" fill="#c9c6dc">
+  <tspan x="72" y="330">Draw your note workflow on a</tspan>
+  <tspan x="72" y="370">Canvas once — then think with</tspan>
+  <tspan x="72" y="410">every note it makes.</tspan>
+</text>
+
+<!-- Three facts, as chips -->
+<g font-family="Inter, 'Segoe UI', sans-serif" font-size="19" font-weight="600">
+  <rect x="72" y="460" width="170" height="40" rx="20" fill="#2a2740" stroke="#4a4470"/>
+  <text x="157" y="486" fill="#d8d3ff" text-anchor="middle">Obsidian plugin</text>
+  <rect x="254" y="460" width="104" height="40" rx="20" fill="#2a2740" stroke="#4a4470"/>
+  <text x="306" y="486" fill="#d8d3ff" text-anchor="middle">Offline</text>
+  <rect x="370" y="460" width="150" height="40" rx="20" fill="#2a2740" stroke="#4a4470"/>
+  <text x="445" y="486" fill="#d8d3ff" text-anchor="middle">AI optional</text>
+</g>
+<text x="72" y="560" fill="#7d7a92" font-family="Inter, 'Segoe UI', sans-serif" font-size="20">github.com/RafaelGB/Obsidian-ZettelFlow</text>
+
+<!-- A slice of the product: the wizard and the This note companion -->
+<rect x="636" y="60" width="608" height="520" rx="16" fill="#0f0f14" opacity="0.6"/>
+<g clip-path="url(#scene)">
+  <image href="readme/hero.svg" xlink:href="readme/hero.svg" x="72" y="-2" width="1200" height="640"/>
+</g>
+<rect x="640" y="64" width="600" height="512" rx="14" fill="none" stroke="#3d3a52" stroke-width="2"/>
+</svg>

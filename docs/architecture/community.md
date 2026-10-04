@@ -35,7 +35,7 @@ path:
 
 | `template_type` | `ref` resolves to | Fetched as |
 |---|---|---|
-| **system** | `/docs/systems/<name>.zftemplate` (+ optional sibling `<name>.png`) | parsed `.zftemplate` |
+| **system** | `/docs/systems/<name>.zftemplate` (+ sibling preview `<name>.svg`, and `<name>.png` rendered from it for older releases) | parsed `.zftemplate` |
 | **step / action** | `/docs/steps/community/*.json` | JSON |
 | **markdown** | `/docs/steps/markdown/*.md` | text/plain |
 

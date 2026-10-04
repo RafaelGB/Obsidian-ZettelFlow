@@ -1,91 +1,157 @@
+---
+description: ZettelFlow for Obsidian — draw your note workflow on a Canvas once, and every new note walks it as a guided wizard. Then a companion beside each note helps you think with it. Offline, AI optional.
+hide:
+  - navigation
+  - toc
+---
+
+<div class="zf-hero" markdown>
+
+![ZettelFlow logo](resources/logo.svg){ .zf-hero__logo }
+
 # ZettelFlow
 
-**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard — and then helps you *think* about what you wrote.** Draw your workflow as a graph, configure each step with actions, and the plugin walks you through it every time you create a note. Around that engine sit the tools that make the knowledge evolve: explore it, review its health, and practise on it.
+<p class="zf-hero__tagline">Draw your note workflow on a Canvas once — then think with every note it makes.</p>
 
-New here? The [README](https://github.com/RafaelGB/Obsidian-ZettelFlow#readme) is the front door — it opens with the handful of things ZettelFlow *asks you to do*. This site is the **map**: where each area lives, one entry each.
+[Get started](get-started.md){ .md-button .md-button--primary }
+[See it in action](showcase.md){ .md-button }
+
+[Why ZettelFlow?](why.md) · [FAQ](faq.md)
+{: .zf-hero__links }
+
+![ZettelFlow at a glance: a Canvas flow, the wizard it drives for every new note, and the This note companion that helps you think with the result.](resources/readme/hero.svg){ .zf-hero__image }
+
+</div>
+
+**Most plugins help you _write_. ZettelFlow helps you _think_.** It turns a native Obsidian Canvas into a
+guided note-creation wizard, then sits beside every note it makes: where the note stands, what argues
+with it, what it is missing, and the one next step. Offline, AI optional, and nothing is written to
+your vault that you did not decide.
+
+New here? The [README](https://github.com/RafaelGB/Obsidian-ZettelFlow#readme) is the front door — it
+opens with the handful of things ZettelFlow *asks you to do*. This site is the **map**.
 
 ---
 
-## Quick start
+## What you get
 
-=== "New to ZettelFlow?"
+<div class="grid cards zf-cards" markdown>
 
-    **Fastest path — let ZettelFlow set things up for you:**
+-   ![This note, docked in the right sidebar](resources/this-note/companion.svg)
 
-    1. Install from the Obsidian community plugin browser.
-    2. Click the ZettelFlow ribbon icon (or run *Open ZettelFlow* from the command palette).
-    3. Click **Start with my own idea** and choose a note or capture one real idea.
-    4. State your question, inspect selected material, write your response or uncertainty, and **Save progress**.
+    **This note, beside every note**
 
-    [Purpose-led Cultivate](development/cultivate.md) needs no Canvas setup or installation. The existing
-    Systems Gallery remains optional for ready-to-run workflows, including the introductory tour.
+    Where the note stands, four plain counts, what argues with it, and the one next step — finished in place.
 
-    **Manual path — build your own flow from scratch:**
+    [:octicons-arrow-right-24: This note](development/this-note.md)
 
-    1. Create a `.canvas` file anywhere in your vault.
-    2. In **Settings → ZettelFlow**, point *New notes canvas* at that file.
-    3. Add a note file to the canvas, right-click → *Create managed step*, enable **Root**.
-    4. Click the ribbon icon to run the wizard.
+-   ![A guided Cultivate session on one idea](resources/showcase/cultivate.svg)
 
-    Prefer a visual walkthrough? See [Getting started](development/getting-started.md).
+    **Cultivate an idea**
 
-=== "Already using ZettelFlow?"
+    A guided thinking session: connect, challenge, question, advance — one real move at a time.
 
-    Jump straight to what you need:
+    [:octicons-arrow-right-24: Cultivate](development/cultivate.md)
 
-    - [Actions reference](actions/Prompt.md) — form actions + knowledge actions
-    - [Conditional edges](architecture/conditional-edges.md) — branch flows at runtime
-    - [Dynamic variables](architecture/actions-and-note-builder.md) — `{{title}}`, `{{frontmatter.*}}`, `{{canvas.name}}`
-    - [.zftemplate](architecture/zftemplate-schema.md) — export and share complete flows
-    - [Vault hooks](vault-hooks/OnCreate.md) — automate note creation on folder/property events
+-   ![Explore narrows the vault by clicking](resources/showcase/explore.svg)
+
+    **Explore your graph**
+
+    Click to narrow your vault with facets, read the answer, and fly the 3D graph.
+
+    [:octicons-arrow-right-24: Explore your graph](development/ask-your-graph.md)
+
+-   ![Health › Tend lists the notes that need you](resources/health/tend.svg)
+
+    **Tend your slip-box**
+
+    One list of the notes that need you, each one click from its fix.
+
+    [:octicons-arrow-right-24: Health › Tend](development/slipbox-health-dashboard.md)
+
+-   ![A Base dashboard with stats, a bubble chart, tasks and a calendar](resources/dashboards/dashboard-hero.svg)
+
+    **Dashboards for your vault**
+
+    Chart any Obsidian Base — a local Grafana with no `dataviewjs`.
+
+    [:octicons-arrow-right-24: Base dashboards](development/base-dashboards.md)
+
+-   ![The community systems browser](resources/community/community-browser.svg)
+
+    **Ready-made systems**
+
+    Zettelkasten, PARA, GTD, research, writing — installed in one click, rehearsed first.
+
+    [:octicons-arrow-right-24: Systems gallery](how-to-contribute/systems-gallery.md)
+
+</div>
+
+---
+
+## Three ways in
+
+=== "Start from your own idea"
+
+    No setup, no Canvas, no AI.
+
+    1. Install ZettelFlow from **Settings → Community plugins**.
+    2. Click the ZettelFlow ribbon icon and choose **Start with my own idea**.
+    3. State your question, look at what your vault already says, and write a provisional response.
+
+    → [Cultivate and purpose-led work](development/cultivate.md)
+
+=== "Install a ready-made system"
+
+    A complete workflow in one click.
+
+    1. Run **Browse systems** from the ribbon menu.
+    2. Pick a system — each shows its flow and difficulty — and **rehearse** it before installing.
+    3. Install it into a role (*create*, *edit*, *event*) and create your first note.
+
+    → [Systems gallery](how-to-contribute/systems-gallery.md)
+
+=== "Build your own Canvas flow"
+
+    Full control over every step.
+
+    1. Create a `.canvas` file and point **Settings → ZettelFlow → New notes canvas** at it.
+    2. Add a note to the canvas, right-click → **Create managed step**, enable **Root**.
+    3. Add steps, connect them with arrows, and run the wizard from the ribbon.
+
+    → [Get started](get-started.md) · [Actions](actions/Prompt.md) · [Conditional edges](architecture/conditional-edges.md)
 
 ---
 
 ## How it works
 
-```
-Canvas file          ZettelFlow wizard          Note in your vault
-(your workflow)  ──►  (step-by-step UI)  ──►   (frontmatter + body merged)
-```
+![Design the flow on a Canvas, configure each step's actions, run the wizard for every new note](resources/readme/first-flow.svg)
 
-| Concept | Description |
+| Concept | What it is |
 |---|---|
-| **Canvas** | A native Obsidian `.canvas` file. Each node is a step; arrows define execution order. |
-| **Step** | A note file configured with a root toggle, target folder, optional flag, body template, and one or more actions. |
-| **Action** | An interactive element in the wizard (prompt, calendar, selector, tags, script…) that contributes a property or content to the built note. |
-| **Root** | The node(s) the wizard presents first as entry points. |
-| **Conditional edge** | An arrow labelled `if: <expression>` that the wizard skips if the condition is false. |
+| **Canvas** | A native Obsidian `.canvas` file: each node is a step, arrows set the order. |
+| **Step** | A note on the canvas with a target folder, a body template and actions. |
+| **Action** | An interactive part of the wizard — prompt, calendar, selector, tags, script… |
+| **Conditional edge** | An arrow labelled `if: <expression>` that is skipped when false. |
 
 ---
 
 ## The map — where each area lives
 
-One entry per area; each links to the page that owns it. For the **complete, ranked** list of every
-capability, see [Everything it does](reference/capabilities.md).
+For the **complete, ranked** list of every capability, see [Everything it does](reference/capabilities.md).
 
-- **Create & run** — draw a Canvas workflow and let the wizard build the note.
-  → [Architecture overview](architecture/overview.md) · [Actions](actions/Prompt.md) · [Conditional edges](architecture/conditional-edges.md) · [Flow roles](architecture/flow-roles.md)
-- **Explore** — narrow your vault by clicking, walk it by relation, fly the 3D graph.
-  → [Explore your graph](development/ask-your-graph.md) · [The graph](development/graph-3d.md) · [Concept navigation](development/concept-navigation.md) · [Living knowledge map](development/living-knowledge-map.md)
-- **Review** — the health of your slip-box, the weekly review, the timeline of an idea.
-  → [Health › Tend](development/slipbox-health-dashboard.md) · [Second-brain review](development/second-brain-review.md) · [Evolution timeline](development/evolution-timeline.md) · [Open questions](development/open-questions.md)
-- **Think & cultivate** — make one idea evolve, think before it's knowledge, place a wager, collide two notes, re-judge a claim.
-  → [Cultivate](development/cultivate.md) · [Think](architecture/thought-lab.md) · [A thought you can be wrong about](development/wagers.md) · [Two things far apart](architecture/collision.md) · [The return of a claim](development/claim-returns.md)
-- **Automation** — react to vault events, run scripts on property changes.
-  → [Property hooks](vault-hooks/property-hooks/overview.md) · [Folder automation](vault-hooks/OnCreate.md)
-- **Scripting** — the `zf` API your scripts get, and a workbench to try them.
-  → [Scripting](architecture/scripting.md) · [The script workbench](architecture/script-workbench.md) · [API reference](api/ZettelFlowAPI.md)
-- **Community** — install a complete knowledge system in one click, or share your own.
-  → [Systems gallery](how-to-contribute/systems-gallery.md)
-- **Architecture** — how the plugin is built, layer by layer.
-  → [Overview](architecture/overview.md) · [The four surfaces](architecture/surfaces.md) · [Reposition map](architecture/reposition-map.md)
+- **Start** — [Why ZettelFlow](why.md) · [Get started](get-started.md) · [FAQ](faq.md) · [AI provider setup](development/ai-provider-setup.md) · [Capabilities & privacy](development/capabilities-and-privacy.md)
+- **Think & cultivate** — [Think](architecture/thought-lab.md) · [Cultivate](development/cultivate.md) · [A thought you can be wrong about](development/wagers.md) · [Two things far apart](architecture/collision.md) · [The return of a claim](development/claim-returns.md)
+- **One note** — [This note](development/this-note.md) · [Evolution timeline](development/evolution-timeline.md) · [Evidence map](development/evidence-map.md)
+- **Explore** — [Explore your graph](development/ask-your-graph.md) · [The graph lens](development/graph-3d.md) · [Living knowledge map](development/living-knowledge-map.md)
+- **Review** — [Health › Tend](development/slipbox-health-dashboard.md) · [Practice](development/practice.md) · [Second-brain review](development/second-brain-review.md)
+- **Build flows** — [Flow roles](architecture/flow-roles.md) · [Conditional edges](architecture/conditional-edges.md) · [Actions](actions/Prompt.md)
+- **Automate & script** — [Property hooks](vault-hooks/property-hooks/overview.md) · [Folder automation](vault-hooks/OnCreate.md) · [Scripting](architecture/scripting.md) · [API reference](api/ZettelFlowAPI.md)
+- **For developers** — [Architecture overview](architecture/overview.md) · [Contributing](development/contributing-and-conventions.md)
 
 ---
 
 ## Resources
 
-- [GitHub repository](https://github.com/RafaelGB/Obsidian-ZettelFlow)
-- [Bug reports & feature requests](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues)
-- [Discussions](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)
-- [Changelog / releases](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases)
-- [Manifesto](manifesto.md) · [Project roadmap](development/project-health-and-roadmap.md)
+- [GitHub repository](https://github.com/RafaelGB/Obsidian-ZettelFlow) · [Bug reports & feature requests](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues) · [Discussions](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)
+- [Changelog / releases](https://github.com/RafaelGB/Obsidian-ZettelFlow/releases) · [Manifesto](manifesto.md) · [Project roadmap](development/project-health-and-roadmap.md)

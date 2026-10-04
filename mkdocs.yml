@@ -1,14 +1,20 @@
 site_name: ZettelFlow
-site_description: Turn an Obsidian Canvas into a guided note-creation workflow.
+site_description: >-
+  ZettelFlow is an Obsidian plugin: draw your note workflow on a Canvas once, and every new note
+  walks it as a guided wizard. Then a companion beside each note helps you think with it.
+  Offline, AI optional.
+site_url: https://rafaelgb.github.io/Obsidian-ZettelFlow/
 repo_url: https://github.com/RafaelGB/Obsidian-ZettelFlow
 repo_name: RafaelGB/Obsidian-ZettelFlow
 edit_uri: edit/main/docs/
 
 theme:
   name: material
+  # Link-preview meta (Open Graph / Twitter) for every page (#654).
+  custom_dir: overrides
   language: en
-  logo: resources/obsidian.png
-  favicon: resources/obsidian.png
+  logo: resources/logo.svg
+  favicon: resources/logo.svg
   icon:
     repo: fontawesome/brands/github-alt
   font:
@@ -105,129 +111,144 @@ extra:
 
 nav:
   - Home: index.md
-  - Showcase: showcase.md
-  - Everything it does: reference/capabilities.md
-  - Get started:
-      - Getting started: development/getting-started.md
-      - AI provider setup: development/ai-provider-setup.md
+  # 1 · Start — why, install and a first result, the few settings that matter, and the FAQ.
+  - Start:
+      - Why ZettelFlow: why.md
+      - Get started in 5 minutes: get-started.md
+      - AI provider setup (optional): development/ai-provider-setup.md
       - Knowledge scope (excluded paths): development/knowledge-scope.md
       - Capabilities & privacy: development/capabilities-and-privacy.md
       - Mobile & accessibility: development/mobile-and-accessibility.md
-      - Messaging policy: development/messaging-policy.md
       - Mobile support: development/mobile-support.md
-  - Actions:
-      - Form actions:
-          - Prompt: actions/Prompt.md
-          - Number: actions/Number.md
-          - Checkbox: actions/Checkbox.md
-          - Calendar: actions/Calendar.md
-          - Selector: actions/Selector.md
-          - Dynamic Selector: actions/DynamicSelector.md
-          - Tags: actions/Tags.md
-          - Backlink: actions/Backlink.md
-          - CSS classes: actions/CssClasses.md
-          - Task management: actions/TaskManagement.md
-          - Script: actions/Script.md
-          - Zettel ID: actions/ZettelId.md
-      - Knowledge actions:
-          - Detect orphan: actions/DetectOrphan.md
-          - Calculate maturity: actions/CalculateMaturity.md
-          - Find related: actions/FindRelated.md
-          - Find contradiction: actions/FindContradiction.md
-          - Find unanswered question: actions/FindUnansweredQuestion.md
-          - Suggest link: actions/SuggestLink.md
-          - Suggest connections: actions/SuggestConnections.md
-          - Suggest next move: actions/SuggestNextMove.md
-          - Create semantic relation: actions/CreateSemanticRelation.md
-          - Extract claims: actions/ExtractClaims.md
-          - Compare claims: actions/CompareClaims.md
-          - Find sources: actions/FindSources.md
-          - Attach source: actions/AttachSource.md
-          - Summarize: actions/Summarize.md
-          - Classify: actions/Classify.md
-          - Generate questions: actions/GenerateQuestions.md
-          - Thinking simulator: actions/ThinkingSimulator.md
-          - Challenge idea: actions/ChallengeIdea.md
-          - Synthesize: actions/Synthesize.md
-  - Knowledge tools:
-      - Capture & organize:
+      - FAQ: faq.md
+  # 2 · Tour — what it looks like, everything it does, and why it is built this way.
+  - Tour:
+      - Showcase: showcase.md
+      - Everything it does: reference/capabilities.md
+      - Manifesto: manifesto.md
+  # 3 · Guides — grouped by the job a reader has, never by the layer the code lives in (#653).
+  - Guides:
+      - Think & capture:
+          - Think (your thinking space): architecture/thought-lab.md
           - Quick capture: development/quick-capture.md
           - ZettelFlow home: development/zettelflow-home.md
-          - Map of content builder: development/moc-builder.md
-          - Derived projects: development/derived-projects.md
-      - Explore & navigate:
-          - Living knowledge map (regions): development/living-knowledge-map.md
-          - Concept navigation: development/concept-navigation.md
-          - Explore your graph: development/ask-your-graph.md
-          - The graph lens: development/graph-3d.md
-          - Canvas integration: development/canvas-integration.md
-      - Review & analyze:
-          - This note: development/this-note.md
-          - Health › Tend: development/slipbox-health-dashboard.md
-          - Knowledge dashboard: development/knowledge-dashboard.md
-          - Base dashboards: development/base-dashboards.md
-          - Second-brain review: development/second-brain-review.md
-          - Practice: development/practice.md
-          - Development journal: development/thinking-heatmap.md
-          - Evolution timeline: development/evolution-timeline.md
-          - Evidence map: development/evidence-map.md
-          - Knowledge patterns: development/knowledge-patterns.md
-          - Open questions: development/open-questions.md
-          - Connection resurfacing: development/connection-resurfacing.md
-          - Atomicity split assist: development/atomicity-split.md
-          - Morning discovery: development/morning-discovery.md
-      - Think & cultivate:
+      - Cultivate an idea:
           - Cultivate and purpose-led work: development/cultivate.md
           - The return of a claim: development/claim-returns.md
-      - A thought you can be wrong about: development/wagers.md
-      - Two things far apart: architecture/collision.md
-      - Cognitive agency (judgement record): development/cognitive-agency.md
-  - Automation:
-      - Property hooks:
-          - Overview: vault-hooks/property-hooks/overview.md
-          - Configuration: vault-hooks/property-hooks/configuration.md
-          - Examples: vault-hooks/property-hooks/examples.md
-      - Folder automation: vault-hooks/OnCreate.md
-  - Scripting & API:
-      - Reference: api/ZettelFlowAPI.md
-      - Cookbook: api/cookbook.md
-      - Generated reference: api/reference.md
+          - A thought you can be wrong about: development/wagers.md
+          - Two things far apart: architecture/collision.md
+          - Cognitive agency (judgement record): development/cognitive-agency.md
+      - Understand one note:
+          - This note: development/this-note.md
+          - Evolution timeline: development/evolution-timeline.md
+          - Evidence map: development/evidence-map.md
+          - Connection resurfacing: development/connection-resurfacing.md
+          - Atomicity split assist: development/atomicity-split.md
+      - Explore your graph:
+          - Explore your graph: development/ask-your-graph.md
+          - The graph lens: development/graph-3d.md
+          - Living knowledge map (regions): development/living-knowledge-map.md
+          - Concept navigation: development/concept-navigation.md
+          - Open questions: development/open-questions.md
+          - Knowledge patterns: development/knowledge-patterns.md
+          - Morning discovery: development/morning-discovery.md
+      - Review your vault:
+          - Health › Tend: development/slipbox-health-dashboard.md
+          - Practice: development/practice.md
+          - Second-brain review: development/second-brain-review.md
+          - Development journal: development/thinking-heatmap.md
+          - Knowledge dashboard: development/knowledge-dashboard.md
+      - Dashboards for your vault: development/base-dashboards.md
+      - Install a ready-made system: how-to-contribute/systems-gallery.md
+      - Build your own note flow:
+          - Your flows and their roles: architecture/flow-roles.md
+          - Canvas integration: development/canvas-integration.md
+          - Conditional edges: architecture/conditional-edges.md
+          - Trigger conditions: architecture/trigger-conditions.md
+          - Event-driven & visual workflows: architecture/event-driven-workflows.md
+          - Workflow phases: architecture/workflow-phases.md
+          - Review and rehearse a flow: architecture/flow-review.md
+          - What ZettelFlow wrote (undo): architecture/reversibility.md
+          - Map of content builder: development/moc-builder.md
+          - Derived projects: development/derived-projects.md
+          - The settings panel: development/settings-panel.md
+  # 4 · Reference — look something up: every action, every automation, the scripting API.
+  - Reference:
+      - Actions:
+          - Form actions:
+              - Prompt: actions/Prompt.md
+              - Number: actions/Number.md
+              - Checkbox: actions/Checkbox.md
+              - Calendar: actions/Calendar.md
+              - Selector: actions/Selector.md
+              - Dynamic Selector: actions/DynamicSelector.md
+              - Tags: actions/Tags.md
+              - Backlink: actions/Backlink.md
+              - CSS classes: actions/CssClasses.md
+              - Task management: actions/TaskManagement.md
+              - Script: actions/Script.md
+              - Zettel ID: actions/ZettelId.md
+          - Knowledge actions:
+              - Detect orphan: actions/DetectOrphan.md
+              - Calculate maturity: actions/CalculateMaturity.md
+              - Find related: actions/FindRelated.md
+              - Find contradiction: actions/FindContradiction.md
+              - Find unanswered question: actions/FindUnansweredQuestion.md
+              - Suggest link: actions/SuggestLink.md
+              - Suggest connections: actions/SuggestConnections.md
+              - Suggest next move: actions/SuggestNextMove.md
+              - Create semantic relation: actions/CreateSemanticRelation.md
+              - Extract claims: actions/ExtractClaims.md
+              - Compare claims: actions/CompareClaims.md
+              - Find sources: actions/FindSources.md
+              - Attach source: actions/AttachSource.md
+              - Summarize: actions/Summarize.md
+              - Classify: actions/Classify.md
+              - Generate questions: actions/GenerateQuestions.md
+              - Thinking simulator: actions/ThinkingSimulator.md
+              - Challenge idea: actions/ChallengeIdea.md
+              - Synthesize: actions/Synthesize.md
+      - Automation:
+          - Property hooks:
+              - Overview: vault-hooks/property-hooks/overview.md
+              - Configuration: vault-hooks/property-hooks/configuration.md
+              - Examples: vault-hooks/property-hooks/examples.md
+          - Folder automation: vault-hooks/OnCreate.md
+      - Scripting & API:
+          - Scripting: architecture/scripting.md
+          - The script workbench: architecture/script-workbench.md
+          - API reference: api/ZettelFlowAPI.md
+          - Cookbook: api/cookbook.md
+          - Generated reference: api/reference.md
+  # 5 · Community — share what you built, see what others built.
   - Community:
-      - Systems gallery: how-to-contribute/systems-gallery.md
       - Community examples: how-to-contribute/community-examples.md
+      - Share a system (.zftemplate schema): architecture/zftemplate-schema.md
       - Wiki: how-to-contribute/Wiki.md
-  - Architecture:
-      - Overview: architecture/overview.md
-      - The four surfaces: architecture/surfaces.md
-      - Plugin core: architecture/plugin-core.md
-      - Actions & note builder: architecture/actions-and-note-builder.md
-      - Vault hooks internals: architecture/vault-hooks-internals.md
-      - Community gallery: architecture/community.md
-      - .zftemplate schema: architecture/zftemplate-schema.md
-      - Conditional edges: architecture/conditional-edges.md
-      - Your flows and their roles: architecture/flow-roles.md
-      - The settings panel: development/settings-panel.md
-      - Scripting: architecture/scripting.md
-      - The script workbench: architecture/script-workbench.md
-      - What ZettelFlow wrote: architecture/reversibility.md
-      - Think (your thinking space): architecture/thought-lab.md
-      - Review and rehearse a flow: architecture/flow-review.md
-      - Trigger conditions: architecture/trigger-conditions.md
-      - Knowledge model: architecture/knowledge-model.md
-      - Knowledge lifecycle: architecture/knowledge-lifecycle.md
-      - Knowledge state (projections): architecture/knowledge-state.md
-      - Workflow phases: architecture/workflow-phases.md
-      - Event-driven & visual workflows: architecture/event-driven-workflows.md
-      - Reposition map (feature → layer): architecture/reposition-map.md
-      - Capability doors (feature → how you reach it): development/capability-doors.md
-  - Contributing:
-      - Contributing & conventions: development/contributing-and-conventions.md
-      - Testing & guardrails: development/testing-and-guardrails.md
-      - Performance budgets: development/performance-budgets.md
-      - Spec-driven development: development/spec-driven-development.md
-      - Constitution: development/constitution.md
-      - Styling (the user's theme wins): development/obsidian-styling.md
-      - Obsidian review & scoring: development/obsidian-review-and-scoring.md
-      - Project health & roadmap: development/project-health-and-roadmap.md
-      - "Friction audit (epic #231)": development/friction-audit.md
-  - Manifesto: manifesto.md
+  # 6 · For developers — how it is built, how we work, and the internal policies (#653).
+  - For developers:
+      - Architecture:
+          - Overview: architecture/overview.md
+          - The four surfaces: architecture/surfaces.md
+          - Plugin core: architecture/plugin-core.md
+          - Actions & note builder: architecture/actions-and-note-builder.md
+          - Vault hooks internals: architecture/vault-hooks-internals.md
+          - Community gallery: architecture/community.md
+          - Knowledge model: architecture/knowledge-model.md
+          - Knowledge lifecycle: architecture/knowledge-lifecycle.md
+          - Knowledge state (projections): architecture/knowledge-state.md
+          - Reposition map (feature → layer): architecture/reposition-map.md
+          - Capability doors (feature → how you reach it): development/capability-doors.md
+      - Contributing:
+          # The developer setup (build, test, load a dev build) — a reader's start is get-started.md.
+          - Developer setup: development/getting-started.md
+          - Contributing & conventions: development/contributing-and-conventions.md
+          - Testing & guardrails: development/testing-and-guardrails.md
+          - Performance budgets: development/performance-budgets.md
+          - Spec-driven development: development/spec-driven-development.md
+          - Constitution: development/constitution.md
+          - Styling (the user's theme wins): development/obsidian-styling.md
+          - Obsidian review & scoring: development/obsidian-review-and-scoring.md
+          - Messaging policy: development/messaging-policy.md
+          - Project health & roadmap: development/project-health-and-roadmap.md
+          - "Friction audit (epic #231)": development/friction-audit.md

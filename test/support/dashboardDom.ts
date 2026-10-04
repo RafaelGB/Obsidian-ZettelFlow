@@ -117,6 +117,9 @@ export class DomNode {
         else if (name === "type") this.type = value;
         else this.attrs[name] = value;
     }
+    removeAttribute(name: string): void {
+        delete this.attrs[name];
+    }
     getAttribute(name: string): string | null {
         return this.attrs[name] ?? null;
     }

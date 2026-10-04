@@ -103,6 +103,7 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                 desc: t("settings_flows_assign_description"),
                 render: (setting) => {
                     setting.setClass(c("readable-setting-item"));
+                    setting.settingEl.addClass(c("settings-assign-row"));
                     setting.addSearch((search) => {
                         new FileSuggest(search.inputEl, FileService.PATH_SEPARATOR).setExtensions(
                             FILE_EXTENSIONS.ONLY_CANVAS

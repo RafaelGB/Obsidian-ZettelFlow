@@ -12,6 +12,7 @@
 
 <p align="center">
   <a href="#get-started-in-5-minutes"><b>Get started</b></a> ·
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/why/">Why ZettelFlow</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/showcase/">Showcase</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/">Documentation</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/reference/capabilities/">Everything it does</a>

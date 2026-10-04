@@ -1,11 +1,17 @@
 site_name: ZettelFlow
-site_description: Turn an Obsidian Canvas into a guided note-creation workflow.
+site_description: >-
+  ZettelFlow is an Obsidian plugin: draw your note workflow on a Canvas once, and every new note
+  walks it as a guided wizard. Then a companion beside each note helps you think with it.
+  Offline, AI optional.
+site_url: https://rafaelgb.github.io/Obsidian-ZettelFlow/
 repo_url: https://github.com/RafaelGB/Obsidian-ZettelFlow
 repo_name: RafaelGB/Obsidian-ZettelFlow
 edit_uri: edit/main/docs/
 
 theme:
   name: material
+  # Link-preview meta (Open Graph / Twitter) for every page (#654).
+  custom_dir: overrides
   language: en
   logo: resources/logo.svg
   favicon: resources/logo.svg
@@ -105,14 +111,16 @@ extra:
 
 nav:
   - Home: index.md
-  # 1 · Start — install, first flow, the few settings that matter before anything else.
+  # 1 · Start — why, install and a first result, the few settings that matter, and the FAQ.
   - Start:
-      - Getting started: development/getting-started.md
+      - Why ZettelFlow: why.md
+      - Get started in 5 minutes: get-started.md
       - AI provider setup (optional): development/ai-provider-setup.md
       - Knowledge scope (excluded paths): development/knowledge-scope.md
       - Capabilities & privacy: development/capabilities-and-privacy.md
       - Mobile & accessibility: development/mobile-and-accessibility.md
       - Mobile support: development/mobile-support.md
+      - FAQ: faq.md
   # 2 · Tour — what it looks like, everything it does, and why it is built this way.
   - Tour:
       - Showcase: showcase.md
@@ -232,6 +240,8 @@ nav:
           - Reposition map (feature → layer): architecture/reposition-map.md
           - Capability doors (feature → how you reach it): development/capability-doors.md
       - Contributing:
+          # The developer setup (build, test, load a dev build) — a reader's start is get-started.md.
+          - Developer setup: development/getting-started.md
           - Contributing & conventions: development/contributing-and-conventions.md
           - Testing & guardrails: development/testing-and-guardrails.md
           - Performance budgets: development/performance-budgets.md

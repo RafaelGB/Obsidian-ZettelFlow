@@ -92,6 +92,11 @@
   margin: 0 auto 1.2rem;
   max-width: 38rem;
 }
+.md-typeset .zf-hero__links {
+  font-size: 0.8rem;
+  margin: 0.6rem 0 0;
+  color: var(--md-default-fg-color--light);
+}
 .md-typeset .zf-hero .md-button {
   margin: 0 0.3rem 0.6rem;
 }
@@ -120,5 +125,9 @@
 @media screen and (min-width: 60em) {
   .md-typeset .grid.cards.zf-cards {
     grid-template-columns: repeat(3, 1fr);
+  }
+  /* Four cards read as two rows of two, never three and an orphan (the Why page). */
+  .md-typeset .grid.cards.zf-cards.zf-cards--two {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

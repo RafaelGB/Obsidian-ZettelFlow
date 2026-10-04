@@ -1,6 +1,12 @@
+---
+description: Developer setup for ZettelFlow — build, watch, test and load a development build into an Obsidian vault.
+---
+
 # Getting started (development)
 
 How to set up, build, run, and iterate on ZettelFlow.
+
+> Looking to **use** ZettelFlow rather than develop it? Start with [Get started in 5 minutes](../get-started.md).
 
 ## Prerequisites
 

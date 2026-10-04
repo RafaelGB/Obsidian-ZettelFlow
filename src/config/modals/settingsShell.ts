@@ -1,6 +1,6 @@
 import { setIcon } from "obsidian";
 import { c } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { ZETTELFLOW_ICON } from "config/brand";
 import type { GlanceCard, GlanceSection, GlanceText } from "config/settingsSummary";
 
@@ -57,7 +57,9 @@ export function sectionClass(id: SectionId): string {
 }
 
 export function glanceText(text: GlanceText): string {
-    return "text" in text ? text.text : t(text.key as LocaleKey, ...(text.args ?? []));
+    if ("text" in text) return text.text;
+    const args = text.args ?? [];
+    return text.count === undefined ? t(text.key as LocaleKey, ...args) : tCount(text.count, text.key as LocaleKey, ...args);
 }
 
 /** A link that opens outside Obsidian, drawn as a small chip. */
@@ -133,6 +135,7 @@ export function renderStart(host: HTMLElement, actions: StartActions): void {
 /** The section bar: one button per section. `active` is the section in view. */
 export function renderNav(host: HTMLElement, go: (section: SectionId) => void): (active: SectionId) => void {
     host.empty();
+    host.setAttribute("role", "navigation");
     host.setAttribute("aria-label", t("settings_nav_label"));
     const buttons = new Map<SectionId, HTMLElement>();
     for (const section of SETTINGS_SECTIONS) {
@@ -148,7 +151,7 @@ export function renderNav(host: HTMLElement, go: (section: SectionId) => void): 
     const mark = (active: SectionId) => {
         for (const [id, button] of buttons) {
             button.toggleClass("is-active", id === active);
-            if (id === active) button.setAttribute("aria-current", "true");
+            if (id === active) button.setAttribute("aria-current", "location");
             else button.removeAttribute("aria-current");
         }
     };

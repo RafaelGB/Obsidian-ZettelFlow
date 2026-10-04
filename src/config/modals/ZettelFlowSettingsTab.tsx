@@ -1,5 +1,5 @@
 import ZettelFlow from "main";
-import { PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { PluginSettingTab, Setting, SettingDefinitionItem, type ToggleComponent } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
@@ -32,7 +32,8 @@ import {
     type SectionId,
 } from "./settingsShell";
 import { openCultivateFromSettings } from "./startActions";
-import { descContainer, hasRowContainer, rowContainer } from "architecture/components/settings";
+import { keptRoot } from "./keptRoot";
+import { descContainer, rowContainer } from "architecture/components/settings/settingContainer";
 
 /** The worked hook examples: what to show someone who has just read what a hook is for. */
 const HOOK_EXAMPLES_URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/vault-hooks/property-hooks/examples/";
@@ -81,6 +82,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                     .setValue(plugin.settings.cultivateFriction ?? true)
                                     .onChange(async (value) => {
                                         plugin.settings.cultivateFriction = value;
+                                        this.refreshGlance();
                                         await plugin.saveSettings();
                                     })
                             );
@@ -121,13 +123,13 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     },
                 ],
             },
-            movesSettingsGroup(plugin),
-            returnSettingsGroup(plugin),
+            movesSettingsGroup(plugin, () => this.refreshGlance()),
+            returnSettingsGroup(plugin, () => this.pointerRefresh?.()),
             rememberedSettingsGroup(plugin),
 
             // ── 5 · AI (optional, off by default): one switch, and the provider only when it is on ──
             this.sectionHead("ai"),
-            aiSettingsGroup(plugin, () => this.refreshDomState()),
+            aiSettingsGroup(plugin, () => this.changedInPlace()),
 
             // ── 6 · Automation ────────────────────────────────────────────────────────────────────
             this.sectionHead("automation"),
@@ -145,18 +147,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                                 text: t("property_hooks_examples_link"),
                                 href: HOOK_EXAMPLES_URL,
                             });
-                            // Already mounted: a repeated render must not start a second React root.
-                            if (hasRowContainer(setting, "property-hooks-container")) return;
-                            const container = rowContainer(setting, "property-hooks-container");
-                            const root = createRoot(container);
-                            root.render(
-                                <HookErrorBoundary>
-                                    <PropertyHooksManager plugin={plugin} />
-                                </HookErrorBoundary>
-                            );
-                            // Defer unmount so React isn't torn down synchronously mid-commit if Obsidian
-                            // tears the row down during an update (avoids "unmount while rendering").
-                            return () => window.setTimeout(() => root.unmount(), 0);
+                            // One root for the life of this container, kept across `update()` (see
+                            // keptRoot): the cleanup only schedules the unmount, the re-render cancels it.
+                            return this.mountHooks(rowContainer(setting, "property-hooks-container"));
                         },
                     },
                 ],
@@ -165,7 +158,9 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             // ── 7 · Advanced, folded: nobody meets a log level on their first day (#440) ──────────
             this.sectionHead("advanced"),
             // Every folder the plugin keeps its files in, in one grid with a reset each (#663).
-            foldersSettingsGroup(plugin, advanced, () => this.go("thinking")),
+            foldersSettingsGroup(plugin, advanced, () => this.go("thinking"), (refresh) => {
+                this.pointerRefresh = refresh;
+            }),
             scriptsLoggingGroup(advanced),
 
             // ── The footer: version, docs, where to report a problem, support ────────────────────
@@ -194,12 +189,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     searchable: false,
                     render: (setting) => {
                         setting.settingEl.addClass(c("settings-shell-row"), c("settings-glance-row"));
-                        const others = flowsWithRole(plugin).filter((flow) => flow.role !== "create").length;
-                        renderGlance(
-                            rowContainer(setting, "settings-glance"),
-                            settingsGlance(plugin.settings, { otherFlows: others }),
-                            (id) => this.go(id)
-                        );
+                        this.glanceHost = rowContainer(setting, "settings-glance");
+                        this.refreshGlance();
                     },
                 },
                 {
@@ -242,17 +233,20 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         renderSectionIcon(rowContainer(setting, "settings-section-icon"), id);
                         if (id !== "advanced") return;
                         // Remembered across visits now (#660): it reset every time the tab opened.
-                        setting.addToggle((toggle) =>
+                        setting.addToggle((toggle) => {
+                            // Kept, so opening Advanced from elsewhere moves this switch too (#659).
+                            this.advancedToggle = toggle;
                             toggle.setValue(plugin.settings.showAdvancedSettings === true).onChange(async (value) => {
                                 plugin.settings.showAdvancedSettings = value;
-                                await plugin.saveSettings();
-                                // Re-evaluate the `visible` predicates in place. `update()`
+                                // Re-evaluate the `visible` predicates in place — before the save,
+                                // so a jump into Advanced finds its rows already shown. `update()`
                                 // would re-render the whole tab, and a re-render re-runs every
                                 // `render` callback on rows Obsidian keeps — which stacked a
                                 // second copy of every dynamic list on the panel.
-                                this.refreshDomState();
-                            })
-                        );
+                                this.changedInPlace();
+                                await plugin.saveSettings();
+                            });
+                        });
                     },
                 },
             ],
@@ -278,34 +272,59 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         };
     }
 
-    /** The section bar's listeners, from the last time it was placed. */
-    private navCleanup: (() => void) | null = null;
+    /** Where the glance cards draw, from the glance row's last render. */
+    private glanceHost: HTMLElement | null = null;
+    /** The section bar, from its row's last render — always the live element. */
     private navEl: HTMLElement | null = null;
+    /** The Advanced head's switch, so a jump into Advanced moves it too. */
+    private advancedToggle: ToggleComponent | null = null;
+    /** Redraws the Advanced grid's pointer to the thinking folder. */
+    private pointerRefresh: (() => void) | null = null;
+    /** The property-hooks React root, kept across re-renders of its row. */
+    private readonly mountHooks = keptRoot((container) => {
+        const root = createRoot(container);
+        root.render(
+            <HookErrorBoundary>
+                <PropertyHooksManager plugin={this.plugin} onChange={() => this.refreshGlance()} />
+            </HookErrorBoundary>
+        );
+        return root;
+    });
 
     /**
-     * Put the section bar where `position: sticky` can work: a direct child of the tab's scrolling
-     * container, right after the shell group. Sticky only holds inside its parent, and a row sits
-     * inside a group that ends long before the sections do. If the container is not where we expect
-     * it, the bar is drawn inside its own row instead — still useful, just not sticky.
+     * The four glance cards, redrawn in place (#659 runtime audit). Most changes in this tab only
+     * re-evaluate visibility or save — they never re-run the glance row's `render` — so the cards
+     * listen instead of waiting for the tab to be reopened.
+     */
+    refreshGlance(): void {
+        const host = this.glanceHost;
+        if (!host) return;
+        const others = flowsWithRole(this.plugin).filter((flow) => flow.role !== "create").length;
+        renderGlance(host, settingsGlance(this.plugin.settings, { otherFlows: others }), (id) => this.go(id));
+    }
+
+    /** A change that shows or hides rows: re-evaluate visibility, and say it on the glance. */
+    private changedInPlace(): void {
+        this.refreshDomState();
+        this.refreshGlance();
+    }
+
+    /**
+     * The section bar, drawn inside its own row (#659 runtime audit).
+     *
+     * It used to be moved out of the row to be a direct child of the tab's scroller, so that
+     * `position: sticky` would hold past the end of the shell group. Obsidian's renderer ends every
+     * pass with `setChildrenInPlace(groups)`, which removes anything that is not a group: the bar was
+     * deleted the moment it was placed. Now nothing moves. The shell group, its item list and this
+     * row generate no box (`display: contents`, settingsShell.scss), so the bar's sticky resolves
+     * against the scroller itself.
      */
     private placeNav(setting: Setting): () => void {
-        this.navCleanup?.();
         setting.settingEl.addClass(c("settings-shell-row"), c("settings-nav-row"));
-        const container = this.containerEl;
-        let top: HTMLElement | null = setting.settingEl;
-        while (top && top.parentElement !== container) top = top.parentElement;
-
-        let nav: HTMLElement;
-        if (top) {
-            setting.settingEl.addClass(c("settings-nav-anchor"));
-            container.querySelector(`:scope > .${c("settings-nav")}`)?.remove();
-            nav = createDiv({ cls: c("settings-nav") });
-            top.after(nav);
-        } else {
-            nav = rowContainer(setting, "settings-nav");
-        }
+        const nav = rowContainer(setting, "settings-nav");
         this.navEl = nav;
         const mark = renderNav(nav, (id) => this.go(id));
+        const container = this.containerEl;
 
         let frame = 0;
         const onScroll = () => {
@@ -321,32 +340,41 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             });
         };
         container.addEventListener("scroll", onScroll, { passive: true });
-        const cleanup = () => {
+        return () => {
             container.removeEventListener("scroll", onScroll);
             if (frame) window.cancelAnimationFrame(frame);
-            if (top) nav.remove();
-            this.navCleanup = null;
         };
-        this.navCleanup = cleanup;
-        return cleanup;
+    }
+
+    /** Open Advanced as if its switch were flipped — the switch moves, the rows show, it is saved. */
+    private openAdvanced(): void {
+        const open = () => this.plugin.settings.showAdvancedSettings === true;
+        if (open()) return;
+        if (this.advancedToggle) {
+            // Obsidian's toggle calls its onChange from setValue when the value changes.
+            this.advancedToggle.setValue(true);
+            if (open()) return;
+        }
+        this.plugin.settings.showAdvancedSettings = true;
+        void this.plugin.saveSettings();
+        this.changedInPlace();
     }
 
     /** Jump to a section: open Advanced first if that is where you are going. */
     private go(id: SectionId): void {
-        if (id === "advanced" && this.plugin.settings.showAdvancedSettings !== true) {
-            this.plugin.settings.showAdvancedSettings = true;
-            void this.plugin.saveSettings();
-            this.refreshDomState();
-        }
+        if (id === "advanced") this.openAdvanced();
         const reduced = activeWindow.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-        scrollToSection(this.containerEl, id, this.navEl?.offsetHeight ?? 0, !reduced);
+        scrollToSection(this.containerEl, id, this.navEl?.isConnected ? this.navEl.offsetHeight : 0, !reduced);
     }
 
     /** The start card's second way in: to the row that gives a canvas its role, ready to type. */
     private chooseCanvas(): void {
         this.go("flows");
         window.setTimeout(() => {
-            this.containerEl.querySelector<HTMLInputElement>(`.${c("settings-assign-row")} input`)?.focus();
+            // No scroll of its own: the jump above already put the row in view.
+            this.containerEl
+                .querySelector<HTMLInputElement>(`.${c("settings-assign-row")} input`)
+                ?.focus({ preventScroll: true });
         }, 300);
     }
 

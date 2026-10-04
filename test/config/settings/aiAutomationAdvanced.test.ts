@@ -1,11 +1,21 @@
 import { describe, it, expect, jest, afterEach } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
+import * as obsidian from "obsidian";
 import { Setting, __captureSettings } from "obsidian";
 import { DomNode } from "../../support/dashboardDom";
 
 // The folder suggest and the script API reach the live app; a row drawn under jest only needs them to exist.
-jest.mock("architecture/settings", () => ({ FolderSuggest: class { constructor(_input: unknown) {} } }));
+// The folder suggest reaches the live app; a row drawn under jest only needs it to exist — and to
+// hand back the callback a chosen suggestion calls, so a test can choose one.
+const suggestChoices: ((path: string) => void)[] = [];
+jest.mock("architecture/settings", () => ({
+    FolderSuggest: class {
+        constructor(_input: unknown, onChoose?: (path: string) => void) {
+            if (onChoose) suggestChoices.push(onChoose);
+        }
+    },
+}));
 jest.mock("architecture/api", () => ({
     fnsManager: { invalidateCache: jest.fn() },
     writeTypeDeclarations: jest.fn(async () => ({ status: "written", path: "x" })),
@@ -28,7 +38,7 @@ type Fake = {
     type?: (v: string) => void;
     flip?: (on?: boolean) => void;
     click?: () => void;
-    inputEl?: { type: string };
+    inputEl?: { type: string; fire?: (type: string, event?: unknown) => void };
 };
 type Drawn = Setting & {
     settingEl: DomNode;
@@ -68,6 +78,17 @@ const byName = (items: Item[], name: string) => {
 };
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+/** Count the notices raised, still constructing the real (mock) one. */
+function spyNotices() {
+    const Original = obsidian.Notice;
+    const raised = jest.fn();
+    const spy = jest.spyOn(obsidian, "Notice").mockImplementation(((message?: string) => {
+        raised(message);
+        return new Original(message);
+    }) as never);
+    return { raised, restore: () => spy.mockRestore() };
+}
 
 afterEach(() => __captureSettings(null));
 
@@ -151,6 +172,7 @@ describe("Advanced: every folder in one grid (#663)", () => {
         const p = plugin({ foldersFlowsPath: "_ZettelFlow/folders", eventFlowsPath: "_ZettelFlow/events" });
         const row = draw(byName(folders(p), "Event flows"));
         row.searches[0].type!("_ZettelFlow/folders/events");
+        row.searches[0].inputEl!.fire!("keydown", { key: "Enter" });
         await flush();
         expect(p.settings.eventFlowsPath).toBe("_ZettelFlow/events");
         expect(row.searches[0].value).toBe("_ZettelFlow/events");
@@ -161,9 +183,63 @@ describe("Advanced: every folder in one grid (#663)", () => {
         const p = plugin({ foldersFlowsPath: "_ZettelFlow/folders", eventFlowsPath: "_ZettelFlow/events" });
         const row = draw(byName(folders(p), "Folder flows"));
         row.searches[0].type!("_ZettelFlow/events");
+        row.searches[0].inputEl!.fire!("keydown", { key: "Enter" });
         await flush();
         expect(p.settings.foldersFlowsPath).toBe("_ZettelFlow/folders");
         expect(p.saveSettings).not.toHaveBeenCalled();
+    });
+
+    it("commits a path when you leave the field, never on a keystroke on the way (#659)", async () => {
+        jest.useFakeTimers();
+        try {
+            const notices = spyNotices();
+            const p = plugin({ foldersFlowsPath: "_ZettelFlow/folders", eventFlowsPath: "_ZettelFlow/events" });
+            const row = draw(byName(folders(p), "Folder flows"));
+            // Typing `_ZettelFlow/flows` passes through `_ZettelFlow`, a parent of the other homes.
+            for (const step of ["_", "_ZettelFlow", "_ZettelFlow/", "_ZettelFlow/flows"]) row.searches[0].type!(step);
+            expect(notices.raised).not.toHaveBeenCalled();
+            expect(p.saveSettings).not.toHaveBeenCalled();
+            expect(p.settings.foldersFlowsPath).toBe("_ZettelFlow/folders");
+            row.searches[0].inputEl!.fire!("blur");
+            await jest.advanceTimersByTimeAsync(250);
+            expect(p.settings.foldersFlowsPath).toBe("_ZettelFlow/flows");
+            expect(p.saveSettings).toHaveBeenCalledTimes(1);
+            notices.restore();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it("says a refusal once per commit, not once per keystroke", async () => {
+        const notices = spyNotices();
+        const p = plugin({ foldersFlowsPath: "_ZettelFlow/folders", eventFlowsPath: "_ZettelFlow/events" });
+        const row = draw(byName(folders(p), "Event flows"));
+        for (const step of ["_ZettelFlow/f", "_ZettelFlow/fo", "_ZettelFlow/folders/x"]) row.searches[0].type!(step);
+        expect(notices.raised).not.toHaveBeenCalled();
+        row.searches[0].inputEl!.fire!("keydown", { key: "Enter" });
+        await flush();
+        expect(notices.raised).toHaveBeenCalledTimes(1);
+        notices.restore();
+    });
+
+    it("commits a chosen suggestion at once", async () => {
+        suggestChoices.length = 0;
+        const p = plugin();
+        draw(byName(folders(p), "Scripts"));
+        suggestChoices[suggestChoices.length - 1]("Scripts/lib");
+        await flush();
+        expect(p.settings.jsLibraryFolderPath).toBe("Scripts/lib");
+        expect(p.saveSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the thinking space pointer in step with the folder edited under Thinking", () => {
+        let refresh: (() => void) | null = null;
+        const p = plugin({ thoughtLabPath: "Lab" });
+        const items = itemsOf(foldersSettingsGroup(p as never, () => true, jest.fn(), (fn) => (refresh = fn)));
+        const row = draw(byName(items, "Thinking space"));
+        p.settings.thoughtLabPath = "Elsewhere";
+        refresh!();
+        expect(row.buttons[0].text).toBe("Elsewhere");
     });
 
     it("shows the thinking space without a second editor, and takes you to the one under Thinking", () => {

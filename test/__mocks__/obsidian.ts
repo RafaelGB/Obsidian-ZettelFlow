@@ -271,13 +271,20 @@ export class FakeText {
 }
 export class FakeToggle {
   value = false; private cb: ((v: boolean) => void) | null = null;
-  setValue(on: boolean): this { this.value = on; return this; }
+  /** As Obsidian's: a change of value calls onChange (read from the 1.14.4 ToggleComponent, #659). */
+  setValue(on: boolean): this { const changed = this.value !== on; this.value = on; if (changed) this.cb?.(on); return this; }
   getValue(): boolean { return this.value; }
   onChange(cb: (v: boolean) => void): this { this.cb = cb; return this; }
   flip(on = !this.value): void { this.value = on; this.cb?.(on); }
 }
 export class FakeSearch {
-  value = ""; placeholder = ""; inputEl: any = { addEventListener: () => undefined };
+  value = ""; placeholder = "";
+  /** The search's input: listeners recorded, so a test can blur it or press Enter in it (#659). */
+  inputEl: any = {
+    listeners: {} as Record<string, ((event: any) => void)[]>,
+    addEventListener(type: string, fn: (event: any) => void) { (this.listeners[type] ??= []).push(fn); },
+    fire(type: string, event: any = {}) { for (const fn of this.listeners[type] ?? []) fn(event); },
+  };
   private cb: ((v: string) => void) | null = null;
   setValue(value: string): this { this.value = value; return this; }
   getValue(): string { return this.value; }
@@ -307,6 +314,22 @@ export class FakeButton {
   setDisabled(): this { return this; }
   onClick(cb: () => void): this { this.cb = cb; return this; }
   click(): void { this.cb?.(); }
+}
+
+/**
+ * The plugin settings tab (#659): the shape a test needs to construct one. Rendering its definitions
+ * the way Obsidian does is test/support/settingsRenderer's job; `update` and `refreshDomState` are
+ * replaced by that renderer's.
+ */
+export class PluginSettingTab {
+  containerEl: any = null;
+  constructor(public app?: any, public plugin?: any) { }
+  getSettingDefinitions(): unknown[] { return []; }
+  display(): void { }
+  hide(): void { }
+  update(): void { }
+  refreshDomState(): void { }
+  async setControlValue(_key: string, _value: unknown): Promise<void> { }
 }
 
 /** Chainable no-op stub of Obsidian's declarative Setting builder (with an opt-in capture above). */

@@ -31,7 +31,7 @@ describe("the friction toggle (#338, T4)", () => {
         expect(group).toContain("settings_cultivate_friction_name");
         expect(group).toContain("cultivateFriction");
         // #662: the moves became a grid of their own, right after the Pauses card.
-        expect(group.indexOf("movesSettingsGroup(plugin)")).toBeGreaterThan(group.indexOf("settings_cultivate_friction_name"));
+        expect(group.indexOf("movesSettingsGroup(plugin")).toBeGreaterThan(group.indexOf("settings_cultivate_friction_name"));
         expect(read("src/config/modals/handlers/movesSettingsGroup.ts")).toContain("settings_cultivate_intro");
     });
 

@@ -18,7 +18,7 @@ export function movesCountLabel(on: number, total: number = ALL_CULTIVATION_MOVE
  * — each its own declarative row with a switch, so Obsidian's settings search still finds "Challenge"
  * — with the count of how many are on said above them and kept current as you flip one.
  */
-export function movesSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem {
+export function movesSettingsGroup(plugin: ZettelFlow, changed: () => void = () => undefined): SettingDefinitionItem {
     let count: HTMLElement | null = null;
     const current = () => plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
     const showCount = () => count?.setText(movesCountLabel(current().length));
@@ -49,6 +49,7 @@ export function movesSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem {
                             // Keep the canonical order so the session reads predictably.
                             plugin.settings.cultivateMoves = ALL_CULTIVATION_MOVES.filter((m) => next.includes(m));
                             showCount();
+                            changed();
                             await plugin.saveSettings();
                         })
                     );

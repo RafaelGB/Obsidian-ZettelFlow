@@ -34,8 +34,9 @@ export function aiSettingsGroup(plugin: ZettelFlow, refresh: () => void): Settin
                     setting.addToggle((toggle) =>
                         toggle.setValue(on()).onChange(async (value) => {
                             plugin.settings.ai = { ...plugin.settings.ai, enabled: value };
-                            await plugin.saveSettings();
+                            // Shown, hidden and said on the glance at once — then saved.
                             refresh();
+                            await plugin.saveSettings();
                         })
                     );
                 },
@@ -50,6 +51,8 @@ export function aiSettingsGroup(plugin: ZettelFlow, refresh: () => void): Settin
                             .setValue(plugin.settings.ai.endpoint)
                             .onChange(async (value) => {
                                 plugin.settings.ai = { ...plugin.settings.ai, endpoint: value.trim() };
+                                // The glance shows the endpoint's host: it follows the field.
+                                refresh();
                                 await plugin.saveSettings();
                             });
                         text.inputEl.addClass(c("settings-input-wide"));
@@ -67,6 +70,7 @@ export function aiSettingsGroup(plugin: ZettelFlow, refresh: () => void): Settin
                             .setValue(plugin.settings.ai.model)
                             .onChange(async (value) => {
                                 plugin.settings.ai = { ...plugin.settings.ai, model: value.trim() };
+                                refresh();
                                 await plugin.saveSettings();
                             })
                     );

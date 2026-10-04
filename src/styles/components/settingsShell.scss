@@ -10,11 +10,35 @@
  * the logo, the active section and the one call to action.
  */
 
-/* A shell row draws its own content: the row's built-in name and control column step aside. */
-.zettelkasten-flow__settings-shell-row {
+/*
+ * The shell group, and its item list, generate no box of their own (#659 runtime audit): their rows
+ * lay out as if they sat in the tab's scroller directly. That is what lets the section bar stick for
+ * the whole tab — sticky holds inside its parent box, and the nearest box up is now the scroller.
+ * Each row takes the width a group would have had instead.
+ */
+.setting-group.zettelkasten-flow__settings-shell,
+.setting-group.zettelkasten-flow__settings-shell > .setting-items {
+    display: contents;
+}
+
+/*
+ * A shell row draws its own content: the row's built-in name and control column step aside.
+ * `.setting-group` first, so these beat Obsidian's own `.setting-group .setting-item` padding,
+ * border, background and divider (0,3,0); plugin CSS loads later, so equal weight is enough.
+ */
+.setting-group .zettelkasten-flow__settings-shell-row.setting-item {
     display: block;
-    border-top: none;
+    width: 100%;
+    max-width: var(--setting-group-max-width);
+    margin-inline: auto;
+    border: none;
+    border-radius: 0;
     padding: 0;
+    background-color: transparent;
+
+    &::before {
+        content: none;
+    }
 
     > .setting-item-info,
     > .setting-item-control {
@@ -193,8 +217,9 @@
 
 /* ── The section bar: sticky inside the tab's own scroll ───────────────────────────────────── */
 
-.zettelkasten-flow__settings-nav-anchor {
-    display: none;
+/* Its row generates no box either, so the bar itself is the box the scroller holds on to. */
+.setting-group .zettelkasten-flow__settings-shell-row.zettelkasten-flow__settings-nav-row.setting-item {
+    display: contents;
 }
 
 .zettelkasten-flow__settings-nav {
@@ -204,14 +229,33 @@
     display: flex;
     flex-wrap: wrap;
     gap: $space-1;
+    width: 100%;
+    max-width: var(--setting-group-max-width);
+    margin-inline: auto;
     padding: $space-2 0;
     margin-bottom: $space-2;
-    background-color: var(--background-primary);
+    // The tab's own surface: --settings-background on mobile, the primary background elsewhere.
+    background-color: var(--settings-background, var(--background-primary));
     border-bottom: $line-quiet;
+}
+
+/* A narrow pane keeps the bar to one line and lets it scroll sideways, instead of a sticky block
+   three lines tall over every section. The tab's scroller is an inline-size container. */
+@container (max-width: 40rem) {
+    .zettelkasten-flow__settings-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
 }
 
 .zettelkasten-flow__settings-nav-tab {
     @include row;
+    flex: none;
     gap: $space-1;
     height: auto;
     padding: $space-1 $space-2;

@@ -7,7 +7,7 @@ import { EVENT_LABEL_KEY, isWiredEvent } from "architecture/plugin/events";
 import { WorkflowEventEngine } from "architecture/plugin/events/WorkflowEventEngine";
 import { FILE_EXTENSIONS } from "architecture/plugin/services/FileService";
 import { FileSuggest } from "architecture/settings";
-import { rowContainer } from "architecture/components/settings";
+import { rowContainer } from "architecture/components/settings/settingContainer";
 import {
     ASSIGNABLE_ROLES,
     FLOW_ROLE_LABEL_KEY,
@@ -191,11 +191,21 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
     ];
 }
 
-/** The configured triggers, one row each, with the controls their kind allows. */
+/** The latest draw of each list: a scan that finishes after a newer one has started draws nothing. */
+const bindingDraws = new WeakMap<HTMLElement, number>();
+
+/**
+ * The configured triggers, one row each, with the controls their kind allows. The list is emptied
+ * only once the scan is back, and only by the newest draw: the first display and a quick `update()`
+ * overlap, and emptying before the await let both append (#659 runtime audit).
+ */
 async function renderBindings(list: HTMLElement): Promise<void> {
-    list.empty();
+    const draw = (bindingDraws.get(list) ?? 0) + 1;
+    bindingDraws.set(list, draw);
     const engine = WorkflowEventEngine.getInstance();
     const bindings = await engine.scanTriggers();
+    if (bindingDraws.get(list) !== draw) return;
+    list.empty();
     if (!bindings.length) {
         new Setting(list).setName(t("settings_events_binding_list_empty"));
         return;

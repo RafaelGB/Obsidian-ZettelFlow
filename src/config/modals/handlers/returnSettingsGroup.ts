@@ -20,7 +20,7 @@ import { patternsSettingsItem } from "./patternsSettingsGroup";
  * ease factor. Its description now carries what the old intro and disclosure rows said — a duration
  * you set, that never adapts and never reminds you — and the slider says the number it stands for.
  */
-export function returnSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem {
+export function returnSettingsGroup(plugin: ZettelFlow, changed: () => void = () => undefined): SettingDefinitionItem {
     return {
         type: "group",
         heading: t("settings_card_returns"),
@@ -62,6 +62,7 @@ export function returnSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem {
                             .setValue(plugin.settings.thoughtLabPath ?? "")
                             .onChange(async (value) => {
                                 plugin.settings.thoughtLabPath = value.trim();
+                                changed();
                                 await plugin.saveSettings();
                             });
                     });

@@ -10,8 +10,9 @@
  */
 
 /* A row that draws its own content: its built-in name and control columns step aside. The name is
-   still there for Obsidian's settings search. */
-.zettelkasten-flow__settings-object-row {
+   still there for Obsidian's settings search. `.setting-group` first, to outweigh Obsidian's own
+   `.setting-group .setting-item` rule (#659 runtime audit). */
+.setting-group .zettelkasten-flow__settings-object-row.setting-item {
     display: block;
 
     > .setting-item-info,
@@ -155,8 +156,9 @@
     grid-column: 1 / -1;
 }
 
-/* A tile: a bounded card with its name, what it does, and its switch at the bottom. */
-.zettelkasten-flow__settings-tile.setting-item {
+/* A tile: a bounded card with its name, what it does, and its switch at the bottom. Weighted past
+   Obsidian's `.setting-group .setting-item` (border none, transparent, divider) so the card shows. */
+.setting-group .zettelkasten-flow__settings-tile.setting-item {
     @include card;
     flex-direction: column;
     align-items: stretch;
@@ -165,17 +167,25 @@
     padding: $space-3;
     background-color: $surface-quiet;
 
+    &::before {
+        content: none;
+    }
+
     > .setting-item-control {
         justify-content: flex-start;
     }
 }
 
 /* A field: the name above, the input below, full width. */
-.zettelkasten-flow__settings-field.setting-item {
+.setting-group .zettelkasten-flow__settings-field.setting-item {
     flex-direction: column;
     align-items: stretch;
     gap: $space-1;
     border-top: none;
+
+    &::before {
+        content: none;
+    }
 
     > .setting-item-control input {
         width: 100%;
@@ -235,16 +245,17 @@
     height: auto;
 }
 
-.zettelkasten-flow__settings-chip-add .setting-item {
+.setting-group .zettelkasten-flow__settings-chip-add .setting-item {
     border-top: none;
     padding-bottom: 0;
 }
 
 /* ── AI, Automation and Advanced (#663) ────────────────────────────────────────────────────── */
 
-/* The endpoint wants room for a whole URL; the two limits are short numbers side by side. */
+/* The endpoint wants room for a whole URL — but never more than the row has, on a phone. */
 .zettelkasten-flow__settings-input-wide {
-    min-width: 18rem;
+    width: 18rem;
+    max-width: 100%;
 }
 
 .zettelkasten-flow__settings-input-number {
@@ -252,12 +263,16 @@
 }
 
 /* A promise, said where it is always seen: the shield first, the words after, no control. */
-.zettelkasten-flow__settings-callout.setting-item {
+.setting-group .zettelkasten-flow__settings-callout.setting-item {
     gap: $space-2;
     align-items: flex-start;
     border-radius: $radius-medium;
     padding: $space-3;
     background-color: $surface-quiet;
+
+    &::before {
+        content: none;
+    }
 
     > .setting-item-control {
         display: none;
@@ -288,13 +303,17 @@
     gap: $space-2;
 }
 
-.zettelkasten-flow__settings-folder-cell.setting-item {
+.setting-group .zettelkasten-flow__settings-folder-cell.setting-item {
     flex-direction: column;
     align-items: stretch;
     gap: $space-1;
     border: $line-quiet;
     border-radius: $radius-medium;
     padding: $space-3;
+
+    &::before {
+        content: none;
+    }
 
     > .setting-item-control {
         justify-content: flex-start;
@@ -312,7 +331,7 @@
 }
 
 /* The thinking space is edited under Thinking: here its path is a way there, not a second field. */
-.zettelkasten-flow__settings-folder-pointer.setting-item > .setting-item-control button {
+.setting-group .zettelkasten-flow__settings-folder-pointer.setting-item > .setting-item-control button {
     font-family: var(--font-monospace);
 }
 

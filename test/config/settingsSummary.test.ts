@@ -7,6 +7,9 @@ function read(text: GlanceText): string {
     if ("text" in text) return text.text;
     let value = (en as Record<string, string>)[text.key];
     expect({ key: text.key, exists: value !== undefined }).toEqual({ key: text.key, exists: true });
+    // A counted text reads the `_one` form at one, the way `tCount` does.
+    const one = (en as Record<string, string>)[`${text.key}_one`];
+    if (text.count !== undefined && Math.abs(text.count) === 1 && one !== undefined) value = one;
     (text.args ?? []).forEach((arg, i) => (value = value.replace(`{${i}}`, arg)));
     return value;
 }

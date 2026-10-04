@@ -12,8 +12,12 @@ import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
  * arguments or a literal, and the type says which.
  */
 
-/** Words to show: a locale key with its arguments, or a literal such as a canvas name. */
-export type GlanceText = { key: string; args?: string[] } | { text: string };
+/**
+ * Words to show: a locale key with its arguments, or a literal such as a canvas name. A key with a
+ * `count` is said through `tCount`, so "1 other flow" and "2 other flows" come from the locale's own
+ * `key` / `key_one` pair rather than a choice made here.
+ */
+export type GlanceText = { key: string; args?: string[]; count?: number } | { text: string };
 
 export type GlanceSection = "flows" | "thinking" | "ai" | "automation";
 
@@ -82,7 +86,7 @@ export function settingsGlance(settings: GlanceSettings, context: GlanceContext 
                 ? { key: "settings_glance_create_none_detail" }
                 : others === 0
                   ? { key: "settings_glance_create_only" }
-                  : { key: others === 1 ? "settings_glance_create_more_one" : "settings_glance_create_more", args: [String(others)] },
+                  : { key: "settings_glance_create_more", count: others, args: [String(others)] },
         },
         {
             id: "thinking",

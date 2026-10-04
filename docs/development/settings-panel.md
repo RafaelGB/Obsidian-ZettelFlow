@@ -97,7 +97,8 @@ not change what ZettelFlow does for you:
 - **Folders ZettelFlow uses** — one grid, one cell per folder, each with a folder search and a reset
   to its default: *Folder flows*, *Event flows*, *Hook flows*, *Scripts* and *Markdown templates*.
   The three flow homes still refuse a folder that is the same as, or inside, another one — a canvas
-  cannot be two things at once. The *Thinking space* cell shows its folder and takes you to the one
+  cannot be two things at once. A path is checked and saved when you leave the field, press Enter or
+  pick a suggestion — never on a keystroke on the way there. The *Thinking space* cell shows its folder and takes you to the one
   place it is edited, under Thinking: one setting, one editor.
 - **Script type declarations** — writes `zettelflow.d.ts` into your scripts folder.
 - **Logging** — *Off*, *Errors only*, *Warnings*, *Information*, *Debugging* or *Everything* (#439).

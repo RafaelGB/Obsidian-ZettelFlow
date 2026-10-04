@@ -33,6 +33,8 @@ import {
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
+  /** After the hooks changed — the settings glance counts them (#659). */
+  onChange?: () => void;
 }
 
 /**
@@ -44,6 +46,7 @@ interface PropertyHooksManagerProps {
  */
 export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
+  onChange,
 }) => {
   const [items, setItems] = useState<HookItem[]>(() => toItems(plugin.settings.hooks.properties));
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
@@ -78,6 +81,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
       new Notice(t("property_hooks_save_failed"));
       return;
     }
+    onChange?.();
     // The save is async, and it used to be `void`ed — a rejection escaped and vanished. Catch it,
     // so a disk failure is heard rather than swallowed.
     void plugin

@@ -90,7 +90,8 @@ describe("the settings tab is seven sections (#660)", () => {
 
     it("says who it is and what is on before the first section asks anything", () => {
         expect(TAB.indexOf("this.shellGroup()")).toBeLessThan(TAB.indexOf('this.sectionHead("flows")'));
-        expect(TAB).toContain("settingsGlance(plugin.settings");
+        // Redrawn in place by refreshGlance (#659 runtime audit), from the live settings.
+        expect(TAB).toContain("settingsGlance(this.plugin.settings");
     });
 
     it("opens on your flows, which the group module heads", () => {
@@ -104,8 +105,8 @@ describe("the settings tab is seven sections (#660)", () => {
         // pattern re-run, then what ZettelFlow remembers as three privacy tiles.
         const order = [
             "settings_card_pauses",
-            "movesSettingsGroup(plugin)",
-            "returnSettingsGroup(plugin)",
+            "movesSettingsGroup(plugin",
+            "returnSettingsGroup(plugin",
             "rememberedSettingsGroup(plugin)",
         ];
         const at = order.map((marker) => thinking.indexOf(marker));

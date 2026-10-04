@@ -85,7 +85,20 @@ export function acceptFolder(plugin: ZettelFlow, cell: FolderCell, value: string
     return true;
 }
 
-/** One cell of the grid: a folder suggest, and a reset that puts the default back in the field. */
+/**
+ * How long a blur waits before it commits: a click on a folder suggestion blurs the field first, and
+ * the choice must win over the half-typed text it replaces.
+ */
+const BLUR_COMMIT_MS = 200;
+
+/**
+ * One cell of the grid: a folder suggest, and a reset that puts the default back in the field.
+ *
+ * A path is committed when you leave the field, press Enter or pick a suggestion — never per
+ * keystroke (#659 runtime audit). Typing `_ZettelFlow/x` passes through `_ZettelFlow`, which is a
+ * parent of the other flow homes: checking every keystroke refused the path mid-word, snapped the
+ * field back and raised a notice each time, and clearing the field saved an empty folder on the way.
+ */
 function folderItem(plugin: ZettelFlow, cell: FolderCell): SettingGroupItem {
     return {
         name: t(cell.nameKey),
@@ -93,31 +106,42 @@ function folderItem(plugin: ZettelFlow, cell: FolderCell): SettingGroupItem {
         render: (setting: Setting) => {
             setting.settingEl.addClass(c("settings-folder-cell"));
             let search: SearchComponent | null = null;
+            let pendingBlur: number | null = null;
+            const commit = async (raw: string): Promise<void> => {
+                if (pendingBlur !== null) window.clearTimeout(pendingBlur);
+                pendingBlur = null;
+                const value = raw.trim();
+                if (value === cell.read(plugin.settings)) return;
+                if (!acceptFolder(plugin, cell, value)) {
+                    // Refused once, said once (the notice), and the field shows what is kept.
+                    search?.setValue(cell.read(plugin.settings));
+                    return;
+                }
+                await plugin.saveSettings();
+                cell.after?.();
+            };
             setting.addSearch((cb) => {
                 search = cb;
-                new FolderSuggest(cb.inputEl);
-                cb.setPlaceholder(cell.fallback || t("scripts_folder_selector_placeholder"))
-                    .setValue(cell.read(plugin.settings))
-                    .onChange(async (value) => {
-                        if (!acceptFolder(plugin, cell, value)) {
-                            cb.setValue(cell.read(plugin.settings));
-                            return;
-                        }
-                        await plugin.saveSettings();
-                        cell.after?.();
-                    });
+                new FolderSuggest(cb.inputEl, (path) => void commit(path));
+                cb.setPlaceholder(cell.fallback || t("scripts_folder_selector_placeholder")).setValue(
+                    cell.read(plugin.settings)
+                );
+                cb.inputEl.addEventListener("blur", () => {
+                    if (pendingBlur !== null) window.clearTimeout(pendingBlur);
+                    pendingBlur = window.setTimeout(() => void commit(cb.getValue()), BLUR_COMMIT_MS);
+                });
+                cb.inputEl.addEventListener("keydown", (event: KeyboardEvent) => {
+                    if (event.key === "Enter" && !event.isComposing) void commit(cb.getValue());
+                });
             });
             setting.addExtraButton((button) =>
                 button
                     .setIcon("rotate-ccw")
                     .setTooltip(t("reset_to_default"))
                     .onClick(async () => {
-                        if (!acceptFolder(plugin, cell, cell.fallback)) return;
-                        await plugin.saveSettings();
-                        cell.after?.();
-                        // Put the default in the field itself: `update()` would redraw the whole
-                        // tab and stack the dynamic lists (#440).
+                        // The reset obeys the same rule: a default that overlaps another home is refused.
                         search?.setValue(cell.fallback);
+                        await commit(cell.fallback);
                     })
             );
         },
@@ -135,7 +159,9 @@ function folderItem(plugin: ZettelFlow, cell: FolderCell): SettingGroupItem {
 export function foldersSettingsGroup(
     plugin: ZettelFlow,
     visible: () => boolean,
-    goToThinking: () => void
+    goToThinking: () => void,
+    /** Hands the tab a way to redraw the pointer when the thinking folder changes under Thinking. */
+    onPointer: (refresh: () => void) => void = () => undefined
 ): SettingDefinitionItem {
     return {
         type: "group",
@@ -150,12 +176,17 @@ export function foldersSettingsGroup(
                 aliases: [t("settings_thought_lab_name")],
                 render: (setting: Setting) => {
                     setting.settingEl.addClass(c("settings-folder-cell"), c("settings-folder-pointer"));
-                    setting.addButton((button) =>
+                    const path = () => plugin.settings.thoughtLabPath || DEFAULT_SETTINGS.thoughtLabPath || "";
+                    setting.addButton((button) => {
                         button
-                            .setButtonText(plugin.settings.thoughtLabPath || DEFAULT_SETTINGS.thoughtLabPath || "")
+                            .setButtonText(path())
                             .setTooltip(t("settings_folders_thinking_go"))
-                            .onClick(() => goToThinking())
-                    );
+                            .onClick(() => goToThinking());
+                        // The path is the one edited under Thinking: it follows that field.
+                        onPointer(() => {
+                            button.setButtonText(path());
+                        });
+                    });
                 },
             },
         ],

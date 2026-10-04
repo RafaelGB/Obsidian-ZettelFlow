@@ -12,10 +12,7 @@
  * In `preview` mode (the config modal's live preview) there is no header and nothing is clickable.
  */
 import { Component, Menu, setIcon, setTooltip } from "obsidian";
-import { init, use, type EChartsType } from "echarts/core";
-import { BarChart, HeatmapChart, LineChart, PieChart, ScatterChart } from "echarts/charts";
-import { GridComponent, LegendComponent, TooltipComponent, VisualMapComponent } from "echarts/components";
-import { CanvasRenderer } from "echarts/renderers";
+import type { EChartsType } from "echarts/core";
 import { log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { c } from "architecture/styles/helper";
@@ -47,19 +44,12 @@ import {
     type TaskShow,
 } from "dashboards/panels";
 
-// Register only what the shipped panel types need (tree-shaking — never the whole library).
-use([
-    BarChart,
-    LineChart,
-    ScatterChart,
-    PieChart,
-    HeatmapChart,
-    GridComponent,
-    TooltipComponent,
-    LegendComponent,
-    VisualMapComponent,
-    CanvasRenderer,
-]);
+/** The charting library, loaded with the first chart and shared after that (see echartsRuntime). */
+let echartsRuntime: Promise<typeof import("./echartsRuntime")> | null = null;
+function loadECharts(): Promise<typeof import("./echartsRuntime")> {
+    echartsRuntime ??= import("./echartsRuntime");
+    return echartsRuntime;
+}
 
 type ChartOption = Parameters<EChartsType["setOption"]>[0];
 
@@ -117,6 +107,8 @@ export class PanelHost extends Component {
     private titleEl: HTMLElement | null = null;
     private bodyEl: HTMLElement | null = null;
     private chart: EChartsType | null = null;
+    /** Bumped when the chart goes away, so a library load that finishes late draws nothing. */
+    private chartGeneration = 0;
     private tableSort: { column: number; dir: 1 | -1 } | null = null;
     /** The data the panel last drew — what a chart click resolves its notes against. */
     private drawn: DataStoreSnapshot | null = null;
@@ -495,15 +487,29 @@ export class PanelHost extends Component {
     }
 
     private renderChart(body: HTMLElement, option: ChartOption): void {
-        if (!this.chart) {
-            body.empty();
-            this.chart = init(body, undefined, { renderer: "canvas" });
-            if (this.interactive) {
-                this.chart.on("click", (params) => this.onChartClick(params as ChartPoint & { event?: { event?: MouseEvent } }));
-            }
+        if (this.chart) {
+            this.chart.setOption(option, true);
+            this.chart.resize();
+            return;
         }
-        this.chart.setOption(option, true);
-        this.chart.resize();
+        // The first chart loads the library; a panel that is redrawn or closed meanwhile wins.
+        const generation = ++this.chartGeneration;
+        void loadECharts()
+            .then(({ init }) => {
+                if (generation !== this.chartGeneration) return;
+                if (!this.chart) {
+                    body.empty();
+                    this.chart = init(body, undefined, { renderer: "canvas" });
+                    if (this.interactive) {
+                        this.chart.on("click", (params) =>
+                            this.onChartClick(params as ChartPoint & { event?: { event?: MouseEvent } })
+                        );
+                    }
+                }
+                this.chart.setOption(option, true);
+                this.chart.resize();
+            })
+            .catch((error: unknown) => log.error("[dashboards] could not load the charting library", error));
     }
 
     private onChartClick(params: ChartPoint & { event?: { event?: MouseEvent } }): void {
@@ -514,6 +520,7 @@ export class PanelHost extends Component {
     }
 
     private disposeChart(): void {
+        this.chartGeneration++;
         if (this.chart) {
             this.chart.dispose();
             this.chart = null;

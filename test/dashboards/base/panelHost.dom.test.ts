@@ -112,10 +112,11 @@ describe("PanelHost — what a panel draws (#632)", () => {
         expect(act.openNotes).toHaveBeenCalledWith(["b.md", "c.md"], expect.anything());
     });
 
-    it("a click on a chart point opens the note behind it", () => {
+    it("a click on a chart point opens the note behind it", async () => {
         const act = actions();
         const { host } = mount(cfg("bar", { category: "note.date", series: ["note.hours"] }), act);
         host.update(snap(), theme);
+        await flush(); // the charting library loads with the first chart
         const chart = __charts[__charts.length - 1];
         expect(chart.options).toHaveLength(1);
         const evt = { ctrlKey: false };
@@ -125,7 +126,7 @@ describe("PanelHost — what a panel draws (#632)", () => {
         expect(act.openNotes).toHaveBeenCalledTimes(1);
     });
 
-    it("every chart type builds an option; switching away disposes the chart", () => {
+    it("every chart type builds an option; switching away disposes the chart", async () => {
         const types: [PanelConfig["type"], PanelConfig["mapping"]][] = [
             ["line", { category: "note.date", series: ["note.hours"] }],
             ["area", { category: "note.date", series: ["note.hours"] }],
@@ -138,6 +139,7 @@ describe("PanelHost — what a panel draws (#632)", () => {
         for (const [type, mapping] of types) {
             const { host } = mount(cfg(type, mapping));
             host.update(snap(), theme);
+            await flush();
             const chart = __charts[__charts.length - 1];
             expect(chart.options.length).toBeGreaterThan(0);
             host.setConfig(cfg("stat", { aggregate: "count" }));
@@ -354,5 +356,14 @@ describe("PanelHost — the Tasks panel (#635)", () => {
         host.update(snap(), theme);
         await flush();
         expect(parent.byClass("base-dashboard-task")).toHaveLength(0);
+    });
+
+    it("a panel closed while the charting library loads draws nothing", async () => {
+        const before = __charts.length;
+        const { host } = mount(cfg("bar", { category: "note.date", series: ["note.hours"] }));
+        host.update(snap(), theme);
+        host.unload();
+        await flush();
+        expect(__charts.length).toBe(before);
     });
 });

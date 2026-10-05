@@ -19,6 +19,7 @@ import {
     deriveFacets,
     buildEvidenceMap,
     noteVitals,
+    readFromHere,
     deriveTend,
     suggestNextMoves,
     deriveOutline,
@@ -323,6 +324,11 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "() => TendList",
             summary: "The notes that need attention, one row each with what they are missing (Health › Tend).",
             call: () => deriveTend(model()),
+        },
+        readFromHere: {
+            signature: "(path: string) => ReadingPath",
+            summary: "The Reader's path from one note: it, its links out, then the notes that link to it, each with its role.",
+            call: (path: string) => readFromHere(model(), path),
         },
         vitals: {
             signature: "(path: string) => NoteVitals",

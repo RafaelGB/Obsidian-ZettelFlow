@@ -51,6 +51,17 @@ export class WorkspaceLeaf {
   constructor(public app?: any, public contentEl?: any) { }
   async setViewState(_state: unknown): Promise<void> { }
 }
+/**
+ * Obsidian's Markdown renderer, recorded (#668): a test reads which markdown was rendered, for which
+ * source path, and sees it drawn as plain text in the element it was handed.
+ */
+export class MarkdownRenderer {
+  static calls: { markdown: string; sourcePath: string }[] = [];
+  static async render(_app: unknown, markdown: string, el: any, sourcePath: string, _component: unknown): Promise<void> {
+    MarkdownRenderer.calls.push({ markdown, sourcePath });
+    el.createDiv?.({ cls: "rendered-markdown", text: markdown });
+  }
+}
 export class ItemView extends Component {
   app: any;
   containerEl: any;

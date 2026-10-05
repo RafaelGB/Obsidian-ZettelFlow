@@ -35,6 +35,7 @@ For what the surfaces are, which variables each one binds, and worked recipes, s
 | `outline` | `(selectedPaths: string[], opts?: DeriveOutlineOptions) => Outline` | An outline derived from a set of notes. |
 | `proposeAnswers` | `(path: string) => AnswerProposal[]` | Existing notes that could answer an open question. |
 | `query` | `(source: string, now?: number) => GraphQueryResult` | Run a graph query from a note against the model. |
+| `readFromHere` | `(path: string) => ReadingPath` | The Reader's path from one note: it, its links out, then the notes that link to it, each with its role. |
 | `ready` | `() => boolean` | Whether the knowledge index has finished building. |
 | `readyToCultivate` | `() => number` | How many ideas are ready to be worked on. |
 | `reasoningPaths` | `(start: string, opts?: ReasoningPathsOptions) => Path[]` | Chains of reasoning leading out of an idea. |

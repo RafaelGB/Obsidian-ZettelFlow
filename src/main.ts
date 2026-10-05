@@ -24,6 +24,7 @@ import { HealthSurfaceView } from 'architecture/components/core/surface/HealthSu
 import { ExploreSurfaceView } from 'architecture/components/core/surface/ExploreSurfaceView';
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
 import { NoteCompanionView } from 'architecture/components/core/noteCompanion/NoteCompanionView';
+import { ReaderView, READER_VIEW } from 'architecture/components/core/reader/ReaderView';
 import { NOTE_COMPANION_VIEW } from 'architecture/components/core/noteCompanion/noteCompanionContract';
 import { registerDashboardBasesView } from 'dashboards/base/register';
 import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
@@ -182,6 +183,8 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(WorkbenchView.NAME, (leaf) => new WorkbenchView(leaf));
 		// This note (#640): a per-note companion docked in the right sidebar, like Backlinks.
 		this.registerView(NOTE_COMPANION_VIEW, (leaf) => new NoteCompanionView(leaf, this));
+		// The Reader (#668): a path across your notes, read the way you read a book.
+		this.registerView(READER_VIEW, (leaf) => new ReaderView(leaf, this));
 		// Base Dashboards (epic #622): a Bases view type, registered through the Bases door
 		// (guarded so an older Obsidian without the Bases API still loads).
 		registerDashboardBasesView(this);

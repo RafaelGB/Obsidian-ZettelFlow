@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="The ZettelFlow Reader: a chapter of a reading path, full window, with the bar, the dots and the type panel">
+<rect width="1200" height="800" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="640" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="62" cy="50" r="5.5" fill="#fb464c" stroke="none" stroke-width="0"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f" stroke="none" stroke-width="0"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e" stroke="none" stroke-width="0"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">EVENT SOURCING  ·  READ FROM HERE</text>
+<text x="1130" y="102" fill="#5f6168" font-family="sans-serif" font-size="20" font-weight="400" text-anchor="middle">×</text>
+<text x="600" y="140" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">02  /  05</text>
+<rect x="560" y="154" width="80" height="22" rx="11" fill="#26222f" stroke="none" stroke-width="1.5" />
+<text x="600" y="170" fill="#44cf6e" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">SUPPORT</text>
+<text x="600" y="222" fill="#dcddde" font-family="Georgia, serif" font-size="40" font-weight="700" text-anchor="middle">CQRS</text>
+<text x="380" y="272" fill="#cfd0d4" font-family="Georgia, serif" font-size="17.5" font-weight="400" text-anchor="start">Command Query Responsibility Segregation splits writes and</text>
+<text x="380" y="302" fill="#cfd0d4" font-family="Georgia, serif" font-size="17.5" font-weight="400" text-anchor="start">reads into different models. Writes append events; reads are</text>
+<text x="380" y="332" fill="#cfd0d4" font-family="Georgia, serif" font-size="17.5" font-weight="400" text-anchor="start">projections tuned for each screen.</text>
+<text x="380" y="392" font-family="Georgia, serif" font-size="17.5" fill="#cfd0d4">With <tspan fill="#7f6df2" text-decoration="underline">event sourcing</tspan> underneath, a new read model is just a new</text>
+<text x="380" y="422" fill="#cfd0d4" font-family="Georgia, serif" font-size="17.5" font-weight="400" text-anchor="start">projection — you rebuild it from the log, and the screens that</text>
+<text x="380" y="452" fill="#cfd0d4" font-family="Georgia, serif" font-size="17.5" font-weight="400" text-anchor="start">read it never wait on the screens that write.</text>
+<rect x="470" y="470" width="260" height="44" rx="22" fill="#262626" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="600" y="498" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">Next · Eventual consistency  ›</text>
+<circle cx="566" cy="560" r="4.5" fill="#8b8e94" stroke="none" stroke-width="0"/>
+<rect x="576" y="556" width="26" height="9" rx="4.5" fill="#7f6df2" stroke="none" stroke-width="1.5" />
+<circle cx="618" cy="560" r="4.5" fill="#3d3d44" stroke="none" stroke-width="0"/>
+<circle cx="636" cy="560" r="4.5" fill="#3d3d44" stroke="none" stroke-width="0"/>
+<circle cx="654" cy="560" r="4.5" fill="#3d3d44" stroke="none" stroke-width="0"/>
+<rect x="330" y="590" width="540" height="50" rx="14" fill="#262626" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="356" y="621" fill="#8b8e94" font-family="sans-serif" font-size="20" font-weight="400" text-anchor="middle">‹</text>
+<text x="430" y="620" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Chapter 2 / 5</text>
+<rect x="486" y="612" width="150" height="5" rx="2.5" fill="#3a3a3a" stroke="none" stroke-width="1.5" />
+<rect x="486" y="612" width="60" height="5" rx="2.5" fill="#7f6df2" stroke="none" stroke-width="1.5" />
+<text x="656" y="621" fill="#8b8e94" font-family="sans-serif" font-size="20" font-weight="400" text-anchor="middle">›</text>
+<line x1="678" y1="602" x2="678" y2="628" stroke="#3a3a3a"/>
+<text x="706" y="621" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">☰</text>
+<text x="750" y="621" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle">Aa</text>
+<text x="794" y="621" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⑂</text>
+<text x="838" y="621" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⛶</text>
+<rect x="888" y="380" width="256" height="190" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="904" y="404" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">TYPE</text>
+<rect x="904" y="424" width="38.4" height="24" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="923.2" y="440.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Sans</text>
+<rect x="948.4" y="424" width="45.0" height="24" rx="12" fill="#7f6df2" stroke="#7f6df2" stroke-width="1.5" />
+<text x="970.9" y="440.5" fill="#fff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Serif</text>
+<rect x="904" y="468" width="45.0" height="24" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="926.5" y="484.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Small</text>
+<rect x="955.0" y="468" width="51.599999999999994" height="24" rx="12" fill="#7f6df2" stroke="#7f6df2" stroke-width="1.5" />
+<text x="980.8" y="484.5" fill="#fff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Medium</text>
+<rect x="1012.6" y="468" width="45.0" height="24" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="1035.1" y="484.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Large</text>
+<rect x="904" y="512" width="78.0" height="24" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="943.0" y="528.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Your theme</text>
+<rect x="988.0" y="512" width="45.0" height="24" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="1010.5" y="528.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Light</text>
+<rect x="1039.0" y="512" width="45.0" height="24" rx="12" fill="#7f6df2" stroke="#7f6df2" stroke-width="1.5" />
+<text x="1061.5" y="528.5" fill="#fff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Sepia</text>
+<rect x="1090.0" y="512" width="38.4" height="24" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="1109.2" y="528.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Dark</text>
+<path d="M760 590 L888 570" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<circle cx="68" cy="96" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="68" y="100.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<circle cx="540" cy="165" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="540" y="169.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<circle cx="362" cy="388" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="362" y="392.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<circle cx="318" cy="615" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="318" y="619.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<circle cx="888" cy="380" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="888" y="384.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">5</text>
+<circle cx="64" cy="696" r="8" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="64" y="700" fill="#1e1e1e" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">1</text>
+<text x="80" y="700" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Read from here: right-click any note — the path is built from what ZettelFlow knows, no MOC.</text>
+<circle cx="64" cy="716" r="8" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="64" y="720" fill="#1e1e1e" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">2</text>
+<text x="80" y="720" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Each chapter says its role to the note you started from: thesis, support, counterpoint, context.</text>
+<circle cx="64" cy="736" r="8" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="64" y="740" fill="#1e1e1e" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">3</text>
+<text x="80" y="740" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Chapters are rendered by Obsidian itself; a link to another chapter turns the page.</text>
+<circle cx="64" cy="756" r="8" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="64" y="760" fill="#1e1e1e" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">4</text>
+<text x="80" y="760" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">The bar fades when you read; ← → and Space turn pages, F is fullscreen, Esc gives the workspace back.</text>
+<circle cx="64" cy="776" r="8" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="64" y="780" fill="#1e1e1e" font-family="sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">5</text>
+<text x="80" y="780" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Your type and your reading theme — light, sepia or dark from your theme's own palette.</text>
+</svg>

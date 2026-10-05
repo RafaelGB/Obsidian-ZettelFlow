@@ -1,0 +1,399 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The Reader (#668, epic #667) — a path across your notes, read the way you read a book.
+ *
+ * Every colour is the user's theme. *Light* and *dark* put Obsidian's own `theme-light` /
+ * `theme-dark` class on the reading surface, so the theme's palettes apply to it alone; the reader
+ * re-derives its surface from `--color-base-*` at that element, where those palettes resolve.
+ * *Sepia* is the light palette warmed with the theme's own yellow. No colour is invented (§XV).
+ */
+
+/* The tab chrome is part of the workspace the reader asked to step out of. */
+.workspace-leaf-content[data-type="zettelflow-reader"] .view-header {
+    display: none;
+}
+
+.zettelkasten-flow__reader-host {
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__reader {
+    --reader-bg: var(--color-base-00);
+    --reader-surface: var(--color-base-10);
+    --reader-fg: var(--color-base-100);
+    --reader-muted: var(--color-base-70);
+    --reader-faint: var(--color-base-50);
+    --reader-line: var(--color-base-30);
+    --reader-size: 1.2rem;
+    --reader-font: var(--font-text);
+    position: absolute;
+    inset: 0;
+    background-color: var(--reader-bg);
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__reader--theme-sepia {
+    --reader-bg: color-mix(in srgb, var(--color-yellow) 16%, var(--color-base-00));
+    --reader-surface: color-mix(in srgb, var(--color-yellow) 22%, var(--color-base-00));
+    --reader-fg: color-mix(in srgb, var(--color-orange) 18%, var(--color-base-100));
+    --reader-line: color-mix(in srgb, var(--color-yellow) 30%, var(--color-base-30));
+}
+
+.zettelkasten-flow__reader--size-small {
+    --reader-size: 1.05rem;
+}
+
+.zettelkasten-flow__reader--size-large {
+    --reader-size: 1.4rem;
+}
+
+.zettelkasten-flow__reader--font-serif {
+    --reader-font: Georgia, "Iowan Old Style", "Times New Roman", serif;
+}
+
+/* ── top line: where you are, and the way out ─────────────────────────── */
+.zettelkasten-flow__reader-top {
+    position: absolute;
+    top: var(--size-4-4);
+    left: var(--size-4-6);
+    right: var(--size-4-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: opacity 0.4s ease;
+    z-index: 2;
+}
+
+/* ── the page ─────────────────────────────────────────────────────────── */
+.zettelkasten-flow__reader-stage {
+    position: absolute;
+    inset: var(--size-4-12) 0 var(--size-4-18) 0;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__reader-page {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
+    animation: zf-reader-turn 0.45s ease;
+}
+
+@keyframes zf-reader-turn {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-2));
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__reader-count {
+    text-align: center;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.16em;
+    margin-bottom: var(--size-4-5);
+}
+
+.zettelkasten-flow__reader-role {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--size-4-3);
+}
+
+.zettelkasten-flow__reader-role-tag {
+    @include chip;
+    border: none;
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader-role-tag--thesis {
+    color: var(--interactive-accent);
+    background-color: color-mix(in srgb, var(--interactive-accent) 16%, transparent);
+}
+
+.zettelkasten-flow__reader-role-tag--support {
+    color: var(--color-green);
+    background-color: color-mix(in srgb, var(--color-green) 15%, transparent);
+}
+
+.zettelkasten-flow__reader-role-tag--counter {
+    color: var(--color-red);
+    background-color: color-mix(in srgb, var(--color-red) 13%, transparent);
+}
+
+.zettelkasten-flow__reader-role-tag--synthesis {
+    color: var(--color-orange);
+    background-color: color-mix(in srgb, var(--color-orange) 15%, transparent);
+}
+
+.zettelkasten-flow__reader-role-tag--context {
+    color: var(--color-blue);
+    background-color: color-mix(in srgb, var(--color-blue) 14%, transparent);
+}
+
+.zettelkasten-flow__reader-chapter-title {
+    text-align: center;
+    font-family: var(--reader-font);
+    font-size: 2.4rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--size-4-8);
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__reader-body {
+    font-family: var(--reader-font);
+    font-size: var(--reader-size);
+    line-height: 1.75;
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__reader-missing {
+    @include empty-state;
+    text-align: center;
+}
+
+.zettelkasten-flow__reader-next {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--size-4-12);
+}
+
+.zettelkasten-flow__reader-next-button {
+    border: var(--border-width) solid var(--reader-line);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border-radius: $radius-pill;
+    padding: var(--size-4-3) var(--size-4-6);
+    height: auto;
+    cursor: pointer;
+    box-shadow: none;
+
+    &:hover {
+        border-color: var(--interactive-accent);
+    }
+}
+
+/* ── dots and the bar ─────────────────────────────────────────────────── */
+.zettelkasten-flow__reader-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--size-4-16);
+    display: flex;
+    justify-content: center;
+    gap: var(--size-4-2);
+    transition: opacity 0.4s ease;
+}
+
+.zettelkasten-flow__reader-dot {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: $radius-pill;
+    background-color: var(--reader-line);
+    cursor: pointer;
+    transition: width 0.2s ease;
+}
+
+.zettelkasten-flow__reader-dot--done {
+    background-color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-dot--current {
+    width: var(--size-4-6);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.zettelkasten-flow__reader-bar {
+    position: absolute;
+    left: 50%;
+    bottom: var(--size-4-4);
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: var(--size-4-1) var(--size-4-2);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    z-index: 3;
+}
+
+.zettelkasten-flow__reader-bar-label {
+    min-width: 7rem;
+    text-align: center;
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__reader-progress {
+    appearance: none;
+    width: 10rem;
+    height: var(--size-4-1);
+    border: none;
+    border-radius: $radius-pill;
+    background-color: var(--reader-line);
+    overflow: hidden;
+
+    &::-webkit-progress-bar {
+        background-color: var(--reader-line);
+    }
+
+    &::-webkit-progress-value {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+        transition: width 0.3s ease;
+    }
+}
+
+.zettelkasten-flow__reader-bar-sep {
+    width: var(--border-width);
+    align-self: stretch;
+    margin: var(--size-4-1) var(--size-4-1);
+    background-color: var(--reader-line);
+}
+
+/* Idle: the page alone. */
+.zettelkasten-flow__reader--idle {
+    .zettelkasten-flow__reader-bar {
+        opacity: 0;
+        transform: translateX(-50%) translateY(var(--size-4-3));
+        pointer-events: none;
+    }
+
+    .zettelkasten-flow__reader-top {
+        opacity: 0.35;
+    }
+
+    .zettelkasten-flow__reader-dots {
+        opacity: 0.5;
+    }
+}
+
+/* ── panels: contents, type, context ──────────────────────────────────── */
+.zettelkasten-flow__reader-panel {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--size-4-16) + var(--size-4-6));
+    transform: translateX(-50%);
+    width: min(28rem, calc(100% - var(--size-4-8)));
+    max-height: 60%;
+    overflow-y: auto;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    padding: var(--size-4-4);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-l);
+    z-index: 4;
+}
+
+.zettelkasten-flow__reader-panel--open {
+    display: flex;
+}
+
+.zettelkasten-flow__reader-panel-title,
+.zettelkasten-flow__reader-context-heading {
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-toc-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--size-4-3);
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-2);
+    border: none;
+    box-shadow: none;
+    background: none;
+    border-radius: var(--radius-s);
+    color: var(--reader-fg);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__reader-toc-row--current {
+    background-color: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+
+.zettelkasten-flow__reader-toc-number {
+    color: var(--reader-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__reader-toc-name {
+    flex: 1;
+}
+
+.zettelkasten-flow__reader-toc-role {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-type-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-type-option {
+    @include chip;
+    @include chip-clickable;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__reader-context-row {
+    color: var(--reader-fg);
+    padding: var(--size-4-1) 0;
+}
+
+.zettelkasten-flow__reader-context-empty {
+    @include empty-state;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-page {
+        animation: none;
+    }
+
+    .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader-dot {
+        transition: none;
+    }
+}

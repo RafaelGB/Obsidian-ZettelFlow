@@ -38,6 +38,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **What could these two have in common?** — two of your notes with nothing in common, one question, no answer. [docs →](../architecture/collision.md)
 - **Make a move…** — make a cognitive move on the note you are reading — challenge, reframe, branch. [docs →](../development/cultivate.md#the-moves)
 - **Think about this note** — open a thread about a note without writing to it. [docs →](../architecture/thought-lab.md)
+- **Read from here** — right-click a note and read a path across your notes, the way you read a book — no MOC, nothing written. [docs →](../development/reader.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)
 - **Something you expected is ready to be looked at** — a claim with an expected observation and a date you expect to know by. [docs →](../development/wagers.md)
 - **Change note state** — move a note through its lifecycle state (fleeting → … → evergreen). [docs →](../architecture/knowledge-lifecycle.md)

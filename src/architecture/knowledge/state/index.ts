@@ -65,3 +65,4 @@ export * from "./nextMoveLogic";
 export * from "./nextStepCard";
 export * from "./neighbourhood";
 export * from "./tend";
+export * from "./readingPath";

@@ -116,6 +116,7 @@ export const CAPABILITIES = [
     "collision",
     "moves",
     "think-about",
+    "reader",
     "claim-door",
     "claim-return",
     "wager",
@@ -343,6 +344,13 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             NOTE_MENU("starters/zcomponents/MoveCommandsComponent.ts"),
             CONTROL("architecture/components/core/cultivate/CultivateModeRenderer.ts", HOME),
         ],
+    },
+    reader: {
+        // Read a path across your notes (#668, epic #667). On the note's own menu: the note you
+        // right-click is where the reading starts — no MOC, no setup.
+        nameKey: "reader_read_from_here",
+        owner: "zettelflow-reader",
+        doors: [NOTE_MENU("starters/zcomponents/ReaderComponent.ts"), CMD("open-reader")],
     },
     "think-about": {
         nameKey: "command_think_about",

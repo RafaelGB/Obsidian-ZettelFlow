@@ -27,6 +27,7 @@ const SURFACE_TYPES = ["zettelflow-home", "zettelflow-health", "zettelflow-explo
 const ALLOWED_STANDALONE_VIEWS: Record<string, string> = {
     "zettelflow-workbench": "WorkbenchView.NAME",
     "zettelflow-note": "NOTE_COMPANION_VIEW",
+    "zettelflow-reader": "READER_VIEW",
 };
 
 /** The 12 retired opener commands kept as aliases (must still be registered somewhere). */

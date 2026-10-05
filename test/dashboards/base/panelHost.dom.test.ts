@@ -6,7 +6,7 @@ import { normalize } from "dashboards/datastore";
 import type { AdaptedEntry, FieldDescriptor } from "dashboards/datastore";
 import type { ChartTheme, PanelConfig, TaskItem } from "dashboards/panels";
 import { PanelHost, type PanelHostActions, type TaskPort } from "dashboards/base/PanelHost";
-import { DomNode, flush, installBrowserGlobals } from "../../support/dashboardDom";
+import { DomNode, flush, installBrowserGlobals, settle } from "../../support/dashboardDom";
 
 const theme: ChartTheme = { text: "t", axis: "a", split: "s", palette: ["p0", "p1", "p2", "p3", "p4"] } as ChartTheme;
 const props: FieldDescriptor[] = [
@@ -114,9 +114,10 @@ describe("PanelHost — what a panel draws (#632)", () => {
 
     it("a click on a chart point opens the note behind it", async () => {
         const act = actions();
+        const before = __charts.length;
         const { host } = mount(cfg("bar", { category: "note.date", series: ["note.hours"] }), act);
         host.update(snap(), theme);
-        await flush(); // the charting library loads with the first chart
+        await settle(() => __charts.length > before); // the charting library loads with the first chart
         const chart = __charts[__charts.length - 1];
         expect(chart.options).toHaveLength(1);
         const evt = { ctrlKey: false };
@@ -137,9 +138,10 @@ describe("PanelHost — what a panel draws (#632)", () => {
             ["heatmap", { x: "note.mood", y: "note.date", value: "note.hours" }],
         ];
         for (const [type, mapping] of types) {
+            const before = __charts.length;
             const { host } = mount(cfg(type, mapping));
             host.update(snap(), theme);
-            await flush();
+            await settle(() => __charts.length > before);
             const chart = __charts[__charts.length - 1];
             expect(chart.options.length).toBeGreaterThan(0);
             host.setConfig(cfg("stat", { aggregate: "count" }));

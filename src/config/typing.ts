@@ -117,6 +117,11 @@ export interface ZettelFlowSettings {
     /** How This note shows the neighbourhood: the ego graph or the list (#643). */
     noteNeighbourhoodView?: "graph" | "list";
     /**
+     * How the Reader sets its type (#668): font, size and reading theme. Authored from the reader's
+     * own *Type* panel — the place you are when you want to change it (§XIII).
+     */
+    readerPrefs?: { font: "sans" | "serif"; size: "small" | "medium" | "large"; theme: "auto" | "light" | "sepia" | "dark" };
+    /**
      * **Think before you look** in Explore (#576, epic #574): write what you currently think, and
      * the results stay hidden until you have. OFF by default and *remembered* — §XII sanctions
      * deliberate friction where judgement is at stake and forbids it as a generic confirmation, so
@@ -371,6 +376,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
     cultivateStage: "any", // Cultivate every stage until you pick one (#589); embryonic-first within it.
     noteNeighbourhoodView: "graph", // the picture first; the list is one click away (#643).
+    readerPrefs: { font: "sans", size: "medium", theme: "auto" }, // the theme's own type, until you pick (#668).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.
     returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.

@@ -115,6 +115,7 @@ nav:
   - Start:
       - Why ZettelFlow: why.md
       - Get started in 5 minutes: get-started.md
+      - Settings, section by section: development/settings-panel.md
       - AI provider setup (optional): development/ai-provider-setup.md
       - Knowledge scope (excluded paths): development/knowledge-scope.md
       - Capabilities & privacy: development/capabilities-and-privacy.md
@@ -171,7 +172,6 @@ nav:
           - What ZettelFlow wrote (undo): architecture/reversibility.md
           - Map of content builder: development/moc-builder.md
           - Derived projects: development/derived-projects.md
-          - The settings panel: development/settings-panel.md
   # 4 · Reference — look something up: every action, every automation, the scripting API.
   - Reference:
       - Actions:

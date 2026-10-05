@@ -115,7 +115,7 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     Full control over every step.
 
-    1. Create a `.canvas` file and point **Settings → ZettelFlow → New notes canvas** at it.
+    1. Create a `.canvas` file and give it the *Creates notes* role in **Settings → ZettelFlow → Flows**.
     2. Add a note to the canvas, right-click → **Create managed step**, enable **Root**.
     3. Add steps, connect them with arrows, and run the wizard from the ribbon.
 

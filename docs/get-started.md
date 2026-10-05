@@ -47,14 +47,23 @@ There are three ways in. None of them needs the others, and you can switch betwe
     ![Your first flow: design it on a Canvas, configure each step, run the wizard](resources/readme/first-flow.svg)
 
     1. Create a `.canvas` file (for example `flows/daily-note.canvas`).
-    2. In **Settings → ZettelFlow**, set that canvas as the *new notes canvas*.
+    2. In **Settings → ZettelFlow → Flows**, *Give a role to another canvas*: pick it and choose **Creates notes**.
     3. Add a note file to the canvas, right-click it → **Create managed step**, and enable **Root**.
     4. Add actions to the step (a prompt, a selector, tags…) and draw arrows to the next steps.
     5. Ribbon button → **Create note**: your first wizard run.
 
     → [Build your own note flow](architecture/flow-roles.md) · [Actions](actions/Prompt.md)
 
-## 3 · Where to next
+## 3 · Your settings, at a glance
+
+Open **Settings → ZettelFlow**. The top of the tab says what is on right now. In a fresh vault, a
+start card offers the same three ways in, so you never meet an empty page.
+
+![A fresh vault: the settings tab says nothing creates notes yet, and offers three ways in](resources/settings/start.svg)
+
+→ [Settings, section by section](development/settings-panel.md)
+
+## 4 · Where to next
 
 - **[Why ZettelFlow](why.md)** — what it is for, and how it sits next to Templater, QuickAdd and Dataview.
 - **[Showcase](showcase.md)** — the whole product, one illustration at a time.

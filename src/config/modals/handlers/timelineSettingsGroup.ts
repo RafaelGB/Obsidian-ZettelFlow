@@ -1,48 +1,28 @@
-import { SettingDefinitionItem } from "obsidian";
-import ZettelFlow from "main";
-import { c } from "architecture";
+import type { SettingGroupItem } from "obsidian";
+import type ZettelFlow from "main";
 import { t } from "architecture/lang";
+import { asTile } from "./settingsTile";
 
 /**
- * Declarative "Evolution timeline" settings group (#168): an enable toggle for the conceptual
- * snapshot recorder (on by default) plus a data-disclosure note (local per-note state + claim text,
- * bounded, pruned on delete, no network). Mirrors the #162 journal group.
+ * The idea snapshots (#168) as a tile of *What ZettelFlow remembers* (#662): an enable toggle — off
+ * by default, because it stores claim texts — and the lock line. Turning it off still clears what was
+ * captured: opting out erases the content store.
  */
-export function timelineSettingsGroup(plugin: ZettelFlow): SettingDefinitionItem {
+export function timelineSettingsTile(plugin: ZettelFlow): SettingGroupItem {
     return {
-        type: "group",
-        heading: t("settings_timeline_heading"),
-        items: [
-            {
-                name: t("settings_timeline_intro"),
-                render: (setting) => {
-                    setting.setClass(c("readable-setting-item"));
-                },
-            },
-            {
-                name: t("settings_timeline_enable_name"),
-                desc: t("settings_timeline_enable_desc"),
-                render: (setting) => {
-                    setting.addToggle((toggle) =>
-                        toggle
-                            .setValue(plugin.settings.timeline.enabled)
-                            .onChange(async (value) => {
-                                // Turning it off clears the stored snapshots — opting out erases the content store.
-                                plugin.settings.timeline = {
-                                    enabled: value,
-                                    snapshots: value ? plugin.settings.timeline.snapshots : {},
-                                };
-                                await plugin.saveSettings();
-                            })
-                    );
-                },
-            },
-            {
-                name: t("settings_timeline_disclosure"),
-                render: (setting) => {
-                    setting.setClass(c("readable-setting-item"));
-                },
-            },
-        ],
+        name: t("settings_timeline_enable_name"),
+        desc: t("settings_timeline_enable_desc"),
+        render: (setting) => {
+            asTile(setting, "settings_timeline_disclosure");
+            setting.addToggle((toggle) =>
+                toggle.setValue(plugin.settings.timeline.enabled).onChange(async (value) => {
+                    plugin.settings.timeline = {
+                        enabled: value,
+                        snapshots: value ? plugin.settings.timeline.snapshots : {},
+                    };
+                    await plugin.saveSettings();
+                })
+            );
+        },
     };
 }

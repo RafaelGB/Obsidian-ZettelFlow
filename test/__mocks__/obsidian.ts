@@ -257,6 +257,12 @@ export class FakeDropdown {
 }
 export class FakeText {
   value = ""; placeholder = ""; private cb: ((v: string) => void) | null = null;
+  /** The input Obsidian gives a text control: a type, attributes and classes a row may set (#663). */
+  inputEl: any = {
+    type: "text", attrs: {} as Record<string, string>, classes: new Set<string>(),
+    setAttribute(name: string, value: string) { this.attrs[name] = value; },
+    addClass(...names: string[]) { for (const name of names) this.classes.add(name); },
+  };
   setValue(value: string): this { this.value = value; return this; }
   getValue(): string { return this.value; }
   setPlaceholder(text: string): this { this.placeholder = text; return this; }
@@ -265,10 +271,38 @@ export class FakeText {
 }
 export class FakeToggle {
   value = false; private cb: ((v: boolean) => void) | null = null;
-  setValue(on: boolean): this { this.value = on; return this; }
+  /** As Obsidian's: a change of value calls onChange (read from the 1.14.4 ToggleComponent, #659). */
+  setValue(on: boolean): this { const changed = this.value !== on; this.value = on; if (changed) this.cb?.(on); return this; }
   getValue(): boolean { return this.value; }
   onChange(cb: (v: boolean) => void): this { this.cb = cb; return this; }
   flip(on = !this.value): void { this.value = on; this.cb?.(on); }
+}
+export class FakeSearch {
+  value = ""; placeholder = "";
+  /** The search's input: listeners recorded, so a test can blur it or press Enter in it (#659). */
+  inputEl: any = {
+    listeners: {} as Record<string, ((event: any) => void)[]>,
+    addEventListener(type: string, fn: (event: any) => void) { (this.listeners[type] ??= []).push(fn); },
+    fire(type: string, event: any = {}) { for (const fn of this.listeners[type] ?? []) fn(event); },
+  };
+  private cb: ((v: string) => void) | null = null;
+  setValue(value: string): this { this.value = value; return this; }
+  getValue(): string { return this.value; }
+  setPlaceholder(text: string): this { this.placeholder = text; return this; }
+  onChange(cb: (v: string) => void): this { this.cb = cb; return this; }
+  type(value: string): void { this.value = value; this.cb?.(value); }
+}
+/** A slider with the element Obsidian gives it, so a test can drag it (fire "input") or release it. */
+export class FakeSlider {
+  value = 0; min = 0; max = 100; step = 1; sliderEl: any = null;
+  private cb: ((v: number) => void) | null = null;
+  setLimits(min: number, max: number, step: number): this { this.min = min; this.max = max; this.step = step; return this; }
+  setValue(value: number): this { this.value = value; return this; }
+  getValue(): number { return this.value; }
+  setDynamicTooltip(): this { return this; }
+  onChange(cb: (v: number) => void): this { this.cb = cb; return this; }
+  /** Drag: the element's input event, then the release that fires onChange. */
+  slide(value: number): void { this.value = value; this.sliderEl?.fire?.("input"); this.cb?.(value); }
 }
 export class FakeButton {
   text = ""; icon = ""; tooltip = ""; cta = false; private cb: (() => void) | null = null;
@@ -282,15 +316,36 @@ export class FakeButton {
   click(): void { this.cb?.(); }
 }
 
+/**
+ * The plugin settings tab (#659): the shape a test needs to construct one. Rendering its definitions
+ * the way Obsidian does is test/support/settingsRenderer's job; `update` and `refreshDomState` are
+ * replaced by that renderer's.
+ */
+export class PluginSettingTab {
+  containerEl: any = null;
+  constructor(public app?: any, public plugin?: any) { }
+  getSettingDefinitions(): unknown[] { return []; }
+  display(): void { }
+  hide(): void { }
+  update(): void { }
+  refreshDomState(): void { }
+  async setControlValue(_key: string, _value: unknown): Promise<void> { }
+}
+
 /** Chainable no-op stub of Obsidian's declarative Setting builder (with an opt-in capture above). */
 export class Setting {
   name = ""; desc = ""; heading = false;
-  settingEl: any; controlEl: any;
+  settingEl: any; infoEl: any; nameEl: any; descEl: any; controlEl: any;
   dropdowns: FakeDropdown[] = []; texts: FakeText[] = []; toggles: FakeToggle[] = [];
   buttons: FakeButton[] = []; extraButtons: FakeButton[] = [];
+  searches: FakeSearch[] = []; sliders: FakeSlider[] = [];
   constructor(containerEl?: any) {
     if (!settingCapture) return;
     this.settingEl = containerEl?.createDiv ? containerEl.createDiv({ cls: "setting-item" }) : undefined;
+    // The same anatomy as Obsidian's row: an info column (name + description) and a control column.
+    this.infoEl = this.settingEl?.createDiv ? this.settingEl.createDiv({ cls: "setting-item-info" }) : undefined;
+    this.nameEl = this.infoEl?.createDiv ? this.infoEl.createDiv({ cls: "setting-item-name" }) : undefined;
+    this.descEl = this.infoEl?.createDiv ? this.infoEl.createDiv({ cls: "setting-item-description" }) : undefined;
     this.controlEl = this.settingEl?.createDiv ? this.settingEl.createDiv({ cls: "setting-item-control" }) : undefined;
     settingCapture(this);
   }
@@ -335,7 +390,17 @@ export class Setting {
     if (settingCapture && build) { const button = new FakeButton(); build(button); this.extraButtons.push(button); }
     return this;
   }
-  addSlider(): this {
+  addSlider(build?: (slider: FakeSlider) => void): this {
+    if (settingCapture && build) {
+      const slider = new FakeSlider();
+      slider.sliderEl = this.controlEl?.createEl ? this.controlEl.createEl("input", { attr: { type: "range" } }) : null;
+      build(slider);
+      this.sliders.push(slider);
+    }
+    return this;
+  }
+  addSearch(build?: (search: FakeSearch) => void): this {
+    if (settingCapture && build) { const search = new FakeSearch(); build(search); this.searches.push(search); }
     return this;
   }
   then(): this {

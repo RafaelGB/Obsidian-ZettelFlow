@@ -164,7 +164,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "canvas-editing": {
         nameKey: "command_settings_open_canvas",
         owner: "workflow",
-        doors: [RIBBON("open-canvas"), { kind: "settings", at: "settings_group_creating" }, CMD("open-canvas")],
+        doors: [RIBBON("open-canvas"), { kind: "settings", at: "settings_section_flows" }, CMD("open-canvas")],
     },
     "quick-capture": {
         nameKey: "command_quick_capture",
@@ -414,7 +414,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         owner: "community",
         doors: [
             RIBBON("open-manage-templates"),
-            { kind: "settings", at: "settings_group_creating" },
+            { kind: "settings", at: "settings_section_flows" },
             CMD("open-manage-templates"),
         ],
     },

@@ -1,74 +1,46 @@
 import ZettelFlow from "main";
-import { App, moment as obsidianMoment, Notice, Platform, PluginSettingTab, Setting, SettingDefinitionGroup, SettingDefinitionItem } from "obsidian";
-import type MomentFn from "moment";
+import { PluginSettingTab, Setting, SettingDefinitionItem, type ToggleComponent } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
-import { FolderSuggest } from "architecture/settings";
-import { fnsManager, writeTypeDeclarations } from "architecture/api";
-import { KnowledgeIndex } from "architecture/knowledge";
-import { ALL_CULTIVATION_MOVES } from "architecture/knowledge/state";
-import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
-import { ModeHostView } from "architecture/components/core/surface/ModeHostView";
-import { normalizeDensity } from "application/components/noteBuilder/presentation";
-import {
-    DEFAULT_STATE_PROPERTY,
-    DEFAULT_CREATED_PROPERTY,
-    DEFAULT_LAST_REVIEWED_PROPERTY,
-    LifecycleStateSchema,
-} from "architecture/knowledge/lifecycle";
-import { buildLifecycleAliases } from "architecture/knowledge/lifecycleAliases";
-import { DEFAULT_SETTINGS } from "config";
 import { CommunityTemplatesModal } from "application/community";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
 import { HookErrorBoundary } from "./handlers/hooks/components/HookErrorBoundary";
 import { aiSettingsGroup } from "./handlers/aiSettingsGroup";
-import { journalSettingsGroup } from "./handlers/journalSettingsGroup";
-import { speedSettingsItems } from "./handlers/speedSettingsItems";
-import { judgementSettingsGroup } from "./handlers/judgementSettingsGroup";
+import { foldersSettingsGroup, scriptsLoggingGroup } from "./handlers/advancedSettingsGroups";
 import { returnSettingsGroup } from "./handlers/returnSettingsGroup";
-import { timelineSettingsGroup } from "./handlers/timelineSettingsGroup";
-import { patternsSettingsGroup } from "./handlers/patternsSettingsGroup";
+import { knowledgeSettingsGroups } from "./handlers/knowledgeSettingsGroups";
+import { movesSettingsGroup } from "./handlers/movesSettingsGroup";
+import { rememberedSettingsGroup } from "./handlers/rememberedSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
-import { flowsSettingsGroup } from "./handlers/flowsSettingsGroup";
-import { settingsSummary } from "config/settingsSummary";
-import { hasRowContainer, rowContainer } from "architecture/components/settings";
+import { flowsSettingsGroup, flowsWithRole } from "./handlers/flowsSettingsGroup";
+import { creatingSettingsGroup } from "./handlers/creatingSettingsGroup";
+import { settingsGlance } from "config/settingsSummary";
+import {
+    SETTINGS_SECTIONS,
+    renderFooter,
+    renderGlance,
+    renderHeader,
+    renderNav,
+    renderSectionIcon,
+    renderStart,
+    scrollToSection,
+    sectionClass,
+    sectionInView,
+    type SectionId,
+} from "./settingsShell";
+import { openCultivateFromSettings } from "./startActions";
+import { keptRoot } from "./keptRoot";
+import { descContainer, rowContainer } from "architecture/components/settings/settingContainer";
 
-/** The items of a group definition — the union does not narrow itself at the call site. */
-type SettingsRow = NonNullable<SettingDefinitionGroup["items"]>[number];
+/** The worked hook examples: what to show someone who has just read what a hook is for. */
+const HOOK_EXAMPLES_URL = "https://rafaelgb.github.io/Obsidian-ZettelFlow/vault-hooks/property-hooks/examples/";
 
-function itemsOf(definition: SettingDefinitionItem): SettingsRow[] {
-    return "items" in definition ? ((definition.items ?? []) as SettingsRow[]) : [];
-}
-
-type LocaleKey = Parameters<typeof t>[0];
-
-// Obsidian bundles moment and re-exports it as a namespace; cast to the callable signature.
-const moment = obsidianMoment as unknown as typeof MomentFn;
-
-// Debounce the (expensive) index re-register + rebuild when the user edits the state property name.
-let lifecycleRebuildTimer: number | undefined;
-// Debounce the index rebuild when the user edits the excluded-paths list (#311).
-let scopeRebuildTimer: number | undefined;
-
-/**
- * Refresh any open knowledge surface (Home / Cultivate / Timeline / Health, and the Graph) after a scope
- * change (#374), so an exclusion takes effect on-screen immediately — not only on the next vault event.
- */
-function refreshKnowledgeSurfaces(app: App): void {
-    for (const type of ["zettelflow-home", "zettelflow-graph"]) {
-        app.workspace.getLeavesOfType(type).forEach((leaf) => {
-            if (leaf.view instanceof ModeHostView) leaf.view.refresh();
-        });
-    }
-}
 
 export class ZettelFlowSettingsTab extends PluginSettingTab {
     plugin: ZettelFlow;
-    /** View state, not a setting: nobody should meet a log level on their first day (#440). */
-    private showAdvanced = false;
 
     constructor(plugin: ZettelFlow) {
         super(plugin.app, plugin);
@@ -77,66 +49,40 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
 
     override getSettingDefinitions(): SettingDefinitionItem[] {
         const plugin = this.plugin;
+        const advanced = () => plugin.settings.showAdvancedSettings === true;
         return [
-            // ── What is on right now (#440) ──────────────────────────────────
+            // ── The shell (#660): who it is, what is on, how to start, where everything is ────────
+            this.shellGroup(),
+
+            // ── 1 · Flows: the canvases that have a role (#435) ──────────────────────────────────
+            this.sectionHead("flows"),
+            ...flowsSettingsGroup(plugin, () => this.update()),
+
+            // ── 2 · Creating notes ────────────────────────────────────────────────────────────────
+            this.sectionHead("creating"),
+            creatingSettingsGroup(plugin),
+
+            // ── 3 · Your knowledge: what counts, and how it is read ──────────────────────────────
+            this.sectionHead("knowledge"),
+            ...knowledgeSettingsGroups(plugin),
+
+            // ── 4 · Thinking: one card per question, the sub-headings it had lost restored ────────
+            this.sectionHead("thinking"),
             {
+                // The three "your reading before theirs" pauses, which lived in two groups (#660).
                 type: "group",
+                heading: t("settings_card_pauses"),
                 items: [
                     {
-                        name: t("settings_summary_name"),
-                        render: (setting) => {
-                            setting.setClass(c("settings-summary"));
-                            const host = rowContainer(setting, "settings-summary-list");
-                            for (const fact of settingsSummary(plugin.settings)) {
-                                host.createDiv({
-                                    cls: c("settings-summary-fact"),
-                                    text: `${t(fact.labelKey as LocaleKey)}: ${fact.value}`,
-                                });
-                            }
-                        },
-                    },
-                ],
-            },
-            // ── 1 · Your flows (#435): the canvases that have a role ──────────
-            flowsSettingsGroup(plugin, () => this.update()),
-            // ── Get started (shown only when no canvas is configured) ─────────
-            {
-                type: "group",
-                heading: t("settings_get_started_title"),
-                cls: c("get-started-group"),
-                visible: () => !plugin.settings.ribbonCanvas,
-                items: [
-                    {
-                        // A3 (#246): a beginner's first move is to install a ready-made system — the one
-                        // adoption path — not to hand-build an example flow. Funnel to the Systems browser.
-                        name: t("settings_get_started_description"),
-                        render: (setting) => {
-                            setting.addButton((btn) =>
-                                btn
-                                    .setButtonText(t("welcome_cta_browse"))
-                                    .setCta()
-                                    .onClick(() => new CommunityTemplatesModal(plugin).open())
-                            );
-                        },
-                    },
-                ],
-            },
-            // ── 2 · Creating notes ────────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_group_creating"),
-                items: [
-                    
-                    {
-                        // Unfinished thinking deserves continuity (#410) — on by default.
-                        name: t("settings_wizard_drafts_name"),
-                        desc: t("settings_wizard_drafts_desc"),
-                        render: (setting) => {
+                        name: t("settings_cultivate_friction_name"),
+                        desc: t("settings_cultivate_friction_desc"),
+                        render: (setting: Setting) => {
                             setting.addToggle((toggle) =>
                                 toggle
-                                    .setValue(plugin.settings.wizardDraftsEnabled ?? true)
+                                    .setValue(plugin.settings.cultivateFriction ?? true)
                                     .onChange(async (value) => {
-                                        plugin.settings.wizardDraftsEnabled = value;
+                                        plugin.settings.cultivateFriction = value;
+                                        this.refreshGlance();
                                         await plugin.saveSettings();
                                     })
                             );
@@ -158,291 +104,6 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                         },
                     },
                     {
-                        // Density of the creation wizard (#409). A preference about the reader's eyes,
-                        // so it is global rather than per flow.
-                        name: t("settings_wizard_density_name"),
-                        desc: t("settings_wizard_density_desc"),
-                        render: (setting) => {
-                            setting.addDropdown((dropdown) =>
-                                dropdown
-                                    .addOption("comfortable", t("settings_wizard_density_comfortable"))
-                                    .addOption("compact", t("settings_wizard_density_compact"))
-                                    .setValue(normalizeDensity(plugin.settings.wizardDensity))
-                                    .onChange(async (value) => {
-                                        plugin.settings.wizardDensity = normalizeDensity(value);
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        // Colour as meaning (#429). Off by default: the step editor offers the
-                        // colour one click at a time, and this makes it automatic for people who
-                        // want the canvas to paint itself.
-                        name: t("settings_colour_by_phase_title"),
-                        desc: t("settings_colour_by_phase_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(plugin.settings.colourNodesByPhase ?? false)
-                                    .onChange(async (value) => {
-                                        plugin.settings.colourNodesByPhase = value;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("create_in_current_folder_toggle_title"),
-                        desc: t("create_in_current_folder_toggle_description"),
-                        control: { type: "toggle", key: "createInCurrentFolder" },
-                    },
-                    {
-                        name: t("open_home_on_startup_toggle_title"),
-                        desc: t("open_home_on_startup_toggle_description"),
-                        control: { type: "toggle", key: "openHomeOnStartup" },
-                    },
-                    {
-                        name: t("unique_prefix_pattern_title"),
-                        desc: buildPrefixDescription(plugin.settings.uniquePrefix),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setValue(plugin.settings.uniquePrefix)
-                                    .setPlaceholder(
-                                        DEFAULT_SETTINGS.uniquePrefix ?? ""
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.uniquePrefix = value;
-                                        setting.setDesc(buildPrefixDescription(value));
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    
-                    
-                    
-                    
-                
-                ],
-            },
-            // ── 3 · Your vault's vocabulary ───────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_group_vocabulary"),
-                items: [
-                    {
-                        name: t("settings_scope_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_excluded_paths_name"),
-                        desc: t("settings_excluded_paths_desc"),
-                        render: (setting) => {
-                            // A folder-picker CRUD (#374): each row is one excluded folder, added from a
-                            // vault-folder autosuggest so the stored value is the *exact* `folder.path` —
-                            // no typo, case or emoji-encoding mismatch can silently make an exclusion no-op.
-                            setting.setClass(c("excluded-paths-setting-item"));
-                            const list = rowContainer(setting, "excluded-paths-list");
-                            const draft = { value: "" };
-
-                            const apply = async () => {
-                                await plugin.saveSettings();
-                                if (scopeRebuildTimer) window.clearTimeout(scopeRebuildTimer);
-                                // Reindex once editing settles, then refresh open surfaces so the change shows now.
-                                scopeRebuildTimer = window.setTimeout(() => {
-                                    KnowledgeIndex.getInstance().build();
-                                    refreshKnowledgeSurfaces(plugin.app);
-                                }, 300);
-                            };
-
-                            const renderRows = () => {
-                                list.empty();
-                                const paths = plugin.settings.excludedPaths ?? [];
-                                if (paths.length === 0) {
-                                    list.createDiv({
-                                        cls: c("excluded-paths-empty"),
-                                        text: t("settings_excluded_paths_empty"),
-                                    });
-                                }
-                                for (const path of paths) {
-                                    new Setting(list)
-                                        .setClass(c("excluded-paths-row"))
-                                        .setName(path)
-                                        .addExtraButton((btn) =>
-                                            btn
-                                                .setIcon("trash")
-                                                .setTooltip(t("settings_excluded_paths_remove"))
-                                                .onClick(async () => {
-                                                    plugin.settings.excludedPaths = (plugin.settings.excludedPaths ?? []).filter(
-                                                        (p) => p !== path
-                                                    );
-                                                    await apply();
-                                                    renderRows();
-                                                })
-                                        );
-                                }
-                                new Setting(list)
-                                    .setClass(c("excluded-paths-add"))
-                                    .addSearch((cb) => {
-                                        new FolderSuggest(cb.inputEl);
-                                        cb.setPlaceholder(t("settings_excluded_paths_placeholder"))
-                                            .setValue(draft.value)
-                                            .onChange((value) => (draft.value = value));
-                                    })
-                                    .addButton((btn) =>
-                                        btn
-                                            .setButtonText(t("settings_excluded_paths_add"))
-                                            .setCta()
-                                            .onClick(async () => {
-                                                if (draft.value.trim().length === 0) return;
-                                                plugin.settings.excludedPaths = normalizeExcludedPaths([
-                                                    ...(plugin.settings.excludedPaths ?? []),
-                                                    draft.value,
-                                                ]);
-                                                draft.value = "";
-                                                await apply();
-                                                renderRows();
-                                            })
-                                    );
-                            };
-                            renderRows();
-                        },
-                    },
-                
-                    {
-                        name: t("settings_lifecycle_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_state_property_name"),
-                        desc: t("settings_state_property_desc"),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setPlaceholder(DEFAULT_STATE_PROPERTY)
-                                    .setValue(plugin.settings.lifecycle.stateProperty)
-                                    .onChange(async (value) => {
-                                        const next = value.trim() || DEFAULT_STATE_PROPERTY;
-                                        plugin.settings.lifecycle.stateProperty = next;
-                                        await plugin.saveSettings();
-                                        if (lifecycleRebuildTimer) {
-                                            window.clearTimeout(lifecycleRebuildTimer);
-                                        }
-                                        // Re-register the schema and rebuild once typing settles.
-                                        lifecycleRebuildTimer = window.setTimeout(() => {
-                                            const index = KnowledgeIndex.getInstance();
-                                            index.registerSchemas({
-                                                state: new LifecycleStateSchema(
-                                                    next,
-                                                    buildLifecycleAliases()
-                                                ),
-                                            });
-                                            index.build();
-                                        }, 500);
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("settings_created_property_name"),
-                        desc: t("settings_created_property_desc"),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setPlaceholder(DEFAULT_CREATED_PROPERTY)
-                                    .setValue(plugin.settings.lifecycle.createdProperty)
-                                    .onChange(async (value) => {
-                                        plugin.settings.lifecycle.createdProperty =
-                                            value.trim() || DEFAULT_CREATED_PROPERTY;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    {
-                        name: t("settings_last_reviewed_property_name"),
-                        desc: t("settings_last_reviewed_property_desc"),
-                        render: (setting) => {
-                            setting.addText((text) =>
-                                text
-                                    .setPlaceholder(DEFAULT_LAST_REVIEWED_PROPERTY)
-                                    .setValue(plugin.settings.lifecycle.lastReviewedProperty)
-                                    .onChange(async (value) => {
-                                        plugin.settings.lifecycle.lastReviewedProperty =
-                                            value.trim() || DEFAULT_LAST_REVIEWED_PROPERTY;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                
-                    {
-                        name: t("settings_relations_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_parse_inline_relations_name"),
-                        desc: t("settings_parse_inline_relations_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(
-                                        plugin.settings.relations?.parseInlineRelations ??
-                                            !Platform.isMobile
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.relations = { parseInlineRelations: value };
-                                        await plugin.saveSettings();
-                                        // Rebuild frontmatter edges, then re-enrich inline ones if on.
-                                        const index = KnowledgeIndex.getInstance();
-                                        index.build();
-                                        index.setEnrichmentEnabled(value);
-                                        if (value) void index.enrichInlineRelations();
-                                    })
-                            );
-                        },
-                    },
-                
-                ],
-            },
-            // ── 4 · Thinking ──────────────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_group_thinking"),
-                items: [
-                    {
-                        name: t("settings_cultivate_intro"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        // The Thought Lab (#466). Its folder is excluded from the knowledge model
-                        // by the same scope that hides ZettelFlow's own folders, so nothing you
-                        // write here is ever an orphan, debt, or a line in Health.
-                        name: t("settings_thought_lab_name"),
-                        desc: t("settings_thought_lab_desc"),
-                        render: (setting: Setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("settings_thought_lab_placeholder"))
-                                    .setValue(plugin.settings.thoughtLabPath ?? "")
-                                    .onChange(async (value) => {
-                                        plugin.settings.thoughtLabPath = value.trim();
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
-                    {
                         // The same idea as Cultivate's friction, one surface over (#576). Off by
                         // default: Explore's job is to answer, and the pause is offered rather
                         // than imposed. The control that turns it on lives in Explore itself —
@@ -460,259 +121,261 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                             );
                         },
                     },
-                    {
-                        name: t("settings_cultivate_friction_name"),
-                        desc: t("settings_cultivate_friction_desc"),
-                        render: (setting: Setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle
-                                    .setValue(plugin.settings.cultivateFriction ?? true)
-                                    .onChange(async (value) => {
-                                        plugin.settings.cultivateFriction = value;
-                                        await plugin.saveSettings();
-                                    })
-                            );
-                        },
-                    },
-                    ...ALL_CULTIVATION_MOVES.map((kind) => ({
-                        name: t(`cultivate_move_${kind}_title` as Parameters<typeof t>[0]),
-                        desc: t(`cultivate_move_${kind}_desc` as Parameters<typeof t>[0]),
-                        render: (setting: Setting) => {
-                            const current = plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
-                            setting.addToggle((toggle) =>
-                                toggle.setValue(current.includes(kind)).onChange(async (value) => {
-                                    const base = plugin.settings.cultivateMoves ?? [...ALL_CULTIVATION_MOVES];
-                                    const next = value ? [...new Set([...base, kind])] : base.filter((m) => m !== kind);
-                                    // Keep the canonical order so the session reads predictably.
-                                    plugin.settings.cultivateMoves = ALL_CULTIVATION_MOVES.filter((m) => next.includes(m));
-                                    await plugin.saveSettings();
-                                })
-                            );
-                        },
-                    })),
-                
-                    ...itemsOf(journalSettingsGroup(plugin)),
-                    ...itemsOf(judgementSettingsGroup(plugin)),
-                    ...itemsOf(returnSettingsGroup(plugin)),
-                    ...itemsOf(timelineSettingsGroup(plugin)),
-                    ...itemsOf(patternsSettingsGroup(plugin)),
                 ],
             },
-            // ── 5 · AI (optional, off by default) ─────────────────────────────
-            aiSettingsGroup(plugin),
-            // ── 6 · Automation ────────────────────────────────────────────────
+            movesSettingsGroup(plugin, () => this.refreshGlance()),
+            returnSettingsGroup(plugin, () => this.pointerRefresh?.()),
+            rememberedSettingsGroup(plugin),
+
+            // ── 5 · AI (optional, off by default): one switch, and the provider only when it is on ──
+            this.sectionHead("ai"),
+            aiSettingsGroup(plugin, () => this.changedInPlace()),
+
+            // ── 6 · Automation ────────────────────────────────────────────────────────────────────
+            this.sectionHead("automation"),
             {
                 type: "group",
-                heading: t("settings_group_automation"),
                 items: [
                     {
                         name: t("property_hooks_setting_title"),
                         desc: t("property_hooks_setting_description"),
                         render: (setting) => {
                             setting.settingEl.addClass(c("property-hooks-setting-item"));
-                            // Already mounted: a repeated render must not start a second React root.
-                            if (hasRowContainer(setting, "property-hooks-container")) return;
-                            const container = rowContainer(setting, "property-hooks-container");
-                            const root = createRoot(container);
-                            root.render(
-                                <HookErrorBoundary>
-                                    <PropertyHooksManager plugin={plugin} />
-                                </HookErrorBoundary>
-                            );
-                            // Defer unmount so React isn't torn down synchronously mid-commit if Obsidian
-                            // tears the row down during an update (avoids "unmount while rendering").
-                            return () => window.setTimeout(() => root.unmount(), 0);
-                        },
-                    },
-                    
-                
-                ],
-            },
-            // ── 7 · Advanced, folded: nobody meets a log level on their first day
-            {
-                type: "group",
-                items: [
-                    {
-                        name: t("settings_advanced_toggle"),
-                        desc: t("settings_advanced_toggle_desc"),
-                        render: (setting) => {
-                            setting.addToggle((toggle) =>
-                                toggle.setValue(this.showAdvanced).onChange((value) => {
-                                    this.showAdvanced = value;
-                                    // Re-evaluate the `visible` predicates in place. `update()`
-                                    // would re-render the whole tab, and a re-render re-runs every
-                                    // `render` callback on rows Obsidian keeps — which stacked a
-                                    // second copy of every dynamic list on the panel.
-                                    this.refreshDomState();
-                                })
-                            );
-                        },
-                    },
-                ],
-            },
-            {
-                type: "group",
-                heading: t("settings_group_advanced"),
-                visible: () => this.showAdvanced,
-                items: [
-{
-                        name: t("folders_flows_selector_title"),
-                        desc: t("folders_flows_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting
-                                .addSearch((cb) => {
-                                    new FolderSuggest(cb.inputEl);
-                                    cb.setPlaceholder(t("folders_flows_selector_placeholder"))
-                                        .setValue(plugin.settings.foldersFlowsPath)
-                                        .onChange(async (value) => {
-                                            plugin.settings.foldersFlowsPath = value;
-                                            await plugin.saveSettings();
-                                        });
-                                })
-                                .addButton((btn) =>
-                                    btn
-                                        .setClass("mod-cta")
-                                        .setButtonText(t("reset_to_default"))
-                                        .setIcon("reset")
-                                        .onClick(async () => {
-                                            plugin.settings.foldersFlowsPath =
-                                                DEFAULT_SETTINGS.foldersFlowsPath!;
-                                            await plugin.saveSettings();
-                                            this.update();
-                                        })
-                                );
-                        },
-                    },
-{
-                        name: t("hooks_flows_selector_title"),
-                        desc: t("hooks_flows_selector_description"),
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                            setting
-                                .addSearch((cb) => {
-                                    new FolderSuggest(cb.inputEl);
-                                    cb.setPlaceholder(t("folders_flows_selector_placeholder"))
-                                        .setValue(plugin.settings.hooks.folderFlowPath)
-                                        .onChange(async (value) => {
-                                            plugin.settings.hooks.folderFlowPath = value;
-                                            await plugin.saveSettings();
-                                        });
-                                })
-                                .addButton((btn) =>
-                                    btn
-                                        .setClass("mod-cta")
-                                        .setButtonText(t("reset_to_default"))
-                                        .setIcon("reset")
-                                        .onClick(async () => {
-                                            plugin.settings.hooks.folderFlowPath =
-                                                DEFAULT_SETTINGS.hooks!.folderFlowPath;
-                                            await plugin.saveSettings();
-                                            this.update();
-                                        })
-                                );
-                        },
-                    },
-{
-                        name: t("scripts_folder_selector_title"),
-                        desc: t("scripts_folder_selector_description"),
-                        render: (setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("scripts_folder_selector_placeholder"))
-                                    .setValue(plugin.settings.jsLibraryFolderPath)
-                                    .onChange(async (value) => {
-                                        plugin.settings.jsLibraryFolderPath = value;
-                                        await plugin.saveSettings();
-                                        // Rebuild the `zf` script API so it reads from the new folder.
-                                        fnsManager.invalidateCache();
-                                    });
+                            // One line of what a hook is for, and where the worked examples are (#663).
+                            const examples = descContainer(setting, "property-hooks-examples");
+                            examples.createEl("a", {
+                                text: t("property_hooks_examples_link"),
+                                href: HOOK_EXAMPLES_URL,
                             });
-                        },
-                    },
-{
-                        name: t("generate_types_name"),
-                        desc: t("generate_types_description"),
-                        render: (setting) => {
-                            setting.addButton((button) => {
-                                button.setButtonText(t("generate_types_button")).onClick(async () => {
-                                    const result = await writeTypeDeclarations();
-                                    if (result.status === "written") {
-                                        new Notice(t("generate_types_written", result.path));
-                                    } else if (result.status === "no-folder") {
-                                        new Notice(t("generate_types_no_folder"));
-                                    } else {
-                                        new Notice(t("generate_types_failed", result.message));
-                                    }
-                                });
-                            });
-                        },
-                    },
-{
-                        name: t("markdown_templates_folder_title"),
-                        desc: t("markdown_templates_folder_description"),
-                        render: (setting) => {
-                            setting.addSearch((cb) => {
-                                new FolderSuggest(cb.inputEl);
-                                cb.setPlaceholder(t("markdown_templates_folder_placeholder"))
-                                    .setValue(
-                                        plugin.settings.communitySettings
-                                            .markdownTemplateFolder
-                                    )
-                                    .onChange(async (value) => {
-                                        plugin.settings.communitySettings.markdownTemplateFolder =
-                                            value;
-                                        await plugin.saveSettings();
-                                    });
-                            });
-                        },
-                    },
-                    {
-                        name: t("logger_level_title"),
-                        desc: t("logger_level_description"),
-                        control: {
-                            type: "dropdown",
-                            key: "logLevel",
-                            options: {
-                                off: t("logger_level_off"),
-                                trace: "trace",
-                                debug: "debug",
-                                info: "info",
-                                warn: "warn",
-                                error: "error",
-                            },
-                        },
-                    },
-                    // The timings from this vault, read-only (#645): what you look at when something
-                    // feels slow — beside the log level, not on the Health surface.
-                    ...speedSettingsItems(),
-                ],
-            },
-            // ── 8 · About ─────────────────────────────────────────────────────
-            {
-                type: "group",
-                heading: t("settings_group_about"),
-                items: [
-                    {
-                        name: t("settings_about_version"),
-                        desc: plugin.manifest.version,
-                        render: (setting) => {
-                            setting.setClass(c("readable-setting-item"));
-                        },
-                    },
-                    {
-                        name: t("settings_about_docs"),
-                        action: () => window.open("https://rafaelgb.github.io/Obsidian-ZettelFlow/", "_blank"),
-                    },
-{
-                        name: t("support_coffee_button"),
-                        action: () => {
-                            window.open("https://www.buymeacoffee.com/5tsytn22v9Z", "_blank");
+                            // One root for the life of this container, kept across `update()` (see
+                            // keptRoot): the cleanup only schedules the unmount, the re-render cancels it.
+                            return this.mountHooks(rowContainer(setting, "property-hooks-container"));
                         },
                     },
                 ],
             },
+
+            // ── 7 · Advanced, folded: nobody meets a log level on their first day (#440) ──────────
+            this.sectionHead("advanced"),
+            // Every folder the plugin keeps its files in, in one grid with a reset each (#663).
+            foldersSettingsGroup(plugin, advanced, () => this.go("thinking"), (refresh) => {
+                this.pointerRefresh = refresh;
+            }),
+            scriptsLoggingGroup(advanced),
+
+            // ── The footer: version, docs, where to report a problem, support ────────────────────
+            this.footerGroup(),
         ];
+    }
+
+    /** The shell's four rows: header, at a glance, the start card, and the section bar (#660). */
+    private shellGroup(): SettingDefinitionItem {
+        const plugin = this.plugin;
+        return {
+            type: "group",
+            cls: c("settings-shell"),
+            items: [
+                {
+                    name: t("settings_header_name"),
+                    desc: t("settings_header_tagline"),
+                    searchable: false,
+                    render: (setting) => {
+                        setting.settingEl.addClass(c("settings-shell-row"), c("settings-header-row"));
+                        renderHeader(rowContainer(setting, "settings-header"), plugin.manifest.version);
+                    },
+                },
+                {
+                    name: t("settings_glance_name"),
+                    searchable: false,
+                    render: (setting) => {
+                        setting.settingEl.addClass(c("settings-shell-row"), c("settings-glance-row"));
+                        this.glanceHost = rowContainer(setting, "settings-glance");
+                        this.refreshGlance();
+                    },
+                },
+                {
+                    // Only while nothing creates notes: three ways in, each doing what it says (#660).
+                    name: t("settings_start_title"),
+                    desc: t("settings_start_desc"),
+                    visible: () => !plugin.settings.ribbonCanvas,
+                    render: (setting) => {
+                        setting.settingEl.addClass(c("settings-shell-row"), c("settings-start-row"));
+                        renderStart(rowContainer(setting, "settings-start"), {
+                            browseSystems: () => new CommunityTemplatesModal(plugin).open(),
+                            chooseCanvas: () => this.chooseCanvas(),
+                            openCultivate: () => openCultivateFromSettings(plugin.app),
+                        });
+                    },
+                },
+                {
+                    name: t("settings_nav_label"),
+                    searchable: false,
+                    render: (setting) => this.placeNav(setting),
+                },
+            ],
+        };
+    }
+
+    /** A section's head: its icon, title and one-line purpose (#660). Advanced also carries its fold. */
+    private sectionHead(id: SectionId): SettingDefinitionItem {
+        const plugin = this.plugin;
+        const info = SETTINGS_SECTIONS.find((section) => section.id === id)!;
+        return {
+            type: "group",
+            cls: c("settings-section-group"),
+            items: [
+                {
+                    name: t(info.titleKey),
+                    desc: t(info.purposeKey),
+                    aliases: id === "advanced" ? [t("settings_advanced_toggle")] : undefined,
+                    render: (setting) => {
+                        setting.settingEl.addClass(c("settings-section-head"), sectionClass(id));
+                        renderSectionIcon(rowContainer(setting, "settings-section-icon"), id);
+                        if (id !== "advanced") return;
+                        // Remembered across visits now (#660): it reset every time the tab opened.
+                        setting.addToggle((toggle) => {
+                            // Kept, so opening Advanced from elsewhere moves this switch too (#659).
+                            this.advancedToggle = toggle;
+                            toggle.setValue(plugin.settings.showAdvancedSettings === true).onChange(async (value) => {
+                                plugin.settings.showAdvancedSettings = value;
+                                // Re-evaluate the `visible` predicates in place — before the save,
+                                // so a jump into Advanced finds its rows already shown. `update()`
+                                // would re-render the whole tab, and a re-render re-runs every
+                                // `render` callback on rows Obsidian keeps — which stacked a
+                                // second copy of every dynamic list on the panel.
+                                this.changedInPlace();
+                                await plugin.saveSettings();
+                            });
+                        });
+                    },
+                },
+            ],
+        };
+    }
+
+    /** One line at the end of the tab, replacing the three-row About group (#660). */
+    private footerGroup(): SettingDefinitionItem {
+        const plugin = this.plugin;
+        return {
+            type: "group",
+            cls: c("settings-footer-group"),
+            items: [
+                {
+                    name: t("settings_footer_name"),
+                    aliases: [t("settings_footer_docs"), t("settings_footer_report"), t("settings_footer_support")],
+                    render: (setting) => {
+                        setting.settingEl.addClass(c("settings-shell-row"), c("settings-footer-row"));
+                        renderFooter(rowContainer(setting, "settings-footer"), plugin.manifest.version);
+                    },
+                },
+            ],
+        };
+    }
+
+    /** Where the glance cards draw, from the glance row's last render. */
+    private glanceHost: HTMLElement | null = null;
+    /** The section bar, from its row's last render — always the live element. */
+    private navEl: HTMLElement | null = null;
+    /** The Advanced head's switch, so a jump into Advanced moves it too. */
+    private advancedToggle: ToggleComponent | null = null;
+    /** Redraws the Advanced grid's pointer to the thinking folder. */
+    private pointerRefresh: (() => void) | null = null;
+    /** The property-hooks React root, kept across re-renders of its row. */
+    private readonly mountHooks = keptRoot((container) => {
+        const root = createRoot(container);
+        root.render(
+            <HookErrorBoundary>
+                <PropertyHooksManager plugin={this.plugin} onChange={() => this.refreshGlance()} />
+            </HookErrorBoundary>
+        );
+        return root;
+    });
+
+    /**
+     * The four glance cards, redrawn in place (#659 runtime audit). Most changes in this tab only
+     * re-evaluate visibility or save — they never re-run the glance row's `render` — so the cards
+     * listen instead of waiting for the tab to be reopened.
+     */
+    refreshGlance(): void {
+        const host = this.glanceHost;
+        if (!host) return;
+        const others = flowsWithRole(this.plugin).filter((flow) => flow.role !== "create").length;
+        renderGlance(host, settingsGlance(this.plugin.settings, { otherFlows: others }), (id) => this.go(id));
+    }
+
+    /** A change that shows or hides rows: re-evaluate visibility, and say it on the glance. */
+    private changedInPlace(): void {
+        this.refreshDomState();
+        this.refreshGlance();
+    }
+
+    /**
+     * The section bar, drawn inside its own row (#659 runtime audit).
+     *
+     * It used to be moved out of the row to be a direct child of the tab's scroller, so that
+     * `position: sticky` would hold past the end of the shell group. Obsidian's renderer ends every
+     * pass with `setChildrenInPlace(groups)`, which removes anything that is not a group: the bar was
+     * deleted the moment it was placed. Now nothing moves. The shell group, its item list and this
+     * row generate no box (`display: contents`, settingsShell.scss), so the bar's sticky resolves
+     * against the scroller itself.
+     */
+    private placeNav(setting: Setting): () => void {
+        setting.settingEl.addClass(c("settings-shell-row"), c("settings-nav-row"));
+        const nav = rowContainer(setting, "settings-nav");
+        this.navEl = nav;
+        const mark = renderNav(nav, (id) => this.go(id));
+        const container = this.containerEl;
+
+        let frame = 0;
+        const onScroll = () => {
+            if (frame) return;
+            frame = window.requestAnimationFrame(() => {
+                frame = 0;
+                const origin = container.getBoundingClientRect().top;
+                const heads = SETTINGS_SECTIONS.flatMap((section) => {
+                    const head = container.querySelector<HTMLElement>(`.${sectionClass(section.id)}`);
+                    return head ? [{ id: section.id, top: head.getBoundingClientRect().top - origin }] : [];
+                });
+                mark(sectionInView(heads, nav.offsetHeight + 16));
+            });
+        };
+        container.addEventListener("scroll", onScroll, { passive: true });
+        return () => {
+            container.removeEventListener("scroll", onScroll);
+            if (frame) window.cancelAnimationFrame(frame);
+        };
+    }
+
+    /** Open Advanced as if its switch were flipped — the switch moves, the rows show, it is saved. */
+    private openAdvanced(): void {
+        const open = () => this.plugin.settings.showAdvancedSettings === true;
+        if (open()) return;
+        if (this.advancedToggle) {
+            // Obsidian's toggle calls its onChange from setValue when the value changes.
+            this.advancedToggle.setValue(true);
+            if (open()) return;
+        }
+        this.plugin.settings.showAdvancedSettings = true;
+        void this.plugin.saveSettings();
+        this.changedInPlace();
+    }
+
+    /** Jump to a section: open Advanced first if that is where you are going. */
+    private go(id: SectionId): void {
+        if (id === "advanced") this.openAdvanced();
+        const reduced = activeWindow.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+        scrollToSection(this.containerEl, id, this.navEl?.isConnected ? this.navEl.offsetHeight : 0, !reduced);
+    }
+
+    /** The start card's second way in: to the row that gives a canvas its role, ready to type. */
+    private chooseCanvas(): void {
+        this.go("flows");
+        window.setTimeout(() => {
+            // No scroll of its own: the jump above already put the row in view.
+            this.containerEl
+                .querySelector<HTMLInputElement>(`.${c("settings-assign-row")} input`)
+                ?.focus({ preventScroll: true });
+        }, 300);
     }
 
     override async setControlValue(key: string, value: unknown): Promise<void> {
@@ -723,9 +386,5 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         }
         await super.setControlValue(key, value);
     }
-}
-
-function buildPrefixDescription(pattern: string): string {
-    return `${t("unique_prefix_pattern_description")}\n${t("unique_prefix_pattern_helper")}: ${moment().format(pattern)}`;
 }
 

@@ -49,13 +49,13 @@ const CEILING: Record<string, number> = {
     "dragAndDrop.scss": 1,
     "dynamicSelector.scss": 10,
     "flowStatus.scss": 2,
-    "flows.scss": 4,
+    "flows.scss": 3,
     "graph3d.scss": 10,
     "historyView.scss": 28,
     // 6 → 4: the cultivate-teaser card (1px border + 3px accent) left Home when it became a hero
     // tile, and the fold's divider uses var(--border-width) rather than a literal pixel (#620).
     "home.scss": 4,
-    "hooksConfig.scss": 94,
+    "hooksConfig.scss": 87,
     "input.scss": 5,
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on

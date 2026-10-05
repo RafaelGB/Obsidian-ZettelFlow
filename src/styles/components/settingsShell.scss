@@ -1,0 +1,343 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The settings tab's shell (#660, epic #659): the header, the four cards that say what is on, the
+ * start card, the sticky section bar, the section heads and the footer.
+ *
+ * Each of them is a declarative settings row (so Obsidian's settings search still owns the tab) whose
+ * own name and controls give way to what the row draws. Theme variables only; the accent is spent on
+ * the logo, the active section and the one call to action.
+ */
+
+/*
+ * The shell group, and its item list, generate no box of their own (#659 runtime audit): their rows
+ * lay out as if they sat in the tab's scroller directly. That is what lets the section bar stick for
+ * the whole tab — sticky holds inside its parent box, and the nearest box up is now the scroller.
+ * Each row takes the width a group would have had instead.
+ */
+.setting-group.zettelkasten-flow__settings-shell,
+.setting-group.zettelkasten-flow__settings-shell > .setting-items {
+    display: contents;
+}
+
+/*
+ * A shell row draws its own content: the row's built-in name and control column step aside.
+ * `.setting-group` first, so these beat Obsidian's own `.setting-group .setting-item` padding,
+ * border, background and divider (0,3,0); plugin CSS loads later, so equal weight is enough.
+ */
+.setting-group .zettelkasten-flow__settings-shell-row.setting-item {
+    display: block;
+    width: 100%;
+    max-width: var(--setting-group-max-width);
+    margin-inline: auto;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    background-color: transparent;
+
+    &::before {
+        content: none;
+    }
+
+    > .setting-item-info,
+    > .setting-item-control {
+        display: none;
+    }
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__settings-header {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
+    padding: var(--size-4-6) 0 var(--size-4-4);
+}
+
+.zettelkasten-flow__settings-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--size-4-12);
+    height: var(--size-4-12);
+    border-radius: $radius-medium;
+    background-color: $accent-surface;
+    color: $accent-text;
+
+    svg {
+        width: var(--size-4-8);
+        height: var(--size-4-8);
+    }
+}
+
+.zettelkasten-flow__settings-header-words {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__settings-header-name {
+    font-size: var(--font-ui-large);
+    font-weight: var(--font-bold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__settings-header-tagline {
+    @include hint;
+    margin-top: $space-1;
+}
+
+.zettelkasten-flow__settings-header-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__settings-chip-link {
+    @include chip;
+    @include chip-clickable;
+    text-decoration: none;
+}
+
+.zettelkasten-flow__settings-chip-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+/* ── At a glance ───────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__settings-glance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: $space-2;
+    padding-bottom: $space-4;
+}
+
+.zettelkasten-flow__settings-glance-card {
+    @include card;
+    align-items: flex-start;
+    height: auto;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: none;
+    background-color: $surface-quiet;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__settings-glance-label {
+    @include row;
+    gap: $space-1;
+    color: $text-quiet;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__settings-glance-dot {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-pill;
+    background-color: $text-faint;
+}
+
+.zettelkasten-flow__settings-glance-card--on .zettelkasten-flow__settings-glance-dot {
+    background-color: var(--color-green);
+}
+
+.zettelkasten-flow__settings-glance-card--warn .zettelkasten-flow__settings-glance-dot {
+    background-color: var(--color-orange);
+}
+
+.zettelkasten-flow__settings-glance-value {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__settings-glance-detail {
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+/* ── Start card: three ways in, only while nothing creates notes ───────────────────────────── */
+
+.zettelkasten-flow__settings-start {
+    @include card;
+    gap: $space-2;
+    padding: $space-4;
+    margin-bottom: $space-4;
+    border-color: $accent-surface;
+}
+
+.zettelkasten-flow__settings-start-title {
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__settings-start-desc {
+    @include hint;
+}
+
+.zettelkasten-flow__settings-start-ways {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: $space-2;
+    margin-top: $space-1;
+}
+
+.zettelkasten-flow__settings-start-way {
+    @include card;
+    gap: $space-1;
+
+    button {
+        align-self: flex-start;
+        margin-top: auto;
+    }
+}
+
+.zettelkasten-flow__settings-start-way-title {
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__settings-start-way-desc {
+    @include hint;
+    flex: 1;
+}
+
+/* ── The section bar: sticky inside the tab's own scroll ───────────────────────────────────── */
+
+/* Its row generates no box either, so the bar itself is the box the scroller holds on to. */
+.setting-group .zettelkasten-flow__settings-shell-row.zettelkasten-flow__settings-nav-row.setting-item {
+    display: contents;
+}
+
+.zettelkasten-flow__settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    width: 100%;
+    max-width: var(--setting-group-max-width);
+    margin-inline: auto;
+    padding: $space-2 0;
+    margin-bottom: $space-2;
+    // The tab's own surface: --settings-background on mobile, the primary background elsewhere.
+    background-color: var(--settings-background, var(--background-primary));
+    border-bottom: $line-quiet;
+}
+
+/* A narrow pane keeps the bar to one line and lets it scroll sideways, instead of a sticky block
+   three lines tall over every section. The tab's scroller is an inline-size container. */
+@container (max-width: 40rem) {
+    .zettelkasten-flow__settings-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}
+
+.zettelkasten-flow__settings-nav-tab {
+    @include row;
+    flex: none;
+    gap: $space-1;
+    height: auto;
+    padding: $space-1 $space-2;
+    border: none;
+    border-radius: $radius-small;
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+    font-size: $text-small;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+        color: $text-plain;
+    }
+
+    &.is-active {
+        background-color: $accent-surface;
+        color: $accent-text;
+    }
+}
+
+.zettelkasten-flow__settings-nav-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+/* ── Section heads ─────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__settings-section-group {
+    margin-top: var(--size-4-6);
+}
+
+.zettelkasten-flow__settings-section-head {
+    gap: $space-3;
+    border-top: none;
+
+    .setting-item-name {
+        font-size: var(--font-ui-medium);
+        font-weight: var(--font-semibold);
+    }
+}
+
+.zettelkasten-flow__settings-section-icon {
+    order: -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--size-4-9);
+    height: var(--size-4-9);
+    border-radius: $radius-medium;
+    background-color: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__settings-footer-group {
+    margin-top: var(--size-4-8);
+}
+
+.zettelkasten-flow__settings-footer {
+    @include row;
+    flex-wrap: wrap;
+    gap: $space-2;
+    padding: $space-3 0;
+    border-top: $line-quiet;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__settings-footer-mark {
+    display: inline-flex;
+    color: var(--text-accent);
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}

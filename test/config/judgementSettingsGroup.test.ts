@@ -8,9 +8,8 @@ import es from "architecture/lang/locale/es";
 const ROOT = join(__dirname, "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
+// #662: the record is a tile of "What ZettelFlow remembers"; its heading and intro went with the group.
 const KEYS = [
-    "settings_judgements_heading",
-    "settings_judgements_intro",
     "settings_judgements_enable_name",
     "settings_judgements_enable_desc",
     "settings_judgements_disclosure",
@@ -22,7 +21,7 @@ const KEYS = [
  * #340 — so the promise is pinned by a test.
  */
 describe("the judgement record can actually be turned off (#336)", () => {
-    it("ships a settings group with an enable toggle", () => {
+    it("ships a settings tile with an enable toggle", () => {
         const group = read("src/config/modals/handlers/judgementSettingsGroup.ts");
         expect(group).toContain("plugin.settings.judgements.enabled");
         expect(group).toContain("settings_judgements_enable_name");
@@ -30,7 +29,9 @@ describe("the judgement record can actually be turned off (#336)", () => {
 
     it("is wired into the settings tab beside the other data toggles", () => {
         const tab = read("src/config/modals/ZettelFlowSettingsTab.tsx");
-        expect(tab).toContain("judgementSettingsGroup(plugin)");
+        expect(tab).toContain("rememberedSettingsGroup(plugin)");
+        const remembered = read("src/config/modals/handlers/rememberedSettingsGroup.ts");
+        expect(remembered).toContain("journalSettingsTile(plugin), judgementSettingsTile(plugin), timelineSettingsTile(plugin)");
     });
 
     it("says what turning it off costs (#534, FR-6)", () => {

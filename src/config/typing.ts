@@ -266,6 +266,11 @@ export interface ZettelFlowSettings {
     createInCurrentFolder: boolean;
     /** When true, ZettelFlow Home opens automatically on launch (the "open ZettelFlow, not Obsidian" front door, #246 A2). */
     openHomeOnStartup: boolean;
+    /**
+     * Whether the settings tab shows its Advanced section (#660). UI state, not behaviour: it used
+     * to live on the tab and reset on every visit.
+     */
+    showAdvancedSettings?: boolean;
 }
 
 
@@ -378,4 +383,5 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     hasSeenWelcome: false,
     createInCurrentFolder: false,
     openHomeOnStartup: false, // Off by default; first-run onboarding turns it on for new users (#246 A2).
+    showAdvancedSettings: false, // The settings tab's Advanced section starts folded (#660).
 };

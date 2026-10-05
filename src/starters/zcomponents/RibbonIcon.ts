@@ -5,9 +5,10 @@ import { Flow, canvas } from "architecture/plugin/canvas";
 import ZettelFlow from "main";
 import { addIcon, Notice } from "obsidian";
 import { SelectorMenuModal } from "zettelkasten";
+import { ZETTELFLOW_ICON } from "config/brand";
 
 export class RibbonIcon extends PluginComponent {
-    public static ID = 'zettelflow-ribbon-icon';
+    public static ID = ZETTELFLOW_ICON;
     public static TEMPLATE = 'zettelflow-template-icon';
     public static ACTION = 'zettelflow-action-icon';
     constructor(private plugin: ZettelFlow) {

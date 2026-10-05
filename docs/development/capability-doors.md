@@ -88,7 +88,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 |---|---|---|---|
 | `note-creation` | workflow | 1 | ribbon → `open-workflow` · `open-workflow` |
 | `run-a-flow` | workflow | 1 | ribbon → `run-canvas-flow` · `run-canvas-flow` · `editor-menu-flow` |
-| `canvas-editing` | workflow | 1 | ribbon → `open-canvas` · settings → `settings_group_creating` · `open-canvas` |
+| `canvas-editing` | workflow | 1 | ribbon → `open-canvas` · settings → `settings_section_flows` · `open-canvas` |
 | `quick-capture` | zettelflow-home | 1 | control in zettelflow-home (`HomeModeRenderer.ts`) · `quick-capture` |
 | `home` | zettelflow-home | 1 | ribbon → `show-home` · surface `zettelflow-home:home` · `show-home` |
 | `moc-builder` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) · `build-map-of-content` |
@@ -125,7 +125,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `systems-gallery` | community | 1 | ribbon → `browse-systems` · `browse-systems` · `open-community-templates` |
 | `template-export` | community | 1 | ribbon → `export-canvas-template` · `export-canvas-template` |
 | `template-import` | community | 1 | ribbon → `import-canvas-template` · `import-canvas-template` |
-| `manage-templates` | community | 1 | ribbon → `open-manage-templates` · settings → `settings_group_creating` · `open-manage-templates` |
+| `manage-templates` | community | 1 | ribbon → `open-manage-templates` · settings → `settings_section_flows` · `open-manage-templates` |
 | `base-dashboard` | dashboards | 1 | control in bases (`register.ts`) |
 
 <!-- generated: capabilityAudit -->

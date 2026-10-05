@@ -19,6 +19,16 @@ describe("the settings panel holds settings, and only settings (#439)", () => {
         expect(TAB).not.toContain("activateSidebarView");
     });
 
+    it("but the start card, which offers one way in that is not a setting (#660)", () => {
+        // While nothing creates notes, *just think first* opens Cultivate. That is the only launch the
+        // tab makes, it lives in its own module, and only the start card reaches it.
+        const start = readFileSync(join(ROOT, "src", "config", "modals", "startActions.ts"), "utf8");
+        expect(start).toContain('activateSurface(app, "zettelflow-home", "cultivate")');
+        expect(TAB.match(/openCultivateFromSettings\(/g)).toHaveLength(1);
+        const card = TAB.slice(TAB.indexOf('name: t("settings_start_title")'));
+        expect(card.slice(0, 900)).toContain("openCultivateFromSettings(plugin.app)");
+    });
+
     it("documents nothing — that is what the docs are", () => {
         expect(TAB).not.toContain("addDocsButton");
         expect(TAB).not.toContain("TOOLKIT_DOCS");

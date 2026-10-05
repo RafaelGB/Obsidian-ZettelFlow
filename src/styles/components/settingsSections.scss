@@ -1,0 +1,355 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The settings sections' own visuals (#661, epic #659): flows drawn as objects, the prefix that says
+ * what it produces, and a two-way choice drawn as a segmented control.
+ *
+ * Theme variables only (§XV). A role's tint is the theme's own colour for it, mixed down into a tile,
+ * so a theme that recolours green or orange recolours the roles too.
+ */
+
+/* A row that draws its own content: its built-in name and control columns step aside. The name is
+   still there for Obsidian's settings search. `.setting-group` first, to outweigh Obsidian's own
+   `.setting-group .setting-item` rule (#659 runtime audit). */
+.setting-group .zettelkasten-flow__settings-object-row.setting-item {
+    display: block;
+
+    > .setting-item-info,
+    > .setting-item-control {
+        display: none;
+    }
+}
+
+/* ── Flows as objects ─────────────────────────────────────────────────────────────────────── */
+
+.zettelkasten-flow__settings-flow {
+    @include row;
+    gap: $space-3;
+    padding: $space-2 0;
+    border-top: $line-quiet;
+
+    &:first-child {
+        border-top: none;
+    }
+}
+
+.zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--interactive-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--size-4-8);
+    height: var(--size-4-8);
+    border-radius: $radius-medium;
+    color: var(--zf-role-colour);
+    background-color: color-mix(in srgb, var(--zf-role-colour) 16%, transparent);
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+.zettelkasten-flow__settings-flow--edit .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-green);
+}
+
+.zettelkasten-flow__settings-flow--folder .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-orange);
+}
+
+.zettelkasten-flow__settings-flow--event .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-blue);
+}
+
+.zettelkasten-flow__settings-flow--hook .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-purple);
+}
+
+.zettelkasten-flow__settings-flow-words {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__settings-flow-name {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__settings-flow-path {
+    color: $text-faint;
+    font-family: var(--font-monospace);
+    font-size: $text-small;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__settings-flow-role {
+    flex: none;
+}
+
+/* ── Creating notes ───────────────────────────────────────────────────────────────────────── */
+
+/* What the prefix pattern turns into today, under the row's own description. */
+.zettelkasten-flow__settings-prefix-preview {
+    margin-top: $space-1;
+    color: $text-plain;
+}
+
+/* A two-way choice, both sides visible: Obsidian's own button look, joined into one control. */
+.zettelkasten-flow__settings-segment {
+    display: inline-flex;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__settings-segment-option {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: $surface-plain;
+    color: $text-quiet;
+    cursor: pointer;
+
+    & + & {
+        border-left: $line-quiet;
+    }
+
+    &:hover {
+        background-color: $surface-hover;
+        color: $text-plain;
+    }
+
+    &.is-active {
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+    }
+}
+
+/* ── Your knowledge and Thinking (#662) ──────────────────────────────────────────────────── */
+
+/* A card whose rows read as one decision lays them out as a grid. The grid sits on whatever element
+   holds the rows directly — found by its children, so it does not depend on Obsidian's own class for
+   a group's item list. A row that introduces the card spans the whole width. */
+.zettelkasten-flow__settings-tiles :has(> .zettelkasten-flow__settings-tile),
+.zettelkasten-flow__settings-fields :has(> .zettelkasten-flow__settings-field) {
+    display: grid;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__settings-tiles :has(> .zettelkasten-flow__settings-tile) {
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+}
+
+.zettelkasten-flow__settings-fields :has(> .zettelkasten-flow__settings-field) {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+
+.zettelkasten-flow__settings-span-all {
+    grid-column: 1 / -1;
+}
+
+/* A tile: a bounded card with its name, what it does, and its switch at the bottom. Weighted past
+   Obsidian's `.setting-group .setting-item` (border none, transparent, divider) so the card shows. */
+.setting-group .zettelkasten-flow__settings-tile.setting-item {
+    @include card;
+    flex-direction: column;
+    align-items: stretch;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    padding: $space-3;
+    background-color: $surface-quiet;
+
+    &::before {
+        content: none;
+    }
+
+    > .setting-item-control {
+        justify-content: flex-start;
+    }
+}
+
+/* A field: the name above, the input below, full width. */
+.setting-group .zettelkasten-flow__settings-field.setting-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-1;
+    border-top: none;
+
+    &::before {
+        content: none;
+    }
+
+    > .setting-item-control input {
+        width: 100%;
+    }
+}
+
+/* What a privacy tile keeps, said under it, with a lock. */
+.zettelkasten-flow__settings-lock-line {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-1;
+    margin-top: $space-2;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__settings-lock-icon {
+    display: inline-flex;
+    flex: none;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+/* How many moves are on, said above the grid. */
+.zettelkasten-flow__settings-moves-count {
+    margin-top: $space-1;
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+/* The duration a slider stands for, beside it. */
+.zettelkasten-flow__settings-slider-value {
+    min-width: 5em;
+    color: $text-plain;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+/* Excluded folders as chips, then the folder search that adds one. */
+.zettelkasten-flow__settings-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    padding-top: $space-2;
+}
+
+.zettelkasten-flow__settings-chip {
+    @include chip;
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__settings-chip-remove {
+    padding: 0;
+    height: auto;
+}
+
+.setting-group .zettelkasten-flow__settings-chip-add .setting-item {
+    border-top: none;
+    padding-bottom: 0;
+}
+
+/* ── AI, Automation and Advanced (#663) ────────────────────────────────────────────────────── */
+
+/* The endpoint wants room for a whole URL — but never more than the row has, on a phone. */
+.zettelkasten-flow__settings-input-wide {
+    width: 18rem;
+    max-width: 100%;
+}
+
+.zettelkasten-flow__settings-input-number {
+    width: 6rem;
+}
+
+/* A promise, said where it is always seen: the shield first, the words after, no control. */
+.setting-group .zettelkasten-flow__settings-callout.setting-item {
+    gap: $space-2;
+    align-items: flex-start;
+    border-radius: $radius-medium;
+    padding: $space-3;
+    background-color: $surface-quiet;
+
+    &::before {
+        content: none;
+    }
+
+    > .setting-item-control {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__settings-callout-icon {
+    order: -1;
+    display: inline-flex;
+    flex: none;
+    color: var(--color-green);
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+/* The hooks card: a line about what a hook is for, and a link to the worked examples. */
+.zettelkasten-flow__property-hooks-examples {
+    margin-top: $space-1;
+}
+
+/* Every folder ZettelFlow uses, in one grid: two cells a row where there is room, one where not. */
+.zettelkasten-flow__settings-folders-grid :has(> .zettelkasten-flow__settings-folder-cell) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: $space-2;
+}
+
+.setting-group .zettelkasten-flow__settings-folder-cell.setting-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-1;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    padding: $space-3;
+
+    &::before {
+        content: none;
+    }
+
+    > .setting-item-control {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+    }
+
+    .search-input-container {
+        flex: 1;
+    }
+
+    .search-input-container input {
+        width: 100%;
+        font-family: var(--font-monospace);
+    }
+}
+
+/* The thinking space is edited under Thinking: here its path is a way there, not a second field. */
+.setting-group .zettelkasten-flow__settings-folder-pointer.setting-item > .setting-item-control button {
+    font-family: var(--font-monospace);
+}
+
+/* The timings as a small table: what ran, how long (the column you read down), over what, when. */
+.zettelkasten-flow__settings-timing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: $space-3;
+    padding-top: $space-1;
+}
+
+.zettelkasten-flow__settings-timing-duration {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+.zettelkasten-flow__settings-timing-detail {
+    color: $text-faint;
+}

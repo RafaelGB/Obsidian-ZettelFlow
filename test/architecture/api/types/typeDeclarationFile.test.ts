@@ -100,7 +100,8 @@ describe("the generator is reachable and explains itself (#352, AC-3)", () => {
     });
 
     it("sits in the settings tab beside the scripts folder, adding no new command", () => {
-        const tab = readFileSync(join(ROOT, "src", "config", "modals", "ZettelFlowSettingsTab.tsx"), "utf8");
+        // The Advanced cards left the tab file for their own module in #663; the order is the same.
+        const tab = readFileSync(join(ROOT, "src", "config", "modals", "handlers", "advancedSettingsGroups.ts"), "utf8");
 
         expect(tab).toContain("writeTypeDeclarations()");
         expect(tab.indexOf("scripts_folder_selector_title")).toBeLessThan(tab.indexOf("generate_types_name"));

@@ -24,19 +24,6 @@
     padding-block: 0.25rem;
 }
 
-.zettelkasten-flow__excluded-paths-row {
-    border-top: none;
-    padding-block: 0.35rem;
-    border-radius: var(--radius-s);
-    background: var(--background-secondary);
-    padding-inline: 0.5rem;
-
-    .setting-item-name {
-        font-family: var(--font-monospace);
-        font-size: var(--font-ui-smaller);
-    }
-}
-
 .zettelkasten-flow__excluded-paths-add {
     border-top: none;
     padding-block-start: 0.5rem;

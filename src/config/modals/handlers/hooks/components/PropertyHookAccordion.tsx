@@ -97,31 +97,44 @@ export const PropertyHookAccordion: React.FC<PropertyHookAccordionProps> = ({
           <Icon name="lucide-grip-vertical" />
         </div>
 
+        {/* What it is for, then when it fires — the property, in the words of the trigger (#663). */}
         <div className={c("property-hooks-item-info")}>
-          <strong className={c("property-hooks-item-title")}>{localDescription || property}</strong>
-          {localDescription && <span className={c("property-hooks-item-subtitle")}>{property}</span>}
-          <span className={c("property-type-badge")}>
-            <Icon name={ObsidianNativeTypesManager.getIconForType(propertyType)} />
-          </span>
-          {!enabled && <span className={c("property-hooks-paused-badge")}>{t("property_hooks_paused_badge")}</span>}
+          <div className={c("property-hooks-item-line")}>
+            <strong className={c("property-hooks-item-title")}>{localDescription || property}</strong>
+            {!enabled && <span className={c("property-hooks-paused-badge")}>{t("property_hooks_paused_badge")}</span>}
+          </div>
+          <span className={c("property-hooks-item-subtitle")}>{t("property_hooks_when_changes", property)}</span>
         </div>
+        <span className={c("property-type-badge")} title={propertyType}>
+          <Icon name={ObsidianNativeTypesManager.getIconForType(propertyType)} />
+          <span>{propertyType}</span>
+        </span>
 
         <div className={c("property-hooks-item-actions")}>
-          <label className={c("property-hooks-toggle")} title={t("property_hooks_enabled_label")}>
-            <input
-              type="checkbox"
-              checked={enabled}
-              aria-label={t("property_hooks_enabled_label")}
-              onChange={(e) => onChange({ enabled: e.target.checked })}
-            />
-          </label>
+          {/* Obsidian's own switch, so a hook's on/off reads like every other toggle on the tab. */}
+          <div
+            className={`checkbox-container ${enabled ? "is-enabled" : ""}`}
+            role="switch"
+            aria-checked={enabled}
+            aria-label={t("property_hooks_enabled_label")}
+            title={t("property_hooks_enabled_label")}
+            tabIndex={0}
+            onClick={() => onChange({ enabled: !enabled })}
+            onKeyDown={(e) => {
+              if (e.key !== " " && e.key !== "Enter") return;
+              e.preventDefault();
+              onChange({ enabled: !enabled });
+            }}
+          >
+            <input type="checkbox" checked={enabled} readOnly tabIndex={-1} aria-hidden="true" />
+          </div>
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={c("property-hooks-btn", "property-hooks-icon-btn")}
             aria-label={t(isOpen ? "property_hooks_collapse" : "property_hooks_expand")}
             title={t(isOpen ? "property_hooks_collapse" : "property_hooks_expand")}
           >
-            <Icon name={isOpen ? "up-chevron-glyph" : "down-chevron-glyph"} />
+            <Icon name={isOpen ? "up-chevron-glyph" : "pencil"} />
           </button>
           <button
             onClick={onDelete}

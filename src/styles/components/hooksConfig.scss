@@ -21,10 +21,12 @@
     margin: 1rem 0;
 }
 
+/* The card's actions on the right, the primary one last (#663). */
 .zettelkasten-flow__property-hooks-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: var(--size-4-2);
     margin-bottom: 1rem;
 }
 
@@ -85,12 +87,6 @@
 .zettelkasten-flow__property-hooks-icon-btn {
     padding: 4px;
     width: 30px;
-}
-
-.zettelkasten-flow__property-hooks-btn-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .zettelkasten-flow__property-hooks-empty {
@@ -165,13 +161,23 @@
     gap: 12px;
 }
 
+/* What the hook is for, and under it when it fires (#663). */
 .zettelkasten-flow__property-hooks-item-info {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-2-1);
     min-width: 0;
     overflow: hidden;
     flex: 1;
+}
+
+.zettelkasten-flow__property-hooks-item-line {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .zettelkasten-flow__property-hooks-item-info strong {
@@ -180,14 +186,23 @@
     text-overflow: ellipsis;
 }
 
+/* The property's type, quiet: its icon and its name, never the accent (#663). */
 .zettelkasten-flow__property-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-2-2);
     font-size: var(--font-ui-smaller);
-    background-color: var(--color-accent);
-    color: var(--text-normal);
-    padding: 2px 6px;
-    border-radius: 3px;
+    background-color: var(--background-modifier-hover);
+    color: var(--text-muted);
+    padding: var(--size-2-1) var(--size-4-2);
+    border-radius: var(--radius-s);
     white-space: nowrap;
     flex-shrink: 0;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
 }
 
 .zettelkasten-flow__property-hooks-item-actions {
@@ -217,19 +232,6 @@
     height: 28px;
     width: 24px;
     flex-shrink: 0;
-}
-
-/* Native-looking on/off switch for the per-hook enabled toggle. */
-.zettelkasten-flow__property-hooks-toggle {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-
-    input {
-        cursor: pointer;
-        width: 16px;
-        height: 16px;
-    }
 }
 
 .zettelkasten-flow__property-hooks-drag-handle:active {

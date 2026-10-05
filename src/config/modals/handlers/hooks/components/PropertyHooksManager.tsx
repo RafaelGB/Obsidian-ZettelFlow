@@ -33,6 +33,8 @@ import {
 
 interface PropertyHooksManagerProps {
   plugin: ZettelFlow;
+  /** After the hooks changed — the settings glance counts them (#659). */
+  onChange?: () => void;
 }
 
 /**
@@ -44,6 +46,7 @@ interface PropertyHooksManagerProps {
  */
 export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
   plugin,
+  onChange,
 }) => {
   const [items, setItems] = useState<HookItem[]>(() => toItems(plugin.settings.hooks.properties));
   const [propertyTypes, setPropertyTypes] = useState<Record<string, string>>({});
@@ -78,6 +81,7 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
       new Notice(t("property_hooks_save_failed"));
       return;
     }
+    onChange?.();
     // The save is async, and it used to be `void`ed — a rejection escaped and vanished. Catch it,
     // so a disk failure is heard rather than swallowed.
     void plugin
@@ -136,9 +140,29 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
 
   return (
     <div className={c("property-hooks-manager")}>
+      {/* The card's actions on the right, the one that adds last and primary (#663). */}
       <div className={c("property-hooks-header")}>
         <button
-          className={c("property-hooks-btn", "property-hooks-btn--cta")}
+          className={c("property-hooks-btn", "property-hooks-icon-btn")}
+          title={t("types_modal_native_properties_edit_button_title")}
+          aria-label={t("types_modal_native_properties_edit_button_title")}
+          onClick={() => {
+            const leaf = plugin.app.workspace.getLeavesOfType("all-properties")[0];
+            if (leaf) void plugin.app.workspace.revealLeaf(leaf);
+            Keyboard.closeAllModalsByEsc();
+          }}
+        >
+          <Icon name="archive" />
+        </button>
+        <button
+          className={c("property-hooks-btn")}
+          onClick={() => new ObsidianTypesModal(plugin).open()}
+        >
+          <Icon name="ManageTypes" />
+          <span>{t("manage_types_button")}</span>
+        </button>
+        <button
+          className={`mod-cta ${c("property-hooks-btn", "property-hooks-btn--cta")}`}
           onClick={() => {
             setIsAddingHook(true);
             setSelectedNewProperty("");
@@ -147,27 +171,6 @@ export const PropertyHooksManager: React.FC<PropertyHooksManagerProps> = ({
           <Icon name="plus" />
           <span>{t("property_hooks_add_button")}</span>
         </button>
-        <div className={c("property-hooks-btn-group")}>
-          <button
-            className={c("property-hooks-btn")}
-            title={t("types_modal_native_properties_edit_button_title")}
-            aria-label={t("types_modal_native_properties_edit_button_title")}
-            onClick={() => {
-              const leaf = plugin.app.workspace.getLeavesOfType("all-properties")[0];
-              if (leaf) void plugin.app.workspace.revealLeaf(leaf);
-              Keyboard.closeAllModalsByEsc();
-            }}
-          >
-            <Icon name="archive" />
-          </button>
-          <button
-            className={c("property-hooks-btn")}
-            onClick={() => new ObsidianTypesModal(plugin).open()}
-          >
-            <Icon name="ManageTypes" />
-            <span>{t("manage_types_button")}</span>
-          </button>
-        </div>
       </div>
 
       {isAddingHook && (

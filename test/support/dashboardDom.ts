@@ -179,6 +179,7 @@ export class DomNode {
         return { left: 0, top: 0, width: 100, height: 100 };
     }
     focus(): void { }
+    select(): void { }
     /** Obsidian's HTMLElement.isShown — absent on SVG nodes (see createSvg). */
     isShown(): boolean {
         return this.isConnected;

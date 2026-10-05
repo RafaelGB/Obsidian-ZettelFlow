@@ -147,6 +147,34 @@ press **H**, or **Shift+H** for the note).
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
 
+## The end of a path
+
+Past the last chapter — **Next**, **Space** or **Finish** — the reading does not just close. An
+end card says what it added up to and what you can do with it.
+
+![The end card: what the reading added up to and four things to do next, with the export preview](../resources/reader/end.svg)
+
+- **What it added up to.** The minutes it took, the notes you read, and — only when there were any
+  — the detours you took and the highlights and margin notes you made in this reading. No zeros, no
+  score: a reading is not graded.
+- **Save this path.** Name it (it proposes the note and the way you read it) and the path is kept,
+  in this order, in the plugin's data. It comes back as **Your saved paths** in the chooser of any
+  note it passes through — read it again, rename it in place, or delete it — and as **Saved
+  readings** in Home's **Show everything** fold, one click back into the Reader. Saving again
+  under a new name renames it; the same chapters are never kept twice.
+- **Export as one document.** A preview first: the chapters, an appendix of your highlights on
+  them, and how each chapter is carried — **Embed each note** (the default: `![[note]]`, live,
+  nothing duplicated) or **Copy the text** (a snapshot, readable anywhere). Pick the folder (it
+  proposes the folder the reading started in) and the file name, then **Export**. One new note is
+  created — never over an existing one: a name that is taken gets *2*, *3*… The card says where it
+  went, with **Open** and **Undo**; undo sends it to the trash.
+- **Cultivate the thesis.** Gives the workspace back and opens
+  [Cultivate](cultivate.md) on the reading's thesis — or the note it started from.
+- **Read it again** from chapter 1, or — for a way through a note — **choose another way
+  through it**.
+
+**←** goes back to the last chapter; **Esc** leaves the reader.
+
 ## Type and reading themes
 
 The **Type** panel sets the font (your theme's own, or a serif), three sizes and a reading theme. The
@@ -162,12 +190,13 @@ No colour is invented: every look comes from your theme.
 
 ## What it writes
 
-**Nothing, to any note.** Reading is the whole job, and a test holds the line: nothing in the Reader
-reaches a file writer. The one thing you can make while reading — a highlight — is a **thought** in
-Think, written through the thought store like every other thought, and a second test holds that
-line too. The only things it remembers are where you are in a reading (in the workspace
-layout, and the resume places in the plugin's settings) and your type choices (in the plugin's
-settings). Choosing a way through a note writes nothing either, and neither do peeks, detours or
+**Nothing, to any note you read.** Reading is the whole job, and a test holds the line: nothing in
+the Reader reaches a file writer — except **Export**, the one button that makes a note, and only
+when you press it: create-only, through `FileService`, in a recorded batch you can undo. The one
+thing you can make while reading — a highlight — is a **thought** in Think, written through the
+thought store like every other thought, and a second test holds that line too. The only things it remembers are where you are in a reading (in the workspace
+layout, and the resume places in the plugin's settings), your type choices and the paths you saved
+(in the plugin's settings). Choosing a way through a note writes nothing either, and neither do peeks, detours or
 adding a note to a reading — an added note lasts as long as the reading on screen.
 
 ## For contributors
@@ -191,3 +220,9 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   pure `anchorQuote` in `application/thinking/quoteAnchor.ts` with whitespace folded. `readerMarks.ts`
   wraps the matched span in one `<mark>` per text node. `openReader(app, { seed, highlight })` lands
   on one.
+- The end of a path (#672): `readerEnd.ts` renders the card (it writes nothing; every action is a
+  callback from the view). Saved paths are pure (`readerSaved.ts`: newest first, at most 30, one
+  entry per set of chapters) in `settings.readerSaved`, reopened as a `selection` with a `name`.
+  The document is built by the pure `buildReadingDocument` (`readerDocument.ts`); `readerExport.ts`
+  is the preview and the only reader file a test lets reach `FileService`. Cultivate takes a
+  `target` in its view state.

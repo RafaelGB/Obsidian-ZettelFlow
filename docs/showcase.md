@@ -98,6 +98,25 @@ need attention, already open on their fix.
 
 → Details: [This note](development/this-note.md) and [Tend](development/slipbox-health-dashboard.md).
 
+## The Reader — read your notes like a book
+
+Right-click a note and choose **Read from here**. The **Reader** takes the window and walks a path
+through the note and its neighbours, one chapter at a time, each tagged with its role — thesis,
+support, counterpoint. Pick the way through it (around this note, the argument, the story of an
+idea, the essentials, its region), peek at a link without leaving, take a detour and come back.
+No MOC, no setup, and nothing is written to the notes you read. **Esc** gives your workspace back.
+
+![The Reader: a chapter of a reading path, with the bar and the type panel](resources/reader/reader.svg)
+
+Select a sentence, as on a Kindle, to **highlight** it — with a note in the margin if you like. Each
+highlight is a thought in Think, about the note, with the passage quoted; the note is never
+touched. At the **end of the path**, save it by name, export it as one document with your
+highlights as an appendix, or cultivate its thesis.
+
+![Highlights in a chapter, the popover, a note in the margin and the thought it made in Think](resources/reader/highlights.svg)
+
+→ Details: [The Reader](development/reader.md).
+
 ## Practice — what you have been doing
 
 **Health › Practice** shows twelve weeks of ideas developed, a cell a day; how you answered

@@ -61,13 +61,13 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     [:octicons-arrow-right-24: Explore your graph](development/ask-your-graph.md)
 
--   ![Health › Tend lists the notes that need you](resources/health/tend.svg)
+-   ![The Reader: a chapter of a reading path](resources/reader/reader.svg)
 
-    **Tend your slip-box**
+    **Read your notes like a book**
 
-    One list of the notes that need you, each one click from its fix.
+    A path through a note and its neighbours, chapter by chapter — highlights into Think, and an end you can save or export.
 
-    [:octicons-arrow-right-24: Health › Tend](development/slipbox-health-dashboard.md)
+    [:octicons-arrow-right-24: The Reader](development/reader.md)
 
 -   ![A Base dashboard with stats, a bubble chart, tasks and a calendar](resources/dashboards/dashboard-hero.svg)
 
@@ -142,7 +142,7 @@ For the **complete, ranked** list of every capability, see [Everything it does](
 
 - **Start** — [Why ZettelFlow](why.md) · [Get started](get-started.md) · [FAQ](faq.md) · [AI provider setup](development/ai-provider-setup.md) · [Capabilities & privacy](development/capabilities-and-privacy.md)
 - **Think & cultivate** — [Think](architecture/thought-lab.md) · [Cultivate](development/cultivate.md) · [A thought you can be wrong about](development/wagers.md) · [Two things far apart](architecture/collision.md) · [The return of a claim](development/claim-returns.md)
-- **One note** — [This note](development/this-note.md) · [Evolution timeline](development/evolution-timeline.md) · [Evidence map](development/evidence-map.md)
+- **One note** — [This note](development/this-note.md) · [The Reader](development/reader.md) · [Evolution timeline](development/evolution-timeline.md) · [Evidence map](development/evidence-map.md)
 - **Explore** — [Explore your graph](development/ask-your-graph.md) · [The graph lens](development/graph-3d.md) · [Living knowledge map](development/living-knowledge-map.md)
 - **Review** — [Health › Tend](development/slipbox-health-dashboard.md) · [Practice](development/practice.md) · [Second-brain review](development/second-brain-review.md)
 - **Build flows** — [Flow roles](architecture/flow-roles.md) · [Conditional edges](architecture/conditional-edges.md) · [Actions](actions/Prompt.md)

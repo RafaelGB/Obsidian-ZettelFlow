@@ -124,6 +124,9 @@ function snippet(text: string, max = 140): string {
  */
 export class ReaderHighlights {
     private readonly store: HighlightStore;
+    /** What this reading made (#672): highlights kept, and how many carry a note. */
+    private made = 0;
+    private noted = 0;
     private readonly select: (body: HTMLElement) => SelectionInfo | null;
     private readonly heading: (body: HTMLElement, offset: number) => string | undefined;
     private readonly makeMark: (id: string) => HTMLElement;
@@ -154,6 +157,11 @@ export class ReaderHighlights {
     }
 
     /** The chapter's highlights, drawn and anchored in reading order. */
+    /** Highlights and margin notes made since the reading opened — what its end card counts. */
+    sessionCounts(): { highlights: number; notes: number } {
+        return { highlights: this.made, notes: this.noted };
+    }
+
     items(): Thought[] {
         return this.anchored.map((entry) => entry.thought);
     }
@@ -340,6 +348,8 @@ export class ReaderHighlights {
             this.status("reader_hl_failed");
             return;
         }
+        this.made++;
+        if (note.trim()) this.noted++;
         selection.clear();
         if (this.body !== body) return; // the chapter turned while the thought was written
         const thought = made;
@@ -349,6 +359,7 @@ export class ReaderHighlights {
 
     private async editNote(thought: Thought, text: string): Promise<void> {
         const next = { ...thought, text: text.trim() };
+        if (!thought.text.trim() && next.text) this.noted++;
         try {
             await this.store.save(next);
         } catch (error) {
@@ -379,7 +390,12 @@ export class ReaderHighlights {
         this.renderMargin();
         this.view.onChange();
         if (offerUndo) this.status("reader_hl_removed", () => void this.bringBack(thought));
-        else this.hidePopover();
+        else {
+            // Taking back the highlight just made: it no longer counts for this reading.
+            this.made = Math.max(0, this.made - 1);
+            if (thought.text.trim()) this.noted = Math.max(0, this.noted - 1);
+            this.hidePopover();
+        }
     }
 
     private async bringBack(thought: Thought): Promise<void> {

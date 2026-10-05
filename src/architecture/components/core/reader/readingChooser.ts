@@ -1,4 +1,4 @@
-import { Modal, type App } from "obsidian";
+import { Modal, setIcon, type App } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
 import type { ReadingPathOption } from "architecture/knowledge/state";
@@ -6,7 +6,8 @@ import { openReader } from "./openReader";
 import { optionsFor, selectionFor } from "./readerPaths";
 import { readerHost, type ReaderHost } from "./readerHost";
 import { normalizeResume, readingKey, resumeOf, type ResumeEntry } from "./readerResume";
-import { KIND_KEY } from "./ReaderView";
+import { KIND_KEY } from "./readerLabels";
+import { deleteReading, normalizeSaved, renameReading, savedThrough, type SavedReading } from "./readerSaved";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -83,6 +84,9 @@ export class ReadingPathModal extends Modal {
             line.addEventListener("click", () => this.start(resume.kind, resume.entry.chapter));
         }
 
+        this.renderSaved(contentEl);
+
+        if (this.options.length === 0) return;
         const grid = contentEl.createDiv({ cls: c("reader-chooser-grid"), attr: { role: "radiogroup" } });
         for (const option of this.options) {
             const on = option.kind === this.selected;
@@ -116,6 +120,76 @@ export class ReadingPathModal extends Modal {
             text: t("reader_choose_start"),
         });
         go.addEventListener("click", () => this.start(this.selected, 0));
+    }
+
+    /**
+     * **Your saved paths** (#672) through this note — kept from an end card, in the order they were
+     * read. Each reads again, renames in place, or goes; all of it lives in plugin data, never a note.
+     */
+    private renderSaved(contentEl: HTMLElement): void {
+        const saved = savedThrough(normalizeSaved(this.host?.settings?.readerSaved), this.seed);
+        if (saved.length === 0) return;
+        const section = contentEl.createDiv({ cls: c("reader-saved") });
+        section.createDiv({ cls: c("reader-saved-heading"), text: t("reader_saved_heading") });
+        const list = section.createDiv({ cls: c("reader-saved-list") });
+        for (const entry of saved) {
+            const row = list.createDiv({ cls: c("reader-saved-row") });
+            const open = row.createEl("button", { cls: c("reader-saved-open"), attr: { type: "button" } });
+            open.createSpan({ cls: c("reader-saved-name"), text: entry.name });
+            open.createSpan({
+                cls: c("reader-saved-meta"),
+                text: tCount(entry.paths.length, "reader_choose_chapters", String(entry.paths.length)),
+            });
+            open.addEventListener("click", () => {
+                this.close();
+                void openSavedReading(this.app, entry);
+            });
+            const rename = row.createEl("button", {
+                cls: "clickable-icon",
+                attr: { type: "button", "aria-label": t("reader_saved_rename") },
+            });
+            setIcon(rename, "pencil");
+            rename.addEventListener("click", () => this.renameInPlace(row, entry));
+            const remove = row.createEl("button", {
+                cls: "clickable-icon",
+                attr: { type: "button", "aria-label": t("reader_saved_delete") },
+            });
+            setIcon(remove, "trash-2");
+            remove.addEventListener("click", () => void this.updateSaved((list) => deleteReading(list, entry.id)));
+        }
+    }
+
+    private renameInPlace(row: HTMLElement, entry: SavedReading): void {
+        row.empty();
+        const input = row.createEl("input", {
+            cls: c("reader-saved-input"),
+            attr: { type: "text", "aria-label": t("reader_save_name_label"), value: entry.name },
+        });
+        input.value = entry.name;
+        const keep = row.createEl("button", { cls: "mod-cta", attr: { type: "button" }, text: t("reader_save_confirm") });
+        const commit = () => void this.updateSaved((list) => renameReading(list, entry.id, input.value));
+        keep.addEventListener("click", commit);
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                commit();
+            } else if (event.key === "Escape") {
+                // Put the row back; the modal stays open.
+                event.preventDefault();
+                event.stopPropagation();
+                this.render();
+            }
+        });
+        input.focus();
+        input.select();
+    }
+
+    private async updateSaved(change: (list: SavedReading[]) => SavedReading[]): Promise<void> {
+        const settings = this.host?.settings;
+        if (!settings) return;
+        settings.readerSaved = change(normalizeSaved(settings.readerSaved));
+        await this.host?.saveSettings?.();
+        this.render();
     }
 
     private start(kind: ReadingPathOption["kind"], chapter: number): void {
@@ -177,11 +251,17 @@ function drawDiagram(host: HTMLElement, kind: ReadingPathOption["kind"]): void {
  */
 export function readFrom(app: App, seed: string, host: ReaderHost | null = readerHost()): void {
     const options = optionsFor(app, seed);
-    if (options.length > 1 || pendingResume(host, seed, options)) {
+    const saved = savedThrough(normalizeSaved(host?.settings?.readerSaved), seed);
+    if (options.length > 1 || saved.length > 0 || pendingResume(host, seed, options)) {
         new ReadingPathModal(app, seed, options, host).open();
         return;
     }
     void openReader(app, { seed });
+}
+
+/** A saved path (#672), read again in the order it was kept, under its name. */
+export function openSavedReading(app: App, entry: SavedReading): Promise<void> {
+    return openReader(app, { seed: entry.seed, kind: "selection", paths: entry.paths, name: entry.name });
 }
 
 /**

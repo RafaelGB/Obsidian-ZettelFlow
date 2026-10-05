@@ -10,6 +10,7 @@ export interface ReaderHost {
     settings?: {
         readerPrefs?: unknown;
         readerResume?: Record<string, { chapter: number; total: number; at: number }>;
+        readerSaved?: unknown;
     };
     saveSettings?(): Promise<void>;
 }

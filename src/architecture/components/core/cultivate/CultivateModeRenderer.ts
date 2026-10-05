@@ -79,6 +79,9 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     constructor(container: HTMLElement, private readonly plugin: ZettelFlow, state?: Record<string, unknown>) {
         super(container);
         this.inquiryMode = state?.inquiry === 'start' || state?.inquiry === 'resume';
+        // A note handed over by name — the thesis at the end of a reading (#672). Kept like any
+        // target: refined in place, and replaced only if the model does not know it.
+        if (typeof state?.target === 'string' && state.target.length > 0) this.targetPath = state.target;
     }
 
     private get app() {

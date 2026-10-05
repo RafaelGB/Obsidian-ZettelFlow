@@ -225,9 +225,11 @@ describe("the reader writes no note (#667 R2)", () => {
         });
     }
 
-    it("reaches no writer anywhere under its module", () => {
+    it("reaches no writer anywhere under its module, but the export you press (#672)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
+        const exporter = join(dir, "readerExport.ts");
         for (const f of sources(dir)) {
+            if (f === exporter) continue;
             const src = readFileSync(f, "utf8");
             for (const writer of ["FileService", "FrontmatterService", ".modify(", ".process(", ".create(", "processFrontMatter", ".append("]) {
                 expect({ file: f.replace(dir, "reader"), writer, found: src.includes(writer) }).toEqual({
@@ -236,6 +238,16 @@ describe("the reader writes no note (#667 R2)", () => {
                     found: false,
                 });
             }
+        }
+    });
+
+    it("exports create-only, through FileService, in a recorded batch (#672)", () => {
+        const src = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerExport.ts"), "utf8");
+        expect(src).toContain("FileService.createFile(");
+        expect(src).toContain("withWriteBatch(");
+        expect(src).toContain("freeExportPath(");
+        for (const writer of ["FrontmatterService", ".modify(", ".process(", "processFrontMatter", ".append(", "vault.create("]) {
+            expect({ writer, found: src.includes(writer) }).toEqual({ writer, found: false });
         }
     });
 

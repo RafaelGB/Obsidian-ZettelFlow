@@ -5,6 +5,14 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
+import { stripFrontmatter } from "./readerDocument";
+import { KIND_KEY } from "./readerLabels";
+import { renderEndCard, type EndCard } from "./readerEnd";
+import { ReadingExportModal, type ExportResult } from "./readerExport";
+import { normalizeSaved, saveReading, savedId } from "./readerSaved";
+import { readFrom } from "./readingChooser";
+import { undoBatch } from "architecture/plugin/writes/undoNotice";
+import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openReader";
@@ -49,22 +57,11 @@ const THEME_KEY: Record<ReaderPrefs["theme"], LocaleKey> = {
 
 export type { ReaderHost };
 
-/** What each way through the notes is called, on the reader's title line and in the chooser. */
-export const KIND_KEY: Record<ReaderKind, LocaleKey> = {
-    around: "reader_kind_around",
-    argument: "reader_kind_argument",
-    story: "reader_kind_story",
-    essentials: "reader_kind_essentials",
-    region: "reader_kind_region",
-    selection: "reader_kind_selection",
-};
 
 type Panel = "contents" | "type" | "context" | null;
 
 /** A note's body without its frontmatter: the properties are not part of what you read. */
-export function readableBody(markdown: string): string {
-    return markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
-}
+export const readableBody = stripFrontmatter;
 
 function noteName(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
@@ -119,6 +116,17 @@ export class ReaderView extends ItemView {
     /** Bumped on every peek, so a slow excerpt never lands in a newer one. */
     private peekGeneration = 0;
     private pill: HTMLElement | null = null;
+    /** The reading is over and its end card is on screen (#672). */
+    private ended = false;
+    /** When this reading began, for the end card's minutes. */
+    private startedAt = Date.now();
+    /** Detours taken in this reading — counted, never kept. */
+    private detourCount = 0;
+    /** A saved reading's name, or the name it was just saved under (#672). */
+    private name: string | undefined;
+    private savedId: string | undefined;
+    /** The last export's outcome, with its Open and Undo, while the end card is up. */
+    private endStatus: EndCard["status"];
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -151,6 +159,7 @@ export class ReaderView extends ItemView {
             ...(this.path ? { seed: this.path.seed, chapter: this.index } : {}),
             ...(this.path && this.kind !== "around" ? { kind: this.kind } : {}),
             ...(this.paths ? { paths: this.paths } : {}),
+            ...(this.name ? { name: this.name } : {}),
             ...(sides ? { restore: sides } : {}),
         };
     }
@@ -161,6 +170,16 @@ export class ReaderView extends ItemView {
         if (parsed.restore) adoptHeldSides(parsed.restore);
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.seed) {
+            // A new reading: its own clock, counts and end.
+            if (parsed.seed !== this.path?.seed || (parsed.kind ?? "around") !== this.kind) {
+                this.startedAt = Date.now();
+                this.detourCount = 0;
+                this.visited.clear();
+                this.savedId = undefined;
+                this.endStatus = undefined;
+            }
+            this.ended = false;
+            this.name = parsed.name;
             this.kind = parsed.kind ?? "around";
             this.paths = parsed.kind === "selection" ? parsed.paths : undefined;
             this.path = pathFor(this.app, parsed.seed, this.kind, this.paths);
@@ -287,16 +306,16 @@ export class ReaderView extends ItemView {
         if (!this.els) return;
         const els = this.els;
         const path = this.path;
-        els.title.setText(path ? `${noteName(path.seed)} · ${t(KIND_KEY[this.kind])}` : t("reader_title"));
+        els.title.setText(path ? (this.name ?? `${noteName(path.seed)} · ${t(KIND_KEY[this.kind])}`) : t("reader_title"));
         const total = path?.chapters.length ?? 0;
-        els.label.setText(total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
+        els.label.setText(this.ended ? t("reader_finished") : total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
         els.progress.max = Math.max(1, total);
-        els.progress.value = total ? this.index + 1 : 0;
+        els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
 
         els.dots.empty();
         path?.chapters.forEach((chapter, i) => {
             const dot = els.dots.createEl("button", {
-                cls: [c("reader-dot"), ...(i < this.index ? [c("reader-dot--done")] : []), ...(i === this.index ? [c("reader-dot--current")] : [])].join(" "),
+                cls: [c("reader-dot"), ...(i < this.index || this.ended ? [c("reader-dot--done")] : []), ...(i === this.index && !this.ended ? [c("reader-dot--current")] : [])].join(" "),
                 attr: {
                     type: "button",
                     role: "tab",
@@ -307,7 +326,8 @@ export class ReaderView extends ItemView {
             this.registerDomEvent(dot, "click", () => this.show(i));
         });
         this.renderPill();
-        void this.renderChapter();
+        if (this.ended) this.renderEnd();
+        else void this.renderChapter();
         if (this.panel) this.renderPanel();
     }
 
@@ -377,7 +397,7 @@ export class ReaderView extends ItemView {
         }
         const last = this.index === total - 1;
         next.setText(last ? t("reader_finish") : t("reader_next_named", noteName(this.path.chapters[this.index + 1].path)));
-        component.registerDomEvent(next, "click", () => (last ? exitReader(this.app, this.leaf) : this.go(1)));
+        component.registerDomEvent(next, "click", () => (last ? this.finish() : this.go(1)));
     }
 
     /** The note on screen: the deepest detour, or the chapter. */
@@ -493,6 +513,7 @@ export class ReaderView extends ItemView {
         const reading = this.reading();
         if (!reading) return;
         this.detours = pushDetour(this.detours, notePath, reading);
+        this.detourCount++;
         this.closePeek();
         this.render();
     }
@@ -514,6 +535,7 @@ export class ReaderView extends ItemView {
     private show(index: number): void {
         if (!this.path) return;
         this.detours = [];
+        this.ended = false;
         this.index = Math.max(0, Math.min(index, this.path.chapters.length - 1));
         this.render();
         this.app.workspace.requestSaveLayout();
@@ -522,9 +544,142 @@ export class ReaderView extends ItemView {
 
     private go(delta: number): void {
         if (!this.path) return;
+        if (this.ended) {
+            // Back from the end card lands on the last chapter; forward stays on the end.
+            if (delta < 0) this.show(this.index);
+            return;
+        }
         const next = this.index + delta;
-        if (next < 0 || next >= this.path.chapters.length) return;
+        if (next >= this.path.chapters.length) {
+            this.finish();
+            return;
+        }
+        if (next < 0) return;
         this.show(next);
+    }
+
+    // ── the end of a path (#672) ─────────────────────────────────────────────
+
+    /** Past the last chapter: the end card, and the reading forgotten by resume — it is finished. */
+    private finish(): void {
+        if (!this.path) return;
+        this.detours = [];
+        this.closePeek();
+        this.ended = true;
+        this.rememberPlace();
+        this.render();
+    }
+
+    /** The chapters of this reading, in the order they were read. */
+    private chapterPaths(): string[] {
+        return this.path?.chapters.map((chapter) => chapter.path) ?? [];
+    }
+
+    private renderEnd(): void {
+        if (!this.els || !this.path) return;
+        this.highlights?.hidePopover();
+        this.chapter?.unload();
+        const component = new Component();
+        component.load();
+        this.chapter = component;
+        const path = this.path;
+        const counts = this.highlights?.sessionCounts() ?? { highlights: 0, notes: 0 };
+        const thesis = path.chapters.find((chapter) => chapter.role === "thesis")?.path ?? path.seed;
+        const kindLabel = t(KIND_KEY[this.kind]);
+        const title = this.name ?? noteName(path.seed);
+        // What a save proposes and an export is called: the note and the way it was read.
+        const docName = this.name ?? `${noteName(path.seed)} · ${kindLabel}`;
+        renderEndCard(
+            this.els.page,
+            {
+                title,
+                kindLabel,
+                thesis,
+                defaultName: docName,
+                savedAs: this.savedId ? this.name : undefined,
+                stats: {
+                    minutes: Math.max(1, Math.round((Date.now() - this.startedAt) / 60000)),
+                    notes: Math.max(1, this.visited.size),
+                    detours: this.detourCount,
+                    highlights: counts.highlights,
+                    marginNotes: counts.notes,
+                },
+                status: this.endStatus,
+                actions: {
+                    save: (name) => this.saveReading(name),
+                    exportDocument: () => this.exportReading(docName, kindLabel),
+                    cultivate: () => this.cultivateThesis(thesis),
+                    again: () => this.show(0),
+                    ...(this.kind === "selection" ? {} : { another: () => readFrom(this.app, path.seed) }),
+                },
+            },
+            component
+        );
+        this.els.stage.scrollTop = 0;
+    }
+
+    /** Keep the path in plugin data — its chapters, in this order — never in a note. */
+    private async saveReading(name: string): Promise<void> {
+        const settings = this.plugin?.settings;
+        if (!settings || !this.path) return;
+        const paths = this.chapterPaths();
+        const id = this.savedId ?? savedId(paths, Date.now());
+        settings.readerSaved = saveReading(normalizeSaved(settings.readerSaved), {
+            id,
+            name,
+            kind: this.kind,
+            seed: this.path.seed,
+            paths,
+            at: Date.now(),
+        });
+        await this.plugin?.saveSettings?.();
+        this.savedId = id;
+        this.name = name;
+        this.render();
+    }
+
+    /** The preview, then — only on Export — one new note; Undo sends it to the trash. */
+    private exportReading(title: string, kindLabel: string): void {
+        if (!this.path) return;
+        const seed = this.path.seed;
+        const folder = seed.includes("/") ? seed.slice(0, seed.lastIndexOf("/")) : "";
+        const date = new Date().toLocaleDateString();
+        new ReadingExportModal(
+            this.app,
+            { title, intro: t("reader_export_doc_intro", kindLabel, date), chapters: this.chapterPaths(), folder, fileName: title },
+            (result) => this.onExported(result)
+        ).open();
+    }
+
+    private onExported(result: ExportResult): void {
+        if (!result.ok || !result.path) {
+            this.endStatus = { text: t("reader_export_failed") };
+        } else {
+            const written = result.path;
+            const batch = result.batch;
+            this.endStatus = {
+                text: t("reader_export_done", written),
+                open: () => void this.app.workspace.openLinkText(written, "", "tab"),
+                ...(batch
+                    ? {
+                          undo: () =>
+                              void undoBatch(batch).then((outcome) => {
+                                  this.endStatus = {
+                                      text: t(outcome.hadWork && outcome.failed.length === 0 ? "reader_export_removed" : "reader_export_undo_failed"),
+                                  };
+                                  if (this.ended) this.render();
+                              }),
+                      }
+                    : {}),
+            };
+        }
+        if (this.ended) this.render();
+    }
+
+    /** Hand the thesis to Cultivate, giving the workspace back first. */
+    private cultivateThesis(thesis: string): void {
+        exitReader(this.app, this.leaf);
+        void activateSurface(this.app, "zettelflow-home", "cultivate", { target: thesis });
     }
 
     /** Keep where this reading is, so the chooser can offer to resume it (#669). */

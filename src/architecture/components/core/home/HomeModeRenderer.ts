@@ -24,6 +24,8 @@ import { pinnedQueries, savedQueryLabel } from "architecture/components/core/ask
 import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
 import { wagersOf } from "architecture/plugin/claims/wagersOf";
 import { openReturn } from "starters/zcomponents/ClaimReturnComponent";
+import { normalizeSaved } from "architecture/components/core/reader/readerSaved";
+import { openSavedReading } from "architecture/components/core/reader/readingChooser";
 
 /** A pinned "ask your graph" query resolved against the current model (#323 G4). */
 type PinnedQueryCard = { label: string; query: string; count: number };
@@ -239,6 +241,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderGrowthNudge(more);
         this.renderGraphTeaser(more);
         this.renderPinnedQueries(more);
+        this.renderSavedReadings(more);
         this.renderNoteSection(more, "home_section_new_ideas", this.home.newIdeas);
         this.renderNoteSection(more, "home_section_main_concepts", this.home.mainConcepts);
         this.renderNoteSection(more, "home_section_review_due", this.home.reviewDue);
@@ -518,6 +521,24 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 JudgementLog.getInstance().recordGapVerdict(pair.a, pair.b);
                 this.recompute();
             });
+        }
+    }
+
+    /**
+     * **Saved readings** (#672): the paths you kept from a Reader end card, newest first — each one
+     * click back into the Reader. Silent when you have kept none.
+     */
+    private renderSavedReadings(container: HTMLElement): void {
+        const saved = normalizeSaved(ObsidianApi.getOwnPlugin()?.settings?.readerSaved).slice(0, 5);
+        if (saved.length === 0) return;
+        const section = container.createDiv({ cls: c("home-section") });
+        section.createEl("h5", { text: t("home_section_saved_readings"), cls: c("home-section-title") });
+        const list = section.createDiv({ cls: c("home-list") });
+        for (const entry of saved) {
+            const row = list.createDiv({ cls: c("home-row") });
+            const name = row.createSpan({ text: entry.name, cls: c("home-note-name") });
+            name.setAttribute("title", t("reader_saved_open_title", String(entry.paths.length)));
+            makeActivatable(name, () => void openSavedReading(this.app, entry));
         }
     }
 

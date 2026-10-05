@@ -349,13 +349,15 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // Read a path across your notes (#668, epic #667). On the note's own menu: the note you
         // right-click is where the reading starts — no MOC, no setup. #669 adds the ways through
         // it (around, argument, story, essentials, region) and reading a picked set: Explore's
-        // *Read these* and This note's *Read around this note*.
+        // *Read these* and This note's *Read around this note*. #672 keeps a path: saved readings
+        // reopen from Home's fold.
         nameKey: "reader_read_from_here",
         owner: "zettelflow-reader",
         doors: [
             NOTE_MENU("starters/zcomponents/ReaderComponent.ts"),
             CONTROL("architecture/components/core/askGraph/AskGraphRenderer.ts", EXPLORE),
             CONTROL(`${COMPANION}/blocks/headBlock.ts`, NOTE),
+            CONTROL("architecture/components/core/home/HomeModeRenderer.ts", HOME),
             CMD("open-reader"),
         ],
     },

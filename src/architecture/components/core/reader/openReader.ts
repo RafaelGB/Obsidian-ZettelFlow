@@ -43,10 +43,12 @@ export interface ReaderRequest {
     chapter?: number;
     /** A highlight to land on (#671): opened from Think or a note's story. */
     highlight?: string;
+    /** A saved reading's name (#672). */
+    name?: string;
 }
 
 export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
-    const { seed, kind, paths, chapter = 0, highlight } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
+    const { seed, kind, paths, chapter = 0, highlight, name } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
     if (!held) {
         const s = sides(app);
@@ -58,6 +60,7 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
     if (kind && kind !== "around") state.kind = kind;
     if (paths && paths.length > 0) state.paths = paths;
     if (highlight) state.highlight = highlight;
+    if (name) state.name = name;
     await leaf.setViewState({ type: READER_VIEW, state, active: true });
     await workspace.revealLeaf(leaf);
 }

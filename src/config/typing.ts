@@ -127,6 +127,11 @@ export interface ZettelFlowSettings {
      */
     readerResume?: Record<string, { chapter: number; total: number; at: number }>;
     /**
+     * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
+     * started from and their chapters in order. Reopened from the chooser and Home — never a note.
+     */
+    readerSaved?: { id: string; name: string; kind: string; seed: string; paths: string[]; at: number }[];
+    /**
      * **Think before you look** in Explore (#576, epic #574): write what you currently think, and
      * the results stay hidden until you have. OFF by default and *remembered* — §XII sanctions
      * deliberate friction where judgement is at stake and forbids it as a generic confirmation, so
@@ -383,6 +388,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     noteNeighbourhoodView: "graph", // the picture first; the list is one click away (#643).
     readerPrefs: { font: "sans", size: "medium", theme: "auto" }, // the theme's own type, until you pick (#668).
     readerResume: {}, // nothing to resume until you stop part-way through a reading (#669).
+    readerSaved: [], // nothing saved until you save a path at its end (#672).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.
     returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.

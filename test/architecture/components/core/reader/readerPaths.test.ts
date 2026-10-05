@@ -226,9 +226,14 @@ describe("read these, read this folder (#669)", () => {
         handlers["file-menu"](folderMenu, folder);
         expect(folderMenu.items.map((i) => i.title)).toEqual(["Read this folder"]);
 
-        const empty = new Menu();
-        handlers["file-menu"](empty, new TFolder());
-        expect(empty.items).toEqual([]);
+        // A right-click never walks the folder (#667 audit): the walk waits for the choice.
+        const lazy = new TFolder();
+        const walked = jest.fn(() => [md("f/a.md")]);
+        Object.defineProperty(lazy, "children", { get: walked });
+        const lazyMenu = new Menu();
+        handlers["file-menu"](lazyMenu, lazy);
+        expect(lazyMenu.items.map((i) => i.title)).toEqual(["Read this folder"]);
+        expect(walked).not.toHaveBeenCalled();
 
         const many = new Menu();
         handlers["files-menu"](many, [md("a.md"), md("b.md")]);

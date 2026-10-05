@@ -95,9 +95,13 @@ function foldSpaces(text: string): string {
  * An empty quote never anchors.
  */
 export function anchorQuote(text: string, quote: TextQuote): TextSpan | null {
+    return anchorIn(folded(text), quote);
+}
+
+/** `anchorQuote` against text already folded — so many quotes fold their chapter once. */
+function anchorIn(hay: { text: string; map: number[] }, quote: TextQuote): TextSpan | null {
     const exact = foldSpaces(quote.exact).trim();
     if (!exact) return null;
-    const hay = folded(text);
     const prefix = foldSpaces(quote.prefix);
     const suffix = foldSpaces(quote.suffix);
 
@@ -119,8 +123,9 @@ export function anchorQuote(text: string, quote: TextQuote): TextSpan | null {
 export function anchorAll<T extends { quote: TextQuote }>(text: string, items: readonly T[]): { anchored: (T & { span: TextSpan })[]; detached: T[] } {
     const anchored: (T & { span: TextSpan })[] = [];
     const detached: T[] = [];
+    const hay = folded(text);
     for (const item of items) {
-        const span = anchorQuote(text, item.quote);
+        const span = anchorIn(hay, item.quote);
         if (span) anchored.push({ ...item, span });
         else detached.push(item);
     }

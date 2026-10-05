@@ -172,7 +172,9 @@ describe("the reader view (#668)", () => {
         await view.setState({ seed: "a.md" }, {} as never);
         await view.onOpen();
         await flush();
-        expect(MarkdownRenderer.calls.at(-1)).toEqual({ markdown: "The body of A.", sourcePath: "a.md" });
+        // The raw note goes to the renderer, which hides the properties itself (as Obsidian does).
+        expect(MarkdownRenderer.calls.at(-1)).toEqual({ markdown: "---\nstate: fleeting\n---\nThe body of A.", sourcePath: "a.md" });
+        expect(content.oneByClass("reader-body").textContent).not.toContain("fleeting");
         expect(content.oneByClass("reader-count").textContent).toBe("01 / 01");
         expect(content.oneByClass("reader-chapter-title").textContent).toBe("a");
         expect(content.byClass("reader-role-tag")[0].textContent).toBe("Context");

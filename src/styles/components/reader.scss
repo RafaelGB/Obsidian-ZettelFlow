@@ -15,7 +15,8 @@
     display: none;
 }
 
-.zettelkasten-flow__reader-host {
+/* Beats Obsidian's own `.workspace-leaf-content .view-content` padding, whatever loads first. */
+.workspace-leaf-content[data-type="zettelflow-reader"] .view-content.zettelkasten-flow__reader-host {
     padding: 0;
     position: relative;
     overflow: hidden;
@@ -36,11 +37,38 @@
     color: var(--reader-fg);
 }
 
+/*
+ * `theme-light` / `theme-dark` only switch the `--color-base-*` palette; the variables the rendered
+ * markdown reads (`--background-*`, `--text-*`, code, rules, tables) were resolved on `body` from the
+ * app's palette. Re-derive them here, from the theme's own palette, so a chapter matches its page.
+ */
+.zettelkasten-flow__reader.theme-dark,
+.zettelkasten-flow__reader.theme-light {
+    --background-primary: var(--color-base-00);
+    --background-primary-alt: var(--color-base-10);
+    --background-secondary: var(--color-base-20);
+    --background-secondary-alt: var(--color-base-05);
+    --background-modifier-border: var(--color-base-30);
+    --text-normal: var(--color-base-100);
+    --text-muted: var(--color-base-70);
+    --text-faint: var(--color-base-50);
+    --code-background: var(--background-primary-alt);
+    --code-normal: var(--text-normal);
+    --hr-color: var(--background-modifier-border);
+    --table-border-color: var(--background-modifier-border);
+    --blockquote-border-color: var(--interactive-accent);
+}
+
 .zettelkasten-flow__reader--theme-sepia {
     --reader-bg: color-mix(in srgb, var(--color-yellow) 16%, var(--color-base-00));
     --reader-surface: color-mix(in srgb, var(--color-yellow) 22%, var(--color-base-00));
     --reader-fg: color-mix(in srgb, var(--color-orange) 18%, var(--color-base-100));
     --reader-line: color-mix(in srgb, var(--color-yellow) 30%, var(--color-base-30));
+    --background-primary: var(--reader-bg);
+    --background-primary-alt: var(--reader-surface);
+    --background-modifier-border: var(--reader-line);
+    --code-background: var(--reader-surface);
+    --text-normal: var(--reader-fg);
 }
 
 .zettelkasten-flow__reader--size-small {
@@ -225,7 +253,8 @@
 .zettelkasten-flow__reader-bar {
     position: absolute;
     left: 50%;
-    bottom: var(--size-4-4);
+    /* Above a phone's home indicator, never closer to the edge than on a desktop. */
+    bottom: max(var(--size-4-4), calc(var(--size-4-2) + env(safe-area-inset-bottom)));
     transform: translateX(-50%);
     display: flex;
     align-items: center;
@@ -272,6 +301,15 @@
     align-self: stretch;
     margin: var(--size-4-1) var(--size-4-1);
     background-color: var(--reader-line);
+}
+
+/* A narrow reading (a phone, a split pane): the bar keeps its buttons, not its words. */
+@container zf-reader (max-width: 36rem) {
+    .zettelkasten-flow__reader-bar-label,
+    .zettelkasten-flow__reader-progress,
+    .zettelkasten-flow__reader-bar-sep {
+        display: none;
+    }
 }
 
 /* Idle: the page alone. */

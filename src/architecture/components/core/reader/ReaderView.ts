@@ -101,6 +101,17 @@ export class ReaderView extends ItemView {
     private pendingHighlight: string | null = null;
     /** The listeners and renders of the chapter on screen; replaced with it. */
     private chapter: Component | null = null;
+    /** The listeners of the dots and the rest of one render — dropped with the next (#667 audit). */
+    private renderScope: Component | null = null;
+    /** The listeners of the open panel's rows, replaced when it redraws. */
+    private panelScope: Component | null = null;
+    /** The listeners of the open peek, gone with it. */
+    private peekScope: Component | null = null;
+    /**
+     * A restored reading that waits for the index (#667 audit): before layout-ready the model is
+     * empty, so its path would be the seed alone and its place would be lost. Kept until it can be read.
+     */
+    private pending: { seed: string; chapter: number } | null = null;
     private idleTimer: number | undefined;
     /** Bumped on every chapter change, so a slow read never draws over a newer chapter. */
     private generation = 0;
@@ -156,7 +167,11 @@ export class ReaderView extends ItemView {
         const sides = heldSides();
         return {
             ...base,
-            ...(this.path ? { seed: this.path.seed, chapter: this.index } : {}),
+            ...(this.pending
+                ? { seed: this.pending.seed, chapter: this.pending.chapter }
+                : this.path
+                  ? { seed: this.path.seed, chapter: this.index }
+                  : {}),
             ...(this.path && this.kind !== "around" ? { kind: this.kind } : {}),
             ...(this.paths ? { paths: this.paths } : {}),
             ...(this.name ? { name: this.name } : {}),
@@ -179,13 +194,43 @@ export class ReaderView extends ItemView {
                 this.endStatus = undefined;
             }
             this.ended = false;
+            // Whatever was on screen belongs to the previous reading: its detour and its peek too.
+            this.detours = [];
+            this.closePeek();
             this.name = parsed.name;
             this.kind = parsed.kind ?? "around";
             this.paths = parsed.kind === "selection" ? parsed.paths : undefined;
             this.path = pathFor(this.app, parsed.seed, this.kind, this.paths);
-            this.index = Math.min(parsed.chapter ?? 0, this.path.chapters.length - 1);
+            const chapter = parsed.chapter ?? 0;
+            if (this.kind !== "selection" && KnowledgeIndex.getInstance().status !== "ready") {
+                // Restored before the index is built: keep the place, read it once the model is there.
+                this.pending = { seed: parsed.seed, chapter };
+                this.index = 0;
+            } else {
+                this.pending = null;
+                this.index = Math.max(0, Math.min(chapter, this.path.chapters.length - 1));
+            }
         }
         if (this.els) this.render();
+    }
+
+    /** Read a reading that waited for the index, now that the model can say what its path is. */
+    private resolvePending(): void {
+        const pending = this.pending;
+        if (!pending || KnowledgeIndex.getInstance().status !== "ready") return;
+        this.pending = null;
+        this.path = pathFor(this.app, pending.seed, this.kind, this.paths);
+        this.index = Math.max(0, Math.min(pending.chapter, this.path.chapters.length - 1));
+        if (this.els) this.render();
+    }
+
+    /**
+     * Obsidian focuses a leaf by asking it for focus here — reused or restored, the reader must
+     * take the keys itself, or ← → Space and Esc reach nothing until you click the page.
+     */
+    setEphemeralState(state: unknown): void {
+        super.setEphemeralState(state);
+        if ((state as { focus?: boolean } | null)?.focus) this.contentEl.focus({ preventScroll: true });
     }
 
     async onOpen(): Promise<void> {
@@ -193,15 +238,25 @@ export class ReaderView extends ItemView {
         this.contentEl.setAttribute("tabindex", "-1");
         this.registerDomEvent(this.contentEl, "keydown", (event) => this.onKey(event));
         this.registerDomEvent(this.contentEl, "mousemove", () => this.wake());
+        // A reading restored before the index is ready is read as soon as the model is built.
+        this.app.workspace.onLayoutReady?.(() => this.resolvePending());
+        const resolved = this.app.metadataCache.on?.("resolved", () => this.resolvePending());
+        if (resolved) this.registerEvent(resolved);
         this.render();
         this.contentEl.focus({ preventScroll: true });
     }
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.idleTimer);
-        this.highlights?.hidePopover();
+        this.highlights?.dispose();
         this.chapter?.unload();
         this.chapter = null;
+        this.renderScope?.unload();
+        this.renderScope = null;
+        this.panelScope?.unload();
+        this.panelScope = null;
+        this.peekScope?.unload();
+        this.peekScope = null;
         // Closing the tab any other way still gives the workspace back.
         restoreWorkspace(this.app);
         this.contentEl.empty();
@@ -236,6 +291,8 @@ export class ReaderView extends ItemView {
         this.pill = pill;
 
         const stage = root.createDiv({ cls: c("reader-stage") });
+        // A selection popover belongs to the words it floats over; scrolling them away puts it away.
+        this.registerDomEvent(stage, "scroll", () => this.highlights?.onScroll());
         // A peek is read in place; clicking elsewhere puts it away.
         this.registerDomEvent(root, "mousedown", (event) => {
             const target = event.target as HTMLElement | null;
@@ -313,6 +370,10 @@ export class ReaderView extends ItemView {
         els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
 
         els.dots.empty();
+        this.renderScope?.unload();
+        const scope = new Component();
+        scope.load();
+        this.renderScope = scope;
         path?.chapters.forEach((chapter, i) => {
             const dot = els.dots.createEl("button", {
                 cls: [c("reader-dot"), ...(i < this.index || this.ended ? [c("reader-dot--done")] : []), ...(i === this.index && !this.ended ? [c("reader-dot--current")] : [])].join(" "),
@@ -323,7 +384,7 @@ export class ReaderView extends ItemView {
                     "aria-label": t("reader_dot_label", String(i + 1), noteName(chapter.path)),
                 },
             });
-            this.registerDomEvent(dot, "click", () => this.show(i));
+            scope.registerDomEvent(dot, "click", () => this.show(i));
         });
         this.renderPill();
         if (this.ended) this.renderEnd();
@@ -339,7 +400,9 @@ export class ReaderView extends ItemView {
         const detour = this.detours[this.detours.length - 1];
         const reading = detour ?? chapter.path;
         if (!detour) this.visited.add(chapter.path);
-        this.peek = null;
+        this.closePeek();
+        // The last chapter's highlights must not show in a panel while this one renders.
+        this.highlights?.reset();
         this.chapter?.unload();
         const component = new Component();
         component.load();
@@ -358,6 +421,10 @@ export class ReaderView extends ItemView {
         page.createEl("h1", { cls: c("reader-chapter-title"), text: noteName(reading) });
         const body = page.createDiv({ cls: ["markdown-rendered", c("reader-body")].join(" ") });
         stage.scrollTop = 0;
+        // Before the render, and in the capture phase: an embed's own link handler would otherwise
+        // open the note in another tab — or create it, when the link is unresolved — before ours ran.
+        component.registerDomEvent(body, "click", (event) => this.onLink(event), { capture: true });
+        component.registerDomEvent(body, "auxclick", (event) => this.onLink(event), { capture: true });
 
         const file = this.app.vault.getAbstractFileByPath(reading);
         if (!(file instanceof TFile)) {
@@ -366,14 +433,15 @@ export class ReaderView extends ItemView {
             try {
                 const markdown = await this.app.vault.cachedRead(file);
                 if (generation !== this.generation) return;
-                await MarkdownRenderer.render(this.app, readableBody(markdown), body, file.path, component);
+                // Raw: Obsidian's renderer hides the frontmatter itself — stripping it here too would
+                // eat a `---` rule that opens the body.
+                await MarkdownRenderer.render(this.app, markdown, body, file.path, component);
             } catch (error) {
                 log.error(`[Reader] could not render ${reading}: ${error instanceof Error ? error.message : String(error)}`);
                 body.createDiv({ cls: c("reader-missing"), text: t("reader_missing") });
             }
         }
         if (generation !== this.generation) return;
-        component.registerDomEvent(body, "click", (event) => this.onLink(event));
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
             if (generation !== this.generation || !this.pendingHighlight) return;
@@ -436,11 +504,24 @@ export class ReaderView extends ItemView {
      * writes nothing.
      */
     private onLink(event: MouseEvent): void {
+        const target = event.target as HTMLElement | null;
+        // A highlight drawn inside a link answers its own click (its popover), not the link's.
+        if (target?.closest?.(`mark.${c("reader-highlight")}`)) return;
+        // A tag is not a note to peek at, and following its href would only rewrite the hash.
+        if (target?.closest?.("a.tag")) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
         const found = this.linkTarget(event);
         if (!found) return;
         event.preventDefault();
-        if (Keymap.isModEvent(event)) {
-            if (found.file) void this.app.workspace.openLinkText(found.file.path, this.reading() ?? "", "tab");
+        event.stopPropagation();
+        // A middle click, like a mod-click, is "in a new tab".
+        if (event.type === "auxclick" || Keymap.isModEvent(event)) {
+            if ((event.type !== "auxclick" || event.button === 1) && found.file) {
+                void this.app.workspace.openLinkText(found.file.path, this.reading() ?? "", "tab");
+            }
             return;
         }
         const block = found.link.closest<HTMLElement>("p, blockquote, ul, ol, table, h1, h2, h3, h4, h5, h6, .callout") ?? found.link;
@@ -457,6 +538,9 @@ export class ReaderView extends ItemView {
         const parent = anchor.parentElement;
         if (!parent) return;
         const generation = ++this.peekGeneration;
+        const scope = new Component();
+        scope.load();
+        this.peekScope = scope;
         const card = parent.createDiv({
             cls: c("reader-peek"),
             attr: { role: "dialog", "aria-label": t("reader_peek_label", noteName(notePath ?? label)) },
@@ -470,7 +554,7 @@ export class ReaderView extends ItemView {
             text: !notePath ? t("reader_peek_missing") : at >= 0 ? t("reader_peek_in_path", String(at + 1)) : t("reader_peek_outside"),
         });
         const title = card.createDiv({ cls: c("reader-peek-title"), text: noteName(notePath ?? label) });
-        if (notePath) hoverPreview(this.app, title, notePath, this);
+        if (notePath) hoverPreview(this.app, title, notePath, scope);
         const excerpt = card.createDiv({ cls: c("reader-peek-excerpt") });
         const actions = card.createDiv({ cls: c("reader-peek-actions") });
         const action = (key: LocaleKey, primary: boolean, run: () => void) => {
@@ -479,7 +563,7 @@ export class ReaderView extends ItemView {
                 attr: { type: "button" },
                 text: t(key),
             });
-            this.registerDomEvent(button, "click", run);
+            scope.registerDomEvent(button, "click", run);
         };
 
         if (notePath) {
@@ -507,6 +591,8 @@ export class ReaderView extends ItemView {
         this.peekGeneration++;
         this.peek?.remove();
         this.peek = null;
+        this.peekScope?.unload();
+        this.peekScope = null;
     }
 
     private takeDetour(notePath: string): void {
@@ -534,6 +620,7 @@ export class ReaderView extends ItemView {
 
     private show(index: number): void {
         if (!this.path) return;
+        this.pending = null;
         this.detours = [];
         this.ended = false;
         this.index = Math.max(0, Math.min(index, this.path.chapters.length - 1));
@@ -636,6 +723,10 @@ export class ReaderView extends ItemView {
         this.savedId = id;
         this.name = name;
         this.render();
+        // Home lists saved readings: an open Home shows the new one now, not on its next redraw.
+        for (const leaf of this.app.workspace.getLeavesOfType?.("zettelflow-home") ?? []) {
+            (leaf.view as { refresh?: () => void } | null)?.refresh?.();
+        }
     }
 
     /** The preview, then — only on Export — one new note; Undo sends it to the trash. */
@@ -708,6 +799,10 @@ export class ReaderView extends ItemView {
         if (!this.els) return;
         const host = this.els.panel;
         host.empty();
+        this.panelScope?.unload();
+        const scope = new Component();
+        scope.load();
+        this.panelScope = scope;
         host.toggleClass(c("reader-panel--open"), this.panel !== null);
         if (this.panel === "contents") this.renderContents(host);
         else if (this.panel === "type") this.renderType(host);
@@ -729,7 +824,7 @@ export class ReaderView extends ItemView {
                 setIcon(tick, "check");
             }
             if (i === this.index) row.setAttribute("aria-current", "step");
-            this.registerDomEvent(row, "click", () => this.show(i));
+            this.panelScope?.registerDomEvent(row, "click", () => this.show(i));
         });
     }
 
@@ -743,7 +838,7 @@ export class ReaderView extends ItemView {
                     attr: { type: "button", "aria-pressed": String(option === current) },
                     text: t(key(option)),
                 });
-                this.registerDomEvent(button, "click", () => this.savePrefs(apply(option)));
+                this.panelScope?.registerDomEvent(button, "click", () => this.savePrefs(apply(option)));
             }
         };
         group(READER_FONTS, this.prefs.font, (o) => FONT_KEY[o], (font) => ({ ...this.prefs, font }));
@@ -762,12 +857,13 @@ export class ReaderView extends ItemView {
             for (const p of paths) {
                 // Each is a peek too: read it here, take it as a detour, or add it to this reading.
                 const row = host.createEl("button", { cls: c("reader-context-row"), attr: { type: "button" }, text: noteName(p) });
-                this.registerDomEvent(row, "click", () => this.openPeek(row, p, noteName(p)));
-                hoverPreview(this.app, row, p, this);
+                const scope = this.panelScope;
+                scope?.registerDomEvent(row, "click", () => this.openPeek(row, p, noteName(p)));
+                hoverPreview(this.app, row, p, scope ?? this);
             }
         };
         // Your highlights here too: the margin only has room on a wide pane (#671).
-        this.highlights?.renderList(host);
+        if (this.panelScope) this.highlights?.renderList(host, this.panelScope);
         list("reader_supports", map.supports);
         list("reader_argues", map.contradicts);
         list("reader_questions", map.gaps.openQuestions);
@@ -781,6 +877,8 @@ export class ReaderView extends ItemView {
     private onKey(event: KeyboardEvent): void {
         const target = event.target as HTMLElement | null;
         if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+        // Ctrl/Cmd/Alt combinations are Obsidian's and the system's (Ctrl+F, Ctrl+H, Alt+←), never ours.
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
         this.wake();
         switch (event.key) {
             case "ArrowRight":
@@ -839,7 +937,8 @@ export class ReaderView extends ItemView {
     /** Bring an element of the chapter into view inside the reader's own scroller, never its ancestors. */
     private scrollToEl(el: HTMLElement): void {
         const stage = this.els?.stage;
-        if (!stage) return;
+        // A mark an embed re-render threw away has no place to scroll to.
+        if (!stage || el.isConnected === false) return;
         const top = el.getBoundingClientRect().top - stage.getBoundingClientRect().top + stage.scrollTop - stage.clientHeight / 3;
         stage.scrollTop = Math.max(0, top);
     }
@@ -850,11 +949,14 @@ export class ReaderView extends ItemView {
 
     private toggleFullscreen(): void {
         const doc = this.ownDocument();
+        const failed = (error: unknown) => log.debug(`[Reader] fullscreen unavailable: ${String(error)}`);
         try {
-            if (doc?.fullscreenElement) void doc.exitFullscreen();
-            else void this.contentEl.requestFullscreen?.();
+            // The whole window, not the reader's box: modals, menus, page previews and notices are
+            // drawn on the document's body, and would vanish behind a fullscreen reader element.
+            const request = doc?.fullscreenElement ? doc.exitFullscreen() : (doc?.body ?? this.contentEl).requestFullscreen?.();
+            void request?.catch?.(failed);
         } catch (error) {
-            log.debug(`[Reader] fullscreen unavailable: ${String(error)}`);
+            failed(error);
         }
     }
 

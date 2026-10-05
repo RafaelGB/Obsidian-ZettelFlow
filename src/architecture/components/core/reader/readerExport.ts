@@ -1,4 +1,4 @@
-import { Modal, TFile, type App } from "obsidian";
+import { Modal, TFile, normalizePath, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { FolderSuggest } from "architecture/settings/suggesters/FolderSuggest";
@@ -58,7 +58,8 @@ export async function highlightsOn(chapters: readonly string[]): Promise<Thought
 }
 
 export async function writeExport(app: App, plan: ExportPlan, highlights: readonly Thought[]): Promise<ExportResult> {
-    const path = freeExportPath(plan.folder, exportFileName(plan.fileName), (p) => app.vault.getAbstractFileByPath(p) !== null);
+    const folder = plan.folder.trim() ? normalizePath(plan.folder.trim()) : "";
+    const path = freeExportPath(folder, exportFileName(plan.fileName), (p) => app.vault.getAbstractFileByPath(p) !== null);
     try {
         const chapters = [];
         for (const chapterPath of plan.chapters) {
@@ -100,6 +101,8 @@ export class ReadingExportModal extends Modal {
     private folder: string;
     private fileName: string;
     private busy = false;
+    /** The one line that changes when the highlights arrive — nothing else is redrawn. */
+    private appendixEl: HTMLElement | null = null;
 
     constructor(
         app: App,
@@ -116,7 +119,7 @@ export class ReadingExportModal extends Modal {
         this.render();
         void highlightsOn(this.plan.chapters).then((found) => {
             this.highlights = found;
-            this.render();
+            this.renderAppendix();
         });
     }
 
@@ -131,6 +134,7 @@ export class ReadingExportModal extends Modal {
         contentEl.createDiv({ cls: c("reader-export-intro"), text: t("reader_export_intro") });
 
         const modes = contentEl.createDiv({ cls: c("reader-export-modes"), attr: { role: "radiogroup" } });
+        const cards: { value: ExportMode; card: HTMLElement }[] = [];
         const mode = (value: ExportMode, name: Parameters<typeof t>[0], desc: Parameters<typeof t>[0]) => {
             const on = this.mode === value;
             const card = modes.createEl("button", {
@@ -139,9 +143,14 @@ export class ReadingExportModal extends Modal {
             });
             card.createDiv({ cls: c("reader-export-mode-name"), text: t(name) });
             card.createDiv({ cls: c("reader-export-mode-desc"), text: t(desc) });
+            cards.push({ value, card });
+            // Choosing a way only moves the mark: what you typed in the fields stays.
             card.addEventListener("click", () => {
                 this.mode = value;
-                this.render();
+                for (const entry of cards) {
+                    entry.card.toggleClass("is-active", entry.value === value);
+                    entry.card.setAttribute("aria-checked", String(entry.value === value));
+                }
             });
         };
         mode("embed", "reader_export_mode_embed", "reader_export_mode_embed_desc");
@@ -149,12 +158,8 @@ export class ReadingExportModal extends Modal {
 
         const list = contentEl.createEl("ol", { cls: c("reader-export-chapters") });
         for (const path of this.plan.chapters) list.createEl("li", { text: noteName(path) });
-        contentEl.createDiv({
-            cls: c("reader-export-appendix"),
-            text: this.highlights.length
-                ? tCount(this.highlights.length, "reader_export_highlights", String(this.highlights.length))
-                : t("reader_export_no_highlights"),
-        });
+        this.appendixEl = contentEl.createDiv({ cls: c("reader-export-appendix") });
+        this.renderAppendix();
 
         const fields = contentEl.createDiv({ cls: c("reader-export-fields") });
         const field = (labelKey: Parameters<typeof t>[0], value: string, onInput: (v: string) => void) => {
@@ -174,6 +179,14 @@ export class ReadingExportModal extends Modal {
         cancel.addEventListener("click", () => this.close());
         const go = actions.createEl("button", { cls: "mod-cta", attr: { type: "button" }, text: t("reader_export_confirm") });
         go.addEventListener("click", () => void this.export(go));
+    }
+
+    private renderAppendix(): void {
+        this.appendixEl?.setText(
+            this.highlights.length
+                ? tCount(this.highlights.length, "reader_export_highlights", String(this.highlights.length))
+                : t("reader_export_no_highlights")
+        );
     }
 
     private async export(button: HTMLButtonElement): Promise<void> {

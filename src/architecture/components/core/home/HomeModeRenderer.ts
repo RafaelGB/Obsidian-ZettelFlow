@@ -2,7 +2,7 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { App, setIcon } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { runCommand } from "architecture/components/core/surface/runCommand";
 import { activateSurface, DevelopmentJournal } from "architecture/plugin";
@@ -537,7 +537,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         for (const entry of saved) {
             const row = list.createDiv({ cls: c("home-row") });
             const name = row.createSpan({ text: entry.name, cls: c("home-note-name") });
-            name.setAttribute("title", t("reader_saved_open_title", String(entry.paths.length)));
+            name.setAttribute("title", tCount(entry.paths.length, "reader_saved_open_title", String(entry.paths.length)));
             makeActivatable(name, () => void openSavedReading(this.app, entry));
         }
     }

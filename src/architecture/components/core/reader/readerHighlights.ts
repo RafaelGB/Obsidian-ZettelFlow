@@ -1,4 +1,4 @@
-import type { App, Component } from "obsidian";
+import { Component, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { anchorAll, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
@@ -6,7 +6,7 @@ import type { Thought, ThoughtQuote } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
-import { chapterText, unwrapMark, wrapSpan } from "./readerMarks";
+import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -60,20 +60,37 @@ function ownWindow(el: HTMLElement): Window | undefined {
     return typeof activeWindow === "undefined" ? undefined : activeWindow;
 }
 
+/**
+ * Where a DOM point falls in the chapter's text — counted over the same text nodes the highlights
+ * are drawn on (`textNodes`), so a diagram's styles or an open peek never shift an offset.
+ */
+function offsetOf(body: HTMLElement, node: Node, offset: number): number {
+    const point = body.ownerDocument.createRange();
+    point.setStart(node, offset);
+    point.collapse(true);
+    let at = 0;
+    for (const text of textNodes(body) as unknown as Text[]) {
+        if (text === node) return at + offset;
+        // The whole text node ends at or before the point: it is all before it.
+        if (point.comparePoint(text, text.data.length) <= 0) at += text.data.length;
+        else break;
+    }
+    return at;
+}
+
 /** The selection inside `body`, measured against the chapter's text. Real DOM only. */
 export function readSelection(body: HTMLElement): SelectionInfo | null {
     const selection = ownWindow(body)?.getSelection?.();
     if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null;
     const range = selection.getRangeAt(0);
     if (!body.contains(range.commonAncestorContainer)) return null;
-    const before = body.ownerDocument.createRange();
-    before.selectNodeContents(body);
-    before.setEnd(range.startContainer, range.startOffset);
-    const start = before.toString().length;
+    const start = offsetOf(body, range.startContainer, range.startOffset);
+    const end = offsetOf(body, range.endContainer, range.endOffset);
+    if (end <= start) return null;
     const rect = range.getBoundingClientRect();
     return {
         start,
-        end: start + range.toString().length,
+        end,
         rect: { left: rect.left, top: rect.top, width: rect.width },
         clear: () => selection.removeAllRanges(),
     };
@@ -83,17 +100,19 @@ export function readSelection(body: HTMLElement): SelectionInfo | null {
 export function headingAt(body: HTMLElement, offset: number): string | undefined {
     let found: string | undefined;
     for (const heading of Array.from(body.querySelectorAll("h1, h2, h3, h4, h5, h6"))) {
-        const before = body.ownerDocument.createRange();
-        before.selectNodeContents(body);
-        before.setEndBefore(heading);
-        if (before.toString().length > offset) break;
+        if (offsetOf(body, heading, 0) > offset) break;
         found = heading.textContent?.trim() || found;
     }
     return found;
 }
 
-function newMark(id: string): HTMLElement {
-    return createEl("mark", { cls: c("reader-highlight"), attr: { "data-hl": id } });
+/** A mark made in the chapter's own document — a pop-out window has its own. */
+function newMarkIn(body: HTMLElement | null, id: string): HTMLElement {
+    const options = { cls: c("reader-highlight"), attr: { "data-hl": id } };
+    if (!body) return createEl("mark", options);
+    const mark = body.createEl("mark", options);
+    mark.remove(); // made in place for its document, then handed to wrapSpan unattached
+    return mark;
 }
 
 function openInThink(app: App, notePath: string): void {
@@ -140,6 +159,10 @@ export class ReaderHighlights {
     private anchored: { thought: Thought; marks: HTMLElement[] }[] = [];
     private detached: Thought[] = [];
     private popover: HTMLElement | null = null;
+    /** The listeners of the popover on screen, gone with it. */
+    private popoverScope: Component | null = null;
+    /** The listeners of the margin's rows, replaced when it redraws. */
+    private marginScope: Component | null = null;
     private statusTimer: number | undefined;
     /** Bumped on every chapter, so a slow load never draws over a newer one. */
     private generation = 0;
@@ -151,7 +174,7 @@ export class ReaderHighlights {
         this.store = deps.store ?? ThoughtStore.getInstance();
         this.select = deps.selection ?? readSelection;
         this.heading = deps.headingAt ?? headingAt;
-        this.makeMark = deps.makeMark ?? newMark;
+        this.makeMark = deps.makeMark ?? ((id) => newMarkIn(this.body, id));
         this.openThink = deps.openThink ?? openInThink;
         this.copy = deps.copy ?? copyText;
     }
@@ -193,6 +216,19 @@ export class ReaderHighlights {
         component.registerDomEvent(body, "keyup", (event: KeyboardEvent) => {
             if (event.shiftKey) this.onSelect();
         });
+        // A touch selection (long-press, drag handles) ends with no mouseup on the body: listen to
+        // the document's selectionchange too, settled, so highlights work on a phone.
+        const doc = body.ownerDocument as Document | undefined;
+        if (doc) {
+            let settle: number | undefined;
+            component.registerDomEvent(doc, "selectionchange", () => {
+                window.clearTimeout(settle);
+                settle = window.setTimeout(() => {
+                    if (this.body === body) this.onSelect();
+                }, 350);
+            });
+            component.register(() => window.clearTimeout(settle));
+        }
 
         let thoughts: Thought[] = [];
         try {
@@ -216,11 +252,35 @@ export class ReaderHighlights {
         this.view.onChange();
     }
 
+    /** A chapter is about to render: nothing of the last one may show meanwhile. */
+    reset(): void {
+        this.generation++;
+        this.hidePopover();
+        this.body = null;
+        this.notePath = null;
+        this.anchored = [];
+        this.detached = [];
+        this.renderMargin();
+    }
+
+    /** The reader is closing. */
+    dispose(): void {
+        this.hidePopover();
+        this.marginScope?.unload();
+        this.marginScope = null;
+    }
+
+    /** The page scrolled: a popover over a selection or a mark goes with what it pointed at. */
+    onScroll(): void {
+        if (this.popover && !this.popover.hasClass(c("reader-hl-pop--editing"))) this.hidePopover();
+    }
+
     /** Scroll to a highlight and make it flash, when a deep link asked for one. */
     reveal(id: string): boolean {
         const entry = this.anchored.find((candidate) => candidate.thought.id === id);
-        const mark = entry?.marks[0];
-        if (!mark) return false;
+        // An embed that re-rendered drops the marks drawn in it: only a live one can be shown.
+        const mark = entry?.marks.find((m) => m.isConnected !== false);
+        if (!entry || !mark) return false;
         this.view.scrollTo(mark);
         entry.marks.forEach((m) => m.addClass(c("reader-highlight--flash")));
         return true;
@@ -239,17 +299,19 @@ export class ReaderHighlights {
         window.clearTimeout(this.statusTimer);
         this.popover?.remove();
         this.popover = null;
+        this.popoverScope?.unload();
+        this.popoverScope = null;
     }
 
     /** The highlights as a list — the margin's content, and the context panel's on a narrow pane. */
-    renderList(host: HTMLElement): void {
+    renderList(host: HTMLElement, scope: Component): void {
         if (this.anchored.length === 0 && this.detached.length === 0) return;
         host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_margin") });
         for (const entry of this.anchored) {
             const row = host.createEl("button", { cls: c("reader-hl-item"), attr: { type: "button" } });
             row.createDiv({ cls: c("reader-hl-quote"), text: snippet(entry.thought.quote?.exact ?? "") });
             if (entry.thought.text.trim()) row.createDiv({ cls: c("reader-hl-note"), text: entry.thought.text.trim() });
-            this.view.owner.registerDomEvent(row, "click", () => this.reveal(entry.thought.id));
+            scope.registerDomEvent(row, "click", () => this.reveal(entry.thought.id));
         }
         if (this.detached.length === 0) return;
         host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_detached") });
@@ -262,7 +324,7 @@ export class ReaderHighlights {
                 text: t("reader_hl_open_think"),
                 attr: { type: "button" },
             });
-            this.view.owner.registerDomEvent(open, "click", () => this.openThink(this.view.app, thought.about ?? ""));
+            scope.registerDomEvent(open, "click", () => this.openThink(this.view.app, thought.about ?? ""));
         }
     }
 
@@ -312,7 +374,7 @@ export class ReaderHighlights {
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, "reader_hl_save", true, () => save(area.value));
         this.button(actions, "reader_hl_cancel", false, () => this.hidePopover());
-        this.view.owner.registerDomEvent(area, "keydown", (event: KeyboardEvent) => {
+        (this.popoverScope ?? this.view.owner).registerDomEvent(area, "keydown", (event: KeyboardEvent) => {
             if (event.isComposing) return;
             if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
                 event.preventDefault();
@@ -361,7 +423,7 @@ export class ReaderHighlights {
         const next = { ...thought, text: text.trim() };
         if (!thought.text.trim() && next.text) this.noted++;
         try {
-            await this.store.save(next);
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.save(next));
         } catch (error) {
             log.error(`[Reader] could not save a margin note: ${String(error)}`);
             this.status("reader_hl_failed");
@@ -377,7 +439,9 @@ export class ReaderHighlights {
     /** Take a highlight away — its thought goes to the trash, never lost — with an Undo. */
     private async forget(thought: Thought, offerUndo = true): Promise<void> {
         try {
-            await this.store.discard(thought);
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () =>
+                this.store.discard(thought)
+            );
         } catch (error) {
             log.error(`[Reader] could not remove a highlight: ${String(error)}`);
             this.status("reader_hl_failed");
@@ -400,7 +464,9 @@ export class ReaderHighlights {
 
     private async bringBack(thought: Thought): Promise<void> {
         try {
-            await this.store.restore(thought);
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () =>
+                this.store.restore(thought)
+            );
         } catch (error) {
             log.error(`[Reader] could not restore a highlight: ${String(error)}`);
             this.status("reader_hl_failed");
@@ -423,7 +489,14 @@ export class ReaderHighlights {
         if (!body) return [];
         const marks = wrapSpan(body, span, () => this.makeMark(thought.id)) as unknown as HTMLElement[];
         if (thought.text.trim()) marks.forEach((mark) => mark.addClass(c("reader-highlight--noted")));
-        for (const mark of marks) this.component?.registerDomEvent(mark, "click", () => this.openMark(thought.id, mark));
+        for (const mark of marks) {
+            this.component?.registerDomEvent(mark, "click", (event: MouseEvent) => {
+                // Inside a link the mark wins: its popover, not the link's peek or navigation.
+                event.preventDefault();
+                event.stopPropagation();
+                this.openMark(thought.id, mark);
+            });
+        }
         return marks;
     }
 
@@ -458,9 +531,14 @@ export class ReaderHighlights {
     }
 
     private renderMargin(): void {
+        this.marginScope?.unload();
+        this.marginScope = null;
         if (!this.margin) return;
         this.margin.empty();
-        this.renderList(this.margin);
+        const scope = new Component();
+        scope.load();
+        this.marginScope = scope;
+        this.renderList(this.margin, scope);
     }
 
     // ── popover ──────────────────────────────────────────────────────────────
@@ -478,8 +556,11 @@ export class ReaderHighlights {
             "--zf-hl-x": `${Math.round(rect.left + rect.width / 2 - box.left)}px`,
             "--zf-hl-y": `${Math.round(rect.top - box.top)}px`,
         });
+        const scope = new Component();
+        scope.load();
+        this.popoverScope = scope;
         // Clicks inside the popover must not count as a new selection in the chapter.
-        this.view.owner.registerDomEvent(pop, "mousedown", (event: MouseEvent) => event.stopPropagation());
+        scope.registerDomEvent(pop, "mousedown", (event: MouseEvent) => event.stopPropagation());
         this.popover = pop;
         return pop;
     }
@@ -511,7 +592,7 @@ export class ReaderHighlights {
             text: t(key),
             attr: { type: "button" },
         });
-        this.view.owner.registerDomEvent(button, "click", run);
+        (this.popoverScope ?? this.view.owner).registerDomEvent(button, "click", run);
         return button;
     }
 }

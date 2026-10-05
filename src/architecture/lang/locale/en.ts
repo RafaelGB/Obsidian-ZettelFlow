@@ -2309,5 +2309,6 @@ export default {
     reader_saved_rename: 'Rename',
     reader_saved_delete: 'Delete',
     reader_saved_open_title: 'Read again · {0} chapters',
+    reader_saved_open_title_one: 'Read again · {0} chapter',
     home_section_saved_readings: 'Saved readings',
 };

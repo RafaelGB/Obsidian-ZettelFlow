@@ -2310,5 +2310,6 @@ export default {
     reader_saved_rename: 'Renombrar',
     reader_saved_delete: 'Eliminar',
     reader_saved_open_title: 'Leer otra vez · {0} capítulos',
+    reader_saved_open_title_one: 'Leer otra vez · {0} capítulo',
     home_section_saved_readings: 'Lecturas guardadas',
 };

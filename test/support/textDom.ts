@@ -105,8 +105,14 @@ export class FakeEl {
         this.listeners[name] = (this.listeners[name] ?? []).filter((x) => x !== fn);
     }
 
-    fire(name: string, event: unknown = {}): void {
-        for (const fn of this.listeners[name] ?? []) fn(event);
+    fire(name: string, event: Record<string, unknown> = {}): Record<string, unknown> {
+        const evt: Record<string, unknown> = {
+            preventDefault: () => (evt.defaultPrevented = true),
+            stopPropagation: () => (evt.propagationStopped = true),
+            ...event,
+        };
+        for (const fn of this.listeners[name] ?? []) fn(evt);
+        return evt;
     }
 
     getBoundingClientRect(): { left: number; top: number; width: number; height: number } {

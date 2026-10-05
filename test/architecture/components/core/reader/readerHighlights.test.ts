@@ -102,6 +102,15 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         for (const label of ["Highlight", "Highlight and note", "Copy"]) expect(m.button(label)).toBeDefined();
     });
 
+    it("lets the popover go when the page scrolls under it (#667)", async () => {
+        const m = mount();
+        await m.attach();
+        m.select("stores changes");
+        m.body.fire("mouseup");
+        m.highlights.onScroll();
+        expect(m.highlights.hasPopover()).toBe(false);
+    });
+
     it("keeps the passage as a thought about the note, and draws it over the chapter", async () => {
         const m = mount();
         await m.attach();
@@ -190,7 +199,10 @@ describe("highlights are found again on every visit (#671)", () => {
     it("a click on a mark shows its note; edit saves the thought, delete discards it, undo restores", async () => {
         const m = mount([anchored()]);
         await m.attach();
-        m.marks()[0].fire("click");
+        // Inside a link the mark wins: its click goes no further, to no peek and no navigation (#667).
+        const evt = m.marks()[0].fire("click");
+        expect(evt.propagationStopped).toBe(true);
+        expect(evt.defaultPrevented).toBe(true);
         expect(m.host.textContent).toContain("the point");
         m.button("Edit note").click();
         (m.host.find((el) => el.tag === "textarea") as DomNode).value = "a sharper point";

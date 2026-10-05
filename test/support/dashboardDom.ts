@@ -125,15 +125,25 @@ export class DomNode {
     getAttribute(name: string): string | null {
         return this.attrs[name] ?? null;
     }
-    addEventListener(name: string, fn: (event: any) => void): void {
+    /** The options each listener was added with, by event — `capture` is how a link is caught first. */
+    listenerOptions: Record<string, unknown[]> = {};
+    addEventListener(name: string, fn: (event: any) => void, options?: unknown): void {
         (this.listeners[name] ??= []).push(fn);
+        (this.listenerOptions[name] ??= []).push(options);
     }
     removeEventListener(name: string, fn: (event: any) => void): void {
         this.listeners[name] = (this.listeners[name] ?? []).filter((other) => other !== fn);
     }
     /** Dispatch `name` to this node's listeners (no bubbling — fire on the node you mean). */
     fire(name: string, event: any = {}): any {
-        const evt = { preventDefault: () => (evt.defaultPrevented = true), defaultPrevented: false, target: this, ...event };
+        const evt = {
+            preventDefault: () => (evt.defaultPrevented = true),
+            defaultPrevented: false,
+            stopPropagation: () => (evt.propagationStopped = true),
+            propagationStopped: false,
+            target: this,
+            ...event,
+        };
         for (const fn of [...(this.listeners[name] ?? [])]) fn(evt);
         return evt;
     }

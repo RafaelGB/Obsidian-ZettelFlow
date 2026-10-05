@@ -18,6 +18,25 @@ describe("the chapter's text, as highlights see it (#671)", () => {
         expect(chapterText(root as never)).toBe("Event sourcing stores changes, not state.\nNext one.");
         expect(textNodes(root as never)).toHaveLength(7);
     });
+
+    it("never reads inside a diagram, a style, a script or an open peek (#667)", () => {
+        const text = (data: string) => ({ nodeType: 3, data, parentNode: null });
+        const el = (nodeName: string, children: unknown[], cls = "") => ({
+            nodeType: 1,
+            nodeName,
+            classList: { contains: (name: string) => name === cls },
+            childNodes: children,
+        });
+        const root = el("DIV", [
+            el("P", [text("Read this.")]),
+            el("svg", [text("a diagram label")]),
+            el("STYLE", [text(".x{}")]),
+            el("SCRIPT", [text("run()")]),
+            el("DIV", [text("A peeked note.")], "zettelkasten-flow__reader-peek"),
+            el("P", [text("And this.")]),
+        ]);
+        expect(chapterText(root as never)).toBe("Read this.And this.");
+    });
 });
 
 describe("drawing a highlight over rendered markdown (#671)", () => {

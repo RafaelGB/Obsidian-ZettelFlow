@@ -1,7 +1,7 @@
 import { Modal, setIcon, type App } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
-import type { ReadingPathOption } from "architecture/knowledge/state";
+import { SELECTION_CAP, type ReadingPathOption } from "architecture/knowledge/state";
 import { openReader } from "./openReader";
 import { optionsFor, selectionFor } from "./readerPaths";
 import { readerHost, type ReaderHost } from "./readerHost";
@@ -273,7 +273,7 @@ export function readSelection(app: App, paths: readonly string[], host: ReaderHo
     const notes = [...new Set(paths)].filter((path) => path.toLowerCase().endsWith(".md"));
     if (notes.length === 0) return;
     const built = selectionFor(notes);
-    const ordered = built ? built.chapters.map((chapter) => chapter.path) : [...notes].sort();
+    const ordered = built ? built.chapters.map((chapter) => chapter.path) : [...notes].sort().slice(0, SELECTION_CAP);
     const resumed = resumeOf(normalizeResume(host?.settings?.readerResume), readingKey("selection", ordered[0], ordered));
     void openReader(app, { seed: ordered[0], kind: "selection", paths: ordered, chapter: resumed?.chapter ?? 0 });
 }

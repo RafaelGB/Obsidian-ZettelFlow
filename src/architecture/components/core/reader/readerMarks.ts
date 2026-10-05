@@ -22,6 +22,10 @@ export interface TextLike {
 /** An element that can hold and lose children. */
 export interface ParentLike {
     nodeType: number;
+    /** Present on real elements: what kind of element it is (svg, style, script are skipped). */
+    nodeName?: string;
+    /** Present on real elements: a peek card is not part of the chapter's text. */
+    classList?: { contains(name: string): boolean };
     childNodes: ArrayLike<NodeLike>;
     firstChild: NodeLike | null;
     parentNode: ParentLike | null;
@@ -35,7 +39,16 @@ export type NodeLike = TextLike | ParentLike;
 
 const TEXT_NODE = 3;
 
-/** Every text node under `root`, in reading order. */
+/** Elements whose text is not the chapter's: a diagram's styles, scripts, and an open peek card. */
+const SKIPPED = new Set(["svg", "style", "script"]);
+const PEEK_CLASS = "zettelkasten-flow__reader-peek";
+
+function skipped(node: ParentLike): boolean {
+    if (node.nodeName && SKIPPED.has(node.nodeName.toLowerCase())) return true;
+    return node.classList?.contains(PEEK_CLASS) === true;
+}
+
+/** Every text node under `root`, in reading order — never inside a diagram, a script or a peek. */
 export function textNodes(root: NodeLike): TextLike[] {
     const out: TextLike[] = [];
     const walk = (node: NodeLike) => {
@@ -43,6 +56,7 @@ export function textNodes(root: NodeLike): TextLike[] {
             out.push(node as TextLike);
             return;
         }
+        if (node !== root && skipped(node as ParentLike)) return;
         const children = (node as ParentLike).childNodes;
         if (!children) return;
         for (let i = 0; i < children.length; i++) walk(children[i]);

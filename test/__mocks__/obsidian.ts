@@ -37,9 +37,9 @@ export class Component {
   registerEvent(_event: unknown): void { }
   // The real thing: attach, and drop it again on unload. Renderers register their header
   // controls this way (#577), so a fake without it would make every migrated header throw.
-  registerDomEvent(el: any, type: string, handler: (event: any) => void): void {
-    el.addEventListener(type, handler);
-    this.cleanups.push(() => el.removeEventListener(type, handler));
+  registerDomEvent(el: any, type: string, handler: (event: any) => void, options?: unknown): void {
+    el.addEventListener(type, handler, options);
+    this.cleanups.push(() => el.removeEventListener(type, handler, options));
   }
 }
 /**
@@ -59,6 +59,8 @@ export class MarkdownRenderer {
   static calls: { markdown: string; sourcePath: string }[] = [];
   static async render(_app: unknown, markdown: string, el: any, sourcePath: string, _component: unknown): Promise<void> {
     MarkdownRenderer.calls.push({ markdown, sourcePath });
+    // Obsidian hides a note's properties itself: the renderer is handed the raw note.
+    markdown = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
     // Each paragraph becomes a <p>; a [[link]] becomes Obsidian's own anchor — a.internal-link with
     // data-href (and is-unresolved when no note answers it), so link handling is tested on that shape.
     const host = el.createDiv?.({ cls: "rendered-markdown" });
@@ -97,6 +99,7 @@ export class ItemView extends Component {
   getIcon(): string { return ""; }
   getState(): Record<string, unknown> { return {}; }
   async setState(_state: unknown, _result: unknown): Promise<void> { }
+  setEphemeralState(_state: unknown): void { }
 }
 export class Modal {
   /** What `setTitle` was given — a test reads the title the user would see. */

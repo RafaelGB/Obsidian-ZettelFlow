@@ -51,13 +51,12 @@ export class ReaderComponent extends PluginComponent {
                             .onClick(() => readFrom(app, file.path))
                     );
                 } else if (file instanceof TFolder) {
-                    const notes = notesUnder(file);
-                    if (notes.length === 0) return;
+                    // The folder is walked when chosen, not on every right-click; an empty one reads nothing.
                     menu.addItem((item) =>
                         item
                             .setTitle(t("reader_read_folder"))
                             .setIcon("book-open")
-                            .onClick(() => readSelection(app, notes))
+                            .onClick(() => readSelection(app, notesUnder(file)))
                     );
                 }
             })

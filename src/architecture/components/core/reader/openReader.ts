@@ -1,5 +1,5 @@
 import { Platform, type App, type WorkspaceLeaf } from "obsidian";
-import { READER_VIEW, type ReaderSidesState } from "./readerContract";
+import { READER_VIEW, type ReaderKind, type ReaderSidesState } from "./readerContract";
 import { collapseSides, restoreSides, snapshotSides, type SideLike } from "./readerWorkspace";
 
 /**
@@ -26,13 +26,25 @@ export function adoptHeldSides(snapshot: ReaderSidesState): void {
 }
 
 /**
- * **Read from here** (#668): open the reader on `seed`, taking the window.
+ * **Read from here** (#668): open the reader on a note — or on one way through it, or on a set you
+ * picked (#669) — taking the window.
  *
  * There is only one reader. Opening again — from another note — re-reads in the same leaf and keeps
  * the snapshot it took the first time, so the workspace it gives back is the one you had before
  * any reading started.
  */
-export async function openReader(app: App, seed: string): Promise<void> {
+/** What to read: a note (around it, by default), one way through it, or a set you picked. */
+export interface ReaderRequest {
+    seed: string;
+    kind?: ReaderKind;
+    /** A picked set's chapters, already in reading order (see `selectionFor`). */
+    paths?: string[];
+    /** Where to open — a resumed reading starts part-way through. */
+    chapter?: number;
+}
+
+export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
+    const { seed, kind, paths, chapter = 0 } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
     if (!held) {
         const s = sides(app);
@@ -40,7 +52,10 @@ export async function openReader(app: App, seed: string): Promise<void> {
         if (s) collapseSides(s.left, s.right);
     }
     const leaf = workspace.getLeavesOfType(READER_VIEW)[0] ?? workspace.getLeaf("tab");
-    await leaf.setViewState({ type: READER_VIEW, state: { seed, chapter: 0 }, active: true });
+    const state: Record<string, unknown> = { seed, chapter };
+    if (kind && kind !== "around") state.kind = kind;
+    if (paths && paths.length > 0) state.paths = paths;
+    await leaf.setViewState({ type: READER_VIEW, state, active: true });
     await workspace.revealLeaf(leaf);
 }
 

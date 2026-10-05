@@ -25,6 +25,7 @@ import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRen
 import { MapOfContentModal } from "./MapOfContentModal";
 import { BlindGate } from "./BlindGate";
 import { asLinks } from "application/explore/mapOfContent";
+import { readSelection } from "architecture/components/core/reader/readingChooser";
 import type { SavedGraphQuery } from "config";
 import {
     addSavedQuery,
@@ -467,11 +468,10 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * Where a selection can go (#486). Two moves, and deliberately only two.
-     *
-     * Both are **mechanical**: a gathered list of links, and a note that lists them with the facts
-     * you asked about. Neither concludes anything, so neither needs the accept/reject gate §XII
-     * puts in front of interpretive output.
+     * Where a selection can go (#486). Three moves, all **mechanical**: a gathered list of links, a
+     * note that lists them with the facts you asked about, and — since #669 — reading them in the
+     * Reader, in the order their links suggest. None concludes anything, so none needs the
+     * accept/reject gate §XII puts in front of interpretive output, and reading writes nothing.
      *
      * *Think about this* is not here on purpose: thinking is about something in particular, and a
      * set of forty notes is not something in particular. The per-note move already exists, and the
@@ -484,8 +484,11 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             void navigator.clipboard.writeText(asLinks(this.matches));
             new Notice(t("explore_copied", String(this.matches.length)));
         });
-        // A map of everything is not a map.
+        // A reading of everything is not a reading, and a map of everything is not a map.
         if (this.terms.length === 0) return;
+        this.button(this.takeEl, "reader_read_these", "ask-graph-take-read", null, () =>
+            readSelection(this.app, this.matches.map((idea) => idea.path))
+        );
         this.button(this.takeEl, "explore_make_map", "ask-graph-take-map", null, () => this.makeMap());
     }
 

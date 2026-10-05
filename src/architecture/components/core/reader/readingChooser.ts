@@ -1,0 +1,199 @@
+import { Modal, type App } from "obsidian";
+import { c } from "architecture";
+import { t, tCount } from "architecture/lang";
+import type { ReadingPathOption } from "architecture/knowledge/state";
+import { openReader } from "./openReader";
+import { optionsFor, selectionFor } from "./readerPaths";
+import { readerHost, type ReaderHost } from "./readerHost";
+import { normalizeResume, readingKey, resumeOf, type ResumeEntry } from "./readerResume";
+import { KIND_KEY } from "./ReaderView";
+
+type LocaleKey = Parameters<typeof t>[0];
+
+/** What each seeded way through a note promises, under its name. */
+const DESC_KEY: Record<ReadingPathOption["kind"], LocaleKey> = {
+    around: "reader_kind_around_desc",
+    argument: "reader_kind_argument_desc",
+    story: "reader_kind_story_desc",
+    essentials: "reader_kind_essentials_desc",
+    region: "reader_kind_region_desc",
+};
+
+function noteName(path: string): string {
+    return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
+}
+
+/** The most recent reading of this note left part-way, among the ways the chooser offers. */
+export function pendingResume(
+    host: ReaderHost | null,
+    seed: string,
+    options: readonly ReadingPathOption[]
+): { kind: ReadingPathOption["kind"]; entry: ResumeEntry } | null {
+    const map = normalizeResume(host?.settings?.readerResume);
+    let best: { kind: ReadingPathOption["kind"]; entry: ResumeEntry } | null = null;
+    for (const option of options) {
+        const entry = resumeOf(map, readingKey(option.kind, seed));
+        if (entry && (!best || entry.at > best.entry.at)) best = { kind: option.kind, entry };
+    }
+    return best;
+}
+
+/**
+ * **How do you want to read it?** (#669) — the ways through a note, side by side.
+ *
+ * Each shows a small picture of its shape, what it promises and the chapters it would read, so the
+ * choice is made on what you will actually read. Only the ways the vault gives substance to are
+ * offered; one already started can be resumed. Nothing is written by choosing.
+ */
+export class ReadingPathModal extends Modal {
+    private selected: ReadingPathOption["kind"];
+
+    constructor(
+        app: App,
+        private readonly seed: string,
+        private readonly options: readonly ReadingPathOption[],
+        private readonly host: ReaderHost | null = readerHost()
+    ) {
+        super(app);
+        this.selected = options[0]?.kind ?? "around";
+    }
+
+    onOpen(): void {
+        this.setTitle(t("reader_choose_title"));
+        this.render();
+    }
+
+    onClose(): void {
+        this.contentEl.empty();
+    }
+
+    private render(): void {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass(c("reader-chooser"));
+        contentEl.createDiv({ cls: c("reader-chooser-intro"), text: t("reader_choose_intro", noteName(this.seed)) });
+
+        const resume = pendingResume(this.host, this.seed, this.options);
+        if (resume) {
+            const line = contentEl.createEl("button", {
+                cls: c("reader-chooser-resume"),
+                attr: { type: "button" },
+                text: `${t(KIND_KEY[resume.kind])} · ${t("reader_resume", String(resume.entry.chapter + 1), String(resume.entry.total))}`,
+            });
+            line.addEventListener("click", () => this.start(resume.kind, resume.entry.chapter));
+        }
+
+        const grid = contentEl.createDiv({ cls: c("reader-chooser-grid"), attr: { role: "radiogroup" } });
+        for (const option of this.options) {
+            const on = option.kind === this.selected;
+            const card = grid.createEl("button", {
+                cls: [c("reader-chooser-card"), ...(on ? ["is-active"] : [])].join(" "),
+                attr: { type: "button", role: "radio", "aria-checked": String(on) },
+            });
+            drawDiagram(card, option.kind);
+            card.createDiv({ cls: c("reader-chooser-name"), text: t(KIND_KEY[option.kind]) });
+            card.createDiv({ cls: c("reader-chooser-desc"), text: t(DESC_KEY[option.kind]) });
+            card.createDiv({
+                cls: c("reader-chooser-count"),
+                text: tCount(option.path.chapters.length, "reader_choose_chapters", String(option.path.chapters.length)),
+            });
+            card.addEventListener("click", () => {
+                this.selected = option.kind;
+                this.render();
+            });
+            card.addEventListener("dblclick", () => this.start(option.kind, 0));
+        }
+
+        const chosen = this.options.find((option) => option.kind === this.selected) ?? this.options[0];
+        const foot = contentEl.createDiv({ cls: c("reader-chooser-foot") });
+        const preview = foot.createEl("ol", { cls: c("reader-chooser-preview") });
+        chosen?.path.chapters.forEach((chapter) => {
+            preview.createEl("li", { cls: c("reader-chooser-chip"), text: noteName(chapter.path) });
+        });
+        const go = foot.createEl("button", {
+            cls: ["mod-cta", c("reader-chooser-start")].join(" "),
+            attr: { type: "button" },
+            text: t("reader_choose_start"),
+        });
+        go.addEventListener("click", () => this.start(this.selected, 0));
+    }
+
+    private start(kind: ReadingPathOption["kind"], chapter: number): void {
+        this.close();
+        void openReader(this.app, { seed: this.seed, kind, chapter });
+    }
+}
+
+/**
+ * A small picture of each way's shape — dots and lines, coloured by class on the theme's own
+ * colours. Each `cls` is one token or an array: Obsidian's `createSvg` adds it with `classList.add`.
+ */
+function drawDiagram(host: HTMLElement, kind: ReadingPathOption["kind"]): void {
+    const svg = host.createSvg("svg", { cls: c("reader-diagram"), attr: { viewBox: "0 0 120 44", "aria-hidden": "true" } });
+    const node = (x: number, y: number, r: number, tone: string) =>
+        svg.createSvg("circle", { cls: [c("reader-diagram-node"), c(`reader-diagram-node--${tone}`)], attr: { cx: x, cy: y, r } });
+    const edge = (x1: number, y1: number, x2: number, y2: number) =>
+        svg.createSvg("line", { cls: c("reader-diagram-edge"), attr: { x1, y1, x2, y2 } });
+    switch (kind) {
+        case "around":
+            for (const [x, y] of [[30, 10], [30, 34], [90, 10], [90, 34], [60, 6]]) edge(60, 22, x, y);
+            for (const [x, y] of [[30, 10], [30, 34], [90, 10], [90, 34], [60, 6]]) node(x, y, 4, "plain");
+            node(60, 22, 7, "accent");
+            return;
+        case "argument":
+            edge(20, 22, 60, 10);
+            edge(20, 22, 60, 34);
+            edge(60, 10, 100, 22);
+            edge(60, 34, 100, 22);
+            node(20, 22, 6, "accent");
+            node(60, 10, 5, "support");
+            node(60, 34, 5, "counter");
+            node(100, 22, 6, "synthesis");
+            return;
+        case "story":
+            svg.createSvg("path", { cls: c("reader-diagram-curve"), attr: { d: "M10 38 C30 38 32 8 58 8 S86 32 110 18" } });
+            for (const [x, y] of [[10, 38], [58, 8], [110, 18]]) node(x, y, 4, "accent");
+            return;
+        case "essentials":
+            edge(26, 22, 94, 22);
+            node(26, 22, 4, "plain");
+            node(94, 22, 4, "plain");
+            node(60, 6, 2.5, "faint");
+            node(60, 38, 2.5, "faint");
+            node(60, 22, 8, "accent");
+            return;
+        case "region":
+            svg.createSvg("ellipse", { cls: c("reader-diagram-region"), attr: { cx: 60, cy: 22, rx: 46, ry: 18 } });
+            for (const [x1, y1, x2, y2] of [[36, 16, 56, 28], [56, 28, 80, 14], [80, 14, 88, 30], [36, 16, 80, 14]]) edge(x1, y1, x2, y2);
+            for (const [x, y] of [[36, 16], [80, 14], [88, 30]]) node(x, y, 4, "plain");
+            node(56, 28, 6, "accent");
+            return;
+    }
+}
+
+/**
+ * **Read from here** (#669): the chooser when there is a choice — several ways through the note, or
+ * a reading of it left part-way — and straight into the reading when there is only one way.
+ */
+export function readFrom(app: App, seed: string, host: ReaderHost | null = readerHost()): void {
+    const options = optionsFor(app, seed);
+    if (options.length > 1 || pendingResume(host, seed, options)) {
+        new ReadingPathModal(app, seed, options, host).open();
+        return;
+    }
+    void openReader(app, { seed });
+}
+
+/**
+ * **Read these** (#669): notes you picked — files, a folder, an Explore selection — read in the
+ * order their links suggest, and resumed where you left that same set. Nothing to read reads
+ * nothing.
+ */
+export function readSelection(app: App, paths: readonly string[], host: ReaderHost | null = readerHost()): void {
+    const notes = [...new Set(paths)].filter((path) => path.toLowerCase().endsWith(".md"));
+    if (notes.length === 0) return;
+    const built = selectionFor(notes);
+    const ordered = built ? built.chapters.map((chapter) => chapter.path) : [...notes].sort();
+    const resumed = resumeOf(normalizeResume(host?.settings?.readerResume), readingKey("selection", ordered[0], ordered));
+    void openReader(app, { seed: ordered[0], kind: "selection", paths: ordered, chapter: resumed?.chapter ?? 0 });
+}

@@ -181,7 +181,8 @@ describe("the ⋯ menu (#642 AC-12, FR-20)", () => {
 
     it("traces reasoning paths from the companion's own note", () => {
         const { block } = render({ kind: "note", model: model() });
-        expect(block.menuItems().map((item) => item.label)).toEqual(["Trace reasoning paths from this note"]);
+        // Read around this note joined the menu with the Reader's paths (#669).
+        expect(block.menuItems().map((item) => item.label)).toEqual(["Read around this note", "Trace reasoning paths from this note"]);
         expect(render({ kind: "empty", last: null }).block.menuItems()).toEqual([]);
     });
 });

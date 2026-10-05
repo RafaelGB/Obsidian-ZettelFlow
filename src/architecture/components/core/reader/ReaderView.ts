@@ -2,8 +2,11 @@ import { Component, ItemView, MarkdownRenderer, TFile, setIcon, type ViewStateRe
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { buildEvidenceMap, readFromHere, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
-import { READER_VIEW, parseReaderState } from "./readerContract";
+import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
+import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
+import { pathFor } from "./readerPaths";
+import { normalizeResume, readingKey, recordResume } from "./readerResume";
+import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openReader";
 import {
     READER_FONTS,
@@ -41,11 +44,17 @@ const THEME_KEY: Record<ReaderPrefs["theme"], LocaleKey> = {
     dark: "reader_theme_dark",
 };
 
-/** What the view reads and saves through the plugin it is handed. */
-export interface ReaderHost {
-    settings?: { readerPrefs?: unknown };
-    saveSettings?(): Promise<void>;
-}
+export type { ReaderHost };
+
+/** What each way through the notes is called, on the reader's title line and in the chooser. */
+export const KIND_KEY: Record<ReaderKind, LocaleKey> = {
+    around: "reader_kind_around",
+    argument: "reader_kind_argument",
+    story: "reader_kind_story",
+    essentials: "reader_kind_essentials",
+    region: "reader_kind_region",
+    selection: "reader_kind_selection",
+};
 
 type Panel = "contents" | "type" | "context" | null;
 
@@ -69,6 +78,9 @@ function noteName(path: string): string {
  */
 export class ReaderView extends ItemView {
     private path: ReadingPath | null = null;
+    /** How the reading was chosen, and a picked set's order — what the view state keeps. */
+    private kind: ReaderKind = "around";
+    private paths: string[] | undefined;
     private index = 0;
     private prefs: ReaderPrefs;
     private panel: Panel = null;
@@ -115,6 +127,8 @@ export class ReaderView extends ItemView {
         return {
             ...base,
             ...(this.path ? { seed: this.path.seed, chapter: this.index } : {}),
+            ...(this.path && this.kind !== "around" ? { kind: this.kind } : {}),
+            ...(this.paths ? { paths: this.paths } : {}),
             ...(sides ? { restore: sides } : {}),
         };
     }
@@ -124,7 +138,9 @@ export class ReaderView extends ItemView {
         const parsed = parseReaderState(state);
         if (parsed.restore) adoptHeldSides(parsed.restore);
         if (parsed.seed) {
-            this.path = this.buildPath(parsed.seed);
+            this.kind = parsed.kind ?? "around";
+            this.paths = parsed.kind === "selection" ? parsed.paths : undefined;
+            this.path = pathFor(this.app, parsed.seed, this.kind, this.paths);
             this.index = Math.min(parsed.chapter ?? 0, this.path.chapters.length - 1);
         }
         if (this.els) this.render();
@@ -148,12 +164,6 @@ export class ReaderView extends ItemView {
         this.contentEl.empty();
         this.els = null;
         this.root = null;
-    }
-
-    private buildPath(seed: string): ReadingPath {
-        const index = KnowledgeIndex.getInstance();
-        if (index.status !== "ready") return { seed, chapters: [{ path: seed, role: "context" }] };
-        return readFromHere(index.getModel(), seed);
     }
 
     // ── shell ────────────────────────────────────────────────────────────────
@@ -226,7 +236,7 @@ export class ReaderView extends ItemView {
         if (!this.els) return;
         const els = this.els;
         const path = this.path;
-        els.title.setText(path ? `${noteName(path.seed)} · ${t("reader_read_from_here")}` : t("reader_title"));
+        els.title.setText(path ? `${noteName(path.seed)} · ${t(KIND_KEY[this.kind])}` : t("reader_title"));
         const total = path?.chapters.length ?? 0;
         els.label.setText(total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
         els.progress.max = Math.max(1, total);
@@ -320,6 +330,7 @@ export class ReaderView extends ItemView {
         this.index = Math.max(0, Math.min(index, this.path.chapters.length - 1));
         this.render();
         this.app.workspace.requestSaveLayout();
+        this.rememberPlace();
     }
 
     private go(delta: number): void {
@@ -327,6 +338,21 @@ export class ReaderView extends ItemView {
         const next = this.index + delta;
         if (next < 0 || next >= this.path.chapters.length) return;
         this.show(next);
+    }
+
+    /** Keep where this reading is, so the chooser can offer to resume it (#669). */
+    private rememberPlace(): void {
+        const settings = this.plugin?.settings;
+        if (!settings || !this.path) return;
+        const key = readingKey(this.kind, this.path.seed, this.paths);
+        settings.readerResume = recordResume(
+            normalizeResume(settings.readerResume),
+            key,
+            this.index,
+            this.path.chapters.length,
+            Date.now()
+        );
+        void this.plugin?.saveSettings?.();
     }
 
     // ── panels ───────────────────────────────────────────────────────────────

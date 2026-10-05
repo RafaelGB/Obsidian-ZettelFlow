@@ -12,9 +12,17 @@ export interface ReaderSidesState {
     right: boolean;
 }
 
+/** The ways a reading can be chosen (#669) — kept in step with the State layer's kinds. */
+export const READING_KINDS = ["around", "argument", "story", "essentials", "region", "selection"] as const;
+export type ReaderKind = (typeof READING_KINDS)[number];
+
 export interface ReaderState {
     seed?: string;
     chapter?: number;
+    /** How the chapters were chosen. Absent: around the seed (#668). */
+    kind?: ReaderKind;
+    /** A selection's chapters, in reading order — a picked set is not rebuilt, it is kept. */
+    paths?: string[];
     /** Whether each sidebar was collapsed before the reader opened. */
     restore?: ReaderSidesState;
 }
@@ -27,6 +35,13 @@ export function parseReaderState(raw: unknown): ReaderState {
     if (typeof value.seed === "string" && value.seed.length > 0) state.seed = value.seed;
     if (typeof value.chapter === "number" && Number.isInteger(value.chapter) && value.chapter >= 0) {
         state.chapter = value.chapter;
+    }
+    if (typeof value.kind === "string" && (READING_KINDS as readonly string[]).includes(value.kind)) {
+        state.kind = value.kind as ReaderKind;
+    }
+    if (Array.isArray(value.paths)) {
+        const paths = value.paths.filter((p): p is string => typeof p === "string" && p.length > 0);
+        if (paths.length > 0) state.paths = paths;
     }
     const restore = value.restore as Record<string, unknown> | undefined;
     if (restore && typeof restore.left === "boolean" && typeof restore.right === "boolean") {

@@ -1,6 +1,17 @@
-import { Component, ItemView, Keymap, MarkdownRenderer, TFile, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import {
+    Component,
+    ItemView,
+    Keymap,
+    MarkdownRenderer,
+    Scope,
+    TFile,
+    setIcon,
+    type Modifier,
+    type ViewStateResult,
+    type WorkspaceLeaf,
+} from "obsidian";
 import { c, log } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
@@ -19,6 +30,7 @@ import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openR
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
+import { END_OF_CHAPTER, minutesFor, minutesLeft, readFraction, scrolls, wordCount } from "./readerPace";
 import {
     READER_FONTS,
     READER_SIZES,
@@ -32,6 +44,42 @@ type LocaleKey = Parameters<typeof t>[0];
 
 /** The bar fades after this long without a pointer move or a key. */
 const IDLE_MS = 2000;
+
+/** The leaving fade (`reader--leaving` in reader.scss); the workspace comes back when it ends. */
+const EXIT_MS = 220;
+
+/**
+ * The keys, as the shortcuts sheet lists them. A cap is a locale key (a word: Space, Esc) or the
+ * literal glyph on the key (→, H, ?).
+ */
+const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
+    { keys: ["→"], label: "reader_key_next" },
+    { keys: ["←"], label: "reader_key_previous" },
+    { keys: ["reader_kbd_space"], label: "reader_key_page" },
+    { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_back" },
+    { keys: ["reader_kbd_home", "reader_kbd_end"], label: "reader_key_ends" },
+    { keys: ["H"], label: "reader_key_highlight" },
+    { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
+    { keys: ["F"], label: "reader_key_fullscreen" },
+    { keys: ["?"], label: "reader_key_help" },
+    { keys: ["reader_kbd_esc"], label: "reader_key_exit" },
+];
+
+/** Literal map, so the locale guardrail sees every key cap the sheet draws. */
+const KBD_KEY: Record<string, LocaleKey> = {
+    reader_kbd_space: "reader_kbd_space",
+    reader_kbd_shift: "reader_kbd_shift",
+    reader_kbd_home: "reader_kbd_home",
+    reader_kbd_end: "reader_kbd_end",
+    reader_kbd_esc: "reader_kbd_esc",
+};
+
+/** Whether a key went to something you type in — a margin note, a save name — and is not ours. */
+function isTyping(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    if (!el) return false;
+    return el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable === true;
+}
 
 const ROLE_KEY: Record<ChapterRole, LocaleKey> = {
     thesis: "reader_role_thesis",
@@ -94,7 +142,19 @@ export class ReaderView extends ItemView {
         panel: HTMLElement;
         stage: HTMLElement;
         margin: HTMLElement;
+        hairline: HTMLElement;
+        minutes: HTMLElement;
     } | null = null;
+    /** Words in the chapter on screen, for the minutes left. */
+    private chapterWords = 0;
+    /** The end-of-chapter card: the next chapter's name and length, lit when you reach it. */
+    private nextCard: HTMLElement | null = null;
+    /** Which way the next page turns: forward, back, or 0 for a reading that just opened. */
+    private turn: 1 | -1 | 0 = 0;
+    /** The leaving fade is playing; a second Esc or × does not start another. */
+    private leaving = false;
+    /** The keyboard shortcuts sheet, while it is open. */
+    private shortcuts: HTMLElement | null = null;
     /** Highlights and margin notes (#671): drawn over each chapter, kept as thoughts in Think. */
     private highlights: ReaderHighlights | null = null;
     /** A highlight a deep link asked to land on — consumed by the next chapter that holds it. */
@@ -147,6 +207,10 @@ export class ReaderView extends ItemView {
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
+        // Obsidian's way (#667): the active leaf's scope gets the keys, wherever focus is, and only
+        // the keys it registers — Ctrl/Cmd/Alt combinations fall through to the app's hotkeys.
+        this.scope = new Scope(this.app?.scope);
+        this.registerKeys(this.scope);
     }
 
     /** A literal: `ItemView` calls this from its own constructor, before any field exists (#278). */
@@ -236,7 +300,6 @@ export class ReaderView extends ItemView {
     async onOpen(): Promise<void> {
         this.buildShell();
         this.contentEl.setAttribute("tabindex", "-1");
-        this.registerDomEvent(this.contentEl, "keydown", (event) => this.onKey(event));
         this.registerDomEvent(this.contentEl, "mousemove", () => this.wake());
         // A reading restored before the index is ready is read as soon as the model is built.
         this.app.workspace.onLayoutReady?.(() => this.resolvePending());
@@ -280,7 +343,10 @@ export class ReaderView extends ItemView {
             attr: { type: "button", "aria-label": t("reader_exit") },
         });
         setIcon(close, "x");
-        this.registerDomEvent(close, "click", () => exitReader(this.app, this.leaf));
+        this.registerDomEvent(close, "click", () => this.exit());
+        // How far through the chapter you are: a hairline across the top, filled by the scroll.
+        const hairline = root.createDiv({ cls: c("reader-hairline"), attr: { "aria-hidden": "true" } });
+        hairline.createDiv({ cls: c("reader-hairline-fill") });
 
         // The way back from a detour (#670): one press pops one level.
         const pill = root.createEl("button", {
@@ -292,7 +358,10 @@ export class ReaderView extends ItemView {
 
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
-        this.registerDomEvent(stage, "scroll", () => this.highlights?.onScroll());
+        this.registerDomEvent(stage, "scroll", () => {
+            this.highlights?.onScroll();
+            this.onStageScroll();
+        });
         // A peek is read in place; clicking elsewhere puts it away.
         this.registerDomEvent(root, "mousedown", (event) => {
             const target = event.target as HTMLElement | null;
@@ -307,15 +376,17 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "chevron-left", "reader_previous", () => this.go(-1));
         const label = bar.createSpan({ cls: c("reader-bar-label") });
         const progress = bar.createEl("progress", { cls: c("reader-progress") });
+        const minutes = bar.createSpan({ cls: [c("reader-bar-minutes"), c("reader-hidden")].join(" ") });
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
         this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
+        this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -344,7 +415,8 @@ export class ReaderView extends ItemView {
     private applyPrefs(): void {
         if (!this.root) return;
         const { plugin, obsidian } = readerClassNames(this.prefs);
-        this.root.className = [...plugin.map((name) => c(name)), ...obsidian].join(" ");
+        const idle = this.root.hasClass?.(c("reader--idle")) ?? false;
+        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...(idle ? [c("reader--idle")] : [])].join(" ");
     }
 
     private savePrefs(next: ReaderPrefs): void {
@@ -409,6 +481,9 @@ export class ReaderView extends ItemView {
         this.chapter = component;
 
         page.empty();
+        this.turnPage(page);
+        this.chapterWords = 0;
+        this.nextCard = null;
         const total = this.path.chapters.length;
         page.createDiv({
             cls: c("reader-count"),
@@ -421,6 +496,7 @@ export class ReaderView extends ItemView {
         page.createEl("h1", { cls: c("reader-chapter-title"), text: noteName(reading) });
         const body = page.createDiv({ cls: ["markdown-rendered", c("reader-body")].join(" ") });
         stage.scrollTop = 0;
+        this.onStageScroll();
         // Before the render, and in the capture phase: an embed's own link handler would otherwise
         // open the note in another tab — or create it, when the link is unresolved — before ours ran.
         component.registerDomEvent(body, "click", (event) => this.onLink(event), { capture: true });
@@ -442,6 +518,8 @@ export class ReaderView extends ItemView {
             }
         }
         if (generation !== this.generation) return;
+        this.chapterWords = wordCount(body.textContent ?? "");
+        this.watchFocus(body, component);
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
             if (generation !== this.generation || !this.pendingHighlight) return;
@@ -454,18 +532,103 @@ export class ReaderView extends ItemView {
             if (target) hoverPreview(this.app, link as HTMLElement, target.path, component);
         }
 
-        const next = page.createDiv({ cls: c("reader-next") }).createEl("button", {
+        const card = page.createDiv({ cls: c("reader-next") });
+        this.nextCard = card;
+        const next = card.createEl("button", {
             cls: c("reader-next-button"),
             attr: { type: "button" },
         });
+        this.onStageScroll();
         if (detour) {
             next.setText(t("reader_back_to", this.backName()));
             component.registerDomEvent(next, "click", () => this.backFromDetour());
             return;
         }
         const last = this.index === total - 1;
-        next.setText(last ? t("reader_finish") : t("reader_next_named", noteName(this.path.chapters[this.index + 1].path)));
-        component.registerDomEvent(next, "click", () => (last ? this.finish() : this.go(1)));
+        if (last) {
+            next.setText(t("reader_finish"));
+            component.registerDomEvent(next, "click", () => this.finish());
+            return;
+        }
+        // "Next · its name · how long it is": the end of a chapter tells you what the next one asks.
+        const upcoming = this.path.chapters[this.index + 1].path;
+        next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", noteName(upcoming)) });
+        component.registerDomEvent(next, "click", () => this.go(1));
+        void this.nextMinutes(upcoming).then((minutes) => {
+            if (generation !== this.generation || minutes === 0) return;
+            next.createSpan({ cls: c("reader-next-sep"), text: "·", attr: { "aria-hidden": "true" } });
+            next.createSpan({ cls: c("reader-next-minutes"), text: tCount(minutes, "reader_minutes", String(minutes)) });
+        });
+    }
+
+    /** How long a chapter takes to read, from its words; 0 when it cannot be read. */
+    private async nextMinutes(notePath: string): Promise<number> {
+        const file = this.app.vault.getAbstractFileByPath(notePath);
+        if (!(file instanceof TFile)) return 0;
+        try {
+            return minutesFor(wordCount(stripFrontmatter(await this.app.vault.cachedRead(file))));
+        } catch (error) {
+            log.debug(`[Reader] could not measure ${notePath}: ${String(error)}`);
+            return 0;
+        }
+    }
+
+    /**
+     * The page turns the way you went (#667): forward slides in from the right, back from the left,
+     * a reading that just opened rises. The same element is reused, so the class is taken off and
+     * the box read once — that restarts the animation instead of leaving it finished.
+     */
+    private turnPage(page: HTMLElement): void {
+        const turns = [c("reader-page--forward"), c("reader-page--back"), c("reader-page--enter")];
+        page.removeClass(...turns);
+        void page.offsetWidth;
+        page.addClass(this.turn > 0 ? turns[0] : this.turn < 0 ? turns[1] : turns[2]);
+        this.turn = 0;
+    }
+
+    /** The hairline, the minutes left and the next card, from where the page is scrolled to. */
+    private onStageScroll(): void {
+        const els = this.els;
+        if (!els) return;
+        const { stage } = els;
+        const fraction = this.ended ? 1 : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
+        els.hairline.setCssProps?.({ "--zf-reader-read": String(Math.round(fraction * 1000) / 1000) });
+        const left = this.ended ? 0 : minutesLeft(this.chapterWords, fraction);
+        els.minutes.setText(left > 0 ? tCount(left, "reader_minutes_left", String(left)) : "");
+        els.minutes.toggleClass(c("reader-hidden"), left === 0);
+        const atEnd = !scrolls(stage.scrollHeight, stage.clientHeight) || fraction >= END_OF_CHAPTER;
+        this.nextCard?.toggleClass(c("reader-next--arrived"), atEnd);
+    }
+
+    /**
+     * Focus mode (#667): the block nearest the reading line — a band a little above the middle —
+     * is marked, and the stylesheet dims the rest when focus is on. Watched always, so turning focus
+     * on mid-chapter lights the right paragraph at once.
+     */
+    private watchFocus(body: HTMLElement, component: Component): void {
+        const stage = this.els?.stage;
+        // Obsidian's renderer draws a section per block; the jest fake draws one wrapper of paragraphs.
+        const blocks = Array.from(body.children) as HTMLElement[];
+        if (!stage || blocks.length === 0) return;
+        const mark = c("reader-focus-current");
+        let current: HTMLElement = blocks[0];
+        current.addClass(mark);
+        // The reader's own window's observer: a pop-out window has its own.
+        const win = this.viewWindow() as unknown as { IntersectionObserver?: typeof IntersectionObserver } | undefined;
+        const Observer = win?.IntersectionObserver;
+        if (!Observer) return;
+        const observer = new Observer(
+            (entries: IntersectionObserverEntry[]) => {
+                const hit = entries.find((entry) => entry.isIntersecting)?.target as HTMLElement | undefined;
+                if (!hit || hit === current) return;
+                current.removeClass(mark);
+                current = hit;
+                hit.addClass(mark);
+            },
+            { root: stage, rootMargin: "-38% 0px -56% 0px", threshold: 0 }
+        );
+        for (const block of blocks) observer.observe(block);
+        component.register(() => observer.disconnect());
     }
 
     /** The note on screen: the deepest detour, or the chapter. */
@@ -622,8 +785,10 @@ export class ReaderView extends ItemView {
         if (!this.path) return;
         this.pending = null;
         this.detours = [];
+        const target = Math.max(0, Math.min(index, this.path.chapters.length - 1));
+        this.turn = this.ended || target < this.index ? -1 : target > this.index ? 1 : 0;
         this.ended = false;
-        this.index = Math.max(0, Math.min(index, this.path.chapters.length - 1));
+        this.index = target;
         this.render();
         this.app.workspace.requestSaveLayout();
         this.rememberPlace();
@@ -643,6 +808,33 @@ export class ReaderView extends ItemView {
         }
         if (next < 0) return;
         this.show(next);
+    }
+
+    /** The next chapter — the palette's *Reader: next chapter*, and →. */
+    nextChapter(): void {
+        this.go(1);
+    }
+
+    /** The previous chapter — the palette's *Reader: previous chapter*, and ←. */
+    previousChapter(): void {
+        this.go(-1);
+    }
+
+    /**
+     * Leave the reader (#667) — Esc, ×, or the palette's *Reader: exit*: the page fades, then the
+     * sidebars come back as they were, the leaf you were in is active again, and this one closes.
+     * With reduced motion (or no window to ask) it goes at once.
+     */
+    exit(): void {
+        if (this.leaving) return;
+        this.leaving = true;
+        const root = this.root;
+        if (!root || !this.motionAllowed()) {
+            exitReader(this.app, this.leaf);
+            return;
+        }
+        root.addClass(c("reader--leaving"));
+        window.setTimeout(() => exitReader(this.app, this.leaf), EXIT_MS);
     }
 
     // ── the end of a path (#672) ─────────────────────────────────────────────
@@ -844,6 +1036,14 @@ export class ReaderView extends ItemView {
         group(READER_FONTS, this.prefs.font, (o) => FONT_KEY[o], (font) => ({ ...this.prefs, font }));
         group(READER_SIZES, this.prefs.size, (o) => SIZE_KEY[o], (size) => ({ ...this.prefs, size }));
         group(READER_THEMES, this.prefs.theme, (o) => THEME_KEY[o], (theme) => ({ ...this.prefs, theme }));
+        // Focus mode: one switch, kept with the rest of the type.
+        const focus = host.createDiv({ cls: c("reader-type-group") }).createEl("button", {
+            cls: [c("reader-type-option"), c("reader-focus-toggle"), ...(this.prefs.focus ? ["is-active"] : [])].join(" "),
+            attr: { type: "button", "aria-pressed": String(this.prefs.focus) },
+        });
+        setIcon(focus.createSpan({ cls: c("reader-focus-icon") }), "focus");
+        focus.createSpan({ text: t("reader_focus") });
+        this.panelScope?.registerDomEvent(focus, "click", () => this.savePrefs({ ...this.prefs, focus: !this.prefs.focus }));
     }
 
     private renderContext(host: HTMLElement): void {
@@ -874,64 +1074,149 @@ export class ReaderView extends ItemView {
 
     // ── keys, idle bar, fullscreen ───────────────────────────────────────────
 
-    private onKey(event: KeyboardEvent): void {
-        const target = event.target as HTMLElement | null;
-        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
-        // Ctrl/Cmd/Alt combinations are Obsidian's and the system's (Ctrl+F, Ctrl+H, Alt+←), never ours.
-        if (event.ctrlKey || event.metaKey || event.altKey) return;
-        this.wake();
-        switch (event.key) {
-            case "ArrowRight":
-            case "PageDown":
-            case " ":
-                event.preventDefault();
-                this.go(1);
-                return;
-            case "ArrowLeft":
-            case "PageUp":
-                event.preventDefault();
-                this.go(-1);
-                return;
-            case "Home":
-                this.show(0);
-                return;
-            case "End":
-                this.show((this.path?.chapters.length ?? 1) - 1);
-                return;
-            case "f":
-            case "F":
-                event.preventDefault();
-                this.toggleFullscreen();
-                return;
-            case "h":
-            case "H":
-                // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
-                if (this.highlights?.highlightCurrent(event.shiftKey)) event.preventDefault();
-                return;
-            case "Escape":
-                // One thing at a time, nearest first: the highlight popover, the peek, a detour, a panel.
-                if (this.highlights?.hasPopover()) {
-                    this.highlights.hidePopover();
-                    return;
-                }
-                if (this.peek) {
-                    this.closePeek();
-                    return;
-                }
-                if (this.detours.length > 0) {
-                    this.backFromDetour();
-                    return;
-                }
-                if (this.panel) {
-                    this.panel = null;
-                    this.renderPanel();
-                    return;
-                }
-                // In fullscreen the browser takes Esc to leave it; only then does Esc leave the reader.
-                if (this.ownDocument()?.fullscreenElement) return;
-                exitReader(this.app, this.leaf);
-                return;
+    /**
+     * The reader's keys, on its own scope (#667). Each handler says whether it took the key: taken,
+     * Obsidian stops it there (`false`); not taken — typing in a note field, nothing selected for H —
+     * it goes on to the app. Esc is always taken while the reader is up, or Obsidian's own Esc would
+     * hand the focus to another tab instead of closing this one.
+     */
+    private registerKeys(scope: Scope): void {
+        const none: Modifier[] = [];
+        const shift: Modifier[] = ["Shift"];
+        const bind = (modifiers: Modifier[] | null, key: string, run: () => boolean) =>
+            scope.register(modifiers, key, (event: KeyboardEvent) => {
+                if (isTyping(event.target)) return true;
+                this.wake();
+                return !run();
+            });
+        const taken = (fn: () => void) => () => {
+            fn();
+            return true;
+        };
+        bind(none, "ArrowRight", taken(() => this.go(1)));
+        bind(none, "PageDown", taken(() => this.go(1)));
+        bind(none, "ArrowLeft", taken(() => this.go(-1)));
+        bind(none, "PageUp", taken(() => this.go(-1)));
+        bind(none, "ArrowDown", taken(() => this.scrollStage(0.12)));
+        bind(none, "ArrowUp", taken(() => this.scrollStage(-0.12)));
+        bind(none, " ", taken(() => this.page(1)));
+        bind(shift, " ", taken(() => this.page(-1)));
+        bind(none, "Home", taken(() => this.show(0)));
+        bind(none, "End", taken(() => this.show((this.path?.chapters.length ?? 1) - 1)));
+        bind(none, "F", taken(() => this.toggleFullscreen()));
+        // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
+        bind(none, "H", () => this.highlights?.highlightCurrent(false) ?? false);
+        bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);
+        // `?` is Shift+/ on one layout and its own key on another: any modifiers.
+        bind(null, "?", taken(() => this.toggleShortcuts()));
+        bind(none, "Escape", taken(() => this.escape()));
+    }
+
+    /** Esc: one thing at a time, nearest first — then the reader itself. */
+    private escape(): void {
+        if (this.shortcuts) {
+            this.closeShortcuts();
+            return;
         }
+        if (this.highlights?.hasPopover()) {
+            this.highlights.hidePopover();
+            return;
+        }
+        if (this.peek) {
+            this.closePeek();
+            return;
+        }
+        if (this.detours.length > 0) {
+            this.backFromDetour();
+            return;
+        }
+        if (this.panel) {
+            this.panel = null;
+            this.renderPanel();
+            return;
+        }
+        // In fullscreen, Esc leaves fullscreen — the reader stays.
+        if (this.ownDocument()?.fullscreenElement) {
+            this.toggleFullscreen();
+            return;
+        }
+        this.exit();
+    }
+
+    /**
+     * Space: a screen further down the chapter, and the next chapter once you are at its end —
+     * Shift+Space the same, backwards. Reading never needs the mouse.
+     */
+    private page(direction: 1 | -1): void {
+        const stage = this.els?.stage;
+        if (!stage || this.ended) {
+            this.go(direction);
+            return;
+        }
+        const fraction = readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
+        const canScroll = scrolls(stage.scrollHeight, stage.clientHeight);
+        if (!canScroll || (direction > 0 ? fraction >= END_OF_CHAPTER : stage.scrollTop <= 0)) {
+            this.go(direction);
+            return;
+        }
+        this.scrollStage(direction * 0.85);
+    }
+
+    /** Scroll the page by a share of its own height — smoothly, unless motion is reduced. */
+    private scrollStage(share: number): void {
+        const stage = this.els?.stage;
+        if (!stage) return;
+        const top = Math.round((stage.clientHeight || 0) * share);
+        if (typeof stage.scrollBy === "function") stage.scrollBy({ top, behavior: this.motionAllowed() ? "smooth" : "auto" });
+        else stage.scrollTop = Math.max(0, stage.scrollTop + top);
+    }
+
+    // ── the shortcuts sheet ──────────────────────────────────────────────────
+
+    private toggleShortcuts(): void {
+        if (this.shortcuts) this.closeShortcuts();
+        else this.openShortcuts();
+    }
+
+    private openShortcuts(): void {
+        const root = this.root;
+        if (!root) return;
+        const sheet = root.createDiv({
+            cls: c("reader-shortcuts"),
+            attr: { role: "dialog", "aria-modal": "true", "aria-label": t("reader_shortcuts") },
+        });
+        const card = sheet.createDiv({ cls: c("reader-shortcuts-card") });
+        card.createDiv({ cls: c("reader-panel-title"), text: t("reader_shortcuts") });
+        const list = card.createEl("dl", { cls: c("reader-shortcuts-list") });
+        for (const row of SHORTCUTS) {
+            const keys = list.createEl("dt", { cls: c("reader-shortcuts-keys") });
+            for (const key of row.keys) keys.createEl("kbd", { text: KBD_KEY[key] ? t(KBD_KEY[key]) : key });
+            list.createEl("dd", { cls: c("reader-shortcuts-label"), text: t(row.label) });
+        }
+        card.createDiv({ cls: c("reader-shortcuts-hint"), text: t("reader_shortcuts_commands") });
+        // Anywhere closes it: it only explains, and asks nothing.
+        this.registerDomEvent(sheet, "click", () => this.closeShortcuts());
+        this.shortcuts = sheet;
+        this.wake();
+    }
+
+    private closeShortcuts(): void {
+        this.shortcuts?.remove();
+        this.shortcuts = null;
+    }
+
+    /** The window the reader is drawn in — a pop-out has its own. */
+    private viewWindow(): Window | undefined {
+        const win = (this.contentEl as HTMLElement & { win?: Window }).win;
+        if (win) return win;
+        return typeof activeWindow === "undefined" ? undefined : activeWindow;
+    }
+
+    /** Whether to animate: a window that can be asked, and a user who has not asked for less motion. */
+    private motionAllowed(): boolean {
+        const win = this.viewWindow();
+        if (typeof win?.matchMedia !== "function") return false;
+        return !win.matchMedia("(prefers-reduced-motion: reduce)").matches;
     }
 
     /** Bring an element of the chapter into view inside the reader's own scroller, never its ancestors. */
@@ -966,7 +1251,7 @@ export class ReaderView extends ItemView {
         this.root.removeClass(c("reader--idle"));
         window.clearTimeout(this.idleTimer);
         this.idleTimer = window.setTimeout(() => {
-            if (!this.panel) this.root?.addClass(c("reader--idle"));
+            if (!this.panel && !this.shortcuts) this.root?.addClass(c("reader--idle"));
         }, IDLE_MS);
     }
 }

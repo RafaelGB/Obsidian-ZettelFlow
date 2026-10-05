@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
+import { press } from "../../../../support/readerKeys";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
@@ -61,7 +62,8 @@ async function open(settings: Record<string, unknown> = {}, extra: Record<string
     return m;
 }
 
-const key = (content: DomNode, k: string) => content.fire("keydown", { key: k, target: content });
+const key = (content: DomNode, k: string, extra: Record<string, unknown> = {}) =>
+    press(content as never, k, { target: content, ...extra });
 const title = (content: DomNode) => content.oneByClass("reader-chapter-title").textContent;
 const action = (content: DomNode, name: string) =>
     content.byClass("reader-end-action").find((b) => b.oneByClass("reader-end-action-name").textContent === name)!;

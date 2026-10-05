@@ -8,7 +8,7 @@ description: Read a path across your notes the way you read a book — right-cli
 from start to finish, the way you read a book. It takes the whole window, gives you one chapter at a
 time, and steps out of the way while you read.
 
-![The Reader: a chapter of a reading path, with the bar and the type panel](../resources/reader/reader.svg)
+![The Reader: a chapter in focus mode, the progress hairline across the top, the minutes left in the bar, and the type panel](../resources/reader/reader.svg)
 
 ## Open it
 
@@ -19,9 +19,11 @@ time, and steps out of the way while you read.
 - **Explore → Read these**, beside *Copy as links*, reads what your question selected.
 - **Command palette → "Read from the active note"**, which you can bind to a hotkey.
 
-The sidebars fold away and the Reader takes the window. When you leave, with **Esc** or the **×**,
-your workspace comes back exactly as it was: the sidebars that were open open again, and you return
-to the tab you were in.
+The sidebars fold away and the Reader takes the window. When you leave, with **Esc**, the **×** or
+the command **Reader: exit**, the page fades out, the reader's tab closes, and your workspace comes
+back exactly as it was: the sidebars that were open open again, and you return to the tab you were
+in, where you left it. Closing the tab any other way gives everything back too, and so does a reader
+left open across a restart.
 
 ## Choosing what to read
 
@@ -74,20 +76,56 @@ relations:
 
 | Key | Does |
 |---|---|
-| **→**, **Space**, **Page down** | next chapter |
+| **→**, **Page down** | next chapter |
 | **←**, **Page up** | previous chapter |
+| **Space** / **Shift+Space** | a screen down (up) the chapter, and the next (previous) chapter once you reach its end |
+| **↓** / **↑** | scroll the chapter a little |
 | **Home** / **End** | first / last chapter |
 | **F** | fullscreen (desktop) |
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
-| **Esc** | one thing at a time, nearest first: close the highlight popover, close a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
+| **?** | the keyboard shortcuts, on the page (also a button in the bar) |
+| **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
 
-The **bar** at the bottom appears when you move the mouse and fades after two seconds. It holds:
+The keys work whenever the Reader is the active tab, wherever the focus is: they are registered the
+way Obsidian's own views register theirs, so they never fight a hotkey of yours. **Ctrl**, **Cmd**
+and **Alt** combinations are always Obsidian's, and a key typed into a margin note or a name is
+never taken.
 
-- the chapter you are on and your progress;
+Three **commands** do the same from the palette, and you can bind them to hotkeys of your own. They
+appear only while a reading is the active tab, and none has a default hotkey:
+
+| Command | Does |
+|---|---|
+| **Reader: next chapter** | the next chapter (the end card after the last) |
+| **Reader: previous chapter** | the previous chapter |
+| **Reader: exit** | leave the Reader and get the workspace back |
+
+The **bar** at the bottom appears when you move the mouse and fades after two seconds, and the
+pointer fades with it. It holds:
+
+- the chapter you are on, your progress through the path, and **about how many minutes are left**
+  in this chapter (at 220 words a minute, counted down as you scroll);
 - **Contents**, the chapters with their roles;
 - **Type**;
 - **Around this chapter**, with what supports it, what argues back and its open questions;
-- **Fullscreen**.
+- **Fullscreen**;
+- **Keyboard shortcuts**.
+
+A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
+way on lights up: **Next · *its name* · *how long it is***.
+
+### A reader that feels good
+
+- **The measure of a book.** About 68 characters to a line, with ragged edges evened out, long words
+  hyphenated and generous leading, in your theme's font or a serif.
+- **Pages that turn.** Going forward the page slides in from the right; going back, from the left.
+  Each chapter opens in order: its number, its role, its title, then the words.
+- **A marker, not a stamp.** A new highlight is swept across the words like a marker pen.
+- **Focus mode** (in **Type**): every paragraph but the one at your reading line steps back, so your
+  eye stays where you are. It is remembered for next time.
+- **Calm when you read.** Opening, the page rises out of the workspace; leaving, it sinks back.
+- **Less motion, if you asked for it.** With your system's *reduce motion* setting on, every one of
+  these is instant: nothing slides, sweeps or fades.
 
 Chapters are drawn by Obsidian's own Markdown renderer, so callouts, embeds, math and your theme look
 as they do everywhere else.
@@ -123,8 +161,9 @@ questions, read from the same model as [This note](this-note.md). Each of those 
 ## Highlights and notes in the margin
 
 Reading well means stopping at the sentence that matters. Select some words in a chapter, as you
-would on a Kindle, and a small popover offers **Highlight**, **Highlight and note** or **Copy** (or
-press **H**, or **Shift+H** for the note).
+would on a Kindle — with the mouse, the keyboard, or a long-press on a phone — and a small popover
+offers **Highlight**, **Highlight and note** or **Copy** (or press **H**, or **Shift+H** for the
+note). A drag that ends past the text, in the margin or below the last line, still counts.
 
 ![A chapter with highlights, the popover over a selection, a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
 
@@ -177,8 +216,8 @@ end card says what it added up to and what you can do with it.
 
 ## Type and reading themes
 
-The **Type** panel sets the font (your theme's own, or a serif), three sizes and a reading theme. The
-choices are kept for next time.
+The **Type** panel sets the font (your theme's own, or a serif), three sizes, a reading theme and
+**Focus mode**. The choices are kept for next time.
 
 | Theme | Looks like |
 |---|---|
@@ -206,6 +245,16 @@ adding a note to a reading — an added note lasts as long as the reading on scr
 - The opener snapshots the sidebars, folds them and opens one reader leaf. `restoreWorkspace` gives
   them back, once.
 - The snapshot also lives in the view state, so a reader left open across a restart still restores.
+- Keys (#667) are registered on the view's `scope` (`new Scope(app.scope)`), which Obsidian's keymap
+  consults for the active leaf whatever has focus. A handler returns `false` when it took the key;
+  Esc is always taken, or Obsidian's global Esc would move the focus to another tab. The three
+  commands live in `ReaderComponent` and use `getActiveViewOfType(ReaderView)`.
+- `ReaderView.exit()` adds `reader--leaving`, waits for the fade (instant under reduced motion) and
+  calls `exitReader`: restore the sidebars, re-activate the previous leaf, detach.
+- Obsidian sets `body { user-select: none }`; `reader.scss` gives `user-select: text` back to the
+  chapter body, or nothing in it could be selected — the cause of "highlighting does nothing".
+- The progress numbers are pure (`readerPace.ts`); focus mode marks the block at the reading line
+  with an `IntersectionObserver` on the stage.
 - The ways come from pure generators in the State layer (`readingPath.ts`): `aroundThisNote`,
   `argumentPath`, `storyPath`, `essentialsPath`, `regionPath` and `selectionPath`, offered together
   by `readingPathOptions(model, seed, inputs)`. They are on `zf.knowledge.readingPaths` and

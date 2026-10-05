@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
+import { press } from "../../../../support/readerKeys";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
@@ -57,7 +58,7 @@ const link = (content: DomNode, href: string) =>
     content.findAll((el) => el.tag === "a" && el.getAttribute("data-href") === href)[0];
 const body = (content: DomNode) => content.oneByClass("reader-body");
 const key = (content: DomNode, k: string, extra: Record<string, unknown> = {}) =>
-    content.fire("keydown", { key: k, target: content, ...extra });
+    press(content as never, k, { target: content, ...extra });
 
 describe("the reader in the real app (#667)", () => {
     beforeEach(() => {

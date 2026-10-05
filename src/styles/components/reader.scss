@@ -35,6 +35,59 @@
     inset: 0;
     background-color: var(--reader-bg);
     color: var(--reader-fg);
+    animation: zf-reader-enter 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Opening: the page comes up out of the workspace; leaving, it sinks back before the tab closes. */
+@keyframes zf-reader-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.985);
+    }
+}
+
+.zettelkasten-flow__reader--leaving {
+    animation: zf-reader-leave 0.22s ease-in forwards;
+    pointer-events: none;
+}
+
+@keyframes zf-reader-leave {
+    to {
+        opacity: 0;
+        transform: scale(0.985);
+    }
+}
+
+/*
+ * Obsidian sets `body { user-select: none }` and gives selection back only to its own editors and
+ * reading views. The reader's chapter is neither, so without this nothing in it can be selected —
+ * and nothing can be highlighted (#667).
+ */
+.zettelkasten-flow__reader-body,
+.zettelkasten-flow__reader-chapter-title,
+.zettelkasten-flow__reader-peek-excerpt,
+.zettelkasten-flow__reader-hl-pop-note {
+    user-select: text;
+}
+
+/* ── how far through the chapter: a hairline across the top ──────────── */
+.zettelkasten-flow__reader-hairline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--size-2-1);
+    z-index: 3;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-hairline-fill {
+    height: 100%;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scaleX(var(--zf-reader-read, 0));
+    transform-origin: left center;
+    transition: transform 0.12s linear;
 }
 
 /*
@@ -108,20 +161,66 @@
 }
 
 .zettelkasten-flow__reader-page {
-    max-width: 42rem;
+    max-width: 48rem;
     margin: 0 auto;
     padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
-    animation: zf-reader-turn 0.45s ease;
 }
 
-@keyframes zf-reader-turn {
+/* The page turns the way you went: forward from the right, back from the left, a new reading rises. */
+.zettelkasten-flow__reader-page--forward {
+    animation: zf-reader-turn-forward 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.zettelkasten-flow__reader-page--back {
+    animation: zf-reader-turn-back 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.zettelkasten-flow__reader-page--enter {
+    animation: zf-reader-rise 0.45s ease both;
+}
+
+@keyframes zf-reader-turn-forward {
+    from {
+        opacity: 0;
+        transform: translateX(var(--size-4-8));
+    }
+}
+
+@keyframes zf-reader-turn-back {
+    from {
+        opacity: 0;
+        transform: translateX(calc(var(--size-4-8) * -1));
+    }
+}
+
+@keyframes zf-reader-rise {
     from {
         opacity: 0;
         transform: translateY(var(--size-4-2));
     }
-    to {
-        opacity: 1;
-        transform: none;
+}
+
+/* The chapter opener arrives in order: the count, the role, the title, then the words. */
+.zettelkasten-flow__reader-page--forward,
+.zettelkasten-flow__reader-page--back,
+.zettelkasten-flow__reader-page--enter {
+    > .zettelkasten-flow__reader-count,
+    > .zettelkasten-flow__reader-role,
+    > .zettelkasten-flow__reader-chapter-title,
+    > .zettelkasten-flow__reader-body {
+        animation: zf-reader-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    > .zettelkasten-flow__reader-role {
+        animation-delay: 0.06s;
+    }
+
+    > .zettelkasten-flow__reader-chapter-title {
+        animation-delay: 0.12s;
+    }
+
+    > .zettelkasten-flow__reader-body {
+        animation-delay: 0.2s;
     }
 }
 
@@ -183,11 +282,58 @@
     color: var(--reader-fg);
 }
 
+/* A book's measure: about 68 characters a line, ragged edges evened out, long words broken. */
 .zettelkasten-flow__reader-body {
+    max-width: 68ch;
+    margin: 0 auto;
     font-family: var(--reader-font);
     font-size: var(--reader-size);
     line-height: 1.75;
     color: var(--reader-fg);
+    text-wrap: pretty;
+    hyphens: auto;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures;
+
+    p,
+    li {
+        text-wrap: pretty;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        text-wrap: balance;
+    }
+}
+
+/* Focus mode: every block but the one at the reading line steps back. */
+.zettelkasten-flow__reader--focus .zettelkasten-flow__reader-body {
+    > * {
+        opacity: 0.28;
+        transition: opacity 0.35s ease;
+    }
+
+    > .zettelkasten-flow__reader-focus-current,
+    > :hover {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__reader-focus-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-focus-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
 }
 
 .zettelkasten-flow__reader-missing {
@@ -202,6 +348,9 @@
 }
 
 .zettelkasten-flow__reader-next-button {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--size-4-2);
     border: var(--border-width) solid var(--reader-line);
     background-color: var(--reader-surface);
     color: var(--reader-fg);
@@ -210,10 +359,25 @@
     height: auto;
     cursor: pointer;
     box-shadow: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 
     &:hover {
         border-color: var(--interactive-accent);
     }
+}
+
+.zettelkasten-flow__reader-next-sep,
+.zettelkasten-flow__reader-next-minutes {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+}
+
+/* At the end of the chapter, the way on lights up and lifts a little. */
+.zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-next-button {
+    border-color: var(--interactive-accent);
+    box-shadow: var(--shadow-s);
+    transform: translateY(calc(var(--size-2-1) * -1));
 }
 
 /* ── dots and the bar ─────────────────────────────────────────────────── */
@@ -296,6 +460,14 @@
     }
 }
 
+.zettelkasten-flow__reader-bar-minutes {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    padding: 0 var(--size-4-1);
+}
+
 .zettelkasten-flow__reader-bar-sep {
     width: var(--border-width);
     align-self: stretch;
@@ -307,13 +479,20 @@
 @container zf-reader (max-width: 36rem) {
     .zettelkasten-flow__reader-bar-label,
     .zettelkasten-flow__reader-progress,
+    .zettelkasten-flow__reader-bar-minutes,
     .zettelkasten-flow__reader-bar-sep {
         display: none;
     }
 }
 
-/* Idle: the page alone. */
+/* Idle: the page alone — the bar fades, and so does the pointer. */
 .zettelkasten-flow__reader--idle {
+    cursor: none;
+
+    .zettelkasten-flow__reader-stage {
+        cursor: none;
+    }
+
     .zettelkasten-flow__reader-bar {
         opacity: 0;
         transform: translateX(-50%) translateY(var(--size-4-3));
@@ -558,6 +737,21 @@
     animation: zf-reader-highlight-flash 1.6s ease-out 1;
 }
 
+/* A highlight just made is drawn like a marker: swept across the words, left to right. */
+.zettelkasten-flow__reader-highlight--new {
+    background-color: transparent;
+    background-image: linear-gradient(var(--text-highlight-bg), var(--text-highlight-bg));
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    animation: zf-reader-highlight-sweep 0.5s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+
+@keyframes zf-reader-highlight-sweep {
+    from {
+        background-size: 0% 100%;
+    }
+}
+
 @keyframes zf-reader-highlight-flash {
     from {
         box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--interactive-accent) 55%, transparent);
@@ -621,7 +815,7 @@
     display: none;
 }
 
-@container zf-reader (min-width: 72rem) {
+@container zf-reader (min-width: 76rem) {
     .zettelkasten-flow__reader-margin:not(:empty) {
         display: flex;
         flex-direction: column;
@@ -629,7 +823,7 @@
         position: absolute;
         top: var(--size-4-8);
         right: var(--size-4-6);
-        width: calc((100% - 42rem) / 2 - var(--size-4-12));
+        width: calc((100% - 48rem) / 2 - var(--size-4-12));
     }
 }
 
@@ -686,21 +880,105 @@
     cursor: pointer;
 }
 
+/* ── the shortcuts sheet (?) ──────────────────────────────────────────── */
+.zettelkasten-flow__reader-shortcuts {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: color-mix(in srgb, var(--reader-bg) 70%, transparent);
+    backdrop-filter: blur(var(--size-2-1));
+    z-index: 6;
+    animation: zf-reader-fade 0.18s ease-out both;
+}
+
+@keyframes zf-reader-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+.zettelkasten-flow__reader-shortcuts-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    width: min(30rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-5) var(--size-4-6);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-l);
+    animation: zf-reader-rise 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.zettelkasten-flow__reader-shortcuts-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+    gap: var(--size-4-2) var(--size-4-4);
+    margin: 0;
+
+    dd {
+        margin: 0;
+        color: var(--reader-fg);
+        font-size: var(--font-ui-small);
+    }
+}
+
+.zettelkasten-flow__reader-shortcuts-keys {
+    display: flex;
+    gap: var(--size-4-1);
+    justify-content: flex-end;
+
+    kbd {
+        min-width: var(--size-4-6);
+        padding: var(--size-2-1) var(--size-4-2);
+        text-align: center;
+        font-family: var(--font-interface);
+        font-size: var(--font-ui-smaller);
+        color: var(--reader-fg);
+        background-color: var(--reader-bg);
+        border: var(--border-width) solid var(--reader-line);
+        border-bottom-width: var(--size-2-1);
+        border-radius: var(--radius-s);
+    }
+}
+
+.zettelkasten-flow__reader-shortcuts-hint {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
     .zettelkasten-flow__reader-highlight--flash {
         animation: none;
         outline: var(--border-width) solid var(--interactive-accent);
     }
 
+    .zettelkasten-flow__reader,
+    .zettelkasten-flow__reader--leaving,
     .zettelkasten-flow__reader-page,
-    .zettelkasten-flow__reader-peek {
+    .zettelkasten-flow__reader-page > *,
+    .zettelkasten-flow__reader-peek,
+    .zettelkasten-flow__reader-highlight--new,
+    .zettelkasten-flow__reader-shortcuts,
+    .zettelkasten-flow__reader-shortcuts-card {
         animation: none;
     }
 
     .zettelkasten-flow__reader-bar,
     .zettelkasten-flow__reader-top,
     .zettelkasten-flow__reader-dots,
-    .zettelkasten-flow__reader-dot {
+    .zettelkasten-flow__reader-dot,
+    .zettelkasten-flow__reader-hairline-fill,
+    .zettelkasten-flow__reader-next-button,
+    .zettelkasten-flow__reader--focus .zettelkasten-flow__reader-body > * {
         transition: none;
+    }
+
+    .zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-next-button {
+        transform: none;
     }
 }

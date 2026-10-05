@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
+import { press } from "../../../../support/readerKeys";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
@@ -57,7 +58,8 @@ const clickLink = (content: DomNode, href: string, extra: Record<string, unknown
     content.oneByClass("reader-body").fire("click", { target: link(content, href), ...extra });
 const title = (content: DomNode) => content.oneByClass("reader-chapter-title").textContent;
 const button = (content: DomNode, text: string) => content.byClass("reader-peek-action").find((b) => b.textContent === text);
-const key = (content: DomNode, k: string) => content.fire("keydown", { key: k, target: content });
+const key = (content: DomNode, k: string, extra: Record<string, unknown> = {}) =>
+    press(content as never, k, { target: content, ...extra });
 
 describe("a link is a peek, not a jump (#670)", () => {
     beforeEach(() => {
@@ -178,7 +180,7 @@ describe("adding to this reading, and the contents (#670)", () => {
         button(content, "Add to this reading")!.click();
         await flush();
         expect(content.byClass("reader-dot")).toHaveLength(4);
-        expect(content.oneByClass("reader-next-button").textContent).toBe("Next · x");
+        expect(content.oneByClass("reader-next-label").textContent).toBe("Next · x");
         // Session only: the view state still names the picked set.
         expect(view.getState()).toMatchObject({ paths: ["a.md", "b.md", "c.md"] });
     });

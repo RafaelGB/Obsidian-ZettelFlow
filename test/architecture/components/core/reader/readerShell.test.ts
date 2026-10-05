@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { MarkdownRenderer, Platform, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
+import { press } from "../../../../support/readerKeys";
 import { ReaderView, readableBody } from "architecture/components/core/reader/ReaderView";
 import { parseReaderState, READER_VIEW } from "architecture/components/core/reader/readerContract";
 import { normalizeReaderPrefs, readerClassNames, DEFAULT_READER_PREFS } from "architecture/components/core/reader/readerPrefs";
@@ -190,7 +191,7 @@ describe("the reader view (#668)", () => {
         const { view, content, leaf } = mountReader();
         await view.setState({ seed: "a.md" }, {} as never);
         await view.onOpen();
-        content.fire("keydown", { key: "Escape", target: content });
+        press(leaf, "Escape", { target: content });
         expect(leaf.detach).toHaveBeenCalled();
     });
 
@@ -202,7 +203,7 @@ describe("the reader view (#668)", () => {
         typeButton.click();
         const sepia = content.byClass("reader-type-option").find((b) => b.textContent === "Sepia")!;
         sepia.click();
-        expect(plugin.settings.readerPrefs).toEqual({ font: "sans", size: "medium", theme: "sepia" });
+        expect(plugin.settings.readerPrefs).toEqual({ font: "sans", size: "medium", theme: "sepia", focus: false });
         const root = content.children[0];
         expect(root.hasClass("theme-light")).toBe(true);
         expect(root.hasClass("zettelkasten-flow__reader--theme-sepia")).toBe(true);

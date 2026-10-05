@@ -212,19 +212,32 @@ export class ReaderHighlights {
         this.detached = [];
         this.renderMargin();
 
+        // The words can be selected at all only because reader.scss gives the body back the
+        // `user-select: text` Obsidian's `body { user-select: none }` takes away (#667).
         component.registerDomEvent(body, "mouseup", () => this.onSelect());
         component.registerDomEvent(body, "keyup", (event: KeyboardEvent) => {
             if (event.shiftKey) this.onSelect();
         });
-        // A touch selection (long-press, drag handles) ends with no mouseup on the body: listen to
-        // the document's selectionchange too, settled, so highlights work on a phone.
         const doc = body.ownerDocument as Document | undefined;
         if (doc) {
+            // A drag that starts in the chapter often ends past it — in the margin, below the last
+            // line: that mouseup lands on the document, and must still offer the popover. One that
+            // lands inside the popover is a click on its buttons, never a new selection.
+            let pressed = false;
+            component.registerDomEvent(doc, "mousedown", () => (pressed = true), { capture: true });
+            component.registerDomEvent(doc, "mouseup", (event: MouseEvent) => {
+                pressed = false;
+                const target = event.target as Node | null;
+                if (this.body !== body || (target && (body.contains(target) || this.popover?.contains(target)))) return;
+                this.onSelect();
+            });
+            // A touch selection (long-press, drag handles) ends with no mouseup at all: the
+            // document's selectionchange, settled, so highlights work on a phone. Never mid-drag.
             let settle: number | undefined;
             component.registerDomEvent(doc, "selectionchange", () => {
                 window.clearTimeout(settle);
                 settle = window.setTimeout(() => {
-                    if (this.body === body) this.onSelect();
+                    if (this.body === body && !pressed) this.onSelect();
                 }, 350);
             });
             component.register(() => window.clearTimeout(settle));
@@ -415,7 +428,10 @@ export class ReaderHighlights {
         selection.clear();
         if (this.body !== body) return; // the chapter turned while the thought was written
         const thought = made;
-        this.insert(thought, this.draw(thought, span), span.start);
+        const marks = this.draw(thought, span);
+        // A marker drawn across the words, once — only on the highlight just made (#667).
+        marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
+        this.insert(thought, marks, span.start);
         this.status("reader_hl_saved", () => void this.forget(thought, false));
     }
 

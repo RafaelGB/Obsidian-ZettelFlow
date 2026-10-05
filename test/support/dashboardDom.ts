@@ -28,6 +28,8 @@ export class DomNode {
     href = "";
     type = "";
     listeners: Record<string, ((event: any) => void)[]> = {};
+    /** What `setCssProps` was handed — custom properties the stylesheet reads (#667). */
+    cssProps: Record<string, string> = {};
     private detached = false;
 
     constructor(tag = "div") {
@@ -92,6 +94,9 @@ export class DomNode {
         for (const child of this.children) child.parent = null;
         this.children = [];
         this.text = "";
+    }
+    setCssProps(props: Record<string, string>): void {
+        Object.assign(this.cssProps, props);
     }
     setText(text: string): void {
         this.empty();

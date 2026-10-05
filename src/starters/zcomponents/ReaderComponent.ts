@@ -4,6 +4,7 @@ import { t } from "architecture/lang";
 import { setReaderHost } from "architecture/components/core/reader/readerHost";
 import { readFrom, readSelection } from "architecture/components/core/reader/readingChooser";
 import { notesUnder } from "architecture/components/core/reader/readerPaths";
+import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import ZettelFlow from "main";
 
 /**
@@ -37,6 +38,40 @@ export class ReaderComponent extends PluginComponent {
                 const file = app.workspace.getActiveFile();
                 if (!file || file.extension !== "md") return false;
                 if (!checking) readFrom(app, file.path);
+                return true;
+            },
+        });
+
+        // While a reading is the active tab (#667): turn its pages and leave it from the palette, or
+        // from hotkeys you bind — the reader's own ← → and Esc need none. No default hotkeys.
+        const reader = (): ReaderView | null => app.workspace.getActiveViewOfType(ReaderView);
+        this.plugin.addCommand({
+            id: "reader-next-chapter",
+            name: t("command_reader_next"),
+            checkCallback: (checking: boolean) => {
+                const view = reader();
+                if (!view) return false;
+                if (!checking) view.nextChapter();
+                return true;
+            },
+        });
+        this.plugin.addCommand({
+            id: "reader-previous-chapter",
+            name: t("command_reader_previous"),
+            checkCallback: (checking: boolean) => {
+                const view = reader();
+                if (!view) return false;
+                if (!checking) view.previousChapter();
+                return true;
+            },
+        });
+        this.plugin.addCommand({
+            id: "reader-exit",
+            name: t("command_reader_exit"),
+            checkCallback: (checking: boolean) => {
+                const view = reader();
+                if (!view) return false;
+                if (!checking) view.exit();
                 return true;
             },
         });

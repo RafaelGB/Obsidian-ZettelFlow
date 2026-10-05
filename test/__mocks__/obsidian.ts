@@ -84,15 +84,44 @@ export class MarkdownRenderer {
     }
   }
 }
+/**
+ * Obsidian's keymap scope, as the real one matches (#667): a handler's modifiers are compared as a
+ * whole (`[]` is "none", `null` is "any"), its key case-insensitively. `handleKey` is what
+ * Obsidian's window-level keydown calls for the active leaf's view — returning `false` means handled.
+ */
+export class Scope {
+  keys: { modifiers: string | null; key: string | null; func: (evt: any, ctx: any) => any }[] = [];
+  constructor(public parent?: Scope) { }
+  register(modifiers: string[] | null, key: string | null, func: (evt: any, ctx: any) => any): any {
+    const handler = { modifiers: modifiers === null ? null : [...modifiers].sort().join(","), key, func };
+    this.keys.push(handler);
+    return handler;
+  }
+  unregister(handler: any): void { this.keys = this.keys.filter((k) => k !== handler); }
+  handleKey(evt: any, ctx: { modifiers: string; key: string }): any {
+    for (const handler of this.keys) {
+      if (handler.modifiers !== null && handler.modifiers !== ctx.modifiers) continue;
+      if (handler.key !== null && handler.key.toLowerCase() !== ctx.key.toLowerCase()) continue;
+      const result = handler.func(evt, ctx);
+      if (result !== undefined || handler.key !== null || handler.modifiers !== null) return result;
+    }
+    return this.parent?.handleKey(evt, ctx);
+  }
+}
 export class ItemView extends Component {
   app: any;
   containerEl: any;
   contentEl: any;
+  scope: Scope | null = null;
   constructor(public leaf: any) {
     super();
     this.app = leaf?.app;
     this.contentEl = leaf?.contentEl;
     this.containerEl = leaf?.contentEl;
+    // As in Obsidian, the leaf knows its view — the keymap reaches the view's scope through it.
+    if (leaf && typeof leaf === "object") leaf.view = this;
+    // Fake-only: what a test drew into can find the view whose keys it presses.
+    if (this.contentEl && typeof this.contentEl === "object") this.contentEl.ownerView = this;
   }
   getViewType(): string { return ""; }
   getDisplayText(): string { return ""; }

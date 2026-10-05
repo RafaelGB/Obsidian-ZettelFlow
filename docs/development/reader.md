@@ -78,7 +78,7 @@ relations:
 | **←**, **Page up** | previous chapter |
 | **Home** / **End** | first / last chapter |
 | **F** | fullscreen (desktop) |
-| **Esc** | close a panel, leave fullscreen, or leave the Reader |
+| **Esc** | one thing at a time, nearest first: close a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
 
 The **bar** at the bottom appears when you move the mouse and fades after two seconds. It holds:
 
@@ -89,8 +89,35 @@ The **bar** at the bottom appears when you move the mouse and fades after two se
 - **Fullscreen**.
 
 Chapters are drawn by Obsidian's own Markdown renderer, so callouts, embeds, math and your theme look
-as they do everywhere else. A link to another chapter of the reading turns the page to it. Any other
-link opens in a tab beside the Reader.
+as they do everywhere else.
+
+## Links, detours and context
+
+Getting lost is the main way reading fails in a linked vault: you follow a link, then another, and
+the thread is gone. So a link in the Reader is a **peek**, not a jump.
+
+![A peek under a paragraph, a detour with its way back, and the context of the chapter](../resources/reader/peek.svg)
+
+Click a link and a card opens right under the paragraph that holds it. It says where the note sits
+(*Chapter 3 of this reading*, or *Not in this reading*), shows the note's first lines, and offers:
+
+| Action | Does |
+|---|---|
+| **Read as a detour** | reads the note now, then brings you back. A pill at the top says *↩ Back to …*; one press, or **Esc**, steps back one level. Detours can nest five deep. |
+| **Jump to the chapter** | when the note is already a chapter of this reading |
+| **Add to this reading** | puts the note right after the chapter you are on, for this reading only |
+| **Open in a new tab** | as Obsidian would |
+
+- While you are in a detour the counter says *Detour* and the progress stays on the path. The arrow
+  keys move along the path, leaving the detour behind.
+- **Mod-click** a link to open it in a tab without a peek, and **Ctrl/Cmd-hover** it for Obsidian's
+  own page preview.
+- A link to a note that does not exist yet only says so: following it would create the note, and the
+  Reader writes nothing.
+
+The **Contents** panel lists the chapters with their roles, ticks the ones you have read and marks
+where you are. **Around this chapter** lists what supports it, what argues back and its open
+questions, read from the same model as [This note](this-note.md). Each of those is a peek too.
 
 ## Type and reading themes
 
@@ -110,7 +137,8 @@ No colour is invented: every look comes from your theme.
 **Nothing, to any note.** Reading is the whole job, and a test holds the line: nothing in the Reader
 reaches a file writer. The only things it remembers are where you are in a reading (in the workspace
 layout, and the resume places in the plugin's settings) and your type choices (in the plugin's
-settings). Choosing a way through a note writes nothing either.
+settings). Choosing a way through a note writes nothing either, and neither do peeks, detours or
+adding a note to a reading — an added note lasts as long as the reading on screen.
 
 ## For contributors
 

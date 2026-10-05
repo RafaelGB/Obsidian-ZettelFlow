@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { Menu, Platform, TFile, TFolder, WorkspaceLeaf } from "obsidian";
-import { DomNode, flush } from "../../../../support/dashboardDom";
+import { DomNode, flush, settle } from "../../../../support/dashboardDom";
 import { readingPathOptions } from "architecture/knowledge/state";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { parseReaderState } from "architecture/components/core/reader/readerContract";
@@ -103,7 +103,7 @@ describe("the view state carries how the reading was chosen (#669)", () => {
         const view = new ReaderView(leaf, plugin as never);
         await view.setState({ seed: "c.md", kind: "selection", paths: ["c.md", "a.md", "b.md"] }, {} as never);
         await view.onOpen();
-        await flush();
+        await settle(() => content.byClass("reader-path-title").length > 0);
         expect(view.getState()).toMatchObject({ seed: "c.md", kind: "selection", paths: ["c.md", "a.md", "b.md"], chapter: 0 });
         expect(content.oneByClass("reader-path-title").textContent).toBe("c · Your selection");
         // Turn the page: the place is kept under the set's key.

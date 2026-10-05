@@ -59,7 +59,27 @@ export class MarkdownRenderer {
   static calls: { markdown: string; sourcePath: string }[] = [];
   static async render(_app: unknown, markdown: string, el: any, sourcePath: string, _component: unknown): Promise<void> {
     MarkdownRenderer.calls.push({ markdown, sourcePath });
-    el.createDiv?.({ cls: "rendered-markdown", text: markdown });
+    // Each paragraph becomes a <p>; a [[link]] becomes Obsidian's own anchor — a.internal-link with
+    // data-href (and is-unresolved when no note answers it), so link handling is tested on that shape.
+    const host = el.createDiv?.({ cls: "rendered-markdown" });
+    if (!host) return;
+    for (const block of markdown.split(/\n\s*\n/)) {
+      const p = host.createEl("p");
+      const re = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+      let last = 0;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(block))) {
+        if (m.index > last) p.createSpan({ text: block.slice(last, m.index) });
+        const unresolved = m[1].startsWith("missing");
+        p.createEl("a", {
+          cls: unresolved ? "internal-link is-unresolved" : "internal-link",
+          text: m[2] ?? m[1],
+          attr: { "data-href": m[1], href: m[1] },
+        });
+        last = m.index + m[0].length;
+      }
+      if (last < block.length) p.createSpan({ text: block.slice(last) });
+    }
   }
 }
 export class ItemView extends Component {

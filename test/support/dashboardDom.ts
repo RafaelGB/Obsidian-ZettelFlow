@@ -150,6 +150,25 @@ export class DomNode {
         this.parent = null;
         this.detached = true;
     }
+    /** The DOM's own `parentElement`: what `after()` and `closest()` walk. */
+    get parentElement(): DomNode | null {
+        return this.parent;
+    }
+    /** Nearest self-or-ancestor matching `selector`, as `Element.closest`. */
+    closest(selector: string): DomNode | null {
+        const match = matcher(selector);
+        for (let cur: DomNode | null = this; cur; cur = cur.parent) if (match(cur)) return cur;
+        return null;
+    }
+    /** Insert `node` right after this one, as `Element.after` — moving it if it is elsewhere. */
+    after(node: DomNode): void {
+        if (!this.parent) throw new Error("after() on a node with no parent");
+        if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);
+        const siblings = this.parent.children;
+        siblings.splice(siblings.indexOf(this) + 1, 0, node);
+        node.parent = this.parent;
+        node.detached = false;
+    }
     contains(node: DomNode | null): boolean {
         for (let cur: DomNode | null = node; cur; cur = cur.parent) if (cur === this) return true;
         return false;
@@ -209,12 +228,20 @@ export class DomNode {
     }
 }
 
+/**
+ * `.a`, `.a.b`, a tag, `tag.class`, or a comma list of those — what `querySelector` and `closest`
+ * are asked for. Anything richer throws rather than silently matching nothing.
+ */
 function matcher(selector: string): (el: DomNode) => boolean {
-    if (selector.startsWith(".")) {
-        const wanted = selector.split(".").filter(Boolean);
-        return (el) => wanted.every((cls) => el.classes.has(cls));
+    const parts = selector.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length > 1) {
+        const each = parts.map(matcher);
+        return (el) => each.some((match) => match(el));
     }
-    return (el) => el.tag === selector;
+    const one = parts[0] ?? "";
+    if (/[\s>+~\[\]:]/.test(one)) throw new Error(`DomNode cannot match selector "${one}"`);
+    const [tag, ...classes] = one.split(".");
+    return (el) => (tag === "" || el.tag === tag) && classes.every((cls) => el.classes.has(cls));
 }
 
 /** Browser globals the dashboard touches, as the smallest stand-ins that keep it honest. */

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="880" viewBox="0 0 1200 880" role="img" aria-label="The Reader: a link opened as a peek under its paragraph, the way back from a detour, and what surrounds the chapter">
+<rect width="1200" height="880" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="720" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="62" cy="50" r="5.5" fill="#fb464c" stroke="none" stroke-width="0"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f" stroke="none" stroke-width="0"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e" stroke="none" stroke-width="0"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">EVENT SOURCING  ·  ARGUMENT</text>
+<text x="1130" y="102" fill="#5f6168" font-family="sans-serif" font-size="20" font-weight="400" text-anchor="middle">×</text>
+<rect x="470" y="116" width="260" height="30" rx="15" fill="#7f6df2" stroke="none" stroke-width="1.5" />
+<text x="600" y="136" fill="#ffffff" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">↩ Back to Event sourcing</text>
+<text x="470" y="178" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">DETOUR</text>
+<rect x="430" y="188" width="80" height="22" rx="11" fill="#2a2a2e" stroke="none" stroke-width="1.5" />
+<text x="470" y="204" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">DETOUR</text>
+<text x="470" y="252" fill="#dcddde" font-family="Georgia, serif" font-size="34" font-weight="700" text-anchor="middle">Eventual consistency</text>
+<text x="150" y="300" fill="#dcddde" font-family="Georgia, serif" font-size="17" xml:space="preserve"><tspan>If reads are projections, they lag the log. For a moment, two</tspan></text>
+<text x="150" y="327" fill="#dcddde" font-family="Georgia, serif" font-size="17" xml:space="preserve"><tspan>screens disagree. Left alone, they converge — which is what </tspan></text>
+<text x="150" y="354" fill="#dcddde" font-family="Georgia, serif" font-size="17" xml:space="preserve"><tspan>a </tspan><tspan fill="#7f6df2" text-decoration="underline">saga</tspan><tspan> leans on when a flow cannot wait for them.</tspan></text>
+<rect x="150" y="376" width="640" height="196" rx="10" fill="#202024" stroke="#3a3a3a" stroke-width="1.5" />
+<rect x="150" y="376" width="4" height="196" rx="2" fill="#7f6df2"/>
+<text x="172" y="406" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start">NOT IN THIS READING</text>
+<text x="172" y="434" fill="#dcddde" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="start">Sagas</text>
+<text x="172" y="462" fill="#8b8e94" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">A saga turns one big transaction into a sequence of local ones, each</text>
+<text x="172" y="482" fill="#8b8e94" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">with a compensating step. Fail at step four, and steps one to three…</text>
+<rect x="172" y="514" width="150" height="30" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="247.0" y="534" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Read as a detour</text>
+<rect x="332" y="514" width="160" height="30" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="412.0" y="534" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Add to this reading</text>
+<rect x="502" y="514" width="150" height="30" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="577.0" y="534" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Open in a new tab</text>
+<rect x="662" y="514" width="70" height="30" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="697.0" y="534" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Close</text>
+<text x="150" y="610" fill="#dcddde" font-family="Georgia, serif" font-size="17" xml:space="preserve"><tspan>Most user flows tolerate seconds of lag; a few — a bank transfer,</tspan></text>
+<text x="150" y="637" fill="#dcddde" font-family="Georgia, serif" font-size="17" xml:space="preserve"><tspan>an inventory count — do not.</tspan></text>
+<rect x="836" y="172" width="300" height="380" rx="12" fill="#202024" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="856" y="204" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start">AROUND THIS CHAPTER</text>
+<text x="856" y="238" fill="#44cf6e" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">SUPPORTS IT</text>
+<rect x="850" y="250" width="272" height="32" rx="6" fill="#26262b" stroke="none" stroke-width="1.5" />
+<text x="862" y="271" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">CQRS</text>
+<text x="856" y="308" fill="#fb464c" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">ARGUES BACK</text>
+<rect x="850" y="320" width="272" height="32" rx="6" fill="#26262b" stroke="none" stroke-width="1.5" />
+<text x="862" y="341" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Just use a database</text>
+<text x="856" y="378" fill="#4a9dff" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">OPEN QUESTIONS</text>
+<rect x="850" y="390" width="272" height="32" rx="6" fill="#26262b" stroke="none" stroke-width="1.5" />
+<text x="862" y="411" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Which flows cannot tolerate lag?</text>
+<text x="856" y="532" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Each one opens a peek too.</text>
+<circle cx="554" cy="694" r="4" fill="#8b8e94" stroke="none" stroke-width="0"/>
+<rect x="568" y="690" width="22" height="8" rx="4" fill="#7f6df2" stroke="none" stroke-width="1.5" />
+<circle cx="598" cy="694" r="4" fill="#3a3a40" stroke="none" stroke-width="0"/>
+<circle cx="616" cy="694" r="4" fill="#3a3a40" stroke="none" stroke-width="0"/>
+<circle cx="634" cy="694" r="4" fill="#3a3a40" stroke="none" stroke-width="0"/>
+<text x="600" y="724" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Chapter 2 / 5  ·  the progress stays on the path</text>
+<circle cx="126" cy="312" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="126" y="316.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<circle cx="136" cy="390" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="136" y="394.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<circle cx="456" cy="131" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="456" y="135.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<circle cx="828" cy="186" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="828" y="190.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<circle cx="76" cy="784" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="76" y="788.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<text x="96" y="789" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">A link in a chapter: click it, and the page does not turn.</text>
+<circle cx="76" cy="808" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="76" y="812.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<text x="96" y="813" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">The peek, right under its paragraph — where the note sits, its first lines, what you can do.</text>
+<circle cx="76" cy="832" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="76" y="836.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<text x="96" y="837" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">In a detour: the way back, one press (or Esc) per level, up to five deep.</text>
+<circle cx="76" cy="856" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="76" y="860.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<text x="96" y="861" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Around this chapter: what supports it, what argues back, its questions — each a peek.</text>
+</svg>

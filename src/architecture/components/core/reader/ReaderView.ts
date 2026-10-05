@@ -1,4 +1,4 @@
-import { Component, ItemView, MarkdownRenderer, TFile, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { Component, ItemView, Keymap, MarkdownRenderer, TFile, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -8,6 +8,8 @@ import { pathFor } from "./readerPaths";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openReader";
+import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
+import { hoverPreview } from "architecture/components/core/a11y";
 import {
     READER_FONTS,
     READER_SIZES,
@@ -99,6 +101,18 @@ export class ReaderView extends ItemView {
     private idleTimer: number | undefined;
     /** Bumped on every chapter change, so a slow read never draws over a newer chapter. */
     private generation = 0;
+    /**
+     * Notes read as detours from the chapter, deepest last (#670). Session only: a reload returns
+     * you to the chapter, which is where the reading is.
+     */
+    private detours: string[] = [];
+    /** Chapters you have been on in this reading, for the contents' ticks. */
+    private readonly visited = new Set<string>();
+    /** The open peek, if any — drawn inline under the block holding the link. */
+    private peek: HTMLElement | null = null;
+    /** Bumped on every peek, so a slow excerpt never lands in a newer one. */
+    private peekGeneration = 0;
+    private pill: HTMLElement | null = null;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -184,7 +198,20 @@ export class ReaderView extends ItemView {
         setIcon(close, "x");
         this.registerDomEvent(close, "click", () => exitReader(this.app, this.leaf));
 
+        // The way back from a detour (#670): one press pops one level.
+        const pill = root.createEl("button", {
+            cls: [c("reader-detour-pill"), c("reader-hidden")].join(" "),
+            attr: { type: "button" },
+        });
+        this.registerDomEvent(pill, "click", () => this.backFromDetour());
+        this.pill = pill;
+
         const stage = root.createDiv({ cls: c("reader-stage") });
+        // A peek is read in place; clicking elsewhere puts it away.
+        this.registerDomEvent(root, "mousedown", (event) => {
+            const target = event.target as HTMLElement | null;
+            if (this.peek && target && !this.peek.contains(target) && !target.closest?.("a.internal-link")) this.closePeek();
+        });
         const page = stage.createEl("article", { cls: c("reader-page") });
         const dots = root.createDiv({ cls: c("reader-dots"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
 
@@ -255,6 +282,7 @@ export class ReaderView extends ItemView {
             });
             this.registerDomEvent(dot, "click", () => this.show(i));
         });
+        this.renderPill();
         void this.renderChapter();
         if (this.panel) this.renderPanel();
     }
@@ -264,6 +292,10 @@ export class ReaderView extends ItemView {
         const generation = ++this.generation;
         const { page, stage } = this.els;
         const chapter = this.path.chapters[this.index];
+        const detour = this.detours[this.detours.length - 1];
+        const reading = detour ?? chapter.path;
+        if (!detour) this.visited.add(chapter.path);
+        this.peek = null;
         this.chapter?.unload();
         const component = new Component();
         component.load();
@@ -273,17 +305,17 @@ export class ReaderView extends ItemView {
         const total = this.path.chapters.length;
         page.createDiv({
             cls: c("reader-count"),
-            text: `${String(this.index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`,
+            text: detour ? t("reader_detour") : `${String(this.index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`,
         });
         page.createDiv({ cls: c("reader-role") }).createSpan({
-            cls: [c("reader-role-tag"), c(`reader-role-tag--${chapter.role}`)].join(" "),
-            text: t(ROLE_KEY[chapter.role]),
+            cls: [c("reader-role-tag"), c(`reader-role-tag--${detour ? "detour" : chapter.role}`)].join(" "),
+            text: detour ? t("reader_detour") : t(ROLE_KEY[chapter.role]),
         });
-        page.createEl("h1", { cls: c("reader-chapter-title"), text: noteName(chapter.path) });
+        page.createEl("h1", { cls: c("reader-chapter-title"), text: noteName(reading) });
         const body = page.createDiv({ cls: ["markdown-rendered", c("reader-body")].join(" ") });
         stage.scrollTop = 0;
 
-        const file = this.app.vault.getAbstractFileByPath(chapter.path);
+        const file = this.app.vault.getAbstractFileByPath(reading);
         if (!(file instanceof TFile)) {
             body.createDiv({ cls: c("reader-missing"), text: t("reader_missing") });
         } else {
@@ -292,41 +324,167 @@ export class ReaderView extends ItemView {
                 if (generation !== this.generation) return;
                 await MarkdownRenderer.render(this.app, readableBody(markdown), body, file.path, component);
             } catch (error) {
-                log.error(`[Reader] could not render ${chapter.path}: ${error instanceof Error ? error.message : String(error)}`);
+                log.error(`[Reader] could not render ${reading}: ${error instanceof Error ? error.message : String(error)}`);
                 body.createDiv({ cls: c("reader-missing"), text: t("reader_missing") });
             }
         }
         if (generation !== this.generation) return;
         component.registerDomEvent(body, "click", (event) => this.onLink(event));
+        // Obsidian's own page preview on every link it drew, as on every note name the plugin draws (#594).
+        for (const link of Array.from(body.querySelectorAll("a.internal-link"))) {
+            const href = link.getAttribute("data-href");
+            const target = href ? this.app.metadataCache.getFirstLinkpathDest(href.split("#")[0], reading) : null;
+            if (target) hoverPreview(this.app, link as HTMLElement, target.path, component);
+        }
 
-        const last = this.index === total - 1;
         const next = page.createDiv({ cls: c("reader-next") }).createEl("button", {
             cls: c("reader-next-button"),
             attr: { type: "button" },
-            text: last ? t("reader_finish") : t("reader_next_named", noteName(this.path.chapters[this.index + 1].path)),
         });
+        if (detour) {
+            next.setText(t("reader_back_to", this.backName()));
+            component.registerDomEvent(next, "click", () => this.backFromDetour());
+            return;
+        }
+        const last = this.index === total - 1;
+        next.setText(last ? t("reader_finish") : t("reader_next_named", noteName(this.path.chapters[this.index + 1].path)));
         component.registerDomEvent(next, "click", () => (last ? exitReader(this.app, this.leaf) : this.go(1)));
     }
 
+    /** The note on screen: the deepest detour, or the chapter. */
+    private reading(): string | null {
+        if (!this.path) return null;
+        return this.detours[this.detours.length - 1] ?? this.path.chapters[this.index].path;
+    }
+
+    /** Where one step back lands: the previous detour, or the chapter you left from. */
+    private backName(): string {
+        const previous = this.detours.length > 1 ? this.detours[this.detours.length - 2] : this.path?.chapters[this.index].path;
+        return previous ? noteName(previous) : "";
+    }
+
+    private renderPill(): void {
+        if (!this.pill) return;
+        const on = this.detours.length > 0;
+        this.pill.toggleClass(c("reader-hidden"), !on);
+        this.pill.setText(on ? `↩ ${t("reader_back_to", this.backName())}` : "");
+    }
+
+    /** The note a link in the chapter points at, resolved the way Obsidian resolves it. */
+    private linkTarget(event: Event): { link: HTMLElement; href: string; file: TFile | null } | null {
+        const link = (event.target as HTMLElement | null)?.closest?.("a.internal-link") as HTMLElement | null;
+        if (!link || !this.path) return null;
+        const href = link.getAttribute("data-href") ?? link.getAttribute("href");
+        if (!href) return null;
+        const file = this.app.metadataCache.getFirstLinkpathDest(href.split("#")[0], this.reading() ?? "");
+        return { link, href, file };
+    }
+
     /**
-     * A link inside a chapter. One to a chapter of this reading turns the page to it; any other
-     * opens the note in a tab beside the reader. Peeks and detours arrive with R3 (#670).
+     * A link inside a chapter is a **peek** (#670): read it in place, take it as a detour, jump to it
+     * when it is a chapter, or add it to this reading. Mod-click still opens it in a tab. A link to a
+     * note that does not exist yet only says so — following it would create the note, and the Reader
+     * writes nothing.
      */
     private onLink(event: MouseEvent): void {
-        const target = (event.target as HTMLElement | null)?.closest?.("a.internal-link");
-        if (!target || !this.path) return;
-        const href = target.getAttribute("data-href") ?? target.getAttribute("href");
-        if (!href) return;
+        const found = this.linkTarget(event);
+        if (!found) return;
         event.preventDefault();
-        const source = this.path.chapters[this.index].path;
-        const file = this.app.metadataCache.getFirstLinkpathDest(href.split("#")[0], source);
-        const at = file ? this.path.chapters.findIndex((chapter) => chapter.path === file.path) : -1;
-        if (at >= 0) this.show(at);
-        else void this.app.workspace.openLinkText(href, source, "tab");
+        if (Keymap.isModEvent(event)) {
+            if (found.file) void this.app.workspace.openLinkText(found.file.path, this.reading() ?? "", "tab");
+            return;
+        }
+        const block = found.link.closest<HTMLElement>("p, blockquote, ul, ol, table, h1, h2, h3, h4, h5, h6, .callout") ?? found.link;
+        this.openPeek(block, found.file?.path ?? null, found.href);
+    }
+
+    /**
+     * Draw a peek right under `anchor`'s block — in the chapter, or under a row of the context
+     * panel. Inline, not floating: it scrolls with what it explains and needs no coordinates.
+     */
+    private openPeek(anchor: HTMLElement, notePath: string | null, label: string): void {
+        if (!this.path) return;
+        this.closePeek();
+        const parent = anchor.parentElement;
+        if (!parent) return;
+        const generation = ++this.peekGeneration;
+        const card = parent.createDiv({
+            cls: c("reader-peek"),
+            attr: { role: "dialog", "aria-label": t("reader_peek_label", noteName(notePath ?? label)) },
+        });
+        anchor.after(card);
+        this.peek = card;
+
+        const at = notePath ? placeInPath(this.path.chapters, notePath) : -1;
+        card.createDiv({
+            cls: c("reader-peek-place"),
+            text: !notePath ? t("reader_peek_missing") : at >= 0 ? t("reader_peek_in_path", String(at + 1)) : t("reader_peek_outside"),
+        });
+        const title = card.createDiv({ cls: c("reader-peek-title"), text: noteName(notePath ?? label) });
+        if (notePath) hoverPreview(this.app, title, notePath, this);
+        const excerpt = card.createDiv({ cls: c("reader-peek-excerpt") });
+        const actions = card.createDiv({ cls: c("reader-peek-actions") });
+        const action = (key: LocaleKey, primary: boolean, run: () => void) => {
+            const button = actions.createEl("button", {
+                cls: [c("reader-peek-action"), ...(primary ? ["mod-cta"] : [])].join(" "),
+                attr: { type: "button" },
+                text: t(key),
+            });
+            this.registerDomEvent(button, "click", run);
+        };
+
+        if (notePath) {
+            if (notePath !== this.reading()) action("reader_peek_detour", true, () => this.takeDetour(notePath));
+            if (at >= 0) action("reader_peek_jump", false, () => this.show(at));
+            else action("reader_peek_add", false, () => this.addToReading(notePath));
+            action("reader_peek_tab", false, () => {
+                this.closePeek();
+                void this.app.workspace.openLinkText(notePath, this.reading() ?? "", "tab");
+            });
+            const file = this.app.vault.getAbstractFileByPath(notePath);
+            if (file instanceof TFile) {
+                void this.app.vault
+                    .cachedRead(file)
+                    .then((markdown) => {
+                        if (generation === this.peekGeneration && this.peek === card) excerpt.setText(plainExcerpt(markdown));
+                    })
+                    .catch((error: unknown) => log.debug(`[Reader] peek excerpt failed: ${String(error)}`));
+            }
+        }
+        action("reader_peek_close", false, () => this.closePeek());
+    }
+
+    private closePeek(): void {
+        this.peekGeneration++;
+        this.peek?.remove();
+        this.peek = null;
+    }
+
+    private takeDetour(notePath: string): void {
+        const reading = this.reading();
+        if (!reading) return;
+        this.detours = pushDetour(this.detours, notePath, reading);
+        this.closePeek();
+        this.render();
+    }
+
+    private backFromDetour(): void {
+        if (this.detours.length === 0) return;
+        this.detours = popDetour(this.detours);
+        this.render();
+    }
+
+    /** Add a note after this chapter, for this reading only (#670): the reading is not a file. */
+    private addToReading(notePath: string): void {
+        if (!this.path) return;
+        this.path = addToReading(this.path, this.index, notePath);
+        this.closePeek();
+        this.render();
     }
 
     private show(index: number): void {
         if (!this.path) return;
+        this.detours = [];
         this.index = Math.max(0, Math.min(index, this.path.chapters.length - 1));
         this.render();
         this.app.workspace.requestSaveLayout();
@@ -382,6 +540,11 @@ export class ReaderView extends ItemView {
             row.createSpan({ cls: c("reader-toc-number"), text: String(i + 1).padStart(2, "0") });
             row.createSpan({ cls: c("reader-toc-name"), text: noteName(chapter.path) });
             row.createSpan({ cls: c("reader-toc-role"), text: t(ROLE_KEY[chapter.role]) });
+            if (i !== this.index && this.visited.has(chapter.path)) {
+                const tick = row.createSpan({ cls: c("reader-toc-tick"), attr: { "aria-label": t("reader_visited") } });
+                setIcon(tick, "check");
+            }
+            if (i === this.index) row.setAttribute("aria-current", "step");
             this.registerDomEvent(row, "click", () => this.show(i));
         });
     }
@@ -408,11 +571,16 @@ export class ReaderView extends ItemView {
         host.createDiv({ cls: c("reader-panel-title"), text: t("reader_context") });
         const index = KnowledgeIndex.getInstance();
         if (!this.path || index.status !== "ready") return;
-        const map = buildEvidenceMap(index.getModel(), this.path.chapters[this.index].path);
+        const map = buildEvidenceMap(index.getModel(), this.reading() ?? this.path.chapters[this.index].path);
         const list = (key: LocaleKey, paths: string[]) => {
             if (paths.length === 0) return;
             host.createDiv({ cls: c("reader-context-heading"), text: t(key) });
-            for (const p of paths) host.createDiv({ cls: c("reader-context-row"), text: noteName(p) });
+            for (const p of paths) {
+                // Each is a peek too: read it here, take it as a detour, or add it to this reading.
+                const row = host.createEl("button", { cls: c("reader-context-row"), attr: { type: "button" }, text: noteName(p) });
+                this.registerDomEvent(row, "click", () => this.openPeek(row, p, noteName(p)));
+                hoverPreview(this.app, row, p, this);
+            }
         };
         list("reader_supports", map.supports);
         list("reader_argues", map.contradicts);
@@ -452,6 +620,15 @@ export class ReaderView extends ItemView {
                 this.toggleFullscreen();
                 return;
             case "Escape":
+                // One thing at a time, nearest first: the peek, then a detour, then a panel.
+                if (this.peek) {
+                    this.closePeek();
+                    return;
+                }
+                if (this.detours.length > 0) {
+                    this.backFromDetour();
+                    return;
+                }
                 if (this.panel) {
                     this.panel = null;
                     this.renderPanel();

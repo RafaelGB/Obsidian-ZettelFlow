@@ -377,8 +377,120 @@
 }
 
 .zettelkasten-flow__reader-context-row {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-2);
+    border: none;
+    box-shadow: none;
+    background: none;
+    border-radius: var(--radius-s);
     color: var(--reader-fg);
-    padding: var(--size-4-1) 0;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__reader-toc-tick {
+    display: inline-flex;
+    color: var(--color-green);
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+/* ── peeks and detours (#670) ─────────────────────────────────────────── */
+.zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
+/* The way back from a detour: one press pops one level. */
+.zettelkasten-flow__reader-detour-pill {
+    position: absolute;
+    top: calc(var(--size-4-12) + var(--size-4-1));
+    left: 50%;
+    transform: translateX(-50%);
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-4);
+    border: none;
+    border-radius: $radius-pill;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-size: var(--font-ui-small);
+    box-shadow: var(--shadow-s);
+    cursor: pointer;
+    z-index: 3;
+
+    &:hover {
+        background-color: var(--interactive-accent-hover);
+    }
+}
+
+.zettelkasten-flow__reader-role-tag--detour {
+    color: var(--reader-faint);
+    background-color: var(--background-modifier-hover);
+}
+
+/* A peek is read in place: a card under the paragraph that holds the link. */
+.zettelkasten-flow__reader-peek {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    margin: var(--size-4-3) 0 var(--size-4-5);
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-left: var(--size-2-1) solid var(--interactive-accent);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-medium);
+    line-height: var(--line-height-normal);
+    animation: zf-reader-peek-in 0.18s ease-out;
+}
+
+@keyframes zf-reader-peek-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--size-2-2) * -1));
+    }
+}
+
+.zettelkasten-flow__reader-peek-place {
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-peek-title {
+    font-weight: var(--font-semibold);
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__reader-peek-excerpt {
+    color: var(--text-muted);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__reader-peek-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-peek-action {
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-3);
+    font-size: var(--font-ui-small);
 }
 
 .zettelkasten-flow__reader-context-empty {
@@ -386,7 +498,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .zettelkasten-flow__reader-page {
+    .zettelkasten-flow__reader-page,
+    .zettelkasten-flow__reader-peek {
         animation: none;
     }
 

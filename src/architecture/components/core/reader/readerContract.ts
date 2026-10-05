@@ -25,6 +25,8 @@ export interface ReaderState {
     paths?: string[];
     /** Whether each sidebar was collapsed before the reader opened. */
     restore?: ReaderSidesState;
+    /** One-shot (#671): land on this highlight — a thought id — when its chapter is drawn. */
+    highlight?: string;
 }
 
 /** Read a view-state payload, keeping only what the contract knows. Never throws. */
@@ -43,6 +45,7 @@ export function parseReaderState(raw: unknown): ReaderState {
         const paths = value.paths.filter((p): p is string => typeof p === "string" && p.length > 0);
         if (paths.length > 0) state.paths = paths;
     }
+    if (typeof value.highlight === "string" && value.highlight.length > 0) state.highlight = value.highlight;
     const restore = value.restore as Record<string, unknown> | undefined;
     if (restore && typeof restore.left === "boolean" && typeof restore.right === "boolean") {
         state.restore = { left: restore.left, right: restore.right };

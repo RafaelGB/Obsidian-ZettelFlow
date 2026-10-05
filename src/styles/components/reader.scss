@@ -497,7 +497,163 @@
     @include empty-state;
 }
 
+/* ── highlights and notes in the margin (#671) ─────────────────────────── */
+.zettelkasten-flow__reader {
+    container-type: inline-size;
+    container-name: zf-reader;
+}
+
+.zettelkasten-flow__reader-highlight {
+    background-color: var(--text-highlight-bg);
+    color: inherit;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+}
+
+.zettelkasten-flow__reader-highlight--noted {
+    text-decoration: underline dotted var(--interactive-accent);
+    text-underline-offset: 0.25em;
+}
+
+.zettelkasten-flow__reader-highlight--flash {
+    animation: zf-reader-highlight-flash 1.6s ease-out 1;
+}
+
+@keyframes zf-reader-highlight-flash {
+    from {
+        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+    }
+    to {
+        box-shadow: 0 0 0 var(--size-4-3) transparent;
+    }
+}
+
+/* The popover floats over the selection; two custom properties place it, nothing inline. */
+.zettelkasten-flow__reader-hl-pop {
+    position: absolute;
+    left: var(--zf-hl-x, 50%);
+    top: var(--zf-hl-y, 50%);
+    transform: translate(-50%, calc(-100% - var(--size-4-2)));
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    max-width: min(24rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+}
+
+.zettelkasten-flow__reader-hl-pop--status {
+    flex-direction: row;
+    align-items: center;
+    transform: translate(-50%, var(--size-4-2));
+}
+
+.zettelkasten-flow__reader-hl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-hl-input {
+    width: min(20rem, 70vw);
+    min-height: var(--size-4-16);
+    resize: vertical;
+    font-family: var(--reader-font);
+}
+
+.zettelkasten-flow__reader-hl-pop-note {
+    font-family: var(--reader-font);
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__reader-hl-pop-empty,
+.zettelkasten-flow__reader-hl-status {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+}
+
+/* Kindle's margin: beside the page when the pane is wide, folded into Context when it is not. */
+.zettelkasten-flow__reader-margin {
+    display: none;
+}
+
+@container zf-reader (min-width: 72rem) {
+    .zettelkasten-flow__reader-margin:not(:empty) {
+        display: flex;
+        flex-direction: column;
+        gap: var(--size-4-2);
+        position: absolute;
+        top: var(--size-4-8);
+        right: var(--size-4-6);
+        width: calc((100% - 42rem) / 2 - var(--size-4-12));
+    }
+}
+
+.zettelkasten-flow__reader-hl-heading {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-hl-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-2) var(--size-4-3);
+    text-align: left;
+    white-space: normal;
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-left: var(--size-2-1) solid var(--text-highlight-bg);
+    border-radius: var(--radius-s);
+    box-shadow: none;
+}
+
+.zettelkasten-flow__reader-hl-item--detached {
+    border-left-style: dashed;
+    opacity: 0.85;
+}
+
+.zettelkasten-flow__reader-hl-quote {
+    font-family: var(--reader-font);
+    font-style: italic;
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader-hl-note {
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader-hl-link {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-highlight--flash {
+        animation: none;
+        outline: var(--border-width) solid var(--interactive-accent);
+    }
+
     .zettelkasten-flow__reader-page,
     .zettelkasten-flow__reader-peek {
         animation: none;

@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { EditorState } from "@codemirror/state";
 import { javascript } from "@codemirror/lang-javascript";
+import { ensureSyntaxTree } from "@codemirror/language";
 import type { App } from "obsidian";
 import type { ZfTemplate } from "application/template/zfTemplate";
 import { executableCodeSites } from "application/community/systemInstall";
@@ -120,10 +121,15 @@ describe("the scripts a shipped system installs stay true (#353, AC-5)", () => {
     it.each(scripts.map((script) => [`${script.system} · ${script.actionType}`, script] as const))(
         "%s parses",
         (_label, script) => {
-            const state = EditorState.create({
+            const created = EditorState.create({
                 doc: `(async () => {\n${script.code}\n})();`,
                 extensions: [javascript()],
             });
+            // A new state parses on a budget of a few milliseconds; under a loaded full run the tree
+            // stopped short and the cut read as a syntax error (the flake). Finish the parse, then
+            // take the state that carries the whole tree.
+            expect(ensureSyntaxTree(created, created.doc.length, 10_000)).not.toBeNull();
+            const state = created.update({}).state;
 
             expect(syntaxDiagnostics(state)).toEqual([]);
         }

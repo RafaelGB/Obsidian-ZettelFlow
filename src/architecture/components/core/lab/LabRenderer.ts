@@ -1,5 +1,6 @@
 import { App, moment as obsidianMoment, setIcon, setTooltip } from "obsidian";
 import type MomentFn from "moment";
+import { openReader } from "architecture/components/core/reader/openReader";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
@@ -917,6 +918,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
             );
         }
 
+        // A highlight made in the Reader (#671): the passage first, then your note about it.
+        if (thought.quote?.exact && thought.about) this.renderQuote(box, thought);
+
         const area = box.createEl("textarea", { cls: c("lab-text"), attr: { rows: "1" } });
         area.value = thought.text;
         // Clicking into a thought is also how you tell the keys which one you mean.
@@ -1063,6 +1067,28 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(label, "click", () => {
             void this.app.workspace.openLinkText(path, "", false);
         });
+    }
+
+    /**
+     * The passage a highlight was made on (#671) — quoted, with the note it came from and a way
+     * back to the very spot in the Reader. The note itself was never written to.
+     */
+    private renderQuote(box: HTMLElement, thought: Thought): void {
+        const quote = thought.quote;
+        const about = thought.about;
+        if (!quote || !about) return;
+        const block = box.createDiv({ cls: c("lab-quote") });
+        block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
+        const meta = block.createDiv({ cls: c("lab-quote-meta") });
+        const name = (about.split("/").pop() ?? about).replace(/\.md$/, "");
+        meta.createSpan({ text: t("lab_highlight_from", quote.heading ? `${name} › ${quote.heading}` : name) });
+        if (!this.app.vault.getAbstractFileByPath(about)) return;
+        const open = meta.createEl("button", {
+            cls: c("lab-quote-open"),
+            text: t("lab_highlight_open_reader"),
+            attr: { type: "button" },
+        });
+        this.registerDomEvent(open, "click", () => void openReader(this.app, { seed: about, highlight: thought.id }));
     }
 
     /** The thoughts this one is connected to, as chips that take you to them. */

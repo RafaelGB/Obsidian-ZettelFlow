@@ -10,6 +10,7 @@ import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
+import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
 import {
     READER_FONTS,
     READER_SIZES,
@@ -95,7 +96,12 @@ export class ReaderView extends ItemView {
         progress: HTMLProgressElement;
         panel: HTMLElement;
         stage: HTMLElement;
+        margin: HTMLElement;
     } | null = null;
+    /** Highlights and margin notes (#671): drawn over each chapter, kept as thoughts in Think. */
+    private highlights: ReaderHighlights | null = null;
+    /** A highlight a deep link asked to land on — consumed by the next chapter that holds it. */
+    private pendingHighlight: string | null = null;
     /** The listeners and renders of the chapter on screen; replaced with it. */
     private chapter: Component | null = null;
     private idleTimer: number | undefined;
@@ -116,7 +122,9 @@ export class ReaderView extends ItemView {
 
     constructor(
         leaf: WorkspaceLeaf,
-        private readonly plugin?: ReaderHost
+        private readonly plugin?: ReaderHost,
+        /** Seams for tests: the thought store, the selection, the mark factory. */
+        private readonly highlightDeps: HighlightDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -151,6 +159,7 @@ export class ReaderView extends ItemView {
         await super.setState(state, result);
         const parsed = parseReaderState(state);
         if (parsed.restore) adoptHeldSides(parsed.restore);
+        if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.seed) {
             this.kind = parsed.kind ?? "around";
             this.paths = parsed.kind === "selection" ? parsed.paths : undefined;
@@ -171,6 +180,7 @@ export class ReaderView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.idleTimer);
+        this.highlights?.hidePopover();
         this.chapter?.unload();
         this.chapter = null;
         // Closing the tab any other way still gives the workspace back.
@@ -213,6 +223,8 @@ export class ReaderView extends ItemView {
             if (this.peek && target && !this.peek.contains(target) && !target.closest?.("a.internal-link")) this.closePeek();
         });
         const page = stage.createEl("article", { cls: c("reader-page") });
+        // Kindle's margin (#671): the chapter's highlights and notes, beside the page on a wide pane.
+        const margin = stage.createEl("aside", { cls: c("reader-margin"), attr: { "aria-label": t("reader_hl_margin") } });
         const dots = root.createDiv({ cls: c("reader-dots"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
 
         const bar = root.createDiv({ cls: c("reader-bar"), attr: { role: "toolbar", "aria-label": t("reader_title") } });
@@ -227,7 +239,19 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage };
+        this.els = { title, page, dots, label, progress, panel, stage, margin };
+        this.highlights = new ReaderHighlights(
+            {
+                app: this.app,
+                host: root,
+                owner: this,
+                scrollTo: (el) => this.scrollToEl(el),
+                onChange: () => {
+                    if (this.panel === "context") this.renderPanel();
+                },
+            },
+            this.highlightDeps
+        );
         this.wake();
     }
 
@@ -330,6 +354,11 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         component.registerDomEvent(body, "click", (event) => this.onLink(event));
+        // The note's highlights, found again by their words; a deep link lands on one (#671).
+        void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
+            if (generation !== this.generation || !this.pendingHighlight) return;
+            if (this.highlights?.reveal(this.pendingHighlight)) this.pendingHighlight = null;
+        });
         // Obsidian's own page preview on every link it drew, as on every note name the plugin draws (#594).
         for (const link of Array.from(body.querySelectorAll("a.internal-link"))) {
             const href = link.getAttribute("data-href");
@@ -582,6 +611,8 @@ export class ReaderView extends ItemView {
                 hoverPreview(this.app, row, p, this);
             }
         };
+        // Your highlights here too: the margin only has room on a wide pane (#671).
+        this.highlights?.renderList(host);
         list("reader_supports", map.supports);
         list("reader_argues", map.contradicts);
         list("reader_questions", map.gaps.openQuestions);
@@ -619,8 +650,17 @@ export class ReaderView extends ItemView {
                 event.preventDefault();
                 this.toggleFullscreen();
                 return;
+            case "h":
+            case "H":
+                // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
+                if (this.highlights?.highlightCurrent(event.shiftKey)) event.preventDefault();
+                return;
             case "Escape":
-                // One thing at a time, nearest first: the peek, then a detour, then a panel.
+                // One thing at a time, nearest first: the highlight popover, the peek, a detour, a panel.
+                if (this.highlights?.hasPopover()) {
+                    this.highlights.hidePopover();
+                    return;
+                }
                 if (this.peek) {
                     this.closePeek();
                     return;
@@ -639,6 +679,14 @@ export class ReaderView extends ItemView {
                 exitReader(this.app, this.leaf);
                 return;
         }
+    }
+
+    /** Bring an element of the chapter into view inside the reader's own scroller, never its ancestors. */
+    private scrollToEl(el: HTMLElement): void {
+        const stage = this.els?.stage;
+        if (!stage) return;
+        const top = el.getBoundingClientRect().top - stage.getBoundingClientRect().top + stage.scrollTop - stage.clientHeight / 3;
+        stage.scrollTop = Math.max(0, top);
     }
 
     private ownDocument(): Document | undefined {

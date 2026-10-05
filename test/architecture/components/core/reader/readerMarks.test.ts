@@ -1,0 +1,68 @@
+import { describe, it, expect } from "@jest/globals";
+import { chapterText, textNodes, unwrapMark, wrapSpan, type ParentLike } from "architecture/components/core/reader/readerMarks";
+import { FakeEl } from "../../../../support/textDom";
+
+/** <p>Event sourcing <a>stores</a> changes, not <b>state</b>.</p><p>Next one.</p> */
+function chapter(): FakeEl {
+    return new FakeEl("div", [
+        new FakeEl("p", ["Event sourcing ", new FakeEl("a", ["stores"]), " changes, not ", new FakeEl("b", ["state"]), "."]),
+        "\n",
+        new FakeEl("p", ["Next one."]),
+    ]);
+}
+const makeMark = () => new FakeEl("mark") as unknown as ParentLike;
+
+describe("the chapter's text, as highlights see it (#671)", () => {
+    it("reads every text node in order", () => {
+        const root = chapter();
+        expect(chapterText(root as never)).toBe("Event sourcing stores changes, not state.\nNext one.");
+        expect(textNodes(root as never)).toHaveLength(7);
+    });
+});
+
+describe("drawing a highlight over rendered markdown (#671)", () => {
+    it("wraps a passage inside one text node in one mark, splitting around it", () => {
+        const root = chapter();
+        const text = chapterText(root as never);
+        const start = text.indexOf("sourcing");
+        const marks = wrapSpan(root as never, { start, end: start + "sourcing".length }, makeMark);
+        expect(marks).toHaveLength(1);
+        expect((marks[0] as unknown as FakeEl).textContent).toBe("sourcing");
+        expect(chapterText(root as never)).toBe(text); // the words are untouched
+    });
+
+    it("crosses a link and a bold word with one mark per text node", () => {
+        const root = chapter();
+        const text = chapterText(root as never);
+        const start = text.indexOf("stores changes, not state");
+        const marks = wrapSpan(root as never, { start, end: start + "stores changes, not state".length }, makeMark);
+        expect(marks.map((m) => (m as unknown as FakeEl).textContent)).toEqual(["stores", " changes, not ", "state"]);
+        expect(root.all("mark")).toHaveLength(3);
+        expect(chapterText(root as never)).toBe(text);
+    });
+
+    it("leaves the whitespace between paragraphs alone", () => {
+        const root = chapter();
+        const text = chapterText(root as never);
+        const start = text.indexOf("state.");
+        const marks = wrapSpan(root as never, { start, end: text.indexOf("Next") + 4 }, makeMark);
+        expect(marks.map((m) => (m as unknown as FakeEl).textContent)).toEqual(["state", ".", "Next"]);
+    });
+
+    it("can be taken away again, leaving the text as it was", () => {
+        const root = chapter();
+        const before = chapterText(root as never);
+        const start = before.indexOf("changes");
+        const marks = wrapSpan(root as never, { start, end: start + 7 }, makeMark);
+        marks.forEach(unwrapMark);
+        expect(root.all("mark")).toHaveLength(0);
+        expect(chapterText(root as never)).toBe(before);
+        // normalize() merges the split text back: the paragraph has its original five children.
+        expect(root.all("p")[0].childNodes).toHaveLength(5);
+    });
+
+    it("draws nothing for a span outside the text", () => {
+        const root = chapter();
+        expect(wrapSpan(root as never, { start: 500, end: 510 }, makeMark)).toEqual([]);
+    });
+});

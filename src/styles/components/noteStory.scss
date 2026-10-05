@@ -260,3 +260,13 @@
 .zettelkasten-flow__note-story-fold-row {
     padding-left: calc(var(--size-4-6) + #{$space-2});
 }
+
+/* A highlight's passage on the rail (#671). */
+.zettelkasten-flow__note-story-quote {
+    margin: var(--size-4-1) 0 0;
+    padding-left: var(--size-4-2);
+    border-left: var(--size-2-1) solid var(--text-highlight-bg);
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: var(--font-ui-small);
+}

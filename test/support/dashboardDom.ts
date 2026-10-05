@@ -37,8 +37,10 @@ export class DomNode {
     get className(): string {
         return [...this.classes].join(" ");
     }
-    set className(value: string) {
-        this.classes = new Set(value.split(/\s+/).filter(Boolean));
+    /** Obsidian's `cls` takes a string or an array of class names; both land here. */
+    set className(value: string | string[]) {
+        const names = Array.isArray(value) ? value : value.split(/\s+/);
+        this.classes = new Set(names.filter(Boolean));
     }
     get textContent(): string {
         return this.text + this.children.map((child) => child.textContent).join("");

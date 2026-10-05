@@ -12,6 +12,7 @@ import {
     thoughtPath,
     type Response,
     type Thought,
+    type ThoughtQuote,
 } from "application/thinking/thought";
 
 /**
@@ -64,7 +65,7 @@ export class ThoughtStore {
     /** Start one. No title is asked for, because a thought does not have one. */
     public async write(
         text: string,
-        options: { respondsTo?: Response; about?: string; alsoAbout?: string } = {}
+        options: { respondsTo?: Response; about?: string; alsoAbout?: string; quote?: ThoughtQuote } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
         if (!folder) return undefined;
@@ -133,14 +134,39 @@ export class ThoughtStore {
                 if (front["about"] !== notePath && front["alsoAbout"] !== notePath) continue;
                 const at = Number(front["at"]);
                 const id = front["id"];
+                const quote = front["quoteExact"];
                 out.push({
                     id: typeof id === "string" && id ? id : file.basename,
                     at: Number.isFinite(at) ? at : file.stat.ctime,
                     path: file.path,
+                    ...(typeof quote === "string" && quote && front["about"] === notePath ? { quote } : {}),
                 });
             } catch (error) {
                 // A half-written or hand-edited thought is not worth a broken timeline.
                 log.warn("[lab] could not read a thought's frontmatter", error);
+            }
+        }
+        return out.sort((a, b) => a.at - b.at);
+    }
+
+    /**
+     * The highlights made in the Reader on a note (#671): the thoughts about it that carry a
+     * passage, read in full because the reader needs the anchor and the margin note. Which files
+     * to read is decided from the metadata cache, so a lab of a thousand thoughts reads a handful.
+     */
+    public async highlightsAbout(notePath: string): Promise<Thought[]> {
+        if (!notePath || !this.folder()) return [];
+        const out: Thought[] = [];
+        for (const file of this.files()) {
+            try {
+                const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
+                    | Record<string, unknown>
+                    | undefined;
+                if (!front || front["about"] !== notePath || !front["quoteExact"]) continue;
+                const thought = parseThought(await ObsidianApi.vault().cachedRead(file), file.path);
+                if (thought.quote?.exact && thought.about === notePath) out.push(thought);
+            } catch (error) {
+                log.warn("[lab] could not read a highlight", error);
             }
         }
         return out.sort((a, b) => a.at - b.at);

@@ -78,7 +78,8 @@ relations:
 | **←**, **Page up** | previous chapter |
 | **Home** / **End** | first / last chapter |
 | **F** | fullscreen (desktop) |
-| **Esc** | one thing at a time, nearest first: close a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
+| **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
+| **Esc** | one thing at a time, nearest first: close the highlight popover, close a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
 
 The **bar** at the bottom appears when you move the mouse and fades after two seconds. It holds:
 
@@ -119,6 +120,33 @@ The **Contents** panel lists the chapters with their roles, ticks the ones you h
 where you are. **Around this chapter** lists what supports it, what argues back and its open
 questions, read from the same model as [This note](this-note.md). Each of those is a peek too.
 
+## Highlights and notes in the margin
+
+Reading well means stopping at the sentence that matters. Select some words in a chapter, as you
+would on a Kindle, and a small popover offers **Highlight**, **Highlight and note** or **Copy** (or
+press **H**, or **Shift+H** for the note).
+
+![A chapter with highlights, the popover over a selection, a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
+
+- **A highlight is a thought.** It lands in [Think](../architecture/thought-lab.md), about the note
+  you were reading, carrying the passage you picked and the heading it sat under. Your note is the
+  thought's text. Open Think on that note and the passage is there, quoted above what you wrote, with
+  **Open in the Reader** to come back to the exact place.
+- **The note is never touched.** Nothing is added to it: no marker, no block id, no property. The
+  highlight is found again every time you read, by looking for the same words and the words around
+  them, so it survives edits elsewhere in the note.
+- **Detached, never lost.** If the passage was edited away, the highlight is listed under
+  **Detached** with its note and a way to open it in Think.
+- **Click a highlight** to see its note, add or edit one, delete it, or open it in Think. A
+  highlight with a note has a dotted underline.
+- **In the margin.** On a wide pane your highlights are listed beside the page, in reading order;
+  click one to go to it. On a narrow pane the same list is under **Around this chapter**.
+- **Everything can be undone.** Highlighting, editing and deleting are recorded writes of a thought,
+  in the [write record](../architecture/reversibility.md), and each answer offers **Undo** in place. A
+  deleted highlight goes to the trash, not away.
+- **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
+  with its passage quoted.
+
 ## Type and reading themes
 
 The **Type** panel sets the font (your theme's own, or a serif), three sizes and a reading theme. The
@@ -135,7 +163,9 @@ No colour is invented: every look comes from your theme.
 ## What it writes
 
 **Nothing, to any note.** Reading is the whole job, and a test holds the line: nothing in the Reader
-reaches a file writer. The only things it remembers are where you are in a reading (in the workspace
+reaches a file writer. The one thing you can make while reading — a highlight — is a **thought** in
+Think, written through the thought store like every other thought, and a second test holds that
+line too. The only things it remembers are where you are in a reading (in the workspace
 layout, and the resume places in the plugin's settings) and your type choices (in the plugin's
 settings). Choosing a way through a note writes nothing either, and neither do peeks, detours or
 adding a note to a reading — an added note lasts as long as the reading on screen.
@@ -155,3 +185,9 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   note was first worked on (decisions and moves) — is read once, in `readerPaths.ts`, and handed in.
 - The chooser is `ReadingPathModal`; `readFrom` and `readSelection` are the doors' shared entry
   points. The view state carries `kind` and, for a picked set, its `paths`.
+- Highlights (#671) are `ReaderHighlights` (`readerHighlights.ts`): selection → popover → a thought
+  written by `ThoughtStore.write(text, { about, quote })` inside a recorded batch. The anchor is a
+  text quote (`exact`, `prefix`, `suffix`, ~32 characters each, plus the `heading`), matched by the
+  pure `anchorQuote` in `application/thinking/quoteAnchor.ts` with whitespace folded. `readerMarks.ts`
+  wraps the matched span in one `<mark>` per text node. `openReader(app, { seed, highlight })` lands
+  on one.

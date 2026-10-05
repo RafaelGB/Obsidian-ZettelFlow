@@ -17,6 +17,7 @@
  */
 
 import type { Incubation } from "./incubation";
+import type { TextQuote } from "./quoteAnchor";
 
 /** The frontmatter key a thought's little structure lives under. */
 export const LAB_FRONTMATTER_KEY = "zfThought";
@@ -38,6 +39,15 @@ export type ResponseKind = "fork" | "challenge";
 export interface Response {
     to: string;
     as: ResponseKind;
+}
+
+/**
+ * The passage a thought was written **in the margin of** (#671): a highlight made while reading.
+ * The words and a little context around them, so the Reader can find the same words again in the
+ * note — which it never writes to — and the heading they sat under, when there was one.
+ */
+export interface ThoughtQuote extends TextQuote {
+    heading?: string;
 }
 
 export interface Thought {
@@ -69,6 +79,16 @@ export interface Thought {
     alsoAbout?: string;
     /** Set aside (#469). Absent is the normal state, and it generates nothing. */
     incubated?: Incubation;
+    /**
+     * The passage of `about` this thought was written beside (#671), when it is a highlight. The
+     * text of the thought is then the margin note — and may be empty: a highlight alone is a mark.
+     */
+    quote?: ThoughtQuote;
+}
+
+/** Whether a thought is a highlight made in the Reader. */
+export function isHighlight(thought: Pick<Thought, "quote" | "about">): boolean {
+    return Boolean(thought.quote?.exact && thought.about);
 }
 
 export interface NewThought {
@@ -78,6 +98,7 @@ export interface NewThought {
     respondsTo?: Response;
     about?: string;
     alsoAbout?: string;
+    quote?: ThoughtQuote;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -89,6 +110,7 @@ export function newThought(input: NewThought): Thought {
         ...(input.respondsTo ? { respondsTo: input.respondsTo } : {}),
         ...(input.about ? { about: input.about } : {}),
         ...(input.alsoAbout ? { alsoAbout: input.alsoAbout } : {}),
+        ...(input.quote?.exact ? { quote: input.quote } : {}),
     };
 }
 
@@ -138,6 +160,14 @@ export function renderThought(thought: Thought): string {
         lines.push(`  asideReason: ${thought.incubated.reason}`, `  asideAt: ${thought.incubated.at}`);
         if (thought.incubated.stuckOn) lines.push(`  stuckOn: ${thought.incubated.stuckOn}`);
     }
+    if (thought.quote?.exact) {
+        // A passage is prose — colons, quotes, a stray `#` — so it is written as a JSON string,
+        // which YAML reads as an ordinary double-quoted scalar (and Obsidian's cache with it).
+        lines.push(`  quoteExact: ${JSON.stringify(thought.quote.exact)}`);
+        lines.push(`  quotePrefix: ${JSON.stringify(thought.quote.prefix)}`);
+        lines.push(`  quoteSuffix: ${JSON.stringify(thought.quote.suffix)}`);
+        if (thought.quote.heading) lines.push(`  quoteHeading: ${JSON.stringify(thought.quote.heading)}`);
+    }
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -172,6 +202,7 @@ export function parseThought(content: string, path: string): Thought {
 
     const at = Number(read("at"));
     const respondsTo = readResponse(read);
+    const quote = readQuote(read);
     const about = read("about");
     const alsoAbout = read("alsoAbout");
     const asideReason = read("asideReason");
@@ -193,6 +224,34 @@ export function parseThought(content: string, path: string): Thought {
         ...(about ? { about } : {}),
         ...(alsoAbout ? { alsoAbout } : {}),
         ...(incubated ? { incubated } : {}),
+        ...(quote ? { quote } : {}),
+    };
+}
+
+/** A string field written as JSON; anything else is taken as it stands. */
+function readString(raw: string | undefined): string | undefined {
+    if (raw === undefined) return undefined;
+    if (raw.startsWith("\"")) {
+        try {
+            const parsed: unknown = JSON.parse(raw);
+            return typeof parsed === "string" ? parsed : raw;
+        } catch {
+            return raw;
+        }
+    }
+    return raw;
+}
+
+/** The passage a highlight was made on (#671), when the file carries one. */
+function readQuote(read: (field: string) => string | undefined): ThoughtQuote | undefined {
+    const exact = readString(read("quoteExact"));
+    if (!exact) return undefined;
+    const heading = readString(read("quoteHeading"));
+    return {
+        exact,
+        prefix: readString(read("quotePrefix")) ?? "",
+        suffix: readString(read("quoteSuffix")) ?? "",
+        ...(heading ? { heading } : {}),
     };
 }
 

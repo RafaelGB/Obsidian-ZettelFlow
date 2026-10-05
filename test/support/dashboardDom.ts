@@ -237,3 +237,12 @@ export function installBrowserGlobals(): void {
 export async function flush(times = 5): Promise<void> {
     for (let i = 0; i < times; i++) await new Promise((resolve) => setImmediate(resolve));
 }
+
+/**
+ * Settle until `done()` holds, a tick at a time, up to `max` ticks. For async chains whose length
+ * depends on the runner (a resolver over several rows): a fixed number of ticks passed locally and
+ * flaked on CI, so wait for the outcome instead.
+ */
+export async function settle(done: () => boolean, max = 200): Promise<void> {
+    for (let i = 0; i < max && !done(); i++) await new Promise((resolve) => setImmediate(resolve));
+}

@@ -4,7 +4,7 @@ import { BasesEntry, BasesQueryResult, DateValue, Menu, NumberValue, QueryContro
 import { DashboardBasesView } from "dashboards/base/DashboardBasesView";
 import { ComputedResolver, type ResolverDeps } from "dashboards/base/scriptTransform";
 import type { DashboardModel } from "dashboards/panels";
-import { DomNode, flush, installBrowserGlobals } from "../../support/dashboardDom";
+import { DomNode, flush, installBrowserGlobals, settle } from "../../support/dashboardDom";
 
 function file(path: string): TFile {
     const f = new TFile();
@@ -153,7 +153,7 @@ describe("DashboardBasesView — computed fields and tasks", () => {
         const h = harness({ panels: [statPanel("a")], computed: { enabled: true, code: "x" } });
         withResolver(h, () => async (row: any) => ({ half: row.hours / 2 }));
         h.view.onDataUpdated();
-        await flush();
+        await settle(() => h.view.currentSnapshot?.schema.byId["half"] !== undefined);
         expect(h.view.currentSnapshot?.schema.byId["half"]?.type).toBe("number");
         expect(h.root.oneByClass("base-dashboard-notice").hasClass("zettelkasten-flow__is-hidden")).toBe(true);
     });
@@ -165,7 +165,7 @@ describe("DashboardBasesView — computed fields and tasks", () => {
             return { half: row.hours / 2 };
         });
         skip.view.onDataUpdated();
-        await flush();
+        await settle(() => skip.root.byClass("base-dashboard-notice").some((n) => !n.hasClass("zettelkasten-flow__is-hidden")));
         const notice = skip.root.oneByClass("base-dashboard-notice");
         expect(notice.hasClass("zettelkasten-flow__is-hidden")).toBe(false);
         expect(notice.textContent).toContain("skipped 1 note");
@@ -174,7 +174,7 @@ describe("DashboardBasesView — computed fields and tasks", () => {
         const fail = harness({ panels: [statPanel("a")], computed: { enabled: true, code: "x" } });
         withResolver(fail, () => async () => { throw new Error("boom"); });
         fail.view.onDataUpdated();
-        await flush();
+        await settle(() => fail.root.byClass("base-dashboard-notice").some((n) => n.hasClass("is-error")));
         const error = fail.root.oneByClass("base-dashboard-notice");
         expect(error.hasClass("is-error")).toBe(true);
         expect(error.textContent).toContain("boom");

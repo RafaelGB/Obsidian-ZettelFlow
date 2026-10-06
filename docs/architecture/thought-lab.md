@@ -97,6 +97,10 @@ this is the whole point: the log is the truth
 The passage is found again by its words on every read, never by a marker in the note, so the note
 is never written. Passage fields are JSON strings, so a colon or a quote in the text is safe.
 
+A highlight comes back for a second look a few days later (#678): a line above the composer, *A few
+things you marked are back for a second look*, shown only on a day one is due. Its review is a few
+more `review*` lines in the same frontmatter. See [A few things you marked](../development/highlights-review.md).
+
 A file in that folder with no `zfThought` at all is **still a thought** — just text. Someone will
 write a note there by hand, and that is allowed. A refuge that rejects what you put in it is not
 one.

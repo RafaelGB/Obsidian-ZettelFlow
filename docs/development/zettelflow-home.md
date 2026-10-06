@@ -16,6 +16,10 @@ changes. *(Auto-opening Home on Obsidian launch is a planned follow-up.)*
 
 ## What it shows
 
+- **A few things you marked** *(#678)* — a hero tile, beside the other three, **only on a day**
+  something you highlighted in the [Reader](reader.md) is due a second look. **Look again** opens a
+  few cards: *still think so*, *changed my mind*, *open in the Reader*, *crystallize* or *let it go*.
+  No count and no empty tile. See [A few things you marked](highlights-review.md).
 - **Greeting + "you've been thinking for N days"** — the count of distinct days you developed an idea,
   from the private [development journal](thinking-heatmap.md) (#162).
 - **3D-graph teaser** *(#285)* — a one-click card ("see the shape of your thinking") that opens the

@@ -14,6 +14,7 @@ import {
     type Thought,
     type ThoughtQuote,
 } from "application/thinking/thought";
+import { dueHighlights, isDueInFrontmatter } from "application/thinking/highlightReview";
 
 /**
  * Where thoughts live (#466, epic #465).
@@ -170,6 +171,45 @@ export class ThoughtStore {
             }
         }
         return out.sort((a, b) => a.at - b.at);
+    }
+
+    /**
+     * Whether anything you marked is due a second look today (#678) — answered from the metadata
+     * cache, so Home and Think can decide whether to offer the door without reading a file.
+     */
+    public anyHighlightDue(now: number = Date.now()): boolean {
+        if (!this.folder()) return false;
+        return this.files().some((file) => {
+            try {
+                return isDueInFrontmatter(this.frontOf(file), now);
+            } catch {
+                return false;
+            }
+        });
+    }
+
+    /**
+     * The few highlights to look at again now (#678), read in full. The cache picks which files;
+     * the pure {@link dueHighlights} decides, so the answer is the same one the door gave.
+     */
+    public async dueHighlights(now: number = Date.now()): Promise<Thought[]> {
+        if (!this.folder()) return [];
+        const out: Thought[] = [];
+        for (const file of this.files()) {
+            try {
+                if (!isDueInFrontmatter(this.frontOf(file), now)) continue;
+                out.push(parseThought(await ObsidianApi.vault().cachedRead(file), file.path));
+            } catch (error) {
+                log.warn("[lab] could not read a highlight to review", error);
+            }
+        }
+        return dueHighlights(out, now);
+    }
+
+    private frontOf(file: TFile): Record<string, unknown> | undefined {
+        return ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
+            | Record<string, unknown>
+            | undefined;
     }
 
     private files(): TFile[] {

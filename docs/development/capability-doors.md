@@ -117,6 +117,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `moves` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |
 | `think-about` | zettelflow-home | 1 | note menu (`ThinkAboutComponent.ts`) · `think-about-this-note` |
 | `reader` | zettelflow-reader | 1 | note menu (`ReaderComponent.ts`) · control in zettelflow-explore (`AskGraphRenderer.ts`) · control in zettelflow-note (`headBlock.ts`) · control in zettelflow-home (`HomeModeRenderer.ts`) · `open-reader` |
+| `library` | zettelflow-library | 1 | ribbon → `open-library` · note menu (`LibraryComponent.ts`) · `open-library` |
 | `claim-door` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |
 | `claim-return` | claims | 3 | recommended on `zettelflow-home:home` · `return-to-this-claim` |
 | `wager` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · recommended on `zettelflow-home:home` |

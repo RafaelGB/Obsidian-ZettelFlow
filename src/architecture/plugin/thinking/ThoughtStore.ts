@@ -172,6 +172,23 @@ export class ThoughtStore {
         return out.sort((a, b) => a.at - b.at);
     }
 
+    /**
+     * How many highlights each file has (#680): the Library's counts, read from the metadata cache
+     * in one pass — no thought is opened to count it.
+     */
+    public highlightCounts(): Map<string, number> {
+        const counts = new Map<string, number>();
+        for (const file of this.files()) {
+            const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
+                | Record<string, unknown>
+                | undefined;
+            const about = front?.["about"];
+            if (typeof about !== "string" || !about || !front?.["quoteExact"]) continue;
+            counts.set(about, (counts.get(about) ?? 0) + 1);
+        }
+        return counts;
+    }
+
     private files(): TFile[] {
         const folder = this.folder();
         if (!folder) return [];

@@ -254,6 +254,13 @@ export const BUDGETS = {
         because:
             "a Tasks panel redraws on every data update and on every edit to one of its notes; parsing the lines and grouping them must stay well under a frame budget's worth of work (#635)",
     },
+    "library.shelf.500": {
+        name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
+        limit: 10,
+        measured: "1.7 ms",
+        because:
+            "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

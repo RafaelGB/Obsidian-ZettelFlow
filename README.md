@@ -88,7 +88,11 @@ Right-click any note and choose **Read from here**. The Reader takes the window 
 
 ![The Reader: a chapter of a reading path](docs/resources/reader/reader.svg)
 
-**[The Reader →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/)**
+**Your Library** (ribbon menu → *Library*) puts the PDFs and EPUBs already in your vault on one shelf, beside the paths you saved: covers, how far you are, what you marked, and the notes born from each one. Nothing is imported or uploaded, and your files are never modified.
+
+![The Library: Continue reading and the shelf of books, papers and reading paths](docs/resources/library/shelf.svg)
+
+**[The Reader →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/)** · **[Your library →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/)**
 
 ---
 

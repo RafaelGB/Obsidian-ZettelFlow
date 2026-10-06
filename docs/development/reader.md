@@ -199,7 +199,8 @@ end card says what it added up to and what you can do with it.
 - **Save this path.** Name it (it proposes the note and the way you read it) and the path is kept,
   in this order, in the plugin's data. It comes back as **Your saved paths** in the chooser of any
   note it passes through — read it again, rename it in place, or delete it — and as **Saved
-  readings** in Home's **Show everything** fold, one click back into the Reader. Saving again
+  readings** in Home's **Show everything** fold, one click back into the Reader — and on the
+  [Library](library.md)'s shelf, with how far you are and what you marked. Saving again
   under a new name renames it; the same chapters are never kept twice.
 - **Export as one document.** A preview first: the chapters, an appendix of your highlights on
   them, and how each chapter is carried — **Embed each note** (the default: `![[note]]`, live,

@@ -117,6 +117,18 @@ highlights as an appendix, or cultivate its thesis.
 
 → Details: [The Reader](development/reader.md).
 
+## Your Library — the sources your ideas come from
+
+**Ribbon menu → Library.** The PDFs and EPUBs already in your vault, and the reading paths you saved,
+share one shelf. Each has its cover — the book's own, the paper's first page, a constellation for a
+path — and says what came of it: how far you are, what you highlighted, and the **notes born from
+it**. *Continue reading* leads, and a scanned PDF says it is **read only** before you open it.
+Nothing is imported, nothing leaves the vault, and no source file is ever modified.
+
+![The Library: Continue reading, then books, papers and reading paths with their progress, highlights and notes born](resources/library/shelf.svg)
+
+→ Details: [Your library](development/library.md).
+
 ## Practice — what you have been doing
 
 **Health › Practice** shows twelve weeks of ideas developed, a cell a day; how you answered

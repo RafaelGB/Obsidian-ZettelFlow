@@ -155,9 +155,29 @@ function renderMove(body: HTMLElement, move: Move, ctx: RowContext): void {
 function renderThought(body: HTMLElement, thought: ThoughtRef, ctx: RowContext): void {
     // A highlight made in the Reader (#671) says so, and shows the passage it was written beside —
     // the reader's own words from this very note. Its margin note stays in Think, one click away.
+    if (thought.revises) {
+        renderRevision(body, thought, ctx);
+        return;
+    }
     const key = thought.quote ? "evolution_timeline_highlight_label" : "evolution_timeline_thought_label";
     renderProduced(headLine(body, key, thought.at, ctx), thought.path, ctx);
     if (thought.quote) body.createEl("blockquote", { cls: c("note-story-quote"), text: thought.quote });
+}
+
+/**
+ * You changed your mind about a passage you had marked (#679), told as a pair: the passage you
+ * marked **then**, and what you think **now** — one click away in Think, like every thought's text.
+ * It states; it never says which of the two was right.
+ */
+function renderRevision(body: HTMLElement, thought: ThoughtRef, ctx: RowContext): void {
+    renderProduced(headLine(body, "evolution_timeline_changed_mind_label", thought.at, ctx), thought.path, ctx);
+    const diff = body.createDiv({ cls: c("note-story-diff") });
+    const then = diff.createDiv({ cls: [c("note-story-diff-line"), c("note-story-diff-before")].join(" ") });
+    then.createSpan({ cls: c("note-story-label"), text: t("evolution_timeline_return_then") });
+    then.createSpan({ cls: c("note-story-claim"), text: thought.revises ?? "" });
+    const now = diff.createDiv({ cls: c("note-story-diff-line") });
+    now.createSpan({ cls: c("note-story-label"), text: t("evolution_timeline_return_now") });
+    now.createSpan({ cls: c("note-story-claim"), text: t("evolution_timeline_changed_mind_now") });
 }
 
 /**

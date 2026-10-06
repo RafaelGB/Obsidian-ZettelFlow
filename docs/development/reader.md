@@ -183,6 +183,8 @@ note). A drag that ends past the text, in the margin or below the last line, sti
 - **Everything can be undone.** Highlighting, editing and deleting are recorded writes of a thought,
   in the [write record](../architecture/reversibility.md), and each answer offers **Undo** in place. A
   deleted highlight goes to the trash, not away.
+- **It comes back.** A few days later, what you marked returns as a card, with one question: do you
+  still think so? See [A few things you marked](highlights-review.md).
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
 

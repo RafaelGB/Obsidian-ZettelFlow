@@ -142,6 +142,7 @@ nav:
       - Read your notes and your sources:
           - The Reader: development/reader.md
           - Your library: development/library.md
+          - A few things you marked: development/highlights-review.md
       - Understand one note:
           - This note: development/this-note.md
           - Evolution timeline: development/evolution-timeline.md

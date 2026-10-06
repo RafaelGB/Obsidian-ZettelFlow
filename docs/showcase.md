@@ -115,6 +115,15 @@ highlights as an appendix, or cultivate its thesis.
 
 ![Highlights in a chapter, the popover, a note in the margin and the thought it made in Think](resources/reader/highlights.svg)
 
+A few days later, **what you marked comes back** — a tile on Home, only on a day something is due,
+and a few cards set in the Reader's type, each asking one thing: *do you still think so?* Keep it,
+write what you think now (the note's story shows the pair, *before* and *now*), make it a note that
+cites the passage, or let it go. Fixed intervals, no counts, no streaks.
+
+![A few things you marked: the Home tile, and a review card with its five answers](resources/reader/review.svg)
+
+→ Details: [A few things you marked](development/highlights-review.md).
+
 → Details: [The Reader](development/reader.md).
 
 ## Your Library — the sources your ideas come from

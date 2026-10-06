@@ -30,6 +30,8 @@ import { CrystallizeModal } from "./CrystallizeModal";
 import { CollisionPanel } from "./CollisionPanel";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { drawCollision, type Collision, type CollisionDistance } from "architecture/knowledge/state";
+import { dueHighlights } from "application/thinking/highlightReview";
+import { openReview } from "architecture/components/core/review/ReviewModal";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -406,6 +408,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
             });
         }
 
+        this.renderReviewDoor(host);
         this.renderComposer(host);
         if (this.selected.size > 0) this.renderPicked(host);
 
@@ -423,6 +426,19 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
         // Returning should be as cheap as arriving.
         if (this.scrollTop > 0) window.setTimeout(() => (host.scrollTop = this.scrollTop), 0);
+    }
+
+    /**
+     * Something you marked in the Reader is back for a second look (#678). One line, on the days
+     * there is something and on no other — never a count, never what you skipped.
+     */
+    private renderReviewDoor(host: HTMLElement): void {
+        if (dueHighlights(this.thoughts, Date.now(), 1).length === 0) return;
+        const line = host.createDiv({ cls: c("lab-review-door") });
+        setIcon(line.createSpan({ cls: c("lab-subject-icon") }), "highlighter");
+        line.createSpan({ cls: c("lab-review-door-text"), text: t("review_lab_line") });
+        const open = line.createEl("button", { cls: "mod-cta", text: t("review_home_open"), attr: { type: "button" } });
+        this.registerDomEvent(open, "click", () => void openReview(this.app));
     }
 
     /**
@@ -911,11 +927,14 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const response = thought.respondsTo;
         if (response) {
             box.addClass(c(response.as === "challenge" ? "lab-card-challenge" : "lab-card-fork"));
-            this.ribbon(
-                box,
-                response.as === "challenge" ? t("lab_challenges") : t("lab_forked"),
-                response.as === "challenge" ? "swords" : "git-branch"
-            );
+            // A change of mind about a highlight (#679) says so: the pair is *then* and *now*.
+            if (thought.revises) this.ribbon(box, t("evolution_timeline_changed_mind_label"), "refresh-ccw");
+            else
+                this.ribbon(
+                    box,
+                    response.as === "challenge" ? t("lab_challenges") : t("lab_forked"),
+                    response.as === "challenge" ? "swords" : "git-branch"
+                );
         }
 
         // A highlight made in the Reader (#671): the passage first, then your note about it.

@@ -65,7 +65,7 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     **Read your notes like a book**
 
-    A path through a note and its neighbours, chapter by chapter — highlights into Think, and an end you can save or export.
+    A path through a note and its neighbours, chapter by chapter — highlights into Think that [come back for a second look](development/highlights-review.md), and an end you can save or export.
 
     [:octicons-arrow-right-24: The Reader](development/reader.md)
 

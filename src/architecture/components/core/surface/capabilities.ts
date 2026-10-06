@@ -118,6 +118,7 @@ export const CAPABILITIES = [
     "think-about",
     "reader",
     "library",
+    "highlights-review",
     "claim-door",
     "claim-return",
     "wager",
@@ -369,6 +370,17 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "shelf_title",
         owner: "zettelflow-library",
         doors: [RIBBON("open-library"), NOTE_MENU("starters/zcomponents/LibraryComponent.ts"), CMD("open-library")],
+    },
+    "highlights-review": {
+        // A few things you marked (#678, epic #674): the Reader's highlights come back on a fixed,
+        // growing schedule. It comes to you — a tile on Home, a line in Think — only on a day
+        // something is due, and never as a count.
+        nameKey: "review_title",
+        owner: HOME,
+        doors: [
+            CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME),
+            { kind: "recommendation", at: `${HOME}:home` },
+        ],
     },
     "think-about": {
         nameKey: "command_think_about",

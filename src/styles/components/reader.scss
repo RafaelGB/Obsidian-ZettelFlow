@@ -23,14 +23,7 @@
 }
 
 .zettelkasten-flow__reader {
-    --reader-bg: var(--color-base-00);
-    --reader-surface: var(--color-base-10);
-    --reader-fg: var(--color-base-100);
-    --reader-muted: var(--color-base-70);
-    --reader-faint: var(--color-base-50);
-    --reader-line: var(--color-base-30);
-    --reader-size: 1.2rem;
-    --reader-font: var(--font-text);
+    @include reader-palette;
     position: absolute;
     inset: 0;
     background-color: var(--reader-bg);
@@ -97,19 +90,7 @@
  */
 .zettelkasten-flow__reader.theme-dark,
 .zettelkasten-flow__reader.theme-light {
-    --background-primary: var(--color-base-00);
-    --background-primary-alt: var(--color-base-10);
-    --background-secondary: var(--color-base-20);
-    --background-secondary-alt: var(--color-base-05);
-    --background-modifier-border: var(--color-base-30);
-    --text-normal: var(--color-base-100);
-    --text-muted: var(--color-base-70);
-    --text-faint: var(--color-base-50);
-    --code-background: var(--background-primary-alt);
-    --code-normal: var(--text-normal);
-    --hr-color: var(--background-modifier-border);
-    --table-border-color: var(--background-modifier-border);
-    --blockquote-border-color: var(--interactive-accent);
+    @include reader-theme-palette;
 }
 
 .zettelkasten-flow__reader--theme-sepia {

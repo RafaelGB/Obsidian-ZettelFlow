@@ -36,6 +36,11 @@ export interface ThoughtRef {
      * reader's own words from their own note, not claim texts the opt-in guards.
      */
     quote?: string;
+    /**
+     * The passage a **changed my mind** thought revisits (#679): the one you marked then, so the
+     * story can tell the pair. Read live from the thought's frontmatter, like `quote`.
+     */
+    revises?: string;
 }
 
 /**

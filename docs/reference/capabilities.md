@@ -40,6 +40,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Think about this note** — open a thread about a note without writing to it. [docs →](../architecture/thought-lab.md)
 - **Read from here** — right-click a note and read a path across your notes, the way you read a book — no MOC, nothing written. [docs →](../development/reader.md)
 - **Library** — your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page. [docs →](../development/library.md)
+- **A few things you marked** — what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go. [docs →](../development/highlights-review.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)
 - **Something you expected is ready to be looked at** — a claim with an expected observation and a date you expect to know by. [docs →](../development/wagers.md)
 - **Change note state** — move a note through its lifecycle state (fleeting → … → evergreen). [docs →](../architecture/knowledge-lifecycle.md)

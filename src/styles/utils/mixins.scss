@@ -78,3 +78,35 @@
     color: $text-quiet;
     font-size: $text-small;
 }
+
+/// The **Reader's palette** (#668): the page, its surface, its ink. Worn by the reader and by
+/// anything that sets a passage the way the reader does (the review cards, #678).
+@mixin reader-palette {
+    --reader-bg: var(--color-base-00);
+    --reader-surface: var(--color-base-10);
+    --reader-fg: var(--color-base-100);
+    --reader-muted: var(--color-base-70);
+    --reader-faint: var(--color-base-50);
+    --reader-line: var(--color-base-30);
+    --reader-size: 1.2rem;
+    --reader-font: var(--font-text);
+}
+
+/// `theme-light` / `theme-dark` only switch the `--color-base-*` palette; the variables rendered
+/// markdown reads were resolved on `body` from the app's palette. Re-derive them from the theme's
+/// own palette, so what sits on the page matches the page.
+@mixin reader-theme-palette {
+    --background-primary: var(--color-base-00);
+    --background-primary-alt: var(--color-base-10);
+    --background-secondary: var(--color-base-20);
+    --background-secondary-alt: var(--color-base-05);
+    --background-modifier-border: var(--color-base-30);
+    --text-normal: var(--color-base-100);
+    --text-muted: var(--color-base-70);
+    --text-faint: var(--color-base-50);
+    --code-background: var(--background-primary-alt);
+    --code-normal: var(--text-normal);
+    --hr-color: var(--background-modifier-border);
+    --table-border-color: var(--background-modifier-border);
+    --blockquote-border-color: var(--interactive-accent);
+}

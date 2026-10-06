@@ -49,7 +49,7 @@ Everything else — the Canvas wizard, the semantic graph, health, discovery, cu
 ![Your first flow in three steps: design a Canvas, configure a step, run the wizard](docs/resources/readme/first-flow.svg)
 
 1. **Design** — create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
-2. **Configure** — right-click any canvas node → *Edit ZettelFlow step* to add actions (prompt, calendar, selector, tags…).
+2. **Configure** — select a canvas node → *Edit step* to add actions (ask for text, pick a date, choose an option, add tags…).
 3. **Run** — click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to the *Open workflow* command). ZettelFlow walks the graph and builds the note.
 
 **…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk:
@@ -106,7 +106,7 @@ Right-click any note and choose **Read from here**. The Reader takes the window 
 
 1. Create a `.canvas` file (e.g. `flows/daily-note.canvas`).
 2. In **Settings → ZettelFlow**, set that canvas as the "new notes canvas".
-3. Add a note file to the canvas, right-click it → *Create managed step*, enable **Root**.
+3. On the canvas, press *Create a step* (the Z in the bottom bar), and turn on **Starts the flow**.
 4. Click the ribbon button → **Create note** — your first wizard run.
 
 Stuck? Read the [getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).

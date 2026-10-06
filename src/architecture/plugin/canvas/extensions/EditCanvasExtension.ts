@@ -1,10 +1,13 @@
 import { AllCanvasNodeData, Canvas, CanvasElement, SelectionData } from "obsidian/canvas";
 import CanvasExtension from "./CanvasExtension";
-import { Notice, setIcon, setTooltip } from "obsidian";
+import { Notice, setIcon, setTooltip, TFile } from "obsidian";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { YamlService } from "architecture/plugin";
-import { StepBuilderModal } from "zettelkasten";
+import { FrontmatterService } from "../../services/FrontmatterService";
+import { StepBuilderMapper, StepBuilderModal } from "zettelkasten";
 import { flowFolders, flowRole } from "architecture/plugin/canvas/flowRole";
+import { c } from "architecture";
+import { t } from "architecture/lang";
 import CanvasHelper from "./utils/CanvasHelper";
 import { popupMenuOptions } from "./utils/popupMenuOptions";
 
@@ -16,174 +19,151 @@ interface MenuOption {
     id?: string;
     label: string;
     icon: string;
+    /** Show the label beside the icon, not only as a tooltip (#686). */
+    labelled?: boolean;
     callback?: () => void;
 }
 
 /**
- * This class extends Canvas functionality by adding a custom
- * "Edit ZettelFlow Step" button to the context (popup) menu when
- * exactly one node is selected.
+ * Adds ZettelFlow's buttons to the canvas selection popup: *Edit step* when one step is selected —
+ * a text or group node, or a file node whose note is a step — and *Copy flow* for a selection.
  */
 export default class EditStepCanvasExtension extends CanvasExtension {
-    /**
-     * Registers the "canvas:popup-menu" event listener. Whenever
-     * the menu is about to be shown, this listener checks if it
-     * should add a custom menu option for editing the selected node.
-     */
     init(): void {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("canvas:popup-menu", (eventCanvas: Canvas) => {
-                // Check if is dragging
                 if (eventCanvas.isDragging) return;
-
-                if (
-                    !CanvasHelper.isCanvasFlow(this.plugin)
-                ) {
-                    return;
-                }
+                // The canvas is asked about itself: a focused file node makes the workspace's
+                // active file the note it embeds, not this canvas (#686).
+                if (!CanvasHelper.isCanvasFlow(this.plugin, eventCanvas)) return;
 
                 // Clean up first: the popup is shared, so a button that no longer applies has
                 // to be taken away, not merely not re-added (#432).
                 CanvasHelper.removePopupMenuOption(eventCanvas, EDIT_STEP_BUTTON_ID);
                 CanvasHelper.removePopupMenuOption(eventCanvas, COPY_FLOW_BUTTON_ID);
 
-                const options = popupMenuOptions(CanvasHelper.selectionShape(eventCanvas));
-                if (options.step) this.uniqueNodePopupMenu(eventCanvas);
+                const shape = CanvasHelper.selectionShape(eventCanvas);
+                const stepNote = shape.kind === "file" ? this.selectedStepNote(eventCanvas) : null;
+                const options = popupMenuOptions({ ...shape, stepNote: stepNote !== null });
+                if (options.step) this.uniqueNodePopupMenu(eventCanvas, stepNote);
                 if (options.copyFlow) this.multipleNodePopupMenu(eventCanvas);
             })
         );
     }
+
+    /** The note a single selected file node shows, when that note already is a step. */
+    private selectedStepNote(eventCanvas: Canvas): TFile | null {
+        const [selected] = [...eventCanvas.selection];
+        const note = CanvasHelper.nodeFile(this.plugin, selected);
+        if (!note) return null;
+        return FrontmatterService.instance(note).hasZettelFlowSettings() ? note : null;
+    }
+
     private multipleNodePopupMenu(eventCanvas: Canvas) {
         const selectedNode: SelectionData = eventCanvas.getSelectionData();
 
-        const buttonId = COPY_FLOW_BUTTON_ID;
-
-        // Create a new option
         const newOption = this.createPopupMenuOption({
-            id: buttonId,
-            label: "Copy Flow to Clipboard",
-            icon: "clipboard-copy",
+            id: COPY_FLOW_BUTTON_ID,
+            label: t("canvas_menu_copy_flow"),
+            icon: "copy",
             callback: () => {
                 void navigator.clipboard.writeText(JSON.stringify(selectedNode, null, 2));
-                new Notice(`Flow copied to clipboard!`);
+                new Notice(t("canvas_menu_flow_copied"));
             },
         });
 
-        // Add the new option to the popup menu, ensuring no duplicates
         this.addPopupMenuOption(eventCanvas, newOption);
     }
 
     /**
-     * Adds a shortcut button to ZettelFlow Settings of the selected node
-     * @param eventCanvas The current Canvas instance.
+     * *Edit step* for the one selected step. A text or group node keeps its step on the node; a
+     * file node's step is its note, opened the way the file menu opens it (#686).
      */
-    private uniqueNodePopupMenu(eventCanvas: Canvas) {
-        // Check if canvas is one of the ZettelFlow canvases
-        const file = this.plugin.app.workspace.getActiveFile();
+    private uniqueNodePopupMenu(eventCanvas: Canvas, stepNote: TFile | null) {
+        const file = CanvasHelper.canvasFile(this.plugin, eventCanvas);
         if (!file) return;
+        if (!eventCanvas?.menu?.menuEl) return;
 
-        // The menu object from the Canvas
-        const popupMenuEl = eventCanvas?.menu?.menuEl;
-        if (!popupMenuEl) return;
-
-        // Get the first (and only) selected node
         const [selectedNode]: CanvasElement[] = [...eventCanvas.selection];
         if (!selectedNode) return;
 
-        // We need to use the flow information cause eventCanvas value could be outdated
         const data = selectedNode.getData() as AllCanvasNodeData;
+        const builderMode =
+            flowRole(file.path, flowFolders(this.plugin.settings)) === "create" ? "ribbon" : "editor";
 
-        // Only generate icon if the node is text/group type (holds zettelflowConfig)
-        if (data.type !== "text" && data.type !== "group") {
-            return;
-        }
-        const buttonId = EDIT_STEP_BUTTON_ID;
-
-        // Create a new option
-        const newOption = this.createPopupMenuOption({
-            id: buttonId,
-            label: "Edit ZettelFlow Step",
-            icon: RibbonIcon.ID,
-            callback: () => {
-                const builderMode =
-                    flowRole(file.path, flowFolders(this.plugin.settings)) === "create"
-                        ? "ribbon"
-                        : "editor";
-                const zettelFlowSettings = data.zettelflowConfig;
-                const stepSettings = YamlService.instance(zettelFlowSettings).getZettelFlowSettings();
-
+        const open = (): void => {
+            if (stepNote) {
+                const settings = FrontmatterService.instance(stepNote).getZettelFlowSettings();
                 new StepBuilderModal(this.plugin, {
-                    folder: file.parent || undefined,
-                    filename: file.basename,
-                    // The node's real kind: hardcoding "text" made the editor call a group an
-                    // inline box, which is the first thing the header claims to tell you (#424).
-                    type: data.type,
-                    // Additional context for the modal
-                    ...stepSettings,
+                    folder: stepNote.parent || undefined,
+                    filename: stepNote.basename,
+                    ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings),
                 })
-                    .setMode("embed")
+                    .setMode("edit")
                     .setBuilder(builderMode)
-                    .setNodeId(data.id)
                     .open();
-            },
+                return;
+            }
+            if (data.type !== "text" && data.type !== "group") return;
+            const stepSettings = YamlService.instance(data.zettelflowConfig).getZettelFlowSettings();
+            new StepBuilderModal(this.plugin, {
+                folder: file.parent || undefined,
+                filename: file.basename,
+                // The node's real kind: hardcoding "text" made the editor call a group an
+                // inline box, which is the first thing the header claims to tell you (#424).
+                type: data.type,
+                ...stepSettings,
+            })
+                .setMode("embed")
+                .setBuilder(builderMode)
+                .setNodeId(data.id)
+                .open();
+        };
+
+        const newOption = this.createPopupMenuOption({
+            id: EDIT_STEP_BUTTON_ID,
+            label: t("canvas_menu_edit_step"),
+            icon: RibbonIcon.ID,
+            labelled: true,
+            callback: open,
         });
 
-        // Add the new option to the popup menu, ensuring no duplicates
         this.addPopupMenuOption(eventCanvas, newOption);
     }
 
     /**
-     * Inserts the given menu option element into the popup menu if
-     * it is not already present. If an element with the same 'id'
-     * exists, it is removed first (so that there's never a duplicate).
-     *
-     * @param canvas The current Canvas instance.
-     * @param element The HTML element to insert (the new button).
-     * @param index The position at which to insert. Defaults to -1, meaning it inserts before the last item.
+     * Inserts the option into the popup menu, replacing any element with the same id so there is
+     * never a duplicate. Defaults to the position before the last item.
      */
     private addPopupMenuOption(canvas: Canvas, element: HTMLElement, index: number = -1): void {
         const popupMenuEl = canvas?.menu?.menuEl;
         if (!popupMenuEl) return;
 
-        // If an element with this ID already exists, remove it
         if (element.id) {
-            const existingOption = popupMenuEl.querySelector(`#${element.id}`);
-            if (existingOption) {
-                existingOption.remove();
-            }
+            popupMenuEl.querySelector(`#${element.id}`)?.remove();
         }
 
-        // Determine the insertion position
         const totalItems = popupMenuEl.children.length;
         const adjustedIndex = index >= 0 ? index : totalItems + index;
         const referenceItem = popupMenuEl.children[adjustedIndex];
 
-        // Insert after the reference element
         popupMenuEl.insertAfter(element, referenceItem);
     }
 
-    /**
-     * Creates a menu option button with icon, tooltip, and click callback.
-     *
-     * @param menuOption Contains the label, icon, optional ID, and callback.
-     * @returns The newly created HTML button element.
-     */
+    /** One `clickable-icon` button, like Obsidian's own in the same row. */
     private createPopupMenuOption(menuOption: MenuOption): HTMLElement {
-        const menuOptionElement = createEl("button");
+        const menuOptionElement = createEl("button", { cls: "clickable-icon" });
+        if (menuOption.id) menuOptionElement.id = menuOption.id;
 
-        // Use the provided ID if present
-        if (menuOption.id) {
-            menuOptionElement.id = menuOption.id;
+        setIcon(menuOptionElement, menuOption.icon);
+        menuOptionElement.setAttr("aria-label", menuOption.label);
+        if (menuOption.labelled) {
+            menuOptionElement.addClass(c("canvas-menu-labelled"));
+            menuOptionElement.createSpan({ text: menuOption.label });
+        } else {
+            setTooltip(menuOptionElement, menuOption.label, { placement: "top" });
         }
 
-        // Make it visually consistent with existing icons
-        menuOptionElement.classList.add("clickable-icon");
-
-        // Set icon and tooltip
-        setIcon(menuOptionElement, menuOption.icon);
-        setTooltip(menuOptionElement, menuOption.label, { placement: "top" });
-
-        // Assign callback on click
         menuOptionElement.addEventListener("click", () => {
             menuOption.callback?.();
         });

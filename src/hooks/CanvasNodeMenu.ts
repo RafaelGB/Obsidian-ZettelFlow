@@ -4,9 +4,11 @@ import { canvas } from "architecture/plugin/canvas";
 import { isWaitNode } from "architecture/plugin/workflow";
 import ZettelFlow from "main";
 import { Notice } from "obsidian";
+import type { Canvas } from "obsidian/canvas";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
 import { StepBuilderModal } from "zettelkasten";
 import { flowFolders, flowRole } from "architecture/plugin/canvas/flowRole";
+import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
 
 export class CanvasNodeMenu {
     public static setup(plugin: ZettelFlow) {
@@ -19,8 +21,9 @@ export class CanvasNodeMenu {
 
     private onCanvasNodeMenuTriggered = this.plugin.app.workspace.on("canvas:node-menu", (menu, node) => {
 
-        // Check if canvas is the zettelFlow canvas and if the node is embedded
-        const file = this.plugin.app.workspace.getActiveFile();
+        // The canvas the node is on — not the workspace's active file, which a focused file node
+        // turns into the note it embeds (#686).
+        const file = CanvasHelper.canvasFile(this.plugin, node.canvas as unknown as Canvas);
         if (file === null) {
             return;
         }

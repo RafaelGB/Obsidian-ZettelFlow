@@ -1,76 +1,74 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
 
-// In-canvas legibility for the visual workflow language (#151). Purely cosmetic accents toggled by
-// WorkflowLegibilityExtension onto canvas node / edge-label DOM — theme-aware (Obsidian CSS vars),
-// no layout impact. Removing this partial (or the extension) leaves the canvas visually default.
+// What ZettelFlow draws on the native canvas (#151 → #429 → #686). Only our own classes and
+// children: Obsidian's node, edge and menu elements are never restyled, and everything here goes
+// when the extensions do. The colours are the theme's (`--color-*`, `--canvas-color-N`).
 
-// WHEN — a root step that triggers automatically on a vault event.
-.zettelkasten-flow__workflow-block-when {
-    box-shadow: inset 4px 0 0 0 var(--color-green, #3aa675);
-}
-
-// WAIT — a human-confirmation pause.
-.zettelkasten-flow__workflow-block-wait {
-    box-shadow: inset 4px 0 0 0 var(--color-orange, #e0a030);
-}
-
-// IF — a conditional edge (applied to the edge's label wrapper).
-.zettelkasten-flow__workflow-block-if {
-    outline: 1px dashed var(--color-purple, #a060c0);
-    border-radius: var(--radius-s);
-}
-
-// Empty-state guide panel (#258) — a floating card injected into the canvas `wrapperEl`.
-// CRITICAL: the container is `pointer-events: none` so it never intercepts canvas hover/drag
-// (Obsidian's drag handler checks `e.targetNode === wrapperEl`; an interactive injected child
-// breaks pointer handling — the cursor flickers and edges stop responding). Only the CTA is
-// interactive. Absolute + high layer so it floats over the canvas without disturbing its layers.
-.zettelkasten-flow__empty-state-panel {
+// ── Block accents (#686) ────────────────────────────────────────────────────────────────────────
+// WHEN and WAIT as a bar on the node's left side. A child of `nodeEl`, after Obsidian's container,
+// so it paints above it — the old inset shadow on `nodeEl` sat under the container and never showed.
+.zettelkasten-flow__node-accent {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: var(--layer-popover, 30);
+    top: $space-3;
+    bottom: $space-3;
+    left: calc(-1 * var(--size-2-1));
+    width: $space-1;
+    border-radius: $radius-small;
     pointer-events: none;
-    max-width: 22em;
-    padding: var(--size-4-4);
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-m);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    text-align: center;
 }
 
-.zettelkasten-flow__empty-state-cta-row {
-    margin-top: var(--size-4-3);
-    display: flex;
-    justify-content: center;
-    // The button is the one interactive affordance; the rest of the card lets clicks/hover fall through.
-    pointer-events: auto;
+.zettelkasten-flow__node-accent-when {
+    background-color: var(--color-green);
 }
 
-// ── What a node does, on the node (#429) ────────────────────────────────────────────────────────
-// Derived at render time and removed with the extension: no stored byte. It rides *inside* the
-// node's top-right corner — hanging it below the node put it where the canvas clips.
+.zettelkasten-flow__node-accent-wait {
+    background-color: var(--color-orange);
+}
+
+// IF — a conditional edge: its label wrapper wears a dashed border, purple, with a filter icon.
+.zettelkasten-flow__workflow-block-if {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-2-2);
+    outline: 1px dashed var(--color-purple);
+    border-radius: $radius-small;
+    color: var(--color-purple);
+}
+
+.zettelkasten-flow__edge-if-icon {
+    display: inline-flex;
+    padding-left: var(--size-2-2);
+    --icon-size: var(--icon-xs);
+    pointer-events: none;
+}
+
+// ── Badges: icon chips along the node's foot (#686) ─────────────────────────────────────────────
+// Derived at render time and removed with the extension: no stored byte. Inside the node, so the
+// canvas never clips them; they take no pointer events, so the node stays the node.
 .zettelkasten-flow__node-badges {
     position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
+    left: $space-2;
+    right: $space-2;
+    bottom: $space-2;
     z-index: 1;
-    max-width: 92%;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.2rem;
+    gap: $space-1;
     pointer-events: none;
 }
 
 .zettelkasten-flow__node-badge {
     @include chip;
+    gap: var(--size-2-2);
+    border: none;
     background-color: $surface-quiet;
     white-space: nowrap;
+}
+
+.zettelkasten-flow__node-badge-icon {
+    display: inline-flex;
+    --icon-size: var(--icon-xs);
 }
 
 // Where a flow begins is the first thing you look for on someone else's canvas.
@@ -79,71 +77,160 @@
     font-weight: var(--font-semibold);
 }
 
-// ── The canvas explains its own language (#429) ─────────────────────────────────────────────────
-.zettelkasten-flow__canvas-legend {
-    position: absolute;
-    right: var(--size-4-3);
-    bottom: var(--size-4-3);
-    z-index: var(--layer-popover, 30);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--size-4-1);
-    max-width: 24em;
-}
-
-.zettelkasten-flow__canvas-legend-toggle {
-    padding: 0.15rem 0.5rem;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    cursor: pointer;
-}
-
-.zettelkasten-flow__canvas-legend-toggle:focus-visible {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: 2px;
-}
-
-.zettelkasten-flow__canvas-legend-body {
-    padding: var(--size-4-3);
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-m);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__canvas-legend-body.zettelkasten-flow__is-hidden {
-    display: none;
-}
-
-.zettelkasten-flow__canvas-legend-note {
-    margin: var(--size-4-1) 0;
-    line-height: 1.4;
-}
-
-.zettelkasten-flow__canvas-legend-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.1rem 0;
-}
-
-.zettelkasten-flow__canvas-legend-label {
+// A step whose note is gone will stop the wizard — marked without opening the review (#428).
+.zettelkasten-flow__node-badge-alert {
+    background-color: var(--background-modifier-error);
     color: var(--text-normal);
 }
 
+// ── The canvas dock: Legend · Review · Rehearse (#686) ──────────────────────────────────────────
+// One overlay anchored bottom-right, clear of the card menu (bottom centre) and the canvas controls
+// (top right). The container takes no pointer events — Obsidian's drag handler checks
+// `e.targetNode === wrapperEl` — and only its controls do.
+.zettelkasten-flow__canvas-dock {
+    position: absolute;
+    right: $space-3;
+    bottom: $space-3;
+    z-index: var(--layer-cover);
+    display: flex;
+    flex-direction: column;
+    width: min(22rem, calc(100% - var(--size-4-6)));
+    background-color: var(--background-primary);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    pointer-events: none;
+    overflow: hidden;
+
+    > * {
+        pointer-events: auto;
+    }
+}
+
+.zettelkasten-flow__canvas-dock-tabs {
+    display: flex;
+    align-items: stretch;
+}
+
+.zettelkasten-flow__canvas-dock:not(.zettelkasten-flow__canvas-dock-folded) .zettelkasten-flow__canvas-dock-tabs {
+    border-bottom: $line-quiet;
+}
+
+button.zettelkasten-flow__canvas-dock-tab {
+    display: inline-flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: $space-1;
+    height: auto;
+    padding: $space-2 $space-1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    box-shadow: none;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+
+    &:hover {
+        color: $text-plain;
+        background-color: $surface-hover;
+    }
+
+    &.is-active {
+        color: $text-plain;
+        border-bottom-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__canvas-dock-tab-icon {
+    display: inline-flex;
+    --icon-size: var(--icon-xs);
+}
+
+// The fact on a tab: a count of findings, or a check when there is nothing to report.
+.zettelkasten-flow__canvas-dock-count {
+    @include chip;
+    @include chip-active;
+    padding: 0 $space-tight;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__canvas-dock-count-clean {
+    background: none;
+    border: none;
+    color: var(--color-green);
+    --icon-size: var(--icon-xs);
+}
+
+.zettelkasten-flow__canvas-dock-fold {
+    flex: 0 0 auto;
+}
+
+.zettelkasten-flow__canvas-dock-folded .zettelkasten-flow__canvas-dock-fold {
+    display: none;
+}
+
+.zettelkasten-flow__canvas-dock-body {
+    max-height: min(26rem, 50vh);
+    overflow-y: auto;
+    padding: $space-3;
+    color: $text-quiet;
+    font-size: $text-small;
+    animation: zettelkasten-flow-dock-in 0.15s ease-out;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+@keyframes zettelkasten-flow-dock-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__canvas-dock-title {
+    margin-bottom: $space-1;
+    color: $text-plain;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__canvas-dock-subtitle {
+    margin: $space-3 0 $space-1;
+    color: $text-faint;
+    font-weight: var(--font-semibold);
+}
+
+// ── Legend ──────────────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__canvas-legend-note {
+    margin: $space-1 0;
+    line-height: var(--line-height-normal);
+}
+
+.zettelkasten-flow__canvas-legend-row {
+    @include row;
+    padding: var(--size-2-1) 0;
+}
+
+.zettelkasten-flow__canvas-legend-label {
+    color: $text-plain;
+}
+
 .zettelkasten-flow__canvas-legend-swatch {
-    width: 0.85em;
-    height: 0.85em;
-    border-radius: var(--radius-s);
-    border: 1px solid var(--background-modifier-border);
     flex-shrink: 0;
+    width: var(--size-4-3);
+    height: var(--size-4-3);
+    border-radius: $radius-small;
+    border: $line-quiet;
 }
 
 // The six canvas presets, named as classes so no rule needs an inline style.
@@ -157,252 +244,224 @@
 .zettelkasten-flow__canvas-legend-badges {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: var(--size-4-1);
+    gap: $space-1;
+    margin-top: $space-1;
 }
 
-// A step whose note is gone will stop the wizard — the one finding marked without opening the
-// review (#428 FR-5). A tint, not a solid fill, so the text stays the theme's own.
-.zettelkasten-flow__node-badge-alert {
-    background-color: var(--background-modifier-error);
-    color: var(--text-normal);
-    border-color: var(--background-modifier-error);
-}
-
-// ── Review this flow (#428) ─────────────────────────────────────────────────────────────────────
-.zettelkasten-flow__flow-review {
-    position: absolute;
-    right: var(--size-4-3);
-    bottom: calc(var(--size-4-3) + 2.2em);
-    z-index: var(--layer-popover, 30);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--size-4-1);
-    max-width: 28em;
-}
-
-.zettelkasten-flow__flow-review-toggle {
-    padding: 0.15rem 0.5rem;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    cursor: pointer;
-}
-
-.zettelkasten-flow__flow-review-toggle.zettelkasten-flow__has-findings {
-    color: var(--text-normal);
-    border-color: var(--text-accent);
-}
-
-.zettelkasten-flow__flow-review-toggle:focus-visible {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: 2px;
-}
-
-.zettelkasten-flow__flow-review-body {
-    max-height: 22em;
-    overflow-y: auto;
-    padding: var(--size-4-3);
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-m);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__flow-review-body.zettelkasten-flow__is-hidden {
-    display: none;
-}
-
+// ── Review ──────────────────────────────────────────────────────────────────────────────────────
 .zettelkasten-flow__flow-review-note,
 .zettelkasten-flow__flow-review-clean {
-    margin-bottom: var(--size-4-2);
-    line-height: 1.4;
+    margin-bottom: $space-2;
+    line-height: var(--line-height-normal);
 }
 
 // A finding is a button when it has a node to take you to; the plain ones read the same.
 .zettelkasten-flow__flow-review-finding {
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
     width: 100%;
-    padding: var(--size-4-1) 0;
+    padding: $space-2;
+    border-radius: $radius-small;
+    color: $text-plain;
+    font-size: $text-small;
+    text-align: left;
+    line-height: var(--line-height-normal);
+}
+
+button.zettelkasten-flow__flow-review-finding {
+    height: auto;
     background: none;
     border: none;
-    border-top: 1px solid var(--background-modifier-border);
     box-shadow: none;
-    color: var(--text-normal);
-    font-size: var(--font-ui-smaller);
-    text-align: left;
-    line-height: 1.4;
+    white-space: normal;
     cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
 }
 
-button.zettelkasten-flow__flow-review-finding:hover {
-    color: var(--text-accent);
-}
-
-.zettelkasten-flow__flow-review-finding:focus-visible {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: -2px;
+.zettelkasten-flow__flow-review-finding-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--color-orange);
+    --icon-size: var(--icon-s);
 }
 
 // What an applied template is about to change (#428 FR-7).
 .zettelkasten-flow__confirm-details {
-    margin: 0 0 var(--size-4-3);
-    padding-left: var(--size-4-4);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    line-height: 1.5;
+    margin: 0 0 $space-3;
+    padding-left: $space-4;
+    color: $text-quiet;
+    font-size: $text-small;
+    line-height: var(--line-height-normal);
 }
 
-// ── Rehearse the flow (#430) ────────────────────────────────────────────────────────────────────
-.zettelkasten-flow__rehearsal {
-    position: absolute;
-    left: var(--size-4-3);
-    bottom: var(--size-4-3);
-    z-index: var(--layer-popover, 30);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--size-4-1);
-    max-width: 30em;
+// ── Rehearse: the walk as a stepper (#686) ──────────────────────────────────────────────────────
+.zettelkasten-flow__rehearsal-note {
+    margin: $space-1 0;
+    line-height: var(--line-height-normal);
 }
 
-.zettelkasten-flow__rehearsal-toggle {
-    padding: 0.15rem 0.5rem;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    cursor: pointer;
-}
-
-.zettelkasten-flow__rehearsal-toggle:focus-visible {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: 2px;
-}
-
-.zettelkasten-flow__rehearsal-body {
-    max-height: 26em;
-    overflow-y: auto;
-    padding: var(--size-4-3);
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-m);
-    box-shadow: var(--shadow-s);
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__rehearsal-body.zettelkasten-flow__is-hidden {
-    display: none;
-}
-
-.zettelkasten-flow__rehearsal-note,
-.zettelkasten-flow__rehearsal-would-run {
-    margin: var(--size-4-1) 0;
-    line-height: 1.4;
-}
-
-// Where the walk stands, read as a heading rather than as one more grey line.
 .zettelkasten-flow__rehearsal-current {
-    margin-top: var(--size-4-3);
-    padding-left: var(--size-4-2);
-    border-left: 3px solid var(--interactive-accent);
-    color: var(--text-normal);
-    font-size: var(--font-ui-small);
+    margin-top: $space-3;
+    color: $text-plain;
     font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__rehearsal-steps {
+    margin: $space-2 0 $space-3;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__rehearsal-step {
+    position: relative;
+    display: flex;
+    gap: $space-2;
+    padding-bottom: $space-3;
+
+    // The thread between two dots.
+    &:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        top: var(--size-4-5);
+        bottom: 0;
+        left: calc(var(--size-4-2) - var(--size-2-1) / 2);
+        width: var(--size-2-1);
+        background-color: var(--background-modifier-border);
+    }
+}
+
+.zettelkasten-flow__rehearsal-step-dot {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-4-4);
+    height: var(--size-4-4);
+    border: 2px solid $text-faint;
+    border-radius: 50%;
+    background-color: var(--background-primary);
+    font-size: var(--font-ui-smaller);
+    --icon-size: var(--icon-xs);
+}
+
+.zettelkasten-flow__rehearsal-step-done .zettelkasten-flow__rehearsal-step-dot {
+    background-color: $text-faint;
+    color: var(--background-primary);
+}
+
+.zettelkasten-flow__rehearsal-step-current .zettelkasten-flow__rehearsal-step-dot {
+    border-color: var(--interactive-accent);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.zettelkasten-flow__rehearsal-step-name {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__rehearsal-step-next .zettelkasten-flow__rehearsal-step-name {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__rehearsal-step-hint {
+    color: $text-faint;
 }
 
 .zettelkasten-flow__rehearsal-context-row {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    margin: 0.2rem 0;
+    gap: $space-1;
+    margin: var(--size-2-2) 0;
 }
 
 .zettelkasten-flow__rehearsal-context-row input {
     flex: 1;
     min-width: 0;
-    font-size: var(--font-ui-smaller);
+    font-size: $text-small;
 }
 
 // An option is a thing you press: it looks pressable, and says where it leads.
-.zettelkasten-flow__rehearsal-option {
+button.zettelkasten-flow__rehearsal-option {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: $space-1;
     width: 100%;
-    margin: 0.25rem 0;
-    padding: var(--size-4-2);
-    background-color: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-m);
-    color: var(--text-normal);
-    font-size: var(--font-ui-smaller);
+    height: auto;
+    margin: $space-1 0;
+    padding: $space-2;
+    background-color: $surface-quiet;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    box-shadow: none;
+    color: $text-plain;
+    font-size: $text-small;
     text-align: left;
+    white-space: normal;
     cursor: pointer;
     transition: border-color 0.12s ease-out, background-color 0.12s ease-out;
-}
 
-.zettelkasten-flow__rehearsal-option::after {
-    content: "→";
-    margin-left: auto;
-    color: var(--text-faint);
-}
+    &::after {
+        content: "→";
+        margin-left: auto;
+        color: $text-faint;
+    }
 
-.zettelkasten-flow__rehearsal-option:hover {
-    border-color: var(--interactive-accent);
-    background-color: var(--background-modifier-hover);
-}
+    &:hover {
+        border-color: var(--interactive-accent);
+        background-color: $surface-hover;
+    }
 
-.zettelkasten-flow__rehearsal-option:hover::after {
-    color: var(--interactive-accent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .zettelkasten-flow__rehearsal-option {
-        transition: none;
+    &:hover::after {
+        color: var(--interactive-accent);
     }
 }
 
 // A branch that is closed, and why — the same sentence the wizard says (#414).
 .zettelkasten-flow__rehearsal-closed {
-    margin: 0.25rem 0;
-    padding: var(--size-4-1) var(--size-4-2);
-    border-left: 3px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    background-color: var(--background-primary-alt);
-    color: var(--text-faint);
-    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    margin: $space-1 0;
+    padding: $space-2;
+    border: $line-quiet;
+    border-style: dashed;
+    border-radius: $radius-medium;
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__rehearsal-closed-label {
+    color: $text-plain;
+}
+
+.zettelkasten-flow__rehearsal-closed-reason {
+    color: $text-faint;
 }
 
 // What the real run would do here, as chips: a list of sentences hid the shape of it.
 .zettelkasten-flow__rehearsal-would-run {
     @include chip;
-    margin: 0.15rem 0.25rem 0.15rem 0;
+    margin: var(--size-2-1) $space-1 var(--size-2-1) 0;
     background-color: transparent;
 }
 
 .zettelkasten-flow__rehearsal-preview {
     max-height: 12em;
     overflow: auto;
-    padding: var(--size-4-2);
-    background-color: var(--background-primary);
-    border-radius: var(--radius-s);
-    color: var(--text-normal);
-    font-size: var(--font-ui-smaller);
+    padding: $space-2;
+    background-color: var(--background-primary-alt);
+    border-radius: $radius-small;
+    color: $text-plain;
+    font-size: $text-small;
     white-space: pre-wrap;
 }
 
 .zettelkasten-flow__rehearsal-restart {
-    margin-top: var(--size-4-2);
+    margin-top: $space-2;
     cursor: pointer;
 }
 
@@ -415,4 +474,86 @@ button.zettelkasten-flow__flow-review-finding:hover {
 .zettelkasten-flow__rehearsal-node-current {
     outline: 2px solid var(--interactive-accent);
     outline-offset: 2px;
+}
+
+// ── An empty canvas offers a way in (#686) ──────────────────────────────────────────────────────
+// CRITICAL: the card is `pointer-events: none` so it never intercepts canvas hover/drag; only the
+// buttons take pointer events.
+.zettelkasten-flow__empty-state-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: var(--layer-cover);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    width: min(24rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-6);
+    background-color: var(--background-primary);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    color: $text-quiet;
+    text-align: center;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__empty-state-icon {
+    display: inline-flex;
+    color: var(--text-accent);
+    --icon-size: var(--icon-xl);
+}
+
+.zettelkasten-flow__empty-state-title {
+    margin: 0;
+    color: $text-plain;
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__empty-state-message {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    line-height: var(--line-height-normal);
+}
+
+.zettelkasten-flow__empty-state-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: $space-2;
+    margin-top: $space-2;
+    pointer-events: auto;
+
+    button {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-1;
+    }
+}
+
+.zettelkasten-flow__empty-state-cta-icon {
+    display: inline-flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__canvas-dock-body {
+        animation: none;
+    }
+
+    button.zettelkasten-flow__rehearsal-option {
+        transition: none;
+    }
+}
+
+// ── The selection toolbar (#686) ─────────────────────────────────────────────────────────────────
+// *Edit step* says its name beside the icon; it sits in Obsidian's own row of `clickable-icon`s.
+.canvas-menu .zettelkasten-flow__canvas-menu-labelled {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
+    white-space: nowrap;
 }

@@ -1,6 +1,8 @@
 import { Canvas } from "obsidian/canvas";
+import { setIcon } from "obsidian";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
+import { CanvasDock, type DockPanel } from "./utils/CanvasDock";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { canvas as canvasApi } from "architecture/plugin/canvas";
@@ -19,20 +21,17 @@ const REVIEW_DEBOUNCE_MS = 400;
  * the middle of someone writing, and unreachable steps, dead ends, duplicate options or a gate on
  * a key nothing writes looked exactly like working ones.
  *
- * A chip in the corner states how many findings the recorded graph has; opening it lists them, and
+ * A tab of the canvas dock (#686) states how many findings the recorded graph has; opening it lists them, and
  * clicking one selects and centres the node it is about. Findings are facts, never judgements, and
  * nothing here blocks anything: a half-built flow is legitimate work in progress.
  *
- * Read-only and fully torn down on unload (§VI): the panel is one element on `canvas.wrapperEl`,
+ * Read-only and fully torn down on unload (§VI): the panel is one tab of the dock on `canvas.wrapperEl`,
  * every canvas access is feature-detected, and the finder itself cannot write (its guardrail test
  * asserts it imports nothing at all).
  */
 export default class FlowReviewExtension extends CanvasExtension {
-    private panelEl: HTMLElement | undefined;
-    private bodyEl: HTMLElement | undefined;
-    private toggleEl: HTMLElement | undefined;
+    private panel: DockPanel | undefined;
     private timer: number | undefined;
-    private open = false;
 
     init(): void {
         this.plugin.registerEvent(
@@ -49,11 +48,11 @@ export default class FlowReviewExtension extends CanvasExtension {
     }
 
     private async sync(canvas: Canvas): Promise<void> {
-        if (!CanvasHelper.isCanvasFlow(this.plugin)) {
+        if (!CanvasHelper.isCanvasFlow(this.plugin, canvas)) {
             this.remove();
             return;
         }
-        const file = this.plugin.app.workspace.getActiveFile();
+        const file = CanvasHelper.canvasFile(this.plugin, canvas);
         const wrapperEl = canvas?.wrapperEl;
         if (!file || !wrapperEl) return;
 
@@ -71,36 +70,20 @@ export default class FlowReviewExtension extends CanvasExtension {
     }
 
     private mount(wrapperEl: HTMLElement): void {
-        if (this.panelEl?.isConnected) return;
+        if (this.panel?.body.isConnected) return;
         this.remove();
-        this.panelEl = wrapperEl.createDiv({ cls: c("flow-review") });
-        const toggle = this.panelEl.createEl("button", {
-            cls: c("flow-review-toggle"),
-            attr: { type: "button", "aria-expanded": String(this.open) },
-        });
-        this.toggleEl = toggle;
-        this.bodyEl = this.panelEl.createDiv({ cls: c("flow-review-body") });
-        this.bodyEl.toggleClass(c("is-hidden"), !this.open);
-        toggle.addEventListener("click", () => {
-            this.open = !this.open;
-            toggle.setAttribute("aria-expanded", String(this.open));
-            this.bodyEl?.toggleClass(c("is-hidden"), !this.open);
-        });
+        this.panel = CanvasDock.of(wrapperEl).panel("review", t("flow_review_toggle"), 1, { icon: "list-checks" });
     }
 
     private render(findings: FlowFinding[]): void {
-        const toggle = this.toggleEl;
-        const body = this.bodyEl;
-        if (!toggle || !body) return;
+        const panel = this.panel;
+        if (!panel) return;
+        // The tab carries the count, or a check when there is nothing to report.
+        panel.setCount(findings.length);
 
-        toggle.textContent =
-            findings.length === 0
-                ? t("flow_review_clean_short")
-                : `${t("flow_review_toggle")} · ${findings.length}`;
-        toggle.toggleClass(c("has-findings"), findings.length > 0);
-
+        const body = panel.body;
         body.empty();
-        body.createEl("h6", { text: t("flow_review_title") });
+        body.createDiv({ cls: c("canvas-dock-title"), text: t("flow_review_title") });
         if (findings.length === 0) {
             // Plainly, once, without ceremony (FR-9).
             body.createDiv({ cls: c("flow-review-clean"), text: t("flow_review_clean") });
@@ -124,9 +107,10 @@ export default class FlowReviewExtension extends CanvasExtension {
             const nodeId = finding.nodeId;
             const row = body.createEl("button", {
                 cls: c("flow-review-finding"),
-                text: sentence,
                 attr: { type: "button" },
             });
+            setIcon(row.createSpan({ cls: c("flow-review-finding-icon") }), "alert-triangle");
+            row.createSpan({ text: sentence });
             row.addEventListener("click", () => {
                 // The way from a finding to the thing it is about (FR-2).
                 CanvasHelper.revealNode(this.plugin, nodeId);
@@ -135,10 +119,8 @@ export default class FlowReviewExtension extends CanvasExtension {
     }
 
     private remove(): void {
-        this.panelEl?.remove();
-        this.panelEl = undefined;
-        this.bodyEl = undefined;
-        this.toggleEl = undefined;
+        this.panel?.remove();
+        this.panel = undefined;
     }
 
     private teardown(): void {

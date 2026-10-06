@@ -29,6 +29,27 @@ versions. The integration is built to **degrade gracefully** rather than break t
 The status tracker (`CanvasPatchStatus`) is pure and unit-tested; `PatchHelper`'s fail-soft path is
 tested too.
 
+## What ZettelFlow draws on the canvas (#686)
+
+Everything below is **ours**: our own classes and children, added inside elements Obsidian gives us
+and removed before every redraw and on unload. The patches above are untouched by it.
+
+![A ZettelFlow canvas: badges at each node's foot, WHEN and WAIT accents, a conditional arrow, Edit step in the selection toolbar, and one dock for Legend, Review and Rehearse](../resources/wizard/canvas-extras.svg)
+
+| What | Where it lives | Notes |
+|---|---|---|
+| **Badges** — icon chips along a node's foot: *Starts the flow*, *2 questions*, *Template*, *Linked note*, *Can be skipped*, *Conditional exits*, *The note is gone* | a strip appended to `nodeEl` | `pointer-events: none`; derived from the step's settings, nothing stored |
+| **Accents** — WHEN a green bar, WAIT an orange bar, on the node's left side | a child of `nodeEl`, after Obsidian's container | the old inset shadow sat under `.canvas-node-container` (absolute, full size, its own background) and never showed |
+| **IF** — a conditional arrow's label: dashed purple, with a filter icon | a class and an icon on the label's wrapper | the icon takes no pointer events, so editing the label is unchanged |
+| **Edit step · Copy flow · Edit this exit** | the selection toolbar, as `clickable-icon` buttons | stable ids, removed before re-adding; *Edit step* shows its name |
+| **One dock: Legend · Review · Rehearse** | one element on `canvas.wrapperEl`, bottom right | clear of the card menu and the canvas controls; the container takes no pointer events, only its tabs and panels; it folds to a row of tabs |
+| **An empty canvas** — *Create the first step* and *Browse systems* | one card on `canvas.wrapperEl` | only its buttons take pointer events |
+
+![An empty flow canvas: Create the first step, or Browse systems](../resources/wizard/canvas-empty.svg)
+
+Colours are Obsidian's: `--color-green/orange/purple` for the blocks and `--canvas-color-1…6` for
+the phases, so a theme recolours all of it.
+
 ## Manual-check matrix (run after an Obsidian update)
 
 Do this against the latest Obsidian when bumping `minAppVersion` or after an app update:
@@ -38,6 +59,7 @@ Do this against the latest Obsidian when bumping `minAppVersion` or after an app
 | Open a ZettelFlow canvas | loads; no error Notice |
 | Console on load | `ZettelFlow: canvas patches: N attached, 0 degraded` |
 | Right-click a node / open the canvas popup menu | ZettelFlow options appear |
+| Select a **file node first** (nothing selected before) | *Edit step* is in the selection toolbar when its note is a step (#686) |
 | Create a note through the wizard (drop-menu) | the node-connection drop menu appears and builds a note |
 | Edit + save the canvas | saves; reopen shows the same graph (getViewData/setViewData intact) |
 | Reopen an already-open canvas at startup | card-menu options + workflow styling are present (#234 re-apply) |

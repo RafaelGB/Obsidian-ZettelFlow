@@ -48,7 +48,7 @@ There are three ways in. None of them needs the others, and you can switch betwe
 
     1. Create a `.canvas` file (for example `flows/daily-note.canvas`).
     2. In **Settings → ZettelFlow → Flows**, *Give a role to another canvas*: pick it and choose **Creates notes**.
-    3. Add a note file to the canvas, right-click it → **Create managed step**, and turn on **Starts the flow**.
+    3. On the canvas, press **Create a step** (the Z in the bottom bar — or *Create the first step* on an empty canvas), and turn on **Starts the flow**.
     4. In **What does this step ask?**, add actions (*Ask for text*, *Choose an option*, *Add tags*…) and draw arrows to the next steps.
     5. Ribbon button → **Create note**: your first wizard run.
 

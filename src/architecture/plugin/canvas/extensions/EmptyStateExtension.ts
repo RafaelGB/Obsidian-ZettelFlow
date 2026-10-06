@@ -1,7 +1,8 @@
 import { Canvas, CanvasNode } from "obsidian/canvas";
-import { TFile } from "obsidian";
+import { setIcon, TFile } from "obsidian";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
+import { createStepAtCentre } from "./AddManagedStepExtension";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { CommunityTemplatesModal } from "application/community/CommunityTemplatesModal";
@@ -25,7 +26,7 @@ export default class EmptyStateExtension extends CanvasExtension {
     }
 
     private syncPanel(canvas: Canvas): void {
-        if (!CanvasHelper.isCanvasFlow(this.plugin)) {
+        if (!CanvasHelper.isCanvasFlow(this.plugin, canvas)) {
             this.removePanel();
             return;
         }
@@ -44,15 +45,22 @@ export default class EmptyStateExtension extends CanvasExtension {
             return;
         }
 
+        // A way in, not only a pointer to the gallery (#686): make the first step here, or install a
+        // system that already works. The card takes no pointer events; only its buttons do.
         this.panelEl = wrapperEl.createDiv({ cls: c("empty-state-panel") });
-
-        this.panelEl.createEl("p", { text: t("canvas_empty_state_message") });
+        setIcon(this.panelEl.createDiv({ cls: c("empty-state-icon") }), "route");
+        this.panelEl.createEl("h3", { cls: c("empty-state-title"), text: t("canvas_empty_state_title") });
+        this.panelEl.createEl("p", { cls: c("empty-state-message"), text: t("canvas_empty_state_message") });
 
         const ctaRow = this.panelEl.createDiv({ cls: c("empty-state-cta-row") });
+        const create = ctaRow.createEl("button", { cls: "mod-cta", attr: { type: "button" } });
+        setIcon(create.createSpan({ cls: c("empty-state-cta-icon") }), "plus");
+        create.createSpan({ text: t("canvas_empty_state_cta_create") });
+        create.addEventListener("click", () => createStepAtCentre(canvas));
 
         const browseBtn = ctaRow.createEl("button", {
             text: t("canvas_empty_state_cta_browse"),
-            cls: "mod-cta",
+            attr: { type: "button" },
         });
         browseBtn.addEventListener("click", () => {
             new CommunityTemplatesModal(this.plugin).open();

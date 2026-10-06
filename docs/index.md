@@ -116,7 +116,7 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
     Full control over every step.
 
     1. Create a `.canvas` file and give it the *Creates notes* role in **Settings → ZettelFlow → Flows**.
-    2. Add a note to the canvas, right-click → **Create managed step**, enable **Root**.
+    2. On the canvas, press **Create a step** (the Z in the bottom bar), and turn on **Starts the flow**.
     3. Add steps, connect them with arrows, and run the wizard from the ribbon.
 
     → [Get started](get-started.md) · [Actions](actions/Prompt.md) · [Conditional edges](architecture/conditional-edges.md)

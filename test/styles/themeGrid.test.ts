@@ -70,7 +70,7 @@ const CEILING: Record<string, number> = {
     // the only entry in this table that is not debt.
     "variables.scss": 1,
     "workbench.scss": 7,
-    "workflowCanvas.scss": 26,
+    "workflowCanvas.scss": 7,
 };
 
 function partials(dir: string, out: string[] = []): string[] {

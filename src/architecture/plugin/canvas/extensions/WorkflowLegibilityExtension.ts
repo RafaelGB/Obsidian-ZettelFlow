@@ -1,12 +1,13 @@
 import { Canvas, CanvasEdge, CanvasNode } from "obsidian/canvas";
-import { TFile } from "obsidian";
+import { setIcon, TFile } from "obsidian";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
 import { c, log } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { YamlService } from "architecture/plugin";
 import {
     BLOCK_STYLE,
+    NODE_BADGE_ICON,
     WORKFLOW_BLOCK_KINDS,
     nodeBadges,
     styleForEdge,
@@ -31,8 +32,11 @@ const RESTYLE_DEBOUNCE_MS = 80;
  */
 export default class WorkflowLegibilityExtension extends CanvasExtension {
     private readonly styledEls = new Set<HTMLElement>();
-    /** Badge strips this pass created; removed before the next one and on unload (#429). */
-    private readonly badgeEls = new Set<HTMLElement>();
+    /**
+     * Everything this pass appended — badge strips (#429), block accents and edge-label icons
+     * (#686) — removed before the next pass and on unload. Children we own, never Obsidian's.
+     */
+    private readonly ownEls = new Set<HTMLElement>();
     private restyleTimer: number | undefined;
 
     init(): void {
@@ -60,7 +64,7 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         // Clear the previous pass first so removed/changed nodes don't keep a stale class or label.
         this.clearStyled();
         try {
-            if (!CanvasHelper.isCanvasFlow(this.plugin)) return;
+            if (!CanvasHelper.isCanvasFlow(this.plugin, canvas)) return;
             const nodes = canvas?.nodes;
             if (!nodes || typeof nodes.forEach !== "function") {
                 log.warn("ZettelFlow: workflow legibility skipped — canvas.nodes is not iterable");
@@ -80,8 +84,22 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
         const el = node?.nodeEl;
         if (!el) return;
         const shape = this.nodeShape(node);
-        this.applyBlockClass(el, shape ? styleForNode(shape) : undefined);
+        const style = shape ? styleForNode(shape) : undefined;
+        this.applyBlockClass(el, style);
+        this.paintAccent(el, style);
         this.paintBadges(el, shape, this.noteIsGone(node));
+    }
+
+    /**
+     * WHEN and WAIT as an edge you can see (#686): a green or orange bar on the node's left side.
+     * It used to be an inset shadow on `nodeEl`, which Obsidian's node container — absolute, full
+     * size, with its own background — painted over, so the accent never showed.
+     */
+    private paintAccent(el: HTMLElement, style: BlockStyle | undefined): void {
+        const kind = style === BLOCK_STYLE.when ? "when" : style === BLOCK_STYLE.wait ? "wait" : undefined;
+        if (!kind) return;
+        const accent = el.createDiv({ cls: [c("node-accent"), c(`node-accent-${kind}`)] });
+        this.ownEls.add(accent);
     }
 
     /**
@@ -97,35 +115,41 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
     ): void {
         const badges = nodeBadges(shape);
         if (badges.length === 0 && !noteIsGone) return;
+        // Icon chips along the node's foot (#686), in the step editor's icon vocabulary. They
+        // used to pile up as grey pills in the top-right corner, over the step's own text.
         const strip = el.createDiv({ cls: c("node-badges") });
         if (noteIsGone) {
             // The one finding that throws mid-wizard is marked without opening the review (#428).
-            const alert = strip.createSpan({
-                cls: c("node-badge"),
-                text: t("node_badge_missing"),
-                attr: { "aria-label": t("node_badge_missing") },
-            });
-            alert.addClass(c("node-badge-alert"));
+            this.badge(strip, "alert", "alert-triangle", t("node_badge_missing"));
         }
         for (const badge of badges) {
             const label =
                 badge.count === undefined
                     ? t(badge.labelKey as LocaleKey)
-                    : `${badge.count} ${badge.count === 1 ? t("node_badge_asks_one") : t("node_badge_asks")}`;
-            const chip = strip.createSpan({
-                cls: c("node-badge"),
-                text: label,
-                attr: { "aria-label": label },
-            });
-            chip.addClass(c(`node-badge-${badge.kind}`));
+                    : tCount(badge.count, "node_badge_asks", String(badge.count));
+            this.badge(strip, badge.kind, NODE_BADGE_ICON[badge.kind], label);
         }
-        this.badgeEls.add(strip);
+        this.ownEls.add(strip);
+    }
+
+    private badge(strip: HTMLElement, kind: string, icon: string, label: string): void {
+        const chip = strip.createSpan({ cls: [c("node-badge"), c(`node-badge-${kind}`)] });
+        setIcon(chip.createSpan({ cls: c("node-badge-icon") }), icon);
+        chip.createSpan({ text: label });
     }
 
     private styleEdge(edge: CanvasEdge): void {
         const el = edge?.labelElement?.wrapperEl;
         if (!el) return; // a plain (unlabelled) edge has no wrapper — nothing to annotate
-        this.applyBlockClass(el, styleForEdge(edge.label, this.isGatedExit(edge)));
+        const style = styleForEdge(edge.label, this.isGatedExit(edge));
+        this.applyBlockClass(el, style);
+        if (style === BLOCK_STYLE.if) {
+            // IF reads as a condition (#686): a filter icon before the label's own words.
+            const icon = createSpan({ cls: c("edge-if-icon") });
+            setIcon(icon, "filter");
+            el.prepend(icon);
+            this.ownEls.add(icon);
+        }
     }
 
     /** A file node whose note is no longer in the vault — it will stop the wizard (#428 FR-5). */
@@ -198,8 +222,8 @@ export default class WorkflowLegibilityExtension extends CanvasExtension {
             el.removeAttribute("aria-label");
         }
         this.styledEls.clear();
-        for (const strip of this.badgeEls) strip.remove();
-        this.badgeEls.clear();
+        for (const own of this.ownEls) own.remove();
+        this.ownEls.clear();
     }
 
     private teardown(): void {

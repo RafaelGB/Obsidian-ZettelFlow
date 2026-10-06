@@ -1,11 +1,13 @@
 import { Canvas } from "obsidian/canvas";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
+import { CanvasDock, type DockPanel } from "./utils/CanvasDock";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { PHASE_LABEL_KEY } from "zettelkasten/phases";
 import { phaseColourLegend } from "zettelkasten/phases/phaseColor";
-import { NODE_BADGE_LABEL_KEY, type NodeBadgeKind } from "architecture/plugin/workflow";
+import { NODE_BADGE_ICON, NODE_BADGE_LABEL_KEY, type NodeBadgeKind } from "architecture/plugin/workflow";
+import { setIcon } from "obsidian";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -19,11 +21,12 @@ const BADGE_ORDER: NodeBadgeKind[] = ["start", "asks", "template", "satellite", 
  * without leaving the canvas for the docs. A collapsed chip sits out of the way; opening it states
  * every colour, the two phases that share the closing one, and what each badge means.
  *
- * Purely cosmetic and fully torn down on unload: it adds one element to `canvas.wrapperEl` (the
- * same door `EmptyStateExtension` uses), feature-detected, and removes it again (§VI, FR-7, FR-9).
+ * Since #686 it is the first tab of the canvas dock rather than a chip of its own. Purely cosmetic
+ * and fully torn down on unload: the dock is one element on `canvas.wrapperEl`, feature-detected,
+ * removed again with its last tab (§VI, FR-7, FR-9).
  */
 export default class CanvasLegendExtension extends CanvasExtension {
-    private legendEl: HTMLElement | undefined;
+    private panel: DockPanel | undefined;
 
     init(): void {
         this.plugin.registerEvent(
@@ -35,11 +38,11 @@ export default class CanvasLegendExtension extends CanvasExtension {
     }
 
     private sync(canvas: Canvas): void {
-        if (!CanvasHelper.isCanvasFlow(this.plugin)) {
+        if (!CanvasHelper.isCanvasFlow(this.plugin, canvas)) {
             this.remove();
             return;
         }
-        if (this.legendEl?.isConnected) return; // already there — idempotent
+        if (this.panel?.body.isConnected) return; // already there — idempotent
 
         const wrapperEl = canvas?.wrapperEl;
         if (!wrapperEl) {
@@ -48,25 +51,12 @@ export default class CanvasLegendExtension extends CanvasExtension {
         }
 
         this.remove();
-        this.legendEl = wrapperEl.createDiv({ cls: c("canvas-legend") });
-        const toggle = this.legendEl.createEl("button", {
-            cls: c("canvas-legend-toggle"),
-            text: t("canvas_legend_toggle"),
-            attr: { type: "button", "aria-expanded": "false" },
-        });
-        const body = this.legendEl.createDiv({ cls: c("canvas-legend-body") });
-        body.addClass(c("is-hidden"));
-        toggle.addEventListener("click", () => {
-            const open = toggle.getAttribute("aria-expanded") !== "true";
-            toggle.setAttribute("aria-expanded", String(open));
-            body.toggleClass(c("is-hidden"), !open);
-        });
-
-        this.renderBody(body);
+        this.panel = CanvasDock.of(wrapperEl).panel("legend", t("canvas_legend_toggle"), 0, { icon: "info" });
+        this.renderBody(this.panel.body);
     }
 
     private renderBody(body: HTMLElement): void {
-        body.createEl("h6", { text: t("canvas_legend_title") });
+        body.createDiv({ cls: c("canvas-dock-title"), text: t("canvas_legend_title") });
         body.createDiv({ cls: c("canvas-legend-note"), text: t("canvas_legend_colours") });
 
         const colours = body.createDiv({ cls: c("canvas-legend-colours") });
@@ -84,15 +74,15 @@ export default class CanvasLegendExtension extends CanvasExtension {
         body.createDiv({ cls: c("canvas-legend-note"), text: t("canvas_legend_badges") });
         const badges = body.createDiv({ cls: c("canvas-legend-badges") });
         for (const kind of BADGE_ORDER) {
-            badges.createSpan({
-                cls: c("node-badge"),
-                text: t(NODE_BADGE_LABEL_KEY[kind] as LocaleKey),
-            });
+            const chip = badges.createSpan({ cls: [c("node-badge"), c(`node-badge-${kind}`)] });
+            setIcon(chip.createSpan({ cls: c("node-badge-icon") }), NODE_BADGE_ICON[kind]);
+            // The legend names a badge, not a count: "questions it asks", not "{0} questions".
+            chip.createSpan({ text: t(kind === "asks" ? "node_badge_asks_legend" : (NODE_BADGE_LABEL_KEY[kind] as LocaleKey)) });
         }
     }
 
     private remove(): void {
-        this.legendEl?.remove();
-        this.legendEl = undefined;
+        this.panel?.remove();
+        this.panel = undefined;
     }
 }

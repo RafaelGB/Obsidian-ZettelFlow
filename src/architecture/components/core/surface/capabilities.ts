@@ -117,6 +117,7 @@ export const CAPABILITIES = [
     "moves",
     "think-about",
     "reader",
+    "highlights-review",
     "claim-door",
     "claim-return",
     "wager",
@@ -359,6 +360,17 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             CONTROL(`${COMPANION}/blocks/headBlock.ts`, NOTE),
             CONTROL("architecture/components/core/home/HomeModeRenderer.ts", HOME),
             CMD("open-reader"),
+        ],
+    },
+    "highlights-review": {
+        // A few things you marked (#678, epic #674): the Reader's highlights come back on a fixed,
+        // growing schedule. It comes to you — a tile on Home, a line in Think — only on a day
+        // something is due, and never as a count.
+        nameKey: "review_title",
+        owner: HOME,
+        doors: [
+            CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME),
+            { kind: "recommendation", at: `${HOME}:home` },
         ],
     },
     "think-about": {

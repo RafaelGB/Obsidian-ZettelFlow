@@ -36,7 +36,10 @@ describe("Home is a minimalist dashboard (#620)", () => {
     });
 
     it("renders exactly three hero tiles, exactly one wearing the accent", () => {
-        expect((src.match(/c\("dashboard-card"\)/g) ?? []).length).toBe(3);
+        // Three, plus the one that comes only on a day something you marked is back (#678) — it is
+        // gated before it is drawn, so on every other day the hero is the same three.
+        expect((src.match(/c\("dashboard-card"\)/g) ?? []).length).toBe(4);
+        expect(src).toMatch(/renderMarkedTile\(parent: HTMLElement\): void \{\s*if \(!this\.highlightsDue\) return;/);
         expect((src.match(/dashboard-card--hero/g) ?? []).length).toBe(1);
     });
 

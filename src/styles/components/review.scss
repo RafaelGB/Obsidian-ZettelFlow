@@ -1,0 +1,165 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * A few things you marked (#678, epic #674) — the review cards.
+ *
+ * Set in the Reader's own type: the modal wears the reader's font, size and theme classes, so a
+ * passage comes back looking the way it looked when you marked it. The palette defaults sit in
+ * `:where()` so a sepia or a light/dark choice — one class each — always wins over them.
+ */
+:where(.zettelkasten-flow__review-modal) {
+    @include reader-palette;
+}
+
+.zettelkasten-flow__review-modal.theme-dark,
+.zettelkasten-flow__review-modal.theme-light {
+    @include reader-theme-palette;
+}
+
+.zettelkasten-flow__review-modal {
+    width: min(40rem, 100%);
+    background-color: var(--reader-bg);
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__review {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4);
+}
+
+.zettelkasten-flow__review-card,
+.zettelkasten-flow__review-end {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    padding: var(--size-4-6) var(--size-4-6) var(--size-4-5);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    background-color: var(--reader-surface);
+}
+
+/* Each card rises into place, the way a reader's page does. Still for those who asked for stillness. */
+.zettelkasten-flow__review-card--enter {
+    animation: zf-review-rise 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes zf-review-rise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-2));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__review-card--enter {
+        animation: none;
+    }
+}
+
+.zettelkasten-flow__review-quote {
+    padding-left: var(--size-4-4);
+    border-left: var(--size-2-1) solid var(--interactive-accent);
+    font-family: var(--reader-font);
+    font-size: var(--reader-size);
+    line-height: 1.6;
+    user-select: text;
+}
+
+.zettelkasten-flow__review-meta {
+    color: var(--reader-faint);
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__review-note {
+    color: var(--reader-muted);
+    font-family: var(--reader-font);
+    font-style: italic;
+    user-select: text;
+}
+
+.zettelkasten-flow__review-ask {
+    margin-top: var(--size-4-2);
+    color: var(--reader-fg);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__review-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__review-action-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__review-kbd {
+    @include chip;
+    padding: 0 var(--size-4-1);
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__review-change {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__review-change-field {
+    width: 100%;
+    font-family: var(--reader-font);
+}
+
+.zettelkasten-flow__review-dots {
+    display: flex;
+    justify-content: center;
+    gap: var(--size-4-2);
+}
+
+/* `button.` on purpose: Obsidian paints every button through `button:not(.clickable-icon)`, (0,1,1). */
+button.zettelkasten-flow__review-dot {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--reader-line);
+    box-shadow: none;
+    cursor: pointer;
+
+    &.is-active {
+        background-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__review-end-title {
+    font-family: var(--reader-font);
+    font-size: var(--reader-size);
+}
+
+.zettelkasten-flow__review-end-sub {
+    @include hint;
+}
+
+/* The one line in Think on a day something you marked is back (#678). */
+.zettelkasten-flow__lab-review-door {
+    @include row;
+    flex-wrap: wrap;
+    padding: var(--size-4-2) var(--size-4-3);
+    margin-bottom: var(--size-4-3);
+    border: $line-quiet;
+    border-radius: var(--radius-m);
+    background-color: var(--background-primary-alt);
+}
+
+.zettelkasten-flow__lab-review-door-text {
+    flex: 1;
+}

@@ -26,6 +26,8 @@ import { wagersOf } from "architecture/plugin/claims/wagersOf";
 import { openReturn } from "starters/zcomponents/ClaimReturnComponent";
 import { normalizeSaved } from "architecture/components/core/reader/readerSaved";
 import { openSavedReading } from "architecture/components/core/reader/readingChooser";
+import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
+import { openReview } from "architecture/components/core/review/ReviewModal";
 
 /** A pinned "ask your graph" query resolved against the current model (#323 G4). */
 type PinnedQueryCard = { label: string; query: string; count: number };
@@ -59,6 +61,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private claimReturn: DueClaim | null = null;
     /** Whether this vault says anything yet. Decides between one quiet line and silence (#565). */
     private claimsExist = false;
+    /** Whether something you marked in the Reader is due a second look today (#678). */
+    private highlightsDue = false;
     /** The fold is closed on arrival (#620, minimalist): three tiles lead, the rest waits behind
      *  one disclosure. The choice survives a recompute so a background change never closes it. */
     private showEverything = false;
@@ -93,6 +97,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     }
 
     private recompute(): void {
+        // Think is not the index: what you marked can come back while the graph is still indexing.
+        this.highlightsDue = ThoughtStore.getInstance().anyHighlightDue();
         try {
             const index = KnowledgeIndex.getInstance();
             if (index.status !== "ready") {
@@ -196,6 +202,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.renderNextTile(hero);
         this.renderCultivateTile(hero);
         this.renderReturnTile(hero);
+        this.renderMarkedTile(hero);
 
         if (this.state === "indexing") {
             container.createDiv({ cls: c("home-status"), text: t("home_indexing") });
@@ -304,6 +311,24 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             // `derived` — the system brought it back. Opening it yourself records `human` (#562).
             if (plugin) openReturn(plugin, due.path, "derived");
         });
+    }
+
+    /**
+     * **A few things you marked** (#678, epic #674): highlights from the Reader, back for a second
+     * look. Drawn **only on a day something is due** — no empty tile, no count, nothing about what
+     * you skipped. A day you ignore it, it is the same tile tomorrow.
+     */
+    private renderMarkedTile(parent: HTMLElement): void {
+        if (!this.highlightsDue) return;
+        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("home-tile")}` });
+        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("review_title") });
+        tile.createDiv({ cls: c("home-tile-sub"), text: t("review_home_sub") });
+        const open = tile.createEl("button", {
+            cls: "mod-cta",
+            text: t("review_home_open"),
+            attr: { type: "button" },
+        });
+        this.registerDomEvent(open, "click", () => void openReview(this.app));
     }
 
     /**

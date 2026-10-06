@@ -1,4 +1,4 @@
-import type { Thought } from "./thought";
+import { isHighlight, type Thought } from "./thought";
 
 /**
  * Turning chaos into knowledge, without losing the chaos (#468, epic #465) — pure.
@@ -50,6 +50,31 @@ export interface Crystallization {
     frozen: FrozenOrigin[];
     /** How many thoughts were left out of the quotes because of the cap. */
     omitted: number;
+    /**
+     * Where the passages came from (#679), as links with a locator — `Notes/Event sourcing#Events`
+     * today, a page of a PDF tomorrow (#675). Written as `source::` lines, so the note is
+     * recognised as **sourced** by the claim/source parser (#148).
+     */
+    sources?: string[];
+}
+
+/**
+ * The words a thought brings to a note. A highlight brings its passage, quoted, then your margin
+ * note — a highlight with no note still has something to say (#679).
+ */
+function wordsOf(thought: Thought): string {
+    const own = thought.text.trim();
+    if (!isHighlight(thought)) return own;
+    const passage = `> ${(thought.quote?.exact ?? "").replace(/\s+/g, " ").trim()}`;
+    return own ? `${passage}\n\n${own}` : passage;
+}
+
+/** The link that cites a highlight's passage: the note, and the heading it sat under. */
+export function citationOf(thought: Thought): string | undefined {
+    if (!isHighlight(thought) || !thought.about) return undefined;
+    const note = thought.about.replace(/\.md$/i, "");
+    const heading = thought.quote?.heading?.replace(/[#|[\]^]/g, " ").replace(/\s+/g, " ").trim();
+    return `[[${note}${heading ? `#${heading}` : ""}]]`;
 }
 
 function firstLine(text: string): string {
@@ -72,20 +97,24 @@ export function planCrystallization(
     thoughts: readonly Thought[],
     paths: Readonly<Record<string, string>> = {}
 ): Crystallization | undefined {
-    const chosen = [...thoughts].filter((thought) => thought.text.trim()).sort((a, b) => a.at - b.at);
+    const chosen = [...thoughts].filter((thought) => wordsOf(thought)).sort((a, b) => a.at - b.at);
     if (chosen.length === 0) return undefined;
 
     const quoted = chosen.slice(0, FROZEN_QUOTE_MAX);
+    const seed = chosen[0];
+    const sources = [...new Set(chosen.map(citationOf).filter((link): link is string => Boolean(link)))];
     return {
-        title: clip(firstLine(chosen[0].text), 80),
-        body: chosen.map((thought) => thought.text.trim()).join("\n\n"),
+        // A highlight's title is proposed from your note about it, or else from its passage.
+        title: clip(firstLine(seed.text) || firstLine(seed.quote?.exact ?? ""), 80),
+        body: chosen.map(wordsOf).join("\n\n"),
         bornFrom: chosen.map((thought) => paths[thought.id]).filter((path): path is string => Boolean(path)),
         frozen: quoted.map((thought) => ({
             ...(paths[thought.id] ? { path: paths[thought.id] } : {}),
-            quote: clip(thought.text, FROZEN_QUOTE_LIMIT),
+            quote: clip(thought.text.trim() || (thought.quote?.exact ?? ""), FROZEN_QUOTE_LIMIT),
             at: thought.at,
         })),
         omitted: chosen.length - quoted.length,
+        sources,
     };
 }
 
@@ -106,14 +135,20 @@ export function renderProvenance(
     return lines.join("\n");
 }
 
-/** The full note: your text, then where it came from. */
+/**
+ * The full note: your text, then where it came from — and, when it was read somewhere, the
+ * `source::` lines that cite it (#679). Outside the editable body on purpose: a citation you can
+ * delete by tidying the text is a citation that quietly disappears.
+ */
 export function renderCrystallized(
     plan: Crystallization,
     body: string,
     heading: string,
     omittedLine: (count: string) => string
 ): string {
-    return `${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}\n`;
+    const cited = (plan.sources ?? []).map((link) => `source:: ${link}`);
+    const tail = cited.length > 0 ? `\n\n${cited.join("\n")}` : "";
+    return `${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}${tail}\n`;
 }
 
 /**

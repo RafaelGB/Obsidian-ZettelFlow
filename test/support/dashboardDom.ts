@@ -172,6 +172,18 @@ export class DomNode {
         this.children.push(child);
         return child;
     }
+    /** The DOM's `replaceWith(node)`: `node` takes this one's place among its siblings. */
+    replaceWith(node: DomNode): void {
+        const parent = this.parent;
+        if (!parent) return;
+        if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);
+        const at = parent.children.indexOf(this);
+        parent.children.splice(at, 1, node);
+        node.parent = parent;
+        node.detached = false;
+        this.parent = null;
+        this.detached = true;
+    }
     remove(): void {
         if (this.parent) this.parent.children = this.parent.children.filter((other) => other !== this);
         this.parent = null;

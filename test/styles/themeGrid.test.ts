@@ -30,7 +30,6 @@ const OFF_GRID = /[^-\w.](\d+)px/g;
  * implementations became one mixin, and a shape defined once is a shape with one set of pixels.
  */
 const CEILING: Record<string, number> = {
-    "askGraph.scss": 2,
     "codeEditor.scss": 15,
     "community.scss": 29,
     "conceptNav.scss": 2,
@@ -45,7 +44,6 @@ const CEILING: Record<string, number> = {
     "dynamicSelector.scss": 10,
     "flowStatus.scss": 2,
     "flows.scss": 3,
-    "graph3d.scss": 10,
     "historyView.scss": 28,
     // 6 → 4: the cultivate-teaser card (1px border + 3px accent) left Home when it became a hero
     // tile, and the fold's divider uses var(--border-width) rather than a literal pixel (#620).

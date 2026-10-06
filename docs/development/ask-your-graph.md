@@ -1,21 +1,90 @@
-# Ask your graph
+# Explore — ask, and the graph answers
 
-**Ask your graph** queries your notes by **meaning and structure** — typed relations, connectivity,
-sources, orphanhood, age, lifecycle state — not by frontmatter or tags. That is the line the
-manifesto draws: *"show me every idea that contradicts this"* is a question about the **shape of your
-thinking**, and it is exactly what a Dataview query cannot answer. It is **deterministic** — a query
-is a set of predicates, never a natural-language prompt, and AI is never involved.
+**Explore** is your whole vault drawn as a graph, with a question bar on top. Ask something — *"permanent
+notes without a source"*, *"what joins my regions?"*, `state:fleeting AND folder:Reading` — and the
+graph answers: the notes that match glow, the rest of your vault dims, and the camera flies to frame
+them. Beside it, a card says how many, **how the answer was found** and **where it lives**.
 
-Open it with the **Ask your graph** command (or the ribbon menu). It is its own **surface** — a
-persistent tab you can move, split or pin wherever you like — so a selection and its results stay
-open beside the note you are editing and **recompute live** as the vault changes.
+It queries your notes by **meaning and structure** — typed relations, connectivity, sources, regions,
+age, lifecycle state — not by frontmatter or tags. *"Show me every idea that contradicts this"* is a
+question about the **shape of your thinking**, and exactly what a Dataview query cannot answer. It
+is **deterministic**: a question becomes a set of terms you can see, never a prompt, and AI is never
+involved.
 
-It was the fifth mode of Discovery until someone used it (#487). Discovery's other modes are narrow
-lists that belong in a side panel; Explore is a workspace, and a mode cannot be moved out of a pane
-without taking the lists with it.
+Open it from the ribbon menu (**Explore**) or the **Ask your graph** command. It is its own surface —
+a tab you can move, split or pin — and it recomputes live as the vault changes.
 
-Inside it, only the **results** scroll. The facets, the chips, the lens bar and the answer line
-stay put, because the part of a surface that is a control panel should not behave like content.
+![Explore answering “permanent notes without a source”: the answer glows in the graph, the rest dims, and the card says how it was found and where it lives](../resources/graph/answer.svg)
+
+## Ask, and the graph answers (#696)
+
+Until #692 Explore had two control systems — facets and a lens bar on top, then a 3D graph below with
+its own search box, a gear of seven lenses, a legend and a status line. Now there is one:
+
+- **The ask bar is the mode's one primary action.** Type a question in words or in the query
+  language; press **Enter**. What it understood comes back as **chips** — *permanent*, *Claims
+  without a source* — that you can flip (¬) or remove (×). Nothing is guessed behind your back.
+- **Before you type**, a row of **questions to try** — the questions the old gear lenses used to be:
+  *What joins my regions?*, *What contradicts what?*, *Notes nothing links to*, *Notes on their own*,
+  and your pinned saved queries. Each shows how many notes it would light and a strip of the regions
+  they live in, **in the regions' own colours**; hovering one previews the answer in the graph. A
+  question that would answer nothing in your vault is not offered.
+- **The regions are the legend**, bottom left. Hover one to light it, click it to ask for it.
+- **The answer card** says how many; the terms as chips; **how the answer was found** — your vault,
+  then each term and what it left, as bars; **where it lives** — a bar in the regions' colours, each
+  of the biggest four framing its notes on a click; the notes, each row carrying the facts the
+  question asked about; **Narrow it further** — the facets, folded; and *Copy as links*, *Read these*,
+  *Make a map of content*. The query as text is still under the card — the escape hatch (§XIII).
+- **The graph lights the answer**: matches glow, the rest of the vault dims (nothing is hidden), and the
+  camera frames them. ←/→ step through the answer, one note at a time.
+
+What was **subtracted**: the List lens (the card is the list), the graph's own search box (one ask box),
+the seven lenses behind the gear (they are questions now, which you can also save, narrow and pin to
+Home), the lens bar and the intro line.
+
+### Asking in your own words
+
+The bar reads a sentence the way the chips would write it: a phrase table in English and Spanish
+(*without a source*, *nothing links to*, *joins*, *contradicts*, *on their own*, *this month*…), and your
+vault's own words — its states, its top-level folders and its region names. Whatever is left becomes a
+title search (`about:`). Query syntax — `state:permanent AND orphan` — is used exactly as typed. The
+whole bridge is `wordsToTerms()`: a table and your vocabulary, no model, no network.
+
+![Explore at rest: regions drawn as nebulae, questions to try with their regions' colours, the regions as the legend — and “What joins my regions?” lighting the bridges](../resources/graph/nebulae-bridges.svg)
+
+### Time, and a note up close (#697)
+
+A **strip of months** under the graph shows when your notes were made. Drag it, step it with the
+arrows, or press **Space** to play your vault's growth: notes made after the cursor are not there yet,
+and new ones arrive with a ring that opens and fades (none under reduced motion).
+
+**Click a note** and a **peek card** opens beside it with its facts — state, region, folder, links in,
+links out, sources — and *Open note* or *Ask around it* (the note and its neighbours, a `near:` term).
+Facts only, never a grade (§XII).
+
+![The time strip scrubbed back to March 2025, and a peek card of one note's facts](../resources/graph/time.svg)
+
+### Rename a region
+
+A region is a neighbourhood the graph finds (#522), named after its best connected note. That name is a
+guess; yours is better. Hover a region in the legend and press the pencil. The name is kept in plugin
+data by the region's hub — never written into a note — used everywhere the region is named (the
+legend, the nebula, the chips, the answer card, the words you ask with), and an empty name gives the
+hub's back.
+
+### Keys
+
+On the Explore tab: **/** ask · **F** frame the answer · **←/→** step through it · **Enter** open the
+stepped note · **Space** play time · **Esc** let go of the step, then clear the question. They are the
+leaf's own keys, so they work whatever has focus — except while you type in a field.
+
+### On a phone
+
+The same graph as a flat sheet: one finger pans, two pinch, and the answer card rises from the bottom
+as a sheet. A device that can draw no graph at all gets the card open on every note — still a way
+in, never a blank view.
+
+![Explore on a phone: the graph as a flat sheet and the answer as a bottom sheet](../resources/graph/mobile.svg)
 
 ## Clicking is the query (#483)
 
@@ -32,10 +101,11 @@ you, derived from your own notes, with counts:
 
 | | |
 |---|---|
+| **region** | the neighbourhoods the graph found, by their names (#696) |
 | **state** | the lifecycle states *you* use — three if you use three |
 | **links out to** / **linked from** | the typed relation types present, in both directions |
 | **folder** | your top-level folders |
-| **shape** | well connected · nothing links to it · links to nothing · claims without a source |
+| **shape** | well connected · nothing links to it · links to nothing · claims without a source · joins two regions · on its own · in a contradiction |
 
 Clicking a value narrows the selection; the facets re-derive against what is left. Each choice
 becomes a **chip** you can remove, or flip to its opposite with **¬** — negation stays reachable
@@ -119,8 +189,7 @@ particular. The per-note move already exists (*Think about this note*), and the 
 itself a note — so the moment a selection becomes a thing you can think about, the command that
 does it is already there. A third button would have been a worse version of a door that is open.
 
-There is no new export either: the graph lens already exports an image or a WebM clip, with its own
-confirmation. Two answers to one question is the disease this epic exists to treat.
+There is no new export either: the graph already exports an image, with its own confirmation. Two answers to one question is the disease this epic exists to treat.
 
 ## Think before you look
 
@@ -140,7 +209,7 @@ So Explore can wait:
 1. You ask a question.
 2. It asks **what do you currently think?** — and shows nothing.
 3. Your answer is stored as a thought, **before** anything is revealed.
-4. Then **Explore answers** — the same facets, the same list, the same lenses — beside what you
+4. Then **Explore answers** — the same facets, the same card, the same graph — beside what you
    said.
 5. You say what changed in you: *nothing* · *I had forgotten this* · *I was wrong* · *I still
    think so*.
@@ -206,6 +275,11 @@ A query is predicate **terms** combined with `AND` / `OR`. `AND` binds tighter t
 | `unsourced` | it makes a claim but cites no source |
 | `older-than:<days>` / `newer-than:<days>` | by creation age |
 | `about:<term>` | its title or path contains the term |
+| `region:<note>` | it lives in the region named after that note (its path or its name) |
+| `bridge` | it links across regions — where two of them meet |
+| `alone` | it links to nothing and nothing links to it, among your notes |
+| `contradiction` | it is in a `contradicts` relation, either side of it |
+| `near:<note>` | that note, or one link from it either way |
 | `!<term>` | negate any term, e.g. `!orphan` |
 
 ```text
@@ -228,9 +302,14 @@ deriveFacets(model, selection) → Facet[]             (pure) what can still nar
 selection.ts: toQuery / asSelection / toggleTerm /   (pure) the chips, and the text they produce
               invertTerm / matchesFor                       no filters ⇒ every note
 
-AskGraphRenderer — the mode of the Discovery surface (command: ask-your-graph)
-  facets → chips → results, recomputed live; the DSL under "as text", with completion
+wordsToTerms(question, vocabulary) → terms           (pure) a sentence → the chips, no model
+graphFacts(model)                                     (memoised) regions, bridges, contradictions
+answerFunnel(model, terms) → steps                   (pure) how the answer was found
+
+AskGraphRenderer — the Explore surface (command: ask-your-graph)
+  the graph (GraphCanvas) · ask bar · questions to try · regions · answer card · time · peek
   saved queries (settings.savedGraphQueries: named / pinned)
+  region names (settings.graphRegionNames: by the region's hub path)
 ```
 
 The engine lives in `src/architecture/knowledge/query/graphQuery.ts`, the facets and the selection
@@ -248,6 +327,8 @@ beside it, and all three are re-exported from the Knowledge State barrel. They r
   sources — a universal schema instead of your question. Its one real advantage was alignment, and
   alignment is CSS. A lens has to be a genuinely different way of *seeing*.
 - **Reordering saved queries.** Two buttons per row to move a list nobody sorts.
+- **A list lens, a graph search box, a gear of lenses (#696).** The card is the list, the ask bar is
+  the only box, and the lenses are questions — each of them a term you can save.
 - **Embeddings, RAG or vector search.** The manifesto: a query stays deterministic and offline.
 
 ## Saved queries

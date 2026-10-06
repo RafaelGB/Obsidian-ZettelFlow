@@ -153,6 +153,11 @@ export const NOT_EXPOSED: Record<string, string> = {
     // needs, and a script does not type sentences.
     questionQuery: "a UI bridge from free text to a query a script would write itself",
     questionTerms: "internal helper of questionQuery",
+    wordsToTerms: "a UI bridge from a typed question to the chips Explore shows (#696); a script writes its terms",
+    looksLikeSyntax: "internal helper of wordsToTerms",
+    answerFunnel: "how an answer narrowed, for Explore's answer card — an explanation, not a query (#696)",
+    graphFacts: "the region/bridge facts the query engine reads; a script asks with region:, bridge, alone",
+    regionBasename: "a display helper for a region's default name",
     formatDuration: "a display helper",
     // Internal helpers of a projection — the projection itself is what answers a question.
     classifyBucket: "internal helper of computeKnowledgeBalance",
@@ -196,11 +201,7 @@ export const NOT_EXPOSED: Record<string, string> = {
     graph3dSignature: "3D graph view helper",
     graph3dTimeRange: "3D graph view helper",
     graph3dUpToTime: "3D graph view helper",
-    communityColor: "3D graph palette (#515) — a colour, not a projection",
     communitiesOf: "renderer input for the 3D graph (#524) — read `map()` for the regions",
-    filterGraph3D: "3D graph view helper",
-    buildAdjacency: "3D graph view helper",
-    shortestPath: "operates on 3D graph adjacency, not the model",
     tourStops: "3D graph camera-tour choreography, not a model answer",
     buildCultivationSession: "an interactive session with deliberate friction; not a pure answer",
     selectCultivationTarget: "internal to the cultivation session",

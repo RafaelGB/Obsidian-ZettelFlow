@@ -2,6 +2,7 @@ import type { Idea } from "../model/Idea";
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { runGraphQuery } from "./graphQuery";
 import { asSelection, toQuery } from "./selection";
+import { graphFacts } from "./graphFacts";
 
 /**
  * **An answer that explains itself** (#485, epic #481).
@@ -132,6 +133,27 @@ function factFor(term: string, idea: Idea, model: KnowledgeModel): RowFact | nul
             }
             return { key: "explore_fact_incoming", arg: type, value: String(count) };
         }
+        case "bridge": {
+            // How many of its links cross into another region (#696).
+            const facts = graphFacts(model);
+            const own = facts.regionOf.get(idea.path);
+            let across = 0;
+            for (const set of [model.outNeighborSet(idea.path), model.inNeighborSet(idea.path)]) {
+                for (const other of set) {
+                    const theirs = facts.regionOf.get(other);
+                    if (theirs !== undefined && theirs !== own) across++;
+                }
+            }
+            return { key: "explore_fact_across", value: String(across) };
+        }
+        case "contradiction": {
+            let count = idea.relations.filter((relation) => relation.type === "contradicts").length;
+            for (const other of model.all()) {
+                if (other.relations.some((r) => r.to === idea.path && r.type === "contradicts")) count++;
+            }
+            return { key: "explore_fact_contradicts", value: String(count) };
+        }
+        // `region:` and `alone` are the same for every row of their answer: no column.
         // `about:`, `older-than:` and `newer-than:` have no per-note fact worth a column: the
         // first is already visible in the title, the other two are the same date twice.
         default:
@@ -158,4 +180,28 @@ export function rowFacts(idea: Idea, terms: readonly string[], model: KnowledgeM
         facts.push(fact);
     }
     return facts;
+}
+
+/** One step of how an answer was found: the term applied, and how many notes were left after it. */
+export interface FunnelStep {
+    /** `null` for the first step — your whole vault, before any term. */
+    term: string | null;
+    count: number;
+}
+
+/**
+ * **How the answer was found** (#696): your vault, then each term in turn and what it left. The
+ * same walk {@link explainEmpty} makes to name the term that emptied a selection, shown whole — a
+ * fact about the question, never advice about it. `null` for a hand-written query with an `OR` in
+ * it, which is not a sequence of narrowing steps.
+ */
+export function answerFunnel(model: KnowledgeModel, terms: readonly string[], now?: number): FunnelStep[] | null {
+    if (terms.some((term) => asSelection(term) === null)) return null;
+    const steps: FunnelStep[] = [{ term: null, count: model.all().length }];
+    for (let index = 0; index < terms.length; index++) {
+        const result = runGraphQuery(model, toQuery(terms.slice(0, index + 1)), now);
+        if (result.error) return null;
+        steps.push({ term: terms[index], count: result.matches.length });
+    }
+    return steps;
 }

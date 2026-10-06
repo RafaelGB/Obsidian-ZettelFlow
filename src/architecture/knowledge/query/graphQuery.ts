@@ -1,6 +1,7 @@
 import type { Idea } from "../model/Idea";
 import type { KnowledgeModel } from "../model/KnowledgeModel";
 import { incomingRelations } from "./queries";
+import { graphFacts, regionBasename } from "./graphFacts";
 
 /**
  * **Ask your graph** (#318 S3) — a composable, *deterministic* query over the semantic graph and the
@@ -60,6 +61,11 @@ export const GRAPH_QUERY_PREDICATES: readonly GraphQueryPredicate[] = [
     { token: "older-than:<days>", note: "created more than N days ago" },
     { token: "newer-than:<days>", note: "created within the last N days" },
     { token: "about:<term>", note: "its title or path contains the term" },
+    { token: "region:<hub>", note: "it lives in the region named after that note (#696)" },
+    { token: "bridge", note: "it links across regions — where two of them meet" },
+    { token: "alone", note: "it links to nothing and nothing links to it, among your notes" },
+    { token: "contradiction", note: "it is in a contradicts relation, either side of it" },
+    { token: "near:<note>", note: "that note, or one link from it either way (#697)" },
     { token: "!<term>", note: "negate any term, e.g. !orphan" },
 ];
 
@@ -164,6 +170,32 @@ function parseTerm(raw: string): { predicate?: Predicate; error?: string } {
             return negate(negated, (idea, model) => model.outNeighbors(idea.path).length === 0);
         case "hub":
             return negate(negated, (idea) => idea.maturitySignals.degree >= 5);
+        // The graph's own facts (#696): what the 3D lenses could show and nothing could ask.
+        case "region": {
+            if (!arg) return { error: "region: needs a note" };
+            const wanted = arg.toLowerCase();
+            return negate(negated, (idea, model) => {
+                const hub = graphFacts(model).regionOf.get(idea.path);
+                return hub !== undefined && (hub.toLowerCase() === wanted || regionBasename(hub).toLowerCase() === wanted);
+            });
+        }
+        case "bridge":
+            return negate(negated, (idea, model) => graphFacts(model).bridge.has(idea.path));
+        case "alone":
+            return negate(negated, (idea, model) => !graphFacts(model).regionOf.has(idea.path));
+        case "contradiction":
+            return negate(negated, (idea, model) => graphFacts(model).contradiction.has(idea.path));
+        case "near": {
+            if (!arg) return { error: "near: needs a note" };
+            const wanted = arg.toLowerCase();
+            const isIt = (path: string) => path.toLowerCase() === wanted || basename(path).toLowerCase() === wanted;
+            return negate(negated, (idea, model) => {
+                if (isIt(idea.path)) return true;
+                for (const other of model.outNeighborSet(idea.path)) if (isIt(other)) return true;
+                for (const other of model.inNeighborSet(idea.path)) if (isIt(other)) return true;
+                return false;
+            });
+        }
         default:
             return { error: `unknown predicate "${key}"` };
     }

@@ -20,6 +20,8 @@ module.exports = {
   },
   moduleFileExtensions: ["ts", "tsx", "js", "json"],
   moduleNameMapper: {
+    // A worker esbuild inlines as a string (#694); jest has no worker to start, so it gets none.
+    "^(.+)\\?worker$": "<rootDir>/test/__mocks__/workerSource.ts",
     "^obsidian$": "<rootDir>/test/__mocks__/obsidian.ts",
     "^uuid$": "<rootDir>/test/__mocks__/uuid.ts",
     "^architecture$": "<rootDir>/test/__mocks__/architecture.ts",

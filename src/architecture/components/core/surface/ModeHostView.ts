@@ -1,4 +1,4 @@
-import { ItemView, ViewStateResult } from "obsidian";
+import { ItemView, Scope, ViewStateResult } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { surfaceByType, type Surface } from "./surfaceRegistry";
@@ -187,5 +187,8 @@ export abstract class ModeHostView extends ItemView {
         this.pendingState = null; // one-shot: a later manual tab switch builds without it
         this.current = this.createRenderer(modeId, this.bodyEl, state);
         this.addChild(this.current); // triggers the renderer's onload() → renders into bodyEl
+        // The leaf's own keys (#696): the active leaf's scope gets them whatever has focus.
+        if (!this.scope) this.scope = new Scope(this.app?.scope);
+        this.current.bindKeys(this.scope);
     }
 }

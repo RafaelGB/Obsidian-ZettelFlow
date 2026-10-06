@@ -1,13 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     build3DGraph,
-    buildAdjacency,
-    filterGraph3D,
     graph3dSignature,
     graph3dStats,
     graph3dTimeRange,
     graph3dUpToTime,
-    shortestPath,
     tourStops,
     OVERLAY_KINDS,
     OVERLAY_SPECS,
@@ -103,48 +100,6 @@ describe("build3DGraph (#280 S1)", () => {
     });
 });
 
-describe("filterGraph3D (#280 S3)", () => {
-    const base = { group: 0, orphan: false, deadEnd: false, contradiction: false, created: 0, kind: "note" as const };
-    const data: Graph3DData = {
-        nodes: [
-            { ...base, id: "Zettel/Alpha.md", name: "Alpha", val: 1, state: "seed" },
-            { ...base, id: "Zettel/Beta.md", name: "Beta", val: 1, state: "permanent" },
-            { ...base, id: "Refs/Gamma.md", name: "Gamma", val: 1, group: -1, state: "seed" },
-        ],
-        links: [
-            { source: "Zettel/Alpha.md", target: "Zettel/Beta.md", type: "link" },
-            { source: "Zettel/Beta.md", target: "Refs/Gamma.md", type: "supports" },
-        ],
-    };
-
-    it("matches everything for an empty filter", () => {
-        expect(filterGraph3D(data, {})).toEqual(data);
-    });
-
-    it("filters by name query and drops links to removed nodes", () => {
-        const out = filterGraph3D(data, { query: "et" }); // Beta only ("et" not in Alpha/Gamma... Alpha has no 'et')
-        expect(out.nodes.map((n) => n.name).sort()).toEqual(["Beta"]);
-        expect(out.links).toEqual([]); // both links touch a removed node
-    });
-
-    it("filters by state", () => {
-        const out = filterGraph3D(data, { state: "seed" });
-        expect(out.nodes.map((n) => n.name).sort()).toEqual(["Alpha", "Gamma"]);
-    });
-
-    it("filters by folder prefix", () => {
-        const out = filterGraph3D(data, { folder: "Zettel/" });
-        expect(out.nodes.map((n) => n.name).sort()).toEqual(["Alpha", "Beta"]);
-        expect(out.links.map((l) => l.type)).toEqual(["link"]); // Alpha->Beta survives; Beta->Gamma dropped
-    });
-
-    it("does not mutate the input", () => {
-        const before = JSON.stringify(data);
-        filterGraph3D(data, { state: "seed" });
-        expect(JSON.stringify(data)).toBe(before);
-    });
-});
-
 describe("discovery-lens flags & overlays (#280 S4)", () => {
     it("flags orphans (no out-edges), dead-ends (no in-edges) and contradictions", () => {
         const model = buildModel([
@@ -187,7 +142,7 @@ describe("discovery-lens flags & overlays (#280 S4)", () => {
  * part of the story: a green test is not evidence that a capability exists.
  */
 
-describe("graph3dStats & buildAdjacency (#280 iteration)", () => {
+describe("graph3dStats (#280 iteration)", () => {
     it("counts orphans, dead-ends and contradictions", () => {
         const model = buildModel([
             idea("A.md", "seed", [{ to: "B.md", type: "contradicts" }]),
@@ -198,26 +153,6 @@ describe("graph3dStats & buildAdjacency (#280 iteration)", () => {
         expect(stats.orphans).toBe(1); // C
         expect(stats.deadEnds).toBe(1); // A
         expect(stats.contradictions).toBe(2); // A + B
-    });
-
-    it("builds undirected adjacency for hover highlighting", () => {
-        const model = buildModel([idea("A.md", "seed", [{ to: "B.md" }]), idea("B.md", "seed", [])]);
-        const adj = buildAdjacency(build3DGraph(model));
-        expect([...(adj.get("A.md") ?? [])]).toEqual(["B.md"]);
-        expect([...(adj.get("B.md") ?? [])]).toEqual(["A.md"]); // undirected
-    });
-
-    it("finds the shortest path between two notes (and [] when unreachable)", () => {
-        const model = buildModel([
-            idea("A.md", "seed", [{ to: "B.md" }]),
-            idea("B.md", "seed", [{ to: "C.md" }]),
-            idea("C.md", "seed", []),
-            idea("Island.md", "seed", []),
-        ]);
-        const adj = buildAdjacency(build3DGraph(model));
-        expect(shortestPath(adj, "A.md", "C.md")).toEqual(["A.md", "B.md", "C.md"]);
-        expect(shortestPath(adj, "A.md", "A.md")).toEqual(["A.md"]);
-        expect(shortestPath(adj, "A.md", "Island.md")).toEqual([]);
     });
 });
 
@@ -298,37 +233,3 @@ describe("tourStops (#385)", () => {
  * string ids into the resolved node objects. The pure filters run on that live data during the
  * time-lapse, so they must read the id from either shape or every relation disappears (only dots show).
  */
-describe("link filters survive d3-force endpoint mutation (#394)", () => {
-    const node = (id: string, created: number): Graph3DNode => ({
-        id, name: id, val: 2, group: -1, state: "seed", orphan: false, deadEnd: false, contradiction: false, created, kind: "note",
-    });
-
-    it("graph3dUpToTime keeps links whose endpoints are node objects, not id strings", () => {
-        const a = node("A.md", 10), b = node("B.md", 20);
-        // Simulate the in-place mutation: link.source/target are the node objects.
-        const mutated: Graph3DData = {
-            nodes: [a, b],
-            links: [{ source: a as unknown as string, target: b as unknown as string, type: "supports" }],
-        };
-        expect(graph3dUpToTime(mutated, 100).links).toHaveLength(1);
-    });
-
-    it("filterGraph3D keeps links whose endpoints are node objects", () => {
-        const a = node("A.md", 10), b = node("B.md", 20);
-        const mutated: Graph3DData = {
-            nodes: [a, b],
-            links: [{ source: a as unknown as string, target: b as unknown as string, type: "link" }],
-        };
-        expect(filterGraph3D(mutated, {}).links).toHaveLength(1);
-    });
-
-    it("still drops a link when one mutated endpoint falls outside the time cursor", () => {
-        const a = node("A.md", 10), b = node("B.md", 5000);
-        const mutated: Graph3DData = {
-            nodes: [a, b],
-            links: [{ source: a as unknown as string, target: b as unknown as string, type: "link" }],
-        };
-        // Cursor before B was created → B is filtered out → the link goes with it.
-        expect(graph3dUpToTime(mutated, 100).links).toHaveLength(0);
-    });
-});

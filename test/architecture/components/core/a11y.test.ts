@@ -54,7 +54,8 @@ describe("makeActivatable (#319 S3)", () => {
 // ── Structural guardrails so the a11y/mobile wiring can't silently regress (#319 S5) ──────────────
 const ROOT = join(__dirname, "..", "..", "..", "..");
 const MODE_HOST = readFileSync(join(ROOT, "src", "architecture", "components", "core", "surface", "ModeHostView.ts"), "utf8");
-const GRAPH = readFileSync(join(ROOT, "src", "architecture", "components", "core", "graph3d", "Graph3DRenderer.ts"), "utf8");
+const GRAPH = readFileSync(join(ROOT, "src", "architecture", "components", "core", "askGraph", "AskGraphRenderer.ts"), "utf8");
+const GRAPH_CANVAS = readFileSync(join(ROOT, "src", "architecture", "components", "core", "graph", "GraphCanvas.ts"), "utf8");
 const MODE_HEADER = readFileSync(
     join(ROOT, "src", "architecture", "components", "core", "surface", "ModeHeader.ts"),
     "utf8"
@@ -97,16 +98,16 @@ describe("a mode header's overflow is operable without a mouse (#577)", () => {
     });
 });
 
-describe("graph mobile fallback + reduced motion (#319 S2/S4)", () => {
-    it("renders a navigable list fallback (buttons), not a dead-end message", () => {
-        expect(GRAPH).toContain("graph3d-fallback-list");
-        expect(GRAPH).toMatch(/graph3d-fallback-row/);
+describe("graph no-canvas fallback + reduced motion (#319 S2/S4, #693)", () => {
+    it("opens the answer card on every note when there is no graph to draw, not a dead-end message", () => {
+        expect(GRAPH).toContain("explore--no-graph");
+        expect(GRAPH).toContain('this.canvas?.kind === null');
         expect(GRAPH).toContain("openLinkText"); // rows navigate
     });
 
     it("honors prefers-reduced-motion in the graph animation", () => {
-        expect(GRAPH).toContain("prefersReducedMotion");
-        expect(GRAPH).toContain("prefers-reduced-motion");
+        expect(GRAPH_CANVAS).toContain("prefersReducedMotion");
+        expect(GRAPH_CANVAS).toContain("prefers-reduced-motion");
     });
 });
 

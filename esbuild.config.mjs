@@ -39,6 +39,38 @@ function deployToVault() {
     }
 }
 
+/**
+ * `import source from "./x.worker?worker"` (#694): bundle that module on its own and hand it back as a
+ * string, so it can start as a Web Worker from a Blob. Obsidian loads exactly one `main.js`; a worker
+ * cannot be a second file next to it.
+ */
+const inlineWorkerPlugin = {
+    name: "inline-worker",
+    setup(build) {
+        build.onResolve({ filter: /\?worker$/ }, (args) => ({
+            path: path.resolve(args.resolveDir, args.path.replace(/\?worker$/, "") + ".ts"),
+            namespace: "inline-worker",
+        }));
+        build.onLoad({ filter: /.*/, namespace: "inline-worker" }, async (args) => {
+            const result = await esbuild.build({
+                entryPoints: [args.path],
+                bundle: true,
+                write: false,
+                format: "iife",
+                target: "es2020",
+                minify: prod,
+                metafile: true,
+                logLevel: "silent",
+            });
+            return {
+                contents: `export default ${JSON.stringify(result.outputFiles[0].text)};`,
+                loader: "js",
+                watchFiles: Object.keys(result.metafile.inputs).map((file) => path.resolve(file)),
+            };
+        });
+    },
+};
+
 // Plugin that copies to vault after each successful build
 const vaultDeployPlugin = {
     name: "vault-deploy",
@@ -85,11 +117,6 @@ const context = await esbuild.context({
       "@lezer/lr",
       ...builtinModules,
     ],
-	// The WebGPU renderer is imported by three-render-objects but never constructed (the graph lens
-	// uses WebGL): a stub keeps ~580 KB of unreachable code out of main.js. See the stub's header.
-	alias: {
-		"three/webgpu": "./scripts/stubs/three-webgpu.js",
-	},
 	format: "cjs",
 	// Obsidian ships a current Chromium on desktop and mobile: no need to down-level async/await,
 	// optional chaining or spread into slower, larger ES6.
@@ -102,7 +129,7 @@ const context = await esbuild.context({
 	loader: {
         ".ttf": "file",
     },
-    plugins: vaultMode ? [vaultDeployPlugin] : [],
+    plugins: vaultMode ? [inlineWorkerPlugin, vaultDeployPlugin] : [inlineWorkerPlugin],
 });
 const styles = await esbuild.context({
     entryPoints: ["src/styles/main.scss"],

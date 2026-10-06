@@ -124,7 +124,8 @@
     gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__review-dot {
+/* `button.` on purpose: Obsidian paints every button through `button:not(.clickable-icon)`, (0,1,1). */
+button.zettelkasten-flow__review-dot {
     width: var(--size-4-2);
     height: var(--size-4-2);
     padding: 0;

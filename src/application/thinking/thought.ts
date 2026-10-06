@@ -98,6 +98,18 @@ export interface Thought {
     quote?: ThoughtQuote;
     /** A highlight's review (#678). Written by the review cards and nowhere else. */
     review?: ThoughtReview;
+    /**
+     * The highlight this thought **changed your mind** about (#679): its id and the passage, so the
+     * pair — what you marked then, what you think now — can be told without opening the old file.
+     * The thought also responds to the highlight as a challenge, which is what threads it in Think.
+     */
+    revises?: ThoughtRevision;
+}
+
+/** What a *changed my mind* thought points back at (#679). */
+export interface ThoughtRevision {
+    of: string;
+    quote: string;
 }
 
 /** Whether a thought is a highlight made in the Reader. */
@@ -113,6 +125,7 @@ export interface NewThought {
     about?: string;
     alsoAbout?: string;
     quote?: ThoughtQuote;
+    revises?: ThoughtRevision;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -125,6 +138,7 @@ export function newThought(input: NewThought): Thought {
         ...(input.about ? { about: input.about } : {}),
         ...(input.alsoAbout ? { alsoAbout: input.alsoAbout } : {}),
         ...(input.quote?.exact ? { quote: input.quote } : {}),
+        ...(input.revises?.of ? { revises: input.revises } : {}),
     };
 }
 
@@ -187,6 +201,9 @@ export function renderThought(thought: Thought): string {
         if (thought.review.last) lines.push(`  reviewedAt: ${thought.review.last}`);
         if (thought.review.retired) lines.push("  reviewRetired: true");
     }
+    if (thought.revises?.of) {
+        lines.push(`  revisesOf: ${thought.revises.of}`, `  revisesQuote: ${JSON.stringify(thought.revises.quote)}`);
+    }
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -223,6 +240,10 @@ export function parseThought(content: string, path: string): Thought {
     const respondsTo = readResponse(read);
     const quote = readQuote(read);
     const review = readReview(read);
+    const revisesOf = read("revisesOf");
+    const revises: ThoughtRevision | undefined = revisesOf
+        ? { of: revisesOf, quote: readString(read("revisesQuote")) ?? "" }
+        : undefined;
     const about = read("about");
     const alsoAbout = read("alsoAbout");
     const asideReason = read("asideReason");
@@ -246,6 +267,7 @@ export function parseThought(content: string, path: string): Thought {
         ...(incubated ? { incubated } : {}),
         ...(quote ? { quote } : {}),
         ...(review ? { review } : {}),
+        ...(revises ? { revises } : {}),
     };
 }
 

@@ -62,9 +62,8 @@ export function reviewDeps(app: App, close: () => void): ReviewDeps {
             if (thought.about) void openReader(app, { seed: thought.about, highlight: thought.id });
         },
         toNote: (thought, done) => {
-            // A highlight alone has no words of yours, so the passage stands in for them.
-            const seed = thought.text.trim() ? thought : { ...thought, text: thought.quote?.exact ?? "" };
-            const plan = planCrystallization([seed], { [thought.id]: thoughtPath(store.folder(), thought) });
+            // The plan quotes the passage and cites where it was read (#679), so the note is sourced.
+            const plan = planCrystallization([thought], { [thought.id]: thoughtPath(store.folder(), thought) });
             if (!plan) return;
             new CrystallizeModal(
                 app,

@@ -2357,4 +2357,7 @@ export default {
     review_home_sub: 'Pasajes de tus lecturas, de vuelta para mirarlos otra vez.',
     review_home_open: 'Mirar otra vez',
     review_lab_line: 'Algunas cosas que marcaste han vuelto para mirarlas otra vez.',
+    // Changed your mind, on a note's story (#679)
+    evolution_timeline_changed_mind_label: 'Cambiaste de opinión',
+    evolution_timeline_changed_mind_now: 'Lo que piensas ahora, en Pensar',
 };

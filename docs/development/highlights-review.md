@@ -28,14 +28,59 @@ Events · October 2026*), your margin note if you wrote one, and the question.
 | Key | Answer | What happens |
 |---|---|---|
 | **1** | **Still think so** | Your verdict goes to the [judgement record](cognitive-agency.md) as *confirmed*. The highlight comes back further out. |
-| **2** | **Changed my mind** | A field opens. What you write becomes a thought in Think, about the same note, and the old mark comes back further out too. |
+| **2** | **Changed my mind** | A field opens. What you write becomes a new thought **linked to the highlight**, and the highlight itself is kept as it was. The old mark comes back further out too. |
 | **3** | **Open in the Reader** | The review closes and the Reader opens the note at the passage. |
-| **4** | **Crystallize** | Think's own crystallize opens on this highlight. If the highlight has no note, the passage is used as the starting text. Making a note sets the highlight aside, as crystallizing in Think does. |
+| **4** | **Crystallize** | Think's own crystallize opens on this highlight: the passage quoted, then your margin note, ready to edit. The note it makes **cites where you read it**. Making a note sets the highlight aside, as crystallizing in Think does. |
 | **5** | **Let it go** | It never comes back. The thought stays in Think. Nothing is deleted. |
 
 **←** and **→** move between cards without answering. **Esc** closes. The dots show where you are,
 but there is no count of what is left. A key you press while writing in the field types into the
 field. **Ctrl/Cmd+Enter** keeps what you wrote.
+
+## Changed my mind: then and now
+
+Changing your mind does not overwrite what you thought then. You get a pair:
+
+- **In Think**, the new thought sits under the highlight, in the same thread, marked *Changed your
+  mind*. It answers the highlight the way a challenge does, and neither one is marked right.
+- **On the note's story** (in [This note](this-note.md)), a *Changed your mind* row shows the
+  passage you marked **before**. **Now** links to what you think now, in Think. The words you wrote
+  stay in Think, one click away, like every thought.
+
+The new thought's frontmatter records what it revisits:
+
+```yaml
+zfThought:
+  id: 7c1d0e42
+  respondsTo: 3f2a9c1e
+  respondsAs: challenge
+  about: Notes/Event sourcing.md
+  revisesOf: 3f2a9c1e
+  revisesQuote: "stores changes, not state"
+```
+
+## Crystallize: a note that cites its source
+
+A note crystallized from a highlight (from a card, or from Think) starts with the passage as a
+quote, followed by your margin note. Under the provenance it ends with a `source::` line:
+
+```markdown
+> stores changes, not state
+
+Like a ledger — nothing is erased, only appended.
+
+## Born from
+- "Like a ledger — nothing is erased, only appended."
+
+source:: [[Notes/Event sourcing#Events]]
+```
+
+The link carries a **locator**: the note and the heading the passage sat under. Because of that
+line, the [claim and source parser](../architecture/knowledge-model.md) counts the new note as
+**sourced**: it holds a claim grounded in the note you read, so it counts as
+[evidence](evidence-map.md) wherever the new note supports another one. When the thinking goes back into the same note it came
+from, no source line is added, because a note does not cite itself. The `source::` line is written
+outside the text you edit, so tidying the body cannot delete it by accident.
 
 ## The schedule
 
@@ -79,6 +124,8 @@ never written to.
 | `npx jest highlightReview` | the intervals, the deterministic choice, *let it go*, the frontmatter round-trip, and the cache-only check the doors use |
 | `npx jest reviewCards` | the card: the passage, the five answers and their keys, the field, the arrows, no numbers, the empty state |
 | `npx jest HomeModeRenderer.structural capabilityDoors` | the Home tile is gated on something being due; the capability has a door |
+| `npx jest highlightCrystallize` | the passage and margin note in the body, the `source::` citation with its locator, the note parsed as sourced, no citation back into the same note, the revision round-trip |
+| `npx jest storyRevision thoughtStoreReview` | the story's *Changed your mind* row with *before* and *now*; the store reads which thought revises which passage |
 
 By hand, in a vault with Think's folder set:
 
@@ -90,8 +137,12 @@ By hand, in a vault with Think's folder set:
    note, *Do you still think so?* and five answers numbered 1–5.
 4. Press **1**. **Expect:** the cards end with *That is all for today*. The thought's file now has
    `reviewStage: 1` and a `reviewDue` seven days out. Home loses the tile.
-5. Make it due again and press **2**, type a sentence and press **Ctrl/Cmd+Enter**. **Expect:** a
-   new thought about the same note in Think.
-6. Make it due again and press **5**. **Expect:** `reviewRetired: true`. It is never offered again.
-7. Negative: with nothing due, open Home and Think. **Expect:** no tile, no line, no notice and
+5. Make it due again and press **2**, type a sentence and press **Ctrl/Cmd+Enter**. **Expect:** in
+   Think, a new thought under the highlight marked *Changed your mind*. In **This note → story**, a
+   *Changed your mind* row with the passage under *Before*. The highlight's own text is unchanged.
+6. On another due highlight press **4** and **Create**. **Expect:** a new note that starts with the
+   passage as a quote and ends with `source:: [[…#heading]]`. Hover the link: it opens the note at
+   that heading. The highlight is set aside in Think.
+7. Make it due again and press **5**. **Expect:** `reviewRetired: true`. It is never offered again.
+8. Negative: with nothing due, open Home and Think. **Expect:** no tile, no line, no notice and
    nothing written.

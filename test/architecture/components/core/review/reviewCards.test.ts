@@ -95,7 +95,12 @@ describe("a few things you marked, one card at a time (#678)", () => {
         m.button("Keep what I think now").click();
         await flush();
         expect(m.written[0].text).toBe("I now think it is a log, not a ledger");
-        expect(m.written[0].options).toEqual(expect.objectContaining({ about: "Notes/Event sourcing.md" }));
+        // Linked to the old one (#679): it answers the highlight, and carries the passage then.
+        expect(m.written[0].options).toEqual({
+            about: "Notes/Event sourcing.md",
+            respondsTo: { to: "a", as: "challenge" },
+            revises: { of: "a", quote: "one" },
+        });
         expect(m.deps.record).toHaveBeenCalledWith(expect.objectContaining({ id: "a" }), "modified");
         expect(m.saved[0].review?.stage).toBe(1);
     });

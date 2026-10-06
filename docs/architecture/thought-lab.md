@@ -99,7 +99,10 @@ is never written. Passage fields are JSON strings, so a colon or a quote in the 
 
 A highlight comes back for a second look a few days later (#678): a line above the composer, *A few
 things you marked are back for a second look*, shown only on a day one is due. Its review is a few
-more `review*` lines in the same frontmatter. See [A few things you marked](../development/highlights-review.md).
+more `review*` lines in the same frontmatter. *Changed my mind* writes a new thought under the
+highlight, marked as such, and crystallizing a highlight (here or from a card) quotes the passage
+and ends the note with `source:: [[note#heading]]`, so the note counts as sourced (#679). See
+[A few things you marked](../development/highlights-review.md).
 
 A file in that folder with no `zfThought` at all is **still a thought** — just text. Someone will
 write a note there by hand, and that is allowed. A refuge that rejects what you put in it is not

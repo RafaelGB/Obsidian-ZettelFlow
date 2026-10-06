@@ -29,6 +29,10 @@ function add(thought: Thought): void {
     const front: Record<string, unknown> = { id: thought.id, at: thought.at };
     if (thought.about) front.about = thought.about;
     if (thought.quote) front.quoteExact = thought.quote.exact;
+    if (thought.revises) {
+        front.revisesOf = thought.revises.of;
+        front.revisesQuote = thought.revises.quote;
+    }
     if (thought.review) {
         front.reviewStage = thought.review.stage;
         front.reviewDue = thought.review.due;
@@ -58,5 +62,24 @@ describe("the doors ask the cache, the cards read the files (#678)", () => {
         const store = ThoughtStore.getInstance();
         expect(store.anyHighlightDue(NOW)).toBe(true);
         expect((await store.dueHighlights(NOW)).map((t) => t.id)).toEqual(["older", "old"]);
+    });
+
+    it("tells the note's story which thought changed your mind, and about which passage (#679)", () => {
+        files.length = 0;
+        add(mark("h", NOW - 20 * DAY));
+        add({
+            id: "n",
+            at: NOW,
+            text: "a log, not a ledger",
+            links: [],
+            about: "Notes/a.md",
+            respondsTo: { to: "h", as: "challenge" },
+            revises: { of: "h", quote: "passage h" },
+        });
+        const refs = ThoughtStore.getInstance().about("Notes/a.md");
+        expect(refs.map((r) => [r.id, r.quote, r.revises])).toEqual([
+            ["h", "passage h", undefined],
+            ["n", undefined, "passage h"],
+        ]);
     });
 });

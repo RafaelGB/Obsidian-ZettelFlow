@@ -1,7 +1,7 @@
 import { Component, setIcon, type Scope } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import type { Thought, ThoughtQuote } from "application/thinking/thought";
+import type { Response, Thought, ThoughtQuote, ThoughtRevision } from "application/thinking/thought";
 import { afterReview, type ReviewVerdict } from "application/thinking/highlightReview";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -10,7 +10,10 @@ type LocaleKey = Parameters<typeof t>[0];
 export interface ReviewDeps {
     store: {
         save(thought: Thought): Promise<void>;
-        write(text: string, options: { about?: string; quote?: ThoughtQuote }): Promise<Thought | undefined>;
+        write(
+            text: string,
+            options: { about?: string; quote?: ThoughtQuote; respondsTo?: Response; revises?: ThoughtRevision }
+        ): Promise<Thought | undefined>;
     };
     /** Your verdict, in the judgement record. Subject and path only — never the words. */
     record(thought: Thought, verdict: "confirmed" | "modified"): void;
@@ -182,14 +185,23 @@ export class ReviewCards extends Component {
         this.advance();
     }
 
-    /** What you think now, written as a thought of its own beside the old one. */
+    /**
+     * What you think now, written as a thought of its own **linked to the old one** (#679): it
+     * answers the highlight as a challenge, so Think threads it under what it argues with, and it
+     * carries the passage, so the note's story can tell the pair — then, and now. The highlight
+     * itself is kept as it was: changing your mind does not rewrite what you thought then.
+     */
     private async commitChange(): Promise<void> {
         const card = this.current();
         const text = this.draft.trim();
         if (!card || !text || this.busy) return;
         this.busy = true;
         try {
-            await this.deps.store.write(text, card.about ? { about: card.about } : {});
+            await this.deps.store.write(text, {
+                ...(card.about ? { about: card.about } : {}),
+                respondsTo: { to: card.id, as: "challenge" },
+                revises: { of: card.id, quote: card.quote?.exact ?? "" },
+            });
             this.deps.record(card, "modified");
         } catch (error) {
             log.error("[review] could not write what you think now", error);

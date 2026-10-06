@@ -2356,4 +2356,7 @@ export default {
     review_home_sub: 'Passages from your reading, back for a second look.',
     review_home_open: 'Look again',
     review_lab_line: 'A few things you marked are back for a second look.',
+    // Changed your mind, on a note's story (#679)
+    evolution_timeline_changed_mind_label: 'Changed your mind',
+    evolution_timeline_changed_mind_now: 'What you think now, in Think',
 };

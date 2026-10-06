@@ -927,11 +927,14 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const response = thought.respondsTo;
         if (response) {
             box.addClass(c(response.as === "challenge" ? "lab-card-challenge" : "lab-card-fork"));
-            this.ribbon(
-                box,
-                response.as === "challenge" ? t("lab_challenges") : t("lab_forked"),
-                response.as === "challenge" ? "swords" : "git-branch"
-            );
+            // A change of mind about a highlight (#679) says so: the pair is *then* and *now*.
+            if (thought.revises) this.ribbon(box, t("evolution_timeline_changed_mind_label"), "refresh-ccw");
+            else
+                this.ribbon(
+                    box,
+                    response.as === "challenge" ? t("lab_challenges") : t("lab_forked"),
+                    response.as === "challenge" ? "swords" : "git-branch"
+                );
         }
 
         // A highlight made in the Reader (#671): the passage first, then your note about it.

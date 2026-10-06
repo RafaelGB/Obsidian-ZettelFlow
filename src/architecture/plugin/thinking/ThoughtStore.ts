@@ -13,6 +13,7 @@ import {
     type Response,
     type Thought,
     type ThoughtQuote,
+    type ThoughtRevision,
 } from "application/thinking/thought";
 import { dueHighlights, isDueInFrontmatter } from "application/thinking/highlightReview";
 
@@ -66,7 +67,13 @@ export class ThoughtStore {
     /** Start one. No title is asked for, because a thought does not have one. */
     public async write(
         text: string,
-        options: { respondsTo?: Response; about?: string; alsoAbout?: string; quote?: ThoughtQuote } = {}
+        options: {
+            respondsTo?: Response;
+            about?: string;
+            alsoAbout?: string;
+            quote?: ThoughtQuote;
+            revises?: ThoughtRevision;
+        } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
         if (!folder) return undefined;
@@ -136,11 +143,15 @@ export class ThoughtStore {
                 const at = Number(front["at"]);
                 const id = front["id"];
                 const quote = front["quoteExact"];
+                const revised = front["revisesQuote"];
+                const own = front["about"] === notePath;
                 out.push({
                     id: typeof id === "string" && id ? id : file.basename,
                     at: Number.isFinite(at) ? at : file.stat.ctime,
                     path: file.path,
-                    ...(typeof quote === "string" && quote && front["about"] === notePath ? { quote } : {}),
+                    ...(typeof quote === "string" && quote && own ? { quote } : {}),
+                    // A change of mind about a passage of this note (#679): the passage it revisits.
+                    ...(typeof revised === "string" && revised && own && front["revisesOf"] ? { revises: revised } : {}),
                 });
             } catch (error) {
                 // A half-written or hand-edited thought is not worth a broken timeline.

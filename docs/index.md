@@ -53,11 +53,11 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     [:octicons-arrow-right-24: Cultivate](development/cultivate.md)
 
--   ![Explore narrows the vault by clicking](resources/showcase/explore.svg)
+-   ![Explore answering a question: the answer glows in the graph](resources/graph/answer.svg)
 
-    **Explore your graph**
+    **Ask, and the graph answers**
 
-    Click to narrow your vault with facets, read the answer, and fly the 3D graph.
+    Ask in your own words; the answer glows in your graph, and a card says how it was found.
 
     [:octicons-arrow-right-24: Explore your graph](development/ask-your-graph.md)
 
@@ -151,7 +151,7 @@ For the **complete, ranked** list of every capability, see [Everything it does](
 - **Start** — [Why ZettelFlow](why.md) · [Get started](get-started.md) · [FAQ](faq.md) · [AI provider setup](development/ai-provider-setup.md) · [Capabilities & privacy](development/capabilities-and-privacy.md)
 - **Think & cultivate** — [Think](architecture/thought-lab.md) · [Cultivate](development/cultivate.md) · [A thought you can be wrong about](development/wagers.md) · [Two things far apart](architecture/collision.md) · [The return of a claim](development/claim-returns.md)
 - **One note** — [This note](development/this-note.md) · [The Reader](development/reader.md) · [Your library](development/library.md) · [Evolution timeline](development/evolution-timeline.md) · [Evidence map](development/evidence-map.md)
-- **Explore** — [Explore your graph](development/ask-your-graph.md) · [The graph lens](development/graph-3d.md) · [Living knowledge map](development/living-knowledge-map.md)
+- **Explore** — [Explore your graph](development/ask-your-graph.md) · [The graph](development/graph-3d.md) · [Living knowledge map](development/living-knowledge-map.md)
 - **Review** — [Health › Tend](development/slipbox-health-dashboard.md) · [Practice](development/practice.md) · [Second-brain review](development/second-brain-review.md)
 - **Build flows** — [Flow roles](architecture/flow-roles.md) · [Conditional edges](architecture/conditional-edges.md) · [Actions](actions/Prompt.md)
 - **Automate & script** — [Property hooks](vault-hooks/property-hooks/overview.md) · [Folder automation](vault-hooks/OnCreate.md) · [Scripting](architecture/scripting.md) · [API reference](api/ZettelFlowAPI.md)

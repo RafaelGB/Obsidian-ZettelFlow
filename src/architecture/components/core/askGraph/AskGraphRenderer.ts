@@ -1,4 +1,4 @@
-import { App, Menu, Notice, moment as obsidianMoment, setIcon, type Scope } from "obsidian";
+import { App, Menu, Notice, Platform, moment as obsidianMoment, setIcon, type Scope } from "obsidian";
 import type MomentFn from "moment";
 import { c, ObsidianApi, log } from "architecture";
 import { t, tCount } from "architecture/lang";
@@ -236,6 +236,9 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         });
         this.canvas = canvas;
         this.addChild(canvas);
+        // On a phone the same graph is a flat sheet: one finger pans, two pinch, and the answer
+        // card rises from the bottom (#698).
+        if (Platform.isMobile) canvas.setFlat(true);
         root.toggleClass(c("explore--no-graph"), canvas.kind === null);
 
         const head = root.createDiv({ cls: c("explore-head") });

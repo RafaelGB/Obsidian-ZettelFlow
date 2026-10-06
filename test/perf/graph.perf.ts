@@ -9,6 +9,9 @@ import { buildScene } from "architecture/components/core/graph/graphScene";
 import { allocatePaint, paint, type PaintState } from "architecture/components/core/graph/graphPaint";
 import { readGraphTheme } from "architecture/components/core/graph/graphTheme";
 import { createLayout } from "architecture/components/core/graph/layoutCore";
+import { defaultCamera, viewProjection } from "architecture/components/core/graph/graphCamera";
+import { pickNearest } from "architecture/components/core/graph/graphPick";
+import { labelCandidates, placeLabels, rankForLabels } from "architecture/components/core/graph/graphLabels";
 import { forgetLayouts, layoutKey, recallLayout, rememberLayout } from "architecture/components/core/graph/layoutCache";
 import { generateVault } from "./generateVault";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
@@ -99,6 +102,30 @@ describe("the graph engine (#693)", () => {
         const scene = buildScene(data);
         rememberLayout(layoutKey(scene), scene, new Float32Array(scene.n * 3));
         assertBudget("view.graph.layout.reopen.10k", best(5, () => recallLayout(layoutKey(scene))));
+    });
+
+    it("view.graph.pick.10k", () => {
+        const scene = buildScene(data);
+        const positions = new Float32Array(scene.n * 3).map((_, i) => ((i * 7919) % 2000) - 1000);
+        const alpha = new Float32Array(scene.n * 4).fill(1);
+        const cam = defaultCamera();
+        cam.dist = 2600;
+        const m = viewProjection(cam, 1280, 800);
+        assertBudget("view.graph.pick.10k", best(10, () => pickNearest(m, cam, positions, alpha, scene.degree, scene.n, 640, 400, { width: 1280, height: 800 }, null)));
+    });
+
+    it("view.graph.labels.10k", () => {
+        const scene = buildScene(data);
+        const lit = new Set<number>();
+        for (let i = 0; i < scene.n; i++) lit.add(i);
+        assertBudget(
+            "view.graph.labels.10k",
+            best(10, () => {
+                const ranked = rankForLabels(lit, scene.degree);
+                const candidates = labelCandidates({ hover: 3, marked: [], ranked, hubs: scene.hubs, density: "more" });
+                return placeLabels(candidates, (i) => ({ x: (i * 37) % 1200 + 40, y: (i * 53) % 700 + 50, r: 4 }), (i) => scene.names[i], (t) => t.length * 6, { width: 1280, height: 800 });
+            })
+        );
     });
 
     it("view.graph.bundle.kb", () => {

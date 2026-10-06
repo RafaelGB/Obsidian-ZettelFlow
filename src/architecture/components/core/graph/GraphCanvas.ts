@@ -17,6 +17,8 @@ import {
 } from "./graphCamera";
 import type { FrameInput, GraphBackend } from "./graphFrame";
 import { createGlBackend } from "./glBackend";
+import { labelCandidates, placeLabels, placeRegionNames, rankForLabels, type LabelDensity, type LabelSpot } from "./graphLabels";
+import { pickNearest } from "./graphPick";
 import { allocatePaint, paint, type ColorBy, type EdgeAsk, type PaintBuffers, type PaintState } from "./graphPaint";
 import { communityBounds, neighbourhoodOf, type GraphScene } from "./graphScene";
 import { communityRgba, cssRgb, parseCssColour, readGraphTheme, type ColourResolver, type GraphTheme } from "./graphTheme";
@@ -33,7 +35,7 @@ export interface GraphCallbacks {
     onSettled?(): void;
 }
 
-export type LabelDensity = "few" | "more";
+export type { LabelDensity } from "./graphLabels";
 
 const GHOST_CAPACITY = 32;
 /** How long the camera turns on its own after opening, unless you touch it first. */
@@ -143,6 +145,8 @@ export class GraphCanvas extends Component {
     /** Notes that carry a ring: the step you are on, the one in the peek card. */
     private readonly marked = new Set<number>();
     private labels: LabelDensity = "more";
+    /** The answer's notes, best connected first — ranked once per answer, never per frame (#695). */
+    private ranked: number[] = [];
     private names: string[] = [];
     private framedOnce = false;
     /** The owner framed something since the scene arrived — the first settle then leaves the camera be. */
@@ -151,8 +155,15 @@ export class GraphCanvas extends Component {
     private readonly pointers = new Map<number, { x: number; y: number }>();
     private pinch: { d: number; dist: number } | null = null;
     private frameMs = 0;
+    /** The last pointer position not yet picked — picked once, on the next frame. */
+    private pendingPointer: { clientX: number; clientY: number } | null = null;
 
-    constructor(parent: HTMLElement, private readonly callbacks: GraphCallbacks = {}) {
+    constructor(
+        parent: HTMLElement,
+        private readonly callbacks: GraphCallbacks = {},
+        /** Tests hand in a renderer; the app always picks WebGL2, then the 2D canvas. */
+        private readonly createBackend?: (canvas: HTMLCanvasElement) => GraphBackend | null
+    ) {
         super();
         this.win = parent.win ?? window;
         this.reduced = prefersReducedMotion(this.win);
@@ -167,8 +178,8 @@ export class GraphCanvas extends Component {
     }
 
     onload(): void {
-        this.backend = createGlBackend(this.glCanvas);
-        if (!this.backend) {
+        this.backend = this.createBackend ? this.createBackend(this.glCanvas) : createGlBackend(this.glCanvas);
+        if (!this.backend && !this.createBackend) {
             // A canvas keeps the first kind of context it was asked for: once WebGL2 was tried, a 2D
             // context on the same element is null. The fallback draws on a fresh one.
             this.glCanvas.remove();
@@ -226,7 +237,10 @@ export class GraphCanvas extends Component {
 
     onunload(): void {
         this.runner.dispose();
-        if (this.frameRequest !== null) this.win.cancelAnimationFrame(this.frameRequest);
+        if (this.frameRequest !== null) {
+            if (typeof this.win.cancelAnimationFrame === "function") this.win.cancelAnimationFrame(this.frameRequest);
+            this.win.clearTimeout(this.frameRequest);
+        }
         this.frameRequest = null;
         this.backend?.dispose();
         this.backend = null;
@@ -311,6 +325,7 @@ export class GraphCanvas extends Component {
 
     setLit(lit: ReadonlySet<number> | null): void {
         this.paintState = { ...this.paintState, lit };
+        this.rerank();
         this.paintDirty = true;
         this.request();
     }
@@ -319,8 +334,14 @@ export class GraphCanvas extends Component {
     setFocus(index: number | null): void {
         const focus = index === null || !this.scene ? null : neighbourhoodOf(this.scene, index);
         this.paintState = { ...this.paintState, focus };
+        this.rerank();
         this.paintDirty = true;
         this.request();
+    }
+
+    private rerank(): void {
+        const asked = this.paintState.focus ?? this.paintState.lit;
+        this.ranked = asked && this.scene ? rankForLabels(asked, this.scene.degree) : [];
     }
 
     get focused(): boolean {
@@ -473,16 +494,25 @@ export class GraphCanvas extends Component {
     /** Ask for a frame — at most one is ever pending, and none while the view is hidden. */
     request(): void {
         if (this.frameRequest !== null || !this.visible || !this.backend) return;
-        this.frameRequest = this.win.requestAnimationFrame((now) => {
+        const frame = (now: number) => {
             this.frameRequest = null;
             this.tick(now);
-        });
+        };
+        this.frameRequest =
+            typeof this.win.requestAnimationFrame === "function"
+                ? this.win.requestAnimationFrame(frame)
+                : this.win.setTimeout(() => frame(performance.now()), 16);
     }
 
     private tick(now: number): void {
         const dt = this.lastFrame ? clamp(now - this.lastFrame, 0, 64) : 16;
         this.lastFrame = now;
         let moving = false;
+        if (this.pendingPointer) {
+            const pointer = this.pendingPointer;
+            this.pendingPointer = null;
+            this.setHoverInternal(this.pick(pointer));
+        }
         if (this.goal) {
             this.goal = stepCamera(this.camera, this.goal, dt, this.reduced);
             moving = true;
@@ -636,14 +666,17 @@ export class GraphCanvas extends Component {
         if (!ctx) return;
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.clearRect(0, 0, this.width, this.height);
-        if (!scene || !this.buffers) return;
+        const buffers = this.buffers;
+        if (!scene || !buffers) return;
         const font = this.win.getComputedStyle?.(this.root).fontFamily || "sans-serif";
-        const project = (i: number): Projected | null =>
-            this.buffers && this.buffers.nodeColor[i * 4 + 3] > 0.004
-                ? projectPoint(this.matrix, this.camera, this.positions[i * 3], this.positions[i * 3 + 1], this.positions[i * 3 + 2], this.width, this.height)
-                : null;
-        const radius = (i: number, p: Projected) =>
-            (this.buffers?.nodeSize[i] ?? 3) * (this.camera.flat ? clamp(p.scale * 1.05, 0.55, 1.5) : clamp(p.scale * 1.15, 0.45, 1.7));
+        const view = { width: this.width, height: this.height };
+        const spot = (i: number): LabelSpot | null => {
+            if (buffers.nodeColor[i * 4 + 3] <= 0.004) return null;
+            const p = projectPoint(this.matrix, this.camera, this.positions[i * 3], this.positions[i * 3 + 1], this.positions[i * 3 + 2], view.width, view.height);
+            if (!p) return null;
+            const r = buffers.nodeSize[i] * (this.camera.flat ? clamp(p.scale * 1.05, 0.55, 1.5) : clamp(p.scale * 1.15, 0.45, 1.7));
+            return { x: p.x, y: p.y, r };
+        };
 
         // Rings: hover, and what the owner marked.
         const ringed = new Set<number>(this.marked);
@@ -651,79 +684,59 @@ export class GraphCanvas extends Component {
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = cssRgb(this.theme.text, 0.85);
         for (const i of ringed) {
-            const p = project(i);
-            if (!p) continue;
+            const at = spot(i);
+            if (!at) continue;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, radius(i, p) + 5, 0, Math.PI * 2);
+            ctx.arc(at.x, at.y, at.r + 5, 0, Math.PI * 2);
             ctx.stroke();
         }
 
-        // Labels: what you point at, what you marked, then the answer's best connected, else the hubs.
-        const lit = this.paintState.focus ?? this.paintState.lit;
-        const candidates: number[] = [];
-        if (this.hover !== null) candidates.push(this.hover);
-        for (const i of this.marked) candidates.push(i);
-        const budget = this.labels === "more" ? 16 : 7;
-        if (lit) {
-            const ranked = [...lit].sort((a, b) => scene.degree[b] - scene.degree[a]).slice(0, budget);
-            candidates.push(...ranked);
-        } else {
-            candidates.push(...scene.hubs.slice(0, this.labels === "more" ? 14 : 6));
-        }
+        // Labels: one rectangle and a string each, chosen from a short ranked list (#695).
+        const asked = this.paintState.focus ?? this.paintState.lit;
         ctx.font = `500 11.5px ${font}`;
         ctx.textBaseline = "middle";
-        const placed: [number, number, number, number][] = [];
-        const seen = new Set<number>();
-        for (const i of candidates) {
-            if (seen.has(i)) continue;
-            seen.add(i);
-            const p = project(i);
-            if (!p) continue;
-            const name = scene.names[i];
-            const text = name.length > 34 ? `${name.slice(0, 33)}…` : name;
-            const w = ctx.measureText(text).width + 12;
-            const h = 19;
-            const x = p.x - w / 2;
-            const y = p.y - radius(i, p) - 16;
-            if (x < 4 || x + w > this.width - 4 || y < 4 || y + h > this.height - 4) continue;
-            if (placed.some((q) => x < q[0] + q[2] && x + w > q[0] && y < q[1] + q[3] && y + h > q[1])) continue;
-            placed.push([x, y, w, h]);
-            const strong = i === this.hover || this.marked.has(i);
-            ctx.fillStyle = cssRgb(this.theme.panel, strong ? 0.95 : 0.74);
-            roundRect(ctx, x, y, w, h, 9);
+        const labels = placeLabels(
+            labelCandidates({ hover: this.hover, marked: this.marked, ranked: asked ? this.ranked : null, hubs: scene.hubs, density: this.labels }),
+            spot,
+            (i) => scene.names[i],
+            (text) => ctx.measureText(text).width,
+            view
+        );
+        for (const label of labels) {
+            ctx.fillStyle = cssRgb(this.theme.panel, label.strong ? 0.95 : 0.74);
+            roundRect(ctx, label.x, label.y, label.w, label.h, 9);
             ctx.fill();
-            ctx.fillStyle = cssRgb(strong ? this.theme.text : this.theme.muted, 1);
-            ctx.fillText(text, x + 6, y + h / 2 + 0.5);
+            ctx.fillStyle = cssRgb(label.strong ? this.theme.text : this.theme.muted, 1);
+            ctx.fillText(label.text, label.x + 6, label.y + label.h / 2 + 0.5);
         }
 
         // Region names, when nothing is asked and the view is wide enough to need them.
-        if (!lit && this.bounds) {
+        const bounds = this.bounds;
+        if (!asked && bounds) {
             ctx.font = `600 10.5px ${font}`;
+            const regions = scene.communities.map((_, i) => i).filter((i) => this.nebulae.radius[i] > 0);
+            const names = placeRegionNames(
+                regions,
+                (ci) => {
+                    const p = projectPoint(
+                        this.matrix,
+                        this.camera,
+                        bounds.cx[ci * 3],
+                        bounds.cx[ci * 3 + 1] + (this.camera.flat ? 0 : bounds.spread[ci] * 1.6),
+                        bounds.cx[ci * 3 + 2] - (this.camera.flat ? bounds.spread[ci] * 1.7 : 0),
+                        view.width,
+                        view.height
+                    );
+                    return p ? { x: p.x, y: p.y, span: bounds.spread[ci] * p.scale } : null;
+                },
+                (ci) => this.names[ci] ?? "",
+                (text) => ctx.measureText(text).width,
+                view
+            );
             ctx.textAlign = "center";
-            const regionPlaced: [number, number, number, number][] = [];
-            const order = scene.communities.map((_, i) => i).filter((i) => this.nebulae.radius[i] > 0);
-            for (const ci of order) {
-                const p = projectPoint(
-                    this.matrix,
-                    this.camera,
-                    this.bounds.cx[ci * 3],
-                    this.bounds.cx[ci * 3 + 1] + (this.camera.flat ? 0 : this.bounds.spread[ci] * 1.6),
-                    this.bounds.cx[ci * 3 + 2] - (this.camera.flat ? this.bounds.spread[ci] * 1.7 : 0),
-                    this.width,
-                    this.height
-                );
-                if (!p) continue;
-                const span = this.bounds.spread[ci] * p.scale;
-                if (span > Math.min(this.width, this.height) * 0.3) continue;
-                const text = (this.names[ci] ?? "").toUpperCase();
-                if (!text) continue;
-                const w = ctx.measureText(text).width + 8;
-                const box: [number, number, number, number] = [p.x - w / 2, p.y - 8, w, 16];
-                if (box[0] < 2 || box[0] + w > this.width - 2 || box[1] < 2) continue;
-                if (regionPlaced.some((q) => box[0] < q[0] + q[2] && box[0] + w > q[0] && box[1] < q[1] + q[3] && box[1] + 16 > q[1])) continue;
-                regionPlaced.push(box);
-                ctx.fillStyle = cssRgb(communityRgba(this.theme, ci), 0.9);
-                ctx.fillText(text, p.x, p.y);
+            for (const label of names) {
+                ctx.fillStyle = cssRgb(communityRgba(this.theme, label.index), 0.9);
+                ctx.fillText(label.text, label.x + label.w / 2, label.y + 8);
             }
             ctx.textAlign = "start";
         }
@@ -736,24 +749,20 @@ export class GraphCanvas extends Component {
         const scene = this.scene;
         if (!scene || !this.buffers) return null;
         const rect = this.glCanvas.getBoundingClientRect();
-        const mx = event.clientX - rect.left;
-        const my = event.clientY - rect.top;
         viewProjection(this.camera, this.width, this.height, this.matrix);
         const restrict = this.paintState.focus === null && this.paintState.lit !== null && this.fade > 0.5 ? this.paintState.lit : null;
-        let best: number | null = null;
-        let bestD = 14;
-        for (let i = 0; i < scene.n; i++) {
-            if (this.buffers.nodeColor[i * 4 + 3] < 0.004) continue;
-            if (restrict && !restrict.has(i)) continue;
-            const p = projectPoint(this.matrix, this.camera, this.positions[i * 3], this.positions[i * 3 + 1], this.positions[i * 3 + 2], this.width, this.height);
-            if (!p) continue;
-            const d = Math.hypot(p.x - mx, p.y - my) - Math.sqrt(scene.degree[i]);
-            if (d < bestD) {
-                bestD = d;
-                best = i;
-            }
-        }
-        return best;
+        return pickNearest(
+            this.matrix,
+            this.camera,
+            this.positions,
+            this.buffers.nodeColor,
+            scene.degree,
+            scene.n,
+            event.clientX - rect.left,
+            event.clientY - rect.top,
+            { width: this.width, height: this.height },
+            restrict
+        );
     }
 
     private setHoverInternal(index: number | null): void {
@@ -799,7 +808,9 @@ export class GraphCanvas extends Component {
             }
             return;
         }
-        this.setHoverInternal(this.pick(event));
+        // At most one pick a frame, however fast the pointer reports (#695).
+        this.pendingPointer = { clientX: event.clientX, clientY: event.clientY };
+        this.request();
     }
 
     private onPointerUp(event: PointerEvent): void {

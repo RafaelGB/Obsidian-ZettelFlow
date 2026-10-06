@@ -73,7 +73,7 @@ describe("it draws on demand, and degrades instead of going blank (#693)", () =>
     });
 
     it("falls back from WebGL2 to a 2D canvas, and from no canvas to a list", () => {
-        expect(canvas).toContain("this.backend = createGlBackend(this.glCanvas);");
+        expect(canvas).toContain("createGlBackend(this.glCanvas)");
         // …on a fresh canvas, because one that was asked for WebGL2 will never give a 2D context.
         expect(canvas).toContain("this.backend = createCanvasBackend(fresh);");
         expect(read(`${GRAPH}/GraphLens.ts`)).toContain("renderFallback(");

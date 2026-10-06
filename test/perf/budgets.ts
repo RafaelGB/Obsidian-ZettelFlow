@@ -325,6 +325,20 @@ export const BUDGETS = {
         because:
             "reopening must be instant — the same graph comes back exactly where it was, with no reflow and no second wait (#694); measured under jest, where it is 33 ms (the same call is 0.5 ms warm in plain Node)",
     },
+    "view.graph.pick.10k": {
+        name: "find the note under the pointer among 10,000 (one pointer move)",
+        limit: 10,
+        measured: "3.6 ms",
+        because:
+            "a hover projects every note with the GPU's own matrix (#695); no picking buffer to keep in step means this pass is the whole cost of pointing at something",
+    },
+    "view.graph.labels.10k": {
+        name: "rank a 10,000-note answer for its labels and place one frame of them",
+        limit: 15,
+        measured: "0.09 ms",
+        because:
+            "labels are a short ranked list on a 2D overlay, never a texture per note (#695); the old view rasterised sprites every 300 ms and never freed them",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

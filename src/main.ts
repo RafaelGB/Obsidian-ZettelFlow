@@ -25,6 +25,7 @@ import { ExploreSurfaceView } from 'architecture/components/core/surface/Explore
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
 import { NoteCompanionView } from 'architecture/components/core/noteCompanion/NoteCompanionView';
 import { ReaderView, READER_VIEW } from 'architecture/components/core/reader/ReaderView';
+import { LibraryView, LIBRARY_VIEW } from 'architecture/components/core/library/LibraryView';
 import { NOTE_COMPANION_VIEW } from 'architecture/components/core/noteCompanion/noteCompanionContract';
 import { registerDashboardBasesView } from 'dashboards/base/register';
 import { LEGACY_VIEW_TARGETS } from 'architecture/components/core/surface/legacyTargets';
@@ -185,6 +186,8 @@ export default class ZettelFlow extends Plugin {
 		this.registerView(NOTE_COMPANION_VIEW, (leaf) => new NoteCompanionView(leaf, this));
 		// The Reader (#668): a path across your notes, read the way you read a book.
 		this.registerView(READER_VIEW, (leaf) => new ReaderView(leaf, this));
+		// The Library (#680): your PDFs, EPUBs and saved reading paths, on one shelf.
+		this.registerView(LIBRARY_VIEW, (leaf) => new LibraryView(leaf, this));
 		// Base Dashboards (epic #622): a Bases view type, registered through the Bases door
 		// (guarded so an older Obsidian without the Bases API still loads).
 		registerDashboardBasesView(this);

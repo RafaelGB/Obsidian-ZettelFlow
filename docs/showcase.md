@@ -126,6 +126,26 @@ cites the passage, or let it go. Fixed intervals, no counts, no streaks.
 
 → Details: [The Reader](development/reader.md).
 
+## Your Library — the sources your ideas come from
+
+**Ribbon menu → Library.** The PDFs and EPUBs already in your vault, and the reading paths you saved,
+share one shelf. Each has its cover — the book's own, the paper's first page, a constellation for a
+path — and says what came of it: how far you are, what you highlighted, and the **notes born from
+it**. *Continue reading* leads, and a scanned PDF says it is **read only** before you open it.
+Nothing is imported, nothing leaves the vault, and no source file is ever modified.
+
+![The Library: Continue reading, then books, papers and reading paths with their progress, highlights and notes born](resources/library/shelf.svg)
+
+Open a paper and its pages reflow into the Reader's column, in your type — or keep the layout with
+**Page view**; open a book and its chapters are rebuilt from the EPUB, safely, with its own
+contents. Highlight as in a note: each passage is a thought in Think that remembers its page. Then
+**Crystallize into a note**: the note quotes the passage, cites `[[book.epub]] p. 42`, counts as
+sourced, and This note says where it was born.
+
+![From passage to note: the highlight, the preview citing the page, This note's Born from, and the note counted on the shelf](resources/library/passage-to-note.svg)
+
+→ Details: [Your library](development/library.md).
+
 ## Practice — what you have been doing
 
 **Health › Practice** shows twelve weeks of ideas developed, a cell a day; how you answered

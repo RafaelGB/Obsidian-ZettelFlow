@@ -1,0 +1,134 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * A PDF or an EPUB in the Reader (#681, #682, epic #675). The page is the Reader's own: a paper's
+ * text reflowed into the reading column, a book's chapter rebuilt from its XHTML — in your font,
+ * your size and your theme. A page drawn as a picture (Page view, a figure, a scan) sits on the
+ * page's own colour, framed by a hairline. Every colour is the theme's (§XV).
+ */
+
+.zettelkasten-flow__reader-role-tag--source {
+    color: var(--reader-muted);
+    background-color: color-mix(in srgb, var(--reader-fg) 8%, transparent);
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+/* A book's own type is not ours: headings in the reader's font, images within the column. */
+.zettelkasten-flow__reader-source-body {
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--reader-font);
+        line-height: 1.25;
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: var(--size-4-4) auto;
+        border-radius: var(--radius-s);
+    }
+
+    figure {
+        margin: var(--size-4-4) 0;
+        text-align: center;
+    }
+
+    figcaption {
+        @include hint;
+    }
+
+    a {
+        color: var(--text-accent);
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        cursor: pointer;
+    }
+
+    /* A link that leaves the book is shown and never followed (L1). */
+    .zettelkasten-flow__reader-source-outlink {
+        color: inherit;
+        text-decoration: none;
+        cursor: text;
+    }
+}
+
+/* A page with no text to select: nothing dims, nothing is a reading line. */
+.zettelkasten-flow__reader-source-body--picture {
+    user-select: none;
+}
+
+.zettelkasten-flow__reader-page-picture {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+}
+
+/* ── said before you try: a scan, and page view ──────────────────────── */
+.zettelkasten-flow__reader-source-banner,
+.zettelkasten-flow__reader-source-hint {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-2) var(--size-4-3);
+    margin: 0 auto var(--size-4-5);
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-m);
+    font-size: var(--font-ui-small);
+    line-height: 1.45;
+}
+
+.zettelkasten-flow__reader-source-banner {
+    border: var(--border-width) solid color-mix(in srgb, var(--color-orange) 40%, transparent);
+    background-color: color-mix(in srgb, var(--color-orange) 10%, transparent);
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__reader-source-banner-icon {
+    display: inline-flex;
+    color: var(--color-orange);
+}
+
+.zettelkasten-flow__reader-source-banner-text,
+.zettelkasten-flow__reader-source-hint > span {
+    flex: 1 1 16rem;
+}
+
+.zettelkasten-flow__reader-source-hint {
+    justify-content: center;
+    color: var(--reader-muted);
+    background-color: color-mix(in srgb, var(--reader-fg) 5%, transparent);
+}
+
+.zettelkasten-flow__reader .zettelkasten-flow__reader-source-banner-action,
+.zettelkasten-flow__reader .zettelkasten-flow__reader-source-hint-action {
+    flex: none;
+    height: auto;
+    padding: var(--size-2-2) var(--size-4-3);
+    font-size: var(--font-ui-small);
+}
+
+/* ── a book's contents, nested as the book nests them ─────────────────── */
+.zettelkasten-flow__reader-toc-row--depth-1 {
+    padding-left: var(--size-4-6);
+}
+
+.zettelkasten-flow__reader-toc-row--depth-2,
+.zettelkasten-flow__reader-toc-row--depth-3 {
+    padding-left: var(--size-4-10);
+    font-size: var(--font-ui-small);
+}
+
+/* A note in the margin of a page with no text: no passage, only what you wrote. */
+.zettelkasten-flow__reader-hl-item--page {
+    border-left-color: var(--color-orange);
+}

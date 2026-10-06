@@ -129,6 +129,9 @@ export class ItemView extends Component {
   getState(): Record<string, unknown> { return {}; }
   async setState(_state: unknown, _result: unknown): Promise<void> { }
   setEphemeralState(_state: unknown): void { }
+  /** As in Obsidian: the leaf opens a view through `open`, which runs `onOpen` (#680 — never shadow it). */
+  async open(_containerEl?: unknown): Promise<void> { await (this as any).onOpen?.(); }
+  async close(): Promise<void> { await (this as any).onClose?.(); }
 }
 export class Modal {
   /** What `setTitle` was given — a test reads the title the user would see. */
@@ -576,3 +579,16 @@ export function stringifyYaml(value: Record<string, unknown>): string {
 
 /** Obsidian's re-exported moment, as small as the views need: relative time and a month name. */
 export const moment = (_at?: unknown) => ({ fromNow: () => "3 days ago", format: () => "Sep" });
+
+/**
+ * Obsidian's own pdf.js (#680): `loadPdfJs()` resolves to the `pdfjsLib` the app loaded. A test hands
+ * in the library it wants the code to see; with none, loading fails the way an app without it would.
+ */
+let pdfJs: unknown = null;
+export function __setPdfJs(lib: unknown): void {
+  pdfJs = lib;
+}
+export async function loadPdfJs(): Promise<any> {
+  if (!pdfJs) throw new Error("pdf.js is not available");
+  return pdfJs;
+}

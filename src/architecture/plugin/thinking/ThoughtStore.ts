@@ -13,6 +13,7 @@ import {
     type Response,
     type Thought,
     type ThoughtQuote,
+    type ThoughtLocator,
     type ThoughtRevision,
 } from "application/thinking/thought";
 import { dueHighlights, isDueInFrontmatter } from "application/thinking/highlightReview";
@@ -73,6 +74,7 @@ export class ThoughtStore {
             alsoAbout?: string;
             quote?: ThoughtQuote;
             revises?: ThoughtRevision;
+            locator?: ThoughtLocator;
         } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
@@ -165,6 +167,9 @@ export class ThoughtStore {
      * The highlights made in the Reader on a note (#671): the thoughts about it that carry a
      * passage, read in full because the reader needs the anchor and the margin note. Which files
      * to read is decided from the metadata cache, so a lab of a thousand thoughts reads a handful.
+     *
+     * In a PDF or an EPUB (#681) it also answers the notes written in the margin of a page with no
+     * text to highlight: they carry a place in the source and no passage.
      */
     public async highlightsAbout(notePath: string): Promise<Thought[]> {
         if (!notePath || !this.folder()) return [];
@@ -174,14 +179,31 @@ export class ThoughtStore {
                 const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
                     | Record<string, unknown>
                     | undefined;
-                if (!front || front["about"] !== notePath || !front["quoteExact"]) continue;
+                if (!front || front["about"] !== notePath || !(front["quoteExact"] || front["locatorAt"] !== undefined)) continue;
                 const thought = parseThought(await ObsidianApi.vault().cachedRead(file), file.path);
-                if (thought.quote?.exact && thought.about === notePath) out.push(thought);
+                if ((thought.quote?.exact || thought.locator) && thought.about === notePath) out.push(thought);
             } catch (error) {
                 log.warn("[lab] could not read a highlight", error);
             }
         }
         return out.sort((a, b) => a.at - b.at);
+    }
+
+    /**
+     * How many highlights each file has (#680): the Library's counts, read from the metadata cache
+     * in one pass — no thought is opened to count it.
+     */
+    public highlightCounts(): Map<string, number> {
+        const counts = new Map<string, number>();
+        for (const file of this.files()) {
+            const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
+                | Record<string, unknown>
+                | undefined;
+            const about = front?.["about"];
+            if (typeof about !== "string" || !about || !front?.["quoteExact"]) continue;
+            counts.set(about, (counts.get(about) ?? 0) + 1);
+        }
+        return counts;
     }
 
     /**

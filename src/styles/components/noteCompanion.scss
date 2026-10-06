@@ -418,6 +418,42 @@ button.zettelkasten-flow__note-companion-vital {
     }
 }
 
+/* Where the note came from (#683): the book or paper it cites, one click back to the page. */
+.zettelkasten-flow__note-companion-origin {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-1 $space-2;
+    margin-top: $space-2;
+    font-size: $text-small;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__note-companion-origin-icon {
+    display: inline-flex;
+    color: var(--color-green);
+}
+
+.zettelkasten-flow__note-companion .zettelkasten-flow__note-companion-origin-source {
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: $text-small;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__note-companion-origin-gone {
+    color: $text-faint;
+}
+
 /* One companion write at a time (#639): while one is in flight, the others wait visibly. */
 .zettelkasten-flow__note-companion[aria-busy="true"] [data-writes] {
     pointer-events: none;

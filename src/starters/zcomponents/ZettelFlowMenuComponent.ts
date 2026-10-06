@@ -63,6 +63,8 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             { command: "show-health", labelKey: "command_show_health", icon: "stethoscope" },
             // The note you are reading, from the right sidebar (#640): the always-visible door.
             { command: "open-note-companion", labelKey: "note_companion_title", icon: "file-search" },
+            // Your sources — PDFs, EPUBs and saved paths — on one shelf (#680): the Library's rank-1 door.
+            { command: "open-library", labelKey: "shelf_title", icon: "library" },
         ],
     ];
 

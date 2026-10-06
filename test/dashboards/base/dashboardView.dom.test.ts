@@ -165,7 +165,7 @@ describe("DashboardBasesView — computed fields and tasks", () => {
             return { half: row.hours / 2 };
         });
         skip.view.onDataUpdated();
-        await settle(() => skip.root.byClass("base-dashboard-notice").some((n) => !n.hasClass("zettelkasten-flow__is-hidden")));
+        await settle(() => skip.root.byClass("base-dashboard-notice").some((n) => !n.hasClass("zettelkasten-flow__is-hidden")), 200, 8000);
         const notice = skip.root.oneByClass("base-dashboard-notice");
         expect(notice.hasClass("zettelkasten-flow__is-hidden")).toBe(false);
         expect(notice.textContent).toContain("skipped 1 note");
@@ -174,12 +174,12 @@ describe("DashboardBasesView — computed fields and tasks", () => {
         const fail = harness({ panels: [statPanel("a")], computed: { enabled: true, code: "x" } });
         withResolver(fail, () => async () => { throw new Error("boom"); });
         fail.view.onDataUpdated();
-        await settle(() => fail.root.byClass("base-dashboard-notice").some((n) => n.hasClass("is-error")));
+        await settle(() => fail.root.byClass("base-dashboard-notice").some((n) => n.hasClass("is-error")), 200, 8000);
         const error = fail.root.oneByClass("base-dashboard-notice");
         expect(error.hasClass("is-error")).toBe(true);
         expect(error.textContent).toContain("boom");
         expect(fail.view.currentSnapshot?.schema.byId["half"]).toBeUndefined();
-    });
+    }, 20_000);
 
     it("an edit to one of its notes redraws the Tasks panels (debounced), and only for its notes", () => {
         jest.useFakeTimers();

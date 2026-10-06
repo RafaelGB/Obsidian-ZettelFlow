@@ -18,7 +18,7 @@ import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract
 import { pathFor } from "./readerPaths";
 import { stripFrontmatter } from "./readerDocument";
 import { KIND_KEY } from "./readerLabels";
-import { renderEndCard, type EndCard } from "./readerEnd";
+import { renderEndCard, renderSourceEnd, type EndCard } from "./readerEnd";
 import { ReadingExportModal, type ExportResult } from "./readerExport";
 import { normalizeSaved, saveReading, savedId } from "./readerSaved";
 import { readFrom } from "./readingChooser";
@@ -30,6 +30,9 @@ import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openR
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
+import { chapterOfHighlight, rememberSourceFacts, rememberSourcePlace, sourceMetaOf, sourceReading } from "./readerSource";
+import { openSourceDocument, type SourceDocument, type SourceLayout } from "architecture/components/core/library/sources/sourceDocument";
+import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, minutesFor, minutesLeft, readFraction, scrolls, wordCount } from "./readerPace";
 import {
     READER_FONTS,
@@ -44,6 +47,9 @@ type LocaleKey = Parameters<typeof t>[0];
 
 /** The bar fades after this long without a pointer move or a key. */
 const IDLE_MS = 2000;
+
+/** A source longer than this reads without the chapter dots: three hundred pages are not dots. */
+const DOTS_LIMIT = 40;
 
 /** The leaving fade (`reader--leaving` in reader.scss); the workspace comes back when it ends. */
 const EXIT_MS = 220;
@@ -61,6 +67,7 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["H"], label: "reader_key_highlight" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["F"], label: "reader_key_fullscreen" },
+    { keys: ["V"], label: "reader_key_layout" },
     { keys: ["?"], label: "reader_key_help" },
     { keys: ["reader_kbd_esc"], label: "reader_key_exit" },
 ];
@@ -144,6 +151,8 @@ export class ReaderView extends ItemView {
         margin: HTMLElement;
         hairline: HTMLElement;
         minutes: HTMLElement;
+        /** Page view ↔ reading view, shown for a PDF that has text (#681). */
+        layout: HTMLElement;
     } | null = null;
     /** Words in the chapter on screen, for the minutes left. */
     private chapterWords = 0;
@@ -198,6 +207,16 @@ export class ReaderView extends ItemView {
     private savedId: string | undefined;
     /** The last export's outcome, with its Open and Undo, while the end card is up. */
     private endStatus: EndCard["status"];
+    /**
+     * A PDF or an EPUB being read (#681, #682): its chapters are its pages or spine items. The path
+     * is known at once; the document once it has been opened.
+     */
+    private sourcePath: string | null = null;
+    private source: SourceDocument | null = null;
+    private sourceFailed = false;
+    private sourceLayout: SourceLayout = "reading";
+    /** Bumped on every source opened, so a slow open never lands in a newer reading. */
+    private sourceGeneration = 0;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -219,6 +238,7 @@ export class ReaderView extends ItemView {
     }
 
     getDisplayText(): string {
+        if (this.sourcePath) return `${t("reader_title")} · ${this.source?.title ?? noteName(this.sourcePath)}`;
         return this.path ? `${t("reader_title")} · ${noteName(this.path.seed)}` : t("reader_title");
     }
 
@@ -229,6 +249,15 @@ export class ReaderView extends ItemView {
     getState(): Record<string, unknown> {
         const base = super.getState();
         const sides = heldSides();
+        if (this.sourcePath) {
+            return {
+                ...base,
+                source: this.sourcePath,
+                chapter: this.index,
+                ...(this.sourceLayout === "page" ? { layout: "page" } : {}),
+                ...(sides ? { restore: sides } : {}),
+            };
+        }
         return {
             ...base,
             ...(this.pending
@@ -248,6 +277,12 @@ export class ReaderView extends ItemView {
         const parsed = parseReaderState(state);
         if (parsed.restore) adoptHeldSides(parsed.restore);
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
+        if (parsed.source) {
+            await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight);
+            if (this.els) this.render();
+            return;
+        }
+        if (parsed.seed && this.sourcePath) this.leaveSource();
         if (parsed.seed) {
             // A new reading: its own clock, counts and end.
             if (parsed.seed !== this.path?.seed || (parsed.kind ?? "around") !== this.kind) {
@@ -276,6 +311,74 @@ export class ReaderView extends ItemView {
             }
         }
         if (this.els) this.render();
+    }
+
+    /**
+     * Read a PDF or an EPUB (#681, #682). The reading is the source; its place is kept by the
+     * Library. A highlight a deep link names is landed on, whichever page it is on.
+     */
+    private async readSource(path: string, chapter: number, layout: SourceLayout, highlight?: string): Promise<void> {
+        const fresh = path !== this.sourcePath;
+        if (fresh) {
+            this.leaveSource();
+            this.startedAt = Date.now();
+            this.detourCount = 0;
+            this.visited.clear();
+            this.savedId = undefined;
+            this.endStatus = undefined;
+            this.sourcePath = path;
+        }
+        this.ended = false;
+        this.detours = [];
+        this.closePeek();
+        this.pending = null;
+        this.name = undefined;
+        this.kind = "around";
+        this.paths = undefined;
+        this.sourceLayout = layout;
+        this.index = Math.max(0, chapter);
+        if (!this.source) {
+            // Something to show at once: the source, opening.
+            this.path = { seed: path, kind: "selection", chapters: [{ path, role: "context" }] };
+            const generation = ++this.sourceGeneration;
+            try {
+                const doc = await openSourceDocument(this.app, path, sourceMetaOf(this.plugin, path)?.imageOnly);
+                if (generation !== this.sourceGeneration || this.sourcePath !== path) {
+                    doc.close();
+                    return;
+                }
+                this.source = doc;
+                this.sourceFailed = false;
+                this.path = sourceReading(doc);
+                rememberSourceFacts(this.app, this.plugin, doc);
+            } catch (error) {
+                log.error(`[Reader] could not open ${path}: ${error instanceof Error ? error.message : String(error)}`);
+                this.sourceFailed = true;
+            }
+        }
+        if (highlight) {
+            const at = await chapterOfHighlight(path, highlight, this.highlightDeps.store);
+            if (at !== null) this.index = at;
+        }
+        this.index = Math.max(0, Math.min(this.index, (this.path?.chapters.length ?? 1) - 1));
+    }
+
+    /** Close the source being read, before another reading takes its place. */
+    private leaveSource(): void {
+        this.sourceGeneration++;
+        this.source?.close();
+        this.source = null;
+        this.sourcePath = null;
+        this.sourceFailed = false;
+        this.sourceLayout = "reading";
+    }
+
+    /** Page view ↔ reading view, for a PDF (#681). The place is kept. */
+    private toggleLayout(): void {
+        if (!this.source?.hasPageView) return;
+        this.sourceLayout = this.sourceLayout === "page" ? "reading" : "page";
+        this.app.workspace.requestSaveLayout();
+        this.render();
     }
 
     /** Read a reading that waited for the index, now that the model can say what its path is. */
@@ -311,6 +414,7 @@ export class ReaderView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.idleTimer);
+        this.leaveSource();
         this.highlights?.dispose();
         this.chapter?.unload();
         this.chapter = null;
@@ -382,11 +486,13 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
+        const layout = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleLayout());
+        layout.addClass(c("reader-hidden"));
         this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, layout };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -435,25 +541,37 @@ export class ReaderView extends ItemView {
         if (!this.els) return;
         const els = this.els;
         const path = this.path;
-        els.title.setText(path ? (this.name ?? `${noteName(path.seed)} · ${t(KIND_KEY[this.kind])}`) : t("reader_title"));
+        if (this.sourcePath) {
+            const doc = this.source;
+            els.title.setText(doc ? [doc.title, doc.author].filter(Boolean).join(" · ") : noteName(this.sourcePath));
+        } else {
+            els.title.setText(path ? (this.name ?? `${noteName(path.seed)} · ${t(KIND_KEY[this.kind])}`) : t("reader_title"));
+        }
+        const pageView = this.sourceLayout === "page";
+        els.layout.toggleClass(c("reader-hidden"), !this.source?.hasPageView);
+        els.layout.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
+        els.layout.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
+        els.layout.setAttribute("aria-pressed", String(pageView));
         const total = path?.chapters.length ?? 0;
         els.label.setText(this.ended ? t("reader_finished") : total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
         els.progress.max = Math.max(1, total);
         els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
 
         els.dots.empty();
+        // A book of three hundred pages is not three hundred dots: the bar's count says where you are.
+        els.dots.toggleClass(c("reader-hidden"), Boolean(this.sourcePath) && total > DOTS_LIMIT);
         this.renderScope?.unload();
         const scope = new Component();
         scope.load();
         this.renderScope = scope;
-        path?.chapters.forEach((chapter, i) => {
+        if (!this.sourcePath || total <= DOTS_LIMIT) path?.chapters.forEach((chapter, i) => {
             const dot = els.dots.createEl("button", {
                 cls: [c("reader-dot"), ...(i < this.index || this.ended ? [c("reader-dot--done")] : []), ...(i === this.index && !this.ended ? [c("reader-dot--current")] : [])].join(" "),
                 attr: {
                     type: "button",
                     role: "tab",
                     "aria-selected": String(i === this.index),
-                    "aria-label": t("reader_dot_label", String(i + 1), noteName(chapter.path)),
+                    "aria-label": t("reader_dot_label", String(i + 1), this.source?.chapters[i]?.label ?? noteName(chapter.path)),
                 },
             });
             scope.registerDomEvent(dot, "click", () => this.show(i));
@@ -465,6 +583,7 @@ export class ReaderView extends ItemView {
     }
 
     private async renderChapter(): Promise<void> {
+        if (this.sourcePath) return this.renderSourceChapter();
         if (!this.els || !this.path) return;
         const generation = ++this.generation;
         const { page, stage } = this.els;
@@ -856,6 +975,7 @@ export class ReaderView extends ItemView {
 
     private renderEnd(): void {
         if (!this.els || !this.path) return;
+        if (this.sourcePath) return this.renderSourceEndCard();
         this.highlights?.hidePopover();
         this.chapter?.unload();
         const component = new Component();
@@ -969,6 +1089,10 @@ export class ReaderView extends ItemView {
     private rememberPlace(): void {
         const settings = this.plugin?.settings;
         if (!settings || !this.path) return;
+        if (this.sourcePath) {
+            if (this.source) rememberSourcePlace(this.app, this.plugin, this.sourcePath, this.ended ? this.path.chapters.length - 1 : this.index, this.path.chapters.length);
+            return;
+        }
         const key = readingKey(this.kind, this.path.seed, this.paths);
         settings.readerResume = recordResume(
             normalizeResume(settings.readerResume),
@@ -978,6 +1102,193 @@ export class ReaderView extends ItemView {
             Date.now()
         );
         void this.plugin?.saveSettings?.();
+    }
+
+    // ── a source: a PDF or an EPUB (#681, #682) ──────────────────────────────
+
+    /** How a reader cites the chapter on screen: `p. 42`, or the chapter's name. */
+    private sourceLabel(index: number): string {
+        return this.source?.chapters[index]?.label ?? String(index + 1);
+    }
+
+    private async renderSourceChapter(): Promise<void> {
+        if (!this.els || !this.path || !this.sourcePath) return;
+        const generation = ++this.generation;
+        const { page, stage } = this.els;
+        const path = this.sourcePath;
+        const doc = this.source;
+        const index = this.index;
+        this.visited.add(`${path}#${index}`);
+        this.closePeek();
+        this.highlights?.reset();
+        this.chapter?.unload();
+        const component = new Component();
+        component.load();
+        this.chapter = component;
+
+        page.empty();
+        this.turnPage(page);
+        this.chapterWords = 0;
+        this.nextCard = null;
+        const total = this.path.chapters.length;
+        const chapter = doc?.chapters[index];
+        page.createDiv({
+            cls: c("reader-count"),
+            text: doc ? t(doc.format === "pdf" ? "reader_source_count_page" : "reader_source_count_chapter", String(index + 1), String(total)) : "",
+        });
+        if (chapter?.section) {
+            page.createDiv({ cls: c("reader-role") }).createSpan({ cls: [c("reader-role-tag"), c("reader-role-tag--source")], text: chapter.section });
+        }
+        if (doc?.imageOnly) {
+            // Said where you are, before you try (owner, 2026-10-06): a scan cannot be highlighted.
+            const banner = page.createDiv({ cls: c("reader-source-banner"), attr: { role: "note" } });
+            setIcon(banner.createSpan({ cls: c("reader-source-banner-icon") }), "scan-line");
+            banner.createSpan({ cls: c("reader-source-banner-text"), text: t("reader_source_scanned") });
+            const note = banner.createEl("button", { cls: c("reader-source-banner-action"), attr: { type: "button" }, text: t("reader_source_note_page") });
+            component.registerDomEvent(note, "click", () => this.highlights?.notePage(note));
+        } else if (this.sourceLayout === "page" && doc?.hasPageView) {
+            const hint = page.createDiv({ cls: c("reader-source-hint") });
+            hint.createSpan({ text: t("reader_source_page_hint") });
+            const back = hint.createEl("button", { cls: c("reader-source-hint-action"), attr: { type: "button" }, text: t("reader_source_reading_view") });
+            component.registerDomEvent(back, "click", () => this.toggleLayout());
+        }
+        const body = page.createDiv({
+            cls: ["markdown-rendered", c("reader-body"), c("reader-source-body"), c(`reader-source-body--${doc?.format ?? "pdf"}`)].join(" "),
+        });
+        stage.scrollTop = 0;
+        this.onStageScroll();
+        // Links inside a book stay in the book, and only there (L1): one that leaves it is never followed.
+        component.registerDomEvent(body, "click", (event) => this.onSourceLink(event), { capture: true });
+
+        if (!doc) {
+            body.createDiv({ cls: c("reader-missing"), text: t(this.sourceFailed ? "reader_source_failed" : "reader_source_opening") });
+            return;
+        }
+        let picture = false;
+        try {
+            const drawn = await doc.draw(index, body, component, this.sourceLayout);
+            picture = drawn.picture;
+            this.chapterWords = drawn.words;
+        } catch (error) {
+            log.error(`[Reader] could not draw ${path} at ${index}: ${error instanceof Error ? error.message : String(error)}`);
+            if (generation === this.generation) body.createDiv({ cls: c("reader-missing"), text: t("reader_source_failed") });
+        }
+        if (generation !== this.generation) return;
+        body.toggleClass(c("reader-source-body--picture"), picture);
+        this.onStageScroll();
+        this.watchFocus(body, component);
+        // The highlights of this page or chapter, found again by their words (#681).
+        void this.highlights?.attach(body, path, component, this.els?.margin ?? null, { at: index, label: this.sourceLabel(index) }).then(() => {
+            if (generation !== this.generation || !this.pendingHighlight) return;
+            if (this.highlights?.reveal(this.pendingHighlight)) this.pendingHighlight = null;
+        });
+
+        const card = page.createDiv({ cls: c("reader-next") });
+        this.nextCard = card;
+        const next = card.createEl("button", { cls: c("reader-next-button"), attr: { type: "button" } });
+        this.onStageScroll();
+        if (index === total - 1) {
+            next.setText(t("reader_finish"));
+            component.registerDomEvent(next, "click", () => this.finish());
+            return;
+        }
+        next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", this.sourceLabel(index + 1)) });
+        component.registerDomEvent(next, "click", () => this.go(1));
+    }
+
+    /** A link inside a source: to another place in the book, or nowhere (#682, L1). */
+    private onSourceLink(event: MouseEvent): void {
+        const target = event.target as HTMLElement | null;
+        if (target?.closest?.(`mark.${c("reader-highlight")}`)) return;
+        const link = target?.closest?.("a") as HTMLElement | null;
+        if (!link) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const href = link.getAttribute("data-zf-href");
+        const resolved = href ? this.source?.resolveLink?.(this.index, href) : null;
+        if (!resolved) return;
+        if (resolved.chapter !== this.index) this.show(resolved.chapter);
+        if (resolved.fragment) this.scrollToFragment(resolved.fragment);
+    }
+
+    /** Bring an element a link named into view, once its chapter is drawn. */
+    private scrollToFragment(fragment: string, tries = 20): void {
+        let el: HTMLElement | null = null;
+        try {
+            const id = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(fragment) : fragment.replace(/["\\]/g, "");
+            el = this.els?.page.querySelector(`[data-zf-id="${id}"]`) as HTMLElement | null;
+        } catch (error) {
+            log.debug(`[Reader] cannot look for #${fragment}: ${String(error)}`);
+            return;
+        }
+        if (el) {
+            this.scrollToEl(el);
+            return;
+        }
+        if (tries > 0) window.setTimeout(() => this.scrollToFragment(fragment, tries - 1), 50);
+    }
+
+    /** The source's own contents — a paper's outline, a book's nav — or its pages, when it has none. */
+    private renderSourceContents(host: HTMLElement): void {
+        const doc = this.source;
+        if (!doc) return;
+        const entries = doc.toc.length > 0 ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
+        // The entry you are in: the last one that starts at or before the chapter on screen.
+        let current = -1;
+        entries.forEach((entry, i) => {
+            if (entry.chapter <= this.index) current = i;
+        });
+        entries.forEach((entry, i) => {
+            const row = host.createEl("button", {
+                cls: [c("reader-toc-row"), c(`reader-toc-row--depth-${Math.min(entry.depth, 3)}`), ...(i === current ? [c("reader-toc-row--current")] : [])].join(" "),
+                attr: { type: "button" },
+            });
+            row.createSpan({ cls: c("reader-toc-name"), text: entry.title });
+            if (doc.toc.length > 0) row.createSpan({ cls: c("reader-toc-role"), text: this.sourceLabel(entry.chapter) });
+            if (i === current) row.setAttribute("aria-current", "step");
+            this.panelScope?.registerDomEvent(row, "click", () => {
+                this.show(entry.chapter);
+                if ("fragment" in entry && typeof entry.fragment === "string") this.scrollToFragment(entry.fragment);
+            });
+        });
+    }
+
+    /** The end of a source: what the reading added up to, and where to take what you marked. */
+    private renderSourceEndCard(): void {
+        if (!this.els || !this.sourcePath) return;
+        this.highlights?.hidePopover();
+        this.chapter?.unload();
+        const component = new Component();
+        component.load();
+        this.chapter = component;
+        const path = this.sourcePath;
+        const counts = this.highlights?.sessionCounts() ?? { highlights: 0, notes: 0 };
+        renderSourceEnd(
+            this.els.page,
+            {
+                title: this.source?.title ?? noteName(path),
+                format: this.source?.format ?? "pdf",
+                stats: {
+                    minutes: Math.max(1, Math.round((Date.now() - this.startedAt) / 60000)),
+                    chapters: Math.max(1, this.visited.size),
+                    highlights: counts.highlights,
+                    marginNotes: counts.notes,
+                },
+                actions: {
+                    library: () => {
+                        exitReader(this.app, this.leaf);
+                        void openLibrary(this.app, path);
+                    },
+                    think: () => {
+                        exitReader(this.app, this.leaf);
+                        void activateSurface(this.app, "zettelflow-home", "lab", { about: path });
+                    },
+                    again: () => this.show(0),
+                },
+            },
+            component
+        );
+        this.els.stage.scrollTop = 0;
     }
 
     // ── panels ───────────────────────────────────────────────────────────────
@@ -1003,6 +1314,10 @@ export class ReaderView extends ItemView {
 
     private renderContents(host: HTMLElement): void {
         host.createDiv({ cls: c("reader-panel-title"), text: t("reader_contents") });
+        if (this.sourcePath) {
+            this.renderSourceContents(host);
+            return;
+        }
         this.path?.chapters.forEach((chapter, i) => {
             const row = host.createEl("button", {
                 cls: [c("reader-toc-row"), ...(i === this.index ? [c("reader-toc-row--current")] : [])].join(" "),
@@ -1048,6 +1363,12 @@ export class ReaderView extends ItemView {
 
     private renderContext(host: HTMLElement): void {
         host.createDiv({ cls: c("reader-panel-title"), text: t("reader_context") });
+        if (this.sourcePath) {
+            // A source has no neighbours in the graph: what is around a page is what you marked on it.
+            if (this.panelScope) this.highlights?.renderList(host, this.panelScope);
+            if (host.childElementCount <= 1) host.createDiv({ cls: c("reader-context-empty"), text: t("reader_source_context_empty") });
+            return;
+        }
         const index = KnowledgeIndex.getInstance();
         if (!this.path || index.status !== "ready") return;
         const map = buildEvidenceMap(index.getModel(), this.reading() ?? this.path.chapters[this.index].path);
@@ -1104,6 +1425,11 @@ export class ReaderView extends ItemView {
         bind(none, "Home", taken(() => this.show(0)));
         bind(none, "End", taken(() => this.show((this.path?.chapters.length ?? 1) - 1)));
         bind(none, "F", taken(() => this.toggleFullscreen()));
+        bind(none, "V", () => {
+            if (!this.source?.hasPageView) return false;
+            this.toggleLayout();
+            return true;
+        });
         // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
         bind(none, "H", () => this.highlights?.highlightCurrent(false) ?? false);
         bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);

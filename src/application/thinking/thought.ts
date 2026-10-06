@@ -51,6 +51,19 @@ export interface ThoughtQuote extends TextQuote {
 }
 
 /**
+ * **Where in a source** a thought was written (#681, epic #675): the chapter of a PDF or an EPUB the
+ * Reader had open — a page, or a spine item — by its place, and as a reader would cite it (`p. 42`,
+ * `Ch. 3 · The lazy controller`). A note is one file and needs none; a book is hundreds of pages,
+ * and a passage is found again only on its own page.
+ */
+export interface ThoughtLocator {
+    /** The chapter's place in the source, from 0. */
+    at: number;
+    /** How a reader cites it. */
+    label: string;
+}
+
+/**
  * Where a highlight stands in its review (#678, epic #674): which of the fixed intervals it is on,
  * when it comes back, when you last looked, and whether you let it go. Absent until the first look
  * — a highlight with no review is due a few days after it was made.
@@ -104,6 +117,11 @@ export interface Thought {
      * The thought also responds to the highlight as a challenge, which is what threads it in Think.
      */
     revises?: ThoughtRevision;
+    /**
+     * Where in a source `about` is (#681): set on a highlight made in a PDF or an EPUB, and on a
+     * note written in the margin of a page that has no text to highlight.
+     */
+    locator?: ThoughtLocator;
 }
 
 /** What a *changed my mind* thought points back at (#679). */
@@ -126,6 +144,7 @@ export interface NewThought {
     alsoAbout?: string;
     quote?: ThoughtQuote;
     revises?: ThoughtRevision;
+    locator?: ThoughtLocator;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -139,6 +158,7 @@ export function newThought(input: NewThought): Thought {
         ...(input.alsoAbout ? { alsoAbout: input.alsoAbout } : {}),
         ...(input.quote?.exact ? { quote: input.quote } : {}),
         ...(input.revises?.of ? { revises: input.revises } : {}),
+        ...(input.locator ? { locator: input.locator } : {}),
     };
 }
 
@@ -204,6 +224,9 @@ export function renderThought(thought: Thought): string {
     if (thought.revises?.of) {
         lines.push(`  revisesOf: ${thought.revises.of}`, `  revisesQuote: ${JSON.stringify(thought.revises.quote)}`);
     }
+    if (thought.locator) {
+        lines.push(`  locatorAt: ${thought.locator.at}`, `  locatorLabel: ${JSON.stringify(thought.locator.label)}`);
+    }
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -240,6 +263,7 @@ export function parseThought(content: string, path: string): Thought {
     const respondsTo = readResponse(read);
     const quote = readQuote(read);
     const review = readReview(read);
+    const locator = readLocator(read);
     const revisesOf = read("revisesOf");
     const revises: ThoughtRevision | undefined = revisesOf
         ? { of: revisesOf, quote: readString(read("revisesQuote")) ?? "" }
@@ -268,7 +292,16 @@ export function parseThought(content: string, path: string): Thought {
         ...(quote ? { quote } : {}),
         ...(review ? { review } : {}),
         ...(revises ? { revises } : {}),
+        ...(locator ? { locator } : {}),
     };
+}
+
+/** Where in a source a thought was written (#681), when the file says. */
+function readLocator(read: (field: string) => string | undefined): ThoughtLocator | undefined {
+    const raw = read("locatorAt");
+    const at = Number(raw);
+    if (raw === undefined || !Number.isInteger(at) || at < 0) return undefined;
+    return { at, label: readString(read("locatorLabel")) ?? "" };
 }
 
 /** A highlight's review (#678), when the file carries one. A garbled one is no review at all. */

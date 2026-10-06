@@ -288,6 +288,8 @@ export async function flush(times = 5): Promise<void> {
  * depends on the runner (a resolver over several rows): a fixed number of ticks passed locally and
  * flaked on CI, so wait for the outcome instead.
  */
-export async function settle(done: () => boolean, max = 200): Promise<void> {
-    for (let i = 0; i < max && !done(); i++) await new Promise((resolve) => setImmediate(resolve));
+export async function settle(done: () => boolean, max = 200, maxMs = 1000): Promise<void> {
+    // At least `max` turns, and on a loaded CI runner keep going until `maxMs` has passed (#689).
+    const start = Date.now();
+    for (let i = 0; !done() && (i < max || Date.now() - start < maxMs); i++) await new Promise((resolve) => setImmediate(resolve));
 }

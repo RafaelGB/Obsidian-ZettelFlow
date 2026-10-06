@@ -117,6 +117,7 @@ export const CAPABILITIES = [
     "moves",
     "think-about",
     "reader",
+    "library",
     "highlights-review",
     "claim-door",
     "claim-return",
@@ -361,6 +362,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             CONTROL("architecture/components/core/home/HomeModeRenderer.ts", HOME),
             CMD("open-reader"),
         ],
+    },
+    library: {
+        // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading
+        // paths, on one shelf. The ribbon menu is the door that is always visible (L7); a PDF's or
+        // an EPUB's own menu shows it in the Library.
+        nameKey: "shelf_title",
+        owner: "zettelflow-library",
+        doors: [RIBBON("open-library"), NOTE_MENU("starters/zcomponents/LibraryComponent.ts"), CMD("open-library")],
     },
     "highlights-review": {
         // A few things you marked (#678, epic #674): the Reader's highlights come back on a fixed,

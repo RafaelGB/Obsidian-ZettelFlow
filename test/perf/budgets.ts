@@ -268,6 +268,14 @@ export const BUDGETS = {
         because:
             "it runs on every page turn in a PDF, between the key and the words; a page must be on screen well within a blink (#681, L8)",
     },
+    "library.epub.open.5mb": {
+        name: "open a 5 MB EPUB — its directory, package and contents — and rebuild one chapter",
+        // Measured with the tests' XML parser; in the app the platform's DOMParser does the parsing.
+        limit: 50,
+        measured: "3.2 ms",
+        because:
+            "the wait between choosing a book and its first page; a long book must open as fast as a short note renders (#682, L8)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

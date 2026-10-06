@@ -1,6 +1,7 @@
 import { TFile, type App, type Component } from "obsidian";
 import { sourceFormat, type SourceFormat } from "application/library/sourceMeta";
 import { openPdfSource } from "./pdfSource";
+import { openEpubSource } from "./epubSource";
 
 /**
  * **A source, as the Reader reads it** (#681, #682, epic #675) — one Reader for everything (L2): a
@@ -65,6 +66,5 @@ export async function openSourceDocument(app: App, path: string, imageOnly?: boo
     const format = sourceFormat(path);
     const file = app.vault.getAbstractFileByPath(path);
     if (!format || !(file instanceof TFile)) throw new Error(`not a source: ${path}`);
-    if (format === "pdf") return openPdfSource(app, file, imageOnly);
-    throw new Error(`no reader for ${format} yet`);
+    return format === "pdf" ? openPdfSource(app, file, imageOnly) : openEpubSource(app, file);
 }

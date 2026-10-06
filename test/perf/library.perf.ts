@@ -1,6 +1,11 @@
 import { describe, it } from "@jest/globals";
 import { buildShelf, continueReading, viewShelf, type ShelfInputs } from "application/library/shelf";
 import { reflowPage, type TextRun } from "application/library/pdfText";
+import { ZipArchive } from "application/library/zip";
+import { chapterTitles, packagePath, parseNav, parsePackage, type XmlParse } from "application/library/epubPackage";
+import { bodyOf, sanitizeChapter, type SourceNode } from "application/library/epubSanitize";
+import { makeEpub } from "../support/zipFixture";
+import { parseXml } from "../support/miniXml";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -75,5 +80,50 @@ describe("the Library (#675)", () => {
         }
         const ms = best(5, () => reflowPage(runs));
         assertBudget("library.pdf.reflow.page", ms);
+    });
+
+    it("library.epub.open.5mb", async () => {
+        // A 5 MB book: 120 chapters of varied prose, so it deflates like a real one.
+        const words = "attention effort system controller lazy law least ordinary cognitive busy".split(" ");
+        let seed = 7;
+        const word = () => words[(seed = (seed * 1103515245 + 12345) % 2147483648) % words.length];
+        const chapters = Array.from({ length: 120 }, (_, i) => ({
+            id: `c${i}`,
+            href: `text/ch${i}.xhtml`,
+            title: `Chapter ${i + 1}`,
+            body: Array.from({ length: 70 }, () => `<p>${Array.from({ length: 80 }, word).join(" ")}.</p>`).join(""),
+        }));
+        // Most of a real book's weight is its pictures, already compressed: 40 of them, 115 KB each.
+        const extra: Record<string, Uint8Array> = {};
+        for (let i = 0; i < 40; i++) {
+            const image = new Uint8Array(115 * 1024);
+            let x = 2463534242 + i;
+            for (let j = 0; j < image.length; j++) {
+                x ^= x << 13;
+                x ^= x >>> 17;
+                x ^= x << 5;
+                image[j] = x & 255;
+            }
+            extra[`OEBPS/images/plate${i}.jpg`] = image;
+        }
+        const bytes = makeEpub({ title: "A long book", author: "Someone", chapters, extra });
+        const parse = parseXml as unknown as XmlParse;
+        const root = { tag: "root", children: 0 };
+        const builder = { element: (parent: typeof root) => ((parent.children++), parent), text: () => undefined };
+        let fastest = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < 3; i++) {
+            const started = performance.now();
+            const archive = new ZipArchive(bytes);
+            const opfPath = packagePath((await archive.text("META-INF/container.xml"))!, parse)!;
+            const pkg = parsePackage((await archive.text(opfPath))!, opfPath, parse);
+            const toc = parseNav((await archive.text(pkg.navHref!))!, pkg.navHref!, parse);
+            chapterTitles(pkg.spine, toc);
+            const chapter = (await archive.text(pkg.spine[60].href))!;
+            sanitizeChapter(bodyOf(parse(chapter, "application/xhtml+xml").documentElement as unknown as SourceNode), root, builder, pkg.spine[60].href);
+            fastest = Math.min(fastest, performance.now() - started);
+        }
+        // eslint-disable-next-line no-console
+        console.log(`epub fixture: ${(bytes.length / 1024 / 1024).toFixed(1)} MB`);
+        assertBudget("library.epub.open.5mb", fastest);
     });
 });

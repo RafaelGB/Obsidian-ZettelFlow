@@ -2437,4 +2437,5 @@ export default {
     reader_source_end_library_desc: 'Every highlight by chapter, and the notes born from it.',
     reader_source_end_again_desc: 'From the first page.',
     shelf_menu_read: 'Read in the reader',
+    reader_source_chapter: 'Chapter {0}',
 };

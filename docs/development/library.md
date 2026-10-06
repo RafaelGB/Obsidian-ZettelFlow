@@ -14,7 +14,8 @@ what you marked, and the notes born from it.
 ## Open it
 
 - **The ribbon menu → Library.** The door that is always there, whatever you have open.
-- **Right-click a PDF → Read in the reader** opens it in the [Reader](reader.md) where you left it.
+- **Right-click a PDF or an EPUB → Read in the reader** opens it in the [Reader](reader.md) where you
+  left it.
 - **Right-click a PDF or an EPUB → Show in the library** opens the Library on that source's detail.
 - **Command palette → "Open the library"**, which you can bind to a hotkey.
 
@@ -100,6 +101,25 @@ you try: *This PDF is made of images, so there is no text to highlight. You can 
 the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
 in Think with the page and no passage — listed under **Notes on this page**.
 
+## Reading an EPUB
+
+A book opens in the same Reader. Its **chapters are the book's spine**, named from the book's own
+contents — the EPUB 3 `nav`, or the `toc.ncx` of an older book — and **Contents** shows those
+contents, nested as the book nests them.
+
+![An EPUB in the Reader: a chapter rebuilt in your reading font, with a figure from the book and a highlight, and the book's own contents](../resources/library/epub-chapter.svg)
+
+- **In your type and your theme.** Each chapter is rebuilt in the Reader's own column: the book's
+  headings, paragraphs, lists, tables, quotes and figures — not its fonts, colours or layout.
+- **Safe by construction.** A chapter is never inserted as HTML. It is parsed as data and rebuilt one
+  allowed element at a time, so nothing the book carries can run: no scripts, no event handlers, no
+  embedded frames or forms, no styles. Its images are read from the book itself; nothing is ever
+  loaded from the web, and a link that leaves the book is shown as plain text.
+- **Links inside the book work**: a footnote, a cross-reference to another chapter — click and the
+  Reader goes there.
+- **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
+  (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
+
 ## What it keeps, and where
 
 **Your files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation layer, no
@@ -118,8 +138,9 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
+| `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, SVG scripts, remote images, runaway nesting); an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget |
+| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -144,5 +165,8 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    and the highlight is there. In Think the thought shows the passage and *› p. n*.
 9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
    nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
-10. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+10. **A book.** Open the EPUB. Expect its title and author on the top line and *Chapter 1 / n*;
+    **Contents** lists the book's own chapters. Click a footnote or a cross-reference: the Reader goes
+    there. Highlight a sentence; it shows in Think with the chapter's name.
+11. **Negative.** Compare each source file before and after (size and modification date): unchanged.
    No file was created in the vault.

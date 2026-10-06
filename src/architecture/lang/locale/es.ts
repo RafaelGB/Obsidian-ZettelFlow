@@ -2438,4 +2438,5 @@ export default {
     reader_source_end_library_desc: 'Cada subrayado por capítulo, y las notas nacidas de él.',
     reader_source_end_again_desc: 'Desde la primera página.',
     shelf_menu_read: 'Leer en el lector',
+    reader_source_chapter: 'Capítulo {0}',
 };

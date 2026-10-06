@@ -78,7 +78,7 @@ export function glimpseOf(data: Graph3DData, now: number): Glimpse {
     const rest = notes.filter((node) => node.created < now - WEEK_MS);
     const room = Math.max(0, GLIMPSE_MAX_POINTS - fresh.length);
     const step = rest.length > room ? rest.length / Math.max(1, room) : 1;
-    const sampled = [...fresh.slice(0, GLIMPSE_MAX_POINTS)];
+    const sampled = fresh.slice(0, GLIMPSE_MAX_POINTS);
     for (let i = 0; i < rest.length && sampled.length < GLIMPSE_MAX_POINTS; i += step) sampled.push(rest[Math.floor(i)]);
 
     const points: GlimpsePoint[] = [];

@@ -25,12 +25,11 @@ describe("the Cultivate surface wires the stage (#589, AC-2 / AC-8)", () => {
         expect(renderer).toMatch(/settings\.cultivateStage\s*=/); // writes it back
         expect(renderer).toContain("saveSettings");
         expect(renderer).toMatch(/selectCultivationTarget\(model,[^;]*stage/); // the filter reaches selection
-        expect(renderer).toMatch(/cultivationQueue\(model,[^;]*stage/);
     });
 
     it("shows the distribution and an empty-stage state, built with createEl (not innerHTML)", () => {
         expect(renderer).toContain("stageDistribution");
-        expect(renderer).toContain("cultivate-dist-bar--l");
+        expect(renderer).toContain("cultivate-strip-seg");
         expect(renderer).toContain('t("cultivate_empty_stage")');
         expect(renderer).toContain('"emptyStage"');
         expect(renderer).not.toContain("innerHTML");

@@ -46,10 +46,13 @@ describe("the dashboard fills the pane instead of a narrow centred column (#620)
         expect(lab).not.toMatch(/max-width:\s*780px/);
     });
 
-    it("lays the Cultivate moves out as a fluid grid, not a tall column (#620)", () => {
+    it("offers Cultivate's moves as a row of pills that wraps, one at a time (#706)", () => {
+        // Five cards at once was the form of metrics #706 retired: the moves are pills now, and
+        // only the one you picked opens below them.
         const cultivate = read("cultivate.scss");
-        const moves = cultivate.slice(cultivate.indexOf(".zettelkasten-flow__cultivate-moves"));
-        expect(moves).toMatch(/grid-template-columns:\s*repeat\(\s*auto-fit\s*,\s*minmax\(/);
+        const pills = cultivate.slice(cultivate.indexOf(".zettelkasten-flow__cultivate-pills"));
+        expect(pills).toMatch(/flex-wrap:\s*wrap/);
+        expect(cultivate).not.toContain(".zettelkasten-flow__cultivate-moves");
     });
 
     it("reflows the Lab thread list into a grid that keeps newest-first order (#620, decision #2)", () => {

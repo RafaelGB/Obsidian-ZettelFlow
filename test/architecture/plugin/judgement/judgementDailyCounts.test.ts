@@ -46,13 +46,12 @@ describe("Cultivate streak remains descriptive; purpose-led Home has no streak (
         "src/architecture/components/core/cultivate/CultivateModeRenderer.ts",
     ];
 
-    it("ordinary Cultivate reads its streak from judgement, while Home does not grade inquiry progress", () => {
-        for (const file of sources) {
-            const source = read(file);
-            expect(source).toMatch(/developmentStreak\(\s*JudgementLog\.getInstance\(\)\.dailyCounts\(\)/);
-            expect(source).not.toMatch(/developmentStreak\(\s*DevelopmentJournal/);
+    it("draws no streak anywhere on Home or Cultivate — a count of days is a score (§XII, #706)", () => {
+        // Cultivate read its streak from the judgement record (#401); #706 took the streak off the
+        // surface entirely. The tally itself stays a pure State function for anyone who asks.
+        for (const file of [...sources, "src/architecture/components/core/home/HomeModeRenderer.ts"]) {
+            expect({ file, streak: read(file).includes("developmentStreak(") }).toEqual({ file, streak: false });
         }
-        expect(read('src/architecture/components/core/home/HomeModeRenderer.ts')).not.toContain('developmentStreak(');
     });
 
     it("leaves the thinking heatmap on development events, deliberately", () => {

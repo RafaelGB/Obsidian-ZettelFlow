@@ -33,9 +33,9 @@ const CEILING: Record<string, number> = {
     "codeEditor.scss": 15,
     "community.scss": 29,
     "conceptNav.scss": 2,
-    // 15 → 13: the idea card's own surface + accent edge (a 1px border and a 3px edge) moved to the
-    // shared dashboard-card--hero when Cultivate became a dashboard (#620).
-    "cultivate.scss": 13,
+    // 15 → 13 (#620) → 3 when Cultivate became one conversation (#706): what is left is the
+    // inquiry's focus ring and its reference box.
+    "cultivate.scss": 3,
     // The single accent edge the hero tile wears — the same `3px` `.cultivate-target` draws, named
     // here as the one genuine pixel this primitive owns (#620).
     "dashboard.scss": 1,

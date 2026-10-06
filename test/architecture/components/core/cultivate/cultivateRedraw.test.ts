@@ -159,21 +159,33 @@ describe("every applied move asks for the redraw (#580)", () => {
  * into a grid — but every handler stays exactly where it was: the stage chart still writes
  * `settings.cultivateStage`, and the five moves still iterate in session order through `renderMove`.
  */
-describe("Cultivate wears the dashboard without losing its wiring (#620)", () => {
-    it("renders the idea as the one accent card", () => {
-        expect(RENDERER).toContain('c("dashboard-card--hero")');
+describe("Cultivate is one conversation with one idea, without losing its wiring (#706)", () => {
+    it("draws the idea as the hero, in the family page", () => {
+        expect(RENDERER).toContain('familyPage(host, "cultivate")');
+        expect(method(RENDERER, "private renderTarget(")).toContain('c("cultivate-idea")');
     });
 
-    it("keeps the Notes-by-stage control a dashboard card that still writes the stage filter", () => {
+    it("keeps Notes by stage as one strip that still writes the stage filter", () => {
         const stage = method(RENDERER, "private renderStageControls(");
-        expect(stage).toContain('c("dashboard-card")');
-        // chart-as-selector, untouched: the per-level bar and the setting write both survive.
-        expect(stage).toContain("cultivate-dist-bar--l");
+        expect(stage).toContain("cultivate-strip-seg");
+        // The count reaches the stylesheet as a variable — the theme keeps the colour.
+        expect(stage).toContain('setCssProps({ "--zf-n": String(bucket.count) })');
         expect(RENDERER).toContain("this.plugin.settings.cultivateStage = stage;");
+        // Click the stage you are on and every stage comes back.
+        expect(stage).toContain('this.pickStage(active ? "any" : bucket.stage)');
     });
 
-    it("still iterates the five moves in session order through renderMove", () => {
+    it("offers the moves one at a time, in session order", () => {
+        const pills = method(RENDERER, "private renderMovePills(");
+        expect(pills).toContain("session.moves.forEach(");
         const body = method(RENDERER, "private render(");
-        expect(body).toContain("for (const move of this.session.moves) this.renderMove(");
+        expect(body).toContain("this.renderActiveMove(page, active, writing, hadFocus)");
+        expect(body).not.toContain("renderMove(");
+    });
+
+    it("has subtracted the metrics: no streak, no degree, no maturity number, no confidence dropdown (§XII)", () => {
+        for (const gone of ["developmentStreak", "cultivate_streak", "cultivate_target_meta", "JUDGEMENT_CONFIDENCES", "dashboard-card", "emoji"]) {
+            expect({ gone, present: RENDERER.includes(gone) }).toEqual({ gone, present: false });
+        }
     });
 });

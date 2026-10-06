@@ -2508,4 +2508,9 @@ export default {
     reader_hl_crystallize: 'Crystallize into a note',
     note_companion_born_from: 'Born from',
     note_companion_born_open: 'Open at this place in the reader',
+    // One family (#702, epic #701).
+    family_keep: 'Keep it',
+    family_kept: 'Kept in Think.',
+    family_no_folder: 'Choose a folder for Think in settings first, then what you write here is kept.',
+    family_keep_failed: 'That could not be kept. Try again.',
 };

@@ -1,0 +1,194 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+// One family (#702, epic #701) — the shapes Home, Cultivate and Think share.
+//
+// Think worked because writing comes first and the page is calm; the other two now wear the same
+// page, the same eyebrow over a section, the same composer, the same card and the same keyboard
+// row. Serif for ideas (the theme's `--font-text`), the UI font for chrome. Theme variables only —
+// the user's theme wins (§XV) — and every motion here stops under reduced motion.
+
+.zettelkasten-flow__family-page {
+    max-width: 58rem;
+    margin: 0 auto;
+    padding: var(--size-4-8) var(--size-4-8) var(--size-4-12);
+    container-type: inline-size;
+}
+
+.zettelkasten-flow__family-view {
+    animation: zf-family-enter 0.45s ease-out both;
+}
+
+@keyframes zf-family-enter {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-2));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@container (max-width: 34rem) {
+    .zettelkasten-flow__family-page {
+        padding: var(--size-4-5) var(--size-4-4) var(--size-4-12);
+    }
+}
+
+/* ── the small label over a section ─────────────────────────────────────── */
+.zettelkasten-flow__family-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin: 0 0 var(--size-4-3);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+}
+
+.zettelkasten-flow__family-eyebrow-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+/* ── keyboard hints at the foot ─────────────────────────────────────────── */
+.zettelkasten-flow__family-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-3);
+    margin-top: var(--size-4-8);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__family-key {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__family-kbd {
+    padding: 0 var(--size-4-1);
+    border: $line-quiet;
+    border-bottom-width: var(--size-2-1);
+    border-radius: var(--radius-s);
+    color: var(--text-faint);
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-smaller);
+}
+
+/* ── the composer: one shape, used by Home and Think ────────────────────── */
+.zettelkasten-flow__family-composer {
+    padding: var(--size-4-3) var(--size-4-4) var(--size-4-2);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: var(--background-primary-alt);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus-within {
+        border-color: var(--interactive-accent);
+        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+    }
+
+    &.zettelkasten-flow__is-kept {
+        animation: zf-family-kept 0.7s ease-out;
+    }
+}
+
+@keyframes zf-family-kept {
+    30% {
+        border-color: var(--color-green);
+        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--color-green) 18%, transparent);
+    }
+}
+
+// Obsidian styles every textarea (border, background, padding); the composer's box is the frame,
+// so the field inside it is bare. Specific enough to win over `textarea` without `!important`.
+.zettelkasten-flow__family-composer textarea.zettelkasten-flow__family-composer-text {
+    width: 100%;
+    min-height: var(--size-4-8);
+    max-height: 12rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    resize: vertical;
+    font-family: var(--font-text);
+    font-size: var(--font-text-size);
+    line-height: 1.5;
+    user-select: text;
+
+    &:focus,
+    &:hover {
+        border: none;
+        box-shadow: none;
+    }
+}
+
+.zettelkasten-flow__family-composer-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-1);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__family-composer-space {
+    flex: 1;
+}
+
+.zettelkasten-flow__family-composer .zettelkasten-flow__family-composer-keep {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    width: auto;
+    padding: var(--size-4-1) var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* ── the family's card: a bounded thing you read or open as a unit ──────── */
+.zettelkasten-flow__family-card {
+    @include card;
+    position: relative;
+    padding: var(--size-4-3) var(--size-4-4);
+    border-radius: var(--radius-l);
+    transition: border-color 0.2s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+button.zettelkasten-flow__family-card:not(.clickable-icon) {
+    height: auto;
+    box-shadow: none;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--background-modifier-border-hover);
+        box-shadow: var(--shadow-s);
+        transform: translateY(calc(-1 * var(--size-2-1)));
+    }
+}
+
+.zettelkasten-flow__family-idea-text {
+    font-family: var(--font-text);
+    line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__family-view,
+    .zettelkasten-flow__family-composer.zettelkasten-flow__is-kept {
+        animation: none;
+    }
+
+    button.zettelkasten-flow__family-card:not(.clickable-icon):hover {
+        transform: none;
+    }
+}

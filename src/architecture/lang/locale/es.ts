@@ -2509,4 +2509,9 @@ export default {
     reader_hl_crystallize: 'Cristalizar en una nota',
     note_companion_born_from: 'Nacida de',
     note_companion_born_open: 'Abrir en este lugar en el lector',
+    // One family (#702, epic #701).
+    family_keep: 'Guardarlo',
+    family_kept: 'Guardado en Pensar.',
+    family_no_folder: 'Elige primero una carpeta para Pensar en los ajustes; después lo que escribas aquí se guardará.',
+    family_keep_failed: 'No se pudo guardar. Inténtalo de nuevo.',
 };

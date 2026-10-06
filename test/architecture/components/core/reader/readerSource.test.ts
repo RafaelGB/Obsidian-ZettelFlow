@@ -93,6 +93,8 @@ describe("a PDF in the Reader (#681)", () => {
         press(content as never, "ArrowRight");
         await settle(() => content.oneByClass("reader-count").textContent === "Page 2 / 3");
         expect(content.oneByClass("reader-role-tag").textContent).toBe("3. Asynchronous networks");
+        // The place and what was read off the file are written a moment later — wait for them, not a tick.
+        await settle(() => (host.settings.library as any)?.["Papers/cap.pdf"]?.chapter === 1 && Boolean((host.settings.library as any)?.["Papers/cap.pdf"]?.title));
         expect((host.settings.library as any)["Papers/cap.pdf"]).toMatchObject({ chapter: 1, chapters: 3, size: 10, mtime: 20, title: "Brewer's Conjecture and the Feasibility of Web Services" });
     });
 

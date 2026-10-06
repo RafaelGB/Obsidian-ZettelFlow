@@ -21,10 +21,9 @@
 @use 'components/noteBuilder.scss';
 @use 'components/search.scss';
 @use 'components/selectableSearch.scss';
-@use 'components/accordion.scss';
+@use 'components/actionCards.scss';
 @use 'components/selector.scss';
 @use 'components/dynamicSelector.scss';
-@use 'components/actionAddMenu.scss';
 @use 'components/community.scss';
 @use 'components/hooksConfig.scss';
 @use 'components/flows.scss';
@@ -136,14 +135,6 @@
     font-size: 12px;
     font-weight: bold;
     margin-bottom: 5px;
-}
-
-/*****************
-*   ACTIONS COMMON
-******************/
-.zettelkasten-flow__accordion-header-label:hover {
-    transform: scale(1.1);
-    transition: transform 0.2s ease-in-out;
 }
 
 /*****************

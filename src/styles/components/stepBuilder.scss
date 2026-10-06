@@ -3,7 +3,7 @@
 
 .zettelkasten-flow__step-builder-body {
     width: 100%;
-    min-height: 120px;
+    min-height: 7.5rem;
     max-height: 40vh;
     resize: vertical;
     font-family: var(--font-monospace);
@@ -121,13 +121,6 @@
     font-weight: var(--font-semibold);
 }
 
-.zettelkasten-flow__step-identity-reveal {
-    margin-left: auto;
-    cursor: pointer;
-    font-size: var(--font-ui-smaller);
-    min-height: 28px;
-}
-
 /* The plain-language line: what this step actually does. */
 .zettelkasten-flow__step-identity-summary {
     margin-bottom: var(--size-4-3);
@@ -135,48 +128,6 @@
     border-bottom: 1px solid var(--background-modifier-border);
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
-}
-
-/* The five questions the editor answers (#425). */
-.zettelkasten-flow__step-group {
-    margin-bottom: var(--size-4-2);
-}
-
-.zettelkasten-flow__step-group-heading {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    width: 100%;
-    padding: var(--size-4-1) 0;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--background-modifier-border);
-    box-shadow: none;
-    color: var(--text-normal);
-    font-size: var(--font-ui-small);
-    font-weight: var(--font-semibold);
-    text-align: left;
-    cursor: pointer;
-}
-
-.zettelkasten-flow__step-group-heading::before {
-    content: "▾";
-    color: var(--text-faint);
-    transition: transform 0.15s ease-out;
-}
-
-.zettelkasten-flow__step-group-heading[aria-expanded="false"]::before {
-    transform: rotate(-90deg);
-}
-
-.zettelkasten-flow__step-group-heading:focus-visible {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: 2px;
-    border-radius: var(--radius-s);
-}
-
-.zettelkasten-flow__step-group-body.zettelkasten-flow__is-hidden {
-    display: none;
 }
 
 /* Insertable tokens under the body template (#426) — a language you pick, not one you memorise. */
@@ -211,20 +162,10 @@
     padding: var(--size-4-2) 0;
 }
 
-.zettelkasten-flow__step-exits .setting-item {
-    border-top: 1px solid var(--background-modifier-border);
-    padding: var(--size-4-2) 0;
-}
-
 /* The exit you land on, said out loud rather than implied by position (#427). */
 .zettelkasten-flow__step-exits-default {
-    margin-left: 0.4rem;
-    padding: 0.05rem 0.35rem;
-    border-radius: var(--radius-s);
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    font-size: var(--font-ui-smaller);
-    text-transform: lowercase;
+    @include chip;
+    @include chip-active;
 }
 
 /* One exit, as a form (#427). */
@@ -248,4 +189,185 @@
     color: var(--text-muted);
     font-family: var(--font-monospace);
     font-size: var(--font-ui-smaller);
+}
+
+// ── The step editor (#685, epic #676) ────────────────────────────────────────────────────────────
+// The same calm idiom as the wizard: Obsidian's own controls, laid out; one heading, a quiet
+// overflow menu, and the questions as cards you open.
+.zettelkasten-flow__step-editor-header {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    margin-bottom: $space-3;
+    padding-bottom: $space-3;
+    border-bottom: $line-quiet;
+}
+
+.zettelkasten-flow__step-editor-top {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    // Room on the right for the modal's own close button, which sits over this corner.
+    padding-right: var(--size-4-8);
+}
+
+.zettelkasten-flow__step-editor-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--h3-size);
+    font-weight: var(--font-semibold);
+    line-height: var(--line-height-tight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__step-editor-reveal {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    font-size: $text-small;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__step-editor-reveal-icon {
+    display: inline-flex;
+    --icon-size: var(--icon-s);
+}
+
+.zettelkasten-flow__step-editor-header .zettelkasten-flow__step-identity,
+.zettelkasten-flow__step-editor-header .zettelkasten-flow__step-identity-summary {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+// The questions, as cards (#425 → #685): the heading is the question, a quiet fact on the right,
+// and a chevron that turns when it opens.
+.zettelkasten-flow__step-groups {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__step-group {
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    overflow: hidden;
+}
+
+// `button.` on purpose: Obsidian's `button:not(.clickable-icon)` (0,1,1) would otherwise paint the
+// heading as a filled button with an input shadow.
+button.zettelkasten-flow__step-group-heading {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    width: 100%;
+    height: auto;
+    padding: $space-2 $space-3;
+    background-color: $surface-quiet;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    color: $text-plain;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: -2px;
+    }
+}
+
+.zettelkasten-flow__step-group-question {
+    flex: 1 1 auto;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__step-group-meta {
+    color: $text-faint;
+    font-size: $text-small;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__step-group-chevron {
+    display: inline-flex;
+    color: $text-faint;
+    --icon-size: var(--icon-s);
+    transition: transform 0.15s ease-out;
+}
+
+.zettelkasten-flow__step-group.is-open .zettelkasten-flow__step-group-chevron {
+    transform: rotate(90deg);
+}
+
+.zettelkasten-flow__step-group-body {
+    display: none;
+    padding: $space-1 $space-3 $space-3;
+}
+
+.zettelkasten-flow__step-group.is-open .zettelkasten-flow__step-group-body {
+    display: block;
+}
+
+// The rows inside are Obsidian's modal setting rows as they are — hairline-separated, first one
+// without its line (`.modal:not(.mod-settings) .setting-item…`, 0,4,0) — so nothing restyles them.
+
+// The body template: a labelled row, its tokens, then the editor.
+.zettelkasten-flow__step-builder-body-slot {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-2 0;
+}
+
+.zettelkasten-flow__step-builder-body-label .setting-item-description {
+    padding-top: var(--size-2-1);
+}
+
+// The linked note's fields hang under their switch.
+.zettelkasten-flow__satellite-fields {
+    margin-left: $space-1;
+    padding-left: $space-3;
+    border-left: 2px solid var(--background-modifier-border);
+}
+
+// One row per arrow (#685): the destination, the "lands here" chip, the condition as code.
+.zettelkasten-flow__step-exit .setting-item-name {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__step-exit-when {
+    font-family: var(--font-monospace);
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__step-exit-always {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__step-exit-when-button {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__step-exit-when-icon {
+    display: inline-flex;
+    --icon-size: var(--icon-s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__step-group-chevron {
+        transition: none;
+    }
 }

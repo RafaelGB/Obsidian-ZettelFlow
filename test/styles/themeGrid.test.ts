@@ -30,8 +30,6 @@ const OFF_GRID = /[^-\w.](\d+)px/g;
  * implementations became one mixin, and a shape defined once is a shape with one set of pixels.
  */
 const CEILING: Record<string, number> = {
-    "accordion.scss": 13,
-    "actionAddMenu.scss": 56,
     "askGraph.scss": 2,
     "codeEditor.scss": 15,
     "community.scss": 29,
@@ -65,7 +63,7 @@ const CEILING: Record<string, number> = {
     "reasoningPaths.scss": 3,
     "search.scss": 7,
     "selector.scss": 11,
-    "stepBuilder.scss": 9,
+    "stepBuilder.scss": 5,
     "surface.scss": 1,
     // The one genuine pixel in the vocabulary: `$line-quiet` is a **hairline**, which the rule
     // above allows by name. It is declared here rather than left to slip in unnoticed, and it is

@@ -384,7 +384,7 @@ linked. They now answer five questions, in this order:
 | **What does it write?** | the body template, the linked note | always |
 | **When does it appear?** | root · trigger · wait · optional | when any is set |
 | **Where does it go?** | the target folder | when it is set |
-| **How is it shown?** | name · label · phase · children header | when any is set |
+| **How is it shown?** | name · option label · phase · the line that explains the options | when any is set |
 | **Where does it go next?** | the step's exits, one row per arrow (#427) | when any exit is configured |
 
 The chain is kept — it is how a handler skips itself (root-only, editor-only) — so this changes
@@ -395,6 +395,15 @@ themselves is removed whole rather than left as an empty heading.
 
 Groups 3–5 open when they hold something, so a configured trigger is never hidden from the person
 who configured it.
+
+Since #685 each group is a card whose closed heading still states a fact (`groupMeta`: *2 actions*,
+*starts the flow*, *Zettel/*). The actions render **inside** *What does this step ask?* — they used
+to land after the last group — and the linked note's fields sit under their switch in *What does it
+write?*, after the body template, whose slot is taken before the chain runs. The header is the step's
+name, **Show on the canvas** and a **⋯** menu (copy · apply a template · save as a template). Actions
+are cards with their human names (`getLabel`: *Ask for text*, not `prompt`); the add panel groups the
+registry by category with Lucide icons (`CATEGORY_ICON`, replacing the emoji). The user guide is
+[Configure a step: the step editor](../development/step-editor.md).
 
 ### The step editor says what you are editing (#424)
 
@@ -721,7 +730,7 @@ extra, there is no "which note am I answering for?" mode, and `NoteDTO` gains **
 of becoming multi-note. That is why this change is small: only the build path and two display
 surfaces learn about the second file.
 
-Authored wherever a **step** is configured — the canvas node popup (*Edit ZettelFlow Step*), the
+Authored wherever a **step** is configured — the canvas node popup (*Edit step*), the
 canvas node right-click menu, right-clicking a step note in the file explorer, and the installed-step
 editor. It is **not** offered in the note-creation wizard (that is runtime: the wizard only *shows*
 what the step declared) nor in an **editor-mode** flow, where `buildEditor` inserts into an existing

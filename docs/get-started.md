@@ -48,13 +48,14 @@ There are three ways in. None of them needs the others, and you can switch betwe
 
     1. Create a `.canvas` file (for example `flows/daily-note.canvas`).
     2. In **Settings → ZettelFlow → Flows**, *Give a role to another canvas*: pick it and choose **Creates notes**.
-    3. Add a note file to the canvas, right-click it → **Create managed step**, and enable **Root**.
-    4. Add actions to the step (a prompt, a selector, tags…) and draw arrows to the next steps.
+    3. Add a note file to the canvas, right-click it → **Create managed step**, and turn on **Starts the flow**.
+    4. In **What does this step ask?**, add actions (*Ask for text*, *Choose an option*, *Add tags*…) and draw arrows to the next steps.
     5. Ribbon button → **Create note**: your first wizard run.
 
     ![The new-note wizard: one progress header, the step, the live preview and a footer that never moves](resources/wizard/wizard.svg)
 
     → [Create a note: the wizard](development/new-note-wizard.md) ·
+    [Configure a step](development/step-editor.md) ·
     [Build your own note flow](architecture/flow-roles.md) · [Actions](actions/Prompt.md)
 
 ## 3 · Your settings, at a glance

@@ -1,0 +1,342 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
+// A step's actions, as cards (#685, epic #676) — and the panel you add one from.
+//
+// They replace an accent-filled accordion whose only label was the action's id and a floating
+// `+` menu with emoji categories. The look is Obsidian's: quiet borders, its icon buttons, the
+// theme's accent used once — for the icon of what the action is.
+
+.zettelkasten-flow__action-cards {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    padding: $space-2 0;
+}
+
+.zettelkasten-flow__action-cards-empty {
+    @include empty-state;
+    margin: 0;
+}
+
+// ── One action ──────────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__action-card {
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-plain;
+    transition: border-color 0.15s ease-out, opacity 0.2s ease-out, transform 0.2s ease-out;
+    animation: zettelkasten-flow-action-card-in 0.2s ease-out;
+
+    &:hover,
+    &:focus-within {
+        border-color: var(--background-modifier-border-hover);
+    }
+}
+
+.zettelkasten-flow__action-card-leaving {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--size-4-1)));
+}
+
+@keyframes zettelkasten-flow-action-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-4-1)));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__action-card-header {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2;
+}
+
+.zettelkasten-flow__action-card-grip {
+    color: $text-faint;
+    cursor: grab;
+    touch-action: none;
+}
+
+// What the action is, said by its icon in the one accent of the card.
+.zettelkasten-flow__action-card-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-4-8);
+    height: var(--size-4-8);
+    border-radius: $radius-small;
+    background-color: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__action-card-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+button.zettelkasten-flow__action-card-name {
+    align-self: flex-start;
+    height: auto;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: $text-plain;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-accent);
+    }
+}
+
+// The description, edited where it is read: a line of text until you touch it.
+input[type='text'].zettelkasten-flow__action-card-description {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: $text-quiet;
+    font-size: $text-small;
+
+    &:hover,
+    &:focus {
+        color: $text-plain;
+    }
+
+    &:focus {
+        box-shadow: none;
+    }
+}
+
+.zettelkasten-flow__action-card-toggle .zettelkasten-flow__icon {
+    display: inline-flex;
+    transition: transform 0.15s ease-out;
+}
+
+.zettelkasten-flow__action-card-open .zettelkasten-flow__action-card-toggle .zettelkasten-flow__icon {
+    transform: rotate(90deg);
+}
+
+.zettelkasten-flow__action-card-remove:hover {
+    color: var(--text-error);
+}
+
+// The action's own form, under one hairline, aligned with the name above it.
+.zettelkasten-flow__action-card-body {
+    padding: $space-1 $space-3 $space-3;
+    border-top: $line-quiet;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+// ── The head of an action's form (navbarAction) ─────────────────────────────────────────────────
+.zettelkasten-flow__action-settings-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 0;
+}
+
+.zettelkasten-flow__action-settings-title {
+    flex: 1 0 100%;
+    margin: 0;
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__action-settings-description {
+    @include hint;
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.zettelkasten-flow__action-settings-controls {
+    display: flex;
+    gap: $space-1;
+}
+
+// ── Adding an action ────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__action-cards-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__action-cards-footer > button,
+button.zettelkasten-flow__action-add-button {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__action-add-panel {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: $space-2;
+    padding: $space-3;
+    border: $line-quiet;
+    border-style: dashed;
+    border-radius: $radius-medium;
+    animation: zettelkasten-flow-action-card-in 0.2s ease-out;
+}
+
+.zettelkasten-flow__action-add-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.zettelkasten-flow__action-add-panel-title {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__action-suggest-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-1;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+button.zettelkasten-flow__action-suggest-chip {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+}
+
+.zettelkasten-flow__action-search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    color: $text-faint;
+
+    input {
+        flex: 1 1 auto;
+    }
+}
+
+.zettelkasten-flow__action-tab-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__action-tab-strip-searching {
+    opacity: 0.5;
+}
+
+button.zettelkasten-flow__action-tab {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+}
+
+button.zettelkasten-flow__action-tab-active {
+    @include chip-active;
+}
+
+.zettelkasten-flow__action-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: $space-2;
+}
+
+button.zettelkasten-flow__action-tile {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+    height: auto;
+    padding: $space-2;
+    background-color: $surface-quiet;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    box-shadow: none;
+    color: $text-plain;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+    transition: border-color 0.15s ease-out, transform 0.15s ease-out;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--interactive-accent);
+        transform: translateY(calc(-1 * var(--size-2-1)));
+    }
+}
+
+.zettelkasten-flow__action-tile-icon {
+    display: inline-flex;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__action-tile-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    min-width: 0;
+}
+
+.zettelkasten-flow__action-tile-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-1;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-medium);
+}
+
+.zettelkasten-flow__action-tile-badge {
+    @include chip;
+}
+
+.zettelkasten-flow__action-tile-purpose {
+    @include hint;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__actions-management-error {
+    @include hint;
+    color: var(--text-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__action-card,
+    .zettelkasten-flow__action-add-panel {
+        animation: none;
+        transition: none;
+    }
+
+    .zettelkasten-flow__action-card-toggle .zettelkasten-flow__icon,
+    button.zettelkasten-flow__action-tile {
+        transition: none;
+    }
+
+    button.zettelkasten-flow__action-tile:hover,
+    button.zettelkasten-flow__action-tile:focus-visible {
+        transform: none;
+    }
+}

@@ -5,45 +5,56 @@ import { t } from "architecture/lang";
 import {
   actionsStore,
   ACTION_CATEGORIES,
-  CATEGORY_EMOJI,
+  CATEGORY_ICON,
   CATEGORY_LABEL_KEY,
 } from "architecture/api";
 import type { ActionCategory } from "architecture/api/categories/categories";
 import { Icon } from "architecture/components/icon";
 import { getSuggestedActions } from "./getSuggestedActions";
 
+/**
+ * Adding an action (#685): one labelled button, and a panel that opens in place — suggestions for
+ * this step first, then search, then the five categories with their Lucide icons and a tidy grid.
+ * It replaced a bare `+` and a floating menu whose categories were emoji.
+ */
 export function ActionAddMenu(props: ActionAddMenuProps) {
   const { onChange, existingActionIds } = props;
   const [display, setDisplay] = useState(false);
 
-  return (
-    <div className={c("actions-management-add")}>
+  if (!display) {
+    return (
       <button
-        className={
-          display
-            ? c("actions-management-add-button-active")
-            : c("actions-management-add-button")
-        }
-        onClick={() => setDisplay(!display)}
+        type="button"
+        className={c("action-add-button")}
+        onClick={() => setDisplay(true)}
       >
         <Icon name="plus" />
+        <span>{t("step_builder_add_action")}</span>
       </button>
-      <div
-        className={
-          display
-            ? c("actions-management-add-menu-show")
-            : c("actions-management-add-menu")
-        }
-      >
-        <ActionCardsMenu
-          modal={props.modal}
-          existingActionIds={existingActionIds}
-          onChange={(value, isTemplate) => {
-            setDisplay(false);
-            onChange(value, isTemplate);
-          }}
-        />
+    );
+  }
+
+  return (
+    <div className={c("action-add-panel")}>
+      <div className={c("action-add-panel-head")}>
+        <span className={c("action-add-panel-title")}>{t("step_builder_add_action")}</span>
+        <button
+          type="button"
+          className="clickable-icon"
+          aria-label={t("step_builder_add_action_close")}
+          onClick={() => setDisplay(false)}
+        >
+          <Icon name="x" />
+        </button>
       </div>
+      <ActionCardsMenu
+        modal={props.modal}
+        existingActionIds={existingActionIds}
+        onChange={(value, isTemplate) => {
+          setDisplay(false);
+          onChange(value, isTemplate);
+        }}
+      />
     </div>
   );
 }
@@ -112,35 +123,38 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
     setSearchTerm(value);
   };
 
-  const handleChipClick = (card: ActionCardInfo) => {
-    onChange(card.id, card.isTemplate || false);
-  };
+  const pick = (card: ActionCardInfo) => onChange(card.id, card.isTemplate || false);
 
   return (
     <>
       {suggestedCards.length > 0 && (
         <div className={c("action-suggest-row")}>
+          <Icon name="sparkles" />
           <span className={c("action-suggest-row-label")}>
             {t("action_suggest_row_label")}
           </span>
-          <div className={c("actions-chip-grid")}>
-            {suggestedCards.map((card) => (
-              <ActionChip
-                key={card.id}
-                card={card}
-                trigger={() => handleChipClick(card)}
-              />
-            ))}
-          </div>
+          {suggestedCards.map((card) => (
+            <button
+              type="button"
+              key={card.id}
+              className={c("action-suggest-chip")}
+              onClick={() => pick(card)}
+            >
+              {card.label}
+            </button>
+          ))}
         </div>
       )}
-      <input
-        className={c("actions-management-add-menu-search")}
-        type="text"
-        placeholder={t("action_search_placeholder")}
-        value={searchTerm}
-        onChange={(e) => handleSearch(e.target.value)}
-      />
+      <div className={c("action-search")}>
+        <Icon name="search" />
+        <input
+          type="search"
+          placeholder={t("action_search_placeholder")}
+          aria-label={t("action_search_placeholder")}
+          value={searchTerm}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+      </div>
       <CategoryTabStrip
         activeTab={activeTab}
         isSearching={isSearching}
@@ -149,16 +163,10 @@ function ActionCardsMenu(props: ActionAddMenuProps) {
           setSearchTerm("");
         }}
       />
-      <div className={c("action-selector-chip-body")}>
-        <div className={c("actions-chip-grid")}>
-          {filteredCards.map((card) => (
-            <ActionChip
-              key={card.id}
-              card={card}
-              trigger={() => handleChipClick(card)}
-            />
-          ))}
-        </div>
+      <div className={c("action-tiles")}>
+        {filteredCards.map((card) => (
+          <ActionTile key={card.id} card={card} trigger={() => pick(card)} />
+        ))}
       </div>
     </>
   );
@@ -187,79 +195,51 @@ function CategoryTabStrip(props: {
 
   return (
     <div
-      className={
-        isSearching
-          ? c("action-tab-strip", "action-tab-strip--search-mode")
-          : c("action-tab-strip")
-      }
+      className={c("action-tab-strip", isSearching ? "action-tab-strip-searching" : "")}
       role="tablist"
     >
-      {ACTION_CATEGORIES.map((cat, index) => (
-        <button
-          key={cat}
-          role="tab"
-          aria-selected={!isSearching && activeTab === cat}
-          className={
-            !isSearching && activeTab === cat
-              ? c("action-tab", "action-tab--active")
-              : c("action-tab")
-          }
-          onClick={() => onTabChange(cat)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
-        >
-          <span aria-hidden="true">{CATEGORY_EMOJI[cat]}</span>
-          <span>{t(CATEGORY_LABEL_KEY[cat])}</span>
-        </button>
-      ))}
+      {ACTION_CATEGORIES.map((cat, index) => {
+        const on = !isSearching && activeTab === cat;
+        return (
+          <button
+            type="button"
+            key={cat}
+            role="tab"
+            aria-selected={on}
+            className={c("action-tab", on ? "action-tab-active" : "")}
+            onClick={() => onTabChange(cat)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+          >
+            <Icon name={CATEGORY_ICON[cat]} />
+            <span>{t(CATEGORY_LABEL_KEY[cat])}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function ActionChip(props: { card: ActionCardInfo; trigger: () => void }) {
+/** One action you can add: its icon, its name, and what it is for, in a line under the name. */
+function ActionTile(props: { card: ActionCardInfo; trigger: () => void }) {
   const { card } = props;
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className={
-        card.isTemplate
-          ? c("action-chip", "actions-management-add-card-custom")
-          : c("action-chip")
-      }
+    <button
+      type="button"
+      className={c("action-tile", card.isTemplate ? "action-tile-template" : "")}
       onClick={() => props.trigger()}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          props.trigger();
-        }
-      }}
-      onTouchEnd={(e) => {
-        e.preventDefault();
-        setTooltipOpen((prev) => !prev);
-      }}
     >
-      <Icon name={card.icon} />
-      <span className={c("action-chip-label")}>{card.label}</span>
-      <div
-        className={
-          tooltipOpen
-            ? c("action-chip-tooltip", "action-chip-tooltip--open")
-            : c("action-chip-tooltip")
-        }
-      >
-        <p className={c("action-chip-tooltip-purpose")}>{card.purpose}</p>
-        {card.link && (
-          <a
-            href={card.link}
-            className={c("action-chip-tooltip-link")}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {t("action_card_docs_link_label")}
-          </a>
-        )}
-      </div>
-    </div>
+      <span className={c("action-tile-icon")}>
+        <Icon name={card.icon} />
+      </span>
+      <span className={c("action-tile-text")}>
+        <span className={c("action-tile-name")}>
+          {card.label}
+          {card.isTemplate && (
+            <span className={c("action-tile-badge")}>{t("step_builder_action_template_badge")}</span>
+          )}
+        </span>
+        {card.purpose && <span className={c("action-tile-purpose")}>{card.purpose}</span>}
+      </span>
+    </button>
   );
 }

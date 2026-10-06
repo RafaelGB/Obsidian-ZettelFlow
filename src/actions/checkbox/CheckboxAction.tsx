@@ -58,6 +58,6 @@ export class CheckboxAction extends CustomZettelAction {
   }
 
   getLabel(): string {
-    return "Checkbox";
+    return t("type_option_checkbox");
   }
 }

@@ -35,11 +35,14 @@ export class ConditionEditorModal extends Modal {
 
     onOpen(): void {
         this.setTitle(t("condition_editor_title"));
+        this.modalEl.addClass(c("condition-editor-modal"));
         const { contentEl } = this;
+        contentEl.createEl("p", { cls: c("condition-editor-intro"), text: t("condition_editor_intro") });
 
         // ── Code editor ──────────────────────────────────────────────────
-        const editorEl = contentEl.createDiv();
-        this.warningEl = contentEl.createEl("p", { cls: "zettelkasten-flow__condition-warning" });
+        // Styled as code because it is code (#685): the editor sits in its own framed box.
+        const editorEl = contentEl.createDiv({ cls: c("condition-editor-code") });
+        this.warningEl = contentEl.createEl("p", { cls: c("condition-warning") });
 
         this.editorView = dispatchEditor(editorEl, this.expr, (update) => {
             if (update.docChanged) {
@@ -52,13 +55,12 @@ export class ConditionEditorModal extends Modal {
         this.renderBuilder(contentEl);
 
         // ── Vocabulary table ──────────────────────────────────────────────
-        const vocabHeading = contentEl.createEl("h6");
-        vocabHeading.textContent = t("condition_editor_vocabulary_heading");
-        const table = contentEl.createEl("table", { cls: "zettelkasten-flow__condition-vocab-table" });
+        contentEl.createDiv({ cls: c("condition-editor-section"), text: t("condition_editor_vocabulary_heading") });
+        const table = contentEl.createEl("table", { cls: c("condition-vocab-table") });
         const thead = table.createEl("thead");
         const headerRow = thead.createEl("tr");
-        headerRow.createEl("th", { text: "Field" });
-        headerRow.createEl("th", { text: "Note" });
+        headerRow.createEl("th", { text: t("condition_editor_field") });
+        headerRow.createEl("th", { text: t("condition_editor_field_note") });
         const tbody = table.createEl("tbody");
         for (const field of CONDITION_FIELDS) {
             const row = tbody.createEl("tr");
@@ -69,22 +71,25 @@ export class ConditionEditorModal extends Modal {
         // ── Examples ─────────────────────────────────────────────────────
         const examplesWithCondition = CONDITION_EXAMPLES.filter((e) => e.condition !== "");
         if (examplesWithCondition.length > 0) {
-            const exHeading = contentEl.createEl("h6");
-            exHeading.textContent = t("condition_editor_examples_heading");
-            const exList = contentEl.createEl("ul", { cls: "zettelkasten-flow__condition-examples" });
+            contentEl.createDiv({ cls: c("condition-editor-section"), text: t("condition_editor_examples_heading") });
+            const exList = contentEl.createEl("ul", { cls: c("condition-examples") });
             for (const example of examplesWithCondition) {
                 const li = exList.createEl("li");
                 li.createEl("code", { text: example.condition });
                 const insertBtn = li.createEl("button", {
                     text: t("condition_editor_insert"),
-                    cls: "zettelkasten-flow__condition-insert-btn",
+                    cls: c("condition-insert-btn"),
+                    attr: { type: "button" },
                 });
                 insertBtn.addEventListener("click", () => this.setExpr(example.condition));
             }
         }
 
-        // ── Save / Cancel ─────────────────────────────────────────────────
-        new Setting(contentEl)
+        // ── Cancel / Save — the primary action on the right, as everywhere ──
+        const actions = new Setting(contentEl)
+            .addButton((btn) =>
+                btn.setButtonText(t("condition_editor_cancel")).onClick(() => this.close())
+            )
             .addButton((btn) =>
                 btn
                     .setButtonText(t("condition_editor_save"))
@@ -93,10 +98,8 @@ export class ConditionEditorModal extends Modal {
                         this.onSave(this.expr.trim());
                         this.close();
                     })
-            )
-            .addButton((btn) =>
-                btn.setButtonText(t("condition_editor_cancel")).onClick(() => this.close())
             );
+        actions.settingEl.addClass(c("condition-editor-actions"));
     }
 
     /**
@@ -105,7 +108,7 @@ export class ConditionEditorModal extends Modal {
      * the value box; an invalid clause shows the builder's reason instead of writing broken code.
      */
     private renderBuilder(contentEl: HTMLElement): void {
-        contentEl.createEl("h6", { text: t("condition_builder_heading") });
+        contentEl.createDiv({ cls: c("condition-editor-section"), text: t("condition_builder_heading") });
         const row = contentEl.createDiv({ cls: c("condition-builder") });
 
         let field = CONDITION_FIELDS[0]?.accessor ?? "";
@@ -138,7 +141,11 @@ export class ConditionEditorModal extends Modal {
         });
         syncValueVisibility();
 
-        const addBtn = row.createEl("button", { text: t("condition_builder_insert"), cls: c("condition-builder-insert-btn") });
+        const addBtn = row.createEl("button", {
+            text: t("condition_builder_insert"),
+            cls: c("condition-builder-insert-btn"),
+            attr: { type: "button" },
+        });
         addBtn.addEventListener("click", () => {
             const built = buildConditionExpression({ field, operator: operatorId, value });
             if (!built.ok || !built.expression) {

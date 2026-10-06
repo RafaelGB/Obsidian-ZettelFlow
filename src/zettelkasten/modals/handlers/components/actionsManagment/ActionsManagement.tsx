@@ -22,6 +22,7 @@ import { ActionAddMenu } from "./ActionAddMenu";
 import { ActionBuilderMapper } from "zettelkasten/mappers/ActionBuilderMapper";
 import { log } from "architecture";
 import { Icon } from "architecture/components/icon";
+import { c } from "architecture";
 import { CommunityAction } from "config";
 
 /**
@@ -100,6 +101,7 @@ export function ActionsManagement(props: ActionsManagementProps) {
     deepCopy.push(...newActions);
     setActionsState(deepCopy);
     props.modal.info.actions = deepCopy;
+    props.modal.actionsChanged();
 
     for (const newAction of newActions) {
       log.debug(
@@ -127,22 +129,15 @@ export function ActionsManagement(props: ActionsManagementProps) {
         const newActionsState = arrayMove(actionsState, oldIndex, newIndex);
         setActionsState(newActionsState);
         info.actions = newActionsState;
+        modal.actionsChanged();
       }
     }
   };
 
   return (
     <>
-      <h3>{t("step_builder_actions_management_title")}</h3>
-      {actionClipboard !== null && (
-        <button
-          className="mod-cta"
-          title={t("step_builder_paste_action")}
-          aria-label={t("step_builder_paste_action")}
-          onClick={handlePasteAction}
-        >
-          <Icon name="clipboard-paste" />
-        </button>
+      {actionsState.length === 0 && (
+        <p className={c("action-cards-empty")}>{t("step_builder_actions_empty")}</p>
       )}
       <DndContext
         sensors={sensors}
@@ -172,16 +167,25 @@ export function ActionsManagement(props: ActionsManagementProps) {
                   setActionsState(filteredActions);
                   info.actions = filteredActions;
                 }
+                modal.actionsChanged();
               }}
             />
           ))}
         </SortableContext>
       </DndContext>
-      <ActionAddMenu
-        modal={modal}
-        onChange={handleAddAction}
-        existingActionIds={actionsState.map((a) => a.type)}
-      />
+      <div className={c("action-cards-footer")}>
+        <ActionAddMenu
+          modal={modal}
+          onChange={handleAddAction}
+          existingActionIds={actionsState.map((a) => a.type)}
+        />
+        {actionClipboard !== null && (
+          <button type="button" onClick={handlePasteAction}>
+            <Icon name="clipboard-paste" />
+            <span>{t("step_builder_paste_action")}</span>
+          </button>
+        )}
+      </div>
     </>
   );
 }

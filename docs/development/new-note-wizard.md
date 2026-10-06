@@ -101,5 +101,6 @@ information, including the path walked so far.
 
 ![The live preview: the note as it will be, what the build will change, and connection suggestions with Link, Other words and Not related](../resources/wizard/live-preview.svg)
 
-→ [Build your own note flow](../architecture/flow-roles.md) · [Every action](../actions/Prompt.md) ·
+→ [Configure a step: the step editor](step-editor.md) · [Build your own note flow](../architecture/flow-roles.md) ·
+[Every action](../actions/Prompt.md) ·
 [How the wizard works inside](../architecture/actions-and-note-builder.md#6-the-wizard-state-machine)

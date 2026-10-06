@@ -22,4 +22,7 @@ export abstract class AbstractStepModal extends Modal {
     abstract builder: string;
 
     abstract refresh(): void;
+
+    /** The step's actions changed (added, removed, reordered); a modal that shows a count redraws it. */
+    actionsChanged(): void { }
 }

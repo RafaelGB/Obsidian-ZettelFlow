@@ -8,6 +8,8 @@ import { build3DGraph } from "architecture/knowledge/map/graph3d";
 import { buildScene } from "architecture/components/core/graph/graphScene";
 import { allocatePaint, paint, type PaintState } from "architecture/components/core/graph/graphPaint";
 import { readGraphTheme } from "architecture/components/core/graph/graphTheme";
+import { createLayout } from "architecture/components/core/graph/layoutCore";
+import { forgetLayouts, layoutKey, recallLayout, rememberLayout } from "architecture/components/core/graph/layoutCache";
 import { generateVault } from "./generateVault";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
@@ -39,6 +41,36 @@ function modelOf(count: number): KnowledgeModel {
     return model;
 }
 
+/** The median of `count` ticks — a tick's cost, not the warm-up's. */
+function medianTick(layout: { tick(): number }, count: number): number {
+    const times: number[] = [];
+    for (let i = 0; i < count; i++) {
+        const started = performance.now();
+        layout.tick();
+        times.push(performance.now() - started);
+    }
+    times.sort((a, b) => a - b);
+    return times[times.length >> 1];
+}
+
+describe("the layout, off the main thread (#694)", () => {
+    const data2k = build3DGraph(modelOf(2_000));
+
+    it("view.graph.layout.tick.2k", () => {
+        const scene = buildScene(data2k);
+        const layout = createLayout({ n: scene.n, edges: scene.edges, community: scene.community, communityCount: scene.communities.length });
+        assertBudget("view.graph.layout.tick.2k", medianTick(layout, 30));
+    });
+
+    it("view.graph.layout.settle.2k", () => {
+        const scene = buildScene(data2k);
+        const layout = createLayout({ n: scene.n, edges: scene.edges, community: scene.community, communityCount: scene.communities.length });
+        const started = performance.now();
+        while (!layout.settled()) layout.tick();
+        assertBudget("view.graph.layout.settle.2k", performance.now() - started);
+    });
+});
+
 describe("the graph engine (#693)", () => {
     const data = build3DGraph(modelOf(10_000));
 
@@ -54,6 +86,19 @@ describe("the graph engine (#693)", () => {
         for (let i = 0; i < scene.n; i += 7) lit.add(i);
         const state: PaintState = { colorBy: "region", lit, focus: null, fade: 1, timeCursor: Infinity, edgeAsk: null, hubs: new Set(scene.hubs.slice(0, 14)) };
         assertBudget("view.graph.paint.10k", best(20, () => paint(scene, theme, state, buffers)));
+    });
+
+    it("view.graph.layout.tick.10k", () => {
+        const scene = buildScene(data);
+        const layout = createLayout({ n: scene.n, edges: scene.edges, community: scene.community, communityCount: scene.communities.length });
+        assertBudget("view.graph.layout.tick.10k", medianTick(layout, 15));
+    });
+
+    it("view.graph.layout.reopen.10k", () => {
+        forgetLayouts();
+        const scene = buildScene(data);
+        rememberLayout(layoutKey(scene), scene, new Float32Array(scene.n * 3));
+        assertBudget("view.graph.layout.reopen.10k", best(5, () => recallLayout(layoutKey(scene))));
     });
 
     it("view.graph.bundle.kb", () => {

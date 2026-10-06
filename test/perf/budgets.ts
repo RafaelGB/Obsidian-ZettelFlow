@@ -297,6 +297,34 @@ export const BUDGETS = {
         because:
             "a hover, a fade step or an answer rewrites the colour buffers in place (#695); the old view re-digested every object on every hover, and this is the number that keeps that from coming back",
     },
+    "view.graph.layout.tick.2k": {
+        name: "one tick of the force layout over 2,000 notes (median of 30), in the worker",
+        limit: 12,
+        measured: "4.6 ms",
+        because:
+            "d3-force-3d through 3d-force-graph measured 16.8 ms a tick here — a whole frame, on the main thread, for five to nine seconds (#694); the worker keeps it off the main thread and this keeps it cheap",
+    },
+    "view.graph.layout.tick.10k": {
+        name: "one tick of the force layout over 10,000 notes (median of 15), in the worker",
+        limit: 90,
+        measured: "32 ms",
+        because:
+            "the old layout measured 131 ms a tick at this size and cooled before it settled; off the main thread a tick may be long, but the picture has to converge in seconds, not minutes (#694)",
+    },
+    "view.graph.layout.settle.2k": {
+        name: "settle the force layout over 2,000 notes from the community seed",
+        limit: 3_000,
+        measured: "1,311 ms",
+        because:
+            "how long the picture moves after Explore opens on a new graph (#694) — off the main thread, so a wait and never a stall, and a seed by community is what keeps it short",
+    },
+    "view.graph.layout.reopen.10k": {
+        name: "reopen Explore on an unchanged 10,000-note graph: key the layout and recall it",
+        limit: 60,
+        measured: "33 ms",
+        because:
+            "reopening must be instant — the same graph comes back exactly where it was, with no reflow and no second wait (#694); measured under jest, where it is 33 ms (the same call is 0.5 ms warm in plain Node)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

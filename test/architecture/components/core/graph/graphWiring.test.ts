@@ -92,6 +92,36 @@ describe("it draws on demand, and degrades instead of going blank (#693)", () =>
     });
 });
 
+describe("the layout runs off the main thread, and is remembered (#694)", () => {
+    const runner = code(read(`${GRAPH}/layoutRunner.ts`));
+
+    it("starts a worker from the bundled source, the way Obsidian starts its own", () => {
+        expect(runner).toContain('import workerSource from "./layout.worker?worker"');
+        expect(runner).toContain('URL.createObjectURL(new Blob([workerSource], { type: "text/javascript" }))');
+    });
+
+    it("bundles the worker inline, because Obsidian loads one main.js", () => {
+        expect(read("esbuild.config.mjs")).toContain("inline-worker");
+    });
+
+    it("falls back to slices on the main thread rather than stalling or failing", () => {
+        expect(runner).toContain("this.runLocal(");
+        expect(runner).toContain("MAIN_THREAD_SLICE_MS");
+    });
+
+    it("lets the worker go when the view does", () => {
+        expect(runner).toContain("this.worker?.terminate()");
+        expect(runner).toContain("URL.revokeObjectURL(this.workerUrl)");
+    });
+
+    it("reopens on the layout it remembered, and remembers what settled", () => {
+        const lens = code(read(`${GRAPH}/GraphLens.ts`));
+        expect(lens).toContain("recallLayout(this.layoutKey)");
+        expect(lens).toContain("warmStart(this.scene)");
+        expect(lens).toContain("rememberLayout(this.layoutKey, scene, canvas.layoutPositions)");
+    });
+});
+
 describe("share and tour, carried over (#385, #386)", () => {
     const lens = code(read(`${GRAPH}/GraphLens.ts`));
 

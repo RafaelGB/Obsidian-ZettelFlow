@@ -10,6 +10,7 @@ import { ExportShareModal } from "../export/ExportShareModal";
 import { GraphCanvas } from "./GraphCanvas";
 import { consumeGraph3DFocus } from "./graphFocus";
 import { buildScene, indicesOf, neighbourhoodOf, type GraphScene } from "./graphScene";
+import { layoutKey, recallLayout, rememberLayout, warmStart } from "./layoutCache";
 
 const DEBOUNCE_MS = 700;
 const TOUR_STOP_MS = 2600;
@@ -37,6 +38,8 @@ export class GraphLens extends KnowledgeModeRenderer {
     private focusIndex: number | null = null;
     private tourTimer: number | undefined;
     private tourStops: number[] = [];
+    /** The key of the layout on screen, remembered when it settles so reopening is instant (#694). */
+    private layoutKey = "";
 
     constructor(container: HTMLElement, private readonly app: App, private lit: ReadonlySet<string> | null = null) {
         super(container);
@@ -108,7 +111,16 @@ export class GraphLens extends KnowledgeModeRenderer {
             this.renderFallback(this.scene);
             return;
         }
-        canvas.setScene(this.scene);
+        // Where the notes were (#694): the same graph comes back exactly where it was, a changed one
+        // starts from there and only settles the difference.
+        this.layoutKey = layoutKey(this.scene);
+        const known = recallLayout(this.layoutKey);
+        if (known) {
+            canvas.setScene(this.scene, known, 0);
+        } else {
+            const start = warmStart(this.scene);
+            canvas.setScene(this.scene, start.initial, start.alpha);
+        }
         canvas.setLit(this.lit ? indicesOf(this.scene, this.lit) : null);
         this.focusIndex = null;
         if (this.pendingFocus) {
@@ -166,6 +178,7 @@ export class GraphLens extends KnowledgeModeRenderer {
         const canvas = this.canvas;
         const scene = this.scene;
         if (!canvas || !scene) return;
+        rememberLayout(this.layoutKey, scene, canvas.layoutPositions);
         if (this.pendingFocus && this.focusIndex !== null) {
             canvas.frame(neighbourhoodOf(scene, this.focusIndex), { min: 420 });
             this.pendingFocus = null;

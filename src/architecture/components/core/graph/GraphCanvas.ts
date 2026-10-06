@@ -245,6 +245,11 @@ export class GraphCanvas extends Component {
         return this.scene;
     }
 
+    /** Where the layout runs: a worker, or slices of the main thread when none could start (#694). */
+    get layoutThread(): "worker" | "main" {
+        return this.runner.where;
+    }
+
     get drawCalls(): number {
         return this.backend?.drawCalls ?? 0;
     }

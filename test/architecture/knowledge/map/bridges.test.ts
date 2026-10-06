@@ -1,15 +1,13 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { build3DGraph, graph3dStats, OVERLAY_KINDS, OVERLAY_SPECS } from "architecture/knowledge/map/graph3d";
+import { buildScene } from "architecture/components/core/graph/graphScene";
+import { allocatePaint, paint, EDGE_TRAVEL, type PaintState } from "architecture/components/core/graph/graphPaint";
+import { readGraphTheme } from "architecture/components/core/graph/graphTheme";
 import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 import type { Idea } from "architecture/knowledge/model/Idea";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
-const ROOT = join(__dirname, "..", "..", "..", "..");
-const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
-const RENDERER = read("src/architecture/components/core/graph3d/Graph3DRenderer.ts");
 
 /**
  * **A lens can light an edge** (#526, epic #522).
@@ -21,16 +19,6 @@ const RENDERER = read("src/architecture/components/core/graph3d/Graph3DRenderer.
  * about notes, and no amount of node-matching expresses it: lighting both endpoints of the 26
  * bridges lights 48 notes and tells you nothing about *which* of their links crosses.
  */
-
-function code(source: string): string {
-    return source
-        .split("\n")
-        .filter((line) => {
-            const trimmed = line.trim();
-            return !trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*");
-        })
-        .join("\n");
-}
 
 function clique(prefix: string, size: number): Idea[] {
     return Array.from({ length: size }, (_, n) =>
@@ -93,40 +81,56 @@ describe("the lens table learned a second kind (#526)", () => {
         expect(spec.on === "edge" && spec.matches({ bridge: false } as never)).toBe(false);
     });
 
-    it("branches once per kind of predicate, not once per lens", () => {
-        // The next edge lens must cost one table entry, not another branch in the renderer.
-        expect((code(RENDERER).match(/\.on === "edge"/g) ?? []).length).toBeLessThanOrEqual(4);
-    });
 });
 
-describe("the picture reads as what joins what (#526)", () => {
+/** Paint the graph of two cliques joined by one link, with the bridges asked about (#526, #696). */
+function paintBridges(): { lit: Float32Array; width: Float32Array; flags: Float32Array; bridgeAt: number; insideAt: number; endpointsLit: boolean } {
+    const graph = build3DGraph(buildModel([...clique("a", 4), ...clique("b", 4).map((each, n) => (n === 0 ? { ...each, relations: [...each.relations, { to: "a-0.md", type: "link" }] } : each))]));
+    const scene = buildScene(graph);
+    const theme = readGraphTheme(() => "#808080");
+    const buffers = allocatePaint(scene, 0);
+    const bridgeEnds = new Set<number>();
+    for (let l = 0; l < scene.bridge.length; l++) {
+        if (scene.bridge[l]) {
+            bridgeEnds.add(scene.edges[l * 2]);
+            bridgeEnds.add(scene.edges[l * 2 + 1]);
+        }
+    }
+    const state: PaintState = { colorBy: "region", lit: bridgeEnds, focus: null, fade: 1, timeCursor: Infinity, edgeAsk: "bridges", hubs: new Set() };
+    paint(scene, theme, state, buffers);
+    const bridgeAt = scene.bridge.indexOf(1);
+    const insideAt = scene.bridge.indexOf(0);
+    const alpha = new Float32Array(scene.bridge.length);
+    for (let l = 0; l < alpha.length; l++) alpha[l] = buffers.edgeColor[l * 4 + 3];
+    const endpointsLit = [...bridgeEnds].every((i) => buffers.nodeColor[i * 4 + 3] === 1);
+    return { lit: alpha, width: buffers.edgeWidth, flags: buffers.edgeFlags, bridgeAt, insideAt, endpointsLit };
+}
+
+describe("the picture reads as what joins what (#526, #696)", () => {
     it("lights the crossing links and dims the rest", () => {
-        const colour = code(RENDERER).slice(code(RENDERER).indexOf("private computeLinkColor"));
-        const body = colour.slice(0, colour.indexOf("private computeLinkWidth"));
-        expect(body).toContain("edgeLens");
-        expect(body).toContain("DIM_LINK");
+        const painted = paintBridges();
+        expect(painted.bridgeAt).toBeGreaterThanOrEqual(0);
+        expect(painted.lit[painted.bridgeAt]).toBeGreaterThan(painted.lit[painted.insideAt]);
     });
 
-    it("draws them thicker, so 26 lines are findable in a graph of hundreds", () => {
-        const width = code(RENDERER).slice(code(RENDERER).indexOf("private computeLinkWidth"));
-        expect(width.slice(0, 600)).toContain("edgeLens");
+    it("draws them thicker, with light travelling along them", () => {
+        const painted = paintBridges();
+        expect(painted.width[painted.bridgeAt]).toBeGreaterThan(painted.width[painted.insideAt]);
+        expect(painted.flags[painted.bridgeAt] & EDGE_TRAVEL).toBe(EDGE_TRAVEL);
     });
 
     it("keeps both endpoints lit while everything else dims", () => {
-        const node = code(RENDERER).slice(code(RENDERER).indexOf("private computeNodeColor"));
-        expect(node.slice(0, 900)).toContain("edgeLensEndpoints");
+        expect(paintBridges().endpointsLit).toBe(true);
     });
 });
 
 describe("it changes paint and nothing else (#526)", () => {
-    it("hides nothing and filters nothing", () => {
-        // Same rule framing got in #515: nothing disappears under you, so a later refactor cannot
-        // turn "show me this" into "hide the rest" in silence.
-        const sync = code(RENDERER).slice(code(RENDERER).indexOf("private syncEdgeLens"));
-        const body = sync.slice(0, 700);
-        expect(body).not.toContain("filterGraph3D");
-        expect(body).not.toContain("hiddenNodes");
-        expect(body).not.toContain("setLit");
+    it("hides nothing and filters nothing: every note and link is still drawn", () => {
+        // Same rule framing got in #515: nothing disappears under you. A dimmed link keeps a width
+        // and an alpha above zero; only time (#697) may take something off the screen.
+        const painted = paintBridges();
+        expect([...painted.width].every((w) => w > 0)).toBe(true);
+        expect([...painted.lit].every((a) => a > 0)).toBe(true);
     });
 });
 
@@ -138,14 +142,5 @@ describe("it states, and never advises (#526)", () => {
             expect({ name, present: typeof value === "string" }).toEqual({ name, present: true });
             expect({ name, offends: REPROACH.some((p) => p.test(value)) }).toEqual({ name, offends: false });
         }
-    });
-});
-
-describe("the lens keeps up with the data (#526)", () => {
-    it("is recomputed when the displayed set moves under it", () => {
-        // The endpoint set is cached once per lens change rather than per node per frame, which
-        // means a time cursor or a reindex would otherwise light notes that are no longer joined.
-        const apply = code(RENDERER).slice(code(RENDERER).indexOf("private applyGraphData"));
-        expect(apply.slice(0, 600)).toContain("this.syncEdgeLens()");
     });
 });

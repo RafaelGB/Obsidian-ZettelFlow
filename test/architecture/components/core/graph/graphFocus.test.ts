@@ -1,8 +1,8 @@
 import { describe, it, expect } from "@jest/globals";
-import { requestGraph3DFocus, consumeGraph3DFocus } from "architecture/components/core/graph3d/graph3dFocus";
+import { requestGraph3DFocus, consumeGraph3DFocus } from "architecture/components/core/graph/graphFocus";
 
 /** #280 S3 — the deep-link handoff is consume-once: the renderer flies to the requested note exactly once. */
-describe("graph3dFocus handoff (#280 S3)", () => {
+describe("the graph focus handoff (#280 S3, #693)", () => {
     it("returns null when nothing is requested", () => {
         consumeGraph3DFocus(); // clear any residue
         expect(consumeGraph3DFocus()).toBeNull();

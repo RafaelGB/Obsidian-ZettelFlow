@@ -109,10 +109,6 @@ describe("it is one more row in the table (#525)", () => {
         expect(OVERLAY_SPECS.frontier.matches({ frontier: false } as never)).toBe(false);
     });
 
-    it("counts it for the chip like every other lens", () => {
-        expect(read("src/architecture/components/core/graph3d/Graph3DRenderer.ts")).toContain('"frontier": stats.frontier');
-    });
-
     it("names it in both locales without telling you what to do", () => {
         const REPROACH = [/\bshould\b/i, /\byou have\b/i, /\bconnect\b/i, /\bdeberías\b/i, /\bconecta\b/i, /\btodavía\b/i];
         for (const [name, locale] of [["en", en], ["es", es]] as const) {

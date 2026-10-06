@@ -1,0 +1,166 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+// The graph (#693, epic #692) — a WebGL2 canvas and a 2D overlay for labels, stacked.
+//
+// Every colour the scene draws is read from the theme at run time (graphTheme.ts), so this sheet
+// only lays the canvases out. The sky is the theme's own background: no fixed dark space.
+.zettelkasten-flow__graph-lens {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.zettelkasten-flow__graph-lens-body {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.zettelkasten-flow__graph-canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__graph-canvas-gl,
+.zettelkasten-flow__graph-canvas-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.zettelkasten-flow__graph-canvas-gl {
+    cursor: grab;
+    // The canvas takes every gesture itself: orbit, pan, pinch — the page must not scroll under it.
+    touch-action: none;
+}
+
+.zettelkasten-flow__graph-canvas-gl--pointing {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph-canvas-gl--dragging {
+    cursor: grabbing;
+}
+
+.zettelkasten-flow__graph-canvas-overlay {
+    pointer-events: none;
+}
+
+.zettelkasten-flow__graph-lens-tools {
+    position: absolute;
+    top: var(--size-4-2);
+    right: var(--size-4-2);
+    z-index: 2;
+    display: flex;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__graph-lens-status {
+    position: absolute;
+    left: var(--size-4-3);
+    bottom: var(--size-4-2);
+    z-index: 2;
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+}
+
+.zettelkasten-flow__graph-message {
+    padding: var(--size-4-6);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+// The list for a device with no canvas at all (#319 S2): real buttons, hubs first, a 44px target.
+.zettelkasten-flow__graph-fallback {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--size-4-2);
+}
+
+.zettelkasten-flow__graph-fallback-note {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__graph-fallback-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__graph-fallback-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    width: 100%;
+    min-height: var(--size-4-11);
+    padding: var(--size-4-2) var(--size-4-3);
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-bottom: var(--border-width) solid var(--background-modifier-border);
+    border-radius: 0;
+    box-shadow: none;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__graph-fallback-name {
+    flex: 1;
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__graph-fallback-meta {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+// ── Share / export dialog (#386) ────────────────────────────────────────────
+.zettelkasten-flow__graph-export-desc {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    margin-top: 0;
+}
+
+.zettelkasten-flow__graph-export-preview {
+    display: flex;
+    justify-content: center;
+    padding: var(--size-4-2);
+    margin: var(--size-4-2) 0;
+    background-color: var(--background-secondary);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+}
+
+.zettelkasten-flow__graph-export-media {
+    max-width: 100%;
+    max-height: 40vh;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__graph-export-status {
+    min-height: 1.2em;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__graph-canvas-gl {
+        transition: none;
+    }
+}

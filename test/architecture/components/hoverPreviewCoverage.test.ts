@@ -26,7 +26,6 @@ describe("every clickable note name offers the native preview (#594)", () => {
     // A file may open a note without a hoverable name to attach the preview to. Each exemption is a
     // reason, not a pass: dropping the entry re-arms the rule for that file.
     const EXEMPT: Record<string, string> = {
-        "Graph3DRenderer.ts": "a WebGL scene — a node is not a DOM element the popover can attach to",
         "LabRenderer.ts": "the thinking space names its subject note, and by design never shows it (#473)",
         "FileService.ts": "a service that opens files in code — there is no name element here",
         "SettingsTab.ts": "settings links, not a list of knowledge notes",

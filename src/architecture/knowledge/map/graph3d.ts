@@ -14,7 +14,7 @@ export interface Graph3DNode {
      * The region's **name** — its most connected note (#514). Empty when the note is alone.
      *
      * It rides on the node rather than sitting on {@link Graph3DData} so it survives
-     * `filterGraph3D` and `graph3dUpToTime` without being threaded through any of them.
+     * `graph3dUpToTime` without being threaded through it.
      */
     region: string;
     /**
@@ -23,6 +23,8 @@ export interface Graph3DNode {
      */
     community: number;
     communityName: string;
+    /** The community's hub as a path — the key a renamed region is remembered by (#697). */
+    communityHub: string;
     /** The idea's workflow state (for optional coloring / filtering). */
     state: string;
     /** Discovery-lens flags (#280 S4): no outgoing edges / no incoming edges / in a `contradicts` relation. */
@@ -64,9 +66,8 @@ export interface Graph3DData {
 }
 
 /**
- * Relation type → Obsidian CSS colour variable. The single source of truth shared by the WebGL links
- * (the renderer reads the computed value) and the legend swatches (`graph3d.scss` uses the same vars),
- * so colours never drift. An unlisted type falls back to `--text-faint`.
+ * Relation type → Obsidian CSS colour variable (#693): the graph reads the computed value of each,
+ * so a link is drawn in the user's theme. An unlisted type falls back to `--text-faint`.
  */
 export const RELATION_COLOR_VARS: Record<string, string> = {
     link: "--text-faint",
@@ -85,16 +86,6 @@ function basename(path: string): string {
 }
 
 const byStr = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-
-/**
- * A link endpoint's id. Links are built with string `source`/`target`, but the force layout
- * (`d3-force` via `3d-force-graph`) mutates them **in place** into the resolved node objects. These
- * pure filters run on that same live data during the time-lapse, so read the id either way — otherwise
- * `kept.has(link.source)` compares a Set of ids against a node object and drops every link (#394).
- */
-function linkEndId(end: unknown): string {
-    return typeof end === "object" && end !== null ? (end as { id?: string }).id ?? "" : String(end);
-}
 
 /**
  * Pure projection of the {@link KnowledgeModel} into a `{ nodes, links }` shape for the 3D graph view
@@ -125,11 +116,13 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
     // information costs one more lookup per edge and no second traversal.
     const communityOf = new Map<string, number>();
     const communityName = new Map<string, string>();
+    const communityHub = new Map<string, string>();
     communitiesOf(model).forEach((community, index) => {
         const name = basename(community.hub);
         for (const path of [community.hub, ...community.members]) {
             communityOf.set(path, index);
             communityName.set(path, name);
+            communityHub.set(path, community.hub);
         }
     });
     const spansTwo = (path: string): boolean => {
@@ -164,6 +157,7 @@ export function build3DGraph(model: KnowledgeModel): Graph3DData {
             region: regionOf.get(idea.path) ?? "",
             community: communityOf.get(idea.path) ?? -1,
             communityName: communityName.get(idea.path) ?? "",
+            communityHub: communityHub.get(idea.path) ?? "",
             state: idea.state,
             orphan: model.outNeighborSet(idea.path).size === 0,
             deadEnd: model.inNeighborSet(idea.path).size === 0,
@@ -210,76 +204,6 @@ export const STATE_COLOR_VARS: Record<string, string> = {
 };
 export const DEFAULT_STATE_COLOR_VAR = "--text-muted";
 
-/**
- * Concrete colours tuned for the 3D view's **fixed dark background** (#280 iteration). Theme text vars
- * like `--text-faint` are near-black on dark themes, so links/nodes must not use them here — these hex
- * values stay legible (and subtle for plain links) whatever the user's theme. The `*_VARS` maps still
- * drive the legend swatches (kept in sync by `graph3d.scss`).
- */
-export const RELATION_COLORS: Record<string, string> = {
-    link: "#8b93a7",        // subtle steel-grey for plain wikilinks (the majority)
-    supports: "#4ade80",
-    contradicts: "#f87171",
-    expands: "#60a5fa",
-    "inspired-by": "#22d3ee",
-    question: "#c084fc",
-    example: "#fb923c",
-    implements: "#facc15",
-};
-
-/**
- * The **community** palette (#515, retargeted by #527). Eighteen colours tuned for the view's
- * fixed dark background.
- *
- * It used to be generated — `hsl((group * 67) % 360, 70%, 62%)` — in two places that had drifted
- * four per cent apart, so a node and its own hull were different colours. A generated hue also
- * cannot reach a stylesheet without an inline style, which this repo forbids, so the legend
- * swatch could never match the scene. A fixed list fixes both: `graph3d.scss` mirrors it in
- * `graph3d-swatch--community-N`, and a guardrail test keeps the two in step.
- *
- * Eighteen because the reference vault has **17 communities** (#524) and twelve would have put two
- * neighbourhoods side by side in one hue. Past eighteen it wraps, because a palette cannot be
- * unbounded and two *distant* communities sharing a colour is the right failure to accept.
- */
-export const COMMUNITY_COLORS: readonly string[] = [
-    "#7dd3fc", // sky
-    "#86efac", // green
-    "#fcd34d", // amber
-    "#f0abfc", // fuchsia
-    "#fda4af", // rose
-    "#a5b4fc", // indigo
-    "#5eead4", // teal
-    "#fdba74", // orange
-    "#d8b4fe", // purple
-    "#bef264", // lime
-    "#67e8f9", // cyan
-    "#f9a8d4", // pink
-    "#93c5fd", // blue
-    "#6ee7b7", // emerald
-    "#fde68a", // yellow
-    "#c4b5fd", // violet
-    "#f8b4a0", // salmon
-    "#a7f3d0", // mint
-];
-
-/** A note that is alone belongs to no community — grey, and it means something (#513). */
-export const ALONE_COLOR = "#9aa4b8";
-
-/** The one colour a community is drawn in: node, halo, hull, scene label and legend swatch (#515). */
-export function communityColor(group: number): string {
-    return group < 0 ? ALONE_COLOR : COMMUNITY_COLORS[group % COMMUNITY_COLORS.length];
-}
-
-export const STATE_COLORS: Record<string, string> = {
-    fleeting: "#f87171",
-    literature: "#fb923c",
-    developing: "#facc15",
-    permanent: "#4ade80",
-    evergreen: "#22d3ee",
-    archived: "#94a3b8",
-};
-export const DEFAULT_STATE_COLOR = "#cbd5e1";
-
 /** Aggregate discovery counts for the lens chips (#280 iteration). */
 export interface Graph3DStats {
     orphans: number;
@@ -308,66 +232,19 @@ export function graph3dStats(data: Graph3DData): Graph3DStats {
     return { orphans, deadEnds, contradictions, alone, frontier, bridges };
 }
 
-/**
- * Breadth-first **shortest path** between two notes over the undirected adjacency (#280 iteration) —
- * the sequence of ids from `from` to `to` inclusive, or `[]` when unreachable. Pure.
- */
-export function shortestPath(adjacency: Map<string, Set<string>>, from: string, to: string): string[] {
-    if (from === to) return [from];
-    const prev = new Map<string, string>();
-    const seen = new Set<string>([from]);
-    const queue: string[] = [from];
-    while (queue.length > 0) {
-        const current = queue.shift() as string;
-        for (const next of adjacency.get(current) ?? []) {
-            if (seen.has(next)) continue;
-            seen.add(next);
-            prev.set(next, current);
-            queue.push(next);
-        }
-    }
-    if (!prev.has(to)) return [];
-    const path = [to];
-    let cursor = to;
-    while (prev.has(cursor)) {
-        cursor = prev.get(cursor) as string;
-        path.push(cursor);
-    }
-    return path.reverse();
-}
-
-/** Undirected adjacency (id → neighbour ids) for hover-neighbourhood highlighting. Pure. */
-export function buildAdjacency(data: Graph3DData): Map<string, Set<string>> {
-    const adjacency = new Map<string, Set<string>>();
-    const link = (a: string, b: string) => {
-        const set = adjacency.get(a) ?? new Set<string>();
-        set.add(b);
-        adjacency.set(a, set);
-    };
-    for (const edge of data.links) {
-        link(edge.source, edge.target);
-        link(edge.target, edge.source);
-    }
-    return adjacency;
-}
-
 /*
  * `capGraph3D` and `GRAPH3D_MAX_NODES = 600` were here from #280 S5 and were **deleted in #539**.
  *
  * They were documented as protecting large vaults, had their own unit tests, and were called by
- * nothing: the view has always built its data with `filterGraph3D(baseData(), {})`, which keeps
- * everything. A capability nothing calls is not a capability (SS XI), and the docs describing it
- * were describing behaviour that did not exist.
+ * nothing: the view always built its data keeping everything. A capability nothing calls is not a
+ * capability (SS XI), and the docs describing it were describing behaviour that did not exist.
  *
  * The alternative -- start applying it -- was the one that needed evidence, because it would have
  * silently hidden 94 % of a ten-thousand-note vault on a surface whose whole purpose is showing
  * *shape*. What could be measured without a screen says the data path is not the problem:
- * `view.graph3d.build.10k` is **27-70 ms across two runs**. What could not be measured is frames per second, and the
- * cap's stated reason -- mobile -- does not apply either: `render()` sends mobile to the 2D
- * fallback and never reaches WebGL.
- *
- * If a real vault ever does choke the scene, the fix starts with that report and a number, not with
- * a constant nobody ever called.
+ * `view.graph3d.build.10k` is **27-70 ms across two runs**. Since #693 the scene itself draws in a
+ * fixed five calls whatever the vault's size, and the layout runs off the main thread (#694), so
+ * the reason a cap was ever wanted is gone with the renderer that needed it.
  */
 
 /** The discovery-lens overlays (#280 S4) — each highlights an actionable class of note in space. */
@@ -431,38 +308,6 @@ export const OVERLAY_SPECS: Record<OverlayKind, OverlaySpec> = {
     "gaps": { labelKey: "graph3d_overlay_gaps", colorVar: "--color-pink", on: "candidate" },
 };
 
-/** Filter criteria for {@link filterGraph3D} (#280 S3) — all optional; an absent/blank field matches all. */
-export interface Graph3DFilter {
-    /** Case-insensitive substring match on the node name. */
-    query?: string;
-    /** Exact match on the idea state. */
-    state?: string;
-    /** Path prefix (folder) match on the node id. */
-    folder?: string;
-}
-
-/**
- * Pure filter over {@link Graph3DData} (#280 S3): keeps nodes matching every provided criterion, then
- * keeps only links whose **both** endpoints survive. Blank/absent criteria match everything. Never
- * mutates the input.
- */
-export function filterGraph3D(data: Graph3DData, filter: Graph3DFilter): Graph3DData {
-    const query = (filter.query ?? "").trim().toLowerCase();
-    const state = (filter.state ?? "").trim();
-    const folder = (filter.folder ?? "").trim();
-
-    const nodes = data.nodes.filter((node) => {
-        if (query && !node.name.toLowerCase().includes(query)) return false;
-        if (state && node.state !== state) return false;
-        if (folder && !node.id.startsWith(folder)) return false;
-        return true;
-    });
-    const kept = new Set(nodes.map((node) => node.id));
-    const links = data.links.filter((link) => kept.has(linkEndId(link.source)) && kept.has(linkEndId(link.target)));
-
-    return { nodes, links };
-}
-
 /**
  * A stable content signature of the graph's *shape* (sorted node ids + sorted link keys), so the view
  * can skip a full re-layout when an index update didn't actually change the graph (#280 stability).
@@ -492,7 +337,7 @@ export function graph3dTimeRange(data: Graph3DData): { min: number; max: number 
 export function graph3dUpToTime(data: Graph3DData, cursor: number): Graph3DData {
     const nodes = data.nodes.filter((node) => node.created === 0 || node.created <= cursor);
     const kept = new Set(nodes.map((node) => node.id));
-    const links = data.links.filter((link) => kept.has(linkEndId(link.source)) && kept.has(linkEndId(link.target)));
+    const links = data.links.filter((link) => kept.has(link.source) && kept.has(link.target));
     return { nodes, links };
 }
 

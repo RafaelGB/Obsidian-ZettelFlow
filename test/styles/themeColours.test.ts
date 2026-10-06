@@ -5,11 +5,11 @@ import { join } from "path";
 const STYLES = join(__dirname, "..", "..", "src", "styles", "components");
 
 /**
- * The 3D graph paints its own world — a scene with its own palette, over a canvas rather than
- * over your theme's surfaces. It is the one place a fixed colour is the right answer, and it is
- * named here rather than quietly skipped.
+ * Stylesheets allowed a palette of their own. **None**, since #693: the 3D graph used to paint its
+ * own dark world with eighteen fixed hexes and was the one exemption; the graph that replaced it
+ * reads every colour, the sky included, from the theme.
  */
-const OWN_PALETTE = ["graph3d.scss"];
+const OWN_PALETTE: string[] = [];
 
 /**
  * A colour literal used as a value.

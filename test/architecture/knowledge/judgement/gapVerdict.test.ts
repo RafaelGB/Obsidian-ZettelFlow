@@ -330,7 +330,6 @@ describe("one filter, honoured by every reader (#534, FR-2)", () => {
         const filtered = callersOf(/\b(openGaps|openGapCount|openSeams)\(/);
         for (const reader of [
             "architecture/api/lib/knowledge/knowledgeApi.ts",
-            "architecture/components/core/graph3d/Graph3DRenderer.ts",
             "architecture/knowledge/dashboard/knowledgeDashboard.ts",
             "architecture/knowledge/home/home.ts",
             "architecture/knowledge/state/recommendation.ts",

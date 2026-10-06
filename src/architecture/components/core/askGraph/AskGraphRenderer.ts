@@ -21,7 +21,7 @@ import {
 import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { QuerySuggest } from "architecture/settings/suggesters/QuerySuggest";
-import { Graph3DRenderer } from "architecture/components/core/graph3d/Graph3DRenderer";
+import { GraphLens } from "architecture/components/core/graph/GraphLens";
 import { MapOfContentModal } from "./MapOfContentModal";
 import { BlindGate } from "./BlindGate";
 import { asLinks } from "application/explore/mapOfContent";
@@ -115,7 +115,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private suggest: QuerySuggest | null = null;
     private lens: ResultLens = "list";
     private readonly lensButtons = new Map<ResultLens, HTMLElement>();
-    private graphLens: Graph3DRenderer | null = null;
+    private graphLens: GraphLens | null = null;
     /** The last computed selection, so switching lens never re-asks the question. */
     private matches: Matches = [];
     /** …and the terms that produced it, which is what tells a row which facts to carry (#485). */
@@ -455,7 +455,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
                 return;
             }
             this.resultsEl.empty();
-            this.graphLens = new Graph3DRenderer(this.resultsEl.createDiv({ cls: c("ask-graph-graph") }), this.app, lit);
+            this.graphLens = new GraphLens(this.resultsEl.createDiv({ cls: c("ask-graph-graph") }), this.app, lit);
             this.addChild(this.graphLens);
             return;
         }

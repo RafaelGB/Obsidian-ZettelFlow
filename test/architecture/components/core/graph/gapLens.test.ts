@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { OVERLAY_KINDS, OVERLAY_SPECS, graph3dSignature, type Graph3DData } from "architecture/knowledge/map/graph3d";
-import { selectGhosts, GAP_DRAW_MAX, ghostKey } from "architecture/components/core/graph3d/graph3dGhosts";
+import { selectGhosts, GAP_DRAW_MAX, ghostKey } from "architecture/components/core/graph/graphGhosts";
 import { openGapCount, openGaps } from "architecture/knowledge/judgement/gapVerdict";
 import { gapVerdict } from "architecture/knowledge/judgement/gapVerdict";
 import { idea, buildModel } from "../../../../actions/knowledge/support/knowledgeFixture";

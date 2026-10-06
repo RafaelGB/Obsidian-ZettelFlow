@@ -276,6 +276,27 @@ export const BUDGETS = {
         because:
             "the wait between choosing a book and its first page; a long book must open as fast as a short note renders (#682, L8)",
     },
+    "view.graph.bundle.kb": {
+        name: "the built plugin bundle (main.js) in KB, once the graph draws itself",
+        limit: 2_450,
+        measured: "2,265 KB",
+        because:
+            "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
+    },
+    "view.graph.scene.10k": {
+        name: "turn the 3D graph's data for 10,000 notes into the typed columns the GPU draws",
+        limit: 120,
+        measured: "8.7 ms",
+        because:
+            "it runs once per model revision, on the main thread, between a vault change and the redraw (#693); it must cost a fraction of building the graph data it reads",
+    },
+    "view.graph.paint.10k": {
+        name: "paint every note and link of a 10,000-note graph (one hover)",
+        limit: 25,
+        measured: "2.1 ms",
+        because:
+            "a hover, a fade step or an answer rewrites the colour buffers in place (#695); the old view re-digested every object on every hover, and this is the number that keeps that from coming back",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

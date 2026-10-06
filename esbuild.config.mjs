@@ -85,11 +85,6 @@ const context = await esbuild.context({
       "@lezer/lr",
       ...builtinModules,
     ],
-	// The WebGPU renderer is imported by three-render-objects but never constructed (the graph lens
-	// uses WebGL): a stub keeps ~580 KB of unreachable code out of main.js. See the stub's header.
-	alias: {
-		"three/webgpu": "./scripts/stubs/three-webgpu.js",
-	},
 	format: "cjs",
 	// Obsidian ships a current Chromium on desktop and mobile: no need to down-level async/await,
 	// optional chaining or spread into slower, larger ES6.

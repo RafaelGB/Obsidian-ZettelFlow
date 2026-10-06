@@ -1,7 +1,7 @@
 /**
  * A tiny one-shot handoff for the "explore in 3D" deep-link (#280 S3). A command elsewhere records the
- * note path it wants the 3D graph to focus; the {@link Graph3DRenderer} consumes it once on mount and
- * flies the camera there. Kept as a module singleton (no Obsidian import) so the command and the view
+ * note path it wants the graph to focus; Explore's graph consumes it once on mount and flies the
+ * camera there (#692). Kept as a module singleton (no Obsidian import) so the command and the view
  * stay decoupled and the consume-once semantics are unit-testable.
  */
 let pending: string | null = null;

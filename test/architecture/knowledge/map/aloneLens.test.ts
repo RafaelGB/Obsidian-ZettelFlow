@@ -1,14 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { build3DGraph, graph3dStats, OVERLAY_KINDS, OVERLAY_SPECS } from "architecture/knowledge/map/graph3d";
-import { idea, buildModel } from "../../../../actions/knowledge/support/knowledgeFixture";
+import { idea, buildModel } from "../../../actions/knowledge/support/knowledgeFixture";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
-const ROOT = join(__dirname, "..", "..", "..", "..", "..");
-const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
-const RENDERER = read("src/architecture/components/core/graph3d/Graph3DRenderer.ts");
 
 /**
  * **Alone looks like alone** (#516, epic #512).
@@ -57,20 +52,6 @@ describe("alone is a lens (#516)", () => {
         // fact twice, free to disagree.
         const graph = build3DGraph(buildModel([idea("a.md", "seed", [])]));
         expect(Object.keys(graph.nodes[0])).not.toContain("alone");
-    });
-});
-
-describe("a lens with nothing in it was already handled (#516)", () => {
-    it("shows the count and refuses the click", () => {
-        // Withdrawn from this issue rather than built: "Contradictions (0)", greyed out, is a
-        // better answer than a message after the fact, and it shipped with #280. Guarded so it
-        // cannot be lost quietly.
-        expect(RENDERER).toContain('if (count === 0) chip.setAttribute("disabled", "true");');
-        expect(RENDERER).toContain("(${count})");
-    });
-
-    it("builds every chip from the one list", () => {
-        expect(RENDERER).toContain("OVERLAY_KINDS");
     });
 });
 

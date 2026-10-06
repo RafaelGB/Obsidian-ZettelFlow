@@ -239,6 +239,42 @@ export class ThoughtStore {
         return dueHighlights(out, now);
     }
 
+    /**
+     * How many thoughts were written since a moment (#703) — one plain fact for Home's greeting,
+     * read from the metadata cache so the front door never opens a file to say it.
+     */
+    public countSince(since: number): number {
+        if (!this.folder()) return 0;
+        let count = 0;
+        for (const file of this.files()) {
+            const at = Number(this.frontOf(file)?.["at"]);
+            if (Number.isFinite(at) && at >= since) count++;
+        }
+        return count;
+    }
+
+    /**
+     * The thought you wrote last (#703), read in full — *where you left off* in Think. The cache
+     * picks the file; one file is read. Set-aside thoughts are not where you left off.
+     */
+    public async latest(): Promise<Thought | undefined> {
+        if (!this.folder()) return undefined;
+        let newest: { file: TFile; at: number } | undefined;
+        for (const file of this.files()) {
+            const front = this.frontOf(file);
+            const at = Number(front?.["at"]);
+            if (!Number.isFinite(at) || front?.["asideAt"] !== undefined) continue;
+            if (!newest || at > newest.at) newest = { file, at };
+        }
+        if (!newest) return undefined;
+        try {
+            return parseThought(await ObsidianApi.vault().cachedRead(newest.file), newest.file.path);
+        } catch (error) {
+            log.warn("[lab] could not read the last thought", error);
+            return undefined;
+        }
+    }
+
     private frontOf(file: TFile): Record<string, unknown> | undefined {
         return ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
             | Record<string, unknown>

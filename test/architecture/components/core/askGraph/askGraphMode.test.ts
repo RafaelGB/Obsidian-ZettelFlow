@@ -49,7 +49,7 @@ describe("ask-your-graph surface mode (#323)", () => {
     it("Home surfaces pinned queries with a live match count that deep-links back (#323 G4)", () => {
         expect(HOME).toContain("pinnedQueries");
         expect(HOME).toContain("runGraphQuery(");
-        expect(HOME).toContain("home_pinned_query_count");
+        expect(HOME).toContain("home-question-count");
         expect(HOME).toMatch(/activateSurface\(this\.app, "zettelflow-explore", "explore"/);
     });
 

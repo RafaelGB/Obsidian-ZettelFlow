@@ -106,7 +106,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `next-step` | zettelflow-note | 1 | control in zettelflow-note (`nextStepBlock.ts`) |
 | `evolution-timeline` | zettelflow-note | 1 | control in zettelflow-note (`storyBlock.ts`) · `show-evolution-timeline` · `show-notes-history` |
 | `evidence-map` | zettelflow-note | 1 | control in zettelflow-note (`sectionsBlock.ts`) · `show-evidence-map` |
-| `open-questions` | zettelflow-home | 2 | surface `zettelflow-home:home` · `show-open-questions` |
+| `open-questions` | zettelflow-home | 2 | surface `zettelflow-explore:explore` · `show-open-questions` |
 | `resurface` | zettelflow-home | 1 | control in zettelflow-note (`sectionsBlock.ts`) · recommended on `zettelflow-home:home` · `resurface-related-notes` · `show-discoveries` · `show-discovery` |
 | `atomicity-split` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · `split-note-into-atomic-notes` |
 | `cultivate` | zettelflow-home | 1 | ribbon → `cultivate` · surface `zettelflow-home:cultivate` · `cultivate` |

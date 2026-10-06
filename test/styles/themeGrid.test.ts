@@ -45,9 +45,7 @@ const CEILING: Record<string, number> = {
     "flowStatus.scss": 2,
     "flows.scss": 3,
     "historyView.scss": 28,
-    // 6 → 4: the cultivate-teaser card (1px border + 3px accent) left Home when it became a hero
-    // tile, and the fold's divider uses var(--border-width) rather than a literal pixel (#620).
-    "home.scss": 4,
+    // home.scss: 6 → 4 (#620) → 0 when Home became a page in Think's family (#703).
     "hooksConfig.scss": 87,
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on

@@ -18,7 +18,7 @@ import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { thinkAbout } from 'starters/zcomponents/ThinkAboutComponent';
 import { QuickCaptureModal } from 'zettelkasten/modals/QuickCaptureModal';
 import { ConfirmModal } from 'architecture/components/settings/confirmModal';
-import { buildInquiryContext, scopeExcludedPaths } from 'architecture/knowledge/state';
+import { buildInquiryContext, scopeExcludedPaths, ruledOutGaps } from 'architecture/knowledge/state';
 import {
     buildCultivationSession,
     selectCultivationTarget,
@@ -462,7 +462,20 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    private renderConnect(body: HTMLElement, candidates: string[]): void {
+    /**
+     * The connections Cultivate suggests, each with **not related** beside *Link* (#703).
+     *
+     * The gaps section left Home with the dashboard, and its verdict came here, to the one place a
+     * suggested connection is already in front of you: the machine observes, you rule, the verdict
+     * is recorded and writes nothing to the vault (§XII, #534). A pair you ruled out is not offered
+     * again. Absent when the record is off — a button that silently does nothing is worse than none.
+     */
+    private renderConnect(body: HTMLElement, all: string[]): void {
+        const log = JudgementLog.getInstance();
+        const target = this.targetPath ?? "";
+        const ruled = ruledOutGaps(log.entries());
+        const candidates = all.filter((candidate) => !ruled.has(target, candidate));
+        const canRule = log.enabled();
         for (const candidate of candidates) {
             const row = body.createDiv({ cls: c("cultivate-candidate") });
             const link = row.createSpan({ cls: c("cultivate-candidate-name"), text: basename(candidate) });
@@ -471,6 +484,16 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             hoverPreview(this.app, link, candidate, this);
             const btn = row.createEl("button", { cls: c("cultivate-candidate-btn"), text: t("cultivate_link_button") });
             btn.addEventListener("click", () => void this.linkNote(candidate));
+            if (!canRule) continue;
+            const verdict = row.createEl("button", {
+                text: t("home_gap_not_related"),
+                cls: c("cultivate-candidate-verdict"),
+                attr: { type: "button", "aria-label": t("home_gap_not_related_aria") },
+            });
+            verdict.addEventListener("click", () => {
+                JudgementLog.getInstance().recordGapVerdict(target, candidate);
+                this.recompute();
+            });
         }
     }
 

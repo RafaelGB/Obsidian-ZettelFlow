@@ -3,24 +3,24 @@ import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
 /**
- * The dashboard's new strings (#620), in **both** locales and in **sentence case**.
+ * Home's strings (#620, rewritten for #703), in **both** locales and in **sentence case**.
  *
  * `localeParity` is the superset guard; this is the per-feature subset check the house rule asks
  * for — every new key present and non-empty in `en` and `es`, and written as a phrase (only the
  * first word capitalised) rather than Title Case or ALL CAPS (§IV).
  */
 const KEYS = [
-    "home_show_everything",
-    "home_hide_extras",
-    "home_hero_next",
-    "home_hero_cultivate",
-    "home_hero_return",
-    "home_ask_graph",
+    "home_left_off",
+    "home_came_back",
+    "home_idea_to_tend",
+    "home_idea_go",
+    "home_first_ways",
+    "home_section_pinned_queries",
 ] as const;
 
 const read = (dict: unknown, key: string): string => String((dict as Record<string, string>)[key] ?? "");
 
-describe("the dashboard's new strings exist in both locales, in sentence case (#620)", () => {
+describe("Home's strings exist in both locales, in sentence case (#620, #703)", () => {
     for (const key of KEYS) {
         it(`${key} is present and non-empty in en and es`, () => {
             expect(read(en, key).length).toBeGreaterThan(0);

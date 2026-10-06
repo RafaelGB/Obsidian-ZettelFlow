@@ -360,6 +360,19 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         this.changedInPlace();
     }
 
+    /**
+     * Open on a section from outside the tab (#688) — *Change excluded folders* in This note. The
+     * tab may still be drawing when Obsidian hands it over, so the jump waits for its section head,
+     * a few frames at most, and gives up quietly: the tab is open either way.
+     */
+    revealSection(id: SectionId, tries = 10): void {
+        if (this.containerEl.querySelector(`.${sectionClass(id)}`)) {
+            this.go(id);
+            return;
+        }
+        if (tries > 0) window.setTimeout(() => this.revealSection(id, tries - 1), 50);
+    }
+
     /** Jump to a section: open Advanced first if that is where you are going. */
     private go(id: SectionId): void {
         if (id === "advanced") this.openAdvanced();

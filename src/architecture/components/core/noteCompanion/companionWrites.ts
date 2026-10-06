@@ -1,3 +1,5 @@
+import { KnowledgeIndex } from "architecture/knowledge";
+
 /**
  * One write at a time from the companion (#639 runtime audit).
  *
@@ -29,6 +31,16 @@ export function queueCompanionWrite<T>(work: () => Promise<T>): Promise<T> {
         pending--;
         notify();
     });
+}
+
+/**
+ * Whether the companion may write into `path` at all (#688). A note in an excluded folder is outside
+ * ZettelFlow: the companion shows it as such and offers no write — and this is the guard behind the
+ * buttons, for a note that left scope between the render and the click (its folder was excluded
+ * meanwhile, or a stale deep link asked for it). The index's own predicate, never a second one.
+ */
+export function companionMayWrite(path: string): boolean {
+    return KnowledgeIndex.getInstance().inScope(path);
 }
 
 /** Whether a companion write is queued or running. */

@@ -7,6 +7,7 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import type { AgencyReading, Judgement } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
+import { openZettelFlowSettings } from "architecture/components/core/surface/openSettings";
 import {
     practiceMix,
     practiceRecent,
@@ -57,10 +58,7 @@ function defaultDeps(app: App): PracticeDeps {
             return { enabled: record.enabled(), entries: record.entries() };
         },
         now: () => Date.now(),
-        openSettings: () => {
-            app.setting.open();
-            app.setting.openTabById("zettelflow");
-        },
+        openSettings: () => openZettelFlowSettings(app),
     };
 }
 

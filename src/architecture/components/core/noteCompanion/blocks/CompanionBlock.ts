@@ -34,10 +34,12 @@ export interface CompanionModel {
     neighbourhood: NoteNeighbourhood | null;
 }
 
-/** What is on screen: a note, the empty state, or the two moments before a note can be read. */
+/** What is on screen: a note, the empty state, a note outside ZettelFlow, or the two moments before a note can be read. */
 export type CompanionScreen =
     | { kind: "note"; model: CompanionModel }
     | { kind: "empty"; last: string | null }
+    /** A note in an excluded folder (#688): outside ZettelFlow, so nothing is read or offered. */
+    | { kind: "outside"; path: string; prefix: string }
     | { kind: "indexing"; path: string }
     | { kind: "error"; path: string };
 

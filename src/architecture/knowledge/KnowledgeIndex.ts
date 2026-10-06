@@ -17,7 +17,7 @@ import {
     type FileFingerprint,
 } from "./index/enrichmentPlan";
 import { detectDevelopmentEvents } from "./journal/developmentEvents";
-import { isPathExcluded, scopeExcludedPaths, type ScopeSettings } from "./scope/knowledgeScope";
+import { excludedPrefixOf, isPathExcluded, scopeExcludedPaths, type ScopeSettings } from "./scope/knowledgeScope";
 import { DevelopmentJournal } from "architecture/plugin/journal/DevelopmentJournal";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 
@@ -153,6 +153,15 @@ export class KnowledgeIndex {
     /** Whether a note counts as knowledge (#311): everything except the excluded (user + system) paths. */
     public inScope(path: string): boolean {
         return !isPathExcluded(path, this.excludedPaths());
+    }
+
+    /**
+     * The excluded folder that keeps `path` out of the thinking system, or `null` when it is in
+     * scope (#688). The same predicate as {@link inScope} — one source of truth — so a surface that
+     * refuses a note names exactly the prefix that excluded it.
+     */
+    public excludedBy(path: string): string | null {
+        return excludedPrefixOf(path, this.excludedPaths());
     }
 
     /** Rebuild the whole index from the vault. Synchronous, read-only (decisions #1 & #4). */

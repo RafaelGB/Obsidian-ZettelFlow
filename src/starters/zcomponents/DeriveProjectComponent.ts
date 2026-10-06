@@ -32,7 +32,8 @@ export class DeriveProjectComponent extends PluginComponent {
         // is where the offer belongs. The command keeps working from the active note.
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("file-menu", (menu: Menu, file) => {
-                if (!(file instanceof TFolder)) return;
+                // An excluded folder is outside ZettelFlow (#688): it holds no ideas to derive from.
+                if (!(file instanceof TFolder) || !KnowledgeIndex.getInstance().inScope(file.path)) return;
                 const path = file.path;
                 menu.addItem((item) =>
                     item

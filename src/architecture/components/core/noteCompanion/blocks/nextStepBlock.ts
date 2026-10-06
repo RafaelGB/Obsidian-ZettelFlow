@@ -27,7 +27,7 @@ import {
     type NextStepUi,
 } from "../nextStepUi";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { queueCompanionWrite } from "../companionWrites";
+import { companionMayWrite, queueCompanionWrite } from "../companionWrites";
 import {
     CompanionBlock,
     marksWrite,
@@ -349,6 +349,11 @@ export class NextStepBlock extends CompanionBlock {
     private async write(token: NextMoveToken, text: string, op: () => Promise<LinkResult | AdvanceResult>): Promise<void> {
         const ctx = this.ctx;
         if (this.busy || !ctx || ctx.screen.kind !== "note") return;
+        // Outside ZettelFlow since it was drawn (#688): write nothing, and redraw it as what it is.
+        if (!companionMayWrite(ctx.screen.model.path)) {
+            ctx.refresh();
+            return;
+        }
         this.busy = true;
         // The note the write goes into: its answer belongs to it, even if you move on meanwhile.
         const path = ctx.screen.model.path;

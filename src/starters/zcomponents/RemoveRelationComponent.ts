@@ -9,6 +9,7 @@ import {
     removeRelationField,
 } from "architecture/knowledge/relations/removeRelation";
 import ZettelFlow from "main";
+import { KnowledgeIndex } from "architecture/knowledge";
 
 /** Picker over the active note's existing typed relations. */
 class RelationPickerModal extends SuggestModal<RelationEdge> {
@@ -55,7 +56,8 @@ export class RemoveRelationComponent extends PluginComponent {
             name: t("command_remove_relation"),
             checkCallback: (checking: boolean) => {
                 const file = this.plugin.app.workspace.getActiveViewOfType(MarkdownView)?.file;
-                if (!file) return false;
+                // Outside ZettelFlow (#688): its relations are not ZettelFlow's to remove.
+                if (!file || !KnowledgeIndex.getInstance().inScope(file.path)) return false;
                 if (!checking) this.pick(file);
                 return true;
             },
@@ -69,6 +71,7 @@ export class RemoveRelationComponent extends PluginComponent {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("file-menu", (menu: Menu, file) => {
                 if (!(file instanceof TFile) || file.extension !== "md") return;
+                if (!KnowledgeIndex.getInstance().inScope(file.path)) return;
                 if (listRelationEdges(FrontmatterService.instance(file).getFrontmatter()).length === 0) return;
                 menu.addItem((item) =>
                     item

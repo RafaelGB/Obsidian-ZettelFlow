@@ -28,13 +28,22 @@ export function normalizeExcludedPaths(raw: readonly string[]): string[] {
  * normalised here, so callers can pass raw settings values.
  */
 export function isPathExcluded(path: string, prefixes: readonly string[]): boolean {
+    return excludedPrefixOf(path, prefixes) !== null;
+}
+
+/**
+ * The excluded prefix `path` falls under, or `null` when it is in scope (#688) — the same match as
+ * {@link isPathExcluded}, which is built on it, so what a surface names as "the excluded folder" is
+ * exactly what kept the note out of the index. The first matching prefix, in settings order.
+ */
+export function excludedPrefixOf(path: string, prefixes: readonly string[]): string | null {
     const normalizedPath = path.replace(/\\/g, "/").replace(/^\/+/, "").normalize("NFC");
     for (const prefix of normalizeExcludedPaths(prefixes)) {
         if (normalizedPath === prefix || normalizedPath === `${prefix}.md` || normalizedPath.startsWith(`${prefix}/`)) {
-            return true;
+            return prefix;
         }
     }
-    return false;
+    return null;
 }
 
 /**

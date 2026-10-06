@@ -22,6 +22,9 @@ book's chapters rebuilt in your type, with the same highlights — from the [Lib
 - **Explore → Read these**, beside *Copy as links*, reads what your question selected.
 - **Command palette → "Read from the active note"**, which you can bind to a hotkey.
 
+None of these is offered on a note or folder in an **excluded folder**: it is outside ZettelFlow
+(see [This note](this-note.md#a-note-in-an-excluded-folder)), and *Read these* leaves such notes out.
+
 The sidebars fold away and the Reader takes the window. When you leave, with **Esc**, the **×** or
 the command **Reader: exit**, the page fades out, the reader's tab closes, and your workspace comes
 back exactly as it was: the sidebars that were open open again, and you return to the tab you were

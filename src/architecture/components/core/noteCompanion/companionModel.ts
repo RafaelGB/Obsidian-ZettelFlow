@@ -27,6 +27,10 @@ export function buildCompanionScreen(app: App, subject: SubjectState): Companion
     if (!path) return { kind: "empty", last: subject.last };
 
     const index = KnowledgeIndex.getInstance();
+    // Before the index is asked anything (#688): an excluded note is never an idea, so there is no
+    // note to read — and it is known without waiting for the index to finish building.
+    const prefix = index.excludedBy(path);
+    if (prefix !== null) return { kind: "outside", path, prefix };
     if (index.status !== "ready") return { kind: "indexing", path };
 
     try {

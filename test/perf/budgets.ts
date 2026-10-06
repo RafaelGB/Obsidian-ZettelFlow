@@ -254,6 +254,28 @@ export const BUDGETS = {
         because:
             "a Tasks panel redraws on every data update and on every edit to one of its notes; parsing the lines and grouping them must stay well under a frame budget's worth of work (#635)",
     },
+    "library.shelf.500": {
+        name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
+        limit: 10,
+        measured: "1.7 ms",
+        because:
+            "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
+    },
+    "library.pdf.reflow.page": {
+        name: "reflow a dense two-column PDF page (961 runs) into paragraphs",
+        limit: 30,
+        measured: "7.5 ms",
+        because:
+            "it runs on every page turn in a PDF, between the key and the words; a page must be on screen well within a blink (#681, L8)",
+    },
+    "library.epub.open.5mb": {
+        name: "open a 5 MB EPUB — its directory, package and contents — and rebuild one chapter",
+        // Measured with the tests' XML parser; in the app the platform's DOMParser does the parsing.
+        limit: 50,
+        measured: "3.2 ms",
+        because:
+            "the wait between choosing a book and its first page; a long book must open as fast as a short note renders (#682, L8)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

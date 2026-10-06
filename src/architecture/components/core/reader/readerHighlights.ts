@@ -2,11 +2,12 @@ import { Component, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { anchorAll, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
-import type { Thought, ThoughtQuote } from "application/thinking/thought";
+import type { Thought, ThoughtLocator, ThoughtQuote } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
+import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -14,7 +15,7 @@ type LocaleKey = Parameters<typeof t>[0];
 export interface HighlightStore {
     folder(): string;
     highlightsAbout(notePath: string): Promise<Thought[]>;
-    write(text: string, options: { about?: string; quote?: ThoughtQuote }): Promise<Thought | undefined>;
+    write(text: string, options: { about?: string; quote?: ThoughtQuote; locator?: ThoughtLocator }): Promise<Thought | undefined>;
     save(thought: Thought): Promise<void>;
     discard(thought: Thought): Promise<void>;
     restore(thought: Thought): Promise<void>;
@@ -49,6 +50,8 @@ export interface HighlightDeps {
     makeMark?: (id: string) => HTMLElement;
     openThink?: (app: App, notePath: string) => void;
     copy?: (body: HTMLElement, text: string) => void;
+    /** A source's highlight into a note (#683): the crystallize preview, never a write of its own. */
+    toNote?: (app: App, thought: Thought) => void;
 }
 
 /** How long an answer (and its Undo) stays in the popover. */
@@ -151,9 +154,14 @@ export class ReaderHighlights {
     private readonly makeMark: (id: string) => HTMLElement;
     private readonly openThink: (app: App, notePath: string) => void;
     private readonly copy: (body: HTMLElement, text: string) => void;
+    private readonly toNote: (app: App, thought: Thought) => void;
 
     private body: HTMLElement | null = null;
     private notePath: string | null = null;
+    /** Where in a source the chapter on screen is (#681); absent for a note. */
+    private locator: ThoughtLocator | null = null;
+    /** Notes written in the margin of a page with no text (#681): a place, and no passage. */
+    private pageNotes: Thought[] = [];
     private component: Component | null = null;
     private margin: HTMLElement | null = null;
     private anchored: { thought: Thought; marks: HTMLElement[] }[] = [];
@@ -177,6 +185,7 @@ export class ReaderHighlights {
         this.makeMark = deps.makeMark ?? ((id) => newMarkIn(this.body, id));
         this.openThink = deps.openThink ?? openInThink;
         this.copy = deps.copy ?? copyText;
+        this.toNote = deps.toNote ?? ((app, thought) => crystallizeHighlight(app, thought));
     }
 
     /** The chapter's highlights, drawn and anchored in reading order. */
@@ -201,11 +210,20 @@ export class ReaderHighlights {
      * Take over a freshly rendered chapter: draw the note's highlights over it and listen for a
      * selection. `component` is the chapter's own, so its listeners go with the chapter.
      */
-    async attach(body: HTMLElement, notePath: string, component: Component, margin: HTMLElement | null): Promise<void> {
+    async attach(
+        body: HTMLElement,
+        notePath: string,
+        component: Component,
+        margin: HTMLElement | null,
+        /** The chapter's place, when it is a page of a PDF or a chapter of an EPUB (#681). */
+        locator: ThoughtLocator | null = null
+    ): Promise<void> {
         const generation = ++this.generation;
         this.hidePopover();
         this.body = body;
         this.notePath = notePath;
+        this.locator = locator;
+        this.pageNotes = [];
         this.component = component;
         this.margin = margin;
         this.anchored = [];
@@ -250,10 +268,13 @@ export class ReaderHighlights {
             log.warn(`[Reader] could not read the highlights of ${notePath}: ${String(error)}`);
         }
         if (generation !== this.generation || this.body !== body) return;
+        // A source's passages are found again only on their own page or chapter (#681).
+        const here = thoughts.filter((thought) => (locator ? thought.locator?.at === locator.at : !thought.locator));
+        this.pageNotes = here.filter((thought) => !thought.quote?.exact && thought.text.trim());
         const text = chapterText(body);
         const { anchored, detached } = anchorAll(
             text,
-            thoughts.filter((thought) => thought.quote).map((thought) => ({ thought, quote: thought.quote! }))
+            here.filter((thought) => thought.quote).map((thought) => ({ thought, quote: thought.quote! }))
         );
         // Last first: drawing a later passage never moves the offsets of an earlier one.
         for (const entry of [...anchored].sort((a, b) => b.span.start - a.span.start)) {
@@ -271,6 +292,8 @@ export class ReaderHighlights {
         this.hidePopover();
         this.body = null;
         this.notePath = null;
+        this.locator = null;
+        this.pageNotes = [];
         this.anchored = [];
         this.detached = [];
         this.renderMargin();
@@ -316,8 +339,26 @@ export class ReaderHighlights {
         this.popoverScope = null;
     }
 
+    /**
+     * A note in the margin of this page, with no passage (#681): what a scanned PDF still allows.
+     * The note form opens over `anchor`; Ctrl/Cmd-Enter keeps it as a thought in Think.
+     */
+    notePage(anchor: HTMLElement): void {
+        if (!this.notePath || !this.locator) return;
+        const rect = anchor.getBoundingClientRect();
+        const pop = this.openPopover({ left: rect.left, top: rect.top + rect.height, width: rect.width }, "editing");
+        this.noteForm(pop, "", (text) => void this.keepPageNote(text));
+    }
+
     /** The highlights as a list — the margin's content, and the context panel's on a narrow pane. */
     renderList(host: HTMLElement, scope: Component): void {
+        if (this.pageNotes.length > 0) {
+            host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_page_notes") });
+            for (const thought of this.pageNotes) {
+                const row = host.createDiv({ cls: [c("reader-hl-item"), c("reader-hl-item--page")] });
+                row.createDiv({ cls: c("reader-hl-note"), text: thought.text.trim() });
+            }
+        }
         if (this.anchored.length === 0 && this.detached.length === 0) return;
         host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_margin") });
         for (const entry of this.anchored) {
@@ -412,9 +453,12 @@ export class ReaderHighlights {
             return;
         }
         let made: Thought | undefined;
+        const locator = this.locator;
+        // In a source, the place is the heading a passage is cited under when its page has none.
+        const cited = locator && !quote.heading && locator.label ? { ...quote, heading: locator.label } : quote;
         try {
             await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: notePath }, async () => {
-                made = await this.store.write(note.trim(), { about: notePath, quote });
+                made = await this.store.write(note.trim(), { about: notePath, quote: cited, ...(locator ? { locator } : {}) });
             });
         } catch (error) {
             log.error(`[Reader] could not keep a highlight on ${notePath}: ${String(error)}`);
@@ -433,6 +477,52 @@ export class ReaderHighlights {
         marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
         this.insert(thought, marks, span.start);
         this.status("reader_hl_saved", () => void this.forget(thought, false));
+    }
+
+    private async keepPageNote(text: string): Promise<void> {
+        const notePath = this.notePath;
+        const locator = this.locator;
+        if (!notePath || !locator || !text.trim()) {
+            this.hidePopover();
+            return;
+        }
+        if (!this.store.folder()) {
+            this.status("reader_hl_no_lab");
+            return;
+        }
+        let made: Thought | undefined;
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: notePath }, async () => {
+                made = await this.store.write(text.trim(), { about: notePath, locator });
+            });
+        } catch (error) {
+            log.error(`[Reader] could not keep a note on ${notePath}: ${String(error)}`);
+        }
+        if (!made) {
+            this.status("reader_hl_failed");
+            return;
+        }
+        this.noted++;
+        this.pageNotes.push(made);
+        this.renderMargin();
+        this.view.onChange();
+        const thought = made;
+        this.status("reader_hl_page_saved", () => void this.forgetPageNote(thought));
+    }
+
+    private async forgetPageNote(thought: Thought): Promise<void> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.discard(thought));
+        } catch (error) {
+            log.error(`[Reader] could not remove a note: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        this.pageNotes = this.pageNotes.filter((candidate) => candidate.id !== thought.id);
+        this.noted = Math.max(0, this.noted - 1);
+        this.renderMargin();
+        this.view.onChange();
+        this.hidePopover();
     }
 
     private async editNote(thought: Thought, text: string): Promise<void> {
@@ -539,6 +629,13 @@ export class ReaderHighlights {
             const editing = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "editing");
             this.noteForm(editing, note, (text) => void this.editNote(thought, text));
         });
+        // A passage of a book or a paper becomes a note that cites its page (#683).
+        if (thought.locator) {
+            this.button(actions, "reader_hl_crystallize", false, () => {
+                this.hidePopover();
+                this.toNote(this.view.app, thought);
+            });
+        }
         this.button(actions, "reader_hl_delete", false, () => void this.forget(thought));
         this.button(actions, "reader_hl_open_think", false, () => {
             this.hidePopover();

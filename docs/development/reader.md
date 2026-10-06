@@ -12,6 +12,9 @@ time, and steps out of the way while you read.
 
 ## Open it
 
+The Reader also reads your **PDFs and EPUBs** — a paper's pages reflowed into the same column, a
+book's chapters rebuilt in your type, with the same highlights — from the [Library](library.md).
+
 - **Right-click any note → Read from here.** That is the whole setup. You don't need a map of
   content or a list of relations: the note you right-click is where the reading starts.
 - **This note → ⋯ → Read around this note**, from the note you are on.
@@ -201,7 +204,8 @@ end card says what it added up to and what you can do with it.
 - **Save this path.** Name it (it proposes the note and the way you read it) and the path is kept,
   in this order, in the plugin's data. It comes back as **Your saved paths** in the chooser of any
   note it passes through — read it again, rename it in place, or delete it — and as **Saved
-  readings** in Home's **Show everything** fold, one click back into the Reader. Saving again
+  readings** in Home's **Show everything** fold, one click back into the Reader — and on the
+  [Library](library.md)'s shelf, with how far you are and what you marked. Saving again
   under a new name renames it; the same chapters are never kept twice.
 - **Export as one document.** A preview first: the chapters, an appendix of your highlights on
   them, and how each chapter is carried — **Embed each note** (the default: `![[note]]`, live,

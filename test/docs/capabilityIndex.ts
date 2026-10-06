@@ -117,6 +117,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     collision: { summary: "two of your notes with nothing in common, one question, no answer.", page: "../architecture/collision.md" },
     moves: { summary: "make a cognitive move on the note you are reading — challenge, reframe, branch.", page: "../development/cultivate.md#the-moves" },
     reader: { summary: "right-click a note and read a path across your notes, the way you read a book — no MOC, nothing written.", page: "../development/reader.md" },
+    library: { summary: "your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page.", page: "../development/library.md" },
     "highlights-review": { summary: "what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go.", page: "../development/highlights-review.md" },
     "think-about": { summary: "open a thread about a note without writing to it.", page: "../architecture/thought-lab.md" },
     "claim-door": { summary: "say in one sentence what a note claims.", page: "../development/claim-returns.md" },

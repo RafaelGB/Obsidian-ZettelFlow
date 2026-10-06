@@ -55,6 +55,12 @@ changes.
   A link counts when it is to another note: never to the note itself, to a note that does not
   exist yet, or to an attachment — the same rule the neighbourhood uses, so the two always agree.
 
+## Where it came from
+
+A note that cites a PDF or an EPUB of your [Library](library.md) — a passage you crystallized, or a
+`source::` you wrote — says so under its counts: **Born from** *the book* · *the page*. Click it and
+the Reader opens the book there.
+
 ## Next step
 
 Under the head, one card says the note's **next step** and lets you finish it where you are.

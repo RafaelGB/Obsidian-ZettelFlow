@@ -1,0 +1,722 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The Library (#680, epic #675) — your PDFs, EPUBs and saved reading paths, on one shelf.
+ *
+ * Every colour is the user's theme (§XV). A drawn cover is one of the theme's own named colours
+ * (`--color-red` … `--color-pink`) mixed into its text colour, with its title in the page's
+ * background colour: dark covers in a light theme, light ones in a dark theme, and readable in
+ * both. It is laid out on the 4-grid and works as well in a narrow pane or a sidebar: the shelf is
+ * its own size container.
+ */
+
+.workspace-leaf-content[data-type="zettelflow-library"] .view-content.zettelkasten-flow__shelf-host {
+    padding: 0;
+    position: relative;
+    overflow: auto;
+}
+
+.zettelkasten-flow__shelf {
+    container-type: inline-size;
+    max-width: 74rem;
+    margin: 0 auto;
+    padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
+}
+
+/* ── head: what this is, and the search ────────────────────────────────── */
+.zettelkasten-flow__shelf-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-3);
+    margin-bottom: var(--size-4-4);
+}
+
+.zettelkasten-flow__shelf-titles {
+    flex: 1 1 14rem;
+    min-width: 0;
+}
+
+.zettelkasten-flow__shelf-heading {
+    margin: 0;
+    font-size: var(--h1-size);
+    letter-spacing: -0.01em;
+}
+
+.zettelkasten-flow__shelf-subtitle {
+    @include hint;
+    margin-top: var(--size-2-1);
+}
+
+.zettelkasten-flow__shelf-search {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    flex: 0 1 18rem;
+    padding: var(--size-4-1) var(--size-4-3);
+    border: $line-quiet;
+    border-radius: var(--radius-m);
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-search-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-search-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    color: var(--text-normal);
+}
+
+/* ── filters and the order ─────────────────────────────────────────────── */
+.zettelkasten-flow__shelf-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-4);
+}
+
+.zettelkasten-flow__shelf-filter {
+    @include chip;
+    @include chip-clickable;
+    gap: var(--size-4-2);
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__shelf-filter-count {
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__shelf-sort {
+    margin-left: auto;
+}
+
+.zettelkasten-flow__shelf-section {
+    margin: var(--size-4-6) 0 var(--size-4-3);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+
+/* ── covers ─────────────────────────────────────────────────────────────── */
+.zettelkasten-flow__shelf-cover {
+    --shelf-tint: var(--color-accent);
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-s) var(--radius-m) var(--radius-m) var(--radius-s);
+    background-color: color-mix(in srgb, var(--shelf-tint) 58%, var(--color-base-100));
+    color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+
+    /* The spine: a shade down the left edge, so a cover reads as a book. */
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--color-base-100) 22%, transparent),
+            color-mix(in srgb, var(--color-base-00) 8%, transparent) 6%,
+            transparent 11%
+        );
+    }
+}
+
+.zettelkasten-flow__shelf-cover--tint-0 { --shelf-tint: var(--color-red); }
+.zettelkasten-flow__shelf-cover--tint-1 { --shelf-tint: var(--color-orange); }
+.zettelkasten-flow__shelf-cover--tint-2 { --shelf-tint: var(--color-yellow); }
+.zettelkasten-flow__shelf-cover--tint-3 { --shelf-tint: var(--color-green); }
+.zettelkasten-flow__shelf-cover--tint-4 { --shelf-tint: var(--color-cyan); }
+.zettelkasten-flow__shelf-cover--tint-5 { --shelf-tint: var(--color-blue); }
+.zettelkasten-flow__shelf-cover--tint-6 { --shelf-tint: var(--color-purple); }
+.zettelkasten-flow__shelf-cover--tint-7 { --shelf-tint: var(--color-pink); }
+
+/* A paper is a page, not a book: the page's own colour, a hairline round it, no spine. */
+.zettelkasten-flow__shelf-cover--pdf {
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    border: var(--border-width) solid var(--background-modifier-border);
+
+    &::after {
+        background: repeating-linear-gradient(
+            180deg,
+            transparent 0 0.55em,
+            color-mix(in srgb, var(--text-faint) 18%, transparent) 0.55em 0.68em
+        );
+        mask-image: linear-gradient(180deg, transparent 38%, var(--color-base-100) 40%, var(--color-base-100) 88%, transparent 90%);
+        inset: 0 12%;
+    }
+}
+
+/* A reading path is a constellation of your own notes, on the accent. */
+.zettelkasten-flow__shelf-cover--path {
+    background: linear-gradient(
+        150deg,
+        color-mix(in srgb, var(--interactive-accent) 80%, var(--color-base-100)),
+        color-mix(in srgb, var(--interactive-accent) 28%, var(--color-base-100))
+    );
+    color: var(--color-base-00);
+}
+
+.zettelkasten-flow__shelf-cover--image {
+    background: var(--background-secondary);
+
+    .zettelkasten-flow__shelf-cover-drawn {
+        visibility: hidden;
+    }
+
+    &.zettelkasten-flow__shelf-cover--pdf::after {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__shelf-cover-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: zf-shelf-cover-in 0.35s ease both;
+}
+
+@keyframes zf-shelf-cover-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.zettelkasten-flow__shelf-cover-drawn {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--size-4-1);
+    padding: 12% 10%;
+    text-align: center;
+}
+
+.zettelkasten-flow__shelf-cover-title {
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+    font-weight: var(--font-bold);
+    font-size: 0.95em;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__shelf-cover-author {
+    font-size: 0.62em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.zettelkasten-flow__shelf-cover-graph {
+    position: absolute;
+    inset: 6% 6% 34%;
+    width: 88%;
+    height: 60%;
+}
+
+.zettelkasten-flow__shelf-cover-graph-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-opacity: 0.55;
+    stroke-width: 2;
+}
+
+.zettelkasten-flow__shelf-cover-graph-node {
+    fill: currentColor;
+    opacity: 0.88;
+}
+
+/* ── continue reading ──────────────────────────────────────────────────── */
+.zettelkasten-flow__shelf-hero {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--size-4-4);
+}
+
+@container (max-width: 40rem) {
+    .zettelkasten-flow__shelf-hero {
+        grid-template-columns: 1fr;
+    }
+}
+
+.zettelkasten-flow__shelf-hero-card {
+    display: flex;
+    gap: var(--size-4-4);
+    padding: var(--size-4-4);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--interactive-accent) 10%, var(--background-primary)),
+        var(--background-primary)
+    );
+    transition:
+        transform 0.15s ease,
+        border-color 0.15s ease;
+
+    &:hover {
+        transform: translateY(-0.125rem);
+        border-color: color-mix(in srgb, var(--interactive-accent) 50%, var(--background-modifier-border));
+    }
+
+    .zettelkasten-flow__shelf-cover {
+        flex: none;
+        width: 5.75rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+}
+
+.zettelkasten-flow__shelf-hero-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__shelf-hero-title {
+    font-weight: var(--font-semibold);
+    font-size: var(--font-ui-large);
+    line-height: 1.3;
+}
+
+.zettelkasten-flow__shelf-hero-where {
+    @include hint;
+    margin-top: auto;
+}
+
+.zettelkasten-flow__shelf-progress {
+    height: var(--size-4-1);
+    border-radius: $radius-pill;
+    background-color: var(--background-modifier-border);
+    overflow: hidden;
+}
+
+.zettelkasten-flow__shelf-progress-fill {
+    height: 100%;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scaleX(var(--zf-shelf-progress, 0));
+    transform-origin: left center;
+}
+
+.zettelkasten-flow__shelf-resume {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__shelf-resume-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__shelf-kind-inline {
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.06em;
+    color: var(--text-accent);
+}
+
+/* ── the shelf ─────────────────────────────────────────────────────────── */
+.zettelkasten-flow__shelf-shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: var(--size-4-6) var(--size-4-4);
+}
+
+@container (max-width: 26rem) {
+    .zettelkasten-flow__shelf {
+        padding: var(--size-4-4) var(--size-4-3) var(--size-4-12);
+    }
+
+    .zettelkasten-flow__shelf-shelf {
+        grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+        gap: var(--size-4-4) var(--size-4-3);
+    }
+
+    .zettelkasten-flow__shelf-sort {
+        margin-left: 0;
+    }
+}
+
+.zettelkasten-flow__shelf-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-3);
+    min-width: 0;
+
+    &:hover .zettelkasten-flow__shelf-cover {
+        transform: translateY(-0.2rem) rotate(-0.4deg);
+        box-shadow: var(--shadow-l);
+    }
+
+    &:hover .zettelkasten-flow__shelf-more,
+    &:focus-within .zettelkasten-flow__shelf-more {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-card-open {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.zettelkasten-flow__shelf-kind {
+    position: absolute;
+    top: var(--size-4-2);
+    left: var(--size-4-2);
+    z-index: 1;
+    padding: 0 var(--size-4-1);
+    border-radius: var(--radius-s);
+    background-color: color-mix(in srgb, var(--color-base-100) 70%, transparent);
+    color: var(--color-base-00);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.06em;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-more {
+    position: absolute;
+    top: var(--size-4-1);
+    right: var(--size-4-1);
+    z-index: 1;
+    opacity: 0;
+    background-color: color-mix(in srgb, var(--color-base-100) 60%, transparent);
+    color: var(--color-base-00);
+    transition: opacity 0.15s ease;
+}
+
+.zettelkasten-flow__shelf-card-title {
+    font-weight: var(--font-semibold);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__shelf-card-author {
+    @include hint;
+}
+
+.zettelkasten-flow__shelf-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-2-3) var(--size-4-2);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__shelf-meta-strong {
+    color: var(--text-muted);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__shelf-meta-marks {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__shelf-meta-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__shelf-born {
+    color: var(--color-green);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__shelf-scanned {
+    @include chip;
+    border-color: color-mix(in srgb, var(--color-orange) 45%, transparent);
+    background-color: color-mix(in srgb, var(--color-orange) 12%, transparent);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-ring {
+    width: var(--icon-s);
+    height: var(--icon-s);
+    flex: none;
+}
+
+.zettelkasten-flow__shelf-ring-track {
+    fill: none;
+    stroke: var(--background-modifier-border);
+    stroke-width: 3;
+}
+
+.zettelkasten-flow__shelf-ring-fill {
+    fill: none;
+    stroke: var(--interactive-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.zettelkasten-flow__shelf-ring--done .zettelkasten-flow__shelf-ring-fill {
+    stroke: var(--color-green);
+}
+
+.zettelkasten-flow__shelf-no-match {
+    @include empty-state;
+}
+
+/* ── the empty shelf ───────────────────────────────────────────────────── */
+.zettelkasten-flow__shelf-empty {
+    max-width: 36rem;
+    margin: var(--size-4-12) auto;
+    padding: var(--size-4-10) var(--size-4-8);
+    border: var(--border-width) dashed var(--background-modifier-border);
+    border-radius: var(--radius-l);
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-empty-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    svg {
+        width: var(--icon-xl);
+        height: var(--icon-xl);
+    }
+}
+
+.zettelkasten-flow__shelf-empty-title {
+    margin: var(--size-4-3) 0 var(--size-4-2);
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-empty-body {
+    margin-bottom: var(--size-4-4);
+}
+
+/* ── a source in detail: a panel over the shelf ────────────────────────── */
+.zettelkasten-flow__shelf-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-color: var(--background-modifier-cover);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.zettelkasten-flow__shelf-scrim--on {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.zettelkasten-flow__shelf-detail {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    width: min(28rem, 92%);
+    overflow: auto;
+    padding: var(--size-4-5);
+    border-left: $line-quiet;
+    background-color: var(--background-primary);
+    box-shadow: var(--shadow-l);
+    transform: translateX(105%);
+    visibility: hidden;
+    transition:
+        transform 0.25s ease,
+        visibility 0s linear 0.25s;
+}
+
+.zettelkasten-flow__shelf-detail--open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+}
+
+.zettelkasten-flow__shelf-detail-top {
+    display: flex;
+    gap: var(--size-4-4);
+
+    .zettelkasten-flow__shelf-cover {
+        flex: none;
+        width: 5.25rem;
+        font-size: 0.75rem;
+    }
+}
+
+.zettelkasten-flow__shelf-detail-what {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__shelf-detail-title {
+    margin: 0;
+    font-size: var(--h3-size);
+}
+
+.zettelkasten-flow__shelf-detail-file {
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+    word-break: break-all;
+}
+
+.zettelkasten-flow__shelf-detail-actions {
+    display: flex;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__shelf-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    gap: var(--size-4-2);
+    margin: var(--size-4-4) 0;
+}
+
+.zettelkasten-flow__shelf-detail-stat {
+    @include card;
+    align-items: center;
+    text-align: center;
+}
+
+.zettelkasten-flow__shelf-detail-stat-value {
+    font-size: var(--font-ui-large);
+    font-weight: var(--font-bold);
+}
+
+.zettelkasten-flow__shelf-detail-stat--born .zettelkasten-flow__shelf-detail-stat-value {
+    color: var(--color-green);
+}
+
+.zettelkasten-flow__shelf-detail-stat-label {
+    @include hint;
+}
+
+.zettelkasten-flow__shelf-born-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-born-row,
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-born-row {
+    @include row;
+    justify-content: flex-start;
+    height: auto;
+    padding: var(--size-4-2) 0;
+    border: 0;
+    border-bottom: $line-quiet;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    cursor: pointer;
+    text-align: left;
+}
+
+.zettelkasten-flow__shelf-born-mark {
+    color: var(--color-green);
+}
+
+.zettelkasten-flow__shelf-detail-group {
+    margin: var(--size-4-3) 0 var(--size-4-1);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__shelf-detail-empty {
+    @include empty-state;
+}
+
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-highlight {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: var(--size-4-2) 0;
+    padding: var(--size-4-2) var(--size-4-3);
+    border: 0;
+    border-left: var(--size-2-2) solid var(--color-yellow);
+    border-radius: 0 var(--radius-m) var(--radius-m) 0;
+    background-color: var(--background-secondary);
+    box-shadow: none;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__shelf-highlight-quote {
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-highlight-note {
+    margin-top: var(--size-4-1);
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-highlight-where {
+    margin-top: var(--size-2-2);
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__shelf-cover,
+    .zettelkasten-flow__shelf-hero-card,
+    .zettelkasten-flow__shelf-detail,
+    .zettelkasten-flow__shelf-scrim {
+        transition: none;
+    }
+
+    .zettelkasten-flow__shelf-cover-image {
+        animation: none;
+    }
+}

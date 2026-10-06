@@ -186,3 +186,48 @@ describe("the ⋯ menu (#642 AC-12, FR-20)", () => {
         expect(render({ kind: "empty", last: null }).block.menuItems()).toEqual([]);
     });
 });
+
+describe("where a note came from (#683)", () => {
+    it("names the book and the page a note cites, and opens the Reader there", async () => {
+        const { TFile } = await import("obsidian");
+        const note = new TFile();
+        note.path = "zettel/A.md";
+        const book = new TFile();
+        book.path = "Books/Thinking, Fast and Slow.epub";
+        const host = new DomNode();
+        const block = new HeadBlock(host as never);
+        const setViewState = jest.fn(async () => undefined);
+        const leaf = { setViewState };
+        const ctx = {
+            app: {
+                workspace: { trigger: jest.fn(), getMostRecentLeaf: () => null, getLeavesOfType: () => [], getLeaf: () => leaf, revealLeaf: jest.fn(async () => undefined) },
+                vault: {
+                    getAbstractFileByPath: (path: string) => (path === note.path ? note : null),
+                    cachedRead: async () => "Text.\n\nsource:: [[Books/Thinking, Fast and Slow.epub]] p. 42\nsource:: [[Gone.pdf]] p. 1\n",
+                },
+                metadataCache: { getFirstLinkpathDest: (link: string) => (link === book.path ? book : null) },
+            },
+            screen: { kind: "note", model: model() },
+            pinned: false,
+            owner: new Component(),
+            menu: jest.fn(() => []),
+        };
+        block.load();
+        block.update(ctx as unknown as CompanionContext);
+        await new Promise((resolve) => setImmediate(resolve));
+        expect(host.oneByClass("note-companion-origin-label").textContent).toBe("Born from");
+        const source = host.oneByClass("note-companion-origin-source");
+        expect(source.textContent).toBe("Thinking, Fast and Slow · p. 42");
+        expect(host.oneByClass("note-companion-origin-gone").textContent).toBe("Gone · p. 1");
+        source.click();
+        await new Promise((resolve) => setImmediate(resolve));
+        expect(setViewState).toHaveBeenCalledWith(expect.objectContaining({ state: expect.objectContaining({ source: book.path, chapter: 41 }) }));
+    });
+
+    it("says nothing when the note cites no book", async () => {
+        const { host } = render({ kind: "note", model: model() });
+        await new Promise((resolve) => setImmediate(resolve));
+        expect(host.byClass("note-companion-origin")).toHaveLength(0);
+    });
+});
+

@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-label="The Library: Continue reading with a paper and a book, then the shelf of books, papers and reading paths, each with its progress, highlights and the notes born from it — and a scanned PDF marked read only">
+<rect width="1200" height="900" fill="#141416"/>
+<rect x="30" y="20" width="1140" height="860" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="52" cy="40" r="5.5" fill="#fb464c" stroke="none" stroke-width="0" />
+<circle cx="70" cy="40" r="5.5" fill="#e9973f" stroke="none" stroke-width="0" />
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e" stroke="none" stroke-width="0" />
+<text x="600.0" y="45" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="30" y="60" width="44" height="820" rx="0" fill="#202022" stroke="none" stroke-width="1.5" />
+<rect x="40" y="112" width="24" height="24" rx="6" fill="#2f2b45" stroke="none" stroke-width="1.5" />
+<text x="52" y="129" fill="#7f6df2" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" >▥</text>
+<rect x="74" y="60" width="1096" height="34" rx="0" fill="#202022" stroke="none" stroke-width="1.5" />
+<rect x="84" y="66" width="120" height="28" rx="6" fill="#18181b" stroke="none" stroke-width="1.5" />
+<text x="100" y="85" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Library</text>
+<text x="120" y="140" fill="#dcddde" font-family="sans-serif" font-size="26" font-weight="700" text-anchor="start" >Library</text>
+<text x="120" y="164" fill="#8b8e94" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" >What you are reading, and what came of it.</text>
+<rect x="830" y="126" width="300" height="34" rx="8" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="848" y="148" fill="#5f6168" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start" >⌕</text>
+<text x="870" y="148" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Search titles and authors</text>
+<rect x="120" y="186" width="60.6" height="26" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="132" y="203.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >All</text>
+<text x="168.6" y="203.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">8</text>
+<rect x="188.6" y="186" width="75.0" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="200.6" y="203.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Books</text>
+<text x="251.60000000000002" y="203.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">3</text>
+<rect x="271.6" y="186" width="82.2" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="283.6" y="203.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Papers</text>
+<text x="341.8" y="203.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">3</text>
+<rect x="361.8" y="186" width="75.0" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="373.8" y="203.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Paths</text>
+<text x="424.8" y="203.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">2</text>
+<rect x="990" y="186" width="140" height="26" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="1002" y="203.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Recently read  ▾</text>
+<text x="120" y="250" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="start" letter-spacing="1.2">CONTINUE READING</text>
+<rect x="120" y="262" width="495" height="160" rx="14" fill="#1f1d29" stroke="#3a3a3a" stroke-width="1" />
+<rect x="136" y="276" width="92" height="132" rx="3" fill="#f4f3ef" stroke="#3a3a3a" stroke-width="1" />
+<rect x="147.04" y="287.88" width="69.92" height="4.62" rx="1.5" fill="#2a2a2a" stroke="none" stroke-width="1.5" />
+<rect x="154.4" y="295.8" width="55.199999999999996" height="3.696" rx="1.5" fill="#2a2a2a" stroke="none" stroke-width="1.5" />
+<rect x="163.6" y="303.72" width="36.800000000000004" height="2.112" rx="1" fill="#888" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="315.6" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="321.54" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="327.48" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="333.42" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="339.36" width="46.0" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="345.3" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="351.24" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="357.18" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="363.12" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="369.06" width="46.0" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="375.0" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="380.94000000000005" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="386.88" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="147.04" y="392.82000000000005" width="69.92" height="1.584" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<text x="246" y="296" fill="#9d8df7" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >PDF</text>
+<text x="280" y="296" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >today</text>
+<text x="246" y="320" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start" >Brewer's Conjecture and the Feasibility of</text>
+<text x="246" y="339" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start" >CAP Web Services</text>
+<text x="246" y="360" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Gilbert &amp; Lynch · 2002</text>
+<rect x="246" y="370" width="340" height="4" rx="2" fill="#3a3a3a" stroke="none" stroke-width="1.5" />
+<rect x="246" y="370" width="224" height="4" rx="2" fill="#7f6df2" stroke="none" stroke-width="1.5" />
+<text x="246" y="390" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Page 8 of 12</text>
+<rect x="480" y="380" width="100" height="28" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="530.0" y="398.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" >Resume</text>
+<rect x="630" y="262" width="495" height="160" rx="14" fill="#1f1d29" stroke="#3a3a3a" stroke-width="1" />
+<rect x="646" y="276" width="92" height="132" rx="5" fill="#c9a227" stroke="none" stroke-width="1.5" />
+<rect x="646" y="276" width="9.2" height="132" fill="#000" opacity="0.18"/>
+<circle cx="692.0" cy="326.2" r="20.2" fill="none" stroke="#1b1b1b" stroke-width="2.76" />
+<circle cx="692.0" cy="326.2" r="4.6" fill="#1b1b1b" stroke="none" stroke-width="0" />
+<text x="692.0" y="371.0" fill="#1b1b1b" font-family="Georgia, serif" font-size="9" font-weight="700" text-anchor="middle" >Thinking,</text>
+<text x="692.0" y="381.8" fill="#1b1b1b" font-family="Georgia, serif" font-size="9" font-weight="700" text-anchor="middle" >Fast and</text>
+<text x="692.0" y="392.6" fill="#1b1b1b" font-family="Georgia, serif" font-size="9" font-weight="700" text-anchor="middle" >Slow</text>
+<text x="692.0" y="401.4" fill="#1b1b1b" font-family="sans-serif" font-size="6" font-weight="400" text-anchor="middle" opacity="0.75" letter-spacing="1.3">DANIEL KAHNEMAN</text>
+<text x="756" y="296" fill="#9d8df7" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >EPUB</text>
+<text x="790" y="296" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >yesterday</text>
+<text x="756" y="320" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start" >Thinking, Fast and Slow</text>
+<text x="756" y="341" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Daniel Kahneman</text>
+<rect x="756" y="370" width="340" height="4" rx="2" fill="#3a3a3a" stroke="none" stroke-width="1.5" />
+<rect x="756" y="370" width="27" height="4" rx="2" fill="#7f6df2" stroke="none" stroke-width="1.5" />
+<text x="756" y="390" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Chapter 3 of 38</text>
+<rect x="990" y="380" width="100" height="28" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="1040.0" y="398.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" >Resume</text>
+<text x="120" y="456" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="start" letter-spacing="1.2">YOUR SHELF</text>
+<rect x="120" y="472" width="150" height="225" rx="5" fill="#4a7fd0" stroke="none" stroke-width="1.5" />
+<rect x="120" y="472" width="15.0" height="225" fill="#000" opacity="0.18"/>
+<rect x="153.0" y="526.0" width="36.0" height="45.0" rx="2" fill="#f4efe6" stroke="none" stroke-width="1.5" opacity="0.9"/>
+<rect x="195.0" y="539.5" width="36.0" height="45.0" rx="2" fill="#f4efe6" stroke="none" stroke-width="1.5" opacity="0.7"/>
+<rect x="174.0" y="580.0" width="36.0" height="45.0" rx="2" fill="#f4efe6" stroke="none" stroke-width="1.5" opacity="0.5"/>
+<text x="195.0" y="634.0" fill="#f7f4ee" font-family="Georgia, serif" font-size="14.2" font-weight="700" text-anchor="middle" >How to Take</text>
+<text x="195.0" y="651.1" fill="#f7f4ee" font-family="Georgia, serif" font-size="14.2" font-weight="700" text-anchor="middle" >Smart Notes</text>
+<text x="195.0" y="685.8" fill="#f7f4ee" font-family="sans-serif" font-size="7.2" font-weight="400" text-anchor="middle" opacity="0.75" letter-spacing="1.3">SÖNKE AHRENS</text>
+<rect x="128" y="480" width="40" height="17" rx="4" fill="#000000" stroke="none" stroke-width="1.5" opacity="0.55"/>
+<text x="148" y="492.5" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle" >EPUB</text>
+<text x="120" y="719" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >How to Take Smart</text>
+<text x="120" y="736" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Notes</text>
+<text x="120" y="753" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Sönke Ahrens</text>
+<circle cx="128" cy="771" r="7" fill="none" stroke="#3a3a3a" stroke-width="3" />
+<circle cx="128" cy="771" r="7" fill="none" stroke="#44cf6e" stroke-width="3" stroke-linecap="round" stroke-dasharray="43.98 43.98" transform="rotate(-90 128 771)"/>
+<text x="142" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >100%</text>
+<text x="178" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >✎ 41</text>
+<text x="212" y="775" fill="#44cf6e" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >◆ 6 born</text>
+<text x="120" y="795" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >2 weeks ago</text>
+<rect x="292" y="472" width="150" height="225" rx="5" fill="#c0504d" stroke="none" stroke-width="1.5" />
+<rect x="292" y="472" width="15.0" height="225" fill="#000" opacity="0.18"/>
+<ellipse cx="367.0" cy="546.2" rx="36.0" ry="10.1" fill="none" stroke="#fff" stroke-width="2.4"/>
+<path d="M 331.0 546.2 v 33.8 a 36.0 10.1 0 0 0 72.0 0 v -33.8" fill="none" stroke="#fff" stroke-width="2.4"/>
+<text x="367.0" y="634.0" fill="#f7f4ee" font-family="Georgia, serif" font-size="12.8" font-weight="700" text-anchor="middle" >Designing</text>
+<text x="367.0" y="649.3" fill="#f7f4ee" font-family="Georgia, serif" font-size="12.8" font-weight="700" text-anchor="middle" >Data-Intensive</text>
+<text x="367.0" y="664.6" fill="#f7f4ee" font-family="Georgia, serif" font-size="12.8" font-weight="700" text-anchor="middle" >Applications</text>
+<text x="367.0" y="685.8" fill="#f7f4ee" font-family="sans-serif" font-size="7.2" font-weight="400" text-anchor="middle" opacity="0.75" letter-spacing="1.3">MARTIN KLEPPMANN</text>
+<rect x="300" y="480" width="40" height="17" rx="4" fill="#000000" stroke="none" stroke-width="1.5" opacity="0.55"/>
+<text x="320" y="492.5" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle" >EPUB</text>
+<text x="292" y="719" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Designing</text>
+<text x="292" y="736" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Data-Intensive</text>
+<text x="292" y="753" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Martin Kleppmann</text>
+<circle cx="300" cy="771" r="7" fill="none" stroke="#3a3a3a" stroke-width="3" />
+<circle cx="300" cy="771" r="7" fill="none" stroke="#7f6df2" stroke-width="3" stroke-linecap="round" stroke-dasharray="7.92 43.98" transform="rotate(-90 300 771)"/>
+<text x="314" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >18%</text>
+<text x="350" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >✎ 9</text>
+<text x="292" y="795" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >5 days ago</text>
+<rect x="464" y="472" width="150" height="225" rx="3" fill="#f4f3ef" stroke="#3a3a3a" stroke-width="1" />
+<rect x="482.0" y="492.25" width="114.0" height="7.875000000000001" rx="1.5" fill="#2a2a2a" stroke="none" stroke-width="1.5" />
+<rect x="494.0" y="505.75" width="90.0" height="6.3" rx="1.5" fill="#2a2a2a" stroke="none" stroke-width="1.5" />
+<rect x="509.0" y="519.25" width="60.0" height="3.6" rx="1" fill="#888" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="539.5" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="549.625" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="559.75" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="569.875" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="580.0" width="75.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="590.125" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="600.25" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="610.375" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="620.5" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="630.625" width="75.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="640.75" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="650.875" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="661.0" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="482.0" y="671.125" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="472" y="480" width="40" height="17" rx="4" fill="#000000" stroke="none" stroke-width="1.5" opacity="0.55"/>
+<text x="492" y="492.5" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle" >PDF</text>
+<text x="464" y="719" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Event Sourcing — a</text>
+<text x="464" y="736" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >practitioner's</text>
+<text x="464" y="753" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Fowler et al. · 2021</text>
+<circle cx="472" cy="771" r="7" fill="none" stroke="#3a3a3a" stroke-width="3" />
+<circle cx="472" cy="771" r="7" fill="none" stroke="#7f6df2" stroke-width="3" stroke-linecap="round" stroke-dasharray="4.40 43.98" transform="rotate(-90 472 771)"/>
+<text x="486" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >10%</text>
+<text x="522" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >✎ 2</text>
+<text x="464" y="795" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >3 weeks ago</text>
+<defs><linearGradient id="pg636472" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7f6df2"/><stop offset="1" stop-color="#2a2540"/></linearGradient></defs>
+<rect x="636" y="472" width="150" height="225" rx="5" fill="url(#pg636472)" stroke="none" stroke-width="1.5" />
+<polyline points="666.0,539.5 711.0,517.0 756.0,546.2 726.0,589.0 681.0,584.5 696.0,629.5 748.5,636.2" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.6"/>
+<circle cx="666.0" cy="539.5" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="711.0" cy="517.0" r="5" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="756.0" cy="546.2" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="726.0" cy="589.0" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="681.0" cy="584.5" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="696.0" cy="629.5" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="748.5" cy="636.2" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="651.0" y="670.0" fill="#ffffff" font-family="Georgia, serif" font-size="12.750000000000002" font-weight="700" text-anchor="start" >Distributed system</text>
+<text x="651.0" y="685.75" fill="#ffffff" font-family="sans-serif" font-size="7.5" font-weight="400" text-anchor="start" opacity="0.75" letter-spacing="1.2">READING PATH</text>
+<rect x="644" y="480" width="40" height="17" rx="4" fill="#000000" stroke="none" stroke-width="1.5" opacity="0.55"/>
+<text x="664" y="492.5" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle" >PATH</text>
+<text x="636" y="719" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Distributed systems</text>
+<text x="636" y="736" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >· Argument</text>
+<text x="636" y="753" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >A reading of 7 notes</text>
+<circle cx="644" cy="771" r="7" fill="none" stroke="#3a3a3a" stroke-width="3" />
+<circle cx="644" cy="771" r="7" fill="none" stroke="#7f6df2" stroke-width="3" stroke-linecap="round" stroke-dasharray="25.07 43.98" transform="rotate(-90 644 771)"/>
+<text x="658" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >57%</text>
+<text x="694" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >✎ 5</text>
+<text x="636" y="795" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >3 days ago</text>
+<rect x="808" y="472" width="150" height="225" rx="3" fill="#f4f3ef" stroke="#3a3a3a" stroke-width="1" />
+<rect x="826.0" y="492.25" width="114.0" height="7.875000000000001" rx="1.5" fill="#2a2a2a" stroke="none" stroke-width="1.5" />
+<rect x="838.0" y="505.75" width="90.0" height="6.3" rx="1.5" fill="#2a2a2a" stroke="none" stroke-width="1.5" />
+<rect x="853.0" y="519.25" width="60.0" height="3.6" rx="1" fill="#888" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="539.5" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="549.625" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="559.75" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="569.875" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="580.0" width="75.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="590.125" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="600.25" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="610.375" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="620.5" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="630.625" width="75.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="640.75" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="650.875" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="661.0" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="826.0" y="671.125" width="114.0" height="2.7" rx="1" fill="#b9b9b9" stroke="none" stroke-width="1.5" />
+<rect x="816" y="480" width="40" height="17" rx="4" fill="#000000" stroke="none" stroke-width="1.5" opacity="0.55"/>
+<text x="836" y="492.5" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle" >PDF</text>
+<text x="808" y="719" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Lamport, Time,</text>
+<text x="808" y="736" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Clocks (scan)</text>
+<text x="808" y="753" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Leslie Lamport · 1978</text>
+<circle cx="816" cy="771" r="7" fill="none" stroke="#3a3a3a" stroke-width="3" />
+<circle cx="816" cy="771" r="7" fill="none" stroke="#7f6df2" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.00 43.98" transform="rotate(-90 816 771)"/>
+<text x="830" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >0%</text>
+<text x="808" y="795" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Never opened</text>
+<rect x="808" y="805" width="140" height="22" rx="11" fill="#3a2c1c" stroke="#7a5524" stroke-width="1" />
+<text x="878" y="820" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" >Scanned · read only</text>
+<defs><linearGradient id="pg980472" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7f6df2"/><stop offset="1" stop-color="#2a2540"/></linearGradient></defs>
+<rect x="980" y="472" width="150" height="225" rx="5" fill="url(#pg980472)" stroke="none" stroke-width="1.5" />
+<polyline points="1010.0,539.5 1055.0,517.0 1100.0,546.2 1070.0,589.0 1025.0,584.5 1040.0,629.5 1092.5,636.2" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.6"/>
+<circle cx="1010.0" cy="539.5" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="1055.0" cy="517.0" r="5" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="1100.0" cy="546.2" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="1070.0" cy="589.0" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="1025.0" cy="584.5" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="1040.0" cy="629.5" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<circle cx="1092.5" cy="636.2" r="3.2" fill="#ffffff" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="995.0" y="670.0" fill="#ffffff" font-family="Georgia, serif" font-size="12.750000000000002" font-weight="700" text-anchor="start" >Ideas as debt</text>
+<text x="995.0" y="685.75" fill="#ffffff" font-family="sans-serif" font-size="7.5" font-weight="400" text-anchor="start" opacity="0.75" letter-spacing="1.2">READING PATH</text>
+<rect x="988" y="480" width="40" height="17" rx="4" fill="#000000" stroke="none" stroke-width="1.5" opacity="0.55"/>
+<text x="1008" y="492.5" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle" >PATH</text>
+<text x="980" y="719" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Ideas as debt ·</text>
+<text x="980" y="736" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Around this note</text>
+<text x="980" y="753" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >A reading of 9 notes</text>
+<circle cx="988" cy="771" r="7" fill="none" stroke="#3a3a3a" stroke-width="3" />
+<circle cx="988" cy="771" r="7" fill="none" stroke="#44cf6e" stroke-width="3" stroke-linecap="round" stroke-dasharray="43.98 43.98" transform="rotate(-90 988 771)"/>
+<text x="1002" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >100%</text>
+<text x="1038" y="775" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >✎ 3</text>
+<text x="980" y="795" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >last week</text>
+</svg>

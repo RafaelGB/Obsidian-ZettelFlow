@@ -2439,4 +2439,7 @@ export default {
     reader_source_end_again_desc: 'Desde la primera página.',
     shelf_menu_read: 'Leer en el lector',
     reader_source_chapter: 'Capítulo {0}',
+    reader_hl_crystallize: 'Cristalizar en una nota',
+    note_companion_born_from: 'Nacida de',
+    note_companion_born_open: 'Abrir en este lugar en el lector',
 };

@@ -2,7 +2,7 @@ import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { Component } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { FakeEl } from "../../../../support/textDom";
-import { ReaderHighlights, type HighlightStore, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
+import { ReaderHighlights, type HighlightDeps, type HighlightStore, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
 import { chapterText } from "architecture/components/core/reader/readerMarks";
 import type { Thought, ThoughtQuote } from "application/thinking/thought";
 
@@ -51,7 +51,7 @@ function memoryStore(initial: Thought[] = []) {
     return store;
 }
 
-function mount(initial: Thought[] = []) {
+function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}) {
     const store = memoryStore(initial);
     const host = new DomNode();
     const margin = new DomNode();
@@ -74,6 +74,7 @@ function mount(initial: Thought[] = []) {
             },
             openThink,
             copy,
+            ...extra,
         }
     );
     const select = (words: string) => {
@@ -284,5 +285,15 @@ describe("highlights in a PDF or an EPUB (#681)", () => {
         const m = mount([on("a", 0, "stores changes")]);
         await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never);
         expect(m.highlights.items()).toEqual([]);
+    });
+
+    it("offers to crystallize a source's highlight into a note — and only a source's (#683)", async () => {
+        const toNote = jest.fn();
+        const m = mount([on("a", 2, "stores changes", "flows")], { toNote });
+        await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never, { at: 2, label: "p. 3" });
+        m.marks()[0].fire("click", { preventDefault: () => undefined, stopPropagation: () => undefined });
+        m.button("Crystallize into a note").click();
+        expect(toNote).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: "a" }));
+        expect(m.highlights.hasPopover()).toBe(false);
     });
 });

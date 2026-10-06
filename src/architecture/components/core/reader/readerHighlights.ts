@@ -7,6 +7,7 @@ import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
+import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -49,6 +50,8 @@ export interface HighlightDeps {
     makeMark?: (id: string) => HTMLElement;
     openThink?: (app: App, notePath: string) => void;
     copy?: (body: HTMLElement, text: string) => void;
+    /** A source's highlight into a note (#683): the crystallize preview, never a write of its own. */
+    toNote?: (app: App, thought: Thought) => void;
 }
 
 /** How long an answer (and its Undo) stays in the popover. */
@@ -151,6 +154,7 @@ export class ReaderHighlights {
     private readonly makeMark: (id: string) => HTMLElement;
     private readonly openThink: (app: App, notePath: string) => void;
     private readonly copy: (body: HTMLElement, text: string) => void;
+    private readonly toNote: (app: App, thought: Thought) => void;
 
     private body: HTMLElement | null = null;
     private notePath: string | null = null;
@@ -181,6 +185,7 @@ export class ReaderHighlights {
         this.makeMark = deps.makeMark ?? ((id) => newMarkIn(this.body, id));
         this.openThink = deps.openThink ?? openInThink;
         this.copy = deps.copy ?? copyText;
+        this.toNote = deps.toNote ?? ((app, thought) => crystallizeHighlight(app, thought));
     }
 
     /** The chapter's highlights, drawn and anchored in reading order. */
@@ -624,6 +629,13 @@ export class ReaderHighlights {
             const editing = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "editing");
             this.noteForm(editing, note, (text) => void this.editNote(thought, text));
         });
+        // A passage of a book or a paper becomes a note that cites its page (#683).
+        if (thought.locator) {
+            this.button(actions, "reader_hl_crystallize", false, () => {
+                this.hidePopover();
+                this.toNote(this.view.app, thought);
+            });
+        }
         this.button(actions, "reader_hl_delete", false, () => void this.forget(thought));
         this.button(actions, "reader_hl_open_think", false, () => {
             this.hidePopover();

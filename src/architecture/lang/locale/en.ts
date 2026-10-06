@@ -2438,4 +2438,7 @@ export default {
     reader_source_end_again_desc: 'From the first page.',
     shelf_menu_read: 'Read in the reader',
     reader_source_chapter: 'Chapter {0}',
+    reader_hl_crystallize: 'Crystallize into a note',
+    note_companion_born_from: 'Born from',
+    note_companion_born_open: 'Open at this place in the reader',
 };

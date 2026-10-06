@@ -1,4 +1,4 @@
-import { Menu, setIcon } from "obsidian";
+import { Menu, TFile, setIcon } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
@@ -6,6 +6,8 @@ import { STATE_EMOJI } from "architecture/knowledge";
 import { hoverPreview } from "architecture/components/core/a11y";
 import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
+import { openReader } from "architecture/components/core/reader/openReader";
+import { noteOrigins, pageOf } from "application/library/born";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
 import { CompanionBlock, noteName, type CompanionContext, type CompanionModel } from "./CompanionBlock";
 
@@ -81,6 +83,7 @@ export class HeadBlock extends CompanionBlock {
         }
         this.renderStepper(head, ctx, screen.model.steps, proposedStep(screen.model));
         this.renderVitals(head, ctx, screen.model.vitals);
+        void this.renderOrigin(head, ctx, path);
     }
 
     private renderTitle(head: HTMLElement, ctx: CompanionContext, title: string, path: string, withMenu: boolean): void {
@@ -190,6 +193,42 @@ export class HeadBlock extends CompanionBlock {
                 attr: { type: "button" },
             });
             this.on(button, "click", () => ctx.reveal(focus));
+        }
+    }
+
+    /**
+     * Where the note came from (#683): the book or paper it cites — a crystallized passage, or a
+     * `source::` you wrote — and the page, one click back into the Reader at that place. Read from
+     * the note's own lines, so it is what the note says, not a guess.
+     */
+    private async renderOrigin(head: HTMLElement, ctx: CompanionContext, path: string): Promise<void> {
+        const file = ctx.app.vault?.getAbstractFileByPath?.(path);
+        if (!(file instanceof TFile)) return;
+        let origins: { link: string; locator: string }[] = [];
+        try {
+            origins = noteOrigins(await ctx.app.vault.cachedRead(file));
+        } catch {
+            return;
+        }
+        if (origins.length === 0 || head.isConnected === false) return;
+        const row = head.createDiv({ cls: c("note-companion-origin") });
+        setIcon(row.createSpan({ cls: c("note-companion-origin-icon") }), "library");
+        row.createSpan({ cls: c("note-companion-origin-label"), text: t("note_companion_born_from") });
+        for (const origin of origins.slice(0, 3)) {
+            const source = ctx.app.metadataCache.getFirstLinkpathDest(origin.link, path);
+            const name = (origin.link.split("/").pop() ?? origin.link).replace(/\.(pdf|epub)$/i, "");
+            const label = origin.locator ? `${name} · ${origin.locator}` : name;
+            if (!source) {
+                row.createSpan({ cls: c("note-companion-origin-gone"), text: label });
+                continue;
+            }
+            const button = row.createEl("button", {
+                cls: c("note-companion-origin-source"),
+                text: label,
+                attr: { type: "button", title: t("note_companion_born_open") },
+            });
+            const page = pageOf(origin.locator);
+            this.on(button, "click", () => void openReader(ctx.app, { seed: source.path, source: source.path, ...(page !== null ? { chapter: page } : {}) }));
         }
     }
 

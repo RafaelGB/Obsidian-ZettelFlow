@@ -136,6 +136,14 @@ Nothing is imported, nothing leaves the vault, and no source file is ever modifi
 
 ![The Library: Continue reading, then books, papers and reading paths with their progress, highlights and notes born](resources/library/shelf.svg)
 
+Open a paper and its pages reflow into the Reader's column, in your type — or keep the layout with
+**Page view**; open a book and its chapters are rebuilt from the EPUB, safely, with its own
+contents. Highlight as in a note: each passage is a thought in Think that remembers its page. Then
+**Crystallize into a note**: the note quotes the passage, cites `[[book.epub]] p. 42`, counts as
+sourced, and This note says where it was born.
+
+![From passage to note: the highlight, the preview citing the page, This note's Born from, and the note counted on the shelf](resources/library/passage-to-note.svg)
+
 → Details: [Your library](development/library.md).
 
 ## Practice — what you have been doing

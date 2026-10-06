@@ -120,6 +120,32 @@ contents, nested as the book nests them.
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
 
+## From passage to note
+
+What you mark in a book is where your own ideas start. Click a highlight in a PDF or an EPUB and
+choose **Crystallize into a note**: the same preview [Think](../architecture/thought-lab.md) uses
+opens, with the note before it exists.
+
+![From passage to note: Crystallize into a note on a highlight, the preview with its source:: line, This note's Born from, and the Library counting the note born](../resources/library/passage-to-note.svg)
+
+- **It quotes the passage and cites the page.** The proposed note carries the passage as a quote,
+  your margin note under it, and a citation line the knowledge model reads — `source:: [[Books/Thinking,
+  Fast and Slow.epub]] p. 42`, or the chapter's name for a book without pages. Change the title and
+  the text before you create it; **Cancel** writes nothing.
+- **It is a sourced note.** Because it cites the book, the note's claim counts as sourced in Health,
+  Cultivate and This note — the same way a `source::` you write by hand does.
+- **This note knows where it came from.** Open the new note with [This note](this-note.md) beside it:
+  under its counts, **Born from** names the book and the page; click it and the Reader opens there.
+- **The Library counts it.** The book's card says **1 note born**, and its detail lists the notes
+  born from it, each one a click away.
+- **The book is never written.** The note is the only thing created — through the
+  [write record](../architecture/reversibility.md), so it can be taken back. A PDF or an EPUB is
+  never offered as a place to append to. The highlight stays a thought in Think, set aside rather
+  than deleted, so it does not wait on your bench for a note you already made.
+
+You can also crystallize a book's highlights from Think and from the review of
+[a few things you marked](highlights-review.md): they cite their page the same way.
+
 ## What it keeps, and where
 
 **Your files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation layer, no
@@ -139,6 +165,7 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, SVG scripts, remote images, runaway nesting); an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter |
+| `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
 | `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget |
 
@@ -168,5 +195,9 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 10. **A book.** Open the EPUB. Expect its title and author on the top line and *Chapter 1 / n*;
     **Contents** lists the book's own chapters. Click a footnote or a cross-reference: the Reader goes
     there. Highlight a sentence; it shows in Think with the chapter's name.
-11. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+11. **From passage to note.** Click a highlight in the book → **Crystallize into a note** → change
+    the title → **Create**. Expect a new note quoting the passage, ending with
+    `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click
+    it and the Reader opens there. Back in the Library, the book's card says **1 note born**.
+12. **Negative.** Compare each source file before and after (size and modification date): unchanged.
    No file was created in the vault.

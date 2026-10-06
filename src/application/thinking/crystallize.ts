@@ -69,9 +69,17 @@ function wordsOf(thought: Thought): string {
     return own ? `${passage}\n\n${own}` : passage;
 }
 
-/** The link that cites a highlight's passage: the note, and the heading it sat under. */
+/**
+ * The link that cites a highlight's passage: the note, and the heading it sat under. A passage of
+ * a PDF or an EPUB (#683) cites the file — its extension kept, so the link resolves — and the
+ * place in it as a reader writes it: `[[Thinking, Fast and Slow.epub]] p. 42`.
+ */
 export function citationOf(thought: Thought): string | undefined {
     if (!isHighlight(thought) || !thought.about) return undefined;
+    if (thought.locator) {
+        const where = thought.locator.label.replace(/[[\]|]/g, " ").replace(/\s+/g, " ").trim();
+        return `[[${thought.about}]]${where ? ` ${where}` : ""}`;
+    }
     const note = thought.about.replace(/\.md$/i, "");
     const heading = thought.quote?.heading?.replace(/[#|[\]^]/g, " ").replace(/\s+/g, " ").trim();
     return `[[${note}${heading ? `#${heading}` : ""}]]`;
@@ -183,5 +191,7 @@ export type Destination = "new-note" | "back";
  * to something that is gone is offering to fail.
  */
 export function destinationsFor(subject: string | undefined, subjectExists: boolean): Destination[] {
-    return subject && subjectExists ? ["back", "new-note"] : ["new-note"];
+    // Only a note can take thinking back: a PDF or an EPUB is never written (#675 L5).
+    const note = Boolean(subject && /\.md$/i.test(subject));
+    return note && subjectExists ? ["back", "new-note"] : ["new-note"];
 }

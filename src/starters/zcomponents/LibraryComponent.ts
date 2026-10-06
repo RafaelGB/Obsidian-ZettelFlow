@@ -5,6 +5,9 @@ import { sourceFormat } from "application/library/sourceMeta";
 import { setLibraryHost } from "architecture/components/core/library/libraryHost";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { clearCoverCache } from "architecture/components/core/library/libraryCovers";
+import { READABLE } from "architecture/components/core/library/libraryOpen";
+import { openReader } from "architecture/components/core/reader/openReader";
+import { normalizeLibrary } from "application/library/sourceMeta";
 import ZettelFlow from "main";
 
 /**
@@ -34,7 +37,20 @@ export class LibraryComponent extends PluginComponent {
 
         this.plugin.registerEvent(
             app.workspace.on("file-menu", (menu: Menu, file) => {
-                if (!(file instanceof TFile) || !sourceFormat(file.path)) return;
+                const format = file instanceof TFile ? sourceFormat(file.path) : null;
+                if (!(file instanceof TFile) || !format) return;
+                // Read it where you left it (#681): the place is what the Library remembers.
+                if (READABLE.includes(format)) {
+                    menu.addItem((item) =>
+                        item
+                            .setTitle(t("shelf_menu_read"))
+                            .setIcon("book-open")
+                            .onClick(() => {
+                                const place = normalizeLibrary(this.plugin.settings.library)[file.path]?.chapter ?? 0;
+                                void openReader(app, { seed: file.path, source: file.path, chapter: place });
+                            })
+                    );
+                }
                 menu.addItem((item) =>
                     item
                         .setTitle(t("shelf_menu_show"))

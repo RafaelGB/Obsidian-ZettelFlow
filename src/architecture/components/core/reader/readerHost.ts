@@ -11,6 +11,8 @@ export interface ReaderHost {
         readerPrefs?: unknown;
         readerResume?: Record<string, { chapter: number; total: number; at: number }>;
         readerSaved?: unknown;
+        /** What the Library knows about each source, and where you are in it (#680, #681). */
+        library?: unknown;
     };
     saveSettings?(): Promise<void>;
 }

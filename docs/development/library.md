@@ -14,6 +14,7 @@ what you marked, and the notes born from it.
 ## Open it
 
 - **The ribbon menu → Library.** The door that is always there, whatever you have open.
+- **Right-click a PDF → Read in the reader** opens it in the [Reader](reader.md) where you left it.
 - **Right-click a PDF or an EPUB → Show in the library** opens the Library on that source's detail.
 - **Command palette → "Open the library"**, which you can bind to a hotkey.
 
@@ -66,6 +67,39 @@ facts — how far you have read and when, your highlights, and the notes born fr
 by chapter** — every passage with your note under it, each one opening the source at that passage.
 **Esc** or **Close** puts the detail away.
 
+## Reading a PDF
+
+Click a paper or a PDF book on the shelf — or **Resume** — and it opens in the same
+[Reader](reader.md) as your notes: the same keys (**← →**, **Space**, **Esc**), the same bar, the
+same themes and type. Its **pages are the chapters**.
+
+![A PDF in the Reader: a page reflowed into the reading column with a highlight and a note in the margin, Page view in the bar — and a scan that says it can be read but not highlighted](../resources/library/pdf-reader.svg)
+
+- **Reading view** (the default) reflows each page into the Reader's own column — your font, your
+  size, your theme. Lines are put back into paragraphs, a heading set larger stays a heading, a word
+  broken across two lines with a hyphen is mended, a lone page number is left out, and a page in two
+  columns is read one column, then the other. A page that is a figure is shown as its picture.
+- **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
+  whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
+- **The paper's own contents.** **Contents** lists the PDF's outline, each entry with its page; a PDF
+  without one lists its pages. The section you are in is shown above the page.
+- **Highlights and margin notes**, exactly as in a note: select words, **Highlight** or **Highlight and
+  note** (or **H** / **Shift+H**). Each one is a thought in [Think](../architecture/thought-lab.md),
+  about the PDF, carrying the passage and **its page** (`p. 6`). It is found again on that page, by
+  its words, every time you open the paper. Think shows where it came from — *cap.pdf › p. 6* — and
+  **Open in the Reader** lands on that page.
+- **Resume.** The Library remembers the page you were on; the shelf's **Resume**, the PDF's own menu
+  and *Continue reading* all open it there. Reaching the last page marks it read.
+- **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
+  **See it in the library** or **Read it again**.
+
+### A scan
+
+A scanned PDF has no text, so every page is shown as its picture, and a quiet banner says so before
+you try: *This PDF is made of images, so there is no text to highlight. You can read it, and note in
+the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
+in Think with the page and no passage — listed under **Notes on this page**.
+
 ## What it keeps, and where
 
 **Your files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation layer, no
@@ -83,7 +117,9 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 |---|---|
 | `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget |
+| `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
+| `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
+| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -100,5 +136,13 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    to the Library.
 6. **From the file.** Right-click the EPUB in the file explorer → **Show in the library**: the Library
    opens on its detail.
-7. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n*, the text in your
+   reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
+   page as laid out, *Highlight in the reading view*); **V** again comes back.
+8. **Highlight.** Select a sentence → **Highlight and note**, write a note, **Save**. Expect it in the
+   margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,
+   and the highlight is there. In Think the thought shows the passage and *› p. n*.
+9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
+   nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
+10. **Negative.** Compare each source file before and after (size and modification date): unchanged.
    No file was created in the vault.

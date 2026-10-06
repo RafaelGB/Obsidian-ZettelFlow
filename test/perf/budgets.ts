@@ -261,6 +261,13 @@ export const BUDGETS = {
         because:
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
+    "library.pdf.reflow.page": {
+        name: "reflow a dense two-column PDF page (961 runs) into paragraphs",
+        limit: 30,
+        measured: "7.5 ms",
+        because:
+            "it runs on every page turn in a PDF, between the key and the words; a page must be on screen well within a blink (#681, L8)",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

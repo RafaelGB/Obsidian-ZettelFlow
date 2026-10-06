@@ -236,3 +236,53 @@ describe("highlights are found again on every visit (#671)", () => {
         expect(m.highlights.reveal("nope")).toBe(false);
     });
 });
+
+describe("highlights in a PDF or an EPUB (#681)", () => {
+    const BOOK = "Books/es.pdf";
+    const on = (id: string, at: number, exact: string, text = ""): Thought =>
+        ({ ...thought(id, { exact, prefix: "", suffix: "" }, text), about: BOOK, locator: { at, label: `p. ${at + 1}` } }) as Thought;
+    const note = (id: string, at: number, text: string): Thought =>
+        ({ id, at: 1, text, links: [], about: BOOK, locator: { at, label: `p. ${at + 1}` } }) as Thought;
+
+    it("finds a source's passages only on their own page, and lists the page's margin notes", async () => {
+        const m = mount([on("a", 2, "stores changes"), on("b", 5, "Replay rebuilds"), note("n", 2, "scan this later"), note("x", 4, "other page")]);
+        await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never, { at: 2, label: "p. 3" });
+        expect(m.highlights.items().map((t) => t.id)).toEqual(["a"]);
+        expect(m.highlights.detachedItems()).toEqual([]);
+        expect(m.margin.textContent).toContain("Notes on this page");
+        expect(m.margin.textContent).toContain("scan this later");
+        expect(m.margin.textContent).not.toContain("other page");
+    });
+
+    it("keeps a passage with its place in the source, cited under the page when it has no heading", async () => {
+        const m = mount();
+        await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never, { at: 6, label: "p. 7" });
+        m.select("Replay rebuilds");
+        m.body.fire("mouseup");
+        m.button("Highlight").click();
+        await flush();
+        expect(m.store.write).toHaveBeenCalledWith("", expect.objectContaining({ about: BOOK, locator: { at: 6, label: "p. 7" } }));
+    });
+
+    it("keeps a note in the margin of a page with no text, with Undo", async () => {
+        const m = mount();
+        await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never, { at: 0, label: "p. 1" });
+        m.highlights.notePage(new DomNode() as never);
+        const area = m.host.find((el) => el.tag === "textarea") as DomNode;
+        area.value = "the diagram on this page";
+        m.button("Save").click();
+        await flush();
+        expect(m.store.write).toHaveBeenCalledWith("the diagram on this page", { about: BOOK, locator: { at: 0, label: "p. 1" } });
+        expect(m.margin.textContent).toContain("the diagram on this page");
+        m.button("Undo").click();
+        await flush();
+        expect(m.store.discard).toHaveBeenCalledTimes(1);
+        expect(m.margin.textContent).not.toContain("the diagram on this page");
+    });
+
+    it("never shows a note's highlights in a source, nor a source's in a note", async () => {
+        const m = mount([on("a", 0, "stores changes")]);
+        await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never);
+        expect(m.highlights.items()).toEqual([]);
+    });
+});

@@ -147,3 +147,65 @@ export function renderEndCard(page: HTMLElement, card: EndCard, owner: Component
         input.select();
     }
 }
+
+/** What reading a source added up to (#681): no notes, no detours — pages and what you marked. */
+export interface SourceEndStats {
+    minutes: number;
+    chapters: number;
+    highlights: number;
+    marginNotes: number;
+}
+
+export interface SourceEndCard {
+    title: string;
+    format: "pdf" | "epub";
+    stats: SourceEndStats;
+    actions: {
+        /** The source on the shelf, in detail: every highlight, and the notes born from it. */
+        library(): void;
+        /** Think, on this source: what you marked, to think on. */
+        think(): void;
+        again(): void;
+    };
+}
+
+/** Pages of a paper, chapters of a book. */
+const sourceStats = (format: SourceEndCard["format"]): [keyof SourceEndStats, LocaleKey][] => [
+    ["minutes", "reader_end_stat_minutes"],
+    ["chapters", format === "pdf" ? "reader_end_stat_pages" : "reader_end_stat_chapters"],
+    ["highlights", "reader_end_stat_highlights"],
+    ["marginNotes", "reader_end_stat_margin_notes"],
+];
+
+/**
+ * **The end of a book or a paper** (#681). The same card as a path's, with what a source asks next:
+ * the highlights, kept in Think, to think on; the source in the Library, where the notes born from
+ * it are listed; or the first page again. It writes nothing.
+ */
+export function renderSourceEnd(page: HTMLElement, card: SourceEndCard, owner: Component): void {
+    page.empty();
+    const root = page.createDiv({ cls: c("reader-end") });
+    root.createDiv({ cls: c("reader-count"), text: t("reader_source_end_kicker") });
+    root.createEl("h1", { cls: c("reader-chapter-title"), text: card.title });
+    root.createDiv({ cls: c("reader-end-lede"), text: t(card.format === "pdf" ? "reader_source_end_lede_pdf" : "reader_source_end_lede_epub") });
+    const stats = root.createDiv({ cls: c("reader-end-stats") });
+    for (const [key, label] of sourceStats(card.format)) {
+        const value = card.stats[key];
+        if (key !== "minutes" && key !== "chapters" && value === 0) continue;
+        const cell = stats.createDiv({ cls: c("reader-end-stat") });
+        cell.createDiv({ cls: c("reader-end-stat-value"), text: String(value) });
+        cell.createDiv({ cls: c("reader-end-stat-label"), text: tCount(value, label) });
+    }
+    const grid = root.createDiv({ cls: c("reader-end-actions") });
+    const action = (icon: string, name: LocaleKey, desc: LocaleKey, run: () => void) => {
+        const button = grid.createEl("button", { cls: c("reader-end-action"), attr: { type: "button" } });
+        setIcon(button.createSpan({ cls: c("reader-end-action-icon") }), icon);
+        const text = button.createDiv({ cls: c("reader-end-action-text") });
+        text.createDiv({ cls: c("reader-end-action-name"), text: t(name) });
+        text.createDiv({ cls: c("reader-end-action-desc"), text: t(desc) });
+        owner.registerDomEvent(button, "click", run);
+    };
+    action("lightbulb", "reader_source_end_think", "reader_source_end_think_desc", () => card.actions.think());
+    action("library", "reader_source_end_library", "reader_source_end_library_desc", () => card.actions.library());
+    action("rotate-ccw", "reader_end_again", "reader_source_end_again_desc", () => card.actions.again());
+}

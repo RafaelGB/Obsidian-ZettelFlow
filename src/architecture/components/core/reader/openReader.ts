@@ -45,10 +45,12 @@ export interface ReaderRequest {
     highlight?: string;
     /** A saved reading's name (#672). */
     name?: string;
+    /** A PDF or an EPUB to read instead of a note (#681, #682); `seed` is then ignored. */
+    source?: string;
 }
 
 export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
-    const { seed, kind, paths, chapter = 0, highlight, name } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
+    const { seed, kind, paths, chapter = 0, highlight, name, source } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
     if (!held) {
         const s = sides(app);
@@ -56,9 +58,11 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
         if (s) collapseSides(s.left, s.right);
     }
     const leaf = workspace.getLeavesOfType(READER_VIEW)[0] ?? workspace.getLeaf("tab");
-    const state: Record<string, unknown> = { seed, chapter };
-    if (kind && kind !== "around") state.kind = kind;
-    if (paths && paths.length > 0) state.paths = paths;
+    // A source opened by its path — from the Library, its own menu, or Think's "Open in the Reader".
+    const book = source ?? (/\.(pdf|epub)$/i.test(seed) ? seed : undefined);
+    const state: Record<string, unknown> = book ? { source: book, chapter } : { seed, chapter };
+    if (!book && kind && kind !== "around") state.kind = kind;
+    if (!book && paths && paths.length > 0) state.paths = paths;
     if (highlight) state.highlight = highlight;
     if (name) state.name = name;
     await leaf.setViewState({ type: READER_VIEW, state, active: true });

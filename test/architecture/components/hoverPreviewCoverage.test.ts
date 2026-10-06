@@ -34,9 +34,6 @@ describe("every clickable note name offers the native preview (#594)", () => {
         // routes a click on one (a chapter of this reading turns the page, any other opens a tab).
         "ReaderView.ts": "routes clicks on links Obsidian's renderer drew — no note name of its own (#668)",
         "NoteCompanionView.ts": "hands `open` to its blocks; the names they draw carry the preview (#640)",
-        // The shelf's cards are covers of PDFs and EPUBs; the notes born from a source are listed
-        // in the detail, and those names carry the preview (libraryDetail.ts).
-        "libraryOpen.ts": "opens a source file from its cover — a PDF or an EPUB, not a note name (#680)",
     };
 
     const opensANote = sources(SRC).filter((path) => readFileSync(path, "utf8").includes("openLinkText("));

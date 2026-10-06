@@ -54,11 +54,13 @@ export function groupHighlights(item: ShelfItem, thoughts: readonly Thought[]): 
     }
     const groups: HighlightGroup[] = [];
     const byLabel = new Map<string, HighlightGroup>();
-    for (const thought of [...thoughts].sort((a, b) => a.at - b.at)) {
-        const label = thought.quote?.heading ?? "";
+    // In reading order: by the page or chapter it was made on (#681), then by when.
+    const place = (thought: Thought) => thought.locator?.at ?? Number.MAX_SAFE_INTEGER;
+    for (const thought of [...thoughts].sort((a, b) => place(a) - place(b) || a.at - b.at)) {
+        const label = thought.locator?.label || thought.quote?.heading || "";
         let group = byLabel.get(label);
         if (!group) {
-            group = { label, items: [] };
+            group = { label, ...(thought.locator ? { chapter: thought.locator.at } : {}), items: [] };
             byLabel.set(label, group);
             groups.push(group);
         }
@@ -128,7 +130,8 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
                 if (group.label) list.createDiv({ cls: c("shelf-detail-group"), text: group.label });
                 for (const thought of group.items) {
                     const row = list.createEl("button", { cls: c("shelf-highlight"), attr: { type: "button" } });
-                    row.createEl("q", { cls: c("shelf-highlight-quote"), text: snippet(thought.quote?.exact ?? "") });
+                    // A note in the margin of a scanned page has no passage, only what you wrote.
+                    if (thought.quote?.exact) row.createEl("q", { cls: c("shelf-highlight-quote"), text: snippet(thought.quote.exact) });
                     if (thought.text.trim()) row.createDiv({ cls: c("shelf-highlight-note"), text: thought.text.trim() });
                     row.createDiv({ cls: c("shelf-highlight-where"), text: t("shelf_highlight_open") });
                     scope.registerDomEvent(row, "click", () => parts.open({ chapter: group.chapter, highlight: thought.id }));

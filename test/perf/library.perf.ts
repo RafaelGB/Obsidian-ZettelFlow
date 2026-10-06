@@ -1,5 +1,6 @@
 import { describe, it } from "@jest/globals";
 import { buildShelf, continueReading, viewShelf, type ShelfInputs } from "application/library/shelf";
+import { reflowPage, type TextRun } from "application/library/pdfText";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -59,5 +60,20 @@ describe("the Library (#675)", () => {
             viewShelf(items, { filter: "all", sort: "highlighted", search: "author 3" });
         });
         assertBudget("library.shelf.500", ms);
+    });
+
+    it("library.pdf.reflow.page", () => {
+        // A dense two-column page of a paper: 2 × 60 lines, each in eight runs, a heading on top.
+        const runs: TextRun[] = [{ str: "3 Asynchronous Networks", x: 72, y: 760, size: 16, width: 200 }];
+        for (const x of [72, 320]) {
+            for (let line = 0; line < 60; line++) {
+                for (let part = 0; part < 8; part++) {
+                    const str = part === 7 && line % 9 === 8 ? "end." : `word${line}${part}`;
+                    runs.push({ str, x: x + part * 28, y: 740 - line * 11.5, size: 9, width: 25 });
+                }
+            }
+        }
+        const ms = best(5, () => reflowPage(runs));
+        assertBudget("library.pdf.reflow.page", ms);
     });
 });

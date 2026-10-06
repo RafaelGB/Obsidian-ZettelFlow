@@ -12,6 +12,9 @@ time, and steps out of the way while you read.
 
 ## Open it
 
+The Reader also reads your **PDFs** — a paper's pages reflowed into the same column, with the same
+highlights — from the [Library](library.md).
+
 - **Right-click any note → Read from here.** That is the whole setup. You don't need a map of
   content or a list of relations: the note you right-click is where the reading starts.
 - **This note → ⋯ → Read around this note**, from the note you are on.

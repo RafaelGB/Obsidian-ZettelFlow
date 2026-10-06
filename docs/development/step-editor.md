@@ -5,6 +5,12 @@ writes, when it appears, where its note goes, how it is shown and where the flow
 from the canvas: select a step and press **Edit step** in the selection toolbar, or right-click it.
 A step note also opens it from its file menu (**Edit step**).
 
+**A note on the canvas becomes a step from its node.** Right-click a file node on a flow canvas:
+a plain note offers **Make this note a step**, and a note that already is one offers **Edit step**,
+**Copy** and **Remove step configuration** (and **Paste** when a step is on the clipboard). The
+note's markdown stays its template; the step is kept in its frontmatter beside it. These items only
+appear on a flow canvas — never on a plain canvas or in the file explorer.
+
 ![The step editor: a quiet header, what the step asks first, action cards with human names, and the other questions folded with a fact on each heading](../resources/wizard/step-editor.svg)
 
 ## The header

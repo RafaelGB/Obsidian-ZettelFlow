@@ -1,12 +1,12 @@
 import { t } from "architecture/lang";
-import { YamlService } from "architecture/plugin";
+import { FrontmatterService, YamlService } from "architecture/plugin";
 import { canvas } from "architecture/plugin/canvas";
 import { isWaitNode } from "architecture/plugin/workflow";
 import ZettelFlow from "main";
-import { Notice } from "obsidian";
+import { Menu, Notice, TFile } from "obsidian";
 import type { Canvas } from "obsidian/canvas";
 import { RibbonIcon } from "starters/zcomponents/RibbonIcon";
-import { StepBuilderModal } from "zettelkasten";
+import { StepBuilderMapper, StepBuilderModal } from "zettelkasten";
 import { flowFolders, flowRole } from "architecture/plugin/canvas/flowRole";
 import CanvasHelper from "architecture/plugin/canvas/extensions/utils/CanvasHelper";
 
@@ -38,6 +38,10 @@ export class CanvasNodeMenu {
             return;
         }
         const builderMode = role === "create" ? "ribbon" : "editor";
+        if (currentNode.type === "file") {
+            this.fileNodeItems(menu, currentNode.file, builderMode);
+            return;
+        }
         if (currentNode.type === "text" || currentNode.type === "group") {
             const zettelFlowSettings = currentNode.zettelflowConfig;
             menu.addItem((item) => {
@@ -69,7 +73,7 @@ export class CanvasNodeMenu {
                     .setSection('pane')
                     .onClick(async () => {
                         canvas.clipboard.save(YamlService.instance(zettelFlowSettings).getZettelFlowSettings());
-                        new Notice("Embed copied!");
+                        this.say(t("canvas_node_menu_step_copied"));
                     })
             });
 
@@ -101,7 +105,7 @@ export class CanvasNodeMenu {
                         .onClick(async () => {
                             const flow = await canvas.flows.update(file.path);
                             void flow.editTextNode(node.id, JSON.stringify(clipboardSettings));
-                            new Notice("Embed pasted!");
+                            this.say(t("canvas_node_menu_step_pasted"));
                         })
 
                 });
@@ -109,4 +113,75 @@ export class CanvasNodeMenu {
         }
 
     });
+
+    /**
+     * A file node's note, on a flow canvas only (#519, #686): a note becomes a step **here**, and a
+     * note that already is one is edited, copied or stops being one here. Its markdown is still its
+     * template — the step lives in its frontmatter beside it.
+     */
+    private fileNodeItems(menu: Menu, path: unknown, builderMode: "ribbon" | "editor"): void {
+        if (typeof path !== "string") return;
+        const note = this.plugin.app.vault.getAbstractFileByPath(path);
+        if (!(note instanceof TFile) || note.extension !== "md") return;
+        const fileService = FrontmatterService.instance(note);
+        const isStep = fileService.hasZettelFlowSettings();
+        const settings = isStep ? fileService.getZettelFlowSettings() : undefined;
+        menu.addItem((item) => {
+            item
+                .setTitle(isStep ? t("canvas_node_menu_edit_embed") : t("canvas_node_menu_make_step"))
+                .setIcon(RibbonIcon.ACTION)
+                .setSection("pane")
+                .onClick(() => {
+                    new StepBuilderModal(this.plugin, {
+                        folder: note.parent || undefined,
+                        filename: note.basename,
+                        menu,
+                        ...(settings ? StepBuilderMapper.StepSettings2PartialStepBuilderInfo(settings) : {}),
+                    })
+                        .setMode("edit")
+                        .setBuilder(builderMode)
+                        .open();
+                });
+        });
+        if (settings) {
+            menu.addItem((item) => {
+                item
+                    .setTitle(t("menu_pane_copy_step_configuration"))
+                    .setIcon(RibbonIcon.ACTION)
+                    .setSection("pane")
+                    .onClick(() => {
+                        canvas.clipboard.save(settings);
+                        this.say(t("canvas_node_menu_step_copied"));
+                    });
+            });
+            menu.addItem((item) => {
+                item
+                    .setTitle(t("menu_pane_remove_step_configuration"))
+                    .setIcon(RibbonIcon.ACTION)
+                    .setSection("pane")
+                    .onClick(async () => {
+                        await fileService.removeStepSettings();
+                        this.say(t("canvas_node_menu_step_removed"));
+                    });
+            });
+        }
+        const clipboardSettings = canvas.clipboard.get();
+        if (clipboardSettings) {
+            menu.addItem((item) => {
+                item
+                    .setTitle(t("menu_pane_paste_step_configuration"))
+                    .setIcon(RibbonIcon.ACTION)
+                    .setSection("pane")
+                    .onClick(async () => {
+                        await fileService.setZettelFlowSettings(clipboardSettings);
+                        this.say(t("canvas_node_menu_step_pasted"));
+                    });
+            });
+        }
+    }
+
+    /** What a menu item did, said once the menu has closed — the canvas has nowhere inline to say it. */
+    private say(text: string): void {
+        new Notice(text);
+    }
 }

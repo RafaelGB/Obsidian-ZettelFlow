@@ -1,314 +1,708 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
 
-// Explore — the deterministic semantic query surface (#318 S3, #483).
+// Explore — ask, and the graph answers (#696, epic #692).
 //
-// Three regions, and only the middle one scrolls (#487). `min-height: 0` is the load-bearing
-// rule: without it a flex child refuses to shrink below its content, the results region grows to
-// fit every match, and the footer leaves the pane.
-.zettelkasten-flow__ask-graph {
-    display: flex;
-    flex-direction: column;
+// The graph fills the mode; everything else floats over it on the theme's own surfaces, made
+// translucent with `color-mix` so the nebulae show through. Only the answer card scrolls, and only
+// inside itself. Every colour is the theme's (§XV); a region's colour reaches a dot through the
+// `--zf-region` custom property the renderer sets, never an inline style.
+.zettelkasten-flow__explore {
+    container-type: size;
+    container-name: zf-explore;
+    position: relative;
     height: 100%;
     min-height: 0;
+    overflow: hidden;
+    background-color: var(--background-primary);
 }
 
-.zettelkasten-flow__ask-graph-head,
-.zettelkasten-flow__ask-graph-foot {
-    flex: 0 0 auto;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-stage {
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.3s ease;
 }
 
-
-.zettelkasten-flow__ask-graph-intro {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    margin-bottom: 0.5rem;
+// Think before you look (#576): nothing of the vault is on screen until you have answered.
+.zettelkasten-flow__explore--veiled .zettelkasten-flow__explore-stage {
+    opacity: 0;
+    visibility: hidden;
 }
 
-.zettelkasten-flow__ask-graph-bar {
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-}
-
-.zettelkasten-flow__ask-graph-input {
-    flex: 1;
-    min-width: 12rem;
-    font-family: var(--font-monospace);
-}
-
-.zettelkasten-flow__ask-graph-run {
-    cursor: pointer;
-}
-
-.zettelkasten-flow__ask-graph-status {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    padding: 0.35rem 0;
-}
-
-.zettelkasten-flow__ask-graph-results {
+// ── the head: one primary action, which is asking ────────────────────────────
+.zettelkasten-flow__explore .zettelkasten-flow__explore-head {
+    position: absolute;
+    top: var(--size-4-3);
+    left: var(--size-4-4);
+    right: var(--size-4-4);
+    z-index: 3;
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-}
+    gap: var(--size-4-2);
+    pointer-events: none;
 
-// The rows align in columns (#483): that alignment was the table lens's only real advantage over
-// the list, and it costs one grid rule rather than a second way of looking at the same thing.
-.zettelkasten-flow__ask-graph-result {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.15rem 0;
-}
-
-.zettelkasten-flow__ask-graph-result-name {
-    cursor: pointer;
-    color: var(--text-accent);
-    font-size: var(--font-ui-smaller);
-
-    &:hover {
-        text-decoration: underline;
+    > * {
+        pointer-events: auto;
     }
 }
 
-.zettelkasten-flow__ask-graph-result-meta {
-    color: var(--text-faint);
-    font-size: var(--font-ui-smaller);
+.zettelkasten-flow__explore .zettelkasten-flow__explore-askrow {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__ask-graph-saved-query {
-    cursor: pointer;
-    margin-left: 0.4rem;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-ask {
+    flex: 0 1 40rem;
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    min-width: 0;
+    height: var(--size-4-9);
+    padding: 0 var(--size-4-1) 0 var(--size-4-3);
+    border: $line-quiet;
+    border-radius: $radius-pill;
+    background-color: color-mix(in srgb, var(--background-primary) 82%, transparent);
+    backdrop-filter: blur(var(--size-4-3));
+    box-shadow: var(--shadow-s);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
-    &:hover {
-        text-decoration: underline;
+    &:focus-within {
+        border-color: var(--interactive-accent);
+        box-shadow: 0 0 0 var(--size-2-2) color-mix(in srgb, var(--interactive-accent) 22%, transparent), var(--shadow-s);
     }
 }
 
-.zettelkasten-flow__ask-graph-saved-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.zettelkasten-flow__ask-graph-saved-item {
-    justify-content: space-between;
-}
-
-// Richer saved queries (#323, G4): rename / reorder / pin-to-Home / delete controls per row.
-.zettelkasten-flow__ask-graph-saved-actions {
-    display: flex;
-    gap: 0.25rem;
-    flex-shrink: 0;
-}
-
-.zettelkasten-flow__ask-graph-saved-rename,
-.zettelkasten-flow__ask-graph-saved-up,
-.zettelkasten-flow__ask-graph-saved-down,
-.zettelkasten-flow__ask-graph-saved-pin,
-.zettelkasten-flow__ask-graph-saved-delete {
-    cursor: pointer;
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__ask-graph-saved-pin--on {
-    color: var(--text-accent);
-    font-weight: var(--font-semibold);
-}
-
-.zettelkasten-flow__ask-graph-saved-rename-input {
-    flex: 1;
-    font-family: var(--font-monospace);
-    font-size: var(--font-ui-smaller);
-}
-
-// Explore (#483): the facets you click, the chips you picked, and the text they produce.
-// The facets can be tall in a narrow pane; they scroll inside their own bound rather than
-// pushing the answer off-screen (#487).
-.zettelkasten-flow__ask-graph-facets {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: 0.5rem;
-    max-height: 30vh;
-    overflow-y: auto;
-}
-
-.zettelkasten-flow__ask-graph-facet {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.4rem;
-}
-
-.zettelkasten-flow__ask-graph-facet-label {
-    min-width: 6.5rem;
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    text-transform: lowercase;
-}
-
-.zettelkasten-flow__ask-graph-facet-values {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    flex: 1;
-}
-
-.zettelkasten-flow__ask-graph-facet-value {
+.zettelkasten-flow__explore .zettelkasten-flow__explore-ask-icon {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.35rem;
-    padding: 0.1rem 0.5rem;
-    border-radius: var(--radius-l);
-    border: 1px solid var(--background-modifier-border);
-    background-color: var(--background-secondary);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-ask-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: transparent;
     box-shadow: none;
-    cursor: pointer;
-    font-size: var(--font-ui-smaller);
-    line-height: 1.5;
+    font-size: var(--font-ui-medium);
+    color: var(--text-normal);
+
+    &:focus,
+    &:hover {
+        box-shadow: none;
+        background: transparent;
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-ask-kbd {
+    @include hint;
+    padding: 0 var(--size-4-1);
+    border: $line-quiet;
+    border-radius: $radius-small;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-ask:focus-within .zettelkasten-flow__explore-ask-kbd {
+    display: none;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-ask-go {
+    border-radius: $radius-pill;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-think-first {
+    margin-left: auto;
+}
+
+// ── suggested questions: as vivid as the graph (#696) ────────────────────────
+.zettelkasten-flow__explore .zettelkasten-flow__explore-suggest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    animation: zf-explore-rise 0.35s ease both;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
     height: auto;
+    padding: var(--size-4-1) var(--size-4-3) var(--size-4-2);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: color-mix(in srgb, var(--background-primary) 74%, transparent);
+    backdrop-filter: blur(var(--size-4-2));
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+        transform: translateY(calc(var(--size-2-1) * -1));
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+        box-shadow: 0 var(--size-2-2) var(--size-4-4) color-mix(in srgb, var(--interactive-accent) 25%, transparent);
+    }
 }
 
-.zettelkasten-flow__ask-graph-facet-value:hover {
-    border-color: var(--interactive-accent);
+.zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion--pinned {
+    border-color: color-mix(in srgb, var(--interactive-accent) 45%, var(--background-modifier-border));
 }
 
-// The count is the whole point of the facet: it is what tells you the click is worth making.
-.zettelkasten-flow__ask-graph-facet-count {
+.zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion-count {
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--font-semibold);
+    color: var(--text-normal);
+}
+
+// Where the answer would live, in the regions' own colours.
+.zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion-strip {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    height: var(--size-2-1);
+    opacity: 0.85;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-share-segment {
+    flex: var(--zf-share, 1) 1 0;
+    background-color: var(--zf-region, var(--text-faint));
+}
+
+// ── the vault at rest: the regions are the legend, and the legend asks ───────
+.zettelkasten-flow__explore .zettelkasten-flow__explore-overview {
+    position: absolute;
+    left: var(--size-4-4);
+    bottom: var(--size-4-8);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    max-height: 55%;
+    overflow-y: auto;
+    animation: zf-explore-rise 0.35s ease both;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-overview-cap {
+    @include hint;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: var(--size-4-1) 0 var(--size-4-1) var(--size-4-1);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-overview-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-region {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    width: max-content;
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2) var(--size-2-1) var(--size-4-1);
+    border: none;
+    border-radius: $radius-small;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-region-dot {
+    flex: none;
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: 50%;
+    background-color: var(--zf-region, var(--text-faint));
+    box-shadow: 0 0 var(--size-4-2) var(--zf-region, transparent);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-region-count,
+.zettelkasten-flow__explore .zettelkasten-flow__explore-overview-more {
     color: var(--text-faint);
     font-variant-numeric: tabular-nums;
 }
 
-.zettelkasten-flow__ask-graph-facet-more {
-    align-self: center;
-    color: var(--text-faint);
-    font-size: var(--font-ui-smaller);
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.zettelkasten-flow__ask-graph-chips {
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-item {
+    @include row;
+    padding: var(--size-2-1) var(--size-4-1);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-query {
+    flex: 1 1 auto;
+    cursor: pointer;
+    color: var(--text-muted);
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-actions {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.3rem;
-    margin-bottom: 0.4rem;
+    gap: var(--size-4-1);
+    opacity: 0;
+    transition: opacity 0.15s ease;
 }
 
-// A term you chose is **on**, so it carries the one emphasis every active chip carries (#546).
-.zettelkasten-flow__ask-graph-chip {
-    @include chip;
-    @include chip-active;
-    gap: $space-1;
-    padding-right: $space-1;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-item:hover .zettelkasten-flow__explore-saved-actions,
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-item:focus-within .zettelkasten-flow__explore-saved-actions {
+    opacity: 1;
 }
 
-// A negated filter reads as the opposite of a chosen one, so it is drawn as an outline.
-.zettelkasten-flow__ask-graph-chip--negated {
-    background-color: transparent;
-    color: $text-plain;
-    border: 1px dashed $accent-surface;
-}
-
-.zettelkasten-flow__ask-graph-chip-term {
-    font-family: var(--font-monospace);
-}
-
-.zettelkasten-flow__ask-graph-chip-negate,
-.zettelkasten-flow__ask-graph-chip-remove {
-    padding: 0 0.25rem;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-actions button {
+    @include hint;
     height: auto;
-    line-height: 1.2;
-    background-color: transparent;
+    padding: 0 var(--size-4-1);
+    background: transparent;
     box-shadow: none;
-    color: inherit;
+    border: none;
     cursor: pointer;
+
+    &.is-active {
+        color: var(--interactive-accent);
+    }
 }
 
-.zettelkasten-flow__ask-graph-clear,
-.zettelkasten-flow__ask-graph-save {
-    padding: 0.1rem 0.5rem;
-    height: auto;
-    font-size: var(--font-ui-smaller);
-    cursor: pointer;
-}
-
-.zettelkasten-flow__ask-graph-hand-written {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-// The escape hatch is folded away: present, never in the way.
-.zettelkasten-flow__ask-graph-text {
-    margin-top: 0.6rem;
-}
-
-.zettelkasten-flow__ask-graph-text > summary {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    cursor: pointer;
-    margin-bottom: 0.35rem;
-}
-
-// Result lenses (#323, G3): the list/table toggle and the table lens.
-.zettelkasten-flow__ask-graph-lenses {
+// ── the answer: a card that explains itself ──────────────────────────────────
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card {
+    position: absolute;
+    top: calc(var(--size-4-9) + var(--size-4-6));
+    right: var(--size-4-4);
+    bottom: var(--size-4-8);
+    z-index: 3;
     display: flex;
-    gap: 0.3rem;
-    margin-block: 0.4rem;
+    flex-direction: column;
+    width: min(22rem, 46%);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: color-mix(in srgb, var(--background-primary) 88%, transparent);
+    backdrop-filter: blur(var(--size-4-4));
+    box-shadow: var(--shadow-l);
+    opacity: 0;
+    transform: translateX(calc(100% + var(--size-4-6)));
+    pointer-events: none;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
 }
 
-.zettelkasten-flow__ask-graph-lens {
-    font-size: var(--font-ui-smaller);
-    padding: 0.15rem 0.5rem;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card--open {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
 }
 
-.zettelkasten-flow__ask-graph-lens--active {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-top {
+    padding: var(--size-4-4) var(--size-4-4) var(--size-4-2);
+    border-bottom: $line-quiet;
 }
 
-// Where a selection can go (#486), and the graph as a lens (#484).
-.zettelkasten-flow__ask-graph-take {
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-count {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    margin-bottom: 0.4rem;
+    align-items: baseline;
+    gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__ask-graph-take-copy,
-.zettelkasten-flow__ask-graph-take-map {
-    padding: 0.1rem 0.5rem;
-    height: auto;
-    font-size: var(--font-ui-smaller);
-    cursor: pointer;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-number {
+    font-size: var(--h1-size);
+    font-weight: var(--font-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
 }
 
-// The graph needs room to be a graph; the list scrolls inside 40vh, this does not.
-.zettelkasten-flow__ask-graph-graph {
-    min-height: 26rem;
-    height: 60vh;
-}
-
-.zettelkasten-flow__explore-map-count {
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-unit {
     color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    margin-bottom: 0.6rem;
 }
 
-/* ── think before you look (#576; the mechanic is #470's) ─────────────────── */
-
-/* Moved here with the gate. The two-column layout and the note rows came out rather than moving:
-   what you knew is Explore's own answer, in Explore's own results region. */
-
-.zettelkasten-flow__ask-graph-think-first {
-    display: flex;
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     padding-bottom: var(--size-4-2);
 }
 
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-empty,
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-note {
+    @include empty-state;
+    padding: var(--size-4-3) var(--size-4-4);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-chip {
+    @include chip;
+    @include chip-active;
+    padding-right: var(--size-4-1);
+    animation: zf-explore-pop 0.25s ease both;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-chip--negated {
+    background-color: color-mix(in srgb, var(--color-red) 70%, var(--background-primary));
+    border-color: transparent;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-chip-negate,
+.zettelkasten-flow__explore .zettelkasten-flow__explore-chip-remove {
+    height: auto;
+    padding: 0 var(--size-4-1);
+    border: none;
+    border-radius: $radius-small;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    opacity: 0.75;
+    cursor: pointer;
+
+    &:hover {
+        opacity: 1;
+        background-color: color-mix(in srgb, var(--text-on-accent) 18%, transparent);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-clear,
+.zettelkasten-flow__explore .zettelkasten-flow__explore-save,
+.zettelkasten-flow__explore .zettelkasten-flow__explore-hand-written {
+    @include hint;
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-section {
+    padding: var(--size-4-3) var(--size-4-4) 0;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facets > summary {
+    cursor: pointer;
+    list-style-position: inside;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-section-title {
+    @include hint;
+    margin: 0 0 var(--size-4-2);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-funnel-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--size-4-12);
+    align-items: center;
+    gap: var(--size-4-2);
+    margin: var(--size-4-1) 0;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-funnel-bar {
+    position: relative;
+    height: var(--size-4-5);
+    border-radius: $radius-small;
+    background-color: var(--background-modifier-hover);
+    overflow: hidden;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-funnel-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--zf-fill, 0) * 100%);
+    border-radius: $radius-small;
+    background-color: color-mix(in srgb, var(--interactive-accent) 38%, transparent);
+    animation: zf-explore-grow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: left center;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-funnel-label {
+    position: relative;
+    padding-left: var(--size-4-2);
+    line-height: var(--size-4-5);
+    white-space: nowrap;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-funnel-count {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-where-strip {
+    display: flex;
+    gap: var(--size-2-1);
+    height: var(--size-4-2);
+    border-radius: $radius-small;
+    overflow: hidden;
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-where-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1) var(--size-4-3);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-where-key {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    height: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facet {
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facet-label {
+    display: block;
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    margin-bottom: var(--size-4-1);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facet-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+// A value says how much of the answer it holds, as a fill behind its name.
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facet-value {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: $line-quiet;
+    border-radius: $radius-pill;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--interactive-accent) 18%, transparent) calc(var(--zf-fill, 0) * 100%), transparent 0);
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facet-count {
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-facet-more {
+    @include hint;
+    padding: var(--size-4-1) 0;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-row {
+    display: grid;
+    grid-template-columns: var(--size-4-2) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+    margin: 0 calc(var(--size-4-2) * -1);
+    border-radius: $radius-small;
+    cursor: pointer;
+
+    &:hover,
+    &.is-active {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-row-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-normal);
+
+    &:hover {
+        color: var(--text-accent);
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-row-facts {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-card-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    padding: var(--size-4-2) var(--size-4-3);
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-text {
+    padding: 0 var(--size-4-3) var(--size-4-2);
+
+    > summary {
+        @include hint;
+        cursor: pointer;
+    }
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-text-bar {
+    display: flex;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-1);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-text-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-monospace);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-saved-rename-input {
+    width: 100%;
+}
+
+// ── hints and the gate ───────────────────────────────────────────────────────
+.zettelkasten-flow__explore .zettelkasten-flow__explore-hints {
+    position: absolute;
+    left: var(--size-4-4);
+    bottom: var(--size-4-3);
+    z-index: 2;
+    display: flex;
+    gap: var(--size-4-3);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    pointer-events: none;
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-hint kbd {
+    margin-right: var(--size-4-1);
+}
+
+.zettelkasten-flow__explore .zettelkasten-flow__explore-gate {
+    position: absolute;
+    top: calc(var(--size-4-9) + var(--size-4-6));
+    left: 50%;
+    z-index: 4;
+    width: min(36rem, calc(100% - var(--size-4-8)));
+    transform: translateX(-50%);
+}
+
+// ── a device with no graph: the card is the whole answer ─────────────────────
+.zettelkasten-flow__explore--no-graph {
+    .zettelkasten-flow__explore-card {
+        left: var(--size-4-4);
+        width: auto;
+    }
+
+    .zettelkasten-flow__explore-overview,
+    .zettelkasten-flow__explore-hints {
+        display: none;
+    }
+}
+
+// ── narrow: the card becomes a sheet at the bottom ───────────────────────────
+@container zf-explore (max-width: 40rem) {
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-card {
+        top: auto;
+        left: var(--size-4-2);
+        right: var(--size-4-2);
+        bottom: var(--size-4-2);
+        width: auto;
+        height: 48%;
+        transform: translateY(calc(100% + var(--size-4-6)));
+    }
+
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-overview,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-hints,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-ask-kbd {
+        display: none;
+    }
+}
+
+@keyframes zf-explore-rise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-2-2));
+    }
+}
+
+@keyframes zf-explore-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+@keyframes zf-explore-grow {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-stage,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-card,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-saved-actions {
+        transition: none;
+    }
+
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-suggest,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-overview,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-chip,
+    .zettelkasten-flow__explore .zettelkasten-flow__explore-funnel-fill {
+        animation: none;
+    }
+}
+
+// ── Think before you look (#576) ─────────────────────────────────────────────
 .zettelkasten-flow__blind-knew {
     margin: var(--size-4-2) 0 0;
 }

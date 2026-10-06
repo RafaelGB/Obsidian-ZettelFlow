@@ -57,7 +57,7 @@ describe("ask-your-graph surface mode (#323)", () => {
         // The full subtraction is asserted in exploreSubtraction.test.ts; this is the mode's own
         // stake in it: what used to be a form is now the facets.
         expect(RENDERER).not.toContain("buildGraphTerm");
-        expect(RENDERER).toContain("ask-graph-facet-value");
+        expect(RENDERER).toContain("explore-facet-value");
     });
 
     it("is read-only — never imports a write path or mutates the vault", () => {

@@ -18,6 +18,8 @@ const SURFACE = [
     "src/architecture/components/core/askGraph/BlindGate.ts",
     "src/architecture/settings/suggesters/QuerySuggest.ts",
     "src/architecture/components/core/surface/ExploreSurfaceView.ts",
+    "src/architecture/components/core/askGraph/suggestedQuestions.ts",
+    "src/architecture/components/core/askGraph/termWords.ts",
 ];
 const EN = read("src/architecture/lang/locale/en.ts");
 const ES = read("src/architecture/lang/locale/es.ts");
@@ -66,6 +68,7 @@ function codeLines(source: string): number {
  * | after #576 | 746 | *think before you look* moved here from the Lab: `BlindGate` (125) plus the toggle and the gate in `run()`. It is not new code — `BlindPanel` was 128 lines and is deleted, and the hand-rolled matcher it carried went with it |
  * | hover preview | 747 | one line: the `hoverPreview` sibling beside the result name (#594), so a Ctrl-hover previews the note like every other surface. Not a feature of Explore — a rule applied to it |
  * | reader (#669) | 751 | four lines: *Read these*, a third place a selection can go — the Reader walks it in the order its links suggest. The reading itself lives in the Reader, not here |
+ * | ask, and the graph answers (#696) | 1,250 | Explore **is** the graph now: the ask bar, suggested questions with live previews, the regions as the legend, an answer card that says how it was found and where it lives, stepping, tour, export and the options menu. Not growth of the product: `Graph3DRenderer` (1,967 lines) and the List lens are deleted, and the graph's whole control system — search, gear, seven lenses, legend, status — went with them |
  *
  * The honest comparison for the whole epic is **435 → 562**: 421 plus the 14 lines of
  * `GraphSurfaceView`, which #484 deleted and this counter cannot see. A hundred and twenty-seven
@@ -81,7 +84,7 @@ function codeLines(source: string): number {
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 751;
+const CEILING = 1_250;
 
 describe("the surface does not grow by accident (#483–#487)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {
@@ -136,34 +139,27 @@ describe("what the surface stopped showing (#483)", () => {
     });
 });
 
-describe("the controls do not scroll away (#487)", () => {
+describe("the graph is the mode, and only the answer scrolls (#487, #696)", () => {
     const SCSS = read("src/styles/components/askGraph.scss");
+    const rule = (selector: string) => {
+        const at = SCSS.indexOf(`${selector} {`);
+        return at === -1 ? "" : SCSS.slice(at, SCSS.indexOf("}", at));
+    };
 
-    it("groups the surface into a head, a scrolling middle and a foot", () => {
-        // They were one column, so scrolling the results carried the facets and the chips off the
-        // top: to change one filter you scrolled up, changed it, and scrolled back down.
-        for (const region of ["ask-graph-head", "ask-graph-results", "ask-graph-foot"]) {
-            expect(RENDERER).toContain(`c("${region}")`);
-        }
-        // The facets and the chips hang off the head, not off the root.
-        expect(RENDERER).toContain('head.createDiv({ cls: c("ask-graph-facets") })');
-        expect(RENDERER).toContain('head.createDiv({ cls: c("ask-graph-chips") })');
-        expect(RENDERER).toContain('root.createDiv({ cls: c("ask-graph-results") })');
+    it("fills the leaf with the graph and floats the controls over it", () => {
+        expect(RENDERER).toContain('root.createDiv({ cls: c("explore-stage") })');
+        expect(RENDERER).toContain('root.createDiv({ cls: c("explore-head") })');
+        expect(rule(".zettelkasten-flow__explore")).toContain("height: 100%");
+        expect(rule(".zettelkasten-flow__explore")).toContain("min-height: 0");
     });
 
-    it("makes the results the only region that scrolls", () => {
-        const rule = (selector: string) => {
-            const at = SCSS.indexOf(`${selector} {`);
-            return at === -1 ? "" : SCSS.slice(at, SCSS.indexOf("}", at));
-        };
-        expect(rule(".zettelkasten-flow__ask-graph")).toContain("height: 100%");
-        expect(rule(".zettelkasten-flow__ask-graph")).toContain("min-height: 0");
-        const results = rule(".zettelkasten-flow__ask-graph-results");
-        expect(results).toContain("flex: 1 1 auto");
-        // Without this a flex child refuses to shrink below its content and pushes the foot out.
-        expect(results).toContain("min-height: 0");
-        expect(results).toContain("overflow-y: auto");
-        expect(rule(".zettelkasten-flow__ask-graph-facets")).toContain("overflow-y: auto");
+    it("keeps the head still and lets the card's body scroll, inside the card", () => {
+        // #487's lesson, kept: the part of a surface that is a control panel must not scroll away
+        // with its content. The card's head (count, chips) stays; its body scrolls.
+        const body = rule(".zettelkasten-flow__explore-card-body");
+        expect(body).toContain("flex: 1 1 auto");
+        expect(body).toContain("min-height: 0");
+        expect(body).toContain("overflow-y: auto");
     });
 });
 
@@ -187,13 +183,19 @@ describe("what replaced it (#483)", () => {
         expect(suggest).not.toMatch(/const [A-Z_]*FIELDS/);
     });
 
-    it("switches lens without re-asking the question (#484)", () => {
-        // The selection is computed in run() and kept; a lens change only redraws it. A setLens
-        // that recomputed would make the graph rebuild its layout every time you glanced at a list.
-        const setLens = RENDERER.slice(RENDERER.indexOf("private setLens("));
-        const body = setLens.slice(0, setLens.indexOf("\n    }"));
-        expect(body).toContain("renderResults()");
-        expect(body).not.toContain("this.run()");
+    it("has no lenses left: the card is the list and the graph is the mode (#696)", () => {
+        expect(RENDERER).not.toContain("setLens(");
+        expect(RENDERER).not.toContain("ask_graph_lens_");
+        expect(EN).not.toContain("ask_graph_lens_list");
+    });
+
+    it("re-lights the graph for a new answer without rebuilding it (#484, #696)", () => {
+        // run() computes the answer; renderAll() only re-paints. Building the scene again would
+        // throw away the layout every time a chip was flipped.
+        const renderAll = RENDERER.slice(RENDERER.indexOf("private renderAll("));
+        const body = renderAll.slice(0, renderAll.indexOf("\n    }"));
+        expect(body).toContain("canvas.setLit(");
+        expect(body).not.toContain("buildScene(");
         expect(body).not.toContain("matchesFor(");
     });
 

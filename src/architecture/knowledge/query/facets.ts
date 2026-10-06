@@ -1,5 +1,6 @@
 import type { Idea } from "../model/Idea";
 import type { KnowledgeModel } from "../model/KnowledgeModel";
+import { graphFacts } from "./graphFacts";
 
 /**
  * **What your vault lets you ask** (#482, epic #481) — the values, derived from the model.
@@ -29,7 +30,7 @@ import type { KnowledgeModel } from "../model/KnowledgeModel";
  */
 
 /** The facet groups, in display order. */
-export type FacetId = "state" | "relation" | "incoming" | "folder" | "shape";
+export type FacetId = "region" | "state" | "relation" | "incoming" | "folder" | "shape";
 
 export interface FacetValue {
     /** The value as it appears in your vault — a state, a relation type, a folder, a shape. */
@@ -64,6 +65,10 @@ const SHAPES: { shape: string; holds: (idea: Idea, model: KnowledgeModel) => boo
     { shape: "orphan", holds: (idea, model) => model.inNeighborSet(idea.path).size === 0 },
     { shape: "leaf", holds: (idea, model) => model.outNeighborSet(idea.path).size === 0 },
     { shape: "unsourced", holds: (idea) => idea.claims.length > 0 && !idea.maturitySignals.hasSources },
+    // The graph's own facts (#696), so the lenses that lived behind the 3D graph's gear narrow too.
+    { shape: "bridge", holds: (idea, model) => graphFacts(model).bridge.has(idea.path) },
+    { shape: "alone", holds: (idea, model) => !graphFacts(model).regionOf.has(idea.path) },
+    { shape: "contradiction", holds: (idea, model) => graphFacts(model).contradiction.has(idea.path) },
 ];
 
 /** The first path segment, or "" for a note living at the vault root. */
@@ -110,6 +115,8 @@ export function deriveFacets(model: KnowledgeModel, selection: readonly Idea[]):
     const folders = new Map<string, number>();
     const outgoing = new Map<string, number>();
     const shapes = new Map<string, number>();
+    const regions = new Map<string, number>();
+    const regionOf = graphFacts(model).regionOf;
 
     for (const idea of selection) {
         bump(states, idea.state);
@@ -117,6 +124,8 @@ export function deriveFacets(model: KnowledgeModel, selection: readonly Idea[]):
         if (folder) bump(folders, folder);
         for (const type of new Set(idea.relations.map((relation) => relation.type))) bump(outgoing, type);
         for (const { shape, holds } of SHAPES) if (holds(idea, model)) bump(shapes, shape);
+        const region = regionOf.get(idea.path);
+        if (region) bump(regions, region);
     }
 
     // One walk of the graph's edges, counting *notes* pointed at (not edges), per relation type.
@@ -133,6 +142,8 @@ export function deriveFacets(model: KnowledgeModel, selection: readonly Idea[]):
     for (const [type, targets] of incomingTargets) incoming.set(type, targets.size);
 
     const facets = [
+        // Where it lives, first (#696): the region a note belongs to, keyed by its hub's path.
+        toFacet("region", regions, total, (value) => `region:${value}`),
         toFacet("state", states, total, (value) => `state:${value}`),
         toFacet("relation", outgoing, total, (value) => `relation:${value}`),
         toFacet("incoming", incoming, total, (value) => `incoming:${value}`),

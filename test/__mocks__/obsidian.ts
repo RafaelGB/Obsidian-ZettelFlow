@@ -302,6 +302,7 @@ export class AbstractInputSuggest<T> {
     return [];
   }
   renderSuggestion(_value: T, _el: unknown): void { }
+  close(): void { }
   selectSuggestion(_value: T): void { }
   setValue(_value: string): this {
     return this;

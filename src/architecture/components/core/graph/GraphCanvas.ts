@@ -446,6 +446,11 @@ export class GraphCanvas extends Component {
         this.frame(all, { min: 300, instant });
     }
 
+    /** A region's colour as CSS, for a dot in the DOM that must match its nebula (#696). */
+    regionColour(slot: number): string {
+        return cssRgb(communityRgba(this.theme, slot), 1);
+    }
+
     /** Where a note is on screen right now, for the peek card (#697). */
     screenOf(index: number): Projected | null {
         if (!this.scene || index < 0 || index >= this.scene.n) return null;

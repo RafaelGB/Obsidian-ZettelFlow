@@ -18,18 +18,18 @@ import es from "architecture/lang/locale/es";
  */
 describe("tCount picks the form the number needs", () => {
     it("uses the singular for exactly one", () => {
-        expect(tCount(1, "graph_status_links", "1")).toBe(en.graph_status_links_one);
+        expect(tCount(1, "explore_answer_word")).toBe(en.explore_answer_word_one);
         expect(tCount(1, "graph_status_notes", "1")).toBe(en.graph_status_notes_one);
     });
 
     it("uses the plural for none, for many, and for a number it cannot read as one", () => {
-        expect(tCount(0, "graph_status_links", "0")).toBe("0 links");
-        expect(tCount(2, "graph_status_links", "2")).toBe("2 links");
-        expect(tCount(217, "graph_status_links", "217")).toBe("217 links");
+        expect(tCount(0, "graph_status_notes", "0")).toBe("0 notes");
+        expect(tCount(2, "graph_status_notes", "2")).toBe("2 notes");
+        expect(tCount(217, "graph_status_notes", "217")).toBe("217 notes");
     });
 
     it("treats minus one as one, because the form follows the word, not the sign", () => {
-        expect(tCount(-1, "graph_status_links", "-1")).toBe(en.graph_status_links_one);
+        expect(tCount(-1, "graph_status_notes", "-1")).toBe(en.graph_status_notes_one);
     });
 
     it("falls back to the one form a key has, when it has only one", () => {

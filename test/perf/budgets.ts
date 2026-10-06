@@ -339,6 +339,13 @@ export const BUDGETS = {
         because:
             "labels are a short ranked list on a 2D overlay, never a texture per note (#695); the old view rasterised sprites every 300 ms and never freed them",
     },
+    "explore.graphFacts.10k": {
+        name: "work out every note's region and which notes join two regions, over 10,000 notes",
+        limit: 800,
+        measured: "278 ms",
+        because:
+            "the graph's lenses became questions (#696): region:, bridge, alone and contradiction read these facts. Once per model revision, and the Louvain communities underneath are shared with the graph, so a click never pays it",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

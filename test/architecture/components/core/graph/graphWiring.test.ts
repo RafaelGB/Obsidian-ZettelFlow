@@ -42,22 +42,22 @@ describe("the graph engine replaced a megabyte (#693)", () => {
 });
 
 describe("Explore draws the graph through the new engine (#484, #693)", () => {
-    it("mounts the graph lens", () => {
-        expect(read("src/architecture/components/core/askGraph/AskGraphRenderer.ts")).toMatch(/new\s+GraphLens\(/);
+    it("draws the graph itself — the graph is the mode, not a lens (#696)", () => {
+        expect(read("src/architecture/components/core/askGraph/AskGraphRenderer.ts")).toMatch(/new\s+GraphCanvas\(/);
     });
 
     it("reads the model through the State surface", () => {
-        expect(read(`${GRAPH}/GraphLens.ts`)).toMatch(/build3DGraph[\s\S]*from\s+["']architecture\/knowledge\/state["']/);
+        expect(read(`src/architecture/components/core/askGraph/AskGraphRenderer.ts`)).toMatch(/build3DGraph[\s\S]*from\s+["']architecture\/knowledge\/state["']/);
     });
 
     it("navigates and never writes", () => {
-        const lens = code(read(`${GRAPH}/GraphLens.ts`));
+        const lens = code(read(`src/architecture/components/core/askGraph/AskGraphRenderer.ts`));
         expect(lens).toContain("openLinkText(");
         expect(lens).not.toMatch(/FileService|FrontmatterService|processFrontMatter|\.execute\(/);
     });
 
     it("follows the theme when it changes (§XV)", () => {
-        expect(read(`${GRAPH}/GraphLens.ts`)).toMatch(/on\("css-change"[\s\S]{0,80}refreshTheme\(\)/);
+        expect(read(`src/architecture/components/core/askGraph/AskGraphRenderer.ts`)).toMatch(/on\("css-change"[\s\S]{0,80}refreshTheme\(\)/);
     });
 });
 
@@ -76,7 +76,7 @@ describe("it draws on demand, and degrades instead of going blank (#693)", () =>
         expect(canvas).toContain("createGlBackend(this.glCanvas)");
         // …on a fresh canvas, because one that was asked for WebGL2 will never give a 2D context.
         expect(canvas).toContain("this.backend = createCanvasBackend(fresh);");
-        expect(read(`${GRAPH}/GraphLens.ts`)).toContain("renderFallback(");
+        expect(read(`src/architecture/components/core/askGraph/AskGraphRenderer.ts`)).toContain("explore--no-graph");
     });
 
     it("gives the WebGL context back when it goes", () => {
@@ -115,15 +115,15 @@ describe("the layout runs off the main thread, and is remembered (#694)", () => 
     });
 
     it("reopens on the layout it remembered, and remembers what settled", () => {
-        const lens = code(read(`${GRAPH}/GraphLens.ts`));
-        expect(lens).toContain("recallLayout(this.layoutKey)");
-        expect(lens).toContain("warmStart(this.scene)");
-        expect(lens).toContain("rememberLayout(this.layoutKey, scene, canvas.layoutPositions)");
+        const lens = code(read(`src/architecture/components/core/askGraph/AskGraphRenderer.ts`));
+        expect(lens).toContain("recallLayout(this.layoutId)");
+        expect(lens).toContain("warmStart(scene)");
+        expect(lens).toContain("rememberLayout(this.layoutId, scene, canvas.layoutPositions)");
     });
 });
 
 describe("share and tour, carried over (#385, #386)", () => {
-    const lens = code(read(`${GRAPH}/GraphLens.ts`));
+    const lens = code(read(`src/architecture/components/core/askGraph/AskGraphRenderer.ts`));
 
     it("frames everything before it captures", () => {
         const body = lens.slice(lens.indexOf("private async exportImage"));

@@ -40,6 +40,23 @@ if nothing else redraws.
 **↻ Refresh** is the only refresh in the view. It also refreshes itself shortly after the vault
 changes.
 
+## A note in an excluded folder
+
+A note under one of your **excluded folders** (Settings › Your knowledge), or under one of
+ZettelFlow's own folders, is **outside ZettelFlow**. It never becomes an idea, so there is nothing
+to say about it, and nothing ZettelFlow should write into it. This note says so in one calm card:
+*This note is outside ZettelFlow*, the folder that excluded it, and **Change excluded folders**,
+which opens the settings on that section. It shows no counts, stepper, next step, neighbourhood or
+story. A pinned note stays pinned, so you can let it go with the pin.
+
+The rule is the same everywhere, and it is the index's own (one predicate, never a second list):
+*Read from here*, *Think about this note*, *Remove relation*, *Derive a project* (on a folder),
+*Add a claim* and *Move* are simply not offered on an excluded note or folder. Crystallizing a
+thread about one makes a new note instead of writing back into it. If a note leaves scope while
+the companion is open, a click on one of its buttons writes nothing and redraws it as outside.
+
+![This note on a note in an excluded folder, and its menus without ZettelFlow's items](../resources/this-note/outside.svg)
+
 ## The head
 
 - **The title**, with the full path on hover. It stays in view while the rest scrolls.

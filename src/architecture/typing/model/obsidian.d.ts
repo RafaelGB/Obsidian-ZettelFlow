@@ -3,7 +3,8 @@ import { AllCanvasNodeData, Canvas } from "obsidian/canvas";
 declare module "obsidian" {
     interface setting {
         open: () => void;
-        openTabById: (id: string) => void;
+        /** Opens the tab and returns it (null when no tab has that id). */
+        openTabById: (id: string) => unknown;
     }
     interface App {
         setting: setting;

@@ -7,6 +7,7 @@ import { hoverPreview } from "architecture/components/core/a11y";
 import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import { openReader } from "architecture/components/core/reader/openReader";
+import { openZettelFlowSettings } from "architecture/components/core/surface/openSettings";
 import { noteOrigins, pageOf } from "application/library/born";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
 import { CompanionBlock, noteName, type CompanionContext, type CompanionModel } from "./CompanionBlock";
@@ -74,6 +75,10 @@ export class HeadBlock extends CompanionBlock {
         this.renderTitle(head, ctx, screen.kind === "note" ? screen.model.title : noteName(path), path, screen.kind === "note");
         if (ctx.pinned) this.renderPinned(head, ctx);
 
+        if (screen.kind === "outside") {
+            this.renderOutside(head, ctx, screen.prefix);
+            return;
+        }
         if (screen.kind === "indexing" || screen.kind === "error") {
             head.createDiv({
                 cls: c("note-companion-status"),
@@ -230,6 +235,25 @@ export class HeadBlock extends CompanionBlock {
             const page = pageOf(origin.locator);
             this.on(button, "click", () => void openReader(ctx.app, { seed: source.path, source: source.path, ...(page !== null ? { chapter: page } : {}) }));
         }
+    }
+
+    /**
+     * A note in an excluded folder (#688): outside ZettelFlow, said once and calmly. No counts, no
+     * stepper, no next step — the other blocks draw nothing for it — and the one way out is to
+     * change the folders, in the settings section that owns them.
+     */
+    private renderOutside(head: HTMLElement, ctx: CompanionContext, prefix: string): void {
+        const box = head.createDiv({ cls: c("note-companion-outside") });
+        box.createDiv({ cls: c("note-companion-outside-title"), text: t("note_companion_outside_title") });
+        const where = box.createDiv({ cls: c("note-companion-outside-body") });
+        where.createSpan({ text: `${t("note_companion_outside_body")} ` });
+        where.createEl("code", { cls: c("note-companion-outside-folder"), text: prefix });
+        const change = box.createEl("button", {
+            cls: c("note-companion-outside-change"),
+            text: t("note_companion_outside_change"),
+            attr: { type: "button" },
+        });
+        this.on(change, "click", () => openZettelFlowSettings(ctx.app, "knowledge"));
     }
 
     private renderEmpty(head: HTMLElement, ctx: CompanionContext, last: string | null): void {

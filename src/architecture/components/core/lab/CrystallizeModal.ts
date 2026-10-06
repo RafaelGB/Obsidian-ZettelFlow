@@ -1,6 +1,7 @@
 import { App, Modal, Notice, Setting } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
+import { KnowledgeIndex } from "architecture/knowledge";
 import { crystallize, crystallizeInto } from "architecture/plugin/thinking/crystallizeThought";
 import { destinationsFor, type Crystallization, type Destination } from "application/thinking/crystallize";
 
@@ -39,7 +40,13 @@ export class CrystallizeModal extends Modal {
 
     private choices(): Destination[] {
         const exists = Boolean(this.subject && this.app.vault.getAbstractFileByPath(this.subject));
-        return destinationsFor(this.subject, exists);
+        // A note in an excluded folder is outside ZettelFlow (#688): it is never written back into.
+        return destinationsFor(this.subject, exists && !this.subjectOutside());
+    }
+
+    /** Whether the thread's note sits in an excluded folder. */
+    private subjectOutside(): boolean {
+        return Boolean(this.subject && !KnowledgeIndex.getInstance().inScope(this.subject));
     }
 
     onOpen(): void {
@@ -63,8 +70,10 @@ export class CrystallizeModal extends Modal {
                 });
             });
         } else if (this.subject) {
-            // Offering to append to something that is gone is offering to fail.
-            contentEl.createDiv({ cls: c("crystallize-keeps"), text: t("crystallize_subject_gone") });
+            // Offering to append to something that is gone is offering to fail; offering to append
+            // to a note outside ZettelFlow is offering a write it promised not to make (#688).
+            const text = this.subjectOutside() ? t("crystallize_subject_outside") : t("crystallize_subject_gone");
+            contentEl.createDiv({ cls: c("crystallize-keeps"), text });
         }
 
         if (this.destination === "new-note") {

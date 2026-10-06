@@ -9,7 +9,7 @@ import { hoverPreview, makeActivatable } from "architecture/components/core/a11y
 import { focusPlan } from "../companionFocus";
 import type { CompanionFocus } from "../noteCompanionContract";
 import { CompanionBlock, marksWrite, noteName, type CompanionContext } from "./CompanionBlock";
-import { queueCompanionWrite } from "../companionWrites";
+import { companionMayWrite, queueCompanionWrite } from "../companionWrites";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -201,6 +201,11 @@ export class SectionsBlock extends CompanionBlock {
         if (ctx.screen.kind !== "note") return;
         // The note the link goes into: the answer belongs to it, even if you move on meanwhile.
         const path = ctx.screen.model.path;
+        // Outside ZettelFlow since it was drawn (#688): write nothing, and redraw it as what it is.
+        if (!companionMayWrite(path)) {
+            ctx.refresh();
+            return;
+        }
         // Its turn among the companion's writes, so two never race on one note.
         const result = await queueCompanionWrite(() => this.deps.linkNotes(ctx.app, path, targetPath));
         this.status = result.ok

@@ -6,6 +6,7 @@ import { readFrom, readSelection } from "architecture/components/core/reader/rea
 import { notesUnder } from "architecture/components/core/reader/readerPaths";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import ZettelFlow from "main";
+import { KnowledgeIndex } from "architecture/knowledge";
 
 /**
  * The doors into the Reader (#668, #669, epic #667). No MOC, no setup:
@@ -36,7 +37,8 @@ export class ReaderComponent extends PluginComponent {
             name: t("command_open_reader"),
             checkCallback: (checking: boolean) => {
                 const file = app.workspace.getActiveFile();
-                if (!file || file.extension !== "md") return false;
+                // A note in an excluded folder is outside ZettelFlow (#688): no reading starts there.
+                if (!file || file.extension !== "md" || !inScope(file.path)) return false;
                 if (!checking) readFrom(app, file.path);
                 return true;
             },
@@ -79,13 +81,14 @@ export class ReaderComponent extends PluginComponent {
         this.plugin.registerEvent(
             app.workspace.on("file-menu", (menu: Menu, file) => {
                 if (file instanceof TFile && file.extension === "md") {
+                    if (!inScope(file.path)) return;
                     menu.addItem((item) =>
                         item
                             .setTitle(t("reader_read_from_here"))
                             .setIcon("book-open")
                             .onClick(() => readFrom(app, file.path))
                     );
-                } else if (file instanceof TFolder) {
+                } else if (file instanceof TFolder && inScope(file.path)) {
                     // The folder is walked when chosen, not on every right-click; an empty one reads nothing.
                     menu.addItem((item) =>
                         item
@@ -99,7 +102,9 @@ export class ReaderComponent extends PluginComponent {
 
         this.plugin.registerEvent(
             app.workspace.on("files-menu", (menu: Menu, files) => {
-                const notes = files.filter((f): f is TFile => f instanceof TFile && f.extension === "md").map((f) => f.path);
+                const notes = files
+                    .filter((f): f is TFile => f instanceof TFile && f.extension === "md" && inScope(f.path))
+                    .map((f) => f.path);
                 if (notes.length < 2) return;
                 menu.addItem((item) =>
                     item
@@ -114,4 +119,9 @@ export class ReaderComponent extends PluginComponent {
     onUnload(): void {
         setReaderHost(null);
     }
+}
+
+/** Whether a note or folder is inside ZettelFlow — the index's one predicate (#311, #688). */
+function inScope(path: string): boolean {
+    return KnowledgeIndex.getInstance().inScope(path);
 }

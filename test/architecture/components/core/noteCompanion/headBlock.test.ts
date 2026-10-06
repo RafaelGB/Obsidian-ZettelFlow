@@ -9,6 +9,11 @@ import type {
 } from "architecture/components/core/noteCompanion/blocks/CompanionBlock";
 import { lifecycleStepper } from "architecture/knowledge/state";
 
+const openSettings = jest.fn();
+jest.mock("architecture/components/core/surface/openSettings", () => ({
+    openZettelFlowSettings: (...args: unknown[]) => openSettings(...args),
+}));
+
 const model = (over: Partial<CompanionModel> = {}): CompanionModel => ({
     path: "zettel/A.md",
     title: "A",
@@ -231,3 +236,28 @@ describe("where a note came from (#683)", () => {
     });
 });
 
+describe("a note outside ZettelFlow (#688)", () => {
+    it("says so calmly, names the excluded folder, and offers one way out", () => {
+        openSettings.mockClear();
+        const { host, ctx } = render({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" });
+        expect(host.oneByClass("note-companion-title").textContent).toBe("Daily");
+        expect(host.oneByClass("note-companion-outside-title").textContent).toBe("This note is outside ZettelFlow");
+        expect(host.oneByClass("note-companion-outside-folder").textContent).toBe("Templates");
+        host.oneByClass("note-companion-outside-change").click();
+        expect(openSettings).toHaveBeenCalledWith(ctx.app, "knowledge");
+    });
+
+    it("draws no counts, no stepper and no menu for it", () => {
+        const { host } = render({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" });
+        expect(host.byClass("note-companion-vital")).toHaveLength(0);
+        expect(host.byClass("note-companion-stepper")).toHaveLength(0);
+        expect(host.byClass("note-companion-more")).toHaveLength(0);
+        expect(host.byClass("note-companion-status")).toHaveLength(0);
+    });
+
+    it("keeps the pin, so a pinned note outside can still be let go", () => {
+        const { host, ctx } = render({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" }, true);
+        host.oneByClass("note-companion-pin").click();
+        expect(ctx.follow).toHaveBeenCalled();
+    });
+});

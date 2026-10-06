@@ -20,9 +20,15 @@ jest.mock("application/notes/resurfaceRanking", () => ({ rankResurfacedNotes: (i
 jest.mock("architecture/components/core/resurface/resurfaceInputs", () => ({
     buildResurfaceInputs: () => ({ candidates: [], buildActiveSignals: () => ({ path: "Hub.md" }) }),
 }));
+const scope: { excluded: string | null; status: string } = { excluded: null, status: "ready" };
 jest.mock("architecture/knowledge", () => ({
     KnowledgeIndex: {
-        getInstance: () => ({ status: "ready", getModel: () => model, recognisesState: () => true }),
+        getInstance: () => ({
+            status: scope.status,
+            getModel: () => model,
+            recognisesState: () => true,
+            excludedBy: (path: string) => (scope.excluded && path.startsWith(`${scope.excluded}/`) ? scope.excluded : null),
+        }),
     },
 }));
 const neighbourhoodSpy = { fail: false };
@@ -77,5 +83,31 @@ describe("the companion's model reads the neighbourhood once (#643 FR-4, AC-5)",
         const screen = buildCompanionScreen(app(), subject);
         expect(screen.kind).toBe("note");
         if (screen.kind === "note") expect(screen.model.neighbourhood).toBeNull();
+    });
+});
+
+describe("a note in an excluded folder is outside ZettelFlow (#688)", () => {
+    beforeEach(() => {
+        rank.mockClear();
+        scope.excluded = null;
+        scope.status = "ready";
+    });
+
+    it("says so, with the folder that excluded it, and reads nothing about the note", () => {
+        scope.excluded = "Templates";
+        const screen = buildCompanionScreen(app(), { shown: "Templates/Daily.md", pinned: false, last: null });
+        expect(screen).toEqual({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" });
+        expect(rank).not.toHaveBeenCalled();
+    });
+
+    it("knows it before the index has finished building", () => {
+        scope.excluded = "Templates";
+        scope.status = "building";
+        expect(buildCompanionScreen(app(), { shown: "Templates/Daily.md", pinned: true, last: null }).kind).toBe("outside");
+    });
+
+    it("leaves a note in scope exactly as it was", () => {
+        scope.excluded = "Templates";
+        expect(buildCompanionScreen(app(), subject).kind).toBe("note");
     });
 });

@@ -3,6 +3,7 @@ import { PluginComponent } from "architecture";
 import { activateSurface } from "architecture/plugin";
 import { t } from "architecture/lang";
 import ZettelFlow from "main";
+import { KnowledgeIndex } from "architecture/knowledge";
 
 /**
  * The door from a note into the Lab (#473, epic #472).
@@ -30,7 +31,8 @@ export class ThinkAboutComponent extends PluginComponent {
             name: t("command_think_about"),
             checkCallback: (checking: boolean) => {
                 const file = this.plugin.app.workspace.getActiveFile();
-                if (!file || file.extension !== "md") return false;
+                // A note in an excluded folder is outside ZettelFlow (#688): nothing to think about here.
+                if (!file || file.extension !== "md" || !KnowledgeIndex.getInstance().inScope(file.path)) return false;
                 if (!checking) thinkAbout(this.plugin, file.path);
                 return true;
             },
@@ -39,6 +41,7 @@ export class ThinkAboutComponent extends PluginComponent {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("file-menu", (menu: Menu, file) => {
                 if (!(file instanceof TFile) || file.extension !== "md") return;
+                if (!KnowledgeIndex.getInstance().inScope(file.path)) return;
                 menu.addItem((item) =>
                     item
                         .setTitle(t("command_think_about"))

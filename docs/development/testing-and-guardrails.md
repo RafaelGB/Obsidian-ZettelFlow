@@ -81,8 +81,12 @@ The policy — deliberately, not vanity:
 - It is a **floor, not a target.** We chase *behavioral* tests of the risky, user-affecting paths
   (the write paths, the note-builder, the AI path), each with a named failure scenario — not a 100%
   number to game.
-- **Raise the floor as tests land**, never lower it. The current values (stmts 83 / branch 75 /
-  func 78 / lines 84) sit just below the measured level.
+- **Raise the floor as tests land**, never lower it. The current values (stmts 56 / branch 54 /
+  func 49 / lines 56) sit just below the measured level.
+- **It measures all of `src`.** `roots` includes `src`, so a file no test loads counts as
+  uncovered. Until 3.5.0 it did not: the floor read 84% because it only saw the files some test
+  happened to import, and a new test that imported a wide graph moved it by eleven points without
+  one line losing a test. The honest figure is lower, and it is the one that can only go up.
 
 ## Source-scanning guardrails (#406)
 

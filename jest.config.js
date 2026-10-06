@@ -12,7 +12,7 @@
  */
 module.exports = {
   testEnvironment: "node",
-  roots: ["<rootDir>/test"],
+  roots: ["<rootDir>/test", "<rootDir>/src"],
   testMatch: ["**/*.test.ts"],
   setupFiles: ["<rootDir>/test/setup.ts"],
   transform: {
@@ -51,12 +51,17 @@ module.exports = {
   // covered surface, so functions fell 80→74.18 and lines 86→83.72. The floor is lowered to match that
   // leaner reality (not a regression to fix), and climbs again as epic #360 (D1–D5) adds tests.
   // Measured 2026-09-07: stmts 83.34 / branch 76.32 / func 74.18 / lines 83.72.
+  // Re-measured 2026-10-06 over ALL of src (#690): `roots` now includes src, so a file no test loads
+  // counts as uncovered instead of vanishing from the denominator. Before, the floor measured only
+  // the files some test happened to import (84%), so a new test importing a wide graph "dropped"
+  // coverage by 11 points without one line losing a test. Honest figure: stmts 56.73 / branch 55.25
+  // / func 50.15 / lines 56.59. Same ratchet as before — floor just below, raise it as tests land.
   coverageThreshold: {
     global: {
-      statements: 83,
-      branches: 75,
-      functions: 74,
-      lines: 83,
+      statements: 56,
+      branches: 54,
+      functions: 49,
+      lines: 56,
     },
   },
   clearMocks: true,

@@ -5,7 +5,7 @@ import { c, log, ObsidianApi } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
-import { KnowledgeIndex, STATE_LABEL_KEY } from "architecture/knowledge";
+import { KnowledgeIndex, STATE_LABEL_KEY, type KnowledgeModel } from "architecture/knowledge";
 import {
     runGraphQuery,
     dueClaims,
@@ -25,6 +25,7 @@ import { familyPage, eyebrow, keyHints } from "architecture/components/core/fami
 import { renderComposer, type Composer } from "architecture/components/core/family/ThoughtComposer";
 import { readingInProgress, type ReadingInProgress } from "./homeResume";
 import { CameBackStack } from "./CameBackStack";
+import { HomeGlimpse } from "./HomeGlimpse";
 import type { Thought } from "application/thinking/thought";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -81,6 +82,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private lastThought: Thought | undefined;
     private composer: Composer | undefined;
     private stack: CameBackStack | undefined;
+    private glimpse: HomeGlimpse | undefined;
+    private model: KnowledgeModel | null = null;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -128,6 +131,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 return;
             }
             const model = index.getModel();
+            this.model = model;
             const judgements = JudgementLog.getInstance().entries();
             this.notesThisWeek = model.all().filter((idea) => idea.created >= now - WEEK_MS).length;
             this.lastNote = this.findLastNote((path) => Boolean(model.get(path)));
@@ -176,6 +180,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         this.pinnedCards = [];
         this.claimReturn = null;
         this.idea = null;
+        this.model = null;
         this.notesThisWeek = 0;
         this.lastNote = null;
     }
@@ -218,6 +223,12 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         });
         this.composer.area.value = writing;
         if (hadFocus) this.composer.focus();
+        // The vault, as a glimpse (#705) — once there is a vault to glimpse.
+        if (this.glimpse) this.removeChild(this.glimpse);
+        this.glimpse = undefined;
+        if (this.state === "ready" && this.model && this.model.size() > 0) {
+            this.glimpse = this.addChild(new HomeGlimpse(top.createDiv({ cls: c("home-glimpse-slot") }), this.app, this.model));
+        }
 
         // A wizard left mid-flow: one nudge, only when there is a draft.
         this.renderUnfinishedNote(page);

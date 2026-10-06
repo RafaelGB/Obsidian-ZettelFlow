@@ -2512,4 +2512,10 @@ export default {
     // Came back today (#704).
     home_stack_done: 'That is all for today. Nothing else is waiting.',
     home_stack_not_yet: 'Not yet',
+    // The vault glimpse (#705).
+    home_glimpse_open: 'Open your vault in Explore',
+    home_glimpse_new: '{0} new this week',
+    home_glimpse_new_one: '{0} new note this week',
+    home_glimpse_still: 'Your vault, as it grows',
+    home_glimpse_explore: 'Explore →',
 };

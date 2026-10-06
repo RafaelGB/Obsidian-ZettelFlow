@@ -2513,4 +2513,10 @@ export default {
     // Came back today (#704).
     home_stack_done: 'Eso es todo por hoy. No hay nada más esperando.',
     home_stack_not_yet: 'Todavía no',
+    // The vault glimpse (#705).
+    home_glimpse_open: 'Abrir tu bóveda en Explorar',
+    home_glimpse_new: '{0} nuevas esta semana',
+    home_glimpse_new_one: '{0} nota nueva esta semana',
+    home_glimpse_still: 'Tu bóveda, mientras crece',
+    home_glimpse_explore: 'Explorar →',
 };

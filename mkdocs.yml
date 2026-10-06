@@ -165,6 +165,7 @@ nav:
       - Dashboards for your vault: development/base-dashboards.md
       - Install a ready-made system: how-to-contribute/systems-gallery.md
       - Build your own note flow:
+          - "Create a note: the wizard": development/new-note-wizard.md
           - Your flows and their roles: architecture/flow-roles.md
           - Canvas integration: development/canvas-integration.md
           - Conditional edges: architecture/conditional-edges.md

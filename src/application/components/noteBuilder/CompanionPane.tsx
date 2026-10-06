@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Component, Notice, getAllTags, stringifyYaml } from "obsidian";
 import { c, log, ObsidianApi } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { FileService, FrontmatterService, MarkdownService } from "architecture/plugin";
 import {
   AssembleNotePreviewInput,
@@ -231,63 +231,79 @@ function DiffSummary({ diff, editing }: { diff: NoteDiff; editing: boolean }) {
     diff.placeholders.length === 0;
   if (nothing) return null;
 
+  // One tidy list (#684): the kind is a word in a chip, the key and value follow it. Colour only
+  // repeats the word — a conflict is said, not just painted.
   return (
     <div className={c("companion-pane-diff")}>
-      <h5 className={c("companion-pane-diff-heading")}>{t("companion_pane_diff_title")}</h5>
-      {changed.map((entry) => (
-        <div className={c("companion-pane-diff-row")} key={`fm-${entry.key}`}>
-          <span className={c("companion-pane-diff-kind")}>
-            {entry.kind === "added" ? t("companion_pane_diff_added") : t("companion_pane_diff_changed")}
-          </span>
-          <span className={c("companion-pane-diff-key")}>{entry.key}</span>
-          <span className={c("companion-pane-diff-value")}>
-            {entry.kind === "changed"
-              ? t("companion_pane_diff_from_to", String(entry.previous), String(entry.value))
-              : String(entry.value)}
-          </span>
-        </div>
-      ))}
-      {diff.bodyBlocks.length > 0 && (
-        <div className={c("companion-pane-diff-row")}>
-          <span className={c("companion-pane-diff-kind")}>{t("companion_pane_diff_added")}</span>
-          <span className={c("companion-pane-diff-value")}>
-            {t("companion_pane_diff_body_blocks", String(diff.bodyBlocks.length))}
-          </span>
-        </div>
-      )}
-      {editing &&
-        diff.placeholders.map((placeholder) => (
-          <div className={c("companion-pane-diff-row")} key={`ph-${placeholder.key}`}>
-            <span className={c("companion-pane-diff-kind")}>
-              {t("companion_pane_diff_replaced")}
+      <h5 className={c("companion-pane-heading")}>{t("companion_pane_diff_title")}</h5>
+      <ul className={c("companion-pane-diff-list")}>
+        {changed.map((entry) => (
+          <li className={c("companion-pane-diff-row")} key={`fm-${entry.key}`}>
+            <span
+              className={`${c("companion-pane-diff-kind")} ${
+                entry.kind === "added" ? "is-added" : "is-changed"
+              }`}
+            >
+              {entry.kind === "added" ? t("companion_pane_diff_added") : t("companion_pane_diff_changed")}
             </span>
-            <span className={c("companion-pane-diff-value")}>
-              {t(
-                "companion_pane_diff_placeholder",
-                placeholder.key,
-                String(placeholder.occurrences),
-                placeholder.value
+            <span className={c("companion-pane-diff-text")}>
+              <span className={c("companion-pane-diff-key")}>{entry.key}</span>
+              {" → "}
+              <span className={c("companion-pane-diff-value")}>
+                {entry.kind === "changed"
+                  ? t("companion_pane_diff_from_to", String(entry.previous), String(entry.value))
+                  : String(entry.value)}
+              </span>
+            </span>
+          </li>
+        ))}
+        {diff.bodyBlocks.length > 0 && (
+          <li className={c("companion-pane-diff-row")}>
+            <span className={`${c("companion-pane-diff-kind")} is-added`}>
+              {t("companion_pane_diff_added")}
+            </span>
+            <span className={c("companion-pane-diff-text")}>
+              {tCount(
+                diff.bodyBlocks.length,
+                "companion_pane_diff_body_blocks",
+                String(diff.bodyBlocks.length)
               )}
             </span>
-          </div>
+          </li>
+        )}
+        {editing &&
+          diff.placeholders.map((placeholder) => (
+            <li className={c("companion-pane-diff-row")} key={`ph-${placeholder.key}`}>
+              <span className={`${c("companion-pane-diff-kind")} is-changed`}>
+                {t("companion_pane_diff_replaced")}
+              </span>
+              <span className={c("companion-pane-diff-text")}>
+                {t(
+                  "companion_pane_diff_placeholder",
+                  placeholder.key,
+                  String(placeholder.occurrences),
+                  placeholder.value
+                )}
+              </span>
+            </li>
+          ))}
+        {diff.conflicts.map((conflict) => (
+          <li className={c("companion-pane-diff-row")} key={`cf-${conflict.key}`}>
+            <span className={`${c("companion-pane-diff-kind")} is-conflict`}>
+              {t("companion_pane_diff_conflict")}
+            </span>
+            <span className={c("companion-pane-diff-text")}>
+              {t(
+                "companion_pane_diff_conflict_detail",
+                conflict.key,
+                conflict.winnerSource,
+                String(conflict.winner),
+                conflict.overridden.map((entry) => entry.source).join(", ")
+              )}
+            </span>
+          </li>
         ))}
-      {diff.conflicts.map((conflict) => (
-        <div
-          className={c("companion-pane-diff-row", "companion-pane-diff-conflict")}
-          key={`cf-${conflict.key}`}
-        >
-          <span className={c("companion-pane-diff-kind")}>{t("companion_pane_diff_conflict")}</span>
-          <span className={c("companion-pane-diff-value")}>
-            {t(
-              "companion_pane_diff_conflict_detail",
-              conflict.key,
-              conflict.winnerSource,
-              String(conflict.winner),
-              conflict.overridden.map((entry) => entry.source).join(", ")
-            )}
-          </span>
-        </div>
-      ))}
+      </ul>
     </div>
   );
 }
@@ -403,6 +419,8 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
       Object.keys(preview.frontmatter).length > 0
         ? "```yaml\n".concat(stringifyYaml(preview.frontmatter), "```\n\n")
         : "";
+    // The element outlives a re-assembly now (#684); a render appends, so it starts empty.
+    previewRef.current.empty();
     MarkdownService.render(
       ObsidianApi.globalApp(),
       frontmatterBlock.concat(preview.body),
@@ -414,47 +432,54 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
 
   const visible = suggestions.filter((suggestion) => !rejected.includes(suggestion.path));
 
+  // One card (#684): the note as it will be — title, then the rendered properties and body — and
+  // under it what the build will change. The states live inside the card, so the pane never jumps.
   const body = (
     <>
       <section className={c("companion-pane-section")}>
         <h4 className={c("companion-pane-heading")}>{t("companion_pane_preview_title")}</h4>
-        {state === "empty" && (
-          <p className={c("companion-pane-status")}>{t("companion_pane_empty")}</p>
-        )}
-        {state === "loading" && (
-          <p className={c("companion-pane-status")}>{t("companion_pane_loading")}</p>
-        )}
-        {state === "error" && (
-          <p className={c("companion-pane-status", "companion-pane-status--error")}>
-            {t("companion_pane_error")}
-          </p>
-        )}
-        {state === "ready" && diff && <DiffSummary diff={diff} editing={modal.isEditor()} />}
-        {state === "ready" && satellite && (
-          <div className={c("companion-pane-satellite")}>
-            <h5 className={c("companion-pane-diff-heading")}>{t("satellite_diff_title")}</h5>
-            {"error" in satellite ? (
-              <p className={c("companion-pane-status", "companion-pane-status--error")}>
-                {t(SATELLITE_ERROR_KEYS[satellite.error])}
-              </p>
-            ) : (
-              <>
-                <p className={c("companion-pane-satellite-path")}>
-                  {t("satellite_relation_summary", satellite.path, satellite.relation)}
+        <div className={c("companion-pane-card")}>
+          {state === "empty" && (
+            <p className={c("companion-pane-status")}>{t("companion_pane_empty")}</p>
+          )}
+          {state === "loading" && !preview && (
+            <p className={c("companion-pane-status")}>{t("companion_pane_loading")}</p>
+          )}
+          {state === "error" && (
+            <p className={c("companion-pane-status", "companion-pane-status--error")}>
+              {t("companion_pane_error")}
+            </p>
+          )}
+          {/* The last preview stays while the next one assembles, so the card does not blink. */}
+          {(state === "ready" || state === "loading") && preview && (
+            <div className={c("companion-pane-preview")}>
+              <h3 className={c("companion-pane-preview-title")}>
+                {preview.title || t("companion_pane_untitled")}
+              </h3>
+              <div ref={previewRef} className={c("companion-pane-preview-body")} />
+            </div>
+          )}
+          {(state === "ready" || state === "loading") && preview && diff && (
+            <DiffSummary diff={diff} editing={modal.isEditor()} />
+          )}
+          {state === "ready" && satellite && (
+            <div className={c("companion-pane-satellite")}>
+              <h5 className={c("companion-pane-heading")}>{t("satellite_diff_title")}</h5>
+              {"error" in satellite ? (
+                <p className={c("companion-pane-status", "companion-pane-status--error")}>
+                  {t(SATELLITE_ERROR_KEYS[satellite.error])}
                 </p>
-                <DiffSummary diff={satellite.diff} editing={false} />
-              </>
-            )}
-          </div>
-        )}
-        {state === "ready" && preview && (
-          <div className={c("companion-pane-preview")}>
-            <h3 className={c("companion-pane-preview-title")}>
-              {preview.title || t("companion_pane_untitled")}
-            </h3>
-            <div ref={previewRef} className={c("companion-pane-preview-body")} />
-          </div>
-        )}
+              ) : (
+                <>
+                  <p className={c("companion-pane-satellite-path")}>
+                    {t("satellite_relation_summary", satellite.path, satellite.relation)}
+                  </p>
+                  <DiffSummary diff={satellite.diff} editing={false} />
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </section>
       <section className={c("companion-pane-section", "companion-pane-section-proposal")}>
         <h4 className={c("companion-pane-heading")}>{t("companion_pane_suggestions_title")}</h4>

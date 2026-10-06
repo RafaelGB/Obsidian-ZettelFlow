@@ -12,6 +12,8 @@ Create some options to select one of them and add it into the built-in note temp
 ![Configuring the Selector action: zone, key, multiple and the options](../resources/actions/selector/selector-settings.svg)
 
 ## Component
-The component lists the options you defined. Click one (or move with the arrow keys and press `Enter`) to choose it and continue. With **Enable multiple**, tick several and press **Confirm**.
+The component lists the options you defined. Click one, or move with the arrow keys and press `Enter`
+or **Confirm**, to choose it and continue. The keyboard starts on the default option, which is
+marked **default**. With **Enable multiple**, pick several and press **Confirm**.
 
 ![The Selector step in the wizard: one option chosen from the list](../resources/actions/selector/selector-step.svg)

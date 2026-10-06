@@ -228,6 +228,27 @@ fields, `currentAction`/`currentNode`, `enableSkip`. Mutators include `setTitle`
 `manageNodeInfo`, `addAction`, `addBackgroundAction`, `addJsFile`, `build`, `reset`, `goPrevious`,
 `setSectionElement`.
 
+### One header, one footer (#684)
+
+The wizard's chrome is three components around the step. `WalkStatus` is the progress header: the
+title field, the destination chip, the bar (`walkProgress`, drawn only when `remainingSteps` can
+estimate) and the `Breadcrumb` (`foldedCrumbs` folds a long walk). `Section` renders the step's
+heading: its phase, its action kind and whether it can be skipped. `WizardFooter` holds Back · Skip
+this step · Build with what I have (`footerModel`: a control that does not apply is disabled or
+hidden in place, never removed).
+
+The step keeps its own **Confirm**. `ConfirmStep` still owns the handler, the refusal, the
+accelerator and the hint, but inside the wizard it draws them through a portal into the footer's
+slot (`ConfirmSlotContext`). Anywhere else it renders in place. `Select` contributes a Confirm that
+takes the active option, so clicking, `Enter` and Confirm say the same thing.
+`Ctrl/Cmd+Enter` anywhere in the wizard clicks that same button.
+
+An option's edge, and the step's phase dot, are painted from `accentColour()`. In Obsidian 1.14 a
+preset's `--canvas-color-N` is a colour, not an `r, g, b` triple, so the old
+`rgba(var(--canvas-color), …)` was invalid and preset colours never painted. A hex node still
+arrives as a triple, and it is wrapped in `rgb()`. All of it is styled in
+`styles/components/noteBuilder.scss`, in Obsidian's own controls.
+
 ### The three selectors
 
 Each is a `<Select>` wrapper: **`RootSelector`** (options from `flow.rootNodes()`),

@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
+import { createPortal } from "react-dom";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { ConfirmStepType } from "./typing";
+import { ConfirmSlotContext } from "./ConfirmSlot";
 
 /**
  * **The control that ends a step** (#547) — one of them, for every action the wizard can ask.
@@ -22,10 +24,14 @@ import { ConfirmStepType } from "./typing";
  * - the **refusal** — an optional check that marks the group invalid and does not call back, the
  *   way the calendar already refused a bad date, said beside the control rather than in a `Notice`;
  * - the **hint**, one line, so a promised shortcut is never a promise the interface breaks.
+ *
+ * Inside the wizard it is drawn in the footer (#684), through {@link ConfirmSlotContext}: the same
+ * place on every step, with the hint beside it. Anywhere else it renders in place.
  */
 export function ConfirmStep(props: ConfirmStepType) {
     const { onConfirm, canConfirm, label, hint, tooltip, accelerator = "enter", autoFocus } = props;
     const [invalid, setInvalid] = React.useState(false);
+    const slot = useContext(ConfirmSlotContext);
 
     const confirm = (): void => {
         if (canConfirm && !canConfirm()) {
@@ -38,8 +44,11 @@ export function ConfirmStep(props: ConfirmStepType) {
 
     const hintText = hint ?? (accelerator === "enter" ? t("confirm_hint_enter") : t("confirm_hint_mod_enter"));
 
-    return (
+    const control = (
         <div className={c("confirm-step", invalid ? "confirm-step--invalid" : "")}>
+            <span className={c("confirm-step-hint")} aria-live="polite">
+                {hintText}
+            </span>
             <button
                 // Obsidian's primary action. The wizard used a bare `<button>`, so the flagship
                 // flow was the one place the main action did not look like the app's main action.
@@ -48,14 +57,19 @@ export function ConfirmStep(props: ConfirmStepType) {
                 title={tooltip}
                 autoFocus={autoFocus}
                 onKeyDown={(event) => {
-                    if (event.key === "Enter") confirm();
+                    if (event.key !== "Enter") return;
+                    // A focused button already turns Enter into a click; without this the step
+                    // was confirmed twice, and the second answer landed on the next step.
+                    event.preventDefault();
+                    confirm();
                 }}
             >
                 {label ?? t("component_confirm")}
             </button>
-            <span className={c("confirm-step-hint")}>{hintText}</span>
         </div>
     );
+
+    return slot ? createPortal(control, slot) : control;
 }
 
 /**

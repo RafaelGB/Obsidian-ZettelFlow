@@ -32,12 +32,9 @@ const OFF_GRID = /[^-\w.](\d+)px/g;
 const CEILING: Record<string, number> = {
     "accordion.scss": 13,
     "actionAddMenu.scss": 56,
-    "animations.scss": 1,
     "askGraph.scss": 2,
-    "backlink.scss": 1,
     "codeEditor.scss": 15,
     "community.scss": 29,
-    "companionPane.scss": 5,
     "conceptNav.scss": 2,
     // 15 → 13: the idea card's own surface + accent edge (a 1px border and a 3px edge) moved to the
     // shared dashboard-card--hero when Cultivate became a dashboard (#620).
@@ -56,29 +53,24 @@ const CEILING: Record<string, number> = {
     // tile, and the fold's divider uses var(--border-width) rather than a literal pixel (#620).
     "home.scss": 4,
     "hooksConfig.scss": 87,
-    "input.scss": 5,
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
     // 120 → 119: the 780px centred cage removed when the Lab went fluid (#620).
     // 119 → 118: the thread list's `12px` gap became `var(--size-4-3)` when it became a grid (#620).
     "lab.scss": 118,
-    "main.scss": 29,
+    "main.scss": 9,
     "modal.scss": 10,
     "openQuestions.scss": 1,
-    "progressBar.scss": 2,
     "reasoningPaths.scss": 3,
     "search.scss": 7,
-    "selectableSearch.scss": 11,
     "selector.scss": 11,
     "stepBuilder.scss": 9,
     "surface.scss": 1,
-    "walkStatus.scss": 6,
     // The one genuine pixel in the vocabulary: `$line-quiet` is a **hairline**, which the rule
     // above allows by name. It is declared here rather than left to slip in unnoticed, and it is
     // the only entry in this table that is not debt.
     "variables.scss": 1,
-    "welcome.scss": 1,
     "workbench.scss": 7,
     "workflowCanvas.scss": 26,
 };

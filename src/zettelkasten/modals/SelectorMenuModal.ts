@@ -36,11 +36,16 @@ export class SelectorMenuModal extends Modal {
     }
 
     onOpen(): void {
+        // A wizard has a header and a footer that stay put while the step scrolls (#684), so the
+        // modal is a column of fixed height rather than one that grows with every step.
+        this.modalEl.addClass(c("note-builder-modal"));
         // Widen the modal so the companion pane sits beside the wizard (desktop, creation flow).
         if (this.flow && !Platform.isMobile && !this.isEditor()) {
             this.modalEl.addClass(c("note-builder-modal-wide"));
         }
-        const child = this.contentEl.createDiv();
+        // No flow yet: the first-run screen, which is as tall as what it says.
+        if (!this.flow) this.modalEl.addClass(c("note-builder-modal-welcome"));
+        const child = this.contentEl.createDiv({ cls: c("note-builder-root") });
         this.root = createRoot(child);
         if (this.flow) {
             this.root.render(

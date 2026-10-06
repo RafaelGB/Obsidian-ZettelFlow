@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { Icon } from "architecture/components/icon";
 import { FileService } from "architecture/plugin";
 import { ConnectionSuggestion } from "application/notes";
 import type { SuggestionVerdict } from "application/notes/suggestionVerdicts";
@@ -142,31 +141,30 @@ export function SuggestionRow({
           </button>
         </div>
       ) : (
+        // Words, not 1.8 rem icons (#684): the three answers §XII asks for, each saying what it does.
         <div className={c("companion-pane-suggestion-verdicts")}>
           <button
             type="button"
             className={c("companion-pane-suggestion-link")}
             title={t("companion_pane_insert_link")}
-            aria-label={t("companion_pane_insert_link")}
             onClick={accept}
           >
-            <Icon name="link" />
+            {t("companion_pane_link_short")}
           </button>
           <button
             type="button"
             title={t("companion_pane_modify_label")}
-            aria-label={t("companion_pane_modify_label")}
             onClick={() => setEditing(true)}
           >
-            <Icon name="pencil" />
+            {t("companion_pane_modify_short")}
           </button>
           <button
             type="button"
+            className={c("companion-pane-suggestion-reject")}
             title={t("companion_pane_reject_label")}
-            aria-label={t("companion_pane_reject_label")}
             onClick={reject}
           >
-            <Icon name="x" />
+            {t("companion_pane_reject_short")}
           </button>
         </div>
       )}

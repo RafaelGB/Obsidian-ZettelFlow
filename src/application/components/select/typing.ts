@@ -1,4 +1,3 @@
-import { HexString } from "obsidian";
 import type { StepPhase } from "zettelkasten/phases";
 
 export type SelectType = {
@@ -24,7 +23,8 @@ export type OptionElementType = {
 export type OptionType = {
     key: string;
     label: string;
-    color: HexString;
+    /** The destination step's colour (#429/#684); absent when the option leads to no step. */
+    color?: string;
     actionTypes: string[];
     tooltip?: string;
     /** Optional knowledge-transformation phase (#149) used to group options in the selector. */

@@ -1,6 +1,5 @@
 import { c } from "architecture";
-import { SelectableSearch } from "architecture/components/core";
-import { t } from "architecture/lang";
+import { ConfirmStep, SelectableSearch } from "architecture/components/core";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useMemo, useState } from "react";
 import { SelectorElement } from "zettelkasten";
@@ -28,14 +27,7 @@ export function MultipleSelector(props: WrappedActionBuilderProps) {
         enableCreate={true}
         autoFocus
       />
-      <button
-        className={c("confirm-button")}
-        onClick={() => {
-          callback(selectedOptions);
-        }}
-      >
-        {t("component_confirm")}
-      </button>
+      <ConfirmStep onConfirm={() => callback(selectedOptions)} />
     </div>
   );
 }

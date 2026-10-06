@@ -17,9 +17,9 @@ export function PromptWrapper(props: WrappedActionBuilderProps) {
   const [value, setValue] = useState<string>("");
 
   return (
-    <div className={c("input-group")}>
+    <div className={c("field")}>
       <TextArea
-        className={["display-grid"]}
+        className={["field-textarea"]}
         placeholder={
           TypeService.isString(action.placeholder) ? action.placeholder : ""
         }

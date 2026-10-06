@@ -1,87 +1,102 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
+// The first-run screen (#684): the mark, one sentence, the three ways in, two actions.
+.zettelkasten-flow__note-builder-modal.zettelkasten-flow__note-builder-modal-welcome {
+    width: min(44rem, 92vw);
+    height: auto;
+    max-width: var(--dialog-max-width);
+}
+
+.zettelkasten-flow__wizard-welcome {
+    justify-content: center;
+}
+
 .zettelkasten-flow__welcome {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
-    padding: 2rem 1.5rem;
+    gap: var(--size-4-4);
+    padding: var(--size-4-6) var(--size-4-4);
     text-align: center;
+}
+
+.zettelkasten-flow__welcome-logo {
+    display: inline-flex;
+    color: var(--interactive-accent);
+
+    .svg-icon {
+        width: var(--size-4-12);
+        height: var(--size-4-12);
+    }
 }
 
 .zettelkasten-flow__welcome-header {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: $space-1;
 }
 
 .zettelkasten-flow__welcome-title {
-    font-size: 1.4rem;
-    font-weight: 700;
     margin: 0;
-    color: var(--text-normal);
+    color: $text-plain;
+    font-size: var(--h3-size);
+    font-weight: var(--font-bold);
 }
 
 .zettelkasten-flow__welcome-tagline {
-    font-size: 0.95rem;
-    color: var(--text-muted);
     margin: 0;
+    color: $text-quiet;
 }
 
-.zettelkasten-flow__welcome-what-is {
-    font-size: 0.9rem;
-    color: var(--text-normal);
-    max-width: 36rem;
-    line-height: 1.5;
+.zettelkasten-flow__welcome-ways {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: $space-3;
+    width: min(40rem, 100%);
     margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
 }
 
-/* An inline failure line for the create-example button (#546 C1/C3): on-surface, so not a toast. */
-.zettelkasten-flow__welcome-error {
-    font-size: 0.9rem;
-    color: var(--text-error);
-    margin: 0;
+.zettelkasten-flow__welcome-way {
+    @include card;
+    padding: $space-3;
+    border-radius: $radius-medium;
+    background-color: $surface-quiet;
+}
+
+.zettelkasten-flow__welcome-way-icon {
+    display: inline-flex;
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__welcome-way-title {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__welcome-way-detail {
+    @include hint;
 }
 
 .zettelkasten-flow__welcome-actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.625rem;
+    gap: $space-2;
 }
 
-.zettelkasten-flow__welcome-btn {
-    padding: 0.5rem 1.125rem;
-    border-radius: 0.375rem;
-    border: 1px solid var(--background-modifier-border);
-    background: var(--background-secondary);
-    color: var(--text-normal);
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
-
-    &:hover {
-        background: var(--background-modifier-hover);
-        border-color: var(--interactive-accent);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-}
-
-.zettelkasten-flow__welcome-btn--primary {
-    background: var(--interactive-accent);
-    border-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-
-    &:hover {
-        background: var(--interactive-accent-hover);
-        border-color: var(--interactive-accent-hover);
-    }
+// An inline failure line for the example button (#546 C1/C3): on-surface, so not a toast.
+.zettelkasten-flow__welcome-error {
+    margin: 0;
+    color: var(--text-error);
+    font-size: var(--font-ui-small);
 }
 
 .zettelkasten-flow__welcome-footer {
-    font-size: 0.8rem;
+    font-size: $text-small;
 
     a {
         color: var(--link-color);

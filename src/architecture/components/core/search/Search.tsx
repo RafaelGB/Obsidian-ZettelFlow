@@ -40,7 +40,7 @@ export function Search<T>(props: SearchType<T>) {
     const spaceUp = r.top;
 
     const renderDown = spaceDown >= h || spaceDown > spaceUp;
-    const top = renderDown ? r.bottom : Math.max(8, r.top - h); // clamp pequeño
+    const top = renderDown ? r.bottom : Math.max(8, r.top - h); // a small clamp off the top edge
 
     setPosition({ top, left: r.left, width: r.width });
   }, [visibleOptions, optionsHeight]);
@@ -55,7 +55,7 @@ export function Search<T>(props: SearchType<T>) {
   useEffect(() => {
     if (!visibleOptions) return;
     updatePosition();
-    // captura scrolls de cualquier contenedor
+    // catch scrolls from any container
     const opts = { capture: true, passive: true } as AddEventListenerOptions;
     activeWindow.addEventListener("scroll", updatePosition, opts);
     activeWindow.addEventListener("resize", updatePosition);

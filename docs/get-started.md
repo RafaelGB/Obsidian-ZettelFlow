@@ -52,7 +52,10 @@ There are three ways in. None of them needs the others, and you can switch betwe
     4. Add actions to the step (a prompt, a selector, tags…) and draw arrows to the next steps.
     5. Ribbon button → **Create note**: your first wizard run.
 
-    → [Build your own note flow](architecture/flow-roles.md) · [Actions](actions/Prompt.md)
+    ![The new-note wizard: one progress header, the step, the live preview and a footer that never moves](resources/wizard/wizard.svg)
+
+    → [Create a note: the wizard](development/new-note-wizard.md) ·
+    [Build your own note flow](architecture/flow-roles.md) · [Actions](actions/Prompt.md)
 
 ## 3 · Your settings, at a glance
 

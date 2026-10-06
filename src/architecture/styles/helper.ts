@@ -5,6 +5,9 @@ export const CSS_PREFIX = 'zettelkasten-flow';
 export function c(...classes: string[]): string {
     const wrappedClasses: string[] = [];
     classes.forEach((cls) => {
+        // An empty name is a condition that did not hold, not a class: it used to emit a bare
+        // `zettelkasten-flow__` (#684).
+        if (!cls) return;
         wrappedClasses.push(`${CSS_PREFIX}__${cls}`);
     });
     return wrappedClasses.join(' ');

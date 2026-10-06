@@ -324,7 +324,7 @@ export class LibraryView extends ItemView {
         const cover = drawCover(open, item);
         open.createSpan({ cls: c("shelf-kind"), text: t(KIND_KEY[item.format]) });
         this.watchCover(cover, item);
-        scope.registerDomEvent(open, "click", () => this.open(item));
+        scope.registerDomEvent(open, "click", () => this.openItem(item));
 
         const more = card.createEl("button", {
             cls: ["clickable-icon", c("shelf-more")],
@@ -386,8 +386,8 @@ export class LibraryView extends ItemView {
         const resume = info.createEl("button", { cls: ["mod-cta", c("shelf-resume")], attr: { type: "button" } });
         setIcon(resume.createSpan({ cls: c("shelf-resume-icon") }), "book-open");
         resume.createSpan({ text: t("shelf_resume") });
-        scope.registerDomEvent(resume, "click", () => this.open(item));
-        scope.registerDomEvent(cover, "click", () => this.open(item));
+        scope.registerDomEvent(resume, "click", () => this.openItem(item));
+        scope.registerDomEvent(cover, "click", () => this.openItem(item));
     }
 
     // ── covers ───────────────────────────────────────────────────────────────
@@ -446,7 +446,7 @@ export class LibraryView extends ItemView {
 
     // ── open, and the detail ─────────────────────────────────────────────────
 
-    private open(item: ShelfItem, at: OpenAt = {}): void {
+    private openItem(item: ShelfItem, at: OpenAt = {}): void {
         if (!openShelfItem(this.app, item, this.plugin ?? null, at)) this.openDetail(item.id);
     }
 
@@ -475,7 +475,7 @@ export class LibraryView extends ItemView {
             facts: (parent) => this.renderFacts(parent, item),
             scanned: (parent) => this.scannedBadge(parent),
             lastRead: lastReadLabel(item.lastRead),
-            open: (at) => this.open(item, at),
+            open: (at) => this.openItem(item, at),
             close: () => this.closeDetail(),
         });
         aside.addClass(c("shelf-detail--open"));

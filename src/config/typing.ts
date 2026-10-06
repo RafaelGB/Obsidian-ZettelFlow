@@ -153,6 +153,11 @@ export interface ZettelFlowSettings {
      * the legacy shape and is migrated transparently on read (`normalizeSavedQueries`).
      */
     savedGraphQueries?: (string | SavedGraphQuery)[];
+    /**
+     * Names you gave the graph's regions (#697), by the region's hub path. A region is named after its
+     * best connected note until you rename it; an empty name gives that back. Never written to a note.
+     */
+    graphRegionNames?: Record<string, string>;
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
 

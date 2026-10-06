@@ -38,6 +38,11 @@ function mount(m: KnowledgeModel | null = model, query?: string) {
 const text = (node: DomNode | undefined) => node?.textContent ?? "";
 
 beforeEach(() => {
+    (globalThis as { createEl?: unknown }).createEl = (tag: string, options?: unknown) => {
+        const el = new DomNode().createEl(tag, options);
+        el.parent = null;
+        return el;
+    };
     settings = { savedGraphQueries: [], exploreThinkFirst: false };
     __setMockObsidianApi({ ownPlugin: { settings, saveSettings: jest.fn(async () => undefined), registerEvent: () => undefined, register: () => undefined } });
 });
@@ -147,3 +152,26 @@ describe("the keys are the leaf's (#696)", () => {
         expect(host.byClass("explore-chip")).toHaveLength(1);
     });
 });
+
+describe("regions you can rename (#697)", () => {
+    it("lists the regions while nothing is asked, and asks one with a click", () => {
+        const { host } = mount();
+        const names = host.byClass("explore-region-name");
+        expect(names.length).toBeGreaterThan(0);
+        names[0].click();
+        expect(host.byClass("explore-chip-term")[0].textContent).toMatch(/^in /);
+    });
+
+    it("keeps the name you give it, by the region's hub, and uses it everywhere", async () => {
+        const { host } = mount();
+        host.byClass("explore-region-rename")[0].click();
+        const input = host.oneByClass("explore-region-input");
+        input.value = "The core";
+        input.fire("keydown", { key: "Enter", stopPropagation: () => undefined });
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(Object.values(settings.graphRegionNames as Record<string, string>)).toEqual(["The core"]);
+        expect(host.byClass("explore-region-name").map((el) => el.textContent)).toContain("The core");
+    });
+});
+

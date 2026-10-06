@@ -46,6 +46,8 @@ function positiveWords(term: string, regionName: (hub: string) => string): strin
             return t("explore_term_newer", arg);
         case "older-than":
             return t("explore_term_older", arg);
+        case "near":
+            return t("explore_term_near", (arg.split("/").pop() ?? arg).replace(/\.md$/i, ""));
         case "relation":
             return `${t("explore_facet_relation")} ${arg}`;
         case "incoming":

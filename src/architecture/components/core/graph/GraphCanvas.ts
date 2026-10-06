@@ -33,6 +33,8 @@ export interface GraphCallbacks {
     onMenu?(index: number, event: MouseEvent): void;
     /** The layout settled (or a cached one was laid down) — positions are final. */
     onSettled?(): void;
+    /** A frame was drawn — what follows a note on screen (the peek card) moves with it. */
+    onFrame?(): void;
 }
 
 export type { LabelDensity } from "./graphLabels";
@@ -157,6 +159,8 @@ export class GraphCanvas extends Component {
     private frameMs = 0;
     /** The last pointer position not yet picked — picked once, on the next frame. */
     private pendingPointer: { clientX: number; clientY: number } | null = null;
+    /** Notes that just arrived as time played, and when (#697). */
+    private readonly appearing = new Map<number, number>();
 
     constructor(
         parent: HTMLElement,
@@ -367,6 +371,15 @@ export class GraphCanvas extends Component {
 
     /** The moment the vault is shown at (#697): notes made after it are not there yet. */
     setTime(cursor: number): void {
+        const before = this.paintState.timeCursor;
+        const scene = this.scene;
+        if (scene && !this.reduced && cursor > before) {
+            const now = performance.now();
+            for (let i = 0; i < scene.n; i++) {
+                const at = scene.created[i];
+                if (at > before && at <= cursor) this.appearing.set(i, now);
+            }
+        }
         this.paintState = { ...this.paintState, timeCursor: cursor };
         this.paintDirty = true;
         this.request();
@@ -537,6 +550,7 @@ export class GraphCanvas extends Component {
         }
         if (this.layoutRunning) moving = true;
         if (this.paintState.edgeAsk === "bridges" && !this.reduced) moving = true;
+        if (this.appearing.size > 0) moving = true;
         this.renderNow(now);
         if (moving) this.request();
     }
@@ -576,8 +590,9 @@ export class GraphCanvas extends Component {
         } catch (error) {
             log.error("[Graph] a frame failed to draw", error);
         }
-        this.drawOverlay();
+        this.drawOverlay(now);
         this.frameMs = performance.now() - started;
+        this.callbacks.onFrame?.();
     }
 
     // ── layout ──────────────────────────────────────────────────────────────────
@@ -665,7 +680,7 @@ export class GraphCanvas extends Component {
 
     // ── the overlay: rings, labels and region names ─────────────────────────────
 
-    private drawOverlay(): void {
+    private drawOverlay(now = performance.now()): void {
         const ctx = this.overlayCtx;
         const scene = this.scene;
         if (!ctx) return;
@@ -693,6 +708,21 @@ export class GraphCanvas extends Component {
             if (!at) continue;
             ctx.beginPath();
             ctx.arc(at.x, at.y, at.r + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Notes arriving as time plays (#697): a ring that opens and fades, never under reduced motion.
+        for (const [i, born] of this.appearing) {
+            const u = (now - born) / 900;
+            const at = spot(i);
+            if (u >= 1 || !at) {
+                this.appearing.delete(i);
+                continue;
+            }
+            const colour = communityRgba(this.theme, scene.community[i]);
+            ctx.strokeStyle = cssRgb(colour, 0.7 * (1 - u));
+            ctx.beginPath();
+            ctx.arc(at.x, at.y, at.r + u * 16, 0, Math.PI * 2);
             ctx.stroke();
         }
 

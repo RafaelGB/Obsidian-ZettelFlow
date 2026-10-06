@@ -20,6 +20,8 @@ const SURFACE = [
     "src/architecture/components/core/surface/ExploreSurfaceView.ts",
     "src/architecture/components/core/askGraph/suggestedQuestions.ts",
     "src/architecture/components/core/askGraph/termWords.ts",
+    "src/architecture/components/core/askGraph/exploreTime.ts",
+    "src/architecture/components/core/askGraph/regionNames.ts",
 ];
 const EN = read("src/architecture/lang/locale/en.ts");
 const ES = read("src/architecture/lang/locale/es.ts");
@@ -69,6 +71,7 @@ function codeLines(source: string): number {
  * | hover preview | 747 | one line: the `hoverPreview` sibling beside the result name (#594), so a Ctrl-hover previews the note like every other surface. Not a feature of Explore — a rule applied to it |
  * | reader (#669) | 751 | four lines: *Read these*, a third place a selection can go — the Reader walks it in the order its links suggest. The reading itself lives in the Reader, not here |
  * | ask, and the graph answers (#696) | 1,250 | Explore **is** the graph now: the ask bar, suggested questions with live previews, the regions as the legend, an answer card that says how it was found and where it lives, stepping, tour, export and the options menu. Not growth of the product: `Graph3DRenderer` (1,967 lines) and the List lens are deleted, and the graph's whole control system — search, gear, seven lenses, legend, status — went with them |
+ * | time, peek and names (#697) | 1,510 | a strip of months to scrub or play the vault's growth, a peek card of one note's facts beside it, and renaming a region — the owner's word for a place the graph found. Two of the 1,500-odd lines are the pure `exploreTime` and `regionNames`, counted here rather than escaping the ceiling |
  *
  * The honest comparison for the whole epic is **435 → 562**: 421 plus the 14 lines of
  * `GraphSurfaceView`, which #484 deleted and this counter cannot see. A hundred and twenty-seven
@@ -84,7 +87,7 @@ function codeLines(source: string): number {
  * Lines here exclude comments: documentation is not weight, and a metric that counts it teaches
  * you to delete the wrong thing.
  */
-const CEILING = 1_250;
+const CEILING = 1_510;
 
 describe("the surface does not grow by accident (#483–#487)", () => {
     it("stays under a ceiling that has to be raised deliberately", () => {

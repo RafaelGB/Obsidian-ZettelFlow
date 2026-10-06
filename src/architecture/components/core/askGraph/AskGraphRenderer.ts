@@ -1,4 +1,5 @@
-import { App, Menu, Notice, setIcon, type Scope } from "obsidian";
+import { App, Menu, Notice, moment as obsidianMoment, setIcon, type Scope } from "obsidian";
+import type MomentFn from "moment";
 import { c, ObsidianApi, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -38,6 +39,8 @@ import { ExportShareModal } from "architecture/components/core/export/ExportShar
 import { MapOfContentModal } from "./MapOfContentModal";
 import { BlindGate } from "./BlindGate";
 import { offer } from "./suggestedQuestions";
+import { cursorAt, fractionOf, presentAt, timeStrip, TIME_PLAY_MS, type TimeStrip } from "./exploreTime";
+import { normalizeRegionNames, withRegionName } from "./regionNames";
 import { SHAPE_LABEL_KEY, termWords } from "./termWords";
 import { asLinks } from "application/explore/mapOfContent";
 import { readSelection } from "architecture/components/core/reader/readingChooser";
@@ -52,6 +55,8 @@ import {
 } from "./savedQueries";
 
 type LocaleKey = Parameters<typeof t>[0];
+
+const moment = obsidianMoment as unknown as typeof MomentFn;
 
 const DEBOUNCE_MS = 400;
 /** A long answer draws its first rows; the rest are a count, and a narrower question away. */
@@ -126,6 +131,13 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     private stepList: number[] = [];
     private pendingFocus: string | null = null;
 
+    /** The moment the vault is shown at (#697); `Infinity` is now. */
+    private timeCursor = Infinity;
+    private strip: TimeStrip = { min: 0, max: 0, bins: [], starts: [] };
+    private timeEl: HTMLElement | null = null;
+    private playing: number | undefined;
+    private peekEl: HTMLElement | null = null;
+
     constructor(container: HTMLElement, private readonly app: App, initialQuery?: string, _initialLens?: string) {
         super(container);
         // Deep-link from a Home pinned card (#323 G4): open pre-filled and run immediately. The lens a
@@ -154,6 +166,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
     onunload(): void {
         window.clearTimeout(this.debounceTimer);
         this.stopTour();
+        window.clearInterval(this.playing);
         this.suggest?.close();
         this.suggest = null;
         this.container.empty();
@@ -180,6 +193,11 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.key(scope, [], "ArrowLeft", (evt) => {
             if (typing(evt) || !this.asked) return;
             this.stepBy(-1);
+            return false;
+        });
+        this.key(scope, [], " ", (evt) => {
+            if (typing(evt) || !this.canvas?.kind || this.strip.max === 0) return;
+            this.setPlaying(this.playing === undefined);
             return false;
         });
         this.key(scope, [], "Enter", (evt) => {
@@ -214,6 +232,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             onOpen: (index, event) => this.scene && this.openNote(this.scene.ids[index], event.ctrlKey || event.metaKey),
             onMenu: (index, event) => this.openNodeMenu(index, event),
             onSettled: () => this.onSettled(),
+            onFrame: () => this.placePeek(),
         });
         this.canvas = canvas;
         this.addChild(canvas);
@@ -227,11 +246,14 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         this.cardEl = root.createEl("aside", { cls: c("explore-card"), attr: { "aria-live": "polite", "aria-label": t("explore_answer") } });
 
         const hints = root.createDiv({ cls: c("explore-hints"), attr: { "aria-hidden": "true" } });
-        for (const [key, word] of [["/", "explore_key_ask"], ["F", "explore_key_frame"], ["←→", "explore_key_step"], ["Esc", "explore_key_clear"]] as const) {
+        for (const [key, word] of [["/", "explore_key_ask"], ["F", "explore_key_frame"], ["←→", "explore_key_step"], ["Space", "explore_key_time"], ["Esc", "explore_key_clear"]] as const) {
             const hint = hints.createSpan({ cls: c("explore-hint") });
             hint.createEl("kbd", { text: key });
             hint.createSpan({ text: t(word) });
         }
+
+        this.timeEl = root.createDiv({ cls: c("explore-time") });
+        this.peekEl = root.createDiv({ cls: c("explore-peek"), attr: { role: "dialog", "aria-label": t("explore_answer") } });
 
         this.renderThinkFirst();
         this.refresh();
@@ -326,7 +348,10 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
             try {
                 this.data = build3DGraph(model);
                 this.scene = buildScene(this.data);
+                this.applyRegionNames(this.scene);
+                this.strip = timeStrip(this.scene.created);
                 this.mountScene(this.scene);
+                this.renderTime();
             } catch (error) {
                 log.error("[Explore] could not build the graph", error);
             }
@@ -483,6 +508,160 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         return community?.name ?? regionBasename(hub);
     }
 
+    /** The names you gave regions (#697) over the hubs' names. */
+    private applyRegionNames(scene: GraphScene): void {
+        const names = normalizeRegionNames(ObsidianApi.getOwnPlugin()?.settings.graphRegionNames);
+        for (const community of scene.communities) community.name = names[community.hub] ?? regionBasename(community.hub);
+        this.canvas?.setRegionNames(scene.communities.map((community) => community.name));
+    }
+
+    /** Rename a region — the owner's act (§XII): kept in plugin data by its hub, never in a note. */
+    private async renameRegion(hub: string, name: string): Promise<void> {
+        const plugin = ObsidianApi.getOwnPlugin();
+        const scene = this.scene;
+        if (!plugin || !scene) return;
+        plugin.settings.graphRegionNames = withRegionName(normalizeRegionNames(plugin.settings.graphRegionNames), hub, name, regionBasename(hub));
+        await plugin.saveSettings();
+        this.applyRegionNames(scene);
+        this.renderAll();
+    }
+
+    // ── time (#697) ─────────────────────────────────────────────────────────────
+
+    /** A strip of months, bars as tall as the notes made in them, and a cursor you drag or play. */
+    private renderTime(): void {
+        const el = this.timeEl;
+        if (!el) return;
+        el.empty();
+        const strip = this.strip;
+        el.toggleClass(c("explore-time--none"), strip.max === 0 || !this.canvas?.kind);
+        if (strip.max === 0 || !this.canvas?.kind) return;
+        const scope = this.scope("time");
+        const play = el.createEl("button", {
+            cls: ["clickable-icon", c("explore-time-play")],
+            attr: { type: "button", "aria-label": this.playing === undefined ? t("explore_time_play") : t("explore_time_pause") },
+        });
+        setIcon(play, this.playing === undefined ? "play" : "pause");
+        scope.registerDomEvent(play, "click", () => this.setPlaying(this.playing === undefined));
+        const track = el.createDiv({
+            cls: c("explore-time-track"),
+            attr: { role: "slider", tabindex: "0", "aria-label": t("explore_time_label"), "aria-valuemin": "0", "aria-valuemax": "100" },
+        });
+        const peak = Math.max(1, ...strip.bins);
+        const cut = fractionOf(strip, this.timeCursor);
+        strip.bins.forEach((count, i) => {
+            const bar = track.createDiv({ cls: c("explore-time-bar") });
+            bar.setCssProps({ "--zf-h": String(count / peak) });
+            bar.toggleClass(c("explore-time-bar--past"), (i + 1) / strip.bins.length <= cut + 1e-9);
+        });
+        track.createDiv({ cls: c("explore-time-thumb") }).setCssProps({ "--zf-at": String(cut) });
+        track.setAttribute("aria-valuenow", String(Math.round(cut * 100)));
+        const label = el.createDiv({ cls: c("explore-time-when") });
+        const count = this.scene ? presentAt(this.scene.created, this.timeCursor) : 0;
+        label.createEl("b", { text: Number.isFinite(this.timeCursor) ? moment(this.timeCursor).format("MMM YYYY") : t("explore_time_now") });
+        label.createSpan({ text: ` · ${tCount(count, "graph_status_notes", String(count))}` });
+        const scrub = (evt: PointerEvent) => {
+            const rect = track.getBoundingClientRect();
+            this.setTime(cursorAt(strip, (evt.clientX - rect.left) / Math.max(1, rect.width)));
+        };
+        let dragging = false;
+        scope.registerDomEvent(track, "pointerdown", (evt) => {
+            dragging = true;
+            track.setPointerCapture?.(evt.pointerId);
+            this.setPlaying(false);
+            scrub(evt);
+        });
+        scope.registerDomEvent(track, "pointermove", (evt) => {
+            if (dragging) scrub(evt);
+        });
+        scope.registerDomEvent(track, "pointerup", () => (dragging = false));
+        scope.registerDomEvent(track, "keydown", (evt) => {
+            const step = evt.key === "ArrowRight" ? 0.05 : evt.key === "ArrowLeft" ? -0.05 : 0;
+            if (step === 0) return;
+            evt.preventDefault();
+            evt.stopPropagation();
+            this.setTime(cursorAt(strip, fractionOf(strip, this.timeCursor) + step));
+        });
+    }
+
+    private setTime(cursor: number): void {
+        this.timeCursor = cursor;
+        this.canvas?.setTime(cursor);
+        this.renderTime();
+    }
+
+    /** Play the vault's growth from its first note to now — or pause it. */
+    private setPlaying(on: boolean): void {
+        window.clearInterval(this.playing);
+        this.playing = undefined;
+        if (on && this.strip.max > 0) {
+            if (!Number.isFinite(this.timeCursor)) this.timeCursor = this.strip.min;
+            const started = performance.now() - fractionOf(this.strip, this.timeCursor) * TIME_PLAY_MS;
+            this.playing = window.setInterval(() => {
+                const u = (performance.now() - started) / TIME_PLAY_MS;
+                this.setTime(cursorAt(this.strip, u));
+                if (u >= 1) this.setPlaying(false);
+            }, 120);
+        }
+        this.renderTime();
+    }
+
+    // ── peek (#697): a note's facts, beside it ──────────────────────────────────
+
+    private renderPeek(index: number): void {
+        const el = this.peekEl;
+        const scene = this.scene;
+        const model = this.model;
+        if (!el) return;
+        el.empty();
+        el.toggleClass(c("explore-peek--open"), index >= 0 && this.canvas?.kind !== null);
+        if (index < 0 || !scene || !model || !this.canvas?.kind) return;
+        const path = scene.ids[index];
+        const idea = model.get(path);
+        const scope = this.scope("peek");
+        el.createEl("h3", { cls: c("explore-peek-title"), text: scene.names[index] });
+        const meta = el.createDiv({ cls: c("explore-peek-meta") });
+        if (idea) meta.createSpan({ cls: c("explore-peek-pill"), text: idea.state });
+        const slot = scene.community[index];
+        if (slot >= 0) {
+            const region = meta.createSpan({ cls: c("explore-peek-region") });
+            region.createSpan({ cls: c("explore-region-dot") }).setCssProps({ "--zf-region": this.canvas.regionColour(slot) });
+            region.createSpan({ text: scene.communities[slot]?.name ?? "" });
+        }
+        const slash = path.lastIndexOf("/");
+        if (slash > 0) meta.createSpan({ text: `${path.slice(0, slash)}/` });
+        // Facts, never a grade (§XII): how it is linked and what it cites.
+        const facts = el.createDiv({ cls: c("explore-peek-facts") });
+        const fact = (value: number, key: LocaleKey) => {
+            const box = facts.createDiv({ cls: c("explore-peek-fact") });
+            box.createEl("b", { text: String(value) });
+            box.createSpan({ text: t(key) });
+        };
+        fact(model.inNeighborSet(path).size, "explore_peek_in");
+        fact(model.outNeighborSet(path).size, "explore_peek_out");
+        fact(idea ? idea.claims.reduce((sum, claim) => sum + claim.sources.length, 0) : 0, "explore_peek_sources");
+        const acts = el.createDiv({ cls: c("explore-peek-acts") });
+        const open = acts.createEl("button", { cls: "mod-cta", text: t("graph_menu_open"), attr: { type: "button" } });
+        scope.registerDomEvent(open, "click", () => this.openNote(path));
+        const around = acts.createEl("button", { text: t("explore_peek_around"), attr: { type: "button" } });
+        scope.registerDomEvent(around, "click", () => this.setTerms([`near:${path}`]));
+        this.placePeek();
+    }
+
+    /** Keep the peek card beside its note as the camera moves; it never covers the answer card. */
+    private placePeek(): void {
+        const el = this.peekEl;
+        if (!el || this.step < 0 || !this.canvas) return;
+        const at = this.canvas.screenOf(this.step);
+        if (!at) return;
+        const { width, height } = this.canvas.size;
+        const card = this.cardEl;
+        const cardWidth = card && card.hasClass(c("explore-card--open")) ? card.offsetWidth + 24 : 0;
+        const left = at.x + 300 > width - cardWidth;
+        el.toggleClass(c("explore-peek--left"), left);
+        el.setCssProps({ "--zf-x": `${Math.round(at.x)}px`, "--zf-y": `${Math.round(Math.max(80, Math.min(height - 220, at.y)))}px` });
+    }
+
     // ── the vault at rest: the regions are the legend, and the legend asks ──────
 
     private renderOverview(): void {
@@ -495,21 +674,53 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         el.createDiv({ cls: c("explore-overview-cap"), text: `${t("explore_regions_heading")} · ${tCount(scene.n, "graph_status_notes", String(scene.n))}` });
         const list = el.createDiv({ cls: c("explore-overview-list") });
         for (const community of scene.communities.slice(0, 12)) {
-            const row = list.createEl("button", { cls: c("explore-region"), attr: { type: "button" } });
+            const row = list.createDiv({ cls: c("explore-region") });
             const dot = row.createSpan({ cls: c("explore-region-dot") });
             dot.setCssProps({ "--zf-region": this.canvas?.regionColour(community.index) ?? "var(--text-faint)" });
-            row.createSpan({ cls: c("explore-region-name"), text: community.name });
+            const name = row.createSpan({ cls: c("explore-region-name"), text: community.name });
+            makeActivatable(name, () => this.setTerms([`region:${community.hub}`]), "button");
             row.createSpan({ cls: c("explore-region-count"), text: String(community.size) });
+            const rename = row.createEl("button", {
+                cls: ["clickable-icon", c("explore-region-rename")],
+                attr: { type: "button", "aria-label": t("explore_region_rename") },
+            });
+            setIcon(rename, "pencil");
+            scope.registerDomEvent(rename, "click", (evt) => {
+                evt.stopPropagation();
+                this.editRegionName(name, community.hub, community.name, scope);
+            });
             const members = new Set<number>();
             for (let i = 0; i < scene.n; i++) if (scene.community[i] === community.index) members.add(i);
             scope.registerDomEvent(row, "mouseenter", () => this.canvas?.setLit(members));
             scope.registerDomEvent(row, "mouseleave", () => !this.asked && this.canvas?.setLit(null));
-            scope.registerDomEvent(row, "click", () => this.setTerms([`region:${community.hub}`]));
         }
         if (scene.communities.length > 12) {
             list.createDiv({ cls: c("explore-overview-more"), text: t("explore_facet_more", String(scene.communities.length - 12)) });
         }
         this.renderSaved(el, scope);
+    }
+
+    /** Inline rename: the name becomes a field; Enter or leaving it keeps it, Escape does not. */
+    private editRegionName(label: HTMLElement, hub: string, current: string, scope: ReturnType<KnowledgeModeRenderer["scope"]>): void {
+        const input = createEl("input", { type: "text", cls: c("explore-region-input") });
+        input.value = current;
+        input.setAttribute("aria-label", t("explore_region_rename"));
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        let done = false;
+        const commit = (save: boolean) => {
+            if (done) return;
+            done = true;
+            if (save) void this.renameRegion(hub, input.value);
+            else this.renderAll();
+        };
+        scope.registerDomEvent(input, "keydown", (evt) => {
+            evt.stopPropagation();
+            if (evt.key === "Enter") commit(true);
+            else if (evt.key === "Escape") commit(false);
+        });
+        scope.registerDomEvent(input, "blur", () => commit(true));
     }
 
     // ── the answer ──────────────────────────────────────────────────────────────
@@ -812,6 +1023,7 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         for (const row of this.cardEl?.querySelectorAll(`.${c("explore-row")}`) ?? []) {
             row.toggleClass("is-active", scene !== null && index >= 0 && row.getAttribute("data-path") === scene.ids[index]);
         }
+        this.renderPeek(index);
         if (!canvas || !scene) return;
         if (index < 0) {
             canvas.setFocus(null);

@@ -65,6 +65,7 @@ export const GRAPH_QUERY_PREDICATES: readonly GraphQueryPredicate[] = [
     { token: "bridge", note: "it links across regions — where two of them meet" },
     { token: "alone", note: "it links to nothing and nothing links to it, among your notes" },
     { token: "contradiction", note: "it is in a contradicts relation, either side of it" },
+    { token: "near:<note>", note: "that note, or one link from it either way (#697)" },
     { token: "!<term>", note: "negate any term, e.g. !orphan" },
 ];
 
@@ -184,6 +185,17 @@ function parseTerm(raw: string): { predicate?: Predicate; error?: string } {
             return negate(negated, (idea, model) => !graphFacts(model).regionOf.has(idea.path));
         case "contradiction":
             return negate(negated, (idea, model) => graphFacts(model).contradiction.has(idea.path));
+        case "near": {
+            if (!arg) return { error: "near: needs a note" };
+            const wanted = arg.toLowerCase();
+            const isIt = (path: string) => path.toLowerCase() === wanted || basename(path).toLowerCase() === wanted;
+            return negate(negated, (idea, model) => {
+                if (isIt(idea.path)) return true;
+                for (const other of model.outNeighborSet(idea.path)) if (isIt(other)) return true;
+                for (const other of model.inNeighborSet(idea.path)) if (isIt(other)) return true;
+                return false;
+            });
+        }
         default:
             return { error: `unknown predicate "${key}"` };
     }

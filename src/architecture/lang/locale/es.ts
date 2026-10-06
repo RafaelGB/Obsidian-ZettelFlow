@@ -2431,7 +2431,6 @@ export default {
     review_nothing: 'Hoy no ha vuelto nada de lo que marcaste.',
     review_done_sub: 'Lo que marcas vuelve solo, cada vez un poco más lejos.',
     review_close: 'Cerrar',
-    review_home_sub: 'Pasajes de tus lecturas, de vuelta para mirarlos otra vez.',
     review_home_open: 'Mirar otra vez',
     review_lab_line: 'Algunas cosas que marcaste han vuelto para mirarlas otra vez.',
     // Changed your mind, on a note's story (#679)
@@ -2511,4 +2510,7 @@ export default {
     home_first_read_line: 'Deja un PDF o un EPUB en tu bóveda y aparecerá en tu estantería.',
     home_first_think: 'Solo piensa',
     home_first_think_line: 'Escribe arriba. Nada tiene que convertirse en una nota.',
+    // Came back today (#704).
+    home_stack_done: 'Eso es todo por hoy. No hay nada más esperando.',
+    home_stack_not_yet: 'Todavía no',
 };

@@ -2430,7 +2430,6 @@ export default {
     review_nothing: 'Nothing you marked is back today.',
     review_done_sub: 'What you mark comes back on its own, a little further out each time.',
     review_close: 'Close',
-    review_home_sub: 'Passages from your reading, back for a second look.',
     review_home_open: 'Look again',
     review_lab_line: 'A few things you marked are back for a second look.',
     // Changed your mind, on a note's story (#679)
@@ -2510,4 +2509,7 @@ export default {
     home_first_read_line: 'Drop a PDF or an EPUB in your vault and it appears on your shelf.',
     home_first_think: 'Just think',
     home_first_think_line: 'Write above. Nothing has to become a note.',
+    // Came back today (#704).
+    home_stack_done: 'That is all for today. Nothing else is waiting.',
+    home_stack_not_yet: 'Not yet',
 };

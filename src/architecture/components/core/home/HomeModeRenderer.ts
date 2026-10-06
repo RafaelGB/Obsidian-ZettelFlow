@@ -18,14 +18,13 @@ import { makeActivatable, hoverPreview } from "architecture/components/core/a11y
 import { pinnedQueries, savedQueryLabel } from "architecture/components/core/askGraph/savedQueries";
 import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
 import { wagersOf } from "architecture/plugin/claims/wagersOf";
-import { openReturn } from "starters/zcomponents/ClaimReturnComponent";
 import { openReader } from "architecture/components/core/reader/openReader";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { openReview } from "architecture/components/core/review/ReviewModal";
 import { familyPage, eyebrow, keyHints } from "architecture/components/core/family/family";
 import { renderComposer, type Composer } from "architecture/components/core/family/ThoughtComposer";
 import { readingInProgress, type ReadingInProgress } from "./homeResume";
+import { CameBackStack } from "./CameBackStack";
 import type { Thought } from "application/thinking/thought";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -41,11 +40,6 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type LocaleKey = Parameters<typeof t>[0];
-
-/** A month and a year, in the reader's locale. Never a count of days (#563). */
-function when(at: number): string {
-    return new Date(at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
-}
 
 function basename(path: string): string {
     const file = path.split("/").pop() ?? path;
@@ -86,6 +80,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private reading: ReadingInProgress | null = null;
     private lastThought: Thought | undefined;
     private composer: Composer | undefined;
+    private stack: CameBackStack | undefined;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -348,45 +343,19 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * What came back today (#703): what you marked in the Reader and a claim of yours, if either is
-     * due. Silent on a day nothing is — no empty box, no count, nothing about what you skipped.
+     * What came back today (#704): one quiet stack — what you marked in the Reader, then a claim or
+     * a wager of yours — answered in place. Silent on a day nothing is: no empty box, no count,
+     * nothing about what you skipped.
      */
     private renderCameBack(page: HTMLElement): void {
         const due = this.claimReturn;
         if (!this.highlightsDue && !due) return;
         const section = page.createDiv({ cls: c("home-section") });
         eyebrow(section, "undo-2", t("home_came_back"));
-        const list = section.createDiv({ cls: c("home-came-back") });
-        if (this.highlightsDue) {
-            const row = list.createDiv({ cls: [c("family-card"), c("home-came-back-row")] });
-            row.createDiv({ cls: c("home-came-back-title"), text: t("review_title") });
-            row.createDiv({ cls: c("home-card-line"), text: t("review_home_sub") });
-            const open = row.createEl("button", { cls: "mod-cta", text: t("review_home_open"), attr: { type: "button" } });
-            this.registerDomEvent(open, "click", () => void openReview(this.app));
-        }
-        if (due) {
-            const wager = due.kind === "wager";
-            const row = list.createDiv({ cls: [c("family-card"), c("home-came-back-row")] });
-            row.createDiv({
-                cls: c("home-came-back-title"),
-                text: t(wager ? "home_claim_return_wager_title" : "home_claim_return_title"),
-            });
-            row.createDiv({
-                cls: c("home-card-line"),
-                text: wager
-                    ? t("home_claim_return_wager_when", when(due.lastTouched))
-                    : t("home_claim_return_when", when(due.lastTouched)),
-            });
-            const open = row.createEl("button", {
-                text: t(wager ? "home_claim_return_wager_open" : "home_claim_return_open"),
-                attr: { type: "button" },
-            });
-            this.registerDomEvent(open, "click", () => {
-                const plugin = ObsidianApi.getOwnPlugin();
-                // `derived` — the system brought it back. Opening it yourself records `human` (#562).
-                if (plugin) openReturn(plugin, due.path, "derived");
-            });
-        }
+        if (this.stack) this.removeChild(this.stack);
+        this.stack = this.addChild(
+            new CameBackStack(section.createDiv(), this.app, { highlightsDue: this.highlightsDue, claim: due })
+        );
     }
 
     /**

@@ -101,16 +101,119 @@
     color: var(--text-on-accent);
 }
 
-/* ── came back today ────────────────────────────────────────────────────── */
-.zettelkasten-flow__home-came-back {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-3);
+/* ── came back today: one quiet stack ───────────────────────────────────── */
+.zettelkasten-flow__home-stack {
+    position: relative;
+    padding-bottom: var(--size-4-5);
 }
 
-.zettelkasten-flow__home-came-back-title {
-    color: var(--text-normal);
-    font-weight: var(--font-medium);
+.zettelkasten-flow__home-stack-card {
+    // The review cards mounted here read the Reader's palette (#678); the page's own theme.
+    @include reader-palette;
+    position: relative;
+    z-index: 3;
+    box-shadow: var(--shadow-s);
+    animation: zf-home-stack-in 0.4s ease-out both;
+}
+
+// The cards behind peek out under the top one — the depth of the stack, never a number.
+.zettelkasten-flow__home-stack-ghost {
+    position: absolute;
+    left: var(--size-4-3);
+    right: var(--size-4-3);
+    bottom: var(--size-4-2);
+    height: var(--size-4-8);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__home-stack-ghost--1 {
+    z-index: 2;
+    opacity: 0.75;
+}
+
+.zettelkasten-flow__home-stack-ghost--2 {
+    z-index: 1;
+    left: var(--size-4-6);
+    right: var(--size-4-6);
+    bottom: 0;
+    opacity: 0.45;
+}
+
+@keyframes zf-home-stack-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-2)) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__home-stack-from {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__home-stack-from-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__home-stack-quote {
+    margin: var(--size-4-1) 0;
+    padding-left: var(--size-4-3);
+    border-left: var(--size-2-2) solid var(--interactive-accent);
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__home-stack-mine {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__home-stack-answers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+// The review cards are mounted in the stack card, which already is the frame — no second box.
+.zettelkasten-flow__home-stack-card .zettelkasten-flow__review-card {
+    padding: var(--size-4-2) 0 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.zettelkasten-flow__home-stack-done {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-3) var(--size-4-1);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__home-stack-done-icon {
+    display: inline-flex;
+    color: var(--color-green);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__home-stack-card {
+        animation: none;
+    }
 }
 
 /* ── one idea to tend ───────────────────────────────────────────────────── */

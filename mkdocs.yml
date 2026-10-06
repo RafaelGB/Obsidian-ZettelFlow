@@ -151,7 +151,7 @@ nav:
           - Atomicity split assist: development/atomicity-split.md
       - Explore your graph:
           - Explore your graph: development/ask-your-graph.md
-          - The graph lens: development/graph-3d.md
+          - The graph: development/graph-3d.md
           - Living knowledge map (regions): development/living-knowledge-map.md
           - Concept navigation: development/concept-navigation.md
           - Open questions: development/open-questions.md

@@ -10,6 +10,7 @@ import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt"
 import { tendRowsOf } from "architecture/knowledge/state/tend";
 import { findDiscoveries, gapTally, topGaps } from "architecture/knowledge/discovery/discoveries";
 import { deriveFacets } from "architecture/knowledge/query/facets";
+import { graphFacts } from "architecture/knowledge/query/graphFacts";
 import { movesFor, MOVE_CEILING, type Move } from "application/thinking/move";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { clearMemo } from "architecture/knowledge/model/memo";
@@ -321,8 +322,22 @@ describe("what Explore offers you (#482)", () => {
         // is every note, and the incoming-relation walk covers every edge in the graph.
         const model = modelOf(50_000);
         const selection = model.all();
+        // The region facet (#696) reads the communities, which are computed once per model revision
+        // and shared with the graph Explore draws before any facet is asked for; a click never pays
+        // for them. Warm them as Explore does, so this times a click (their own cost is
+        // `analysis.communities.10k`, and `explore.graphFacts.10k` below).
+        graphFacts(model);
         const ms = timed("analysis.heaviest", () => deriveFacets(model, selection), selection.length);
         assertBudget("facets.50k", ms);
+    });
+
+    it("explore.graphFacts.10k", () => {
+        // Where every note lives and which notes join two regions — once per model revision, the
+        // first time Explore asks; the communities underneath are memoised and shared with the graph.
+        const model = modelOf(10_000, 21);
+        const started = performance.now();
+        graphFacts(model);
+        assertBudget("explore.graphFacts.10k", performance.now() - started);
     });
 });
 

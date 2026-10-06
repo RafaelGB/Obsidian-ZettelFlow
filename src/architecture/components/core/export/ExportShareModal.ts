@@ -22,24 +22,24 @@ export class ExportShareModal extends Modal {
     }
 
     onOpen(): void {
-        this.modalEl.addClass(c("graph3d-export-modal"));
+        this.modalEl.addClass(c("graph-export-modal"));
         const { contentEl } = this;
         contentEl.empty();
 
         contentEl.createEl("h2", { text: t("graph3d_export_title") });
-        contentEl.createEl("p", { text: t("graph3d_export_desc"), cls: c("graph3d-export-desc") });
+        contentEl.createEl("p", { text: t("graph3d_export_desc"), cls: c("graph-export-desc") });
 
         this.objectUrl = URL.createObjectURL(this.payload.blob);
-        const preview = contentEl.createDiv({ cls: c("graph3d-export-preview") });
+        const preview = contentEl.createDiv({ cls: c("graph-export-preview") });
         if (this.payload.kind === "video") {
             const video = preview.createEl("video", {
-                cls: c("graph3d-export-media"),
+                cls: c("graph-export-media"),
                 attr: { controls: "true", "aria-label": t("graph3d_export_preview_label") },
             });
             video.src = this.objectUrl;
         } else {
             const img = preview.createEl("img", {
-                cls: c("graph3d-export-media"),
+                cls: c("graph-export-media"),
                 attr: { alt: t("graph3d_export_preview_label"), "aria-label": t("graph3d_export_preview_label") },
             });
             img.src = this.objectUrl;
@@ -51,7 +51,7 @@ export class ExportShareModal extends Modal {
             .addText((text) => text.setValue(name).onChange((value) => (name = value)));
 
         const status = contentEl.createEl("p", {
-            cls: c("graph3d-export-status"),
+            cls: c("graph-export-status"),
             attr: { "aria-live": "polite" },
         });
 

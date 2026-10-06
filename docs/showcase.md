@@ -38,42 +38,47 @@ what your own notes say. The **notes by stage** card is the filter: click a stag
 
 → Details: [Cultivate](development/cultivate.md).
 
-## Explore — clicking is the query
+## Explore — ask, and the graph answers
 
-**Explore** narrows your vault by clicking. Every facet — state, shape, folder, what links to it —
-shows how many notes it would leave, each choice becomes a chip you can flip or remove, and the query
-text is simply what your clicks produced. The answer says how many notes match and why; from there,
-copy them as links, **make a map of content**, or save the selection for Home.
+**Explore** is your whole vault drawn as a graph, with a question bar on top. Ask in your own words —
+*permanent notes without a source*, *what joins my regions?* — or pick one of the questions it offers,
+each showing how many notes it would light and where they live. The answer glows, the rest of the vault
+dims, the camera frames it, and a card says **how the answer was found** and **where it lives**. From
+there: step through it with the arrows, narrow it with a click, copy it as links, read it, or
+**make a map of content**.
 
-![Explore with facets, filter chips, the answer and the matching notes](resources/showcase/explore.svg)
+![Explore answering “permanent notes without a source”](resources/graph/answer.svg)
 
-→ Details: [Ask your graph](development/ask-your-graph.md).
+→ Details: [Explore your graph](development/ask-your-graph.md).
 
-## Knowledge Galaxy — see the shape of your thinking
+## Regions, bridges and time — the shape of your thinking
 
-Switch Explore's lens from **List** to **Graph** and your selection appears **in context**: the whole
-vault drawn as an immersive **Knowledge Galaxy**, your selected notes lit and everything else dimmed.
-A starfield backdrop, notes sized by connectivity with neighbourhood-hued glow halos, links coloured
-by relation type, and lenses that light up orphans, dead ends, contradictions, bridges and gaps in
-space. It respects reduced motion and Lite mode, and falls back to a navigable list on mobile.
+Your notes gather into **regions**, drawn as nebulae in your theme's own colours and named after their
+best connected note — rename any of them, the name is yours. Ask *what joins my regions?* and the bridges
+between them light up, with light travelling along them. A strip of months under the graph plays your
+vault's growth: drag it back and the graph is what you knew then. It draws in five calls whatever the
+size of your vault, lays itself out in a worker, and follows a light theme as happily as a dark one.
 
-![The Knowledge Galaxy: the graph lens of Explore](resources/showcase/galaxy.svg)
+![Regions as nebulae, and the bridges between them lit](resources/graph/nebulae-bridges.svg)
 
-→ Details: [3D knowledge graph](development/graph-3d.md) — the graph lens.
+![The time strip scrubbed back, and a peek card of one note's facts](resources/graph/time.svg)
+
+On a phone it is the same graph as a flat sheet, with the answer rising from the bottom.
+
+![Explore on a phone](resources/graph/mobile.svg)
+
+→ Details: [The graph](development/graph-3d.md).
 
 ## Cinematic tour — sit back and watch
 
-From the graph's options (**⚙ → Share**), one click flies the camera on a **cinematic tour** through
-your hubs and most recent notes — perfect for a demo or a video. Any drag, wheel, click or key hands
-the camera back to you; it honours reduced motion.
-
-![The cinematic tour flying through the hub notes](resources/showcase/tour.svg)
+**Take a tour** from Explore's ⋯ menu and the camera flies itself through your vault: the most connected
+notes first, then the newest, a few seconds each. Any touch ends it.
 
 ## Share your universe — export the graph
 
-**Share your universe** captures the graph as a **PNG**, or records the time-lapse growth as a short
-**WebM** clip. A preview shows exactly what you will get, you choose the file name, and it is saved to
-your vault through the Vault API. No server, no upload.
+**Export image** (Explore's ⋯ menu) frames your whole graph and captures it, labels and all, as a
+**PNG**. A preview shows exactly what you will get, you choose the file name, and it is saved to your
+vault through the Vault API. No server, no upload.
 
 ![The Share your universe dialog with a preview, format choice and file name](resources/showcase/export.svg)
 

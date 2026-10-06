@@ -56,10 +56,10 @@ Everything else — the Canvas wizard, the semantic graph, health, discovery, cu
 
 <p align="center">
   <a href="docs/architecture/thought-lab.md"><img src="docs/resources/showcase/think.svg" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
-  <a href="docs/development/graph-3d.md"><img src="docs/resources/showcase/explore.svg" width="31%" alt="Explore — your notes as a living, queryable graph"></a>
+  <a href="docs/development/ask-your-graph.md"><img src="docs/resources/graph/answer.svg" width="31%" alt="Explore — ask, and the graph answers"></a>
   <a href="docs/development/cultivate.md"><img src="docs/resources/showcase/cultivate.svg" width="31%" alt="Cultivate — grow one idea, one guided move at a time"></a>
 </p>
-<p align="center"><sub><b>Think</b> · a place for what isn't knowledge yet &nbsp;·&nbsp; <b>Explore</b> · the graph as a query &nbsp;·&nbsp; <b>Cultivate</b> · grow an idea by hand</sub></p>
+<p align="center"><sub><b>Think</b> · a place for what isn't knowledge yet &nbsp;·&nbsp; <b>Explore</b> · ask, and the graph answers &nbsp;·&nbsp; <b>Cultivate</b> · grow an idea by hand</sub></p>
 
 ---
 

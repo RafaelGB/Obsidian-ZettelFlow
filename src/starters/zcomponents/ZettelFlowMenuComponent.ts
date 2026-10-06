@@ -2,7 +2,7 @@ import { Menu } from "obsidian";
 import { PluginComponent, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
-import { requestGraph3DFocus } from "architecture/components/core/graph3d/graph3dFocus";
+import { requestGraph3DFocus } from "architecture/components/core/graph/graphFocus";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import { CommunityTemplatesModal } from "application/community";
 import { openNoteCompanion } from "architecture/components/core/noteCompanion/openNoteCompanion";

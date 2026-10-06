@@ -21,7 +21,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Build a map of content** — gather notes by tag or folder into a map of content, refreshed safely. [docs →](../development/moc-builder.md)
 - **Derive project outline** — turn a folder of notes into a book, course, or article outline from the graph. [docs →](../development/derived-projects.md)
 - **Explore** — narrow your vault by clicking; the query is what that produces. [docs →](../development/ask-your-graph.md)
-- **Explore the active note in the graph** — your slip-box as a 3D Knowledge Galaxy, and a lens on your Explore selection. [docs →](../development/graph-3d.md)
+- **Explore the active note in the graph** — your vault as a graph of regions, bridges and time — Explore's answers, lit in place. [docs →](../development/graph-3d.md)
 - **Trace reasoning paths from the active note** — read the argument chains leaving a note (supports → expands → example). [docs →](../development/concept-navigation.md)
 - **Health** — which notes need you, each handed to This note on what it is missing. [docs →](../development/slipbox-health-dashboard.md)
 - **Generate weekly review** — a weekly review note: created, orphaned, forgotten, and unreviewed ideas. [docs →](../development/second-brain-review.md)

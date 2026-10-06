@@ -18,43 +18,19 @@ All three are derived, all three regenerate as the vault changes, and none of th
 
 ## Where you see it
 
-There is no separate pane. The map is what the **graph lens** draws: open **Explore**, switch the
-result view to the graph, and set *Colour by* to **Neighbourhoods**.
+There is no separate pane. The map is what [Explore](ask-your-graph.md) draws (#692): every
+neighbourhood is a region — a nebula in your theme's colours, named after its best connected note,
+and a row in the legend with its size. Hovering a row lights the region; clicking it asks for it
+(`region:`), and the camera frames the answer. Framing only ever moves the camera — nothing is hidden or
+filtered — and it keys on the **neighbourhood**, not on its name: two that share a label are two places
+([#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533)). You can
+[rename a region](ask-your-graph.md#rename-a-region); the name is yours and is kept by the region's hub.
 
-Each neighbourhood is a hue, a translucent bubble, a label floating in the scene, and a row in the
-legend with its size. Regions appear as **headings** grouping those rows — unless a region holds
-only one neighbourhood, in which case the heading would repeat the row and is left out. Clicking a
-row flies to that neighbourhood; clicking a heading flies to the whole region; clicking again
-pulls back. Framing only ever moves the camera — nothing is hidden or filtered, and it keys on the
-**neighbourhood**, not on its name: two that share a label are two places and fly separately
-([#533](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/533) — before it, one merged row flew
-to both at once).
+The crossings between regions are a question now, not a lens: *what joins my regions?* (`bridge`)
+lights the notes on either side and the links between them. The gaps — pairs that share context and
+were never linked — are answered where a gap is decided, on Home and in This note.
 
-**With the `gaps` lens on, that list becomes the seams** — the widest first, each row showing the two
-sides with their colours and *N gaps · M links*, and clicking one frames **both** neighbourhoods so
-you are looking at the space between them. At most eight rows, with the heading saying how many were
-left out. See [the seam list](graph-3d.md#the-seam-list-and-flying-to-one).
-
-Opening the graph focused on a note tells you the neighbourhood you landed in and the region it
-sits inside, or that the note is alone.
-
-Five of the seven discovery lenses read this structure:
-
-| lens | what it lights | reference vault |
-|---|---|---|
-| **alone** | notes with no link to anything else in your knowledge | 82 (19 %) |
-| **frontier** | notes whose neighbours are not all from their own neighbourhood | 48 |
-| **bridges** | the **links** that cross from one neighbourhood into another | 26 |
-| **gaps** | a dashed line where a link is **not** — two notes that share context and never met | 217 (30 drawn) |
-| orphans · dead-ends · contradictions | as before | — |
-
-`bridges` is the only lens about links rather than notes. Both endpoints stay lit while everything
-else dims, so it reads as *what joins what*.
-
-From a script: `zf.knowledge.map()` returns `{ clusters, unclustered }` — the regions and the
-notes that are alone — and `zf.knowledge.gapSeams()` returns the seams, widest first.
-
-### The seams of the reference vault
+## The seams of the reference vault
 
 | | |
 |---|---|

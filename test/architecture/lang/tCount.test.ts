@@ -6,7 +6,7 @@ import es from "architecture/lang/locale/es";
 /**
  * **A count has a form** (#546 D2).
  *
- * The 3D graph's status line read *"1 gaps"* right next to *"1 notes"*, in both languages, and the
+ * The old 3D graph's status line read *"1 gaps"* right next to *"1 notes"*, in both languages, and the
  * legend agreed with it. A count is the one kind of string that cannot be written once and be
  * right, so the convention is: the plural lives under `key`, and the singular — when it differs —
  * under `key_one`. A key with no `_one` sibling keeps its one form, which is correct for the many
@@ -18,25 +18,25 @@ import es from "architecture/lang/locale/es";
  */
 describe("tCount picks the form the number needs", () => {
     it("uses the singular for exactly one", () => {
-        expect(tCount(1, "graph3d_status_gaps", "1")).toBe(en.graph3d_status_gaps_one);
-        expect(tCount(1, "graph3d_status_notes_count", "1")).toBe(en.graph3d_status_notes_count_one);
+        expect(tCount(1, "explore_answer_word")).toBe(en.explore_answer_word_one);
+        expect(tCount(1, "graph_status_notes", "1")).toBe(en.graph_status_notes_one);
     });
 
     it("uses the plural for none, for many, and for a number it cannot read as one", () => {
-        expect(tCount(0, "graph3d_status_gaps", "0")).toBe("0 gaps");
-        expect(tCount(2, "graph3d_status_gaps", "2")).toBe("2 gaps");
-        expect(tCount(217, "graph3d_status_gaps", "217")).toBe("217 gaps");
+        expect(tCount(0, "graph_status_notes", "0")).toBe("0 notes");
+        expect(tCount(2, "graph_status_notes", "2")).toBe("2 notes");
+        expect(tCount(217, "graph_status_notes", "217")).toBe("217 notes");
     });
 
     it("treats minus one as one, because the form follows the word, not the sign", () => {
-        expect(tCount(-1, "graph3d_status_gaps", "-1")).toBe(en.graph3d_status_gaps_one);
+        expect(tCount(-1, "graph_status_notes", "-1")).toBe(en.graph_status_notes_one);
     });
 
     it("falls back to the one form a key has, when it has only one", () => {
         // Most strings never take a singular, and adding an empty `_one` for each would be the
         // ceremony this convention exists to avoid.
-        expect(tCount(1, "graph3d_status_drawn", "1")).toBe(t("graph3d_status_drawn", "1"));
-        expect(tCount(5, "graph3d_status_drawn", "5")).toBe("5 drawn");
+        expect(tCount(1, "settings_glance_hooks_paused", "1")).toBe(t("settings_glance_hooks_paused", "1"));
+        expect(tCount(5, "settings_glance_hooks_paused", "5")).toBe("5 paused");
     });
 });
 

@@ -1,0 +1,75 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+// The graph (#693, epic #692) — a WebGL2 canvas and a 2D overlay for labels, stacked.
+//
+// Every colour the scene draws is read from the theme at run time (graphTheme.ts), so this sheet
+// only lays the canvases out. The sky is the theme's own background: no fixed dark space.
+.zettelkasten-flow__graph-canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__graph-canvas-gl,
+.zettelkasten-flow__graph-canvas-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.zettelkasten-flow__graph-canvas-gl {
+    cursor: grab;
+    // The canvas takes every gesture itself: orbit, pan, pinch — the page must not scroll under it.
+    touch-action: none;
+}
+
+.zettelkasten-flow__graph-canvas-gl--pointing {
+    cursor: pointer;
+}
+
+.zettelkasten-flow__graph-canvas-gl--dragging {
+    cursor: grabbing;
+}
+
+.zettelkasten-flow__graph-canvas-overlay {
+    pointer-events: none;
+}
+
+// ── Share / export dialog (#386) ────────────────────────────────────────────
+.zettelkasten-flow__graph-export-desc {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    margin-top: 0;
+}
+
+.zettelkasten-flow__graph-export-preview {
+    display: flex;
+    justify-content: center;
+    padding: var(--size-4-2);
+    margin: var(--size-4-2) 0;
+    background-color: var(--background-secondary);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+}
+
+.zettelkasten-flow__graph-export-media {
+    max-width: 100%;
+    max-height: 40vh;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__graph-export-status {
+    min-height: 1.2em;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__graph-canvas-gl {
+        transition: none;
+    }
+}

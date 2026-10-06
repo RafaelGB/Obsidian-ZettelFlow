@@ -276,6 +276,76 @@ export const BUDGETS = {
         because:
             "the wait between choosing a book and its first page; a long book must open as fast as a short note renders (#682, L8)",
     },
+    "view.graph.bundle.kb": {
+        name: "the built plugin bundle (main.js) in KB, once the graph draws itself",
+        limit: 2_450,
+        measured: "2,265 KB",
+        because:
+            "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
+    },
+    "view.graph.scene.10k": {
+        name: "turn the 3D graph's data for 10,000 notes into the typed columns the GPU draws",
+        limit: 120,
+        measured: "8.7 ms",
+        because:
+            "it runs once per model revision, on the main thread, between a vault change and the redraw (#693); it must cost a fraction of building the graph data it reads",
+    },
+    "view.graph.paint.10k": {
+        name: "paint every note and link of a 10,000-note graph (one hover)",
+        limit: 25,
+        measured: "2.1 ms",
+        because:
+            "a hover, a fade step or an answer rewrites the colour buffers in place (#695); the old view re-digested every object on every hover, and this is the number that keeps that from coming back",
+    },
+    "view.graph.layout.tick.2k": {
+        name: "one tick of the force layout over 2,000 notes (median of 30), in the worker",
+        limit: 12,
+        measured: "4.6 ms",
+        because:
+            "d3-force-3d through 3d-force-graph measured 16.8 ms a tick here — a whole frame, on the main thread, for five to nine seconds (#694); the worker keeps it off the main thread and this keeps it cheap",
+    },
+    "view.graph.layout.tick.10k": {
+        name: "one tick of the force layout over 10,000 notes (median of 15), in the worker",
+        limit: 90,
+        measured: "32 ms",
+        because:
+            "the old layout measured 131 ms a tick at this size and cooled before it settled; off the main thread a tick may be long, but the picture has to converge in seconds, not minutes (#694)",
+    },
+    "view.graph.layout.settle.2k": {
+        name: "settle the force layout over 2,000 notes from the community seed",
+        limit: 3_000,
+        measured: "1,311 ms",
+        because:
+            "how long the picture moves after Explore opens on a new graph (#694) — off the main thread, so a wait and never a stall, and a seed by community is what keeps it short",
+    },
+    "view.graph.layout.reopen.10k": {
+        name: "reopen Explore on an unchanged 10,000-note graph: key the layout and recall it",
+        limit: 60,
+        measured: "33 ms",
+        because:
+            "reopening must be instant — the same graph comes back exactly where it was, with no reflow and no second wait (#694); measured under jest, where it is 33 ms (the same call is 0.5 ms warm in plain Node)",
+    },
+    "view.graph.pick.10k": {
+        name: "find the note under the pointer among 10,000 (one pointer move)",
+        limit: 10,
+        measured: "3.6 ms",
+        because:
+            "a hover projects every note with the GPU's own matrix (#695); no picking buffer to keep in step means this pass is the whole cost of pointing at something",
+    },
+    "view.graph.labels.10k": {
+        name: "rank a 10,000-note answer for its labels and place one frame of them",
+        limit: 15,
+        measured: "0.09 ms",
+        because:
+            "labels are a short ranked list on a 2D overlay, never a texture per note (#695); the old view rasterised sprites every 300 ms and never freed them",
+    },
+    "explore.graphFacts.10k": {
+        name: "work out every note's region and which notes join two regions, over 10,000 notes",
+        limit: 800,
+        measured: "278 ms",
+        because:
+            "the graph's lenses became questions (#696): region:, bridge, alone and contradiction read these facts. Once per model revision, and the Louvain communities underneath are shared with the graph, so a click never pays it",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

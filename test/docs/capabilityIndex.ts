@@ -97,7 +97,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "knowledge-map": { summary: "the connected regions and named neighbourhoods of your graph.", page: "../development/living-knowledge-map.md" },
     "concept-nav": { summary: "walk your vault by typed relation, note to note, like a wiki you wrote.", page: "../development/concept-navigation.md" },
     explore: { summary: "narrow your vault by clicking; the query is what that produces.", page: "../development/ask-your-graph.md" },
-    "graph-lens": { summary: "your slip-box as a 3D Knowledge Galaxy, and a lens on your Explore selection.", page: "../development/graph-3d.md" },
+    "graph-lens": { summary: "your vault as a graph of regions, bridges and time — Explore's answers, lit in place.", page: "../development/graph-3d.md" },
     "reasoning-paths": { summary: "read the argument chains leaving a note (supports → expands → example).", page: "../development/concept-navigation.md" },
     "slipbox-health": { summary: "which notes need you, each handed to This note on what it is missing.", page: "../development/slipbox-health-dashboard.md" },
     "knowledge-dashboard": { summary: "the knowledge read-out for scripts; its panels became Tend and Home.", page: "../development/knowledge-dashboard.md" },

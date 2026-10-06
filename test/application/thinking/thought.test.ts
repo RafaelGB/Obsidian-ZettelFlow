@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     LAB_FRONTMATTER_KEY,
+    isHighlight,
     linkThoughts,
     newThought,
     orderThoughts,
@@ -168,5 +169,45 @@ describe("a thought is a file you can open (#466)", () => {
         expect(path.startsWith("_ZettelFlow/lab/")).toBe(true);
         expect(path.endsWith(".md")).toBe(true);
         expect(path).toContain("abc123");
+    });
+});
+
+describe("a highlight is a thought with a passage (#671)", () => {
+    const quote = {
+        exact: 'State is a projection: "history" first, #always',
+        prefix: "Event sourcing says: ",
+        suffix: ". Then CQRS.",
+        heading: "Why: the core idea",
+    };
+
+    it("round-trips the passage, colons, quotes and all", () => {
+        const thought = newThought({ id: "h1", at: 1, text: "This is the part I keep forgetting.", about: "es.md", quote });
+        const back = parseThought(renderThought(thought), "lab/1-h1.md");
+        expect(back.quote).toEqual(quote);
+        expect(back.text).toBe("This is the part I keep forgetting.");
+        expect(back.about).toBe("es.md");
+        expect(isHighlight(back)).toBe(true);
+    });
+
+    it("keeps a highlight with no margin note — a mark alone", () => {
+        const back = parseThought(renderThought(newThought({ id: "h2", at: 2, text: "", about: "es.md", quote })), "x.md");
+        expect(back.text).toBe("");
+        expect(back.quote?.exact).toBe(quote.exact);
+    });
+
+    it("leaves a plain thought exactly as it was: no quote fields", () => {
+        const plain = renderThought(newThought({ id: "p", at: 3, text: "Just a thought" }));
+        expect(plain).not.toContain("quote");
+        expect(isHighlight(parseThought(plain, "p.md"))).toBe(false);
+    });
+
+    it("drops an empty passage rather than writing a highlight of nothing", () => {
+        const thought = newThought({ id: "e", at: 4, text: "x", about: "es.md", quote: { exact: "", prefix: "", suffix: "" } });
+        expect(thought.quote).toBeUndefined();
+    });
+
+    it("reads a hand-edited, unquoted passage as it stands", () => {
+        const file = "---\nzfThought:\n  id: z\n  at: 5\n  links: []\n  about: es.md\n  quoteExact: plain words\n---\n\nnote\n";
+        expect(parseThought(file, "z.md").quote).toEqual({ exact: "plain words", prefix: "", suffix: "" });
     });
 });

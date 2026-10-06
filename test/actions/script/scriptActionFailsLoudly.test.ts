@@ -109,8 +109,10 @@ describe("what a script receives is what it was promised (#349, FR-2)", () => {
     });
 
     it("awaits an async script before moving on", async () => {
+        // Several awaited ticks, but no real timer: a 1 ms setTimeout stalled under a loaded suite
+        // (#669). What is under test is that the run awaits the script, not the clock.
         const { info, context } = fakeInfo(
-            `await new Promise((r) => setTimeout(r, 1)); context.done = true;`
+            `for (let i = 0; i < 5; i++) await new Promise((r) => queueMicrotask(r)); context.done = true;`
         );
         const { dep } = deps();
 

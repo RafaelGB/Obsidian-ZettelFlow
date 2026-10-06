@@ -30,6 +30,12 @@ export interface ThoughtRef {
     at: number;
     /** Where it lives, so a row can open it. */
     path: string;
+    /**
+     * The passage it was written beside, when it is a highlight made in the Reader (#671). Read
+     * live from the thought's own frontmatter, never stored by the timeline — and it is the
+     * reader's own words from their own note, not claim texts the opt-in guards.
+     */
+    quote?: string;
 }
 
 /**

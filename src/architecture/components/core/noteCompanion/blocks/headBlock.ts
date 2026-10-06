@@ -1,6 +1,7 @@
 import { Menu, setIcon } from "obsidian";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
+import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { STATE_EMOJI } from "architecture/knowledge";
 import { hoverPreview } from "architecture/components/core/a11y";
 import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
@@ -40,6 +41,13 @@ export class HeadBlock extends CompanionBlock {
         if (!ctx || ctx.screen.kind !== "note") return [];
         const path = ctx.screen.model.path;
         return [
+            {
+                // The note's neighbourhood as a reading (#669): the same notes this view shows
+                // around it, walked one at a time in the Reader.
+                label: t("reader_read_around"),
+                icon: "book-open",
+                onClick: () => readFrom(ctx.app, path),
+            },
             {
                 label: t("note_companion_trace"),
                 icon: "route",

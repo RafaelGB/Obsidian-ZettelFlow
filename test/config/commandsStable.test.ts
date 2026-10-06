@@ -64,6 +64,12 @@ const FROZEN = [
 const ADDED: Record<string, string> = {
     // The ribbon menu runs commands by id; This note's rank-1 door needs one to run (#640).
     "open-note-companion": "#640 — backs the ribbon menu's This note entry",
+    // The Reader's hotkey door; its discovery door is the note's own menu (#668).
+    "open-reader": "#668 — read from the active note",
+    // Bindable page turns and exit while a reading is the active tab; never in the palette otherwise.
+    "reader-next-chapter": "#667 — the next chapter, for a hotkey of your own",
+    "reader-previous-chapter": "#667 — the previous chapter, for a hotkey of your own",
+    "reader-exit": "#667 — leave the reader and get the workspace back",
 };
 
 describe("the frozen palette (#575)", () => {
@@ -89,10 +95,11 @@ describe("the frozen palette (#575)", () => {
     });
 
     it("keeps every id a literal, so the scan cannot be evaded", () => {
-        // 30 call sites: 29 with a literal id (28 frozen + open-note-companion, #640), plus the
-        // one loop over `SURFACE_COMMANDS` whose eleven ids the scan reads from the table instead.
-        // A 31st site means a registration neither list above knows about.
-        expect(addCommandCallSites()).toBe(30);
+        // 34 call sites: 33 with a literal id (28 frozen, open-note-companion #640, open-reader
+        // #668, the reader's next/previous/exit #667), plus the one loop over `SURFACE_COMMANDS`
+        // whose eleven ids the scan reads from the table instead. A 35th site means a registration
+        // neither list above knows about.
+        expect(addCommandCallSites()).toBe(34);
     });
 
     it("reports a command that vanished rather than trusting anyone to notice", () => {

@@ -168,6 +168,9 @@ the pinned note's story.
 - **The day you expect to know by.** A [wager](wagers.md)'s day, while it is today or later, is
   pinned **above** the rail as one quiet card with the **date** — no countdown, no colour that warms
   as it approaches, under every filter (#572). Once the day has passed it sits in the rail at its date.
+- **Highlights.** A passage you highlighted in the [Reader](reader.md) is a thought about the note,
+  so it is in the story under *Thoughts*, labelled *Highlight*, with the passage quoted under your
+  note.
 - **Empty and not kept.** A note with no story yet explains how one starts — *the first time you
   decide something about it, make a move on it, or write a thought about it*. With snapshot recording
   off, one line at the top says the sentences themselves are not being kept; moves, thoughts, verdicts

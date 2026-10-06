@@ -82,6 +82,16 @@ Open **This note** from the ribbon menu and the note you are reading gets a comp
 
 ---
 
+## Read your notes like a book
+
+Right-click any note and choose **Read from here**. The Reader takes the window and walks you through the note and the notes around it, one chapter at a time, each tagged with its role (thesis, support, counterpoint). It needs no MOC. Select a sentence to highlight it: the passage and your margin note land in Think, never in the note. At the end, save the path, export it as one document, or cultivate its thesis. **Esc** gives your workspace back exactly as it was.
+
+![The Reader: a chapter of a reading path](docs/resources/reader/reader.svg)
+
+**[The Reader →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/)**
+
+---
+
 ## Get started in 5 minutes
 
 **Fastest path:**

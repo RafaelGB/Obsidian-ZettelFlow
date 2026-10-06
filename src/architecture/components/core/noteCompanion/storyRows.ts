@@ -153,7 +153,11 @@ function renderMove(body: HTMLElement, move: Move, ctx: RowContext): void {
  * only a way to open it.
  */
 function renderThought(body: HTMLElement, thought: ThoughtRef, ctx: RowContext): void {
-    renderProduced(headLine(body, "evolution_timeline_thought_label", thought.at, ctx), thought.path, ctx);
+    // A highlight made in the Reader (#671) says so, and shows the passage it was written beside —
+    // the reader's own words from this very note. Its margin note stays in Think, one click away.
+    const key = thought.quote ? "evolution_timeline_highlight_label" : "evolution_timeline_thought_label";
+    renderProduced(headLine(body, key, thought.at, ctx), thought.path, ctx);
+    if (thought.quote) body.createEl("blockquote", { cls: c("note-story-quote"), text: thought.quote });
 }
 
 /**

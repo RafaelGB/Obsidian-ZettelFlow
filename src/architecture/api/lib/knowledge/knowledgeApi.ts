@@ -19,6 +19,9 @@ import {
     deriveFacets,
     buildEvidenceMap,
     noteVitals,
+    readFromHere,
+    readingPathOptions,
+    selectionPath,
     deriveTend,
     suggestNextMoves,
     deriveOutline,
@@ -89,6 +92,13 @@ export const NOT_EXPOSED: Record<string, string> = {
     // projection of your knowledge — and a script that could read them would invite exactly the
     // benchmarking-your-own-vault behaviour the Health section is written to avoid (SS XII).
     speedFacts: "the plugin's own timings, not a projection of the model",
+    // The Reader's single paths (#669): each is one entry of `readingPaths`, which is the query.
+    aroundThisNote: "one of readingPaths' options — readingPaths is the query",
+    argumentPath: "one of readingPaths' options — readingPaths is the query",
+    storyPath: "one of readingPaths' options — readingPaths is the query",
+    essentialsPath: "one of readingPaths' options — readingPaths is the query",
+    regionPath: "one of readingPaths' options — readingPaths is the query",
+    readingPathOf: "rebuilds one kind for the Reader's view state — readingPaths is the query",
     // Tend's own plumbing (#644). `tend` is the list; these are its uncached twin and the two things
     // a click does to it, which would publish the mode's interaction as if it were knowledge.
     tendRowsOf: "the uncached twin of tend, kept for the performance budget",
@@ -323,6 +333,21 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
             signature: "() => TendList",
             summary: "The notes that need attention, one row each with what they are missing (Health › Tend).",
             call: () => deriveTend(model()),
+        },
+        readFromHere: {
+            signature: "(path: string) => ReadingPath",
+            summary: "The Reader's path from one note: it, its links out, then the notes that link to it, each with its role.",
+            call: (path: string) => readFromHere(model(), path),
+        },
+        readingPaths: {
+            signature: "(path: string) => ReadingPathOption[]",
+            summary: "Every way through a note the Reader offers — around it, the argument, the story, the essentials, its region — each with its chapters.",
+            call: (path: string) => readingPathOptions(model(), path),
+        },
+        readSelection: {
+            signature: "(paths: string[]) => ReadingPath | null",
+            summary: "Notes you picked, in the order their links suggest — the Reader's Read these.",
+            call: (paths: string[]) => selectionPath(model(), paths),
         },
         vitals: {
             signature: "(path: string) => NoteVitals",

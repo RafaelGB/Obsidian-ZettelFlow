@@ -37,9 +37,9 @@ export class Component {
   registerEvent(_event: unknown): void { }
   // The real thing: attach, and drop it again on unload. Renderers register their header
   // controls this way (#577), so a fake without it would make every migrated header throw.
-  registerDomEvent(el: any, type: string, handler: (event: any) => void): void {
-    el.addEventListener(type, handler);
-    this.cleanups.push(() => el.removeEventListener(type, handler));
+  registerDomEvent(el: any, type: string, handler: (event: any) => void, options?: unknown): void {
+    el.addEventListener(type, handler, options);
+    this.cleanups.push(() => el.removeEventListener(type, handler, options));
   }
 }
 /**
@@ -51,21 +51,84 @@ export class WorkspaceLeaf {
   constructor(public app?: any, public contentEl?: any) { }
   async setViewState(_state: unknown): Promise<void> { }
 }
+/**
+ * Obsidian's Markdown renderer, recorded (#668): a test reads which markdown was rendered, for which
+ * source path, and sees it drawn as plain text in the element it was handed.
+ */
+export class MarkdownRenderer {
+  static calls: { markdown: string; sourcePath: string }[] = [];
+  static async render(_app: unknown, markdown: string, el: any, sourcePath: string, _component: unknown): Promise<void> {
+    MarkdownRenderer.calls.push({ markdown, sourcePath });
+    // Obsidian hides a note's properties itself: the renderer is handed the raw note.
+    markdown = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+    // Each paragraph becomes a <p>; a [[link]] becomes Obsidian's own anchor — a.internal-link with
+    // data-href (and is-unresolved when no note answers it), so link handling is tested on that shape.
+    const host = el.createDiv?.({ cls: "rendered-markdown" });
+    if (!host) return;
+    for (const block of markdown.split(/\n\s*\n/)) {
+      const p = host.createEl("p");
+      const re = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+      let last = 0;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(block))) {
+        if (m.index > last) p.createSpan({ text: block.slice(last, m.index) });
+        const unresolved = m[1].startsWith("missing");
+        p.createEl("a", {
+          cls: unresolved ? "internal-link is-unresolved" : "internal-link",
+          text: m[2] ?? m[1],
+          attr: { "data-href": m[1], href: m[1] },
+        });
+        last = m.index + m[0].length;
+      }
+      if (last < block.length) p.createSpan({ text: block.slice(last) });
+    }
+  }
+}
+/**
+ * Obsidian's keymap scope, as the real one matches (#667): a handler's modifiers are compared as a
+ * whole (`[]` is "none", `null` is "any"), its key case-insensitively. `handleKey` is what
+ * Obsidian's window-level keydown calls for the active leaf's view — returning `false` means handled.
+ */
+export class Scope {
+  keys: { modifiers: string | null; key: string | null; func: (evt: any, ctx: any) => any }[] = [];
+  constructor(public parent?: Scope) { }
+  register(modifiers: string[] | null, key: string | null, func: (evt: any, ctx: any) => any): any {
+    const handler = { modifiers: modifiers === null ? null : [...modifiers].sort().join(","), key, func };
+    this.keys.push(handler);
+    return handler;
+  }
+  unregister(handler: any): void { this.keys = this.keys.filter((k) => k !== handler); }
+  handleKey(evt: any, ctx: { modifiers: string; key: string }): any {
+    for (const handler of this.keys) {
+      if (handler.modifiers !== null && handler.modifiers !== ctx.modifiers) continue;
+      if (handler.key !== null && handler.key.toLowerCase() !== ctx.key.toLowerCase()) continue;
+      const result = handler.func(evt, ctx);
+      if (result !== undefined || handler.key !== null || handler.modifiers !== null) return result;
+    }
+    return this.parent?.handleKey(evt, ctx);
+  }
+}
 export class ItemView extends Component {
   app: any;
   containerEl: any;
   contentEl: any;
+  scope: Scope | null = null;
   constructor(public leaf: any) {
     super();
     this.app = leaf?.app;
     this.contentEl = leaf?.contentEl;
     this.containerEl = leaf?.contentEl;
+    // As in Obsidian, the leaf knows its view — the keymap reaches the view's scope through it.
+    if (leaf && typeof leaf === "object") leaf.view = this;
+    // Fake-only: what a test drew into can find the view whose keys it presses.
+    if (this.contentEl && typeof this.contentEl === "object") this.contentEl.ownerView = this;
   }
   getViewType(): string { return ""; }
   getDisplayText(): string { return ""; }
   getIcon(): string { return ""; }
   getState(): Record<string, unknown> { return {}; }
   async setState(_state: unknown, _result: unknown): Promise<void> { }
+  setEphemeralState(_state: unknown): void { }
 }
 export class Modal {
   /** What `setTitle` was given — a test reads the title the user would see. */

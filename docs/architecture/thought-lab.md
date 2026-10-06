@@ -75,6 +75,28 @@ zfThought:
 maybe the problem isn't that AI thinks worse than us
 ```
 
+A **highlight** made in the [Reader](../development/reader.md) (#671) is a thought too: `about` the
+note it was read in, with the passage it quotes kept as an anchor, and your margin note as its body.
+The Lab shows the passage above the text, with *Open in the Reader* to go back to it:
+
+```markdown
+---
+zfThought:
+  id: f9e8d7c6
+  at: 1759660800000
+  about: Notes/Event sourcing.md
+  quoteExact: "stores changes, not state"
+  quotePrefix: "Event sourcing "
+  quoteSuffix: ". Replay rebuilds it."
+  quoteHeading: "Events"
+---
+
+this is the whole point: the log is the truth
+```
+
+The passage is found again by its words on every read, never by a marker in the note, so the note
+is never written. Passage fields are JSON strings, so a colon or a quote in the text is safe.
+
 A file in that folder with no `zfThought` at all is **still a thought** — just text. Someone will
 write a note there by hand, and that is allowed. A refuge that rejects what you put in it is not
 one.

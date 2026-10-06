@@ -955,3 +955,37 @@
         cursor: default;
     }
 }
+
+/* A highlight made in the Reader (#671): the passage first, the note below it. */
+.zettelkasten-flow__lab-quote {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__lab-quote-text {
+    margin: 0;
+    padding-left: var(--size-4-3);
+    border-left: var(--size-2-1) solid var(--text-highlight-bg);
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.zettelkasten-flow__lab-quote-meta {
+    @include hint;
+    display: flex;
+    gap: var(--size-4-2);
+    align-items: center;
+}
+
+.zettelkasten-flow__lab-quote-open {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: var(--text-accent);
+    cursor: pointer;
+    font-size: inherit;
+}

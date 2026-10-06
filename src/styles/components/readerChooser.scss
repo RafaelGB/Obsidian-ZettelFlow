@@ -1,0 +1,144 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * How do you want to read it? (#669) — the ways through a note, side by side, each with a small
+ * picture of its shape, what it promises and the chapters it would read. Theme colours only (§XV):
+ * the pictures are coloured by class, the way the reader's role tags are.
+ */
+
+.zettelkasten-flow__reader-chooser {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+}
+
+.zettelkasten-flow__reader-chooser-intro {
+    @include hint;
+}
+
+.zettelkasten-flow__reader-chooser-resume {
+    align-self: flex-start;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__reader-chooser-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: $space-2;
+}
+
+.zettelkasten-flow__reader-chooser-card {
+    @include card;
+    height: auto;
+    align-items: flex-start;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+    background-color: $surface-quiet;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    padding: $space-3;
+
+    &:hover {
+        border-color: var(--text-faint);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        background-color: color-mix(in srgb, var(--interactive-accent) 10%, $surface-quiet);
+    }
+}
+
+.zettelkasten-flow__reader-chooser-name {
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__reader-chooser-desc {
+    @include hint;
+    line-height: var(--line-height-normal);
+}
+
+.zettelkasten-flow__reader-chooser-count {
+    font-size: $text-small;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__reader-chooser-foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: $space-3;
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__reader-chooser-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: chapter;
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__reader-chooser-chip {
+    @include chip;
+    counter-increment: chapter;
+
+    &::before {
+        content: counter(chapter, decimal-leading-zero);
+        color: $text-faint;
+        margin-right: $space-1;
+    }
+}
+
+/* The pictures */
+.zettelkasten-flow__reader-diagram {
+    width: 100%;
+    height: var(--size-4-12);
+}
+
+.zettelkasten-flow__reader-diagram-edge,
+.zettelkasten-flow__reader-diagram-curve {
+    stroke: var(--text-faint);
+    stroke-width: 2;
+    fill: none;
+}
+
+.zettelkasten-flow__reader-diagram-curve {
+    stroke: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-diagram-region {
+    fill: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+    stroke: color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+    stroke-dasharray: 3 3;
+}
+
+.zettelkasten-flow__reader-diagram-node {
+    fill: var(--text-muted);
+}
+
+.zettelkasten-flow__reader-diagram-node--accent {
+    fill: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-diagram-node--support {
+    fill: var(--color-green);
+}
+
+.zettelkasten-flow__reader-diagram-node--counter {
+    fill: var(--color-red);
+}
+
+.zettelkasten-flow__reader-diagram-node--synthesis {
+    fill: var(--color-orange);
+}
+
+.zettelkasten-flow__reader-diagram-node--faint {
+    fill: var(--text-faint);
+}

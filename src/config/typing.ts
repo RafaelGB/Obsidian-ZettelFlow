@@ -117,6 +117,21 @@ export interface ZettelFlowSettings {
     /** How This note shows the neighbourhood: the ego graph or the list (#643). */
     noteNeighbourhoodView?: "graph" | "list";
     /**
+     * How the Reader sets its type (#668): font, size and reading theme. Authored from the reader's
+     * own *Type* panel — the place you are when you want to change it (§XIII).
+     */
+    readerPrefs?: { font: "sans" | "serif"; size: "small" | "medium" | "large"; theme: "auto" | "light" | "sepia" | "dark" };
+    /**
+     * Where each recent reading was left (#669): a kind and the note it started from, or a picked
+     * set's fingerprint → the chapter, how many there were, when. Places only — never what you read.
+     */
+    readerResume?: Record<string, { chapter: number; total: number; at: number }>;
+    /**
+     * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
+     * started from and their chapters in order. Reopened from the chooser and Home — never a note.
+     */
+    readerSaved?: { id: string; name: string; kind: string; seed: string; paths: string[]; at: number }[];
+    /**
      * **Think before you look** in Explore (#576, epic #574): write what you currently think, and
      * the results stay hidden until you have. OFF by default and *remembered* — §XII sanctions
      * deliberate friction where judgement is at stake and forbids it as a generic confirmation, so
@@ -371,6 +386,9 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     cultivateFriction: true, // Ask before revealing (#338); the pause is where the thinking happens.
     cultivateStage: "any", // Cultivate every stage until you pick one (#589); embryonic-first within it.
     noteNeighbourhoodView: "graph", // the picture first; the list is one click away (#643).
+    readerPrefs: { font: "sans", size: "medium", theme: "auto" }, // the theme's own type, until you pick (#668).
+    readerResume: {}, // nothing to resume until you stop part-way through a reading (#669).
+    readerSaved: [], // nothing saved until you save a path at its end (#672).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.
     returnIntervalDays: DEFAULT_RETURN_INTERVAL_DAYS, // How long before a claim comes back (#563).
     relations: {}, // parseInlineRelations resolved at runtime: on desktop, off mobile.

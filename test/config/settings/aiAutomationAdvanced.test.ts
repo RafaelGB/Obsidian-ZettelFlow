@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import * as obsidian from "obsidian";
 import { Setting, __captureSettings } from "obsidian";
-import { DomNode } from "../../support/dashboardDom";
+import { DomNode, settle } from "../../support/dashboardDom";
 
 // The folder suggest and the script API reach the live app; a row drawn under jest only needs them to exist.
 // The folder suggest reaches the live app; a row drawn under jest only needs it to exist — and to
@@ -121,10 +121,10 @@ describe("AI: one switch, the provider only when it is on (#663)", () => {
         expect(row.texts).toHaveLength(2);
         expect(row.texts.map((text) => text.inputEl!.type)).toEqual(["number", "number"]);
         row.texts[0].type!("5000");
-        await flush();
+        await settle(() => p.settings.ai.maxInputChars === 5000);
         expect(p.settings.ai.maxInputChars).toBe(5000);
         row.texts[1].type!("");
-        await flush();
+        await settle(() => p.settings.ai.maxOutputTokens === undefined);
         expect(p.settings.ai.maxOutputTokens).toBeUndefined();
     });
 

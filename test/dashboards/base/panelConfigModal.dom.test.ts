@@ -5,7 +5,7 @@ import { normalize } from "dashboards/datastore";
 import type { AdaptedEntry, FieldDescriptor } from "dashboards/datastore";
 import type { ChartTheme, PanelConfig } from "dashboards/panels";
 import { PanelConfigModal } from "dashboards/base/PanelConfigModal";
-import { DomNode, flush, installBrowserGlobals } from "../../support/dashboardDom";
+import { DomNode, installBrowserGlobals, settle } from "../../support/dashboardDom";
 
 const theme = { text: "", axis: "", split: "", palette: ["", "", "", "", ""] } as ChartTheme;
 const props: FieldDescriptor[] = [
@@ -139,8 +139,10 @@ describe("PanelConfigModal (#632) — built from Obsidian's own parts", () => {
         tile(content, "Tasks").click();
         expect(setting("Show").dropdowns[0].value).toBe("open");
         expect(setting("Group by note").toggles[0].value).toBe(true);
-        await flush();
-        expect(load).toHaveBeenCalled(); // the preview reads the Base's tasks
+        // The preview reads the Base's tasks on its own schedule (a frame, then an async render). A
+        // fixed tick count is the pattern that flaked under a loaded full run (#666): wait for it.
+        await settle(() => load.mock.calls.length > 0);
+        expect(load).toHaveBeenCalled();
         setting("Show").dropdowns[0].select("all");
         setting("Group by note").toggles[0].flip(false);
         button(content, "Save").click();

@@ -28,6 +28,8 @@ export class DomNode {
     href = "";
     type = "";
     listeners: Record<string, ((event: any) => void)[]> = {};
+    /** What `setCssProps` was handed — custom properties the stylesheet reads (#667). */
+    cssProps: Record<string, string> = {};
     private detached = false;
 
     constructor(tag = "div") {
@@ -37,8 +39,10 @@ export class DomNode {
     get className(): string {
         return [...this.classes].join(" ");
     }
-    set className(value: string) {
-        this.classes = new Set(value.split(/\s+/).filter(Boolean));
+    /** Obsidian's `cls` takes a string or an array of class names; both land here. */
+    set className(value: string | string[]) {
+        const names = Array.isArray(value) ? value : value.split(/\s+/);
+        this.classes = new Set(names.filter(Boolean));
     }
     get textContent(): string {
         return this.text + this.children.map((child) => child.textContent).join("");
@@ -91,6 +95,9 @@ export class DomNode {
         this.children = [];
         this.text = "";
     }
+    setCssProps(props: Record<string, string>): void {
+        Object.assign(this.cssProps, props);
+    }
     setText(text: string): void {
         this.empty();
         this.text = text;
@@ -123,15 +130,25 @@ export class DomNode {
     getAttribute(name: string): string | null {
         return this.attrs[name] ?? null;
     }
-    addEventListener(name: string, fn: (event: any) => void): void {
+    /** The options each listener was added with, by event — `capture` is how a link is caught first. */
+    listenerOptions: Record<string, unknown[]> = {};
+    addEventListener(name: string, fn: (event: any) => void, options?: unknown): void {
         (this.listeners[name] ??= []).push(fn);
+        (this.listenerOptions[name] ??= []).push(options);
     }
     removeEventListener(name: string, fn: (event: any) => void): void {
         this.listeners[name] = (this.listeners[name] ?? []).filter((other) => other !== fn);
     }
     /** Dispatch `name` to this node's listeners (no bubbling — fire on the node you mean). */
     fire(name: string, event: any = {}): any {
-        const evt = { preventDefault: () => (evt.defaultPrevented = true), defaultPrevented: false, target: this, ...event };
+        const evt = {
+            preventDefault: () => (evt.defaultPrevented = true),
+            defaultPrevented: false,
+            stopPropagation: () => (evt.propagationStopped = true),
+            propagationStopped: false,
+            target: this,
+            ...event,
+        };
         for (const fn of [...(this.listeners[name] ?? [])]) fn(evt);
         return evt;
     }
@@ -150,6 +167,25 @@ export class DomNode {
         this.parent = null;
         this.detached = true;
     }
+    /** The DOM's own `parentElement`: what `after()` and `closest()` walk. */
+    get parentElement(): DomNode | null {
+        return this.parent;
+    }
+    /** Nearest self-or-ancestor matching `selector`, as `Element.closest`. */
+    closest(selector: string): DomNode | null {
+        const match = matcher(selector);
+        for (let cur: DomNode | null = this; cur; cur = cur.parent) if (match(cur)) return cur;
+        return null;
+    }
+    /** Insert `node` right after this one, as `Element.after` — moving it if it is elsewhere. */
+    after(node: DomNode): void {
+        if (!this.parent) throw new Error("after() on a node with no parent");
+        if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);
+        const siblings = this.parent.children;
+        siblings.splice(siblings.indexOf(this) + 1, 0, node);
+        node.parent = this.parent;
+        node.detached = false;
+    }
     contains(node: DomNode | null): boolean {
         for (let cur: DomNode | null = node; cur; cur = cur.parent) if (cur === this) return true;
         return false;
@@ -158,6 +194,7 @@ export class DomNode {
         return { left: 0, top: 0, width: 100, height: 100 };
     }
     focus(): void { }
+    select(): void { }
     /** Obsidian's HTMLElement.isShown — absent on SVG nodes (see createSvg). */
     isShown(): boolean {
         return this.isConnected;
@@ -209,12 +246,20 @@ export class DomNode {
     }
 }
 
+/**
+ * `.a`, `.a.b`, a tag, `tag.class`, or a comma list of those — what `querySelector` and `closest`
+ * are asked for. Anything richer throws rather than silently matching nothing.
+ */
 function matcher(selector: string): (el: DomNode) => boolean {
-    if (selector.startsWith(".")) {
-        const wanted = selector.split(".").filter(Boolean);
-        return (el) => wanted.every((cls) => el.classes.has(cls));
+    const parts = selector.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length > 1) {
+        const each = parts.map(matcher);
+        return (el) => each.some((match) => match(el));
     }
-    return (el) => el.tag === selector;
+    const one = parts[0] ?? "";
+    if (/[\s>+~\[\]:]/.test(one)) throw new Error(`DomNode cannot match selector "${one}"`);
+    const [tag, ...classes] = one.split(".");
+    return (el) => (tag === "" || el.tag === tag) && classes.every((cls) => el.classes.has(cls));
 }
 
 /** Browser globals the dashboard touches, as the smallest stand-ins that keep it honest. */

@@ -1,0 +1,278 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
+/*
+ * The end of a path (#672) — what the reading added up to, the four things to do next, the
+ * export preview and your saved paths. On the reader's own palette (its variables follow your
+ * theme or the reading theme you picked), theme colours only (§XV).
+ */
+
+.zettelkasten-flow__reader-end {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--size-4-4);
+    font-family: var(--reader-font);
+    color: var(--reader-fg);
+
+    .zettelkasten-flow__reader-chapter-title {
+        margin-bottom: 0;
+    }
+}
+
+.zettelkasten-flow__reader-end-lede {
+    text-align: center;
+    color: var(--reader-muted);
+}
+
+.zettelkasten-flow__reader-end-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--size-4-3);
+    margin: var(--size-4-4) 0;
+}
+
+.zettelkasten-flow__reader-end-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 6.5rem;
+    padding: var(--size-4-3) var(--size-4-4);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: $radius-medium;
+    background-color: var(--reader-surface);
+}
+
+.zettelkasten-flow__reader-end-stat-value {
+    font-size: 1.8rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__reader-end-stat-label {
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-smaller);
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-end-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__reader-end-action {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--size-4-3);
+    height: auto;
+    padding: var(--size-4-4);
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+    box-shadow: none;
+    font-family: var(--font-interface);
+    color: var(--reader-fg);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: $radius-medium;
+
+    &:hover {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__reader-end-action-icon {
+    display: inline-flex;
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-end-action-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    min-width: 0;
+}
+
+.zettelkasten-flow__reader-end-action-name {
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-end-action-desc {
+    font-size: var(--font-ui-smaller);
+    color: var(--reader-muted);
+}
+
+.zettelkasten-flow__reader-end-save-form {
+    display: flex;
+    gap: var(--size-4-2);
+    align-items: center;
+    grid-column: 1 / -1;
+
+    input {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+.zettelkasten-flow__reader-end-another,
+.zettelkasten-flow__reader-end-status-link {
+    align-self: center;
+    background: none;
+    border: none;
+    box-shadow: none;
+    height: auto;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-accent);
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-small);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__reader-end-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--size-4-3);
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-small);
+    color: var(--reader-muted);
+}
+
+/* ── the export preview ────────────────────────────────────────────────── */
+.zettelkasten-flow__reader-export {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+}
+
+.zettelkasten-flow__reader-export-intro,
+.zettelkasten-flow__reader-export-appendix {
+    @include hint;
+}
+
+.zettelkasten-flow__reader-export-modes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: $space-2;
+}
+
+.zettelkasten-flow__reader-export-mode {
+    @include card;
+    height: auto;
+    align-items: flex-start;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+    background-color: $surface-quiet;
+    border-radius: $radius-medium;
+    padding: $space-3;
+
+    &:hover {
+        border-color: var(--text-faint);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        background-color: color-mix(in srgb, var(--interactive-accent) 10%, $surface-quiet);
+    }
+}
+
+.zettelkasten-flow__reader-export-mode-name {
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__reader-export-mode-desc {
+    @include hint;
+}
+
+.zettelkasten-flow__reader-export-chapters {
+    margin: 0;
+    padding-left: var(--size-4-6);
+    color: $text-quiet;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__reader-export-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__reader-export-field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    font-size: $text-small;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__reader-export-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $space-2;
+}
+
+/* ── your saved paths, in the chooser ──────────────────────────────────── */
+.zettelkasten-flow__reader-saved {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__reader-saved-heading {
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__reader-saved-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__reader-saved-row {
+    @include row;
+}
+
+.zettelkasten-flow__reader-saved-open {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: $space-2;
+    height: auto;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: $space-1 0;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover .zettelkasten-flow__reader-saved-name {
+        color: var(--text-accent);
+    }
+}
+
+.zettelkasten-flow__reader-saved-name {
+    color: $text-plain;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__reader-saved-meta {
+    color: $text-faint;
+    flex-shrink: 0;
+}
+
+.zettelkasten-flow__reader-saved-input {
+    flex: 1;
+    min-width: 0;
+}

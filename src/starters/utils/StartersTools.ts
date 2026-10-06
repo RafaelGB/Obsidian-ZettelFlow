@@ -24,6 +24,7 @@ import { RemoveRelationComponent } from "../zcomponents/RemoveRelationComponent"
 import { ZettelFlowMenuComponent } from "../zcomponents/ZettelFlowMenuComponent";
 import { QuickCaptureComponent } from "../zcomponents/QuickCaptureComponent";
 import { ThinkAboutComponent } from "../zcomponents/ThinkAboutComponent";
+import { ReaderComponent } from "../zcomponents/ReaderComponent";
 import { MoveCommandsComponent } from "../zcomponents/MoveCommandsComponent";
 import { ClaimDoorComponent } from "../zcomponents/ClaimDoorComponent";
 import { ClaimReturnComponent } from "../zcomponents/ClaimReturnComponent";
@@ -54,6 +55,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     ZComponentsManager.registerComponent(new ZettelFlowMenuComponent(plugin));
     ZComponentsManager.registerComponent(new QuickCaptureComponent(plugin));
     ZComponentsManager.registerComponent(new ThinkAboutComponent(plugin));
+    ZComponentsManager.registerComponent(new ReaderComponent(plugin));
     // A move on a note (#493): the eleven verbs, one command each, gated on an active note.
     ZComponentsManager.registerComponent(new MoveCommandsComponent(plugin));
     // The claim gets a door (#561): the last thing you could only write as YAML by hand.

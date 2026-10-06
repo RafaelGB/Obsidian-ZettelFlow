@@ -99,7 +99,13 @@ export class WizardErrorBoundary extends Component<WizardErrorBoundaryProps, Bou
               const handler = handlers[action];
               if (!handler) return null;
               return (
-                <button key={action} type="button" onClick={handler}>
+                <button
+                  key={action}
+                  type="button"
+                  // The first recovery is the one most likely to work; it is the primary (#684).
+                  className={action === offered[0] ? "mod-cta" : undefined}
+                  onClick={handler}
+                >
                   {t(LABELS[action])}
                 </button>
               );

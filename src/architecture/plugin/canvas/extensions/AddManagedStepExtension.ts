@@ -16,9 +16,20 @@ const TEXT_NODE_SIZE = { width: 300, height: 100 };
 const FILE_NODE_SIZE = { width: 400, height: 400 };
 
 /**
+ * Make a step at the centre of the visible canvas — the card menu's button and the empty state's
+ * first action are one capability with two doors (#686).
+ */
+export function createStepAtCentre(canvas: Canvas): void {
+    AddManagedStepExtension.current?.createAtCentre(canvas);
+}
+
+/**
  * Extension that adds a managed step option to a ZettelFlow canvas.
  */
 export default class AddManagedStepExtension extends CanvasExtension {
+    /** The live extension, so the empty canvas's "Create the first step" makes a step the same way. */
+    static current: AddManagedStepExtension | undefined;
+
     /**
      * Indicates whether this extension is enabled.
      * @returns {boolean} Always true.
@@ -31,10 +42,14 @@ export default class AddManagedStepExtension extends CanvasExtension {
      * Initializes the extension by registering an event listener for the canvas drop menu.
      */
     init(): void {
+        AddManagedStepExtension.current = this;
+        this.plugin.register(() => {
+            if (AddManagedStepExtension.current === this) AddManagedStepExtension.current = undefined;
+        });
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("zettelflow-node-connection-drop-menu", (canvas: Canvas) => {
                 // Proceed only if the canvas is a ZettelFlow canvas.
-                if (CanvasHelper.isCanvasFlow(this.plugin)) {
+                if (CanvasHelper.isCanvasFlow(this.plugin, canvas)) {
                     this.addManagedStepOption(canvas);
                 }
             })
@@ -51,7 +66,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
             canvas,
             {
                 id: "create-managed-step",
-                label: "Create managed step",
+                label: t("canvas_card_menu_create_step"),
                 icon: RibbonIcon.ID
             },
             () => GROUP_NODE_SIZE,
@@ -59,6 +74,15 @@ export default class AddManagedStepExtension extends CanvasExtension {
         );
 
         CanvasHelper.addCardMenuOption(canvas, cardMenuOption);
+    }
+
+    /** The empty state's door: the same creation, placed where you are looking. */
+    createAtCentre(canvas: Canvas): void {
+        try {
+            this.handleManagedStepCreation(canvas, CanvasHelper.getCenterCoordinates(canvas, GROUP_NODE_SIZE));
+        } catch (error) {
+            log.warn("ZettelFlow: could not place a step on this canvas", error);
+        }
     }
 
     /**
@@ -76,7 +100,7 @@ export default class AddManagedStepExtension extends CanvasExtension {
         const installedSteps = this.plugin.settings.installedTemplates.steps;
         const openNodeTypeModal = (step: StepSettings) => {
             const options: Option[] = this.getCreationOptions(canvas, pos, step);
-            new OptionsModal(this.plugin.app, "Type of Canvas component", options).open();
+            new OptionsModal(this.plugin.app, t("managed_step_type_title"), options).open();
         };
 
         if (Object.keys(installedSteps).length > 0) {

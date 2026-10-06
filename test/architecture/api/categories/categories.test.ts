@@ -3,7 +3,7 @@ import {
     ACTION_CATEGORIES,
     isActionCategory,
     CATEGORY_LABEL_KEY,
-    CATEGORY_EMOJI,
+    CATEGORY_ICON,
 } from "architecture/api/categories/categories";
 
 describe("action category vocabulary (#152, FR-1/FR-2/AC-4)", () => {
@@ -24,12 +24,12 @@ describe("action category vocabulary (#152, FR-1/FR-2/AC-4)", () => {
         }
     });
 
-    it("defines a non-empty label key and an emoji for every category", () => {
+    it("defines a non-empty label key and a Lucide icon for every category", () => {
         for (const category of ACTION_CATEGORIES) {
             expect(typeof CATEGORY_LABEL_KEY[category]).toBe("string");
             expect(CATEGORY_LABEL_KEY[category].length).toBeGreaterThan(0);
-            expect(typeof CATEGORY_EMOJI[category]).toBe("string");
-            expect(CATEGORY_EMOJI[category].length).toBeGreaterThan(0);
+            expect(typeof CATEGORY_ICON[category]).toBe("string");
+            expect(CATEGORY_ICON[category].length).toBeGreaterThan(0);
         }
     });
 });

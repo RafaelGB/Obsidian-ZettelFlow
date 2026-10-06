@@ -1,7 +1,8 @@
 import { Canvas } from "obsidian/canvas";
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import CanvasExtension from "./CanvasExtension";
 import CanvasHelper from "./utils/CanvasHelper";
+import { CanvasDock, type DockPanel } from "./utils/CanvasDock";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { canvas as canvasApi } from "architecture/plugin/canvas";
@@ -29,7 +30,7 @@ import { readRehearsalFlow } from "zettelkasten/review/readRehearsalFlow";
  * annotated, the rehearsal still runs as a list (#319's fallback discipline).
  */
 export default class RehearsalExtension extends CanvasExtension {
-    private panelEl: HTMLElement | undefined;
+    private panel: DockPanel | undefined;
     private bodyEl: HTMLElement | undefined;
     private canvas: Canvas | undefined;
     private flow: RehearsalFlow | undefined;
@@ -47,38 +48,31 @@ export default class RehearsalExtension extends CanvasExtension {
     }
 
     private mount(canvas: Canvas): void {
-        if (!CanvasHelper.isCanvasFlow(this.plugin)) {
+        if (!CanvasHelper.isCanvasFlow(this.plugin, canvas)) {
             this.teardown();
             return;
         }
         this.canvas = canvas;
-        if (this.panelEl?.isConnected) return;
+        if (this.panel?.body.isConnected) return;
 
         const wrapperEl = canvas?.wrapperEl;
         if (!wrapperEl) {
-            log.warn("[Rehearsal] canvas.wrapperEl not available — skipping the rehearsal chip");
+            log.warn("[Rehearsal] canvas.wrapperEl not available — skipping the rehearsal tab");
             return;
         }
         this.removePanel();
-        this.panelEl = wrapperEl.createDiv({ cls: c("rehearsal") });
-        const toggle = this.panelEl.createEl("button", {
-            cls: c("rehearsal-toggle"),
-            text: t("rehearsal_toggle"),
-            attr: { type: "button" },
+        // The third tab of the canvas dock (#686): opening it starts the walk, folding it ends it.
+        this.panel = CanvasDock.of(wrapperEl).panel("rehearse", t("rehearsal_toggle"), 2, {
+            icon: "play",
+            onOpen: () => void this.begin(),
+            onClose: () => this.stop(),
         });
-        this.bodyEl = this.panelEl.createDiv({ cls: c("rehearsal-body") });
-        this.bodyEl.addClass(c("is-hidden"));
-        toggle.addEventListener("click", () => {
-            const open = this.bodyEl?.hasClass(c("is-hidden")) ?? false;
-            this.bodyEl?.toggleClass(c("is-hidden"), !open);
-            if (open) void this.begin();
-            else this.stop();
-        });
+        this.bodyEl = this.panel.body;
     }
 
     /** Read the flow and stand at its start. */
     private async begin(): Promise<void> {
-        const file = this.plugin.app.workspace.getActiveFile();
+        const file = CanvasHelper.canvasFile(this.plugin, this.canvas);
         if (!file) return;
         try {
             const flow = await canvasApi.flows.update(file.path);
@@ -106,7 +100,7 @@ export default class RehearsalExtension extends CanvasExtension {
         const flow = this.flow;
         if (!body || !flow) return;
         body.empty();
-        body.createEl("h6", { text: t("rehearsal_title") });
+        body.createDiv({ cls: c("canvas-dock-title"), text: t("rehearsal_title") });
         body.createDiv({ cls: c("rehearsal-note"), text: t("rehearsal_note") });
 
         this.renderContextForm(body);
@@ -120,18 +114,8 @@ export default class RehearsalExtension extends CanvasExtension {
 
         this.markCanvas(state);
 
-        // Where the walk stands, and how it got here.
-        const current = flow.steps.find((step) => step.id === state.currentId);
-        body.createDiv({
-            cls: c("rehearsal-current"),
-            text: `${t("rehearsal_at")} ${current?.label ?? ""}`,
-        });
-        body.createDiv({
-            cls: c("rehearsal-note"),
-            text: state.path
-                .map((id) => flow.steps.find((step) => step.id === id)?.label ?? id)
-                .join(" → "),
-        });
+        // The walk as a path (#686): the steps behind you, the one you stand on, and what is next.
+        this.renderStepper(body, flow, state);
 
         this.renderOptions(body, state);
         // An end is a fact worth stating: the walk stops here because there is nowhere else to go.
@@ -151,6 +135,37 @@ export default class RehearsalExtension extends CanvasExtension {
             new Notice(t("rehearsal_restarted"));
             this.render();
         });
+    }
+
+    /**
+     * The walk, read top to bottom: a dot per step walked, a check on the ones behind you, the
+     * current one marked "you are here", and — while the walk goes on — a last row saying what
+     * comes next depends on what you choose.
+     */
+    private renderStepper(body: HTMLElement, flow: RehearsalFlow, state: RehearsalState): void {
+        const list = body.createEl("ol", { cls: c("rehearsal-steps") });
+        state.path.forEach((id, index) => {
+            const current = id === state.currentId;
+            const row = list.createEl("li", {
+                cls: [c("rehearsal-step"), current ? c("rehearsal-step-current") : c("rehearsal-step-done")],
+            });
+            const dot = row.createSpan({ cls: c("rehearsal-step-dot") });
+            if (current) dot.setText(String(index + 1));
+            else setIcon(dot, "check");
+            const text = row.createDiv({ cls: c("rehearsal-step-text") });
+            text.createDiv({
+                cls: c("rehearsal-step-name"),
+                text: flow.steps.find((step) => step.id === id)?.label ?? id,
+            });
+            if (current) text.createDiv({ cls: c("rehearsal-step-hint"), text: t("rehearsal_you_are_here") });
+        });
+        if (!state.done) {
+            const next = list.createEl("li", { cls: [c("rehearsal-step"), c("rehearsal-step-next")] });
+            next.createSpan({ cls: c("rehearsal-step-dot"), text: String(state.path.length + 1) });
+            const text = next.createDiv({ cls: c("rehearsal-step-text") });
+            text.createDiv({ cls: c("rehearsal-step-name"), text: "…" });
+            text.createDiv({ cls: c("rehearsal-step-hint"), text: t("rehearsal_next_depends") });
+        }
     }
 
     /**
@@ -236,16 +251,15 @@ export default class RehearsalExtension extends CanvasExtension {
         }
 
         for (const closed of state.closed) {
-            body.createDiv({
-                cls: c("rehearsal-closed"),
-                text: `${closed.label} · ${explainBranch(closed.reason, closed.expression)}`,
-            });
+            const row = body.createDiv({ cls: c("rehearsal-closed") });
+            row.createSpan({ cls: c("rehearsal-closed-label"), text: closed.label });
+            row.createSpan({ cls: c("rehearsal-closed-reason"), text: explainBranch(closed.reason, closed.expression) });
         }
     }
 
     private renderWouldRun(body: HTMLElement, state: RehearsalState): void {
         if (state.wouldRun.length === 0) return;
-        body.createEl("h6", { text: t("rehearsal_would_run") });
+        body.createDiv({ cls: c("canvas-dock-subtitle"), text: t("rehearsal_would_run") });
         for (const entry of state.wouldRun) {
             const text = [entry.stepLabel, entry.type, entry.description].filter(Boolean).join(" · ");
             body.createDiv({ cls: c("rehearsal-would-run"), text });
@@ -255,7 +269,7 @@ export default class RehearsalExtension extends CanvasExtension {
     private renderOutcome(body: HTMLElement, state: RehearsalState): void {
         if (!this.flow) return;
         const outcome = rehearsalOutcome(this.flow, state, this.context, t("rehearsal_sample_title"));
-        body.createEl("h6", { text: t("rehearsal_outcome") });
+        body.createDiv({ cls: c("canvas-dock-subtitle"), text: t("rehearsal_outcome") });
 
         if (outcome.targetFolder) {
             body.createDiv({
@@ -316,8 +330,8 @@ export default class RehearsalExtension extends CanvasExtension {
     }
 
     private removePanel(): void {
-        this.panelEl?.remove();
-        this.panelEl = undefined;
+        this.panel?.remove();
+        this.panel = undefined;
         this.bodyEl = undefined;
     }
 

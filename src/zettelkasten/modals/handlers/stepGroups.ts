@@ -66,3 +66,31 @@ export function isGroupExpanded(group: StepGroupId, info: StepBuilderInfo): bool
             return Object.keys(info.exits ?? {}).length > 0;
     }
 }
+
+/** The quiet fact at the end of a heading (#685): a count, a value, or a phrase key. */
+export interface GroupMeta {
+    key: string;
+    count?: number;
+    value?: string;
+}
+
+/**
+ * What a group holds, said on its closed heading — "2 actions", "Zettel/", "starts the flow" — so
+ * a group you leave folded still tells you whether it is worth opening. Undefined says nothing.
+ */
+export function groupMeta(group: StepGroupId, info: StepBuilderInfo): GroupMeta | undefined {
+    switch (group) {
+        case "asks": {
+            const count = info.actions?.length ?? 0;
+            return count === 0 ? { key: "step_group_asks_meta_none" } : { key: "step_group_asks_meta", count };
+        }
+        case "when":
+            return info.root ? { key: "step_group_when_meta_root" } : undefined;
+        case "where": {
+            const folder = info.targetFolder?.trim();
+            return folder ? { key: "", value: `${folder}/` } : undefined;
+        }
+        default:
+            return undefined;
+    }
+}

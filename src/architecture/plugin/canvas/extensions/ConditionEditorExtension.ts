@@ -23,7 +23,7 @@ export default class ConditionEditorExtension extends CanvasExtension {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("canvas:popup-menu", (eventCanvas: Canvas) => {
                 if (eventCanvas.isDragging) return;
-                if (!CanvasHelper.isCanvasFlow(this.plugin)) return;
+                if (!CanvasHelper.isCanvasFlow(this.plugin, eventCanvas)) return;
 
                 // Always take our own button away first; add it back only if it still applies.
                 CanvasHelper.removePopupMenuOption(eventCanvas, EDIT_CONDITION_BUTTON_ID);
@@ -52,8 +52,9 @@ export default class ConditionEditorExtension extends CanvasExtension {
                 btn.id = buttonId;
                 btn.classList.add("clickable-icon");
                 setIcon(btn, "filter");
-                setTooltip(btn, t("condition_editor_title"), { placement: "top" });
-                const canvasPath = this.plugin.app.workspace.getActiveFile()?.path;
+                setTooltip(btn, t("canvas_menu_edit_exit"), { placement: "top" });
+                btn.setAttr("aria-label", t("canvas_menu_edit_exit"));
+                const canvasPath = CanvasHelper.canvasFile(this.plugin, eventCanvas)?.path;
                 btn.addEventListener("click", () => {
                     void (async () => {
                         // The arrow is a door into the step that owns it (#427): it configures

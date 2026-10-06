@@ -31,6 +31,19 @@ export const NODE_BADGE_LABEL_KEY: Record<NodeBadgeKind, string> = {
     gated: "node_badge_gated",
 };
 
+/**
+ * The icon per badge kind (#686): the step editor's own vocabulary — the same glyph for *starts the
+ * flow* on the node and in the editor — so a chip reads before its words do.
+ */
+export const NODE_BADGE_ICON: Record<NodeBadgeKind, string> = {
+    start: "flag",
+    asks: "message-circle-question",
+    template: "file-text",
+    satellite: "link",
+    optional: "skip-forward",
+    gated: "filter",
+};
+
 /** The settings a badge can be derived from — a superset of what {@link NodeBlockShape} needs. */
 export interface NodeBadgeShape extends NodeBlockShape {
     actions?: { hasUI?: boolean }[];

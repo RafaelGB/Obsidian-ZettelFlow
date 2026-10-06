@@ -13,6 +13,7 @@ import { log, ObsidianApi } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
 import { t } from "architecture/lang";
 import { isStringTupleArray } from "./typing";
+import { WizardState } from "application/components/noteBuilder/WizardState";
 
 export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   const { callback, action } = props;
@@ -44,10 +45,11 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
   }, []);
 
   useEffect(() => {
-    let isMounted = true; // Para evitar actualizaciones de estado en componentes desmontados
+    // No state updates after the step has gone.
+    let isMounted = true;
 
     const fetchData = async () => {
-      // Evitar ejecutar si no hay código dinámico
+      // No script, no options: nothing to run.
       if (!code) {
         if (isMounted) {
           setOptions([]);
@@ -64,7 +66,6 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
             ([key, label]) => ({
               key,
               label,
-              color: "var(--canvas-color-5)",
               actionTypes: [],
             })
           );
@@ -92,14 +93,20 @@ export function DynamicSelectorWrapper(props: WrappedActionBuilderProps) {
     return () => {
       isMounted = false; // Cleanup after unmount
     };
-  }, []); // Arreglo de dependencias vacío para ejecutar solo una vez
+    // Once per step: the script runs when the step mounts.
+  }, []);
 
+  // The wizard's one loading / error treatment (#409), not a bare line of text.
   if (loading) {
-    return <div>{t("dynamic_selector_loading")}</div>;
+    return <WizardState kind="loading" message={t("dynamic_selector_loading")} />;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <WizardState kind="error" message={error} />;
+  }
+
+  if (options.length === 0) {
+    return <WizardState kind="empty" message={t("dynamic_selector_empty")} />;
   }
 
   return (

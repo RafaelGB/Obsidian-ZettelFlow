@@ -117,7 +117,7 @@ during creation, review, or from any surface.
 Two cross-cutting engines run alongside the wizard:
 
 - **Canvas patcher** (`architecture/plugin/canvas`) — monkey-patches the Canvas view so the
-  plugin can add "Edit step" / "Create managed step" menus and serialize canvas data
+  plugin can add "Edit step" / "Create a step" controls and serialize canvas data
   deterministically.
 - **Vault hooks** (`hooks/`) — react to vault/metadata events for **folder automation**
   (auto-launch a folder's flow on note create) and **property hooks** (run user JS when a

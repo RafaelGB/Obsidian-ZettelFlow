@@ -31,13 +31,13 @@ class ActionManagementErrorBoundary extends React.Component<
 }
 
 export class ActionManagementHandler extends AbstractHandlerClass<AbstractStepModal> {
-  name = t("step_builder_action_selector_title");
-  description = t("step_builder_action_selector_description");
+  name = t("step_group_asks");
+  description = "";
   root: Root;
   handle(modal: AbstractStepModal): AbstractStepModal {
-    const { info } = modal;
-    const { contentEl } = info;
-    this.root = createRoot(contentEl.createDiv());
+    // What the step asks lives in *what does this step ask?* (#685). It used to render after every
+    // group, so the question you open a step to answer was the last thing in the dialog.
+    this.root = createRoot(modal.groupEl("asks").createDiv({ cls: c("action-cards") }));
     this.root.render(
       <ActionManagementErrorBoundary>
         <ActionsManagement modal={modal} />

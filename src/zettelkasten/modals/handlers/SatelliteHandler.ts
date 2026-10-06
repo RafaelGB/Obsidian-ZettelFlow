@@ -36,8 +36,8 @@ const RELATION_LABEL_KEYS: Record<string, LocaleKey> = {
  * and direction — because a half-authorable capability is exactly what sends people back to the file.
  */
 export class SatelliteHandler extends AbstractHandlerClass<AbstractStepModal> {
-    name = t("step_builder_satellite_heading");
-    description = t("step_builder_satellite_desc");
+    name = t("step_builder_satellite_enable_name");
+    description = t("step_builder_satellite_enable_desc");
 
     handle(modal: AbstractStepModal): AbstractStepModal {
         // An editor flow inserts into a note that already exists; `buildEditor` creates nothing, so
@@ -46,31 +46,29 @@ export class SatelliteHandler extends AbstractHandlerClass<AbstractStepModal> {
         if (modal.builder === "editor") return this.goNext(modal);
 
         const { info } = modal;
-        const { contentEl } = info;
         const state = satelliteFormState(info.satellite);
-
-        new Setting(modal.groupEl("writes")).setName(this.name).setDesc(this.description).setHeading();
-
-        // The fields live in their own container so the toggle can reveal or hide them as a block.
-        const fields = contentEl.createDiv({ cls: c("satellite-fields") });
-        const errorEl = fields.createDiv({ cls: c("satellite-error") });
-
-        const apply = () => {
-            info.satellite = satelliteFromForm(state);
-            const refreshed = satelliteFormState(info.satellite);
-            errorEl.setText(refreshed.error ? t(SATELLITE_ERROR_KEYS[refreshed.error]) : "");
-            fields.toggleClass(c("is-hidden"), !state.enabled);
-        };
-
-        new Setting(modal.groupEl("writes"))
-            .setName(t("step_builder_satellite_enable_name"))
-            .setDesc(t("step_builder_satellite_enable_desc"))
+        const writes = modal.groupEl("writes");
+        new Setting(writes)
+            .setName(this.name)
+            .setDesc(this.description)
             .addToggle((toggle) =>
                 toggle.setValue(state.enabled).onChange((value) => {
                     state.enabled = value;
                     apply();
                 })
             );
+
+        // The fields sit under their switch, inside *what it writes* (#685) — they used to land
+        // after the last group, far from the toggle that reveals them.
+        const fields = writes.createDiv({ cls: c("satellite-fields") });
+        const errorEl = fields.createDiv({ cls: c("satellite-error") });
+        // Called only from the controls' change handlers, after both elements exist.
+        const apply = () => {
+            info.satellite = satelliteFromForm(state);
+            const refreshed = satelliteFormState(info.satellite);
+            errorEl.setText(refreshed.error ? t(SATELLITE_ERROR_KEYS[refreshed.error]) : "");
+            fields.toggleClass(c("is-hidden"), !state.enabled);
+        };
 
         new Setting(fields)
             .setName(t("step_builder_satellite_template_name"))

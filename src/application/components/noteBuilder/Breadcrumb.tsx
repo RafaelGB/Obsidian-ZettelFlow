@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { c } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { ConfirmModal } from "architecture/components/settings";
 import { actionsStore } from "architecture/api";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { alreadyApplied, discardedCount } from "./walkHistory";
 import { NoteBuilderType } from "./typing";
+import { foldedCrumbs } from "./presentation";
 
 /**
  * The path walked so far (#408), now navigable (#413): canvas › step › step › current.
@@ -14,6 +15,9 @@ import { NoteBuilderType } from "./typing";
  * always matches the visible path. More than one step is confirmed first, and the confirmation says
  * plainly when a discarded step already had an effect that cannot be unwound (a script, an AI call):
  * you are told, not blocked.
+ *
+ * A long walk folds its middle into one "…" control (#684) instead of truncating the current step
+ * away, and compact density tightens it rather than hiding it: the path is how you go back.
  */
 export function Breadcrumb(props: NoteBuilderType) {
   const previousArray = useNoteBuilderStore((store) => store.previousArray);
@@ -21,6 +25,7 @@ export function Breadcrumb(props: NoteBuilderType) {
   const header = useNoteBuilderStore((store) => store.header);
   const activeCanvasName = useNoteBuilderStore((store) => store.activeCanvasName);
   const actions = useNoteBuilderStore((store) => store.actions);
+  const [expanded, setExpanded] = useState(false);
 
   const walked = previousArray.map((position) => ({
     position,
@@ -62,24 +67,42 @@ export function Breadcrumb(props: NoteBuilderType) {
     ).open();
   };
 
+  const { shown, folded } = foldedCrumbs(walked.length, expanded);
+
   return (
     <nav className={c("breadcrumb")} aria-label={t("note_builder_breadcrumb_label")}>
       <ol className={c("breadcrumb-list")} title={full}>
         {activeCanvasName && (
           <li className={c("breadcrumb-item", "breadcrumb-item-canvas")}>{activeCanvasName}</li>
         )}
-        {walked.map((step, index) => (
-          <li className={c("breadcrumb-item")} key={`crumb-${step.position}`}>
+        {folded > 0 && (
+          <li className={c("breadcrumb-item")}>
             <button
               type="button"
-              className={c("breadcrumb-link")}
-              aria-label={t("note_builder_jump_to", step.title, String(index + 1))}
-              onClick={() => jump(index)}
+              className={c("breadcrumb-link", "breadcrumb-fold")}
+              aria-label={tCount(folded, "note_builder_breadcrumb_unfold", String(folded))}
+              title={tCount(folded, "note_builder_breadcrumb_unfold", String(folded))}
+              onClick={() => setExpanded(true)}
             >
-              {step.title}
+              …
             </button>
           </li>
-        ))}
+        )}
+        {shown.map((index) => {
+          const step = walked[index];
+          return (
+            <li className={c("breadcrumb-item")} key={`crumb-${step.position}`}>
+              <button
+                type="button"
+                className={c("breadcrumb-link")}
+                aria-label={t("note_builder_jump_to", step.title, String(index + 1))}
+                onClick={() => jump(index)}
+              >
+                {step.title}
+              </button>
+            </li>
+          );
+        })}
         <li className={c("breadcrumb-item", "breadcrumb-item-current")} aria-current="step">
           {header.title}
         </li>

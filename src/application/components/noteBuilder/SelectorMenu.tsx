@@ -6,7 +6,6 @@ import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { WelcomeTutorial } from "./WelcomeTutorial";
 import { CompanionPane } from "./CompanionPane";
 import { LiveRegion } from "./LiveRegion";
-import { Breadcrumb } from "./Breadcrumb";
 import { densityModifier, normalizeDensity } from "./presentation";
 import { WizardErrorBoundary } from "./WizardErrorBoundary";
 import { callbackBuildActualState, callbackSkipNote } from "./callbacks/CallbackNote";
@@ -14,14 +13,15 @@ import { t } from "architecture/lang";
 import { ResumePrompt } from "./ResumePrompt";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { Section } from "application/components/section";
-import { Header } from "application/components/header";
-import { NavBar } from "application/components/navbar";
+import { ConfirmSlotContext } from "architecture/components/core/confirmStep/ConfirmSlot";
 import { TutorialType } from "./typing";
+import { WalkStatus } from "./WalkStatus";
+import { WizardFooter } from "./WizardFooter";
 
 export function buildTutorial(noteBuilderType: TutorialType) {
   return (
     <StrictMode>
-      <div>
+      <div className={c("wizard", "wizard-welcome")}>
         <WelcomeTutorial {...noteBuilderType} />
       </div>
     </StrictMode>
@@ -35,9 +35,7 @@ export function buildSelectorMenu(noteBuilderType: NoteBuilderType) {
 function NoteBuilder(noteBuilderType: NoteBuilderType) {
   return (
     <StrictMode>
-      <div>
-        <Component {...noteBuilderType} />
-      </div>
+      <Component {...noteBuilderType} />
     </StrictMode>
   );
 }
@@ -71,17 +69,21 @@ function Component(noteBuilderType: NoteBuilderType) {
     };
   }, []);
 
+  // Where the step draws its Confirm (#684): a callback ref, so the step re-renders into the
+  // footer the moment the footer exists.
+  const [confirmSlot, setConfirmSlot] = useState<HTMLDivElement | null>(null);
+  const building = useNoteBuilderStore((store) => store.section.color === "info");
+
   // The pane now runs in edit mode too, where it shows the diff against the note you are in
   // (#412); on mobile it collapses instead of disappearing (#409).
-  const showCompanionPane = true;
   const density = normalizeDensity(noteBuilderType.plugin.settings.wizardDensity);
   const modifier = densityModifier(density);
-  const layout = [c("note-builder-layout"), ...(modifier ? [c(modifier)] : [])];
+  const layout = [c("wizard"), ...(modifier ? [c(modifier)] : [])];
 
   if (draft) {
     return (
       <div className={layout.join(" ")}>
-        <div className={c("note-builder-main")}>
+        <div className={c("wizard-card-stage")}>
           <ResumePrompt
             draft={draft}
             info={noteBuilderType}
@@ -92,53 +94,64 @@ function Component(noteBuilderType: NoteBuilderType) {
     );
   }
 
-  const wizard = (
-    <div
-      className={c("note-builder-main")}
-      // Undo/redo inside the wizard (#413), scoped to the modal: Obsidian's own history belongs to
-      // the editor, and the walk is not in it.
-      onKeyDown={(event) => {
-        if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "z") return;
-        event.preventDefault();
-        if (event.shiftKey) actions.redo();
-        else if (useNoteBuilderStore.getState().previousArray.length > 0) actions.goPrevious();
-      }}
-    >
-      <LiveRegion />
-      <NavBar {...noteBuilderType} />
-      <Header />
-      <Breadcrumb {...noteBuilderType} />
-      <WizardErrorBoundary
-        key={`step-boundary-${attempt}`}
-        label={t("wizard_error_step")}
-        onRetry={() => setAttempt((current) => current + 1)}
-        onBack={canGoBack ? () => actions.goPrevious() : undefined}
-        onSkip={
-          enableSkip
-            ? () => callbackSkipNote({ actions, data }, noteBuilderType)()
-            : undefined
-        }
-        onBuild={
-          hasContent
-            ? () => callbackBuildActualState({ actions, data }, noteBuilderType)()
-            : undefined
-        }
-      >
-        <Section {...noteBuilderType} />
-      </WizardErrorBoundary>
-    </div>
-  );
-
-  if (!showCompanionPane) {
-    return <div className={layout.join(" ")}>{wizard}</div>;
-  }
+  const skip = () => callbackSkipNote({ actions, data }, noteBuilderType)();
+  const build = () => callbackBuildActualState({ actions, data }, noteBuilderType)();
 
   return (
-    <div className={layout.join(" ")}>
-      {wizard}
-      <WizardErrorBoundary label={t("wizard_error_pane")}>
-        <CompanionPane {...noteBuilderType} collapsible={Platform.isMobile} />
-      </WizardErrorBoundary>
-    </div>
+    <ConfirmSlotContext.Provider value={confirmSlot}>
+      <div
+        className={layout.join(" ")}
+        // Ctrl/Cmd+Enter confirms the step from anywhere in the wizard (#684) — the same Confirm
+        // the footer shows, so the shortcut can never do something the button would not. A text
+        // area that owns the chord (the prompt) handles it first and stops it there.
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+          const confirm = confirmSlot?.querySelector<HTMLButtonElement>("button.mod-cta");
+          if (!confirm) return;
+          event.preventDefault();
+          confirm.click();
+        }}
+      >
+        <LiveRegion />
+        <WalkStatus {...noteBuilderType} />
+        <div className={c("wizard-body")}>
+          <div
+            className={c("note-builder-main")}
+            // Undo/redo inside the wizard (#413), scoped to the step: Obsidian's own history belongs
+            // to the editor, and the title field keeps its own.
+            onKeyDown={(event) => {
+              if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "z") return;
+              event.preventDefault();
+              if (event.shiftKey) actions.redo();
+              else if (useNoteBuilderStore.getState().previousArray.length > 0) actions.goPrevious();
+            }}
+          >
+            <WizardErrorBoundary
+              key={`step-boundary-${attempt}`}
+              label={t("wizard_error_step")}
+              onRetry={() => setAttempt((current) => current + 1)}
+              onBack={canGoBack ? () => actions.goPrevious() : undefined}
+              onSkip={enableSkip ? skip : undefined}
+              onBuild={hasContent ? build : undefined}
+            >
+              <Section {...noteBuilderType} />
+            </WizardErrorBoundary>
+          </div>
+          <WizardErrorBoundary label={t("wizard_error_pane")}>
+            <CompanionPane {...noteBuilderType} collapsible={Platform.isMobile} />
+          </WizardErrorBoundary>
+        </div>
+        <WizardFooter
+          canGoBack={canGoBack}
+          canSkip={enableSkip}
+          hasContent={hasContent}
+          building={building}
+          onBack={() => actions.goPrevious()}
+          onSkip={skip}
+          onBuild={build}
+          confirmSlot={setConfirmSlot}
+        />
+      </div>
+    </ConfirmSlotContext.Provider>
   );
 }

@@ -23,7 +23,15 @@ describe("the popup offers what fits what is selected now (#432)", () => {
         });
     });
 
-    it("offers nothing for a file node — its step is edited from the note", () => {
+    it("offers the step editor for a file node whose note is a step (#686)", () => {
+        expect(popupMenuOptions({ size: 1, kind: "file", stepNote: true })).toEqual({
+            step: true,
+            condition: false,
+            copyFlow: false,
+        });
+    });
+
+    it("offers nothing for a file node whose note is not a step", () => {
         expect(popupMenuOptions({ size: 1, kind: "file" })).toEqual({
             step: false,
             condition: false,

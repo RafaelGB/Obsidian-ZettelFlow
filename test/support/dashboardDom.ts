@@ -130,6 +130,16 @@ export class DomNode {
     getAttribute(name: string): string | null {
         return this.attrs[name] ?? null;
     }
+    /** Obsidian's `setAttr`. */
+    setAttr(name: string, value: string): void {
+        this.setAttribute(name, value);
+    }
+    get id(): string {
+        return this.attrs.id ?? "";
+    }
+    set id(value: string) {
+        this.attrs.id = value;
+    }
     /** The options each listener was added with, by event — `capture` is how a link is caught first. */
     listenerOptions: Record<string, unknown[]> = {};
     addEventListener(name: string, fn: (event: any) => void, options?: unknown): void {
@@ -185,6 +195,40 @@ export class DomNode {
         siblings.splice(siblings.indexOf(this) + 1, 0, node);
         node.parent = this.parent;
         node.detached = false;
+    }
+    /** The DOM's `classList`, over the same set (#686: the canvas extensions toggle with it). */
+    get classList(): { add(...n: string[]): void; remove(...n: string[]): void; contains(n: string): boolean } {
+        return {
+            add: (...names: string[]) => this.addClass(...names),
+            remove: (...names: string[]) => this.removeClass(...names),
+            contains: (name: string) => this.classes.has(name),
+        };
+    }
+    get lastElementChild(): DomNode | null {
+        return this.children[this.children.length - 1] ?? null;
+    }
+    /** The DOM's `insertBefore(node, ref)`: before `ref`, or last when there is none (#686). */
+    insertBefore(node: DomNode, ref: DomNode | null | undefined): DomNode {
+        if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);
+        const at = ref ? this.children.indexOf(ref) : -1;
+        if (at === -1) this.children.push(node);
+        else this.children.splice(at, 0, node);
+        node.parent = this;
+        node.detached = false;
+        return node;
+    }
+    /** The DOM's `prepend(node)`. */
+    prepend(node: DomNode): void {
+        this.insertBefore(node, this.children[0]);
+    }
+    /** Obsidian's `insertAfter(node, ref)`: after `ref`, or first when there is none (#686). */
+    insertAfter(node: DomNode, ref: DomNode | null | undefined): DomNode {
+        if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);
+        const at = ref ? this.children.indexOf(ref) + 1 : 0;
+        this.children.splice(at, 0, node);
+        node.parent = this;
+        node.detached = false;
+        return node;
     }
     contains(node: DomNode | null): boolean {
         for (let cur: DomNode | null = node; cur; cur = cur.parent) if (cur === this) return true;
@@ -257,6 +301,7 @@ function matcher(selector: string): (el: DomNode) => boolean {
         return (el) => each.some((match) => match(el));
     }
     const one = parts[0] ?? "";
+    if (one.startsWith("#")) return (el) => el.id === one.slice(1);
     if (/[\s>+~\[\]:]/.test(one)) throw new Error(`DomNode cannot match selector "${one}"`);
     const [tag, ...classes] = one.split(".");
     return (el) => (tag === "" || el.tag === tag) && classes.every((cls) => el.classes.has(cls));

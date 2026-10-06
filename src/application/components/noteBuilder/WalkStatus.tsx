@@ -3,22 +3,28 @@ import { moment as obsidianMoment } from "obsidian";
 import type MomentFn from "moment";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { describeDestination } from "application/notes";
+import { Icon } from "architecture/components/icon";
+import { describeDestination } from "application/notes/destination";
 import { resolveSatellite, SATELLITE_ERROR_KEYS } from "application/notes/satellitePlan";
 import { flowAdjacency, remainingSteps } from "architecture/plugin/canvas/walkProgress";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
+import { Breadcrumb } from "./Breadcrumb";
+import { walkProgress } from "./presentation";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
 /**
- * Where you are in the flow, and where the note will land (#408, epic #405).
+ * **One progress header** (#684, epic #676) — where you are, what the note is called, where it lands.
  *
- * The wizard used to show `"{n} steps completed"` — a counter with no denominator — and never said
- * where the note would be written. Both answers are derivable: the position from the walked path, the
- * estimate from the longest remaining path in the flow graph, the destination from the same functions
- * the builder writes with. When the estimate cannot be computed honestly (a cycle, an unknown node),
- * the position is shown alone rather than a number the flow cannot stand behind.
+ * It replaces three status rows that each said a part of it: a navbar with the title and two icon
+ * buttons, a header with a back chevron, and a status line (#408) that said *"Step 2 · about 3 left"*
+ * in small italic text. The title is edited in place, the destination is a chip that shows a lock
+ * when the flow fixes the folder, and the position is a real bar — drawn only when the flow can
+ * stand behind an estimate (#408), so a cycle never shows a bar that lies.
+ *
+ * Every value still comes from the same functions the builder writes with: `describeDestination`
+ * for the path, `resolveSatellite` for the linked note, `remainingSteps` for the estimate.
  */
 export function WalkStatus(props: NoteBuilderType) {
   const { flow, modal } = props;
@@ -27,8 +33,8 @@ export function WalkStatus(props: NoteBuilderType) {
   const currentNode = useNoteBuilderStore((store) => store.currentNode);
   const position = useNoteBuilderStore((store) => store.position);
   const title = useNoteBuilderStore((store) => store.title);
-
-  const step = previousArray.length + 1;
+  const invalidTitle = useNoteBuilderStore((store) => store.invalidTitle);
+  const actions = useNoteBuilderStore((store) => store.actions);
 
   const adjacency = useMemo(
     () => flowAdjacency(flow.data),
@@ -39,6 +45,8 @@ export function WalkStatus(props: NoteBuilderType) {
     () => (currentNode ? remainingSteps(adjacency, currentNode.id) : undefined),
     [adjacency, currentNode]
   );
+
+  const progress = walkProgress(previousArray.length + 1, remaining);
 
   const destination = useMemo(() => {
     const note = useNoteBuilderStore.getState().builder.note;
@@ -69,37 +77,92 @@ export function WalkStatus(props: NoteBuilderType) {
   }, [destination.path, destination.filename, position]);
 
   return (
-    <div className={c("walk-status")}>
-      <span className={c("walk-status-position")}>
-        {t("note_builder_step_position", String(step))}
-      </span>
-      {remaining !== undefined && remaining > 0 && (
-        <span
-          className={c("walk-status-remaining")}
-          title={t("note_builder_steps_left_explanation")}
-        >
-          {t("note_builder_steps_left", String(remaining))}
-        </span>
-      )}
+    <header className={c("wizard-header")}>
+      <div className={c("wizard-header-row")}>
+        <div className={c("wizard-title")}>
+          <Icon name="file-text" className={c("wizard-title-icon")} />
+          {creationMode ? (
+            <input
+              type="text"
+              className={`${c("wizard-title-input")}${invalidTitle ? " is-invalid" : ""}`}
+              value={title}
+              placeholder={t("note_title_placeholder")}
+              aria-label={t("note_title_placeholder")}
+              aria-invalid={invalidTitle}
+              autoComplete="off"
+              onChange={(event) => {
+                actions.setTitle(event.target.value);
+                actions.setInvalidTitle(false);
+              }}
+            />
+          ) : (
+            <span className={c("wizard-title-text")}>{title}</span>
+          )}
+        </div>
+        {creationMode && (
+          <span
+            className={c("wizard-destination")}
+            title={
+              destination.path
+                ? t("note_builder_destination", destination.path)
+                : t("note_builder_destination_pending")
+            }
+          >
+            <Icon name="folder" />
+            <span className={c("wizard-destination-path")}>
+              {destination.path || t("note_builder_destination_pending")}
+            </span>
+            {destination.locked && (
+              <span className={c("wizard-destination-lock")} title={t("note_builder_destination_locked")}>
+                <Icon name="lock" />
+                <span className={c("visually-hidden")}>{t("note_builder_destination_locked")}</span>
+              </span>
+            )}
+          </span>
+        )}
+      </div>
       {creationMode && satellite && (
-        <span className={c("walk-status-destination", "walk-status-satellite")}>
-          {"error" in satellite
-            ? t(SATELLITE_ERROR_KEYS[satellite.error])
-            : t("satellite_destination_label", satellite.path, satellite.edge.key)}
-        </span>
+        <p className={`${c("wizard-satellite")}${"error" in satellite ? " is-error" : ""}`}>
+          <Icon name="link" />
+          <span>
+            {"error" in satellite
+              ? t(SATELLITE_ERROR_KEYS[satellite.error])
+              : t("satellite_destination_label", satellite.path, satellite.edge.key)}
+          </span>
+        </p>
       )}
-      {creationMode && (
-        <span className={c("walk-status-destination")}>
-          {destination.path
-            ? t("note_builder_destination", destination.path)
-            : t("note_builder_destination_pending")}
-          {destination.locked && (
-            <span className={c("walk-status-locked")}>
-              {t("note_builder_destination_locked")}
+      <div className={c("wizard-progress")}>
+        {progress.percent !== undefined && (
+          <div
+            className={c("wizard-progress-track")}
+            role="progressbar"
+            aria-label={t("note_builder_progress_label")}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress.percent}
+            // The width is the one value the stylesheet cannot know; it travels as a custom
+            // property and the stylesheet draws it (§XV).
+            style={{ "--zf-progress": `${progress.percent}%` } as React.CSSProperties}
+          >
+            <span className={c("wizard-progress-fill")} />
+          </div>
+        )}
+        <span className={c("wizard-progress-text")}>
+          <span className={c("wizard-progress-step")}>
+            {t("note_builder_step_position", String(progress.step))}
+          </span>
+          {progress.remaining !== undefined && progress.remaining > 0 && (
+            <span
+              className={c("wizard-progress-left")}
+              title={t("note_builder_steps_left_explanation")}
+            >
+              {" · "}
+              {t("note_builder_steps_left", String(progress.remaining))}
             </span>
           )}
         </span>
-      )}
-    </div>
+      </div>
+      <Breadcrumb {...props} />
+    </header>
   );
 }

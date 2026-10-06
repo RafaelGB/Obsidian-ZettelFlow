@@ -1,11 +1,11 @@
 import { c, log, ObsidianApi } from "architecture";
 import { withScriptRun } from "architecture/api/lib/recordScriptRun";
-import { SelectableSearch } from "architecture/components/core";
+import { ConfirmStep, SelectableSearch } from "architecture/components/core";
 import { t } from "architecture/lang";
 import { WrappedActionBuilderProps } from "application/components/noteBuilder";
 import React, { useEffect, useState } from "react";
 import { DynamicSelectorElement } from "zettelkasten/typing";
-import { Icon } from "architecture/components/icon";
+import { WizardState } from "application/components/noteBuilder/WizardState";
 import {
   buildAsyncScriptFunction,
   fnsManager,
@@ -86,22 +86,14 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
     };
   }, [code, element]);
 
+  // The wizard's one loading / error treatment (#409); the "spinner" and "error" icons this drew
+  // are names Obsidian does not have, so they rendered as nothing.
   if (loading) {
-    return (
-      <div className={c("loading")}>
-        <Icon name="spinner" className={c("loading-icon")} />
-        {t("dynamic_selector_loading")}
-      </div>
-    );
+    return <WizardState kind="loading" message={t("dynamic_selector_loading")} />;
   }
 
   if (error) {
-    return (
-      <div className={c("error")}>
-        <Icon name="error" className={c("error-icon")} />
-        {error}
-      </div>
-    );
+    return <WizardState kind="error" message={error} />;
   }
 
   return (
@@ -115,14 +107,7 @@ export function DynamicMultipleSelector(props: WrappedActionBuilderProps) {
         enableCreate={true}
         autoFocus
       />
-      <button
-        className={c("confirm-button")}
-        onClick={() => {
-          callback(selectedOptions);
-        }}
-      >
-        {t("component_confirm")}
-      </button>
+      <ConfirmStep onConfirm={() => callback(selectedOptions)} />
     </div>
   );
 }

@@ -11,7 +11,7 @@ export const log = {
 };
 
 export const c = (...classes: string[]): string =>
-  classes.map((cls) => `zettelkasten-flow__${cls}`).join(" ");
+  classes.filter(Boolean).map((cls) => `zettelkasten-flow__${cls}`).join(" ");
 
 // Minimal PluginComponent base so ZComponents can be imported/unit-tested without the real barrel.
 export abstract class PluginComponent {

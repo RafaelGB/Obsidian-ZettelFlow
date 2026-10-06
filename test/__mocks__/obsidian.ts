@@ -133,6 +133,15 @@ export class ItemView extends Component {
   async open(_containerEl?: unknown): Promise<void> { await (this as any).onOpen?.(); }
   async close(): Promise<void> { await (this as any).onClose?.(); }
 }
+/** A file-backed view (the `.js` CodeView extends it); a test that loads the core barrel needs it. */
+export class TextFileView extends ItemView {
+  data = "";
+  file: unknown = null;
+  getViewData(): string { return this.data; }
+  setViewData(data: string, _clear: boolean): void { this.data = data; }
+  clear(): void { this.data = ""; }
+  requestSave(): void { }
+}
 export class Modal {
   /** What `setTitle` was given — a test reads the title the user would see. */
   titleText = "";

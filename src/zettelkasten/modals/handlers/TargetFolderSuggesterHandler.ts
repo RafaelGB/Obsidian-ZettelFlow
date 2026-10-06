@@ -22,7 +22,7 @@ export class TargetFolderSuggesterHandler extends AbstractHandlerClass<AbstractS
                 new FolderSuggest(
                     cb.inputEl
                 );
-                cb.setPlaceholder("Example: path/to/folder")
+                cb.setPlaceholder(t("step_builder_target_folder_placeholder"))
                     .setValue(targetFolder || "")
                     .onChange((value: string) => {
                         if (value) {

@@ -185,10 +185,10 @@ export function SelectableSearch(props: SelectableSearchType) {
               onClick={() => handleOptionSelect(searchState.trim())}
               role="option"
             >
-              Crear y seleccionar "{searchState.trim()}"
+              {t("selectable_search_create", searchState.trim())}
             </li>
           ) : (
-            <li className={c("no-results")}>No se encontraron resultados</li>
+            <li className={c("no-results")}>{t("selectable_search_no_results")}</li>
           )}
         </ul>
       )}

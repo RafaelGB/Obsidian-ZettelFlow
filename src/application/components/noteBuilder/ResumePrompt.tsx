@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Notice } from "obsidian";
 import { c, log } from "architecture";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { WizardDraft } from "application/notes/draftState";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { ConfirmModal } from "architecture/components/settings";
@@ -74,7 +74,8 @@ export function ResumePrompt({
         {t("note_builder_draft_title")}
       </h4>
       <p className={c("resume-prompt-detail")}>
-        {t(
+        {tCount(
+          answered,
           "note_builder_draft_detail",
           draft.title.trim() || t("note_builder_draft_untitled"),
           String(answered)

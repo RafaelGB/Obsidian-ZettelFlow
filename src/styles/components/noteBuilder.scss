@@ -1,0 +1,1133 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
+// The new-note wizard (#684, epic #676): one progress header, the step, a calm live preview beside
+// it, and a footer that never moves. Everything here is Obsidian's own look — its inputs, its
+// `mod-cta`, its checkbox — laid out; the theme paints it (§XV). No pixel leaves the grid.
+
+// ── The modal ─────────────────────────────────────────────────────────────────────────────────
+// Obsidian's `.modal` is already a flex column that scrolls as a whole. A wizard wants the header
+// and footer to stay put while only the step scrolls, so the modal gets a height of its own and
+// every wrapper down to the wizard passes the column on.
+.zettelkasten-flow__note-builder-modal {
+    height: min(45rem, var(--dialog-max-height));
+
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+}
+
+// The companion pane needs room beside the step (desktop, creation flow).
+.zettelkasten-flow__note-builder-modal-wide {
+    width: min(66rem, 92vw);
+    max-width: var(--dialog-max-width);
+}
+
+.zettelkasten-flow__note-builder-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.zettelkasten-flow__wizard {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+// ── 1 · The progress header ───────────────────────────────────────────────────────────────────
+.zettelkasten-flow__wizard-header {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    // Room on the right for the modal's own close button, which sits over this corner.
+    padding: 0 var(--size-4-8) $space-3 0;
+    border-bottom: $line-quiet;
+}
+
+.zettelkasten-flow__wizard-header-row {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    min-width: 0;
+}
+
+.zettelkasten-flow__wizard-title {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: $space-2;
+    min-width: 0;
+    color: $text-faint;
+}
+
+// The title is edited where it is read: a field that looks like a heading until you touch it.
+input[type='text'].zettelkasten-flow__wizard-title-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-color: transparent;
+    background: transparent;
+    color: $text-plain;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+
+    &:hover {
+        background: $surface-hover;
+    }
+
+    &:focus {
+        background: var(--background-modifier-form-field);
+    }
+
+    &.is-invalid {
+        border-color: var(--background-modifier-error);
+    }
+}
+
+.zettelkasten-flow__wizard-title-text {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Where the note lands: a chip, with a lock when the flow fixes the folder.
+.zettelkasten-flow__wizard-destination {
+    @include chip;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 45%;
+}
+
+.zettelkasten-flow__wizard-destination-path {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__wizard-destination-lock {
+    display: inline-flex;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__wizard-satellite {
+    @include hint;
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    margin: 0;
+    font-style: italic;
+
+    &.is-error {
+        color: var(--text-error);
+    }
+}
+
+.zettelkasten-flow__wizard-progress {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+}
+
+// A real bar: the share walked, drawn by the stylesheet from the one value it cannot know.
+.zettelkasten-flow__wizard-progress-track {
+    position: relative;
+    flex: 1 1 auto;
+    height: var(--size-4-1);
+    border-radius: $radius-pill;
+    background-color: var(--background-modifier-border);
+    overflow: hidden;
+}
+
+.zettelkasten-flow__wizard-progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--zf-progress, 0%);
+    border-radius: inherit;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transition: width var(--anim-duration-moderate) ease;
+}
+
+.zettelkasten-flow__wizard-progress-text {
+    @include hint;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__wizard-progress-step {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__wizard-progress-left {
+    // An estimate, and the title says how it was made.
+    cursor: help;
+}
+
+// The path walked so far. A long walk folds its middle; the current step is never the one cut.
+.zettelkasten-flow__breadcrumb {
+    @include hint;
+}
+
+.zettelkasten-flow__breadcrumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.zettelkasten-flow__breadcrumb-item + .zettelkasten-flow__breadcrumb-item::before {
+    content: "›";
+    margin-right: $space-1;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__breadcrumb-item-canvas {
+    color: $text-faint;
+}
+
+.zettelkasten-flow__breadcrumb-item-current {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+button.zettelkasten-flow__breadcrumb-link {
+    max-width: 12rem;
+    height: auto;
+    padding: $space-hair $space-1;
+    border: none;
+    border-radius: $radius-small;
+    background: none;
+    box-shadow: none;
+    color: inherit;
+    font: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+        background: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+// ── 2 · The step ──────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__wizard-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.zettelkasten-flow__note-builder-main {
+    min-width: 0;
+    min-height: 0;
+    // A sliver on the left, so a focused field's ring is not cut by the scroller's edge.
+    padding: var(--size-4-5) var(--size-4-5) var(--size-4-5) var(--size-2-2);
+    overflow-y: auto;
+}
+
+// A new step slides in; under reduced motion it simply appears.
+@keyframes zfWizardStepIn {
+    from {
+        opacity: 0;
+        transform: translateX(var(--size-4-3));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__section {
+    animation: zfWizardStepIn var(--anim-duration-moderate) ease-out;
+}
+
+.zettelkasten-flow__step-heading {
+    margin-bottom: var(--size-4-4);
+}
+
+.zettelkasten-flow__step-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-1;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__step-kicker-phase,
+.zettelkasten-flow__step-kicker-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__step-kicker-kind .svg-icon {
+    width: var(--icon-xs);
+    height: var(--icon-xs);
+}
+
+// The phase dot only repeats the label beside it: the step's own colour when it has one.
+.zettelkasten-flow__step-kicker-dot {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: 50%;
+    background-color: var(--zf-step-accent, var(--text-faint));
+}
+
+.zettelkasten-flow__step-kicker-optional {
+    @include chip;
+}
+
+// The `size:` bug (#684): the question rendered at body size for a year. It is a heading now.
+.zettelkasten-flow__step-title {
+    margin: 0;
+    color: $text-plain;
+    font-size: var(--h3-size);
+    font-weight: var(--font-semibold);
+    line-height: var(--line-height-tight);
+    letter-spacing: -0.01em;
+}
+
+// Fields: Obsidian's inputs, a label above, a hint below. No floating label, no glow.
+.zettelkasten-flow__field,
+.zettelkasten-flow__input-group {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    min-width: 0;
+    margin-bottom: var(--size-4-4);
+}
+
+.zettelkasten-flow__field-narrow {
+    max-width: 18rem;
+}
+
+.zettelkasten-flow__field-label {
+    color: $text-quiet;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__field input[type='text'],
+.zettelkasten-flow__field input[type='number'],
+.zettelkasten-flow__field input[type='date'],
+.zettelkasten-flow__field input[type='datetime-local'],
+.zettelkasten-flow__field textarea,
+.zettelkasten-flow__input-group input,
+.zettelkasten-flow__input-group textarea {
+    width: 100%;
+}
+
+.zettelkasten-flow__field-control-date {
+    max-width: 18rem;
+}
+
+.zettelkasten-flow__field textarea {
+    min-height: 7rem;
+    font-size: var(--font-ui-medium);
+    line-height: var(--line-height-normal);
+    resize: vertical;
+}
+
+.zettelkasten-flow__field.is-invalid input {
+    border-color: var(--background-modifier-error);
+}
+
+// A yes or no: the box with its words, and the whole row is the target.
+.zettelkasten-flow__check-step {
+    margin-bottom: var(--size-4-4);
+}
+
+.zettelkasten-flow__check-row {
+    @include card;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: $space-3;
+    padding: $space-3;
+    cursor: pointer;
+    transition: border-color var(--anim-duration-fast) ease, background-color var(--anim-duration-fast) ease;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+
+    &.is-checked {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__check-text {
+    display: flex;
+    flex-direction: column;
+    gap: $space-hair;
+}
+
+.zettelkasten-flow__check-label {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__check-hint {
+    @include hint;
+}
+
+// The link to another note: what to link on the left, how it reads and looks on the right.
+.zettelkasten-flow__backlink {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--size-4-4);
+}
+
+.zettelkasten-flow__backlink-left,
+.zettelkasten-flow__backlink-right {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.zettelkasten-flow__preview {
+    padding: $space-2 $space-3;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: $surface-quiet;
+    font-size: var(--font-ui-small);
+}
+
+// ── Options ───────────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__select-search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-bottom: $space-3;
+    color: $text-faint;
+
+    input[type='text'] {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+.zettelkasten-flow__select-group [role="listbox"] {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    border-radius: $radius-small;
+}
+
+.zettelkasten-flow__select-group [role="listbox"]:focus-visible {
+    outline: var(--size-2-1) solid var(--interactive-accent);
+    outline-offset: var(--size-2-2);
+}
+
+.zettelkasten-flow__select-group-phase-header {
+    padding: $space-2 0 0;
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+// An option is a card; its edge is the destination step's colour, when there is one.
+.zettelkasten-flow__option {
+    @include card;
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 var(--size-4-4) $space-3 var(--size-4-5);
+    border-radius: $radius-medium;
+    cursor: pointer;
+    transition:
+        border-color var(--anim-duration-fast) ease,
+        background-color var(--anim-duration-fast) ease,
+        transform var(--anim-duration-fast) ease;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: $space-2 auto $space-2 $space-2;
+        width: var(--size-2-2);
+        border-radius: $radius-pill;
+        background-color: var(--background-modifier-border);
+    }
+
+    &:hover {
+        border-color: var(--background-modifier-border-hover);
+        background-color: $surface-hover;
+        transform: translateY(calc(var(--size-2-1) * -0.5));
+    }
+}
+
+.zettelkasten-flow__option-accented::before {
+    background-color: var(--zf-option-accent);
+}
+
+// The keyboard's position (aria-activedescendant), distinct from a made choice.
+.zettelkasten-flow__option-active {
+    border-color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__selected {
+    border-color: var(--interactive-accent);
+    background-color: color-mix(in srgb, var(--interactive-accent) 10%, var(--background-primary));
+}
+
+.zettelkasten-flow__option-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: $space-hair;
+    min-width: 0;
+}
+
+.zettelkasten-flow__option-label {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+// The description is under the label, where touch and eyes find it — not in a title attribute.
+.zettelkasten-flow__option-description {
+    @include hint;
+}
+
+.zettelkasten-flow__option-default {
+    @include chip;
+    margin-left: $space-2;
+    font-weight: var(--font-normal);
+}
+
+// What the option's step will do, as icons whose names travel as hidden text.
+.zettelkasten-flow__icon-group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: $space-1;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__option-action {
+    display: inline-flex;
+}
+
+// Options a condition removed, and why. Nothing at all when nothing is hidden.
+.zettelkasten-flow__hidden-branches {
+    @include hint;
+    margin-top: $space-3;
+}
+
+button.zettelkasten-flow__hidden-branches-toggle {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+    font: inherit;
+    text-decoration: underline dotted;
+    cursor: pointer;
+
+    &:hover {
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__hidden-branches-list {
+    margin: $space-1 0 0;
+    padding-left: $space-3;
+    list-style: none;
+}
+
+.zettelkasten-flow__hidden-branches-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    padding: $space-hair 0;
+}
+
+.zettelkasten-flow__hidden-branches-label {
+    color: $text-plain;
+}
+
+.zettelkasten-flow__hidden-branches-reason {
+    font-style: italic;
+}
+
+// ── One loading / empty / error treatment (#409) ──────────────────────────────────────────────
+@keyframes zfWizardSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.zettelkasten-flow__wizard-state {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 var(--size-4-4);
+    border: var(--border-width) dashed var(--background-modifier-border);
+    border-radius: $radius-medium;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__wizard-state-loading .zettelkasten-flow__icon {
+    display: inline-flex;
+    animation: zfWizardSpin 1s linear infinite;
+}
+
+.zettelkasten-flow__wizard-state-message {
+    margin: 0;
+}
+
+.zettelkasten-flow__wizard-state-error {
+    align-items: flex-start;
+    border-style: solid;
+    border-color: var(--background-modifier-error);
+    border-left-width: var(--size-2-2);
+    color: $text-plain;
+
+    > .zettelkasten-flow__icon {
+        color: var(--text-error);
+    }
+}
+
+.zettelkasten-flow__wizard-error-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    min-width: 0;
+}
+
+.zettelkasten-flow__wizard-error-detail {
+    margin: 0;
+    color: $text-quiet;
+    font-family: var(--font-monospace);
+    font-size: $text-small;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__wizard-error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+}
+
+// The note being written: a progress bar while the build runs.
+.zettelkasten-flow__progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+
+    > progress {
+        width: 100%;
+        height: var(--size-4-2);
+        border: none;
+        border-radius: $radius-pill;
+        overflow: hidden;
+        background-color: var(--background-modifier-border);
+        appearance: none;
+    }
+
+    > progress::-webkit-progress-bar {
+        background-color: var(--background-modifier-border);
+    }
+
+    > progress::-webkit-progress-value {
+        border-radius: $radius-pill;
+        background-color: var(--interactive-accent);
+        color: var(--text-on-accent);
+        transition: width var(--anim-duration-moderate) ease;
+    }
+}
+
+// ── 3 · The footer ────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__wizard-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+    padding-top: $space-3;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__wizard-footer button {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+// Kept in the layout and out of sight, so nothing after it moves when a step cannot be skipped.
+.zettelkasten-flow__wizard-footer-skip.is-placeholder {
+    visibility: hidden;
+}
+
+button.zettelkasten-flow__wizard-footer-skip {
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+
+    &:hover {
+        background: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__wizard-footer-grow {
+    flex: 1 1 auto;
+}
+
+.zettelkasten-flow__wizard-footer-keys {
+    @include hint;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__wizard-footer-keys kbd,
+.zettelkasten-flow__confirm-step-hint kbd {
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__wizard-footer-confirm {
+    display: contents;
+}
+
+// The control that ends a step, its hint beside it. In the footer it reads right to left:
+// what the key does, then the button.
+.zettelkasten-flow__confirm-step {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-top: $space-2;
+}
+
+.zettelkasten-flow__wizard-footer .zettelkasten-flow__confirm-step {
+    margin-top: 0;
+}
+
+.zettelkasten-flow__confirm-step-hint {
+    @include hint;
+    color: $text-faint;
+}
+
+// A step that refused: the hint turns into the reason.
+.zettelkasten-flow__confirm-step--invalid .zettelkasten-flow__confirm-step-hint {
+    color: var(--text-error);
+}
+
+// ── The live preview ──────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__companion-pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-5);
+    min-width: 0;
+    min-height: 0;
+    padding: var(--size-4-5) 0 var(--size-4-5) var(--size-4-5);
+    border-left: $line-quiet;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__companion-pane-section {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__companion-pane-heading {
+    margin: 0;
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+// One card: the note as it will be, then what the build changes.
+.zettelkasten-flow__companion-pane-card {
+    @include card;
+    gap: $space-3;
+    padding: $space-3 var(--size-4-4);
+    border-radius: $radius-medium;
+}
+
+.zettelkasten-flow__companion-pane-status {
+    @include empty-state;
+    margin: 0;
+}
+
+.zettelkasten-flow__companion-pane-status--error {
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__companion-pane-preview-title {
+    margin: 0 0 $space-2;
+    font-size: var(--font-ui-large);
+    word-break: break-word;
+}
+
+.zettelkasten-flow__companion-pane-preview-body {
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+
+    pre {
+        border-left: var(--size-2-1) solid var(--background-modifier-border);
+        border-radius: 0;
+        background: none;
+    }
+}
+
+.zettelkasten-flow__companion-pane-diff {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding-top: $space-2;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__companion-pane-diff-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__companion-pane-diff-row {
+    display: flex;
+    align-items: baseline;
+    gap: $space-2;
+    padding: $space-1 0;
+    font-size: $text-small;
+
+    & + & {
+        border-top: $line-quiet;
+    }
+}
+
+// The kind is a word in a chip; its colour only repeats it.
+.zettelkasten-flow__companion-pane-diff-kind {
+    @include chip;
+    flex-shrink: 0;
+
+    &.is-added {
+        color: var(--color-green);
+    }
+
+    &.is-changed {
+        color: var(--color-orange);
+    }
+
+    &.is-conflict {
+        color: var(--text-error);
+    }
+}
+
+.zettelkasten-flow__companion-pane-diff-text {
+    min-width: 0;
+    color: $text-quiet;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__companion-pane-diff-key {
+    color: $text-plain;
+    font-family: var(--font-monospace);
+}
+
+// The linked note's own preview (#419), set apart from the main note's.
+.zettelkasten-flow__companion-pane-satellite {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding-top: $space-2;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__companion-pane-satellite-path {
+    @include hint;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+// Interpretive output is marked as such — proposals, not results (constitution §XII).
+.zettelkasten-flow__companion-pane-proposal-note {
+    @include hint;
+    margin: 0;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__companion-pane-suggestions {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__companion-pane-suggestion {
+    @include row;
+    flex-wrap: wrap;
+    padding: $space-2 0;
+    border-top: $line-quiet;
+}
+
+button.zettelkasten-flow__companion-pane-suggestion-open {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    // Obsidian centres a button's content; a note name reads from the left.
+    justify-content: flex-start;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.zettelkasten-flow__companion-pane-suggestion-verdicts {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: $space-1;
+
+    button {
+        font-size: $text-small;
+    }
+}
+
+button.zettelkasten-flow__companion-pane-suggestion-reject {
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+
+    &:hover {
+        background: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__companion-pane-suggestion-decided {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-1;
+    color: $text-quiet;
+}
+
+button.zettelkasten-flow__companion-pane-suggestion-reason-toggle {
+    height: auto;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: $text-small;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__companion-pane-suggestion-detail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-1;
+    width: 100%;
+
+    input {
+        flex: 1 1 8rem;
+        min-width: 0;
+    }
+}
+
+.zettelkasten-flow__companion-pane-suggestion-confidence {
+    display: flex;
+    gap: $space-1;
+
+    button {
+        font-size: $text-small;
+    }
+}
+
+// Deliberate friction: your reading first, and only if you asked for it (off by default).
+.zettelkasten-flow__companion-pane-friction {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__companion-pane-friction-question {
+    margin: 0;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__companion-pane-friction-actions {
+    display: flex;
+    gap: $space-2;
+}
+
+// On a phone the pane folds under the step instead of disappearing.
+.zettelkasten-flow__companion-pane-collapsible {
+    padding: $space-2 0 0;
+    border-top: $line-quiet;
+    border-left: none;
+}
+
+.zettelkasten-flow__companion-pane-summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-target-size, var(--size-4-11));
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+// ── The resume card ───────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__wizard-card-stage {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    padding: var(--size-4-6) 0;
+}
+
+.zettelkasten-flow__resume-prompt {
+    @include card;
+    gap: $space-3;
+    width: min(32rem, 100%);
+    padding: var(--size-4-5);
+    border-left: var(--size-2-2) solid var(--interactive-accent);
+    border-radius: $radius-medium;
+    animation: zfWizardStepIn var(--anim-duration-moderate) ease-out;
+}
+
+.zettelkasten-flow__resume-prompt-title {
+    margin: 0;
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__resume-prompt-detail {
+    margin: 0;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__resume-prompt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+}
+
+// ── Density ───────────────────────────────────────────────────────────────────────────────────
+// Compact keeps every piece of information and spends less room on it: the breadcrumb tightens
+// rather than disappearing, because it is how you go back.
+.zettelkasten-flow__is-compact {
+    .zettelkasten-flow__option {
+        padding-top: $space-2;
+        padding-bottom: $space-2;
+    }
+
+    .zettelkasten-flow__select-group [role="listbox"] {
+        gap: $space-1;
+    }
+
+    .zettelkasten-flow__option-description {
+        display: none;
+    }
+
+    .zettelkasten-flow__step-heading {
+        margin-bottom: $space-3;
+    }
+
+    .zettelkasten-flow__wizard-header {
+        gap: $space-1;
+    }
+
+    button.zettelkasten-flow__breadcrumb-link {
+        max-width: 7rem;
+        padding: 0;
+    }
+}
+
+// ── Small screens and touch ───────────────────────────────────────────────────────────────────
+@media (max-width: 40rem) {
+    .zettelkasten-flow__wizard-body {
+        grid-template-columns: minmax(0, 1fr);
+        overflow-y: auto;
+    }
+
+    .zettelkasten-flow__note-builder-main {
+        padding-right: 0;
+        overflow: visible;
+    }
+
+    .zettelkasten-flow__companion-pane {
+        padding-left: 0;
+        border-left: none;
+        overflow: visible;
+    }
+
+    .zettelkasten-flow__backlink {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .zettelkasten-flow__wizard-footer-keys {
+        display: none;
+    }
+}
+
+body.is-mobile {
+    .zettelkasten-flow__note-builder-modal {
+        height: var(--dialog-max-height);
+    }
+
+    .zettelkasten-flow__wizard-footer button,
+    .zettelkasten-flow__wizard-error-actions button,
+    .zettelkasten-flow__resume-prompt-actions button {
+        min-height: var(--touch-target-size, var(--size-4-11));
+    }
+
+    .zettelkasten-flow__wizard-footer-keys {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__section,
+    .zettelkasten-flow__resume-prompt,
+    .zettelkasten-flow__wizard-state-loading .zettelkasten-flow__icon {
+        animation: none;
+    }
+
+    .zettelkasten-flow__option:hover {
+        transform: none;
+    }
+
+    .zettelkasten-flow__wizard-progress-fill {
+        transition: none;
+    }
+}

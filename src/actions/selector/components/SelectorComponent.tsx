@@ -8,14 +8,14 @@ export function SelectorWrapper(props: WrappedActionBuilderProps) {
   const { options, defaultOption } = action as SelectorElement;
   const optionsMemo: OptionType[] = useMemo(() => {
     return options.map(([key, label]) => {
+      // An option of a selector leads to no step, so it carries no step colour (#684): the default
+      // used to be painted canvas green and every other option cyan, a meaning nobody had given
+      // them. The default is marked in words instead, and the keyboard starts on it.
       const option: OptionType = {
         key,
         label,
-        color:
-          defaultOption === key
-            ? "var(--canvas-color-4)"
-            : "var(--canvas-color-5)",
         actionTypes: [],
+        isDefault: defaultOption === key,
       };
       return option;
     });

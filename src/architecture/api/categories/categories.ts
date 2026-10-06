@@ -2,7 +2,7 @@
  * The closed vocabulary of **cognitive-capability** categories an Action can belong to (#152) —
  * grouping the flat action registry by *what an action does to knowledge* rather than by technical
  * operation. Mirrors the step-phase pattern (#149): a fixed, ordered token set + `isX` guard + i18n
- * label **keys** (no `t()` here) + decorative emoji. Pure & Obsidian-free. A category is optional on
+ * label **keys** (no `t()` here) + a Lucide icon. Pure & Obsidian-free. A category is optional on
  * an action; absence means "uncategorized" (keeps third-party actions valid — #33).
  */
 
@@ -30,13 +30,17 @@ export const CATEGORY_LABEL_KEY = {
     ai: "action_category_ai_label",
 } as const satisfies Record<ActionCategory, string>;
 
-/** Decorative per-category emoji, rendered before the label in the picker (kept out of i18n). */
-export const CATEGORY_EMOJI = {
-    manipulation: "📝",
-    relations: "🔗",
-    knowledge: "🧠",
-    research: "🔍",
-    ai: "🤖",
+/**
+ * Each category's Lucide icon, shown before its label in the picker (#685). Emoji used to sit here:
+ * they render differently on every platform and never follow the theme, so the picker read as a
+ * different app from the editor around it.
+ */
+export const CATEGORY_ICON = {
+    manipulation: "pencil",
+    relations: "link",
+    knowledge: "brain",
+    research: "search",
+    ai: "sparkles",
 } as const satisfies Record<ActionCategory, string>;
 
 /** A group of items sharing a category; `category: null` is the trailing "uncategorized" group. */

@@ -91,30 +91,37 @@ function Backlink(props: WrappedActionBuilderProps) {
       return {};
     }
   };
-  // Render
+  // Render. Every field says what it is for (#684): it used to be two unlabelled searches and a
+  // box whose only name was "Regex".
   return (
     <div className={c("backlink")}>
       <div className={c("backlink-left")}>
-        <Search
-          options={fileMemo}
-          onChange={(value) => {
-            void (async () => {
-              setFinalFileValue(value);
-              setEnableHeading(value !== "");
-              const availableHeaders = await obtainHeadersOfFinalFile(value);
-              setHeadingMemo(availableHeaders);
-            })();
-          }}
-          placeholder={t("backlink_select_file")}
-        />
-        {enableHeading && (
+        <div className={c("field")}>
+          <span className={c("field-label")}>{t("backlink_note_label")}</span>
           <Search
-            options={headingMemo}
+            options={fileMemo}
             onChange={(value) => {
-              setFinalHeadingValue(value);
+              void (async () => {
+                setFinalFileValue(value);
+                setEnableHeading(value !== "");
+                const availableHeaders = await obtainHeadersOfFinalFile(value);
+                setHeadingMemo(availableHeaders);
+              })();
             }}
-            placeholder={t("backlink_select_heading")}
+            placeholder={t("backlink_select_file")}
           />
+        </div>
+        {enableHeading && (
+          <div className={c("field")}>
+            <span className={c("field-label")}>{t("backlink_heading_label")}</span>
+            <Search
+              options={headingMemo}
+              onChange={(value) => {
+                setFinalHeadingValue(value);
+              }}
+              placeholder={t("backlink_select_heading")}
+            />
+          </div>
         )}
         <ConfirmStep
           onConfirm={() =>
@@ -131,13 +138,18 @@ function Backlink(props: WrappedActionBuilderProps) {
       </div>
       <div className={c("backlink-right")}>
         <Input
+          className={["field"]}
           value={finalRegexValue}
+          label={t("backlink_pattern_label")}
           placeholder={t("backlink_regex_placeholder")}
           onChange={(value) => {
             setFinalRegexValue(value);
           }}
         />
-        <div className={c("preview")} ref={previewRef} />
+        <div className={c("field")}>
+          <span className={c("field-label")}>{t("backlink_preview_label")}</span>
+          <div className={c("preview")} ref={previewRef} />
+        </div>
       </div>
     </div>
   );
@@ -182,10 +194,11 @@ function PreviewMessage(props: WrappedActionBuilderProps) {
     };
   }, []);
   return (
-    <>
-      <div ref={mdRef} />
+    <div className={c("field")}>
+      <span className={c("field-label")}>{t("backlink_preview_label")}</span>
+      <div className={c("preview")} ref={mdRef} />
       <ConfirmStep onConfirm={() => props.callback(null)} label={t("backlink_continue")} />
-    </>
+    </div>
   );
 }
 

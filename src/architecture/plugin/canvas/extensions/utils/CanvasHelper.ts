@@ -1,5 +1,5 @@
 import ZettelFlow from "main"
-import { setIcon, setTooltip } from "obsidian"
+import { setIcon, setTooltip, TFile } from "obsidian"
 import { log } from "architecture"
 import { Canvas, CanvasNode, Position, Size } from "obsidian/canvas"
 import { flowFolders, isFlowCanvas } from "architecture/plugin/canvas/flowRole"
@@ -255,9 +255,51 @@ export default class CanvasHelper {
         return separatorElement
     }
 
-    /** Whether the open canvas is one of ours — the question `flowRole` owns (#435). */
-    static isCanvasFlow(plugin: ZettelFlow): boolean {
-        const file = plugin.app.workspace.getActiveFile();
+    /**
+     * The `.canvas` file a canvas belongs to (#686).
+     *
+     * Never `workspace.getActiveFile()` alone: selecting a **file node** makes Obsidian focus it,
+     * and focusing it sets `workspace.activeEditor` to the note the node embeds — in the same frame,
+     * before the popup menu renders. From then on the "active file" is that note, so every check
+     * built on it decided the canvas was not a flow, and a file node selected first got no
+     * ZettelFlow option at all. The canvas knows its own view; ask it first, feature-detected.
+     */
+    static canvasFile(plugin: ZettelFlow, canvas?: Canvas | null): TFile | null {
+        try {
+            const own = (canvas as unknown as { view?: { file?: unknown } } | null | undefined)?.view?.file;
+            if (own instanceof TFile) return own;
+            const view = plugin.app.workspace.getMostRecentLeaf?.()?.view as
+                | { getViewType?: () => string; file?: unknown }
+                | undefined;
+            if (view?.getViewType?.() === "canvas" && view.file instanceof TFile) return view.file;
+        } catch (error) {
+            log.warn("ZettelFlow: could not read the canvas file", error);
+        }
+        const active = plugin.app.workspace.getActiveFile();
+        return active?.extension === "canvas" ? active : null;
+    }
+
+    /** Whether the canvas is one of ours — the question `flowRole` owns (#435). */
+    static isCanvasFlow(plugin: ZettelFlow, canvas?: Canvas | null): boolean {
+        const file = CanvasHelper.canvasFile(plugin, canvas);
         return isFlowCanvas(file?.path, flowFolders(plugin.settings));
+    }
+
+    /**
+     * The note a selected file node shows, when it is a markdown file (#686). Feature-detected: the
+     * node's own `file`, else its data's path resolved through the vault.
+     */
+    static nodeFile(plugin: ZettelFlow, node: unknown): TFile | null {
+        try {
+            const own = (node as { file?: unknown } | null)?.file;
+            if (own instanceof TFile) return own.extension === "md" ? own : null;
+            const data = (node as { getData?: () => { file?: string } } | null)?.getData?.();
+            if (!data?.file) return null;
+            const found = plugin.app.vault.getAbstractFileByPath(data.file);
+            return found instanceof TFile && found.extension === "md" ? found : null;
+        } catch (error) {
+            log.warn("ZettelFlow: could not read the file node", error);
+            return null;
+        }
     }
 }

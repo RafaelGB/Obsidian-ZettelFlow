@@ -143,15 +143,24 @@ method to exist), `patchObjectPrototype`, `patchPrototype`, and `tryPatchWorkspa
 ### Canvas extensions (`allCanvasExtensions`)
 
 All extend `CanvasExtension` (constructor stores `plugin`, calls `abstract init()`). Every extension
-gates on `CanvasHelper.isCanvasFlow(plugin)` — i.e. the active file is `ribbonCanvas` /
-`editorCanvas` or lives under `foldersFlowsPath` / `hooks.folderFlowPath`. All canvas internals
+gates on `CanvasHelper.isCanvasFlow(plugin, canvas)` — i.e. the canvas's own file (`canvas.view.file`,
+never the workspace's active file, see below) is `ribbonCanvas` / `editorCanvas` or lives under
+`foldersFlowsPath` / `hooks.folderFlowPath`. All canvas internals
 are **feature-detected**: absent maps/elements log a `log.warn` and skip silently — the flow
 still runs.
 
 - **`EditStepCanvasExtension`** — listens to `canvas:popup-menu`; on a ZettelFlow canvas adds
-  "Edit ZettelFlow Step" (single selection → `StepBuilderModal`) or "Copy Flow to Clipboard".
+  **Edit step** (one text or group node → `StepBuilderModal` in embed mode; one **file node whose
+  note is a step** → the note's step editor, #686) or **Copy flow** (several nodes).
+
+  > **Why the canvas is asked, not the workspace (#686).** Selecting a node makes the canvas frame
+  > call `node.focus()` *before* `canvas.menu.render()`; a file node's focus sets
+  > `workspace.activeEditor` to the editor of the note it embeds, so `getActiveFile()` returns that
+  > note. Every check built on it decided the canvas was not a flow, and a file node selected first got
+  > no ZettelFlow option at all. `CanvasHelper.canvasFile(plugin, canvas)` reads `canvas.view.file`
+  > (feature-detected), and `fileNodeFirstSelection.test.ts` reproduces the state.
 - **`AddManagedStepExtension`** — listens to `zettelflow-node-connection-drop-menu`; adds
-  "Create Managed Step" (if templates are installed: pick one first; otherwise: blank step config)
+  **Create a step** (if templates are installed: pick one first; otherwise: blank step config)
   → creates a node with `unknownData.zettelflowConfig`) and "Import Flow Data from Clipboard".
 - **`WorkflowLegibilityExtension`** — listens to `zettelflow-canvas-render`; toggles `c()` CSS
   classes on node/edge DOM to badge WAIT nodes, annotate trigger roots, and colour `if:` edges.

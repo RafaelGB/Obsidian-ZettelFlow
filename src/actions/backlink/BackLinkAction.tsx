@@ -97,7 +97,7 @@ export class BackLinkAction extends CustomZettelAction {
     return BackLinkAction.ICON;
   }
   getLabel() {
-    return "Backlinks";
+    return t("type_option_backlink");
   }
   public isBackground() {
     return true;

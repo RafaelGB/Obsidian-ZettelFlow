@@ -4,116 +4,115 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
-import { Input } from "architecture/components/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { v7 as uuid7 } from "uuid";
 
+/** How long the leave animation runs before the card is really removed. */
+const LEAVE_MS = 200;
+
 /**
- * ActionAccordion component represents a single action item with
- * expandable content and removal animation. It is integrated with dndkit
- * via the useSortable hook.
- *
- * @param props - ActionAccordionProps containing the action data,
- *                removal callback, index and modal.
- * @returns A sortable accordion item.
+ * One action of a step, as a card (#685): a handle, the action's icon and **human name** — *Ask for
+ * text*, not `prompt` — the description you give it, editable in place, and three quiet controls
+ * (documentation, open, remove). It replaces an accent-filled bar whose only label was the action's
+ * id. Sortable through dnd-kit; the handle is the only drag target.
  */
 export function ActionAccordion(props: ActionAccordionProps) {
   const { action, onRemove, modal } = props;
-  const [accordionOpen, setAccordionOpen] = useState(false);
-  const [animationClass, setAnimationClass] = useState("entrance");
+  const [open, setOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   // Ensure the action has a unique id (legacy support)
   useEffect(() => {
     if (!action.id) {
       action.id = uuid7();
     }
-    const timer = window.setTimeout(() => {
-      setAnimationClass("");
-    }, 300); // Adjust to your animation duration
-    return () => window.clearTimeout(timer);
   }, [action]);
 
-  // Integrate with dndkit using useSortable
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: action.id });
 
-  // Apply transformation styles provided by dndkit
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  /**
-   * Handles the removal animation and triggers onRemove after the animation.
-   */
   const handleRemove = () => {
-    setAnimationClass("exit");
-    window.setTimeout(() => {
-      onRemove();
-    }, 300); // Adjust to your animation duration
+    setLeaving(true);
+    window.setTimeout(() => onRemove(), LEAVE_MS);
   };
 
   const knownAction = actionsStore.getActionsKeys().includes(action.type)
     ? actionsStore.getAction(action.type)
     : null;
+  const name = knownAction?.getLabel() ?? action.type;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`${c("accordion")} ${animationClass}`}
+      className={c("action-card", open ? "action-card-open" : "", leaving ? "action-card-leaving" : "")}
     >
-      <div className={c("accordion-header")}>
-        <div className={c("accordion-header-info")}>
-          <a
-            href={knownAction?.link ?? "#"}
-            title={t("step_builder_action_documentation", action.type)}
-            className={c("accordion-header-label")}
+      <div className={c("action-card-header")}>
+        <span
+          className={`clickable-icon ${c("action-card-grip")}`}
+          aria-label={t("step_builder_action_drag_handle")}
+          {...attributes}
+          {...listeners}
+        >
+          <Icon name="grip-vertical" />
+        </span>
+        <span className={c("action-card-icon")}>
+          <Icon name={knownAction ? actionsStore.getIconOf(action.type) : "box"} />
+        </span>
+        <div className={c("action-card-text")}>
+          <button
+            type="button"
+            className={c("action-card-name")}
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
           >
-            <label>{action.type}</label>
-            {knownAction && <Icon name={actionsStore.getIconOf(action.type)} />}
-          </a>
-        </div>
-        <div className={c("accordion-header-actions")}>
-          <Input
-            value={action.description}
+            {name}
+          </button>
+          <input
+            type="text"
+            className={c("action-card-description")}
+            defaultValue={action.description ?? ""}
             placeholder={t("step_builder_action_description_placeholder")}
-            onChange={(inputValue) => {
-              action.description = inputValue;
+            aria-label={t("step_builder_action_description_placeholder")}
+            onChange={(event) => {
+              action.description = event.target.value;
             }}
-            required={true}
-            disablePlaceHolderLabel={true}
           />
-          <button
-            aria-label={t("step_builder_action_toggle")}
-            aria-expanded={accordionOpen}
-            onClick={() => setAccordionOpen(!accordionOpen)}
-          >
-            <Icon
-              name={accordionOpen ? "up-chevron-glyph" : "down-chevron-glyph"}
-            />
-          </button>
-          <button
-            className={c("accordion-header-remove")}
-            aria-label={t("remove_action_button_title")}
-            title={t("remove_action_button_title")}
-            onClick={handleRemove}
-          >
-            <Icon name="cross" />
-          </button>
-          {/* Drag handle: attaches dndkit listeners for dragging */}
-          <div
-            className="mobile-option-setting-drag-icon clickable-icon"
-            aria-label={t("step_builder_action_drag_handle")}
-            {...attributes}
-            {...listeners}
-          >
-            <Icon name="lucide-grip-horizontal" />
-          </div>
         </div>
+        {knownAction?.link && (
+          <a
+            href={knownAction.link}
+            className={`clickable-icon ${c("action-card-docs")}`}
+            aria-label={t("step_builder_action_documentation", name)}
+          >
+            <Icon name="book-open" />
+          </a>
+        )}
+        <button
+          type="button"
+          className={`clickable-icon ${c("action-card-toggle")}`}
+          aria-label={t("step_builder_action_toggle")}
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          <Icon name="chevron-right" />
+        </button>
+        <button
+          type="button"
+          className={`clickable-icon ${c("action-card-remove")}`}
+          aria-label={t("remove_action_button_title")}
+          onClick={handleRemove}
+        >
+          <Icon name="x" />
+        </button>
       </div>
-      <div className={`${c("accordion-body")} ${accordionOpen ? "open" : ""}`}>
+      <div className={c("action-card-body")} hidden={!open}>
         <AccordionBody
           modal={modal}
           action={action}
@@ -126,10 +125,8 @@ export function ActionAccordion(props: ActionAccordionProps) {
 }
 
 /**
- * AccordionBody loads additional settings for the action.
- *
- * @param props - Contains modal and action.
- * @returns A div that serves as container for dynamic settings.
+ * The action's own settings, drawn by the action into a plain container. Rendered once and kept
+ * while the card is closed, so a half-typed field survives folding it.
  */
 function AccordionBody(props: ActionAccordionProps) {
   const { modal, action } = props;

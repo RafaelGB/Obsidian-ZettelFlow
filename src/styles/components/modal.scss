@@ -52,7 +52,7 @@
     outline-offset: 2px;
 }
 
-/* Sección de tipo de acción */
+/* The action-type row */
 .zettelkasten-flow__modal-reader-type-section {
     display: flex;
     align-items: center;
@@ -75,7 +75,7 @@
     color: var(--text-accent);
 }
 
-/* Sección de información general */
+/* The general-information block */
 .zettelkasten-flow__modal-reader-general-section {
     margin-bottom: 1.25rem;
 }
@@ -130,9 +130,9 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    /* Centra las opciones horizontalmente */
+    /* Options centred horizontally */
     gap: 10px;
-    /* Espaciado entre opciones */
+    /* Space between options */
 }
 
 /* Button style */

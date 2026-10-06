@@ -5,8 +5,9 @@ installed by someone else while a file step pointed at a deleted note — which 
 `FatalError` in the middle of someone writing — or while steps were unreachable, dead ends,
 or two options read exactly alike.
 
-The **review** is a reading of the recorded graph. A chip in the corner of a ZettelFlow canvas
-says how many findings it has; opening it lists them, and clicking one selects and centres the
+The **review** is a reading of the recorded graph. The **Review** tab of the canvas dock (bottom
+right, beside *Legend* and *Rehearse*, #686) says how many findings it has — or shows a check when
+there are none; opening it lists them, and clicking one selects and centres the
 node it is about.
 
 ## What it reports
@@ -42,7 +43,7 @@ node it is about.
 - **Deleting a node** is Obsidian's own action, and ZettelFlow does not wrap it: intercepting a
   destructive canvas internal to cancel it is a worse risk than the one it avoids, and Obsidian's
   undo already covers the mistake. What ZettelFlow does instead is *notice*: the moment a deletion
-  orphans steps, the review chip's count rises and each orphan is named as *nothing points at it*.
+  orphans steps, the Review tab's count rises and each orphan is named as *nothing points at it*.
 
 ## How it is built
 
@@ -57,7 +58,7 @@ node it is about.
   It hands over the **raw** arrow label; who resolves the gate and the words is the exits' business
   (#427), in one place, so a flow whose conditions still live on its labels reads exactly as it
   runs.
-- `FlowReviewExtension` — the chip and the panel on `canvas.wrapperEl`, every canvas access
+- `FlowReviewExtension` — the dock tab and its panel on `canvas.wrapperEl`, every canvas access
   feature-detected and removed on unload (§VI).
 
 ## Rehearse the flow
@@ -66,7 +67,13 @@ The only way to find out what a flow did was to run it on a real note. Authors t
 throwaway notes and deleting them — which is why half-finished flows ship, and why a branch that
 can never open survives for months.
 
-**Rehearse** walks your own flow, in the panel on the left of the canvas:
+**Rehearse** walks your own flow, in the dock's **Rehearse** tab. The walk reads as a stepper: a
+check on each step behind you, the current one marked *you are here*, and a last row saying what
+comes next depends on what you choose (#686).
+
+![The canvas dock on Rehearse, with badges, accents and a conditional arrow on the canvas around it](../resources/wizard/canvas-extras.svg)
+
+It:
 
 - it asks **where to start**: a canvas usually holds several flows (four groups on one board is
   normal), and guessing the first one found would be a guess;

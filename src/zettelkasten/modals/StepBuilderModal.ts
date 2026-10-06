@@ -1,7 +1,7 @@
-import { Notice, Setting, setIcon, TFile } from "obsidian";
+import { Menu, Notice, Setting, setIcon, TFile } from "obsidian";
 import { StepBuilderInfo, StepSettings } from "zettelkasten";
 import { StepTitleHandler } from "./handlers/StepTitleHandler";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { FileService, FrontmatterService, VaultStateManager } from "architecture/plugin";
 import { StepBuilderMapper } from "zettelkasten";
 import { mergeStepSettingsIntoFrontmatter, PHASE_LABEL_KEY } from "zettelkasten/phases";
@@ -14,6 +14,7 @@ import { UsedInstalledStepsModal } from "application/community";
 import { ConfirmModal } from "architecture/components/settings";
 import { stepIdentity, type SummaryFragment } from "./handlers/stepIdentity";
 import {
+    groupMeta,
     isGroupExpanded,
     STEP_GROUPS,
     STEP_GROUP_HEADING,
@@ -40,6 +41,10 @@ export class StepBuilderModal extends AbstractStepModal {
     info: StepBuilderInfo;
     /** The section around each group body, so an empty one can be removed whole (#425). */
     private groupSections: Partial<Record<StepGroupId, HTMLElement>> = {};
+    /** The quiet fact at the end of each heading (#685). */
+    private groupMetaEls: Partial<Record<StepGroupId, HTMLElement>> = {};
+    /** Where the body template goes: first in *what it writes* (#685). */
+    private bodySlot: HTMLElement | undefined;
     mode = "edit";
     builder = "ribbon";
     chain = new StepTitleHandler();
@@ -73,132 +78,47 @@ export class StepBuilderModal extends AbstractStepModal {
 
     onOpen(): void {
         VaultStateManager.INSTANCE.freeze();
-        this.modalEl.addClass(c("modal"));
-        // Header with title and subtitle with the mode
-        const navbar = this.info.contentEl.createDiv({ cls: c("modal-navbar") });
+        this.modalEl.addClass(c("modal"), c("step-editor-modal"));
 
-        // The heading names the step, not the product: on a canvas of fifteen nodes you used to
-        // find out what you had opened three fields down (#424).
+        // A quiet header (#685): the step's name, the one thing you may want next — find it on the
+        // canvas — and the rest in a labelled menu. Three identical accent icons used to sit here,
+        // and you had to hover each one to learn what it did.
         const identity = stepIdentity(this.info);
-        navbar.createEl("h2", {
+        const header = this.info.contentEl.createDiv({ cls: c("step-editor-header") });
+        const top = header.createDiv({ cls: c("step-editor-top") });
+        top.createEl("h2", {
+            cls: c("step-editor-title"),
+            // The heading names the step, not the product (#424).
             text: identity.title ?? t(identity.titleKey as LocaleKey),
         });
-
-        // Separator
-        navbar.createSpan();
-
-        const navbarButtonGroup = navbar.createDiv({ cls: c("navbar-button-group") });
-
-        // Add a button to save the step into the clipboard
-        const clipboardButton = navbarButtonGroup.createEl("button", {
-            placeholder: t("step_builder_copy_button"),
-            title: t("step_builder_copy_button_title")
-        }, el => {
-            el.addClass("mod-cta");
-            el.addEventListener("click", () => {
-                void (async () => {
-                    // Step 1 - save the step internally
-                    const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                        title: t("step_template_default_title"),
-                        description: t("step_template_default_description")
-                    });
-                    // Step 2 - Copy the step to the clipboard
-                    void navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2))
-                    // Step 3 - Save the step to internal clipboard
-                    this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
-                    await this.plugin.saveSettings();
-                    new Notice(t("step_copied_notice"));
-                })();
+        if (identity.canReveal && this.info.nodeId) {
+            const nodeId = this.info.nodeId;
+            const reveal = top.createEl("button", {
+                cls: c("step-editor-reveal"),
+                attr: { type: "button" },
             });
-
-        });
-        setIcon(clipboardButton.createDiv(), "clipboard-copy");
-
-        // Add a button to apply an installed step template
-        const useTemplateButton = navbarButtonGroup.createEl("button", {
-            placeholder: t("step_builder_apply_button"),
-            title: t("step_builder_apply_button_title")
-        }, el => {
-            el.addClass("mod-cta");
-            el.addEventListener("click", () => {
-                // Pick the template first, then confirm against *what it changes* (#428 FR-7): an
-                // overwrite nobody can see is an overwrite nobody agreed to.
-                new UsedInstalledStepsModal(this.plugin, (step) => {
-                    const changes = describeTemplateChanges(this.info, step);
-                    const details =
-                        changes.length === 0
-                            ? [t("apply_template_preview_none")]
-                            : changes.map(
-                                  (change) =>
-                                      `${t(change.fieldKey as LocaleKey)}: ${change.before || "—"} → ${change.after || "—"}`
-                              );
-                    new ConfirmModal(
-                        this.plugin.app,
-                        t("confirm_apply_template_step"),
-                        t("confirm_apply_template_button"),
-                        t("confirm_cancel_button"),
-                        async () => {
-                            this.partialInfo = {
-                                ...this.info,
-                                ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
-                            };
-                            this.info = this.getBaseInfo();
-                            this.refresh();
-                        },
-                        [t("apply_template_preview_intro"), ...details]
-                    ).open();
-                }).open();
+            setIcon(reveal.createSpan({ cls: c("step-editor-reveal-icon") }), "locate-fixed");
+            reveal.createSpan({ text: t("step_identity_reveal") });
+            reveal.addEventListener("click", () => {
+                if (!CanvasHelper.revealNode(this.plugin, nodeId)) {
+                    new Notice(t("step_identity_reveal_failed"));
+                }
             });
-
+        }
+        const more = top.createEl("button", {
+            cls: ["clickable-icon", c("step-editor-more")],
+            attr: { type: "button", "aria-label": t("step_builder_more") },
         });
-        setIcon(useTemplateButton.createDiv(), "pen");
+        setIcon(more, "more-horizontal");
+        more.addEventListener("click", (event) => this.openMoreMenu(event));
 
-        // Add a button to use this step as source for a installed step
-        const saveButton = navbarButtonGroup.createEl("button", {
-            placeholder: t("step_builder_save_template_button"),
-            title: t("step_builder_save_template_button_title")
-        }, el => {
-            el.addClass("mod-cta");
-            el.addEventListener("click", () => {
-
-                new ConfirmModal(
-                    this.plugin.app,
-                    t("confirm_add_step"),
-                    t("confirm_add_button"),
-                    t("confirm_cancel_button"),
-                    async () => {
-                        // Step 1 - save the step internally
-                        const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
-                            title: t("step_template_default_title"),
-                            description: t("step_template_default_description"),
-                            id: this.info.nodeId
-                        });
-                        if (this.plugin.settings.installedTemplates.steps[stepSettings.id]) {
-                            // The warning has to be true: it used to say "already exists" and then
-                            // overwrite the template on the next line anyway (#546 C3). Abort instead.
-                            new Notice(t("step_template_already_exists"));
-                            return;
-                        }
-                        this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
-                        void this.plugin.saveSettings();
-                        // Step 2 - Open the modal to edit the step
-                        new InstalledStepEditorModal(this.plugin, stepSettings).open();
-                    }
-                ).open();
-            });
-
-        });
-        setIcon(saveButton.createDiv(), "book-marked");
-
-        this.renderIdentity(identity);
+        this.renderIdentity(header, identity);
         this.buildGroups();
 
         this.chain.handle(this);
 
-        // A handler that skipped itself must not leave a heading behind (#425 FR-4).
         // The body template is a step's template wherever the step lives: a step note keeps it in
-        // the file, an inline box in its own settings (#426). It used to exist only for the former,
-        // which made the path #400 wants to promote the poorest one.
+        // the file, an inline box in its own settings (#426).
         this.setupBody();
         // Where the flow goes next belongs to the step, not to the arrows drawing it (#427).
         this.setupExits();
@@ -207,33 +127,156 @@ export class StepBuilderModal extends AbstractStepModal {
         this.pruneEmptyGroups();
     }
 
+    /** Copy · apply a template · save as one — named, in a menu, instead of three bare icons. */
+    private openMoreMenu(event: MouseEvent): void {
+        const menu = new Menu();
+        menu.addItem((item) =>
+            item
+                .setTitle(t("step_builder_copy_button"))
+                .setIcon("copy")
+                .onClick(() => void this.copyStep())
+        );
+        menu.addItem((item) =>
+            item
+                .setTitle(t("step_builder_apply_button"))
+                .setIcon("layout-template")
+                .onClick(() => this.applyTemplate())
+        );
+        menu.addItem((item) =>
+            item
+                .setTitle(t("step_builder_save_template_button"))
+                .setIcon("bookmark-plus")
+                .onClick(() => this.saveAsTemplate())
+        );
+        menu.showAtMouseEvent(event);
+    }
+
+    private async copyStep(): Promise<void> {
+        const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+            title: t("step_template_default_title"),
+            description: t("step_template_default_description")
+        });
+        void navigator.clipboard.writeText(JSON.stringify(stepSettings, null, 2));
+        this.plugin.settings.communitySettings.clipboardTemplate = stepSettings;
+        await this.plugin.saveSettings();
+        new Notice(t("step_copied_notice"));
+    }
+
     /**
-     * The five questions the editor answers (#425). The chain still owns every field; this only
-     * decides where each one lands, so a step's settings read as *what does it ask · what does it
-     * write · when does it appear · where does it go · how is it shown*.
+     * Pick the template first, then confirm against *what it changes* (#428 FR-7): an overwrite
+     * nobody can see is an overwrite nobody agreed to.
+     */
+    private applyTemplate(): void {
+        new UsedInstalledStepsModal(this.plugin, (step) => {
+            const changes = describeTemplateChanges(this.info, step);
+            const details =
+                changes.length === 0
+                    ? [t("apply_template_preview_none")]
+                    : changes.map(
+                          (change) =>
+                              `${t(change.fieldKey as LocaleKey)}: ${change.before || "—"} → ${change.after || "—"}`
+                      );
+            new ConfirmModal(
+                this.plugin.app,
+                t("confirm_apply_template_step"),
+                t("confirm_apply_template_button"),
+                t("confirm_cancel_button"),
+                async () => {
+                    this.partialInfo = {
+                        ...this.info,
+                        ...StepBuilderMapper.StepSettings2PartialStepBuilderInfo(step)
+                    };
+                    this.info = this.getBaseInfo();
+                    this.refresh();
+                },
+                [t("apply_template_preview_intro"), ...details]
+            ).open();
+        }).open();
+    }
+
+    private saveAsTemplate(): void {
+        new ConfirmModal(
+            this.plugin.app,
+            t("confirm_add_step"),
+            t("confirm_add_button"),
+            t("confirm_cancel_button"),
+            async () => {
+                const stepSettings = StepBuilderMapper.StepBuilderInfo2CommunityStepSettings(this.info, {
+                    title: t("step_template_default_title"),
+                    description: t("step_template_default_description"),
+                    id: this.info.nodeId
+                });
+                if (this.plugin.settings.installedTemplates.steps[stepSettings.id]) {
+                    // The warning has to be true: it used to say "already exists" and then
+                    // overwrite the template on the next line anyway (#546 C3). Abort instead.
+                    new Notice(t("step_template_already_exists"));
+                    return;
+                }
+                this.plugin.settings.installedTemplates.steps[stepSettings.id] = stepSettings;
+                void this.plugin.saveSettings();
+                new InstalledStepEditorModal(this.plugin, stepSettings).open();
+            }
+        ).open();
+    }
+
+    /**
+     * The questions the editor answers (#425), in order, *what does it ask* first (#685). The chain
+     * still owns every field; this only decides where each one lands.
      */
     private buildGroups(): void {
         const { contentEl } = this.info;
+        const groupsEl = contentEl.createDiv({ cls: c("step-groups") });
         for (const group of STEP_GROUPS) {
-            const section = contentEl.createDiv({ cls: c("step-group") });
+            const section = groupsEl.createDiv({ cls: c("step-group") });
             const expanded = isGroupExpanded(group, this.info);
+            section.toggleClass("is-open", expanded);
 
             const heading = section.createEl("button", {
                 cls: c("step-group-heading"),
-                text: t(STEP_GROUP_HEADING[group] as LocaleKey),
                 attr: { "aria-expanded": String(expanded), type: "button" },
             });
+            heading.createSpan({
+                cls: c("step-group-question"),
+                text: t(STEP_GROUP_HEADING[group] as LocaleKey),
+            });
+            this.groupMetaEls[group] = heading.createSpan({ cls: c("step-group-meta") });
+            setIcon(heading.createSpan({ cls: c("step-group-chevron") }), "chevron-right");
+
             const body = section.createDiv({ cls: c("step-group-body") });
-            body.toggleClass(c("is-hidden"), !expanded);
             heading.addEventListener("click", () => {
                 const open = heading.getAttribute("aria-expanded") !== "true";
                 heading.setAttribute("aria-expanded", String(open));
-                body.toggleClass(c("is-hidden"), !open);
+                section.toggleClass("is-open", open);
             });
+
+            // The template comes first in *what it writes*, the linked note after it (#685): the
+            // slot is taken before the chain runs, so the order does not depend on the chain's.
+            if (group === "writes") this.bodySlot = body.createDiv({ cls: c("step-builder-body-slot") });
 
             this.groups[group] = body;
             this.groupSections[group] = section;
         }
+        this.refreshGroupMeta();
+    }
+
+    /** The quiet fact at the end of each heading — what a group holds without opening it. */
+    private refreshGroupMeta(): void {
+        for (const group of STEP_GROUPS) {
+            const el = this.groupMetaEls[group];
+            if (!el) continue;
+            const meta = groupMeta(group, this.info);
+            if (!meta) {
+                el.setText("");
+            } else if (meta.count !== undefined) {
+                el.setText(tCount(meta.count, meta.key as LocaleKey, String(meta.count)));
+            } else {
+                el.setText(meta.value ?? t(meta.key as LocaleKey));
+            }
+        }
+    }
+
+    actionsChanged(): void {
+        this.refreshGroupMeta();
     }
 
     /** Remove a question nobody answered — an empty heading is noise, not structure. */
@@ -248,9 +291,8 @@ export class StepBuilderModal extends AbstractStepModal {
     }
 
     /** What this step is and what it does — stated, never editable (#424). */
-    private renderIdentity(identity: ReturnType<typeof stepIdentity>): void {
-        const { contentEl } = this.info;
-        const row = contentEl.createDiv({ cls: c("step-identity") });
+    private renderIdentity(header: HTMLElement, identity: ReturnType<typeof stepIdentity>): void {
+        const row = header.createDiv({ cls: c("step-identity") });
 
         // Each chip carries its own icon and colour: a row of identical grey pills reads as
         // decoration, and the two facts you came for — what this is, and whether the flow starts
@@ -282,21 +324,7 @@ export class StepBuilderModal extends AbstractStepModal {
             chip.addClass(c(`step-identity-badge-${badge.replace("step_identity_badge_", "")}`));
         }
 
-        if (identity.canReveal && this.info.nodeId) {
-            const nodeId = this.info.nodeId;
-            const reveal = row.createEl("button", {
-                cls: c("step-identity-reveal"),
-                text: t("step_identity_reveal"),
-                attr: { "aria-label": t("step_identity_reveal") },
-            });
-            reveal.addEventListener("click", () => {
-                if (!CanvasHelper.revealNode(this.plugin, nodeId)) {
-                    new Notice(t("step_identity_reveal_failed"));
-                }
-            });
-        }
-
-        contentEl.createDiv({
+        header.createDiv({
             cls: c("step-identity-summary"),
             text: identity.summary.map((fragment) => describe(fragment)).join(" · "),
         });
@@ -312,11 +340,22 @@ export class StepBuilderModal extends AbstractStepModal {
 
     refresh(): void {
         this.contentEl.empty();
+        this.groupMetaEls = {};
+        this.bodySlot = undefined;
         this.onOpen();
     }
 
     private setupBody(): void {
-        const contentEl = this.groupEl("writes");
+        const contentEl = this.bodySlot ?? this.groupEl("writes");
+        const label = contentEl.createDiv({ cls: c("step-builder-body-label") });
+        label.createDiv({ cls: "setting-item-name", text: t("step_builder_body_name") });
+        label.createDiv({ cls: "setting-item-description", text: t("step_builder_body_desc") });
+
+        // The tokens are insertable rather than documented: a template language you have to
+        // remember is a capability you have to look up (#426).
+        const tokens = contentEl.createDiv({ cls: c("step-builder-tokens") });
+        tokens.createSpan({ text: t("step_builder_body_tokens") });
+
         const textarea = contentEl.createEl("textarea", {
             cls: c("step-builder-body"),
             placeholder: t("step_builder_body_template_placeholder"),
@@ -326,10 +365,6 @@ export class StepBuilderModal extends AbstractStepModal {
             this.info.body = textarea.value;
         });
 
-        // The tokens are insertable rather than documented: a template language you have to
-        // remember is a capability you have to look up (#426).
-        const tokens = contentEl.createDiv({ cls: c("step-builder-tokens") });
-        tokens.createSpan({ text: t("step_builder_body_tokens") });
         const INSERTABLE: [string, LocaleKey][] = [
             ["{{title}}", "step_builder_body_token_title"],
             ["{{date}}", "step_builder_body_token_date"],
@@ -339,7 +374,7 @@ export class StepBuilderModal extends AbstractStepModal {
             const button = tokens.createEl("button", {
                 cls: c("step-builder-token"),
                 text: token,
-                attr: { type: "button", title: t(labelKey), "aria-label": t(labelKey) },
+                attr: { type: "button", "aria-label": t(labelKey) },
             });
             button.addEventListener("click", () => {
                 const at = textarea.selectionStart ?? textarea.value.length;
@@ -415,6 +450,10 @@ export class StepBuilderModal extends AbstractStepModal {
         this.renderExitMigration(rows, path, flow, candidates);
     }
 
+    /**
+     * One arrow, as one row (#685): where it goes — and whether you land there — what it says, when
+     * it opens, and its place in the order. The condition reads as code because it is code.
+     */
     private renderExitRow(row: {
         rows: HTMLElement;
         path: string;
@@ -429,16 +468,18 @@ export class StepBuilderModal extends AbstractStepModal {
         const exit: StepExit = exits[edgeId] ?? {};
         const redraw = () => void this.renderExits(rows, path);
 
-        const setting = new Setting(rows)
-            .setName(child.label || t("step_identity_untitled"))
-            .setDesc(exit.when?.trim() || t("step_exits_when_always"));
-
+        const setting = new Setting(rows).setName(child.label || t("step_identity_untitled"));
+        setting.settingEl.addClass(c("step-exit"));
         if (exit.default) {
             setting.nameEl.createSpan({
                 cls: c("step-exits-default"),
                 text: t("step_exits_default_badge"),
             });
         }
+        setting.descEl.createSpan({
+            cls: exit.when?.trim() ? c("step-exit-when") : c("step-exit-always"),
+            text: exit.when?.trim() || t("step_exits_when_always"),
+        });
 
         setting.addText((text) =>
             text
@@ -455,21 +496,22 @@ export class StepBuilderModal extends AbstractStepModal {
                 )
         );
 
-        setting.addExtraButton((button) =>
-            button
-                .setIcon("filter")
-                .setTooltip(t("step_exits_when_edit"))
-                .onClick(() => {
-                    new ConditionEditorModal(this.plugin.app, exit.when ?? "", (expression) => {
-                        this.updateExit(edgeId, (current) => {
-                            if (expression) return { ...current, when: expression };
-                            const { when: _cleared, ...rest } = current;
-                            return rest;
-                        });
-                        redraw();
-                    }).open();
-                })
-        );
+        setting.addButton((button) => {
+            button.setButtonText(t("step_exits_when_edit")).onClick(() => {
+                new ConditionEditorModal(this.plugin.app, exit.when ?? "", (expression) => {
+                    this.updateExit(edgeId, (current) => {
+                        if (expression) return { ...current, when: expression };
+                        const { when: _cleared, ...rest } = current;
+                        return rest;
+                    });
+                    redraw();
+                }).open();
+            });
+            button.buttonEl.addClass(c("step-exit-when-button"));
+            const icon = createSpan({ cls: c("step-exit-when-icon") });
+            setIcon(icon, "filter");
+            button.buttonEl.prepend(icon);
+        });
 
         setting.addExtraButton((button) =>
             button

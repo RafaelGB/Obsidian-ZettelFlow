@@ -29,6 +29,6 @@ export class ScriptAction extends CustomZettelAction {
   }
 
   getLabel(): string {
-    return "Script";
+    return t("type_option_script");
   }
 }

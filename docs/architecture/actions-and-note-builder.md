@@ -228,6 +228,27 @@ fields, `currentAction`/`currentNode`, `enableSkip`. Mutators include `setTitle`
 `manageNodeInfo`, `addAction`, `addBackgroundAction`, `addJsFile`, `build`, `reset`, `goPrevious`,
 `setSectionElement`.
 
+### One header, one footer (#684)
+
+The wizard's chrome is three components around the step. `WalkStatus` is the progress header: the
+title field, the destination chip, the bar (`walkProgress`, drawn only when `remainingSteps` can
+estimate) and the `Breadcrumb` (`foldedCrumbs` folds a long walk). `Section` renders the step's
+heading: its phase, its action kind and whether it can be skipped. `WizardFooter` holds Back · Skip
+this step · Build with what I have (`footerModel`: a control that does not apply is disabled or
+hidden in place, never removed).
+
+The step keeps its own **Confirm**. `ConfirmStep` still owns the handler, the refusal, the
+accelerator and the hint, but inside the wizard it draws them through a portal into the footer's
+slot (`ConfirmSlotContext`). Anywhere else it renders in place. `Select` contributes a Confirm that
+takes the active option, so clicking, `Enter` and Confirm say the same thing.
+`Ctrl/Cmd+Enter` anywhere in the wizard clicks that same button.
+
+An option's edge, and the step's phase dot, are painted from `accentColour()`. In Obsidian 1.14 a
+preset's `--canvas-color-N` is a colour, not an `r, g, b` triple, so the old
+`rgba(var(--canvas-color), …)` was invalid and preset colours never painted. A hex node still
+arrives as a triple, and it is wrapped in `rgb()`. All of it is styled in
+`styles/components/noteBuilder.scss`, in Obsidian's own controls.
+
 ### The three selectors
 
 Each is a `<Select>` wrapper: **`RootSelector`** (options from `flow.rootNodes()`),
@@ -363,7 +384,7 @@ linked. They now answer five questions, in this order:
 | **What does it write?** | the body template, the linked note | always |
 | **When does it appear?** | root · trigger · wait · optional | when any is set |
 | **Where does it go?** | the target folder | when it is set |
-| **How is it shown?** | name · label · phase · children header | when any is set |
+| **How is it shown?** | name · option label · phase · the line that explains the options | when any is set |
 | **Where does it go next?** | the step's exits, one row per arrow (#427) | when any exit is configured |
 
 The chain is kept — it is how a handler skips itself (root-only, editor-only) — so this changes
@@ -374,6 +395,15 @@ themselves is removed whole rather than left as an empty heading.
 
 Groups 3–5 open when they hold something, so a configured trigger is never hidden from the person
 who configured it.
+
+Since #685 each group is a card whose closed heading still states a fact (`groupMeta`: *2 actions*,
+*starts the flow*, *Zettel/*). The actions render **inside** *What does this step ask?* — they used
+to land after the last group — and the linked note's fields sit under their switch in *What does it
+write?*, after the body template, whose slot is taken before the chain runs. The header is the step's
+name, **Show on the canvas** and a **⋯** menu (copy · apply a template · save as a template). Actions
+are cards with their human names (`getLabel`: *Ask for text*, not `prompt`); the add panel groups the
+registry by category with Lucide icons (`CATEGORY_ICON`, replacing the emoji). The user guide is
+[Configure a step: the step editor](../development/step-editor.md).
 
 ### The step editor says what you are editing (#424)
 
@@ -700,7 +730,7 @@ extra, there is no "which note am I answering for?" mode, and `NoteDTO` gains **
 of becoming multi-note. That is why this change is small: only the build path and two display
 surfaces learn about the second file.
 
-Authored wherever a **step** is configured — the canvas node popup (*Edit ZettelFlow Step*), the
+Authored wherever a **step** is configured — the canvas node popup (*Edit step*), the
 canvas node right-click menu, right-clicking a step note in the file explorer, and the installed-step
 editor. It is **not** offered in the note-creation wizard (that is runtime: the wizard only *shows*
 what the step declared) nor in an **editor-mode** flow, where `buildEditor` inserts into an existing

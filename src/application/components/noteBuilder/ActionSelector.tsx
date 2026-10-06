@@ -3,6 +3,8 @@ import { callbackActionBuilder } from "./callbacks/CallbackNote";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
 import { actionsStore } from "architecture/api";
 import { ActionBuilderProps } from "./typing";
+import { WizardState } from "./WizardState";
+import { t } from "architecture/lang";
 
 export function ActionSelector(actionProps: ActionBuilderProps) {
   const { action } = actionProps;
@@ -23,7 +25,7 @@ export function ActionSelector(actionProps: ActionBuilderProps) {
   const zettelAction = actionsStore.getAction(action.type);
   if (!zettelAction.component) {
     return (
-      <div key={"not-supported-action"}>Error: {action.type} not supported</div>
+      <WizardState kind="error" message={t("note_builder_action_unsupported", action.type)} />
     );
   }
 

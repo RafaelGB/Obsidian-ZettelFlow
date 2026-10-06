@@ -15,10 +15,12 @@ export interface CanvasSelection {
     size: number;
     /** The selected element's shape: a canvas node type, or `"edge"`. */
     kind: string | undefined;
+    /** A file node whose note already is a step (#686) — its step lives in that note. */
+    stepNote?: boolean;
 }
 
 export interface PopupMenuOptions {
-    /** Edit the step configuration held on a text or group node. */
+    /** Edit the step: held on a text or group node, or in the note a file node shows. */
     step: boolean;
     /** Edit the condition on an edge. */
     condition: boolean;
@@ -41,9 +43,13 @@ export function popupMenuOptions(selection: CanvasSelection): PopupMenuOptions {
         case "group":
             // These carry `zettelflowConfig` — the step lives on the node itself.
             return { ...NONE, step: true };
+        case "file":
+            // A file node's step lives in its note's frontmatter (#686). It used to be edited only
+            // from the file menu, so the popup offered nothing on the one node kind whose step a
+            // person most often wants to open from the canvas.
+            return selection.stepNote ? { ...NONE, step: true } : NONE;
         default:
-            // A file node's step lives in the note's frontmatter and is edited from the file menu;
-            // anything else is a shape we do not configure.
+            // Anything else is a shape we do not configure.
             return NONE;
     }
 }

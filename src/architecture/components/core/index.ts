@@ -8,13 +8,12 @@ export { SearchType } from "./search/typing"
 export { Dropdown } from './dropdown/Dropdown'
 export { DropdownType } from './dropdown/typing'
 
-export { Badge } from './badge/Badge'
-export { BadgeType } from './badge/typing'
 
 export { SelectableSearch } from './selectableSearch/SelectableSearch'
 export { SelectableSearchType } from './selectableSearch/typing'
 
 export { ConfirmStep, confirmsOn } from './confirmStep/ConfirmStep'
+export { ConfirmSlotContext } from './confirmStep/ConfirmSlot'
 export { ConfirmStepType } from './confirmStep/typing'
 
 export { Calendar } from './calendar/Calendar'

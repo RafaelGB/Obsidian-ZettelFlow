@@ -6,6 +6,8 @@ import { Platform } from "obsidian";
 import { Icon } from "architecture/components/icon";
 import { actionsStore } from "architecture/api";
 import { groupOptionsByPhase, PHASE_LABEL_KEY } from "zettelkasten/phases";
+import { ConfirmStep } from "architecture/components/core/confirmStep/ConfirmStep";
+import { accentColour } from "application/components/noteBuilder/presentation";
 import {
   INITIAL_OPTION_LIST_STATE,
   optionDomId,
@@ -20,6 +22,10 @@ import {
  * *and* Space, typeahead). Options are plain `role="option"` elements with no `tabindex` of their own —
  * the previous `tabIndex={index}` put a positive tabindex on every row and hijacked the modal's tab
  * order.
+ *
+ * The footer's Confirm (#684) takes the active option — the one the keyboard is on, which starts on
+ * the step's default exit — so clicking an option, pressing Enter and pressing Confirm are three
+ * ways to say the same thing. With no option active, Confirm refuses and says why.
  */
 export function Select(selectType: SelectType) {
   const {
@@ -90,24 +96,27 @@ export function Select(selectType: SelectType) {
 
   return (
     <div className={c("select-group", ...className)}>
-      <input
-        type="text"
-        ref={searchRef}
-        value={searchValue}
-        aria-label={t("note_builder_search_placeholder")}
-        aria-controls={listId}
-        placeholder={t("note_builder_search_placeholder")}
-        onChange={(event) => {
-          const value = event.target.value;
-          setOptionsState(
-            options.filter((option) =>
-              option.label.toLowerCase().includes(value.toLowerCase())
-            )
-          );
-          setSearchValue(value);
-          setListState(INITIAL_OPTION_LIST_STATE);
-        }}
-      />
+      <label className={c("select-search")}>
+        <Icon name="search" />
+        <input
+          type="text"
+          ref={searchRef}
+          value={searchValue}
+          aria-label={t("note_builder_search_placeholder")}
+          aria-controls={listId}
+          placeholder={t("note_builder_search_placeholder")}
+          onChange={(event) => {
+            const value = event.target.value;
+            setOptionsState(
+              options.filter((option) =>
+                option.label.toLowerCase().includes(value.toLowerCase())
+              )
+            );
+            setSearchValue(value);
+            setListState(INITIAL_OPTION_LIST_STATE);
+          }}
+        />
+      </label>
       <div
         id={listId}
         role="listbox"
@@ -156,6 +165,13 @@ export function Select(selectType: SelectType) {
             ))
           : optionsState.map((option, index) => renderOption(option, index))}
       </div>
+      <ConfirmStep
+        onConfirm={() => {
+          if (activeOption) internalCallback(activeOption.key);
+        }}
+        canConfirm={() => activeOption !== undefined}
+        hint={activeOption ? t("confirm_hint_enter") : t("note_builder_select_hint")}
+      />
     </div>
   );
 }
@@ -163,13 +179,16 @@ export function Select(selectType: SelectType) {
 function OptionElement(optionElementType: OptionElementType) {
   const { option, isSelected, isActive, domId, callback } = optionElementType;
   const { actionTypes, key, label, tooltip } = option;
-  const styleMemo = useMemo<CSSProperties>(() => {
-    return {
-      "--canvas-color": option.color,
-    } as CSSProperties;
-  }, [option.color]);
+  // The edge is the destination step's colour — its phase's, unless someone picked one (#429) — so
+  // an option says where it leads before you take it. No colour, no edge: never an invalid one.
+  const accent = accentColour(option.color);
+  const styleMemo = useMemo<CSSProperties | undefined>(
+    () => (accent ? ({ "--zf-option-accent": accent } as CSSProperties) : undefined),
+    [accent]
+  );
 
   const classes = [c("option")];
+  if (accent) classes.push(c("option-accented"));
   if (isSelected) classes.push(c("selected"));
   if (isActive) classes.push(c("option-active"));
 

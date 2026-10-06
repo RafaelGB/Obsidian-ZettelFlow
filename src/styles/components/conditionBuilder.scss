@@ -1,3 +1,6 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
 // Guided condition builder — field · operator · value pickers (#235, #318 S5).
 .zettelkasten-flow__condition-builder {
     display: flex;
@@ -14,4 +17,72 @@
 
 .zettelkasten-flow__condition-builder-insert-btn {
     cursor: pointer;
+}
+
+// The condition editor (#685): an intro, the expression framed as code, the builder row, the
+// fields table and the examples — sections named by a quiet label, the actions on the right.
+.zettelkasten-flow__condition-editor-intro {
+    @include hint;
+    margin: 0 0 $space-2;
+}
+
+.zettelkasten-flow__condition-editor-code {
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: var(--background-primary-alt);
+    font-family: var(--font-monospace);
+    overflow: hidden;
+}
+
+.zettelkasten-flow__condition-warning {
+    @include hint;
+    min-height: 1lh;
+    margin: $space-1 0;
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__condition-editor-section {
+    margin: $space-3 0 $space-1;
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.zettelkasten-flow__condition-vocab-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-small;
+
+    th {
+        padding: $space-1 $space-2;
+        border-bottom: $line-quiet;
+        color: $text-faint;
+        font-weight: var(--font-semibold);
+        text-align: left;
+    }
+
+    td {
+        padding: $space-1 $space-2;
+        border-bottom: $line-quiet;
+        color: $text-quiet;
+    }
+}
+
+.zettelkasten-flow__condition-examples {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        @include row;
+        justify-content: space-between;
+        border-bottom: $line-quiet;
+    }
+}
+
+.zettelkasten-flow__condition-editor-actions {
+    border-top: none;
+    padding-top: $space-3;
 }

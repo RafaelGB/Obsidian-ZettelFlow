@@ -127,7 +127,7 @@ function join(text: string, next: string): string {
 /** Lines into paragraphs and headings, in reading order. */
 function blocksOf(lines: readonly Line[]): PageBlock[] {
     if (lines.length === 0) return [];
-    const body = median(lines.flatMap((line) => new Array<number>(Math.max(1, Math.round(line.text.length / 10))).fill(line.size)));
+    const body = median(lines.flatMap((line) => Array.from({ length: Math.max(1, Math.round(line.text.length / 10)) }, () => line.size)));
     const left = median(lines.map((line) => line.x));
     const widest = Math.max(...lines.map((line) => line.right - line.x));
     const gaps: number[] = [];

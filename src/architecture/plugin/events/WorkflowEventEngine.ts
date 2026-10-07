@@ -13,7 +13,7 @@ import {
 } from "architecture/api";
 import { SelectorMenuModal } from "zettelkasten";
 import { buildBindings, type FlowTriggerSource, type WorkflowBinding } from "./bindings";
-import { deriveFrontmatterEvents } from "./derive";
+import { deriveFrontmatterEvents, seedBaselines } from "./derive";
 import { dispatchEvent, type DispatchDeps, type DispatchResult } from "./dispatch";
 import { ThrottleGate } from "./throttle";
 import { CascadeGuard, type SelfWriteState } from "./loopGuard";
@@ -158,7 +158,8 @@ export class WorkflowEventEngine {
 
     private processMetadata(file: TFile, cache: CachedMetadata): void {
         const newFrontmatter = copyFrontmatter(cache.frontmatter ?? {});
-        // First sight of a note seeds the baseline (old === new → no derived events, no load noise).
+        // A note seeded at arm diffs against its old value; one never seen (just created) seeds
+        // here instead (old === new → no derived events, no load noise).
         const oldFrontmatter = this.lastFrontmatter.get(file.path) ?? newFrontmatter;
         const derived = deriveFrontmatterEvents(file.path, oldFrontmatter, newFrontmatter);
         this.lastFrontmatter.set(file.path, newFrontmatter);
@@ -247,6 +248,24 @@ export class WorkflowEventEngine {
     private async rebuildBindings(): Promise<void> {
         this.bindings = await this.scanTriggers();
         log.debug(`[WorkflowEventEngine] Rebuilt ${this.bindings.length} trigger binding(s).`);
+        this.seedFrontmatterBaselines();
+    }
+
+    /**
+     * Give every note an "old value" before its first edit, but only when a flow listens for
+     * property or tag changes — the overwhelming majority of vaults bind nothing and pay nothing.
+     */
+    private seedFrontmatterBaselines(): void {
+        if (!this.bindings.some((b) => b.event === "property.changed" || b.event === "tag.added")) return;
+        const { vault, metadataCache } = this.plugin.app;
+        seedBaselines(
+            this.lastFrontmatter,
+            vault.getMarkdownFiles().flatMap((note): Array<[string, Record<string, unknown> | undefined]> => {
+                // Not indexed yet: leave it unseen, or its first parse would read as a change.
+                const cache = metadataCache.getFileCache(note);
+                return cache ? [[note.path, cache.frontmatter]] : [];
+            })
+        );
     }
 
     /**

@@ -29,6 +29,7 @@ import {
     scrollToSection,
     sectionClass,
     sectionInView,
+    barIsStuck,
     type SectionId,
 } from "./settingsShell";
 import { openCultivateFromSettings } from "./startActions";
@@ -274,8 +275,12 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
 
     /** Where the glance cards draw, from the glance row's last render. */
     private glanceHost: HTMLElement | null = null;
-    /** The section bar, from its row's last render — always the live element. */
-    private navEl: HTMLElement | null = null;
+    /**
+     * The section bar, from its row's last render — always the live element. Not `navEl`: that is
+     * the tab's own entry in Obsidian's settings sidebar, and overwriting it handed our bar to the
+     * sidebar's `is-active` bookkeeping.
+     */
+    private sectionBarEl: HTMLElement | null = null;
     /** The Advanced head's switch, so a jump into Advanced moves it too. */
     private advancedToggle: ToggleComponent | null = null;
     /** Redraws the Advanced grid's pointer to the thinking folder. */
@@ -322,14 +327,17 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     private placeNav(setting: Setting): () => void {
         setting.settingEl.addClass(c("settings-shell-row"), c("settings-nav-row"));
         const nav = rowContainer(setting, "settings-nav");
-        this.navEl = nav;
+        this.sectionBarEl = nav;
         const mark = renderNav(nav, (id) => this.go(id));
         const container = this.containerEl;
 
+        // The frame comes from the tab's own window. Settings open in a window of their own, and the
+        // main window's requestAnimationFrame never fires while it is hidden behind it — the bar
+        // stopped following the scroll, and a click on it did not light up either.
         let frame = 0;
         const onScroll = () => {
             if (frame) return;
-            frame = window.requestAnimationFrame(() => {
+            frame = container.win.requestAnimationFrame(() => {
                 frame = 0;
                 const origin = container.getBoundingClientRect().top;
                 const heads = SETTINGS_SECTIONS.flatMap((section) => {
@@ -337,12 +345,14 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     return head ? [{ id: section.id, top: head.getBoundingClientRect().top - origin }] : [];
                 });
                 mark(sectionInView(heads, nav.offsetHeight + 16));
+                const paddingTop = parseFloat(container.win.getComputedStyle(container).paddingTop) || 0;
+                nav.toggleClass("is-stuck", barIsStuck(nav.getBoundingClientRect().top - origin, paddingTop));
             });
         };
         container.addEventListener("scroll", onScroll, { passive: true });
         return () => {
             container.removeEventListener("scroll", onScroll);
-            if (frame) window.cancelAnimationFrame(frame);
+            if (frame) container.win.cancelAnimationFrame(frame);
         };
     }
 
@@ -377,7 +387,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     private go(id: SectionId): void {
         if (id === "advanced") this.openAdvanced();
         const reduced = activeWindow.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-        scrollToSection(this.containerEl, id, this.navEl?.isConnected ? this.navEl.offsetHeight : 0, !reduced);
+        scrollToSection(this.containerEl, id, this.sectionBarEl?.isConnected ? this.sectionBarEl.offsetHeight : 0, !reduced);
     }
 
     /** The start card's second way in: to the row that gives a canvas its role, ready to type. */

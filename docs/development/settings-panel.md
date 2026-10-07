@@ -171,7 +171,8 @@ should meet a log level on their first day. It remembers whether you left it ope
   The three flow folders refuse a folder that is the same as, or inside, another one: a canvas
   cannot be two things at once. A path is checked and saved when you leave the field, press Enter or
   pick a suggestion, never on a keystroke on the way there. The *Thinking space* cell shows its
-  folder and takes you to the one place it is edited, under Thinking.
+  folder as read-only text (cut short with the whole path on hover), and its arrow takes you to the
+  one place it is edited, under Thinking.
 - **Script type declarations** — writes `zettelflow.d.ts` into your scripts folder, so an external
   editor knows the zf API.
 - **Logging** — *Off*, *Errors only*, *Warnings*, *Information*, *Debugging* or *Everything*.
@@ -198,5 +199,9 @@ support the project.
   its own row (`display: contents`), the hooks' React root is kept across `update()`, and the row
   styles are written against `.setting-group`. `test/support/settingsRenderer.ts` mimics that order,
   so it stays tested (#659).
+- **Settings live in a window of their own** (Obsidian 1.14). Ask the element for its animation
+  frame (`el.win.requestAnimationFrame`): the main window's never fires while it is hidden behind
+  settings, which froze the section bar's marker (`test/architecture/popoutFrames.test.ts`). And
+  never name a field `navEl` on a settings tab — that is the tab's own entry in Obsidian's sidebar.
 
 _README vocabulary for this page: **Settings you can read**._

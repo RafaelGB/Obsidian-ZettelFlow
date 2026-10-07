@@ -187,7 +187,8 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n*, the text in your
    reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
    page as laid out, *Highlight in the reading view*); **V** again comes back.
-8. **Highlight.** Select a sentence → **Highlight and note**, write a note, **Save**. Expect it in the
+8. **Highlight.** Select a sentence → **Highlight and note**: the sentence stays marked while you
+   type. Write a note, **Save**. Expect it in the
    margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,
    and the highlight is there. In Think the thought shows the passage and *› p. n*.
 9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does

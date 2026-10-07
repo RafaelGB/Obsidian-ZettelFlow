@@ -7,6 +7,7 @@ import { fnsManager, writeTypeDeclarations } from "architecture/api";
 import { flowFolders, validateFlowFolders } from "architecture/plugin/canvas/flowRole";
 import { DEFAULT_SETTINGS } from "config/typing";
 import type { ZettelFlowSettings } from "config/typing";
+import { controlContainer } from "architecture/components/settings/settingContainer";
 import { speedSettingsItems } from "./speedSettingsItems";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -175,18 +176,25 @@ export function foldersSettingsGroup(
                 desc: t("settings_folders_thinking_desc"),
                 aliases: [t("settings_thought_lab_name")],
                 render: (setting: Setting) => {
-                    setting.settingEl.addClass(c("settings-folder-cell"), c("settings-folder-pointer"));
+                    setting.settingEl.addClass(c("settings-folder-cell"));
                     const path = () => plugin.settings.thoughtLabPath || DEFAULT_SETTINGS.thoughtLabPath || "";
-                    setting.addButton((button) => {
+                    // The path is read here, not edited, and it is not a button: as one it ran out of
+                    // its card and a click on it read as a shortcut. Cut short, it keeps the whole
+                    // path on hover; the way to Thinking is the icon, where its siblings keep reset.
+                    const shown = controlContainer(setting, "settings-folder-path");
+                    const show = () => {
+                        shown.setText(path());
+                        shown.setAttribute("title", path());
+                    };
+                    show();
+                    // The path is the one edited under Thinking: it follows that field.
+                    onPointer(show);
+                    setting.addExtraButton((button) =>
                         button
-                            .setButtonText(path())
+                            .setIcon("arrow-up-right")
                             .setTooltip(t("settings_folders_thinking_go"))
-                            .onClick(() => goToThinking());
-                        // The path is the one edited under Thinking: it follows that field.
-                        onPointer(() => {
-                            button.setButtonText(path());
-                        });
-                    });
+                            .onClick(() => goToThinking())
+                    );
                 },
             },
         ],

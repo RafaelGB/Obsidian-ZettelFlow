@@ -237,6 +237,22 @@
     // The tab's own surface: --settings-background on mobile, the primary background elsewhere.
     background-color: var(--settings-background, var(--background-primary));
     border-bottom: $line-quiet;
+
+    // Held at the top, the bar sits under the scroller's top padding, and what scrolled into that
+    // band showed above it. Held, it covers the band — the scroller's own padding (desktop).
+    &.is-stuck::before {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        bottom: 100%;
+        height: var(--size-4-12);
+        background-color: inherit;
+    }
+}
+
+// On a phone the band is the modal header's, which already covers it.
+.is-phone .zettelkasten-flow__settings-nav.is-stuck::before {
+    content: none;
 }
 
 /* A narrow pane keeps the bar to one line and lets it scroll sideways, instead of a sticky block

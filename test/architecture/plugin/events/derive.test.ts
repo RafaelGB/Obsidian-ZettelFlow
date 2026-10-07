@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { deriveFrontmatterEvents } from "architecture/plugin/events/derive";
+import { deriveFrontmatterEvents, seedBaselines } from "architecture/plugin/events/derive";
 
 const NOTE = "notes/idea.md";
 
@@ -69,5 +69,26 @@ describe("synthesized event derivation from a frontmatter snapshot diff (AC-11, 
                 newValue: "fleeting",
             },
         ]);
+    });
+});
+
+describe("seedBaselines — the first edit of a note has an old value", () => {
+    it("remembers notes it does not know, so a property added to one is a change", () => {
+        const baselines = new Map<string, Record<string, unknown>>();
+        seedBaselines(baselines, [[NOTE, undefined]]);
+
+        expect(deriveFrontmatterEvents(NOTE, baselines.get(NOTE), { status: "done" })).toEqual([
+            { event: "property.changed", notePath: NOTE, property: "status", oldValue: undefined, newValue: "done" },
+        ]);
+    });
+
+    it("keeps what it already remembered and copies, so the live cache cannot hide a change", () => {
+        const live: Record<string, unknown> = { status: "draft" };
+        const baselines = new Map<string, Record<string, unknown>>([[NOTE, { status: "known" }]]);
+        seedBaselines(baselines, [[NOTE, live], ["other.md", live]]);
+        live.status = "done";
+
+        expect(baselines.get(NOTE)).toEqual({ status: "known" });
+        expect(baselines.get("other.md")).toEqual({ status: "draft" });
     });
 });

@@ -68,3 +68,17 @@ export function deriveFrontmatterEvents(
 
     return events;
 }
+
+/**
+ * Remember every note not already known, as it is now. Without it the first edit of a note since
+ * startup was diffed against itself, so adding a property to a note (or the first change to one that
+ * was open at startup) never fired `property.changed`. Copies, because Obsidian mutates the cache.
+ */
+export function seedBaselines(
+    baselines: Map<string, Record<string, unknown>>,
+    notes: Iterable<[string, Record<string, unknown> | undefined]>
+): void {
+    for (const [path, frontmatter] of notes) {
+        if (!baselines.has(path)) baselines.set(path, JSON.parse(JSON.stringify(frontmatter ?? {})) as Record<string, unknown>);
+    }
+}

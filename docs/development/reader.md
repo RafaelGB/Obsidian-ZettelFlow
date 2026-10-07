@@ -169,7 +169,8 @@ questions, read from the same model as [This note](this-note.md). Each of those 
 Reading well means stopping at the sentence that matters. Select some words in a chapter, as you
 would on a Kindle — with the mouse, the keyboard, or a long-press on a phone — and a small popover
 offers **Highlight**, **Highlight and note** or **Copy** (or press **H**, or **Shift+H** for the
-note). A drag that ends past the text, in the margin or below the last line, still counts.
+note). A drag that ends past the text, in the margin or below the last line, still counts. While
+you write the note, the passage stays marked; cancel and the mark goes.
 
 ![A chapter with highlights, the popover over a selection, a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
 

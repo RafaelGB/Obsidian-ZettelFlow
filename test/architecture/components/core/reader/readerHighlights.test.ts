@@ -157,6 +157,40 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--noted")).toBe(true);
     });
 
+    it("keeps the passage marked while its note is written — the selection goes when the box takes focus", async () => {
+        const m = mount();
+        await m.attach();
+        const before = chapterText(m.body as never);
+        m.select("Replay rebuilds it");
+        m.body.fire("mouseup");
+        m.button("Highlight and note").click();
+        // Typing moves the selection into the box; the passage stays marked meanwhile.
+        expect(m.marks().map((mark) => mark.textContent)).toEqual(["Replay rebuilds it"]);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--pending")).toBe(true);
+        m.body.fire("mouseup"); // a stray mouseup while the box is open changes nothing
+        expect(m.marks()).toHaveLength(1);
+        (m.host.find((el) => el.tag === "textarea") as DomNode).value = "why";
+        m.button("Save").click();
+        await flush();
+        // Saved, it is one highlight — the provisional mark gave way to the real one.
+        expect(m.marks()).toHaveLength(1);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--pending")).toBe(false);
+        expect(chapterText(m.body as never)).toBe(before);
+    });
+
+    it("takes the provisional mark off again when the note is cancelled", async () => {
+        const m = mount();
+        await m.attach();
+        const before = chapterText(m.body as never);
+        m.select("Replay rebuilds it");
+        m.body.fire("mouseup");
+        m.button("Highlight and note").click();
+        m.button("Cancel").click();
+        expect(m.marks()).toHaveLength(0);
+        expect(chapterText(m.body as never)).toBe(before);
+        expect(m.store.write).not.toHaveBeenCalled();
+    });
+
     it("undo takes the thought to the trash and the marks off the page", async () => {
         const m = mount();
         await m.attach();

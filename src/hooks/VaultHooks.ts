@@ -37,6 +37,7 @@ import { t } from "architecture/lang";
 import { evaluateBindingCondition } from "architecture/plugin/events/condition";
 
 import { hasFrontmatterMutations, copyFrontmatter, changedHookProperties } from "./utils/CompareUtils";
+import { HookBaselines } from "./utils/HookBaselines";
 import {
     isCanvasFile,
     isFolder,
@@ -77,7 +78,7 @@ export class VaultHooks {
      * cache is mutated in place — reading it as "old" made every property look unchanged and
      * was why property hooks never fired.
      */
-    private lastFrontmatter: Map<string, Record<string, unknown>> = new Map();
+    private baselines = new HookBaselines();
 
     public static setup(plugin: ZettelFlow) {
         new VaultHooks(plugin);
@@ -163,6 +164,8 @@ export class VaultHooks {
                 this.plugin.app.workspace.on("file-open", this.onOpen, this)
             );
 
+            this.seedBaselines(Object.keys(this.plugin.settings.hooks?.properties ?? {}));
+
             log.debug("[VaultHooks] Registed hooks (onLayoutReady).");
         });
     }
@@ -218,7 +221,7 @@ export class VaultHooks {
 
     private onRenameFile(file: TFile, oldPath: string) {
         const settings = this.plugin.settings;
-        this.lastFrontmatter.delete(oldPath);
+        this.baselines.rename(oldPath, file.path);
 
         if (oldPath === settings.ribbonCanvas) {
             canvas.flows.delete(oldPath);
@@ -312,7 +315,7 @@ export class VaultHooks {
     };
 
     private onDeleteFile = (file: TFile) => {
-        this.lastFrontmatter.delete(file.path);
+        this.baselines.forget(file.path);
         if (file.path === this.plugin.settings.ribbonCanvas) {
             canvas.flows.delete(file.path);
             this.plugin.settings.ribbonCanvas = "";
@@ -357,12 +360,9 @@ export class VaultHooks {
 
         if (isMarkdownFile(file)) {
             VaultStateManager.INSTANCE.add(file);
-            // Seed the change-detection baseline with the current frontmatter so the first
-            // property edit after opening is detected as a change.
-            this.lastFrontmatter.set(
-                file.path,
-                copyFrontmatter(this.plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {})
-            );
+            // Refresh the change-detection baseline with the note as it is now (it is seeded for
+            // every note at startup; this keeps it exact for the note you are about to edit).
+            this.baselines.remember(file.path, this.plugin.app.metadataCache.getFileCache(file)?.frontmatter ?? {});
             log.debug("[VaultHooks] Opened file:", file.path);
         }
     };
@@ -409,7 +409,10 @@ export class VaultHooks {
         // mutates getFileCache().frontmatter in place, which made old === new and stopped
         // property hooks from ever firing.
         const newFrontmatter: Record<string, unknown> = copyFrontmatter(cache.frontmatter ?? {});
-        const oldFrontmatter: Record<string, unknown> = this.lastFrontmatter.get(file.path) ?? newFrontmatter;
+        // A hook added since startup learns its property here; for this note that is the new
+        // value, so the hook starts with the next change.
+        this.seedBaselines(hooksEntries.map(([property]) => property));
+        const oldFrontmatter: Record<string, unknown> = this.baselines.previous(file.path, newFrontmatter);
         const changed = new Set(
             changedHookProperties(hooksEntries.map(([property]) => property), oldFrontmatter, newFrontmatter)
         );
@@ -513,7 +516,7 @@ export class VaultHooks {
             VaultStateManager.INSTANCE.processFinished(file.path);
 
             // Remember the latest frontmatter so the next change diffs against it.
-            this.lastFrontmatter.set(file.path, newFrontmatter);
+            this.baselines.remember(file.path, newFrontmatter);
 
             // Revoke cache after processing. Cancel any previous timer.
             const previous = this.revokeTimers.get(file.path);
@@ -528,6 +531,18 @@ export class VaultHooks {
     }
 
     // ========== Helpers ==========
+
+    /** Every note's watched properties as they are now — the "old value" for the first change. */
+    private seedBaselines(properties: string[]) {
+        const { vault, metadataCache } = this.plugin.app;
+        this.baselines.seed(properties, () =>
+            vault.getMarkdownFiles().flatMap((note): Array<[string, Record<string, unknown> | undefined]> => {
+                // Not indexed yet: leave it unseen, or its first parse would read as a change.
+                const cache = metadataCache.getFileCache(note);
+                return cache ? [[note.path, cache.frontmatter]] : [];
+            })
+        );
+    }
 
     private getOrCreateFrontmatterService(file: TFile): FrontmatterService {
         let svc = VaultStateManager.INSTANCE.get(file.path);

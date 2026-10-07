@@ -232,22 +232,29 @@ describe("Advanced: every folder in one grid (#663)", () => {
         expect(p.saveSettings).toHaveBeenCalledTimes(1);
     });
 
-    it("keeps the thinking space pointer in step with the folder edited under Thinking", () => {
+    it("keeps the thinking space path in step with the folder edited under Thinking", () => {
         let refresh: (() => void) | null = null;
         const p = plugin({ thoughtLabPath: "Lab" });
         const items = itemsOf(foldersSettingsGroup(p as never, () => true, jest.fn(), (fn) => (refresh = fn)));
         const row = draw(byName(items, "Thinking space"));
         p.settings.thoughtLabPath = "Elsewhere";
         refresh!();
-        expect(row.buttons[0].text).toBe("Elsewhere");
+        const path = row.settingEl.oneByClass("settings-folder-path");
+        expect(path.text).toBe("Elsewhere");
+        expect(path.attrs.title).toBe("Elsewhere");
     });
 
-    it("shows the thinking space without a second editor, and takes you to the one under Thinking", () => {
+    it("shows the thinking space as a path, not a second editor nor a button, and an icon takes you to Thinking", () => {
         const go = jest.fn();
-        const row = draw(byName(folders(plugin({ thoughtLabPath: "Lab" }), go), "Thinking space"));
+        const row = draw(byName(folders(plugin({ thoughtLabPath: "4. Resources/4.4. ZettelFlow/Thinking" }), go), "Thinking space"));
         expect(row.searches).toHaveLength(0);
-        expect(row.buttons[0].text).toBe("Lab");
-        row.buttons[0].click!();
+        // The path was a button: it overflowed its card and clicking it read as a shortcut.
+        expect(row.buttons).toHaveLength(0);
+        // The full path stays readable where it is cut short.
+        expect(row.settingEl.oneByClass("settings-folder-path").attrs.title).toBe("4. Resources/4.4. ZettelFlow/Thinking");
+        expect(row.extraButtons).toHaveLength(1);
+        expect(row.extraButtons[0].tooltip).toBe("Go to the thinking space setting");
+        row.extraButtons[0].click!();
         expect(go).toHaveBeenCalledTimes(1);
     });
 

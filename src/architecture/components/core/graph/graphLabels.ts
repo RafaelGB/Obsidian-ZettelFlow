@@ -120,7 +120,9 @@ export function placeRegionNames(
     spot: (region: number) => RegionSpot | null,
     name: (region: number) => string,
     measure: (text: string) => number,
-    view: { width: number; height: number }
+    view: { width: number; height: number },
+    /** Note labels already on screen: a region named after its hub drew its name over the hub's. */
+    taken: readonly PlacedLabel[] = []
 ): PlacedLabel[] {
     const placed: PlacedLabel[] = [];
     const limit = Math.min(view.width, view.height) * 0.3;
@@ -134,7 +136,7 @@ export function placeRegionNames(
         const x = at.x - w / 2;
         const y = at.y - 8;
         if (x < 2 || x + w > view.width - 2 || y < 2 || y + h > view.height - 2) continue;
-        if (placed.some((q) => x < q.x + q.w && x + w > q.x && y < q.y + q.h && y + h > q.y)) continue;
+        if ([...placed, ...taken].some((q) => x < q.x + q.w && x + w > q.x && y < q.y + q.h && y + h > q.y)) continue;
         placed.push({ index: region, text, x, y, w, h, strong: false });
     }
     return placed;

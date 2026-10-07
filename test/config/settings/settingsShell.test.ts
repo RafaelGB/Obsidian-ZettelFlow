@@ -10,6 +10,7 @@ import {
     scrollToSection,
     sectionClass,
     sectionInView,
+    barIsStuck,
 } from "config/modals/settingsShell";
 import { settingsGlance } from "config/settingsSummary";
 
@@ -89,6 +90,14 @@ describe("the settings shell (#660)", () => {
         expect(sectionInView(heads, 100)).toBe("flows");
         expect(sectionInView(heads, 450)).toBe("creating");
         expect(sectionInView(heads, 5000)).toBe("knowledge");
+    });
+
+    it("knows when the bar is held at the top, so it can cover the scroller's padding above it", () => {
+        // The bar sticks under the scroller's top padding; content scrolled into that band showed
+        // above the bar. Held there, it covers the band; at rest it covers nothing above it.
+        expect(barIsStuck(300, 48)).toBe(false);
+        expect(barIsStuck(48, 48)).toBe(true);
+        expect(barIsStuck(48.4, 48)).toBe(true);
     });
 
     it("scrolls its own container, never the window, to land a section under the bar", () => {

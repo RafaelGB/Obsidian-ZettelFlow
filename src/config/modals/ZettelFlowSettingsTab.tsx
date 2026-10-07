@@ -29,6 +29,7 @@ import {
     scrollToSection,
     sectionClass,
     sectionInView,
+    barIsStuck,
     type SectionId,
 } from "./settingsShell";
 import { openCultivateFromSettings } from "./startActions";
@@ -344,6 +345,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     return head ? [{ id: section.id, top: head.getBoundingClientRect().top - origin }] : [];
                 });
                 mark(sectionInView(heads, nav.offsetHeight + 16));
+                const paddingTop = parseFloat(container.win.getComputedStyle(container).paddingTop) || 0;
+                nav.toggleClass("is-stuck", barIsStuck(nav.getBoundingClientRect().top - origin, paddingTop));
             });
         };
         container.addEventListener("scroll", onScroll, { passive: true });

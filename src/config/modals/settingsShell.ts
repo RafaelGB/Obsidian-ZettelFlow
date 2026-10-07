@@ -187,6 +187,14 @@ export function sectionInView(heads: { id: SectionId; top: number }[], line: num
 }
 
 /**
+ * Whether the bar is held at the top of the scroller. It sticks under the scroller's top padding,
+ * and what scrolls into that band showed above it; held, the bar covers the band (`is-stuck`).
+ */
+export function barIsStuck(barTop: number, paddingTop: number): boolean {
+    return barTop <= paddingTop + 1;
+}
+
+/**
  * Scroll the tab's own container so the section's head sits just under the sticky bar. Never
  * `scrollIntoView`: it would scroll the settings modal and the window behind it too.
  */

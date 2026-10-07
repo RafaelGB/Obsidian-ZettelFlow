@@ -153,4 +153,23 @@ describe("assembleNotePreview", () => {
     expect(result.body).toContain("[[Second note]]");
     expect(result.body.startsWith("Body line.\n")).toBe(true);
   });
+
+  describe("a crystallized note (#712)", () => {
+    const crystallize = { title: "Idea", content: "My idea.\n\n## Born from\n- \"my idea\"\n", quote: "", source: "", frozen: 1 };
+
+    it("with no template, the body is the crystallized content", () => {
+      expect(assembleNotePreview({ title: "Idea", templates: [], elements: [], crystallize }).body).toBe(crystallize.content);
+    });
+
+    it("with a template, the content comes first, then the template", () => {
+      const body = assembleNotePreview({ title: "Idea", templates: [tpl("Template.\n")], elements: [], crystallize }).body;
+      expect(body).toBe(`${crystallize.content}\nTemplate.\n`);
+    });
+
+    it("without one, the preview is exactly what it was", () => {
+      const input = { title: "t", templates: [tpl("Body {{title}}.\n")], elements: [], links: ["A"] };
+      expect(assembleNotePreview(input)).toEqual(assembleNotePreview({ ...input, crystallize: undefined }));
+      expect(assembleNotePreview(input).body).toBe("Body t.\n\n[[A]]\n");
+    });
+  });
 });

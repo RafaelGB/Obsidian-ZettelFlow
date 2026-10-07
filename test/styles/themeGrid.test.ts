@@ -52,7 +52,8 @@ const CEILING: Record<string, number> = {
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
     // 120 → 119: the 780px centred cage removed when the Lab went fluid (#620).
     // 119 → 118: the thread list's `12px` gap became `var(--size-4-3)` when it became a grid (#620).
-    "lab.scss": 118,
+    // 118 → 111: the composer took the family's frame (#707) — radius, padding and glow on the grid.
+    "lab.scss": 111,
     "main.scss": 9,
     "modal.scss": 10,
     "openQuestions.scss": 1,

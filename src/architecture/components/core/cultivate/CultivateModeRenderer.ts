@@ -251,7 +251,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     private renderKeys(page: HTMLElement): void {
         keyHints(page, [
-            { keys: ["1", "5"], label: t("cultivate_key_move") },
+            { keys: ["1–5"], label: t("cultivate_key_move") },
             { keys: ["→"], label: t("cultivate_key_another") },
             { keys: ["Ctrl", "Enter"], label: t("cultivate_key_keep") },
         ]);

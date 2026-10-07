@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1030" viewBox="0 0 1200 1030" role="img" aria-label="Cultivate as one conversation: the stage strip — your notes by stage as one bar that is also the filter — the idea as the hero with its claim, lifecycle and neighbours, one move at a time asked in Think's voice, and a trail of what you kept today">
+<rect x="0" y="0" width="1200" height="1030" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="960" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="62" cy="50" r="5.5" fill="#fb464c" stroke="none" stroke-width="0" opacity="1"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f" stroke="none" stroke-width="0" opacity="1"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e" stroke="none" stroke-width="0" opacity="1"/>
+<text x="600.0" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="72" y="98" fill="#6c6e75" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Home</text>
+<text x="136" y="98" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="start">Cultivate</text>
+<rect x="132" y="106" width="80" height="2.5" rx="1.2" fill="#8a5cf5"/>
+<text x="240" y="98" fill="#6c6e75" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Think</text>
+<line x1="56" y1="110" x2="1144" y2="110" stroke="#2e2e33" stroke-width="1"/>
+<text x="110" y="150" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">One idea, a few minutes</text>
+<rect x="950" y="132" width="140" height="30" rx="6" fill="#8a5cf5" stroke="#8a5cf5" stroke-width="1" />
+<text x="1020.0" y="151.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Another idea →</text>
+<rect x="110" y="176" width="203.74585635359117" height="10" rx="3" fill="#e0de71" stroke="none" stroke-width="0" opacity="0.3"/>
+<rect x="315.7458563535912" y="176" width="111.70165745856353" height="10" rx="3" fill="#e9973f" stroke="none" stroke-width="0" opacity="0.3"/>
+<rect x="429.44751381215474" y="176" width="344.5193370165746" height="10" rx="3" fill="#44cf6e" stroke="none" stroke-width="0" opacity="1"/>
+<rect x="775.9668508287293" y="176" width="219.9889502762431" height="10" rx="3" fill="#53dfdd" stroke="none" stroke-width="0" opacity="0.3"/>
+<rect x="997.9558011049724" y="176" width="90.04419889502762" height="10" rx="3" fill="#8a5cf5" stroke="none" stroke-width="0" opacity="0.3"/>
+<circle cx="114" cy="210" r="4" fill="#e0de71" stroke="none" stroke-width="0" opacity="1"/>
+<text x="124" y="214.5" fill="#a3a5ab" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Fleeting</text>
+<text x="187.2" y="214.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">38</text>
+<circle cx="240" cy="210" r="4" fill="#e9973f" stroke="none" stroke-width="0" opacity="1"/>
+<text x="250" y="214.5" fill="#a3a5ab" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Literature</text>
+<text x="328.0" y="214.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">21</text>
+<rect x="372" y="198" width="114" height="24" rx="12" fill="#26262b" stroke="none" stroke-width="0" />
+<circle cx="382" cy="210" r="4" fill="#44cf6e" stroke="none" stroke-width="0" opacity="1"/>
+<text x="392" y="214.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Permanent</text>
+<text x="462.6" y="214.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">64</text>
+<circle cx="516" cy="210" r="4" fill="#53dfdd" stroke="none" stroke-width="0" opacity="1"/>
+<text x="526" y="214.5" fill="#a3a5ab" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Developing</text>
+<text x="604.0" y="214.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">41</text>
+<circle cx="658" cy="210" r="4" fill="#8a5cf5" stroke="none" stroke-width="0" opacity="1"/>
+<text x="668" y="214.5" fill="#a3a5ab" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Evergreen</text>
+<text x="738.6" y="214.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">17</text>
+<text x="1090" y="214.5" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="end">From a question of mine…</text>
+<text x="110" y="240" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Only permanent ideas · click it again for all</text>
+<defs><linearGradient id="edge" x1="0" x2="1"><stop offset="0" stop-color="#44cf6e"/><stop offset="1" stop-color="#8a5cf5"/></linearGradient></defs>
+<rect x="110" y="262" width="980" height="300" rx="16" fill="#202024" stroke="#2e2e33" stroke-width="1.5" />
+<rect x="110" y="262" width="980" height="3" rx="1.5" fill="url(#edge)" stroke="none" stroke-width="0" />
+<rect x="142" y="288" width="82" height="20" rx="4" fill="#1f3a28" stroke="none" stroke-width="0" />
+<text x="183" y="302" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">Permanent</text>
+<text x="236" y="302" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Planted 12 days ago</text>
+<text x="142" y="346" fill="#dcddde" font-family="Georgia, serif" font-size="28" font-weight="700" text-anchor="start">Spacing beats massing</text>
+<text x="142" y="380" fill="#a3a5ab" font-family="Georgia, serif" font-size="16" font-weight="400" text-anchor="start">Spreading practice over time beats cramming it, because forgetting a little is what</text>
+<text x="142" y="404" fill="#a3a5ab" font-family="Georgia, serif" font-size="16" font-weight="400" text-anchor="start">makes the next retrieval strengthen the memory.</text>
+<line x1="230" y1="440" x2="410" y2="440" stroke="#44cf6e" stroke-width="2"/>
+<line x1="410" y1="440" x2="590" y2="440" stroke="#44cf6e" stroke-width="2"/>
+<line x1="590" y1="440" x2="770" y2="440" stroke="#3a3a3a" stroke-width="2"/>
+<line x1="770" y1="440" x2="950" y2="440" stroke="#3a3a3a" stroke-width="2"/>
+<circle cx="230" cy="440" r="7" fill="#44cf6e" stroke="#44cf6e" stroke-width="2" opacity="1"/>
+<text x="230" y="466" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Fleeting</text>
+<circle cx="410" cy="440" r="7" fill="#44cf6e" stroke="#44cf6e" stroke-width="2" opacity="1"/>
+<text x="410" y="466" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Literature</text>
+<circle cx="590" cy="440" r="7" fill="#18181b" stroke="#44cf6e" stroke-width="2" opacity="1"/>
+<text x="590" y="466" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="700" text-anchor="middle">Permanent</text>
+<circle cx="770" cy="440" r="7" fill="#18181b" stroke="#3a3a3a" stroke-width="2" opacity="1"/>
+<text x="770" y="466" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Developing</text>
+<circle cx="950" cy="440" r="7" fill="#18181b" stroke="#3a3a3a" stroke-width="2" opacity="1"/>
+<text x="950" y="466" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Evergreen</text>
+<text x="142" y="504" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Lives near</text>
+<rect x="220" y="488" width="219.6" height="26" rx="13" fill="#1c1c20" stroke="#3a3a3a" stroke-width="1" />
+<text x="230" y="505.5" fill="#a3a5ab" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Interleaving builds transfer</text>
+<rect x="447.6" y="488" width="147.6" height="26" rx="13" fill="#1c1c20" stroke="#3a3a3a" stroke-width="1" />
+<text x="457.6" y="505.5" fill="#a3a5ab" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Retrieval practice</text>
+<rect x="603.2" y="488" width="176.4" height="26" rx="13" fill="#1c1c20" stroke="#3a3a3a" stroke-width="1" />
+<text x="613.2" y="505.5" fill="#a3a5ab" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Desirable difficulties</text>
+<text x="142" y="544" fill="#a3a5ab" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Say what this claims</text>
+<text x="292" y="544" fill="#a3a5ab" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Make a move…</text>
+<rect x="110" y="586" width="136" height="32" rx="16" fill="#2a2240" stroke="#8a5cf5" stroke-width="1" />
+<circle cx="126" cy="602" r="4" fill="#fb464c" stroke="none" stroke-width="0" opacity="1"/>
+<text x="138" y="606.5" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Challenge it</text>
+<rect x="254" y="586" width="120" height="32" rx="16" fill="#18181b" stroke="#3a3a3a" stroke-width="1" />
+<circle cx="270" cy="602" r="4" fill="#53a3ff" stroke="none" stroke-width="0" opacity="1"/>
+<text x="282" y="606.5" fill="#a3a5ab" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Connect it</text>
+<rect x="382" y="586" width="112" height="32" rx="16" fill="#18181b" stroke="#3a3a3a" stroke-width="1" />
+<circle cx="398" cy="602" r="4" fill="#e0de71" stroke="none" stroke-width="0" opacity="1"/>
+<text x="410" y="606.5" fill="#a3a5ab" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Ask of it</text>
+<rect x="502" y="586" width="112" height="32" rx="16" fill="#18181b" stroke="#3a3a3a" stroke-width="1" />
+<circle cx="518" cy="602" r="4" fill="#e9973f" stroke="none" stroke-width="0" opacity="1"/>
+<text x="530" y="606.5" fill="#a3a5ab" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Ground it</text>
+<rect x="622" y="586" width="120" height="32" rx="16" fill="#18181b" stroke="#3a3a3a" stroke-width="1" />
+<circle cx="638" cy="602" r="4" fill="#44cf6e" stroke="none" stroke-width="0" opacity="1"/>
+<text x="650" y="606.5" fill="#a3a5ab" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Move it on</text>
+<rect x="110" y="634" width="980" height="210" rx="12" fill="#1e1e22" stroke="#2e2e33" stroke-width="1.5" />
+<text x="130" y="668" fill="#dcddde" font-family="Georgia, serif" font-size="19" font-weight="400" text-anchor="start">Before you look: what is the strongest argument against this idea?</text>
+<text x="130" y="690" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Face its strongest counterpoint.</text>
+<rect x="130" y="704" width="940" height="80" rx="8" fill="#1c1c20" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="146" y="732" fill="#a3a5ab" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">Cramming works if the exam is tomorrow — and most of my reading is…</text>
+<rect x="130" y="798" width="150" height="30" rx="6" fill="#8a5cf5" stroke="#8a5cf5" stroke-width="1" />
+<text x="205.0" y="817.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Keep my answer</text>
+<rect x="290" y="798" width="230" height="30" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="405.0" y="817.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Show me what my notes say</text>
+<text x="1070" y="818" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end">Skippable. Nothing is written until you keep it.</text>
+<text x="110" y="882" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Today with this idea</text>
+<line x1="118" y1="892" x2="118" y2="924" stroke="#3a3a3a" stroke-width="2"/>
+<circle cx="118" cy="908" r="5" fill="#18181b" stroke="#8a5cf5" stroke-width="2" opacity="1"/>
+<text x="134" y="912" fill="#a3a5ab" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Linked Desirable difficulties</text>
+<rect x="110" y="937" width="34" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="127.0" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">1–5</text>
+<text x="150" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">a move</text>
+<rect x="207.2" y="937" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="216.2" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">→</text>
+<text x="231.2" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">another idea</text>
+<rect x="325.6" y="937" width="42" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="346.6" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">Ctrl</text>
+<rect x="371.6" y="937" width="50" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="396.6" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">Enter</text>
+<text x="427.6" y="950" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">keep your answer</text>
+</svg>

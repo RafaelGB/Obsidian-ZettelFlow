@@ -85,33 +85,48 @@ Where the canvas wizard and quick-capture serve **creation**, and the dashboards
 Cultivate serves the middle of the lifecycle — `DEVELOP → REVIEW → CONSOLIDATE` — that used to be
 passive. It doesn't just *tell* you what to do; it *walks you through doing it*.
 
-Cultivate is laid out as a **dashboard** (#620): the idea under cultivation is the one accent card,
-beside a *Notes by stage* card that is also the stage filter, and the five moves reflow as a grid of
-cards rather than a tall column. Like the rest of the Home surface it **fills the pane** — collapse
-Obsidian's side panels and the cards spread into two or three columns instead of a narrow centred
-strip. See [the surfaces page](../architecture/surfaces.md#a-dashboard-that-fills-the-pane-620).
+**One conversation with one idea (#706, epic #701).** Cultivate used to read like a form of metrics —
+a stage chart with emoji, a degree and a maturity number, a streak, and five moves as five cards at
+once. It reads like [Think](../architecture/thought-lab.md) now:
+
+- **The idea is the hero.** Its name, **what it claims** in the serif of an idea (you read the claim,
+  not a row of numbers), where it is on its way as a gentle stepper — *fleeting → literature →
+  permanent → developing → evergreen* — and the notes it lives near. The state chip is the door for
+  changing the state; *Say what this claims* and *Make a move…* sit quietly at its foot.
+- **One move at a time**, as pills in your words — **Challenge it · Connect it · Ask of it · Ground it
+  · Move it on** (keys **1–5**). The move you pick asks its question first, in Think's voice, and you
+  write before you see what your notes say ([ask before revealing](#ask-before-revealing)).
+- **Today with this idea** — a trail of what you kept: the counterpoint you wrote, the note you linked,
+  the pair you said is *not related*, the stage you moved it to. Another idea starts a fresh trail.
+- **Another idea** (→) is the one primary — moving on is what a visit is made of.
+
+![Cultivate as one conversation: the stage strip, the idea with its claim and lifecycle, one move asking first, and today's trail](../resources/home/cultivate.svg)
 
 ## Starting a session
 
-- **Home surface → Cultivate mode**, the **`Cultivate — start a thinking session`** command, or the
-  ribbon menu (🌱). Home offers **Cultivate without a purpose** alongside the own-material entry.
+- **Home surface → Cultivate mode**, the **`Cultivate — start a thinking session`** command, the
+  ribbon menu (🌱), or Home's **One idea to tend** (*Spend five minutes with it*), which opens
+  Cultivate on that idea.
 - ZettelFlow reviews your **most embryonic** ideas first (#589): the target is ordered by lifecycle
   stage — `fleeting → literature → permanent → developing → evergreen → archived` — and within a
   stage by how connected the note is, deterministically. You develop the rawest ideas first, so the
   review feels intentional rather than arbitrary. **Another idea** moves on to the next one in order.
 
-### Choosing a stage, and seeing the shape of your vault (#589)
+### Notes by stage: the filter, and how your vault is maturing (#589, #706)
 
-Above the target sits a **per-stage distribution** — one bar for every lifecycle stage, counting
-**every note in your vault** (evergreen and archived included), so you see the whole shape of your
-thinking at a glance. The bars are the **selector**: click one and Cultivate narrows the review to
-that stage; click **Any stage** to clear it. Each bar's magnitude comes from a level class, so the
-chart respects your theme rather than painting a fixed pixel width.
+Under the header sits **one strip**: your notes by lifecycle stage as a single bar, each stage's share
+as wide as its count, in your theme's colours, with the stage names and counts beneath. It is a quiet
+picture of how the vault is maturing — and it is the **filter**. Click a stage (the bar or its name)
+and Cultivate offers ideas from it, the stage glowing and the others dimmed; click it again and every
+stage comes back, youngest first. Counts are facts, never a score: no percentages, no "healthy".
+
+**From a question of mine…**, at the end of the strip, starts [purpose-led work](#start-with-your-own-material)
+— the inquiry that used to be this mode's primary button.
 
 The choice is **remembered** between sittings — it is a setting, `cultivateStage`, that ships with
 the control (you never hand-edit YAML for it), defaulting to *any stage*. When a chosen stage has no
-notes left, the selector and distribution stay on screen with a quiet *"No notes at this stage yet."*
-— never an empty surface you cannot get out of.
+notes left, the strip stays on screen with a quiet *"No notes at this stage yet."* — never an empty
+surface you cannot get out of.
 
 ### Peek at a note without leaving (#594)
 
@@ -130,11 +145,11 @@ Each move is a real, one-click operation on the target note — nothing is inven
 
 | Move | What it does | Reuses |
 |---|---|---|
-| **Connect** | link an unlinked note that shares this one's context | find-related (#154) |
-| **Challenge** | show its contradictions, or capture your own counterpoint | find-contradiction (#153) |
+| **Connect it** | link an unlinked note that shares this one's context | find-related (#154) |
+| **Challenge it** | show its contradictions, or capture your own counterpoint | find-contradiction (#153) |
 | **Question** | capture an open question it raises (a `question::` field) | inline fields (#153) |
 | **Advance** | move it to the next **lifecycle state** (validated transition) | state machine (#158) |
-| **Add a source** | ground it in a reference (`source` frontmatter) | sources (#155) |
+| **Ground it** | ground it in a reference (`source` frontmatter) | sources (#155) |
 
 The session **refines as you act**: after you link a note the connect list shrinks; after you advance
 the state the next one is proposed. The header shows the idea's **degree** and **maturity** — the
@@ -178,30 +193,34 @@ transforming it. So those three now ask a question before they reveal anything:
 
 | Move | It asks | Recorded when you answer |
 |---|---|---|
-| **Connect** | *What do you expect this idea to be related to?* | `confirmed` |
-| **Challenge** | *What is the strongest argument against this idea?* | `challenged` |
-| **Add a source** | *What evidence would you expect to find if this were true?* | `confirmed` |
+| **Connect it** | *What do you expect this idea to be related to?* | `confirmed` |
+| **Challenge it** | *What is the strongest argument against this idea?* | `challenged` |
+| **Ground it** | *What evidence would you expect to find if this were true?* | `confirmed` |
 
 **Question** and **advance** deliberately get none: a question already *is* your own thought, and
 advancing a lifecycle state is a decision you are already making. Friction goes only where the system
 would otherwise answer for you — that is what makes it *deliberate* rather than a confirmation dialog.
 
-**Reveal** needs something written — that is the commitment — and records the answer in the
-[judgement record](cognitive-agency.md). **Skip** reveals the move and records **nothing**: a skip is
-not a judgement, and you can always skip.
+**Keep my answer** (or **Ctrl/Cmd+Enter**) needs something written — that is the commitment — and
+records the answer in the [judgement record](cognitive-agency.md). **Show me what my notes say** reveals
+the move and records **nothing**: a skip is not a judgement, and you can always skip. The optional
+*how sure are you?* dropdown left with #706 — the answer is the commitment.
+
+**Not related** sits beside *Link* on every connection Connect suggests (#703): one click records that
+the two notes are not related — the same verdict the gaps on Home used to carry (#534) — writes nothing
+to the vault, and the pair is not suggested again.
 
 Nothing here writes to your note. On **challenge**, what you wrote pre-fills the existing counterpoint
 field so your thinking is not thrown away and you can still save it with one click; on the other two it
 stays ephemeral rather than adding note noise. A different idea is a different session, so the prompts
 come back.
 
-## Momentum
+## No streak, no metrics (#706)
 
-The session header shows a **streak** and the size of the cultivation queue. Since
-[#339](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/339) the streak counts **days you
-exercised judgement** — a verdict on an AI proposal, or an answered friction prompt — not days something
-happened in the vault. This describes recorded verdict days, not a measure of understanding. See
-[cognitive agency](cognitive-agency.md).
+The session header used to show a **streak** (days you exercised judgement) and the size of the
+cultivation queue, and the idea card a degree and a maturity number. All of it left with #706: a count
+of days is a score, and a number on the idea is a grade (§XII, [cognitive agency](cognitive-agency.md)).
+What you did today is in the trail, in words.
 
 ## Principles
 

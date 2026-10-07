@@ -268,7 +268,8 @@
     gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__home-question-chip {
+// `button.` so the chip outweighs Obsidian's `button:not(.clickable-icon)` paint (app.css, 1.14).
+button.zettelkasten-flow__home-question-chip {
     @include chip;
     @include chip-clickable;
     height: auto;

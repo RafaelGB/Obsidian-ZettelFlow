@@ -163,8 +163,13 @@
     transition: border-color 0.2s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+// Obsidian's own `button` centres its content and fixes its height (app.css, 1.14): a card that is
+// a button reads top to bottom, left-aligned, as tall as what it says.
 button.zettelkasten-flow__family-card:not(.clickable-icon) {
+    align-items: stretch;
+    justify-content: flex-start;
     height: auto;
+    background-color: var(--background-primary);
     box-shadow: none;
     text-align: left;
     white-space: normal;
@@ -172,6 +177,7 @@ button.zettelkasten-flow__family-card:not(.clickable-icon) {
 
     &:hover {
         border-color: var(--background-modifier-border-hover);
+        background-color: var(--background-primary);
         box-shadow: var(--shadow-s);
         transform: translateY(calc(-1 * var(--size-2-1)));
     }

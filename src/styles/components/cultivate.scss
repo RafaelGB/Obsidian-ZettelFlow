@@ -204,6 +204,7 @@ button.zettelkasten-flow__cultivate-strip-key,
 button.zettelkasten-flow__cultivate-strip-question {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-start;
     gap: var(--size-4-2);
     height: auto;
     padding: var(--size-2-1) var(--size-4-2);
@@ -408,7 +409,7 @@ button.zettelkasten-flow__cultivate-strip-question {
     margin-top: var(--size-4-4);
 }
 
-.zettelkasten-flow__cultivate-target-move {
+button.zettelkasten-flow__cultivate-target-move {
     height: auto;
     padding: var(--size-4-1) var(--size-4-2);
     border: none;
@@ -566,11 +567,12 @@ button.zettelkasten-flow__cultivate-pill {
     }
 }
 
-.zettelkasten-flow__cultivate-candidate-btn,
-.zettelkasten-flow__cultivate-candidate-verdict,
-.zettelkasten-flow__cultivate-advance-btn,
-.zettelkasten-flow__cultivate-advance-later,
-.zettelkasten-flow__cultivate-input-btn {
+// `button.` so these outweigh Obsidian's `button:not(.clickable-icon)` paint (app.css, 1.14).
+button.zettelkasten-flow__cultivate-candidate-btn,
+button.zettelkasten-flow__cultivate-candidate-verdict,
+button.zettelkasten-flow__cultivate-advance-btn,
+button.zettelkasten-flow__cultivate-advance-later,
+button.zettelkasten-flow__cultivate-input-btn {
     flex-shrink: 0;
     height: auto;
     padding: var(--size-4-1) var(--size-4-3);
@@ -589,8 +591,8 @@ button.zettelkasten-flow__cultivate-pill {
     }
 }
 
-.zettelkasten-flow__cultivate-candidate-verdict,
-.zettelkasten-flow__cultivate-advance-later {
+button.zettelkasten-flow__cultivate-candidate-verdict,
+button.zettelkasten-flow__cultivate-advance-later {
     border-color: transparent;
 }
 

@@ -1,14 +1,14 @@
-import { Notice, type SearchComponent, type Setting, type SettingDefinitionItem, type SettingGroupItem } from "obsidian";
+import { Notice, type Setting, type SettingDefinitionItem, type SettingGroupItem } from "obsidian";
 import type ZettelFlow from "main";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { FolderSuggest } from "architecture/settings";
 import { fnsManager, writeTypeDeclarations } from "architecture/api";
 import { flowFolders, validateFlowFolders } from "architecture/plugin/canvas/flowRole";
 import { DEFAULT_SETTINGS } from "config/typing";
 import type { ZettelFlowSettings } from "config/typing";
 import { controlContainer } from "architecture/components/settings/settingContainer";
 import { speedSettingsItems } from "./speedSettingsItems";
+import { addFolderField } from "./folderField";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -87,12 +87,6 @@ export function acceptFolder(plugin: ZettelFlow, cell: FolderCell, value: string
 }
 
 /**
- * How long a blur waits before it commits: a click on a folder suggestion blurs the field first, and
- * the choice must win over the half-typed text it replaces.
- */
-const BLUR_COMMIT_MS = 200;
-
-/**
  * One cell of the grid: a folder suggest, and a reset that puts the default back in the field.
  *
  * A path is committed when you leave the field, press Enter or pick a suggestion — never per
@@ -106,44 +100,21 @@ function folderItem(plugin: ZettelFlow, cell: FolderCell): SettingGroupItem {
         desc: t(cell.descKey),
         render: (setting: Setting) => {
             setting.settingEl.addClass(c("settings-folder-cell"));
-            let search: SearchComponent | null = null;
-            let pendingBlur: number | null = null;
-            const commit = async (raw: string): Promise<void> => {
-                if (pendingBlur !== null) window.clearTimeout(pendingBlur);
-                pendingBlur = null;
-                const value = raw.trim();
-                if (value === cell.read(plugin.settings)) return;
-                if (!acceptFolder(plugin, cell, value)) {
-                    // Refused once, said once (the notice), and the field shows what is kept.
-                    search?.setValue(cell.read(plugin.settings));
-                    return;
-                }
-                await plugin.saveSettings();
-                cell.after?.();
-            };
-            setting.addSearch((cb) => {
-                search = cb;
-                new FolderSuggest(cb.inputEl, (path) => void commit(path));
-                cb.setPlaceholder(cell.fallback || t("scripts_folder_selector_placeholder")).setValue(
-                    cell.read(plugin.settings)
-                );
-                cb.inputEl.addEventListener("blur", () => {
-                    if (pendingBlur !== null) window.clearTimeout(pendingBlur);
-                    pendingBlur = window.setTimeout(() => void commit(cb.getValue()), BLUR_COMMIT_MS);
-                });
-                cb.inputEl.addEventListener("keydown", (event: KeyboardEvent) => {
-                    if (event.key === "Enter" && !event.isComposing) void commit(cb.getValue());
-                });
+            const commit = addFolderField(setting, {
+                read: () => cell.read(plugin.settings),
+                accept: (value) => acceptFolder(plugin, cell, value),
+                saved: async () => {
+                    await plugin.saveSettings();
+                    cell.after?.();
+                },
+                placeholder: cell.fallback || t("scripts_folder_selector_placeholder"),
             });
             setting.addExtraButton((button) =>
                 button
                     .setIcon("rotate-ccw")
                     .setTooltip(t("reset_to_default"))
-                    .onClick(async () => {
-                        // The reset obeys the same rule: a default that overlaps another home is refused.
-                        search?.setValue(cell.fallback);
-                        await commit(cell.fallback);
-                    })
+                    // The reset obeys the same rule: a default that overlaps another home is refused.
+                    .onClick(() => commit(cell.fallback))
             );
         },
     };

@@ -1,285 +1,362 @@
-// Home — the minimalist dashboard (#620).
-//
-// Home used to be one tall column of ~15 narrative blocks; on a wide pane it was sparse across and
-// overloaded down. It is a dashboard now: a header strip, three hero tiles that reflow with the
-// pane (the shared `dashboard` + `dashboard-grid` primitives), and everything else folded behind one
-// disclosure. The look stays Obsidian's — theme surfaces, one accent on the single tile that leads.
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
 
-// ── header strip: greeting + the one primary + the fixed Ask-your-graph door ──
-.zettelkasten-flow__home-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--size-4-4);
-    margin-bottom: var(--size-4-6);
+// Home — the place you land (#703, epic #701).
+//
+// It was a dashboard of tiles (#620); it is a page in Think's family now: a greeting for the moment
+// of day, the composer, where you left off, what came back today, one idea to tend and your
+// questions. The page, the eyebrow, the composer and the card are the family's (`family.scss`);
+// what is here is only what Home alone draws. Theme variables only (§XV).
+
+/* ── the greeting ───────────────────────────────────────────────────────── */
+.zettelkasten-flow__home-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
+    gap: var(--size-4-8);
+    align-items: end;
 }
 
-.zettelkasten-flow__home-greet {
+.zettelkasten-flow__home-top:has(> :only-child) {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.zettelkasten-flow__home-hello {
+    margin: 0 0 var(--size-4-1);
+    font-family: var(--font-text);
+    font-size: var(--h1-size);
+    font-weight: var(--font-medium);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+.zettelkasten-flow__home-hello-sub {
+    margin: 0 0 var(--size-4-6);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__home-status {
+    @include hint;
+    margin-top: var(--size-4-6);
+}
+
+/* ── a section ──────────────────────────────────────────────────────────── */
+.zettelkasten-flow__home-section {
+    margin-top: var(--size-4-8);
+}
+
+.zettelkasten-flow__home-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__home-card {
+    min-height: 7rem;
+    width: 100%;
+}
+
+.zettelkasten-flow__home-card-kind {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__home-card-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__home-card-title {
+    color: var(--text-normal);
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__home-card-line {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    line-height: 1.45;
+}
+
+.zettelkasten-flow__home-card-meter {
+    display: block;
+    height: var(--size-2-2);
+    margin-top: auto;
+    overflow: hidden;
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__home-card-meter-fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--zf-progress, 0) * 100%);
+    border-radius: var(--radius-s);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* ── came back today: one quiet stack ───────────────────────────────────── */
+.zettelkasten-flow__home-stack {
+    position: relative;
+    padding-bottom: var(--size-4-5);
+}
+
+.zettelkasten-flow__home-stack-card {
+    // The review cards mounted here read the Reader's palette (#678); the page's own theme.
+    @include reader-palette;
+    position: relative;
+    z-index: 3;
+    box-shadow: var(--shadow-s);
+    animation: zf-home-stack-in 0.4s ease-out both;
+}
+
+// The cards behind peek out under the top one — the depth of the stack, never a number.
+.zettelkasten-flow__home-stack-ghost {
+    position: absolute;
+    left: var(--size-4-3);
+    right: var(--size-4-3);
+    bottom: var(--size-4-2);
+    height: var(--size-4-8);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__home-stack-ghost--1 {
+    z-index: 2;
+    opacity: 0.75;
+}
+
+.zettelkasten-flow__home-stack-ghost--2 {
+    z-index: 1;
+    left: var(--size-4-6);
+    right: var(--size-4-6);
+    bottom: 0;
+    opacity: 0.45;
+}
+
+@keyframes zf-home-stack-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-2)) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__home-stack-from {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__home-stack-from-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__home-stack-quote {
+    margin: var(--size-4-1) 0;
+    padding-left: var(--size-4-3);
+    border-left: var(--size-2-2) solid var(--interactive-accent);
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__home-stack-mine {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__home-stack-answers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+// The review cards are mounted in the stack card, which already is the frame — no second box.
+.zettelkasten-flow__home-stack-card .zettelkasten-flow__review-card {
+    padding: var(--size-4-2) 0 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.zettelkasten-flow__home-stack-done {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-3) var(--size-4-1);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__home-stack-done-icon {
+    display: inline-flex;
+    color: var(--color-green);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__home-stack-card {
+        animation: none;
+    }
+}
+
+/* ── one idea to tend ───────────────────────────────────────────────────── */
+.zettelkasten-flow__home-invite {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--size-4-4);
+    align-items: center;
+    padding: var(--size-4-4);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background: linear-gradient(120deg, color-mix(in srgb, var(--interactive-accent) 12%, transparent), transparent 55%), var(--background-primary);
+}
+
+.zettelkasten-flow__home-invite-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-4-12);
+    height: var(--size-4-12);
+    border-radius: var(--radius-l);
+    background-color: var(--background-modifier-hover);
+    color: var(--color-green);
+}
+
+.zettelkasten-flow__home-invite-text {
+    font-size: var(--font-ui-large);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__home-invite-words {
     display: flex;
     flex-direction: column;
     gap: var(--size-4-1);
     min-width: 0;
 }
 
-.zettelkasten-flow__home-title {
-    margin: 0;
-    font-size: var(--font-ui-larger);
-    font-weight: var(--font-bold);
-    color: var(--text-normal);
-}
-
-.zettelkasten-flow__home-thinking-days {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
-}
-
-.zettelkasten-flow__home-header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--size-4-2);
-    flex-shrink: 0;
-}
-
-.zettelkasten-flow__home-status {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    padding: var(--size-4-2) 0;
-}
-
-// ── the hero tiles: one decision each, one of them wearing the accent ──
-.zettelkasten-flow__home-tile-eyebrow {
-    font-size: var(--font-ui-smaller);
-    font-weight: var(--font-semibold);
-    color: var(--text-muted);
-}
-
-// In the one accent tile the eyebrow carries the accent too, so "this leads" is legible at a glance.
-.zettelkasten-flow__dashboard-card--hero .zettelkasten-flow__home-tile-eyebrow {
-    color: var(--interactive-accent);
-}
-
-.zettelkasten-flow__home-tile-sub {
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
-    line-height: 1.45;
-}
-
-.zettelkasten-flow__home-tile button {
-    align-self: flex-start;
-    cursor: pointer;
-}
-
-// ── the fold: everything the dashboard does not lead with ──
-.zettelkasten-flow__home-fold {
-    display: flex;
-    align-items: center;
-    gap: var(--size-4-2);
-    margin-top: var(--size-4-6);
-    padding-top: var(--size-4-4);
-    border-top: var(--border-width) solid var(--background-modifier-border);
-}
-
-.zettelkasten-flow__home-fold-toggle {
+.zettelkasten-flow__home-invite button.mod-cta {
     display: inline-flex;
     align-items: center;
     gap: var(--size-4-2);
-    padding: var(--size-4-1) 0;
-    background: transparent;
-    border: none;
+}
+
+.zettelkasten-flow__home-invite-go {
+    display: inline-flex;
+}
+
+/* ── your questions ─────────────────────────────────────────────────────── */
+.zettelkasten-flow__home-questions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+// `button.` so the chip outweighs Obsidian's `button:not(.clickable-icon)` paint (app.css, 1.14).
+button.zettelkasten-flow__home-question-chip {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
     box-shadow: none;
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
-    font-weight: var(--font-semibold);
-    cursor: pointer;
-
-    &:hover {
-        color: var(--text-normal);
-    }
 }
 
-.zettelkasten-flow__home-fold-chevron {
-    display: inline-flex;
-    transition: transform 150ms ease;
-
-    .svg-icon {
-        width: 1em;
-        height: 1em;
-    }
+.zettelkasten-flow__home-question-count {
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
 }
 
-.zettelkasten-flow__home-fold.is-open .zettelkasten-flow__home-fold-chevron {
-    transform: rotate(90deg);
-}
-
-.zettelkasten-flow__home-more {
-    margin-top: var(--size-4-4);
-}
-
-// Inside the fold the grid gap owns the spacing, so a section does not add its own margin on top.
-.zettelkasten-flow__home-more .zettelkasten-flow__home-section {
-    margin-bottom: 0;
-}
-
-// The 3D-graph teaser (#285 S2) — the eye-catching hook, now one card in the fold.
-.zettelkasten-flow__home-graph-teaser {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.9rem 1rem;
-    border-radius: var(--radius-m);
-    /* The theme's own surface: the hardcoded gradient broke every light theme (#472 follow-up). */
-    color: var(--text-normal);
-    background: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-left: 3px solid var(--interactive-accent);
-}
-
-.zettelkasten-flow__home-graph-teaser-title {
-    font-weight: var(--font-bold);
-    font-size: var(--font-ui-medium);
-}
-
-.zettelkasten-flow__home-graph-teaser-sub {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__home-graph-teaser-btn {
-    align-self: flex-start;
-    margin-top: 0.25rem;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    cursor: pointer;
-}
-
-// Growth nudge (#285 S4): fleeting notes waiting to be developed; and the unfinished-note nudge.
+/* ── an unfinished note ─────────────────────────────────────────────────── */
 .zettelkasten-flow__home-nudge {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.75rem;
-    border-radius: var(--radius-m);
-    background-color: var(--background-secondary-alt);
-    border-left: 3px solid var(--interactive-accent);
-}
-
-.zettelkasten-flow__home-nudge-text {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-normal);
-    font-weight: var(--font-semibold);
-}
-
-.zettelkasten-flow__home-nudge-cta {
-    margin-left: auto;
-    cursor: pointer;
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__home-section {
-    margin-bottom: 0.75rem;
-}
-
-.zettelkasten-flow__home-section-title {
-    margin: 0 0 0.25rem;
-    font-size: var(--font-ui-small);
-    color: var(--text-normal);
-}
-
-.zettelkasten-flow__home-section-empty {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-faint);
-    font-style: italic;
-}
-
-.zettelkasten-flow__home-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    padding-left: 0.75rem;
-    border-left: 2px solid var(--background-modifier-border);
-}
-
-.zettelkasten-flow__home-row,
-.zettelkasten-flow__home-connection {
-    padding: 0.1rem 0;
-    font-size: var(--font-ui-smaller);
-}
-
-// The verdict on a gap (#534): quiet until you look at the row, and built out of Obsidian's own
-// button variables so it reads as a button in whatever theme you use (XV).
-.zettelkasten-flow__home-gap-verdict {
-    margin-left: var(--size-4-2);
-    padding: 0 var(--size-4-2);
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
-    background-color: transparent;
-    box-shadow: none;
-}
-
-.zettelkasten-flow__home-connection:hover .zettelkasten-flow__home-gap-verdict,
-.zettelkasten-flow__home-gap-verdict:focus-visible {
-    color: var(--text-normal);
-    background-color: var(--background-modifier-hover);
-}
-
-.zettelkasten-flow__home-connection-sep {
-    color: var(--text-faint);
-}
-
-.zettelkasten-flow__home-note-name {
-    cursor: pointer;
-    color: var(--text-accent);
-}
-
-.zettelkasten-flow__home-note-name:hover {
-    text-decoration: underline;
-}
-
-// "What to do next" recommendation rows (#273), now inside the hero tile.
-.zettelkasten-flow__home-recommendation {
-    display: flex;
-    flex-wrap: wrap;
     gap: var(--size-4-2);
-    align-items: baseline;
-    padding: var(--size-2-1) 0;
-
-    .zettelkasten-flow__home-recommendation-reason {
-        font-weight: var(--font-semibold);
-        color: var(--text-accent);
-    }
-}
-
-.zettelkasten-flow__home-recommendation-clear {
+    margin-top: var(--size-4-4);
     color: var(--text-muted);
-    font-style: italic;
-    padding: var(--size-2-1) 0;
+    font-size: var(--font-ui-small);
 }
 
-// Pinned "ask your graph" queries (#323 G4): a live "N notes match …" card per pinned query.
-.zettelkasten-flow__home-pinned-query {
+/* ── the vault glimpse ──────────────────────────────────────────────────── */
+.zettelkasten-flow__home-glimpse-slot {
+    align-self: stretch;
     display: flex;
-    align-items: baseline;
-    padding: var(--size-2-1) 0;
 }
 
-.zettelkasten-flow__home-pinned-query-label {
+button.zettelkasten-flow__home-glimpse {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 9rem;
+    padding: 0;
+    overflow: hidden;
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: var(--background-primary-alt);
+    box-shadow: none;
     cursor: pointer;
-    color: var(--text-accent);
+    transition: border-color 0.2s ease, transform 0.3s ease;
 
     &:hover {
-        text-decoration: underline;
+        border-color: var(--background-modifier-border-hover);
+        background-color: var(--background-primary-alt);
+        transform: translateY(calc(-1 * var(--size-2-1)));
     }
 }
 
-// Something you wrote is ready to be looked at again (#563), now the third hero tile.
-.zettelkasten-flow__home-claim-return-title {
-    font-weight: var(--font-semibold);
+.zettelkasten-flow__home-glimpse-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
 }
 
-.zettelkasten-flow__home-claim-return-when {
+.zettelkasten-flow__home-glimpse-caption {
+    position: absolute;
+    left: var(--size-4-3);
+    right: var(--size-4-3);
+    bottom: var(--size-4-2);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--size-4-2);
     color: var(--text-muted);
     font-size: var(--font-ui-smaller);
+    pointer-events: none;
+}
+
+.zettelkasten-flow__home-glimpse-go {
+    color: var(--text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button.zettelkasten-flow__home-glimpse:hover {
+        transform: none;
+    }
+}
+
+@container (max-width: 34rem) {
+    .zettelkasten-flow__home-top,
+    .zettelkasten-flow__home-invite {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .zettelkasten-flow__home-hello {
+        font-size: var(--h2-size);
+    }
 }

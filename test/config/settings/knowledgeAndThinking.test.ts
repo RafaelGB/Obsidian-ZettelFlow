@@ -103,7 +103,7 @@ describe("the cultivate moves as a grid (#662)", () => {
         const intro = draw(items[0]);
         expect(intro.descEl.byClass("settings-moves-count")[0].textContent).toBe("5 of 5 are on");
 
-        const challenge = draw(byName(items, "Challenge"));
+        const challenge = draw(byName(items, "Challenge it"));
         expect(challenge.settingEl.hasClass("zettelkasten-flow__settings-tile")).toBe(true);
         challenge.toggles[0].flip(false);
         expect(p.settings.cultivateMoves).toEqual(["connect", "question", "advance", "source"]);
@@ -115,7 +115,7 @@ describe("the cultivate moves as a grid (#662)", () => {
         const p = plugin({ cultivateMoves: ["question", "source"] });
         const items = itemsOf(movesSettingsGroup(p as never));
         draw(items[0]);
-        draw(byName(items, "Connect")).toggles[0].flip(true);
+        draw(byName(items, "Connect it")).toggles[0].flip(true);
         expect(p.settings.cultivateMoves).toEqual(["connect", "question", "source"]);
     });
 

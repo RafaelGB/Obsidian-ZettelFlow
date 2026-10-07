@@ -26,6 +26,11 @@ export interface ReviewDeps {
     toNote(thought: Thought, done: (path?: string) => void): void;
     close(): void;
     now(): number;
+    /**
+     * Told when the last card is answered, instead of drawing the end card — Home's *came back
+     * today* stack (#704) moves on to what is next rather than ending inside the stack.
+     */
+    onEnd?(): void;
 }
 
 /** The five things you can do with a card, in the order of their keys. */
@@ -222,6 +227,10 @@ export class ReviewCards extends Component {
 
         const card = this.current();
         if (!card) {
+            if (this.deps.onEnd) {
+                this.deps.onEnd();
+                return;
+            }
             this.renderEnd(root, scope);
             return;
         }

@@ -22,6 +22,16 @@ impulse → thought → idea → knowledge
 
 The Lab is the first arrow.
 
+
+**In the family (#707, epic #701).** Think is the mode the other two learned from: writing comes first,
+it speaks in a human voice, and it is one calm stream. Home and Cultivate now share its shape — the same
+mode bar, the same composer frame (Home writes into Think from its own page), serif for what you think,
+and the same quiet hints. Think itself gained the family's composer frame and a marked passage reads as
+a quote with an accent edge. **Throw away** (Shift+D) sends a thought to the Obsidian trash with an
+inline *Put it back*; **Set aside** never deletes — it only takes a thought out of your way.
+
+![Think, in the family: the composer, the find bar beside the calendar, thoughts by day with their verbs, a marked passage and an undo for a thought thrown away](../resources/home/think.svg)
+
 ## A thought asks for nothing
 
 | A note | A thought |

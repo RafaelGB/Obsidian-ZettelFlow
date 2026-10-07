@@ -89,7 +89,8 @@ const RETIRED_TARGETS: Record<string, LegacyTarget> = {
     // note you had open, and each half already had somewhere to be.
     "zettelflow-discovery": HOME,
     "zettelflow-discoveries": HOME,
-    "zettelflow-open-questions": HOME,
+    // The questions left Home with its sections (#703); Explore asks them as a suggested question.
+    "zettelflow-open-questions": { surface: "zettelflow-explore", mode: "explore", lens: undefined },
     "zettelflow-resurface": THIS_NOTE,
     "zettelflow-evidence-map": THIS_NOTE,
 };
@@ -112,7 +113,7 @@ export const RELOCATED_MODES: Record<string, LegacyTarget> = {
     "zettelflow-discovery:ask": { surface: "zettelflow-explore", mode: "explore", lens: undefined },
     // The four modes of the dissolved surface (#504), for a workspace saved before it went.
     "zettelflow-discovery:connections": HOME,
-    "zettelflow-discovery:questions": HOME,
+    "zettelflow-discovery:questions": { surface: "zettelflow-explore", mode: "explore", lens: undefined },
     "zettelflow-discovery:forgotten": THIS_NOTE,
     "zettelflow-discovery:challenges": THIS_NOTE,
 };

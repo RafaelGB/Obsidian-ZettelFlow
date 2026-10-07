@@ -13,7 +13,7 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
  */
 const CONTINUOUS_PATH = [
     "src/architecture/components/core/home/HomeModeRenderer.ts",
-    "src/architecture/components/core/home/homeRecommendations.ts",
+    "src/architecture/components/core/home/homeResume.ts",
     "src/architecture/knowledge/state/recommendation.ts",
     "src/architecture/knowledge/discovery/discoveries.ts",
     "src/architecture/knowledge/home/home.ts",

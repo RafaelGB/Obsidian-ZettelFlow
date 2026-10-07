@@ -49,17 +49,19 @@
 
 /* ── the composer: the only thing with any emphasis ───────────────────────── */
 
+// The family's composer (#707, epic #701): the same frame Home writes into — one shape for writing,
+// so the box you type a thought into looks the same wherever you meet it.
 .zettelkasten-flow__lab-composer {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 10px;
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-l);
     background: var(--background-primary-alt);
-    padding: 16px 18px 10px;
-    margin-bottom: 20px;
-    transition: border-color 140ms ease, box-shadow 140ms ease;
+    padding: var(--size-4-3) var(--size-4-4) var(--size-4-2);
+    margin-bottom: var(--size-4-5);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus-within {
         border-color: var(--interactive-accent);
-        box-shadow: 0 0 0 3px var(--background-modifier-border);
+        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--interactive-accent) 18%, transparent);
     }
 }
 
@@ -194,6 +196,7 @@
 /* Room to think in: the composer is a page, not an input. */
 .zettelkasten-flow__lab-composer-text {
     min-height: 7em;
+    font-family: var(--font-text);
     font-size: var(--font-text-size, var(--font-ui-medium));
     line-height: 1.7;
 }
@@ -964,12 +967,13 @@
     margin-bottom: var(--size-4-2);
 }
 
+// A passage you marked reads as a quote with an accent edge (#707) — the way Home's stack sets it.
 .zettelkasten-flow__lab-quote-text {
     margin: 0;
     padding-left: var(--size-4-3);
-    border-left: var(--size-2-1) solid var(--text-highlight-bg);
+    border-left: var(--size-2-2) solid var(--color-orange);
     color: var(--text-muted);
-    font-style: italic;
+    font-family: var(--font-text);
 }
 
 .zettelkasten-flow__lab-quote-meta {

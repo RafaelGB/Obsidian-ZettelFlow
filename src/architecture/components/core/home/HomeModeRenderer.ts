@@ -1,71 +1,89 @@
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
-import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
-import { App, setIcon } from "obsidian";
+import { App, TFile, moment as obsidianMoment, setIcon } from "obsidian";
+import type MomentFn from "moment";
 import { c, log, ObsidianApi } from "architecture";
 import { t, tCount } from "architecture/lang";
-import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
-import { runCommand } from "architecture/components/core/surface/runCommand";
-import { activateSurface, DevelopmentJournal } from "architecture/plugin";
+import { activateSurface } from "architecture/plugin";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
-import { KnowledgeIndex } from "architecture/knowledge";
+import { KnowledgeIndex, STATE_LABEL_KEY, type KnowledgeModel } from "architecture/knowledge";
 import {
-    HomeModel,
-    buildHome,
     runGraphQuery,
     dueClaims,
-    claimBearingPaths,
+    selectCultivationTarget,
     type DueClaim,
 } from "architecture/knowledge/state";
-import type { KnowledgeRecommendation } from "architecture/knowledge/state";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
+import { runCommand } from "architecture/components/core/surface/runCommand";
 import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
-import { topRecommendations, isAllCaughtUp, REASON_LABEL_KEYS } from "architecture/components/core/home/homeRecommendations";
 import { pinnedQueries, savedQueryLabel } from "architecture/components/core/askGraph/savedQueries";
 import { lastReviewedOf } from "architecture/plugin/claims/lastReviewedOf";
 import { wagersOf } from "architecture/plugin/claims/wagersOf";
-import { openReturn } from "starters/zcomponents/ClaimReturnComponent";
-import { normalizeSaved } from "architecture/components/core/reader/readerSaved";
-import { openSavedReading } from "architecture/components/core/reader/readingChooser";
+import { openReader } from "architecture/components/core/reader/openReader";
+import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { openReview } from "architecture/components/core/review/ReviewModal";
+import { familyPage, eyebrow, keyHints } from "architecture/components/core/family/family";
+import { renderComposer, type Composer } from "architecture/components/core/family/ThoughtComposer";
+import { readingInProgress, type ReadingInProgress } from "./homeResume";
+import { CameBackStack } from "./CameBackStack";
+import { HomeGlimpse } from "./HomeGlimpse";
+import type { Thought } from "application/thinking/thought";
+
+const moment = obsidianMoment as unknown as typeof MomentFn;
 
 /** A pinned "ask your graph" query resolved against the current model (#323 G4). */
 type PinnedQueryCard = { label: string; query: string; count: number };
 
+/** The one idea Home invites you to tend (#703): its path, and what it says when it says anything. */
+type IdeaToTend = { path: string; title: string; claim: string | null; stateKey: string | null; created: number };
+
 const DEBOUNCE_MS = 400;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 type ViewState = "indexing" | "ready" | "empty" | "error";
 type LocaleKey = Parameters<typeof t>[0];
-
-/** A month and a year, in the reader's locale. Never a count of days (#563). */
-function when(at: number): string {
-    return new Date(at).toLocaleDateString(undefined, { month: "long", year: "numeric" });
-}
 
 function basename(path: string): string {
     const file = path.split("/").pop() ?? path;
     return file.replace(/\.md$/i, "");
 }
 
+/** The moment of the day, in words — the greeting, never a counter (#703). */
+export function greetingKey(hour: number): LocaleKey {
+    if (hour < 6) return "home_greet_night";
+    if (hour < 12) return "home_greet_morning";
+    if (hour < 19) return "home_greet_afternoon";
+    return "home_greet_evening";
+}
+
 /**
- * The **Home** mode of the Home surface (#272, formerly `ZettelFlowHomeView`, #172): the narrative
- * front door — greeting, thinking days, new ideas, main concepts, review-due, suggested connections
- * and the next session. Composes the pure {@link buildHome}. Read-only; render byte-identical.
+ * The **Home** mode of the Home surface (#703, epic #701): the place you land when Obsidian opens.
+ *
+ * It used to be a dashboard of tiles — a counter of thinking days, a "what to do next" list, three
+ * eyebrow tiles and nine more sections behind *Show everything*. It is a page now, in Think's
+ * family: a greeting for the moment of day with one plain fact, Think's composer right there, where
+ * you left off, what came back today, one idea to tend, and your questions. The rest has a better
+ * home — Explore's suggested questions and Health › Tend — and keeps its door there.
+ *
+ * Read-only, except the composer, which writes a thought (never a note).
  */
 export class HomeModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
-    private home: HomeModel | null = null;
-    private recommendations: KnowledgeRecommendation[] = [];
     private pinnedCards: PinnedQueryCard[] = [];
     /** The one claim ready to be looked at again, or nothing at all (#563). */
     private claimReturn: DueClaim | null = null;
-    /** Whether this vault says anything yet. Decides between one quiet line and silence (#565). */
-    private claimsExist = false;
     /** Whether something you marked in the Reader is due a second look today (#678). */
     private highlightsDue = false;
-    /** The fold is closed on arrival (#620, minimalist): three tiles lead, the rest waits behind
-     *  one disclosure. The choice survives a recompute so a background change never closes it. */
-    private showEverything = false;
+    /** One plain fact for the greeting: what you wrote this week (#703). */
+    private notesThisWeek = 0;
+    private thoughtsThisWeek = 0;
+    private idea: IdeaToTend | null = null;
+    private lastNote: string | null = null;
+    private reading: ReadingInProgress | null = null;
+    private lastThought: Thought | undefined;
+    private composer: Composer | undefined;
+    private stack: CameBackStack | undefined;
+    private glimpse: HomeGlimpse | undefined;
+    private model: KnowledgeModel | null = null;
     private debounceTimer: number | undefined;
 
     constructor(container: HTMLElement, private readonly app: App) {
@@ -87,9 +105,9 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             window.clearTimeout(this.debounceTimer);
             this.debounceTimer = window.setTimeout(() => this.recompute(), DEBOUNCE_MS);
         };
-        // Continuous discovery (#365, D5): every vault change re-runs the heuristic recommendations and
-        // suggested connections — a note you just saved can surface a connection before you look for it.
-        // `create` is explicit so a brand-new note triggers a pass without waiting on metadata resolution.
+        // Continuous (#365, D5): every vault change re-reads what Home says — it updates itself,
+        // which is why the Refresh button left (#703). `create` is explicit so a brand-new note
+        // triggers a pass without waiting on metadata resolution.
         this.registerEvent(this.app.metadataCache.on("resolved", debounced));
         this.registerEvent(this.app.vault.on("create", debounced));
         this.registerEvent(this.app.vault.on("rename", debounced));
@@ -97,36 +115,33 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     }
 
     private recompute(): void {
+        const store = ThoughtStore.getInstance();
         // Think is not the index: what you marked can come back while the graph is still indexing.
-        this.highlightsDue = ThoughtStore.getInstance().anyHighlightDue();
+        this.highlightsDue = store.anyHighlightDue();
+        const now = Date.now();
+        this.thoughtsThisWeek = store.countSince(now - WEEK_MS);
+        const settings = ObsidianApi.getOwnPlugin()?.settings;
+        this.reading = readingInProgress(settings);
         try {
             const index = KnowledgeIndex.getInstance();
             if (index.status !== "ready") {
                 this.state = "indexing";
-                this.home = null;
-                this.pinnedCards = [];
-                this.claimReturn = null;
-                this.claimsExist = false;
+                this.resetModel();
                 this.render();
                 return;
             }
             const model = index.getModel();
-            const counts = DevelopmentJournal.getInstance().dailyCounts();
-            const thinkingDays = Object.values(counts).filter((count) => count > 0).length;
-            // One read of the judgement record per recompute (#534), shared by the gaps section and
-            // the recommendations: two reads could disagree about what you have ruled out.
+            this.model = model;
             const judgements = JudgementLog.getInstance().entries();
-            this.home = buildHome(model, { thinkingDays, now: Date.now(), judgements });
-            this.recommendations = topRecommendations(model, undefined, judgements);
-            // Pinned "ask your graph" queries (#323 G4): resolve each against the live model so Home
-            // shows a current "N notes match …" card that deep-links back into the query.
-            this.pinnedCards = pinnedQueries(ObsidianApi.getOwnPlugin()?.settings.savedGraphQueries).map((entry) => {
+            this.notesThisWeek = model.all().filter((idea) => idea.created >= now - WEEK_MS).length;
+            this.lastNote = this.findLastNote((path) => Boolean(model.get(path)));
+            // Pinned "ask your graph" queries (#323 G4): each resolved against the live model, a chip
+            // that opens Explore asking it again.
+            this.pinnedCards = pinnedQueries(settings?.savedGraphQueries).map((entry) => {
                 const result = runGraphQuery(model, entry.query);
                 return { label: savedQueryLabel(entry), query: entry.query, count: result.error ? 0 : result.matches.length };
             });
             // At most one, and only past the interval you chose. Nothing accumulates here (#563).
-            const settings = ObsidianApi.getOwnPlugin()?.settings;
-            this.claimsExist = claimBearingPaths(model).length > 0;
             this.claimReturn = settings
                 ? dueClaims({
                       model,
@@ -135,253 +150,294 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                       lastReviewed: lastReviewedOf(model, settings.lifecycle?.lastReviewedProperty),
                       horizons: wagersOf(model),
                       intervalDays: settings.returnIntervalDays,
-                      now: Date.now(),
+                      now,
                   })[0] ?? null
+                : null;
+            // One invitation, not a list (#703): the idea Cultivate would offer first.
+            const target = selectCultivationTarget(model);
+            const idea = target ? model.get(target) : undefined;
+            this.idea = idea
+                ? {
+                      path: idea.path,
+                      title: idea.title || basename(idea.path),
+                      claim: idea.claims.find((claim) => claim.text.trim())?.text.trim() ?? null,
+                      stateKey: (STATE_LABEL_KEY as Record<string, string>)[idea.state] ?? null,
+                      created: idea.created,
+                  }
                 : null;
             this.state = model.size() === 0 ? "empty" : "ready";
         } catch (error) {
             this.state = "error";
-            // The hero tiles are drawn before the state gate now (#620), so a failed recompute must
-            // not leave the Return tile showing a claim from the last good pass — reset like indexing.
-            this.home = null;
-            this.recommendations = [];
-            this.pinnedCards = [];
-            this.claimReturn = null;
-            this.claimsExist = false;
+            // Reset like indexing, so a failed pass never leaves a claim from the last good one.
+            this.resetModel();
             log.error(`[ZettelFlowHome] recompute failed: ${error instanceof Error ? error.message : "unknown error"}`);
         }
         this.render();
+        void this.readLastThought();
+    }
+
+    private resetModel(): void {
+        this.pinnedCards = [];
+        this.claimReturn = null;
+        this.idea = null;
+        this.model = null;
+        this.notesThisWeek = 0;
+        this.lastNote = null;
+    }
+
+    /** The last thought is the one read that needs a file; it fills its card when it arrives. */
+    private async readLastThought(): Promise<void> {
+        const thought = await ThoughtStore.getInstance().latest();
+        if (thought?.id === this.lastThought?.id) return;
+        this.lastThought = thought;
+        if (this.state === "ready") this.render();
+    }
+
+    /** The note you were in last that this vault's model knows — Obsidian keeps the list. */
+    private findLastNote(known: (path: string) => boolean): string | null {
+        const recent = this.app.workspace.getLastOpenFiles?.() ?? [];
+        return recent.find((path) => path.toLowerCase().endsWith(".md") && known(path)) ?? null;
     }
 
     private render(): void {
         const host = this.container;
+        // Typing is never interrupted by a background redraw.
+        const writing = this.composer?.area.value ?? "";
+        const hadFocus = this.composer?.area.ownerDocument?.activeElement === this.composer?.area;
         host.empty();
-        // The dashboard root fills the pane (#620): collapsing Obsidian's side panels now widens the
-        // content instead of the margins, and the hero grid reflows into its columns.
-        const container = host.createDiv({ cls: `${c("dashboard")} ${c("home")}` });
+        const page = familyPage(host, "home");
 
-        // ── header strip: who you are, the one thing to do, and the door you reach from here ──
-        const header = container.createDiv({ cls: c("home-header") });
-        const greet = header.createDiv({ cls: c("home-greet") });
-        greet.createEl("h2", { text: t("home_greeting"), cls: c("home-title") });
-        if (this.state === "ready" && this.home) {
-            greet.createSpan({
-                cls: c("home-thinking-days"),
-                text: t("home_thinking_days", String(this.home.thinkingDays)),
-            });
+        // ── the greeting, the one fact, and the composer ──
+        const top = page.createDiv({ cls: c("home-top") });
+        const hello = top.createDiv({ cls: c("home-hello-col") });
+        hello.createEl("h1", { cls: c("home-hello"), text: t(greetingKey(new Date().getHours())) });
+        hello.createDiv({ cls: c("home-hello-sub"), text: this.helloLine() });
+        this.composer = renderComposer(hello, {
+            placeholder: t("home_composer_placeholder"),
+            hint: t("home_composer_hint"),
+            register: (el, type, handler) => this.registerDomEvent(el, type, handler as (event: Event) => void),
+            onKept: () => {
+                this.thoughtsThisWeek += 1;
+                void this.readLastThought();
+            },
+        });
+        this.composer.area.value = writing;
+        if (hadFocus) this.composer.focus();
+        // The vault, as a glimpse (#705) — once there is a vault to glimpse.
+        if (this.glimpse) this.removeChild(this.glimpse);
+        this.glimpse = undefined;
+        if (this.state === "ready" && this.model && this.model.size() > 0) {
+            this.glimpse = this.addChild(new HomeGlimpse(top.createDiv({ cls: c("home-glimpse-slot") }), this.app, this.model));
         }
-        const actions = header.createDiv({ cls: c("home-header-actions") });
-        // Capturing a thought was in the palette and nowhere else (#578) — the lowest-friction
-        // thing this plugin does, reachable only by someone who already knew it existed. Home is
-        // where you are when you have one, so Home is where it is offered.
-        const bar = new ModeHeader(actions, (el, type, handler) => this.registerDomEvent(el, type, handler));
-        bar.primary({
-            label: t("command_quick_capture"),
-            icon: "pencil-line",
-            onClick: () => runCommand("quick-capture"),
-        });
-        // A fixed door to Ask your graph (#620): a control where you already are, not a command —
-        // an icon-only nav named by its tooltip, never a second primary (#577).
-        bar.nav({
-            label: t("home_ask_graph"),
-            icon: "search",
-            iconOnly: true,
-            onClick: () => void activateSurface(this.app, "zettelflow-explore", "explore"),
-        });
-        bar.nav({ label: t("home_refresh_button"), onClick: () => this.recompute() });
-        bar.done();
 
-        // A wizard left mid-flow: one nudge, above the fold, only when there is a draft.
-        this.renderUnfinishedNote(container);
-
-        // ── the hero: three tiles, one decision each, one of them leading ──
-        // The grid is drawn in every state so the Cultivate on-ramp is reachable from the first
-        // moment — indexing, empty, error — because starting a thought must never wait on the
-        // index (#309). The other two tiles stay silent until the model is ready.
-        const hero = container.createDiv({ cls: c("dashboard-grid") });
-        this.renderNextTile(hero);
-        this.renderCultivateTile(hero);
-        this.renderReturnTile(hero);
-        this.renderMarkedTile(hero);
+        // A wizard left mid-flow: one nudge, only when there is a draft.
+        this.renderUnfinishedNote(page);
 
         if (this.state === "indexing") {
-            container.createDiv({ cls: c("home-status"), text: t("home_indexing") });
+            page.createDiv({ cls: c("home-status"), text: t("home_indexing") });
+            this.renderCameBack(page);
+            this.renderKeys(page);
             return;
         }
         if (this.state === "error") {
-            container.createDiv({ cls: c("home-status"), text: t("home_error") });
+            page.createDiv({ cls: c("home-status"), text: t("home_error") });
+            this.renderKeys(page);
             return;
         }
-        if (this.state === "empty" || !this.home) {
-            container.createDiv({ cls: c("home-status"), text: t("home_empty") });
+        if (this.state === "empty") {
+            this.renderFirstDay(page);
+            this.renderKeys(page);
             return;
         }
 
-        // ── everything else, folded away by default (minimalist, user-chosen) ──
-        this.renderFold(container);
+        this.renderLeftOff(page);
+        this.renderCameBack(page);
+        this.renderIdea(page);
+        this.renderQuestions(page);
+        this.renderKeys(page);
     }
 
-    /**
-     * Everything the dashboard does not lead with, folded away by default (#620).
-     *
-     * Three tiles decide the day; your newest ideas and main concepts, what deserves a review, the
-     * gaps and open questions, the pinned queries, the growth nudge and the way into the 3D graph
-     * all wait behind one disclosure. Collapsed by a class, never an inline style — and the open
-     * state survives a recompute, so a background change never closes what you opened.
-     */
-    private renderFold(container: HTMLElement): void {
-        if (!this.home) return;
-        const foldBar = container.createDiv({ cls: c("home-fold") });
-        foldBar.toggleClass(c("is-open"), this.showEverything);
-        const toggle = foldBar.createEl("button", {
-            cls: c("home-fold-toggle"),
-            attr: { type: "button", "aria-expanded": String(this.showEverything) },
-        });
-        setIcon(toggle.createSpan({ cls: c("home-fold-chevron") }), "chevron-right");
-        const label = toggle.createSpan({
-            text: t(this.showEverything ? "home_hide_extras" : "home_show_everything"),
-        });
-
-        const more = container.createDiv({ cls: `${c("dashboard-grid")} ${c("home-more")}` });
-        if (!this.showEverything) more.addClass(c("is-hidden"));
-
-        this.renderGrowthNudge(more);
-        this.renderGraphTeaser(more);
-        this.renderPinnedQueries(more);
-        this.renderSavedReadings(more);
-        this.renderNoteSection(more, "home_section_new_ideas", this.home.newIdeas);
-        this.renderNoteSection(more, "home_section_main_concepts", this.home.mainConcepts);
-        this.renderNoteSection(more, "home_section_review_due", this.home.reviewDue);
-        this.renderGaps(more, this.home.gaps ?? []);
-        // Defaulted: a model shape from an older build degrades to one missing section, not a blank.
-        this.renderOpenQuestions(more, this.home.openQuestions ?? []);
-
-        this.registerDomEvent(toggle, "click", () => {
-            this.showEverything = !this.showEverything;
-            more.toggleClass(c("is-hidden"), !this.showEverything);
-            foldBar.toggleClass(c("is-open"), this.showEverything);
-            toggle.setAttribute("aria-expanded", String(this.showEverything));
-            label.setText(t(this.showEverything ? "home_hide_extras" : "home_show_everything"));
-        });
-    }
-
-    /**
-     * Something you wrote is ready to be looked at again (#563, epic #558).
-     *
-     * **One** line, or none. No queue, no count, no badge, and nothing that grows while you are not
-     * looking — an inbox is a debt that greets you with how far behind you are, and this is the
-     * front door. A return you ignore looks exactly the same tomorrow.
-     *
-     * It says when you wrote it — a month and a year, never a number of days, because *93 days ago*
-     * is a measurement of your lateness.
-     */
-    private renderReturnTile(parent: HTMLElement): void {
-        // No claims anywhere is silence — no empty box on the front door (#516), no invitation to
-        // catch up, nothing that grows while you are not looking. The tile appears only once the
-        // vault has said something.
-        if (!this.claimsExist) return;
-        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("home-tile")}` });
-        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("home_hero_return") });
-        // Claims exist but none is due: one quiet sentence, never a card pretending to have content.
-        if (!this.claimReturn) {
-            tile.createDiv({ cls: c("home-tile-sub"), text: t("home_return_none") });
-            return;
-        }
-        const due = this.claimReturn;
-        // One line, and it says which kind of thing came back: a claim you have not looked at in a
-        // while, or a day **you** set arriving (#571).
-        const wager = due.kind === "wager";
-        tile.createDiv({
-            cls: c("home-claim-return-title"),
-            text: t(wager ? "home_claim_return_wager_title" : "home_claim_return_title"),
-        });
-        tile.createDiv({
-            cls: c("home-claim-return-when"),
-            text: wager
-                ? t("home_claim_return_wager_when", when(due.lastTouched))
-                : t("home_claim_return_when", when(due.lastTouched)),
-        });
-        const open = tile.createEl("button", {
-            cls: "mod-cta",
-            text: t(wager ? "home_claim_return_wager_open" : "home_claim_return_open"),
-            attr: { type: "button" },
-        });
-        this.registerDomEvent(open, "click", () => {
-            const plugin = ObsidianApi.getOwnPlugin();
-            // `derived` — the system brought it back. Opening it yourself records `human` (#562).
-            if (plugin) openReturn(plugin, due.path, "derived");
-        });
-    }
-
-    /**
-     * **A few things you marked** (#678, epic #674): highlights from the Reader, back for a second
-     * look. Drawn **only on a day something is due** — no empty tile, no count, nothing about what
-     * you skipped. A day you ignore it, it is the same tile tomorrow.
-     */
-    private renderMarkedTile(parent: HTMLElement): void {
-        if (!this.highlightsDue) return;
-        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("home-tile")}` });
-        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("review_title") });
-        tile.createDiv({ cls: c("home-tile-sub"), text: t("review_home_sub") });
-        const open = tile.createEl("button", {
-            cls: "mod-cta",
-            text: t("review_home_open"),
-            attr: { type: "button" },
-        });
-        this.registerDomEvent(open, "click", () => void openReview(this.app));
-    }
-
-    /**
-     * What is asked and unanswered (#507, epic #504).
-     *
-     * It had a mode of its own in Discovery, which was the wrong surface: it is not a filter over
-     * your vault, it is an answer to *what should I do next*, and the suggested connections
-     * beside it were already here.
-     *
-     * It says what is unanswered and opens it. It does **not** say what the answer is, and it
-     * does not score you for the count — §XII, and a locale scan holds the line.
-     */
-    private renderOpenQuestions(container: HTMLElement, questions: { path: string; askedBy: string[] }[]): void {
-        // No empty state: a vault with nothing unanswered has nothing to say here, and an empty
-        // box on the front door is a box you learn to skip.
-        if (questions.length === 0) return;
-        const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t("home_section_open_questions"), cls: c("home-section-title") });
-        const list = section.createDiv({ cls: c("home-list") });
-        for (const question of questions) this.renderNoteRow(list, question.path);
-    }
-
-    /**
-     * The Cultivate on-ramp (#309 S4): a one-click start of a guided thinking session on the
-     * highest-leverage idea, with the count of ideas that still have development headroom.
-     */
-    private renderCultivateTile(parent: HTMLElement): void {
-        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("home-tile")}` });
-        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("home_hero_cultivate") });
-        tile.createDiv({ cls: c("home-tile-sub"), text: t("home_inquiry_desc") });
-        const resume = !!InquiryRuntime.getInstance().getSnapshot().current;
-        const btn = tile.createEl("button", {
-            cls: "mod-cta",
-            text: t(resume ? "inquiry_resume" : "inquiry_start"),
-            attr: { type: "button" },
-        });
-        this.registerDomEvent(btn, "click", () =>
-            void activateSurface(this.app, "zettelflow-home", "cultivate", { inquiry: resume ? "resume" : "start" })
+    /** The date, and one plain fact about the week — a fact, never a count of days or a score (§XII). */
+    private helloLine(): string {
+        const date = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+        if (this.state === "empty") return t("home_hello_first", date);
+        if (this.state !== "ready") return date;
+        if (this.notesThisWeek === 0 && this.thoughtsThisWeek === 0) return t("home_hello_quiet", date);
+        return t(
+            "home_hello_week",
+            date,
+            tCount(this.notesThisWeek, "home_fact_notes", String(this.notesThisWeek)),
+            tCount(this.thoughtsThisWeek, "home_fact_thoughts", String(this.thoughtsThisWeek))
         );
-        const ordinary = tile.createEl("button", {
-            cls: c("inquiry-onramp"),
-            text: t("inquiry_ordinary"),
-            attr: { type: "button" },
+    }
+
+    private renderKeys(page: HTMLElement): void {
+        keyHints(page, [
+            { keys: ["/"], label: t("home_key_write") },
+            { keys: ["Ctrl", "Enter"], label: t("home_key_keep") },
+        ]);
+    }
+
+    /** A card under *Where you left off* or *Three ways in*: what it is, its name, one line, a door. */
+    private card(
+        parent: HTMLElement,
+        icon: string,
+        kind: string,
+        title: string,
+        line: string,
+        open: () => void,
+        progress?: number
+    ): HTMLElement {
+        const card = parent.createEl("button", { cls: [c("family-card"), c("home-card")], attr: { type: "button" } });
+        const head = card.createSpan({ cls: c("home-card-kind") });
+        setIcon(head.createSpan({ cls: c("home-card-icon") }), icon);
+        head.createSpan({ text: kind });
+        card.createSpan({ cls: [c("home-card-title"), c("family-idea-text")], text: title });
+        card.createSpan({ cls: c("home-card-line"), text: line });
+        if (progress !== undefined) {
+            const meter = card.createSpan({
+                cls: c("home-card-meter"),
+                attr: { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(Math.round(progress * 100)) },
+            });
+            meter.createSpan({ cls: c("home-card-meter-fill") }).setCssProps({ "--zf-progress": String(progress) });
+        }
+        this.registerDomEvent(card, "click", open);
+        return card;
+    }
+
+    /** Where you left off (#703): the last note, the reading in progress, the last thread. */
+    private renderLeftOff(page: HTMLElement): void {
+        const reading = this.reading;
+        const thought = this.lastThought;
+        if (!this.lastNote && !reading && !thought) return;
+        const section = page.createDiv({ cls: c("home-section") });
+        eyebrow(section, "rotate-ccw", t("home_left_off"));
+        const row = section.createDiv({ cls: c("home-cards") });
+        if (this.lastNote) {
+            const path = this.lastNote;
+            const file = this.app.vault.getAbstractFileByPath(path);
+            const edited = file instanceof TFile ? t("home_left_note_line", moment(file.stat.mtime).fromNow()) : path;
+            const card = this.card(row, "file-text", t("home_left_note"), basename(path), edited, () =>
+                void this.app.workspace.openLinkText(path, "", false)
+            );
+            hoverPreview(this.app, card, path, this);
+        }
+        if (reading) {
+            this.card(
+                row,
+                "book-open",
+                t("home_left_reading"),
+                reading.title,
+                t("home_left_reading_line", String(reading.chapter + 1), String(reading.total)),
+                () => void this.openReading(reading),
+                Math.min(1, (reading.chapter + 1) / Math.max(1, reading.total))
+            );
+        }
+        if (thought) {
+            const first = thought.text.trim().split(/\r?\n/)[0] ?? "";
+            const title = first.length > 80 ? `${first.slice(0, 79)}…` : first || t("home_left_thought_untitled");
+            const line = thought.about
+                ? t("home_left_thought_about", basename(thought.about))
+                : t("home_left_thought_line", moment(thought.at).fromNow());
+            this.card(row, "lightbulb", t("home_left_thought"), title, line, () =>
+                void activateSurface(this.app, "zettelflow-home", "lab", thought.about ? { about: thought.about } : undefined)
+            );
+        }
+    }
+
+    private async openReading(reading: ReadingInProgress): Promise<void> {
+        const open = reading.open;
+        if (open.kind === "source") await openReader(this.app, { seed: open.path, source: open.path, chapter: reading.chapter });
+        else if (open.kind === "saved")
+            await openReader(this.app, { seed: open.seed, kind: "selection", paths: open.paths, name: open.name, chapter: reading.chapter });
+        else await openReader(this.app, { seed: open.seed, kind: open.reading, chapter: reading.chapter });
+    }
+
+    /**
+     * What came back today (#704): one quiet stack — what you marked in the Reader, then a claim or
+     * a wager of yours — answered in place. Silent on a day nothing is: no empty box, no count,
+     * nothing about what you skipped.
+     */
+    private renderCameBack(page: HTMLElement): void {
+        const due = this.claimReturn;
+        if (!this.highlightsDue && !due) return;
+        const section = page.createDiv({ cls: c("home-section") });
+        eyebrow(section, "undo-2", t("home_came_back"));
+        if (this.stack) this.removeChild(this.stack);
+        this.stack = this.addChild(
+            new CameBackStack(section.createDiv(), this.app, { highlightsDue: this.highlightsDue, claim: due })
+        );
+    }
+
+    /**
+     * One idea to tend (#703): a single invitation instead of a list — the idea Cultivate would
+     * offer first, quoting what it says. It opens Cultivate on that idea; nothing is written here.
+     */
+    private renderIdea(page: HTMLElement): void {
+        const idea = this.idea;
+        if (!idea) return;
+        const section = page.createDiv({ cls: c("home-section") });
+        eyebrow(section, "sprout", t("home_idea_to_tend"));
+        const invite = section.createDiv({ cls: c("home-invite") });
+        setIcon(invite.createDiv({ cls: c("home-invite-icon") }), "sprout");
+        const words = invite.createDiv({ cls: c("home-invite-words") });
+        const quote = words.createDiv({
+            cls: [c("home-invite-text"), c("family-idea-text")],
+            text: idea.claim ? t("home_idea_quote", idea.claim) : idea.title,
         });
-        this.registerDomEvent(ordinary, "click", () =>
-            void activateSurface(this.app, "zettelflow-home", "cultivate", { inquiry: "ordinary" })
+        makeActivatable(quote, () => void this.app.workspace.openLinkText(idea.path, "", false));
+        hoverPreview(this.app, quote, idea.path, this);
+        const facts = [idea.claim ? idea.title : null, idea.stateKey ? t(idea.stateKey as LocaleKey) : null]
+            .filter((fact): fact is string => Boolean(fact))
+            .join(" · ");
+        words.createDiv({ cls: c("home-card-line"), text: facts || t("home_idea_planted", moment(idea.created).fromNow()) });
+        const go = invite.createEl("button", { cls: "mod-cta", attr: { type: "button" } });
+        go.createSpan({ text: t("home_idea_go") });
+        setIcon(go.createSpan({ cls: c("home-invite-go") }), "arrow-right");
+        this.registerDomEvent(go, "click", () =>
+            void activateSurface(this.app, "zettelflow-home", "cultivate", { target: idea.path })
+        );
+    }
+
+    /** Your questions (#703): the queries you pinned, each a chip that asks it again in Explore. */
+    private renderQuestions(page: HTMLElement): void {
+        if (this.pinnedCards.length === 0) return;
+        const section = page.createDiv({ cls: c("home-section") });
+        eyebrow(section, "search", t("home_section_pinned_queries"));
+        const chips = section.createDiv({ cls: c("home-questions") });
+        for (const card of this.pinnedCards) {
+            const chip = chips.createEl("button", { cls: c("home-question-chip"), attr: { type: "button", title: card.query } });
+            chip.createSpan({ text: card.label });
+            chip.createSpan({ cls: c("home-question-count"), text: String(card.count) });
+            this.registerDomEvent(chip, "click", () =>
+                void activateSurface(this.app, "zettelflow-explore", "explore", { query: card.query })
+            );
+        }
+    }
+
+    /**
+     * The first day (#703): an empty vault is greeted with three ways in, not an empty page — write a
+     * first note with a flow, read something you already have, or just think in the box above.
+     */
+    private renderFirstDay(page: HTMLElement): void {
+        const section = page.createDiv({ cls: c("home-section") });
+        eyebrow(section, "sprout", t("home_first_ways"));
+        const row = section.createDiv({ cls: c("home-cards") });
+        this.card(row, "file-plus", t("home_left_note"), t("home_first_note"), t("home_first_note_line"), () =>
+            runCommand("open-workflow")
+        );
+        this.card(row, "library", t("home_left_reading"), t("home_first_read"), t("home_first_read_line"), () =>
+            void openLibrary(this.app)
+        );
+        this.card(row, "lightbulb", t("home_left_thought"), t("home_first_think"), t("home_first_think_line"), () =>
+            this.composer?.focus()
         );
     }
 
     /**
      * The unfinished note (#410): when a wizard session was left mid-flow, Home offers to pick it
-     * back up. One nudge on an existing surface — no new command, no new view. Silent when there is
-     * no draft, when drafts are off, or when the canvas has gone.
+     * back up. One nudge — silent when there is no draft, when drafts are off, or when the canvas
+     * has gone.
      */
     private renderUnfinishedNote(container: HTMLElement): void {
         const drafts = draftStore.resumable();
@@ -403,179 +459,6 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         });
         // Handled by whoever owns the wizard (the ribbon component). An import would tie the
         // Knowledge-State surface to the wizard's module graph and create a cycle.
-        cta.addEventListener("click", () =>
-            this.app.workspace.trigger("zettelflow-open-flow", draft.canvasPath)
-        );
-    }
-
-    /**
-     * The growth nudge (#285 S4): when fleeting notes are waiting, surface the count and a one-click
-     * jump to develop the latest — the loop that turns quick captures into permanent notes. Silent
-     * when the inbox is empty (nothing to nudge).
-     */
-    private renderGrowthNudge(container: HTMLElement): void {
-        if (!this.home || this.home.fleetingCount === 0) return;
-        const nudge = container.createDiv({ cls: c("home-nudge") });
-        nudge.createSpan({
-            cls: c("home-nudge-text"),
-            text: t("home_nudge_fleeting", String(this.home.fleetingCount)),
-        });
-        const first = this.home.fleetingReady[0];
-        if (!first) return;
-        const cta = nudge.createEl("button", { cls: c("home-nudge-cta"), text: t("home_nudge_develop") });
-        cta.setAttribute("aria-label", t("home_nudge_develop"));
-        cta.addEventListener("click", () => void this.app.workspace.openLinkText(first, "", false));
-    }
-
-    /**
-     * Pinned "ask your graph" queries (#323 G4): each saved query the user pinned becomes a live
-     * "N notes match …" card that deep-links back into the *Ask your graph* mode, pre-filled. Silent
-     * when nothing is pinned. Mechanical output (a count) — no judgement written (manifesto §XII).
-     */
-    private renderPinnedQueries(container: HTMLElement): void {
-        if (this.pinnedCards.length === 0) return;
-        const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t("home_section_pinned_queries"), cls: c("home-section-title") });
-        const list = section.createDiv({ cls: c("home-list") });
-        for (const card of this.pinnedCards) {
-            const row = list.createDiv({ cls: c("home-pinned-query") });
-            const label = row.createSpan({
-                text: t("home_pinned_query_count", String(card.count), card.label),
-                cls: c("home-pinned-query-label"),
-            });
-            label.setAttribute("title", card.query);
-            makeActivatable(label, () =>
-                void activateSurface(this.app, "zettelflow-explore", "explore", { query: card.query })
-            );
-        }
-    }
-
-    /** The 3D-graph teaser (#285 S2): the eye-catching hook — one click into the Graph 3D mode. */
-    private renderGraphTeaser(container: HTMLElement): void {
-        const teaser = container.createDiv({ cls: c("home-graph-teaser") });
-        teaser.createDiv({ cls: c("home-graph-teaser-title"), text: t("home_graph_teaser_title") });
-        teaser.createDiv({ cls: c("home-graph-teaser-sub"), text: t("home_graph_teaser_sub") });
-        const btn = teaser.createEl("button", { cls: c("home-graph-teaser-btn"), text: t("home_graph_teaser_cta") });
-        btn.setAttribute("aria-label", t("home_graph_teaser_cta"));
-        btn.addEventListener("click", () =>
-            void activateSurface(this.app, "zettelflow-explore", "explore", { lens: "graph" })
-        );
-    }
-
-    /**
-     * The one thing to do next (#273), re-ranked as the dashboard hero (#620): the top
-     * recommendations, each row navigating to its target. The single tile that wears the accent —
-     * so "this is where to look" reads the same here as it does in Cultivate.
-     */
-    private renderNextTile(parent: HTMLElement): void {
-        // Silent until the model is ready: recommendations over a half-built index would be wrong,
-        // and an "all caught up" line while still indexing worse.
-        if (this.state !== "ready" || !this.home) return;
-        const tile = parent.createDiv({ cls: `${c("dashboard-card")} ${c("dashboard-card--hero")} ${c("home-tile")}` });
-        tile.createDiv({ cls: c("home-tile-eyebrow"), text: t("home_hero_next") });
-
-        if (isAllCaughtUp(this.recommendations)) {
-            tile.createDiv({ cls: c("home-recommendation-clear"), text: t("home_recommendation_reason_all-clear") });
-            return;
-        }
-
-        const list = tile.createDiv({ cls: c("home-list") });
-        for (const rec of this.recommendations) {
-            if (rec.reason === "all-clear") continue;
-            const row = list.createDiv({ cls: c("home-recommendation") });
-            row.createSpan({ text: t(REASON_LABEL_KEYS[rec.reason]), cls: c("home-recommendation-reason") });
-            if (rec.target.length > 0) {
-                const target = rec.target[0];
-                const name = row.createSpan({ text: basename(target), cls: c("home-note-name") });
-                name.setAttribute("title", target);
-                makeActivatable(name, () => void this.app.workspace.openLinkText(target, "", false));
-                hoverPreview(this.app, name, target, this);
-            }
-        }
-    }
-
-    private renderNoteSection(container: HTMLElement, headingKey: LocaleKey, paths: string[]): void {
-        const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t(headingKey), cls: c("home-section-title") });
-        if (paths.length === 0) {
-            section.createDiv({ cls: c("home-section-empty"), text: t("home_section_empty") });
-            return;
-        }
-        const list = section.createDiv({ cls: c("home-list") });
-        for (const path of paths) this.renderNoteRow(list, path);
-    }
-
-    /**
-     * The **gaps**: pairs of your notes that share context and are not linked (#534, epic #529).
-     *
-     * One name for one thing — the map calls this a gap, and this section used to call it a
-     * *suggested connection*. Two names for one fact is what the subtraction epic exists to
-     * prevent, and *suggested* was the surface deciding what you came for. The row states what is
-     * true of the graph; it never tells you to link anything.
-     *
-     * Each row carries **not related**, which records a verdict and writes nothing to the vault
-     * (§XII: the machine observes, the human rules, and the verdict is data). No graph statistic
-     * can tell a filing convention from a thought — the epic proved that twice with arithmetic —
-     * and a person can, in one click.
-     *
-     * A `yes` needs no memory: linking the two notes stops the pair being a gap by construction, so
-     * there is no button for it here and nothing writes a link for you.
-     */
-    private renderGaps(container: HTMLElement, pairs: { a: string; b: string }[]): void {
-        // No empty state, like the questions section: a vault with nothing to show here has nothing
-        // to say, and an empty box on the front door is a box you learn to skip.
-        if (pairs.length === 0) return;
-        const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t("home_section_gaps"), cls: c("home-section-title") });
-        const list = section.createDiv({ cls: c("home-list") });
-        // Absent rather than present-but-inert when the record is off: `record` is a documented
-        // no-op then, and a button that silently does nothing is worse than no button (FR-6).
-        const canRule = JudgementLog.getInstance().enabled();
-        for (const pair of pairs) {
-            const row = list.createDiv({ cls: c("home-connection") });
-            this.renderInlineNote(row, pair.a);
-            row.createSpan({ text: " · ", cls: c("home-connection-sep") });
-            this.renderInlineNote(row, pair.b);
-            if (!canRule) continue;
-            const verdict = row.createEl("button", {
-                text: t("home_gap_not_related"),
-                cls: c("home-gap-verdict"),
-                attr: { "aria-label": t("home_gap_not_related_aria") },
-            });
-            verdict.addEventListener("click", () => {
-                JudgementLog.getInstance().recordGapVerdict(pair.a, pair.b);
-                this.recompute();
-            });
-        }
-    }
-
-    /**
-     * **Saved readings** (#672): the paths you kept from a Reader end card, newest first — each one
-     * click back into the Reader. Silent when you have kept none.
-     */
-    private renderSavedReadings(container: HTMLElement): void {
-        const saved = normalizeSaved(ObsidianApi.getOwnPlugin()?.settings?.readerSaved).slice(0, 5);
-        if (saved.length === 0) return;
-        const section = container.createDiv({ cls: c("home-section") });
-        section.createEl("h5", { text: t("home_section_saved_readings"), cls: c("home-section-title") });
-        const list = section.createDiv({ cls: c("home-list") });
-        for (const entry of saved) {
-            const row = list.createDiv({ cls: c("home-row") });
-            const name = row.createSpan({ text: entry.name, cls: c("home-note-name") });
-            name.setAttribute("title", tCount(entry.paths.length, "reader_saved_open_title", String(entry.paths.length)));
-            makeActivatable(name, () => void openSavedReading(this.app, entry));
-        }
-    }
-
-    private renderNoteRow(list: HTMLElement, path: string): void {
-        const row = list.createDiv({ cls: c("home-row") });
-        this.renderInlineNote(row, path);
-    }
-
-    private renderInlineNote(parent: HTMLElement, path: string): void {
-        const name = parent.createSpan({ text: basename(path), cls: c("home-note-name") });
-        name.setAttribute("title", path);
-        makeActivatable(name, () => void this.app.workspace.openLinkText(path, "", false));
-        hoverPreview(this.app, name, path, this);
+        cta.addEventListener("click", () => this.app.workspace.trigger("zettelflow-open-flow", draft.canvasPath));
     }
 }

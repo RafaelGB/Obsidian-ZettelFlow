@@ -11,35 +11,31 @@ jest.mock('architecture/plugin', () => ({
 const runtime = InquiryRuntime.getInstance();
 afterEach(() => runtime.dispose());
 describe('first-use entry without a setup ritual', () => {
-    it('keeps populated Home sections and routes entries through the same surfaces', async () => {
-        runtime.init({ load: () => undefined, persist: async () => { }, now: () => 1, id: () => 'one' }); runtime.start();
+    it('routes Home entries through the same surfaces (#703)', async () => {
         const states: unknown[] = []; const opens: string[] = [];
-        const app = { workspace: { getLeavesOfType: () => [], getLeaf: () => ({ setViewState: async (state: unknown) => { states.push(state); } }), revealLeaf: () => { }, openLinkText: async (path: string) => { opens.push(path); } } };
+        const app = { workspace: { getLeavesOfType: () => [], getLeaf: () => ({ setViewState: async (state: unknown) => { states.push(state); } }), revealLeaf: () => { }, openLinkText: async (path: string) => { opens.push(path); }, getLastOpenFiles: () => [] }, vault: { getAbstractFileByPath: () => null } };
         const root = new FakeElement(); const renderer = new HomeModeRenderer(root as any, app as any);
-        Object.assign(renderer, { state: 'ready', home: { thinkingDays: 2, fleetingCount: 1, fleetingReady: ['a.md'], newIdeas: ['a.md'], mainConcepts: ['b.md'], reviewDue: [], suggestedConnections: [{ a: 'a.md', b: 'b.md' }] }, recommendations: [{ reason: 'orphan', target: ['a.md'] }], pinnedCards: [{ label: 'My query', query: 'orphan', count: 1 }] });
+        Object.assign(renderer, { state: 'ready', idea: { path: 'a.md', title: 'a', claim: 'A claim', stateKey: null, created: 1 }, pinnedCards: [{ label: 'My query', query: 'orphan', count: 1 }] });
         (renderer as any).render();
         const walk = (el: FakeElement): FakeElement[] => [el, ...el.children.flatMap(walk)];
         const original = walk(root);
-        for (const el of original.filter(el => el.tag === 'button' && el.textContent !== 'Refresh')) el.fire('click');
+        for (const el of original.filter(el => el.tag === 'button')) el.fire('click');
         for (const el of original.filter(el => el.attrs.role === 'link')) el.fire('keydown', { key: 'Enter', preventDefault: () => { } });
         await Promise.resolve();
-        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-home', state: { mode: 'cultivate', inquiry: 'resume' } }));
-        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-home', state: { mode: 'cultivate', inquiry: 'ordinary' } }));
-        // Home's graph and pinned-query entries lead to Explore, which took its own surface (#487).
-        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-explore' }));
+        // One idea to tend opens Cultivate on that idea; a pinned question asks it again in Explore.
+        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-home', state: { mode: 'cultivate', target: 'a.md' } }));
+        expect(states).toContainEqual(expect.objectContaining({ type: 'zettelflow-explore', state: { mode: 'explore', query: 'orphan' } }));
         expect(opens).toContain('a.md');
-        (renderer as any).recommendations = []; (renderer as any).home.suggestedConnections = []; (renderer as any).render();
         expect(root.find(el => el.textContent.includes('My query'))).toBeDefined();
-        (renderer as any).state = 'error'; (renderer as any).render();
-        expect(root.find(el => el.textContent === 'Resume my inquiry')).toBeDefined();
     });
-    it('Home exposes own-material entry while indexing and for an empty vault', () => {
-        runtime.init({ load: () => undefined, persist: async () => { }, now: () => 1, id: () => 'one' });
-        const root = new FakeElement(); const renderer = new HomeModeRenderer(root as any, {} as any);
-        for (const state of ['indexing', 'empty']) {
-            (renderer as any).state = state; (renderer as any).render();
-            expect(root.find(el => el.tag === 'button' && el.textContent === 'Start with my material')).toBeDefined();
-            expect(root.find(el => el.tag === 'button' && el.textContent === 'Cultivate without a purpose')).toBeDefined();
+    it('lets you write before the index is ready, and offers three ways in on the first day (#703)', () => {
+        const root = new FakeElement(); const renderer = new HomeModeRenderer(root as any, { workspace: {} } as any);
+        (renderer as any).state = 'indexing'; (renderer as any).render();
+        expect(root.find(el => el.tag === 'textarea')).toBeDefined();
+        (renderer as any).state = 'empty'; (renderer as any).render();
+        expect(root.find(el => el.tag === 'textarea')).toBeDefined();
+        for (const way of ['Write a first note', 'Read something you have', 'Just think']) {
+            expect(root.find(el => el.textContent === way)).toBeDefined();
         }
     });
     it('capture keeps its title until acknowledgement and coalesces repeat submits', async () => {

@@ -4,37 +4,36 @@ import { t, tCount } from "architecture/lang";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { StateTransitionComponent } from "starters/zcomponents/StateTransitionComponent";
 import { CultivationService } from "architecture/plugin";
-import { KnowledgeIndex, STATE_LABEL_KEY, stateTransition, isLifecycleState, type LifecycleState } from "architecture/knowledge";
+import { KnowledgeIndex, STATE_LABEL_KEY, LIFECYCLE_STATES, stateTransition, isLifecycleState, type LifecycleState, type Idea } from "architecture/knowledge";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { recordMoveOn } from "starters/zcomponents/MoveCommandsComponent";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
 import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
 import { makeActivatable, hoverPreview } from "architecture/components/core/a11y";
 import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
-import { Notice, TFile, setIcon } from 'obsidian';
+import { Notice, TFile, setIcon, moment as obsidianMoment, type Scope } from 'obsidian';
+import type MomentFn from 'moment';
+import { familyPage, eyebrow, keyHints } from 'architecture/components/core/family/family';
 import { InquiryPanel } from './InquiryPanel';
 import { InquiryNoteSuggest } from './InquiryNoteSuggest';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { thinkAbout } from 'starters/zcomponents/ThinkAboutComponent';
 import { QuickCaptureModal } from 'zettelkasten/modals/QuickCaptureModal';
 import { ConfirmModal } from 'architecture/components/settings/confirmModal';
-import { buildInquiryContext, scopeExcludedPaths } from 'architecture/knowledge/state';
+import { buildInquiryContext, scopeExcludedPaths, ruledOutGaps } from 'architecture/knowledge/state';
 import {
     buildCultivationSession,
     selectCultivationTarget,
-    cultivationQueue,
     stageDistribution,
-    developmentStreak,
-    JUDGEMENT_CONFIDENCES,
     withReasoning,
     type CultivationMove,
     type CultivationMoveKind,
     type CultivationSession,
-    type JudgementConfidence,
     type StageCount,
 } from "architecture/knowledge/state";
 
 const DEBOUNCE_MS = 500;
+const moment = obsidianMoment as unknown as typeof MomentFn;
 
 /**
  * An icon per move (#472 follow-up). Five moves stacked with identical accent bars read as one
@@ -48,6 +47,13 @@ const MOVE_ICON: Record<CultivationMoveKind, string> = {
     source: "book-marked",
 };
 type ViewState = "indexing" | "ready" | "empty" | "emptyStage" | "error";
+
+/** What a kept answer says in the trail, per move that asks first — literal, so the locale guard sees it. */
+const FRICTION_TRAIL: Partial<Record<CultivationMoveKind, Parameters<typeof t>[0]>> = {
+    connect: "cultivate_trail_friction_connect",
+    challenge: "cultivate_trail_friction_challenge",
+    source: "cultivate_trail_friction_source",
+};
 
 function basename(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
@@ -65,8 +71,16 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     private state: ViewState = "indexing";
     private session: CultivationSession | null = null;
     private targetPath: string | null = null;
-    private queueCount = 0;
-    private streak = 0;
+    /** The idea itself, for what it says and where it lives (#706). */
+    private idea: Idea | undefined;
+    /** The move you are on — one at a time (#706). */
+    private activeMove: CultivationMoveKind | null = null;
+    /** What you kept with this idea today, in order (#706). Forgotten with the idea. */
+    private trail: string[] = [];
+    /** The prompt's box, so a redraw keeps what you were writing. */
+    private promptEl: HTMLTextAreaElement | undefined;
+    /** The strip fills in once per visit, not on every redraw. */
+    private stripShown = false;
     private readonly visited = new Set<string>();
     /** Moves whose friction prompt has been answered or skipped this session (#338). */
     private readonly revealed = new Set<CultivationMoveKind>();
@@ -129,6 +143,8 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     /** Move to a fresh, not-yet-cultivated idea. */
     private anotherIdea(): void {
         this.forgetFriction();
+        this.activeMove = null;
+        this.trail = [];
         if (this.targetPath) this.visited.add(this.targetPath);
         this.targetPath = null;
         this.recompute();
@@ -157,11 +173,12 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
                 this.targetPath =
                     selectCultivationTarget(model, this.visited, stage) ?? selectCultivationTarget(model, new Set(), stage);
                 this.forgetFriction();
+                this.activeMove = null;
+                this.trail = [];
             }
             const recipe = this.plugin.settings.cultivateMoves as CultivationMoveKind[] | undefined;
             this.session = this.targetPath ? buildCultivationSession(model, this.targetPath, Date.now(), recipe, { friction: this.plugin.settings.cultivateFriction ?? true }) : null;
-            this.queueCount = cultivationQueue(model, this.visited, 99, stage).length;
-            this.streak = developmentStreak(JudgementLog.getInstance().dailyCounts(), Date.now());
+            this.idea = this.targetPath ? model.get(this.targetPath) : undefined;
             // A chosen stage with nothing in it is not an empty vault — keep the selector and chart on
             // screen so the reader can pick another stage (#589, AC-4).
             this.state = this.session ? "ready" : stage ? "emptyStage" : "empty";
@@ -174,31 +191,24 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     private render(): void {
         const host = this.container;
+        // A redraw never loses what you are writing at the prompt.
+        const writing = this.promptEl?.value ?? "";
+        const hadFocus = !!this.promptEl && this.promptEl.ownerDocument?.activeElement === this.promptEl;
         host.empty();
-        const root = host.createDiv({ cls: c("cultivate") });
+        this.promptEl = undefined;
+        const page = familyPage(host, "cultivate");
+        page.addClass(c("cultivate"));
 
-        const header = root.createDiv({ cls: c("cultivate-header") });
-        header.createEl("h4", { text: t("cultivate_title"), cls: c("cultivate-title") });
-        // Three buttons of equal weight until #577, and the one that opened something was in the
-        // middle. The primary is working on your own question — it is what this mode is *for*.
+        const header = page.createDiv({ cls: c("cultivate-header") });
+        eyebrow(header, "sprout", t("cultivate_eyebrow"));
+        // One primary since #706: *Another idea* — moving to the next idea is what a visit is made
+        // of, and it was a quiet nav button beside a primary most visits never used (the inquiry,
+        // which now lives at the end of the stage strip as *From a question of mine…*).
         const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
-        bar.primary({
-            label: t("inquiry_start"),
-            icon: "compass",
-            onClick: () => {
-                this.inquiryMode = true;
-                this.mountInquiry();
-            },
-        });
-        // Not buried: moving to the next idea is the most-used control here, and hiding
-        // navigation behind an overflow is its own usability failure. It is drawn plainly so it
-        // never competes with the primary for the eye.
-        bar.nav({ label: t("cultivate_another"), onClick: () => this.anotherIdea() });
-
+        bar.primary({ label: t("cultivate_another"), icon: "arrow-right", onClick: () => this.anotherIdea() });
         // The exit for the case this surface cannot serve (#473). Cultivate offers "write the
         // counterpoint"; when you do not know it yet, there was nowhere to go. Taking this door
-        // writes nothing — leaving a question unanswered is not an edit. It opens another
-        // capability, so by the rule it cannot sit beside the primary that opens this one.
+        // writes nothing — leaving a question unanswered is not an edit.
         if (this.targetPath) {
             const path = this.targetPath;
             bar.secondary({
@@ -210,43 +220,130 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         bar.done();
 
         if (this.state === "indexing") {
-            root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_building") });
+            page.createDiv({ cls: c("cultivate-status"), text: t("cultivate_building") });
             return;
         }
         if (this.state === "error") {
-            root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_error") });
+            page.createDiv({ cls: c("cultivate-status"), text: t("cultivate_error") });
             return;
         }
         if (this.state === "empty") {
-            root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty") });
+            page.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty") });
             return;
         }
 
-        root.createDiv({ cls: c("cultivate-intro"), text: t("cultivate_intro") });
+        // The stage strip (#589, rebuilt #706): the vault's maturation at a glance, and the filter.
+        this.renderStageControls(page);
 
-        // ── the top row: the idea you are on (the one accent card), beside Notes by stage ──
-        // A dashboard grid so the two sit side by side on a wide pane and stack when it is narrow.
-        const top = root.createDiv({ cls: c("dashboard-grid") });
         const session = this.session;
-        const hasSession = this.state !== "emptyStage" && !!session;
-        // The idea leads, so it is drawn first and wears the accent. Absent only when the chosen
-        // stage is empty — the stage control below still offers the way back.
-        if (hasSession && session) this.renderTarget(top, session);
-        // The stage selector and per-stage distribution (#589), shown whenever the vault has notes.
-        this.renderStageControls(top);
-
-        const momentum: string[] = [];
-        if (this.streak > 0) momentum.push(t("cultivate_streak", String(this.streak)));
-        if (this.queueCount > 0) momentum.push(t("cultivate_queue", String(this.queueCount)));
-        if (momentum.length > 0) root.createDiv({ cls: c("cultivate-momentum"), text: momentum.join(" · ") });
-
-        if (!hasSession || !this.session) {
-            root.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty_stage") });
+        if (this.state === "emptyStage" || !session) {
+            page.createDiv({ cls: c("cultivate-status"), text: t("cultivate_empty_stage") });
+            this.renderKeys(page);
             return;
         }
-        // ── the moves: a responsive grid of cards, not a tall column (#620) ──
-        const list = root.createDiv({ cls: c("cultivate-moves") });
-        for (const move of this.session.moves) this.renderMove(list, move);
+        this.renderTarget(page, session);
+        this.renderMovePills(page, session);
+        const active = session.moves.find((move) => move.kind === this.activeMove) ?? session.moves[0];
+        if (active) this.renderActiveMove(page, active, writing, hadFocus);
+        this.renderTrail(page);
+        this.renderKeys(page);
+    }
+
+    private renderKeys(page: HTMLElement): void {
+        keyHints(page, [
+            { keys: ["1–5"], label: t("cultivate_key_move") },
+            { keys: ["→"], label: t("cultivate_key_another") },
+            { keys: ["Ctrl", "Enter"], label: t("cultivate_key_keep") },
+        ]);
+    }
+
+    /** Keys while you are not writing: a digit picks a move, → brings another idea (#706). */
+    bindKeys(scope: Scope): void {
+        const typing = (): boolean => {
+            const active = this.container.ownerDocument?.activeElement;
+            return active instanceof HTMLTextAreaElement || active instanceof HTMLInputElement;
+        };
+        for (let i = 1; i <= 5; i++) {
+            this.key(scope, [], String(i), () => {
+                const move = this.session?.moves[i - 1];
+                if (typing() || !move) return;
+                this.pickMove(move.kind);
+                return false;
+            });
+        }
+        this.key(scope, [], "ArrowRight", () => {
+            if (typing() || this.inquiryMode) return;
+            this.anotherIdea();
+            return false;
+        });
+    }
+
+    private pickMove(kind: CultivationMoveKind): void {
+        this.activeMove = kind;
+        this.render();
+    }
+
+    /** The moves, one at a time, as pills in your words (#706) — never five cards at once. */
+    private renderMovePills(page: HTMLElement, session: CultivationSession): void {
+        const row = page.createDiv({ cls: c("cultivate-pills"), attr: { role: "tablist" } });
+        const current = this.activeMove ?? session.moves[0]?.kind;
+        session.moves.forEach((move, index) => {
+            const pill = row.createEl("button", {
+                cls: [c("cultivate-pill"), c(`cultivate-pill--${move.kind}`), ...(move.kind === current ? ["is-active"] : [])],
+                attr: { type: "button", role: "tab", "aria-selected": String(move.kind === current), "aria-keyshortcuts": String(index + 1) },
+            });
+            setIcon(pill.createSpan({ cls: c("cultivate-pill-icon") }), MOVE_ICON[move.kind]);
+            pill.createSpan({ text: t(`cultivate_move_${move.kind}_title`) });
+            this.registerDomEvent(pill, "click", () => this.pickMove(move.kind));
+        });
+    }
+
+    /**
+     * The move you picked, in Think's voice (#706): its question first and a box for your answer —
+     * write first, then see what your notes say. The answer is recorded as a judgement; *show me*
+     * reveals and records nothing (#338). With nothing to ask first, the move itself is here.
+     */
+    private renderActiveMove(page: HTMLElement, move: CultivationMove, writing: string, hadFocus: boolean): void {
+        const panel = page.createDiv({ cls: [c("cultivate-prompt"), c(`cultivate-prompt--${move.kind}`)] });
+        if (move.friction && !this.revealed.has(move.kind)) {
+            this.renderFriction(panel, move, writing, hadFocus);
+            return;
+        }
+        panel.createDiv({ cls: [c("cultivate-prompt-question"), c("family-idea-text")], text: t(`cultivate_move_${move.kind}_desc`) });
+        const body = panel.createDiv({ cls: c("cultivate-move-body") });
+        switch (move.kind) {
+            case "connect":
+                this.renderConnect(body, move.candidates ?? []);
+                break;
+            case "challenge":
+                this.renderChallenge(body, move.candidates ?? []);
+                break;
+            case "question":
+                this.renderTextMove(body, "cultivate_question_placeholder", (text) => this.addQuestion(text));
+                break;
+            case "advance":
+                this.renderAdvance(body, move);
+                break;
+            case "source":
+                this.renderTextMove(body, "cultivate_source_placeholder", (text) => this.addSource(text));
+                break;
+        }
+    }
+
+    /** What you kept with this idea today (#706) — each move you made, said once, in order. */
+    private renderTrail(page: HTMLElement): void {
+        const section = page.createDiv({ cls: c("cultivate-today") });
+        eyebrow(section, "rotate-ccw", t("cultivate_today"));
+        const trail = section.createDiv({ cls: c("cultivate-trail") });
+        if (this.trail.length === 0) {
+            trail.createDiv({ cls: c("cultivate-trail-empty"), text: t("cultivate_today_empty") });
+            return;
+        }
+        for (const entry of this.trail) trail.createDiv({ cls: c("cultivate-trail-row"), text: entry });
+    }
+
+    private remember(entry: string): void {
+        this.trail.push(entry);
     }
 
     /** The reader's chosen lifecycle stage (#589), or undefined for "any". */
@@ -256,40 +353,61 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * The stage selector and the per-stage distribution, in one control (#589).
+     * **The stage strip** (#589, rebuilt #706): your notes by stage, as one bar — a quiet picture of
+     * how the vault is maturing — and the filter in the same control. Click a stage and Cultivate
+     * offers ideas from it; click it again for every stage, youngest first. Counts are facts, never
+     * a score (§XII): no percentages, no "healthy". *From a question of mine…* sits at its end — the
+     * inquiry (#401) that used to be this mode's primary.
      *
-     * The chart *is* the selector — each bar sets the filter to its stage (chart-as-selector) — with
-     * an "Any stage" chip to clear it. Bars are `<button>`s, so they are keyboard-activatable; the
-     * magnitude comes from the `--l{level}` class, never a pixel width, so the user's theme keeps
-     * control of the bar. Whole-vault by decision: every stage shows, including empty ones.
+     * Each segment's width is its count, handed to the stylesheet as `--zf-n` through `setCssProps`
+     * — the theme keeps the colours, and nothing is written inline.
      */
     private renderStageControls(root: HTMLElement): void {
         const current = this.plugin.settings.cultivateStage ?? "any";
-        const wrap = root.createDiv({ cls: `${c("dashboard-card")} ${c("cultivate-stage")}` });
-        const head = wrap.createDiv({ cls: c("cultivate-stage-head") });
-        head.createSpan({ cls: c("cultivate-dist-title"), text: t("cultivate_distribution_title") });
-        const any = head.createEl("button", {
-            cls: c("cultivate-stage-any"),
-            text: t("cultivate_stage_any"),
-            attr: { type: "button", "aria-label": t("cultivate_stage_filter_label") },
+        const shown = this.distribution.filter((bucket) => bucket.stage !== "archived" || bucket.count > 0);
+        const strip = root.createDiv({
+            cls: [c("cultivate-strip"), ...(current !== "any" ? [c("cultivate-strip--filtered")] : [])],
+            attr: { role: "group", "aria-label": t("cultivate_distribution_title") },
         });
-        if (current === "any") any.addClass("is-active");
-        this.registerDomEvent(any, "click", () => this.pickStage("any"));
-
-        const dist = wrap.createDiv({ cls: c("cultivate-dist") });
-        for (const bucket of this.distribution) {
+        const bar = strip.createDiv({ cls: [c("cultivate-strip-bar"), ...(this.stripShown ? [] : [c("cultivate-strip-bar--fill")])] });
+        this.stripShown = true;
+        const legend = strip.createDiv({ cls: c("cultivate-strip-legend") });
+        for (const bucket of shown) {
             const label = t(bucket.labelKey as Parameters<typeof t>[0]);
             const count = tCount(bucket.count, "cultivate_stage_count", String(bucket.count));
-            const bar = dist.createEl("button", {
-                cls: [c("cultivate-dist-bar"), c(`cultivate-dist-bar--l${bucket.level}`)].join(" "),
-                attr: { type: "button", "aria-label": `${label} — ${count}` },
+            const active = current === bucket.stage;
+            if (bucket.count > 0) {
+                const segment = bar.createEl("button", {
+                    cls: [c("cultivate-strip-seg"), c(`cultivate-stage--${bucket.stage}`), ...(active ? ["is-active"] : [])],
+                    attr: { type: "button", "aria-label": `${label} — ${count}`, "aria-pressed": String(active) },
+                });
+                segment.setCssProps({ "--zf-n": String(bucket.count) });
+                this.registerDomEvent(segment, "click", () => this.pickStage(active ? "any" : bucket.stage));
+            }
+            const item = legend.createEl("button", {
+                cls: [c("cultivate-strip-key"), c(`cultivate-stage--${bucket.stage}`), ...(active ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(active) },
             });
-            if (current === bucket.stage) bar.addClass("is-active");
-            bar.createSpan({ cls: c("cultivate-dist-emoji"), text: bucket.emoji });
-            bar.createSpan({ cls: c("cultivate-dist-count"), text: count });
-            bar.createSpan({ cls: c("cultivate-dist-label"), text: label });
-            this.registerDomEvent(bar, "click", () => this.pickStage(bucket.stage));
+            item.createSpan({ cls: c("cultivate-strip-dot") });
+            item.createSpan({ text: label });
+            item.createSpan({ cls: c("cultivate-strip-count"), text: String(bucket.count) });
+            this.registerDomEvent(item, "click", () => this.pickStage(active ? "any" : bucket.stage));
         }
+        legend.createSpan({ cls: c("cultivate-strip-space") });
+        const question = legend.createEl("button", { cls: c("cultivate-strip-question"), attr: { type: "button" } });
+        setIcon(question.createSpan({ cls: c("cultivate-strip-question-icon") }), "compass");
+        question.createSpan({ text: t("cultivate_from_question") });
+        this.registerDomEvent(question, "click", () => {
+            this.inquiryMode = true;
+            this.mountInquiry();
+        });
+        const chosen = this.distribution.find((bucket) => bucket.stage === current);
+        strip.createDiv({
+            cls: c("cultivate-strip-note"),
+            text: chosen
+                ? t("cultivate_strip_only", t(chosen.labelKey as Parameters<typeof t>[0]).toLowerCase())
+                : t("cultivate_strip_all"),
+        });
     }
 
     /** Set the stage filter (chart-as-selector), persist it, and re-select within the new stage. */
@@ -328,32 +446,38 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         }));
     }
 
+    /**
+     * The idea, as the hero of the page (#706): its name, **what it says** in the serif of an idea
+     * (you read the claim, not a row of metrics), where it is on its way as a gentle stepper, and the
+     * notes it lives near. The state chip is the door for changing the state (#578); the claim door
+     * and the move picker sit quietly at its foot. No degree, no maturity number — §XII.
+     */
     private renderTarget(root: HTMLElement, session: CultivationSession): void {
-        // The idea under cultivation is the one accent card on the surface (#620) — the shared hero
-        // shape, so "this is where to look" reads the same here as it does on Home.
-        const card = root.createDiv({ cls: `${c("dashboard-card")} ${c("dashboard-card--hero")} ${c("cultivate-target")}` });
+        const card = root.createDiv({ cls: [c("cultivate-idea"), c("cultivate-target")] });
+        const idea = this.idea;
 
-        // What just happened, if anything did (#580). The emoji says where the note *is*; a
-        // promotion is a fact about two states, and nobody can read it from one.
+        // What just happened, if anything did (#580). A promotion is a fact about two states, and
+        // nobody can read it from one.
         const moved =
             this.renderedState?.path === session.path
                 ? stateTransition(this.renderedState.state, session.state)
                 : null;
         this.renderedState = { path: session.path, state: session.state };
 
+        const top = card.createDiv({ cls: c("cultivate-idea-top") });
         const stateKey = (STATE_LABEL_KEY as Record<string, string>)[session.state];
-        const chip = card.createSpan({
+        const chip = top.createSpan({
             cls: c("cultivate-state-chip"),
-            text: `${session.stateEmoji} ${stateKey ? t(stateKey as Parameters<typeof t>[0]) : session.state}`.trim(),
+            text: stateKey ? t(stateKey as Parameters<typeof t>[0]) : session.state,
         });
-        // The door for changing a note's state (#578). It was in the palette and nowhere else — and
-        // the state is *right here*, on the object the change is about, which is rank 1 by the
-        // ranking this epic wrote down. The same picker the command opens, not a second one.
+        // The door for changing a note's state (#578): on the object the change is about. The same
+        // picker the command opens, not a second one.
         chip.setAttribute("title", t("state_transition_modal_title"));
         makeActivatable(chip, () => {
             const file = this.app.vault.getAbstractFileByPath(session.path);
             if (file instanceof TFile) StateTransitionComponent.pickState(this.plugin, file);
         }, "button");
+        if (idea) top.createSpan({ cls: c("cultivate-idea-since"), text: t("cultivate_idea_since", moment(idea.created).fromNow()) });
         if (moved) {
             // Once, on the chip that changed, and nowhere else: the state is where you acted.
             chip.addClass(c("cultivate-state-changed"));
@@ -367,21 +491,50 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             });
         }
 
-        const name = card.createSpan({
-            cls: c("cultivate-target-name"),
-            text: basename(session.path),
+        const name = card.createEl("h2", {
+            cls: [c("cultivate-target-name"), c("family-idea-text")],
+            text: idea?.title || basename(session.path),
         });
         name.setAttribute("title", session.path);
         makeActivatable(name, () => void this.app.workspace.openLinkText(session.path, "", false));
         // Ctrl/Cmd-hover shows the native Page preview without leaving Cultivate (#594).
         hoverPreview(this.app, name, session.path, this);
-        const maturity = session.maturity === null ? "—" : session.maturity.toFixed(2);
+
+        const claim = idea?.claims.find((one) => one.text.trim())?.text.trim();
         card.createDiv({
-            cls: c("cultivate-target-meta"),
-            text: t("cultivate_target_meta", String(session.degree), maturity),
+            cls: [c("cultivate-idea-claim"), c("family-idea-text"), ...(claim ? [] : [c("cultivate-idea-claim--empty")])],
+            text: claim ?? t("cultivate_idea_no_claim"),
         });
-        this.renderMoveRow(card, session.path);
-        this.renderClaimRow(card, session.path);
+
+        // The lifecycle as a stepper: where it has been, where it is — never a number.
+        const steps: LifecycleState[] = LIFECYCLE_STATES.filter((state) => state !== "archived");
+        const at = steps.indexOf(session.state as LifecycleState);
+        if (at >= 0) {
+            const stepper = card.createDiv({ cls: c("cultivate-life") });
+            steps.forEach((state, index) => {
+                const step = stepper.createDiv({
+                    cls: [c("cultivate-life-step"), ...(index < at ? [c("is-past")] : index === at ? [c("is-now")] : [])],
+                });
+                step.createSpan({ cls: c("cultivate-life-dot") });
+                step.createSpan({ text: t(STATE_LABEL_KEY[state]) });
+            });
+        }
+
+        const near = idea ? [...new Set(idea.relations.map((relation) => relation.to))].filter((path) => path !== session.path).slice(0, 4) : [];
+        if (near.length > 0) {
+            const row = card.createDiv({ cls: c("cultivate-near") });
+            row.createSpan({ text: t("cultivate_lives_near") });
+            for (const path of near) {
+                const neighbour = row.createSpan({ cls: c("cultivate-near-chip"), text: basename(path) });
+                neighbour.setAttribute("title", path);
+                makeActivatable(neighbour, () => void this.app.workspace.openLinkText(path, "", false));
+                hoverPreview(this.app, neighbour, path, this);
+            }
+        }
+
+        const foot = card.createDiv({ cls: c("cultivate-idea-foot") });
+        this.renderClaimRow(foot, session.path);
+        this.renderMoveRow(foot, session.path);
     }
 
     /**
@@ -426,43 +579,20 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         });
     }
 
-    private renderMove(list: HTMLElement, move: CultivationMove): void {
-        const card = list.createDiv({ cls: [c("cultivate-move"), c(`cultivate-move--${move.kind}`)].join(" ") });
-        // An icon per kind, so five moves read as five different things at a glance rather than
-        // as one wall of text with five identical accent bars.
-        const head = card.createDiv({ cls: c("cultivate-move-head") });
-        setIcon(head.createSpan({ cls: c("cultivate-move-icon") }), MOVE_ICON[move.kind]);
-        const heading = head.createDiv({ cls: c("cultivate-move-heading") });
-        heading.createDiv({ cls: c("cultivate-move-title"), text: t(`cultivate_move_${move.kind}_title`) });
-        heading.createDiv({ cls: c("cultivate-move-desc"), text: t(`cultivate_move_${move.kind}_desc`) });
-        const body = card.createDiv({ cls: c("cultivate-move-body") });
-
-        // #338: a move that would hand you its answer asks for yours first. Always skippable.
-        if (move.friction && !this.revealed.has(move.kind)) {
-            this.renderFriction(body, move);
-            return;
-        }
-
-        switch (move.kind) {
-            case "connect":
-                this.renderConnect(body, move.candidates ?? []);
-                break;
-            case "challenge":
-                this.renderChallenge(body, move.candidates ?? []);
-                break;
-            case "question":
-                this.renderTextMove(body, "cultivate_question_placeholder", (text) => this.addQuestion(text));
-                break;
-            case "advance":
-                this.renderAdvance(body, move);
-                break;
-            case "source":
-                this.renderTextMove(body, "cultivate_source_placeholder", (text) => this.addSource(text));
-                break;
-        }
-    }
-
-    private renderConnect(body: HTMLElement, candidates: string[]): void {
+    /**
+     * The connections Cultivate suggests, each with **not related** beside *Link* (#703).
+     *
+     * The gaps section left Home with the dashboard, and its verdict came here, to the one place a
+     * suggested connection is already in front of you: the machine observes, you rule, the verdict
+     * is recorded and writes nothing to the vault (§XII, #534). A pair you ruled out is not offered
+     * again. Absent when the record is off — a button that silently does nothing is worse than none.
+     */
+    private renderConnect(body: HTMLElement, all: string[]): void {
+        const log = JudgementLog.getInstance();
+        const target = this.targetPath ?? "";
+        const ruled = ruledOutGaps(log.entries());
+        const candidates = all.filter((candidate) => !ruled.has(target, candidate));
+        const canRule = log.enabled();
         for (const candidate of candidates) {
             const row = body.createDiv({ cls: c("cultivate-candidate") });
             const link = row.createSpan({ cls: c("cultivate-candidate-name"), text: basename(candidate) });
@@ -471,6 +601,17 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             hoverPreview(this.app, link, candidate, this);
             const btn = row.createEl("button", { cls: c("cultivate-candidate-btn"), text: t("cultivate_link_button") });
             btn.addEventListener("click", () => void this.linkNote(candidate));
+            if (!canRule) continue;
+            const verdict = row.createEl("button", {
+                text: t("home_gap_not_related"),
+                cls: c("cultivate-candidate-verdict"),
+                attr: { type: "button", "aria-label": t("home_gap_not_related_aria") },
+            });
+            verdict.addEventListener("click", () => {
+                JudgementLog.getInstance().recordGapVerdict(target, candidate);
+                this.remember(t("cultivate_trail_not_related", basename(candidate)));
+                this.recompute();
+            });
         }
     }
 
@@ -490,68 +631,57 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
     }
 
     /**
-     * The friction phase (#338): the question, a box for your reading, and two ways out. `Reveal`
-     * needs text — that is the commitment — and records a judgement; `Skip` reveals and records
-     * **nothing**, because a skip is not a judgement (the same rule #337 applies to a dismissed
-     * proposal). Nothing here writes to the note.
+     * The friction phase (#338), in Think's voice (#706): the question, why it is asked, a box for
+     * your reading, and two ways on. *Keep my answer* needs text — that is the commitment — and
+     * records a judgement; *show me what my notes say* reveals and records **nothing**, because a
+     * skip is not a judgement. Ctrl/Cmd+Enter keeps. Nothing here writes to the note.
      */
-    private renderFriction(body: HTMLElement, move: CultivationMove): void {
+    private renderFriction(panel: HTMLElement, move: CultivationMove, writing: string, hadFocus: boolean): void {
         const friction = move.friction;
         if (!friction) return;
         const prompt = t(friction.promptKey as Parameters<typeof t>[0]);
-
-        body.createDiv({ cls: c("cultivate-friction-prompt"), text: prompt });
-        const area = body.createEl("textarea", {
+        panel.createDiv({ cls: [c("cultivate-prompt-question"), c("family-idea-text")], text: prompt });
+        panel.createDiv({ cls: c("cultivate-prompt-why"), text: t(`cultivate_move_${move.kind}_desc`) });
+        const area = panel.createEl("textarea", {
             cls: c("cultivate-friction-input"),
             attr: { rows: "3", "aria-label": prompt },
         });
         area.placeholder = t("cultivate_friction_placeholder");
-        area.value = this.frictionAnswers.get(move.kind) ?? "";
+        area.value = writing || this.frictionAnswers.get(move.kind) || "";
+        this.promptEl = area;
+        if (hadFocus) window.setTimeout(() => area.focus(), 0);
 
-        // Optional how-sure marker on your reading (#361, D1) — an unset value records no confidence.
-        const confidenceRow = body.createDiv({ cls: c("cultivate-friction-confidence") });
-        confidenceRow.createSpan({
-            cls: c("cultivate-friction-confidence-label"),
-            text: t("proposal_confidence_label"),
-        });
-        const confidence = confidenceRow.createEl("select", {
-            cls: c("cultivate-friction-confidence-select"),
-            attr: { "aria-label": t("proposal_confidence_label") },
-        });
-        confidence.createEl("option", { text: t("confidence_unset"), value: "" });
-        for (const level of JUDGEMENT_CONFIDENCES) {
-            confidence.createEl("option", { text: t(`confidence_${level}` as Parameters<typeof t>[0]), value: level });
-        }
-
-        const actions = body.createDiv({ cls: c("cultivate-friction-actions") });
-        const reveal = actions.createEl("button", {
-            cls: c("cultivate-friction-reveal"),
+        const actions = panel.createDiv({ cls: c("cultivate-friction-actions") });
+        const keep = actions.createEl("button", {
+            cls: [c("cultivate-friction-reveal"), "mod-cta"],
             text: t("cultivate_friction_reveal"),
+            attr: { type: "button" },
         });
-        reveal.disabled = area.value.trim().length === 0;
-        area.addEventListener("input", () => {
-            reveal.disabled = area.value.trim().length === 0;
+        keep.disabled = area.value.trim().length === 0;
+        this.registerDomEvent(area, "input", () => {
+            keep.disabled = area.value.trim().length === 0;
         });
-        reveal.addEventListener("click", () =>
-            this.answerFriction(
-                move,
-                area.value.trim(),
-                confidence.value ? (confidence.value as JudgementConfidence) : undefined
-            )
-        );
-
+        this.registerDomEvent(area, "keydown", (event: KeyboardEvent) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                this.answerFriction(move, area.value.trim());
+            }
+        });
+        this.registerDomEvent(keep, "click", () => this.answerFriction(move, area.value.trim()));
         const skip = actions.createEl("button", {
             cls: c("cultivate-friction-skip"),
             text: t("cultivate_friction_skip"),
+            attr: { type: "button" },
         });
-        skip.addEventListener("click", () => this.skipFriction(move));
+        this.registerDomEvent(skip, "click", () => this.skipFriction(move));
+        actions.createSpan({ cls: c("cultivate-friction-note"), text: t("cultivate_friction_note") });
     }
 
     /**
-     * Your reading is committed: record it as a judgement (#336) — the reading itself is the rationale
-     * and the how-sure marker rides along when given (#361, D1) — and open the move.
+     * Your reading is committed: record it as a judgement (#336) — the reading itself is the
+     * rationale — and open the move.
      */
-    private answerFriction(move: CultivationMove, text: string, confidence?: JudgementConfidence): void {
+    private answerFriction(move: CultivationMove, text: string): void {
         if (!text || !move.friction) return;
         this.frictionAnswers.set(move.kind, text);
         if (this.session) {
@@ -564,10 +694,13 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
                         verdict: move.friction.verdict,
                     },
                     text,
-                    confidence
+                    undefined
                 )
             );
         }
+        const kept = FRICTION_TRAIL[move.kind];
+        if (kept) this.remember(t(kept, text));
+        if (this.promptEl) this.promptEl.value = "";
         this.reveal(move.kind);
     }
 
@@ -596,6 +729,12 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             text: t("cultivate_advance_button", label),
         });
         btn.addEventListener("click", () => void this.advanceState(target));
+        const notYet = body.createEl("button", { cls: c("cultivate-advance-later"), text: t("cultivate_advance_not_yet"), attr: { type: "button" } });
+        notYet.addEventListener("click", () => {
+            // Deciding it is not ready is yours too, and writes nothing.
+            this.remember(t("cultivate_trail_not_yet"));
+            this.render();
+        });
     }
 
     /** A one-line text input + add button, shared by question / source / counterpoint. */
@@ -662,26 +801,31 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
 
     private async linkNote(target: string): Promise<void> {
         await this.cultivation.link(this.app, this.targetPath ?? "", basename(target));
+        this.remember(t("cultivate_trail_linked", basename(target)));
         await this.redrawAfterMove();
     }
 
     private async addQuestion(text: string): Promise<void> {
         await this.cultivation.addQuestion(this.app, this.targetPath ?? "", text);
+        this.remember(t("cultivate_trail_question", text));
         await this.redrawAfterMove();
     }
 
     private async addCounterpoint(text: string): Promise<void> {
         await this.cultivation.addCounterpoint(this.app, this.targetPath ?? "", text);
+        this.remember(t("cultivate_trail_counterpoint", text));
         await this.redrawAfterMove();
     }
 
     private async addSource(text: string): Promise<void> {
         await this.cultivation.addSource(this.app, this.targetPath ?? "", text);
+        this.remember(t("cultivate_trail_source", text));
         await this.redrawAfterMove();
     }
 
     private async advanceState(target: NonNullable<CultivationMove["proposedState"]>): Promise<void> {
         await this.cultivation.advance(this.app, this.plugin, this.targetPath ?? "", target);
+        this.remember(t("cultivate_trail_advanced", t(STATE_LABEL_KEY[target])));
         await this.redrawAfterMove();
     }
 }

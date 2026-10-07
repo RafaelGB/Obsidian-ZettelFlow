@@ -112,7 +112,7 @@ describe("the settings tab under Obsidian's real renderer (#659 runtime audit)",
         const { container, renderer } = open();
         const card = () => container.byClass("settings-glance-card").find((c) => c.getAttribute("data-card") === "thinking")!;
         expect(card().textContent).toContain("5 of 5");
-        renderer.setting("Challenge").toggles[0].flip(false);
+        renderer.setting("Challenge it").toggles[0].flip(false);
         expect(card().textContent).toContain("4 of 5");
     });
 

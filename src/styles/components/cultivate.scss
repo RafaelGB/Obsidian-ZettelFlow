@@ -1,3 +1,6 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+
 // Purpose-led work shares Cultivate, with stable editors and touch-sized native controls.
 .zettelkasten-flow__inquiry {
     display: flex;
@@ -82,450 +85,574 @@
     cursor: pointer;
 }
 
+
 /*
- * Cultivate — thinking sessions (#309), restyled (#472 follow-up).
+ * Cultivate — a conversation with one idea (#706, epic #701).
  *
- * The old surface was five identically-weighted blocks, each with the same accent bar, over a
- * target card painted with hardcoded greens that ignored your theme entirely. Everything spoke at
- * the same volume, so nothing led — which is what made it overwhelming rather than merely plain.
+ * It was a form of metrics: a stage chart with emoji beside the idea, a degree and a maturity
+ * number, a streak, and five moves as five cards at once, each with its own prompt and a
+ * confidence dropdown. It reads like Think now: the idea is the hero and you read what it says;
+ * one move at a time, asked in Think's voice; what you kept, as a trail. Notes by stage stays —
+ * as one strip that is the filter and a quiet picture of how the vault is maturing.
  *
- * Three rules here:
- *
- * 1. **The theme decides the colour.** No hex anywhere; a light theme gets a light surface.
- * 2. **One thing leads.** The note you are working on is the subject and looks like it; the moves
- *    stay quiet until you reach one.
- * 3. **Five moves should read as five things**, which is what the icons are for — not decoration.
+ * The theme decides every colour (§XV); every motion stops under reduced motion.
  */
 
 .zettelkasten-flow__cultivate {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-4);
-    padding: var(--size-4-3) var(--size-4-4) var(--size-4-8);
-    // Fills the pane, centred only past a generous measure (#620) — the 44rem cage is gone, the
-    // cards inside carry the reading width.
-    width: 100%;
-    max-width: 100rem;
-    margin-inline: auto;
+    // The stages' colours, named once: each is one of the theme's own.
+    --zf-stage-fleeting: var(--color-yellow);
+    --zf-stage-literature: var(--color-orange);
+    --zf-stage-permanent: var(--color-green);
+    --zf-stage-developing: var(--color-cyan);
+    --zf-stage-evergreen: var(--interactive-accent);
+    --zf-stage-archived: var(--text-faint);
 }
 
 .zettelkasten-flow__cultivate-header {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-5);
+
+    .zettelkasten-flow__family-eyebrow {
+        flex: 1;
+        margin: 0;
+    }
+}
+
+.zettelkasten-flow__cultivate-status {
+    @include hint;
+    margin: var(--size-4-4) 0;
+}
+
+/* ── the stage strip: the filter, and how the vault is maturing ─────────── */
+.zettelkasten-flow__cultivate-strip {
+    margin: 0 0 var(--size-4-6);
+}
+
+.zettelkasten-flow__cultivate-strip-bar {
+    display: flex;
+    gap: var(--size-2-1);
+    height: var(--size-4-2);
+    overflow: hidden;
+    border-radius: $radius-pill;
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__cultivate-strip-bar--fill {
+    animation: zf-cultivate-fill 1.1s ease-out both;
+}
+
+@keyframes zf-cultivate-fill {
+    from {
+        clip-path: inset(0 100% 0 0);
+    }
+
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+button.zettelkasten-flow__cultivate-strip-seg {
+    flex: var(--zf-n, 1) 1 0;
+    height: 100%;
+    min-width: var(--size-4-1);
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: var(--zf-stage);
+    box-shadow: none;
+    cursor: pointer;
+    transition: opacity 0.25s ease, filter 0.25s ease;
+
+    &:hover {
+        background-color: var(--zf-stage);
+        filter: brightness(1.15);
+    }
+}
+
+.zettelkasten-flow__cultivate-stage--fleeting { --zf-stage: var(--zf-stage-fleeting); }
+.zettelkasten-flow__cultivate-stage--literature { --zf-stage: var(--zf-stage-literature); }
+.zettelkasten-flow__cultivate-stage--permanent { --zf-stage: var(--zf-stage-permanent); }
+.zettelkasten-flow__cultivate-stage--developing { --zf-stage: var(--zf-stage-developing); }
+.zettelkasten-flow__cultivate-stage--evergreen { --zf-stage: var(--zf-stage-evergreen); }
+.zettelkasten-flow__cultivate-stage--archived { --zf-stage: var(--zf-stage-archived); }
+
+.zettelkasten-flow__cultivate-strip--filtered button.zettelkasten-flow__cultivate-strip-seg {
+    opacity: 0.3;
+
+    &.is-active {
+        opacity: 1;
+        box-shadow: 0 0 var(--size-4-3) var(--zf-stage);
+    }
+}
+
+.zettelkasten-flow__cultivate-strip-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1) var(--size-4-3);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__cultivate-strip-space {
+    flex: 1;
+}
+
+button.zettelkasten-flow__cultivate-strip-key,
+button.zettelkasten-flow__cultivate-strip-question {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--size-4-2);
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: none;
+    border-radius: $radius-pill;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+
+    &:hover,
+    &.is-active {
+        background-color: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+button.zettelkasten-flow__cultivate-strip-question {
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__cultivate-strip--filtered button.zettelkasten-flow__cultivate-strip-key:not(.is-active) {
+    opacity: 0.5;
+}
+
+.zettelkasten-flow__cultivate-strip-dot {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: 50%;
+    background-color: var(--zf-stage);
+}
+
+.zettelkasten-flow__cultivate-strip-count {
+    color: var(--text-normal);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__cultivate-strip-question-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__cultivate-strip-note {
+    @include hint;
+    margin-top: var(--size-4-1);
+}
+
+/* ── the idea, as the hero ──────────────────────────────────────────────── */
+.zettelkasten-flow__cultivate-idea {
+    position: relative;
+    overflow: hidden;
+    padding: var(--size-4-6) var(--size-4-8);
+    border: $line-quiet;
+    border-radius: var(--radius-xl);
+    background-color: var(--background-primary);
+    box-shadow: var(--shadow-s);
+    animation: zf-cultivate-swap 0.5s ease-out both;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: var(--size-2-2);
+        background: linear-gradient(90deg, var(--color-green), var(--interactive-accent));
+    }
+}
+
+@keyframes zf-cultivate-swap {
+    from {
+        opacity: 0;
+        transform: translateX(var(--size-4-6));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__cultivate-idea-top {
+    display: flex;
+    align-items: center;
     flex-wrap: wrap;
     gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__cultivate-title {
-    margin: 0;
-    font-size: var(--font-ui-medium);
-    font-weight: var(--font-semibold);
-    color: var(--text-normal);
-}
-
-/* Secondary by default: these are ways out of the session, not the session. */
-.zettelkasten-flow__cultivate-another,
-.zettelkasten-flow__inquiry-onramp {
-    font-size: var(--font-ui-smaller);
-    padding: var(--size-4-1) var(--size-4-3);
-    border-radius: var(--radius-m);
-    border: 1px solid var(--background-modifier-border);
-    background: transparent;
-    color: var(--text-muted);
-    box-shadow: none;
-    cursor: pointer;
-    min-height: 0;
-
-    &:hover {
-        background: var(--background-modifier-hover);
-        color: var(--text-normal);
-    }
-}
-
-.zettelkasten-flow__cultivate-status,
-.zettelkasten-flow__cultivate-intro {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    line-height: 1.5;
-}
-
-.zettelkasten-flow__cultivate-momentum {
-    color: var(--text-accent);
+.zettelkasten-flow__cultivate-idea-since {
+    color: var(--text-faint);
     font-size: var(--font-ui-smaller);
 }
-
-/* ── the stage selector + per-stage distribution (#589) ───────────────────────
-   The chart is the selector: each bar sets the stage filter. Magnitude is the
-   --l{level} class — a background fill by percentage — never a pixel width, so the
-   theme keeps control of the bar and nothing leaves the 4-grid. */
-
-.zettelkasten-flow__cultivate-stage {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-1);
-}
-
-.zettelkasten-flow__cultivate-stage-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--size-4-2);
-}
-
-.zettelkasten-flow__cultivate-dist-title {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__cultivate-stage-any {
-    font-size: var(--font-ui-smaller);
-    padding: var(--size-4-1) var(--size-4-2);
-    border-radius: var(--radius-m);
-    border: var(--border-width) solid var(--background-modifier-border);
-    background: transparent;
-    color: var(--text-muted);
-    box-shadow: none;
-    cursor: pointer;
-    min-height: 0;
-
-    &:hover {
-        background: var(--background-modifier-hover);
-        color: var(--text-normal);
-    }
-
-    &.is-active {
-        border-color: var(--interactive-accent);
-        color: var(--text-normal);
-    }
-}
-
-.zettelkasten-flow__cultivate-dist {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-1);
-}
-
-/* One row per stage; the background fill is the bar, its width the level class. */
-.zettelkasten-flow__cultivate-dist-bar {
-    display: flex;
-    align-items: center;
-    gap: var(--size-4-2);
-    padding: var(--size-4-1) var(--size-4-2);
-    border-radius: var(--radius-s);
-    border: var(--border-width) solid transparent;
-    background: linear-gradient(
-        to right,
-        var(--background-modifier-hover) var(--zf-bar, 0%),
-        transparent var(--zf-bar, 0%)
-    );
-    color: var(--text-normal);
-    box-shadow: none;
-    cursor: pointer;
-    text-align: left;
-    font-size: var(--font-ui-smaller);
-
-    &:hover {
-        border-color: var(--background-modifier-border);
-    }
-
-    &.is-active {
-        border-color: var(--interactive-accent);
-    }
-}
-
-.zettelkasten-flow__cultivate-dist-emoji {
-    order: 0;
-    flex-shrink: 0;
-}
-
-.zettelkasten-flow__cultivate-dist-label {
-    order: 1;
-    flex: 1;
-    color: var(--text-normal);
-}
-
-.zettelkasten-flow__cultivate-dist-count {
-    order: 2;
-    flex-shrink: 0;
-    color: var(--text-muted);
-}
-
-.zettelkasten-flow__cultivate-dist-bar--l0 {
-    --zf-bar: 0%;
-}
-
-.zettelkasten-flow__cultivate-dist-bar--l1 {
-    --zf-bar: 25%;
-}
-
-.zettelkasten-flow__cultivate-dist-bar--l2 {
-    --zf-bar: 50%;
-}
-
-.zettelkasten-flow__cultivate-dist-bar--l3 {
-    --zf-bar: 75%;
-}
-
-.zettelkasten-flow__cultivate-dist-bar--l4 {
-    --zf-bar: 100%;
-}
-
-/* ── the subject: the one thing that leads ────────────────────────────────── */
-
-// The box — surface, hairline, accent edge, radius, padding — comes from `dashboard-card--hero`
-// now (#620), so the idea card wears the same shape as Home's hero. Nothing to re-declare here.
 
 .zettelkasten-flow__cultivate-target-name {
-    display: inline-block;
+    margin: var(--size-4-2) 0 var(--size-4-2);
+    font-size: var(--h1-size);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     cursor: pointer;
-    font-weight: var(--font-semibold);
-    font-size: var(--font-ui-large);
-    line-height: 1.3;
-    color: var(--text-normal);
 
     &:hover {
         color: var(--text-accent);
     }
 }
 
-.zettelkasten-flow__cultivate-target-meta {
-    color: var(--text-faint);
-    font-size: var(--font-ui-smaller);
-    margin-top: var(--size-4-1);
-}
-
-/* ── the moves: quiet until you reach one ─────────────────────────────────── */
-
-// The moves reflow into columns on a wide pane and stack when it is narrow (#620) — a grid, not a
-// tall column. `align-items: start` so a move that opens its body does not stretch its neighbours.
-.zettelkasten-flow__cultivate-moves {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    gap: var(--size-4-3);
-    align-items: start;
-}
-
-.zettelkasten-flow__cultivate-move {
-    padding: var(--size-4-3);
-    border: 1px solid transparent;
-    border-radius: var(--radius-m);
-    background: transparent;
-    transition: background 120ms ease, border-color 120ms ease;
-
-    &:hover,
-    &:focus-within {
-        background: var(--background-secondary);
-        border-color: var(--background-modifier-border);
-    }
-}
-
-.zettelkasten-flow__cultivate-move-head {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--size-4-2);
-}
-
-/* Five moves should read as five things. That is the icon's whole job. */
-.zettelkasten-flow__cultivate-move-icon {
-    display: inline-flex;
-    flex-shrink: 0;
-    margin-top: 2px;
-    color: var(--text-faint);
-    transition: color 120ms ease;
-
-    .svg-icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    .zettelkasten-flow__cultivate-move:hover &,
-    .zettelkasten-flow__cultivate-move:focus-within & {
-        color: var(--text-accent);
-    }
-}
-
-.zettelkasten-flow__cultivate-move-heading {
-    min-width: 0;
-}
-
-.zettelkasten-flow__cultivate-move-title {
-    font-weight: var(--font-medium);
-    color: var(--text-normal);
-    line-height: 1.4;
-}
-
-.zettelkasten-flow__cultivate-move-desc {
+.zettelkasten-flow__cultivate-idea-claim {
+    margin: 0 0 var(--size-4-5);
     color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    line-height: 1.5;
+    font-size: var(--font-text-size);
+    line-height: 1.55;
 }
 
-.zettelkasten-flow__cultivate-move-hint {
+.zettelkasten-flow__cultivate-idea-claim--empty {
     color: var(--text-faint);
-    font-size: var(--font-ui-smaller);
     font-style: italic;
 }
 
-/* Indented under the heading, so a body belongs to its move instead of floating. */
-.zettelkasten-flow__cultivate-move-body {
-    padding-left: calc(16px + var(--size-4-2));
-    margin-top: var(--size-4-2);
+.zettelkasten-flow__cultivate-life {
     display: flex;
-    flex-direction: column;
-    gap: var(--size-4-1);
+    margin: 0 0 var(--size-4-4);
 }
 
-/* ── what a move offers ───────────────────────────────────────────────────── */
-
-.zettelkasten-flow__cultivate-candidate {
+.zettelkasten-flow__cultivate-life-step {
+    position: relative;
+    flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--size-4-1);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    text-align: center;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: var(--size-4-1);
+        left: -50%;
+        right: 50%;
+        height: var(--size-2-1);
+        background-color: var(--background-modifier-border);
+    }
+
+    &:first-child::before {
+        display: none;
+    }
+
+    &.zettelkasten-flow__is-past::before,
+    &.zettelkasten-flow__is-now::before {
+        background-color: var(--color-green);
+    }
+
+    &.zettelkasten-flow__is-now {
+        color: var(--text-normal);
+        font-weight: var(--font-semibold);
+    }
+}
+
+.zettelkasten-flow__cultivate-life-dot {
+    position: relative;
+    z-index: 1;
+    width: var(--size-4-3);
+    height: var(--size-4-3);
+    border: var(--size-2-1) solid var(--background-modifier-border);
+    border-radius: 50%;
+    background-color: var(--background-primary);
+
+    .zettelkasten-flow__is-past & {
+        border-color: var(--color-green);
+        background-color: var(--color-green);
+    }
+
+    .zettelkasten-flow__is-now & {
+        border-color: var(--color-green);
+        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--color-green) 20%, transparent);
+    }
+}
+
+.zettelkasten-flow__cultivate-near {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--size-4-2);
-    padding: var(--size-4-1) 0;
-    min-width: 0;
+    color: var(--text-faint);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__cultivate-near-chip {
+    @include chip;
+    @include chip-clickable;
+}
+
+.zettelkasten-flow__cultivate-idea-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-4);
+}
+
+button.zettelkasten-flow__cultivate-target-move {
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-2);
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+        color: var(--text-normal);
+    }
+}
+
+/* ── one move at a time ─────────────────────────────────────────────────── */
+.zettelkasten-flow__cultivate-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin: var(--size-4-6) 0 var(--size-4-3);
+}
+
+button.zettelkasten-flow__cultivate-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-3);
+    border: $line-quiet;
+    border-radius: $radius-pill;
+    background-color: var(--background-primary);
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+        border-color: var(--background-modifier-border-hover);
+        color: var(--text-normal);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        background-color: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__cultivate-pill-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__cultivate-pill--challenge .zettelkasten-flow__cultivate-pill-icon { color: var(--color-red); }
+.zettelkasten-flow__cultivate-pill--connect .zettelkasten-flow__cultivate-pill-icon { color: var(--color-blue); }
+.zettelkasten-flow__cultivate-pill--question .zettelkasten-flow__cultivate-pill-icon { color: var(--color-yellow); }
+.zettelkasten-flow__cultivate-pill--source .zettelkasten-flow__cultivate-pill-icon { color: var(--color-orange); }
+.zettelkasten-flow__cultivate-pill--advance .zettelkasten-flow__cultivate-pill-icon { color: var(--color-green); }
+
+.zettelkasten-flow__cultivate-prompt {
+    padding: var(--size-4-4);
+    border: $line-quiet;
+    border-radius: var(--radius-l);
+    background-color: var(--background-primary-alt);
+    animation: zf-cultivate-prompt 0.35s ease-out both;
+}
+
+@keyframes zf-cultivate-prompt {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-2));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__cultivate-prompt-question {
+    margin: 0 0 var(--size-4-1);
+    font-size: var(--font-ui-large);
+    line-height: 1.35;
+}
+
+.zettelkasten-flow__cultivate-prompt-why {
+    @include hint;
+    margin: 0 0 var(--size-4-3);
+}
+
+.zettelkasten-flow__cultivate-prompt textarea.zettelkasten-flow__cultivate-friction-input {
+    width: 100%;
+    min-height: 4.5rem;
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-m);
+    font-family: var(--font-text);
+    font-size: var(--font-text-size);
+    line-height: 1.5;
+    resize: vertical;
+    user-select: text;
+}
+
+.zettelkasten-flow__cultivate-friction-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-3);
+}
+
+.zettelkasten-flow__cultivate-friction-note {
+    @include hint;
+    margin-left: auto;
+}
+
+.zettelkasten-flow__cultivate-move-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__cultivate-move-hint {
+    @include hint;
+}
+
+/* ── what a move offers ─────────────────────────────────────────────────── */
+.zettelkasten-flow__cultivate-candidate {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: var(--size-4-2);
+    align-items: center;
+    padding: var(--size-4-2) var(--size-4-3);
+    border: $line-quiet;
+    border-radius: var(--radius-m);
+    background-color: var(--background-primary);
 }
 
 .zettelkasten-flow__cultivate-candidate-name {
-    cursor: pointer;
-    color: var(--text-normal);
-    font-size: var(--font-ui-smaller);
     overflow: hidden;
+    color: var(--text-normal);
+    font-family: var(--font-text);
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
 
     &:hover {
         color: var(--text-accent);
-        text-decoration: underline;
     }
 }
 
-.zettelkasten-flow__cultivate-candidate-btn,
-.zettelkasten-flow__cultivate-advance-btn,
-.zettelkasten-flow__cultivate-input-btn {
-    font-size: var(--font-ui-smaller);
-    padding: var(--size-4-1) var(--size-4-3);
-    border-radius: var(--radius-m);
-    border: 1px solid var(--background-modifier-border);
-    background: transparent;
-    color: var(--text-muted);
-    box-shadow: none;
-    cursor: pointer;
+// `button.` so these outweigh Obsidian's `button:not(.clickable-icon)` paint (app.css, 1.14).
+button.zettelkasten-flow__cultivate-candidate-btn,
+button.zettelkasten-flow__cultivate-candidate-verdict,
+button.zettelkasten-flow__cultivate-advance-btn,
+button.zettelkasten-flow__cultivate-advance-later,
+button.zettelkasten-flow__cultivate-input-btn {
     flex-shrink: 0;
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-3);
+    border: $line-quiet;
+    border-radius: var(--radius-m);
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
     white-space: nowrap;
+    cursor: pointer;
 
     &:hover {
-        background: var(--background-modifier-hover);
+        background-color: var(--background-modifier-hover);
         color: var(--text-normal);
     }
+}
+
+button.zettelkasten-flow__cultivate-candidate-verdict,
+button.zettelkasten-flow__cultivate-advance-later {
+    border-color: transparent;
 }
 
 .zettelkasten-flow__cultivate-input-row {
     display: flex;
-    gap: var(--size-4-2);
     align-items: center;
+    gap: var(--size-4-2);
 }
 
 .zettelkasten-flow__cultivate-input {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: var(--font-ui-small);
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--background-modifier-border);
-    border-radius: 0;
-    padding: var(--size-4-1) 0;
+    user-select: text;
+}
 
-    &:focus {
-        border-bottom-color: var(--interactive-accent);
-        box-shadow: none;
+/* ── today with this idea ───────────────────────────────────────────────── */
+.zettelkasten-flow__cultivate-today {
+    margin-top: var(--size-4-8);
+}
+
+.zettelkasten-flow__cultivate-trail {
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--size-4-1);
+    padding-left: var(--size-4-4);
+    border-left: var(--size-2-1) solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__cultivate-trail-row {
+    position: relative;
+    padding: var(--size-4-2) 0;
+    color: var(--text-muted);
+    animation: zf-cultivate-prompt 0.4s ease-out both;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: var(--size-4-3);
+        left: calc(-1 * var(--size-4-5));
+        width: var(--size-4-2);
+        height: var(--size-4-2);
+        border: var(--size-2-1) solid var(--interactive-accent);
+        border-radius: 50%;
+        background-color: var(--background-primary);
     }
 }
 
-/*
- * Deliberate friction (#338): the question you answer before the move reveals its own answer.
- * Visually quiet — this is a pause, not an alarm.
- */
-.zettelkasten-flow__cultivate-friction-prompt {
-    font-style: italic;
-    color: var(--text-normal);
-    line-height: 1.5;
+.zettelkasten-flow__cultivate-trail-empty {
+    @include empty-state;
 }
 
-.zettelkasten-flow__cultivate-friction-input {
-    width: 100%;
-    resize: vertical;
-    min-height: 4rem;
-    font-family: var(--font-text);
-    line-height: 1.6;
-}
-
-.zettelkasten-flow__cultivate-friction-confidence {
-    display: flex;
-    align-items: center;
-    gap: var(--size-4-2);
-}
-
-.zettelkasten-flow__cultivate-friction-confidence-label {
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
-}
-
-.zettelkasten-flow__cultivate-friction-actions {
-    display: flex;
-    gap: var(--size-4-2);
-}
-
-.zettelkasten-flow__cultivate-friction-skip {
-    background: transparent;
-    box-shadow: none;
-    color: var(--text-muted);
-    border: 1px solid transparent;
-
-    &:hover {
-        color: var(--text-normal);
-    }
-}
-
-// The move door, on the note Cultivate is showing (#493, one control since #509). Quiet: it is
-// available, not demanded — the card's own recommendation is still the thing leading.
-.zettelkasten-flow__cultivate-target-moves {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: 0.5rem;
-}
-
-.zettelkasten-flow__cultivate-target-move {
-    padding: 0.1rem 0.5rem;
-    height: auto;
-    font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
-    background-color: transparent;
-    border: 1px solid var(--background-modifier-border);
-    box-shadow: none;
-    border-radius: var(--radius-l);
-    cursor: pointer;
-
-    &:hover {
-        color: var(--text-normal);
-        border-color: var(--interactive-accent);
-    }
-}
-
-/* ── the state says what it became (#580) ─────────────────────────────────────
-   The chip is where you acted, so it is where the change is shown: it pulses once
-   and says the transition as a sentence. No confetti, no ladder, no progress bar. */
-
+/* ── the state says what it became (#580) ─────────────────────────────────── */
 .zettelkasten-flow__cultivate-state-chip {
     display: inline-block;
-    margin-inline-end: var(--size-4-2);
     padding-inline: var(--size-4-2);
     border-radius: var(--radius-s);
-    background-color: var(--background-secondary);
-    color: var(--text-muted);
+    background-color: color-mix(in srgb, var(--color-green) 16%, transparent);
+    color: var(--text-normal);
     font-size: var(--font-ui-smaller);
+    cursor: pointer;
 }
 
 .zettelkasten-flow__cultivate-state-transition {
@@ -548,8 +675,41 @@
     animation: zf-state-changed 200ms ease;
 }
 
+@container (max-width: 34rem) {
+    .zettelkasten-flow__cultivate-idea {
+        padding: var(--size-4-5);
+    }
+
+    .zettelkasten-flow__cultivate-target-name {
+        font-size: var(--h2-size);
+    }
+
+    .zettelkasten-flow__cultivate-strip-legend {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .zettelkasten-flow__cultivate-strip-space {
+        display: none;
+    }
+
+    button.zettelkasten-flow__cultivate-strip-question {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .zettelkasten-flow__cultivate-state-changed {
+    .zettelkasten-flow__cultivate-state-changed,
+    .zettelkasten-flow__cultivate-strip-bar--fill,
+    .zettelkasten-flow__cultivate-idea,
+    .zettelkasten-flow__cultivate-prompt,
+    .zettelkasten-flow__cultivate-trail-row {
         animation: none;
+    }
+
+    button.zettelkasten-flow__cultivate-strip-seg,
+    button.zettelkasten-flow__cultivate-pill {
+        transition: none;
     }
 }

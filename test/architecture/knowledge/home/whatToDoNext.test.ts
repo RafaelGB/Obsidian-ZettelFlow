@@ -61,15 +61,13 @@ describe("and it shows each thing once (#507)", () => {
         expect(callers).toEqual(["architecture/knowledge/home/home.ts"]);
     });
 
-    it("renders the questions section only when there is something in it", () => {
-        const renderer = readFileSync(
-            join(SRC, "architecture", "components", "core", "home", "HomeModeRenderer.ts"),
-            "utf8"
-        );
-        expect(renderer).toContain("if (questions.length === 0) return;");
-        // Home is the front door: a model shape from an older build degrades to one missing
-        // section, never to a blank surface.
-        expect(renderer).toContain("this.home.openQuestions ?? []");
+    it("asks them in Explore, where a question is one click away, and no longer on Home (#703)", () => {
+        const renderer = readFileSync(join(SRC, "architecture", "components", "core", "home", "HomeModeRenderer.ts"), "utf8");
+        const suggested = readFileSync(join(SRC, "architecture", "components", "core", "askGraph", "suggestedQuestions.ts"), "utf8");
+        // Home stopped being a dashboard of sections; the open questions are one of Explore's
+        // suggested questions, so they keep a door of rank 1 without a section of their own.
+        expect(renderer).not.toContain("openQuestions");
+        expect(suggested).toContain('labelKey: "suggest_questions"');
     });
 });
 
@@ -79,7 +77,7 @@ describe("it states, and never scores (#507)", () => {
         // count; "still unanswered after three weeks" is a reproach.
         const REPROACH = [/\bstill\b/i, /\bovedue\b/i, /\byou have\b/i, /\btodavía\b/i, /\bllevas\b/i, /\bpendiente desde\b/i];
         for (const [name, locale] of [["en", en], ["es", es]] as const) {
-            const value = (locale as Record<string, string>).home_section_open_questions;
+            const value = (locale as Record<string, string>).suggest_questions;
             expect({ name, offends: REPROACH.some((p) => p.test(value)) }).toEqual({ name, offends: false });
         }
     });

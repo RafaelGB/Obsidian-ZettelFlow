@@ -7,12 +7,13 @@ description: What you highlight in the Reader comes back a few at a time, on a f
 **A highlight is a judgement you made while reading: *this mattered*.** A few days later, that
 judgement comes back once, in the Reader's own type, with one question: **do you still think so?**
 
-![A few things you marked: the Home tile that appears only on a day something is due, and the review card — the passage, where you marked it, your margin note, the question and five answers with their keys](../resources/reader/review.svg)
+![A few things you marked: on Home, only on a day something is due, and the review card — the passage, where you marked it, your margin note, the question and five answers with their keys](../resources/reader/review.svg)
 
 ## Where it comes from
 
-- **Home**: a tile, **A few things you marked**, beside the other three. It is there **only on a day
-  something you marked is due**. On other days there is no tile, no empty box and no count.
+- **Home**: the first card of **Came back today** (#704), answered right there with the same five
+  answers. It is there **only on a day something you marked is due**. On other days there is no card,
+  no empty box and no count.
 - **Think**: one line above the composer, *A few things you marked are back for a second look*, with
   **Look again**. It follows the same rule.
 
@@ -123,20 +124,20 @@ never written to.
 |---|---|
 | `npx jest highlightReview` | the intervals, the deterministic choice, *let it go*, the frontmatter round-trip, and the cache-only check the doors use |
 | `npx jest reviewCards` | the card: the passage, the five answers and their keys, the field, the arrows, no numbers, the empty state |
-| `npx jest HomeModeRenderer.structural capabilityDoors` | the Home tile is gated on something being due; the capability has a door |
+| `npx jest HomeModeRenderer.structural capabilityDoors` | Home's stack is gated on something being due; the capability has a door |
 | `npx jest highlightCrystallize` | the passage and margin note in the body, the `source::` citation with its locator, the note parsed as sourced, no citation back into the same note, the revision round-trip |
 | `npx jest storyRevision thoughtStoreReview` | the story's *Changed your mind* row with *before* and *now*; the store reads which thought revises which passage |
 
 By hand, in a vault with Think's folder set:
 
 1. Open a note in the Reader, highlight a sentence and write a margin note. **Expect:** a thought in
-   Think. Home shows **no** *A few things you marked* tile.
+   Think. Home shows nothing under *Came back today*.
 2. In that thought's file, change `at:` to a time more than three days ago. **Expect:** Home shows
-   the tile, and Think shows the line above the composer.
+   the passage under *Came back today*, and Think shows the line above the composer.
 3. Click **Look again**. **Expect:** the passage in the Reader's type, *Marked in …*, your margin
    note, *Do you still think so?* and five answers numbered 1–5.
 4. Press **1**. **Expect:** the cards end with *That is all for today*. The thought's file now has
-   `reviewStage: 1` and a `reviewDue` seven days out. Home loses the tile.
+   `reviewStage: 1` and a `reviewDue` seven days out. Home's stack moves on.
 5. Make it due again and press **2**, type a sentence and press **Ctrl/Cmd+Enter**. **Expect:** in
    Think, a new thought under the highlight marked *Changed your mind*. In **This note → story**, a
    *Changed your mind* row with the passage under *Before*. The highlight's own text is unchanged.
@@ -144,5 +145,5 @@ By hand, in a vault with Think's folder set:
    passage as a quote and ends with `source:: [[…#heading]]`. Hover the link: it opens the note at
    that heading. The highlight is set aside in Think.
 7. Make it due again and press **5**. **Expect:** `reviewRetired: true`. It is never offered again.
-8. Negative: with nothing due, open Home and Think. **Expect:** no tile, no line, no notice and
+8. Negative: with nothing due, open Home and Think. **Expect:** no card, no line, no notice and
    nothing written.

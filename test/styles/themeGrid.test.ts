@@ -33,9 +33,9 @@ const CEILING: Record<string, number> = {
     "codeEditor.scss": 15,
     "community.scss": 29,
     "conceptNav.scss": 2,
-    // 15 → 13: the idea card's own surface + accent edge (a 1px border and a 3px edge) moved to the
-    // shared dashboard-card--hero when Cultivate became a dashboard (#620).
-    "cultivate.scss": 13,
+    // 15 → 13 (#620) → 3 when Cultivate became one conversation (#706): what is left is the
+    // inquiry's focus ring and its reference box.
+    "cultivate.scss": 3,
     // The single accent edge the hero tile wears — the same `3px` `.cultivate-target` draws, named
     // here as the one genuine pixel this primitive owns (#620).
     "dashboard.scss": 1,
@@ -45,16 +45,15 @@ const CEILING: Record<string, number> = {
     "flowStatus.scss": 2,
     "flows.scss": 3,
     "historyView.scss": 28,
-    // 6 → 4: the cultivate-teaser card (1px border + 3px accent) left Home when it became a hero
-    // tile, and the fold's divider uses var(--border-width) rather than a literal pixel (#620).
-    "home.scss": 4,
+    // home.scss: 6 → 4 (#620) → 0 when Home became a page in Think's family (#703).
     "hooksConfig.scss": 87,
     "knowledgeMap.scss": 1,
     // 137 → 120: the blind block moved to askGraph.scss with #576, and went on the grid on
     // the way out rather than arriving as seventeen new off-grid pixels somewhere else.
     // 120 → 119: the 780px centred cage removed when the Lab went fluid (#620).
     // 119 → 118: the thread list's `12px` gap became `var(--size-4-3)` when it became a grid (#620).
-    "lab.scss": 118,
+    // 118 → 111: the composer took the family's frame (#707) — radius, padding and glow on the grid.
+    "lab.scss": 111,
     "main.scss": 9,
     "modal.scss": 10,
     "openQuestions.scss": 1,

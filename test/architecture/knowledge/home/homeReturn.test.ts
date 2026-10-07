@@ -68,22 +68,20 @@ describe("Home offers one return, and never keeps score (#563)", () => {
         expect(dueClaims({ model, intervalDays: 90, now: NOW })).toHaveLength(1);
     });
 
-    it("draws nothing at all in a vault that has never said anything", () => {
-        // Two branches, in this order: no claims anywhere is silence; claims but none due is one
-        // quiet sentence. An empty box on the front door is a box you learn to skip (#516).
-        const render = code(HOME).slice(code(HOME).indexOf("private renderReturnTile"));
-        const silence = render.indexOf("if (!this.claimsExist) return;");
-        const quiet = render.indexOf('t("home_return_none")');
+    it("draws nothing at all on a day nothing came back", () => {
+        // Silence, decided before anything is drawn: an empty box on the front door is a box you
+        // learn to skip (#516), and a "nothing is waiting" line is a box too (#703).
+        const render = code(HOME).slice(code(HOME).indexOf("private renderCameBack"));
+        const silence = render.indexOf("if (!this.highlightsDue && !due) return;");
         const firstDraw = render.indexOf("createDiv");
         expect(silence).toBeGreaterThan(-1);
         expect(silence).toBeLessThan(firstDraw);
-        expect(quiet).toBeGreaterThan(silence);
     });
 
-    it("counts nothing in the line it draws", () => {
+    it("counts nothing in the lines it draws", () => {
         const render = code(HOME).slice(
-            code(HOME).indexOf("private renderReturnTile"),
-            code(HOME).indexOf("private renderOpenQuestions")
+            code(HOME).indexOf("private renderCameBack"),
+            code(HOME).indexOf("private renderIdea")
         );
         expect(render).not.toContain("tCount(");
         expect(render).not.toContain(".length");

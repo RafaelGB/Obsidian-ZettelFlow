@@ -325,6 +325,13 @@ export const BUDGETS = {
         because:
             "reopening must be instant — the same graph comes back exactly where it was, with no reflow and no second wait (#694); measured under jest, where it is 33 ms (the same call is 0.5 ms warm in plain Node). The limit was 60 and a GitHub runner measured 71 (#700): 150 still reads as instant and leaves CI the headroom the other budgets have",
     },
+    "view.home.glimpse.frame.10k": {
+        name: "draw one frame of Home's vault glimpse for a 10,000-note vault",
+        limit: 2,
+        measured: "0.6 ms",
+        because:
+            "the glimpse is a frame loop on the front door (#705); it samples the vault to a ceiling of points, so a frame must stay a small slice of 16 ms however big the vault is",
+    },
     "view.graph.pick.10k": {
         name: "find the note under the pointer among 10,000 (one pointer move)",
         limit: 10,

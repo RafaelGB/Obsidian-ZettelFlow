@@ -52,12 +52,12 @@ Everything else — the Canvas wizard, the semantic graph, health, discovery, cu
 2. **Configure** — select a canvas node → *Edit step* to add actions (ask for text, pick a date, choose an option, add tags…).
 3. **Run** — click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to the *Open workflow* command). ZettelFlow walks the graph and builds the note.
 
-**…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk:
+**…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk. **[Home](docs/development/zettelflow-home.md)** is where you land each day: a greeting, Think's composer, where you left off and what came back today, answered in place.
 
 <p align="center">
   <a href="docs/architecture/thought-lab.md"><img src="docs/resources/showcase/think.svg" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
   <a href="docs/development/ask-your-graph.md"><img src="docs/resources/graph/answer.svg" width="31%" alt="Explore — ask, and the graph answers"></a>
-  <a href="docs/development/cultivate.md"><img src="docs/resources/showcase/cultivate.svg" width="31%" alt="Cultivate — grow one idea, one guided move at a time"></a>
+  <a href="docs/development/cultivate.md"><img src="docs/resources/home/cultivate.svg" width="31%" alt="Cultivate — one idea, one move at a time"></a>
 </p>
 <p align="center"><sub><b>Think</b> · a place for what isn't knowledge yet &nbsp;·&nbsp; <b>Explore</b> · ask, and the graph answers &nbsp;·&nbsp; <b>Cultivate</b> · grow an idea by hand</sub></p>
 

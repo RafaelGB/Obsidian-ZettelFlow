@@ -25,6 +25,17 @@ thought about both.
 
 ![The Think space with a thread of thoughts and the 'Two things far apart' panel](resources/showcase/think.svg)
 
+## Home — the place you land
+
+**Home** greets you for the moment of day with one plain fact about your week, lets you write
+straight into Think, and shows where you left off, what came back today — answered in place, one
+quiet stack — one idea to tend, and a small glimpse of your vault that opens Explore. No counters,
+no streaks, no dashboard of tiles.
+
+![Home: the greeting, the composer, the vault glimpse, where you left off, what came back today and one idea to tend](resources/home/home.svg)
+
+→ Details: [ZettelFlow Home](development/zettelflow-home.md).
+
 → Details: [the thinking space](architecture/thought-lab.md) and [two things far apart](architecture/collision.md).
 
 ## Cultivate — grow one idea, one move at a time
@@ -32,9 +43,9 @@ thought about both.
 **Cultivate** picks one idea and offers five moves — **connect**, **challenge**, **question**,
 **advance**, **add a source**. The moves that would show you an answer ask for *your* guess first:
 *before you look, what is the strongest argument against this idea?* Only then does ZettelFlow show
-what your own notes say. The **notes by stage** card is the filter: click a stage to cultivate from it.
+what your own notes say. The **notes by stage** strip is the filter: click a stage to cultivate from it.
 
-![Cultivate: the idea, the Challenge move asking for your guess first, the moves, and notes by stage](resources/showcase/cultivate.svg)
+![Cultivate as one conversation: the stage strip, the idea with its claim and lifecycle, one move asking first, and today's trail](resources/home/cultivate.svg)
 
 → Details: [Cultivate](development/cultivate.md).
 
@@ -120,7 +131,7 @@ highlights as an appendix, or cultivate its thesis.
 
 ![Highlights in a chapter, the popover, a note in the margin and the thought it made in Think](resources/reader/highlights.svg)
 
-A few days later, **what you marked comes back** — a tile on Home, only on a day something is due,
+A few days later, **what you marked comes back** — on Home, in *Came back today*, only on a day something is due,
 and a few cards set in the Reader's type, each asking one thing: *do you still think so?* Keep it,
 write what you think now (the note's story shows the pair, *before* and *now*), make it a note that
 cites the passage, or let it go. Fixed intervals, no counts, no streaks.

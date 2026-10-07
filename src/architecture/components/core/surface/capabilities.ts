@@ -290,7 +290,9 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "open-questions": {
         nameKey: "command_show_open_questions",
         owner: HOME,
-        doors: [{ kind: "surface", at: `${HOME}:home` }, CMD("show-open-questions")],
+        // Home stopped being a dashboard of sections (#703): what is asked and unanswered is one of
+        // Explore's suggested questions, one click away, with its own answer card.
+        doors: [{ kind: "surface", at: "zettelflow-explore:explore" }, CMD("show-open-questions")],
     },
     resurface: {
         nameKey: "resurface_view_title",

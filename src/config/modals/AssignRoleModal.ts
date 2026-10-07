@@ -3,7 +3,14 @@ import ZettelFlow from "main";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { FolderSuggest } from "architecture/settings";
-import { FLOW_ROLE_LABEL_KEY, flowFolders, type FlowRole } from "architecture/plugin/canvas/flowRole";
+import {
+    FLOW_ROLE_LABEL_KEY,
+    NAMED_ROLE_SETTING,
+    flowFolders,
+    type FlowRole,
+    type NamedRole,
+    type NamedRoleSetting,
+} from "architecture/plugin/canvas/flowRole";
 import { planRoleChange, type RolePlan, type RoleProblem } from "config/roles/assignRole";
 import { FileService } from "architecture/plugin/services/FileService";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
@@ -22,6 +29,7 @@ const PROBLEM_KEY: Record<RoleProblem, string> = {
 const RUNS_KEY: Record<FlowRole, string> = {
     create: "assign_role_runs_create",
     edit: "assign_role_runs_edit",
+    crystallize: "assign_role_runs_crystallize",
     folder: "assign_role_runs_folder",
     event: "assign_role_runs_event",
     hook: "assign_role_runs_hook",
@@ -29,6 +37,11 @@ const RUNS_KEY: Record<FlowRole, string> = {
 };
 
 type LocaleKey = Parameters<typeof t>[0];
+
+/** The named role a setting holds — to say which one a canvas gives up. */
+function roleOfSetting(key: NamedRoleSetting): NamedRole {
+    return (Object.keys(NAMED_ROLE_SETTING) as NamedRole[]).find((role) => NAMED_ROLE_SETTING[role] === key) ?? "create";
+}
 
 /**
  * Giving a canvas a role, with what that costs stated first (#435, epic #434).
@@ -119,6 +132,13 @@ export class AssignRoleModal extends Modal {
         if (plan.move) {
             host.createDiv({ cls: c("assign-role-line"), text: t("assign_role_move", plan.move.to) });
         }
+        // One role per canvas (#712): the role it had is named before it goes.
+        if (plan.releases) {
+            const given = plan.releases
+                .map((release) => t(FLOW_ROLE_LABEL_KEY[roleOfSetting(release.key)] as LocaleKey))
+                .join(", ");
+            host.createDiv({ cls: c("assign-role-line"), text: t("assign_role_gives_up", given) });
+        }
         host.createDiv({ cls: c("assign-role-line"), text: t(RUNS_KEY[this.role] as LocaleKey) });
     }
 
@@ -138,8 +158,9 @@ export class AssignRoleModal extends Modal {
             // One batch (#453): giving a canvas a role can move it, and a move you did not expect
             // is exactly the write worth being able to find again.
             await withWriteBatch({ kind: "manual", ref: this.canvasPath, label: this.canvasPath }, async () => {
-                if (plan.settings) {
-                    this.plugin.settings[plan.settings.key] = plan.settings.value;
+                if (plan.settings || plan.releases) {
+                    for (const release of plan.releases ?? []) this.plugin.settings[release.key] = release.value;
+                    if (plan.settings) this.plugin.settings[plan.settings.key] = plan.settings.value;
                     await this.plugin.saveSettings();
                 }
                 if (plan.move) {

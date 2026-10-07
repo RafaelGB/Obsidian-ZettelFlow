@@ -2,7 +2,12 @@ import { describe, it, expect } from "@jest/globals";
 import { readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
 import {
+    ASSIGNABLE_ROLES,
+    FLOW_ROLE_LABEL_KEY,
+    NAMED_ROLE_SETTING,
+    flowFolders,
     flowRole,
+    isExclusive,
     isFlowCanvas,
     isUnderFolder,
     validateFlowFolders,
@@ -106,5 +111,26 @@ describe("one question, one answer (#435, AC-3)", () => {
             if (/startsWith\(\s*hooks\.folderFlowPath/.test(source)) offenders.push(file);
         }
         expect(offenders).toEqual([]);
+    });
+});
+
+describe("a canvas can crystallize thoughts (#712)", () => {
+    it("is an assignable, exclusive role with its own label", () => {
+        expect(ASSIGNABLE_ROLES).toContain("crystallize");
+        expect(isExclusive("crystallize")).toBe(true);
+        expect(FLOW_ROLE_LABEL_KEY.crystallize).toBe("flow_role_crystallize");
+    });
+
+    it("is read off its own setting, after create and edit and before the folders", () => {
+        expect(flowRole("Flows/Think.canvas", { ...folders, crystallizeCanvas: "Flows/Think.canvas" })).toBe("crystallize");
+        expect(flowRole("Flows/Create.canvas", { ...folders, crystallizeCanvas: "Flows/Create.canvas" })).toBe("create");
+        expect(flowRole("Flows/Edit.canvas", { ...folders, crystallizeCanvas: "Flows/Edit.canvas" })).toBe("edit");
+        const inFolder = "_ZettelFlow/folders/Think.canvas";
+        expect(flowRole(inFolder, { ...folders, crystallizeCanvas: inFolder })).toBe("crystallize");
+    });
+
+    it("comes from the plugin settings, and the three named roles share one table", () => {
+        expect(flowFolders({ crystallizeCanvas: "Flows/Think.canvas" }).crystallizeCanvas).toBe("Flows/Think.canvas");
+        expect(NAMED_ROLE_SETTING).toEqual({ create: "ribbonCanvas", edit: "editorCanvas", crystallize: "crystallizeCanvas" });
     });
 });

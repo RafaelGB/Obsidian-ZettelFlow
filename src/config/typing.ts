@@ -80,6 +80,11 @@ export interface ZettelFlowSettings {
     ribbonCanvas: string;
     /** Identifier for the editor canvas */
     editorCanvas: string;
+    /**
+     * The canvas a note crystallized in Think is built by (#712). Empty: crystallizing writes the
+     * note at the vault root, exactly as before the role existed.
+     */
+    crystallizeCanvas: string;
     /** Path to the folder containing JavaScript libraries */
     jsLibraryFolderPath: string;
     /** Path to the folder where flows are stored */
@@ -375,6 +380,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     colourNodesByPhase: false, // A canvas you already coloured is yours (#429).
     ribbonCanvas: "", // No ribbon canvas configured until the user picks one.
     editorCanvas: "", // No editor canvas configured until the user picks one.
+    crystallizeCanvas: "", // No crystallize flow: Think writes the note at the root (#712).
     jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
     eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).

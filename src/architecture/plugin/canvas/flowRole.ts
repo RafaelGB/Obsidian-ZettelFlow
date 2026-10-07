@@ -10,14 +10,16 @@
  * events folder (#436): nothing is written into anyone's `.canvas` file.
  */
 
-export type FlowRole = "create" | "edit" | "folder" | "event" | "hook" | "none";
+export type FlowRole = "create" | "edit" | "crystallize" | "folder" | "event" | "hook" | "none";
 
-/** The five homes a role can live in; every one of them is an existing setting but the events one. */
+/** The homes a role can live in; every one of them is an existing setting but the events one. */
 export interface FlowFolders {
     /** The canvas the ribbon opens to create a note. */
     ribbonCanvas?: string;
     /** The canvas the editor command runs on the open note. */
     editorCanvas?: string;
+    /** The canvas a note crystallized in Think is built by (#712). */
+    crystallizeCanvas?: string;
     /** Folder of the canvases that run when a note is created in their folder. */
     foldersFlowsPath?: string;
     /** Folder of the canvases that react to vault events (#436). */
@@ -30,6 +32,7 @@ export interface FlowFolders {
 export const FLOW_ROLE_LABEL_KEY: Record<FlowRole, string> = {
     create: "flow_role_create",
     edit: "flow_role_edit",
+    crystallize: "flow_role_crystallize",
     folder: "flow_role_folder",
     event: "flow_role_event",
     hook: "flow_role_hook",
@@ -37,11 +40,25 @@ export const FLOW_ROLE_LABEL_KEY: Record<FlowRole, string> = {
 };
 
 /** The roles you can hand to a canvas yourself, in the order the list offers them. */
-export const ASSIGNABLE_ROLES: readonly FlowRole[] = ["create", "edit", "folder", "event"] as const;
+export const ASSIGNABLE_ROLES: readonly FlowRole[] = ["create", "edit", "crystallize", "folder", "event"] as const;
+
+/** The roles that are one settings value each — a canvas you name, not a place it sits in. */
+export type NamedRole = "create" | "edit" | "crystallize";
+export type NamedRoleSetting = "ribbonCanvas" | "editorCanvas" | "crystallizeCanvas";
+
+/**
+ * Which setting holds each named role (#712). One table, three readers: planning a role change,
+ * following a canvas when it is renamed or deleted, and the flows list.
+ */
+export const NAMED_ROLE_SETTING: Readonly<Record<NamedRole, NamedRoleSetting>> = {
+    create: "ribbonCanvas",
+    edit: "editorCanvas",
+    crystallize: "crystallizeCanvas",
+};
 
 /** A role held by exactly one canvas at a time. */
-export function isExclusive(role: FlowRole): boolean {
-    return role === "create" || role === "edit";
+export function isExclusive(role: FlowRole): role is NamedRole {
+    return role === "create" || role === "edit" || role === "crystallize";
 }
 
 /**
@@ -51,6 +68,7 @@ export function isExclusive(role: FlowRole): boolean {
 export function flowFolders(settings: {
     ribbonCanvas?: string;
     editorCanvas?: string;
+    crystallizeCanvas?: string;
     foldersFlowsPath?: string;
     eventFlowsPath?: string;
     hooks?: { folderFlowPath?: string };
@@ -58,6 +76,7 @@ export function flowFolders(settings: {
     return {
         ribbonCanvas: settings.ribbonCanvas,
         editorCanvas: settings.editorCanvas,
+        crystallizeCanvas: settings.crystallizeCanvas,
         foldersFlowsPath: settings.foldersFlowsPath,
         eventFlowsPath: settings.eventFlowsPath,
         hooksFolderPath: settings.hooks?.folderFlowPath,
@@ -84,6 +103,7 @@ export function flowRole(path: string | undefined, folders: FlowFolders): FlowRo
     if (!path) return "none";
     if (folders.ribbonCanvas && path === folders.ribbonCanvas) return "create";
     if (folders.editorCanvas && path === folders.editorCanvas) return "edit";
+    if (folders.crystallizeCanvas && path === folders.crystallizeCanvas) return "crystallize";
     if (isUnderFolder(folders.foldersFlowsPath, path)) return "folder";
     if (isUnderFolder(folders.eventFlowsPath, path)) return "event";
     if (isUnderFolder(folders.hooksFolderPath, path)) return "hook";

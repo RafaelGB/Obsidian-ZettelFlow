@@ -56,6 +56,10 @@
     --zf-role-colour: var(--color-green);
 }
 
+.zettelkasten-flow__settings-flow--crystallize .zettelkasten-flow__settings-flow-tile {
+    --zf-role-colour: var(--color-cyan);
+}
+
 .zettelkasten-flow__settings-flow--folder .zettelkasten-flow__settings-flow-tile {
     --zf-role-colour: var(--color-orange);
 }

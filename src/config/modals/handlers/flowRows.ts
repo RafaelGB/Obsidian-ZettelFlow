@@ -24,6 +24,7 @@ export interface FlowWithRole {
 export const FLOW_ROLE_ICON: Record<Exclude<FlowRole, "none">, string> = {
     create: "file-plus",
     edit: "pencil",
+    crystallize: "gem",
     folder: "folder",
     event: "zap",
     hook: "webhook",

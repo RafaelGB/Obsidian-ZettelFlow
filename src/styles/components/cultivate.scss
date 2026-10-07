@@ -697,6 +697,12 @@ button.zettelkasten-flow__cultivate-advance-later {
         grid-column: 1 / -1;
         justify-self: start;
     }
+
+    // Five state names do not fit side by side here: they ran into one word. The dots still say
+    // where the idea is; the step it is on keeps its name.
+    .zettelkasten-flow__cultivate-life-step:not(.zettelkasten-flow__is-now) .zettelkasten-flow__cultivate-life-label {
+        visibility: hidden;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

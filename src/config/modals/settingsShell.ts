@@ -141,10 +141,11 @@ export function renderNav(host: HTMLElement, go: (section: SectionId) => void): 
     for (const section of SETTINGS_SECTIONS) {
         const button = host.createEl("button", {
             cls: c("settings-nav-tab"),
-            attr: { type: "button", "data-section": section.id },
+            // Named even when only its icon shows (fitNav).
+            attr: { type: "button", "data-section": section.id, "aria-label": t(section.titleKey) },
         });
         setIcon(button.createSpan({ cls: c("settings-nav-icon") }), section.icon);
-        button.createSpan({ text: t(section.titleKey) });
+        button.createSpan({ cls: c("settings-nav-label"), text: t(section.titleKey) });
         button.addEventListener("click", () => go(section.id));
         buttons.set(section.id, button);
     }
@@ -157,6 +158,16 @@ export function renderNav(host: HTMLElement, go: (section: SectionId) => void): 
     };
     mark("flows");
     return mark;
+}
+
+/**
+ * Keep the bar on one line. It wrapped onto a second line at ordinary widths, with *Advanced* alone
+ * on it; now, when the labels do not fit, the tabs you are not on show only their icon (the one you
+ * are on keeps its name). Measured with the labels shown, so it adapts to the language too.
+ */
+export function fitNav(nav: HTMLElement): void {
+    nav.removeClass("is-compact");
+    if (nav.scrollWidth > nav.clientWidth + 1) nav.addClass("is-compact");
 }
 
 /** The icon beside a section's head; its title and purpose are the row's own name and description. */

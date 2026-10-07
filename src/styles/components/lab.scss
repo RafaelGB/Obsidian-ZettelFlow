@@ -692,6 +692,8 @@
 }
 
 .zettelkasten-flow__lab-subject-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
     cursor: pointer;
 
     &:hover {
@@ -976,14 +978,23 @@
     font-family: var(--font-text);
 }
 
+/* The source line wraps, and its way back to the Reader moves under it rather than off the card. */
 .zettelkasten-flow__lab-quote-meta {
     @include hint;
     display: flex;
+    flex-wrap: wrap;
     gap: var(--size-4-2);
     align-items: center;
+
+    > span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
 }
 
-.zettelkasten-flow__lab-quote-open {
+/* A link, not a button: `button.` outranks Obsidian's `button:not(.clickable-icon)` box. */
+button.zettelkasten-flow__lab-quote-open {
+    flex: none;
     background: none;
     border: none;
     box-shadow: none;

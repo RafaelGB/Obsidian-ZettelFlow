@@ -31,6 +31,7 @@ import {
     sectionClass,
     sectionInView,
     barIsStuck,
+    fitNav,
     type SectionId,
 } from "./settingsShell";
 import { openCultivateFromSettings } from "./startActions";
@@ -351,7 +352,15 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             });
         };
         container.addEventListener("scroll", onScroll, { passive: true });
+        // One line at every width: refit when the tab is resized (and once it is laid out).
+        const Observer = (container.win as Window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;
+        const resize = Observer ? new Observer(() => fitNav(nav)) : null;
+        // The bar too: it is drawn before it is attached, and the scroller keeps its size between
+        // visits — watching only the scroller left it unfitted on the second opening.
+        resize?.observe(container);
+        resize?.observe(nav);
         return () => {
+            resize?.disconnect();
             container.removeEventListener("scroll", onScroll);
             if (frame) container.win.cancelAnimationFrame(frame);
         };

@@ -5,7 +5,7 @@ import type { Neighbour, NoteNeighbourhood } from "architecture/knowledge/state"
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { layoutNeighbourhood, type LayoutNode } from "../neighbourhoodLayout";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { CompanionBlock, noteName, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, distinctNames, noteName, type CompanionContext } from "./CompanionBlock";
 
 type LocaleKey = Parameters<typeof t>[0];
 type View = "graph" | "list";
@@ -234,11 +234,12 @@ export class NeighbourhoodBlock extends CompanionBlock {
             });
             return;
         }
+        const names = distinctNames(rows.map((neighbour) => neighbour.path));
         for (const neighbour of rows) {
             const row = group.createDiv({ cls: c("note-companion-row") });
             const name = row.createSpan({
                 cls: c("note-companion-row-name"),
-                text: neighbour.title || noteName(neighbour.path),
+                text: neighbour.title && neighbour.title !== noteName(neighbour.path) ? neighbour.title : names.get(neighbour.path) ?? noteName(neighbour.path),
                 attr: { title: neighbour.path },
             });
             makeActivatable(name, () => ctx.open(neighbour.path));

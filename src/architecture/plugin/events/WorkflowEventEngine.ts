@@ -13,7 +13,7 @@ import {
 } from "architecture/api";
 import { SelectorMenuModal } from "zettelkasten";
 import { buildBindings, type FlowTriggerSource, type WorkflowBinding } from "./bindings";
-import { deriveFrontmatterEvents, seedBaselines } from "./derive";
+import { deriveFrontmatterEvents, moveBaseline, seedBaselines } from "./derive";
 import { dispatchEvent, type DispatchDeps, type DispatchResult } from "./dispatch";
 import { ThrottleGate } from "./throttle";
 import { CascadeGuard, type SelfWriteState } from "./loopGuard";
@@ -86,6 +86,7 @@ export class WorkflowEventEngine {
         this.track(vault.on("create", this.onCreate));
         this.track(vault.on("modify", this.onModify));
         this.track(vault.on("delete", this.onDelete));
+        this.track(vault.on("rename", this.onRename));
         this.track(metadataCache.on("changed", this.onMetadataChanged));
         this.armed = true;
         void this.rebuildBindings().then(() => this.sweepReviewDue());
@@ -143,6 +144,10 @@ export class WorkflowEventEngine {
         if (!(file instanceof TFile)) return;
         this.lastFrontmatter.delete(file.path);
         if (this.isFlowCanvas(file)) void this.rebuildBindings();
+    };
+
+    private onRename = (file: TAbstractFile, oldPath: string): void => {
+        if (file instanceof TFile) moveBaseline(this.lastFrontmatter, oldPath, file.path);
     };
 
     private onMetadataChanged = (file: TFile, _data: string, cache: CachedMetadata): void => {

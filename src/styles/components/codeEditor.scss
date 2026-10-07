@@ -11,6 +11,32 @@
     border: 1px solid var(--background-modifier-border);
 }
 
+/* The editor follows the theme: CodeMirror's base theme is light — a white gutter and a
+   blue active line on a dark vault. Doubled class, so it outranks the base theme's own rules. */
+.zettelkasten-flow__cm.cm-editor {
+    color: var(--text-normal);
+
+    .cm-gutters {
+        border-right: $line-quiet;
+        background-color: var(--background-secondary);
+        color: var(--text-faint);
+    }
+
+    .cm-activeLineGutter,
+    .cm-activeLine {
+        background-color: var(--background-modifier-hover);
+    }
+
+    .cm-cursor {
+        border-left-color: var(--text-normal);
+    }
+
+    &.cm-focused .cm-selectionBackground,
+    .cm-selectionBackground {
+        background-color: var(--text-selection);
+    }
+}
+
 .zettelkasten-flow__completion {
     display: flex;
     align-items: center;

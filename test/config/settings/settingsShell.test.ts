@@ -12,6 +12,7 @@ import {
     sectionClass,
     sectionInView,
     barIsStuck,
+    fitNav,
 } from "config/modals/settingsShell";
 import { settingsGlance } from "config/settingsSummary";
 
@@ -110,6 +111,20 @@ describe("the settings shell (#660)", () => {
         scrollToSection(container, "ai", 48, false);
         expect(container.scrolls).toEqual([{ top: 50 + 900 - 100 - 48 - 8, behavior: "auto" }]);
         expect(head.scrolls).toEqual([]);
+    });
+
+    it("keeps the bar on one line: when the labels do not fit, the tabs you are not on show their icon", () => {
+        // It wrapped onto a second line with *Advanced* alone on it.
+        const nav = host();
+        renderNav(nav, () => undefined);
+        const tabs = nav.byClass("settings-nav-tab");
+        expect(tabs.every((tab) => tab.getAttribute("aria-label"))).toBe(true); // an icon alone still says its name
+        Object.assign(nav, { scrollWidth: 930, clientWidth: 900 });
+        fitNav(nav);
+        expect(nav.hasClass("is-compact")).toBe(true);
+        Object.assign(nav, { scrollWidth: 880, clientWidth: 900 });
+        fitNav(nav);
+        expect(nav.hasClass("is-compact")).toBe(false);
     });
 
     it("lands a row itself under the bar, not just its section's head", () => {

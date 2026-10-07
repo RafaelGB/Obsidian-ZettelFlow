@@ -121,9 +121,15 @@
     font-weight: var(--font-semibold);
 }
 
+/* The rule that left it out (#713), as a chip: the settings card's words, in its shape. */
 .zettelkasten-flow__note-companion-outside-folder {
-    font-size: $text-small;
+    @include chip;
+    color: var(--text-normal);
     overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__note-companion-outside-also {
+    @include hint;
 }
 
 /* The stepper: where the note stands. Read-only here; moving it is the next step's job (#641). */

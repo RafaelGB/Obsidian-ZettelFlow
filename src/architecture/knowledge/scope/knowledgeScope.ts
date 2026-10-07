@@ -52,7 +52,13 @@ export function excludedPrefixOf(path: string, prefixes: readonly string[]): str
  * JS library — never the user's own thinking, so they are excluded automatically.
  */
 export interface ScopeSettings {
+    /**
+     * The folders the previous version excluded. Since #713 a mirror of the folder rules, written
+     * for one release so a downgrade keeps them; read only to migrate.
+     */
     excludedPaths?: readonly string[];
+    /** What is left out (#713): closed rules and the exceptions that keep a note in anyway. */
+    knowledgeScope?: unknown;
     /** Folder where folder-automation flow canvases (and their step notes) live. */
     foldersFlowsPath?: string;
     /** Folder holding the user's `zf` JS library. */
@@ -67,31 +73,10 @@ export interface ScopeSettings {
 }
 
 /**
- * Every excluded prefix that defines the thinking system's scope (#311, extended): the user's own
- * excluded paths **plus** ZettelFlow's managed system folders, which are auto-excluded so system notes
- * are never indexed, cultivated, or counted anywhere. Deterministic and normalised.
+ * ZettelFlow's own folders (#713): always left out, before any rule and beyond any exception — the
+ * flow canvases and their steps, the hook flows, the script library and the Thinking space.
  */
-export function scopeExcludedPaths(settings: ScopeSettings): string[] {
-    // The Lab belongs here rather than in a second list: this is the one place that decides
-    // what is not knowledge, and a thought must inherit every consequence of that at once (#466).
-    const system = [
-        settings.foldersFlowsPath,
-        settings.jsLibraryFolderPath,
-        settings.hooks?.folderFlowPath,
-        settings.thoughtLabPath,
-    ];
-    return normalizeExcludedPaths([
-        ...(settings.excludedPaths ?? []),
-        ...system.filter((p): p is string => typeof p === "string"),
-    ]);
-}
-
-/** Split a textarea value (one prefix per line) into a normalised prefix list. */
-export function parseExcludedPathsInput(text: string): string[] {
-    return normalizeExcludedPaths(text.split(/\r?\n/));
-}
-
-/** Render a prefix list back to a textarea value (one per line). */
-export function excludedPathsToText(prefixes: readonly string[]): string {
-    return normalizeExcludedPaths(prefixes).join("\n");
+export function systemExcludedPaths(settings: ScopeSettings): string[] {
+    const system = [settings.foldersFlowsPath, settings.jsLibraryFolderPath, settings.hooks?.folderFlowPath, settings.thoughtLabPath];
+    return normalizeExcludedPaths(system.filter((p): p is string => typeof p === "string"));
 }

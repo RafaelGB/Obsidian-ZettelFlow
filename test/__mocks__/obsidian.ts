@@ -491,6 +491,26 @@ export function setIcon(el: unknown, icon: string): void {
 
 export function setTooltip(_el: unknown, _tooltip: string, _options?: unknown): void { }
 
+/**
+ * Obsidian's `getAllTags` (#713): frontmatter `tags`/`tag` (string or list, comma/space separated)
+ * and the body's `cache.tags`, every one `#`-prefixed — the same shape the real one returns.
+ */
+export function getAllTags(cache: { frontmatter?: Record<string, unknown>; tags?: { tag: string }[] } | null): string[] | null {
+  if (!cache) return null;
+  const out: string[] = [];
+  const fm = cache.frontmatter ?? {};
+  for (const key of ["tags", "tag"]) {
+    const raw = fm[key];
+    const items = Array.isArray(raw) ? raw : typeof raw === "string" ? raw.split(/[,\s]+/) : [];
+    for (const item of items) {
+      if (typeof item !== "string" || !item.trim()) continue;
+      out.push(item.trim().startsWith("#") ? item.trim() : `#${item.trim()}`);
+    }
+  }
+  for (const entry of cache.tags ?? []) out.push(entry.tag);
+  return out;
+}
+
 /** Mutable platform flags so tests can exercise the desktop/mobile default + the bug-report mapping. */
 export const Platform = {
   isMobile: false,

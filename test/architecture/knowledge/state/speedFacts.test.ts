@@ -41,6 +41,7 @@ describe("how fast it is here (#462)", () => {
             "enrich.full",
             "enrich.incremental",
             "analysis.heaviest",
+            "scope.census",
         ]);
     });
 

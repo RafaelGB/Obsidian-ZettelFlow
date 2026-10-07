@@ -76,7 +76,7 @@ export class HeadBlock extends CompanionBlock {
         if (ctx.pinned) this.renderPinned(head, ctx);
 
         if (screen.kind === "outside") {
-            this.renderOutside(head, ctx, screen.prefix);
+            this.renderOutside(head, ctx, screen.by, screen.also);
             return;
         }
         if (screen.kind === "indexing" || screen.kind === "error") {
@@ -238,16 +238,21 @@ export class HeadBlock extends CompanionBlock {
     }
 
     /**
-     * A note in an excluded folder (#688): outside ZettelFlow, said once and calmly. No counts, no
-     * stepper, no next step — the other blocks draw nothing for it — and the one way out is to
-     * change the folders, in the settings section that owns them.
+     * A note left out (#688, #713): outside ZettelFlow, said once and calmly, with the rule that left
+     * it out — the same words the settings card uses. No counts, no stepper, no next step — the
+     * other blocks draw nothing for it — and the one way out is to change what is left out, in the
+     * settings section that owns it.
      */
-    private renderOutside(head: HTMLElement, ctx: CompanionContext, prefix: string): void {
+    private renderOutside(head: HTMLElement, ctx: CompanionContext, by: string, also: readonly string[]): void {
         const box = head.createDiv({ cls: c("note-companion-outside") });
         box.createDiv({ cls: c("note-companion-outside-title"), text: t("note_companion_outside_title") });
-        const where = box.createDiv({ cls: c("note-companion-outside-body") });
-        where.createSpan({ text: `${t("note_companion_outside_body")} ` });
-        where.createEl("code", { cls: c("note-companion-outside-folder"), text: prefix });
+        box.createDiv({ cls: c("note-companion-outside-body"), text: t("note_companion_outside_body") });
+        const why = box.createDiv({ cls: c("note-companion-outside-by") });
+        why.createSpan({ text: `${t("note_companion_outside_by")} ` });
+        why.createSpan({ cls: c("note-companion-outside-folder"), text: by });
+        if (also.length > 0) {
+            box.createDiv({ cls: c("note-companion-outside-also"), text: `${t("note_companion_outside_also")} ${also.join("; ")}` });
+        }
         const change = box.createEl("button", {
             cls: c("note-companion-outside-change"),
             text: t("note_companion_outside_change"),

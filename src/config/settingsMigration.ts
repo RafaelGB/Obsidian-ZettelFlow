@@ -11,6 +11,9 @@
  * runs once on load before anything reads a setting.
  */
 
+import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { folderMirror, normalizeScopeRules, rulesFromExcludedPaths } from "architecture/knowledge/scope/scopeRules";
+
 /** The level that means "do not log", replacing the separate toggle. */
 export const LOG_LEVEL_OFF = "off";
 
@@ -23,6 +26,8 @@ export interface MigratableSettings {
     events?: { enabled?: boolean };
     history?: unknown[];
     writeLog?: unknown;
+    excludedPaths?: unknown[];
+    knowledgeScope?: unknown;
     [key: string]: unknown;
 }
 
@@ -74,6 +79,22 @@ export function migrateSettings(input: MigratableSettings): SettingsMigration {
     if ("writeLog" in settings) {
         delete settings.writeLog;
         changed = true;
+    }
+
+    // Excluded folders become folder rules (#713). A union, not a conversion: every folder the
+    // list names that no rule already says is appended, in order. On the first load that is each
+    // folder becoming its rule; later it is a no-op — or, after a downgrade where the older version
+    // added a folder, exactly that folder. The list itself stays: it is the previous version's.
+    if ("excludedPaths" in settings || "knowledgeScope" in settings) {
+        const existing = normalizeScopeRules(settings.knowledgeScope);
+        const said = new Set(folderMirror(existing.leaveOut));
+        const folders = normalizeExcludedPaths(Array.isArray(settings.excludedPaths) ? settings.excludedPaths.filter((p): p is string => typeof p === "string") : []);
+        const added = rulesFromExcludedPaths(folders.filter((folder) => !said.has(folder)));
+        const next = { leaveOut: [...existing.leaveOut, ...added], keep: existing.keep };
+        if (!("knowledgeScope" in settings) || JSON.stringify(next) !== JSON.stringify(settings.knowledgeScope)) {
+            settings.knowledgeScope = next;
+            changed = true;
+        }
     }
 
     return { settings, changed };

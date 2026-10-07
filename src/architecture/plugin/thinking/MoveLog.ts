@@ -1,6 +1,7 @@
 import { v4 as uuid4 } from "uuid";
 import { log } from "architecture/monitoring/Logger";
-import { isPathExcluded, scopeExcludedPaths, type ScopeSettings } from "architecture/knowledge/scope/knowledgeScope";
+import { isPathExcluded, type ScopeSettings } from "architecture/knowledge/scope/knowledgeScope";
+import { inScopeFor } from "architecture/knowledge/scopeGate";
 import {
     MOVE_CEILING,
     MOVES_PER_SUBJECT,
@@ -126,7 +127,7 @@ export class MoveLog {
         if (!settings) return false;
         const lab = settings.thoughtLabPath?.trim();
         if (lab && isPathExcluded(subject, [lab])) return true;
-        return !isPathExcluded(subject, scopeExcludedPaths(settings));
+        return inScopeFor(settings, subject);
     }
 
     private scheduleSave(): void {

@@ -27,12 +27,13 @@ describe("crystallize and a note outside ZettelFlow (#688)", () => {
     it("offers only a new note, and says the thread's note is outside", () => {
         KnowledgeIndex.getInstance().useSettingsHost({ settings: { excludedPaths: ["Templates"] } as never });
         const content = open("Templates/Daily.md");
-        expect(keeps(content)).toContain("Its note is in an excluded folder, outside ZettelFlow, so this becomes a new note.");
+        // Names the rule that left it out, in the settings card's words (#713, AC-5).
+        expect(keeps(content)).toContain("Its note is left out of ZettelFlow (are in Templates and its subfolders), so this becomes a new note.");
     });
 
     it("still offers to go back into a note in scope", () => {
         KnowledgeIndex.getInstance().useSettingsHost({ settings: { excludedPaths: ["Templates"] } as never });
         const content = open("Notes/a.md");
-        expect(keeps(content).some((text) => text.includes("outside ZettelFlow"))).toBe(false);
+        expect(keeps(content).some((text) => text.includes("left out of ZettelFlow"))).toBe(false);
     });
 });

@@ -17,7 +17,14 @@ import {
     type FileFingerprint,
 } from "./index/enrichmentPlan";
 import { detectDevelopmentEvents } from "./journal/developmentEvents";
-import { excludedPrefixOf, isPathExcluded, scopeExcludedPaths, type ScopeSettings } from "./scope/knowledgeScope";
+import type { ScopeSettings } from "./scope/knowledgeScope";
+import { compileScope, scopeVerdict, type CompiledScope, type ScopeFacts, type ScopeReason, type ScopeVerdict } from "./scope/scopeEvaluate";
+import type { ScopeRules } from "./scope/scopeRules";
+import { compiledScopeOf, factsForPath } from "./scopeGate";
+import { scopeFactsOf } from "./scopeFacts";
+
+/** No settings yet: nothing is left out. */
+const NO_SCOPE: CompiledScope = compileScope({ leaveOut: [], keep: [] }, []);
 import { DevelopmentJournal } from "architecture/plugin/journal/DevelopmentJournal";
 import { ConceptualTimeline } from "architecture/plugin/timeline/ConceptualTimeline";
 
@@ -67,6 +74,10 @@ export class KnowledgeIndex {
      * exclusion a no-op (notes from excluded folders kept showing up in Cultivate and everywhere else).
      */
     private settingsHost: { settings: ScopeSettings } | null = null;
+
+    /** Bumped by every vault and metadata event, so {@link scopeFacts} knows when to re-read (#713). */
+    private factsRevision = 0;
+    private factsMemo: { revision: number; facts: readonly ScopeFacts[] } | null = null;
 
     /**
      * What the last enrichment pass saw, per path (#459). The full pass happens once; after
@@ -139,29 +150,91 @@ export class KnowledgeIndex {
         this.resetEnrichment();
     }
 
-    private excludedPaths(): readonly string[] {
+    private settings(): ScopeSettings | null {
         try {
             // Prefer the injected host; fall back to the global lookup only when the index was never
             // bootstrapped (e.g. an isolated test). The injected reference is what makes this reliable.
-            const settings: ScopeSettings | undefined = this.settingsHost?.settings ?? ObsidianApi.getOwnPlugin()?.settings;
-            return settings ? scopeExcludedPaths(settings) : [];
+            return this.settingsHost?.settings ?? ObsidianApi.getOwnPlugin()?.settings ?? null;
         } catch {
-            return []; // before settings are wired (or in tests), nothing is excluded
+            return null; // before settings are wired (or in tests), nothing is left out
         }
     }
 
-    /** Whether a note counts as knowledge (#311): everything except the excluded (user + system) paths. */
-    public inScope(path: string): boolean {
-        return !isPathExcluded(path, this.excludedPaths());
+    /** The rules as compiled now (#713) — recompiled only when the settings' rules changed. */
+    private compiled(): CompiledScope {
+        const settings = this.settings();
+        return settings ? compiledScopeOf(settings) : NO_SCOPE;
     }
 
     /**
-     * The excluded folder that keeps `path` out of the thinking system, or `null` when it is in
-     * scope (#688). The same predicate as {@link inScope} — one source of truth — so a surface that
-     * refuses a note names exactly the prefix that excluded it.
+     * In or out, and why (#713). The one gate: every place that asks whether a note is knowledge
+     * asks this, so a tag rule applies to Health, Cultivate, the logs and the captures at once.
      */
-    public excludedBy(path: string): string | null {
-        return excludedPrefixOf(path, this.excludedPaths());
+    public scopeOf(path: string, file?: TFile | null): ScopeVerdict {
+        const compiled = this.compiled();
+        return scopeVerdict(compiled, factsForPath(path, compiled, file));
+    }
+
+    /** Whether a note counts as knowledge (#311, #713): no rule leaves it out, or an exception keeps it. */
+    public inScope(path: string): boolean {
+        return this.scopeOf(path).in;
+    }
+
+    /**
+     * Why `path` is left out — a rule by its position, or one of ZettelFlow's own folders — or `null`
+     * when it is in scope (#688, #713). The same verdict as {@link inScope}, so a surface that refuses
+     * a note names exactly what kept it out.
+     */
+    public excludedBy(path: string): ScopeReason | null {
+        const verdict = this.scopeOf(path);
+        return verdict.in ? null : verdict.by;
+    }
+
+    /** Every leave-out rule that matches `path` besides the one that names it (#713, *kept out also by*). */
+    public alsoExcludedBy(path: string): number[] {
+        const verdict = this.scopeOf(path);
+        return verdict.in ? [] : verdict.alsoBy;
+    }
+
+    /** The rules the index applies now. */
+    public scopeRules(): ScopeRules {
+        return this.compiled().rules;
+    }
+
+    /** ZettelFlow's own folders, always left out. */
+    public systemFolders(): readonly string[] {
+        return this.compiled().system;
+    }
+
+    /**
+     * Every Markdown note's facts (#713), for the settings card's counts and vocabulary. Read once
+     * and kept until a vault or metadata event says something changed.
+     */
+    public scopeFacts(): readonly ScopeFacts[] {
+        if (this.factsMemo && this.factsMemo.revision === this.factsRevision) return this.factsMemo.facts;
+        const vault = ObsidianApi.vault();
+        // No vault yet (the app still loading, an isolated test): nothing to count.
+        if (!vault) return [];
+        const cache = ObsidianApi.metadataCache();
+        const facts = vault.getMarkdownFiles().map((file) => scopeFactsOf(cache?.getFileCache(file), file.path));
+        this.factsMemo = { revision: this.factsRevision, facts };
+        return facts;
+    }
+
+    /**
+     * Obsidian has re-read a note's metadata (#713, FR-17). `modify` fires before the cache is
+     * parsed, so a tag added a moment ago is only visible now. Membership only: a note that left
+     * scope leaves the model, one that entered it joins — nothing else, so the journal and the
+     * timeline record nothing twice.
+     */
+    public onMetadataChanged(file: TAbstractFile): void {
+        if (!this.isMarkdown(file)) return;
+        this.factsRevision++;
+        if (!this.compiled().needsFacts) return;
+        const inNow = this.scopeOf(file.path, file).in;
+        const present = this.model.get(file.path) !== undefined;
+        if (!inNow && present) this.model.remove(file.path);
+        else if (inNow && !present) this.model.upsert(deriveIdea(gatherSnapshot(file), this.schemas));
     }
 
     /** Rebuild the whole index from the vault. Synchronous, read-only (decisions #1 & #4). */
@@ -169,9 +242,11 @@ export class KnowledgeIndex {
         this.currentStatus = "building";
         const start = Date.now();
         const all = ObsidianApi.vault().getMarkdownFiles();
-        // The single scope filter (#311): excluded notes never become ideas, so they drop out of every
-        // downstream mechanism (graph, health, discovery, cultivate, home) at once.
-        const inScope = all.filter((file) => this.inScope(file.path));
+        // The single scope filter (#311, #713): left-out notes never become ideas, so they drop out of
+        // every downstream mechanism (graph, health, discovery, cultivate, home) at once. Compiled
+        // once for the whole build.
+        const compiled = this.compiled();
+        const inScope = all.filter((file) => scopeVerdict(compiled, factsForPath(file.path, compiled, file)).in);
         // Timed through the shared instrument (#462), so Health can report what it actually
         // cost on this machine, with this vault — the same numbers the budgets assert in CI.
         const ideas: Idea[] = measure(
@@ -187,20 +262,24 @@ export class KnowledgeIndex {
     }
 
     public onCreate(file: TAbstractFile): void {
+        this.factsRevision++;
         if (this.isMarkdown(file)) this.upsert(file);
     }
 
     public onModify(file: TAbstractFile): void {
+        this.factsRevision++;
         if (this.isMarkdown(file)) this.upsert(file);
     }
 
     public onDelete(file: TAbstractFile): void {
+        this.factsRevision++;
         if (!this.isMarkdown(file)) return;
         this.model.remove(file.path);
         this.pruneTimeline(file.path);
     }
 
     public onRename(file: TAbstractFile, oldPath: string): void {
+        this.factsRevision++;
         if (!this.isMarkdown(file)) return;
         // Honour scope across the move (#311): dropping/adding the note as it leaves/enters scope.
         if (!this.inScope(file.path)) {
@@ -236,6 +315,9 @@ export class KnowledgeIndex {
             // load is never blocked (#147, hybrid). Off by default on mobile (set by the caller).
             if (this.enrichmentEnabled) void this.enrichInlineRelations();
         });
+        // A tag or property just written is only in the cache once Obsidian has re-parsed the note:
+        // scope follows it then (#713, FR-17).
+        plugin.registerEvent(ObsidianApi.metadataCache().on("changed", (file) => this.onMetadataChanged(file)));
         // resolvedLinks may be incomplete before "resolved"; rebuild once when it fires.
         plugin.registerEvent(
             ObsidianApi.metadataCache().on("resolved", () => {

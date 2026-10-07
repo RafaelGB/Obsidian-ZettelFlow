@@ -1,7 +1,7 @@
 import { Menu, TFile } from "obsidian";
 import { PluginComponent } from "architecture";
 import { t } from "architecture/lang";
-import { isPathExcluded, scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { inScopeFor } from "architecture/knowledge/scopeGate";
 import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
 import ZettelFlow from "main";
 
@@ -27,11 +27,11 @@ export interface MenuLike {
 export function claimDoorEntry(
     menu: MenuLike,
     path: string,
-    excluded: string[],
+    inScope: (path: string) => boolean,
     open: (path: string) => void
 ): boolean {
     if (!path.endsWith(".md")) return false;
-    if (isPathExcluded(path, excluded)) return false;
+    if (!inScope(path)) return false;
     menu.addItem((item) =>
         item
             .setTitle(t("claim_door_menu"))
@@ -65,20 +65,20 @@ export class ClaimDoorComponent extends PluginComponent {
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("editor-menu", (menu: Menu, _editor, view) => {
                 const path = view.file?.path;
-                if (path) claimDoorEntry(menu, path, this.excluded(), (target) => this.open(target));
+                if (path) claimDoorEntry(menu, path, (p) => this.inScope(p), (target) => this.open(target));
             })
         );
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("file-menu", (menu: Menu, file) => {
                 if (file instanceof TFile) {
-                    claimDoorEntry(menu, file.path, this.excluded(), (target) => this.open(target));
+                    claimDoorEntry(menu, file.path, (p) => this.inScope(p), (target) => this.open(target));
                 }
             })
         );
     }
 
-    private excluded(): string[] {
-        return scopeExcludedPaths(this.plugin.settings);
+    private inScope(path: string): boolean {
+        return inScopeFor(this.plugin.settings, path);
     }
 
     private open(path: string): void {

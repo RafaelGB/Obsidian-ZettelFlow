@@ -411,3 +411,66 @@ describe("KnowledgeIndex inline claims/sources in the deferred pass (#148)", () 
         expect(processFrontMatter).not.toHaveBeenCalled();
     });
 });
+
+describe("the gate reads the closed rules and follows the vault (#713)", () => {
+    function wireTagged(tags: Record<string, string[]>) {
+        const files = Object.keys(tags).map(file);
+        const caches = new Map(files.map((f) => [f.path, { frontmatter: {}, tags: tags[f.path].map((tag) => ({ tag })) }]));
+        const writes = { create: jest.fn(), modify: jest.fn(), rename: jest.fn(), trash: jest.fn() };
+        __setMockObsidianApi({
+            vault: {
+                getMarkdownFiles: () => files,
+                getFileByPath: (p: string) => files.find((f) => f.path === p) ?? null,
+                on: jest.fn(() => ({})),
+                ...writes,
+            } as never,
+            metadataCache: {
+                getFileCache: (f: TFile) => caches.get(f.path) ?? null,
+                resolvedLinks: {},
+                on: jest.fn(() => ({})),
+            } as never,
+        });
+        return { files, caches, writes };
+    }
+    const tagRule = { leaveOut: [{ kind: "tag", op: "any", tags: ["template"], nested: true }], keep: [] };
+
+    it("leaves out a note by its tag, names the rule, and writes nothing (AC-10)", () => {
+        const { writes } = wireTagged({ "a.md": ["#template"], "b.md": ["#idea"] });
+        const index = KnowledgeIndex.getInstance();
+        index.useSettingsHost({ settings: { knowledgeScope: tagRule, thoughtLabPath: "_ZettelFlow/lab" } });
+        index.build();
+        expect(index.getModel().get("a.md")).toBeUndefined();
+        expect(index.getModel().get("b.md")).toBeDefined();
+        expect(index.excludedBy("a.md")).toEqual({ kind: "rule", index: 0 });
+        expect(index.excludedBy("_ZettelFlow/lab/t.md")).toEqual({ kind: "system", folder: "_ZettelFlow/lab" });
+        for (const write of Object.values(writes)) expect(write).not.toHaveBeenCalled();
+        index.useSettingsHost(null);
+    });
+
+    it("follows a tag added or removed once Obsidian has re-read the note (AC-9)", () => {
+        const { files, caches } = wireTagged({ "a.md": ["#idea"] });
+        const index = KnowledgeIndex.getInstance();
+        index.useSettingsHost({ settings: { knowledgeScope: tagRule } });
+        index.build();
+        expect(index.getModel().get("a.md")).toBeDefined();
+
+        caches.set("a.md", { frontmatter: {}, tags: [{ tag: "#template/weekly" }] });
+        index.onMetadataChanged(files[0]);
+        expect(index.getModel().get("a.md")).toBeUndefined();
+
+        caches.set("a.md", { frontmatter: {}, tags: [] });
+        index.onMetadataChanged(files[0]);
+        expect(index.getModel().get("a.md")).toBeDefined();
+        index.useSettingsHost(null);
+    });
+
+    it("keeps the facts it read until something changes, for the settings card", () => {
+        wireTagged({ "a.md": ["#x"], "b.md": [] });
+        const index = KnowledgeIndex.getInstance();
+        const first = index.scopeFacts();
+        expect(index.scopeFacts()).toBe(first);
+        index.onModify(file("b.md"));
+        expect(index.scopeFacts()).not.toBe(first);
+        expect(first.map((f) => f.path)).toEqual(["a.md", "b.md"]);
+    });
+});

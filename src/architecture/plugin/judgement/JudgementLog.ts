@@ -9,7 +9,8 @@ import {
     sanitizeJudgementLog,
     type Judgement,
 } from "architecture/knowledge/judgement";
-import { isPathExcluded, scopeExcludedPaths, type ScopeSettings } from "architecture/knowledge/scope/knowledgeScope";
+import type { ScopeSettings } from "architecture/knowledge/scope/knowledgeScope";
+import { inScopeFor } from "architecture/knowledge/scopeGate";
 
 /** Debounce settings writes so a burst of verdicts collapses to one save. */
 const SAVE_DEBOUNCE_MS = 1500;
@@ -83,7 +84,7 @@ export class JudgementLog {
         if (!this.host || !this.enabled()) return null;
 
         const settings = this.host.settings;
-        if (isPathExcluded(entry.path ?? "", scopeExcludedPaths(settings))) return null;
+        if (!inScopeFor(settings, entry.path ?? "")) return null;
 
         const current = this.entries();
         const next = recordJudgement(current, { ...entry, at: entry.at ?? now });

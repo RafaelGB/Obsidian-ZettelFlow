@@ -1,5 +1,7 @@
 export * from '../inquiry/inquiryState';
-export { scopeExcludedPaths } from '../scope/knowledgeScope';
+export { isPathExcluded, systemExcludedPaths } from '../scope/knowledgeScope';
+export type { ScopeFacts, ScopeReason, ScopeVerdict } from '../scope/scopeEvaluate';
+export type { ScopeRule, ScopeRules, ScopeRuleKind, FolderRule, TagRule, PropertyRule } from '../scope/scopeRules';
 export * from '../inquiry/inquiryContext';
 export * from '../inquiry/inquiryOutcome';
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";

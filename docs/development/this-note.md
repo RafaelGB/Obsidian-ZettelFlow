@@ -40,13 +40,14 @@ if nothing else redraws.
 **↻ Refresh** is the only refresh in the view. It also refreshes itself shortly after the vault
 changes.
 
-## A note in an excluded folder
+## A note that is left out
 
-A note under one of your **excluded folders** (Settings › Your knowledge), or under one of
-ZettelFlow's own folders, is **outside ZettelFlow**. It never becomes an idea, so there is nothing
-to say about it, and nothing ZettelFlow should write into it. This note says so in one calm card:
-*This note is outside ZettelFlow*, the folder that excluded it, and **Change excluded folders**,
-which opens the settings on that section. It shows no counts, stepper, next step, neighbourhood or
+A note one of your [rules](knowledge-scope.md) leaves out (Settings › Your knowledge › What is left
+out), or one under ZettelFlow's own folders, is **outside ZettelFlow**. It never becomes an idea, so
+there is nothing to say about it, and nothing ZettelFlow should write into it. This note says so in
+one calm card: *This note is outside ZettelFlow*, **Left out by** and the rule's own sentence (*are
+in Templates and its subfolders*, *have the tag #draft*), **Kept out also by** for any other rule
+that would, and **Change what is left out**, which opens the settings on that section. It shows no counts, stepper, next step, neighbourhood or
 story. A pinned note stays pinned, so you can let it go with the pin.
 
 The rule is the same everywhere, and it is the index's own (one predicate, never a second list):

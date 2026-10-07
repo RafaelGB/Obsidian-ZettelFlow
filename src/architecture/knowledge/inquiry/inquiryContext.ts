@@ -1,6 +1,5 @@
 import type { KnowledgeModel } from '../model/KnowledgeModel';
 import type { Relation } from '../model/Idea';
-import { isPathExcluded } from '../scope/knowledgeScope';
 import type { Inquiry } from './inquiryState';
 
 export interface InquiryContext {
@@ -8,16 +7,20 @@ export interface InquiryContext {
     candidates: { path: string; reason: Relation }[];
     relations: Relation[];
     evidence: { path: string; claim: string; source: string }[];
-    unavailable: { path: string; reason: 'missing' | 'excluded' }[];
+    /** `by` names what left an excluded reference out (#713) — the same words every surface uses. */
+    unavailable: { path: string; reason: 'missing' | 'excluded'; by?: string }[];
     inspected: number;
     truncated: boolean;
     method: 'selected' | 'neighbors';
 }
 
-/** Bounded indexed context, not semantic search or a verdict. No full-vault ranking or body reads. */
-export function buildInquiryContext(model: KnowledgeModel, q: Inquiry, excludedPaths: readonly string[] = []): InquiryContext {
+/**
+ * Bounded indexed context, not semantic search or a verdict. No full-vault ranking or body reads.
+ * `excludedBy` is the scope gate (#713): what left a path out, or `null` when it is knowledge.
+ */
+export function buildInquiryContext(model: KnowledgeModel, q: Inquiry, excludedBy: (path: string) => string | null = () => null): InquiryContext {
     const result: InquiryContext = { materials: [], candidates: [], relations: [], evidence: [], unavailable: [], inspected: 0, truncated: false, method: q.scope };
-    const allowed = (path: string) => !isPathExcluded(path, excludedPaths) && !q.missingPaths.includes(path);
+    const allowed = (path: string) => excludedBy(path) === null && !q.missingPaths.includes(path);
     const spend = () => {
         if (result.inspected >= 1000) { result.truncated = true; return false; }
         result.inspected++;
@@ -46,7 +49,8 @@ export function buildInquiryContext(model: KnowledgeModel, q: Inquiry, excludedP
     };
     for (const path of seeds) {
         if (!allowed(path) || !model.get(path)) {
-            result.unavailable.push({ path, reason: isPathExcluded(path, excludedPaths) ? 'excluded' : 'missing' });
+            const by = excludedBy(path);
+            result.unavailable.push(by === null ? { path, reason: 'missing' } : { path, reason: 'excluded', by });
         } else addMaterial(path);
     }
     for (const path of seeds) {

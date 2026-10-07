@@ -78,7 +78,7 @@ describe("analogy on a note brings something far away (#569)", () => {
 
     it("offers the move only where a note is knowledge", () => {
         expect(MOVES).toContain("isKnowledge(");
-        expect(MOVES).toContain("scopeExcludedPaths(this.plugin.settings)");
+        expect(MOVES).toContain("inScopeFor(this.plugin.settings");
     });
 
     it("adds no fifth move to the Lab", () => {

@@ -24,7 +24,8 @@ export type Measurable =
     | "enrich.full"
     | "enrich.incremental"
     | "analysis.heaviest"
-    | "canvas.scan";
+    | "canvas.scan"
+    | "scope.census";
 
 export interface Sample {
     name: Measurable;

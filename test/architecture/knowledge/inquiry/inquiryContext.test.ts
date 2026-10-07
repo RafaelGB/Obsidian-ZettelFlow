@@ -26,11 +26,17 @@ describe('bounded inquiry context', () => {
         a.claims = [{text: 'claim', sources: [{ref: 'secret/b.md', kind: 'link'}, {ref: 'doi:ok', kind: 'text'}]}];
         model.build([a, idea('secret/b.md')]);
         const before = JSON.stringify(model.all());
-        const result = buildInquiryContext(model, { ...createInquiry('one'), selectedPaths: ['a.md'], scope: 'neighbors' }, ['secret']);
+        const result = buildInquiryContext(model, { ...createInquiry('one'), selectedPaths: ['a.md'], scope: 'neighbors' }, (path) => (path.startsWith('secret/') ? 'secret' : null));
         expect(result.materials.map(x => x.path)).toEqual(['a.md']);
         expect(JSON.stringify(result.evidence)).not.toContain('secret/b.md');
         expect(result.evidence).toHaveLength(1);
         expect(JSON.stringify(model.all())).toBe(before);
+    });
+    it('names what left a selected reference out, with the words every surface uses (#713)', () => {
+        const model = new KnowledgeModel();
+        model.build([idea('a.md')]);
+        const result = buildInquiryContext(model, { ...createInquiry('one'), selectedPaths: ['a.md', 'drafts/x.md'] }, (path) => (path.startsWith('drafts/') ? 'have the tag #draft' : null));
+        expect(result.unavailable).toEqual([{ path: 'drafts/x.md', reason: 'excluded', by: 'have the tag #draft' }]);
     });
     it('bounds inspected records, not just displayed rows', () => {
         const model = new KnowledgeModel();

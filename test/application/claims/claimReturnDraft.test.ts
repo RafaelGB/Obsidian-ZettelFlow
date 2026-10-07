@@ -77,6 +77,6 @@ describe("the return's surface cannot reach around the view model (#562)", () =>
         expect(COMPONENT).toContain('id: "return-to-this-claim"');
         expect(COMPONENT).toContain("checkCallback");
         expect(COMPONENT).toContain("statedClaims(");
-        expect(COMPONENT).toContain("scopeExcludedPaths(this.plugin.settings)");
+        expect(COMPONENT).toContain("inScopeFor(this.plugin.settings");
     });
 });

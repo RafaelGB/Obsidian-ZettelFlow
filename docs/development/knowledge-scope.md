@@ -1,64 +1,102 @@
-### Inquiry context (#401)
+# Knowledge scope (what is left out)
 
-Purpose-led context honors these same exclusions, including managed-system folders. Its default is
-the user's explicitly selected notes; expanding by one recorded link hop is optional. Exclusions
-override both choices and also apply to source links. Missing or newly excluded references remain
-unavailable context, never silently replaced by another note. The scoped gather is bounded and reports
-truncation; it is not a whole-vault semantic search over the user's written purpose.
-# Knowledge scope (excluded paths)
+Not every note in a vault is knowledge. Templates, meeting boilerplate, archived drafts and
+ZettelFlow's own flow files would otherwise show up as orphans in Health, as ideas to cultivate,
+as dots on the graph. **What is left out** decides which notes never become ideas: a note that is
+left out disappears from the graph, Health, discovery, Cultivate and Home at once, because it never
+enters the index. No note is moved or changed.
 
-Not everything in a vault is *knowledge*. Config folders, template libraries, attachments-as-notes
-and other tooling are just files that happen to live next to your thinking. **Knowledge scope**
-(#311) lets you keep them out of the thinking system entirely.
+![The kept-out card: how much counts, the rules as sentences, an exception, ZettelFlow's own folders](../resources/settings/knowledge-scope.svg)
 
-## What it does
+It lives in **Settings › Your knowledge › What is left out** (Obsidian's settings search still finds
+it as *Excluded folders*), and **This note** links straight to it from any note that is left out.
 
-Add folders under **Settings → ZettelFlow → Knowledge scope → Excluded folders**. It is a small CRUD:
-each excluded folder is one row with a remove button, and you add a new one from a **folder
-autosuggest** (add/remove, no free-text list). Every note whose path is under an excluded folder
-**never enters the index** — so it drops out of *every* mechanism at once:
+## The rules: three closed kinds, no formulas
 
-- the **3D graph** and the living knowledge map
-- **Health › Tend**, and the knowledge debt and balance projections scripts read
-- **discovery**, open questions, evidence maps
-- **Cultivate** sessions and **Home** (recommendations, next session, counts)
-- maturity, the thinking heatmap, the weekly review — everything downstream of the model
+A rule finishes the sentence **"Leave out notes that…"**, and is built only from what your vault
+already holds — nothing is typed except a search:
 
-It is **one filter, by subtraction**: because excluded notes never become ideas, no individual view
-needs to know about the setting.
+| Kind | Says | Picked from |
+|---|---|---|
+| **Folder** | *are in* / *are not in* a folder, with or without its subfolders | the vault's folders |
+| **Tag** | *have any of* / *have none of* some tags, nested tags included or not | the vault's tags, each with how many notes carry it |
+| **Property** | a property *is one of* some values, *is set* or *is not set* | the vault's properties, then the values notes already carry, as a checklist |
 
-## How matching works
+A folder rule matches the folder, everything under it, and its folder note (`Templates.md`), but
+never a sibling that only starts the same (`Templates-old/`). Tags are case-insensitive, and from
+the frontmatter and the body alike. A property list matches if any item does; a checkbox reads as
+`true` / `false`. Only values that some note carries can be picked: the rules can never name
+something your vault does not have.
 
-Each entry is a **folder-boundary "starts with"** match. `templates` excludes `templates/note.md`,
-`templates/sub/deep.md` and the note `templates.md` — but **not** `templates-other/…`. Leading/
-trailing slashes and back-slashes are normalised, values are **Unicode-normalised to NFC**, and blanks
-and duplicates dropped. Adding or removing a folder rebuilds the index **and refreshes any open Home /
-Cultivate surface immediately**.
+## How they combine — one sentence
 
-Because you add folders from the autosuggest, the stored value is the **exact** `folder.path` Obsidian
-uses — which is what fixes a class of silent no-ops (#374): a folder named with emoji, spaces or
-accents typed into a free-text box rarely byte-matches the real path (variation selectors, ZWJ,
-Unicode form), so the old open-list exclusion matched nothing. Picking the folder removes that gap
-entirely; the NFC step covers any remaining accented-name mismatch.
+> **A note is left out when any rule leaves it out, unless an exception keeps it in — and
+> ZettelFlow's own folders are always out.**
 
-## System folders are excluded automatically
+- **Keep anyway** (exceptions) use the same three kinds. *have the tag #evergreen* keeps an
+  evergreen note in even when it sits in `Templates/`.
+- **ZettelFlow's own folders** — flow canvases and their steps, hook flows, the script library and
+  the [Thinking space](../architecture/thought-lab.md) — are listed on the card, locked: no rule
+  or exception changes them.
+- **Order never changes what is in or out.** It only decides which rule is **named**: the first
+  that matches. Every surface that refuses a note says the same thing — This note (*Left out by …*,
+  and *Kept out also by …* for the others), the crystallize dialog, Cultivate's inquiry.
 
-ZettelFlow's **own machinery** is never part of your thinking, so it is excluded **automatically** —
-you don't have to list it. That covers the flows folder (`foldersFlowsPath`, default
-`_ZettelFlow/folders`), the hook-flow folder (`hooks.folderFlowPath`, default `_ZettelFlow/hooks`)
-and the `zf` JS library folder (`jsLibraryFolderPath`). Their step notes and scripts therefore never
-get indexed, cultivated, or counted anywhere. Your manual list is merged on top of these.
+## What the card counts
 
-## Notes
+- *94 of 300 notes count as knowledge*, then how many your rules leave out, how many an exception
+  keeps, and how many are in ZettelFlow's own folders.
+- Each rule says what it leaves out (**Leaves out 42 notes**); each exception what it keeps. Rules
+  may overlap, so these counts are each rule's own and do not add up to the total.
+- **Show the notes left out** lists them under the rule that names each one — those groups do add
+  up — or A–Z. A name opens its note.
+- A rule being written says what it would do before it is added (**Would leave out 31 notes**, how
+  many another rule already leaves out, the first few names). Once added it shows exactly that.
+- If the rules would leave out every note, the card says so inline — and still lets you save.
 
-- A link **from** an in-scope note **to** an excluded note is tolerated (the target simply isn't a
-  node); it won't resurrect the excluded note into the graph.
-- Excluding a path doesn't move or change any file — it only changes what the knowledge system reads.
+Nothing is saved while you pick, search or switch kind: only **Add rule**, **Save** and **Remove**
+write the settings. On a phone the rule editor opens as a sheet.
+
+## The migration from excluded folders
+
+Before #713 this was a list of excluded folders. On first load each folder becomes the rule
+*are in X and its subfolders*, in the same order — and leaves out exactly the same notes: a
+property test over thousands of generated paths (accented names in both Unicode forms, `X.md`
+siblings, `X-other/` folders) proves the new verdict equals the old prefix match, and a fixture
+vault's left-out list is compared byte for byte.
+
+**Downgrade mirror (one release).** Every change also writes those folder rules back to the old
+`excludedPaths` list, so the previous version still excludes every folder it understands (it
+ignores tag and property rules and keeps them in `data.json`). If you add a folder there and
+upgrade again, it is appended as a rule. The one lossy direction: a folder **removed** in the old
+version is not removed from the rules — no configured exclusion is ever lost. The mirror goes away
+in the next release ([#715](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/715)).
+
+**What was deliberately left out.** File type (only Markdown ever becomes knowledge), created or
+modified age (notes would drift out on their own over time), file-name patterns, link counts,
+AND-groups and ranges (one sentence must describe the combination), and switches or reordering for
+rules (order already changes nothing). No rule is ever suggested to you: what counts as knowledge
+is your judgement (§XII).
 
 ## Architecture
 
-The pure predicate lives in `architecture/knowledge/scope/knowledgeScope.ts`
-(`isPathExcluded` / `normalizeExcludedPaths`), with `scopeExcludedPaths(settings)` merging the user's
-`excludedPaths` with the auto-excluded system folders. It is applied at the single boundary in
-`KnowledgeIndex.inScope` (`build` / `upsert` / `enrichInlineRelations` / `onRename`). Settings:
-`ZettelFlowSettings.excludedPaths` (+ `foldersFlowsPath`, `hooks.folderFlowPath`, `jsLibraryFolderPath`).
+| Piece | Where |
+|---|---|
+| The stored shape and its validation | `architecture/knowledge/scope/scopeRules.ts` (pure) |
+| The verdict | `architecture/knowledge/scope/scopeEvaluate.ts` (pure, Obsidian-free) |
+| Counts, draft preview, the pickers' vocabulary | `architecture/knowledge/scope/scopeCensus.ts` (pure) |
+| A note's facts (path, tags, frontmatter) | `architecture/knowledge/scopeFacts.ts` (`getAllTags`) |
+| The one gate | `KnowledgeIndex.inScope` / `scopeOf` / `excludedBy`, and `scopeGate.ts` for settings-held callers |
+| The card | `config/modals/handlers/scope/` |
+
+There is **one gate**: the judgement and move logs, the claim and move doors, the capture writer,
+the inquiry context and every surface ask it, so a tag rule applies everywhere at once —
+`oneGate.test.ts` fails the build on a caller that matches folders itself. A tag added or removed
+is followed when Obsidian re-reads the note (`metadataCache` `changed`), membership only, so
+nothing is recorded twice.
+
+**Budgets** ([performance budgets](performance-budgets.md)), measured on a desktop and on the CI
+runner: deciding 50,000 notes 67 / 126 ms (ceiling 300), counting the card 220 / 364 ms (900),
+previewing a draft 22 / 49 ms (150), a scoped 10,000-note build 26 ms — under the unscoped ceiling
+of 150. Health › Timings shows *Counting what is left out* on
+your machine.

@@ -27,7 +27,9 @@ jest.mock("architecture/knowledge", () => ({
             status: scope.status,
             getModel: () => model,
             recognisesState: () => true,
-            excludedBy: (path: string) => (scope.excluded && path.startsWith(`${scope.excluded}/`) ? scope.excluded : null),
+            excludedBy: (path: string) => (scope.excluded && path.startsWith(`${scope.excluded}/`) ? { kind: "rule", index: 0 } : null),
+            scopeRules: () => ({ leaveOut: [{ kind: "folder", op: "in", folder: scope.excluded, subfolders: true }], keep: [] }),
+            alsoExcludedBy: () => [],
         }),
     },
 }));
@@ -96,7 +98,8 @@ describe("a note in an excluded folder is outside ZettelFlow (#688)", () => {
     it("says so, with the folder that excluded it, and reads nothing about the note", () => {
         scope.excluded = "Templates";
         const screen = buildCompanionScreen(app(), { shown: "Templates/Daily.md", pinned: false, last: null });
-        expect(screen).toEqual({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" });
+        // Named in the card's own words (#713): the rule sentence, not just a folder.
+        expect(screen).toEqual({ kind: "outside", path: "Templates/Daily.md", by: "are in Templates and its subfolders", also: [] });
         expect(rank).not.toHaveBeenCalled();
     });
 

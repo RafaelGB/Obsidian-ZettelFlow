@@ -237,18 +237,20 @@ describe("where a note came from (#683)", () => {
 });
 
 describe("a note outside ZettelFlow (#688)", () => {
-    it("says so calmly, names the excluded folder, and offers one way out", () => {
+    it("says so calmly, names the rule that left it out and the others, and offers one way out (#713)", () => {
         openSettings.mockClear();
-        const { host, ctx } = render({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" });
+        const { host, ctx } = render({ kind: "outside", path: "Templates/Daily.md", by: "are in Templates and its subfolders", also: ["have the tag #template"] });
         expect(host.oneByClass("note-companion-title").textContent).toBe("Daily");
         expect(host.oneByClass("note-companion-outside-title").textContent).toBe("This note is outside ZettelFlow");
-        expect(host.oneByClass("note-companion-outside-folder").textContent).toBe("Templates");
+        expect(host.oneByClass("note-companion-outside-by").textContent).toBe("Left out by are in Templates and its subfolders");
+        expect(host.oneByClass("note-companion-outside-also").textContent).toBe("Kept out also by have the tag #template");
+        expect(host.oneByClass("note-companion-outside-change").textContent).toBe("Change what is left out");
         host.oneByClass("note-companion-outside-change").click();
         expect(openSettings).toHaveBeenCalledWith(ctx.app, "knowledge");
     });
 
     it("draws no counts, no stepper and no menu for it", () => {
-        const { host } = render({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" });
+        const { host } = render({ kind: "outside", path: "Templates/Daily.md", by: "are in Templates and its subfolders", also: ["have the tag #template"] });
         expect(host.byClass("note-companion-vital")).toHaveLength(0);
         expect(host.byClass("note-companion-stepper")).toHaveLength(0);
         expect(host.byClass("note-companion-more")).toHaveLength(0);
@@ -256,7 +258,7 @@ describe("a note outside ZettelFlow (#688)", () => {
     });
 
     it("keeps the pin, so a pinned note outside can still be let go", () => {
-        const { host, ctx } = render({ kind: "outside", path: "Templates/Daily.md", prefix: "Templates" }, true);
+        const { host, ctx } = render({ kind: "outside", path: "Templates/Daily.md", by: "are in Templates and its subfolders", also: ["have the tag #template"] }, true);
         host.oneByClass("note-companion-pin").click();
         expect(ctx.follow).toHaveBeenCalled();
     });

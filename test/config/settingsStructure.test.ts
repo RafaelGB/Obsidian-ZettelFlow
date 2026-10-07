@@ -75,6 +75,8 @@ const REPLACED: Record<string, string> = {
     settings_ai_max_input_name: "settings_ai_limits_name — one row, two inputs (still found by this name)",
     settings_ai_max_output_name: "settings_ai_limits_name — one row, two inputs (still found by this name)",
     settings_ai_disclosure: "settings_ai_privacy_name — the same promise, as a callout that is always shown",
+    // #713 — the folder list became rules; its name is now an alias of the row, still found by search.
+    settings_excluded_paths_name: "settings_scope_name — closed rules and exceptions (aliased as Excluded folders)",
 };
 
 /**

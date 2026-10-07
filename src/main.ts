@@ -40,7 +40,8 @@ import { SerializedSettingsWriter } from 'architecture/plugin/services/Serialize
 import { draftStore } from 'architecture/plugin/noteBuilder/DraftStore';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { v4 as uuid } from 'uuid';
-import { isPathExcluded, scopeExcludedPaths } from 'architecture/knowledge/scope/knowledgeScope';
+import { isPathExcluded } from 'architecture/knowledge/scope/knowledgeScope';
+import { inScopeFor } from 'architecture/knowledge/scopeGate';
 import { CultivationService } from 'architecture/plugin/services/CultivationService';
 import { CreateOnlyWriter } from 'architecture/plugin/services/CreateOnlyWriter';
 
@@ -50,7 +51,8 @@ export default class ZettelFlow extends Plugin {
 	public settings: ZettelFlowSettings;
 	async onload() {
 		await this.loadSettings();
-		const inScope = (path: string) => !isPathExcluded(path, [...scopeExcludedPaths(this.settings), this.app.vault.configDir]);
+		// The one scope gate (#713), and Obsidian's own config folder, which is never a note.
+		const inScope = (path: string) => !isPathExcluded(path, [this.app.vault.configDir]) && inScopeFor(this.settings, path);
 		const capture = new CreateOnlyWriter(this.app.vault, inScope);
 		InquiryRuntime.getInstance().init({
 			load: () => this.settings.inquiry,

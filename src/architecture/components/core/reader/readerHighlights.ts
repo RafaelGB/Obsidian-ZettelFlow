@@ -167,6 +167,11 @@ export class ReaderHighlights {
     private anchored: { thought: Thought; marks: HTMLElement[] }[] = [];
     private detached: Thought[] = [];
     private popover: HTMLElement | null = null;
+    /**
+     * The passage a note is being written about, marked meanwhile: focusing the note box takes the
+     * selection away, and the words lost their highlight while you typed. Gone with the popover.
+     */
+    private pending: HTMLElement[] = [];
     /** The listeners of the popover on screen, gone with it. */
     private popoverScope: Component | null = null;
     /** The listeners of the margin's rows, replaced when it redraws. */
@@ -332,6 +337,7 @@ export class ReaderHighlights {
     }
 
     hidePopover(): void {
+        this.clearPending();
         window.clearTimeout(this.statusTimer);
         this.popover?.remove();
         this.popover = null;
@@ -415,7 +421,17 @@ export class ReaderHighlights {
 
     private openNoteEditor(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote): void {
         const pop = this.openPopover(selection.rect, "editing");
+        // Marked before the box takes focus — and the selection with it.
+        if (this.body) {
+            this.pending = wrapSpan(this.body, span, () => this.makeMark("pending")) as unknown as HTMLElement[];
+            this.pending.forEach((mark) => mark.addClass(c("reader-highlight--pending")));
+        }
         this.noteForm(pop, "", (text) => void this.keep(selection, span, quote, text));
+    }
+
+    private clearPending(): void {
+        this.pending.forEach((mark) => unwrapMark(mark));
+        this.pending = [];
     }
 
     /** A small form for a margin note: Ctrl/Cmd-Enter saves, Esc cancels. */
@@ -471,6 +487,7 @@ export class ReaderHighlights {
         if (note.trim()) this.noted++;
         selection.clear();
         if (this.body !== body) return; // the chapter turned while the thought was written
+        this.clearPending(); // the real marks take its place
         const thought = made;
         const marks = this.draw(thought, span);
         // A marker drawn across the words, once — only on the highlight just made (#667).

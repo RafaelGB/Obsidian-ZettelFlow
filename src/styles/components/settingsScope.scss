@@ -322,6 +322,71 @@
     gap: $space-2;
 }
 
+// ── the notes left out ─────────────────────────────────────────────────────────────────────────
+button.zettelkasten-flow__scope-left-out-toggle {
+    height: auto;
+    margin-left: auto;
+}
+
+.zettelkasten-flow__scope-left-out {
+    @include card;
+    gap: $space-2;
+    padding: $space-3;
+}
+
+.zettelkasten-flow__scope-left-out-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-left-out-group {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__scope-left-out-group-title {
+    @include row;
+    color: $text-plain;
+}
+
+.zettelkasten-flow__scope-left-out-sentence {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__scope-left-out-names {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: var(--size-4-6);
+}
+
+/* A link, not a button: `button.` outranks Obsidian's `button:not(.clickable-icon)` box. */
+button.zettelkasten-flow__scope-left-out-name,
+button.zettelkasten-flow__scope-left-out-more {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: $text-small;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+button.zettelkasten-flow__scope-left-out-more {
+    color: $text-quiet;
+}
+
 // ── a narrow pane and the phone sheet: everything stacks ───────────────────────────────────────
 @container (max-width: 34rem) {
     .zettelkasten-flow__scope-rule {

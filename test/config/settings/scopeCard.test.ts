@@ -13,6 +13,7 @@ jest.mock("architecture/settings", () => ({
 }));
 
 import { renderScopeCard, __resetScopeCard, type ScopeCardDeps } from "config/modals/handlers/scope/scopeCard";
+import { leftOutListRenderer, __resetLeftOutList } from "config/modals/handlers/scope/scopeLeftOutList";
 import { compileScope, type ScopeFacts } from "architecture/knowledge/scope/scopeEvaluate";
 import { scopeCensus } from "architecture/knowledge/scope/scopeCensus";
 import type { ScopeRules } from "architecture/knowledge/scope/scopeRules";
@@ -254,6 +255,63 @@ describe("authoring a rule through the card alone (AC-7, AC-8, FR-16)", () => {
         expect(h.host.byClass("scope-card")).toHaveLength(1);
         expect(h.host.byClass("scope-editor")).toHaveLength(1);
         expect(h.host.oneByClass("scope-editor").byClass("scope-pick")[0].hasClass("is-active")).toBe(true);
+    });
+});
+
+describe("the notes left out, listed by the rule that names them (FR-14)", () => {
+    const rules: ScopeRules = {
+        leaveOut: [
+            { kind: "tag", op: "any", tags: ["template"], nested: true },
+            { kind: "folder", op: "in", folder: "Templates", subfolders: true },
+            { kind: "tag", op: "any", tags: ["draft"], nested: true },
+        ],
+        keep: [],
+    };
+
+    it("opens under the summary, grouped, a few names then the rest; the groups add up", () => {
+        __resetLeftOutList();
+        const open = jest.fn();
+        const h = harness(rules, { leftOutList: leftOutListRenderer(open) });
+        expect(h.host.byClass("scope-left-out")).toHaveLength(0);
+        h.button("Show the notes left out").click();
+        const list = h.host.oneByClass("scope-left-out");
+        expect(list.oneByClass("scope-section-title").textContent).toBe("5 notes left out");
+        const groups = list.byClass("scope-left-out-group");
+        expect(groups.map((g) => g.oneByClass("scope-left-out-sentence").textContent)).toEqual([
+            "have the tag #template or a nested tag",
+            "are in Templates and its subfolders",
+            "have the tag #draft or a nested tag",
+        ]);
+        const counts = groups.map((g) => Number(g.oneByClass("scope-count").textContent));
+        expect(counts.reduce((a, b) => a + b, 0)).toBe(5);
+        // Each note under the first rule that names it — Book template is in Templates *and* tagged.
+        expect(groups[0].byClass("scope-left-out-name").map((n) => n.textContent)).toEqual(["Keeper", "Recipes template", "Book template"]);
+        expect(groups[1].byClass("scope-left-out-name").map((n) => n.textContent)).toEqual(["Weekly template"]);
+        h.button("Hide the notes left out").click();
+        expect(h.host.byClass("scope-left-out")).toHaveLength(0);
+    });
+
+    it("re-sorts A–Z, and a name opens its note", () => {
+        __resetLeftOutList();
+        const open = jest.fn();
+        const h = harness(rules, { leftOutList: leftOutListRenderer(open) });
+        h.button("Show the notes left out").click();
+        h.button("A–Z").click();
+        const names = h.host.oneByClass("scope-left-out").byClass("scope-left-out-name");
+        expect(names.map((n) => n.textContent)).toEqual(["Book template", "Half-thought", "Keeper", "Recipes template", "Weekly template"]);
+        names[1].click();
+        expect(open).toHaveBeenCalledWith("Notes/Half-thought.md");
+    });
+
+    it("shows a group's rest on request", () => {
+        __resetLeftOutList();
+        const many: ScopeRules = { leaveOut: [{ kind: "folder", op: "in", folder: "Notes", subfolders: true }], keep: [] };
+        const h = harness(many, { leftOutList: leftOutListRenderer(jest.fn()) });
+        h.button("Show the notes left out").click();
+        const group = () => h.host.oneByClass("scope-left-out-group");
+        expect(group().byClass("scope-left-out-name")).toHaveLength(3);
+        h.button("and 2 more").click();
+        expect(group().byClass("scope-left-out-name")).toHaveLength(5);
     });
 });
 

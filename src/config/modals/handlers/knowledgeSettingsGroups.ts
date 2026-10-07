@@ -8,6 +8,7 @@ import { compiledScopeOf } from "architecture/knowledge/scopeGate";
 import { renderScopeCard, type ScopeCardDeps } from "./scope/scopeCard";
 import { commitScope } from "./scope/scopeCommit";
 import { ScopeRuleSheet } from "./scope/ScopeRuleSheet";
+import { leftOutListRenderer } from "./scope/scopeLeftOutList";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -38,6 +39,13 @@ export function scopeCardDeps(plugin: ZettelFlow): ScopeCardDeps {
             sheet.open();
             return sheet;
         },
+        leftOutList: leftOutListRenderer((path) => {
+            const file = plugin.app.vault.getFileByPath(path);
+            if (!file) return;
+            // Settings live in a window of their own (1.14): leave them, and open the note in the workspace.
+            (plugin.app as unknown as { setting?: { close(): void } }).setting?.close();
+            void plugin.app.workspace.getLeaf(false).openFile(file);
+        }),
     };
 }
 

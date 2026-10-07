@@ -33,8 +33,8 @@ export interface ScopeCardDeps {
     isPhone: boolean;
     /** On a phone: host the editor in a sheet. `draw` renders it; `dismissed` is a swipe-away. */
     openSheet(draw: (host: HTMLElement) => void, dismissed: () => void): { redraw(): void; finish(): void };
-    /** Draw the notes left out under the summary (S6); absent, the button is not offered. */
-    leftOutList?(host: HTMLElement, census: ScopeCensus, rules: ScopeRules): void;
+    /** The notes left out: a toggle in the summary, the list under it. Absent, nothing is offered. */
+    leftOutList?(summary: HTMLElement, host: HTMLElement, census: ScopeCensus, rules: ScopeRules, redraw: () => void): void;
 }
 
 interface CardState {
@@ -116,11 +116,8 @@ export function renderScopeCard(host: HTMLElement, deps: ScopeCardDeps): void {
     if (census.system > 0) second.push(tCount(census.system, "settings_scope_summary_system", census.system.toLocaleString()));
     if (second.length > 0) words.createDiv({ cls: c("scope-hint"), text: second.join(" · ") });
     if (deps.leftOutList && census.leftOutByRules > 0) {
-        const listHost = card.createDiv({ cls: c("scope-left-out-host") });
-        deps.leftOutList(listHost, census, rules);
-        // The list's own toggle lives in the summary, beside the number it explains.
-        const toggle = listHost.querySelector(`.${c("scope-left-out-toggle")}`);
-        if (toggle) summary.appendChild(toggle as HTMLElement);
+        // The toggle sits in the summary, beside the number it explains; the list opens under it.
+        deps.leftOutList(summary, card.createDiv({ cls: c("scope-left-out-host") }), census, rules, redraw);
     }
     if (census.allOut) card.createDiv({ cls: c("scope-caution"), text: t("settings_scope_all_out") });
 

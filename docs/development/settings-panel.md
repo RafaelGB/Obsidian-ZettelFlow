@@ -24,7 +24,8 @@ when each feature was written. Every row is still found by Obsidian's own settin
 
   The cards are derived from your settings, never stored, so they cannot drift from them.
 - **The section bar** — one button per section. It stays at the top while you scroll, and marks the
-  section you are reading.
+  section you are reading. It keeps to one line: when the names do not fit, the sections you are not
+  in show only their icon (their name is the tooltip).
 
 ## A fresh vault: three ways in
 

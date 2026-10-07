@@ -83,6 +83,9 @@ open tasks* is a Tasks panel with one **Filter** · `date` · *in the last … d
 - Click a task's text to open its note **at that line** (Mod-click: a new tab); hover for a page
   preview. Click a note's name to open the note.
 - Edit a task in its note and the panel follows.
+- **Fast on a large Base.** Only notes with tasks are read, several at a time, and a note that has
+  not changed since the last update is not read again: the next update after an edit reads just
+  that note (budget `dashboard.tasks.read.300`).
 
 The text is shown as plain text, as written — including any Tasks-plugin emoji. Due dates,
 priorities and custom statuses (`[/]`, `[-]`, shown as done) are left for later.

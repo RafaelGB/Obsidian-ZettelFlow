@@ -136,4 +136,42 @@ describe("crystallize through a flow (#712)", () => {
         expect(links).toBeGreaterThan(placed);
         expect(BUILDER).toContain("resolveCrystallizeTokens(this.content.get(), this.note.getCrystallizeSeed())");
     });
+
+    const ROUTE = readFileSync(join(SRC, "architecture", "plugin", "thinking", "crystallizeThroughFlow.ts"), "utf8");
+    const callersOf = (pattern: RegExp, skip: string) =>
+        sources(SRC)
+            .filter((path) => !path.endsWith(skip))
+            .filter((path) => pattern.test(readFileSync(path, "utf8")))
+            .map((path) => relative(SRC, path));
+
+    it("is opened from the confirmation and nowhere else", () => {
+        expect(callersOf(/\bcrystallizeThroughFlow\(/, "crystallizeThroughFlow.ts")).toEqual([
+            join("architecture", "components", "core", "lab", "CrystallizeModal.ts"),
+        ]);
+        expect(MODAL).toContain("onClick(() => void this.apply())");
+    });
+
+    it("records the verdict only from the route, once the note is built", () => {
+        expect(callersOf(/\brecordCrystallizedThroughFlow\(/, "crystallizeThought.ts")).toEqual([
+            join("architecture", "plugin", "thinking", "crystallizeThroughFlow.ts"),
+        ]);
+        const onBuilt = ROUTE.slice(ROUTE.indexOf("deps.openWizard(flow, seed, (path) => {"));
+        expect(onBuilt.indexOf("deps.record(path, request.plan)")).toBeGreaterThan(-1);
+        expect(APPLIER).toContain("export function recordCrystallizedThroughFlow(");
+    });
+
+    it("never writes itself, reaches no AI, and cannot fire unattended", () => {
+        for (const forbidden of ["FileService.", "architecture/ai", "askAi", "completion", "onLayoutReady", "registerEvent", "setInterval"]) {
+            expect({ forbidden, used: ROUTE.includes(forbidden) }).toEqual({ forbidden, used: false });
+        }
+    });
+
+    it("records the same verdict a direct crystallization does — human, accepted, subject only", () => {
+        const record = APPLIER.slice(APPLIER.indexOf("export function recordCrystallizedThroughFlow("));
+        const body = record.slice(0, record.indexOf("\n}"));
+        expect(body).toContain('origin: "human"');
+        expect(body).toContain('verdict: "accepted"');
+        expect(body).toContain("subject: `crystallize:");
+        expect(body).not.toMatch(/body|content|note:/);
+    });
 });

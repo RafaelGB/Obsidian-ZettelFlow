@@ -8,7 +8,7 @@ import { undoBatch, type UndoResult } from "architecture/plugin/writes/undoNotic
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { focusPlan } from "../companionFocus";
 import type { CompanionFocus } from "../noteCompanionContract";
-import { CompanionBlock, marksWrite, noteName, type CompanionContext } from "./CompanionBlock";
+import { CompanionBlock, distinctNames, marksWrite, noteName, type CompanionContext } from "./CompanionBlock";
 import { companionMayWrite, queueCompanionWrite } from "../companionWrites";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -167,9 +167,10 @@ export class SectionsBlock extends CompanionBlock {
                     for (const path of section.openQuestions) this.renderNote(body, ctx, path);
                 }
                 break;
-            case "nearby":
+            case "nearby": {
+                const names = distinctNames(section.rows.map((row) => row.path));
                 for (const row of section.rows) {
-                    const line = this.renderNote(body, ctx, row.path, this.reasonText(row.reasons));
+                    const line = this.renderNote(body, ctx, row.path, this.reasonText(row.reasons), names.get(row.path));
                     const insert = line.createEl("button", {
                         cls: c("note-companion-insert"),
                         text: t("resurface_insert_link"),
@@ -183,13 +184,14 @@ export class SectionsBlock extends CompanionBlock {
                     });
                 }
                 break;
+            }
         }
     }
 
-    private renderNote(body: HTMLElement, ctx: CompanionContext, path: string, reason?: string): HTMLElement {
+    private renderNote(body: HTMLElement, ctx: CompanionContext, path: string, reason?: string, label?: string): HTMLElement {
         const row = body.createDiv({ cls: c("note-companion-row") });
         const main = row.createDiv({ cls: c("note-companion-row-main") });
-        const name = main.createSpan({ cls: c("note-companion-row-name"), text: noteName(path), attr: { title: path } });
+        const name = main.createSpan({ cls: c("note-companion-row-name"), text: label ?? noteName(path), attr: { title: path } });
         makeActivatable(name, () => ctx.open(path));
         hoverPreview(ctx.app, name, path, ctx.owner);
         if (reason) main.createSpan({ cls: c("note-companion-row-reason"), text: reason });

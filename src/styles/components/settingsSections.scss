@@ -330,6 +330,20 @@
     }
 }
 
+/* The thinking space folder under Thinking: a field with room for a whole path, in the folders'
+   monospace — never wider than the row has, on a phone. */
+.setting-group .zettelkasten-flow__settings-folder-wide.setting-item {
+    .search-input-container {
+        width: 22rem;
+        max-width: 100%;
+    }
+
+    .search-input-container input {
+        width: 100%;
+        font-family: var(--font-monospace);
+    }
+}
+
 /* The thinking space is edited under Thinking: here its path is read — the field's shape without
    the field, cut short inside its card (the whole path is its tooltip). The icon beside it goes there. */
 .zettelkasten-flow__settings-folder-path {

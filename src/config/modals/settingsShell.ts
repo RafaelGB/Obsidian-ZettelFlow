@@ -200,8 +200,12 @@ export function barIsStuck(barTop: number, paddingTop: number): boolean {
  */
 export function scrollToSection(container: HTMLElement, id: SectionId, barHeight: number, smooth: boolean): void {
     const head = container.querySelector<HTMLElement>(`.${sectionClass(id)}`);
-    if (!head) return;
+    if (head) scrollToRow(container, head, barHeight, smooth);
+}
+
+/** The same, for any row of the tab: it lands just under the sticky bar. */
+export function scrollToRow(container: HTMLElement, row: HTMLElement, barHeight: number, smooth: boolean): void {
     const top =
-        container.scrollTop + head.getBoundingClientRect().top - container.getBoundingClientRect().top - barHeight - 8;
+        container.scrollTop + row.getBoundingClientRect().top - container.getBoundingClientRect().top - barHeight - 8;
     container.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
 }

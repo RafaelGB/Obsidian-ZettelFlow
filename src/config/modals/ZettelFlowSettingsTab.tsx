@@ -27,6 +27,7 @@ import {
     renderSectionIcon,
     renderStart,
     scrollToSection,
+    scrollToRow,
     sectionClass,
     sectionInView,
     barIsStuck,
@@ -159,7 +160,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             // ── 7 · Advanced, folded: nobody meets a log level on their first day (#440) ──────────
             this.sectionHead("advanced"),
             // Every folder the plugin keeps its files in, in one grid with a reset each (#663).
-            foldersSettingsGroup(plugin, advanced, () => this.go("thinking"), (refresh) => {
+            foldersSettingsGroup(plugin, advanced, () => this.goToThinkingFolder(), (refresh) => {
                 this.pointerRefresh = refresh;
             }),
             scriptsLoggingGroup(advanced),
@@ -386,8 +387,29 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     /** Jump to a section: open Advanced first if that is where you are going. */
     private go(id: SectionId): void {
         if (id === "advanced") this.openAdvanced();
-        const reduced = activeWindow.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-        scrollToSection(this.containerEl, id, this.sectionBarEl?.isConnected ? this.sectionBarEl.offsetHeight : 0, !reduced);
+        scrollToSection(this.containerEl, id, this.barHeight(), !this.reducedMotion());
+    }
+
+    /**
+     * The Advanced grid's arrow: to the thinking space folder field itself, ready to type. Landing on
+     * Thinking's head left the field far below — you arrived and did not see what you came for.
+     */
+    private goToThinkingFolder(): void {
+        const row = this.containerEl.querySelector<HTMLElement>(`.${c("settings-folder-wide")}`);
+        if (!row) {
+            this.go("thinking");
+            return;
+        }
+        scrollToRow(this.containerEl, row, this.barHeight(), !this.reducedMotion());
+        window.setTimeout(() => row.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true }), 300);
+    }
+
+    private barHeight(): number {
+        return this.sectionBarEl?.isConnected ? this.sectionBarEl.offsetHeight : 0;
+    }
+
+    private reducedMotion(): boolean {
+        return activeWindow.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
     }
 
     /** The start card's second way in: to the row that gives a canvas its role, ready to type. */

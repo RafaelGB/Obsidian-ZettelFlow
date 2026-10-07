@@ -172,7 +172,7 @@ should meet a log level on their first day. It remembers whether you left it ope
   cannot be two things at once. A path is checked and saved when you leave the field, press Enter or
   pick a suggestion, never on a keystroke on the way there. The *Thinking space* cell shows its
   folder as read-only text (cut short with the whole path on hover), and its arrow takes you to the
-  one place it is edited, under Thinking.
+  one place it is edited — the field itself under Thinking, ready to type.
 - **Script type declarations** — writes `zettelflow.d.ts` into your scripts folder, so an external
   editor knows the zf API.
 - **Logging** — *Off*, *Errors only*, *Warnings*, *Information*, *Debugging* or *Everything*.

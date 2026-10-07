@@ -150,6 +150,12 @@ describe("returns and the thinking space (#662)", () => {
         expect(row.searches[0].placeholder).toBe("_ZettelFlow/lab");
     });
 
+    it("gives the thinking space folder room for a whole path, like the folders under Advanced", () => {
+        const row = draw(byName(itemsOf(returnSettingsGroup(plugin() as never)), "Thinking space folder"));
+        // The row's default control column showed "4. 📒" of a nested path.
+        expect(row.settingEl.hasClass("zettelkasten-flow__settings-folder-wide")).toBe(true);
+    });
+
     it("finishes a pattern after indexing from the same card", () => {
         const names = itemsOf(returnSettingsGroup(plugin() as never)).map((item) => item.name);
         expect(names).toContain("Re-run a pattern after the note is indexed");

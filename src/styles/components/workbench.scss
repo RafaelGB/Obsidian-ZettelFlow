@@ -32,6 +32,11 @@
     font-size: var(--font-ui-smaller);
 }
 
+/* Nothing run yet, nothing to show: no empty grey bar under the editor. */
+.zettelkasten-flow__workbench-output:empty {
+    display: none;
+}
+
 .zettelkasten-flow__workbench-note {
     margin: var(--size-4-1) 0;
     line-height: 1.4;

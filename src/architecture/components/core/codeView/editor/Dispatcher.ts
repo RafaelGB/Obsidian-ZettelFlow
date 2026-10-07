@@ -1,3 +1,4 @@
+import { c } from "architecture";
 import { basicSetup } from "codemirror";
 import { EditorState, Extension } from "@codemirror/state";
 import { EditorView, ViewUpdate, placeholder, lineNumbers, tooltips, keymap } from "@codemirror/view";
@@ -32,6 +33,9 @@ export function dispatchEditor(
                 basicSetup,
                 javascript(),
                 EditorView.lineWrapping,
+                // Themed by codeEditor.scss: CodeMirror's own base theme is a light one, and its white
+                // gutter and blue active line showed on every dark theme.
+                EditorView.editorAttributes.of({ class: c("cm") }),
                 apiCompletion(bindings),
                 apiHover(bindings),
                 codeFolding(),

@@ -2,7 +2,7 @@ import { describe, it, expect, jest } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { claimDoorEntry, type MenuLike, type MenuItemLike } from "starters/zcomponents/ClaimDoorComponent";
-import { scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { inScopeFor } from "architecture/knowledge/scopeGate";
 
 // test/application/claims → 3 ups → repo root
 const ROOT = join(__dirname, "..", "..", "..");
@@ -42,7 +42,7 @@ function fakeMenu(): MenuLike & { titles: string[] } {
  * place, so the entry is **absent** rather than disabled.
  */
 describe("the door appears only on a note that is knowledge (#561)", () => {
-    const excluded = scopeExcludedPaths({ thoughtLabPath: "_ZettelFlow/lab" });
+    const excluded = (path: string) => inScopeFor({ thoughtLabPath: "_ZettelFlow/lab" }, path);
 
     it("adds one entry for a note in scope", () => {
         const menu = fakeMenu();
@@ -58,6 +58,14 @@ describe("the door appears only on a note that is knowledge (#561)", () => {
         expect(menu.titles).toHaveLength(0);
     });
 
+    it("adds nothing for a note a folder rule leaves out, through the same gate (#713)", () => {
+        const menu = fakeMenu();
+        const gate = (path: string) =>
+            inScopeFor({ knowledgeScope: { leaveOut: [{ kind: "folder", op: "in", folder: "Templates", subfolders: true }], keep: [] } }, path);
+        expect(claimDoorEntry(menu, "Templates/Book.md", gate, jest.fn())).toBe(false);
+        expect(claimDoorEntry(menu, "Notes/real.md", gate, jest.fn())).toBe(true);
+    });
+
     it("adds nothing for something that is not a note", () => {
         const menu = fakeMenu();
         expect(claimDoorEntry(menu, "Attachments/diagram.png", excluded, jest.fn())).toBe(false);
@@ -65,7 +73,7 @@ describe("the door appears only on a note that is knowledge (#561)", () => {
     });
 
     it("reads the one place that decides what is not knowledge", () => {
-        expect(COMPONENT).toContain("scopeExcludedPaths(this.plugin.settings)");
+        expect(COMPONENT).toContain("inScopeFor(this.plugin.settings");
     });
 
     it("registers no command — the palette is not where anyone discovers anything (#496)", () => {

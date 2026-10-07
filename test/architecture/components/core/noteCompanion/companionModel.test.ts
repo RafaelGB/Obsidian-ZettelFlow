@@ -27,7 +27,9 @@ jest.mock("architecture/knowledge", () => ({
             status: scope.status,
             getModel: () => model,
             recognisesState: () => true,
-            excludedBy: (path: string) => (scope.excluded && path.startsWith(`${scope.excluded}/`) ? scope.excluded : null),
+            excludedBy: (path: string) => (scope.excluded && path.startsWith(`${scope.excluded}/`) ? { kind: "rule", index: 0 } : null),
+            scopeRules: () => ({ leaveOut: [{ kind: "folder", op: "in", folder: scope.excluded, subfolders: true }], keep: [] }),
+            alsoExcludedBy: () => [],
         }),
     },
 }));

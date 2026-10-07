@@ -72,7 +72,7 @@ describe("you reach a move the way you reach everything else (#496)", () => {
         // An excluded path never becomes an idea, so it never accrues moves — the log already
         // refused them, and a refusal you cannot see is an invisible failure in another place.
         expect(code(COMMANDS)).toContain("isKnowledge(");
-        expect(code(COMMANDS)).toContain("scopeExcludedPaths(this.plugin.settings)");
+        expect(code(COMMANDS)).toContain("inScopeFor(this.plugin.settings");
     });
 
     it("lists what applies here, from the one table", () => {

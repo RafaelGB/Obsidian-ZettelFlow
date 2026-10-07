@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { __setMockObsidianApi } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge/KnowledgeIndex";
-import { scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { systemExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
 import { classifyHealth } from "architecture/knowledge/state/classifyHealth";
 import { computeKnowledgeDebt } from "architecture/knowledge/debt/knowledgeDebt";
 import { findDiscoveries } from "architecture/knowledge/discovery/discoveries";
@@ -64,7 +64,7 @@ describe("the Lab is not knowledge (#466)", () => {
 
     it("reaches the one place that decides what is not knowledge", () => {
         // Not a second list: the same array that already carries ZettelFlow's own folders.
-        expect(scopeExcludedPaths({ thoughtLabPath: LAB })).toContain(LAB);
+        expect(systemExcludedPaths({ thoughtLabPath: LAB })).toContain(LAB);
     });
 
     it("keeps every thought out of the model, including in sub-folders", () => {

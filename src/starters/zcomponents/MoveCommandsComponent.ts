@@ -2,7 +2,7 @@ import { Menu, Notice, TFile } from "obsidian";
 import { PluginComponent } from "architecture";
 import { t } from "architecture/lang";
 import { effectOf, type MoveVerb } from "application/thinking/move";
-import { isPathExcluded, scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { inScopeFor } from "architecture/knowledge/scopeGate";
 import { MoveLog } from "architecture/plugin/thinking/MoveLog";
 import { MovePicker } from "architecture/components/core/moves/MovePicker";
 import { activateSurface } from "architecture/plugin";
@@ -87,7 +87,7 @@ export class MoveCommandsComponent extends PluginComponent {
      * offering something the log will silently refuse.
      */
     private isKnowledge(path: string): boolean {
-        return !isPathExcluded(path, scopeExcludedPaths(this.plugin.settings));
+        return inScopeFor(this.plugin.settings, path);
     }
 
     /** One entry, never eleven: the menu is not ours to fill. */

@@ -1,7 +1,7 @@
 import { TFile } from "obsidian";
 import { PluginComponent } from "architecture";
 import { t } from "architecture/lang";
-import { isPathExcluded, scopeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { inScopeFor } from "architecture/knowledge/scopeGate";
 import { statedClaims } from "architecture/plugin/claims/statedClaim";
 import { ClaimReturnModal } from "architecture/components/core/claims/ClaimReturnModal";
 import type { JudgementOrigin } from "architecture/knowledge/judgement";
@@ -33,7 +33,7 @@ export class ClaimReturnComponent extends PluginComponent {
             checkCallback: (checking: boolean) => {
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (!file || file.extension !== "md") return false;
-                if (isPathExcluded(file.path, scopeExcludedPaths(this.plugin.settings))) return false;
+                if (!inScopeFor(this.plugin.settings, file.path)) return false;
                 if (statedClaims(file).length === 0) return false;
                 if (!checking) new ClaimReturnModal(this.plugin.app, file, "human").open();
                 return true;

@@ -20,7 +20,9 @@ import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
 import { thinkAbout } from 'starters/zcomponents/ThinkAboutComponent';
 import { QuickCaptureModal } from 'zettelkasten/modals/QuickCaptureModal';
 import { ConfirmModal } from 'architecture/components/settings/confirmModal';
-import { buildInquiryContext, scopeExcludedPaths, ruledOutGaps } from 'architecture/knowledge/state';
+import { buildInquiryContext, ruledOutGaps } from 'architecture/knowledge/state';
+import { isPathExcluded } from 'architecture/knowledge/state';
+import { scopeReasonName } from 'architecture/components/core/scope/ruleSentence';
 import {
     buildCultivationSession,
     selectCultivationTarget,
@@ -441,7 +443,14 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
             context: inquiry => {
                 const index = KnowledgeIndex.getInstance();
                 if (index.status !== 'ready') return { status: 'loading' };
-                return { status: 'ready', value: buildInquiryContext(index.getModel(), inquiry, [...scopeExcludedPaths(this.plugin.settings), this.app.vault.configDir]) };
+                const configDir = this.app.vault.configDir;
+                // The one gate (#713), plus Obsidian's own config folder, which is never a note.
+                const excludedBy = (path: string): string | null => {
+                    if (isPathExcluded(path, [configDir])) return configDir;
+                    const reason = index.excludedBy(path);
+                    return reason === null ? null : scopeReasonName(reason, index.scopeRules());
+                };
+                return { status: 'ready', value: buildInquiryContext(index.getModel(), inquiry, excludedBy) };
             },
         }));
     }

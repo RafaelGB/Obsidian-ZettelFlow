@@ -79,7 +79,8 @@ export interface KnowledgeMember {
  * makes the guardrail a decision point rather than a chore.
  */
 export const NOT_EXPOSED: Record<string, string> = {
-    scopeExcludedPaths: 'Internal settings scope composition, not a bound knowledge query.',
+    systemExcludedPaths: 'Internal settings scope composition (ZettelFlow system folders), not a bound knowledge query.',
+    isPathExcluded: 'Folder-boundary path match behind the scope gate; ask the knowledge index, not this.',
     buildInquiryContext: 'Private selected inquiry context; not an implicit scripting route to user drafts.',
     createInquiry: 'Human-owned inquiry editor state, not a graph query or scripting writer.',
     updateInquiry: 'Explicit human editing and decisions belong to the inquiry experience.',

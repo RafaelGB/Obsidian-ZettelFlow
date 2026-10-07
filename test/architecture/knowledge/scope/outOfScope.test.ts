@@ -38,8 +38,10 @@ describe("the index answers which folder keeps a note out (#688)", () => {
 
     it("reads the user's folders and ZettelFlow's own, through the one settings host", () => {
         index.useSettingsHost({ settings: { excludedPaths: ["Templates"], foldersFlowsPath: "_ZettelFlow/flows" } as never });
-        expect(index.excludedBy("Templates/Daily.md")).toBe("Templates");
-        expect(index.excludedBy("_ZettelFlow/flows/Step.md")).toBe("_ZettelFlow/flows");
+        // A folder rule by its position (the migrated excluded folder), ZettelFlow's own by name (#713).
+        expect(index.excludedBy("Templates/Daily.md")).toEqual({ kind: "rule", index: 0 });
+        expect(index.scopeRules().leaveOut[0]).toEqual({ kind: "folder", op: "in", folder: "Templates", subfolders: true });
+        expect(index.excludedBy("_ZettelFlow/flows/Step.md")).toEqual({ kind: "system", folder: "_ZettelFlow/flows" });
         expect(index.excludedBy("Notes/a.md")).toBeNull();
         expect(index.inScope("Templates/Daily.md")).toBe(false);
         expect(index.inScope("Notes/a.md")).toBe(true);
@@ -67,7 +69,7 @@ describe("the active-note doors refuse an excluded note (#688)", () => {
     });
 
     it("the claim door and the move picker keep their own scope check", () => {
-        expect(read("starters/zcomponents/ClaimDoorComponent.ts")).toContain("isPathExcluded(path, excluded)");
+        expect(read("starters/zcomponents/ClaimDoorComponent.ts")).toContain("if (!inScope(path)) return false;");
         expect(read("starters/zcomponents/MoveCommandsComponent.ts")).toContain("this.isKnowledge(file.path)");
     });
 });

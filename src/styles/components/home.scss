@@ -72,15 +72,18 @@
     }
 }
 
+/* A long name without spaces (a file name) breaks inside the card instead of running out of it. */
 .zettelkasten-flow__home-card-title {
     color: var(--text-normal);
     font-size: var(--font-ui-large);
+    overflow-wrap: anywhere;
 }
 
 .zettelkasten-flow__home-card-line {
     color: var(--text-muted);
     font-size: var(--font-ui-small);
     line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .zettelkasten-flow__home-card-meter {
@@ -327,11 +330,14 @@ button.zettelkasten-flow__home-glimpse {
     height: 100%;
 }
 
+/* Over a fade of the card's own surface, so the dots never sit on the words. */
 .zettelkasten-flow__home-glimpse-caption {
     position: absolute;
-    left: var(--size-4-3);
-    right: var(--size-4-3);
-    bottom: var(--size-4-2);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: var(--size-4-6) var(--size-4-3) var(--size-4-2);
+    background: linear-gradient(to top, var(--background-primary-alt) 45%, transparent);
     display: flex;
     justify-content: space-between;
     gap: var(--size-4-2);

@@ -122,13 +122,20 @@ The policy, and how to keep it:
   `npm audit fix` (semver-compatible, lockfile only — never `--force`, which would downgrade the
   `obsidian` **type-stub** devDependency to an ancient version and break the build). A bump that
   needs a major of a dev tool is a deliberate change, not a security scramble.
-- **Docs (`docs/requirements.txt`):** bump the pinned versions to the patched release, staying within
-  the same major so the MkDocs build does not change behaviour. A major bump (e.g. `pymdown-extensions`
-  10 → 11) is deferred until it can be validated against a real `mkdocs build`.
+- **Transitive pins live in `overrides`** (`package.json`): `moment` (pinned old by the `obsidian`
+  type stubs), `source-map-js` (sass) and `argparse` (jest's `js-yaml@3`; only its CLI uses
+  argparse, so v2 is safe and drops the unpatched `sprintf-js`). Remove an override once the parent
+  ships the fix.
+- **`@codemirror/*` follow the `obsidian` stubs, not the latest release.** Obsidian provides
+  CodeMirror at runtime (those six are `external` in esbuild; `lang-javascript` is bundled and updates normally) and `obsidian` pins exact
+  `@codemirror/state`/`view` peers — a newer type than the app ships is an API that is not there, and
+  npm refuses the install (that is what turned dependabot #611 red). Bump them together with
+  `obsidian`; `dependabot.yml` ignores them.
+- **Docs (`docs/requirements.txt`):** bump the pinned versions to the patched release. A major bump
+  (and certifi's calendar versions, which Dependabot reads as majors) is done by hand, validated with
+  `mkdocs build --strict` and a rendered-text diff against the previous build.
 - **`.github/dependabot.yml`** groups updates weekly per ecosystem so this stays managed without a
   wall of per-package PRs.
 
-**Accepted, documented residue** (dev/docs-only, no runtime exposure, revisited on the next major
-bump): the `obsidian` type-stub → `moment` path-traversal advisory (fixable only by downgrading the
-type stubs), and the two `pymdown-extensions` advisories that need v11. Both act only on
-attacker-controlled input, which for a static docs site of our own authoring does not exist.
+**State (2026-10-07): zero open alerts, `npm audit` clean.** pymdown-extensions 11 and the `moment`
+override closed the residue that used to be accepted here.

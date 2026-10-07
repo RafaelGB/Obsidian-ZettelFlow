@@ -36,6 +36,15 @@ updates:
       # Majors are a hand decision, not a weekly one (see the header).
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # Obsidian ships CodeMirror at runtime and the `obsidian` stubs pin exact peers; a newer type
+      # than the app has is an API that is not there (and npm refuses it — #611). Bump with obsidian.
+      # Only the `external` ones: @codemirror/lang-javascript is bundled and keeps its updates.
+      - dependency-name: "@codemirror/autocomplete"
+      - dependency-name: "@codemirror/commands"
+      - dependency-name: "@codemirror/language"
+      - dependency-name: "@codemirror/lint"
+      - dependency-name: "@codemirror/state"
+      - dependency-name: "@codemirror/view"
 
   # The MkDocs documentation site (GitHub Pages) — never part of the plugin.
   - package-ecosystem: "pip"

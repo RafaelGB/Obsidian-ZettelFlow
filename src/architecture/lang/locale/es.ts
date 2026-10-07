@@ -343,6 +343,7 @@ export default {
     speed_row_enrich: 'Leer todas las notas en busca de campos inline',
     speed_row_enrich_incremental: 'Leer las notas que cambiaron',
     speed_row_analysis: 'El análisis más pesado',
+    speed_row_scope: 'Contar lo que queda fuera',
     speed_pass_running: 'Leyendo notas: {0} de {1}',
     speed_pass_cancel: 'Parar',
     speed_pass_stopped: 'Parado tras {0} notas.',

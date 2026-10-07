@@ -343,6 +343,7 @@ export default {
     speed_row_enrich: 'Reading every note for inline fields',
     speed_row_enrich_incremental: 'Reading the notes that changed',
     speed_row_analysis: 'The heaviest analysis',
+    speed_row_scope: 'Counting what is left out',
     speed_pass_running: 'Reading notes: {0} of {1}',
     speed_pass_cancel: 'Stop',
     speed_pass_stopped: 'Stopped after {0} notes.',

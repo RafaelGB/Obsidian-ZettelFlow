@@ -69,6 +69,33 @@ export const BUDGETS = {
         measured: "21.8 ms",
         because: "a serious vault, and still an order of magnitude inside a frame budget",
     },
+    "index.build.10k.scoped": {
+        name: "build the index from 10,000 notes, through two folder, two tag and one property rule",
+        limit: 150,
+        measured: "26 ms",
+        because:
+            "AC-11 of #713: the scope rules may never push a build past the ceiling an unscoped build has, so they share it",
+    },
+    "scope.evaluate.50k": {
+        name: "compile the scope rules and decide 50,000 notes",
+        limit: 120,
+        measured: "67 ms",
+        because:
+            "the rules run on every index build; set lookups keep it linear, and this catches a per-note recompile or a quadratic nested-tag walk (#713)",
+    },
+    "scope.census.50k": {
+        name: "count what every rule leaves out, group the left-out notes and gather the vocabulary, over 50,000 notes",
+        limit: 400,
+        measured: "220 ms",
+        because:
+            "one settings-card render pays this; under half a second at fifty thousand notes keeps the pane responsive (#713)",
+    },
+    "scope.draft.50k": {
+        name: "preview one draft rule over 50,000 notes",
+        limit: 60,
+        measured: "22 ms",
+        because: "it runs as you pick a value, so it has to fit within a few frames (#713)",
+    },
     "index.build.50k": {
         name: "build the index from 50,000 notes",
         limit: 600,

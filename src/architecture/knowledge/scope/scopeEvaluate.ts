@@ -6,7 +6,7 @@
  * the answer; it only decides which rule is *named* (the first that matches), so every surface that
  * refuses a note can say the same thing about why.
  */
-import { excludedPrefixOf, normalizeExcludedPaths } from "./knowledgeScope";
+import { normalizeExcludedPaths } from "./knowledgeScope";
 import { normalizeTag, normalizeValue, type ScopeRule, type ScopeRules } from "./scopeRules";
 
 /** What the rules can see of a note: where it is, its tags, its properties. */
@@ -24,14 +24,15 @@ export type ScopeVerdict =
     | { in: true; keptBy?: number }
     | { in: false; by: ScopeReason; alsoBy: number[] };
 
-type Matcher = (facts: ScopeFacts, view: FactView) => boolean;
-
 /** The facts, read once per note however many rules look at them. */
 interface FactView {
+    /** Normalised once: slashes, no leading `/`, NFC — the same form the folder rules are stored in. */
     path: string;
     tags: () => Set<string>;
     value: (property: string) => { present: boolean; values: string[] };
 }
+
+type Matcher = (view: FactView) => boolean;
 
 export interface CompiledScope {
     readonly rules: ScopeRules;
@@ -42,25 +43,47 @@ export interface CompiledScope {
     readonly needsFacts: boolean;
 }
 
-function normalizePath(path: string): string {
-    return path.replace(/\\/g, "/").replace(/^\/+/, "").normalize("NFC");
+/** One note, classified against every rule — what the card computes once per render. */
+export interface Classification {
+    system: string | null;
+    matched: number[];
+    /** Every exception that matches (evaluated for every note outside the system folders). */
+    kept: number[];
 }
 
-function folderMatcher(folder: string, subfolders: boolean): (path: string) => boolean {
-    if (subfolders) return (path) => excludedPrefixOf(path, [folder]) !== null;
+/** Anything outside plain ASCII, where Unicode normalisation can change the string. */
+const NON_ASCII = /[\u0080-￿]/;
+
+function normalizePath(path: string): string {
+    let p = path.includes("\\") ? path.replace(/\\/g, "/") : path;
+    if (p.startsWith("/")) p = p.replace(/^\/+/, "");
+    // NFC only where it can matter: an ASCII path is already in every normal form.
+    return NON_ASCII.test(p) ? p.normalize("NFC") : p;
+}
+
+/** A note tag as rules compare it — `normalizeTag`, with the ASCII fast path the build needs. */
+function tagKey(tag: string): string {
+    const bare = tag.charCodeAt(0) === 35 /* # */ ? tag.slice(1) : tag;
+    return NON_ASCII.test(bare) || bare.startsWith("#") || bare.trim() !== bare ? normalizeTag(tag) : bare.toLowerCase();
+}
+
+/**
+ * Folder-boundary match against a normalised path: the folder, its folder note `X.md`, or anything
+ * under `X/` — byte for byte the match the previous version's `excludedPrefixOf` made, which is what
+ * makes the migration provably lossless.
+ */
+function inFolderMatcher(folder: string, subfolders: boolean): (path: string) => boolean {
+    const note = `${folder}.md`;
     const prefix = `${folder}/`;
-    return (path) => {
-        const p = normalizePath(path);
-        if (p === folder || p === `${folder}.md`) return true;
-        return p.startsWith(prefix) && !p.slice(prefix.length).includes("/");
-    };
+    if (subfolders) return (path) => path === folder || path === note || path.startsWith(prefix);
+    return (path) => path === folder || path === note || (path.startsWith(prefix) && path.indexOf("/", prefix.length) < 0);
 }
 
 function compileRule(rule: ScopeRule): Matcher {
     switch (rule.kind) {
         case "folder": {
-            const inFolder = folderMatcher(rule.folder, rule.subfolders);
-            return rule.op === "in" ? (_f, v) => inFolder(v.path) : (_f, v) => !inFolder(v.path);
+            const inFolder = inFolderMatcher(rule.folder, rule.subfolders);
+            return rule.op === "in" ? (v) => inFolder(v.path) : (v) => !inFolder(v.path);
         }
         case "tag": {
             const wanted = new Set(rule.tags);
@@ -76,14 +99,14 @@ function compileRule(rule: ScopeRule): Matcher {
                 }
                 return false;
             };
-            return rule.op === "any" ? (_f, v) => has(v.tags()) : (_f, v) => !has(v.tags());
+            return rule.op === "any" ? (v) => has(v.tags()) : (v) => !has(v.tags());
         }
         case "property": {
             const { property, op } = rule;
-            if (op === "set") return (_f, v) => v.value(property).present;
-            if (op === "notSet") return (_f, v) => !v.value(property).present;
+            if (op === "set") return (v) => v.value(property).present;
+            if (op === "notSet") return (v) => !v.value(property).present;
             const wanted = new Set(rule.values);
-            return (_f, v) => v.value(property).values.some((value) => wanted.has(value));
+            return (v) => v.value(property).values.some((value) => wanted.has(value));
         }
     }
 }
@@ -103,76 +126,109 @@ export function compileScope(rules: ScopeRules, systemFolders: readonly string[]
 export function propertyValues(raw: unknown): string[] {
     if (raw === null || raw === undefined) return [];
     const items = Array.isArray(raw) ? raw : [raw];
-    return items
-        .filter((item) => item !== null && item !== undefined && typeof item !== "object")
-        .map(normalizeValue)
-        .filter((value) => value.length > 0);
+    const out: string[] = [];
+    for (const item of items) {
+        if (item === null || item === undefined || typeof item === "object") continue;
+        const value = normalizeValue(item);
+        if (value.length > 0) out.push(value);
+    }
+    return out;
 }
 
-function findKey(frontmatter: Readonly<Record<string, unknown>>, property: string): string | undefined {
-    if (Object.prototype.hasOwnProperty.call(frontmatter, property)) return property;
-    const wanted = property.toLowerCase();
-    return Object.keys(frontmatter).find((key) => key.toLowerCase() === wanted);
+function hasOwn(object: object, key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+/** The frontmatter key for `property`, case-insensitively, as Obsidian treats property names. */
+function findKey(frontmatter: Readonly<Record<string, unknown>>, property: string, lower: string): string | undefined {
+    if (hasOwn(frontmatter, property)) return property;
+    for (const key in frontmatter) {
+        if (key.length === lower.length && hasOwn(frontmatter, key) && key.toLowerCase() === lower) return key;
+    }
+    return undefined;
+}
+
+const ABSENT = Object.freeze({ present: false, values: [] as string[] });
+
+/** One note seen by the rules: a class, so the build allocates one object per note, not four. */
+class NoteView implements FactView {
+    readonly path: string;
+    private tagSet: Set<string> | undefined;
+
+    constructor(private readonly facts: ScopeFacts) {
+        this.path = normalizePath(facts.path);
+    }
+
+    tags(): Set<string> {
+        if (this.tagSet) return this.tagSet;
+        const set = new Set<string>();
+        for (const tag of this.facts.tags) set.add(tagKey(tag));
+        return (this.tagSet = set);
+    }
+
+    value(property: string): { present: boolean; values: string[] } {
+        const fm = this.facts.frontmatter;
+        if (!fm) return ABSENT;
+        const key = findKey(fm, property, property.toLowerCase());
+        if (key === undefined) return ABSENT;
+        return { present: true, values: propertyValues(fm[key]) };
+    }
 }
 
 function viewOf(facts: ScopeFacts): FactView {
-    let tags: Set<string> | undefined;
-    return {
-        path: facts.path,
-        tags: () => (tags ??= new Set(facts.tags.map(normalizeTag))),
-        value: (property) => {
-            const fm = facts.frontmatter;
-            const key = fm ? findKey(fm, property) : undefined;
-            if (!fm || key === undefined) return { present: false, values: [] };
-            return { present: true, values: propertyValues(fm[key]) };
-        },
-    };
+    return new NoteView(facts);
+}
+
+function systemOf(compiled: CompiledScope, path: string): string | null {
+    for (const folder of compiled.system) {
+        if (path === folder || path === `${folder}.md` || path.startsWith(`${folder}/`)) return folder;
+    }
+    return null;
 }
 
 /** The system folder `path` sits in, or `null`. */
 export function systemFolderOf(compiled: CompiledScope, path: string): string | null {
-    return excludedPrefixOf(path, compiled.system);
-}
-
-/** Every leave-out rule that matches, by position. */
-export function matchingRules(compiled: CompiledScope, facts: ScopeFacts): number[] {
-    const view = viewOf(facts);
-    const out: number[] = [];
-    compiled.leaveOut.forEach((match, index) => {
-        if (match(facts, view)) out.push(index);
-    });
-    return out;
-}
-
-/** The first exception that matches, by position, or `-1`. */
-export function keepingException(compiled: CompiledScope, facts: ScopeFacts): number {
-    const view = viewOf(facts);
-    return compiled.keep.findIndex((match) => match(facts, view));
-}
-
-/** Whether one compiled rule matches — for counting a draft without compiling the rest again. */
-export function ruleMatches(rule: ScopeRule, facts: ScopeFacts): boolean {
-    return compileRule(rule)(facts, viewOf(facts));
+    return systemOf(compiled, normalizePath(path));
 }
 
 /** A rule compiled once, for counting it over many notes. */
 export function compileOne(rule: ScopeRule): (facts: ScopeFacts) => boolean {
     const match = compileRule(rule);
-    return (facts) => match(facts, viewOf(facts));
+    return (facts) => match(viewOf(facts));
+}
+
+/** Whether one rule matches a note. */
+export function ruleMatches(rule: ScopeRule, facts: ScopeFacts): boolean {
+    return compileOne(rule)(facts);
+}
+
+/** Everything the card needs about one note, read through one view of its facts. */
+export function classify(compiled: CompiledScope, facts: ScopeFacts): Classification {
+    const view = viewOf(facts);
+    const system = systemOf(compiled, view.path);
+    if (system !== null) return { system, matched: [], kept: [] };
+    const matched: number[] = [];
+    for (let index = 0; index < compiled.leaveOut.length; index++) if (compiled.leaveOut[index](view)) matched.push(index);
+    const kept: number[] = [];
+    for (let index = 0; index < compiled.keep.length; index++) if (compiled.keep[index](view)) kept.push(index);
+    return { system: null, matched, kept };
+}
+
+/** Every note classified — once per card render; the counts and every draft preview reuse it. */
+export function classifyAll(compiled: CompiledScope, facts: readonly ScopeFacts[]): Classification[] {
+    return facts.map((note) => classify(compiled, note));
 }
 
 /** In or out, and why. System folders first: no exception rescues ZettelFlow's own files. */
 export function scopeVerdict(compiled: CompiledScope, facts: ScopeFacts): ScopeVerdict {
-    const system = systemFolderOf(compiled, facts.path);
+    const view = viewOf(facts);
+    const system = systemOf(compiled, view.path);
     if (system !== null) return { in: false, by: { kind: "system", folder: system }, alsoBy: [] };
     if (compiled.leaveOut.length === 0) return { in: true };
-    const view = viewOf(facts);
     const matched: number[] = [];
-    compiled.leaveOut.forEach((match, index) => {
-        if (match(facts, view)) matched.push(index);
-    });
+    for (let index = 0; index < compiled.leaveOut.length; index++) if (compiled.leaveOut[index](view)) matched.push(index);
     if (matched.length === 0) return { in: true };
-    const kept = compiled.keep.findIndex((match) => match(facts, view));
+    const kept = compiled.keep.findIndex((match) => match(view));
     if (kept >= 0) return { in: true, keptBy: kept };
     return { in: false, by: { kind: "rule", index: matched[0] }, alsoBy: matched.slice(1) };
 }

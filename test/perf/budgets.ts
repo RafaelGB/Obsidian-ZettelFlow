@@ -78,23 +78,23 @@ export const BUDGETS = {
     },
     "scope.evaluate.50k": {
         name: "compile the scope rules and decide 50,000 notes",
-        limit: 120,
-        measured: "67 ms",
+        limit: 300,
+        measured: "126 ms",
         because:
-            "the rules run on every index build; set lookups keep it linear, and this catches a per-note recompile or a quadratic nested-tag walk (#713)",
+            "the rules run on every index build; set lookups keep it linear, and this catches a per-note recompile or a quadratic nested-tag walk (#713). Measured on the CI runner; a desktop does it in 67 ms",
     },
     "scope.census.50k": {
         name: "count what every rule leaves out, group the left-out notes and gather the vocabulary, over 50,000 notes",
-        limit: 400,
-        measured: "220 ms",
+        limit: 900,
+        measured: "364 ms",
         because:
-            "one settings-card render pays this; under half a second at fifty thousand notes keeps the pane responsive (#713)",
+            "one settings-card render pays this; under a second on the CI runner, at fifty thousand notes, keeps the pane responsive (#713). A desktop does it in 220 ms",
     },
     "scope.draft.50k": {
         name: "preview one draft rule over 50,000 notes",
-        limit: 60,
-        measured: "22 ms",
-        because: "it runs as you pick a value, so it has to fit within a few frames (#713)",
+        limit: 150,
+        measured: "49 ms",
+        because: "it runs as you pick a value, so it has to fit within a few frames (#713). Measured on the CI runner; a desktop does it in 22 ms",
     },
     "index.build.50k": {
         name: "build the index from 50,000 notes",

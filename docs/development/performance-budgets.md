@@ -71,9 +71,9 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `index.build.1k` | 2.8 ms | 30 |
 | `index.build.10k` | 21.8 ms | 150 |
 | `index.build.10k.scoped` | 26 ms | 150 |
-| `scope.evaluate.50k` | 67 ms | 120 |
-| `scope.census.50k` | 220 ms | 400 |
-| `scope.draft.50k` | 22 ms | 60 |
+| `scope.evaluate.50k` | 67 ms (126 on CI) | 300 |
+| `scope.census.50k` | 220 ms (364 on CI) | 900 |
+| `scope.draft.50k` | 22 ms (49 on CI) | 150 |
 | `index.build.50k` | **103 ms** | 600 |
 | `derive.one` | 0.003 ms | 0.05 |
 | `enrich.parse.50k` | 37.8 ms | 250 |

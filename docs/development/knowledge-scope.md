@@ -95,7 +95,8 @@ the inquiry context and every surface ask it, so a tag rule applies everywhere a
 is followed when Obsidian re-reads the note (`metadataCache` `changed`), membership only, so
 nothing is recorded twice.
 
-**Budgets** ([performance budgets](performance-budgets.md)): deciding 50,000 notes 67 ms (ceiling
-120), counting the card 220 ms (400), previewing a draft 22 ms (60), a scoped 10,000-note build
-26 ms — under the unscoped ceiling of 150. Health › Timings shows *Counting what is left out* on
+**Budgets** ([performance budgets](performance-budgets.md)), measured on a desktop and on the CI
+runner: deciding 50,000 notes 67 / 126 ms (ceiling 300), counting the card 220 / 364 ms (900),
+previewing a draft 22 / 49 ms (150), a scoped 10,000-note build 26 ms — under the unscoped ceiling
+of 150. Health › Timings shows *Counting what is left out* on
 your machine.
